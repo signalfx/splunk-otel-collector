@@ -1,3 +1,6 @@
+# Configuration file that uses the Splunk exporters (SAPM, SignalFX) to push
+# data to Splunk products.
+
 extensions:
   health_check:
   zpages:
@@ -8,7 +11,7 @@ receivers:
       grpc:
       http:
   # This section is used to collect the OpenTelemetry Collector metrics
-  # Even if just a SignalFx µAPM customer, these metrics are included
+  # Even if just a Splunk µAPM customer, these metrics are included
   prometheus:
     config:
       scrape_configs:

@@ -6,10 +6,10 @@ require (
 	github.com/client9/misspell v0.3.4
 	github.com/golangci/golangci-lint v1.31.0
 	github.com/google/addlicense v0.0.0-20200622132530-df58acafd6d5
+	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.11.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.11.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.11.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/stackdriverexporter v0.11.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.11.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.11.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.11.0

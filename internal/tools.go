@@ -26,6 +26,7 @@ import (
 	_ "github.com/client9/misspell/cmd/misspell"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/google/addlicense"
+	_ "github.com/jstemmer/go-junit-report"
 	_ "github.com/ory/go-acc"
 	_ "github.com/pavius/impi/cmd/impi"
 	_ "github.com/securego/gosec/v2/cmd/gosec"

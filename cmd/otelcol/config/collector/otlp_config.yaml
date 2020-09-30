@@ -1,0 +1,74 @@
+# Configuration file that uses the OTLP exporters to push data to Splunk products.
+# Currently supports only tracing.
+
+extensions:
+  health_check:
+  zpages:
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+  # This section is used to collect the OpenTelemetry Collector metrics
+  # Even if just a Splunk µAPM customer, these metrics are included
+  prometheus:
+    config:
+      scrape_configs:
+      - job_name: 'otel-collector'
+        scrape_interval: 10s
+        static_configs:
+        - targets: ['0.0.0.0:8888']
+        metric_relabel_configs:
+          - source_labels: [ __name__ ]
+            regex: '.*grpc_io.*'
+            action: drop
+  sapm:
+  signalfx:
+  zipkin:
+
+processors:
+  batch:
+  # Enabling the memory_limiter is strongly recommended for every pipeline.
+  # Configuration is based on the amount of memory allocated to the collector.
+  # The configuration below assumes 2GB of memory. In general, the ballast
+  # should be set to 1/3 of the collector's memory, the limit should be 90% of
+  # the collector's memory up to 2GB, and the spike should be 25% of the
+  # collector's memory up to 2GB. In addition, the "--mem-ballast-size-mib" CLI
+  # flag must be set to the same value as the "ballast_size_mib". For more
+  # information, see
+  # https://github.com/open-telemetry/opentelemetry-collector/blob/master/processor/memorylimiter/README.md
+  memory_limiter:
+    ballast_size_mib: 683
+    check_interval: 2s
+    limit_mib: 1800
+    spike_limit_mib: 500
+
+exporters:
+  # Traces
+  otlp:
+    endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
+    insecure: true
+    headers:
+      "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
+  # Metrics + Events
+  signalfx:
+    access_token: "${SPLUNK_ACCESS_TOKEN}"
+    realm: "${SPLUNK_REALM}"
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp, sapm, zipkin]
+      processors: [memory_limiter, batch]
+      exporters: [otlp]
+    metrics:
+      receivers: [otlp, signalfx, prometheus]
+      processors: [memory_limiter, batch]
+      exporters: [signalfx]
+    logs:
+      receivers: [signalfx]
+      processors: [memory_limiter, batch]
+      exporters: [signalfx]
+
+  extensions: [health_check, zpages]

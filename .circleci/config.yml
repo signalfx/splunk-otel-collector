@@ -1,0 +1,259 @@
+version: 2.1
+
+orbs:
+  win: circleci/windows@2.4.0
+
+executors:
+  golang:
+    docker:
+      - image: cimg/go:1.15
+
+commands:
+  verify_dist_files_exist:
+    parameters:
+      files:
+        type: string
+        default: |
+          bin/otelcol_darwin_amd64
+          bin/otelcol_linux_arm64
+          bin/otelcol_linux_amd64
+          bin/otelcol_windows_amd64.exe
+    steps:
+      - run:
+          name: Check if files exist
+          command: |
+            files="<< parameters.files >>"
+            for f in $files; do
+              if [[ ! -f $f ]]
+              then
+                  echo "$f does not exist."
+                  exit 1
+              fi
+            done
+
+  attach_to_workspace:
+    steps:
+      - attach_workspace:
+          at: ~/
+
+  save_module_cache:
+    steps:
+      - save_cache:
+          key: cimg-go-pkg-mod-{{ arch }}-{{ checksum "go.sum" }}
+          paths:
+            - ~/go/pkg/mod
+
+  restore_module_cache:
+    steps:
+      - run:
+          name: create modules dir
+          command: mkdir -p ~/go/pkg/mod
+      - restore_cache: # restores saved cache if no changes are detected since last run
+          keys:
+            - cimg-go-pkg-mod-{{ arch }}-{{ checksum "go.sum" }}
+
+  publish_docker_images:
+    parameters:
+      repo:
+        type: string
+      tag:
+        type: string
+
+    steps:
+      - run:
+          name: Build image
+          command: |
+            make docker-otelcol
+            docker tag otelcol:latest otel/<< parameters.repo >>:<< parameters.tag >>
+            docker tag otelcol:latest otel/<< parameters.repo >>:latest
+      - run:
+          name: Login to Docker Hub
+          command: docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
+      - run:
+          name: Push image
+          command: |
+            docker push otel/<< parameters.repo >>:<< parameters.tag >>
+            docker push otel/<< parameters.repo >>:latest
+
+  install_fluentbit:
+    steps:
+      - run: |
+          sudo chmod 0777 -R /opt
+      - restore_cache: # restores saved cache if no changes are detected since last run
+          keys:
+            - "cimg-fluentbit-{{ arch }}-1.5.3"
+      - run: |
+          sudo ln -s /opt/td-agent-bit/bin/td-agent-bit /usr/local/bin/fluent-bit
+
+          if [[ -f /opt/td-agent-bit/bin/td-agent-bit ]]; then
+            exit 0
+          fi
+
+          wget https://packages.fluentbit.io/ubuntu/bionic/pool/main/t/td-agent-bit/td-agent-bit_1.5.3_amd64.deb
+          sudo dpkg -i ./td-agent-bit*.deb
+      - save_cache:
+          key: cimg-fluentbit-{{ arch }}-1.5.3
+          paths:
+            - /opt/td-agent-bit
+
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - windows-test:
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - setup-environment:
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - lint:
+          requires:
+            - setup-environment
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - cross-compile:
+          requires:
+            - setup-environment
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - test:
+          requires:
+            - setup-environment
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - coverage:
+          requires:
+            - setup-environment
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+
+jobs:
+  setup-environment:
+    executor: golang
+    steps:
+      - checkout
+      - persist_to_workspace:
+          root: ~/
+          paths: project
+      - restore_module_cache
+      - persist_to_workspace:
+          root: ~/
+          paths: go/pkg/mod
+      - run:
+          name: Install tools
+          command: make install-tools
+      - persist_to_workspace:
+          root: ~/
+          paths: go/bin
+
+  lint:
+    executor: golang
+    steps:
+      - attach_to_workspace
+      - run:
+          name: Lint
+          command: make -j4 checklicense impi lint misspell
+      - run:
+          name: Golang Security Checker
+          command: make lint-gosec
+
+  cross-compile:
+    executor: golang
+    parallelism: 4
+    steps:
+      - attach_to_workspace
+      - run:
+          name: Build collector for all archs
+          command: grep ^binaries-all-sys Makefile|fmt -w 1|tail -n +2|circleci tests split|xargs make
+      - persist_to_workspace:
+          root: ~/
+          paths: project/bin
+
+  test:
+    executor: golang
+    environment:
+      TEST_RESULTS: unit-test-results/junit/results.xml
+    steps:
+      - attach_to_workspace
+      - run:
+          name: Unit tests
+          command: |
+            mkdir -p unit-test-results/junit
+            trap "go-junit-report  -set-exit-code < unit-test-results/go-unit-tests.out > unit-test-results/junit/results.xml" EXIT
+            make test | tee unit-test-results/go-unit-tests.out
+      - store_artifacts:
+          path: unit-test-results
+      - store_test_results:
+          path: unit-test-results/junit
+      - save_module_cache
+
+  coverage:
+    executor: golang
+    steps:
+      - attach_to_workspace
+      - run:
+          name: Install packages.
+          command: sudo apt update && sudo apt-get install bzr time
+      - run:
+          name: Coverage tests
+          command: make test-with-cover
+      - run:
+          name: Code coverage
+          command: bash <(curl -s https://codecov.io/bash)
+
+  publish-stable:
+    docker:
+      - image: cimg/go:1.15
+    steps:
+      - attach_to_workspace
+      - verify_dist_files_exist
+      - setup_remote_docker
+      - publish_docker_images:
+          repo: opentelemetry-collector
+          tag: ${CIRCLE_TAG:1}
+      - run:
+          name: Prepare release artifacts
+          command: |
+            cp bin/* dist/
+      - run:
+          name: Calculate checksums
+          command: cd dist && shasum -a 256 * > checksums.txt
+      - run:
+          name: Create Github release and upload artifacts
+          command: ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG dist/
+
+  publish-dev:
+    docker:
+      - image: cimg/go:1.15
+    steps:
+      - attach_to_workspace
+      - verify_dist_files_exist
+      - setup_remote_docker
+      - publish_docker_images:
+          repo: opentelemetry-collector-dev
+          tag: ${CIRCLE_SHA1}
+
+  windows-test:
+    executor:
+      name: win/default
+      shell: powershell.exe
+    environment:
+      GOPATH=~/go
+    steps:
+      - checkout
+      - restore_module_cache
+      - run:
+          name: Upgrade golang
+          command: |
+            choco upgrade golang --version=1.15
+            refreshenv
+      - run:
+          name: Unit tests
+          command: go test ./...
+      - save_module_cache

@@ -64,16 +64,16 @@ commands:
           name: Build image
           command: |
             make docker-otelcol
-            docker tag otelcol:latest otel/<< parameters.repo >>:<< parameters.tag >>
-            docker tag otelcol:latest otel/<< parameters.repo >>:latest
+            docker tag otelcol:latest quay.io/signalfx/<< parameters.repo >>:<< parameters.tag >>
+            docker tag otelcol:latest quay.io/signalfx/<< parameters.repo >>:latest
       - run:
           name: Login to Docker Hub
-          command: docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
+          command: docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
       - run:
           name: Push image
           command: |
-            docker push otel/<< parameters.repo >>:<< parameters.tag >>
-            docker push otel/<< parameters.repo >>:latest
+            docker push quay.io/signalfx/<< parameters.repo >>:<< parameters.tag >>
+            docker push quay.io/signalfx/<< parameters.repo >>:latest
 
   install_fluentbit:
     steps:
@@ -132,6 +132,30 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - publish-stable:
+          requires:
+            - cross-compile
+            - lint
+            - test
+            - coverage
+            - windows-test
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - publish-dev:
+          requires:
+            - cross-compile
+            - lint
+            - test
+            - coverage
+            - windows-test
+          filters:
+            branches:
+              only: master
+            tags:
+              ignore: /.*/
 
 jobs:
   setup-environment:
@@ -215,18 +239,8 @@ jobs:
       - verify_dist_files_exist
       - setup_remote_docker
       - publish_docker_images:
-          repo: opentelemetry-collector
+          repo: splunk-otel-collector
           tag: ${CIRCLE_TAG:1}
-      - run:
-          name: Prepare release artifacts
-          command: |
-            cp bin/* dist/
-      - run:
-          name: Calculate checksums
-          command: cd dist && shasum -a 256 * > checksums.txt
-      - run:
-          name: Create Github release and upload artifacts
-          command: ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG dist/
 
   publish-dev:
     docker:
@@ -236,7 +250,7 @@ jobs:
       - verify_dist_files_exist
       - setup_remote_docker
       - publish_docker_images:
-          repo: opentelemetry-collector-dev
+          repo: splunk-otel-collector-dev
           tag: ${CIRCLE_SHA1}
 
   windows-test:

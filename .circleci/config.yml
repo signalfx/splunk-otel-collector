@@ -18,6 +18,10 @@ commands:
           bin/otelcol_linux_arm64
           bin/otelcol_linux_amd64
           bin/otelcol_windows_amd64.exe
+          dist/splunk-otel-collector_*.amd64.deb
+          dist/splunk-otel-collector_*.arm64.deb
+          dist/splunk-otel-collector-*.arm64.rpm
+          dist/splunk-otel-collector-*.x86_64.rpm
     steps:
       - run:
           name: Check if files exist
@@ -156,6 +160,22 @@ workflows:
               only: master
             tags:
               ignore: /.*/
+      - build-package:
+          name: deb-package
+          package_type: deb
+          requires:
+            - cross-compile
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - build-package:
+          name: rpm-package
+          package_type: rpm
+          requires:
+            - cross-compile
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
 
 jobs:
   setup-environment:
@@ -271,3 +291,36 @@ jobs:
           name: Unit tests
           command: go test ./...
       - save_module_cache
+
+  build-package:
+    machine:
+      image: ubuntu-1604:202007-01
+    parameters:
+      package_type:
+        type: enum
+        enum: ["deb", "rpm"]
+    steps:
+      - attach_to_workspace
+      - run:
+          name: Install fpm and dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y ruby ruby-dev rubygems build-essential rpm
+            gem install --no-document fpm -v 1.11.0
+      - run:
+          name: Build << parameters.package_type >> amd64 package
+          command: ./internal/buildscripts/packaging/fpm/<< parameters.package_type >>/build.sh "${CIRCLE_TAG:-}" "amd64" "./dist/"
+      - run:
+          name: Build << parameters.package_type >> arm64 package
+          command: ./internal/buildscripts/packaging/fpm/<< parameters.package_type >>/build.sh "${CIRCLE_TAG:-}" "arm64" "./dist/"
+      - run:
+          name: Test << parameters.package_type >> package installation
+          command: |
+            if [[ "<< parameters.package_type >>" = "deb" ]]; then
+                ./internal/buildscripts/packaging/fpm/test.sh dist/otel-contrib-collector_*amd64.deb
+            else
+                ./internal/buildscripts/packaging/fpm/test.sh dist/otel-contrib-collector-*x86_64.rpm
+            fi
+      - persist_to_workspace:
+          root: ~/
+          paths: project/dist/*.<< parameters.package_type >>

@@ -6,6 +6,13 @@ extensions:
   zpages:
 
 receivers:
+  jaeger:
+    protocols:
+      grpc:
+      thrift_binary:
+      thrift_compact:
+      thrift_http:
+  opencensus:
   otlp:
     protocols:
       grpc:
@@ -59,11 +66,11 @@ exporters:
 service:
   pipelines:
     traces:
-      receivers: [otlp, sapm, zipkin]
+      receivers: [jaeger, opencensus, otlp, sapm, zipkin]
       processors: [memory_limiter, batch]
       exporters: [otlp]
     metrics:
-      receivers: [otlp, signalfx, prometheus]
+      receivers: [opencensus, otlp, signalfx, prometheus]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:

@@ -46,10 +46,10 @@ processors:
   # information, see
   # https://github.com/open-telemetry/opentelemetry-collector/blob/master/processor/memorylimiter/README.md
   memory_limiter:
-    ballast_size_mib: 683
+    ballast_size_mib: ${SPLUNK_BALLAST}
     check_interval: 2s
-    limit_mib: 1800
-    spike_limit_mib: 500
+    limit_percentage: 90
+    spike_limit_percentage: 25
 
 exporters:
   # Traces

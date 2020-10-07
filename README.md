@@ -34,9 +34,8 @@ stable version number if necessary):
 ```bash
 $ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST=683 \
   docker run -p 7276:7276 -p 8888:8888 -p 9943:9943 -p 55679:55679 -p 55680:55680 -p 9411:9411 \
-    -v collector.yaml:/etc/collector.yaml:ro \
-    --name otelcontribcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0 \
-        --config /etc/collector.yaml --mem-ballast-size-mib=683
+    --name otelcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0 \
+        --mem-ballast-size-mib=683
 ```
 
 ### Kubernetes
@@ -52,6 +51,20 @@ file on GitHub.
 ```bash
 $ make otelcol
 $ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST=683 \
-  ./bin/otelcol --config ./cmd/otelcol/config/collector/splunk-config.yaml \
-    --mem-ballast-size-mib=${SPLUNK_BALLAST}
+  ./bin/otelcol --mem-ballast-size-mib=${SPLUNK_BALLAST}
+```
+
+## Custom Configuration
+
+In addition to using the default configuration, a custom configuration can also
+be provided.
+
+For example in Docker:
+
+```bash
+$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST=683 \
+  docker run -p 7276:7276 -p 8888:8888 -p 9943:9943 -p 55679:55679 -p 55680:55680 -p 9411:9411 \
+    -v collector.yaml:/etc/collector.yaml:ro \
+    --name otelcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0 \
+        --config /etc/collector.yaml --mem-ballast-size-mib=683
 ```

@@ -1,12 +1,18 @@
 # Sample environment file for passing variables to the splunk-otel-collector service.
 # See /etc/otel/collector/splunk_config.yaml for how these variables will be consumed.
 
-# To use this file, replace the values below with the Splunk access token and ingest realm (e.g. us0),
+# To use this file, update the values below appropriately,
 # and save the changes to "/etc/otel/collector/splunk_env.sh".
 
 # Then run the following commands to apply the changes and restart the service:
 #   sudo systemctl daemon-reload
 #   sudo systemctl restart splunk-otel-collector.service
 
-SPLUNK_ACCESS_TOKEN=YOUR_SPLUNK_ACCESS_TOKEN
-SPLUNK_REALM=YOUR_SPLUNK_REALM
+# Access token to authenticate requests
+SPLUNK_ACCESS_TOKEN=12345
+
+# Which realm to send the data to
+SPLUNK_REALM=us0
+
+# How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.
+SPLUNK_BALLAST=683

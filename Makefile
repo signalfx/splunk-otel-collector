@@ -68,7 +68,7 @@ test-with-cover:
 
 .PHONY: addlicense
 addlicense:
-	$(ADDLICENSE) -y "" -c 'The OpenTelemetry Authors' $(ALL_SRC)
+	$(ADDLICENSE) -c 'Splunk, Inc.' $(ALL_SRC)
 
 .PHONY: checklicense
 checklicense:
@@ -112,7 +112,7 @@ lint: lint-static-check
 
 .PHONY: impi
 impi:
-	@$(IMPI) --local github.com/signalfx/splunk-otel-collector --scheme stdThirdPartyLocal --skip internal/data/opentelemetry-proto ./...
+	@$(IMPI) --local github.com/signalfx/splunk-otel-collector --scheme stdThirdPartyLocal ./...
 
 .PHONY: install-tools
 install-tools:
@@ -145,36 +145,29 @@ delete-tag:
 
 .PHONY: docker-otelcol
 docker-otelcol:
-	COMPONENT=otelcol $(MAKE) docker-component
-
-.PHONY: docker-component # Not intended to be used directly
-docker-component:
-	GOOS=linux $(MAKE) $(COMPONENT)
-	cp ./bin/$(COMPONENT)_linux_amd64 ./cmd/$(COMPONENT)/$(COMPONENT)
-	docker build -t $(COMPONENT) ./cmd/$(COMPONENT)/
-	rm ./cmd/$(COMPONENT)/$(COMPONENT)
-
-.PHONY: binaries
-binaries: otelcol
+	GOOS=linux $(MAKE) otelcol
+	cp ./bin/otelcol_linux_amd64 ./cmd/otelcol/otelcol
+	docker build -t otelcol ./cmd/otelcol/
+	rm ./cmd/otelcol/otelcol
 
 .PHONY: binaries-all-sys
 binaries-all-sys: binaries-darwin_amd64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64
 
 .PHONY: binaries-darwin_amd64
 binaries-darwin_amd64:
-	GOOS=darwin  GOARCH=amd64 $(MAKE) binaries
+	GOOS=darwin  GOARCH=amd64 $(MAKE) otelcol
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
-	GOOS=linux   GOARCH=amd64 $(MAKE) binaries
+	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
-	GOOS=linux   GOARCH=arm64 $(MAKE) binaries
+	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
 
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
-	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) binaries
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
 
 .PHONY: deb-rpm-package
 %-package: ARCH ?= amd64

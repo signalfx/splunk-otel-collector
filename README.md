@@ -18,9 +18,13 @@ This distribution comes with a [default
 configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/splunk_config.yaml)
 which requires the following environment variables:
 
-- `${SPLUNK_REALM}`: Which realm to send the data to (for example: `us0`)
-- `${SPLUNK_ACCESS_TOKEN}`: Access token to authenticate requests
-- `${SPLUNK_BALLAST}`: How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.
+- `${SPLUNK_REALM}` (no default): Which realm to send the data to (for example: `us0`)
+- `${SPLUNK_TOKEN}` (no default): Access token to authenticate requests
+- `${SPLUNK_BALLAST}` (no default): How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.
+
+In addition, the following environment variables are optional:
+
+- `${SPLUNK_CONFIG}` (default = /etc/otel/collector/splunk-config.yaml): Which configuration to load.
 
 Deploy the collector as outlined in the below. More information
 about deploying and configuring the collector can be found
@@ -32,10 +36,9 @@ Deploy from a Docker container (replace `0.1.0-otel-0.11.0` with the latest
 stable version number if necessary):
 
 ```bash
-$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST=683 \
-  docker run -p 7276:7276 -p 8888:8888 -p 9943:9943 -p 55679:55679 -p 55680:55680 -p 9411:9411 \
-    --name otelcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0 \
-        --mem-ballast-size-mib=683
+$ docker run -e SPLUNK_REALM=us0 -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST=683 \
+    -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
+    --name otelcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0
 ```
 
 ### Kubernetes
@@ -51,20 +54,29 @@ file on GitHub.
 ```bash
 $ make otelcol
 $ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST=683 \
-  ./bin/otelcol --mem-ballast-size-mib=${SPLUNK_BALLAST}
+    SPLUNK_CONFIG=cmd/otelcol/config/collector/splunk-config.yaml ./bin/otelcol
 ```
 
-## Custom Configuration
+## Advanced Configuration
 
-In addition to using the default configuration, a custom configuration can also
-be provided.
-
-For example in Docker:
+When specifying a custom configuration in a containerized environment, ensure
+to mount the configuration file. For example in Docker:
 
 ```bash
-$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST=683 \
-  docker run -p 7276:7276 -p 8888:8888 -p 9943:9943 -p 55679:55679 -p 55680:55680 -p 9411:9411 \
+$ docker run -e SPLUNK_REALM=us0 -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST=683 \
+    SPLUNK_CONFIG=/etc/collector.yaml \
+    -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
+    -v collector.yaml:/etc/collector.yaml:ro \
+    --name otelcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0
+```
+
+You can also pass and runtime parameters that the `otelcol` binary supports to
+the end of the command. For example in Docker:
+
+```bash
+$ docker run -e SPLUNK_REALM=us0 -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST=683 \
+    -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
     -v collector.yaml:/etc/collector.yaml:ro \
     --name otelcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0 \
-        --config /etc/collector.yaml --mem-ballast-size-mib=683
+        --config /etc/collector.yaml --mem-ballast-size-mib=683 --log-level=DEBUG
 ```

@@ -129,7 +129,9 @@ install-tools:
 otelcol:
 	go generate ./...
 	GO111MODULE=on CGO_ENABLED=0 go build -o ./bin/otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/otelcol
+	GO111MODULE=on CGO_ENABLED=0 go build -o ./bin/start_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/start
 	ln -sf otelcol_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/otelcol
+	ln -sf start_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/start
 
 .PHONY: add-tag
 add-tag:
@@ -147,8 +149,10 @@ delete-tag:
 docker-otelcol:
 	GOOS=linux $(MAKE) otelcol
 	cp ./bin/otelcol_linux_amd64 ./cmd/otelcol/otelcol
+	cp ./bin/start_linux_amd64 ./cmd/otelcol/start
 	docker build -t otelcol ./cmd/otelcol/
 	rm ./cmd/otelcol/otelcol
+	rm ./cmd/otelcol/start
 
 .PHONY: binaries-all-sys
 binaries-all-sys: binaries-darwin_amd64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64

@@ -12,6 +12,6 @@ COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certifica
 COPY --from=otelcol /otelcol /
 COPY config/collector/splunk_config.yaml /etc/otel/collector/splunk_config.yaml
 COPY config/collector/otlp_config.yaml /etc/otel/collector/otlp_config.yaml
-ENTRYPOINT ["/otelcol"]
-CMD ["--config", "/etc/otel/collector/splunk_config.yaml", "--mem-ballast-size-mib", "${SPLUNK_BALLAST}"]
-EXPOSE 13133 14250 14268 55678 55679 55680 7276 9411 9443
+COPY start /
+ENTRYPOINT ["/start"]
+EXPOSE 13133 14250 14268 55678 55679 55680 6060 7276 8888 9411 9443

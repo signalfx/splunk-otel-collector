@@ -54,7 +54,7 @@ file on GitHub.
 ```bash
 $ make otelcol
 $ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST=683 \
-    SPLUNK_CONFIG=cmd/otelcol/config/collector/splunk-config.yaml ./bin/otelcol
+    SPLUNK_CONFIG=cmd/otelcol/config/collector/splunk-config.yaml ./bin/start
 ```
 
 ## Advanced Configuration

@@ -23,22 +23,22 @@ import (
 )
 
 const (
-	SPLUNK_CONFIG = "/etc/otel/collector/splunk_config.yaml"
+	splunkConfig = "/etc/otel/collector/splunk_config.yaml"
 )
 
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	config := SPLUNK_CONFIG
+	config := splunkConfig
 	envVars := []string{"$SPLUNK_TOKEN", "$SPLUNK_REALM", "$SPLUNK_BALLAST"}
 	for _, v := range envVars {
 		if len(os.ExpandEnv(v)) == 0 {
 			log.Fatalf("missing environment variable %s", v)
 		}
 	}
-	_, ok := os.LookupEnv("SPLUNK_CONFIG")
+	_, ok := os.LookupEnv("splunkConfig")
 	if ok {
-		config = os.ExpandEnv("$SPLUNK_CONFIG")
+		config = os.ExpandEnv("$splunkConfig")
 	}
 
 	args := os.Args[1:]
@@ -46,7 +46,7 @@ func main() {
 	if len(args) == 0 {
 		_, err := os.Stat(config)
 		if os.IsNotExist(err) {
-			log.Fatalf("unable to find configuration file (%s) ensure SPLUNK_CONFIG environment variable is set properly", config)
+			log.Fatalf("unable to find configuration file (%s) ensure splunkConfig environment variable is set properly", config)
 		}
 		log.Printf("Running: ./otelcol --config %s --mem-ballast-size-mib %s", config, os.ExpandEnv("$SPLUNK_BALLAST"))
 		cmd := exec.Command("./otelcol", "--config", config, "--mem-ballast-size-mib", os.ExpandEnv("$SPLUNK_BALLAST"))

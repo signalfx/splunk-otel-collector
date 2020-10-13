@@ -2,16 +2,16 @@
 # See /etc/otel/collector/splunk_config.yaml for how these variables will be consumed.
 
 # To use this file, update the values below appropriately,
-# and save the changes to "/etc/otel/collector/splunk_env.sh".
+# and save the changes to "/etc/otel/collector/splunk_env".
 
 # Then run the following commands to apply the changes and restart the service:
 #   sudo systemctl daemon-reload
 #   sudo systemctl restart splunk-otel-collector.service
 
-# Access token to authenticate requests
+# Access token to authenticate requests.
 SPLUNK_ACCESS_TOKEN=12345
 
-# Which realm to send the data to
+# Which realm to send the data to.
 SPLUNK_REALM=us0
 
 # How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.

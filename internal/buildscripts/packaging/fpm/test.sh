@@ -50,7 +50,7 @@ if $docker_exec systemctl --no-pager status $SERVICE_NAME; then
 fi
 
 # start the service with the sample env file
-$docker_exec cp /etc/otel/collector/splunk_env.sh.example /etc/otel/collector/splunk_env.sh
+$docker_exec cp /etc/otel/collector/splunk_env.example /etc/otel/collector/splunk_env
 $docker_exec systemctl daemon-reload
 $docker_exec systemctl start splunk-otel-collector.service
 

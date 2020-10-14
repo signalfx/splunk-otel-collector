@@ -65,50 +65,50 @@ import (
 func Get() (component.Factories, error) {
 	var errs []error
 	extensions, err := component.MakeExtensionFactoryMap(
-		healthcheckextension.NewFactory(),
-		pprofextension.NewFactory(),
-		zpagesextension.NewFactory(),
 		fluentbitextension.NewFactory(),
-		k8sobserver.NewFactory(),
+		healthcheckextension.NewFactory(),
 		hostobserver.NewFactory(),
 		httpforwarder.NewFactory(),
+		k8sobserver.NewFactory(),
+		pprofextension.NewFactory(),
+		zpagesextension.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)
 	}
 
 	receivers, err := component.MakeReceiverFactoryMap(
-		jaegerreceiver.NewFactory(),
+		carbonreceiver.NewFactory(),
+		collectdreceiver.NewFactory(),
+		dockerstatsreceiver.NewFactory(),
+		hostmetricsreceiver.NewFactory(),
 		fluentforwardreceiver.NewFactory(),
-		zipkinreceiver.NewFactory(),
-		prometheusreceiver.NewFactory(),
+		jaegerreceiver.NewFactory(),
+		k8sclusterreceiver.NewFactory(),
+		kubeletstatsreceiver.NewFactory(),
 		opencensusreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
-		hostmetricsreceiver.NewFactory(),
-		collectdreceiver.NewFactory(),
+		prometheusexecreceiver.NewFactory(),
+		prometheusreceiver.NewFactory(),
+		receivercreator.NewFactory(),
+		redisreceiver.NewFactory(),
 		sapmreceiver.NewFactory(),
 		signalfxreceiver.NewFactory(),
-		carbonreceiver.NewFactory(),
-		redisreceiver.NewFactory(),
-		kubeletstatsreceiver.NewFactory(),
 		simpleprometheusreceiver.NewFactory(),
-		k8sclusterreceiver.NewFactory(),
-		prometheusexecreceiver.NewFactory(),
-		receivercreator.NewFactory(),
-		statsdreceiver.NewFactory(),
 		splunkhecreceiver.NewFactory(),
-		dockerstatsreceiver.NewFactory(),
+		statsdreceiver.NewFactory(),
+		zipkinreceiver.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)
 	}
 
 	exporters, err := component.MakeExporterFactoryMap(
-		loggingexporter.NewFactory(),
 		fileexporter.NewFactory(),
+		loggingexporter.NewFactory(),
 		otlpexporter.NewFactory(),
-		signalfxexporter.NewFactory(),
 		sapmexporter.NewFactory(),
+		signalfxexporter.NewFactory(),
 		splunkhecexporter.NewFactory(),
 	)
 	if err != nil {
@@ -117,14 +117,14 @@ func Get() (component.Factories, error) {
 
 	processors, err := component.MakeProcessorFactoryMap(
 		attributesprocessor.NewFactory(),
-		resourceprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
-		memorylimiter.NewFactory(),
-		spanprocessor.NewFactory(),
 		filterprocessor.NewFactory(),
 		k8sprocessor.NewFactory(),
-		resourcedetectionprocessor.NewFactory(),
+		memorylimiter.NewFactory(),
 		metricstransformprocessor.NewFactory(),
+		resourcedetectionprocessor.NewFactory(),
+		resourceprocessor.NewFactory(),
+		spanprocessor.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)

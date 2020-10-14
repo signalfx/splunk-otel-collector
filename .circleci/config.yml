@@ -18,8 +18,8 @@ commands:
           bin/otelcol_linux_arm64
           bin/otelcol_linux_amd64
           bin/otelcol_windows_amd64.exe
-          dist/splunk-otel-collector_*.amd64.deb
-          dist/splunk-otel-collector_*.arm64.deb
+          dist/splunk-otel-collector_*_amd64.deb
+          dist/splunk-otel-collector_*_arm64.deb
           dist/splunk-otel-collector-*.arm64.rpm
           dist/splunk-otel-collector-*.x86_64.rpm
     steps:

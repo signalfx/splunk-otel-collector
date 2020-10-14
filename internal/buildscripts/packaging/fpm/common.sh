@@ -25,8 +25,8 @@ SPLUNK_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/splunk_config.ya
 SPLUNK_CONFIG_INSTALL_PATH="/etc/otel/collector/splunk_config.yaml"
 OTLP_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/otlp_config.yaml"
 OTLP_CONFIG_INSTALL_PATH="/etc/otel/collector/otlp_config.yaml"
-SPLUNK_ENV_REPO_PATH="$REPO_DIR/internal/buildscripts/packaging/fpm/splunk_env.sh.example"
-SPLUNK_ENV_INSTALL_PATH="/etc/otel/collector/splunk_env.sh.example"
+SPLUNK_ENV_REPO_PATH="$FPM_DIR/splunk_env.example"
+SPLUNK_ENV_INSTALL_PATH="/etc/otel/collector/splunk_env.example"
 
 
 get_version() {

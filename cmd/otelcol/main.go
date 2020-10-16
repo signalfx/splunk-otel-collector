@@ -20,6 +20,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"strconv"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/service"
@@ -27,6 +29,8 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
 )
+
+const ballastEnvVarName = "SPLUNK_BALLAST_SIZE_MIB"
 
 func main() {
 	factories, err := components.Get()
@@ -41,8 +45,26 @@ func main() {
 		GitHash:  version.GitHash,
 	}
 
+	useBallastSizeFromEnvVar()
+
 	if err := run(service.Parameters{ApplicationStartInfo: info, Factories: factories}); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func useBallastSizeFromEnvVar() {
+
+	// Check if the ballast is specified via the env var.
+	ballastSize := os.Getenv(ballastEnvVarName)
+	if ballastSize != "" {
+		// Check if it is a numeric value.
+		_, err := strconv.Atoi(ballastSize)
+		if err != nil {
+			log.Fatalf("Expected a number in %s env variable but got %s", ballastEnvVarName, ballastSize)
+		}
+
+		// Inject the command line flag that controls the ballast size.
+		os.Args = append(os.Args, "--mem-ballast-size-mib="+ballastSize)
 	}
 }
 

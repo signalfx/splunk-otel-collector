@@ -20,7 +20,7 @@ which requires the following environment variables:
 
 - `${SPLUNK_REALM}`: Which realm to send the data to (for example: `us0`)
 - `${SPLUNK_ACCESS_TOKEN}`: Access token to authenticate requests
-- `${SPLUNK_BALLAST}`: How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.
+- `${SPLUNK_BALLAST_SIZE_MIB}`: How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.
 
 Deploy the collector as outlined in the below. More information
 about deploying and configuring the collector can be found
@@ -32,10 +32,9 @@ Deploy from a Docker container (replace `0.1.0-otel-0.11.0` with the latest
 stable version number if necessary):
 
 ```bash
-$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST=683 \
+$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
   docker run -p 7276:7276 -p 8888:8888 -p 9943:9943 -p 55679:55679 -p 55680:55680 -p 9411:9411 \
-    --name otelcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0 \
-        --mem-ballast-size-mib=683
+    --name otelcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0
 ```
 
 ### Kubernetes
@@ -50,8 +49,8 @@ file on GitHub.
 
 ```bash
 $ make otelcol
-$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST=683 \
-  ./bin/otelcol --mem-ballast-size-mib=${SPLUNK_BALLAST}
+$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
+  ./bin/otelcol
 ```
 
 ## Custom Configuration
@@ -62,9 +61,13 @@ be provided.
 For example in Docker:
 
 ```bash
-$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST=683 \
+$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
   docker run -p 7276:7276 -p 8888:8888 -p 9943:9943 -p 55679:55679 -p 55680:55680 -p 9411:9411 \
     -v collector.yaml:/etc/collector.yaml:ro \
     --name otelcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0 \
-        --config /etc/collector.yaml --mem-ballast-size-mib=683
+        --config /etc/collector.yaml
 ```
+
+Note that if the configuration includes a memorylimiter processor then it must set the
+value of `ballast_size_mib` setting of the processor to the env variable SPLUNK_BALLAST_SIZE_MIB.
+See for example splunk_config.yaml on how to do it.

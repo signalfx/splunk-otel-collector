@@ -13,5 +13,5 @@ COPY --from=otelcol /otelcol /
 COPY config/collector/splunk_config.yaml /etc/otel/collector/splunk_config.yaml
 COPY config/collector/otlp_config.yaml /etc/otel/collector/otlp_config.yaml
 ENTRYPOINT ["/otelcol"]
-CMD ["--config", "/etc/otel/collector/splunk_config.yaml", "--mem-ballast-size-mib", "${SPLUNK_BALLAST}"]
+CMD ["--config", "/etc/otel/collector/splunk_config.yaml"]
 EXPOSE 13133 14250 14268 55678 55679 55680 7276 9411 9443

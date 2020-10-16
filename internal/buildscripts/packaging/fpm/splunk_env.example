@@ -18,4 +18,4 @@ SPLUNK_ACCESS_TOKEN=12345
 SPLUNK_REALM=us0
 
 # How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.
-SPLUNK_BALLAST=683
+SPLUNK_BALLAST_SIZE_MIB=683

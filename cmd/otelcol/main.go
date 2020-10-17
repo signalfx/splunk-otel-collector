@@ -136,15 +136,16 @@ func useMemorySettingsMiBFromEnvVar() {
 	memLimitEnvVar := os.Getenv(memLimitMiBEnvVarName)
 	if memLimitEnvVar != "" {
 		// Check if it is a numeric value.
-		memLimit, err := strconv.Atoi(memLimitEnvVar)
+		memLimitVal, err := strconv.Atoi(memLimitEnvVar)
 		if err != nil {
 			log.Fatalf("Expected a number in %s env variable but got %s", memLimitMiBEnvVarName, memLimitEnvVar)
 		}
-		if 0 > memLimit {
+		if 0 > memLimitVal {
 			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", memLimitMiBEnvVarName, memLimitEnvVar)
 		}
+		memLimit = memLimitVal
 		// Set memory environment variables
-		os.Setenv(memLimitMiBEnvVarName, strconv.Itoa(memLimit))
+		os.Setenv(memLimitMiBEnvVarName, memLimitEnvVar)
 	} else {
 		log.Fatalf("ERROR: Missing environment variable %s", memLimitMiBEnvVarName)
 	}
@@ -154,20 +155,21 @@ func useMemorySettingsMiBFromEnvVar() {
 	memSpikeEnvVar := os.Getenv(memSpikeMiBEnvVarName)
 	if memSpikeEnvVar != "" {
 		// Check if it is a numeric value.
-		memSpike, err := strconv.Atoi(memSpikeEnvVar)
+		memSpikeVal, err := strconv.Atoi(memSpikeEnvVar)
 		if err != nil {
 			log.Fatalf("Expected a number in %s env variable but got %s", memSpikeMiBEnvVarName, memSpikeEnvVar)
 		}
-		if 0 > memSpike {
+		if 0 > memSpikeVal {
 			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", memSpikeMiBEnvVarName, memSpikeEnvVar)
 		}
+		memSpike = memSpikeVal
 		// Set memory environment variables
-		os.Setenv(memSpikeMiBEnvVarName, strconv.Itoa(memSpike))
+		os.Setenv(memSpikeMiBEnvVarName, memSpikeEnvVar)
 	} else {
 		log.Fatalf("ERROR: Missing environment variable %s", memSpikeMiBEnvVarName)
 	}
-	if memSpike > memLimit {
-		log.Fatalf("%s env variable must be less than %s env variable but got %s and %s respectively", memSpikeMiBEnvVarName, memLimitMiBEnvVarName, memSpike, memLimit)
+	if memSpike >= memLimit {
+		log.Fatalf("%s env variable must be less than %s env variable but got %d and %d respectively", memSpikeMiBEnvVarName, memLimitMiBEnvVarName, memSpike, memLimit)
 	}
 }
 
@@ -177,15 +179,16 @@ func useMemorySettingsPercentageFromEnvVar() {
 	memLimitEnvVar := os.Getenv(memLimitEnvVarName)
 	if memLimitEnvVar != "" {
 		// Check if it is a numeric value.
-		memLimit, err := strconv.Atoi(memLimitEnvVar)
+		memLimitVal, err := strconv.Atoi(memLimitEnvVar)
 		if err != nil {
 			log.Fatalf("Expected a number in %s env variable but got %s", memLimitEnvVarName, memLimitEnvVar)
 		}
-		if 0 > memLimit || memLimit > 100 {
+		if 0 > memLimitVal || memLimitVal > 100 {
 			log.Fatalf("Expected a number in the range 0-100 for %s env variable but got %s", memLimitEnvVarName, memLimitEnvVar)
 		}
+		memLimit = memLimitVal
 		// Set memory environment variables
-		os.Setenv(memLimitEnvVarName, strconv.Itoa(memLimit))
+		os.Setenv(memLimitEnvVarName, memLimitEnvVar)
 	} else {
 		memLimit = defaultMemoryLimitPercentage
 	}
@@ -195,32 +198,33 @@ func useMemorySettingsPercentageFromEnvVar() {
 	memSpikeEnvVar := os.Getenv(memSpikeEnvVarName)
 	if memSpikeEnvVar != "" {
 		// Check if it is a numeric value.
-		memSpike, err := strconv.Atoi(memSpikeEnvVar)
+		memSpikeVal, err := strconv.Atoi(memSpikeEnvVar)
 		if err != nil {
 			log.Fatalf("Expected a number in %s env variable but got %s", memSpikeEnvVarName, memSpikeEnvVar)
 		}
-		if 0 > memSpike || memSpike > 100 {
+		if 0 > memSpikeVal || memSpikeVal > 100 {
 			log.Fatalf("Expected a number in the range 0-100 for %s env variable but got %s", memSpikeEnvVarName, memSpikeEnvVar)
 		}
+		memSpike = memSpikeVal
 		// Set memory environment variables
-		os.Setenv(memSpikeEnvVarName, strconv.Itoa(memSpike))
+		os.Setenv(memSpikeEnvVarName, memSpikeEnvVar)
 	} else {
 		memSpike = defaultMemorySpikePercentage
 	}
-	if memSpike > memLimit {
-		log.Fatalf("%s env variable must be less than %s env variable but got %s and %s respectively", memSpikeEnvVarName, memLimitEnvVarName, memSpike, memLimit)
+	if memSpike >= memLimit {
+		log.Fatalf("%s env variable must be less than %s env variable but got %d and %d respectively", memSpikeEnvVarName, memLimitEnvVarName, memSpike, memLimit)
 	}
 }
 
 func runInteractive(params service.Parameters) error {
 	app, err := service.New(params)
 	if err != nil {
-		return fmt.Errorf("Failed to construct the application: %w", err)
+		return fmt.Errorf("failed to construct the application: %w", err)
 	}
 
 	err = app.Run()
 	if err != nil {
-		return fmt.Errorf("Application run finished with error: %w", err)
+		return fmt.Errorf("application run finished with error: %w", err)
 	}
 
 	return nil

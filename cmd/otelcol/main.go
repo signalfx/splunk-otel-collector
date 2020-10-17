@@ -41,35 +41,16 @@ const (
 	realmEnvVarName       = "SPLUNK_REALM"
 	tokenEnvVarName       = "SPLUNK_ACCESS_TOKEN"
 
-	defaultConfig                = "/etc/otel/collector/splunk_config_linux.yaml"
+	defaultSAPMLinuxConfig       = "/etc/otel/collector/splunk_config_linux.yaml"
+	defaultSAPMNonLinuxConfig    = "/etc/otel/collector/splunk_config_non_linux.yaml"
+	defaultOTLPLinuxConfig       = "/etc/otel/collector/otlp_config_linux.yaml"
+	defaultOTLPNonLinuxConfig    = "/etc/otel/collector/otlp_config_non_linux.yaml"
 	defaultMemoryLimitPercentage = 90
 	defaultMemorySpikePercentage = 25
 )
 
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-
-	// The following environment variables are required.
-	// If any are missing stop here.
-	requiredEnvVars := []string{ballastEnvVarName, realmEnvVarName, tokenEnvVarName}
-	for _, v := range requiredEnvVars {
-		if len(os.Getenv(v)) == 0 {
-			log.Printf("Usage: %s=12345 %s=us0 %s=684 %s", tokenEnvVarName, realmEnvVarName, ballastEnvVarName, os.Args[0])
-			log.Fatalf("ERROR: Missing environment variable %s", v)
-		}
-	}
-
-	factories, err := components.Get()
-	if err != nil {
-		log.Fatalf("failed to build default components: %v", err)
-	}
-
-	info := component.ApplicationStartInfo{
-		ExeName:  "otelcol",
-		LongName: "OpenTelemetry Collector",
-		Version:  version.Version,
-		GitHash:  version.GitHash,
-	}
 
 	// Check runtime parameters
 	// Note that runtime parameters take priority over environment variables
@@ -84,13 +65,25 @@ func main() {
 	// SPLUNK_MEMORY_LIMIT_MIB and SPLUNK_MEMORY_SPIKE_MIB to be set
 	if runtime.GOOS != "linux" {
 		config := os.Getenv(configEnvVarName)
-		if config == defaultConfig {
+		if config == defaultSAPMLinuxConfig || config == defaultOTLPLinuxConfig {
 			log.Fatalf("For non-linux systems the %s must be specified. Consider using splunk_config_non-linux.yaml.", configEnvVarName)
 		} else {
 			useMemorySettingsMiBFromEnvVar()
 		}
 	} else {
 		useMemorySettingsPercentageFromEnvVar()
+	}
+
+	factories, err := components.Get()
+	if err != nil {
+		log.Fatalf("failed to build default components: %v", err)
+	}
+
+	info := component.ApplicationStartInfo{
+		ExeName:  "otelcol",
+		LongName: "OpenTelemetry Collector",
+		Version:  version.Version,
+		GitHash:  version.GitHash,
 	}
 
 	if err := run(service.Parameters{ApplicationStartInfo: info, Factories: factories}); err != nil {
@@ -117,13 +110,34 @@ func useConfigFromEnvVar() {
 	// Check if the config is specified via the env var.
 	config := os.Getenv(configEnvVarName)
 	if config == "" {
-		config = defaultConfig
+		if runtime.GOOS == "linux" {
+			config = defaultSAPMLinuxConfig
+		} else {
+			config = defaultSAPMNonLinuxConfig
+		}
 	}
 
 	// Check if file exists.
 	_, err := os.Stat(config)
 	if os.IsNotExist(err) {
 		log.Fatalf("Unable to find the configuration file (%s) ensure %s environment variable is set properly", config, configEnvVarName)
+	}
+
+	switch config {
+	case
+		defaultSAPMLinuxConfig,
+		defaultSAPMNonLinuxConfig,
+		defaultOTLPLinuxConfig,
+		defaultOTLPNonLinuxConfig:
+		// The following environment variables are required.
+		// If any are missing stop here.
+		requiredEnvVars := []string{ballastEnvVarName, realmEnvVarName, tokenEnvVarName}
+		for _, v := range requiredEnvVars {
+			if len(os.Getenv(v)) == 0 {
+				log.Printf("Usage: %s=12345 %s=us0 %s=684 %s", tokenEnvVarName, realmEnvVarName, ballastEnvVarName, os.Args[0])
+				log.Fatalf("ERROR: Missing environment variable %s", v)
+			}
+		}
 	}
 
 	// Inject the command line flag that controls the configuration.
@@ -146,6 +160,7 @@ func checkMemorySettingsMiBFromEnvVar(envVar string) int {
 		}
 		envVarResult = val
 	} else {
+		log.Printf("Usage: %s=12345 %s=us0 %s=684 %s=1024 %s=256 %s", tokenEnvVarName, realmEnvVarName, ballastEnvVarName, memLimitMiBEnvVarName, memSpikeMiBEnvVarName, os.Args[0])
 		log.Fatalf("ERROR: Missing environment variable %s", envVar)
 	}
 	return envVarResult

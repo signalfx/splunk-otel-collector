@@ -51,9 +51,9 @@ $ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
 
 ### Kubernetes
 
-To deploy the OpenTelemetry Collector in Kubernetes, create a configuration
-file that defines a ConfigMap, Service, and Deployment for the cluster. For
-more information about creating a configuration file, see the example
+To deploy in Kubernetes, create a configuration file that defines a ConfigMap,
+Service, and Deployment for the cluster. For more information about creating a
+configuration file, see the example
 [signalfx-k8s.yaml](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/master/exporter/sapmexporter/examples/signalfx-k8s.yaml)
 file on GitHub.
 

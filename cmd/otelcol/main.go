@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 
 	"go.opentelemetry.io/collector/component"
@@ -30,9 +31,34 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/version"
 )
 
-const ballastEnvVarName = "SPLUNK_BALLAST_SIZE_MIB"
+const (
+	ballastEnvVarName     = "SPLUNK_BALLAST_SIZE_MIB"
+	configEnvVarName      = "SPLUNK_CONFIG"
+	memLimitEnvVarName    = "SPLUNK_MEMORY_LIMIT_PERCENTAGE"
+	memLimitMiBEnvVarName = "SPLUNK_MEMORY_LIMIT_MIB"
+	memSpikeEnvVarName    = "SPLUNK_MEMORY_SPIKE_PERCENTAGE"
+	memSpikeMiBEnvVarName = "SPLUNK_MEMORY_SPIKE_MIB"
+	realmEnvVarName       = "SPLUNK_REALM"
+	tokenEnvVarName       = "SPLUNK_ACCESS_TOKEN"
+
+	defaultConfig                = "/etc/otel/collector/splunk_config_linux.yaml"
+	defaultMemoryLimitPercentage = 90
+	defaultMemorySpikePercentage = 25
+)
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	// The following environment variables are required.
+	// If any are missing stop here.
+	requiredEnvVars := []string{ballastEnvVarName, realmEnvVarName, tokenEnvVarName}
+	for _, v := range requiredEnvVars {
+		if len(os.Getenv(v)) == 0 {
+			log.Printf("Usage: %s=12345 %s=us0 %s=684 %s", tokenEnvVarName, realmEnvVarName, ballastEnvVarName, os.Args[0])
+			log.Fatalf("ERROR: Missing environment variable %s", v)
+		}
+	}
+
 	factories, err := components.Get()
 	if err != nil {
 		log.Fatalf("failed to build default components: %v", err)
@@ -45,7 +71,27 @@ func main() {
 		GitHash:  version.GitHash,
 	}
 
-	useBallastSizeFromEnvVar()
+	// Check runtime parameters
+	// Note that runtime parameters take priority over environment variables
+	args := os.Args[1:]
+	if len(args) == 0 {
+		useBallastSizeFromEnvVar()
+		useConfigFromEnvVar()
+	}
+
+	// If GOOS is not linux then a custom configuration needs to be supplied
+	// A non-linux default config is built-in and requires both
+	// SPLUNK_MEMORY_LIMIT_MIB and SPLUNK_MEMORY_SPIKE_MIB to be set
+	if runtime.GOOS != "linux" {
+		config := os.Getenv(configEnvVarName)
+		if config == defaultConfig {
+			log.Fatalf("For non-linux systems the %s must be specified. Consider using splunk_config_non-linux.yaml.", configEnvVarName)
+		} else {
+			useMemorySettingsMiBFromEnvVar()
+		}
+	} else {
+		useMemorySettingsPercentageFromEnvVar()
+	}
 
 	if err := run(service.Parameters{ApplicationStartInfo: info, Factories: factories}); err != nil {
 		log.Fatal(err)
@@ -53,7 +99,6 @@ func main() {
 }
 
 func useBallastSizeFromEnvVar() {
-
 	// Check if the ballast is specified via the env var.
 	ballastSize := os.Getenv(ballastEnvVarName)
 	if ballastSize != "" {
@@ -68,15 +113,114 @@ func useBallastSizeFromEnvVar() {
 	}
 }
 
+func useConfigFromEnvVar() {
+	// Check if the config is specified via the env var.
+	config := os.Getenv(configEnvVarName)
+	if config == "" {
+		config = defaultConfig
+	}
+
+	// Check if file exists.
+	_, err := os.Stat(config)
+	if os.IsNotExist(err) {
+		log.Fatalf("Unable to find the configuration file (%s) ensure %s environment variable is set properly", config, configEnvVarName)
+	}
+
+	// Inject the command line flag that controls the configuration.
+	os.Args = append(os.Args, "--config="+config)
+}
+
+func useMemorySettingsMiBFromEnvVar() {
+	// Check if the memory limit is specified via the env var.
+	var memLimit int
+	memLimitEnvVar := os.Getenv(memLimitMiBEnvVarName)
+	if memLimitEnvVar != "" {
+		// Check if it is a numeric value.
+		memLimit, err := strconv.Atoi(memLimitEnvVar)
+		if err != nil {
+			log.Fatalf("Expected a number in %s env variable but got %s", memLimitMiBEnvVarName, memLimitEnvVar)
+		}
+		if 0 > memLimit {
+			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", memLimitMiBEnvVarName, memLimitEnvVar)
+		}
+		// Set memory environment variables
+		os.Setenv(memLimitMiBEnvVarName, strconv.Itoa(memLimit))
+	} else {
+		log.Fatalf("ERROR: Missing environment variable %s", memLimitMiBEnvVarName)
+	}
+
+	// Check if the memory spike is specified via the env var.
+	var memSpike int
+	memSpikeEnvVar := os.Getenv(memSpikeMiBEnvVarName)
+	if memSpikeEnvVar != "" {
+		// Check if it is a numeric value.
+		memSpike, err := strconv.Atoi(memSpikeEnvVar)
+		if err != nil {
+			log.Fatalf("Expected a number in %s env variable but got %s", memSpikeMiBEnvVarName, memSpikeEnvVar)
+		}
+		if 0 > memSpike {
+			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", memSpikeMiBEnvVarName, memSpikeEnvVar)
+		}
+		// Set memory environment variables
+		os.Setenv(memSpikeMiBEnvVarName, strconv.Itoa(memSpike))
+	} else {
+		log.Fatalf("ERROR: Missing environment variable %s", memSpikeMiBEnvVarName)
+	}
+	if memSpike > memLimit {
+		log.Fatalf("%s env variable must be less than %s env variable but got %s and %s respectively", memSpikeMiBEnvVarName, memLimitMiBEnvVarName, memSpike, memLimit)
+	}
+}
+
+func useMemorySettingsPercentageFromEnvVar() {
+	// Check if the memory limit is specified via the env var.
+	var memLimit int
+	memLimitEnvVar := os.Getenv(memLimitEnvVarName)
+	if memLimitEnvVar != "" {
+		// Check if it is a numeric value.
+		memLimit, err := strconv.Atoi(memLimitEnvVar)
+		if err != nil {
+			log.Fatalf("Expected a number in %s env variable but got %s", memLimitEnvVarName, memLimitEnvVar)
+		}
+		if 0 > memLimit || memLimit > 100 {
+			log.Fatalf("Expected a number in the range 0-100 for %s env variable but got %s", memLimitEnvVarName, memLimitEnvVar)
+		}
+		// Set memory environment variables
+		os.Setenv(memLimitEnvVarName, strconv.Itoa(memLimit))
+	} else {
+		memLimit = defaultMemoryLimitPercentage
+	}
+
+	// Check if the memory spike is specified via the env var.
+	var memSpike int
+	memSpikeEnvVar := os.Getenv(memSpikeEnvVarName)
+	if memSpikeEnvVar != "" {
+		// Check if it is a numeric value.
+		memSpike, err := strconv.Atoi(memSpikeEnvVar)
+		if err != nil {
+			log.Fatalf("Expected a number in %s env variable but got %s", memSpikeEnvVarName, memSpikeEnvVar)
+		}
+		if 0 > memSpike || memSpike > 100 {
+			log.Fatalf("Expected a number in the range 0-100 for %s env variable but got %s", memSpikeEnvVarName, memSpikeEnvVar)
+		}
+		// Set memory environment variables
+		os.Setenv(memSpikeEnvVarName, strconv.Itoa(memSpike))
+	} else {
+		memSpike = defaultMemorySpikePercentage
+	}
+	if memSpike > memLimit {
+		log.Fatalf("%s env variable must be less than %s env variable but got %s and %s respectively", memSpikeEnvVarName, memLimitEnvVarName, memSpike, memLimit)
+	}
+}
+
 func runInteractive(params service.Parameters) error {
 	app, err := service.New(params)
 	if err != nil {
-		return fmt.Errorf("failed to construct the application: %w", err)
+		return fmt.Errorf("Failed to construct the application: %w", err)
 	}
 
 	err = app.Run()
 	if err != nil {
-		return fmt.Errorf("application run finished with error: %w", err)
+		return fmt.Errorf("Application run finished with error: %w", err)
 	}
 
 	return nil

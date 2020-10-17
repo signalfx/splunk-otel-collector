@@ -18,9 +18,21 @@ This distribution comes with a [default
 configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/splunk_config.yaml)
 which requires the following environment variables:
 
-- `${SPLUNK_REALM}`: Which realm to send the data to (for example: `us0`)
-- `${SPLUNK_ACCESS_TOKEN}`: Access token to authenticate requests
-- `${SPLUNK_BALLAST_SIZE_MIB}`: How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.
+- `SPLUNK_REALM` (no default): Which realm to send the data to (for example: `us0`)
+- `SPLUNK_TOKEN` (no default): Access token to authenticate requests
+- `SPLUNK_BALLAST_SIZE_MIB` (no default): How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.
+
+In addition, the following environment variables are optional:
+
+- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk-config.yaml`): Which configuration to load.
+- `SPLUNK_MEMORY_LIMIT_PERCENTAGE` (default = `90`): Maximum amount of total memory targeted to be allocated by the process heap.
+- `SPLUNK_MEMORY_SPIKE_PERCENTAGE` (default = `20`): Maximum spike expected between the measurements of memory usage.
+
+When running on a non-linux system, the following environment variables are required:
+
+- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk-config.yaml`): Which configuration to load.
+- `SPLUNK_MEMORY_LIMIT_MIB` (no default): Maximum amount of total memory targeted to be allocated by the process heap.
+- `SPLUNK_MEMORY_SPIKE_MIB` (no default): Maximum spike expected between the measurements of memory usage.
 
 Deploy the collector as outlined in the below. More information
 about deploying and configuring the collector can be found
@@ -33,7 +45,7 @@ stable version number if necessary):
 
 ```bash
 $ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
-  docker run -p 7276:7276 -p 8888:8888 -p 9943:9943 -p 55679:55679 -p 55680:55680 -p 9411:9411 \
+  docker run -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
     --name otelcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0
 ```
 
@@ -53,7 +65,24 @@ $ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
   ./bin/otelcol
 ```
 
-## Custom Configuration
+## Advanced Configuration
+
+### Command Line Arguments
+
+Following the binary command or Docker container command line arguments can be
+specified. Command line arguments take priority over environment variables.
+
+For example in Docker:
+
+```bash
+$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
+  docker run -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
+    -v collector.yaml:/etc/collector.yaml:ro \
+    --name otelcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0 \
+        --log-level=DEBUG
+```
+
+### Custom Configuration
 
 In addition to using the default configuration, a custom configuration can also
 be provided.
@@ -61,11 +90,10 @@ be provided.
 For example in Docker:
 
 ```bash
-$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
-  docker run -p 7276:7276 -p 8888:8888 -p 9943:9943 -p 55679:55679 -p 55680:55680 -p 9411:9411 \
+$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 SPLUNK_CONFIG=/etc/collector.yaml \
+  docker run -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
     -v collector.yaml:/etc/collector.yaml:ro \
-    --name otelcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0 \
-        --config /etc/collector.yaml
+    --name otelcol signalfx/splunk-otel-collector:0.1.0-otel-0.11.0
 ```
 
 Note that if the configuration includes a memorylimiter processor then it must set the

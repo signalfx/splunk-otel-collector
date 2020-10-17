@@ -144,8 +144,6 @@ func useMemorySettingsMiBFromEnvVar() {
 			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", memLimitMiBEnvVarName, memLimitEnvVar)
 		}
 		memLimit = memLimitVal
-		// Set memory environment variables
-		os.Setenv(memLimitMiBEnvVarName, memLimitEnvVar)
 	} else {
 		log.Fatalf("ERROR: Missing environment variable %s", memLimitMiBEnvVarName)
 	}
@@ -163,14 +161,18 @@ func useMemorySettingsMiBFromEnvVar() {
 			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", memSpikeMiBEnvVarName, memSpikeEnvVar)
 		}
 		memSpike = memSpikeVal
-		// Set memory environment variables
-		os.Setenv(memSpikeMiBEnvVarName, memSpikeEnvVar)
 	} else {
 		log.Fatalf("ERROR: Missing environment variable %s", memSpikeMiBEnvVarName)
 	}
+
+    // Ensure spike and limit are valid
 	if memSpike >= memLimit {
 		log.Fatalf("%s env variable must be less than %s env variable but got %d and %d respectively", memSpikeMiBEnvVarName, memLimitMiBEnvVarName, memSpike, memLimit)
 	}
+
+	// Set memory environment variables
+	os.Setenv(memLimitMiBEnvVarName, memLimitEnvVar)
+	os.Setenv(memSpikeMiBEnvVarName, memSpikeEnvVar)
 }
 
 func useMemorySettingsPercentageFromEnvVar() {
@@ -187,8 +189,6 @@ func useMemorySettingsPercentageFromEnvVar() {
 			log.Fatalf("Expected a number in the range 0-100 for %s env variable but got %s", memLimitEnvVarName, memLimitEnvVar)
 		}
 		memLimit = memLimitVal
-		// Set memory environment variables
-		os.Setenv(memLimitEnvVarName, memLimitEnvVar)
 	} else {
 		memLimit = defaultMemoryLimitPercentage
 	}
@@ -206,14 +206,18 @@ func useMemorySettingsPercentageFromEnvVar() {
 			log.Fatalf("Expected a number in the range 0-100 for %s env variable but got %s", memSpikeEnvVarName, memSpikeEnvVar)
 		}
 		memSpike = memSpikeVal
-		// Set memory environment variables
-		os.Setenv(memSpikeEnvVarName, memSpikeEnvVar)
 	} else {
 		memSpike = defaultMemorySpikePercentage
 	}
+
+    // Ensure spike and limit are valid
 	if memSpike >= memLimit {
 		log.Fatalf("%s env variable must be less than %s env variable but got %d and %d respectively", memSpikeEnvVarName, memLimitEnvVarName, memSpike, memLimit)
 	}
+
+	// Set memory environment variables
+	os.Setenv(memLimitEnvVarName, memLimitEnvVar)
+	os.Setenv(memSpikeEnvVarName, memSpikeEnvVar)
 }
 
 func runInteractive(params service.Parameters) error {

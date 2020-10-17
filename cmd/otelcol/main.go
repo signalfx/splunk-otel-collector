@@ -130,94 +130,69 @@ func useConfigFromEnvVar() {
 	os.Args = append(os.Args, "--config="+config)
 }
 
+func checkMemorySettingsMiBFromEnvVar(envVar string) int {
+	// Check if the memory limit is specified via the env var
+	// Ensure memory limit is valid
+	var envVarResult int
+	envVarVal := os.Getenv(envVar)
+	if envVarVal != "" {
+		// Check if it is a numeric value.
+		val, err := strconv.Atoi(envVarVal)
+		if err != nil {
+			log.Fatalf("Expected a number in %s env variable but got %s", envVar, envVarVal)
+		}
+		if 0 > val {
+			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", envVar, envVarVal)
+		}
+		envVarResult = val
+	} else {
+		log.Fatalf("ERROR: Missing environment variable %s", envVar)
+	}
+	return envVarResult
+}
+
 func useMemorySettingsMiBFromEnvVar() {
-	// Check if the memory limit is specified via the env var.
-	var memLimit int
-	memLimitEnvVar := os.Getenv(memLimitMiBEnvVarName)
-	if memLimitEnvVar != "" {
+	memLimit := checkMemorySettingsMiBFromEnvVar(memLimitMiBEnvVarName)
+	memSpike := checkMemorySettingsMiBFromEnvVar(memSpikeMiBEnvVarName)
+	setMemorySettingsToEnvVar(memLimit, memLimitMiBEnvVarName, memSpike, memSpikeMiBEnvVarName)
+}
+
+func checkMemorySettingsPercentageFromEnvVar(envVar string, defaultVal int) int {
+	// Check if the memory limit is specified via the env var
+	// Ensure memory limit is valid
+	var envVarResult int
+	envVarVal := os.Getenv(envVar)
+	if envVarVal != "" {
 		// Check if it is a numeric value.
-		memLimitVal, err := strconv.Atoi(memLimitEnvVar)
+		val, err := strconv.Atoi(envVarVal)
 		if err != nil {
-			log.Fatalf("Expected a number in %s env variable but got %s", memLimitMiBEnvVarName, memLimitEnvVar)
+			log.Fatalf("Expected a number in %s env variable but got %s", envVar, envVarVal)
 		}
-		if 0 > memLimitVal {
-			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", memLimitMiBEnvVarName, memLimitEnvVar)
+		if 0 > val || val > 100 {
+			log.Fatalf("Expected a number in the range 0-100 for %s env variable but got %s", envVar, envVarVal)
 		}
-		memLimit = memLimitVal
+		envVarResult = val
 	} else {
-		log.Fatalf("ERROR: Missing environment variable %s", memLimitMiBEnvVarName)
+		envVarResult = defaultVal
 	}
-
-	// Check if the memory spike is specified via the env var.
-	var memSpike int
-	memSpikeEnvVar := os.Getenv(memSpikeMiBEnvVarName)
-	if memSpikeEnvVar != "" {
-		// Check if it is a numeric value.
-		memSpikeVal, err := strconv.Atoi(memSpikeEnvVar)
-		if err != nil {
-			log.Fatalf("Expected a number in %s env variable but got %s", memSpikeMiBEnvVarName, memSpikeEnvVar)
-		}
-		if 0 > memSpikeVal {
-			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", memSpikeMiBEnvVarName, memSpikeEnvVar)
-		}
-		memSpike = memSpikeVal
-	} else {
-		log.Fatalf("ERROR: Missing environment variable %s", memSpikeMiBEnvVarName)
-	}
-
-	// Ensure spike and limit are valid
-	if memSpike >= memLimit {
-		log.Fatalf("%s env variable must be less than %s env variable but got %d and %d respectively", memSpikeMiBEnvVarName, memLimitMiBEnvVarName, memSpike, memLimit)
-	}
-
-	// Set memory environment variables
-	os.Setenv(memLimitMiBEnvVarName, strconv.Itoa(memLimit))
-	os.Setenv(memSpikeMiBEnvVarName, strconv.Itoa(memSpike))
+	return envVarResult
 }
 
 func useMemorySettingsPercentageFromEnvVar() {
-	// Check if the memory limit is specified via the env var.
-	var memLimit int
-	memLimitEnvVar := os.Getenv(memLimitEnvVarName)
-	if memLimitEnvVar != "" {
-		// Check if it is a numeric value.
-		memLimitVal, err := strconv.Atoi(memLimitEnvVar)
-		if err != nil {
-			log.Fatalf("Expected a number in %s env variable but got %s", memLimitEnvVarName, memLimitEnvVar)
-		}
-		if 0 > memLimitVal || memLimitVal > 100 {
-			log.Fatalf("Expected a number in the range 0-100 for %s env variable but got %s", memLimitEnvVarName, memLimitEnvVar)
-		}
-		memLimit = memLimitVal
-	} else {
-		memLimit = defaultMemoryLimitPercentage
-	}
+	memLimit := checkMemorySettingsPercentageFromEnvVar(memLimitEnvVarName, defaultMemoryLimitPercentage)
+	memSpike := checkMemorySettingsPercentageFromEnvVar(memSpikeEnvVarName, defaultMemorySpikePercentage)
+	setMemorySettingsToEnvVar(memLimit, memLimitEnvVarName, memSpike, memSpikeEnvVarName)
+}
 
-	// Check if the memory spike is specified via the env var.
-	var memSpike int
-	memSpikeEnvVar := os.Getenv(memSpikeEnvVarName)
-	if memSpikeEnvVar != "" {
-		// Check if it is a numeric value.
-		memSpikeVal, err := strconv.Atoi(memSpikeEnvVar)
-		if err != nil {
-			log.Fatalf("Expected a number in %s env variable but got %s", memSpikeEnvVarName, memSpikeEnvVar)
-		}
-		if 0 > memSpikeVal || memSpikeVal > 100 {
-			log.Fatalf("Expected a number in the range 0-100 for %s env variable but got %s", memSpikeEnvVarName, memSpikeEnvVar)
-		}
-		memSpike = memSpikeVal
-	} else {
-		memSpike = defaultMemorySpikePercentage
-	}
-
+func setMemorySettingsToEnvVar(limit int, limitName string, spike int, spikeName string) {
 	// Ensure spike and limit are valid
-	if memSpike >= memLimit {
-		log.Fatalf("%s env variable must be less than %s env variable but got %d and %d respectively", memSpikeEnvVarName, memLimitEnvVarName, memSpike, memLimit)
+	if spike >= limit {
+		log.Fatalf("%s env variable must be less than %s env variable but got %d and %d respectively", spikeName, limitName, spike, limit)
 	}
 
 	// Set memory environment variables
-	os.Setenv(memLimitEnvVarName, strconv.Itoa(memLimit))
-	os.Setenv(memSpikeEnvVarName, strconv.Itoa(memSpike))
+	os.Setenv(limitName, strconv.Itoa(limit))
+	os.Setenv(spikeName, strconv.Itoa(spike))
 }
 
 func runInteractive(params service.Parameters) error {

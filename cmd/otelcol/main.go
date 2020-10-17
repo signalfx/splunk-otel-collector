@@ -165,14 +165,14 @@ func useMemorySettingsMiBFromEnvVar() {
 		log.Fatalf("ERROR: Missing environment variable %s", memSpikeMiBEnvVarName)
 	}
 
-    // Ensure spike and limit are valid
+	// Ensure spike and limit are valid
 	if memSpike >= memLimit {
 		log.Fatalf("%s env variable must be less than %s env variable but got %d and %d respectively", memSpikeMiBEnvVarName, memLimitMiBEnvVarName, memSpike, memLimit)
 	}
 
 	// Set memory environment variables
-	os.Setenv(memLimitMiBEnvVarName, memLimitEnvVar)
-	os.Setenv(memSpikeMiBEnvVarName, memSpikeEnvVar)
+	os.Setenv(memLimitMiBEnvVarName, strconv.Itoa(memLimit))
+	os.Setenv(memSpikeMiBEnvVarName, strconv.Itoa(memSpike))
 }
 
 func useMemorySettingsPercentageFromEnvVar() {
@@ -210,14 +210,14 @@ func useMemorySettingsPercentageFromEnvVar() {
 		memSpike = defaultMemorySpikePercentage
 	}
 
-    // Ensure spike and limit are valid
+	// Ensure spike and limit are valid
 	if memSpike >= memLimit {
 		log.Fatalf("%s env variable must be less than %s env variable but got %d and %d respectively", memSpikeEnvVarName, memLimitEnvVarName, memSpike, memLimit)
 	}
 
 	// Set memory environment variables
-	os.Setenv(memLimitEnvVarName, memLimitEnvVar)
-	os.Setenv(memSpikeEnvVarName, memSpikeEnvVar)
+	os.Setenv(memLimitEnvVarName, strconv.Itoa(memLimit))
+	os.Setenv(memSpikeEnvVarName, strconv.Itoa(memSpike))
 }
 
 func runInteractive(params service.Parameters) error {

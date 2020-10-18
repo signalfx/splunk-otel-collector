@@ -9,7 +9,7 @@
 #   sudo systemctl restart splunk-otel-collector.service
 
 # Command-line options for the splunk-otel-collector service. Run `/usr/bin/otelcol --help` to see all available options.
-OTELCOL_OPTIONS="--config /etc/otel/collector/splunk_config_linux.yaml"
+OTELCOL_OPTIONS=""
 
 # Access token to authenticate requests.
 SPLUNK_TOKEN=12345

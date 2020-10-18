@@ -24,13 +24,13 @@ which requires the following environment variables:
 
 In addition, the following environment variables are optional:
 
-- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk-config.yaml`): Which configuration to load.
+- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk-config_linux.yaml`): Which configuration to load.
 - `SPLUNK_MEMORY_LIMIT_PERCENTAGE` (default = `90`): Maximum amount of total memory targeted to be allocated by the process heap.
 - `SPLUNK_MEMORY_SPIKE_PERCENTAGE` (default = `20`): Maximum spike expected between the measurements of memory usage.
 
 When running on a non-linux system, the following environment variables are required:
 
-- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk-config.yaml`): Which configuration to load.
+- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk-config_non_linux.yaml`): Which configuration to load.
 - `SPLUNK_MEMORY_LIMIT_MIB` (no default): Maximum amount of total memory targeted to be allocated by the process heap.
 - `SPLUNK_MEMORY_SPIKE_MIB` (no default): Maximum spike expected between the measurements of memory usage.
 

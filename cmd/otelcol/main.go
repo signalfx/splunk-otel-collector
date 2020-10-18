@@ -21,7 +21,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
+	"strings"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/service"
@@ -30,9 +32,42 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/version"
 )
 
-const ballastEnvVarName = "SPLUNK_BALLAST_SIZE_MIB"
+const (
+	ballastEnvVarName     = "SPLUNK_BALLAST_SIZE_MIB"
+	configEnvVarName      = "SPLUNK_CONFIG"
+	memLimitEnvVarName    = "SPLUNK_MEMORY_LIMIT_PERCENTAGE"
+	memLimitMiBEnvVarName = "SPLUNK_MEMORY_LIMIT_MIB"
+	memSpikeEnvVarName    = "SPLUNK_MEMORY_SPIKE_PERCENTAGE"
+	memSpikeMiBEnvVarName = "SPLUNK_MEMORY_SPIKE_MIB"
+	realmEnvVarName       = "SPLUNK_REALM"
+	tokenEnvVarName       = "SPLUNK_ACCESS_TOKEN"
+
+	defaultDockerSAPMLinuxConfig    = "/etc/otel/collector/splunk_config_linux.yaml"
+	defaultDockerSAPMNonLinuxConfig = "/etc/otel/collector/splunk_config_non_linux.yaml"
+	defaultDockerOTLPLinuxConfig    = "/etc/otel/collector/otlp_config_linux.yaml"
+	defaultDockerOTLPNonLinuxConfig = "/etc/otel/collector/otlp_config_non_linux.yaml"
+	defaultLocalSAPMLinuxConfig     = "cmd/otelcol/config/collector/splunk_config_linux.yaml"
+	defaultLocalSAPMNonLinuxConfig  = "cmd/otelcol/config/collector/splunk_config_non_linux.yaml"
+	defaultLocalOTLPLinuxConfig     = "cmd/otelcol/config/collector/otlp_config_linux.yaml"
+	defaultLocalOTLPNonLinuxConfig  = "cmd/otelcol/config/collector/otlp_config_non_linux.yaml"
+	defaultMemoryLimitPercentage    = 90
+	defaultMemorySpikePercentage    = 25
+)
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	// Check runtime parameters
+	// Runtime parameters take priority over environment variables
+	// Runtime parameters are not validated
+	args := os.Args[1:]
+	if !contains(args, "--mem-ballast-size-mib") {
+		useBallastSizeFromEnvVar()
+	}
+	if !contains(args, "--config") {
+		useConfigFromEnvVar()
+	}
+
 	factories, err := components.Get()
 	if err != nil {
 		log.Fatalf("failed to build default components: %v", err)
@@ -45,15 +80,25 @@ func main() {
 		GitHash:  version.GitHash,
 	}
 
-	useBallastSizeFromEnvVar()
-
 	if err := run(service.Parameters{ApplicationStartInfo: info, Factories: factories}); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func useBallastSizeFromEnvVar() {
+func contains(arr []string, str string) bool {
+	for _, a := range arr {
+		// Command line argument may be of form
+		// --key value OR --key=value
+		if a == str {
+			return true
+		} else if strings.Contains(a, str+"=") {
+			return true
+		}
+	}
+	return false
+}
 
+func useBallastSizeFromEnvVar() {
 	// Check if the ballast is specified via the env var.
 	ballastSize := os.Getenv(ballastEnvVarName)
 	if ballastSize != "" {
@@ -66,6 +111,137 @@ func useBallastSizeFromEnvVar() {
 		// Inject the command line flag that controls the ballast size.
 		os.Args = append(os.Args, "--mem-ballast-size-mib="+ballastSize)
 	}
+}
+
+func useConfigFromEnvVar() {
+	// Check if the config is specified via the env var.
+	config := os.Getenv(configEnvVarName)
+	// If not attempt to use a default config; supports Docker and local
+	if config == "" {
+		if runtime.GOOS == "linux" {
+			_, err := os.Stat(defaultDockerSAPMLinuxConfig)
+			if err == nil {
+				config = defaultDockerSAPMLinuxConfig
+			}
+			_, err = os.Stat(defaultLocalSAPMLinuxConfig)
+			if err == nil {
+				config = defaultLocalSAPMLinuxConfig
+			}
+			if config == "" {
+				log.Fatalf("Unable to find the default configuration file, ensure %s environment variable is set properly", configEnvVarName)
+			}
+			useMemorySettingsPercentageFromEnvVar()
+		} else {
+			_, err := os.Stat(defaultDockerSAPMNonLinuxConfig)
+			if err == nil {
+				config = defaultDockerSAPMNonLinuxConfig
+			}
+			_, err = os.Stat(defaultLocalSAPMNonLinuxConfig)
+			if err == nil {
+				config = defaultLocalSAPMNonLinuxConfig
+			}
+			if config == "" {
+				log.Fatalf("Unable to find the default configuration file, ensure %s environment variable is set properly", configEnvVarName)
+			}
+			useMemorySettingsMiBFromEnvVar()
+		}
+	} else {
+		// Check if file exists.
+		_, err := os.Stat(config)
+		if err != nil {
+			log.Fatalf("Unable to find the configuration file (%s) ensure %s environment variable is set properly", config, configEnvVarName)
+		}
+	}
+
+	switch config {
+	case
+		defaultDockerSAPMLinuxConfig,
+		defaultDockerSAPMNonLinuxConfig,
+		defaultDockerOTLPLinuxConfig,
+		defaultDockerOTLPNonLinuxConfig,
+		defaultLocalSAPMLinuxConfig,
+		defaultLocalSAPMNonLinuxConfig,
+		defaultLocalOTLPLinuxConfig,
+		defaultLocalOTLPNonLinuxConfig:
+		// The following environment variables are required.
+		// If any are missing stop here.
+		requiredEnvVars := []string{ballastEnvVarName, realmEnvVarName, tokenEnvVarName}
+		for _, v := range requiredEnvVars {
+			if len(os.Getenv(v)) == 0 {
+				log.Printf("Usage: %s=12345 %s=us0 %s=684 %s", tokenEnvVarName, realmEnvVarName, ballastEnvVarName, os.Args[0])
+				log.Fatalf("ERROR: Missing environment variable %s", v)
+			}
+		}
+	}
+
+	// Inject the command line flag that controls the configuration.
+	os.Args = append(os.Args, "--config="+config)
+}
+
+func checkMemorySettingsMiBFromEnvVar(envVar string) int {
+	// Check if the memory limit is specified via the env var
+	// Ensure memory limit is valid
+	var envVarResult int
+	envVarVal := os.Getenv(envVar)
+	if envVarVal != "" {
+		// Check if it is a numeric value.
+		val, err := strconv.Atoi(envVarVal)
+		if err != nil {
+			log.Fatalf("Expected a number in %s env variable but got %s", envVar, envVarVal)
+		}
+		if 0 > val {
+			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", envVar, envVarVal)
+		}
+		envVarResult = val
+	} else {
+		log.Printf("Usage: %s=12345 %s=us0 %s=684 %s=1024 %s=256 %s", tokenEnvVarName, realmEnvVarName, ballastEnvVarName, memLimitMiBEnvVarName, memSpikeMiBEnvVarName, os.Args[0])
+		log.Fatalf("ERROR: Missing environment variable %s", envVar)
+	}
+	return envVarResult
+}
+
+func useMemorySettingsMiBFromEnvVar() {
+	memLimit := checkMemorySettingsMiBFromEnvVar(memLimitMiBEnvVarName)
+	memSpike := checkMemorySettingsMiBFromEnvVar(memSpikeMiBEnvVarName)
+	setMemorySettingsToEnvVar(memLimit, memLimitMiBEnvVarName, memSpike, memSpikeMiBEnvVarName)
+}
+
+func checkMemorySettingsPercentageFromEnvVar(envVar string, defaultVal int) int {
+	// Check if the memory limit is specified via the env var
+	// Ensure memory limit is valid
+	var envVarResult int
+	envVarVal := os.Getenv(envVar)
+	if envVarVal != "" {
+		// Check if it is a numeric value.
+		val, err := strconv.Atoi(envVarVal)
+		if err != nil {
+			log.Fatalf("Expected a number in %s env variable but got %s", envVar, envVarVal)
+		}
+		if 0 > val || val > 100 {
+			log.Fatalf("Expected a number in the range 0-100 for %s env variable but got %s", envVar, envVarVal)
+		}
+		envVarResult = val
+	} else {
+		envVarResult = defaultVal
+	}
+	return envVarResult
+}
+
+func useMemorySettingsPercentageFromEnvVar() {
+	memLimit := checkMemorySettingsPercentageFromEnvVar(memLimitEnvVarName, defaultMemoryLimitPercentage)
+	memSpike := checkMemorySettingsPercentageFromEnvVar(memSpikeEnvVarName, defaultMemorySpikePercentage)
+	setMemorySettingsToEnvVar(memLimit, memLimitEnvVarName, memSpike, memSpikeEnvVarName)
+}
+
+func setMemorySettingsToEnvVar(limit int, limitName string, spike int, spikeName string) {
+	// Ensure spike and limit are valid
+	if spike >= limit {
+		log.Fatalf("%s env variable must be less than %s env variable but got %d and %d respectively", spikeName, limitName, spike, limit)
+	}
+
+	// Set memory environment variables
+	os.Setenv(limitName, strconv.Itoa(limit))
+	os.Setenv(spikeName, strconv.Itoa(spike))
 }
 
 func runInteractive(params service.Parameters) error {

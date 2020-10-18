@@ -3,6 +3,9 @@
 
 extensions:
   health_check:
+  http_forwarder:
+    egress:
+      endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
   zpages:
 
 receivers:
@@ -50,8 +53,8 @@ processors:
   memory_limiter:
     ballast_size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
     check_interval: 2s
-    limit_percentage: 90
-    spike_limit_percentage: 25
+    limit_percentage: ${SPLUNK_MEMORY_LIMIT_PERCENTAGE}
+    spike_limit_percentage: ${SPLUNK_MEMORY_SPIKE_PERCENTAGE}
 
 exporters:
   # Traces
@@ -78,4 +81,4 @@ service:
       processors: [memory_limiter, batch]
       exporters: [signalfx]
 
-  extensions: [health_check, zpages]
+  extensions: [health_check, http_forwarder, zpages]

@@ -23,6 +23,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/service"
@@ -41,37 +42,30 @@ const (
 	realmEnvVarName       = "SPLUNK_REALM"
 	tokenEnvVarName       = "SPLUNK_ACCESS_TOKEN"
 
-	defaultSAPMLinuxConfig       = "/etc/otel/collector/splunk_config_linux.yaml"
-	defaultSAPMNonLinuxConfig    = "/etc/otel/collector/splunk_config_non_linux.yaml"
-	defaultOTLPLinuxConfig       = "/etc/otel/collector/otlp_config_linux.yaml"
-	defaultOTLPNonLinuxConfig    = "/etc/otel/collector/otlp_config_non_linux.yaml"
-	defaultMemoryLimitPercentage = 90
-	defaultMemorySpikePercentage = 25
+	defaultDockerSAPMLinuxConfig    = "/etc/otel/collector/splunk_config_linux.yaml"
+	defaultDockerSAPMNonLinuxConfig = "/etc/otel/collector/splunk_config_non_linux.yaml"
+	defaultDockerOTLPLinuxConfig    = "/etc/otel/collector/otlp_config_linux.yaml"
+	defaultDockerOTLPNonLinuxConfig = "/etc/otel/collector/otlp_config_non_linux.yaml"
+	defaultLocalSAPMLinuxConfig     = "cmd/otelcol/config/collector/splunk_config_linux.yaml"
+	defaultLocalSAPMNonLinuxConfig  = "cmd/otelcol/config/collector/splunk_config_non_linux.yaml"
+	defaultLocalOTLPLinuxConfig     = "cmd/otelcol/config/collector/otlp_config_linux.yaml"
+	defaultLocalOTLPNonLinuxConfig  = "cmd/otelcol/config/collector/otlp_config_non_linux.yaml"
+	defaultMemoryLimitPercentage    = 90
+	defaultMemorySpikePercentage    = 25
 )
 
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Check runtime parameters
-	// Note that runtime parameters take priority over environment variables
+	// Runtime parameters take priority over environment variables
+	// Runtime parameters are not validated
 	args := os.Args[1:]
-	if len(args) == 0 {
+	if !contains(args, "--mem-ballast-size-mib") {
 		useBallastSizeFromEnvVar()
-		useConfigFromEnvVar()
 	}
-
-	// If GOOS is not linux then a custom configuration needs to be supplied
-	// A non-linux default config is built-in and requires both
-	// SPLUNK_MEMORY_LIMIT_MIB and SPLUNK_MEMORY_SPIKE_MIB to be set
-	if runtime.GOOS != "linux" {
-		config := os.Getenv(configEnvVarName)
-		if config == defaultSAPMLinuxConfig || config == defaultOTLPLinuxConfig {
-			log.Fatalf("For non-linux systems the %s must be specified. Consider using splunk_config_non-linux.yaml.", configEnvVarName)
-		} else {
-			useMemorySettingsMiBFromEnvVar()
-		}
-	} else {
-		useMemorySettingsPercentageFromEnvVar()
+	if !contains(args, "--config") {
+		useConfigFromEnvVar()
 	}
 
 	factories, err := components.Get()
@@ -89,6 +83,19 @@ func main() {
 	if err := run(service.Parameters{ApplicationStartInfo: info, Factories: factories}); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func contains(arr []string, str string) bool {
+	for _, a := range arr {
+		// Command line argument may be of form
+		// --key value OR --key=value
+		if a == str {
+			return true
+		} else if strings.Contains(a, str+"=") {
+			return true
+		}
+	}
+	return false
 }
 
 func useBallastSizeFromEnvVar() {
@@ -109,26 +116,53 @@ func useBallastSizeFromEnvVar() {
 func useConfigFromEnvVar() {
 	// Check if the config is specified via the env var.
 	config := os.Getenv(configEnvVarName)
+	// If not attempt to use a default config; supports Docker and local
 	if config == "" {
 		if runtime.GOOS == "linux" {
-			config = defaultSAPMLinuxConfig
+			_, err := os.Stat(defaultDockerSAPMLinuxConfig)
+			if err == nil {
+				config = defaultDockerSAPMLinuxConfig
+			}
+			_, err = os.Stat(defaultLocalSAPMLinuxConfig)
+			if err == nil {
+				config = defaultLocalSAPMLinuxConfig
+			}
+			if config == "" {
+				log.Fatalf("Unable to find the default configuration file, ensure %s environment variable is set properly", configEnvVarName)
+			}
+			useMemorySettingsPercentageFromEnvVar()
 		} else {
-			config = defaultSAPMNonLinuxConfig
+			_, err := os.Stat(defaultDockerSAPMNonLinuxConfig)
+			if err == nil {
+				config = defaultDockerSAPMNonLinuxConfig
+			}
+			_, err = os.Stat(defaultLocalSAPMNonLinuxConfig)
+			if err == nil {
+				config = defaultLocalSAPMNonLinuxConfig
+			}
+			if config == "" {
+				log.Fatalf("Unable to find the default configuration file, ensure %s environment variable is set properly", configEnvVarName)
+			}
+			useMemorySettingsMiBFromEnvVar()
 		}
-	}
-
-	// Check if file exists.
-	_, err := os.Stat(config)
-	if os.IsNotExist(err) {
-		log.Fatalf("Unable to find the configuration file (%s) ensure %s environment variable is set properly", config, configEnvVarName)
+	} else {
+		// Check if file exists.
+		_, err := os.Stat(config)
+		if err != nil {
+			log.Fatalf("Unable to find the configuration file (%s) ensure %s environment variable is set properly", config, configEnvVarName)
+		}
 	}
 
 	switch config {
 	case
-		defaultSAPMLinuxConfig,
-		defaultSAPMNonLinuxConfig,
-		defaultOTLPLinuxConfig,
-		defaultOTLPNonLinuxConfig:
+		defaultDockerSAPMLinuxConfig,
+		defaultDockerSAPMNonLinuxConfig,
+		defaultDockerOTLPLinuxConfig,
+		defaultDockerOTLPNonLinuxConfig,
+		defaultLocalSAPMLinuxConfig,
+		defaultLocalSAPMNonLinuxConfig,
+		defaultLocalOTLPLinuxConfig,
+		defaultLocalOTLPNonLinuxConfig:
 		// The following environment variables are required.
 		// If any are missing stop here.
 		requiredEnvVars := []string{ballastEnvVarName, realmEnvVarName, tokenEnvVarName}

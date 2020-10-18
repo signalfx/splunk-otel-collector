@@ -12,7 +12,7 @@
 OTELCOL_OPTIONS=""
 
 # Access token to authenticate requests.
-SPLUNK_TOKEN=12345
+SPLUNK_ACCESS_TOKEN=12345
 
 # Which realm to send the data to.
 SPLUNK_REALM=us0

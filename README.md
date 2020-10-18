@@ -19,7 +19,7 @@ configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/o
 which requires the following environment variables:
 
 - `SPLUNK_REALM` (no default): Which realm to send the data to (for example: `us0`)
-- `SPLUNK_TOKEN` (no default): Access token to authenticate requests
+- `SPLUNK_ACCESS_TOKEN` (no default): Access token to authenticate requests
 - `SPLUNK_BALLAST_SIZE_MIB` (no default): How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.
 
 In addition, the following environment variables are optional:

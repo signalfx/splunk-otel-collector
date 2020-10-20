@@ -265,6 +265,16 @@ jobs:
       - publish_docker_images:
           repo: splunk-otel-collector
           tag: ${CIRCLE_TAG:1}
+      - run:
+          name: Prepare release artifacts
+          command: |
+            cp bin/* dist/
+      - run:
+          name: Calculate checksums
+          command: cd dist && shasum -a 256 * > checksums.txt
+      - run:
+          name: Create Github release and upload artifacts
+          command: ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG dist/
 
   publish-dev:
     docker:
@@ -328,3 +338,5 @@ jobs:
       - persist_to_workspace:
           root: ~/
           paths: project/dist/*.<< parameters.package_type >>
+      - store_artifacts:
+          path: dist

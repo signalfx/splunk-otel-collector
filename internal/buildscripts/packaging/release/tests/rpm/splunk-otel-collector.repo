@@ -1,0 +1,6 @@
+[splunk-otel-collector]
+name=Splunk OpenTelemetry Collector Repository
+baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/$stage/$basearch
+gpgcheck=1
+gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
+enabled=1

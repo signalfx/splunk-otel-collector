@@ -25,3 +25,8 @@ coverage.html
 # Wix
 *.wixobj
 *.wixpdb
+
+# Python
+venv/
+__pycache__
+*.pyc

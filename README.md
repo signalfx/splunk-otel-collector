@@ -43,9 +43,9 @@ about deploying and configuring the collector can be found
 Deploy from a Docker container (replace `0.1.0` with the latest stable version number if necessary):
 
 ```bash
-$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
-  docker run -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
-    --name otelcol signalfx/splunk-otel-collector:0.1.0
+$ docker run --rm -e SPLUNK_REALM=us0 -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST_SIZE_MIB=683 \
+    -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
+    --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0
 ```
 
 ### Kubernetes
@@ -61,7 +61,7 @@ file on GitHub.
 ```bash
 $ make otelcol
 $ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
-  ./bin/otelcol
+    ./bin/otelcol
 ```
 
 ## Advanced Configuration
@@ -74,10 +74,10 @@ specified. Command line arguments take priority over environment variables.
 For example in Docker:
 
 ```bash
-$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
-  docker run -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
+$ docker run --rm -e SPLUNK_REALM=us0 -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST_SIZE_MIB=683 \
+    -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
     -v collector.yaml:/etc/collector.yaml:ro \
-    --name otelcol signalfx/splunk-otel-collector:0.1.0 \
+    --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0 \
         --log-level=DEBUG
 ```
 
@@ -89,10 +89,10 @@ be provided.
 For example in Docker:
 
 ```bash
-$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 SPLUNK_CONFIG=/etc/collector.yaml \
+$ docker run --rm -e SPLUNK_REALM=us0 -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST_SIZE_MIB=683 -e SPLUNK_CONFIG=/etc/collector.yaml \
   docker run -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
     -v collector.yaml:/etc/collector.yaml:ro \
-    --name otelcol signalfx/splunk-otel-collector:0.1.0
+    --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0
 ```
 
 Note that if the configuration includes a memorylimiter processor then it must set the

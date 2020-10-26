@@ -14,9 +14,9 @@ The collector is an optional component deployed either:
 
 ## Getting Started
 
-This distribution comes with a [default
-configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/splunk_config.yaml)
-which requires the following environment variables:
+This distribution comes with [default
+configurations](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector)
+which require the following environment variables:
 
 - `SPLUNK_REALM` (no default): Which realm to send the data to (for example: `us0`)
 - `SPLUNK_ACCESS_TOKEN` (no default): Access token to authenticate requests

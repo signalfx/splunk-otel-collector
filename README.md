@@ -64,6 +64,15 @@ $ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
     ./bin/otelcol
 ```
 
+## Sizing
+
+The OpenTelemetry Collector can be scaled up or out as needed. A single
+Collector is generally capable of over 10,000 spans per second per CPU core.
+The recommendation is to use a ratio of 1:2 for CPU:memory and to allocate at
+least a CPU core per Collector. Multiple Collectors can deployed behind a load
+balancer. Each Collector runs independently, so sizing increases linearly with
+the number of Collectors you deploy.
+
 ## Advanced Configuration
 
 ### Command Line Arguments

@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/client9/misspell v0.3.4
-	github.com/golangci/golangci-lint v1.31.0
+	github.com/golangci/golangci-lint v1.32.2
 	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.14.0
@@ -31,10 +31,10 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.14.0
 	github.com/ory/go-acc v0.2.6
 	github.com/pavius/impi v0.0.3
-	github.com/securego/gosec/v2 v2.4.0
+	github.com/securego/gosec/v2 v2.5.0
 	github.com/stretchr/testify v1.6.1
 	go.opentelemetry.io/collector v0.14.0
-	golang.org/x/sys v0.0.0-20200929083018-4d22bbb62b3c
+	golang.org/x/sys v0.0.0-20201009025420-dfb3f7c4e634
 	honnef.co/go/tools v0.0.1-2020.1.6
 )
 

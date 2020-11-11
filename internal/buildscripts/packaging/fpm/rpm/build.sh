@@ -22,6 +22,10 @@ if [[ -z "$VERSION" ]]; then
     VERSION="${VERSION/'-'/'~'}"
 fi
 
+if [[ "$ARCH" = "arm64" ]]; then
+    ARCH="aarch64"
+fi
+
 mkdir -p "$OUTPUT_DIR"
 
 fpm -s dir -t rpm -n $PKG_NAME -v ${VERSION#v} -f -p "$OUTPUT_DIR" \
@@ -36,11 +40,11 @@ fpm -s dir -t rpm -n $PKG_NAME -v ${VERSION#v} -f -p "$OUTPUT_DIR" \
     --rpm-group "$SERVICE_GROUP" \
     --before-install "$PREINSTALL_PATH" \
     --after-install "$POSTINSTALL_PATH" \
-    --pre-uninstall "$PREUNINSTALL_PATH" \
+    --before-remove "$PREUNINSTALL_PATH" \
     --config-files $SPLUNK_CONFIG_INSTALL_PATH \
     --config-files $OTLP_CONFIG_INSTALL_PATH \
     $SPLUNK_CONFIG_REPO_PATH=$SPLUNK_CONFIG_INSTALL_PATH \
     $OTLP_CONFIG_REPO_PATH=$OTLP_CONFIG_INSTALL_PATH \
     $SPLUNK_ENV_REPO_PATH=$SPLUNK_ENV_INSTALL_PATH \
-    $SERVICE_PATH=/lib/systemd/system/$SERVICE_NAME.service \
+    $SERVICE_REPO_PATH=$SERVICE_INSTALL_PATH \
     $OTELCOL_REPO_PATH=$OTELCOL_INSTALL_PATH

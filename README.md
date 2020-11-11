@@ -64,6 +64,27 @@ $ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
     ./bin/otelcol
 ```
 
+### Linux Installer Script
+
+For non-containerized Linux environments, a convenience script is available for installing the collector package and
+[TD Agent (Fluentd)](https://www.fluentd.org/).
+
+Run the following command on your host (replace `SPLUNK_REALM`, `SPLUNK_BALLAST_SIZE`, and `SPLUNK_ACCESS_TOKEN`
+appropriately for your environment):
+
+```sh
+curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
+sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --ballast SPLUNK_BALLAST_SIZE -- SPLUNK_ACCESS_TOKEN
+```
+
+You can view the [source](internal/buildscripts/packaging/installer/install.sh) for more details and other options.
+
+Currently, only the following Linux distributions and versions are supported:
+- Debian 8, 9, 10
+- Ubuntu 16.04, 18.04, 20.04
+- Red Hat/CentOS/Oracle 7, 8
+- Amazon Linux 2
+
 ## Sizing
 
 The OpenTelemetry Collector can be scaled up or out as needed. A single

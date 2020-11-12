@@ -25,14 +25,14 @@ which require the following environment variables:
 In addition, the following environment variables are optional:
 
 - `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk-config_linux.yaml`): Which configuration to load.
-- `SPLUNK_MEMORY_LIMIT_PERCENTAGE` (default = `90`): Maximum amount of total memory targeted to be allocated by the process heap.
-- `SPLUNK_MEMORY_SPIKE_PERCENTAGE` (default = `20`): Maximum spike expected between the measurements of memory usage.
+- `SPLUNK_MEMORY_LIMIT_PERCENTAGE` (default = `90`): Maximum total memory to be allocated by the process heap.
+- `SPLUNK_MEMORY_SPIKE_PERCENTAGE` (default = `20`): Maximum spike between the measurements of memory usage.
 
 When running on a non-linux system, the following environment variables are required:
 
-- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk-config_non_linux.yaml`): Which configuration to load.
-- `SPLUNK_MEMORY_LIMIT_MIB` (no default): Maximum amount of total memory targeted to be allocated by the process heap.
-- `SPLUNK_MEMORY_SPIKE_MIB` (no default): Maximum spike expected between the measurements of memory usage.
+- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk-config_non_linux.yaml`): Configuration to load.
+- `SPLUNK_MEMORY_LIMIT_MIB` (no default): Maximum total memory to be allocated by the process heap.
+- `SPLUNK_MEMORY_SPIKE_MIB` (no default): Maximum spike between the measurements of memory usage.
 
 Deploy the collector as outlined in the below. More information
 about deploying and configuring the collector can be found
@@ -43,8 +43,9 @@ about deploying and configuring the collector can be found
 Deploy from a Docker container (replace `0.1.0` with the latest stable version number if necessary):
 
 ```bash
-$ docker run --rm -e SPLUNK_REALM=us0 -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST_SIZE_MIB=683 \
-    -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
+$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST_SIZE_MIB=683 \
+    -e SPLUNK_REALM=us0 -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678-55680:55678-55680 \
+    -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
     --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0
 ```
 
@@ -73,6 +74,8 @@ least a CPU core per Collector. Multiple Collectors can deployed behind a load
 balancer. Each Collector runs independently, so sizing increases linearly with
 the number of Collectors you deploy.
 
+> The Collector does not persist data to disk so no disk space is required.
+
 ## Advanced Configuration
 
 ### Command Line Arguments
@@ -83,8 +86,9 @@ specified. Command line arguments take priority over environment variables.
 For example in Docker:
 
 ```bash
-$ docker run --rm -e SPLUNK_REALM=us0 -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST_SIZE_MIB=683 \
-    -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
+$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST_SIZE_MIB=683 \
+    -e SPLUNK_REALM=us0 -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678-55680:55678-55680 \
+    -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
     -v collector.yaml:/etc/collector.yaml:ro \
     --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0 \
         --log-level=DEBUG
@@ -98,12 +102,18 @@ be provided.
 For example in Docker:
 
 ```bash
-$ docker run --rm -e SPLUNK_REALM=us0 -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST_SIZE_MIB=683 -e SPLUNK_CONFIG=/etc/collector.yaml \
-  docker run -p 13133 -p 14250 -p 14268 -p 55678-55680 -p 6060 -p 7276 -p 8888 -p 9411 -p 9943 \
-    -v collector.yaml:/etc/collector.yaml:ro \
+$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST_SIZE_MIB=683 \
+    -e SPLUNK_REALM=us0 -e SPLUNK_CONFIG=/etc/collector.yaml -p 13133:13133 -p 14250:14250 \
+    -p 14268:14268 -p 55678-55680:55678-55680 -p 6060:6060 -p 7276:7276 -p 8888:8888 \
+    -p 9411:9411 -p 9943:9943 -v collector.yaml:/etc/collector.yaml:ro \
     --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0
 ```
 
 Note that if the configuration includes a memorylimiter processor then it must set the
 value of `ballast_size_mib` setting of the processor to the env variable SPLUNK_BALLAST_SIZE_MIB.
 See for example splunk_config.yaml on how to do it.
+
+## Troubleshooting
+
+See the [Collector troubleshooting
+documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/troubleshooting.md).

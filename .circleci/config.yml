@@ -20,7 +20,7 @@ commands:
           bin/otelcol_windows_amd64.exe
           dist/splunk-otel-collector_*_amd64.deb
           dist/splunk-otel-collector_*_arm64.deb
-          dist/splunk-otel-collector-*.arm64.rpm
+          dist/splunk-otel-collector-*.aarch64.rpm
           dist/splunk-otel-collector-*.x86_64.rpm
     steps:
       - run:
@@ -100,6 +100,50 @@ commands:
           paths:
             - /opt/td-agent-bit
 
+  install_pytest:
+    description: Install pytest and dependencies with pyenv.
+    parameters:
+      python_version:
+        type: string
+        default: "3.8.5"
+      requirements_path:
+        type: string
+        default: "internal/buildscripts/packaging/tests/requirements.txt"
+    steps:
+      - restore_cache:
+          key: v1-pytest-<< parameters.python_version >>-{{ checksum "<< parameters.requirements_path >>" }}
+      - run:
+          name: Install pytest and dependencies
+          command: |
+            [[ "$SKIP_TESTS" = "yes" ]] && exit 0
+            cd $PYENV_ROOT && git pull && cd -
+            pyenv install --skip-existing << parameters.python_version >>
+            pyenv global << parameters.python_version >>
+            if which pip; then
+                pip install --upgrade 'pip==20.2.4'
+            else
+                curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+                python get-pip.py 'pip==20.2.4'
+            fi
+            pip install -r "<< parameters.requirements_path >>"
+            pyenv rehash
+      - save_cache:
+          key: v1-pytest-<< parameters.python_version >>-{{ checksum "<< parameters.requirements_path >>" }}
+          paths:
+            - /opt/circleci/.pyenv
+
+  save_pytest_results:
+    description: Collect and archive pytest results from `dir`.
+    parameters:
+      dir:
+        type: string
+        default: ~/testresults
+    steps:
+      - store_test_results:
+          path: << parameters.dir >>
+      - store_artifacts:
+          path: << parameters.dir >>
+
 workflows:
   version: 2
   build-and-test:
@@ -177,6 +221,10 @@ workflows:
           package_type: rpm
           requires:
             - cross-compile
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - installer-script-test:
           filters:
             tags:
               only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
@@ -327,16 +375,50 @@ jobs:
       - run:
           name: Build << parameters.package_type >> arm64 package
           command: ./internal/buildscripts/packaging/fpm/<< parameters.package_type >>/build.sh "${CIRCLE_TAG:-}" "arm64" "./dist/"
+      - install_pytest
       - run:
           name: Test << parameters.package_type >> package installation
           command: |
-            if [[ "<< parameters.package_type >>" = "deb" ]]; then
-                ./internal/buildscripts/packaging/fpm/test.sh dist/splunk-otel-collector_*amd64.deb
-            else
-                ./internal/buildscripts/packaging/fpm/test.sh dist/splunk-otel-collector-*x86_64.rpm
-            fi
+            mkdir -p ~/testresults
+            pytest -n2 --verbose -m << parameters.package_type >> \
+              --junitxml=~/testresults/results.xml\
+              --html=~/testresults/results.html\
+              --self-contained-html \
+              internal/buildscripts/packaging/tests/package_test.py
       - persist_to_workspace:
           root: ~/
           paths: project/dist/*.<< parameters.package_type >>
       - store_artifacts:
           path: dist
+      - save_pytest_results
+
+  installer-script-test:
+    machine:
+      image: ubuntu-1604:202007-01
+    parallelism: 2
+    steps:
+      - checkout
+      - run:
+          name: Check for relevant changes
+          command: |
+            # Only run installer tests for main branch, tags, or if the branch has relevant changes
+            if [[ "$CIRCLE_BRANCH" != "main" ]] && [[ -z "${CIRCLE_TAG:-}" ]] && ! .circleci/scripts/changes-include internal/buildscripts/packaging; then
+              echo "SKIP_TESTS=yes" >> $BASH_ENV
+            fi
+      - install_pytest
+      - run:
+          name: Test installer script
+          command: |
+            [[ "$SKIP_TESTS" = "yes" ]] && exit 0
+            mkdir -p ~/testresults
+            if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
+              PACKAGE_TYPE=deb
+            else
+              PACKAGE_TYPE=rpm
+            fi
+            pytest -n2 --verbose -m $PACKAGE_TYPE \
+              --junitxml=~/testresults/results.xml \
+              --html=~/testresults/results.html \
+              --self-contained-html \
+              internal/buildscripts/packaging/tests/installer_test.py
+      - save_pytest_results

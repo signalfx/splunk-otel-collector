@@ -6,11 +6,6 @@ import os
 import re
 import sys
 import tempfile
-import time
-from contextlib import contextmanager
-from pathlib import Path
-
-import docker
 
 from helpers.util import (
     ARTIFACTORY_URL,
@@ -37,7 +32,6 @@ ARTIFACTORY_RPM_REPO = "otel-collector-rpm"
 ARTIFACTORY_RPM_REPO_URL = f"{ARTIFACTORY_URL}/{ARTIFACTORY_RPM_REPO}"
 DEFAULT_TIMEOUT = 600
 STAGES = ("test", "beta", "release")
-TESTS_DIR = Path(__file__).parent.resolve() / "tests"
 
 
 def getargs():
@@ -89,13 +83,6 @@ def getargs():
         required=False,
         help="Never prompt and assume yes when overwriting existing files in artifactory.",
     )
-    parser.add_argument(
-        "--only-test",
-        action="store_true",
-        default=False,
-        required=False,
-        help="Do not release packages from Github. Only run install tests with existing packages in artifactory.",
-    )
 
     add_artifactory_args(parser)
     add_signing_args(parser)
@@ -103,7 +90,9 @@ def getargs():
     args = parser.parse_args()
 
     check_artifactory_args(args)
-    check_signing_args(args)
+
+    if args.stage != "test":
+        check_signing_args(args)
 
     return args
 
@@ -151,14 +140,14 @@ def add_debs_to_repo(paths, args):
                 metadata_api_url, orig_metadata_md5, args.artifactory_user, args.artifactory_token, args.timeout
             )
 
-    if paths:
+    if paths and args.stage != "test":
         sign_metadata(metadata_url, args)
 
 
 def add_rpms_to_repo(paths, args):
     for path in paths:
         base = os.path.basename(path)
-        match = re.match(r".*\.(x86_64|arm64)\.rpm$", base)
+        match = re.match(r".*\.(x86_64|aarch64)\.rpm$", base)
         assert match, f"Failed to get arch from {path}!"
         arch = match.groups()[0]
         dest_url = f"{ARTIFACTORY_RPM_REPO_URL}/{args.stage}/{arch}/{base}"
@@ -180,58 +169,27 @@ def add_rpms_to_repo(paths, args):
                 unsigned_rpm_path = os.path.join(tmpdir, "unsigned", base)
                 download_file(path, unsigned_rpm_path)
             signed_rpm_path = os.path.join(tmpdir, "signed", base)
-            print(f"Signing {base} (may take 10+ minutes):")
-            sign_file(
-                unsigned_rpm_path,
-                signed_rpm_path,
-                "RPM",
-                args.chaperone_token,
-                args.staging_user,
-                args.staging_token,
-                timeout=args.timeout,
-            )
+            if args.stage != "test":
+                print(f"Signing {base} (may take 10+ minutes):")
+                sign_file(
+                    unsigned_rpm_path,
+                    signed_rpm_path,
+                    "RPM",
+                    args.chaperone_token,
+                    args.staging_user,
+                    args.staging_token,
+                    timeout=args.timeout,
+                )
+            else:
+                signed_rpm_path = unsigned_rpm_path
             upload_file_to_artifactory(signed_rpm_path, dest_url, args.artifactory_user, args.artifactory_token)
 
         wait_for_artifactory_metadata(
             metadata_api_url, orig_metadata_md5, args.artifactory_user, args.artifactory_token, args.timeout
         )
 
-        sign_metadata(metadata_url, args)
-
-
-@contextmanager
-def run_container(package_type, stage):
-    client = docker.from_env()
-
-    path = TESTS_DIR / package_type
-    dockerfile = path / "Dockerfile"
-    image, _ = client.images.build(
-        path=str(path), dockerfile=str(dockerfile), pull=True, rm=True, forcerm=True, buildargs={"STAGE": stage}
-    )
-
-    container = client.containers.create(
-        image.id, detach=True, privileged=True, volumes={"/sys/fs/cgroup": {"bind": "/sys/fs/cgroup", "mode": "ro"}}
-    )
-
-    try:
-        container.start()
-
-        start_time = time.time()
-        while True:
-            container.reload()
-            if container.attrs["NetworkSettings"]["IPAddress"]:
-                break
-            assert (time.time() - start_time) < 5, "timed out waiting for container to start"
-
-        yield container
-    finally:
-        container.remove(force=True, v=True)
-
-
-def run_container_cmd(container, cmd):
-    print(f"Running '{cmd}' ...")
-    code, output = container.exec_run(cmd)
-    assert code == 0, f"{cmd}:\n{output.decode('utf-8')}"
+        if args.stage != "test":
+            sign_metadata(metadata_url, args)
 
 
 def get_packages(args):
@@ -279,28 +237,11 @@ def get_packages(args):
 def main():
     args = getargs()
 
-    if not args.only_test:
-        packages = get_packages(args)
+    packages = get_packages(args)
 
-        add_debs_to_repo(packages["deb"], args)
+    add_debs_to_repo(packages["deb"], args)
 
-        add_rpms_to_repo(packages["rpm"], args)
-
-    print(f"Testing apt installation from {args.stage} stage ...")
-    with run_container("deb", args.stage) as container:
-        cmd = "apt -y update"
-        run_container_cmd(container, cmd)
-        cmd = f"apt install -y {PACKAGE_NAME}"
-        if args.version:
-            cmd = f"{cmd}={args.version.lstrip('v')}"
-        run_container_cmd(container, cmd)
-
-    print(f"Testing yum installation from {args.stage} stage ...")
-    with run_container("rpm", args.stage) as container:
-        cmd = f"yum install -y {PACKAGE_NAME}"
-        if args.version:
-            cmd = f"{cmd}-{args.version.lstrip('v')}"
-        run_container_cmd(container, cmd)
+    add_rpms_to_repo(packages["rpm"], args)
 
 
 if __name__ == "__main__":

@@ -155,7 +155,7 @@ be provided. This can be done via the `SPLUNK_CONFIG` environment variable as
 well as the `--config` command line argument.
 
 > Command line arguments take precedence over environment variables. This
-> applies to `--config` as well as `--mem-ballast-size-mib`.
+> applies to `--config` and `--mem-ballast-size-mib`.
 
 For example in Docker:
 

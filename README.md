@@ -90,9 +90,9 @@ For non-containerized Linux environments, a convenience script is available for
 installing the Collector package and [TD Agent
 (Fluentd)](https://www.fluentd.org/).
 
-Run the following command on your host (replace `SPLUNK_REALM`,
-`SPLUNK_BALLAST_SIZE`, and `SPLUNK_ACCESS_TOKEN` appropriately for your
-environment):
+Run the following command on your host. Replace `SPLUNK_REALM`,
+`SPLUNK_BALLAST_SIZE`, and `SPLUNK_ACCESS_TOKEN` for your
+environment:
 
 ```sh
 curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;

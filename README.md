@@ -127,7 +127,7 @@ least a CPU core per Collector. Multiple Collectors can deployed behind a
 simple round-robin load balancer. Each Collector runs independently, so scale
 increases linearly with the number of Collectors you deploy.
 
-> The Collector does not persist data to disk so no disk space is required.
+The Collector does not persist data to disk so no disk space is required.
 
 ## Advanced Configuration
 

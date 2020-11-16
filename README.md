@@ -118,9 +118,9 @@ on the amount of data per data source and requires 1 CPU core per:
 - Traces: 10,000 spans per second
 - Metrics: 20,000 data points per second
 
-> If a Collector handles both trace and metric data then both must be accounted
-> for when sizing. For example, 5K spans per second plus 10K data points per
-> second would require 1 CPU core.
+If a Collector handles both trace and metric data then both must be accounted
+for when sizing. For example, 5K spans per second plus 10K data points per
+second would require 1 CPU core.
 
 The recommendation is to use a ratio of 1:2 for CPU:memory and to allocate at
 least a CPU core per Collector. Multiple Collectors can deployed behind a

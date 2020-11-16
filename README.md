@@ -59,7 +59,7 @@ Deploy the collector as outlined in the below.
 
 ### Docker
 
-Deploy from a Docker container (replace `0.1.0` with the latest stable version number):
+Deploy from a Docker container. Replace `0.1.0` with the latest stable version number:
 
 ```bash
 $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST_SIZE_MIB=683 \

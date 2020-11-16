@@ -87,7 +87,7 @@ $ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
 ### Linux Installer Script
 
 For non-containerized Linux environments, a convenience script is available for
-installing the collector package and [TD Agent
+installing the Collector package and [TD Agent
 (Fluentd)](https://www.fluentd.org/).
 
 Run the following command on your host (replace `SPLUNK_REALM`,

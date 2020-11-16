@@ -55,7 +55,7 @@ When running on a non-linux system, the following environment variables are requ
 - `SPLUNK_MEMORY_LIMIT_MIB` (no default): Maximum total memory to be allocated by the process heap.
 - `SPLUNK_MEMORY_SPIKE_MIB` (no default): Maximum spike between the measurements of memory usage.
 
-Deploy the collector as outlined in the below.
+The following sections describe how to deploy the Collector in supported environments.
 
 ### Docker
 

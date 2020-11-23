@@ -41,19 +41,35 @@ which require the following environment variables:
 
 - `SPLUNK_REALM` (no default): Which realm to send the data to (for example: `us0`)
 - `SPLUNK_ACCESS_TOKEN` (no default): Access token to authenticate requests
-- `SPLUNK_BALLAST_SIZE_MIB` (no default): How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.
+- `SPLUNK_MEMORY_TOTAL_MIB` (no default): Total memory allocated to the Collector.
 
-In addition, the following environment variables are optional:
+The following environment variables are optional:
 
 - `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk-config_linux.yaml`): Which configuration to load.
-- `SPLUNK_MEMORY_LIMIT_PERCENTAGE` (default = `90`): Maximum total memory to be allocated by the process heap.
-- `SPLUNK_MEMORY_SPIKE_PERCENTAGE` (default = `20`): Maximum spike between the measurements of memory usage.
+- `SPLUNK_BALLAST_SIZE_MIB` (no default): How much memory to allocate to the ballast.
+- For Linux systems:
+  - `SPLUNK_MEMORY_LIMIT_PERCENTAGE` (default = `90`): Maximum total memory to be allocated by the process heap.
+  - `SPLUNK_MEMORY_SPIKE_PERCENTAGE` (default = `20`): Maximum spike between the measurements of memory usage.
+- For non-Linux systems:
+  - `SPLUNK_MEMORY_LIMIT_MIB` (no default): Maximum total memory to be allocated by the process heap.
+  - `SPLUNK_MEMORY_SPIKE_MIB` (no default): Maximum spike between the measurements of memory usage.
 
-When running on a non-linux system, the following environment variables are required:
+> `SPLUNK_MEMORY_TOTAL_MIB` automatically configures the ballast, memory limit,
+> and memory spike. If the optional environment variables are defined, they
+> will override the value calculated from `SPLUNK_MEMORY_TOTAL_MIB`.
 
-- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk-config_non_linux.yaml`): Configuration to load.
-- `SPLUNK_MEMORY_LIMIT_MIB` (no default): Maximum total memory to be allocated by the process heap.
-- `SPLUNK_MEMORY_SPIKE_MIB` (no default): Maximum spike between the measurements of memory usage.
+With the Collector configured, the following endpoints are accessible:
+
+- `http(s)://<collectorFQDN>:13133/` Health endpoint useful for load balancer monitoring
+- `http(s)://<collectorFQDN>:[14250|14268]` Jaeger [gRPC|Thrift HTTP] receiver
+- `http(s)://<collectorFQDN>:55678` OpenCensus gRPC and HTTP receiver
+- `http(s)://localhost:55679/debug/[tracez|pipelinez]` zPages monitoring
+- `http(s)://<collectorFQDN>:55680` OpenTelemetry gRPC receiver
+- `http(s)://<collectorFQDN>:6060` HTTP Forwarder used to receive Smart Agent `apiUrl` data
+- `http(s)://<collectorFQDN>:7276` SignalFx Infrastructure Monitoring gRPC receiver
+- `http(s)://localhost:8888/metrics` Prometheus metrics for the Collector
+- `http(s)://<collectorFQDN>:9411/api/[v1|v2]/spans` Zipkin JSON (can be set to proto)receiver
+- `http(s)://<collectorFQDN>:9943/v2/trace` SignalFx APM receiver
 
 The following sections describe how to deploy the Collector in supported environments.
 
@@ -62,7 +78,7 @@ The following sections describe how to deploy the Collector in supported environ
 Deploy from a Docker container. Replace `0.1.0` with the latest stable version number:
 
 ```bash
-$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST_SIZE_MIB=683 \
+$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
     -e SPLUNK_REALM=us0 -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678-55680:55678-55680 \
     -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
     --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0
@@ -80,7 +96,7 @@ file on GitHub.
 
 ```bash
 $ make otelcol
-$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_BALLAST_SIZE_MIB=683 \
+$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_MEMORY_TOTAL_MIB=1024 \
     ./bin/otelcol
 ```
 
@@ -127,7 +143,7 @@ least a CPU core per Collector. Multiple Collectors can deployed behind a
 simple round-robin load balancer. Each Collector runs independently, so scale
 increases linearly with the number of Collectors you deploy.
 
-The Collector does not persist data to disk so no disk space is required.
+> The Collector does not persist data to disk so no disk space is required.
 
 ## Advanced Configuration
 
@@ -139,7 +155,7 @@ specified. Command line arguments take priority over environment variables.
 For example in Docker:
 
 ```bash
-$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST_SIZE_MIB=683 \
+$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
     -e SPLUNK_REALM=us0 -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678-55680:55678-55680 \
     -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
     --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0 \
@@ -160,7 +176,7 @@ the `--config` command line argument to provide a custom configuration.
 For example in Docker:
 
 ```bash
-$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_BALLAST_SIZE_MIB=683 \
+$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
     -e SPLUNK_REALM=us0 -e SPLUNK_CONFIG=/etc/collector.yaml -p 13133:13133 -p 14250:14250 \
     -p 14268:14268 -p 55678-55680:55678-55680 -p 6060:6060 -p 7276:7276 -p 8888:8888 \
     -p 9411:9411 -p 9943:9943 -v collector.yaml:/etc/collector.yaml:ro \

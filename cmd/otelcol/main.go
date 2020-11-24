@@ -87,7 +87,7 @@ func main() {
 		log.Printf("Ballast CLI argument found, ignoring %s if set", ballastEnvVarName)
 	}
 	if !contains(args, "--config") {
-		useConfigFromEnvVar(memTotalSize)
+		useConfigFromEnvVar()
 	} else {
 		log.Printf("Config CLI argument found, please ensure memory_limiter settings are correct")
 	}
@@ -132,9 +132,12 @@ func useMemorySizeFromEnvVar(memTotalSize int) {
 	ballastSize := os.Getenv(ballastEnvVarName)
 	if ballastSize != "" {
 		// Check if it is a numeric value.
-		_, err := strconv.Atoi(ballastSize)
+		val, err := strconv.Atoi(ballastSize)
 		if err != nil {
 			log.Fatalf("Expected a number in %s env variable but got %s", ballastEnvVarName, ballastSize)
+		}
+		if 0 > val {
+			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", ballastEnvVarName, ballastSize)
 		}
 
 		// Inject the command line flag that controls the ballast size.
@@ -148,7 +151,7 @@ func useMemorySizeFromEnvVar(memTotalSize int) {
 	}
 }
 
-func useConfigFromEnvVar(memTotalSize int) {
+func useConfigFromEnvVar() {
 	// Check if the config is specified via the env var.
 	config := os.Getenv(configEnvVarName)
 	// If not attempt to use a default config; supports Docker and local

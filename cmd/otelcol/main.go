@@ -59,7 +59,7 @@ const (
 )
 
 func main() {
-    // TODO: Use same format as the collector
+	// TODO: Use same format as the collector
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Check if the total memory is specified via the env var.
@@ -221,7 +221,8 @@ func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSize int) int {
 	// Ensure memory limit is valid
 	var envVarResult int
 	envVarVal := os.Getenv(envVar)
-	if envVarVal != "" {
+	switch {
+	case envVarVal != "":
 		// Check if it is a numeric value.
 		val, err := strconv.Atoi(envVarVal)
 		if err != nil {
@@ -231,9 +232,9 @@ func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSize int) int {
 			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", envVar, envVarVal)
 		}
 		envVarResult = val
-	} else if memTotalSize > 0 {
+	case memTotalSize > 0:
 		envVarResult = 0
-	} else {
+	default:
 		log.Printf("Usage: %s=12345 %s=us0 %s=684 %s=1024 %s=256 %s", tokenEnvVarName, realmEnvVarName, ballastEnvVarName, memLimitMiBEnvVarName, memSpikeMiBEnvVarName, os.Args[0])
 		log.Fatalf("ERROR: Missing environment variable %s", envVar)
 	}

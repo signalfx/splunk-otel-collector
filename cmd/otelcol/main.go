@@ -222,7 +222,7 @@ func useConfigFromEnvVar() {
 func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSize int) int {
 	// Check if the memory limit is specified via the env var
 	// Ensure memory limit is valid
-	var envVarResult int
+	var envVarResult int = 0
 	envVarVal := os.Getenv(envVar)
 	switch {
 	case envVarVal != "":
@@ -236,7 +236,7 @@ func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSize int) int {
 		}
 		envVarResult = val
 	case memTotalSize > 0:
-		envVarResult = 0
+		break
 	default:
 		log.Printf("Usage: %s=12345 %s=us0 %s=684 %s=1024 %s=256 %s", tokenEnvVarName, realmEnvVarName, ballastEnvVarName, memLimitMiBEnvVarName, memSpikeMiBEnvVarName, os.Args[0])
 		log.Fatalf("ERROR: Missing environment variable %s", envVar)
@@ -247,21 +247,27 @@ func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSize int) int {
 func useMemorySettingsMiBFromEnvVar(memTotalSize int) {
 	memLimit := checkMemorySettingsMiBFromEnvVar(memLimitMiBEnvVarName, memTotalSize)
 	if memLimit == 0 {
+		if memTotalSize == 0 {
+			panic("PANIC: Both memory limit MiB and memory total size are set to zero. This should never happen.")
+		}
 		memLimitMiB := memTotalSize * defaultMemoryLimitPercentage / 100
-		if memLimitMiB < defaultMemoryLimitMaxMiB {
+		if (memTotalSize - memLimitMiB) < defaultMemoryLimitMaxMiB {
 			memLimit = memLimitMiB
 		} else {
-			memLimit = defaultMemoryLimitMaxMiB
+			memLimit = (memTotalSize - defaultMemoryLimitMaxMiB)
 		}
 		log.Printf("Set memory limit to %d MiB", memLimit)
 	}
 	memSpike := checkMemorySettingsMiBFromEnvVar(memSpikeMiBEnvVarName, memTotalSize)
 	if memSpike == 0 {
+		if memTotalSize == 0 {
+			panic("PANIC: Both memory limit MiB and memory total size are set to zero. This should never happen.")
+		}
 		memSpikeMiB := memTotalSize * defaultMemorySpikePercentage / 100
 		if memSpikeMiB < defaultMemorySpikeMaxMiB {
 			memSpike = memSpikeMiB
 		} else {
-			memLimit = defaultMemorySpikeMaxMiB
+			memSpike = defaultMemorySpikeMaxMiB
 		}
 		log.Printf("Set memory spike limit to %d MiB", memSpike)
 	}

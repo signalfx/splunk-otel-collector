@@ -1,3 +1,18 @@
+// Copyright 2020 Splunk, Inc.
+// Copyright The OpenTelemetry Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
@@ -8,8 +23,8 @@ import (
 
 func TestContains(t *testing.T) {
 	testArgs := [][]string{
-		[]string{"cmd", "--test=foo"},
-		[]string{"cmd", "--test", "foo"},
+		{"cmd", "--test=foo"},
+		{"cmd", "--test", "foo"},
 	}
 	for _, v := range testArgs {
 		result := contains(v, "--test")
@@ -18,8 +33,8 @@ func TestContains(t *testing.T) {
 		}
 	}
 	testArgs = [][]string{
-		[]string{"cmd", "--test-fail", "foo"},
-		[]string{"cmd", "--test-fail=--test"},
+		{"cmd", "--test-fail", "foo"},
+		{"cmd", "--test-fail=--test"},
 	}
 	for _, v := range testArgs {
 		result := contains(v, "--test")
@@ -31,7 +46,7 @@ func TestContains(t *testing.T) {
 
 func TestUseMemorySizeFromEnvVar(t *testing.T) {
 	testArgs := [][]string{
-		[]string{"", "0"},
+		{"", "0"},
 	}
 	for _, v := range testArgs {
 		n, _ := strconv.Atoi(v[1])
@@ -43,8 +58,8 @@ func TestUseMemorySizeFromEnvVar(t *testing.T) {
 		}
 	}
 	testArgs = [][]string{
-		[]string{"10", "0"},
-		[]string{"", "10"},
+		{"10", "0"},
+		{"", "10"},
 	}
 	for _, v := range testArgs {
 		n, _ := strconv.Atoi(v[1])
@@ -73,9 +88,9 @@ func TestUseConfigFromEnvVar(t *testing.T) {
 
 func TestCheckMemorySettingMiBFromEnvVar(t *testing.T) {
 	testArgs := [][]string{
-		[]string{"", "10", "0"},
-		[]string{"10", "0", "10"},
-		[]string{"10", "100", "10"},
+		{"", "10", "0"},
+		{"10", "0", "10"},
+		{"10", "100", "10"},
 	}
 	for _, v := range testArgs {
 		n, _ := strconv.Atoi(v[1])

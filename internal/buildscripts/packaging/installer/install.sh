@@ -497,7 +497,13 @@ parse_args_and_install() {
   configure_realm "$realm" "$service_user" "$service_group"
   configure_ballast "$ballast" "$service_user" "$service_group"
 
-  systemctl start td-agent
+  # disable fluentd from starting with default config
+  systemctl stop td-agent
+  if [ -f /etc/td-agent/td-agent.conf ]; then
+    mv -f /etc/td-agent/td-agent.conf /etc/td-agent/td-agent.conf.default
+  fi
+  systemctl disable td-agent
+
   systemctl start splunk-otel-collector
 
   cat <<EOH

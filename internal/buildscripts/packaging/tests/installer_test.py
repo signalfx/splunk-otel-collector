@@ -59,7 +59,7 @@ def test_installer(distro, service_owner, version):
             run_container_cmd(container, "grep '^SPLUNK_BALLAST_SIZE_MIB=64$' /etc/otel/collector/splunk_env")
 
             # verify service statuses
-            assert wait_for(lambda: run_container_cmd(container, "systemctl status td-agent"))
+            # assert wait_for(lambda: run_container_cmd(container, "systemctl status td-agent"))
             assert wait_for(lambda: service_is_running(container, service_owner=service_owner))
         finally:
             run_container_cmd(container, "journalctl -u td-agent --no-pager")

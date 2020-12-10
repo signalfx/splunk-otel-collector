@@ -110,6 +110,55 @@ Currently, only the following Linux distributions and versions are supported:
 - Debian: 8, 9, 10
 - Ubuntu: 16.04, 18.04, 20.04
 
+### Standalone Windows MSI (64-bit only)
+
+A Windows MSI package is available to download at
+[https://github.com/signalfx/splunk-otel-collector/releases
+](https://github.com/signalfx/splunk-otel-collector/releases) for versions
+v0.4.0 or later.
+
+To install, double-click on the downloaded package or run the following command
+in a PowerShell terminal:
+
+```sh
+PS> Start-Process -Wait msiexec "/i PATH_TO_MSI /qn"
+```
+
+Replace `PATH_TO_MSI` with the *full* path to the downloaded package, e.g.
+`C:\your\download\folder\splunk-otel-collector-0.4.0-amd64.msi`.
+
+The collector will be installed to
+`\Program Files\Splunk\OpenTelemetry Collector`, and the
+`splunk-otel-collector` service will be created but not started.
+
+A default config file will be copied to
+`\ProgramData\Splunk\OpenTelemetry Collector\config.yaml` if it does not
+already exist.  This file is required to start the `splunk-otel-collector`
+service.
+
+Before starting the `splunk-otel-collector` service, the following variables
+in the default config file need to be replaced by the appropriate values for
+your environment:
+
+- `${SPLUNK_ACCESS_TOKEN}`
+- `${SPLUNK_REALM}`
+- `${SPLUNK_BALLAST_SIZE_MIB}`
+- `${SPLUNK_MEMORY_LIMIT_MIB}`
+- `${SPLUNK_MEMORY_SPIKE_MIB}`
+
+See the [Getting Started](#getting-started) section for details about these
+variables.
+
+After updating all variables in the config file, start the
+`splunk-otel-collector` service by rebooting the system or running the
+following command in a PowerShell terminal:
+
+```sh
+PS> Start-Service splunk-otel-collector
+```
+
+The collector logs and errors can be viewed in the Windows Event Viewer.
+
 ## Sizing
 
 The OpenTelemetry Collector can be scaled up or out as needed. Sizing is based

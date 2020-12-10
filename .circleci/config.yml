@@ -22,6 +22,7 @@ commands:
           dist/splunk-otel-collector_*_arm64.deb
           dist/splunk-otel-collector-*.aarch64.rpm
           dist/splunk-otel-collector-*.x86_64.rpm
+          dist/splunk-otel-collector-*-amd64.msi
     steps:
       - run:
           name: Check if files exist
@@ -189,6 +190,7 @@ workflows:
             - windows-test
             - deb-package
             - rpm-package
+            - windows-msi
           filters:
             branches:
               ignore: /.*/
@@ -203,6 +205,7 @@ workflows:
             - windows-test
             - deb-package
             - rpm-package
+            - windows-msi
           filters:
             branches:
               only: main
@@ -225,6 +228,12 @@ workflows:
             tags:
               only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
       - installer-script-test:
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - windows-msi:
+          requires:
+            - cross-compile
           filters:
             tags:
               only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
@@ -423,3 +432,28 @@ jobs:
               --self-contained-html \
               internal/buildscripts/packaging/tests/installer_test.py
       - save_pytest_results
+
+  windows-msi:
+    executor:
+      name: win/default
+      shell: powershell.exe
+    steps:
+      - attach_to_workspace
+      - run:
+          command: mkdir -p dist
+      - run:
+          name: Install Wix Toolset
+          command: .\internal\buildscripts\packaging\msi\make.ps1 Install-Tools
+      - run:
+          name: Build MSI
+          command: |
+            $Version = if ($env:CIRCLE_TAG -match '^v(\d+\.\d+\.\d+)') { $Matches[1] } else { "0.0.1" }
+            .\internal\buildscripts\packaging\msi\make.ps1 New-MSI -Version $Version
+      - run:
+          name: Validate MSI
+          command: .\internal\buildscripts\packaging\msi\make.ps1 Confirm-MSI
+      - persist_to_workspace:
+          root: ~/
+          paths: project/dist/*.msi
+      - store_artifacts:
+          path: dist

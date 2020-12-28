@@ -326,6 +326,8 @@ jobs:
           name: Prepare release artifacts
           command: |
             cp bin/* dist/
+            # exclude the otelcol symlink from the release
+            [ -e dist/otelcol ] && rm -f dist/otelcol
       - run:
           name: Calculate checksums
           command: cd dist && shasum -a 256 * > checksums.txt

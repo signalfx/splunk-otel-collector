@@ -10,7 +10,7 @@ extensions:
 
 receivers:
   fluentforward:
-    endpoint: 0.0.0.0:8006
+    endpoint: 127.0.0.1:8006
   hostmetrics:
     collection_interval: 1m
     scrapers:

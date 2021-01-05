@@ -35,6 +35,7 @@ require (
 	github.com/securego/gosec/v2 v2.5.0
 	github.com/stretchr/testify v1.6.1
 	go.opentelemetry.io/collector v0.15.0
+	go.uber.org/zap v1.16.0
 	golang.org/x/sys v0.0.0-20201015000850-e3ed0017c211
 	honnef.co/go/tools v0.0.1-2020.1.6
 )

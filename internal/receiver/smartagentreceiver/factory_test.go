@@ -18,6 +18,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
@@ -36,6 +37,7 @@ func TestCreateDefaultConfig(t *testing.T) {
 func TestCreateReceiver(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
+	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
 	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
 	receiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewMetricsNop())
@@ -50,6 +52,7 @@ func TestCreateReceiverWithInvalidConfig(t *testing.T) {
 
 	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
 	receiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewMetricsNop())
-	assert.Error(t, err)
+	require.Error(t, err)
+	assert.EqualError(t, err, "you must supply a valid Smart Agent Monitor config")
 	assert.Nil(t, receiver)
 }

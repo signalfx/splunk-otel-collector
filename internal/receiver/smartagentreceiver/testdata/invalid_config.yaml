@@ -1,0 +1,22 @@
+receivers:
+  smartagent/negativeintervalseconds:
+    type: collectd/redis
+    intervalSeconds: -234
+  smartagent/missingrequired:
+    type: collectd/consul
+    port: 5309
+
+processors:
+  exampleprocessor:
+
+exporters:
+  exampleexporter:
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/negativeintervalseconds
+        - smartagent/missingrequired
+      processors: [exampleprocessor]
+      exporters: [exampleexporter]

@@ -1,0 +1,19 @@
+receivers:
+  smartagent/unexpectedtag:
+    type: collectd/redis
+    intervalSeconds: 123
+    notASupportedTag: somevalue
+
+processors:
+  exampleprocessor:
+
+exporters:
+  exampleexporter:
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/unexpectedtag
+      processors: [exampleprocessor]
+      exporters: [exampleexporter]

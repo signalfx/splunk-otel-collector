@@ -1,0 +1,36 @@
+receivers:
+  smartagent/apache:
+    type: collectd/apache
+    host: localhost
+    port: 6379
+    intervalSeconds: 234
+  smartagent/kafka:
+    type: collectd/kafka
+    host: localhost
+    port: 7199
+    clusterName: somecluster
+    intervalSeconds: 345
+  smartagent/memcached:
+    type: collectd/memcached
+    host: localhost
+    port: 5309
+    intervalSeconds: 456
+  smartagent/php:
+    type: collectd/php-fpm
+
+processors:
+  exampleprocessor:
+
+exporters:
+  exampleexporter:
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/apache
+        - smartagent/kafka
+        - smartagent/memcached
+        - smartagent/php
+      processors: [exampleprocessor]
+      exporters: [exampleexporter]

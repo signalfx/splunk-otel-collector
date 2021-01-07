@@ -16,18 +16,116 @@ package smartagentreceiver
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 
+	"github.com/signalfx/defaults"
+	_ "github.com/signalfx/signalfx-agent/pkg/core" // required to invoke monitor registration via init() calls
+	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
+	"github.com/signalfx/signalfx-agent/pkg/monitors"
+	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/config/configmodels"
+	"gopkg.in/yaml.v2"
 )
+
+const defaultIntervalSeconds = 10
 
 type Config struct {
 	configmodels.ReceiverSettings `mapstructure:",squash"`
+	monitorConfig                 config.MonitorCustomConfig
 }
 
-func (cfg *Config) validate() error {
-	if cfg.NameVal == "" || cfg.TypeVal == "" {
-		// validation placeholder for coverage
-		return fmt.Errorf("name and type are required")
+func (rCfg *Config) validate() error {
+	if rCfg.monitorConfig == nil {
+		return fmt.Errorf("you must supply a valid Smart Agent Monitor config")
 	}
+
+	monitorConfigCore := rCfg.monitorConfig.MonitorConfigCore()
+	if monitorConfigCore.IntervalSeconds == 0 {
+		monitorConfigCore.IntervalSeconds = defaultIntervalSeconds
+	} else if monitorConfigCore.IntervalSeconds < 0 {
+		return fmt.Errorf("intervalSeconds must be greater than 0s (%d provided)", monitorConfigCore.IntervalSeconds)
+	}
+
+	if err := validation.ValidateStruct(rCfg.monitorConfig); err != nil {
+		return err
+	}
+	return validation.ValidateCustomConfig(rCfg.monitorConfig)
+}
+
+// mergeConfigs is used as a custom unmarshaller to dynamically create the desired Smart Agent monitor config
+// from the provided receiver config content.
+func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error {
+	// AllSettings() will include anything not already unmarshalled in the Config instance (*intoCfg).
+	// This includes all Smart Agent monitor config settings that can be unmarshalled to their
+	// respective custom monitor config types.
+	allSettings := componentViperSection.AllSettings()
+	monitorType, ok := allSettings["type"].(string)
+	if !ok || monitorType == "" {
+		return fmt.Errorf("you must specify a \"type\" for a smartagent receiver")
+	}
+
+	// monitors.ConfigTemplates is a map that all monitors use to register their custom configs in the Smart Agent.
+	// The values are always pointers to an actual custom config.
+	var customMonitorConfig config.MonitorCustomConfig
+	if customMonitorConfig, ok = monitors.ConfigTemplates[monitorType]; !ok {
+		return fmt.Errorf("no known monitor type %q", monitorType)
+	}
+	monitorConfigType := reflect.TypeOf(customMonitorConfig).Elem()
+	monitorConfig := reflect.New(monitorConfigType).Interface()
+
+	// Viper is case insensitive and doesn't preserve a record of actual yaml map key cases from the provided config,
+	// which is a problem when unmarshalling custom agent monitor configs.  Here we use a map of lowercase to supported
+	// case tag key names and update the keys where applicable.
+	yamlTags := yamlTagsFromStruct(monitorConfigType)
+	for key, val := range allSettings {
+		updatedKey := yamlTags[key]
+		if updatedKey != "" {
+			delete(allSettings, key)
+			allSettings[updatedKey] = val
+		}
+	}
+
+	asBytes, err := yaml.Marshal(allSettings)
+	if err != nil {
+		return fmt.Errorf("failed constructing raw Smart Agent Monitor config block: %w", err)
+	}
+	err = yaml.UnmarshalStrict(asBytes, monitorConfig)
+	if err != nil {
+		return fmt.Errorf("failed creating Smart Agent Monitor custom config: %w", err)
+	}
+
+	err = defaults.Set(monitorConfig)
+	if err != nil {
+		return fmt.Errorf("failed setting Smart Agent Monitor config defaults: %w", err)
+	}
+	receiverCfg := intoCfg.(*Config)
+	receiverCfg.monitorConfig = monitorConfig.(config.MonitorCustomConfig)
 	return nil
+}
+
+// Walks through a custom monitor config struct type, creating a map of
+// lowercase to supported yaml struct tag name cases.
+func yamlTagsFromStruct(s reflect.Type) map[string]string {
+	yamlTags := map[string]string{}
+	for i := 0; i < s.NumField(); i++ {
+		field := s.Field(i)
+		tag := field.Tag
+		yamlTag := strings.Split(tag.Get("yaml"), ",")[0]
+		lowerTag := strings.ToLower(yamlTag)
+		if yamlTag != lowerTag {
+			yamlTags[lowerTag] = yamlTag
+		}
+
+		fieldType := field.Type
+		if fieldType.Kind() == reflect.Struct {
+			otherFields := yamlTagsFromStruct(fieldType)
+			for k, v := range otherFields {
+				yamlTags[k] = v
+			}
+		}
+	}
+
+	return yamlTags
 }

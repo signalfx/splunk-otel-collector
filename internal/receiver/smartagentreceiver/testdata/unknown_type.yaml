@@ -1,0 +1,16 @@
+receivers:
+  smartagent/unknowntype:
+    type: notamonitor
+
+processors:
+  exampleprocessor:
+
+exporters:
+  exampleexporter:
+
+service:
+  pipelines:
+    metrics:
+      receivers: [smartagent/unknowntype]
+      processors: [exampleprocessor]
+      exporters: [exampleexporter]

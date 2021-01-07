@@ -349,6 +349,7 @@ jobs:
           command: |
             choco upgrade golang --version=1.15
             refreshenv
+            go env -w CGO_ENABLED=0
       - run:
           name: Unit tests
           command: go test ./...

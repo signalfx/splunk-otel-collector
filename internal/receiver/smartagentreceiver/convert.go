@@ -1,0 +1,185 @@
+// Copyright 2021, OpenTelemetry Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+package smartagentreceiver
+
+import (
+	"fmt"
+
+	sfx "github.com/signalfx/golib/v3/datapoint"
+	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.uber.org/zap"
+)
+
+var (
+	errUnsupportedMetricTypeTimestamp = fmt.Errorf("unsupported metric type timestamp")
+	errNoIntValue                     = fmt.Errorf("no valid value for expected IntValue")
+	errNoFloatValue                   = fmt.Errorf("no valid value for expected FloatValue")
+)
+
+type Converter struct {
+	logger *zap.Logger
+}
+
+// Based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.15.0/receiver/signalfxreceiver/signalfxv2_to_metricdata.go
+func (c *Converter) toMetrics(datapoints []*sfx.Datapoint) (pdata.Metrics, int) {
+	numDropped := 0
+	md := pdata.NewMetrics()
+	md.ResourceMetrics().Resize(1)
+	rm := md.ResourceMetrics().At(0)
+
+	rm.InstrumentationLibraryMetrics().Resize(1)
+	ilm := rm.InstrumentationLibraryMetrics().At(0)
+
+	metrics := ilm.Metrics()
+	metrics.Resize(len(datapoints))
+
+	i := 0
+	for _, datapoint := range datapoints {
+		if datapoint == nil {
+			continue
+		}
+
+		m := metrics.At(i)
+		err := setDataType(datapoint, m)
+		if err != nil {
+			numDropped++
+			c.logger.Warn("SignalFx datapoint type conversion error",
+				zap.Error(err),
+				zap.String("metric", datapoint.String()))
+			continue
+		}
+
+		m.SetName(datapoint.Metric)
+
+		switch m.DataType() {
+		case pdata.MetricDataTypeIntGauge:
+			err = fillIntDatapoint(datapoint, m.IntGauge().DataPoints())
+		case pdata.MetricDataTypeIntSum:
+			err = fillIntDatapoint(datapoint, m.IntSum().DataPoints())
+		case pdata.MetricDataTypeDoubleGauge:
+			err = fillDoubleDatapoint(datapoint, m.DoubleGauge().DataPoints())
+		case pdata.MetricDataTypeDoubleSum:
+			err = fillDoubleDatapoint(datapoint, m.DoubleSum().DataPoints())
+		}
+
+		if err != nil {
+			numDropped++
+			c.logger.Warn("SignalFx datapoint datum conversion error",
+				zap.Error(err),
+				zap.String("metric", datapoint.Metric))
+			continue
+		}
+
+		i++
+	}
+
+	metrics.Resize(i)
+
+	return md, numDropped
+
+}
+func setDataType(datapoint *sfx.Datapoint, m pdata.Metric) error {
+	sfxMetricType := datapoint.MetricType
+	if sfxMetricType == sfx.Timestamp {
+		return errUnsupportedMetricTypeTimestamp
+	}
+
+	var isFloat bool
+	switch datapoint.Value.(type) {
+	case sfx.IntValue:
+	case sfx.FloatValue:
+		isFloat = true
+	default:
+		return fmt.Errorf("unsupported value type %T: %v", datapoint.Value, datapoint.Value)
+	}
+
+	switch sfxMetricType {
+	case sfx.Gauge, sfx.Enum, sfx.Rate:
+		if isFloat {
+			m.SetDataType(pdata.MetricDataTypeDoubleGauge)
+			m.DoubleGauge().InitEmpty() // will need to be removed w/ 0.16.0 adoption
+		} else {
+			m.SetDataType(pdata.MetricDataTypeIntGauge)
+			m.IntGauge().InitEmpty() // will need to be removed w/ 0.16.0 adoption
+		}
+	case sfx.Count:
+		if isFloat {
+			m.SetDataType(pdata.MetricDataTypeDoubleSum)
+			m.DoubleSum().InitEmpty() // will need to be removed w/ 0.16.0 adoption
+			m.DoubleSum().SetAggregationTemporality(pdata.AggregationTemporalityDelta)
+			m.DoubleSum().SetIsMonotonic(true)
+		} else {
+			m.SetDataType(pdata.MetricDataTypeIntSum)
+			m.IntSum().InitEmpty() // will need to be removed w/ 0.16.0 adoption
+			m.IntSum().SetAggregationTemporality(pdata.AggregationTemporalityDelta)
+			m.IntSum().SetIsMonotonic(true)
+		}
+	case sfx.Counter:
+		if isFloat {
+			m.SetDataType(pdata.MetricDataTypeDoubleSum)
+			m.DoubleSum().InitEmpty() // will need to be removed w/ 0.16.0 adoption
+			m.DoubleSum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+			m.DoubleSum().SetIsMonotonic(true)
+		} else {
+			m.SetDataType(pdata.MetricDataTypeIntSum)
+			m.IntSum().InitEmpty() // will need to be removed w/ 0.16.0 adoption
+			m.IntSum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+			m.IntSum().SetIsMonotonic(true)
+		}
+	default:
+		return fmt.Errorf("unsupported metric type %T: %v", sfxMetricType, sfxMetricType)
+	}
+
+	return nil
+}
+
+func fillIntDatapoint(datapoint *sfx.Datapoint, dps pdata.IntDataPointSlice) error {
+	var intValue sfx.IntValue
+	var ok bool
+	if intValue, ok = datapoint.Value.(sfx.IntValue); !ok {
+		return errNoIntValue
+	}
+
+	dps.Resize(1)
+	dp := dps.At(0)
+	dp.SetTimestamp(pdata.TimestampUnixNano(uint64(datapoint.Timestamp.UnixNano())))
+	dp.SetValue(intValue.Int())
+	fillInLabels(datapoint.Dimensions, dp.LabelsMap())
+
+	return nil
+}
+
+func fillDoubleDatapoint(datapoint *sfx.Datapoint, dps pdata.DoubleDataPointSlice) error {
+	var floatValue sfx.FloatValue
+	var ok bool
+	if floatValue, ok = datapoint.Value.(sfx.FloatValue); !ok {
+		return errNoFloatValue
+	}
+
+	dps.Resize(1)
+	dp := dps.At(0)
+	dp.SetTimestamp(pdata.TimestampUnixNano(uint64(datapoint.Timestamp.UnixNano())))
+	dp.SetValue(floatValue.Float())
+	fillInLabels(datapoint.Dimensions, dp.LabelsMap())
+
+	return nil
+
+}
+
+func fillInLabels(dimensions map[string]string, labels pdata.StringMap) {
+	labels.InitEmptyWithCapacity(len(dimensions))
+	for k, v := range dimensions {
+		labels.Insert(k, v)
+	}
+}

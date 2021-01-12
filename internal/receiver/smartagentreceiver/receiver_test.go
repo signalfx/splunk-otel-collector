@@ -29,10 +29,25 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 )
+
+var expectedCPUMetrics = map[string]pdata.MetricDataType{
+	"cpu.idle":                 pdata.MetricDataTypeDoubleSum,
+	"cpu.interrupt":            pdata.MetricDataTypeDoubleSum,
+	"cpu.nice":                 pdata.MetricDataTypeDoubleSum,
+	"cpu.num_processors":       pdata.MetricDataTypeIntGauge,
+	"cpu.softirq":              pdata.MetricDataTypeDoubleSum,
+	"cpu.steal":                pdata.MetricDataTypeDoubleSum,
+	"cpu.system":               pdata.MetricDataTypeDoubleSum,
+	"cpu.user":                 pdata.MetricDataTypeDoubleSum,
+	"cpu.utilization":          pdata.MetricDataTypeDoubleGauge,
+	"cpu.utilization_per_core": pdata.MetricDataTypeDoubleGauge,
+	"cpu.wait":                 pdata.MetricDataTypeDoubleSum,
+}
 
 func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
 	return Config{
@@ -45,31 +60,98 @@ func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
 				Type:            monitorType,
 				IntervalSeconds: intervalSeconds,
 			},
+			ReportPerCPU: true,
 		},
 	}
 }
 
 func TestSmartAgentReceiver(t *testing.T) {
-	cfg := newConfig("valid", "cpu", 1)
+	cfg := newConfig("valid", "cpu", 10)
 	observed, logs := observer.New(zapcore.DebugLevel)
-	receiver := NewReceiver(zap.New(observed), cfg, consumertest.NewMetricsNop())
+	consumer := new(consumertest.MetricsSink)
+	receiver := NewReceiver(zap.New(observed), cfg, consumer)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
 	assert.EqualValues(t, "smartagentvalid", cfg.monitorConfig.MonitorConfigCore().MonitorID)
 
 	monitorOutput := receiver.monitor.(*cpu.Monitor).Output
-	_, ok := monitorOutput.(*Output)
-	assert.True(t, ok)
+	_, isOutput := monitorOutput.(*Output)
+	assert.True(t, isOutput)
 
 	assert.Eventuallyf(t, func() bool {
 		filtered := logs.FilterMessageSnippet("SendDatapoints has been called.")
 		return len(filtered.All()) == 1
 	}, 5*time.Second, 1*time.Millisecond, "failed to receive any metrics from monitor")
 
+	assert.Eventuallyf(t, func() bool {
+		// confirm single occurrence of total metrics as sanity in lieu of
+		// out of scope cpu monitor verification.
+		seenTotalMetric := map[string]bool{}
+
+		allMetrics := consumer.AllMetrics()
+		for _, m := range allMetrics {
+			resourceMetrics := m.ResourceMetrics()
+			for i := 0; i < resourceMetrics.Len(); i++ {
+				resourceMetric := resourceMetrics.At(i)
+				instrumentationLibraryMetrics := resourceMetric.InstrumentationLibraryMetrics()
+				for j := 0; j < instrumentationLibraryMetrics.Len(); j++ {
+					instrumentationLibraryMetric := instrumentationLibraryMetrics.At(j)
+					metrics := instrumentationLibraryMetric.Metrics()
+					for k := 0; k < metrics.Len(); k++ {
+						metric := metrics.At(k)
+						name := metric.Name()
+						dataType := metric.DataType()
+						expectedDataType := expectedCPUMetrics[name]
+						require.NotEqual(t, pdata.MetricDataTypeNone, expectedDataType, "received unexpected none type for %s", name)
+						assert.Equal(t, expectedDataType, dataType)
+						var labels pdata.StringMap
+						switch dataType {
+						case pdata.MetricDataTypeIntGauge:
+							ig := metric.IntGauge()
+							for l := 0; l < ig.DataPoints().Len(); l++ {
+								igdp := ig.DataPoints().At(l)
+								labels = igdp.LabelsMap()
+								var val interface{} = igdp.Value()
+								_, ok := val.(int64)
+								assert.True(t, ok, "invalid value of MetricDataTypeIntGauge metric %s", name)
+							}
+						case pdata.MetricDataTypeDoubleGauge:
+							dg := metric.DoubleGauge()
+							for l := 0; l < dg.DataPoints().Len(); l++ {
+								dgdp := dg.DataPoints().At(l)
+								labels = dgdp.LabelsMap()
+								var val interface{} = dgdp.Value()
+								_, ok := val.(float64)
+								assert.True(t, ok, "invalid value of MetricDataTypeDoubleGauge metric %s", name)
+							}
+						case pdata.MetricDataTypeDoubleSum:
+							ds := metric.DoubleSum()
+							for l := 0; l < ds.DataPoints().Len(); l++ {
+								dsdp := ds.DataPoints().At(l)
+								labels = dsdp.LabelsMap()
+								var val interface{} = dsdp.Value()
+								_, ok := val.(float64)
+								assert.True(t, ok, "invalid value of MetricDataTypeDoubleSum metric %s", name)
+							}
+						default:
+							t.Errorf("unexpected type %#v for metric %s", metric.DataType(), name)
+						}
+						if labels.Len() == 0 {
+							assert.False(t, seenTotalMetric[name], "unexpected repeated total metric for %v", name)
+							seenTotalMetric[name] = true
+						}
+					}
+				}
+			}
+		}
+		return len(allMetrics) > 0
+	}, 5*time.Second, 1*time.Millisecond, "failed to receive expected cpu metrics")
+
+	metrics := consumer.AllMetrics()
+	assert.Greater(t, len(metrics), 0)
 	err = receiver.Shutdown(context.Background())
 	assert.NoError(t, err)
-
 }
 
 func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {

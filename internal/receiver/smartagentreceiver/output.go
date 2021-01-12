@@ -15,6 +15,8 @@
 package smartagentreceiver
 
 import (
+	"context"
+
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
 	"github.com/signalfx/golib/v3/trace"
@@ -30,9 +32,18 @@ import (
 type Output struct {
 	nextConsumer consumer.MetricsConsumer
 	logger       *zap.Logger
+	converter    Converter
 }
 
 var _ types.FilteringOutput = (*Output)(nil)
+
+func NewOutput(nextConsumer consumer.MetricsConsumer, logger *zap.Logger) *Output {
+	return &Output{
+		nextConsumer: nextConsumer,
+		logger:       logger,
+		converter:    Converter{logger: logger},
+	}
+}
 
 func (output *Output) AddDatapointExclusionFilter(filter dpfilters.DatapointFilter) {
 	output.logger.Debug("AddDatapointExclusionFilter has been called", zap.Any("filter", filter))
@@ -60,6 +71,9 @@ func (output *Output) Copy() types.Output {
 
 func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 	output.logger.Debug("SendDatapoints has been called.", zap.Any("datapoints", datapoints))
+	metrics, numDropped := output.converter.toMetrics(datapoints)
+	output.logger.Debug("SendDatapoints", zap.Any("metrics", metrics), zap.Int("numDropped", numDropped))
+	output.nextConsumer.ConsumeMetrics(context.Background(), metrics)
 }
 
 func (output *Output) SendEvent(event *event.Event) {

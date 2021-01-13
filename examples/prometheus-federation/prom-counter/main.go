@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"go.opentelemetry.io/otel/label"
 	"log"
 	"net/http"
 	"os"
@@ -12,6 +11,7 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
+	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 )

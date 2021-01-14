@@ -15,24 +15,40 @@
 package smartagentreceiver
 
 import (
+	"context"
+
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
 	"github.com/signalfx/golib/v3/trace"
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/obsreport"
 	"go.uber.org/zap"
 )
+
+const internalTransport = "internal"
 
 // Output is an implementation of a Smart Agent FilteringOutput that receives datapoints from a configured monitor.
 // It is what provides metrics to the next MetricsConsumer (to be implemented later).  At this stage it is only
 // a logging instance.
 type Output struct {
+	receiverName string
 	nextConsumer consumer.MetricsConsumer
 	logger       *zap.Logger
+	converter    Converter
 }
 
 var _ types.FilteringOutput = (*Output)(nil)
+
+func NewOutput(config Config, nextConsumer consumer.MetricsConsumer, logger *zap.Logger) *Output {
+	return &Output{
+		receiverName: config.Name(),
+		nextConsumer: nextConsumer,
+		logger:       logger,
+		converter:    Converter{logger: logger},
+	}
+}
 
 func (output *Output) AddDatapointExclusionFilter(filter dpfilters.DatapointFilter) {
 	output.logger.Debug("AddDatapointExclusionFilter has been called", zap.Any("filter", filter))
@@ -59,7 +75,17 @@ func (output *Output) Copy() types.Output {
 }
 
 func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
-	output.logger.Debug("SendDatapoints has been called.", zap.Any("datapoints", datapoints))
+	ctx := obsreport.ReceiverContext(context.Background(), output.receiverName, internalTransport)
+	ctx = obsreport.StartMetricsReceiveOp(ctx, typeStr, internalTransport)
+
+	metrics, numDropped := output.converter.toMetrics(datapoints)
+	if numDropped > 0 {
+		output.logger.Debug("SendDatapoints has dropped points", zap.Int("numDropped", numDropped))
+	}
+
+	_, numPoints := metrics.MetricAndDataPointCount()
+	err := output.nextConsumer.ConsumeMetrics(context.Background(), metrics)
+	obsreport.EndMetricsReceiveOp(ctx, typeStr, numPoints, err)
 }
 
 func (output *Output) SendEvent(event *event.Event) {

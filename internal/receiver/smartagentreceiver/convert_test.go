@@ -64,17 +64,13 @@ func pdataMetrics(dataType pdata.MetricDataType, val interface{}) pdata.Metrics 
 
 	switch dataType {
 	case pdata.MetricDataTypeIntGauge:
-		metric.IntGauge().InitEmpty()
 		dps = metric.IntGauge().DataPoints()
 	case pdata.MetricDataTypeIntSum:
-		metric.IntSum().InitEmpty()
 		metric.IntSum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
 		dps = metric.IntSum().DataPoints()
 	case pdata.MetricDataTypeDoubleGauge:
-		metric.DoubleGauge().InitEmpty()
 		dps = metric.DoubleGauge().DataPoints()
 	case pdata.MetricDataTypeDoubleSum:
-		metric.DoubleSum().InitEmpty()
 		metric.DoubleSum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
 		dps = metric.DoubleSum().DataPoints()
 	}
@@ -309,7 +305,6 @@ func TestFillIntDatapointWithInvalidValue(t *testing.T) {
 	_, metric := pdataMetric()
 	setDataType(datapoint, metric)
 	gauge := metric.IntGauge()
-	gauge.InitEmpty()
 
 	datapoint.Value = sfx.NewFloatValue(123.45)
 	err := fillIntDatapoint(datapoint, gauge.DataPoints())
@@ -325,7 +320,6 @@ func TestFillDoubleDatapointWithInvalidValue(t *testing.T) {
 	_, metric := pdataMetric()
 	setDataType(datapoint, metric)
 	gauge := metric.DoubleGauge()
-	gauge.InitEmpty()
 
 	datapoint.Value = sfx.NewIntValue(123)
 	err := fillDoubleDatapoint(datapoint, gauge.DataPoints())

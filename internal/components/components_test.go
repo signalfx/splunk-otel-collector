@@ -52,6 +52,7 @@ func TestDefaultComponents(t *testing.T) {
 		"redis",
 		"sapm",
 		"signalfx",
+		"smartagent",
 		"splunk_hec",
 		"statsd",
 	}

@@ -11,7 +11,7 @@ receivers:
       filesystem:
       memory:
       network:
-      swap:
+      paging:
   jaeger:
     protocols:
       grpc:
@@ -81,7 +81,7 @@ service:
     traces:
       receivers: [jaeger, opencensus, otlp, sapm, zipkin]
       processors: [memory_limiter, batch]
-      exporters: [sapm]
+      exporters: [sapm, signalfx]
     metrics:
       receivers: [opencensus, otlp, signalfx, prometheus, hostmetrics]
       processors: [memory_limiter, batch]

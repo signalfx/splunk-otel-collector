@@ -108,32 +108,26 @@ func setDataType(datapoint *sfx.Datapoint, m pdata.Metric) error {
 	case sfx.Gauge, sfx.Enum, sfx.Rate:
 		if isFloat {
 			m.SetDataType(pdata.MetricDataTypeDoubleGauge)
-			m.DoubleGauge().InitEmpty() // will need to be removed w/ 0.16.0 adoption
 		} else {
 			m.SetDataType(pdata.MetricDataTypeIntGauge)
-			m.IntGauge().InitEmpty() // will need to be removed w/ 0.16.0 adoption
 		}
 	case sfx.Count:
 		if isFloat {
 			m.SetDataType(pdata.MetricDataTypeDoubleSum)
-			m.DoubleSum().InitEmpty() // will need to be removed w/ 0.16.0 adoption
 			m.DoubleSum().SetAggregationTemporality(pdata.AggregationTemporalityDelta)
 			m.DoubleSum().SetIsMonotonic(true)
 		} else {
 			m.SetDataType(pdata.MetricDataTypeIntSum)
-			m.IntSum().InitEmpty() // will need to be removed w/ 0.16.0 adoption
 			m.IntSum().SetAggregationTemporality(pdata.AggregationTemporalityDelta)
 			m.IntSum().SetIsMonotonic(true)
 		}
 	case sfx.Counter:
 		if isFloat {
 			m.SetDataType(pdata.MetricDataTypeDoubleSum)
-			m.DoubleSum().InitEmpty() // will need to be removed w/ 0.16.0 adoption
 			m.DoubleSum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
 			m.DoubleSum().SetIsMonotonic(true)
 		} else {
 			m.SetDataType(pdata.MetricDataTypeIntSum)
-			m.IntSum().InitEmpty() // will need to be removed w/ 0.16.0 adoption
 			m.IntSum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
 			m.IntSum().SetIsMonotonic(true)
 		}

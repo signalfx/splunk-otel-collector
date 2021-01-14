@@ -54,7 +54,7 @@ func (c *Converter) toMetrics(datapoints []*sfx.Datapoint) (pdata.Metrics, int) 
 		err := setDataType(datapoint, m)
 		if err != nil {
 			numDropped++
-			c.logger.Warn("SignalFx datapoint type conversion error",
+			c.logger.Debug("SignalFx datapoint type conversion error",
 				zap.Error(err),
 				zap.String("metric", datapoint.String()))
 			continue
@@ -75,7 +75,7 @@ func (c *Converter) toMetrics(datapoints []*sfx.Datapoint) (pdata.Metrics, int) 
 
 		if err != nil {
 			numDropped++
-			c.logger.Warn("SignalFx datapoint datum conversion error",
+			c.logger.Debug("SignalFx datapoint datum conversion error",
 				zap.Error(err),
 				zap.String("metric", datapoint.Metric))
 			continue

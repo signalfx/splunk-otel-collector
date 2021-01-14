@@ -31,8 +31,6 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 )
 
 var expectedCPUMetrics = map[string]pdata.MetricDataType{
@@ -67,9 +65,8 @@ func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
 
 func TestSmartAgentReceiver(t *testing.T) {
 	cfg := newConfig("valid", "cpu", 10)
-	observed, logs := observer.New(zapcore.DebugLevel)
 	consumer := new(consumertest.MetricsSink)
-	receiver := NewReceiver(zap.New(observed), cfg, consumer)
+	receiver := NewReceiver(zap.NewNop(), cfg, consumer)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
@@ -78,11 +75,6 @@ func TestSmartAgentReceiver(t *testing.T) {
 	monitorOutput := receiver.monitor.(*cpu.Monitor).Output
 	_, isOutput := monitorOutput.(*Output)
 	assert.True(t, isOutput)
-
-	assert.Eventuallyf(t, func() bool {
-		filtered := logs.FilterMessageSnippet("SendDatapoints has been called.")
-		return len(filtered.All()) == 1
-	}, 5*time.Second, 1*time.Millisecond, "failed to receive any metrics from monitor")
 
 	assert.Eventuallyf(t, func() bool {
 		// confirm single occurrence of total metrics as sanity in lieu of

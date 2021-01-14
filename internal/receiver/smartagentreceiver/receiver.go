@@ -115,7 +115,7 @@ func (r *Receiver) createMonitor(monitorType string) (interface{}, error) {
 	}
 
 	if monitorOutputValue.IsValid() {
-		output := NewOutput(r.nextConsumer, r.logger)
+		output := NewOutput(*r.config, r.nextConsumer, r.logger)
 		monitorOutputValue.Set(reflect.ValueOf(output))
 	} else {
 		return nil, fmt.Errorf("invalid monitor instance: %#v", monitor)

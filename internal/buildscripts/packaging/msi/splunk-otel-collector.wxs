@@ -1,0 +1,69 @@
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+   <Product Id="*" UpgradeCode="fde3e4d9-9ca5-4c82-be7b-81445ab5b605" Name="Splunk OpenTelemetry Collector" Version="$(var.Version)" Manufacturer="Splunk, Inc." Language="1033">
+      <Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package"/>
+      <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
+      <Icon Id="ProductIcon" SourceFile="./internal/buildscripts/packaging/msi/splunk.ico"/>
+      <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
+      <Property Id="ARPHELPLINK" Value="https://splunk.com/"/>
+      <Property Id="ARPURLINFOABOUT" Value="https://splunk.com/"/>
+      <Property Id="ARPNOREPAIR" Value="1"/>
+      <Property Id="ARPNOMODIFY" Value="1"/>
+
+      <MajorUpgrade DowngradeErrorMessage="A later version of the Splunk OpenTelemetry Collector is already installed. Setup will now exit."/>
+
+      <Feature Id="Feature" Level="1">
+         <ComponentRef Id="ApplicationComponent"/>
+      </Feature>
+
+      <Directory Id="TARGETDIR" Name="SourceDir">
+         <Directory Id="ProgramFiles64Folder">
+            <Directory Id="COMPANYDIR" Name="Splunk">
+               <Directory Id="INSTALLDIR" Name="OpenTelemetry Collector">
+                  <Component Id="ApplicationComponent" Guid="484fa99a-2efe-41cd-a047-98bc1fc71e04">
+                     <!-- Files to include -->
+                     <File Id="ExecutableFile" Name="otelcol.exe" KeyPath="yes" Source="$(var.Otelcol)"/>
+                     <File Id="DefaultConfigFile" Name="config.yaml" Source="$(var.Config)" />
+
+                     <!-- Install the collector service with the config file in ProgramData -->
+                     <ServiceInstall
+                        Id="Sevice"
+                        Name="splunk-otel-collector"
+                        DisplayName="Splunk OpenTelemetry Collector"
+                        Description="Splunk OpenTelemetry Collector"
+                        Type="ownProcess"
+                        Vital="yes"
+                        Start="auto"
+                        Account="LocalSystem"
+                        ErrorControl="normal"
+                        Arguments=" --config=&quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\config.yaml&quot;"
+                        Interactive="no" />
+                     <ServiceControl
+                        Id="StartStopRemoveService"
+                        Name="splunk-otel-collector"
+                        Stop="both"
+                        Remove="uninstall"
+                        Wait="yes" />
+                  </Component>
+               </Directory>
+            </Directory>
+         </Directory>
+      </Directory>
+
+      <!-- Check if the config file already exists in ProgramData -->
+      <Property Id="CONFIG_FILE_EXISTS">
+         <DirectorySearch Id="AppDataFolderSearch" Path="[CommonAppDataFolder]">
+            <DirectorySearch Id="SplunkSearch" Path="Splunk">
+               <DirectorySearch Id="OpenTelemetryCollectorSearch" Path="OpenTelemetry Collector">
+                  <FileSearch Id="ConfigSearch" Name="config.yaml" />
+               </DirectorySearch>
+            </DirectorySearch>
+         </DirectorySearch>
+      </Property>
+
+      <!-- Copy the default config file to ProgramData if it does not already exist -->
+      <CustomAction Id="CopyConfig" ExeCommand="xcopy /y &quot;[INSTALLDIR]config.yaml&quot; &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\config.yaml*&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
+      <InstallExecuteSequence>
+         <Custom Action="CopyConfig" After="InstallFiles">NOT CONFIG_FILE_EXISTS AND NOT Installed</Custom>
+      </InstallExecuteSequence>
+   </Product>
+</Wix>

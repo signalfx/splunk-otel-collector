@@ -55,7 +55,7 @@ func pdataMetric() (pdata.Metrics, pdata.Metric) {
 	return out, m
 }
 
-func pdataMetrics(dataType pdata.MetricDataType, val interface{}) pdata.Metrics {
+func pdataMetrics(dataType pdata.MetricDataType, val interface{}, timeReceived time.Time) pdata.Metrics {
 	metrics, metric := pdataMetric()
 	metric.SetDataType(dataType)
 	metric.SetName("some metric")
@@ -82,13 +82,13 @@ func pdataMetrics(dataType pdata.MetricDataType, val interface{}) pdata.Metrics 
 		dps.(pdata.IntDataPointSlice).Resize(1)
 		dp := dps.(pdata.IntDataPointSlice).At(0)
 		labels = dp.LabelsMap()
-		dp.SetTimestamp(pdata.TimestampUnixNano(now.UnixNano()))
+		dp.SetTimestamp(pdata.TimestampUnixNano(timeReceived.UnixNano()))
 		dp.SetValue(int64(val.(int)))
 	case pdata.MetricDataTypeDoubleGauge, pdata.MetricDataTypeDoubleSum:
 		dps.(pdata.DoubleDataPointSlice).Resize(1)
 		dp := dps.(pdata.DoubleDataPointSlice).At(0)
 		labels = dp.LabelsMap()
-		dp.SetTimestamp(pdata.TimestampUnixNano(now.UnixNano()))
+		dp.SetTimestamp(pdata.TimestampUnixNano(timeReceived.UnixNano()))
 		dp.SetValue(val.(float64))
 	}
 
@@ -108,11 +108,12 @@ func TestToMetrics(t *testing.T) {
 		datapoints      []*sfx.Datapoint
 		expectedMetrics pdata.Metrics
 		expectedDropped int
+		timeReceived    time.Time
 	}{
 		{
 			name:            "IntGauge",
 			datapoints:      []*sfx.Datapoint{sfxDatapoint()},
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeIntGauge, 13),
+			expectedMetrics: pdataMetrics(pdata.MetricDataTypeIntGauge, 13, now),
 		},
 		{
 			name: "DoubleGauge",
@@ -122,7 +123,7 @@ func TestToMetrics(t *testing.T) {
 				pt.Value = sfx.NewFloatValue(13.13)
 				return []*sfx.Datapoint{pt}
 			}(),
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeDoubleGauge, 13.13),
+			expectedMetrics: pdataMetrics(pdata.MetricDataTypeDoubleGauge, 13.13, now),
 		},
 		{
 			name: "IntCount",
@@ -132,7 +133,7 @@ func TestToMetrics(t *testing.T) {
 				return []*sfx.Datapoint{pt}
 			}(),
 			expectedMetrics: func() pdata.Metrics {
-				m := pdataMetrics(pdata.MetricDataTypeIntSum, 13)
+				m := pdataMetrics(pdata.MetricDataTypeIntSum, 13, now)
 				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).IntSum()
 				d.SetAggregationTemporality(pdata.AggregationTemporalityDelta)
 				d.SetIsMonotonic(true)
@@ -148,7 +149,7 @@ func TestToMetrics(t *testing.T) {
 				return []*sfx.Datapoint{pt}
 			}(),
 			expectedMetrics: func() pdata.Metrics {
-				m := pdataMetrics(pdata.MetricDataTypeDoubleSum, 13.13)
+				m := pdataMetrics(pdata.MetricDataTypeDoubleSum, 13.13, now)
 				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).DoubleSum()
 				d.SetAggregationTemporality(pdata.AggregationTemporalityDelta)
 				d.SetIsMonotonic(true)
@@ -163,7 +164,7 @@ func TestToMetrics(t *testing.T) {
 				return []*sfx.Datapoint{pt}
 			}(),
 			expectedMetrics: func() pdata.Metrics {
-				m := pdataMetrics(pdata.MetricDataTypeIntSum, 13)
+				m := pdataMetrics(pdata.MetricDataTypeIntSum, 13, now)
 				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).IntSum()
 				d.SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
 				d.SetIsMonotonic(true)
@@ -179,7 +180,7 @@ func TestToMetrics(t *testing.T) {
 				return []*sfx.Datapoint{pt}
 			}(),
 			expectedMetrics: func() pdata.Metrics {
-				m := pdataMetrics(pdata.MetricDataTypeDoubleSum, 13.13)
+				m := pdataMetrics(pdata.MetricDataTypeDoubleSum, 13.13, now)
 				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).DoubleSum()
 				d.SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
 				d.SetIsMonotonic(true)
@@ -187,17 +188,27 @@ func TestToMetrics(t *testing.T) {
 			}(),
 		},
 		{
-			name: "with_zero_timestamp",
+			name: "with_epoch_timestamp",
 			datapoints: func() []*sfx.Datapoint {
 				pt := sfxDatapoint()
 				pt.Timestamp = time.Unix(0, 0)
 				return []*sfx.Datapoint{pt}
 			}(),
 			expectedMetrics: func() pdata.Metrics {
-				md := pdataMetrics(pdata.MetricDataTypeIntGauge, 13)
+				md := pdataMetrics(pdata.MetricDataTypeIntGauge, 13, time.Unix(0, 0))
 				md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).IntGauge().DataPoints().At(0).SetTimestamp(0)
 				return md
 			}(),
+		},
+		{
+			name: "with_zero_value_timestamp",
+			datapoints: func() []*sfx.Datapoint {
+				pt := sfxDatapoint()
+				pt.Timestamp = time.Time{}
+				return []*sfx.Datapoint{pt}
+			}(),
+			expectedMetrics: pdataMetrics(pdata.MetricDataTypeIntGauge, 13, now),
+			timeReceived:    now,
 		},
 		{
 			name: "empty_dimension_values_accepted",
@@ -207,7 +218,7 @@ func TestToMetrics(t *testing.T) {
 				return []*sfx.Datapoint{pt}
 			}(),
 			expectedMetrics: func() pdata.Metrics {
-				md := pdataMetrics(pdata.MetricDataTypeIntGauge, 13)
+				md := pdataMetrics(pdata.MetricDataTypeIntGauge, 13, now)
 				md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).IntGauge().DataPoints().At(0).LabelsMap().Update("k0", "")
 				return md
 			}(),
@@ -215,7 +226,7 @@ func TestToMetrics(t *testing.T) {
 		{
 			name:            "nil_datapoints_ignored",
 			datapoints:      []*sfx.Datapoint{nil, sfxDatapoint(), nil},
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeIntGauge, 13),
+			expectedMetrics: pdataMetrics(pdata.MetricDataTypeIntGauge, 13, now),
 			expectedDropped: 0,
 		},
 		{
@@ -236,7 +247,7 @@ func TestToMetrics(t *testing.T) {
 				return []*sfx.Datapoint{
 					pt0, pt1, sfxDatapoint(), pt2}
 			}(),
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeIntGauge, 13),
+			expectedMetrics: pdataMetrics(pdata.MetricDataTypeIntGauge, 13, now),
 			expectedDropped: 3,
 		},
 	}
@@ -244,7 +255,7 @@ func TestToMetrics(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
 			converter := Converter{logger: zap.NewNop()}
-			md, dropped := converter.toMetrics(test.datapoints)
+			md, dropped := converter.toMetrics(test.datapoints, test.timeReceived)
 			sortLabels(tt, md)
 
 			assert.Equal(tt, test.expectedMetrics, md)
@@ -307,7 +318,7 @@ func TestFillIntDatapointWithInvalidValue(t *testing.T) {
 	gauge := metric.IntGauge()
 
 	datapoint.Value = sfx.NewFloatValue(123.45)
-	err := fillIntDatapoint(datapoint, gauge.DataPoints())
+	err := fillIntDatapoint(datapoint, gauge.DataPoints(), now)
 	require.Error(t, err)
 	assert.EqualError(t, err, "no valid value for expected IntValue")
 }
@@ -322,7 +333,7 @@ func TestFillDoubleDatapointWithInvalidValue(t *testing.T) {
 	gauge := metric.DoubleGauge()
 
 	datapoint.Value = sfx.NewIntValue(123)
-	err := fillDoubleDatapoint(datapoint, gauge.DataPoints())
+	err := fillDoubleDatapoint(datapoint, gauge.DataPoints(), now)
 	require.Error(t, err)
 	assert.EqualError(t, err, "no valid value for expected FloatValue")
 }

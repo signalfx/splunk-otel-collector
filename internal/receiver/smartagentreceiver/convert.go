@@ -15,6 +15,7 @@ package smartagentreceiver
 
 import (
 	"fmt"
+	"time"
 
 	sfx "github.com/signalfx/golib/v3/datapoint"
 	"go.opentelemetry.io/collector/consumer/pdata"
@@ -32,7 +33,9 @@ type Converter struct {
 }
 
 // Based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.15.0/receiver/signalfxreceiver/signalfxv2_to_metricdata.go
-func (c *Converter) toMetrics(datapoints []*sfx.Datapoint) (pdata.Metrics, int) {
+// toMetrics() will respect the timestamp of any datapoint that isn't the zero value for time.Time,
+// using timeReceived otherwise.
+func (c *Converter) toMetrics(datapoints []*sfx.Datapoint, timeReceived time.Time) (pdata.Metrics, int) {
 	numDropped := 0
 	md := pdata.NewMetrics()
 	md.ResourceMetrics().Resize(1)
@@ -64,13 +67,13 @@ func (c *Converter) toMetrics(datapoints []*sfx.Datapoint) (pdata.Metrics, int) 
 
 		switch m.DataType() {
 		case pdata.MetricDataTypeIntGauge:
-			err = fillIntDatapoint(datapoint, m.IntGauge().DataPoints())
+			err = fillIntDatapoint(datapoint, m.IntGauge().DataPoints(), timeReceived)
 		case pdata.MetricDataTypeIntSum:
-			err = fillIntDatapoint(datapoint, m.IntSum().DataPoints())
+			err = fillIntDatapoint(datapoint, m.IntSum().DataPoints(), timeReceived)
 		case pdata.MetricDataTypeDoubleGauge:
-			err = fillDoubleDatapoint(datapoint, m.DoubleGauge().DataPoints())
+			err = fillDoubleDatapoint(datapoint, m.DoubleGauge().DataPoints(), timeReceived)
 		case pdata.MetricDataTypeDoubleSum:
-			err = fillDoubleDatapoint(datapoint, m.DoubleSum().DataPoints())
+			err = fillDoubleDatapoint(datapoint, m.DoubleSum().DataPoints(), timeReceived)
 		}
 
 		if err != nil {
@@ -138,32 +141,42 @@ func setDataType(datapoint *sfx.Datapoint, m pdata.Metric) error {
 	return nil
 }
 
-func fillIntDatapoint(datapoint *sfx.Datapoint, dps pdata.IntDataPointSlice) error {
+func fillIntDatapoint(datapoint *sfx.Datapoint, dps pdata.IntDataPointSlice, timeReceived time.Time) error {
 	var intValue sfx.IntValue
 	var ok bool
 	if intValue, ok = datapoint.Value.(sfx.IntValue); !ok {
 		return errNoIntValue
 	}
 
+	timestamp := datapoint.Timestamp
+	if timestamp.IsZero() {
+		timestamp = timeReceived
+	}
+
 	dps.Resize(1)
 	dp := dps.At(0)
-	dp.SetTimestamp(pdata.TimestampUnixNano(uint64(datapoint.Timestamp.UnixNano())))
+	dp.SetTimestamp(pdata.TimestampUnixNano(uint64(timestamp.UnixNano())))
 	dp.SetValue(intValue.Int())
 	fillInLabels(datapoint.Dimensions, dp.LabelsMap())
 
 	return nil
 }
 
-func fillDoubleDatapoint(datapoint *sfx.Datapoint, dps pdata.DoubleDataPointSlice) error {
+func fillDoubleDatapoint(datapoint *sfx.Datapoint, dps pdata.DoubleDataPointSlice, timeReceived time.Time) error {
 	var floatValue sfx.FloatValue
 	var ok bool
 	if floatValue, ok = datapoint.Value.(sfx.FloatValue); !ok {
 		return errNoFloatValue
 	}
 
+	timestamp := datapoint.Timestamp
+	if timestamp.IsZero() {
+		timestamp = timeReceived
+	}
+
 	dps.Resize(1)
 	dp := dps.At(0)
-	dp.SetTimestamp(pdata.TimestampUnixNano(uint64(datapoint.Timestamp.UnixNano())))
+	dp.SetTimestamp(pdata.TimestampUnixNano(uint64(timestamp.UnixNano())))
 	dp.SetValue(floatValue.Float())
 	fillInLabels(datapoint.Dimensions, dp.LabelsMap())
 

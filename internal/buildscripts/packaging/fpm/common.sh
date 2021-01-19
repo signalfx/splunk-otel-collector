@@ -15,7 +15,7 @@ SERVICE_USER="splunk-otel-collector"
 SERVICE_GROUP="splunk-otel-collector"
 
 OTELCOL_INSTALL_PATH="/usr/bin/otelcol"
-CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/agent_config_linux.yaml"
+CONFIG_REPO_PATH="$FPM_DIR/etc/otel/collector/splunk_config_linux.yaml"
 CONFIG_INSTALL_PATH="/etc/otel/collector/splunk_config_linux.yaml"
 SERVICE_REPO_PATH="$FPM_DIR/$SERVICE_NAME.service"
 SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"

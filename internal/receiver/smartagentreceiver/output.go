@@ -16,6 +16,7 @@ package smartagentreceiver
 
 import (
 	"context"
+	"time"
 
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
@@ -78,7 +79,7 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 	ctx := obsreport.ReceiverContext(context.Background(), output.receiverName, internalTransport)
 	ctx = obsreport.StartMetricsReceiveOp(ctx, typeStr, internalTransport)
 
-	metrics, numDropped := output.converter.toMetrics(datapoints)
+	metrics, numDropped := output.converter.toMetrics(datapoints, time.Now())
 	if numDropped > 0 {
 		output.logger.Debug("SendDatapoints has dropped points", zap.Int("numDropped", numDropped))
 	}

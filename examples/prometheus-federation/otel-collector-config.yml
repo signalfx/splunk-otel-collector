@@ -19,7 +19,7 @@ exporters:
         # URL to a Splunk instance to send data to.
         endpoint: "https://splunk:8088/services/collector"
         # Optional Splunk source: https://docs.splunk.com/Splexicon:Source
-        source: "corda:metrics"
+        source: "app:metrics"
         # Optional Splunk source type: https://docs.splunk.com/Splexicon:Sourcetype
         sourcetype: "prometheus"
         # Splunk index, optional name of the Splunk index targeted.
@@ -37,14 +37,14 @@ exporters:
 processors:
     batch:
     queued_retry:
-  
+
 extensions:
     health_check:
     pprof:
       endpoint: :1888
     zpages:
       endpoint: :55679
-  
+
 service:
     extensions: [pprof, zpages, health_check]
     pipelines:

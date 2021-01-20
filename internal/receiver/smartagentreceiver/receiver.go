@@ -17,6 +17,8 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
+	"github.com/sirupsen/logrus"
+	"io/ioutil"
 	"reflect"
 	"strings"
 	"sync"
@@ -44,6 +46,9 @@ type Receiver struct {
 var _ component.MetricsReceiver = (*Receiver)(nil)
 
 func NewReceiver(logger *zap.Logger, config Config, nextConsumer consumer.MetricsConsumer) *Receiver {
+	logrus.SetOutput(ioutil.Discard)
+	logrus.AddHook(&ZapHooks{ZapLogger: logger})
+
 	return &Receiver{
 		logger:       logger,
 		config:       &config,

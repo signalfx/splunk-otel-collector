@@ -65,8 +65,11 @@ debian_gpg_key_url="${deb_repo_base}/splunk-B3CD4420.gpg"
 yum_gpg_key_url="${rpm_repo_base}/splunk-B3CD4420.pub"
 td_agent_repo_base="https://packages.treasuredata.com"
 td_agent_gpg_key_url="${td_agent_repo_base}/GPG-KEY-td-agent"
-splunk_config_path="/etc/otel/collector/splunk_config.yaml"
-splunk_env_path="/etc/otel/collector/splunk_env"
+collector_config_dir="/etc/otel/collector"
+collector_config_path="${collector_config_dir}/splunk_config_linux.yaml"
+collector_env_path="${collector_config_dir}/splunk_env"
+fluent_config_dir="${collector_config_dir}/fluentd"
+fluent_config_path="${fluent_config_dir}/fluent.conf"
 
 default_stage="release"
 default_realm="us0"
@@ -194,8 +197,7 @@ install_apt_package() {
     version="=${version}"
   fi
 
-  apt-get -y update
-  apt-get -y install ${package_name}${version}
+  apt-get -y install -o Dpkg::Options::="--force-confold" ${package_name}${version}
 }
 
 install_collector_yum_repo() {
@@ -254,43 +256,24 @@ install_yum_package() {
 }
 
 ensure_not_installed() {
-  if [ -e /etc/otel/collector ]; then
-    echo "The collector directory /etc/otel/collector already exists which implies that the collector has already been installed.  Please remove this directory to proceed." >&2
+  if command -v otelcol >/dev/null 2>&1; then
+    echo "The collector binary already exists at $( command -v otelcol ) which implies that the collector has already been installed. Please uninstall the collector and re-run this script." >&2
     exit 1
   fi
 }
 
-configure_access_token() {
-  local access_token=$1
-  local service_user=$2
-  local service_group=$3
+configure_env_file() {
+  local key="$1"
+  local value="$2"
+  local env_file="$3"
 
-  mkdir -p /etc/otel/collector
-  printf "SPLUNK_ACCESS_TOKEN=%s\n" "$access_token" >> $splunk_env_path
-  chmod 600 $splunk_env_path
-  chown $service_user:$service_group $splunk_env_path
-}
+  mkdir -p "$(dirname $env_file)"
 
-configure_realm() {
-  local realm=$1
-  local service_user=$2
-  local service_group=$3
-
-  mkdir -p /etc/otel/collector
-  printf "SPLUNK_REALM=%s\n" "$realm" >> $splunk_env_path
-  chmod 600 $splunk_env_path
-  chown $service_user:$service_group $splunk_env_path
-}
-
-configure_ballast() {
-  local ballast=$1
-  local service_user=$2
-  local service_group=$3
-
-  mkdir -p /etc/otel/collector
-  printf "SPLUNK_BALLAST_SIZE_MIB=%s\n" "$ballast" >> $splunk_env_path
-  chmod 600 $splunk_env_path
-  chown $service_user:$service_group $splunk_env_path
+  if [ -f "$env_file" ] && grep -q "^${key}=" "$env_file"; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "$env_file"
+  else
+    echo "${key}=${value}" >> "$env_file"
+  fi
 }
 
 create_user_group() {
@@ -325,26 +308,46 @@ User=${service_user}
 Group=${service_group}
 EOH
 
+  chown root:root $override_path
+  chmod 644 $override_path
   systemctl daemon-reload
+}
+
+configure_fluentd_service() {
+  local override_src_path="$fluent_config_dir/splunk-otel-collector.conf"
+  local override_dest_path="/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf"
+
+  if [ -f "$override_src_path" ]; then
+    systemctl stop td-agent
+    mkdir -p $(dirname $override_dest_path)
+    cp -f $override_src_path $override_dest_path
+    chown root:root $override_dest_path
+    chmod 644 $override_dest_path
+    systemctl daemon-reload
+  fi
+}
+
+fluent_plugin_installed() {
+  local name="1"
+
+  td-agent-gem list "$name" --exact | grep -q "$name"
+}
+
+install_fluent_plugin() {
+  local name="$1"
+  local version="${2:-}"
+
+  if [ -n "$version" ]; then
+    td-agent install "$name" --version "$version"
+  else
+    td-agent install "$name"
+  fi
 }
 
 install() {
   local stage="$1"
-  local realm="$2"
-  local access_token="$3"
-  local insecure="$4"
-  local collector_version="$5"
-  local td_agent_version="$6"
-  local ingest_url="https://ingest.${realm}.signalfx.com"
-
-  if [ -z $access_token ]; then
-    access_token=$(request_access_token)
-  fi
-
-  if [ "${NO_SPLUNK_TOKEN_VERIFY:-}" != "yes" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
-    echo "Your access token could not be verified. This may be due to a network connectivity issue." >&2
-    exit 1
-  fi
+  local collector_version="$2"
+  local td_agent_version="$3"
 
   case "$distro" in
     ubuntu|debian)
@@ -355,12 +358,17 @@ install() {
       apt-get -y update
       apt-get -y install apt-transport-https gnupg
       install_collector_apt_repo "$stage"
+      apt-get -y update
       install_apt_package "splunk-otel-collector" "$collector_version"
-      install_td_agent_apt_repo "$td_agent_version"
-      if [ "$(echo "$td_agent_version" | cut -d'-' -f2)" = "$td_agent_version" ]; then
-        td_agent_version="$td_agent_version-1"
+      if [ -n "$td_agent_version" ]; then
+        if [ "$distro_codename" != "stretch" ] && [ "$distro_codename" != "jessie" ]; then
+          td_agent_version="${td_agent_version}-1"
+        fi
+        install_td_agent_apt_repo "$td_agent_version"
+        apt-get -y update
+        install_apt_package "td-agent" "$td_agent_version"
+        systemctl stop td-agent
       fi
-      install_apt_package "td-agent" "$td_agent_version"
       ;;
     amzn|centos|ol|rhel)
       if [ -z "$distro_version" ]; then
@@ -369,8 +377,11 @@ install() {
       fi
       install_collector_yum_repo "$stage"
       install_yum_package "splunk-otel-collector" "$collector_version"
-      install_td_agent_yum_repo "$td_agent_version"
-      install_yum_package "td-agent" "$td_agent_version"
+      if [ -n "$td_agent_version" ]; then
+        install_td_agent_yum_repo "$td_agent_version"
+        install_yum_package "td-agent" "$td_agent_version"
+        systemctl stop td-agent
+      fi
       ;;
     *)
       echo "Your distro ($distro) is not supported or could not be determined" >&2
@@ -388,15 +399,26 @@ If access_token is not provided, it will prompted for on stdin.
 
 Options:
 
-  --collector-version <version>     The splunk-otel-collector package version to install (default: "latest")
+  --collector-version <version>     The splunk-otel-collector package version to install (default: "$default_collector_version")
   --realm <us0|us1|eu0|...>         The Splunk realm to use (default: "$default_realm")
+                                    The ingest, api, trace, and HEC endpoint URLs will automatically be inferred by this value
+  --ingest-url <url>                Set the ingest endpoint URL explicitly instead of the endpoint inferred from the specified realm
+                                    (default: https://ingest.REALM.signalfx.com)
+  --api-url <url>                   Set the api endpoint URL explicitly instead of the endpoint inferred from the specified realm
+                                    (default: https://api.REALM.signalfx.com)
+  --trace-url <url>                 Set the trace endpoint URL explicitly instead of the endpoint inferred from the specified realm
+                                    (default: https://ingest.REALM.signalfx.com/v2/trace)
+  --hec-url <url>                   Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm
+                                    (default: https://ingest.REALM.signalfx.com/v1/log)
+  --hec-token <token>               Set the HEC token if different than the specified Splunk access_token
   --ballast <ballast size>          How much memory in MIB to allocate to the ballast (default: "$default_ballast_size")
                                     This should be set to 1/3 to 1/2 of configured memory
-  --service-user <user>             Set the user for the splunk-otel-collector service (default: "splunk-otel-collector")
+  --service-user <user>             Set the user for the splunk-otel-collector service (default: "$default_service_user")
                                     The user will be created if it does not exist
-  --service-group <group>           Set the group for the splunk-otel-collector service (default: "splunk-otel-collector")
+  --service-group <group>           Set the group for the splunk-otel-collector service (default: "$default_service_group")
                                     The group will be created if it does not exist
-  --td-agent-version <version>      The td-agent (fluentd) package version to install (default: "$default_td_agent_version")
+  --with[out]-fluentd               Whether to install and configure fluentd to forward log events to the collector
+                                    (default: --with-fluentd)
   --test                            Use the test package repo instead of the primary
   --beta                            Use the beta package repo instead of the primary
   --                                Use -- if your access_token starts with -
@@ -414,6 +436,12 @@ parse_args_and_install() {
   local collector_version="$default_collector_version"
   local service_user="$default_service_user"
   local service_group="$default_service_group"
+  local with_fluentd="true"
+  local ingest_url=
+  local api_url=
+  local trace_url=
+  local hec_url=
+  local hec_token=
   local td_agent_version="$default_td_agent_version"
 
   while [ -n "${1-}" ]; do
@@ -424,8 +452,20 @@ parse_args_and_install() {
       --test)
         stage="test"
         ;;
+      --ingest-url)
+        ingest_url="$2"
+        shift 1
+        ;;
       --api-url)
         api_url="$2"
+        shift 1
+        ;;
+      --trace-url)
+        trace_url="$2"
+        shift 1
+        ;;
+      --hec-url)
+        hec_url="$2"
         shift 1
         ;;
       --realm)
@@ -451,9 +491,15 @@ parse_args_and_install() {
         service_group="$2"
         shift 1
         ;;
-      --td-agent-version)
-        td_agent_version="$2"
+      --hec-token)
+        hec_token="$2"
         shift 1
+        ;;
+      --with-fluentd)
+        with_fluentd="true"
+        ;;
+      --without-fluentd)
+        with_fluentd="false"
         ;;
       --)
         access_token="$2"
@@ -483,37 +529,123 @@ parse_args_and_install() {
 
   ensure_not_installed
 
-  echo "Splunk OpenTelemetry Collector Version: ${collector_version}"
-  echo "Realm: $realm"
-  echo "Ballast Size in MIB: $ballast"
-  echo "TD Agent Fluentd Version: $td_agent_version"
+  if [ -z "$access_token" ]; then
+    access_token=$(request_access_token)
+  fi
 
-  install "$stage" "$realm" "$access_token" "$insecure" "$collector_version" "$td_agent_version"
+  if [ -z "$hec_token" ]; then
+    hec_token="$access_token"
+  fi
+
+  if [ -z "$ingest_url" ]; then
+    ingest_url="https://ingest.${realm}.signalfx.com"
+  fi
+
+  if [ -z "$api_url" ]; then
+    api_url="https://api.${realm}.signalfx.com"
+  fi
+
+  if [ -z "$trace_url" ]; then
+    trace_url="https://ingest.${realm}.signalfx.com/v2/trace"
+  fi
+
+  if [ -z "$hec_url" ]; then
+    hec_url="https://ingest.${realm}.signalfx.com/v1/log"
+  fi
+
+  if [ "$with_fluentd" != "true" ]; then
+    td_agent_version=""
+  fi
+
+  echo "Splunk OpenTelemetry Collector Version: ${collector_version}"
+  echo "Ballast Size in MIB: $ballast"
+  echo "Realm: $realm"
+  echo "Ingest Endpoint: $ingest_url"
+  echo "API Endpoint: $api_url"
+  echo "Trace Endpoint: $trace_url"
+  echo "HEC Endpoint: $hec_url"
+  if [ "$with_fluentd" = "true" ]; then
+    echo "TD Agent (Fluentd) Version: $td_agent_version"
+  fi
+
+  if [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
+    echo "Your access token could not be verified. This may be due to a network connectivity issue." >&2
+    exit 1
+  fi
+
+  install "$stage" "$collector_version" "$td_agent_version"
 
   create_user_group "$service_user" "$service_group"
   configure_service_owner "$service_user" "$service_group"
 
-  configure_access_token "$access_token" "$service_user" "$service_group"
-  configure_realm "$realm" "$service_user" "$service_group"
-  configure_ballast "$ballast" "$service_user" "$service_group"
+  configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
+  configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
+  configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
+  configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
+  configure_env_file "SPLUNK_TRACE_URL" "$trace_url" "$collector_env_path"
+  configure_env_file "SPLUNK_BALLAST_SIZE_MIB" "$ballast" "$collector_env_path"
+  configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
+  configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
 
-  systemctl start td-agent
-  systemctl start splunk-otel-collector
+  # ensure the collector service owner has access to the config dir
+  chown -R $service_user:$service_group "$collector_config_dir"
+
+  # ensure only the collector service owner has access to the env file
+  chmod 600 "$collector_env_path"
+
+  systemctl daemon-reload
+  systemctl restart splunk-otel-collector
+
+  if [ "$with_fluentd" = "true" ]; then
+    # only start fluentd with our custom config to avoid port conflicts within the default config
+    systemctl stop td-agent
+    if [ -f "$fluent_config_path" ]; then
+      configure_fluentd_service
+      systemctl restart td-agent
+    else
+      if [ -f /etc/td-agent/td-agent.conf ]; then
+        mv -f /etc/td-agent/td-agent.conf /etc/td-agent/td-agent.conf.bak
+      fi
+      systemctl disable td-agent
+    fi
+  fi
 
   cat <<EOH
 The Splunk OpenTelemetry Collector has been successfully installed.
 
 Make sure that your system's time is relatively accurate or else datapoints may not be accepted.
 
-The collector's main configuration file is located at $splunk_config_path,
-and the environment file is located at $splunk_env_path.
+The collector's main configuration file is located at $collector_config_path,
+and the environment file is located at $collector_env_path.
 
-If either $splunk_config_path or $splunk_env_path are modified, the collector service
+If either $collector_config_path or $collector_env_path are modified, the collector service
 must be restarted to apply the changes by running the following command as root:
 
   systemctl restart splunk-otel-collector
 
 EOH
+
+  if [ "$with_fluentd" = "true" ] && [ -f "$fluent_config_path" ]; then
+    cat <<EOH
+Fluentd has been installed and configured to forward log events to the Splunk OpenTelemetry Collector.
+By default, all log events with the @SPLUNK label will be forwarded to the collector.
+
+The main fluentd configuration file is located at $fluent_config_path.
+Custom input sources and configurations can be added to the ${fluent_config_dir}/conf.d/ directory.
+All files with the .conf extension in this directory will automatically be included by fluentd.
+
+Note: The fluentd service runs as the "td-agent" user.  When adding new input sources or configuration
+files to the ${fluent_config_dir}/conf.d/ directory, ensure that the "td-agent" user has permissions
+to access the new config files and the paths defined within.
+
+If the fluentd configuration is modified or new config files are added, the fluentd service must be
+restarted to apply the changes by running the following command as root:
+
+  systemctl restart td-agent
+
+EOH
+  fi
+
   exit 0
 }
 

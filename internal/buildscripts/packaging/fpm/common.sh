@@ -14,16 +14,11 @@ SERVICE_NAME="splunk-otel-collector"
 SERVICE_USER="splunk-otel-collector"
 SERVICE_GROUP="splunk-otel-collector"
 
-SERVICE_REPO_PATH="$FPM_DIR/$SERVICE_NAME.service"
-SERVICE_INSTALL_PATH="/usr/lib/systemd/system/$SERVICE_NAME.service"
-
 OTELCOL_INSTALL_PATH="/usr/bin/otelcol"
-SPLUNK_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/agent_config_linux.yaml"
-SPLUNK_CONFIG_INSTALL_PATH="/etc/otel/collector/splunk_config_linux.yaml"
-OTLP_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/otlp_config_linux.yaml"
-OTLP_CONFIG_INSTALL_PATH="/etc/otel/collector/otlp_config_linux.yaml"
-SPLUNK_ENV_REPO_PATH="$FPM_DIR/splunk_env.example"
-SPLUNK_ENV_INSTALL_PATH="/etc/otel/collector/splunk_env.example"
+CONFIG_REPO_PATH="$FPM_DIR/etc/otel/collector/splunk_config_linux.yaml"
+CONFIG_INSTALL_PATH="/etc/otel/collector/splunk_config_linux.yaml"
+SERVICE_REPO_PATH="$FPM_DIR/$SERVICE_NAME.service"
+SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"
 
 PREINSTALL_PATH="$FPM_DIR/preinstall.sh"
 POSTINSTALL_PATH="$FPM_DIR/postinstall.sh"
@@ -41,4 +36,32 @@ get_version() {
     else
         echo "$commit_tag"
     fi
+}
+
+create_user_group() {
+    sudo getent passwd $SERVICE_USER >/dev/null || \
+        sudo useradd --system --user-group --no-create-home --shell /sbin/nologin $SERVICE_USER
+}
+
+setup_files_and_permissions() {
+    local otelcol="$1"
+    local buildroot="$2"
+
+    create_user_group
+
+    mkdir -p "$buildroot/$(dirname $OTELCOL_INSTALL_PATH)"
+    cp -f "$otelcol" "$buildroot/$OTELCOL_INSTALL_PATH"
+    sudo chown root:root "$buildroot/$OTELCOL_INSTALL_PATH"
+    sudo chmod 755 "$buildroot/$OTELCOL_INSTALL_PATH"
+
+    cp -r "$FPM_DIR/etc" "$buildroot/etc"
+    cp -f "$CONFIG_REPO_PATH" "$buildroot/$CONFIG_INSTALL_PATH"
+    sudo chown -R $SERVICE_USER:$SERVICE_GROUP "$buildroot/etc/otel"
+    sudo chmod -R 755 "$buildroot/etc/otel"
+    sudo chmod 600 "$buildroot/etc/otel/collector/splunk_env.example"
+
+    mkdir -p "$buildroot/$(dirname $SERVICE_INSTALL_PATH)"
+    cp -f "$SERVICE_REPO_PATH" "$buildroot/$SERVICE_INSTALL_PATH"
+    sudo chown root:root "$buildroot/$SERVICE_INSTALL_PATH"
+    sudo chmod 644 "$buildroot/$SERVICE_INSTALL_PATH"
 }

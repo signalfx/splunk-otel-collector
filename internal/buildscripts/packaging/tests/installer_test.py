@@ -49,7 +49,7 @@ def test_installer(distro, service_owner, version):
     with run_distro_container(distro) as container:
         # run installer script
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
-        run_container_cmd(container, install_cmd, env={"NO_SPLUNK_TOKEN_VERIFY": "yes"})
+        run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
         time.sleep(5)
 
         try:
@@ -58,9 +58,16 @@ def test_installer(distro, service_owner, version):
             run_container_cmd(container, "grep '^SPLUNK_REALM=us0$' /etc/otel/collector/splunk_env")
             run_container_cmd(container, "grep '^SPLUNK_BALLAST_SIZE_MIB=64$' /etc/otel/collector/splunk_env")
 
-            # verify service statuses
-            assert wait_for(lambda: run_container_cmd(container, "systemctl status td-agent"))
+            # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=service_owner))
+
+            # the td-agent service should only be running when installing
+            # collector packages that have our custom fluent config
+            if container.exec_run("test -f /etc/otel/collector/fluentd/fluent.conf").exit_code == 0:
+                assert container.exec_run("systemctl status td-agent").exit_code == 0
+            else:
+                assert container.exec_run("systemctl status td-agent").exit_code != 0
+
         finally:
             run_container_cmd(container, "journalctl -u td-agent --no-pager")
             run_container_cmd(container, "journalctl -u splunk-otel-collector --no-pager")

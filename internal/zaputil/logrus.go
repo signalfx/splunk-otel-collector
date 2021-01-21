@@ -20,29 +20,35 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io/ioutil"
+	"sync"
 )
 
 type zapWrapper zap.Logger
 
-var _ logrus.Hook = (*zapWrapper)(nil)
-
-var levelsMap = map[logrus.Level]zapcore.Level {
-	logrus.PanicLevel: zapcore.PanicLevel,
-	logrus.FatalLevel: zapcore.FatalLevel,
-	logrus.ErrorLevel: zapcore.ErrorLevel,
-	logrus.WarnLevel: zapcore.WarnLevel,
-	logrus.InfoLevel: zapcore.InfoLevel,
-	logrus.DebugLevel: zapcore.DebugLevel,
-	// No zap level equivalent to trace. Mapping trace to debug.
-	logrus.TraceLevel: zapcore.DebugLevel,
+type redirect struct {
+	from *logrus.Logger
+	to *zap.Logger
 }
+
+var (
+	mu        sync.Mutex
+	redirects = make(map[redirect]bool)
+	levelsMap = newLevelsMap()
+)
 
 // RedirectLogrusLogs mutes the output of the supplied logrus.Logger and adds a hook to it.
 // When fired the hook creates a zap entry using the supplied logrus entry.
 func RedirectLogrusLogs(from *logrus.Logger, to *zap.Logger) {
+	mu.Lock()
+	defer mu.Unlock()
+	r := redirect{from, to}
+	if redirects[r] {
+		return
+	}
 	from.ReportCaller = true
 	from.SetOutput(ioutil.Discard)
 	from.AddHook((*zapWrapper)(to))
+	redirects[r] = true
 }
 
 // Levels is a logrus.Hook interface method that returns all logrus logging levels.
@@ -71,4 +77,20 @@ func (z *zapWrapper) Fire(e *logrus.Entry) error {
 		ce.Write(fields...)
 	}
 	return nil
+}
+
+// zapWrapper implements logrus.Hook check.
+var _ logrus.Hook = (*zapWrapper)(nil)
+
+func newLevelsMap() map[logrus.Level]zapcore.Level {
+	return map[logrus.Level]zapcore.Level {
+		logrus.PanicLevel: zapcore.PanicLevel,
+		logrus.FatalLevel: zapcore.FatalLevel,
+		logrus.ErrorLevel: zapcore.ErrorLevel,
+		logrus.WarnLevel: zapcore.WarnLevel,
+		logrus.InfoLevel: zapcore.InfoLevel,
+		logrus.DebugLevel: zapcore.DebugLevel,
+		// No zap level equivalent to trace. Mapping trace to debug.
+		logrus.TraceLevel: zapcore.DebugLevel,
+	}
 }

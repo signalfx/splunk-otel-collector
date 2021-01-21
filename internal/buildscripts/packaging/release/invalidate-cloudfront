@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Invalidates the AWS CloudFront cache for certain files that get overwritten
+# when releasing new package versions.
+
+set -euxo pipefail
+
+DISTRIBUTION_ID=${DISTRIBUTION_ID-EJH671JAOI5SN}
+
+aws configure set preview.cloudfront true
+
+aws cloudfront create-invalidation --distribution-id ${DISTRIBUTION_ID} --paths "$@"

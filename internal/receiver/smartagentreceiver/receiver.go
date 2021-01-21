@@ -17,8 +17,8 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
+	"github.com/signalfx/splunk-otel-collector/internal/zaputil"
 	"github.com/sirupsen/logrus"
-	"io/ioutil"
 	"reflect"
 	"strings"
 	"sync"
@@ -45,10 +45,14 @@ type Receiver struct {
 
 var _ component.MetricsReceiver = (*Receiver)(nil)
 
-func NewReceiver(logger *zap.Logger, config Config, nextConsumer consumer.MetricsConsumer) *Receiver {
-	logrus.SetOutput(ioutil.Discard)
-	logrus.AddHook(&ZapHooks{ZapLogger: logger})
+var once sync.Once
 
+func NewReceiver(logger *zap.Logger, config Config, nextConsumer consumer.MetricsConsumer) *Receiver {
+	//TODO: It may be enough to redirect the global logrus logger only once if the same zap logger
+	// is passed to all new instances of smartagentreceiver. Verify this assumption.
+	once.Do(func() {
+		zaputil.RedirectLogrusLogs(logrus.StandardLogger(), logger)
+	})
 	return &Receiver{
 		logger:       logger,
 		config:       &config,

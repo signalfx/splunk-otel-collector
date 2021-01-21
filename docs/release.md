@@ -6,16 +6,29 @@
 1. You must have permissions to push tags to this repository.
 1. You must be able to sign git commits/tags. Follow [this guide](
    https://docs.github.com/en/github/authenticating-to-github/signing-commits)
-   to setup it up.
-1. Access the required service account tokens for Chaperone, Splunk staging
-   repository, and Splunk Artifactory.  Check with a team member for details.
+   to set it up.
+1. Create a Github access token that can write to this repository by going to
+   [Personal Access tokens](https://github.com/settings/tokens) on Github.
+   Save the token as the following environment variable:
+   - `GITHUB_TOKEN`
+1. You must have access to the required service account tokens for Chaperone,
+   Splunk staging repository, and Splunk Artifactory.  Check with a team member
+   for details.  Save the tokens as the following environment variables:
+   - `ARTIFACTORY_TOKEN`
+   - `CHAPERONE_TOKEN`
+   - `STAGING_TOKEN`
+1. You must have access to the S3 bucket.  Add a profile called `prod` to your
+   AWS CLI tool config that contains your IAM credentials to our production AWS
+   account.  The default region does not matter because we only deal with S3
+   and CloudFront, which are region-less. This is generally done by adding a
+   section with the header `[prod]` in the file `~/.aws/credentials`.
 1. Install Docker, Python 3, [pip](https://pip.pypa.io/en/stable/installing/),
    and [virtualenv](https://virtualenv.pypa.io/en/latest/) on your workstation.
 1. Install the required dependencies with pip in virtualenv on your workstation:
    ```
-   virtualenv venv
-   source venv/bin/activate
-   pip install -r internal/buildscripts/packaging/release/requirements.txt
+   $ virtualenv venv
+   $ source venv/bin/activate
+   $ pip install -r internal/buildscripts/packaging/release/requirements.txt
    ```
 
 ## Steps
@@ -27,21 +40,23 @@
    successful.
 1. Create and push the tag with the appropriate version:
    ```
-   make add-tag TAG=v1.2.3
-   git push --tags origin  # assuming "origin" is the upstream repository and not your fork
+   $ make add-tag TAG=v1.2.3
+   $ git push --tags origin  # assuming "origin" is the upstream repository and not your fork
    ```
 1. Ensure that the build and tests for the tag are successful.
-1. Ensure that the release was created and the packages were published to
-   [Github Releases](https://github.com/signalfx/splunk-otel-collector/releases/)
-1. Run the following script in virtualenv with the respective service account
-   tokens to sign the packages from github and release them to Artifactory.
-   `STAGE` should be `test`, `beta`, or `release` (default).
+1. Ensure that the `quay.io/signalfx/splunk-otel-collector:<VERSION>` image
+   was built and pushed.
+1. Ensure that the release was created and that the packages were published to
+   [Github Releases](https://github.com/signalfx/splunk-otel-collector/releases/).
+   The packages will be unsigned, and the release will be labeled as a
+   "Pre-release".
+1. Run the following script in virtualenv to download the packages from the
+   Github release, sign them, and push the signed packages to Artifactory, S3,
+   and back to the Github release.
    ```
-   source venv/bin/activate  # if not already in virtualenv
-   ./internal/buildscripts/packaging/release/sign_release.py --stage=STAGE --artifactory-token=ARTIFACTORY_TOKEN --chaperone-token=CHAPERONE_TOKEN --staging-token=STAGING_TOKEN
+   $ source venv/bin/activate  # if not already in virtualenv
+   $ ./internal/buildscripts/packaging/release/sign_release.py
    ```
-   This may 10+ minutes to complete.
-
-   **Hint:** You can set the `ARTIFACTORY_TOKEN`, `CHAPERONE_TOKEN`, and
-   `STAGING_TOKEN` environment variables instead of passing the tokens via
-   the command line options.
+   This may take 10+ minutes to complete.  The "Pre-release" label will then be
+   removed from the Github release.  Run the script with `--help` for more
+   details and to see all available options.

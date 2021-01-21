@@ -1,7 +1,7 @@
 FROM debian:9
 
 RUN apt-get update && \
-    apt-get install -y ruby ruby-dev rubygems build-essential git rpm
+    apt-get install -y ruby ruby-dev rubygems build-essential git rpm sudo
 
 RUN gem install --no-document fpm -v 1.11.0
 

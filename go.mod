@@ -20,6 +20,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.18.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.18.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.18.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.18.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.18.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.18.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.18.0

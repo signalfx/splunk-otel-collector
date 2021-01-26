@@ -49,7 +49,6 @@ func main() {
 	for {
 		select {
 		case <-ticker.C:
-			time.Sleep(1 * time.Second)
 			counter++
 			meter.RecordBatch(ctx,
 				commonLabels,

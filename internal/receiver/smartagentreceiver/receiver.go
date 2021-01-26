@@ -17,11 +17,12 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
-	"github.com/signalfx/splunk-otel-collector/internal/zaputil"
-	"github.com/sirupsen/logrus"
+	"io/ioutil"
 	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
@@ -32,6 +33,12 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
 )
+
+func init() {
+	logrus.StandardLogger().ReportCaller = true
+	logrus.StandardLogger().SetOutput(ioutil.Discard)
+	logrus.StandardLogger().AddHook(&loggersMap)
+}
 
 type Receiver struct {
 	logger       *zap.Logger
@@ -45,8 +52,12 @@ type Receiver struct {
 
 var _ component.MetricsReceiver = (*Receiver)(nil)
 
+var loggersMap = loggersMapWrap{
+	loggersMap: make(map[monitorLogger][]*zap.Logger),
+	mu:         sync.Mutex{},
+}
+
 func NewReceiver(logger *zap.Logger, config Config, nextConsumer consumer.MetricsConsumer) *Receiver {
-	zaputil.RedirectLogrusLogs(logrus.StandardLogger(), logger)
 	return &Receiver{
 		logger:       logger,
 		config:       &config,
@@ -65,6 +76,12 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 	monitorName := strings.ReplaceAll(r.config.Name(), "/", "")
 	configCore.MonitorID = types.MonitorID(monitorName)
 
+	key := monitorLogger{
+		Logger:      logrus.StandardLogger(),
+		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
+	}
+	loggersMap.add(key, r.logger)
+
 	r.monitor, err = r.createMonitor(monitorType)
 	if err != nil {
 		return fmt.Errorf("failed creating monitor %q: %w", monitorType, err)
@@ -79,6 +96,12 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 }
 
 func (r *Receiver) Shutdown(context.Context) error {
+	key := monitorLogger{
+		Logger:      logrus.StandardLogger(),
+		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
+	}
+	loggersMap.remove(key, r.logger)
+
 	err := componenterror.ErrAlreadyStopped
 	if r.monitor == nil {
 		err = fmt.Errorf("smartagentreceiver's Shutdown() called before Start() or with invalid monitor state")

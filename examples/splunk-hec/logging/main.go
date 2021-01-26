@@ -23,7 +23,6 @@ func main() {
 	for {
 		select {
 		case <-ticker.C:
-			time.Sleep(1 * time.Second)
 			counter++
 			logger.Info("Logging a line", zap.Int64("counter", counter))
 			break

@@ -36,7 +36,7 @@ import (
 func init() {
 	logrus.StandardLogger().ReportCaller = true
 	logrus.StandardLogger().SetOutput(ioutil.Discard)
-	logrus.StandardLogger().AddHook(&loggersMap)
+	logrus.StandardLogger().AddHook(&mappings)
 }
 
 type Receiver struct {
@@ -51,9 +51,9 @@ type Receiver struct {
 
 var _ component.MetricsReceiver = (*Receiver)(nil)
 
-var loggersMap = loggersMapWrap{
-	loggersMap: make(map[monitorLogger][]*zap.Logger),
-	mu:         sync.Mutex{},
+var mappings = loggerMappings{
+	mappings: make(map[monitorLogger][]receiverLogger),
+	mu:       sync.Mutex{},
 }
 
 func NewReceiver(logger *zap.Logger, config Config, nextConsumer consumer.MetricsConsumer) *Receiver {
@@ -79,7 +79,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 		Logger:      logrus.StandardLogger(),
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
 	}
-	loggersMap.add(key, r.logger)
+	mappings.add(key, r.logger)
 
 	r.monitor, err = r.createMonitor(monitorType)
 	if err != nil {
@@ -99,7 +99,7 @@ func (r *Receiver) Shutdown(context.Context) error {
 		Logger:      logrus.StandardLogger(),
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
 	}
-	loggersMap.remove(key, r.logger)
+	mappings.remove(key, r.logger)
 
 	err := componenterror.ErrAlreadyStopped
 	if r.monitor == nil {

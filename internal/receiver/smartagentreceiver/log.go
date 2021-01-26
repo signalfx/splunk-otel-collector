@@ -29,13 +29,15 @@ type monitorLogger struct {
 	monitorType string
 }
 
+type receiverLogger *zap.Logger
+
 // Mapping of monitor loggers to receiver loggers.
-type loggersMapWrap struct {
-	loggersMap map[monitorLogger][]*zap.Logger
-	mu         sync.Mutex
+type loggerMappings struct {
+	mappings map[monitorLogger][]receiverLogger
+	mu       sync.Mutex
 }
 
-var _ logrus.Hook = (*loggersMapWrap)(nil)
+var _ logrus.Hook = (*loggerMappings)(nil)
 
 var (
 	levelsMap = map[logrus.Level]zapcore.Level{
@@ -50,57 +52,57 @@ var (
 	}
 )
 
-func (l *loggersMapWrap) add(key monitorLogger, val *zap.Logger) {
+func (l *loggerMappings) add(key monitorLogger, val *zap.Logger) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if _, ok := l.loggersMap[key]; !ok {
-		l.loggersMap[key] = make([]*zap.Logger, 0)
+	if _, ok := l.mappings[key]; !ok {
+		l.mappings[key] = make([]receiverLogger, 0)
 	}
 
-	l.loggersMap[key] = append(l.loggersMap[key], val)
+	l.mappings[key] = append(l.mappings[key], val)
 }
 
-func (l *loggersMapWrap) remove(key monitorLogger, val *zap.Logger) {
+func (l *loggerMappings) remove(key monitorLogger, val *zap.Logger) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if _, ok := l.loggersMap[key]; !ok {
+	if _, ok := l.mappings[key]; !ok {
 		return
 	}
 
-	keep := make([]*zap.Logger, 0)
+	keep := make([]receiverLogger, 0)
 
-	for _, logger := range l.loggersMap[key] {
+	for _, logger := range l.mappings[key] {
 		if logger != val {
 			keep = append(keep, logger)
 		}
 	}
 
-	l.loggersMap[key] = keep
+	l.mappings[key] = keep
 }
 
 // get0 returns the first zap logger.
-func (l *loggersMapWrap) get0(key monitorLogger) (*zap.Logger, error) {
+func (l *loggerMappings) get0(key monitorLogger) (*zap.Logger, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if loggers, ok := l.loggersMap[key]; !ok || len(loggers) == 0 {
+	if loggers, ok := l.mappings[key]; !ok || len(loggers) == 0 {
 		return nil, fmt.Errorf("missing zap logger for monitor %s", key.monitorType)
 	}
 
-	return l.loggersMap[key][0], nil
+	return l.mappings[key][0], nil
 }
 
 // Levels is a logrus.Hook interface method that returns all logrus logging levels.
 // The hook is fired when logging on the logging levels returned by Levels.
-func (l *loggersMapWrap) Levels() []logrus.Level {
+func (l *loggerMappings) Levels() []logrus.Level {
 	return logrus.AllLevels
 }
 
 // Fire is a logrus.Hook interface method that is called when logging on the logging levels returned by Levels.
 // Fire creates a zap entry from the supplied logrus entry then writes to it.
-func (l *loggersMapWrap) Fire(e *logrus.Entry) error {
+func (l *loggerMappings) Fire(e *logrus.Entry) error {
 	var monitorType string
 
 	fields := make([]zapcore.Field, 0)

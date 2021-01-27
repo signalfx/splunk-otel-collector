@@ -8,7 +8,6 @@ require (
 	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.19.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxcorrelationexporter v0.16.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.19.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.19.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.19.0

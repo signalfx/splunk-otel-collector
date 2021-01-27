@@ -36,7 +36,6 @@ func TestDefaultComponents(t *testing.T) {
 	expectedReceivers := []configmodels.Type{
 		"jaeger",
 		"zipkin",
-		"prometheus",
 		"opencensus",
 		"otlp",
 		"hostmetrics",

@@ -60,7 +60,6 @@ import (
 	"go.opentelemetry.io/collector/receiver/jaegerreceiver"
 	"go.opentelemetry.io/collector/receiver/opencensusreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/receiver/prometheusreceiver"
 	"go.opentelemetry.io/collector/receiver/zipkinreceiver"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/smartagentreceiver"
@@ -94,7 +93,6 @@ func Get() (component.Factories, error) {
 		opencensusreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
 		prometheusexecreceiver.NewFactory(),
-		prometheusreceiver.NewFactory(),
 		receivercreator.NewFactory(),
 		redisreceiver.NewFactory(),
 		sapmreceiver.NewFactory(),

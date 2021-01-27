@@ -17,7 +17,6 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"reflect"
 	"strings"
 	"sync"
@@ -31,13 +30,8 @@ import (
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
-
-func init() {
-	logrus.StandardLogger().ReportCaller = true
-	logrus.StandardLogger().SetOutput(ioutil.Discard)
-	logrus.StandardLogger().AddHook(&mappings)
-}
 
 type Receiver struct {
 	logger       *zap.Logger
@@ -51,9 +45,18 @@ type Receiver struct {
 
 var _ component.MetricsReceiver = (*Receiver)(nil)
 
-var mappings = loggerMappings{
-	mappings: make(map[monitorLogger][]receiverLogger),
-	mu:       sync.Mutex{},
+var logRedirectsVar logRedirects
+
+func init() {
+	cfg := zap.NewProductionConfig()
+	cfg.Level.SetLevel(zapcore.DebugLevel)
+	cfg.DisableStacktrace = true
+	logger, _ := cfg.Build()
+	logRedirectsVar = logRedirects{
+		redirects:   make(map[srcLogger][]dstLogger),
+		mu:          sync.Mutex{},
+		dstCatchall: logger,
+	}
 }
 
 func NewReceiver(logger *zap.Logger, config Config, nextConsumer consumer.MetricsConsumer) *Receiver {
@@ -75,11 +78,11 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 	monitorName := strings.ReplaceAll(r.config.Name(), "/", "")
 	configCore.MonitorID = types.MonitorID(monitorName)
 
-	key := monitorLogger{
+	// source logger set to the standard logrus logger because it is assumed that is what the monitor is using.
+	logRedirectsVar.redirect(srcLogger{
 		Logger:      logrus.StandardLogger(),
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
-	}
-	mappings.add(key, r.logger)
+	}, r.logger)
 
 	r.monitor, err = r.createMonitor(monitorType)
 	if err != nil {
@@ -95,11 +98,10 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 }
 
 func (r *Receiver) Shutdown(context.Context) error {
-	key := monitorLogger{
+	logRedirectsVar.unRedirect(srcLogger{
 		Logger:      logrus.StandardLogger(),
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
-	}
-	mappings.remove(key, r.logger)
+	}, r.logger)
 
 	err := componenterror.ErrAlreadyStopped
 	if r.monitor == nil {

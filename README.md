@@ -176,6 +176,10 @@ PS> Start-Service splunk-otel-collector
 
 The collector logs and errors can be viewed in the Windows Event Viewer.
 
+### More examples
+
+You can consult additional use cases in the [/examples](examples folder).
+
 ## Sizing
 
 The OpenTelemetry Collector can be scaled up or out as needed. Sizing is based

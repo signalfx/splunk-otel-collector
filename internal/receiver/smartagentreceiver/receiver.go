@@ -114,11 +114,16 @@ func (r *Receiver) createMonitor(monitorType string) (interface{}, error) {
 		}
 	}
 
+	var output *Output
 	if monitorOutputValue.IsValid() {
-		output := NewOutput(*r.config, r.nextConsumer, r.logger)
+		output = NewOutput(*r.config, r.nextConsumer, r.logger)
 		monitorOutputValue.Set(reflect.ValueOf(output))
 	} else {
 		return nil, fmt.Errorf("invalid monitor instance: %#v", monitor)
+	}
+
+	for k, v := range r.config.monitorConfig.MonitorConfigCore().ExtraDimensions {
+		output.AddExtraDimension(k, v)
 	}
 
 	return monitor, nil

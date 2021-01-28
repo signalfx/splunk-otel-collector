@@ -23,6 +23,7 @@ import (
 	"github.com/signalfx/golib/v3/trace"
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
+	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
 	"go.uber.org/zap"
@@ -34,20 +35,22 @@ const internalTransport = "internal"
 // It is what provides metrics to the next MetricsConsumer (to be implemented later).  At this stage it is only
 // a logging instance.
 type Output struct {
-	receiverName string
-	nextConsumer consumer.MetricsConsumer
-	logger       *zap.Logger
-	converter    Converter
+	receiverName    string
+	nextConsumer    consumer.MetricsConsumer
+	logger          *zap.Logger
+	converter       Converter
+	extraDimensions map[string]string
 }
 
 var _ types.FilteringOutput = (*Output)(nil)
 
 func NewOutput(config Config, nextConsumer consumer.MetricsConsumer, logger *zap.Logger) *Output {
 	return &Output{
-		receiverName: config.Name(),
-		nextConsumer: nextConsumer,
-		logger:       logger,
-		converter:    Converter{logger: logger},
+		receiverName:    config.Name(),
+		nextConsumer:    nextConsumer,
+		logger:          logger,
+		converter:       Converter{logger: logger},
+		extraDimensions: map[string]string{},
 	}
 }
 
@@ -70,14 +73,22 @@ func (output *Output) HasAnyExtraMetrics() bool {
 	return false
 }
 
+// Some monitors will clone their Output to provide to child monitors with their own extraDimensions
 func (output *Output) Copy() types.Output {
-	output.logger.Debug("Copy has been called.")
-	return output
+	output.logger.Debug("Copying Output", zap.Any("output", output))
+	cp := *output
+	cp.extraDimensions = utils.CloneStringMap(output.extraDimensions)
+	return &cp
 }
 
 func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 	ctx := obsreport.ReceiverContext(context.Background(), output.receiverName, internalTransport)
 	ctx = obsreport.StartMetricsReceiveOp(ctx, typeStr, internalTransport)
+
+	for _, dp := range datapoints {
+		// Output's extraDimensions take priority over datapoint's
+		dp.Dimensions = utils.MergeStringMaps(dp.Dimensions, output.extraDimensions)
+	}
 
 	metrics, numDropped := output.converter.toMetrics(datapoints, time.Now())
 	if numDropped > 0 {
@@ -98,15 +109,17 @@ func (output *Output) SendSpans(spans ...*trace.Span) {
 }
 
 func (output *Output) SendDimensionUpdate(dimension *types.Dimension) {
-	output.logger.Debug("SendDimensionUpdate has been called.", zap.Any("dimension", dimension))
+	output.logger.Debug("SendDimensionUpdate has been called.", zap.Any("dimension", dimension.String()))
 }
 
 func (output *Output) AddExtraDimension(key, value string) {
-	output.logger.Debug("AddExtraDimension has been called.", zap.String("key", key), zap.String("value", value))
+	output.logger.Debug("Adding extra dimension", zap.String("key", key), zap.String("value", value))
+	output.extraDimensions[key] = value
 }
 
 func (output *Output) RemoveExtraDimension(key string) {
-	output.logger.Debug("RemoveExtraDimension has been called.", zap.String("key", key))
+	output.logger.Debug("Removing extra dimension", zap.String("key", key))
+	delete(output.extraDimensions, key)
 }
 
 func (output *Output) AddExtraSpanTag(key, value string) {

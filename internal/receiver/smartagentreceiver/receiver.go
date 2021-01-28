@@ -45,17 +45,17 @@ type Receiver struct {
 
 var _ component.MetricsReceiver = (*Receiver)(nil)
 
-var logRedirectsVar logRedirects
+var logRedirectsVar logRedirect
 
 func init() {
-	cfg := zap.NewProductionConfig()
-	cfg.Level.SetLevel(zapcore.DebugLevel)
-	cfg.DisableStacktrace = true
-	logger, _ := cfg.Build()
-	logRedirectsVar = logRedirects{
-		redirects:   make(map[srcLogger][]dstLogger),
-		mu:          sync.Mutex{},
-		dstCatchall: logger,
+	dstCatchallLoggerCfg := zap.NewProductionConfig()
+	dstCatchallLoggerCfg.Level.SetLevel(zapcore.DebugLevel)
+	dstCatchallLoggerCfg.DisableStacktrace = true
+	logger, _ := dstCatchallLoggerCfg.Build()
+	logRedirectsVar = logRedirect{
+		redirects:         make(map[srcLogger][]dstLogger),
+		mu:                sync.Mutex{},
+		dstCatchallLogger: logger,
 	}
 }
 
@@ -98,7 +98,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 }
 
 func (r *Receiver) Shutdown(context.Context) error {
-	logRedirectsVar.unRedirect(srcLogger{
+	defer logRedirectsVar.unRedirect(srcLogger{
 		Logger:      logrus.StandardLogger(),
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
 	}, r.logger)

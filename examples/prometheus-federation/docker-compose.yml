@@ -1,0 +1,45 @@
+version: "3"
+services:
+  # Sample Go application producing counter metrics.
+  prom-counter:
+    container_name: prom-counter
+    build:
+      context: prom-counter
+    restart: always
+  # The Prometheus server:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  # Splunk Enterprise server:
+  splunk:
+    image: splunk/splunk:latest
+    container_name: splunk
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_HEC_TOKEN=00000000-0000-0000-0000-0000000000000
+      - SPLUNK_PASSWORD=changeme
+    ports:
+      - 18000:8000
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./splunk.yml:/tmp/defaults/default.yml
+      - /opt/splunk/var
+      - /opt/splunk/etc
+  # OpenTelemetry Collector
+  otelcollector:
+    image: quay.io/signalfx/splunk-otel-collector:0.4.0
+    container_name: otelcollector
+    command: ["--config=/etc/otel-collector-config.yml", "--log-level=DEBUG"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+    depends_on:
+      - splunk
+      - prometheus

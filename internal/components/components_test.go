@@ -74,7 +74,6 @@ func TestDefaultComponents(t *testing.T) {
 		"otlp",
 		"sapm",
 		"signalfx",
-		"signalfx_correlation",
 		"splunk_hec",
 	}
 

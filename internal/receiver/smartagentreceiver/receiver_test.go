@@ -57,6 +57,9 @@ func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
 			MonitorConfig: config.MonitorConfig{
 				Type:            monitorType,
 				IntervalSeconds: intervalSeconds,
+				ExtraDimensions: map[string]string{
+					"required_dimension": "required_value",
+				},
 			},
 			ReportPerCPU: true,
 		},
@@ -67,12 +70,15 @@ func TestSmartAgentReceiver(t *testing.T) {
 	cfg := newConfig("valid", "cpu", 10)
 	consumer := new(consumertest.MetricsSink)
 	receiver := NewReceiver(zap.NewNop(), cfg, consumer)
+
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
 	assert.EqualValues(t, "smartagentvalid", cfg.monitorConfig.MonitorConfigCore().MonitorID)
+	monitor, isMonitor := receiver.monitor.(*cpu.Monitor)
+	require.True(t, isMonitor)
 
-	monitorOutput := receiver.monitor.(*cpu.Monitor).Output
+	monitorOutput := monitor.Output
 	_, isOutput := monitorOutput.(*Output)
 	assert.True(t, isOutput)
 
@@ -129,10 +135,16 @@ func TestSmartAgentReceiver(t *testing.T) {
 						default:
 							t.Errorf("unexpected type %#v for metric %s", metric.DataType(), name)
 						}
-						if labels.Len() == 0 {
-							assert.False(t, seenTotalMetric[name], "unexpected repeated total metric for %v", name)
-							seenTotalMetric[name] = true
-						}
+
+						labelVal, ok := labels.Get("required_dimension")
+						require.True(t, ok)
+						assert.Equal(t, "required_value", labelVal)
+
+						// mark metric as having been seen
+						cpuNum, _ := labels.Get("cpu")
+						seenName := fmt.Sprintf("%s%s", name, cpuNum)
+						assert.False(t, seenTotalMetric[seenName], "unexpectedly repeated metric: %v", seenName)
+						seenTotalMetric[seenName] = true
 					}
 				}
 			}

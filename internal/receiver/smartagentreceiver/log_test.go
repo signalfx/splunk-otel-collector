@@ -1,3 +1,17 @@
+// Copyright 2021 Splunk, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package smartagentreceiver
 
 import (
@@ -16,20 +30,20 @@ func TestRedirectTraceLogs(t *testing.T) {
 	// Creating a typical monitor logrus entry/logger.
 	monitorLogger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
 
-	// Simulating the creation of the monitor logrus logger in the monitor receiver.
+	// Creating the monitor logrus key in the monitor receiver.
 	// The monitor type is known.
 	// The logger is assumed to be the standard logrus logger.
-	receiverMonitorLogger := logrusLogger{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
+	monitorLogrusKey := logrusKey{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
 
-	// Checking that the monitor entry logger and the assumed monitor logger are the same.
-	if monitorLogger.Logger != receiverMonitorLogger.Logger {
+	// Checking that the monitor logger and the assumed logrus key logger are the same.
+	if monitorLogger.Logger != monitorLogrusKey.Logger {
 		t.Error("Expected the standard logrus logger")
 	}
 
 	zapLogger, zapLogs := newObservedLogs(zap.DebugLevel)
 
-	// Using the assumed monitor logger to simulate logrus to zap redirection of monitor logs.
-	newLogrusToZap(t).redirect(receiverMonitorLogger, zapLogger)
+	// logrus to zap redirection of monitor logs.
+	newLogrusToZap(t).redirect(monitorLogrusKey, zapLogger)
 
 	// Simulating logging a message in the monitor.
 	monitorLogger.Logger.Level = logrus.TraceLevel
@@ -43,19 +57,19 @@ func TestRedirectDebugLogs(t *testing.T) {
 	// Creating a typical monitor logrus entry/logger.
 	monitorLogger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
 
-	// Simulating the creation of the monitor logrus logger in the monitor receiver.
+	// Creating the monitor logrus key in the monitor receiver.
 	// The monitor type is known.
 	// The logger is assumed to be the standard logrus logger.
-	receiverMonitorLogger := logrusLogger{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
+	receiverMonitorLogger := logrusKey{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
 
-	// Checking that the monitor entry logger and the assumed monitor logger are the same.
+	// Checking that the monitor logger and the assumed logrus key logger are the same.
 	if monitorLogger.Logger != receiverMonitorLogger.Logger {
 		t.Error("Expected the standard logrus logger")
 	}
 
 	zapLogger, zapLogs := newObservedLogs(zap.DebugLevel)
 
-	// Using the assumed monitor logger to simulate logrus to zap redirection of monitor logs.
+	// logrus to zap redirection of monitor logs.
 	newLogrusToZap(t).redirect(receiverMonitorLogger, zapLogger)
 
 	// Simulating logging a message in the monitor.
@@ -70,19 +84,19 @@ func TestRedirectInfoLogs(t *testing.T) {
 	// Creating a typical monitor logrus entry/logger.
 	monitorLogger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
 
-	// Simulating the creation of the monitor logrus logger in the monitor receiver.
+	// Creating the monitor logrus key in the monitor receiver.
 	// The monitor type is known.
 	// The logger is assumed to be the standard logrus logger.
-	receiverMonitorLogger := logrusLogger{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
+	receiverMonitorLogger := logrusKey{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
 
-	// Checking that the monitor entry logger and the assumed monitor logger are the same.
+	// Checking that the monitor logger and the assumed logrus key logger are the same.
 	if monitorLogger.Logger != receiverMonitorLogger.Logger {
 		t.Error("Expected the standard logrus logger")
 	}
 
 	zapLogger, zapLogs := newObservedLogs(zap.InfoLevel)
 
-	// Using the assumed monitor logger to simulate logrus to zap redirection of monitor logs.
+	// logrus to zap redirection of monitor logs.
 	newLogrusToZap(t).redirect(receiverMonitorLogger, zapLogger)
 
 	// Simulating logging a message in the monitor.
@@ -97,19 +111,19 @@ func TestRedirectWarnLogs(t *testing.T) {
 	// Creating a typical monitor logrus entry/logger.
 	monitorLogger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
 
-	// Simulating the creation of the monitor logrus logger in the monitor receiver.
+	// Creating the monitor logrus key in the monitor receiver.
 	// The monitor type is known.
 	// The logger is assumed to be the standard logrus logger.
-	receiverMonitorLogger := logrusLogger{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
+	receiverMonitorLogger := logrusKey{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
 
-	// Checking that the monitor entry logger and the assumed monitor logger are the same.
+	// Checking that the monitor logger and the assumed logrus key logger are the same.
 	if monitorLogger.Logger != receiverMonitorLogger.Logger {
 		t.Error("Expected the standard logrus logger")
 	}
 
 	zapLogger, zapLogs := newObservedLogs(zap.WarnLevel)
 
-	// Using the assumed monitor logger to simulate logrus to zap redirection of monitor logs.
+	// logrus to zap redirection of monitor logs.
 	newLogrusToZap(t).redirect(receiverMonitorLogger, zapLogger)
 
 	// Simulating logging a message in the monitor.
@@ -124,19 +138,19 @@ func TestRedirectErrorLogs(t *testing.T) {
 	// Creating a typical monitor logrus entry/logger.
 	monitorLogger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
 
-	// Simulating the creation of the monitor logrus logger in the monitor receiver.
+	// Creating the monitor logrus key in the monitor receiver.
 	// The monitor type is known.
 	// The logger is assumed to be the standard logrus logger.
-	receiverMonitorLogger := logrusLogger{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
+	receiverMonitorLogger := logrusKey{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
 
-	// Checking that the monitor entry logger and the assumed monitor logger are the same.
+	// Checking that the monitor logger and the assumed logrus key logger are the same.
 	if monitorLogger.Logger != receiverMonitorLogger.Logger {
 		t.Error("Expected the standard logrus logger")
 	}
 
 	zapLogger, zapLogs := newObservedLogs(zap.ErrorLevel)
 
-	// Using the assumed monitor logger to simulate logrus to zap redirection of monitor logs.
+	// logrus to zap redirection of monitor logs.
 	newLogrusToZap(t).redirect(receiverMonitorLogger, zapLogger)
 
 	// Simulating logging a message in the monitor.
@@ -166,7 +180,7 @@ func TestRedirectShouldReturnAllLogrusLogLevels(t *testing.T) {
 }
 
 func TestRedirectShouldSetSrcReportCallerTrueOnRedirectCalls(t *testing.T) {
-	src := logrusLogger{Logger: logrus.New(), monitorType: "monitor1"}
+	src := logrusKey{Logger: logrus.New(), monitorType: "monitor1"}
 	newLogrusToZap(t).redirect(src, zap.NewNop())
 	if !src.ReportCaller {
 		t.Errorf("Expected the source logrus logger to report caller after redirection")
@@ -174,7 +188,7 @@ func TestRedirectShouldSetSrcReportCallerTrueOnRedirectCalls(t *testing.T) {
 }
 
 func TestRedirectShouldSetSrcLoggerOutDiscardOnRedirectCalls(t *testing.T) {
-	src := logrusLogger{Logger: logrus.New(), monitorType: "monitor1"}
+	src := logrusKey{Logger: logrus.New(), monitorType: "monitor1"}
 	newLogrusToZap(t).redirect(src, zap.NewNop())
 	if src.Out != ioutil.Discard {
 		t.Errorf("Expected the source logrus logger to be 'discarded' after redirection")
@@ -182,7 +196,7 @@ func TestRedirectShouldSetSrcLoggerOutDiscardOnRedirectCalls(t *testing.T) {
 }
 
 func TestRedirectShouldUniquelyAddHooksToSrcLoggerOnRedirectCalls(t *testing.T) {
-	src := logrusLogger{Logger: logrus.New(), monitorType: "monitor1"}
+	src := logrusKey{Logger: logrus.New(), monitorType: "monitor1"}
 	if got := len(src.Hooks); got != 0 {
 		t.Errorf("Expected 0 hooks, got %d", got)
 	}
@@ -205,7 +219,7 @@ func TestRedirectShouldUniquelyAddHooksToSrcLoggerOnRedirectCalls(t *testing.T) 
 
 func newLogrusToZap(t *testing.T) *logrusToZap {
 	return &logrusToZap{
-		loggerMap:      make(map[logrusLogger][]*zap.Logger),
+		loggerMap:      make(map[logrusKey][]*zap.Logger),
 		mu:             sync.Mutex{},
 		catchallLogger: zaptest.NewLogger(t),
 	}

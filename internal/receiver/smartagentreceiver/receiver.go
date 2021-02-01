@@ -53,7 +53,7 @@ func init() {
 	catchallLoggerCfg.DisableStacktrace = true
 	logger, _ := catchallLoggerCfg.Build()
 	toZap = logrusToZap{
-		loggerMap:      make(map[logrusLogger][]*zap.Logger),
+		loggerMap:      make(map[logrusKey][]*zap.Logger),
 		mu:             sync.Mutex{},
 		catchallLogger: logger,
 	}
@@ -79,7 +79,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 	configCore.MonitorID = types.MonitorID(monitorName)
 
 	// source logger set to the standard logrus logger because it is assumed that is what the monitor is using.
-	toZap.redirect(logrusLogger{
+	toZap.redirect(logrusKey{
 		Logger:      logrus.StandardLogger(),
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
 	}, r.logger)
@@ -98,7 +98,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 }
 
 func (r *Receiver) Shutdown(context.Context) error {
-	defer toZap.unRedirect(logrusLogger{
+	defer toZap.unRedirect(logrusKey{
 		Logger:      logrus.StandardLogger(),
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
 	}, r.logger)

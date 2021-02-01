@@ -24,16 +24,14 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-type logrusLogger struct {
+type logrusKey struct {
 	*logrus.Logger
 	monitorType string
 }
 
-// logrusToZap hooks to its logrus loggers (logrusLogger) and loggerMap logrus logs to zap loggers.
+// logrusToZap stores a mapping of logrus to zap loggers in loggerMap and hooks to the logrus loggers.
 type logrusToZap struct {
-	// The *zap.Logger slice models multiple keys of the same logger/monitorType.
-	// However, redirect() and unRedirect() is applied to the first zap logger only.
-	loggerMap      map[logrusLogger][]*zap.Logger
+	loggerMap      map[logrusKey][]*zap.Logger
 	mu             sync.Mutex
 	catchallLogger *zap.Logger
 }
@@ -53,19 +51,19 @@ var (
 	}
 )
 
-func (l *logrusLogger) reportCaller() {
+func (l *logrusKey) reportCaller() {
 	if !l.ReportCaller {
 		l.SetReportCaller(true)
 	}
 }
 
-func (l *logrusLogger) discardOutput() {
+func (l *logrusKey) discardOutput() {
 	if l.Out != ioutil.Discard {
 		l.SetOutput(ioutil.Discard)
 	}
 }
 
-func (l *logrusLogger) hookUnique(newHook logrus.Hook) {
+func (l *logrusKey) hookUnique(newHook logrus.Hook) {
 	for _, hooks := range l.Hooks {
 		for _, hook := range hooks {
 			if hook == newHook {
@@ -76,7 +74,7 @@ func (l *logrusLogger) hookUnique(newHook logrus.Hook) {
 	l.AddHook(newHook)
 }
 
-func (l *logrusToZap) redirect(src logrusLogger, dst *zap.Logger) {
+func (l *logrusToZap) redirect(src logrusKey, dst *zap.Logger) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -84,7 +82,7 @@ func (l *logrusToZap) redirect(src logrusLogger, dst *zap.Logger) {
 		l.loggerMap[src] = make([]*zap.Logger, 0)
 	}
 
-	// mutating as a side effect.
+	// mutating the logrus logger as a side effect.
 	src.reportCaller()
 	src.discardOutput()
 	src.hookUnique(l)
@@ -92,7 +90,7 @@ func (l *logrusToZap) redirect(src logrusLogger, dst *zap.Logger) {
 	l.loggerMap[src] = append(l.loggerMap[src], dst)
 }
 
-func (l *logrusToZap) unRedirect(src logrusLogger, dst *zap.Logger) {
+func (l *logrusToZap) unRedirect(src logrusKey, dst *zap.Logger) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -111,7 +109,7 @@ func (l *logrusToZap) unRedirect(src logrusLogger, dst *zap.Logger) {
 	l.loggerMap[src] = keep
 }
 
-func (l *logrusToZap) get1stZapLogger(src logrusLogger) *zap.Logger {
+func (l *logrusToZap) loggerMapValue0(src logrusKey) *zap.Logger {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -122,14 +120,13 @@ func (l *logrusToZap) get1stZapLogger(src logrusLogger) *zap.Logger {
 	return l.loggerMap[src][0]
 }
 
-// Levels is a logrus.Hook interface method that returns all logrus logging levels.
-// The hook is fired when logging on the logging levels returned by Levels.
+// Levels is a logrus.Hook implementation that returns all logrus logging levels.
 func (l *logrusToZap) Levels() []logrus.Level {
 	return logrus.AllLevels
 }
 
-// Fire is a logrus.Hook interface method that is called when logging on the logging levels returned by Levels.
-// Fire creates a zap entry from the supplied logrus entry.
+// Fire is a logrus.Hook implementation that is called when logging on the logging levels returned by Levels.
+// A zap log entry is created from the supplied logrus entry and written out.
 func (l *logrusToZap) Fire(e *logrus.Entry) error {
 	var monitorType string
 
@@ -138,14 +135,15 @@ func (l *logrusToZap) Fire(e *logrus.Entry) error {
 	// Creating zap entry fields from logrus entry fields.
 	for k, v := range e.Data {
 		vStr := fmt.Sprintf("%v", v)
-		// getting monitorType from logrus entry field 'monitorType'
 		if k == "monitorType" {
 			monitorType = vStr
 		}
 		fields = append(fields, zapcore.Field{Key: k, Type: zapcore.StringType, String: vStr})
 	}
 
-	zapLogger := l.get1stZapLogger(logrusLogger{e.Logger, monitorType})
+	// Creating loggerMap key from the logrus entry logger and field 'monitorType'
+	key := logrusKey{e.Logger, monitorType}
+	zapLogger := l.loggerMapValue0(key)
 	if zapLogger == nil {
 		fields = append(fields, zapcore.Field{Key: "monitorType", Type: zapcore.StringType, String: monitorType})
 		fields = append(fields, zapcore.Field{Key: "redirect_error", Type: zapcore.StringType, String: "Could not find zap logger in receiver for the monitorType. Using the catchall zap logger instead."})

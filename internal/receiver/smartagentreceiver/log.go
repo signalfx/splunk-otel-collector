@@ -24,36 +24,26 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// srcLogger is the monitor's logrus logger.
-// It is the source in a redirect to the monitor's receiver zap logger.
-// Monitors use the same exported standard logrus logger.
-// The logrus.Logger / monitorType combination is for unique identification of srcLogger.
-// srcLogger(s) of multiple instances of the same monitor are indistinguishable.
-type srcLogger struct {
+type logrusLogger struct {
 	*logrus.Logger
 	monitorType string
 }
 
-// dstLogger is the monitor's receiver zap logger.
-// It is the destination in a redirect to the monitor's receiver zap logger.
-type dstLogger *zap.Logger
-
-// logRedirector maintains a map of srcLogger to dstLogger redirects.
-// It hooks to srcLogger(s) and redirects log entries to dstLogger
-type logRedirector struct {
-	// The map values are slices to model destination(s) of indistinguishable sources.
-	// However, redirections only apply to the first dstLogger.
-	redirects         map[srcLogger][]dstLogger
-	mu                sync.Mutex
-	dstCatchallLogger dstLogger
+// logrusToZap hooks to its logrus loggers (logrusLogger) and loggerMap logrus logs to zap loggers.
+type logrusToZap struct {
+	// The *zap.Logger slice models multiple keys of the same logger/monitorType.
+	// However, redirect() and unRedirect() is applied to the first zap logger only.
+	loggerMap      map[logrusLogger][]*zap.Logger
+	mu             sync.Mutex
+	catchallLogger *zap.Logger
 }
 
-var _ logrus.Hook = (*logRedirector)(nil)
+var _ logrus.Hook = (*logrusToZap)(nil)
 
 var (
 	levelsMap = map[logrus.Level]zapcore.Level{
-		logrus.PanicLevel: zapcore.PanicLevel,
 		logrus.FatalLevel: zapcore.FatalLevel,
+		logrus.PanicLevel: zapcore.PanicLevel,
 		logrus.ErrorLevel: zapcore.ErrorLevel,
 		logrus.WarnLevel:  zapcore.WarnLevel,
 		logrus.InfoLevel:  zapcore.InfoLevel,
@@ -63,19 +53,19 @@ var (
 	}
 )
 
-func (l *srcLogger) reportCaller() {
+func (l *logrusLogger) reportCaller() {
 	if !l.ReportCaller {
 		l.SetReportCaller(true)
 	}
 }
 
-func (l *srcLogger) discardOutput() {
+func (l *logrusLogger) discardOutput() {
 	if l.Out != ioutil.Discard {
 		l.SetOutput(ioutil.Discard)
 	}
 }
 
-func (l *srcLogger) hookUnique(newHook logrus.Hook) {
+func (l *logrusLogger) hookUnique(newHook logrus.Hook) {
 	for _, hooks := range l.Hooks {
 		for _, hook := range hooks {
 			if hook == newHook {
@@ -86,96 +76,94 @@ func (l *srcLogger) hookUnique(newHook logrus.Hook) {
 	l.AddHook(newHook)
 }
 
-// redirect mutates srcLogger the argument as a side effect.
-func (l *logRedirector) redirect(src srcLogger, dst *zap.Logger) {
+func (l *logrusToZap) redirect(src logrusLogger, dst *zap.Logger) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if _, ok := l.redirects[src]; !ok {
-		l.redirects[src] = make([]dstLogger, 0)
+	if _, ok := l.loggerMap[src]; !ok {
+		l.loggerMap[src] = make([]*zap.Logger, 0)
 	}
 
+	// mutating as a side effect.
 	src.reportCaller()
 	src.discardOutput()
 	src.hookUnique(l)
 
-	l.redirects[src] = append(l.redirects[src], dst)
+	l.loggerMap[src] = append(l.loggerMap[src], dst)
 }
 
-func (l *logRedirector) unRedirect(src srcLogger, dst *zap.Logger) {
+func (l *logrusToZap) unRedirect(src logrusLogger, dst *zap.Logger) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if _, ok := l.redirects[src]; !ok {
+	if _, ok := l.loggerMap[src]; !ok {
 		return
 	}
 
-	keep := make([]dstLogger, 0)
+	keep := make([]*zap.Logger, 0)
 
-	for _, logger := range l.redirects[src] {
+	for _, logger := range l.loggerMap[src] {
 		if logger != dst {
 			keep = append(keep, logger)
 		}
 	}
 
-	l.redirects[src] = keep
+	l.loggerMap[src] = keep
 }
 
-// get1stDstLogger returns the first destination zap logger.
-func (l *logRedirector) get1stDstLogger(src srcLogger) *zap.Logger {
+func (l *logrusToZap) get1stZapLogger(src logrusLogger) *zap.Logger {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if loggers, ok := l.redirects[src]; !ok || len(loggers) == 0 {
+	if loggers, ok := l.loggerMap[src]; !ok || len(loggers) == 0 {
 		return nil
 	}
 
-	return l.redirects[src][0]
+	return l.loggerMap[src][0]
 }
 
 // Levels is a logrus.Hook interface method that returns all logrus logging levels.
 // The hook is fired when logging on the logging levels returned by Levels.
-func (l *logRedirector) Levels() []logrus.Level {
+func (l *logrusToZap) Levels() []logrus.Level {
 	return logrus.AllLevels
 }
 
 // Fire is a logrus.Hook interface method that is called when logging on the logging levels returned by Levels.
-// Fire creates a dstLogger zap entry from the supplied srcLogger logrus entry.
-func (l *logRedirector) Fire(e *logrus.Entry) error {
+// Fire creates a zap entry from the supplied logrus entry.
+func (l *logrusToZap) Fire(e *logrus.Entry) error {
 	var monitorType string
 
 	fields := make([]zapcore.Field, 0)
 
-	// Creating zap entry fields and getting the monitor type from the logrus entry.
+	// Creating zap entry fields from logrus entry fields.
 	for k, v := range e.Data {
 		vStr := fmt.Sprintf("%v", v)
+		// getting monitorType from logrus entry field 'monitorType'
 		if k == "monitorType" {
 			monitorType = vStr
 		}
 		fields = append(fields, zapcore.Field{Key: k, Type: zapcore.StringType, String: vStr})
 	}
 
-	// Creating logRedirector.redirects map key using the logger and monitorType log field from the
-	// logrus entry Fire() argument.
-	key := srcLogger{e.Logger, monitorType}
-	// Using the key to get only the first destination zap logger (i.e. logRedirector.redirects[key][0]).
-	dstLogger1st := l.get1stDstLogger(key)
-
-	if dstLogger1st == nil {
+	zapLogger := l.get1stZapLogger(logrusLogger{e.Logger, monitorType})
+	if zapLogger == nil {
 		fields = append(fields, zapcore.Field{Key: "monitorType", Type: zapcore.StringType, String: monitorType})
 		fields = append(fields, zapcore.Field{Key: "redirect_error", Type: zapcore.StringType, String: "Could not find zap logger in receiver for the monitorType. Using the catchall zap logger instead."})
-		dstLogger1st = l.dstCatchallLogger
+		zapLogger = l.catchallLogger
 	}
 
-	// Creating zap entry from the logrus entry.
-	if ce := dstLogger1st.Check(levelsMap[e.Level], e.Message); ce != nil {
+	zapLevel := levelsMap[e.Level]
+	ce := zapLogger.Check(zapLevel, e.Message)
+	if ce == nil {
+		ce = zapLogger.Check(zap.ErrorLevel, fmt.Sprintf("Failed to redirect logrus logs at level %s. The matching zap log level %s is not enabled.", e.Level.String(), zapLevel.String()))
+	} else {
 		ce.Time = e.Time
 		ce.Stack = ""
 		if e.Caller != nil {
 			ce.Caller = zapcore.NewEntryCaller(e.Caller.PC, e.Caller.File, e.Caller.Line, true)
 		}
-		ce.Write(fields...)
 	}
+	ce.Write(fields...)
 
 	return nil
 }

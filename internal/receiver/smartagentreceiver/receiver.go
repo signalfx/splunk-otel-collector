@@ -45,17 +45,17 @@ type Receiver struct {
 
 var _ component.MetricsReceiver = (*Receiver)(nil)
 
-var redirector logRedirector
+var toZap logrusToZap
 
 func init() {
-	dstCatchallLoggerCfg := zap.NewProductionConfig()
-	dstCatchallLoggerCfg.Level.SetLevel(zapcore.DebugLevel)
-	dstCatchallLoggerCfg.DisableStacktrace = true
-	logger, _ := dstCatchallLoggerCfg.Build()
-	redirector = logRedirector{
-		redirects:         make(map[srcLogger][]dstLogger),
-		mu:                sync.Mutex{},
-		dstCatchallLogger: logger,
+	catchallLoggerCfg := zap.NewProductionConfig()
+	catchallLoggerCfg.Level.SetLevel(zapcore.DebugLevel)
+	catchallLoggerCfg.DisableStacktrace = true
+	logger, _ := catchallLoggerCfg.Build()
+	toZap = logrusToZap{
+		loggerMap:      make(map[logrusLogger][]*zap.Logger),
+		mu:             sync.Mutex{},
+		catchallLogger: logger,
 	}
 }
 
@@ -79,7 +79,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 	configCore.MonitorID = types.MonitorID(monitorName)
 
 	// source logger set to the standard logrus logger because it is assumed that is what the monitor is using.
-	redirector.redirect(srcLogger{
+	toZap.redirect(logrusLogger{
 		Logger:      logrus.StandardLogger(),
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
 	}, r.logger)
@@ -98,7 +98,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 }
 
 func (r *Receiver) Shutdown(context.Context) error {
-	defer redirector.unRedirect(srcLogger{
+	defer toZap.unRedirect(logrusLogger{
 		Logger:      logrus.StandardLogger(),
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
 	}, r.logger)

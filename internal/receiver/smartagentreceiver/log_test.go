@@ -12,82 +12,6 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 )
 
-func newLogrusToZap(t *testing.T) *logrusToZap {
-	return &logrusToZap{
-		loggerMap:      make(map[logrusLogger][]*zap.Logger),
-		mu:             sync.Mutex{},
-		catchallLogger: zaptest.NewLogger(t),
-	}
-}
-
-func TestLevelsMapShouldIncludeAllLogrusLogLevels(t *testing.T) {
-	for _, level := range logrus.AllLevels {
-		if _, ok := levelsMap[level]; !ok {
-			t.Errorf("Expected logrus log level %s not found", level.String())
-		}
-	}
-}
-
-func TestRedirectShouldReturnAllLogrusLogLevels(t *testing.T) {
-	hook := newLogrusToZap(t)
-	levels := hook.Levels()
-	for i := range logrus.AllLevels {
-		if logrus.AllLevels[i] != levels[i] {
-			t.Errorf("Expected logrus log level %s not found", logrus.AllLevels[i].String())
-		}
-	}
-}
-
-func TestRedirectShouldSetSrcReportCallerTrueOnRedirectCalls(t *testing.T) {
-	src := logrusLogger{Logger: logrus.New(), monitorType: "monitor1"}
-	newLogrusToZap(t).redirect(src, zap.NewNop())
-	if !src.ReportCaller {
-		t.Errorf("Expected the source logrus logger to report caller after redirection")
-	}
-}
-
-func TestRedirectShouldSetSrcLoggerOutDiscardOnRedirectCalls(t *testing.T) {
-	src := logrusLogger{Logger: logrus.New(), monitorType: "monitor1"}
-	newLogrusToZap(t).redirect(src, zap.NewNop())
-	if src.Out != ioutil.Discard {
-		t.Errorf("Expected the source logrus logger to be 'discarded' after redirection")
-	}
-}
-
-func TestRedirectShouldUniquelyAddHooksToSrcLoggerOnRedirectCalls(t *testing.T) {
-	src := logrusLogger{Logger: logrus.New(), monitorType: "monitor1"}
-	if got := len(src.Hooks); got != 0 {
-		t.Errorf("Expected 0 hooks, got %d", got)
-	}
-
-	rdr := newLogrusToZap(t)
-	// These multiple redirect calls should add hook once to log levels.
-	rdr.redirect(src, zap.NewNop())
-	rdr.redirect(src, zap.NewNop())
-	rdr.redirect(src, zap.NewNop())
-
-	for _, level := range logrus.AllLevels {
-		if got := len(src.Hooks[level]); got != 1 {
-			t.Errorf("Expected 1 hook for logrus log level %s, got %d", level.String(), got)
-		}
-		if src.Hooks[level][0] != rdr {
-			t.Errorf("Expected hook hook0 at index 0 for logrus log level %s not found", level.String())
-		}
-	}
-}
-
-func assertLogMsg(t *testing.T, logs *observer.ObservedLogs, msg string) {
-	numLogs, entry := logs.Len(), logs.All()[0]
-	if numLogs != 1 || entry.Message != msg {
-		t.Errorf("Invalid log entry %v", entry)
-	}
-}
-
-func newObservedLogs(level zapcore.Level) (*zap.Logger, *observer.ObservedLogs) {
-	core, logs := observer.New(level)
-	return zap.New(core), logs
-}
-
 func TestRedirectTraceLogs(t *testing.T) {
 	// Creating a typical monitor logrus entry/logger.
 	monitorLogger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
@@ -221,4 +145,80 @@ func TestRedirectErrorLogs(t *testing.T) {
 
 	// Checking that the zap logger is logging the message logged by the monitor.
 	assertLogMsg(t, zapLogs, "an error msg")
+}
+
+func TestLevelsMapShouldIncludeAllLogrusLogLevels(t *testing.T) {
+	for _, level := range logrus.AllLevels {
+		if _, ok := levelsMap[level]; !ok {
+			t.Errorf("Expected logrus log level %s not found", level.String())
+		}
+	}
+}
+
+func TestRedirectShouldReturnAllLogrusLogLevels(t *testing.T) {
+	hook := newLogrusToZap(t)
+	levels := hook.Levels()
+	for i := range logrus.AllLevels {
+		if logrus.AllLevels[i] != levels[i] {
+			t.Errorf("Expected logrus log level %s not found", logrus.AllLevels[i].String())
+		}
+	}
+}
+
+func TestRedirectShouldSetSrcReportCallerTrueOnRedirectCalls(t *testing.T) {
+	src := logrusLogger{Logger: logrus.New(), monitorType: "monitor1"}
+	newLogrusToZap(t).redirect(src, zap.NewNop())
+	if !src.ReportCaller {
+		t.Errorf("Expected the source logrus logger to report caller after redirection")
+	}
+}
+
+func TestRedirectShouldSetSrcLoggerOutDiscardOnRedirectCalls(t *testing.T) {
+	src := logrusLogger{Logger: logrus.New(), monitorType: "monitor1"}
+	newLogrusToZap(t).redirect(src, zap.NewNop())
+	if src.Out != ioutil.Discard {
+		t.Errorf("Expected the source logrus logger to be 'discarded' after redirection")
+	}
+}
+
+func TestRedirectShouldUniquelyAddHooksToSrcLoggerOnRedirectCalls(t *testing.T) {
+	src := logrusLogger{Logger: logrus.New(), monitorType: "monitor1"}
+	if got := len(src.Hooks); got != 0 {
+		t.Errorf("Expected 0 hooks, got %d", got)
+	}
+
+	rdr := newLogrusToZap(t)
+	// These multiple redirect calls should add hook once to log levels.
+	rdr.redirect(src, zap.NewNop())
+	rdr.redirect(src, zap.NewNop())
+	rdr.redirect(src, zap.NewNop())
+
+	for _, level := range logrus.AllLevels {
+		if got := len(src.Hooks[level]); got != 1 {
+			t.Errorf("Expected 1 hook for logrus log level %s, got %d", level.String(), got)
+		}
+		if src.Hooks[level][0] != rdr {
+			t.Errorf("Expected hook hook0 at index 0 for logrus log level %s not found", level.String())
+		}
+	}
+}
+
+func newLogrusToZap(t *testing.T) *logrusToZap {
+	return &logrusToZap{
+		loggerMap:      make(map[logrusLogger][]*zap.Logger),
+		mu:             sync.Mutex{},
+		catchallLogger: zaptest.NewLogger(t),
+	}
+}
+
+func assertLogMsg(t *testing.T, logs *observer.ObservedLogs, msg string) {
+	numLogs, entry := logs.Len(), logs.All()[0]
+	if numLogs != 1 || entry.Message != msg {
+		t.Errorf("Invalid log entry %v", entry)
+	}
+}
+
+func newObservedLogs(level zapcore.Level) (*zap.Logger, *observer.ObservedLogs) {
+	core, logs := observer.New(level)
+	return zap.New(core), logs
 }

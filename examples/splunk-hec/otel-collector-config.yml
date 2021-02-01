@@ -25,7 +25,6 @@ exporters:
 
 processors:
     batch:
-    queued_retry:
 
 extensions:
     health_check:

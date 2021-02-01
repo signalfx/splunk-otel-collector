@@ -15,8 +15,8 @@ services:
         splunk-verify-connection: "false"
         splunk-format: "json"
         tag: "{{.Name}}-{{.ID}}"
-        splunk-sourcetype: "docker:orderer"
-        splunk-source: orderer.example.com
+        splunk-sourcetype: "docker:logging"
+        splunk-source: logging.example.com
     depends_on:
       - otelcollector
   # Splunk Enterprise server:
@@ -40,7 +40,7 @@ services:
       - /opt/splunk/etc
   # OpenTelemetry Collector
   otelcollector:
-    image:  otel/opentelemetry-collector-contrib-dev:latest #quay.io/signalfx/splunk-otel-collector:0.4.0
+    image:  quay.io/signalfx/splunk-otel-collector:0.5.0
     container_name: otelcollector
     command: ["--config=/etc/otel-collector-config.yml", "--log-level=DEBUG"]
     volumes:

@@ -25,7 +25,6 @@ exporters:
 
 processors:
     batch:
-    queued_retry:
 
 extensions:
     health_check:
@@ -39,5 +38,5 @@ service:
     pipelines:
       metrics:
         receivers: [splunk_hec]
-        processors: [batch, queued_retry]
+        processors: [batch]
         exporters: [splunk_hec/metrics]

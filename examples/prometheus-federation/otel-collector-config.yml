@@ -36,7 +36,6 @@ exporters:
 
 processors:
     batch:
-    queued_retry:
 
 extensions:
     health_check:
@@ -50,5 +49,5 @@ service:
     pipelines:
       metrics:
         receivers: [prometheus_simple]
-        processors: [batch, queued_retry]
+        processors: [batch]
         exporters: [splunk_hec/metrics]

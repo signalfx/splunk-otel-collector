@@ -1,0 +1,12 @@
+resource_metrics:
+  - ilms:
+      - instrumentation_library:
+          name: with_metrics
+          version: another_version
+        metrics:
+          - name: another_int_gauge
+            type: IntGauge
+          - name: another_double_gauge
+            type: DoubleGauge
+      - instrumentation_library:
+          name: unmatched_instrumentation_library

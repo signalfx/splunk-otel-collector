@@ -1,0 +1,5 @@
+resource_metrics:
+  - ilms:
+      - metrics:
+          - name: of_an_unsupported_type
+            type: NotASupportedType

@@ -64,7 +64,7 @@ func main() {
 
 	// Check if the total memory is specified via the env var.
 	memTotalEnvVarVal := os.Getenv(memTotalEnvVarName)
-	memTotalSize := 0
+	memTotalSizeMiB := 0
 	if memTotalEnvVarVal != "" {
 		// Check if it is a numeric value.
 		val, err := strconv.Atoi(memTotalEnvVarVal)
@@ -74,7 +74,7 @@ func main() {
 		if 10 > val {
 			log.Fatalf("Expected a number greater than 10 for %s env variable but got %s", memTotalEnvVarName, memTotalEnvVarVal)
 		}
-		memTotalSize = val
+		memTotalSizeMiB = val
 	}
 
 	// Check runtime parameters
@@ -82,7 +82,7 @@ func main() {
 	// Runtime parameters are not validated
 	args := os.Args[1:]
 	if !contains(args, "--mem-ballast-size-mib") {
-		useMemorySizeFromEnvVar(memTotalSize)
+		useMemorySizeFromEnvVar(memTotalSizeMiB)
 	} else {
 		log.Printf("Ballast CLI argument found, ignoring %s if set", ballastEnvVarName)
 	}
@@ -94,7 +94,7 @@ func main() {
 	if runtime.GOOS == "linux" {
 		useMemorySettingsPercentageFromEnvVar()
 	} else {
-		useMemorySettingsMiBFromEnvVar(memTotalSize)
+		useMemorySettingsMiBFromEnvVar(memTotalSizeMiB)
 	}
 
 	factories, err := components.Get()
@@ -127,7 +127,7 @@ func contains(arr []string, str string) bool {
 	return false
 }
 
-func useMemorySizeFromEnvVar(memTotalSize int) {
+func useMemorySizeFromEnvVar(memTotalSizeMiB int) {
 	// Check if the ballast is specified via the env var.
 	ballastSize := os.Getenv(ballastEnvVarName)
 	if ballastSize != "" {
@@ -142,8 +142,8 @@ func useMemorySizeFromEnvVar(memTotalSize int) {
 
 		// Inject the command line flag that controls the ballast size.
 		os.Args = append(os.Args, "--mem-ballast-size-mib="+ballastSize)
-	} else if memTotalSize > 0 {
-		halfMem := strconv.Itoa(memTotalSize * defaultMemoryBallastPercentage / 100)
+	} else if memTotalSizeMiB > 0 {
+		halfMem := strconv.Itoa(memTotalSizeMiB * defaultMemoryBallastPercentage / 100)
 		log.Printf("Set ballast to %s MiB", halfMem)
 		// Inject the command line flag that controls the ballast size.
 		os.Args = append(os.Args, "--mem-ballast-size-mib="+halfMem)
@@ -219,7 +219,7 @@ func useConfigFromEnvVar() {
 	os.Args = append(os.Args, "--config="+config)
 }
 
-func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSize int) int {
+func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSizeMiB int) int {
 	// Check if the memory limit is specified via the env var
 	// Ensure memory limit is valid
 	var envVarResult int = 0
@@ -235,7 +235,7 @@ func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSize int) int {
 			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", envVar, envVarVal)
 		}
 		envVarResult = val
-	case memTotalSize > 0:
+	case memTotalSizeMiB > 0:
 		break
 	default:
 		log.Printf("Usage: %s=12345 %s=us0 %s=684 %s=1024 %s=256 %s", tokenEnvVarName, realmEnvVarName, ballastEnvVarName, memLimitMiBEnvVarName, memSpikeMiBEnvVarName, os.Args[0])
@@ -244,26 +244,38 @@ func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSize int) int {
 	return envVarResult
 }
 
-func useMemorySettingsMiBFromEnvVar(memTotalSize int) {
-	memLimit := checkMemorySettingsMiBFromEnvVar(memLimitMiBEnvVarName, memTotalSize)
+func useMemorySettingsMiBFromEnvVar(memTotalSizeMiB int) {
+    // Check if memory limit is specified via environment variable
+	memLimit := checkMemorySettingsMiBFromEnvVar(memLimitMiBEnvVarName, memTotalSizeMiB)
+    // Use if set, otherwise memory total size must be specified
 	if memLimit == 0 {
-		if memTotalSize == 0 {
+		if memTotalSizeMiB == 0 {
 			panic("PANIC: Both memory limit MiB and memory total size are set to zero. This should never happen.")
 		}
-		memLimitMiB := memTotalSize * defaultMemoryLimitPercentage / 100
-		if (memTotalSize - memLimitMiB) < defaultMemoryLimitMaxMiB {
+        // If not set, compute based on memory total size specified
+        // and default memory limit percentage const
+		memLimitMiB := memTotalSizeMiB * defaultMemoryLimitPercentage / 100
+        // The memory limit should be set to defaultMemoryLimitPercentage of total memory
+        // while reserving a maximum of defaultMemoryLimitMaxMiB of memory.
+		if (memTotalSizeMiB - memLimitMiB) < defaultMemoryLimitMaxMiB {
 			memLimit = memLimitMiB
 		} else {
-			memLimit = (memTotalSize - defaultMemoryLimitMaxMiB)
+			memLimit = (memTotalSizeMiB - defaultMemoryLimitMaxMiB)
 		}
 		log.Printf("Set memory limit to %d MiB", memLimit)
 	}
-	memSpike := checkMemorySettingsMiBFromEnvVar(memSpikeMiBEnvVarName, memTotalSize)
+    // Check if memory spike is specified via environment variable
+	memSpike := checkMemorySettingsMiBFromEnvVar(memSpikeMiBEnvVarName, memTotalSizeMiB)
+    // Use if set, otherwise memory total size must be specified
 	if memSpike == 0 {
-		if memTotalSize == 0 {
+		if memTotalSizeMiB == 0 {
 			panic("PANIC: Both memory limit MiB and memory total size are set to zero. This should never happen.")
 		}
-		memSpikeMiB := memTotalSize * defaultMemorySpikePercentage / 100
+        // If not set, compute based on memory total size specified
+        // and default memory spike percentage const
+		memSpikeMiB := memTotalSizeMiB * defaultMemorySpikePercentage / 100
+        // The memory spike should be set to defaultMemorySpikePercentage of total memory
+        // while specifying a maximum of defaultMemorySpikeMaxMiB of memory.
 		if memSpikeMiB < defaultMemorySpikeMaxMiB {
 			memSpike = memSpikeMiB
 		} else {

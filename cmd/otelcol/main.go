@@ -245,18 +245,18 @@ func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSizeMiB int) int {
 }
 
 func useMemorySettingsMiBFromEnvVar(memTotalSizeMiB int) {
-    // Check if memory limit is specified via environment variable
+	// Check if memory limit is specified via environment variable
 	memLimit := checkMemorySettingsMiBFromEnvVar(memLimitMiBEnvVarName, memTotalSizeMiB)
-    // Use if set, otherwise memory total size must be specified
+	// Use if set, otherwise memory total size must be specified
 	if memLimit == 0 {
 		if memTotalSizeMiB == 0 {
 			panic("PANIC: Both memory limit MiB and memory total size are set to zero. This should never happen.")
 		}
-        // If not set, compute based on memory total size specified
-        // and default memory limit percentage const
+		// If not set, compute based on memory total size specified
+		// and default memory limit percentage const
 		memLimitMiB := memTotalSizeMiB * defaultMemoryLimitPercentage / 100
-        // The memory limit should be set to defaultMemoryLimitPercentage of total memory
-        // while reserving a maximum of defaultMemoryLimitMaxMiB of memory.
+		// The memory limit should be set to defaultMemoryLimitPercentage of total memory
+		// while reserving a maximum of defaultMemoryLimitMaxMiB of memory.
 		if (memTotalSizeMiB - memLimitMiB) < defaultMemoryLimitMaxMiB {
 			memLimit = memLimitMiB
 		} else {
@@ -264,18 +264,18 @@ func useMemorySettingsMiBFromEnvVar(memTotalSizeMiB int) {
 		}
 		log.Printf("Set memory limit to %d MiB", memLimit)
 	}
-    // Check if memory spike is specified via environment variable
+	// Check if memory spike is specified via environment variable
 	memSpike := checkMemorySettingsMiBFromEnvVar(memSpikeMiBEnvVarName, memTotalSizeMiB)
-    // Use if set, otherwise memory total size must be specified
+	// Use if set, otherwise memory total size must be specified
 	if memSpike == 0 {
 		if memTotalSizeMiB == 0 {
 			panic("PANIC: Both memory limit MiB and memory total size are set to zero. This should never happen.")
 		}
-        // If not set, compute based on memory total size specified
-        // and default memory spike percentage const
+		// If not set, compute based on memory total size specified
+		// and default memory spike percentage const
 		memSpikeMiB := memTotalSizeMiB * defaultMemorySpikePercentage / 100
-        // The memory spike should be set to defaultMemorySpikePercentage of total memory
-        // while specifying a maximum of defaultMemorySpikeMaxMiB of memory.
+		// The memory spike should be set to defaultMemorySpikePercentage of total memory
+		// while specifying a maximum of defaultMemorySpikeMaxMiB of memory.
 		if memSpikeMiB < defaultMemorySpikeMaxMiB {
 			memSpike = memSpikeMiB
 		} else {

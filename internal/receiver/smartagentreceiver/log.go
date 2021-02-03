@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -32,8 +33,9 @@ type logrusKey struct {
 
 // logrusToZap stores a mapping of logrus to zap loggers in loggerMap and hooks to the logrus loggers.
 type logrusToZap struct {
-	loggerMap map[logrusKey][]*zap.Logger
-	mu        sync.Mutex
+	loggerMap     map[logrusKey][]*zap.Logger
+	mu            sync.Mutex
+	defaultLogger *zap.Logger
 }
 
 var _ logrus.Hook = (*logrusToZap)(nil)
@@ -50,6 +52,29 @@ var (
 		logrus.TraceLevel: zapcore.DebugLevel,
 	}
 )
+
+func newLogrusToZap() *logrusToZap {
+	defaultLoggerCfg := zap.NewProductionConfig()
+	defaultLoggerCfg.Encoding = "console"
+	defaultLoggerCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	defaultLoggerCfg.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+	defaultLoggerCfg.InitialFields = map[string]interface{}{
+		"component_kind": "receiver",
+		"component_type": "smartagent",
+	}
+
+	logger, err := defaultLoggerCfg.Build()
+	if err != nil {
+		log.Fatalf("Cannot initialize the default zap logger: %v", err)
+	}
+	defer logger.Sync()
+
+	return &logrusToZap{
+		loggerMap:     make(map[logrusKey][]*zap.Logger),
+		mu:            sync.Mutex{},
+		defaultLogger: logger,
+	}
+}
 
 func (l *logrusKey) reportCaller() {
 	if !l.ReportCaller {
@@ -94,10 +119,6 @@ func (l *logrusToZap) unRedirect(src logrusKey, dst *zap.Logger) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if l.loggerMap == nil {
-		return
-	}
-
 	vLen := len(l.loggerMap[src])
 	if vLen == 0 || vLen == 1 {
 		delete(l.loggerMap, src)
@@ -139,17 +160,19 @@ func (l *logrusToZap) Fire(e *logrus.Entry) error {
 	// Creating zap entry fields from logrus entry fields.
 	for k, v := range e.Data {
 		if k == "monitorType" {
-			monitorType = fmt.Sprintf("%v", v)
+			monitorType = strings.TrimSpace(fmt.Sprintf("%v", v))
 		}
-		fields = append(fields, zap.Any(k, e.Data))
+		fields = append(fields, zap.Any(k, v))
 	}
 
-	if monitorType == "" {
-		log.Panic("Expected non-zero log field monitorType")
-	}
-
+	l.defaultLogger.Warn(fmt.Sprintf("Cannot find zap logger for monitorType %s", monitorType))
 	zapLogger := l.loggerMapValue0(logrusKey{e.Logger, monitorType})
 	if zapLogger == nil {
+		if monitorType == "" {
+			l.defaultLogger.Warn("Cannot find zap logger for monitor. The log field monitorType is missing or blank.")
+		} else {
+			l.defaultLogger.Warn(fmt.Sprintf("Cannot find zap logger for monitorType %s", monitorType))
+		}
 		return nil
 	}
 

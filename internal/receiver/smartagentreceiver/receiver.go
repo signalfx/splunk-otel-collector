@@ -44,13 +44,10 @@ type Receiver struct {
 
 var _ component.MetricsReceiver = (*Receiver)(nil)
 
-var rusToZap logrusToZap
+var rusToZap *logrusToZap
 
 func init() {
-	rusToZap = logrusToZap{
-		loggerMap: make(map[logrusKey][]*zap.Logger),
-		mu:        sync.Mutex{},
-	}
+	rusToZap = newLogrusToZap()
 }
 
 func NewReceiver(logger *zap.Logger, config Config, nextConsumer consumer.MetricsConsumer) *Receiver {

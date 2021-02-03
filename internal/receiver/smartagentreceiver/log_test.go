@@ -17,7 +17,6 @@ package smartagentreceiver
 import (
 	"fmt"
 	"io/ioutil"
-	"sync"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -198,13 +197,6 @@ func TestRedirectShouldUniquelyAddHooksToLogrusKeyLogger(t *testing.T) {
 		require.Equal(t, logToZap, src.Hooks[level][0], fmt.Sprintf("Expected hook for log level %s not found", level.String()))
 	}
 	logToZap.unRedirect(src, dst)
-}
-
-func newLogrusToZap() *logrusToZap {
-	return &logrusToZap{
-		loggerMap: make(map[logrusKey][]*zap.Logger),
-		mu:        sync.Mutex{},
-	}
 }
 
 func newObservedLogs(level zapcore.Level) (*zap.Logger, *observer.ObservedLogs) {

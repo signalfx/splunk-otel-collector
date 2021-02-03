@@ -222,6 +222,7 @@ func useConfigFromEnvVar() {
 func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSizeMiB int) int {
 	// Check if the memory limit is specified via the env var
 	// Ensure memory limit is valid
+	args := os.Args[1:]
 	var envVarResult int = 0
 	envVarVal := os.Getenv(envVar)
 	switch {
@@ -237,6 +238,8 @@ func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSizeMiB int) int {
 		envVarResult = val
 	case memTotalSizeMiB > 0:
 		break
+	case contains(args, "--config"):
+		break
 	default:
 		log.Printf("Usage: %s=12345 %s=us0 %s=684 %s=1024 %s=256 %s", tokenEnvVarName, realmEnvVarName, ballastEnvVarName, memLimitMiBEnvVarName, memSpikeMiBEnvVarName, os.Args[0])
 		log.Fatalf("ERROR: Missing environment variable %s", envVar)
@@ -245,12 +248,16 @@ func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSizeMiB int) int {
 }
 
 func useMemorySettingsMiBFromEnvVar(memTotalSizeMiB int) {
+	args := os.Args[1:]
 	// Check if memory limit is specified via environment variable
 	memLimit := checkMemorySettingsMiBFromEnvVar(memLimitMiBEnvVarName, memTotalSizeMiB)
-	// Use if set, otherwise memory total size must be specified
+	// Use if set, otherwise check if memory total size is specified via environment variable
 	if memLimit == 0 {
+		// Use if set, otherwise config parameter must be passed
 		if memTotalSizeMiB == 0 {
-			panic("PANIC: Both memory limit MiB and memory total size are set to zero. This should never happen.")
+			if !contains(args, "--config") {
+				panic("PANIC: Both memory limit MiB and memory total size are set to zero. This should never happen.")
+			}
 		}
 		// If not set, compute based on memory total size specified
 		// and default memory limit percentage const
@@ -262,14 +269,19 @@ func useMemorySettingsMiBFromEnvVar(memTotalSizeMiB int) {
 		} else {
 			memLimit = (memTotalSizeMiB - defaultMemoryLimitMaxMiB)
 		}
-		log.Printf("Set memory limit to %d MiB", memLimit)
+		if memLimit != 0 {
+			log.Printf("Set memory limit to %d MiB", memLimit)
+		}
 	}
 	// Check if memory spike is specified via environment variable
 	memSpike := checkMemorySettingsMiBFromEnvVar(memSpikeMiBEnvVarName, memTotalSizeMiB)
-	// Use if set, otherwise memory total size must be specified
+	// Use if set, otherwise check if memory total size is specified via environment variable
 	if memSpike == 0 {
+		// Use if set, otherwise config parameter must be passed
 		if memTotalSizeMiB == 0 {
-			panic("PANIC: Both memory limit MiB and memory total size are set to zero. This should never happen.")
+			if !contains(args, "--config") {
+				panic("PANIC: Both memory limit MiB and memory total size are set to zero. This should never happen.")
+			}
 		}
 		// If not set, compute based on memory total size specified
 		// and default memory spike percentage const
@@ -281,7 +293,9 @@ func useMemorySettingsMiBFromEnvVar(memTotalSizeMiB int) {
 		} else {
 			memSpike = defaultMemorySpikeMaxMiB
 		}
-		log.Printf("Set memory spike limit to %d MiB", memSpike)
+		if memSpike != 0 {
+			log.Printf("Set memory spike limit to %d MiB", memSpike)
+		}
 	}
 	setMemorySettingsToEnvVar(memLimit, memLimitMiBEnvVarName, memSpike, memSpikeMiBEnvVarName)
 }
@@ -315,13 +329,15 @@ func useMemorySettingsPercentageFromEnvVar() {
 
 func setMemorySettingsToEnvVar(limit int, limitName string, spike int, spikeName string) {
 	// Ensure spike and limit are valid
-	if spike >= limit {
+	if spike >= limit && spike != 0 {
 		log.Fatalf("%s env variable must be less than %s env variable but got %d and %d respectively", spikeName, limitName, spike, limit)
 	}
 
 	// Set memory environment variables
-	os.Setenv(limitName, strconv.Itoa(limit))
-	os.Setenv(spikeName, strconv.Itoa(spike))
+	if spike != 0 {
+		os.Setenv(limitName, strconv.Itoa(limit))
+		os.Setenv(spikeName, strconv.Itoa(spike))
+	}
 }
 
 func runInteractive(params service.Parameters) error {

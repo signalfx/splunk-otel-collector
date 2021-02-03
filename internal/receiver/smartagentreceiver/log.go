@@ -17,6 +17,7 @@ package smartagentreceiver
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -31,9 +32,8 @@ type logrusKey struct {
 
 // logrusToZap stores a mapping of logrus to zap loggers in loggerMap and hooks to the logrus loggers.
 type logrusToZap struct {
-	loggerMap      map[logrusKey][]*zap.Logger
-	mu             sync.Mutex
-	catchallLogger *zap.Logger
+	loggerMap map[logrusKey][]*zap.Logger
+	mu        sync.Mutex
 }
 
 var _ logrus.Hook = (*logrusToZap)(nil)
@@ -94,18 +94,22 @@ func (l *logrusToZap) unRedirect(src logrusKey, dst *zap.Logger) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if _, ok := l.loggerMap[src]; !ok {
+	if l.loggerMap == nil {
+		return
+	}
+
+	vLen := len(l.loggerMap[src])
+	if vLen == 0 || vLen == 1 {
+		delete(l.loggerMap, src)
 		return
 	}
 
 	keep := make([]*zap.Logger, 0)
-
 	for _, logger := range l.loggerMap[src] {
 		if logger != dst {
 			keep = append(keep, logger)
 		}
 	}
-
 	l.loggerMap[src] = keep
 }
 
@@ -113,7 +117,7 @@ func (l *logrusToZap) loggerMapValue0(src logrusKey) *zap.Logger {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if loggers, ok := l.loggerMap[src]; !ok || len(loggers) == 0 {
+	if l.loggerMap == nil || len(l.loggerMap[src]) == 0 {
 		return nil
 	}
 
@@ -134,34 +138,29 @@ func (l *logrusToZap) Fire(e *logrus.Entry) error {
 
 	// Creating zap entry fields from logrus entry fields.
 	for k, v := range e.Data {
-		vStr := fmt.Sprintf("%v", v)
 		if k == "monitorType" {
-			monitorType = vStr
+			monitorType = fmt.Sprintf("%v", v)
 		}
-		fields = append(fields, zapcore.Field{Key: k, Type: zapcore.StringType, String: vStr})
+		fields = append(fields, zap.Any(k, e.Data))
 	}
 
-	// Creating loggerMap key from the logrus entry logger and field 'monitorType'
-	key := logrusKey{e.Logger, monitorType}
-	zapLogger := l.loggerMapValue0(key)
+	if monitorType == "" {
+		log.Panic("Expected non-zero log field monitorType")
+	}
+
+	zapLogger := l.loggerMapValue0(logrusKey{e.Logger, monitorType})
 	if zapLogger == nil {
-		fields = append(fields, zapcore.Field{Key: "monitorType", Type: zapcore.StringType, String: monitorType})
-		fields = append(fields, zapcore.Field{Key: "redirect_error", Type: zapcore.StringType, String: "Could not find zap logger in receiver for the monitorType. Using the catchall zap logger instead."})
-		zapLogger = l.catchallLogger
+		return nil
 	}
 
-	zapLevel := levelsMap[e.Level]
-	ce := zapLogger.Check(zapLevel, e.Message)
-	if ce == nil {
-		ce = zapLogger.Check(zap.ErrorLevel, fmt.Sprintf("Failed to redirect logrus logs at level %s. The matching zap log level %s is not enabled.", e.Level.String(), zapLevel.String()))
-	} else {
+	if ce := zapLogger.Check(levelsMap[e.Level], e.Message); ce != nil {
 		ce.Time = e.Time
 		ce.Stack = ""
 		if e.Caller != nil {
 			ce.Caller = zapcore.NewEntryCaller(e.Caller.PC, e.Caller.File, e.Caller.Line, true)
 		}
+		ce.Write(fields...)
 	}
-	ce.Write(fields...)
 
 	return nil
 }

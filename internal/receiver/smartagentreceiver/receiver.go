@@ -30,7 +30,6 @@ import (
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 type Receiver struct {
@@ -45,17 +44,12 @@ type Receiver struct {
 
 var _ component.MetricsReceiver = (*Receiver)(nil)
 
-var toZap logrusToZap
+var rusToZap logrusToZap
 
 func init() {
-	catchallLoggerCfg := zap.NewProductionConfig()
-	catchallLoggerCfg.Level.SetLevel(zapcore.DebugLevel)
-	catchallLoggerCfg.DisableStacktrace = true
-	logger, _ := catchallLoggerCfg.Build()
-	toZap = logrusToZap{
-		loggerMap:      make(map[logrusKey][]*zap.Logger),
-		mu:             sync.Mutex{},
-		catchallLogger: logger,
+	rusToZap = logrusToZap{
+		loggerMap: make(map[logrusKey][]*zap.Logger),
+		mu:        sync.Mutex{},
 	}
 }
 
@@ -79,7 +73,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 	configCore.MonitorID = types.MonitorID(monitorName)
 
 	// source logger set to the standard logrus logger because it is assumed that is what the monitor is using.
-	toZap.redirect(logrusKey{
+	rusToZap.redirect(logrusKey{
 		Logger:      logrus.StandardLogger(),
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
 	}, r.logger)
@@ -98,7 +92,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 }
 
 func (r *Receiver) Shutdown(context.Context) error {
-	defer toZap.unRedirect(logrusKey{
+	defer rusToZap.unRedirect(logrusKey{
 		Logger:      logrus.StandardLogger(),
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
 	}, r.logger)

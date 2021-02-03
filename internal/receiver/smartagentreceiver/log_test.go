@@ -150,7 +150,8 @@ func TestRedirectSameMonitorManyInstancesLogs(t *testing.T) {
 
 func TestLevelsMapShouldIncludeAllLogrusLevels(t *testing.T) {
 	for _, level := range logrus.AllLevels {
-		require.Equal(t, level.String(), levelsMap[level], fmt.Sprintf("Expected log level %s not found", level.String()))
+		_, ok := levelsMap[level]
+		require.True(t, ok, fmt.Sprintf("Expected log level %s not found", level.String()))
 	}
 }
 

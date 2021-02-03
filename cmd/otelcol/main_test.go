@@ -83,6 +83,11 @@ func TestUseConfigFromEnvVar(t *testing.T) {
 	if !(result) {
 		t.Error("Expected true got false while looking for --config")
 	}
+	useMemorySettingsMiBFromEnvVar(0)
+	_, present := os.LookupEnv(memLimitMiBEnvVarName)
+	if present {
+		t.Error("Expected false got true while looking for environment variable")
+	}
 	os.Unsetenv(configEnvVarName)
 }
 

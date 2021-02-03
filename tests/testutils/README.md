@@ -55,7 +55,7 @@ resource_metrics:
             value: 456
 ```
 
-Using `LoadResourceMetrics("my_yaml.path")` you can create an analogous `ResourceMetrics` instance.
+Using `LoadResourceMetrics("my_yaml.path")` you can create an equivalent `ResourceMetrics` instance to what your yaml file specifies.
 Using `PDataToResourceMetrics(myReceivedPDataMetrics)` you can use the assertion helpers to determine if your expected
 `ResourceMetrics` are the same as those received in your test case. `FlattenResourceMetrics()` is a good way to "normalize"
 metrics received over time to ensure that only unique datapoints are represented, and that all unique Resources and

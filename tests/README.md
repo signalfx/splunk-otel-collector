@@ -7,12 +7,56 @@ is:
 1. Building the Collector (`make otelcol` or `make all`)
 1. Defining your expected [resource metric content](./testutils/README.md#resource-metrics) as a yaml file
 ([see example](./testutils/testdata/resourceMetrics.yaml))
-1. Spin up your target resources as docker containers (TODO) 
+1. Spin up your target resources as docker containers (TODO)
 1. Stand up an in-memory OTLP Receiver and metric sink capable of detecting if/when desired data are received (TODO).
-1. Spin up your Collector as a subprocess configured to report to the this OTLP receiver (TODO)
+1. Spin up your Collector as a subprocess configured to report to this OTLP receiver (TODO)
   
 ...but if you are interested in something else enhancements and contributions are a great way to ensure this library
 is more useful overall.
 
 At this time only limited metric content is supported.  If you need additional metric functionality or trace/log
 helpers, please don't hesitate to contribute!
+
+```go
+package example_test
+
+import (
+	"context"
+	"path"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/signalfx/splunk-otel-collector/tests/testutils"
+)
+
+func TestMyExampleComponent(t *testing.T) {
+	expectedResourceMetrics, err := testutils.LoadResourceMetrics(
+		path.Join(".", "testdata", "my_resource_metrics.yaml"),
+	)
+	require.NoError(t, err)
+	require.NotNil(t, expectedResourceMetrics)
+
+	// combination OTLP Receiver consumertests.MetricsSink
+	otlp, err := testutils.NewOTLPReceiverSink().WithEndpoint("localhost:23456").Build()
+	require.NoError(t, err)
+	require.NoError(t, otlp.Start())
+
+	defer func() {
+		require.Nil(t, otlp.Shutdown())
+	}()
+
+	myContainer := testutils.NewContainer().WithImage("someTarget").Build()
+	err = myContainer.Start(context.Background())
+	require.NoError(t, err)
+
+	// running collector subprocess that uses the provided config set to export OTLP to our test receiver
+	myCollector, err := testutils.NewCollectorProcess().WithConfig(path.Join(".", "testdata", "config.yaml")).Build()
+	require.NoError(t, err)
+	err = myCollector.Start(context.Background())
+	require.NoError(t, err)
+
+	require.NoError(t, otlp.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+}
+```

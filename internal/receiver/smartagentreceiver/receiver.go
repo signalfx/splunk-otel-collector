@@ -25,6 +25,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
+	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
@@ -42,6 +43,12 @@ type Receiver struct {
 }
 
 var _ component.MetricsReceiver = (*Receiver)(nil)
+
+var rusToZap *logrusToZap
+
+func init() {
+	rusToZap = newLogrusToZap()
+}
 
 func NewReceiver(logger *zap.Logger, config Config, nextConsumer consumer.MetricsConsumer) *Receiver {
 	return &Receiver{
@@ -62,6 +69,12 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 	monitorName := strings.ReplaceAll(r.config.Name(), "/", "")
 	configCore.MonitorID = types.MonitorID(monitorName)
 
+	// source logger set to the standard logrus logger because it is assumed that is what the monitor is using.
+	rusToZap.redirect(logrusKey{
+		Logger:      logrus.StandardLogger(),
+		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
+	}, r.logger)
+
 	r.monitor, err = r.createMonitor(monitorType)
 	if err != nil {
 		return fmt.Errorf("failed creating monitor %q: %w", monitorType, err)
@@ -76,6 +89,11 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 }
 
 func (r *Receiver) Shutdown(context.Context) error {
+	defer rusToZap.unRedirect(logrusKey{
+		Logger:      logrus.StandardLogger(),
+		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
+	}, r.logger)
+
 	err := componenterror.ErrAlreadyStopped
 	if r.monitor == nil {
 		err = fmt.Errorf("smartagentreceiver's Shutdown() called before Start() or with invalid monitor state")

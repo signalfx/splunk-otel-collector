@@ -16,7 +16,6 @@ package smartagentreceiver
 
 import (
 	"fmt"
-	"io/ioutil"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -171,32 +170,21 @@ func TestRedirectShouldSetLogrusKeyLoggerReportCallerTrue(t *testing.T) {
 	logToZap.unRedirect(src, dst)
 }
 
-func TestRedirectShouldDiscardLogrusKeyLoggerOutput(t *testing.T) {
-	src := logrusKey{Logger: logrus.New(), monitorType: "monitor1"}
-	dst := zap.NewNop()
-	logToZap := newLogrusToZap()
-	logToZap.redirect(src, dst)
-	require.Equal(t, ioutil.Discard, src.Out, "Expected the logrus key logger output to be 'discarded'")
-	logToZap.unRedirect(src, dst)
-}
-
 func TestRedirectShouldUniquelyAddHooksToLogrusKeyLogger(t *testing.T) {
 	src := logrusKey{Logger: logrus.New(), monitorType: "monitor1"}
 	require.Equal(t, 0, len(src.Hooks), fmt.Sprintf("Expected 0 hooks, got %d", len(src.Hooks)))
 
 	logToZap := newLogrusToZap()
-	dst := zap.NewNop()
 	// These multiple redirect calls should add hook once to log levels.
-	logToZap.redirect(src, dst)
-	logToZap.redirect(src, dst)
-	logToZap.redirect(src, dst)
+	logToZap.redirect(src, zap.NewNop())
+	logToZap.redirect(src, zap.NewNop())
+	logToZap.redirect(src, zap.NewNop())
 
 	for _, level := range logrus.AllLevels {
 		got := len(src.Hooks[level])
 		require.Equal(t, 1, got, fmt.Sprintf("Expected 1 hook for log level %s, got %d", level.String(), got))
 		require.Equal(t, logToZap, src.Hooks[level][0], fmt.Sprintf("Expected hook for log level %s not found", level.String()))
 	}
-	logToZap.unRedirect(src, dst)
 }
 
 func newObservedLogs(level zapcore.Level) (*zap.Logger, *observer.ObservedLogs) {

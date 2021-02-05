@@ -221,12 +221,12 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 		monitorFactory func() interface{}
 		expectedError  string
 	}{
-		{"anonymous struct", func() interface{} { return struct{}{} }, "struct {}{}"},
-		{"anonymous struct pointer", func() interface{} { return &struct{}{} }, "&struct {}{}"},
-		{"nil interface pointer", func() interface{} { return new(interface{}) }, "(*interface {})"},
-		{"nil", func() interface{} { return nil }, "<nil>"},
-		{"boolean", func() interface{} { return false }, "false"},
-		{"string", func() interface{} { return "asdf" }, "\"asdf\""},
+		{"anonymous struct", func() interface{} { return struct{}{} }, ""},
+		{"anonymous struct pointer", func() interface{} { return &struct{}{} }, ""},
+		{"nil interface pointer", func() interface{} { return new(interface{}) }, ": invalid struct instance: (*interface {})"},
+		{"nil", func() interface{} { return nil }, ": invalid struct instance: <nil>"},
+		{"boolean", func() interface{} { return false }, ": invalid struct instance: false"},
+		{"string", func() interface{} { return "asdf" }, ": invalid struct instance: \"asdf\""},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
@@ -237,7 +237,7 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 			err := receiver.Start(context.Background(), componenttest.NewNopHost())
 			require.Error(tt, err)
 			assert.Contains(tt, err.Error(),
-				fmt.Sprintf("failed creating monitor \"notarealmonitor\": invalid monitor instance: %s", test.expectedError),
+				fmt.Sprintf("failed creating monitor \"notarealmonitor\": unable to set Output field of monitor%s", test.expectedError),
 			)
 		})
 	}

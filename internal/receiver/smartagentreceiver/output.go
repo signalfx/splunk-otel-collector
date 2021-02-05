@@ -42,6 +42,7 @@ type Output struct {
 	extraDimensions map[string]string
 }
 
+var _ types.Output = (*Output)(nil)
 var _ types.FilteringOutput = (*Output)(nil)
 
 func NewOutput(config Config, nextConsumer consumer.MetricsConsumer, logger *zap.Logger) *Output {

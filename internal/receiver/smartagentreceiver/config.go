@@ -17,6 +17,7 @@ package smartagentreceiver
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/signalfx/defaults"
@@ -33,7 +34,10 @@ const defaultIntervalSeconds = 10
 
 type Config struct {
 	configmodels.ReceiverSettings `mapstructure:",squash"`
-	monitorConfig                 config.MonitorCustomConfig
+	// Generally an observer/receivercreator-set value via Endpoint.Target.
+	// Will expand to MonitorCustomConfig Host and Port values if unset.
+	Endpoint      string `mapstructure:"endpoint"`
+	monitorConfig config.MonitorCustomConfig
 }
 
 func (rCfg *Config) validate() error {
@@ -66,6 +70,13 @@ func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error
 		return fmt.Errorf("you must specify a \"type\" for a smartagent receiver")
 	}
 
+	receiverCfg := intoCfg.(*Config)
+	var endpoint interface{}
+	if endpoint, ok = allSettings["endpoint"]; ok {
+		receiverCfg.Endpoint = fmt.Sprintf("%s", endpoint)
+		delete(allSettings, "endpoint")
+	}
+
 	// monitors.ConfigTemplates is a map that all monitors use to register their custom configs in the Smart Agent.
 	// The values are always pointers to an actual custom config.
 	var customMonitorConfig config.MonitorCustomConfig
@@ -91,6 +102,7 @@ func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error
 	if err != nil {
 		return fmt.Errorf("failed constructing raw Smart Agent Monitor config block: %w", err)
 	}
+
 	err = yaml.UnmarshalStrict(asBytes, monitorConfig)
 	if err != nil {
 		return fmt.Errorf("failed creating Smart Agent Monitor custom config: %w", err)
@@ -100,7 +112,12 @@ func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error
 	if err != nil {
 		return fmt.Errorf("failed setting Smart Agent Monitor config defaults: %w", err)
 	}
-	receiverCfg := intoCfg.(*Config)
+
+	err = setHostAndPortViaEndpoint(receiverCfg.Endpoint, monitorConfig)
+	if err != nil {
+		return err
+	}
+
 	receiverCfg.monitorConfig = monitorConfig.(config.MonitorCustomConfig)
 	return nil
 }
@@ -128,4 +145,42 @@ func yamlTagsFromStruct(s reflect.Type) map[string]string {
 	}
 
 	return yamlTags
+}
+
+// If using the receivercreator, observer-provided endpoints should be used to set
+// the Host and Port fields of monitor config structs.  This can only be done by reflection without
+// making type assertions over all possible monitor types.
+func setHostAndPortViaEndpoint(endpoint string, monitorConfig interface{}) error {
+	if endpoint == "" {
+		return nil
+	}
+
+	var host string
+	var port uint16
+	splat := strings.Split(endpoint, ":")
+	host = splat[0]
+	if len(splat) == 2 {
+		portStr := splat[1]
+		port64, err := strconv.ParseUint(portStr, 10, 16)
+		if err != nil {
+			return fmt.Errorf("cannot determine port via Endpoint: %w", err)
+		}
+		port = uint16(port64)
+	}
+
+	if host != "" {
+		_, err := SetStructFieldIfZeroValue(monitorConfig, "Host", host)
+		if err != nil {
+			return fmt.Errorf("unable to set monitor Host field using Endpoint-derived value of %s: %w", host, err)
+		}
+	}
+
+	if port != 0 {
+		_, err := SetStructFieldIfZeroValue(monitorConfig, "Port", port)
+		if err != nil {
+			return fmt.Errorf("unable to set monitor Port field using Endpoint-derived value of %d: %w", port, err)
+		}
+	}
+
+	return nil
 }

@@ -24,13 +24,14 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
-	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
 )
+
+const setOutputErrMsg = "unable to set Output field of monitor"
 
 type Receiver struct {
 	logger       *zap.Logger
@@ -117,27 +118,17 @@ func (r *Receiver) createMonitor(monitorType string) (interface{}, error) {
 
 	monitor := monitorFactory() // monitor is a pointer to a monitor struct
 
-	// monitorOutputValue is the monitor struct's "Output" field value obtained via reflection to be set to
-	// an Output instance.
-	var monitorOutputValue reflect.Value
-	// reflect functions will panic if received Value is not of supported type for receiver methods.
-	monitorValue := reflect.Indirect(reflect.ValueOf(monitor))
-	// ensure that they are only called when applicable.
-	if monitorValue.IsValid() && monitorValue.Type().Kind() == reflect.Struct {
-		monitorOutputValue = utils.FindFieldWithEmbeddedStructs(monitor, "Output",
-			reflect.TypeOf((*types.Output)(nil)).Elem())
-		if !monitorOutputValue.IsValid() {
-			monitorOutputValue = utils.FindFieldWithEmbeddedStructs(monitor, "Output",
-				reflect.TypeOf((*types.FilteringOutput)(nil)).Elem())
+	output := NewOutput(*r.config, r.nextConsumer, r.logger)
+	set, err := SetStructFieldWithExplicitType(
+		monitor, "Output", output,
+		reflect.TypeOf((*types.Output)(nil)).Elem(),
+		reflect.TypeOf((*types.FilteringOutput)(nil)).Elem(),
+	)
+	if !set || err != nil {
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", setOutputErrMsg, err)
 		}
-	}
-
-	var output *Output
-	if monitorOutputValue.IsValid() {
-		output = NewOutput(*r.config, r.nextConsumer, r.logger)
-		monitorOutputValue.Set(reflect.ValueOf(output))
-	} else {
-		return nil, fmt.Errorf("invalid monitor instance: %#v", monitor)
+		return nil, fmt.Errorf("%s", setOutputErrMsg)
 	}
 
 	for k, v := range r.config.monitorConfig.MonitorConfigCore().ExtraDimensions {

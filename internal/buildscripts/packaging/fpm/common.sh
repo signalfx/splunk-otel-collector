@@ -15,7 +15,7 @@ SERVICE_USER="splunk-otel-collector"
 SERVICE_GROUP="splunk-otel-collector"
 
 OTELCOL_INSTALL_PATH="/usr/bin/otelcol"
-CONFIG_REPO_PATH="$FPM_DIR/etc/otel/collector/splunk_config_linux.yaml"
+CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/agent_config_linux.yaml"
 CONFIG_INSTALL_PATH="/etc/otel/collector/splunk_config_linux.yaml"
 SERVICE_REPO_PATH="$FPM_DIR/$SERVICE_NAME.service"
 SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"
@@ -43,6 +43,17 @@ create_user_group() {
         sudo useradd --system --user-group --no-create-home --shell /sbin/nologin $SERVICE_USER
 }
 
+update_config() {
+    local config_path="$1"
+
+    # update the following in the deb/rpm config to use these env vars instead
+    # so that they can be overridden by the installer script options
+    yq -i e '.extensions.http_forwarder.egress.endpoint = "${SPLUNK_API_URL}"' "$config_path"
+    yq -i e '.exporters.splunk_hec.token = "${SPLUNK_HEC_TOKEN}"' "$config_path"
+    yq -i e '.exporters.splunk_hec.endpoint = "${SPLUNK_HEC_URL}"' "$config_path"
+    yq -i e '.exporters.sapm.endpoint = "${SPLUNK_TRACE_URL}"' "$config_path"
+}
+
 setup_files_and_permissions() {
     local otelcol="$1"
     local buildroot="$2"
@@ -56,6 +67,8 @@ setup_files_and_permissions() {
 
     cp -r "$FPM_DIR/etc" "$buildroot/etc"
     cp -f "$CONFIG_REPO_PATH" "$buildroot/$CONFIG_INSTALL_PATH"
+    update_config "$buildroot/$CONFIG_INSTALL_PATH"
+
     sudo chown -R $SERVICE_USER:$SERVICE_GROUP "$buildroot/etc/otel"
     sudo chmod -R 755 "$buildroot/etc/otel"
     sudo chmod 600 "$buildroot/etc/otel/collector/splunk_env.example"

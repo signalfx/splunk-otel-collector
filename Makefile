@@ -1,6 +1,7 @@
 ### VARIABLES
 
 ADDLICENSE= addlicense
+
 # All source code and documents. Used in spell check.
 ALL_DOC := $(shell find . \( -name "*.md" -o -name "*.yaml" \) \
                                 -type f | sort)
@@ -8,25 +9,17 @@ ALL_DOC := $(shell find . \( -name "*.md" -o -name "*.yaml" \) \
 # ALL_MODULES includes ./* dirs (excludes . dir)
 ALL_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
 
-# ALL_PKGS is the list of all packages where ALL_SRC files reside.
-ALL_PKGS := $(shell go list $(sort $(dir $(ALL_SRC))))
-
 # All source code excluding any third party code and excluding the testbed.
 # This is the code that we want to run tests for and lint, staticcheck, etc.
 ALL_SRC := $(shell find . -name '*.go' \
 							-not -path './examples/*' \
 							-type f | sort)
 
+# ALL_PKGS is the list of all packages where ALL_SRC files reside.
+ALL_PKGS := $(shell go list $(sort $(dir $(ALL_SRC))))
+
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
-
-BUILD_INFO_IMPORT_PATH=github.com/signalfx/splunk-otel-collector/internal/version
-BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).GitHash=$(GIT_SHA)
-ifdef VERSION
-BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
-endif
-BUILD_X3=-X $(BUILD_INFO_IMPORT_PATH).BuildType=$(BUILD_TYPE)
-BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2} ${BUILD_X3}"
 
 GIT_SHA=$(shell git rev-parse --short HEAD)
 GO_ACC=go-acc
@@ -40,6 +33,14 @@ LINT=golangci-lint
 MISSPELL=misspell -error
 MISSPELL_CORRECTION=misspell -w
 STATIC_CHECK=staticcheck
+
+BUILD_INFO_IMPORT_PATH=github.com/signalfx/splunk-otel-collector/internal/version
+BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).GitHash=$(GIT_SHA)
+ifdef VERSION
+BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
+endif
+BUILD_X3=-X $(BUILD_INFO_IMPORT_PATH).BuildType=$(BUILD_TYPE)
+BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2} ${BUILD_X3}"
 
 ### FUNCTIONS
 

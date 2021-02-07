@@ -9,7 +9,7 @@ options.
 
 The following deployment options are supported:
 
-- [DEB](#DEB) and [RPM](#RPM) packages
+- [DEB and RPM Packages](#deb-and-rpm-packages)
 - [Docker](#docker)
 - [Standalone](#standalone)
 
@@ -38,35 +38,46 @@ With the Collector configured, the following endpoints are accessible:
 - `http(s)://<collectorFQDN>:9943/v2/trace` SignalFx APM receiver
 </details>
 
-### DEB
+### DEB and RPM Packages
 
-> IMPORTANT: `systemctl` is a requirement to run the package as a service.
-> Otherwise, manually running the service is required.
+If you prefer to install the collector without the [installer script
+](./linux-installer.md), we provide Debian and RPM package repositories that
+you can make use of with the following commands (requires `root` privileges).
 
-In order to install and configure the package:
+> IMPORTANT: `systemctl` is a requirement to run the collector as a service.
+> Otherwise, manually running the collector is required.
 
-1. Download the package from the [releases
-   page](https://github.com/signalfx/splunk-otel-collector/releases).
-2. Run `dpkg -i splunk-otel-collector_<version>_<arch>.deb`
-3. Run: `cd /etc/otel/collector; cp splunk_env.example splunk_env`
-4. Edit `splunk_env` and set variables as appropriate
-5. Optional: create a custom YAML configuration file
-6. Restart the service `sudo systemctl daemon-reload; sudo systemctl restart splunk-otel-collector.service`
+1. Set up the package repository and install the collector package:
+- Debian:
+```sh
+curl -sSL https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg > /etc/apt/trusted.gpg.d/splunk.gpg
+echo 'deb https://splunk.jfrog.io/splunk/otel-collector-deb release main' > /etc/apt/sources.list.d/splunk-otel-collector.list
+apt-get update
+apt-get install -y splunk-otel-collector
+```
+- RPM:
+```sh
+cat <<EOH > /etc/yum.repos.d/splunk-otel-collector.repo
+[splunk-otel-collector]
+name=Splunk OpenTelemetry Collector Repository
+baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
+gpgcheck=1
+gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
+enabled=1
+EOH
 
-### RPM
-
-> IMPORTANT: `systemctl` is a requirement to run the package as a service.
-> Otherwise, manually running the service is required.
-
-In order to install and configure the package:
-
-1. Download the package from the [releases
-   page](https://github.com/signalfx/splunk-otel-collector/releases).
-2. Run `rpm -ivh splunk-otel-collector_<version>_<arch>.deb`
-3. Run: `cd /etc/otel/collector; cp splunk_env.example splunk_env`
-4. Edit `splunk_env` and set variables as appropriate
-5. Optional: create a custom YAML configuration file
-6. Restart the service `sudo systemctl daemon-reload; sudo systemctl restart splunk-otel-collector.service`
+yum install -y splunk-otel-collector
+```
+2. A default configuration file will be installed to
+   `/etc/otel/collector/splunk_config_linux.yaml` if it does not already exist.
+3. The `/etc/otel/collector/splunk_env` environment file is required to start
+   the `splunk-otel-collector` systemd service.  A sample environment file will
+   be installed to `/etc/otel/collector/splunk_env.example` that includes the
+   required environment variables for the default config.  To utilize this
+   sample file, set the variables as appropriate and save the file as
+   `/etc/otel/collector/splunk_env`.
+4. Start/Restart the service with
+   `sudo systemctl restart splunk-otel-collector.service`.
 
 ### Other
 

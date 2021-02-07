@@ -92,7 +92,6 @@ func Get() (component.Factories, error) {
 		opencensusreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
 		prometheusexecreceiver.NewFactory(),
-		prometheusreceiver.NewFactory(),
 		receivercreator.NewFactory(),
 		redisreceiver.NewFactory(),
 		sapmreceiver.NewFactory(),

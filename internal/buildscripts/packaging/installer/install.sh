@@ -252,7 +252,11 @@ install_yum_package() {
     version="-${version}"
   fi
 
-  yum install -y ${package_name}${version}
+  if command -v yum >/dev/null 2>&1; then
+    yum install -y ${package_name}${version}
+  else
+    dnf install -y ${package_name}${version}
+  fi
 }
 
 ensure_not_installed() {

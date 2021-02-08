@@ -1,5 +1,5 @@
 resource_metrics:
-  - ilms:
+  - instrumentation_library_metrics:
       - metrics:
           - name: of_an_unsupported_type
             type: NotASupportedType

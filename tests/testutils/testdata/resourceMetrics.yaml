@@ -2,7 +2,7 @@ resource_metrics:
   - attributes:
       one_attr: one_value
       two_attr: two_value
-    ilms:
+    instrumentation_library_metrics:
       - instrumentation_library:
           name: without_metrics
           version: some_version
@@ -15,7 +15,7 @@ resource_metrics:
           - name: a_double_gauge
             type: DoubleGauge
             value: 123.456
-  - ilms:
+  - instrumentation_library_metrics:
       - instrumentation_library:
           name: with_metrics
           version: another_version

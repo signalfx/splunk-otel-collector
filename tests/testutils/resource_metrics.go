@@ -76,7 +76,7 @@ type ResourceMetrics struct {
 // Top level metric type for a given Resource (set of attributes) and its associated InstrumentationLibraryMetrics.
 type ResourceMetric struct {
 	Resource Resource                        `yaml:",inline,omitempty"`
-	ILMs     []InstrumentationLibraryMetrics `yaml:"ilms"`
+	ILMs     []InstrumentationLibraryMetrics `yaml:"instrumentation_library_metrics"`
 }
 
 // The top level item producing metrics, defined by its Attributes.

@@ -1,7 +1,7 @@
 resource_metrics:
   - attributes:
       not: matched
-  - ilms:
+  - instrumentation_library_metrics:
       - instrumentation_library:
           name: with_metrics
           version: another_version

@@ -73,7 +73,7 @@ fluent_config_path="${fluent_config_dir}/fluent.conf"
 
 default_stage="release"
 default_realm="us0"
-default_ballast_size="683"
+default_memory_size="1024"
 default_collector_version="latest"
 default_td_agent_version="4.0.1"
 default_td_agent_version_jessie="3.3.0-1"
@@ -252,7 +252,11 @@ install_yum_package() {
     version="-${version}"
   fi
 
-  yum install -y ${package_name}${version}
+  if command -v yum >/dev/null 2>&1; then
+    yum install -y ${package_name}${version}
+  else
+    dnf install -y ${package_name}${version}
+  fi
 }
 
 ensure_not_installed() {
@@ -411,7 +415,9 @@ Options:
   --hec-url <url>                   Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm
                                     (default: https://ingest.REALM.signalfx.com/v1/log)
   --hec-token <token>               Set the HEC token if different than the specified Splunk access_token
-  --ballast <ballast size>          How much memory in MIB to allocate to the ballast (default: "$default_ballast_size")
+  --memory <memory size>            Total memory in MIB to allocate to the collector; automatically calculates the ballast size
+                                    (default: "$default_memory_size")
+  --ballast <ballast size>          Set the ballast size explicitly instead of the value calculated from the --memory option
                                     This should be set to 1/3 to 1/2 of configured memory
   --service-user <user>             Set the user for the splunk-otel-collector service (default: "$default_service_user")
                                     The user will be created if it does not exist
@@ -430,7 +436,8 @@ EOH
 parse_args_and_install() {
   local stage="$default_stage"
   local realm="$default_realm"
-  local ballast="$default_ballast_size"
+  local memory="$default_memory_size"
+  local ballast=
   local access_token=
   local insecure=
   local collector_version="$default_collector_version"
@@ -470,6 +477,10 @@ parse_args_and_install() {
         ;;
       --realm)
         realm="$2"
+        shift 1
+        ;;
+      --memory)
+        memory="$2"
         shift 1
         ;;
       --ballast)
@@ -546,11 +557,11 @@ parse_args_and_install() {
   fi
 
   if [ -z "$trace_url" ]; then
-    trace_url="https://ingest.${realm}.signalfx.com/v2/trace"
+    trace_url="${ingest_url}/v2/trace"
   fi
 
   if [ -z "$hec_url" ]; then
-    hec_url="https://ingest.${realm}.signalfx.com/v1/log"
+    hec_url="${ingest_url}/v1/log"
   fi
 
   if [ "$with_fluentd" != "true" ]; then
@@ -558,7 +569,11 @@ parse_args_and_install() {
   fi
 
   echo "Splunk OpenTelemetry Collector Version: ${collector_version}"
-  echo "Ballast Size in MIB: $ballast"
+  if [ -n "$ballast" ]; then
+    echo "Ballast Size in MIB: $ballast"
+  else
+    echo "Memory Size in MIB: $memory"
+  fi
   echo "Realm: $realm"
   echo "Ingest Endpoint: $ingest_url"
   echo "API Endpoint: $api_url"
@@ -583,9 +598,13 @@ parse_args_and_install() {
   configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
   configure_env_file "SPLUNK_INGEST_URL" "$ingest_url" "$collector_env_path"
   configure_env_file "SPLUNK_TRACE_URL" "$trace_url" "$collector_env_path"
-  configure_env_file "SPLUNK_BALLAST_SIZE_MIB" "$ballast" "$collector_env_path"
   configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
   configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
+  if [ -n "$ballast" ]; then
+    configure_env_file "SPLUNK_BALLAST_SIZE_MIB" "$ballast" "$collector_env_path"
+  else
+    configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
+  fi
 
   # ensure the collector service owner has access to the config dir
   chown -R $service_user:$service_group "$collector_config_dir"

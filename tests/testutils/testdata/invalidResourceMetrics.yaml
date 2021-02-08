@@ -1,0 +1,3 @@
+resource_metrics:
+  - notAttributesOrILMs:
+      - thing: value

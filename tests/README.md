@@ -7,7 +7,7 @@ is:
 1. Building the Collector (`make otelcol` or `make all`)
 1. Defining your expected [resource metric content](./testutils/README.md#resource-metrics) as a yaml file
 ([see example](./testutils/testdata/resourceMetrics.yaml))
-1. Spin up your target resources as docker containers (TODO)
+1. Spin up your target resources as [docker containers](./testutils/README.md#test-containers).
 1. Stand up an in-memory OTLP Receiver and metric sink capable of detecting if/when desired data are received (TODO).
 1. Spin up your Collector as a subprocess configured to report to this OTLP receiver (TODO)
   

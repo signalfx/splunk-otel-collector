@@ -45,7 +45,7 @@ which require the following environment variables:
 
 The following environment variables are optional:
 
-- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk-config_linux.yaml`): Which configuration to load.
+- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk_config_linux.yaml`): Which configuration to load.
 - `SPLUNK_BALLAST_SIZE_MIB` (no default): How much memory to allocate to the ballast.
 - For Linux systems:
   - `SPLUNK_MEMORY_LIMIT_PERCENTAGE` (default = `90`): Maximum total memory to be allocated by the process heap.
@@ -110,12 +110,12 @@ You can view the [source](internal/buildscripts/packaging/installer/install.sh)
 for more details and available options.
 
 Run the following command on your host. Replace `SPLUNK_REALM`,
-`SPLUNK_BALLAST_SIZE`, and `SPLUNK_ACCESS_TOKEN` for your
+`SPLUNK_TOTAL_MEMORY_MIB`, and `SPLUNK_ACCESS_TOKEN` for your
 environment:
 
 ```sh
 curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
-sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --ballast SPLUNK_BALLAST_SIZE \
+sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --memory SPLUNK_TOTAL_MEMORY_MIB \
     -- SPLUNK_ACCESS_TOKEN
 ```
 
@@ -259,8 +259,8 @@ configuration as shown above.
 If the custom configuration includes a `memory_limiter` processor then the
 `ballast_size_mib` parameter should be the same as the
 `SPLUNK_BALLAST_SIZE_MIB` environment variable. See
-[splunk_config.yaml](cmd/otelcol/config/collector/splunk_config.yaml) as an
-example.
+[splunk_config_linux.yaml](cmd/otelcol/config/collector/splunk_config_linux.yaml)
+as an example.
 
 ## Monitoring
 

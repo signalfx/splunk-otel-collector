@@ -2,6 +2,7 @@
 # This is the code that we want to run tests for and lint, staticcheck, etc.
 ALL_SRC := $(shell find . -name '*.go' \
 							-not -path './examples/*' \
+							-not -path './tests/*' \
 							-type f | sort)
 
 # ALL_PKGS is the list of all packages where ALL_SRC files reside.

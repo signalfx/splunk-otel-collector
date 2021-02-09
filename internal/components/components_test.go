@@ -45,7 +45,6 @@ func TestDefaultComponents(t *testing.T) {
 		"collectd",
 		"k8s_cluster",
 		"kubeletstats",
-		"jmx",
 		"prometheus_exec",
 		"prometheus_simple",
 		"receiver_creator",

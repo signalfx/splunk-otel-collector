@@ -7,6 +7,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/testcontainers/testcontainers-go v0.9.0
 	go.opentelemetry.io/collector v0.19.1-0.20210127225953-68c5961f7bc2
+	go.uber.org/zap v1.16.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 

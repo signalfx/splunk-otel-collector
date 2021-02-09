@@ -53,26 +53,26 @@ matrix](https://github.com/open-telemetry/community/blob/47813530864b9fe5a5146f4
 
 | Receivers        | Processors        | Exporters | Extensions    |
 | :--------------: | :--------:        | :-------: | :--------:    |
-| fluentforward    | attributes        | file      | fluentbit     |
-| host_observer    | batch             | logging   | healthcheck   |
-| jaeger           | filter            | otlp      | httpforwarder |
-| k8s_observer     | k8s_tagger        | sapm      | observer/host |
-| kubeletstats     | memorylimiter     | signalfx  | observer/k8s  |
-| opencensus       | metrictransform   | splunkhec | pprof         |
-| otlp             | resource          |           | zpages        |
-| sapm             | resourcedetection |           |               |
-| signalfx         | span              |           |               |
-| simpleprometheus |                   |           |               |
+| host_observer    | attributes        | file      | fluentbit     |
+| jaeger           | batch             | logging   | healthcheck   |
+| k8s_observer     | filter            | otlp      | httpforwarder |
+| kubeletstats     | k8s_tagger        | sapm      | observer/host |
+| opencensus       | memorylimiter     | signalfx  | observer/k8s  |
+| otlp             | metrictransform   | splunkhec | pprof         |
+| sapm             | resource          |           | zpages        |
+| signalfx         | resourcedetection |           |               |
+| simpleprometheus | span              |           |               |
 | splunkhec        |                   |           |               |
 | zipkin           |                   |           |               |
 
 ### Alpha
 
-| Receivers | Processors | Exporters | Extensions |
-| :-------: | :--------: | :-------: | :--------: |
-| carbon    |            |           |            |
-| collectd  |            |           |            |
-| statsd    |            |           |            |
+| Receivers      | Processors | Exporters | Extensions |
+| :-------:      | :--------: | :-------: | :--------: |
+| carbon         |            |           |            |
+| collectd       |            |           |            |
+| fluentdforward |            |           |            |
+| statsd         |            |           |            |
 
 ## Sizing
 

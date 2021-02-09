@@ -27,13 +27,11 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver"
@@ -83,7 +81,6 @@ func Get() (component.Factories, error) {
 	receivers, err := component.MakeReceiverFactoryMap(
 		carbonreceiver.NewFactory(),
 		collectdreceiver.NewFactory(),
-		dockerstatsreceiver.NewFactory(),
 		hostmetricsreceiver.NewFactory(),
 		fluentforwardreceiver.NewFactory(),
 		jaegerreceiver.NewFactory(),
@@ -95,7 +92,6 @@ func Get() (component.Factories, error) {
 		prometheusexecreceiver.NewFactory(),
 		prometheusreceiver.NewFactory(),
 		receivercreator.NewFactory(),
-		redisreceiver.NewFactory(),
 		sapmreceiver.NewFactory(),
 		signalfxreceiver.NewFactory(),
 		simpleprometheusreceiver.NewFactory(),

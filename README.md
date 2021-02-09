@@ -45,62 +45,34 @@ You can consult additional use cases in the [examples](./examples) directory.
 
 ## Supported Components
 
-### Receivers
+The distribution offers support for the following components. Support is based
+on the [OpenTelemetry maturity
+matrix](https://github.com/open-telemetry/community/blob/47813530864b9fe5a5146f466a58bd2bb94edc72/maturity-matrix.yaml#L57).
 
-| Name             | Status |
-| :--:             | :----: |
-| carbon           | Alpha  |
-| collectd         | Alpha  |
-| fluentforward    | Beta   |
-| hostmetrics      | Beta   |
-| jaeger           | Beta   |
-| k8scluster       | Beta   |
-| kubletstats      | Beta   |
-| opencensus       | Beta   |
-| otlp             | Beta   |
-| sapm             | Beta   |
-| signalfx         | Beta   |
-| simpleprometheus | Beta   |
-| statsd           | Alpha  |
-| splunkhec        | Beta   |
-| zipkin           | Beta   |
+### Beta
 
-### Processors
+| Receivers        | Processors        | Exporters | Extensions    |
+| :--------------: | :--------:        | :-------: | :--------:    |
+| fluentforward    | attributes        | file      | fluentbit     |
+| hostmetrics      | batch             | logging   | healthcheck   |
+| jaeger           | filter            | otlp      | httpforwarder |
+| k8scluster       | k8s               | sapm      | observer/host |
+| kubletstats      | memorylimiter     | signalfx  | observer/k8s  |
+| opencensus       | metrictransform   | splunkhec | pprof         |
+| otlp             | resource          |           | zpages        |
+| sapm             | resourcedetection |           |               |
+| signalfx         | span              |           |               |
+| simpleprometheus |                   |           |               |
+| splunkhec        |                   |           |               |
+| zipkin           |                   |           |               |
 
-| Name              | Status |
-| :--:              | :----: |
-| attributes        | Beta   |
-| batch             | Beta   |
-| filter            | Beta   |
-| memorylimiter     | Beta   |
-| resource          | Beta   |
-| span              | Beta   |
-| k8s               | Beta   |
-| metricstransform  | Beta   |
-| resourcedetection | Beta   |
+### Alpha
 
-### Exporters
-
-| Name             | Status |
-| :--:             | :----: |
-| file             | Beta   |
-| logging          | Beta   |
-| otlp             | Beta   |
-| sapm             | Beta   |
-| signalfx         | Beta   |
-| splunkhec        | Beta   |
-
-### Extensions
-
-| Name          | Status |
-| :--:          | :----: |
-| fluentbit     | Beta   |
-| healthcheck   | Beta   |
-| httpforwarder | Beta   |
-| observer/host | Beta   |
-| observer/k8s  | Beta   |
-| pprof         | Beta   |
-| zpages        | Beta   |
+| Receivers | Processors | Exporters | Extensions |
+| :-------: | :--------: | :-------: | :--------: |
+| carbon    |            |           |            |
+| collectd  |            |           |            |
+| statsd    |            |           |            |
 
 ## Sizing
 

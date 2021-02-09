@@ -65,14 +65,6 @@ $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
     --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0
 ```
 
-### Kubernetes
-
-To deploy in Kubernetes, create a configuration file that defines a ConfigMap,
-Service, and Deployment for the cluster. For more information about creating a
-configuration file, see the example
-[signalfx-k8s.yaml](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/master/exporter/sapmexporter/examples/signalfx-k8s.yaml)
-file on GitHub.
-
 ### Standalone
 
 ```bash

@@ -3,8 +3,10 @@
 The Splunk distribution of [OpenTelemetry
 Collector](https://github.com/open-telemetry/opentelemetry-collector) provides
 a binary that can be deployed as a standalone service (also known as a gateway)
-that can receive, process and export trace, metric and log data. The Collector
-is an optional component that currently supports:
+that can receive, process and export trace, metric and log data. This
+distribution is supported by Splunk.
+
+The Collector currently supports:
 
 - [Splunk APM](https://www.splunk.com/en_us/software/splunk-apm.html) via the
   [`sapm`
@@ -23,178 +25,82 @@ is an optional component that currently supports:
   the [`splunk_hec`
   exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/splunkhecexporter).
 
-The Collector is supported on and packaged for a variety of platforms including:
-
-- Kubernetes: Helm and YAML
-- Linux: All Intel, AMD and ARM systemd-based operating systems are supported
-  including CentOS, Debian, Oracle, Red Hat and Ubuntu. DEB and RPM packages
-  are also provided.
-- Windows: EXE and MSI
-
 > :construction: This project is currently in **BETA**.
 
 ## Getting Started
 
-This distribution comes with [default
-configurations](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector)
-which require the following environment variables:
+The Collector is supported on and packaged for a variety of platforms including:
 
-- `SPLUNK_REALM` (no default): Which realm to send the data to (for example: `us0`)
-- `SPLUNK_ACCESS_TOKEN` (no default): Access token to authenticate requests
-- `SPLUNK_MEMORY_TOTAL_MIB` (no default): Total memory allocated to the Collector.
-
-The following environment variables are optional:
-
-- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk_config_linux.yaml`): Which configuration to load.
-- `SPLUNK_BALLAST_SIZE_MIB` (no default): How much memory to allocate to the ballast.
-- For Linux systems:
-  - `SPLUNK_MEMORY_LIMIT_PERCENTAGE` (default = `90`): Maximum total memory to be allocated by the process heap.
-  - `SPLUNK_MEMORY_SPIKE_PERCENTAGE` (default = `20`): Maximum spike between the measurements of memory usage.
-- For non-Linux systems:
-  - `SPLUNK_MEMORY_LIMIT_MIB` (no default): Maximum total memory to be allocated by the process heap.
-  - `SPLUNK_MEMORY_SPIKE_MIB` (no default): Maximum spike between the measurements of memory usage.
-
-> `SPLUNK_MEMORY_TOTAL_MIB` automatically configures the ballast, memory limit,
-> and memory spike. If the optional environment variables are defined, they
-> will override the value calculated from `SPLUNK_MEMORY_TOTAL_MIB`.
-
-With the Collector configured, the following endpoints are accessible:
-
-- `http(s)://<collectorFQDN>:13133/` Health endpoint useful for load balancer monitoring
-- `http(s)://<collectorFQDN>:[14250|14268]` Jaeger [gRPC|Thrift HTTP] receiver
-- `http(s)://<collectorFQDN>:55678` OpenCensus gRPC and HTTP receiver
-- `http(s)://localhost:55679/debug/[tracez|pipelinez]` zPages monitoring
-- `http(s)://<collectorFQDN>:55680` OpenTelemetry gRPC receiver
-- `http(s)://<collectorFQDN>:6060` HTTP Forwarder used to receive Smart Agent `apiUrl` data
-- `http(s)://<collectorFQDN>:7276` SignalFx Infrastructure Monitoring gRPC receiver
-- `http(s)://localhost:8888/metrics` Prometheus metrics for the Collector
-- `http(s)://<collectorFQDN>:9411/api/[v1|v2]/spans` Zipkin JSON (can be set to proto)receiver
-- `http(s)://<collectorFQDN>:9943/v2/trace` SignalFx APM receiver
-
-The following sections describe how to deploy the Collector in supported environments.
-
-### Docker
-
-Deploy from a Docker container. Replace `0.1.0` with the latest stable version number:
-
-```bash
-$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
-    -e SPLUNK_REALM=us0 -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678-55680:55678-55680 \
-    -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
-    --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0
-```
-
-### Kubernetes
-
-To deploy in Kubernetes, create a configuration file that defines a ConfigMap,
-Service, and Deployment for the cluster. For more information about creating a
-configuration file, see the example
-[signalfx-k8s.yaml](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/master/exporter/sapmexporter/examples/signalfx-k8s.yaml)
-file on GitHub.
-
-### Standalone
-
-```bash
-$ make otelcol
-$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_MEMORY_TOTAL_MIB=1024 \
-    ./bin/otelcol
-```
-
-### Linux Installer Script
-
-For non-containerized Linux environments, a convenience script is available for
-installing the Collector package and [TD Agent
-(Fluentd)](https://www.fluentd.org/).
-
-You can view the [source](internal/buildscripts/packaging/installer/install.sh)
-for more details and available options.
-
-Run the following command on your host. Replace `SPLUNK_REALM`,
-`SPLUNK_TOTAL_MEMORY_MIB`, and `SPLUNK_ACCESS_TOKEN` for your
-environment:
-
-```sh
-curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
-sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --memory SPLUNK_TOTAL_MEMORY_MIB \
-    -- SPLUNK_ACCESS_TOKEN
-```
-
-By default, the fluentd service will be installed and configured to forward
-log events with the `@SPLUNK` label to the collector (see the note below for
-how to add fluentd log sources), and the collector will send these events to
-the HEC ingest endpoint determined by the `--realm SPLUNK_REALM` option, e.g.
-`https://ingest.SPLUNK_REALM.signalfx.com/v1/log`.  To configure the collector
-to send log events to a custom HEC endpoint URL, specify the `--hec-url URL`
-and `--hec-token TOKEN` options to the command above.
-
-**Note**: The installer script does not include any fluentd log sources. Custom
-fluentd source config files can be added to the
-`/etc/otel/collector/fluentd/conf.d` directory after installation. Config files
-added to this directory should have a `.conf` extension, and the `td-agent`
-service will need to be restarted to include/enable the new files, i.e.
-`sudo systemctl restart td-agent`.  A sample config and instructions for
-collecting journald log events is available at
-`/etc/otel/collector/fluentd/conf.d/journald.conf.example`.
-
-Currently, only the following Linux distributions and versions are supported:
-
-- Amazon Linux: 2
-- CentOS / Red Hat / Oracle: 7, 8
-- Debian: 8, 9, 10
-- Ubuntu: 16.04, 18.04, 20.04
-
-### Standalone Windows MSI (64-bit only)
-
-A Windows MSI package is available to download at
-[https://github.com/signalfx/splunk-otel-collector/releases
-](https://github.com/signalfx/splunk-otel-collector/releases) for versions
-v0.4.0 or later.
-
-To install, double-click on the downloaded package or run the following command
-in a PowerShell terminal:
-
-```sh
-PS> Start-Process -Wait msiexec "/i PATH_TO_MSI /qn"
-```
-
-Replace `PATH_TO_MSI` with the *full* path to the downloaded package, e.g.
-`C:\your\download\folder\splunk-otel-collector-0.4.0-amd64.msi`.
-
-The collector will be installed to
-`\Program Files\Splunk\OpenTelemetry Collector`, and the
-`splunk-otel-collector` service will be created but not started.
-
-A default config file will be copied to
-`\ProgramData\Splunk\OpenTelemetry Collector\config.yaml` if it does not
-already exist.  This file is required to start the `splunk-otel-collector`
-service.
-
-Before starting the `splunk-otel-collector` service, the following variables
-in the default config file need to be replaced by the appropriate values for
-your environment:
-
-- `${SPLUNK_ACCESS_TOKEN}`
-- `${SPLUNK_REALM}`
-- `${SPLUNK_BALLAST_SIZE_MIB}`
-- `${SPLUNK_MEMORY_LIMIT_MIB}`
-- `${SPLUNK_MEMORY_SPIKE_MIB}`
-
-See the [Getting Started](#getting-started) section for details about these
-variables.
-
-After updating all variables in the config file, start the
-`splunk-otel-collector` service by rebooting the system or running the
-following command in a PowerShell terminal:
-
-```sh
-PS> Start-Service splunk-otel-collector
-```
-
-The collector logs and errors can be viewed in the Windows Event Viewer.
-
-### More examples
+- Kubernetes
+  - Helm (coming soon!)
+  - [YAML](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/master/exporter/sapmexporter/examples/signalfx-k8s.yaml)
+- Linux
+  - [Installer script (recommended)](./docs/getting-started/linux-installer.md)
+  - [Standalone](./docs/getting-started/linux-standalone.md)
+- Windows
+  - Install script (coming soon!)
+  - [Standalone](./docs/getting-started/windows-standalone.md)
 
 You can consult additional use cases in the [examples](./examples) directory.
+
+## Supported Components
+
+### Receivers
+
+| Name             | Status |
+| :--:             | :----: |
+| carbon           | Alpha  |
+| collectd         | Alpha  |
+| fluentforward    | Beta   |
+| hostmetrics      | Beta   |
+| jaeger           | Beta   |
+| k8scluster       | Beta   |
+| kubletstats      | Beta   |
+| opencensus       | Beta   |
+| otlp             | Beta   |
+| sapm             | Beta   |
+| signalfx         | Beta   |
+| simpleprometheus | Beta   |
+| statsd           | Alpha  |
+| splunkhec        | Beta   |
+| zipkin           | Beta   |
+
+### Processors
+
+| Name              | Status |
+| :--:              | :----: |
+| attributes        | Beta   |
+| batch             | Beta   |
+| filter            | Beta   |
+| memorylimiter     | Beta   |
+| resource          | Beta   |
+| span              | Beta   |
+| k8s               | Beta   |
+| metricstransform  | Beta   |
+| resourcedetection | Beta   |
+
+### Exporters
+
+| Name             | Status |
+| :--:             | :----: |
+| file             | Beta   |
+| logging          | Beta   |
+| otlp             | Beta   |
+| sapm             | Beta   |
+| signalfx         | Beta   |
+| splunkhec        | Beta   |
+
+### Extensions
+
+| Name          | Status |
+| :--:          | :----: |
+| fluentbit     | Beta   |
+| healthcheck   | Beta   |
+| httpforwarder | Beta   |
+| observer/host | Beta   |
+| observer/k8s  | Beta   |
+| pprof         | Beta   |
+| zpages        | Beta   |
 
 ## Sizing
 
@@ -215,53 +121,6 @@ increases linearly with the number of Collectors you deploy.
 
 > The Collector does not persist data to disk so no disk space is required.
 
-## Advanced Configuration
-
-### Command Line Arguments
-
-Following the binary command or Docker container command line arguments can be
-specified. Command line arguments take priority over environment variables.
-
-For example in Docker:
-
-```bash
-$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
-    -e SPLUNK_REALM=us0 -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678-55680:55678-55680 \
-    -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
-    --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0 \
-        --log-level=DEBUG
-```
-
-> Use `--help` to see all available CLI arguments.
-
-### Custom Configuration
-
-In addition to using the default configuration, a custom configuration can also
-be provided. Use the `SPLUNK_CONFIG` environment variable or
-the `--config` command line argument to provide a custom configuration.
-
-> Command line arguments take precedence over environment variables. This
-> applies to `--config` and `--mem-ballast-size-mib`.
-
-For example in Docker:
-
-```bash
-$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
-    -e SPLUNK_REALM=us0 -e SPLUNK_CONFIG=/etc/collector.yaml -p 13133:13133 -p 14250:14250 \
-    -p 14268:14268 -p 55678-55680:55678-55680 -p 6060:6060 -p 7276:7276 -p 8888:8888 \
-    -p 9411:9411 -p 9943:9943 -v collector.yaml:/etc/collector.yaml:ro \
-    --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0
-```
-
-In the case of Docker, a volume mount may be required to load custom
-configuration as shown above.
-
-If the custom configuration includes a `memory_limiter` processor then the
-`ballast_size_mib` parameter should be the same as the
-`SPLUNK_BALLAST_SIZE_MIB` environment variable. See
-[splunk_config_linux.yaml](cmd/otelcol/config/collector/splunk_config_linux.yaml)
-as an example.
-
 ## Monitoring
 
 The default configuration automatically scrapes the Collector's own metrics and
@@ -272,3 +131,7 @@ information about the health and status of Collector instances.
 
 See the [Collector troubleshooting
 documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/troubleshooting.md).
+
+## License
+
+[Apache Software License version 2.0](./LICENSE).

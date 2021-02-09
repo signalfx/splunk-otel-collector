@@ -20,6 +20,7 @@ which require the following environment variables:
 <summary>
 Optional environment variables
 </summary>
+
 - `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk_config_linux.yaml`): Which configuration to load.
 - `SPLUNK_BALLAST_SIZE_MIB` (no default): How much memory to allocate to the ballast.
 - For Linux systems:

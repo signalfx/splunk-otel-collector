@@ -95,3 +95,25 @@ myContainerFromBuildContext := testutils.NewContainer().WithContext(
 
 err = myContainerFromBuildContext.Start(context.Background())
 ```
+
+### OTLP Metrics Receiver Sink
+
+The `OTLPMetricsReceiverSink` is a helper type that will easily stand up an inmemory OTLP Receiver with
+`consumertest.MetricsSink` functionality.  It will listen to the configured gRPC endpoint that running Collector
+processes can be configured to reach and provides an `AssertAllMetricsReceived()` test method to confirm that expected
+`ResourceMetrics` are received within the specified window.
+
+```go
+import "github.com/signafx/splunk-otel-collector/tests/testutils"
+
+otlp, err := testutils.NewOTLPMetricsReceiverSink().WithEndpoint("localhost:23456").Build()
+require.NoError(t, err)
+
+defer func() {
+    require.Nil(t, otlp.Shutdown())
+}()
+
+require.NoError(t, otlp.Start())
+
+require.NoError(t, otlp.AssertAllMetricsReceived(t, expectedResourceMetrics, 10*time.Second))
+```

@@ -8,7 +8,7 @@ is:
 1. Defining your expected [resource metric content](./testutils/README.md#resource-metrics) as a yaml file
 ([see example](./testutils/testdata/resourceMetrics.yaml))
 1. Spin up your target resources as [docker containers](./testutils/README.md#test-containers).
-1. Stand up an in-memory OTLP Receiver and metric sink capable of detecting if/when desired data are received (TODO).
+1. Stand up an in-memory [OTLP metrics receiver and sink](./testutils/README.md#otlp-metrics-receiver-sink) capable of detecting if/when desired data are received.
 1. Spin up your Collector as a subprocess configured to report to this OTLP receiver (TODO)
   
 ...but if you are interested in something else enhancements and contributions are a great way to ensure this library

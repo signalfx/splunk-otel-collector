@@ -4,6 +4,9 @@ go 1.15
 
 require (
 	github.com/client9/misspell v0.3.4
+	github.com/containerd/containerd v1.4.1 // indirect
+	github.com/docker/docker v17.12.0-ce-rc1.0.20200916142827-bd33bbf0497b+incompatible // indirect
+	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/golangci/golangci-lint v1.31.0
 	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76
 	github.com/jstemmer/go-junit-report v0.9.1
@@ -18,13 +21,11 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.19.1-0.20210203200406-65673ad3657b
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.19.1-0.20210203200406-65673ad3657b
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.19.1-0.20210203200406-65673ad3657b
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.19.1-0.20210203200406-65673ad3657b
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.19.1-0.20210203200406-65673ad3657b
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.19.1-0.20210203200406-65673ad3657b
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.19.1-0.20210203200406-65673ad3657b
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.19.1-0.20210203200406-65673ad3657b
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.19.1-0.20210203200406-65673ad3657b
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.19.1-0.20210203200406-65673ad3657b
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.19.1-0.20210203200406-65673ad3657b // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.19.1-0.20210203200406-65673ad3657b
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.19.1-0.20210203200406-65673ad3657b
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.19.1-0.20210203200406-65673ad3657b
@@ -39,7 +40,6 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
-	github.com/tcnksm/ghr v0.13.0 // indirect
 	go.opentelemetry.io/collector v0.19.1-0.20210127225953-68c5961f7bc2
 	go.uber.org/zap v1.16.0
 	golang.org/x/sys v0.0.0-20201214210602-f9fddec55a1e

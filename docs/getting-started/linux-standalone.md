@@ -1,16 +1,77 @@
 # Linux Standalone
 
+The easiest and recommended way to get started is with the [Linux installer
+script](./linux-installer.md). Alternatively, standalone installation is available.
 All Intel, AMD and ARM systemd-based operating systems are supported including
-CentOS, Debian, Oracle, Red Hat and Ubuntu. DEB and RPM packages are available
-to download at
-[https://github.com/signalfx/splunk-otel-collector/releases
-](https://github.com/signalfx/splunk-otel-collector/releases).
+CentOS, Debian, Oracle, Red Hat and Ubuntu. This installation method is useful
+for containerized environments or users wanting other common deployment
+options.
+
+The following deployment options are supported:
+
+- [DEB](#DEB) and [RPM](#RPM) packages
+- [Docker](#docker)
+- [Standalone](#standalone)
 
 ## Getting Started
 
-This distribution comes with [default
+All installation methods offer [default
 configurations](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector)
-which require the following environment variables:
+which can be configured via environment variables. How these variables are
+configured depends on the installation method leveraged.
+
+<details>
+<summary>
+Accessible endpoints
+</summary>
+With the Collector configured, the following endpoints are accessible:
+
+- `http(s)://<collectorFQDN>:13133/` Health endpoint useful for load balancer monitoring
+- `http(s)://<collectorFQDN>:[14250|14268]` Jaeger [gRPC|Thrift HTTP] receiver
+- `http(s)://<collectorFQDN>:55678` OpenCensus gRPC and HTTP receiver
+- `http(s)://localhost:55679/debug/[tracez|pipelinez]` zPages monitoring
+- `http(s)://<collectorFQDN>:55680` OpenTelemetry gRPC receiver
+- `http(s)://<collectorFQDN>:6060` HTTP Forwarder used to receive Smart Agent `apiUrl` data
+- `http(s)://<collectorFQDN>:7276` SignalFx Infrastructure Monitoring gRPC receiver
+- `http(s)://localhost:8888/metrics` Prometheus metrics for the Collector
+- `http(s)://<collectorFQDN>:9411/api/[v1|v2]/spans` Zipkin JSON (can be set to proto)receiver
+- `http(s)://<collectorFQDN>:9943/v2/trace` SignalFx APM receiver
+</details>
+
+### DEB
+
+> IMPORTANT: `systemctl` is a requirement to run the package as a service.
+> Otherwise, manually running the service is required.
+
+In order to install and configure the package:
+
+1. Download the package from the [releases
+   page](https://github.com/signalfx/splunk-otel-collector/releases).
+2. Run `dpkg -i splunk-otel-collector_<version>_<arch>.deb`
+3. Run: `cd /etc/otel/collector; cp splunk_env.example splunk_env`
+4. Edit `splunk_env` and set variables as appropriate
+5. Optional: create a custom YAML configuration file
+6. Restart the service `sudo systemctl daemon-reload; sudo systemctl restart splunk-otel-collector.service`
+
+### RPM
+
+> IMPORTANT: `systemctl` is a requirement to run the package as a service.
+> Otherwise, manually running the service is required.
+
+In order to install and configure the package:
+
+1. Download the package from the [releases
+   page](https://github.com/signalfx/splunk-otel-collector/releases).
+2. Run `rpm -ivh splunk-otel-collector_<version>_<arch>.deb`
+3. Run: `cd /etc/otel/collector; cp splunk_env.example splunk_env`
+4. Edit `splunk_env` and set variables as appropriate
+5. Optional: create a custom YAML configuration file
+6. Restart the service `sudo systemctl daemon-reload; sudo systemctl restart splunk-otel-collector.service`
+
+### Other
+
+The remaining installation methods support environmental variables to configure
+the Collector. The following environmental variables are required:
 
 - `SPLUNK_REALM` (no default): Which realm to send the data to (for example: `us0`)
 - `SPLUNK_ACCESS_TOKEN` (no default): Access token to authenticate requests
@@ -35,26 +96,6 @@ Optional environment variables
 > will override the value calculated from `SPLUNK_MEMORY_TOTAL_MIB`.
 </details>
 
-<details>
-<summary>
-Accessible endpoints
-</summary>
-With the Collector configured, the following endpoints are accessible:
-
-- `http(s)://<collectorFQDN>:13133/` Health endpoint useful for load balancer monitoring
-- `http(s)://<collectorFQDN>:[14250|14268]` Jaeger [gRPC|Thrift HTTP] receiver
-- `http(s)://<collectorFQDN>:55678` OpenCensus gRPC and HTTP receiver
-- `http(s)://localhost:55679/debug/[tracez|pipelinez]` zPages monitoring
-- `http(s)://<collectorFQDN>:55680` OpenTelemetry gRPC receiver
-- `http(s)://<collectorFQDN>:6060` HTTP Forwarder used to receive Smart Agent `apiUrl` data
-- `http(s)://<collectorFQDN>:7276` SignalFx Infrastructure Monitoring gRPC receiver
-- `http(s)://localhost:8888/metrics` Prometheus metrics for the Collector
-- `http(s)://<collectorFQDN>:9411/api/[v1|v2]/spans` Zipkin JSON (can be set to proto)receiver
-- `http(s)://<collectorFQDN>:9943/v2/trace` SignalFx APM receiver
-</details>
-
-The following sections describe how to deploy the Collector in supported environments.
-
 ### Docker
 
 Deploy from a Docker container. Replace `0.1.0` with the latest stable version number:
@@ -68,7 +109,12 @@ $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
 
 ### Standalone
 
+Run as a binary on the local system:
+
 ```bash
+$ git clone https://github.com/signalfx/splunk-otel-collector.git
+$ cd splunk-otel-collector
+$ make install-tools
 $ make otelcol
 $ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_MEMORY_TOTAL_MIB=1024 \
     ./bin/otelcol
@@ -78,8 +124,10 @@ $ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_MEMORY_TOTAL_MIB=1024 \
 
 ### Command Line Arguments
 
-Following the binary command or Docker container command line arguments can be
-specified. Command line arguments take priority over environment variables.
+After the binary command or Docker container command line arguments can be
+specified.
+
+> IMPORTANT: Command line arguments take precedence over environment variables.
 
 For example in Docker:
 
@@ -120,4 +168,3 @@ If the custom configuration includes a `memory_limiter` processor then the
 `SPLUNK_BALLAST_SIZE_MIB` environment variable. See
 [splunk_config_linux.yaml](cmd/otelcol/config/collector/splunk_config_linux.yaml)
 as an example.
-

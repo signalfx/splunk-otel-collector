@@ -16,7 +16,7 @@ sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --memory SPLUNK_TOTAL
     -- SPLUNK_ACCESS_TOKEN
 ```
 
-Currently, only the following Linux distributions and versions are supported:
+Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2
 - CentOS / Red Hat / Oracle: 7, 8

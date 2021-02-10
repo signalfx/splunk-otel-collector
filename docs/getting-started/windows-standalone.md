@@ -6,7 +6,16 @@ A Windows MSI package (64-bit only) is available to download at
 
 ## Getting Started
 
-To install, double-click on the downloaded package or run the following command
+### GUI
+
+Double-click on the downloaded package and follow the wizard.
+
+### CLI
+
+TODO
+
+### PowerShell
+
 in a PowerShell terminal:
 
 ```sh
@@ -29,14 +38,11 @@ Before starting the `splunk-otel-collector` service, the following variables
 in the default config file need to be replaced by the appropriate values for
 your environment:
 
-- `${SPLUNK_ACCESS_TOKEN}`
-- `${SPLUNK_REALM}`
-- `${SPLUNK_BALLAST_SIZE_MIB}`
-- `${SPLUNK_MEMORY_LIMIT_MIB}`
-- `${SPLUNK_MEMORY_SPIKE_MIB}`
-
-See the [Getting Started](#getting-started) section for details about these
-variables.
+- `${SPLUNK_ACCESS_TOKEN}`: Access token to authenticate requests
+- `${SPLUNK_REALM}`: Which realm to send the data to (for example: `us0`)
+- `${SPLUNK_BALLAST_SIZE_MIB}`: How much memory to allocate to the ballast.
+- `${SPLUNK_MEMORY_LIMIT_MIB}`: Maximum total memory to be allocated by the process heap.
+- `${SPLUNK_MEMORY_SPIKE_MIB}`: Maximum spike between the measurements of memory usage.
 
 After updating all variables in the config file, start the
 `splunk-otel-collector` service by rebooting the system or running the

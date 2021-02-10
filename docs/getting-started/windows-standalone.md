@@ -4,22 +4,7 @@ A Windows MSI package (64-bit only) is available to download at
 [https://github.com/signalfx/splunk-otel-collector/releases
 ](https://github.com/signalfx/splunk-otel-collector/releases).
 
-## Getting Started
-
-### GUI
-
-Double-click on the downloaded package and follow the wizard.
-
-### PowerShell
-
-in a PowerShell terminal:
-
-```sh
-PS> Start-Process -Wait msiexec "/i PATH_TO_MSI /qn"
-```
-
-Replace `PATH_TO_MSI` with the *full* path to the downloaded package, e.g.
-`C:\your\download\folder\splunk-otel-collector-0.4.0-amd64.msi`.
+## Installation
 
 The collector will be installed to
 `\Program Files\Splunk\OpenTelemetry Collector`, and the
@@ -29,6 +14,23 @@ A default config file will be copied to
 `\ProgramData\Splunk\OpenTelemetry Collector\config.yaml` if it does not
 already exist.  This file is required to start the `splunk-otel-collector`
 service.
+
+### GUI
+
+Double-click on the downloaded package and follow the wizard.
+
+### PowerShell
+
+In a PowerShell terminal:
+
+```sh
+PS> Start-Process -Wait msiexec "/i PATH_TO_MSI /qn"
+```
+
+Replace `PATH_TO_MSI` with the *full* path to the downloaded package, e.g.
+`C:\your\download\folder\splunk-otel-collector-0.4.0-amd64.msi`.
+
+## Configuration
 
 Before starting the `splunk-otel-collector` service, the following variables
 in the default config file need to be replaced by the appropriate values for

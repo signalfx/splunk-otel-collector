@@ -56,8 +56,8 @@ matrix](https://github.com/open-telemetry/community/blob/47813530864b9fe5a5146f4
 | hostmetrics      | attributes        | file      | fluentbit     |
 | jaeger           | batch             | logging   | healthcheck   |
 | k8s_cluster      | filter            | otlp      | httpforwarder |
-| kubeletstats     | k8s_tagger        | sapm      | observer/host |
-| opencensus       | memorylimiter     | signalfx  | observer/k8s  |
+| kubeletstats     | k8s_tagger        | sapm      | host_observer |
+| opencensus       | memorylimiter     | signalfx  | k8s_observer  |
 | otlp             | metrictransform   | splunkhec | pprof         |
 | receiver_creator | resource          |           | zpages        |
 | sapm             | resourcedetection |           |               |

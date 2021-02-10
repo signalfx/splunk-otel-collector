@@ -10,10 +10,6 @@ A Windows MSI package (64-bit only) is available to download at
 
 Double-click on the downloaded package and follow the wizard.
 
-### CLI
-
-TODO
-
 ### PowerShell
 
 in a PowerShell terminal:

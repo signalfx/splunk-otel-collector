@@ -143,9 +143,10 @@ $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
 
 ### Custom Configuration
 
-In addition to using the default configuration, a custom configuration can also
-be provided. Use the `SPLUNK_CONFIG` environment variable or
-the `--config` command line argument to provide a custom configuration.
+When changes to the default configuration file is needed, a custom
+configuration file can specified and used instead. Use the `SPLUNK_CONFIG`
+environment variable or the `--config` command line argument to provide a
+custom configuration.
 
 > Command line arguments take precedence over environment variables. This
 > applies to `--config` and `--mem-ballast-size-mib`.

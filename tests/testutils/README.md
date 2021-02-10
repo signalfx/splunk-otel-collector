@@ -117,3 +117,20 @@ require.NoError(t, otlp.Start())
 
 require.NoError(t, otlp.AssertAllMetricsReceived(t, expectedResourceMetrics, 10*time.Second))
 ```
+
+### Collector Process
+
+The `CollectorProcess` is a helper type that will run the desired Collector executable as a subprocess using whatever 
+config you provide.  If an executable path isn't specified via builder method, the first `bin/otelcol` match walking up
+your current directory tree will be used, which can be helpful to ease test development and execution.
+
+```go
+import "github.com/signafx/splunk-otel-collector/tests/testutils"
+
+collector, err := testutils.NewCollectorProcess().WithPath("my_otel_collector_path",
+).WithConfigPath("my_config_path").WithLogger(logger).WithLogLevel("debug").Build()
+
+err = collector.Start()
+require.NoError(t, err)
+defer func() { require.NoError(t, collector.Shutdown()) }()
+```

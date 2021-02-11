@@ -53,13 +53,13 @@ matrix](https://github.com/open-telemetry/community/blob/47813530864b9fe5a5146f4
 
 | Receivers        | Processors        | Exporters | Extensions    |
 | :--------------: | :--------:        | :-------: | :--------:    |
-| hostmetrics      | attributes        | file      | fluentbit     |
-| jaeger           | batch             | logging   | healthcheck   |
-| k8s_cluster      | filter            | otlp      | httpforwarder |
-| kubeletstats     | k8s_tagger        | sapm      | host_observer |
-| opencensus       | memorylimiter     | signalfx  | k8s_observer  |
-| otlp             | metrictransform   | splunkhec | pprof         |
-| receiver_creator | resource          |           | zpages        |
+| hostmetrics      | attributes        | file      | healthcheck   |
+| jaeger           | batch             | logging   | httpforwarder |
+| k8s_cluster      | filter            | otlp      | host_observer |
+| kubeletstats     | k8s_tagger        | sapm      | k8s_observer  |
+| opencensus       | memorylimiter     | signalfx  | pprof         |
+| otlp             | metrictransform   | splunkhec | zpages        |
+| receiver_creator | resource          |           |               |
 | sapm             | resourcedetection |           |               |
 | signalfx         | span              |           |               |
 | simpleprometheus |                   |           |               |

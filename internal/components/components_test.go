@@ -28,7 +28,6 @@ func TestDefaultComponents(t *testing.T) {
 		"health_check",
 		"pprof",
 		"zpages",
-		"fluentbit",
 		"host_observer",
 		"k8s_observer",
 		"http_forwarder",

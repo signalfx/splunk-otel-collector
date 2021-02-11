@@ -30,6 +30,7 @@ func TestCollectorProcessBuilders(t *testing.T) {
 
 	assert.Empty(t, builder.Path)
 	assert.Empty(t, builder.ConfigPath)
+	assert.Nil(t, builder.Args)
 	assert.Nil(t, builder.Logger)
 	assert.Empty(t, builder.LogLevel)
 
@@ -41,6 +42,10 @@ func TestCollectorProcessBuilders(t *testing.T) {
 	assert.Equal(t, "someconfigpath", withConfigPath.ConfigPath)
 	assert.Empty(t, builder.ConfigPath)
 
+	withArgs := builder.WithArgs("arg_one", "arg_two", "arg_three")
+	assert.Equal(t, []string{"arg_one", "arg_two", "arg_three"}, withArgs.Args)
+	assert.Empty(t, builder.Args)
+
 	logger := zap.NewNop()
 	withLogger := builder.WithLogger(logger)
 	assert.Same(t, logger, withLogger.Logger)
@@ -51,13 +56,36 @@ func TestCollectorProcessBuilders(t *testing.T) {
 	assert.Empty(t, builder.LogLevel)
 }
 
-func TestConfigPathRequiredUponBuild(t *testing.T) {
+func TestConfigPathRequiredUponBuildWithoutArgs(t *testing.T) {
 	builder := NewCollectorProcess()
 
 	collector, err := builder.Build()
 	assert.Nil(t, collector)
 	require.Error(t, err)
 	assert.EqualError(t, err, "you must specify a ConfigPath for your CollectorProcess before building")
+}
+
+func TestConfigPathNotRequiredUponBuildWithArgs(t *testing.T) {
+	withArgs := NewCollectorProcess().WithArgs("arg_one", "arg_two")
+
+	collector, err := withArgs.Build()
+	require.NoError(t, err)
+	require.NotNil(t, collector)
+}
+
+func TestCollectorProcessBuildDefaults(t *testing.T) {
+	// specifying Path to avoid built otelcol requirement
+	builder := NewCollectorProcess().WithPath("somepath").WithConfigPath("someconfigpath")
+
+	collector, err := builder.Build()
+	require.NoError(t, err)
+	require.NotNil(t, collector)
+
+	assert.Equal(t, "somepath", collector.Path)
+	assert.Equal(t, "someconfigpath", collector.ConfigPath)
+	assert.NotNil(t, collector.Logger)
+	assert.Equal(t, "info", collector.LogLevel)
+	assert.Equal(t, []string{"--log-level", "info", "--config", "someconfigpath"}, collector.Args)
 }
 
 func TestStartAndShutdownInvalidWithoutBuilding(t *testing.T) {

@@ -30,6 +30,7 @@ const findExecutableErrorMsg = "unable to find collector executable path.  Be su
 type CollectorProcess struct {
 	Path             string
 	ConfigPath       string
+	Args             []string
 	Logger           *zap.Logger
 	LogLevel         string
 	Process          *subprocess.Subprocess
@@ -53,6 +54,12 @@ func (collector CollectorProcess) WithConfigPath(path string) CollectorProcess {
 	return collector
 }
 
+// []string{"--log-level", collector.LogLevel, "--config", collector.ConfigPath} by default
+func (collector CollectorProcess) WithArgs(args ...string) CollectorProcess {
+	collector.Args = args
+	return collector
+}
+
 // Nop logger by default
 func (collector CollectorProcess) WithLogger(logger *zap.Logger) CollectorProcess {
 	collector.Logger = logger
@@ -66,7 +73,7 @@ func (collector CollectorProcess) WithLogLevel(level string) CollectorProcess {
 }
 
 func (collector CollectorProcess) Build() (*CollectorProcess, error) {
-	if collector.ConfigPath == "" {
+	if collector.ConfigPath == "" && collector.Args == nil {
 		return nil, fmt.Errorf("you must specify a ConfigPath for your CollectorProcess before building")
 	}
 	if collector.Path == "" {
@@ -82,9 +89,12 @@ func (collector CollectorProcess) Build() (*CollectorProcess, error) {
 	if collector.LogLevel == "" {
 		collector.LogLevel = "info"
 	}
+	if collector.Args == nil {
+		collector.Args = []string{"--log-level", collector.LogLevel, "--config", collector.ConfigPath}
+	}
 	collector.subprocessConfig = &subprocess.Config{
 		ExecutablePath: collector.Path,
-		Args:           []string{"--log-level", collector.LogLevel, "--config", collector.ConfigPath},
+		Args:           collector.Args,
 	}
 	collector.Process = subprocess.NewSubprocess(collector.subprocessConfig, collector.Logger)
 	return &collector, nil

@@ -1,0 +1,16 @@
+receivers:
+  hostmetrics:
+    collection_interval: 1s
+    scrapers:
+      memory:
+
+exporters:
+  otlp:
+    endpoint: localhost:23456
+    insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [hostmetrics]
+      exporters: [otlp]

@@ -9,7 +9,7 @@ is:
 ([see example](./testutils/testdata/resourceMetrics.yaml))
 1. Spin up your target resources as [docker containers](./testutils/README.md#test-containers).
 1. Stand up an in-memory [OTLP metrics receiver and sink](./testutils/README.md#otlp-metrics-receiver-sink) capable of detecting if/when desired data are received.
-1. Spin up your Collector as a subprocess configured to report to this OTLP receiver (TODO)
+1. Spin up your [Collector as a subprocess](./testutils/README.md#collector-process) configured to report to this OTLP receiver.
   
 ...but if you are interested in something else enhancements and contributions are a great way to ensure this library
 is more useful overall.
@@ -39,12 +39,12 @@ func TestMyExampleComponent(t *testing.T) {
 	require.NotNil(t, expectedResourceMetrics)
 
 	// combination OTLP Receiver consumertests.MetricsSink
-	otlp, err := testutils.NewOTLPReceiverSink().WithEndpoint("localhost:23456").Build()
+	otlp, err := testutils.NewOTLPMetricsReceiverSink().WithEndpoint("localhost:23456").Build()
 	require.NoError(t, err)
 	require.NoError(t, otlp.Start())
 
 	defer func() {
-		require.Nil(t, otlp.Shutdown())
+		require.NoError(t, otlp.Shutdown())
 	}()
 
 	myContainer := testutils.NewContainer().WithImage("someTarget").Build()
@@ -52,10 +52,13 @@ func TestMyExampleComponent(t *testing.T) {
 	require.NoError(t, err)
 
 	// running collector subprocess that uses the provided config set to export OTLP to our test receiver
-	myCollector, err := testutils.NewCollectorProcess().WithConfig(path.Join(".", "testdata", "config.yaml")).Build()
+	myCollector, err := testutils.NewCollectorProcess().WithConfigPath(path.Join(".", "testdata", "config.yaml")).Build()
 	require.NoError(t, err)
-	err = myCollector.Start(context.Background())
+	err = myCollector.Start()
 	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, myCollector.Shutdown() )
+	}()
 
 	require.NoError(t, otlp.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }

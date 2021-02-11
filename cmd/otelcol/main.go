@@ -62,6 +62,42 @@ func main() {
 	// TODO: Use same format as the collector
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
+	args := os.Args[1:]
+	if !contains(args, "-h") && !contains(args, "--help") {
+		checkSetEnvVars()
+	}
+
+	factories, err := components.Get()
+	if err != nil {
+		log.Fatalf("failed to build default components: %v", err)
+	}
+
+	info := component.ApplicationStartInfo{
+		ExeName:  "otelcol",
+		LongName: "OpenTelemetry Collector",
+		Version:  version.Version,
+		GitHash:  version.GitHash,
+	}
+
+	if err := run(service.Parameters{ApplicationStartInfo: info, Factories: factories}); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func contains(arr []string, str string) bool {
+	for _, a := range arr {
+		// Command line argument may be of form
+		// --key value OR --key=value
+		if a == str {
+			return true
+		} else if strings.Contains(a, str+"=") {
+			return true
+		}
+	}
+	return false
+}
+
+func checkSetEnvVars() {
 	// Check if the total memory is specified via the env var.
 	memTotalEnvVarVal := os.Getenv(memTotalEnvVarName)
 	memTotalSizeMiB := 0
@@ -96,35 +132,6 @@ func main() {
 	} else {
 		useMemorySettingsMiBFromEnvVar(memTotalSizeMiB)
 	}
-
-	factories, err := components.Get()
-	if err != nil {
-		log.Fatalf("failed to build default components: %v", err)
-	}
-
-	info := component.ApplicationStartInfo{
-		ExeName:  "otelcol",
-		LongName: "OpenTelemetry Collector",
-		Version:  version.Version,
-		GitHash:  version.GitHash,
-	}
-
-	if err := run(service.Parameters{ApplicationStartInfo: info, Factories: factories}); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func contains(arr []string, str string) bool {
-	for _, a := range arr {
-		// Command line argument may be of form
-		// --key value OR --key=value
-		if a == str {
-			return true
-		} else if strings.Contains(a, str+"=") {
-			return true
-		}
-	}
-	return false
 }
 
 func useMemorySizeFromEnvVar(memTotalSizeMiB int) {

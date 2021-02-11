@@ -1,0 +1,9 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: another_int_gauge
+            type: IntGauge
+            labels:
+              label_one: value_one
+              label_two: value_two
+            value: 111

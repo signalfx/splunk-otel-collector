@@ -242,3 +242,16 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 		})
 	}
 }
+
+func TestSmartAgentReceiverNonCollectd(t *testing.T) {
+	cfg := newConfig("valid", "cpu", 10)
+	consumer := new(consumertest.MetricsSink)
+	receiver := NewReceiver(zap.NewNop(), cfg, consumer)
+
+	receiver.Start(context.Background(), componenttest.NewNopHost())
+
+	// Simple test to ensure that collectd config is not loaded for non-collectd monitors.
+	require.Empty(t, receiver.config.collectdConfig)
+
+	receiver.Shutdown(context.Background())
+}

@@ -23,7 +23,7 @@ Currently, the following Linux distributions and versions are supported:
 - Debian: 8, 9, 10
 - Ubuntu: 16.04, 18.04, 20.04
 
-You can view the [source](internal/buildscripts/packaging/installer/install.sh)
+You can view the [source](../../internal/buildscripts/packaging/installer/install.sh)
 for more details and available options.
 
 ## Advanced Configuration

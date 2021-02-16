@@ -99,12 +99,12 @@ type InstrumentationLibrary struct {
 // The metric content, representing both the overall definition and a single datapoint.
 // TODO: Timestamps
 type Metric struct {
-	Name        string            `yaml:"name"`
-	Description string            `yaml:"description,omitempty"`
-	Unit        string            `yaml:"unit,omitempty"`
-	Labels      map[string]string `yaml:"labels,omitempty"`
-	Type        MetricType        `yaml:"type"`
-	Value       interface{}       `yaml:value,omitempty`
+	Name        string             `yaml:"name"`
+	Description string             `yaml:"description,omitempty"`
+	Unit        string             `yaml:"unit,omitempty"`
+	Labels      *map[string]string `yaml:"labels,omitempty"`
+	Type        MetricType         `yaml:"type"`
+	Value       interface{}        `yaml:value,omitempty`
 }
 
 // Returns a ResourceMetrics instance generated via parsing a valid yaml file at the provided path.
@@ -204,7 +204,10 @@ func (instrumentationLibrary InstrumentationLibrary) Equals(toCompare Instrument
 }
 
 func (metric Metric) String() string {
-	labels := MapToString(toInterfaceMap(metric.Labels))
+	var labels string
+	if metric.Labels != nil {
+		labels = MapToString(toInterfaceMap(*metric.Labels))
+	}
 	return fmt.Sprintf(
 		"%v:%v:%v:%v:%v:%v:%v",
 		metric.Name, metric.Description, metric.Unit,
@@ -248,7 +251,10 @@ func (metric Metric) equals(toCompare Metric, strict bool) bool {
 		return false
 	}
 
-	return reflect.DeepEqual(metric.Labels, toCompare.Labels)
+	if metric.Labels != nil {
+		return reflect.DeepEqual(metric.Labels, toCompare.Labels)
+	}
+	return true
 }
 
 // FlattenResourceMetrics takes multiple instances of ResourceMetrics and flattens them

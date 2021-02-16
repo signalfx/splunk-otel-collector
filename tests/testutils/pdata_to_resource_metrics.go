@@ -94,7 +94,7 @@ func addDoubleSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 			Name:        metric.Name(),
 			Description: metric.Description(),
 			Unit:        metric.Unit(),
-			Labels:      labels,
+			Labels:      &labels,
 			Type:        metricType,
 			Value:       val,
 		}
@@ -163,7 +163,7 @@ func addIntSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 			Name:        metric.Name(),
 			Description: metric.Description(),
 			Unit:        metric.Unit(),
-			Labels:      labels,
+			Labels:      &labels,
 			Type:        metricType,
 			Value:       val,
 		}
@@ -185,7 +185,7 @@ func addDoubleGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 			Name:        metric.Name(),
 			Description: metric.Description(),
 			Unit:        metric.Unit(),
-			Labels:      labels,
+			Labels:      &labels,
 			Type:        DoubleGauge,
 			Value:       val,
 		}
@@ -207,7 +207,7 @@ func addIntGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 			Name:        metric.Name(),
 			Description: metric.Description(),
 			Unit:        metric.Unit(),
-			Labels:      labels,
+			Labels:      &labels,
 			Type:        IntGauge,
 			Value:       val,
 		}

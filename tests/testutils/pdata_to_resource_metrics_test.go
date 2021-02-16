@@ -252,7 +252,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "an_int_gauge_description", ilmOneMetricOne.Description)
 	assert.Equal(t, "an_int_gauge_unit", ilmOneMetricOne.Unit)
 	assert.Equal(t, IntGauge, ilmOneMetricOne.Type)
-	assert.Equal(t, map[string]string{"label_name_1": "label_value_1"}, ilmOneMetricOne.Labels)
+	assert.Equal(t, map[string]string{"label_name_1": "label_value_1"}, *ilmOneMetricOne.Labels)
 	assert.EqualValues(t, 12345, ilmOneMetricOne.Value)
 
 	ilmOneMetricTwo := ilms[0].Metrics[1]
@@ -260,7 +260,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "an_int_gauge_description", ilmOneMetricTwo.Description)
 	assert.Equal(t, "an_int_gauge_unit", ilmOneMetricTwo.Unit)
 	assert.Equal(t, IntGauge, ilmOneMetricTwo.Type)
-	assert.Equal(t, map[string]string{"label_name_2": "label_value_2"}, ilmOneMetricTwo.Labels)
+	assert.Equal(t, map[string]string{"label_name_2": "label_value_2"}, *ilmOneMetricTwo.Labels)
 	assert.EqualValues(t, 23456, ilmOneMetricTwo.Value)
 
 	ilmOneMetricThree := ilms[0].Metrics[2]
@@ -268,7 +268,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_double_gauge_description", ilmOneMetricThree.Description)
 	assert.Equal(t, "a_double_gauge_unit", ilmOneMetricThree.Unit)
 	assert.Equal(t, DoubleGauge, ilmOneMetricThree.Type)
-	assert.Equal(t, map[string]string{"label_name_3": "label_value_3"}, ilmOneMetricThree.Labels)
+	assert.Equal(t, map[string]string{"label_name_3": "label_value_3"}, *ilmOneMetricThree.Labels)
 	assert.EqualValues(t, 234.56, ilmOneMetricThree.Value)
 
 	ilmOneMetricFour := ilms[0].Metrics[3]
@@ -276,7 +276,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_double_gauge_description", ilmOneMetricFour.Description)
 	assert.Equal(t, "a_double_gauge_unit", ilmOneMetricFour.Unit)
 	assert.Equal(t, DoubleGauge, ilmOneMetricFour.Type)
-	assert.Equal(t, map[string]string{"label_name_4": "label_value_4"}, ilmOneMetricFour.Labels)
+	assert.Equal(t, map[string]string{"label_name_4": "label_value_4"}, *ilmOneMetricFour.Labels)
 	assert.EqualValues(t, 345.67, ilmOneMetricFour.Value)
 
 	assert.Equal(t, "an_instrumentation_library_without_version_or_metrics", ilms[1].InstrumentationLibrary.Name)
@@ -290,7 +290,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_monotonic_cumulative_int_sum_description", ilmThreeMetricOne.Description)
 	assert.Equal(t, "a_monotonic_cumulative_int_sum_unit", ilmThreeMetricOne.Unit)
 	assert.Equal(t, IntMonotonicCumulativeSum, ilmThreeMetricOne.Type)
-	assert.Equal(t, map[string]string{"label_name_5": "label_value_5"}, ilmThreeMetricOne.Labels)
+	assert.Equal(t, map[string]string{"label_name_5": "label_value_5"}, *ilmThreeMetricOne.Labels)
 	assert.EqualValues(t, 34567, ilmThreeMetricOne.Value)
 
 	ilmThreeMetricTwo := ilms[2].Metrics[1]
@@ -298,7 +298,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_monotonic_cumulative_int_sum_description", ilmThreeMetricTwo.Description)
 	assert.Equal(t, "a_monotonic_cumulative_int_sum_unit", ilmThreeMetricTwo.Unit)
 	assert.Equal(t, IntMonotonicCumulativeSum, ilmThreeMetricTwo.Type)
-	assert.Equal(t, map[string]string{"label_name_6": "label_value_6"}, ilmThreeMetricTwo.Labels)
+	assert.Equal(t, map[string]string{"label_name_6": "label_value_6"}, *ilmThreeMetricTwo.Labels)
 	assert.EqualValues(t, 45678, ilmThreeMetricTwo.Value)
 
 	ilmThreeMetricThree := ilms[2].Metrics[2]
@@ -306,7 +306,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_monotonic_delta_int_sum_description", ilmThreeMetricThree.Description)
 	assert.Equal(t, "a_monotonic_delta_int_sum_unit", ilmThreeMetricThree.Unit)
 	assert.Equal(t, IntMonotonicDeltaSum, ilmThreeMetricThree.Type)
-	assert.Equal(t, map[string]string{"label_name_7": "label_value_7"}, ilmThreeMetricThree.Labels)
+	assert.Equal(t, map[string]string{"label_name_7": "label_value_7"}, *ilmThreeMetricThree.Labels)
 	assert.EqualValues(t, 56789, ilmThreeMetricThree.Value)
 
 	ilmThreeMetricFour := ilms[2].Metrics[3]
@@ -314,7 +314,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_monotonic_delta_int_sum_description", ilmThreeMetricFour.Description)
 	assert.Equal(t, "a_monotonic_delta_int_sum_unit", ilmThreeMetricFour.Unit)
 	assert.Equal(t, IntMonotonicDeltaSum, ilmThreeMetricFour.Type)
-	assert.Equal(t, map[string]string{"label_name_8": "label_value_8"}, ilmThreeMetricFour.Labels)
+	assert.Equal(t, map[string]string{"label_name_8": "label_value_8"}, *ilmThreeMetricFour.Labels)
 	assert.EqualValues(t, 67890, ilmThreeMetricFour.Value)
 
 	ilmThreeMetricFive := ilms[2].Metrics[4]
@@ -322,7 +322,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_monotonic_unspecified_int_sum_description", ilmThreeMetricFive.Description)
 	assert.Equal(t, "a_monotonic_unspecified_int_sum_unit", ilmThreeMetricFive.Unit)
 	assert.Equal(t, IntMonotonicUnspecifiedSum, ilmThreeMetricFive.Type)
-	assert.Equal(t, map[string]string{"label_name_9": "label_value_9"}, ilmThreeMetricFive.Labels)
+	assert.Equal(t, map[string]string{"label_name_9": "label_value_9"}, *ilmThreeMetricFive.Labels)
 	assert.EqualValues(t, 78901, ilmThreeMetricFive.Value)
 
 	ilmThreeMetricSix := ilms[2].Metrics[5]
@@ -330,7 +330,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_monotonic_unspecified_int_sum_description", ilmThreeMetricSix.Description)
 	assert.Equal(t, "a_monotonic_unspecified_int_sum_unit", ilmThreeMetricSix.Unit)
 	assert.Equal(t, IntMonotonicUnspecifiedSum, ilmThreeMetricSix.Type)
-	assert.Equal(t, map[string]string{"label_name_10": "label_value_10"}, ilmThreeMetricSix.Labels)
+	assert.Equal(t, map[string]string{"label_name_10": "label_value_10"}, *ilmThreeMetricSix.Labels)
 	assert.EqualValues(t, 89012, ilmThreeMetricSix.Value)
 
 	ilmThreeMetricSeven := ilms[2].Metrics[6]
@@ -338,7 +338,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_monotonic_cumulative_double_sum_description", ilmThreeMetricSeven.Description)
 	assert.Equal(t, "a_monotonic_cumulative_double_sum_unit", ilmThreeMetricSeven.Unit)
 	assert.Equal(t, DoubleMonotonicCumulativeSum, ilmThreeMetricSeven.Type)
-	assert.Equal(t, map[string]string{"label_name_11": "label_value_11"}, ilmThreeMetricSeven.Labels)
+	assert.Equal(t, map[string]string{"label_name_11": "label_value_11"}, *ilmThreeMetricSeven.Labels)
 	assert.EqualValues(t, 456.78, ilmThreeMetricSeven.Value)
 
 	ilmThreeMetricEight := ilms[2].Metrics[7]
@@ -346,7 +346,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_monotonic_cumulative_double_sum_description", ilmThreeMetricEight.Description)
 	assert.Equal(t, "a_monotonic_cumulative_double_sum_unit", ilmThreeMetricEight.Unit)
 	assert.Equal(t, DoubleMonotonicCumulativeSum, ilmThreeMetricEight.Type)
-	assert.Equal(t, map[string]string{"label_name_12": "label_value_12"}, ilmThreeMetricEight.Labels)
+	assert.Equal(t, map[string]string{"label_name_12": "label_value_12"}, *ilmThreeMetricEight.Labels)
 	assert.EqualValues(t, 567.89, ilmThreeMetricEight.Value)
 
 	ilmThreeMetricNine := ilms[2].Metrics[8]
@@ -354,7 +354,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_monotonic_delta_double_sum_description", ilmThreeMetricNine.Description)
 	assert.Equal(t, "a_monotonic_delta_double_sum_unit", ilmThreeMetricNine.Unit)
 	assert.Equal(t, DoubleMonotonicDeltaSum, ilmThreeMetricNine.Type)
-	assert.Equal(t, map[string]string{"label_name_13": "label_value_13"}, ilmThreeMetricNine.Labels)
+	assert.Equal(t, map[string]string{"label_name_13": "label_value_13"}, *ilmThreeMetricNine.Labels)
 	assert.EqualValues(t, 678.90, ilmThreeMetricNine.Value)
 
 	ilmThreeMetricTen := ilms[2].Metrics[9]
@@ -362,7 +362,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_monotonic_delta_double_sum_description", ilmThreeMetricTen.Description)
 	assert.Equal(t, "a_monotonic_delta_double_sum_unit", ilmThreeMetricTen.Unit)
 	assert.Equal(t, DoubleMonotonicDeltaSum, ilmThreeMetricTen.Type)
-	assert.Equal(t, map[string]string{"label_name_14": "label_value_14"}, ilmThreeMetricTen.Labels)
+	assert.Equal(t, map[string]string{"label_name_14": "label_value_14"}, *ilmThreeMetricTen.Labels)
 	assert.EqualValues(t, 789.01, ilmThreeMetricTen.Value)
 
 	ilmThreeMetricEleven := ilms[2].Metrics[10]
@@ -370,7 +370,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_monotonic_unspecified_double_sum_description", ilmThreeMetricEleven.Description)
 	assert.Equal(t, "a_monotonic_unspecified_double_sum_unit", ilmThreeMetricEleven.Unit)
 	assert.Equal(t, DoubleMonotonicUnspecifiedSum, ilmThreeMetricEleven.Type)
-	assert.Equal(t, map[string]string{"label_name_15": "label_value_15"}, ilmThreeMetricEleven.Labels)
+	assert.Equal(t, map[string]string{"label_name_15": "label_value_15"}, *ilmThreeMetricEleven.Labels)
 	assert.EqualValues(t, 890.12, ilmThreeMetricEleven.Value)
 
 	ilmThreeMetricTwelve := ilms[2].Metrics[11]
@@ -378,7 +378,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_monotonic_unspecified_double_sum_description", ilmThreeMetricTwelve.Description)
 	assert.Equal(t, "a_monotonic_unspecified_double_sum_unit", ilmThreeMetricTwelve.Unit)
 	assert.Equal(t, DoubleMonotonicUnspecifiedSum, ilmThreeMetricTwelve.Type)
-	assert.Equal(t, map[string]string{"label_name_16": "label_value_16"}, ilmThreeMetricTwelve.Labels)
+	assert.Equal(t, map[string]string{"label_name_16": "label_value_16"}, *ilmThreeMetricTwelve.Labels)
 	assert.EqualValues(t, 901.23, ilmThreeMetricTwelve.Value)
 
 	ilmThreeMetricThirteen := ilms[2].Metrics[12]
@@ -386,7 +386,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_nonmonotonic_cumulative_int_sum_description", ilmThreeMetricThirteen.Description)
 	assert.Equal(t, "a_nonmonotonic_cumulative_int_sum_unit", ilmThreeMetricThirteen.Unit)
 	assert.Equal(t, IntNonmonotonicCumulativeSum, ilmThreeMetricThirteen.Type)
-	assert.Equal(t, map[string]string{"label_name_17": "label_value_17"}, ilmThreeMetricThirteen.Labels)
+	assert.Equal(t, map[string]string{"label_name_17": "label_value_17"}, *ilmThreeMetricThirteen.Labels)
 	assert.EqualValues(t, 90123, ilmThreeMetricThirteen.Value)
 
 	ilmThreeMetricFourteen := ilms[2].Metrics[13]
@@ -394,7 +394,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_nonmonotonic_cumulative_int_sum_description", ilmThreeMetricFourteen.Description)
 	assert.Equal(t, "a_nonmonotonic_cumulative_int_sum_unit", ilmThreeMetricFourteen.Unit)
 	assert.Equal(t, IntNonmonotonicCumulativeSum, ilmThreeMetricFourteen.Type)
-	assert.Equal(t, map[string]string{"label_name_18": "label_value_18"}, ilmThreeMetricFourteen.Labels)
+	assert.Equal(t, map[string]string{"label_name_18": "label_value_18"}, *ilmThreeMetricFourteen.Labels)
 	assert.EqualValues(t, 123456, ilmThreeMetricFourteen.Value)
 
 	ilmThreeMetricFifteen := ilms[2].Metrics[14]
@@ -402,7 +402,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_nonmonotonic_delta_int_sum_description", ilmThreeMetricFifteen.Description)
 	assert.Equal(t, "a_nonmonotonic_delta_int_sum_unit", ilmThreeMetricFifteen.Unit)
 	assert.Equal(t, IntNonmonotonicDeltaSum, ilmThreeMetricFifteen.Type)
-	assert.Equal(t, map[string]string{"label_name_19": "label_value_19"}, ilmThreeMetricFifteen.Labels)
+	assert.Equal(t, map[string]string{"label_name_19": "label_value_19"}, *ilmThreeMetricFifteen.Labels)
 	assert.EqualValues(t, 234567, ilmThreeMetricFifteen.Value)
 
 	ilmThreeMetricSixteen := ilms[2].Metrics[15]
@@ -410,7 +410,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_nonmonotonic_delta_int_sum_description", ilmThreeMetricSixteen.Description)
 	assert.Equal(t, "a_nonmonotonic_delta_int_sum_unit", ilmThreeMetricSixteen.Unit)
 	assert.Equal(t, IntNonmonotonicDeltaSum, ilmThreeMetricSixteen.Type)
-	assert.Equal(t, map[string]string{"label_name_20": "label_value_20"}, ilmThreeMetricSixteen.Labels)
+	assert.Equal(t, map[string]string{"label_name_20": "label_value_20"}, *ilmThreeMetricSixteen.Labels)
 	assert.EqualValues(t, 345678, ilmThreeMetricSixteen.Value)
 
 	ilmThreeMetricSeventeen := ilms[2].Metrics[16]
@@ -418,7 +418,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_nonmonotonic_unspecified_int_sum_description", ilmThreeMetricSeventeen.Description)
 	assert.Equal(t, "a_nonmonotonic_unspecified_int_sum_unit", ilmThreeMetricSeventeen.Unit)
 	assert.Equal(t, IntNonmonotonicUnspecifiedSum, ilmThreeMetricSeventeen.Type)
-	assert.Equal(t, map[string]string{"label_name_21": "label_value_21"}, ilmThreeMetricSeventeen.Labels)
+	assert.Equal(t, map[string]string{"label_name_21": "label_value_21"}, *ilmThreeMetricSeventeen.Labels)
 	assert.EqualValues(t, 456789, ilmThreeMetricSeventeen.Value)
 
 	ilmThreeMetricEighteen := ilms[2].Metrics[17]
@@ -426,7 +426,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_nonmonotonic_unspecified_int_sum_description", ilmThreeMetricEighteen.Description)
 	assert.Equal(t, "a_nonmonotonic_unspecified_int_sum_unit", ilmThreeMetricEighteen.Unit)
 	assert.Equal(t, IntNonmonotonicUnspecifiedSum, ilmThreeMetricEighteen.Type)
-	assert.Equal(t, map[string]string{"label_name_22": "label_value_22"}, ilmThreeMetricEighteen.Labels)
+	assert.Equal(t, map[string]string{"label_name_22": "label_value_22"}, *ilmThreeMetricEighteen.Labels)
 	assert.EqualValues(t, 567890, ilmThreeMetricEighteen.Value)
 
 	ilmThreeMetricNineteen := ilms[2].Metrics[18]
@@ -434,7 +434,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_nonmonotonic_cumulative_double_sum_description", ilmThreeMetricNineteen.Description)
 	assert.Equal(t, "a_nonmonotonic_cumulative_double_sum_unit", ilmThreeMetricNineteen.Unit)
 	assert.Equal(t, DoubleNonmonotonicCumulativeSum, ilmThreeMetricNineteen.Type)
-	assert.Equal(t, map[string]string{"label_name_23": "label_value_23"}, ilmThreeMetricNineteen.Labels)
+	assert.Equal(t, map[string]string{"label_name_23": "label_value_23"}, *ilmThreeMetricNineteen.Labels)
 	assert.EqualValues(t, 1234.56, ilmThreeMetricNineteen.Value)
 
 	ilmThreeMetricTwenty := ilms[2].Metrics[19]
@@ -442,7 +442,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_nonmonotonic_cumulative_double_sum_description", ilmThreeMetricTwenty.Description)
 	assert.Equal(t, "a_nonmonotonic_cumulative_double_sum_unit", ilmThreeMetricTwenty.Unit)
 	assert.Equal(t, DoubleNonmonotonicCumulativeSum, ilmThreeMetricTwenty.Type)
-	assert.Equal(t, map[string]string{"label_name_24": "label_value_24"}, ilmThreeMetricTwenty.Labels)
+	assert.Equal(t, map[string]string{"label_name_24": "label_value_24"}, *ilmThreeMetricTwenty.Labels)
 	assert.EqualValues(t, 2345.67, ilmThreeMetricTwenty.Value)
 
 	ilmThreeMetricTwentyOne := ilms[2].Metrics[20]
@@ -450,7 +450,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_nonmonotonic_delta_double_sum_description", ilmThreeMetricTwentyOne.Description)
 	assert.Equal(t, "a_nonmonotonic_delta_double_sum_unit", ilmThreeMetricTwentyOne.Unit)
 	assert.Equal(t, DoubleNonmonotonicDeltaSum, ilmThreeMetricTwentyOne.Type)
-	assert.Equal(t, map[string]string{"label_name_25": "label_value_25"}, ilmThreeMetricTwentyOne.Labels)
+	assert.Equal(t, map[string]string{"label_name_25": "label_value_25"}, *ilmThreeMetricTwentyOne.Labels)
 	assert.EqualValues(t, 3456.78, ilmThreeMetricTwentyOne.Value)
 
 	ilmThreeMetricTwentyTwo := ilms[2].Metrics[21]
@@ -458,7 +458,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_nonmonotonic_delta_double_sum_description", ilmThreeMetricTwentyTwo.Description)
 	assert.Equal(t, "a_nonmonotonic_delta_double_sum_unit", ilmThreeMetricTwentyTwo.Unit)
 	assert.Equal(t, DoubleNonmonotonicDeltaSum, ilmThreeMetricTwentyTwo.Type)
-	assert.Equal(t, map[string]string{"label_name_26": "label_value_26"}, ilmThreeMetricTwentyTwo.Labels)
+	assert.Equal(t, map[string]string{"label_name_26": "label_value_26"}, *ilmThreeMetricTwentyTwo.Labels)
 	assert.EqualValues(t, 4567.89, ilmThreeMetricTwentyTwo.Value)
 
 	ilmThreeMetricTwentyThree := ilms[2].Metrics[22]
@@ -466,7 +466,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_nonmonotonic_unspecified_double_sum_description", ilmThreeMetricTwentyThree.Description)
 	assert.Equal(t, "a_nonmonotonic_unspecified_double_sum_unit", ilmThreeMetricTwentyThree.Unit)
 	assert.Equal(t, DoubleNonmonotonicUnspecifiedSum, ilmThreeMetricTwentyThree.Type)
-	assert.Equal(t, map[string]string{"label_name_27": "label_value_27"}, ilmThreeMetricTwentyThree.Labels)
+	assert.Equal(t, map[string]string{"label_name_27": "label_value_27"}, *ilmThreeMetricTwentyThree.Labels)
 	assert.EqualValues(t, 5678.90, ilmThreeMetricTwentyThree.Value)
 
 	ilmThreeMetricTwentyFour := ilms[2].Metrics[23]
@@ -474,6 +474,6 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, "a_nonmonotonic_unspecified_double_sum_description", ilmThreeMetricTwentyFour.Description)
 	assert.Equal(t, "a_nonmonotonic_unspecified_double_sum_unit", ilmThreeMetricTwentyFour.Unit)
 	assert.Equal(t, DoubleNonmonotonicUnspecifiedSum, ilmThreeMetricTwentyFour.Type)
-	assert.Equal(t, map[string]string{"label_name_28": "label_value_28"}, ilmThreeMetricTwentyFour.Labels)
+	assert.Equal(t, map[string]string{"label_name_28": "label_value_28"}, *ilmThreeMetricTwentyFour.Labels)
 	assert.EqualValues(t, 6789.01, ilmThreeMetricTwentyFour.Value)
 }

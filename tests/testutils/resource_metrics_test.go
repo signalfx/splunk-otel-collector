@@ -182,7 +182,7 @@ func TestMetricEquivalence(t *testing.T) {
 		return Metric{
 			Name: "a_metric", Description: "a_metric_description",
 			Unit: "a_metric_unit", Type: MetricType("a_metric_type"),
-			Labels: map[string]string{
+			Labels: &map[string]string{
 				"one": "one", "two": "two",
 			}, Value: 123,
 		}
@@ -229,10 +229,10 @@ func TestMetricEquivalence(t *testing.T) {
 	assert.True(t, mOne.Equals(mTwo))
 	assert.True(t, mTwo.Equals(mOne))
 
-	mTwo.Labels["three"] = "three"
+	(*mTwo.Labels)["three"] = "three"
 	assert.False(t, mOne.Equals(mTwo))
 	assert.False(t, mTwo.Equals(mOne))
-	mOne.Labels["three"] = "three"
+	(*mOne.Labels)["three"] = "three"
 	assert.True(t, mOne.Equals(mTwo))
 	assert.True(t, mTwo.Equals(mOne))
 }
@@ -240,7 +240,7 @@ func TestMetricEquivalence(t *testing.T) {
 func TestMetricRelaxedEquivalence(t *testing.T) {
 	lacksDescriptionUnitAndType := Metric{
 		Name: "a_metric",
-		Labels: map[string]string{
+		Labels: &map[string]string{
 			"one": "one", "two": "two",
 		}, Value: 123,
 	}
@@ -248,7 +248,7 @@ func TestMetricRelaxedEquivalence(t *testing.T) {
 	completeMetric := Metric{
 		Name: "a_metric", Description: "a_description",
 		Unit: "a_metric_unit", Type: "a_metric_type",
-		Labels: map[string]string{
+		Labels: &map[string]string{
 			"one": "one", "two": "two",
 		}, Value: 123,
 	}
@@ -256,10 +256,10 @@ func TestMetricRelaxedEquivalence(t *testing.T) {
 	require.True(t, lacksDescriptionUnitAndType.RelaxedEquals(completeMetric))
 	require.False(t, completeMetric.RelaxedEquals(lacksDescriptionUnitAndType))
 
-	lacksDescriptionUnitAndType.Labels["three"] = "three"
+	(*lacksDescriptionUnitAndType.Labels)["three"] = "three"
 	require.False(t, lacksDescriptionUnitAndType.RelaxedEquals(completeMetric))
 	require.False(t, completeMetric.RelaxedEquals(lacksDescriptionUnitAndType))
-	completeMetric.Labels["three"] = "three"
+	(*completeMetric.Labels)["three"] = "three"
 	require.True(t, lacksDescriptionUnitAndType.RelaxedEquals(completeMetric))
 	require.False(t, completeMetric.RelaxedEquals(lacksDescriptionUnitAndType))
 
@@ -282,6 +282,30 @@ func TestMetricRelaxedEquivalence(t *testing.T) {
 	require.True(t, completeMetric.RelaxedEquals(lacksDescriptionUnitAndType))
 }
 
+func TestMetricLabelRelaxedEquivalence(t *testing.T) {
+	lackingLabels := Metric{
+		Name: "a_metric", Description: "a_description",
+		Unit: "a_metric_unit", Value: 123,
+	}
+
+	emptyLabels := Metric{
+		Name: "a_metric", Description: "a_description",
+		Unit: "a_metric_unit", Labels: &map[string]string{},
+		Value: 123,
+	}
+
+	completeMetric := Metric{
+		Name: "a_metric", Description: "a_description",
+		Unit: "a_metric_unit", Type: "a_metric_type",
+		Labels: &map[string]string{
+			"one": "one", "two": "two",
+		}, Value: 123,
+	}
+
+	require.True(t, lackingLabels.RelaxedEquals(completeMetric))
+	require.False(t, emptyLabels.RelaxedEquals(completeMetric))
+}
+
 func TestHashFunctionConsistency(t *testing.T) {
 	resource := Resource{Attributes: map[string]interface{}{
 		"one": "1", "two": 2, "three": 3.000, "four": false, "five": nil,
@@ -297,7 +321,7 @@ func TestHashFunctionConsistency(t *testing.T) {
 
 	metric := Metric{
 		Name: "some metric", Description: "some description",
-		Unit: "some unit", Labels: map[string]string{
+		Unit: "some unit", Labels: &map[string]string{
 			"labelOne": "1", "labelTwo": "two",
 		}, Type: MetricType("some metric type"), Value: 123.456,
 	}
@@ -446,4 +470,27 @@ func TestContainsAllResourceNeverReceived(t *testing.T) {
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "Missing resources: [not:matched]")
+}
+
+func TestContainsAllWithMissingAndEmptyLabels(t *testing.T) {
+	received, err := LoadResourceMetrics(path.Join(".", "testdata", "labelValueResourceMetrics.yaml"))
+	require.NoError(t, err)
+	require.NotNil(t, received)
+
+	unspecified, err := LoadResourceMetrics(path.Join(".", "testdata", "unspecifiedLabelsAllowed.yaml"))
+	require.NoError(t, err)
+	require.NotNil(t, unspecified)
+
+	empty, err := LoadResourceMetrics(path.Join(".", "testdata", "emptyLabelsRequired.yaml"))
+	require.NoError(t, err)
+	require.NotNil(t, empty)
+
+	containsAll, err := received.ContainsAll(*unspecified)
+	require.True(t, containsAll)
+	require.NoError(t, err)
+
+	containsAll, err = received.ContainsAll(*empty)
+	require.False(t, containsAll)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Missing Metrics: [another_int_gauge:::::IntGauge:111]")
 }

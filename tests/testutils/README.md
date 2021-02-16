@@ -6,7 +6,8 @@ from arbitrary components.
 ### Resource Metrics
 
 `ResourceMetrics` are at the core of the internal metric data format for these tests and are intended to be defined
-in yaml files or by converting from obtained `pdata.Metrics` items.
+in yaml files or by converting from obtained `pdata.Metrics` items.  They provide a strict `Equals()` helper method as
+well as `RelaxedEquals()` to help in verifying desired field and values, ignoring those not specified.
 
 ```yaml
 resource_metrics:
@@ -28,9 +29,7 @@ resource_metrics:
             value: 123
           - name: my.double.sum
             type: DoubleNonmonotonicDeltaSum
-            labels:
-              label_one: value_one
-              label_two: value_two
+            labels: {} # enforced empty label map in RelaxedEquals() (only point with no labels matches)
             value: -123.456
   - instrumentation_library_metrics:
       - instrumentation_library:
@@ -38,8 +37,7 @@ resource_metrics:
         metrics:
           - name: my.double.gauge
             type: DoubleGauge
-            labels:
-              another: label
+            # missing labels field, so values are not compared in RelaxedEquals() (any label values are accepted)
             value: 456.789
           - name: my.double.gauge
             type: DoubleGauge

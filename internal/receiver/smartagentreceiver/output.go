@@ -66,12 +66,12 @@ func (output *Output) EnabledMetrics() []string {
 
 func (output *Output) HasEnabledMetricInGroup(group string) bool {
 	output.logger.Debug("HasEnabledMetricInGroup has been called", zap.String("group", group))
-	return false
+	return true
 }
 
 func (output *Output) HasAnyExtraMetrics() bool {
 	output.logger.Debug("HasAnyExtraMetrics has been called.")
-	return false
+	return true
 }
 
 // Some monitors will clone their Output to provide to child monitors with their own extraDimensions

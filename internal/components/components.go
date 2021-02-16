@@ -58,6 +58,7 @@ import (
 	"go.opentelemetry.io/collector/receiver/prometheusreceiver"
 	"go.opentelemetry.io/collector/receiver/zipkinreceiver"
 
+	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/smartagentreceiver"
 )
 
@@ -69,6 +70,7 @@ func Get() (component.Factories, error) {
 		httpforwarder.NewFactory(),
 		k8sobserver.NewFactory(),
 		pprofextension.NewFactory(),
+		smartagentextension.NewFactory(),
 		zpagesextension.NewFactory(),
 	)
 	if err != nil {

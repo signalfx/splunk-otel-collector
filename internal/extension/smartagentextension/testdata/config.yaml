@@ -1,0 +1,32 @@
+extensions:
+  smartagent/default_settings:
+  smartagent/all_settings:
+    collectd:
+      timeout: 10
+      read_threads: 1
+      write_threads: 4
+      write_queue_limit_high: 5
+      write_queue_limit_low: 1
+      log_level: info
+      interval_seconds: 5
+      write_server_ip: 10.100.12.1
+      write_server_port: 9090
+      config_dir: /etc/collectd/collectd.conf
+      bundle_dir: /opt/bin/collectd/
+
+receivers:
+  examplereceiver:
+
+processors:
+  exampleprocessor:
+
+exporters:
+  exampleexporter:
+
+service:
+  extensions: [smartagent/default_settings, smartagent/all_settings]
+  pipelines:
+    metrics:
+      receivers: [examplereceiver]
+      processors: [exampleprocessor]
+      exporters: [exampleexporter]

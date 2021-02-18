@@ -17,6 +17,7 @@ package smartagentextension
 import (
 	"context"
 	"os"
+	"path/filepath"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"go.opentelemetry.io/collector/component"
@@ -35,13 +36,28 @@ func NewFactory() component.ExtensionFactory {
 		createExtension)
 }
 
+var bundleDir = func() string {
+	out := os.Getenv(constants.BundleDirEnvVar)
+	if out == "" {
+		exePath, err := os.Executable()
+		if err != nil {
+			panic("Cannot determine agent executable path, cannot continue")
+		}
+		out, err = filepath.Abs(filepath.Join(filepath.Dir(exePath), ".."))
+		if err != nil {
+			panic("Cannot determine absolute path of executable parent dir " + exePath)
+		}
+	}
+	return out
+}()
+
 func createDefaultConfig() configmodels.Extension {
 	return &Config{
 		ExtensionSettings: configmodels.ExtensionSettings{
 			TypeVal: typeStr,
 			NameVal: string(typeStr),
 		},
-		BundleDir: os.Getenv(constants.BundleDirEnvVar),
+		BundleDir: bundleDir,
 		CollectdConfig: CollectdConfig{
 			Timeout:             40,
 			ReadThreads:         5,

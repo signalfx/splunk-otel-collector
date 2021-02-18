@@ -15,11 +15,9 @@
 package smartagentextension
 
 import (
-	"os"
 	"path"
 	"testing"
 
-	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
@@ -50,7 +48,7 @@ func TestLoadConfig(t *testing.T) {
 				TypeVal: "smartagent",
 				NameVal: "smartagent/default_settings",
 			},
-			BundleDir: os.Getenv(constants.BundleDirEnvVar),
+			BundleDir: bundleDir,
 			CollectdConfig: CollectdConfig{
 				Timeout:             40,
 				ReadThreads:         5,

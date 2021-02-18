@@ -1,0 +1,28 @@
+receivers:
+  smartagent/postgresql:
+    type: postgresql
+    host: localhost
+    port: 5432
+    connectionString: 'sslmode=disable user={{.username}} password={{.password}}'
+    params:
+      username: test_user
+      password: test_password
+    masterDBName: test_db
+    intervalSeconds: 1
+
+exporters:
+  otlp:
+    endpoint: localhost:23456
+    insecure: true
+
+  logging:
+    loglevel: debug
+    sampling_initial: 1
+    sampling_thereafter: 10
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/postgresql
+      exporters: [otlp, logging]

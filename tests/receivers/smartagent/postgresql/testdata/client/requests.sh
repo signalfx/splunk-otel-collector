@@ -1,4 +1,12 @@
 #!/bin/bash
+##################################################################################################
+# This file will exercise a target POSTGRES_SERVER's test_db whose schema is defined in the
+# corresponding server's initdb.d/db.sql.  It will create the necessary replication slots and make
+# a series of random insertions, updates, and deletions without end to help generate values for
+# produced metrics.
+# As implemented, test_db size will grow without bound if left is running, so this script isn't
+# currently suitable for extended demonstrations or soak test purposes.
+##################################################################################################
 
 echopsql() {
   set -x
@@ -25,7 +33,6 @@ random_float() {
 }
 
 modify_table_one() {
-x=1
 while true; do
   sleep .15
   s_one=$(random_str)
@@ -45,7 +52,6 @@ done
 }
 
 modify_table_two() {
-x=1
 while true; do
   sleep .15
   i_one=$(random_int)
@@ -68,7 +74,7 @@ while true; do
 done
 }
 
-# create replication slots for postgres_replication_state metric
+# create replication slots for postgres_replication_state metrics
 echopsql -c "SELECT * FROM pg_create_physical_replication_slot('some_physical_replication_slot');"
 echopsql -c "SELECT * FROM pg_create_logical_replication_slot('some_logical_replication_slot', 'test_decoding');"
 

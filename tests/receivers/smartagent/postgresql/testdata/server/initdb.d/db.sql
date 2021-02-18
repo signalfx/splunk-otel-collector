@@ -1,3 +1,8 @@
+-- This sql script is intended to be run via initdb or with the postgres container's
+-- docker-entrypoint-initdb.d autorun functionality.  It will creeate the test schema
+-- and test user to be exercised by the corresponding pg client's requests script to
+-- assist in the postgresql monitor in generating metrics.
+
 drop schema if exists test_schema cascade;
 create schema test_schema;
 set schema 'test_schema';

@@ -32,10 +32,10 @@ func TestExtension(t *testing.T) {
 			Logger: zap.NewNop(),
 		},
 		&Config{
+			BundleDir: "/bundle/",
 			CollectdConfig: CollectdConfig{
 				Timeout:   10,
 				ConfigDir: "/config/",
-				BundleDir: "/bundle/",
 			},
 		},
 	)

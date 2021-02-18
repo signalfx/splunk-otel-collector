@@ -50,6 +50,7 @@ func TestLoadConfig(t *testing.T) {
 				TypeVal: "smartagent",
 				NameVal: "smartagent/default_settings",
 			},
+			BundleDir:           os.Getenv(constants.BundleDirEnvVar),
 			CollectdConfig: CollectdConfig{
 				Timeout:             40,
 				ReadThreads:         5,
@@ -61,7 +62,6 @@ func TestLoadConfig(t *testing.T) {
 				WriteServerIPAddr:   "127.9.8.7",
 				WriteServerPort:     0,
 				ConfigDir:           "/var/run/signalfx-agent/collectd",
-				BundleDir:           os.Getenv(constants.BundleDirEnvVar),
 			},
 		}
 	}(), emptyConfig)
@@ -74,6 +74,7 @@ func TestLoadConfig(t *testing.T) {
 				TypeVal: "smartagent",
 				NameVal: "smartagent/all_settings",
 			},
+			BundleDir:           "/opt/bin/collectd/",
 			CollectdConfig: CollectdConfig{
 				Timeout:             10,
 				ReadThreads:         1,
@@ -85,7 +86,6 @@ func TestLoadConfig(t *testing.T) {
 				WriteServerIPAddr:   "10.100.12.1",
 				WriteServerPort:     9090,
 				ConfigDir:           "/etc/collectd/collectd.conf",
-				BundleDir:           "/opt/bin/collectd/",
 			},
 		}
 	}(), allSettingsConfig)

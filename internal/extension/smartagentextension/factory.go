@@ -41,6 +41,7 @@ func createDefaultConfig() configmodels.Extension {
 			TypeVal: typeStr,
 			NameVal: string(typeStr),
 		},
+		BundleDir: os.Getenv(constants.BundleDirEnvVar),
 		CollectdConfig: CollectdConfig{
 			Timeout:             40,
 			ReadThreads:         5,
@@ -52,7 +53,6 @@ func createDefaultConfig() configmodels.Extension {
 			WriteServerIPAddr:   "127.9.8.7",
 			WriteServerPort:     0,
 			ConfigDir:           "/var/run/signalfx-agent/collectd",
-			BundleDir:           os.Getenv(constants.BundleDirEnvVar),
 		},
 	}
 }

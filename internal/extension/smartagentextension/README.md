@@ -1,7 +1,7 @@
 # SignalFx Smart Agent Extension
 
 The `smartagent` extension provides a mechanism to specify config options that are not
-just specific to a single instance of the `smartagent` receiver but are applicable to
+just specific to a single instance of the [`smartagent` receiver](../../receiver/smartagentreceiver/README.md) but are applicable to
 all instances of the `smartagent` receiver.
 
 To begin with, this extension will provide a mechanism to specify config options to configure

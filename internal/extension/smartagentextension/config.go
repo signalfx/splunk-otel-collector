@@ -53,13 +53,13 @@ type CollectdConfig struct {
 	// Collectd's log level -- info, notice, warning, or err
 	LogLevel string `mapstructure:"logLevel"`
 	// A default read interval for collectd plugins.  If zero or undefined,
-	// will default to the global agent interval.  Some collectd python
-	// monitors do not support overridding the interval at the monitor level,
-	// but this setting will apply to them.
+	// will default to 10 seconds. Some collectd python monitors do not
+	// support overridding the interval at the monitor level, but this
+	// setting will apply to them.
 	IntervalSeconds int `mapstructure:"intervalSeconds"`
 	// The local IP address of the server that the agent exposes to which
-	// collectd will send metrics.  This defaults to an arbitrary address in
-	// the localhost subnet, but can be overridden if needed.
+	// collectd will send metrics.  This defaults to 127.9.8.7, but can be
+	// overridden if needed.
 	WriteServerIPAddr string `mapstructure:"writeServerIPAddr"`
 	// The port of the agent's collectd metric sink server.  If set to zero
 	// (the default) it will allow the OS to assign it a free port.

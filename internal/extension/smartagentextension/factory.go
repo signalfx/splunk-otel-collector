@@ -49,7 +49,7 @@ func createDefaultConfig() configmodels.Extension {
 			WriteQueueLimitHigh: 500000,
 			WriteQueueLimitLow:  400000,
 			LogLevel:            "notice",
-			IntervalSeconds:     0,
+			IntervalSeconds:     10,
 			WriteServerIPAddr:   "127.9.8.7",
 			WriteServerPort:     0,
 			ConfigDir:           "/var/run/signalfx-agent/collectd",

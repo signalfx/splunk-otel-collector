@@ -167,6 +167,7 @@ func (r *Receiver) setUpCollectdConfig(extensions map[configmodels.Extension]com
 	f := smartagentextension.NewFactory()
 	defaultCfg := f.CreateDefaultConfig().(*smartagentextension.Config)
 	r.config.collectdConfig = defaultCfg.CollectdConfig
+	r.config.bundleDir = defaultCfg.BundleDir
 
 	// Do a lookup for any smartagent extensions to pick up common collectd options
 	// to be applied across instances of the receiver.
@@ -180,6 +181,7 @@ func (r *Receiver) setUpCollectdConfig(extensions map[configmodels.Extension]com
 			continue
 		}
 		r.config.collectdConfig = cfg.CollectdConfig
+		r.config.bundleDir = cfg.BundleDir
 
 		// If there are multiple extensions configured, pick the first one. Ideally,
 		// there would only be one extension.
@@ -201,7 +203,7 @@ func (r *Receiver) getCollectdConfig() *config.CollectdConfig {
 		WriteServerIPAddr:    r.config.collectdConfig.WriteServerIPAddr,
 		WriteServerPort:      r.config.collectdConfig.WriteServerPort,
 		ConfigDir:            r.config.collectdConfig.ConfigDir,
-		BundleDir:            r.config.collectdConfig.BundleDir,
+		BundleDir:            r.config.bundleDir,
 		HasGenericJMXMonitor: true,
 		InstanceName:         "",
 		WriteServerQuery:     "",

@@ -41,6 +41,7 @@ type Config struct {
 	Endpoint       string `mapstructure:"endpoint"`
 	monitorConfig  config.MonitorCustomConfig
 	collectdConfig smartagentextension.CollectdConfig
+	bundleDir      string
 }
 
 func (rCfg *Config) validate() error {

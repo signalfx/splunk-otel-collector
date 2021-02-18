@@ -85,7 +85,7 @@ func getSmartAgentExtensionConfig() *smartagentextension.Config {
 	saExtensionCfg.CollectdConfig.LogLevel = "info"
 	saExtensionCfg.CollectdConfig.IntervalSeconds = 5
 	saExtensionCfg.CollectdConfig.ConfigDir = "/etc/collectd/collectd.conf"
-	saExtensionCfg.CollectdConfig.BundleDir = "/opt/bin/collectd/"
+	saExtensionCfg.BundleDir = "/opt/bin/collectd/"
 	return saExtensionCfg
 }
 

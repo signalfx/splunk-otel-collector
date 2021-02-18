@@ -16,6 +16,3 @@ coverage:
       default:
         enabled: yes
         target: 95%
-
-ignore:
-  - "tests/**/*"

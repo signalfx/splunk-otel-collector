@@ -65,8 +65,8 @@ replace (
 	github.com/dancannon/gorethink => gopkg.in/gorethink/gorethink.v4 v4.0.0
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20201211214327-200738592ced
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v1.8.2-0.20201105135750-00f16d1ac3a4
-	github.com/signalfx/signalfx-agent => github.com/signalfx/signalfx-agent v1.0.1-0.20210114201625-befd9fc0070c
-	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210114201625-befd9fc0070c
-	github.com/soheilhy/cmux => github.com/signalfx/signalfx-agent/thirdparty/cmux v0.0.0-20210114201625-befd9fc0070c // required for smartagentreceiver to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
+	github.com/signalfx/signalfx-agent => github.com/signalfx/signalfx-agent v1.0.1-0.20210216222257-73d8f0bb7fb6
+	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210216222257-73d8f0bb7fb6
+	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required for smartagentreceiver to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
 	google.golang.org/grpc => google.golang.org/grpc v1.29.1 // required for smartagentreceiver's go.etcd.io/etcd dep
 )

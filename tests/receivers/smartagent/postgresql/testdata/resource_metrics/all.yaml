@@ -1,0 +1,358 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: postgres_query_count
+            labels:
+              database: postgres
+              postgres_port: "5432"
+              user: postgres
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_count
+            labels:
+              database: postgres
+              postgres_port: "5432"
+              user: test_user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_count
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              user: postgres
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_count
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              user: test_user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_time
+            labels:
+              database: postgres
+              postgres_port: "5432"
+              user: postgres
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_time
+            labels:
+              database: postgres
+              postgres_port: "5432"
+              user: test_user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_time
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              user: postgres
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_query_time
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              user: test_user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_block_hit_ratio
+            labels:
+              database: test_db
+              index: table_two_pkey
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              type: user
+            type: DoubleGauge
+          - name: postgres_block_hit_ratio
+            labels:
+              database: test_db
+              postgres_port: "5432"
+            type: DoubleGauge
+          - name: postgres_block_hit_ratio
+            labels:
+              database: postgres
+              postgres_port: "5432"
+            type: DoubleGauge
+          - name: postgres_deadlocks
+            labels:
+              database: test_db
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_locks
+            labels:
+              postgres_port: "5432"
+            type: DoubleGauge
+          - name: postgres_sessions
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              state: idle
+            type: DoubleGauge
+          - name: postgres_pct_connections
+            labels:
+              postgres_port: "5432"
+            type: DoubleGauge
+          - name: postgres_sessions
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              state: active
+            type: DoubleGauge
+          - name: postgres_deadlocks
+            labels:
+              database: postgres
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_database_size
+            labels:
+              database: postgres
+              postgres_port: "5432"
+            type: DoubleGauge
+          - name: postgres_conflicts
+            labels:
+              database: template0
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_xact_commits
+            labels:
+              database: template0
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_xact_rollbacks
+            labels:
+              database: template0
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_conflicts
+            labels:
+              database: template1
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_xact_commits
+            labels:
+              database: template1
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_xact_rollbacks
+            labels:
+              database: template1
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_conflicts
+            labels:
+              database: test_db
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_xact_commits
+            labels:
+              database: test_db
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_xact_rollbacks
+            labels:
+              database: test_db
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_conflicts
+            labels:
+              database: postgres
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_xact_commits
+            labels:
+              database: postgres
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_xact_rollbacks
+            labels:
+              database: postgres
+              postgres_port: "5432"
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_database_size
+            labels:
+              database: test_db
+              postgres_port: "5432"
+            type: DoubleGauge
+          - name: postgres_block_hit_ratio
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              type: user
+            type: DoubleGauge
+          - name: postgres_block_hit_ratio
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              type: user
+            type: DoubleGauge
+          - name: postgres_block_hit_ratio
+            labels:
+              database: test_db
+              index: table_one_pkey
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              type: user
+            type: DoubleGauge
+          - name: postgres_rows_inserted
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_rows_updated
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_rows_deleted
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_sequential_scans
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_index_scans
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_table_size
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleGauge
+          - name: postgres_live_rows
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_two
+              tablespace: ""
+              type: user
+            type: DoubleGauge
+          - name: postgres_live_rows
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleGauge
+          - name: postgres_rows_inserted
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_rows_updated
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_rows_deleted
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_sequential_scans
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_index_scans
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_table_size
+            labels:
+              database: test_db
+              postgres_port: "5432"
+              schemaname: test_schema
+              table: table_one
+              tablespace: ""
+              type: user
+            type: DoubleGauge
+          - name: postgres_sessions
+            labels:
+              database: postgres
+              postgres_port: "5432"
+              state: idle
+            type: DoubleGauge
+          - name: postgres_queries_average_time
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_queries_average_time
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_queries_calls
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_queries_calls
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_queries_total_time
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_queries_total_time
+            type: DoubleMonotonicCumulativeSum
+          - name: postgres_replication_lag
+            labels:
+              postgres_port: "5432"
+              replication_role: master
+            type: DoubleGauge
+          - name: postgres_replication_state
+            labels:
+              slot_name: some_physical_replication_slot
+              slot_type: physical
+              database:
+              postgres_port: "5432"
+            type: DoubleGauge
+          - name: postgres_replication_state
+            labels:
+              slot_name: some_logical_replication_slot
+              slot_type: logical
+              database: test_db
+              postgres_port: "5432"
+            type: DoubleGauge

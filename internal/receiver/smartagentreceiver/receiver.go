@@ -50,9 +50,8 @@ type Receiver struct {
 var _ component.MetricsReceiver = (*Receiver)(nil)
 
 var (
-	rusToZap           *logrusToZap
-	collectdLock       sync.Mutex
-	configuredCollectd bool
+	rusToZap              *logrusToZap
+	configureCollectdOnce sync.Once
 )
 
 func init() {
@@ -119,14 +118,14 @@ func (r *Receiver) Shutdown(context.Context) error {
 
 func (r *Receiver) createMonitor(
 	monitorType string,
-	extensions map[configmodels.Extension]component.ServiceExtension) (interface{}, error) {
+	extensions map[configmodels.Extension]component.ServiceExtension) (monitor interface{}, err error) {
 	// retrieve registered MonitorFactory from agent's registration store
 	monitorFactory, ok := monitors.MonitorFactories[monitorType]
 	if !ok {
 		return nil, fmt.Errorf("unable to find MonitorFactory for %q", monitorType)
 	}
 
-	monitor := monitorFactory() // monitor is a pointer to a monitor struct
+	monitor = monitorFactory() // monitor is a pointer to a monitor struct
 
 	output := NewOutput(*r.config, r.nextConsumer, r.logger)
 	set, err := SetStructFieldWithExplicitType(
@@ -145,26 +144,30 @@ func (r *Receiver) createMonitor(
 		output.AddExtraDimension(k, v)
 	}
 
-	collectdLock.Lock()
-	defer collectdLock.Unlock()
 	// Note, that this receiver has to configure main collectd even for collectd/custom monitor,
 	// despite the fact that, that monitor stands up its own instance of collectd to prevent this
 	// panic "Main collectd instance should not be accessed before being configured".
-	if r.config.monitorConfig.MonitorConfigCore().IsCollectdBased() && !configuredCollectd {
-		r.setUpCollectdConfig(extensions)
-		if err := collectd.ConfigureMainCollectd(r.getCollectdConfig()); err != nil {
-			return nil, err
-		}
-		configuredCollectd = true
+	if r.config.monitorConfig.MonitorConfigCore().IsCollectdBased() {
+		configureCollectdOnce.Do(func() {
+			r.logger.Info("Configuring collectd")
+			r.setUpCollectdConfig(extensions)
+			err = configureMainCollectd(r.getCollectdConfig())
+		})
 	}
 
-	return monitor, nil
+	return monitor, err
+}
+
+func configureMainCollectd(collectdConfig *config.CollectdConfig) error {
+	return collectd.ConfigureMainCollectd(collectdConfig)
 }
 
 func (r *Receiver) setUpCollectdConfig(extensions map[configmodels.Extension]component.ServiceExtension) {
+	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
 	defaultCfg := f.CreateDefaultConfig().(*smartagentextension.Config)
 	r.config.collectdConfig = defaultCfg.CollectdConfig
+
 	// Do a lookup for any smartagent extensions to pick up common collectd options
 	// to be applied across instances of the receiver.
 	for c := range extensions {
@@ -184,8 +187,7 @@ func (r *Receiver) setUpCollectdConfig(extensions map[configmodels.Extension]com
 	}
 }
 
-// Returns a configuration for collectd. Defaults provided by the receiver will overridden by
-// options specified on the smartagent extension.
+// getCollectdConfig returns a *config.CollectdConfig for r.config.collectdConfig.
 func (r *Receiver) getCollectdConfig() *config.CollectdConfig {
 	return &config.CollectdConfig{
 		DisableCollectd:      false,

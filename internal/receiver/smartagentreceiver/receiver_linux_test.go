@@ -19,15 +19,12 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/uptime"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/extension/healthcheckextension"
@@ -36,52 +33,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 )
 
-var cleanUp = func() {
-	configuredCollectd = false
-}
-
-func TestSmartAgentReceiverDefaultCollectdConfig(t *testing.T) {
-	t.Cleanup(cleanUp)
-	cfg := Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: fmt.Sprintf("%s/%s", typeStr, "valid"),
-		},
-		monitorConfig: &uptime.Config{
-			MonitorConfig: config.MonitorConfig{
-				Type: "collectd/uptime",
-			},
-		},
-	}
-	r := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
-
-	// Test whether default config is correctly loaded from smartagent extension factory.
-	// Note, that the below invocation of Start method is bound to fail since collectd
-	// is not available on the target host. However, in this case, we're only interested
-	// in the correctness of the derived collectd config.
-	r.Start(context.Background(), componenttest.NewNopHost())
-	r.Shutdown(context.Background())
-	require.Equal(t, &config.CollectdConfig{
-		DisableCollectd:      false,
-		Timeout:              40,
-		ReadThreads:          5,
-		WriteThreads:         2,
-		WriteQueueLimitHigh:  500000,
-		WriteQueueLimitLow:   400000,
-		LogLevel:             "notice",
-		IntervalSeconds:      0,
-		WriteServerIPAddr:    "127.9.8.7",
-		WriteServerPort:      0,
-		ConfigDir:            "/var/run/signalfx-agent/collectd",
-		BundleDir:            os.Getenv(constants.BundleDirEnvVar),
-		HasGenericJMXMonitor: true,
-		InstanceName:         "",
-		WriteServerQuery:     "",
-	}, r.getCollectdConfig())
-}
-
 func TestSmartAgentReceiverCollectdConfigOverrides(t *testing.T) {
-	t.Cleanup(cleanUp)
 	cfg := Config{
 		ReceiverSettings: configmodels.ReceiverSettings{
 			TypeVal: typeStr,
@@ -95,21 +47,7 @@ func TestSmartAgentReceiverCollectdConfigOverrides(t *testing.T) {
 	}
 	r := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
 	host := &mockHost{
-		smartagentextensionConfig: &smartagentextension.Config{
-			CollectdConfig: smartagentextension.CollectdConfig{
-				Timeout:             10,
-				ReadThreads:         1,
-				WriteThreads:        4,
-				WriteQueueLimitHigh: 5,
-				WriteQueueLimitLow:  1,
-				LogLevel:            "info",
-				IntervalSeconds:     5,
-				WriteServerIPAddr:   "127.9.8.7",
-				WriteServerPort:     0,
-				ConfigDir:           "/etc/collectd/collectd.conf",
-				BundleDir:           "/opt/bin/collectd/",
-			},
-		},
+		smartagentextensionConfig: getSmartAgentExtensionConfig(),
 	}
 
 	// Test whether config overrides are correctly loaded from smartagent extension factory.
@@ -120,7 +58,7 @@ func TestSmartAgentReceiverCollectdConfigOverrides(t *testing.T) {
 	r.Shutdown(context.Background())
 	require.Equal(t, &config.CollectdConfig{
 		DisableCollectd:      false,
-		Timeout:              10,
+		Timeout:              40,
 		ReadThreads:          1,
 		WriteThreads:         4,
 		WriteQueueLimitHigh:  5,
@@ -135,6 +73,20 @@ func TestSmartAgentReceiverCollectdConfigOverrides(t *testing.T) {
 		InstanceName:         "",
 		WriteServerQuery:     "",
 	}, r.getCollectdConfig())
+}
+
+func getSmartAgentExtensionConfig() *smartagentextension.Config {
+	saExtension := smartagentextension.NewFactory()
+	saExtensionCfg := saExtension.CreateDefaultConfig().(*smartagentextension.Config)
+	saExtensionCfg.CollectdConfig.ReadThreads = 1
+	saExtensionCfg.CollectdConfig.WriteThreads = 4
+	saExtensionCfg.CollectdConfig.WriteQueueLimitHigh = 5
+	saExtensionCfg.CollectdConfig.WriteQueueLimitLow = 1
+	saExtensionCfg.CollectdConfig.LogLevel = "info"
+	saExtensionCfg.CollectdConfig.IntervalSeconds = 5
+	saExtensionCfg.CollectdConfig.ConfigDir = "/etc/collectd/collectd.conf"
+	saExtensionCfg.CollectdConfig.BundleDir = "/opt/bin/collectd/"
+	return saExtensionCfg
 }
 
 type mockHost struct {

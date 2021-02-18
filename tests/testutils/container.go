@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -27,14 +28,16 @@ import (
 // Container is a combination builder and testcontainers.Container wrapper
 // for convenient creation and management of docker images and containers.
 type Container struct {
-	Image        string
-	Dockerfile   testcontainers.FromDockerfile
-	Cmd          []string
-	Env          map[string]string
-	ExposedPorts []string
-	WaitingFor   []wait.Strategy
-	req          *testcontainers.ContainerRequest
-	container    *testcontainers.Container
+	Image             string
+	Dockerfile        testcontainers.FromDockerfile
+	Cmd               []string
+	Env               map[string]string
+	ExposedPorts      []string
+	ContainerName     string
+	ContainerNetworks []string
+	WaitingFor        []wait.Strategy
+	req               *testcontainers.ContainerRequest
+	container         *testcontainers.Container
 }
 
 var _ testcontainers.Container = (*Container)(nil)
@@ -101,6 +104,16 @@ func (container Container) WithExposedPorts(ports ...string) Container {
 	return container
 }
 
+func (container Container) WithName(name string) Container {
+	container.ContainerName = name
+	return container
+}
+
+func (container Container) WithNetworks(networks ...string) Container {
+	container.ContainerNetworks = append(container.ContainerNetworks, networks...)
+	return container
+}
+
 func (container Container) WillWaitForPorts(ports ...string) Container {
 	for _, port := range ports {
 		container.WaitingFor = append(container.WaitingFor, wait.ForListeningPort(nat.Port(port)))
@@ -122,6 +135,8 @@ func (container Container) Build() *Container {
 		Cmd:            container.Cmd,
 		Env:            container.Env,
 		ExposedPorts:   container.ExposedPorts,
+		Name:           container.ContainerName,
+		Networks:       container.ContainerNetworks,
 		WaitingFor:     wait.ForAll(container.WaitingFor...),
 	}
 	return &container
@@ -131,10 +146,17 @@ func (container *Container) Start(ctx context.Context) error {
 	if container.req == nil {
 		return fmt.Errorf("cannot start a container that hasn't been built")
 	}
-	started, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+	req := testcontainers.GenericContainerRequest{
 		ContainerRequest: *container.req,
 		Started:          true,
-	})
+	}
+
+	err := container.createNetworksIfNecessary(req)
+	if err != nil {
+		return nil
+	}
+
+	started, err := testcontainers.GenericContainer(ctx, req)
 	container.container = &started
 	return err
 }
@@ -276,4 +298,34 @@ func (container *Container) CopyFileToContainer(ctx context.Context, hostFilePat
 		return err
 	}
 	return (*container.container).CopyFileToContainer(ctx, hostFilePath, containerFilePath, fileMode)
+}
+
+// Will create any networks that don't already exist on system.
+// Teardown/cleanup is handled by the testcontainers reaper.
+func (container Container) createNetworksIfNecessary(req testcontainers.GenericContainerRequest) error {
+	provider, err := req.ProviderType.GetProvider()
+	if err != nil {
+		return err
+	}
+	for _, networkName := range container.ContainerNetworks {
+		query := testcontainers.NetworkRequest{
+			Name: networkName,
+		}
+		networkResource, err := provider.GetNetwork(context.Background(), query)
+		if err != nil && !errdefs.IsNotFound(err) {
+			return err
+		}
+		if networkResource.Name != networkName {
+			create := testcontainers.NetworkRequest{
+				Driver:     "bridge",
+				Name:       networkName,
+				Attachable: true,
+			}
+			_, err := provider.CreateNetwork(context.Background(), create)
+			if err != nil {
+				return nil
+			}
+		}
+	}
+	return nil
 }

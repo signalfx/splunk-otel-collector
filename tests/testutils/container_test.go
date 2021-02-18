@@ -18,6 +18,7 @@ import (
 	"context"
 	"io"
 	"path"
+	sort "sort"
 	"strings"
 	"testing"
 	"time"
@@ -64,6 +65,16 @@ func TestDockerBuilderMethods(t *testing.T) {
 	assert.Equal(t, []string{"bash", "-c", "'sleep inf'"}, withCmd.Cmd)
 	assert.NotSame(t, builder, withCmd)
 	assert.Empty(t, builder.Cmd)
+
+	withName := builder.WithName("some-name")
+	assert.Equal(t, "some-name", withName.ContainerName)
+	assert.NotSame(t, builder, withName)
+	assert.Empty(t, builder.ContainerName)
+
+	withNetworks := builder.WithNetworks("network_one", "network_two")
+	assert.Equal(t, []string{"network_one", "network_two"}, withNetworks.ContainerNetworks)
+	assert.NotSame(t, builder, withNetworks)
+	assert.Nil(t, builder.ContainerNetworks)
 }
 
 func TestEnvironmentBuilderMethods(t *testing.T) {
@@ -292,7 +303,9 @@ var _ testcontainers.LogConsumer = (*logConsumer)(nil)
 func TestTestcontainersContainerMethods(t *testing.T) {
 	alpine := NewContainer().WithImage("alpine").WithCmd(
 		"sh", "-c", "echo rdy > /tmp/something & tail -f /tmp/something",
-	).WithExposedPorts("12345:12345").WillWaitForLogs("rdy").Build()
+	).WithExposedPorts("12345:12345").WithName("my-alpine").WithNetworks(
+		"bridge", "network_a", "network_b",
+	).WillWaitForLogs("rdy").Build()
 
 	defer func() {
 		err := alpine.Stop(context.Background())
@@ -365,11 +378,12 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 	require.NoError(t, err)
 
 	name, err := alpine.Name(context.Background())
-	assert.NotEmpty(t, name)
+	assert.Equal(t, "/my-alpine", name)
 	require.NoError(t, err)
 
 	networks, err := alpine.Networks(context.Background())
-	assert.NotEmpty(t, networks)
+	sort.Strings(networks)
+	assert.Equal(t, []string{"bridge", "network_a", "network_b"}, networks)
 	require.NoError(t, err)
 
 	aliases, err := alpine.NetworkAliases(context.Background())

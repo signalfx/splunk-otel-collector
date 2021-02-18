@@ -50,7 +50,7 @@ func TestLoadConfig(t *testing.T) {
 				TypeVal: "smartagent",
 				NameVal: "smartagent/default_settings",
 			},
-			BundleDir:           os.Getenv(constants.BundleDirEnvVar),
+			BundleDir: os.Getenv(constants.BundleDirEnvVar),
 			CollectdConfig: CollectdConfig{
 				Timeout:             40,
 				ReadThreads:         5,
@@ -74,7 +74,7 @@ func TestLoadConfig(t *testing.T) {
 				TypeVal: "smartagent",
 				NameVal: "smartagent/all_settings",
 			},
-			BundleDir:           "/opt/bin/collectd/",
+			BundleDir: "/opt/bin/collectd/",
 			CollectdConfig: CollectdConfig{
 				Timeout:             10,
 				ReadThreads:         1,

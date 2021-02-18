@@ -21,7 +21,7 @@ $ docker-compose up
 
 Replace the values in [.env](./.env) appropriately for your environment.
 
-See ["Getting Started"](../../README.md#getting-started) for details about these environment variables and other
+See ["Getting Started"](../../docs/getting-started/linux-standalone.md) for details about these environment variables and other
 configuration options.
 
 If desired, replace `latest` with a specific version number for the Docker image (e.g. `0.1.0`).

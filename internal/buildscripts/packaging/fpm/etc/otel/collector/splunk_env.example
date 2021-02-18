@@ -5,7 +5,6 @@
 # and save the changes to "/etc/otel/collector/splunk_env".
 
 # Then run the following commands to apply the changes and restart the service:
-#   sudo systemctl daemon-reload
 #   sudo systemctl restart splunk-otel-collector.service
 
 # Command-line options for the splunk-otel-collector service. Run `/usr/bin/otelcol --help` to see all available options.

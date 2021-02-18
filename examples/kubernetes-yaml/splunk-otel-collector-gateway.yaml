@@ -16,28 +16,28 @@ data:
           endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
       zpages:
     receivers:
-    hostmetrics:
-      collection_interval: 1m
-      scrapers:
-        cpu:
-        disk:
-        load:
-        filesystem:
-        memory:
-        network:
-        processes:
-        paging:
-    jaeger:
-      protocols:
-        grpc:
-        thrift_binary:
-        thrift_compact:
-        thrift_http:
-    opencensus:
-    otlp:
-      protocols:
-        grpc:
-        http:
+      hostmetrics:
+        collection_interval: 1m
+        scrapers:
+          cpu:
+          disk:
+          load:
+          filesystem:
+          memory:
+          network:
+          processes:
+          paging:
+      jaeger:
+        protocols:
+          grpc:
+          thrift_binary:
+          thrift_compact:
+          thrift_http:
+      opencensus:
+      otlp:
+        protocols:
+          grpc:
+          http:
       sapm:
       signalfx:
       # This section is used to collect OpenTelemetry metrics
@@ -133,15 +133,15 @@ spec:
   ports:
   - name: health # Default Health Check port.
     port: 13133
-  - name: sapm # Default endpoint for Jaeger gRPC receiver.
+  - name: jaeger-grpc # Default endpoint for Jaeger gRPC receiver.
     port: 14250
-  - name: sapm # Default endpoint for Jaeger Thrift receiver.
+  - name: jaeger-thrift # Default endpoint for Jaeger Thrift receiver.
     port: 14268
-  - name: sapm # Default endpoint for OpenCensus receiver.
+  - name: opencensus # Default endpoint for OpenCensus receiver.
     port: 55678
-  - name: sapm # Default endpoint for OpenTelemetry receiver.
-    port: 55680
-  - name: sapm # Default endpoint for HTTP Forwarder extension.
+  - name: otlphttp # Default endpoint for OpenTelemetry HTTP receiver.
+    port: 55681
+  - name: http-forwarder # Default endpoint for HTTP Forwarder extension.
     port: 6060
   - name: sapm # Default endpoint for SignalFx APM receiver.
     port: 7276
@@ -198,8 +198,7 @@ spec:
         - containerPort: 14250 # Default endpoint for Jaeger gRPC receiver.
         - containerPort: 14268 # Default endpoint for Jaeger Thrift receiver.
         - containerPort: 55678 # Default endpoint for OpenCensus receiver.
-        - containerPort: 55679 # Default endpoint for ZPages.
-        - containerPort: 55680 # Default endpoint for OpenTelemetry receiver.
+        - containerPort: 55681 # Default endpoint for OpenTelemetry gRPC receiver.
         - containerPort: 6060  # Default endpoint for HTTP Forwarder extension.
         - containerPort: 7276  # Default endpoint for SignalFx APM receiver.
         - containerPort: 8888  # Default endpoint for querying metrics.

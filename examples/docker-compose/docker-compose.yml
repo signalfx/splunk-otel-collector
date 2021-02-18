@@ -4,13 +4,14 @@ services:
     image: quay.io/signalfx/splunk-otel-collector:latest
     environment:
       - SPLUNK_ACCESS_TOKEN=${SPLUNK_ACCESS_TOKEN}
-      - SPLUNK_REALM=${SPLUNK_REALM}
       - SPLUNK_MEMORY_TOTAL_MIB=${SPLUNK_MEMORY_TOTAL_MIB}
+      - SPLUNK_REALM=${SPLUNK_REALM}
     ports:
       - "13133:13133"
       - "14250:14250"
       - "14268:14268"
-      - "55678-55680:55678-55680"
+      - "55678:55678"
+      - "55681:55681"
       - "6060:6060"
       - "7276:7276"
       - "8888:8888"

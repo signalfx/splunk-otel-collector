@@ -30,7 +30,7 @@ With the Collector configured, the following endpoints are accessible:
 - `http(s)://<collectorFQDN>:[14250|14268]` Jaeger [gRPC|Thrift HTTP] receiver
 - `http(s)://<collectorFQDN>:55678` OpenCensus gRPC and HTTP receiver
 - `http(s)://localhost:55679/debug/[tracez|pipelinez]` zPages monitoring
-- `http(s)://<collectorFQDN>:55680` OpenTelemetry gRPC receiver
+- `http(s)://<collectorFQDN>:55681` OpenTelemetry gRPC receiver
 - `http(s)://<collectorFQDN>:6060` HTTP Forwarder used to receive Smart Agent `apiUrl` data
 - `http(s)://<collectorFQDN>:7276` SignalFx Infrastructure Monitoring gRPC receiver
 - `http(s)://localhost:8888/metrics` Prometheus metrics for the Collector
@@ -109,14 +109,20 @@ Optional environment variables
 
 ### Docker
 
-Deploy from a Docker container. Replace `0.1.0` with the latest stable version number:
+Deploy the latest Docker image.
 
 ```bash
 $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
-    -e SPLUNK_REALM=us0 -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678-55680:55678-55680 \
-    -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
-    --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0
+    -e SPLUNK_REALM=us0 -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678:55678 \
+    -p 55681:55681 -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
+    --name otelcol quay.io/signalfx/splunk-otel-collector:latest
 ```
+
+A docker-compose example is also available [here](../../examples/docker-compose). To use it:
+
+- Go to the example directory
+- Edit the `.env` appropriately for your environment
+- Run `docker-compose up`
 
 ### Standalone
 
@@ -127,7 +133,7 @@ $ git clone https://github.com/signalfx/splunk-otel-collector.git
 $ cd splunk-otel-collector
 $ make install-tools
 $ make otelcol
-$ SPLUNK_REALM=us0 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_MEMORY_TOTAL_MIB=1024 \
+$ SPLUNK_ACCESS_TOKEN=12345 SPLUNK_MEMORY_TOTAL_MIB=1024 SPLUNK_REALM=us0 \
     ./bin/otelcol
 ```
 
@@ -144,9 +150,9 @@ For example in Docker:
 
 ```bash
 $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
-    -e SPLUNK_REALM=us0 -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678-55680:55678-55680 \
-    -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
-    --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0 \
+    -e SPLUNK_REALM=us0 -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678:55678 \
+    -p 55681:55681 -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
+    --name otelcol quay.io/signalfx/splunk-otel-collector:latest \
         --log-level=DEBUG
 ```
 
@@ -167,9 +173,9 @@ For example in Docker:
 ```bash
 $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
     -e SPLUNK_REALM=us0 -e SPLUNK_CONFIG=/etc/collector.yaml -p 13133:13133 -p 14250:14250 \
-    -p 14268:14268 -p 55678-55680:55678-55680 -p 6060:6060 -p 7276:7276 -p 8888:8888 \
+    -p 14268:14268 -p 55678:55678 -p 55681:55681 -p 6060:6060 -p 7276:7276 -p 8888:8888 \
     -p 9411:9411 -p 9943:9943 -v collector.yaml:/etc/collector.yaml:ro \
-    --name otelcol quay.io/signalfx/splunk-otel-collector:0.1.0
+    --name otelcol quay.io/signalfx/splunk-otel-collector:latest
 ```
 
 In the case of Docker, a volume mount may be required to load custom

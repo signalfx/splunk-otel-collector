@@ -187,7 +187,7 @@ processors:
       action: delete
 
   # Enables the resource detection processor with default settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/resourcedetectionprocessor
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor
   # NOTE: This processor settings need to be change when using this processor
   #resouredection:
     # # a list of resource detectors to run, valid options are: "env", "system",  "gce", "ec2", "ecs", "elastic_beanstalk"

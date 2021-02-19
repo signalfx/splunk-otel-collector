@@ -151,7 +151,7 @@ func (r *Receiver) createMonitor(
 	// Configure SmartAgentConfigProvider to gather any global config overrides and
 	// set required envs.
 	configureEnvironmentOnce.Do(func() {
-		r.setUpSmartConfigProvider(extensions)
+		r.setUpSmartAgentConfigProvider(extensions)
 		r.setUpEnvironment()
 	})
 
@@ -172,7 +172,7 @@ func configureMainCollectd(collectdConfig *config.CollectdConfig) error {
 	return collectd.ConfigureMainCollectd(collectdConfig)
 }
 
-func (r *Receiver) setUpSmartConfigProvider(extensions map[configmodels.Extension]component.ServiceExtension) {
+func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[configmodels.Extension]component.ServiceExtension) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
 	defaultCfg := f.CreateDefaultConfig().(smartagentextension.SmartAgentConfigProvider)

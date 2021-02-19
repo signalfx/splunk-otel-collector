@@ -162,15 +162,15 @@ func (r *Receiver) createMonitor(
 	if r.config.monitorConfig.MonitorConfigCore().IsCollectdBased() {
 		configureCollectdOnce.Do(func() {
 			r.logger.Info("Configuring collectd")
-			err = configureMainCollectd(r.getCollectdConfig())
+			err = configureMainCollectd(saConfigProvider.CollectdConfig())
 		})
 	}
 
 	return monitor, err
 }
 
-func configureMainCollectd(collectdConfig *config.CollectdConfig) error {
-	return collectd.ConfigureMainCollectd(collectdConfig)
+func configureMainCollectd(collectdConfig config.CollectdConfig) error {
+	return collectd.ConfigureMainCollectd(&collectdConfig)
 }
 
 func setUpSmartAgentConfigProvider(extensions map[configmodels.Extension]component.ServiceExtension) {
@@ -195,30 +195,6 @@ func setUpSmartAgentConfigProvider(extensions map[configmodels.Extension]compone
 		// If there are multiple extensions configured, pick the first one. Ideally,
 		// there would only be one extension.
 		break
-	}
-}
-
-// TODO: Remove this method in a subsequent PR, instead set all the values correctly
-//  in the extension's default config.
-// getCollectdConfig returns a *config.CollectdConfig for r.config.collectdConfig.
-func (r *Receiver) getCollectdConfig() *config.CollectdConfig {
-	collectdConfig := saConfigProvider.CollectdConfig()
-	return &config.CollectdConfig{
-		DisableCollectd:      false,
-		Timeout:              collectdConfig.Timeout,
-		ReadThreads:          collectdConfig.ReadThreads,
-		WriteThreads:         collectdConfig.WriteThreads,
-		WriteQueueLimitHigh:  collectdConfig.WriteQueueLimitHigh,
-		WriteQueueLimitLow:   collectdConfig.WriteQueueLimitLow,
-		LogLevel:             collectdConfig.LogLevel,
-		IntervalSeconds:      collectdConfig.IntervalSeconds,
-		WriteServerIPAddr:    collectdConfig.WriteServerIPAddr,
-		WriteServerPort:      collectdConfig.WriteServerPort,
-		ConfigDir:            collectdConfig.ConfigDir,
-		BundleDir:            saConfigProvider.BundleDir(),
-		HasGenericJMXMonitor: true,
-		InstanceName:         "",
-		WriteServerQuery:     "",
 	}
 }
 

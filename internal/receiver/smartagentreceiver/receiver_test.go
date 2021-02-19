@@ -17,6 +17,9 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
+	"os"
+	"path"
+	"sync"
 	"testing"
 	"time"
 
@@ -25,13 +28,22 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config/configtest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/extension/healthcheckextension"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 )
+
+func cleanUp() {
+	configureEnvironmentOnce = sync.Once{}
+}
 
 var expectedCPUMetrics = map[string]pdata.MetricDataType{
 	"cpu.idle":                 pdata.MetricDataTypeDoubleSum,
@@ -67,6 +79,7 @@ func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
 }
 
 func TestSmartAgentReceiver(t *testing.T) {
+	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 10)
 	consumer := new(consumertest.MetricsSink)
 	receiver := NewReceiver(zap.NewNop(), cfg, consumer)
@@ -159,6 +172,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 }
 
 func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
+	t.Cleanup(cleanUp)
 	cfg := newConfig("invalid", "cpu", -123)
 	receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
@@ -168,6 +182,7 @@ func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 }
 
 func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
+	t.Cleanup(cleanUp)
 	cfg := newConfig("invalid", "notamonitortype", 1)
 	receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
@@ -177,6 +192,7 @@ func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 }
 
 func TestMultipleStartAndShutdownInvocations(t *testing.T) {
+	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
 	receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
@@ -195,6 +211,7 @@ func TestMultipleStartAndShutdownInvocations(t *testing.T) {
 }
 
 func TestOutOfOrderShutdownInvocations(t *testing.T) {
+	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
 	receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
 
@@ -206,6 +223,7 @@ func TestOutOfOrderShutdownInvocations(t *testing.T) {
 }
 
 func TestInvalidMonitorStateAtShutdown(t *testing.T) {
+	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
 	receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
 	receiver.monitor = new(interface{})
@@ -216,6 +234,7 @@ func TestInvalidMonitorStateAtShutdown(t *testing.T) {
 }
 
 func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testing.T) {
+	t.Cleanup(cleanUp)
 	tests := []struct {
 		name           string
 		monitorFactory func() interface{}
@@ -241,4 +260,92 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 			)
 		})
 	}
+}
+
+func TestSmartAgentReceiverCollectdConfigOverrides(t *testing.T) {
+	t.Cleanup(cleanUp)
+	cfg := newConfig("valid", "cpu", 1)
+	r := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
+	host := &mockHost{
+		smartagentextensionConfig: getSmartAgentExtensionConfig(t),
+	}
+
+	require.NoError(t, r.Start(context.Background(), host))
+	require.NoError(t, r.Shutdown(context.Background()))
+	require.Equal(t, config.CollectdConfig{
+		DisableCollectd:      false,
+		Timeout:              10,
+		ReadThreads:          1,
+		WriteThreads:         4,
+		WriteQueueLimitHigh:  5,
+		WriteQueueLimitLow:   400000,
+		LogLevel:             "notice",
+		IntervalSeconds:      10,
+		WriteServerIPAddr:    "127.9.8.7",
+		WriteServerPort:      0,
+		ConfigDir:            "/etc/",
+		BundleDir:            "/opt/",
+		HasGenericJMXMonitor: true,
+		InstanceName:         "",
+		WriteServerQuery:     "",
+	}, saConfigProvider.CollectdConfig())
+
+	// Ensure envs are setup.
+	require.Equal(t, "/opt/", os.Getenv("SIGNALFX_BUNDLE_DIR"))
+	require.Equal(t, "/opt/jre", os.Getenv("JAVA_HOME"))
+}
+
+func getSmartAgentExtensionConfig(t *testing.T) *smartagentextension.Config {
+	factories, err := componenttest.ExampleComponents()
+	require.Nil(t, err)
+
+	factory := smartagentextension.NewFactory()
+	factories.Extensions[typeStr] = factory
+	cfg, err := configtest.LoadConfigFile(
+		t, path.Join(".", "testdata", "extension_config.yaml"), factories,
+	)
+	require.NoError(t, err)
+
+	partialSettingsConfig := cfg.Extensions["smartagent/partial_settings"]
+	require.NotNil(t, partialSettingsConfig)
+
+	out, ok := partialSettingsConfig.(*smartagentextension.Config)
+	require.True(t, ok)
+	return out
+}
+
+type mockHost struct {
+	smartagentextensionConfig *smartagentextension.Config
+}
+
+func (m *mockHost) ReportFatalError(err error) {
+}
+
+func (m *mockHost) GetFactory(kind component.Kind, componentType configmodels.Type) component.Factory {
+	return nil
+}
+
+func (m *mockHost) GetExtensions() map[configmodels.Extension]component.ServiceExtension {
+	m.smartagentextensionConfig.ExtensionSettings = configmodels.ExtensionSettings{
+		TypeVal: "smartagent",
+		NameVal: "smartagent",
+	}
+
+	randomExtensionConfig := &healthcheckextension.Config{}
+	return map[configmodels.Extension]component.ServiceExtension{
+		m.smartagentextensionConfig: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
+		randomExtensionConfig:       getExtension(healthcheckextension.NewFactory(), randomExtensionConfig),
+	}
+}
+
+func getExtension(f component.ExtensionFactory, cfg configmodels.Extension) component.ServiceExtension {
+	e, err := f.CreateExtension(context.Background(), component.ExtensionCreateParams{}, cfg)
+	if err != nil {
+		panic(err)
+	}
+	return e
+}
+
+func (m *mockHost) GetExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
+	return nil
 }

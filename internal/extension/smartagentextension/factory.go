@@ -27,7 +27,8 @@ import (
 )
 
 const (
-	typeStr configmodels.Type = "smartagent"
+	typeStr                configmodels.Type = "smartagent"
+	defaultIntervalSeconds int               = 10
 )
 
 func NewFactory() component.ExtensionFactory {
@@ -62,16 +63,17 @@ func createDefaultConfig() configmodels.Extension {
 		},
 		bundleDir: bundleDir,
 		collectdConfig: config.CollectdConfig{
-			Timeout:             40,
-			ReadThreads:         5,
-			WriteThreads:        2,
-			WriteQueueLimitHigh: 500000,
-			WriteQueueLimitLow:  400000,
-			LogLevel:            "notice",
-			IntervalSeconds:     0,
-			WriteServerIPAddr:   "127.9.8.7",
-			WriteServerPort:     0,
-			ConfigDir:           "/var/run/signalfx-agent/collectd",
+			Timeout:              40,
+			ReadThreads:          5,
+			WriteThreads:         2,
+			WriteQueueLimitHigh:  500000,
+			WriteQueueLimitLow:   400000,
+			LogLevel:             "notice",
+			IntervalSeconds:      defaultIntervalSeconds,
+			WriteServerIPAddr:    "127.9.8.7",
+			WriteServerPort:      0,
+			ConfigDir:            "/var/run/signalfx-agent/collectd",
+			HasGenericJMXMonitor: true,
 		},
 	}
 }

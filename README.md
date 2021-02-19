@@ -2,8 +2,7 @@
 
 The Splunk distribution of [OpenTelemetry
 Collector](https://github.com/open-telemetry/opentelemetry-collector) provides
-a binary that can be deployed as a standalone service (also known as a gateway)
-that can receive, process and export trace, metric and log data. This
+a binary that can receive, process and export trace, metric and log data. This
 distribution is supported by Splunk.
 
 The Collector currently supports:
@@ -19,6 +18,9 @@ The Collector currently supports:
   exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/signalfxexporter).
   More information available
   [here](https://docs.signalfx.com/en/latest/otel/imm-otel-collector.html).
+- [Splunk Log Observer](https://www.splunk.com/en_us/form/splunk-log-observer.html) via
+  the [`splunk_hec`
+  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/splunkhecexporter).
 - [Splunk Cloud](https://www.splunk.com/en_us/software/splunk-cloud.html) or
   [Splunk
   Enterprise](https://www.splunk.com/en_us/software/splunk-enterprise.html) via
@@ -29,10 +31,25 @@ The Collector currently supports:
 
 ## Getting Started
 
+The Collector provides a single binary and two deployment methods:
+
+- Agent: A Collector instance running with the application or on the same host
+  as the application (e.g. binary, sidecar, or daemonset).
+- Gateway: One or more Collector instances running as a standalone service
+  (e.g. container or deployment) typically per cluster, datacenter or region.
+
+> Use of the Collector running as an agent is only supported for the [Splunk
+Observability
+Suite](https://www.splunk.com/en_us/form/splunk-observability-suite.html) at
+this time. The [SignalFx Smart
+Agent](https://github.com/signalfx/signalfx-agent) or [Splunk Unverisal
+Forwarder](https://docs.splunk.com/Documentation/Forwarder/8.1.2/Forwarder/Abouttheuniversalforwarder)
+should be used for all other products.
+
 The Collector is supported on and packaged for a variety of platforms including:
 
 - Kubernetes
-  - Helm (coming soon!)
+  - [Helm (recommended)](https://github.com/signalfx/splunk-otel-collector-chart)
   - [YAML](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/master/exporter/sapmexporter/examples/signalfx-k8s.yaml)
 - Linux
   - [Installer script (recommended)](./docs/getting-started/linux-installer.md)

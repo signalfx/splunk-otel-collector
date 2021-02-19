@@ -1,0 +1,233 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-conf
+  labels:
+    app: opentelemetry
+    component: otel-collector-conf
+data:
+  otel-collector-config: |
+    extensions:
+      health_check:
+      http_forwarder:
+        egress:
+          # TODO: Ensure this is set properly
+          endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
+      zpages:
+    receivers:
+      hostmetrics:
+        collection_interval: 1m
+        scrapers:
+          cpu:
+          disk:
+          load:
+          filesystem:
+          memory:
+          network:
+          processes:
+          paging:
+      jaeger:
+        protocols:
+          grpc:
+          thrift_binary:
+          thrift_compact:
+          thrift_http:
+      opencensus:
+      otlp:
+        protocols:
+          grpc:
+          http:
+      sapm:
+      signalfx:
+      # This section is used to collect OpenTelemetry metrics
+      # Even if just a SignalFx µAPM customer, these metrics are included
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: 'otel-collector'
+              scrape_interval: 10s
+              static_configs:
+                - targets: ['localhost:8888']
+                  # If you want to use the environment filter
+                  # In the SignalFx dashboard
+                  #labels:
+                    #environment: demo
+              metric_relabel_configs:
+                - source_labels: [ __name__ ]
+                  regex: '.*grpc_io.*'
+                  action: drop
+      # Enable Zipkin to support Istio Mixer Adapter
+      # https://github.com/signalfx/signalfx-istio-adapter
+      zipkin:
+    processors:
+      batch:
+      # Optional: If you have a different environment tag name
+      # If this option is enabled it must be added to the pipeline section below
+      #attributes/copyfromexistingkey:
+        #actions:
+        #- key: environment
+          #from_attribute: YOUR_EXISTING_TAG_NAMEE
+          #action: upsert
+      # Optional: If you want to add an environment tag
+      # If this option is enabled it must be added to the pipeline section below
+      #attributes/newenvironment:
+        #actions:
+        #- key: environment
+          #value: "YOUR_ENVIRONMENT_NAME"
+          #action: insert
+      # Enabling the memory_limiter is strongly recommended for every pipeline.
+      # Configuration is based on the amount of memory allocated to the collector.
+      # The configuration below assumes 2GB of memory. In general, the ballast
+      # should be set to 1/3 of the collector's memory, the limit should be 90% of
+      # the collector's memory up to 2GB, and the spike should be 25% of the
+      # collector's memory up to 2GB. In addition, the "--mem-ballast-size-mib" CLI
+      # flag must be set to the same value as the "ballast_size_mib". For more
+      # information, see
+      # https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md
+      memory_limiter:
+        # TODO: Ensure this is set properly
+        ballast_size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
+        check_interval: 2s
+        # TODO: Ensure this is set properly
+        limit_mib: ${SPLUNK_MEMORY_LIMIT_PERCENTAGE}
+        # TODO: Ensure this is set properly
+        spike_limit_mib: ${SPLUNK_MEMORY_SPIKE_PERCENTAGE}
+    exporters:
+      # Traces
+      sapm:
+        # TODO: Ensure this is set properly
+        access_token: "${SPLUNK_ACCESS_TOKEN}"
+        # TODO: Ensure this is set properly
+        endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace"
+      # Metrics
+      signalfx:
+        # TODO: Ensure this is set properly
+        access_token: "${SPLUNK_TOKEN}"
+        # TODO: Ensure this is set properly
+        realm: "${SPLUNK_REALM}"
+    service:
+      extensions: [health_check, http_forwarder, zpages]
+      pipelines:
+        traces:
+          receivers: [jaeger, opencensus, otlp, sapm, zipkin]
+          processors: [memory_limiter, batch]
+          exporters: [sapm, signalfx]
+        metrics:
+          receivers: [opencensus, otlp, signalfx, prometheus, hostmetrics]
+          processors: [memory_limiter, batch]
+          exporters: [signalfx]
+        logs:
+          receivers: [signalfx]
+          processors: [memory_limiter, batch]
+          exporters: [signalfx]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  labels:
+    app: opentelemetry
+    component: otel-collector
+spec:
+  ports:
+  - name: health # Default Health Check port.
+    port: 13133
+  - name: jaeger-grpc # Default endpoint for Jaeger gRPC receiver.
+    port: 14250
+  - name: jaeger-thrift # Default endpoint for Jaeger Thrift receiver.
+    port: 14268
+  - name: opencensus # Default endpoint for OpenCensus receiver.
+    port: 55678
+  - name: otlp # Default endpoint for OpenTelemetry gRPC receiver.
+    port: 4317
+  - name: http-forwarder # Default endpoint for HTTP Forwarder extension.
+    port: 6060
+  - name: sapm # Default endpoint for SignalFx APM receiver.
+    port: 7276
+  - name: zipkin # Default endpoint for Zipkin trace receiver.
+    port: 9411
+  - name: signalfx # Default endpoint for SignalFx metrics receiver.
+    port: 9943
+  selector:
+    component: otel-collector
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  labels:
+    app: opentelemetry
+    component: otel-collector
+spec:
+  selector:
+    matchLabels:
+      app: opentelemetry
+      component: otel-collector
+  minReadySeconds: 5
+  progressDeadlineSeconds: 120
+  # TODO: Ensure this is set properly
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: opentelemetry
+        component: otel-collector
+    spec:
+      containers:
+      - command:
+          - "/otelcol"
+          - "--config=/conf/otel-collector-config.yaml"
+          # TODO: Ensure this is set properly
+#           Memory Ballast size should be max 1/3 to 1/2 of memory.
+          - "--mem-ballast-size-mib=683"
+    # TODO: Ensure this is set properly
+    image: quay.io/signalfx/splunk-otel-collector:latest
+        name: otel-collector
+        resources:
+          limits:
+            # TODO: Ensure this is set properly
+            cpu: 1
+            # TODO: Ensure this is set properly
+            memory: 2Gi
+          requests:
+            cpu: 200m
+            memory: 400Mi
+        ports:
+        - containerPort: 13133 # Default endpoint for Health Check.
+        - containerPort: 14250 # Default endpoint for Jaeger gRPC receiver.
+        - containerPort: 14268 # Default endpoint for Jaeger Thrift receiver.
+        - containerPort: 55678 # Default endpoint for OpenCensus receiver.
+        - containerPort: 4317  # Default endpoint for OpenTelemetry gRPC receiver.
+        - containerPort: 6060  # Default endpoint for HTTP Forwarder extension.
+        - containerPort: 7276  # Default endpoint for SignalFx APM receiver.
+        - containerPort: 8888  # Default endpoint for querying metrics.
+        - containerPort: 9411  # Default endpoint for Zipkin trace receiver.
+        - containerPort: 9943  # Default endpoint for SignalFx metrics receiver.
+        volumeMounts:
+        - name: otel-collector-config-vol
+          mountPath: /conf
+#        - name: otel-collector-secrets
+#          mountPath: /secrets
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 13133 # Health Check extension default port.
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 13133 # Health Check extension default port.
+      volumes:
+        - configMap:
+            name: otel-collector-conf
+            items:
+              - key: otel-collector-config
+                path: otel-collector-config.yaml
+          name: otel-collector-config-vol
+#        - secret:
+#            name: otel-collector-secrets
+#            items:
+#              - key: cert.pem
+#                path: cert.pem
+#              - key: key.pem
+#                path: key.pem

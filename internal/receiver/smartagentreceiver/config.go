@@ -38,10 +38,9 @@ type Config struct {
 	configmodels.ReceiverSettings `mapstructure:",squash"`
 	// Generally an observer/receivercreator-set value via Endpoint.Target.
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
-	Endpoint       string `mapstructure:"endpoint"`
-	monitorConfig  config.MonitorCustomConfig
-	collectdConfig smartagentextension.CollectdConfig
-	bundleDir      string
+	Endpoint         string `mapstructure:"endpoint"`
+	monitorConfig    config.MonitorCustomConfig
+	saConfigProvider smartagentextension.SmartAgentConfigProvider
 }
 
 func (rCfg *Config) validate() error {

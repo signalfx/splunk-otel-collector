@@ -17,10 +17,13 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
 
+	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd"
@@ -151,6 +154,7 @@ func (r *Receiver) createMonitor(
 		configureCollectdOnce.Do(func() {
 			r.logger.Info("Configuring collectd")
 			r.setUpCollectdConfig(extensions)
+			r.setUpEnvironment()
 			err = configureMainCollectd(r.getCollectdConfig())
 		})
 	}
@@ -165,9 +169,8 @@ func configureMainCollectd(collectdConfig *config.CollectdConfig) error {
 func (r *Receiver) setUpCollectdConfig(extensions map[configmodels.Extension]component.ServiceExtension) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
-	defaultCfg := f.CreateDefaultConfig().(*smartagentextension.Config)
-	r.config.collectdConfig = defaultCfg.CollectdConfig
-	r.config.bundleDir = defaultCfg.BundleDir
+	defaultCfg := f.CreateDefaultConfig().(smartagentextension.SmartAgentConfigProvider)
+	r.config.saConfigProvider = defaultCfg
 
 	// Do a lookup for any smartagent extensions to pick up common collectd options
 	// to be applied across instances of the receiver.
@@ -176,12 +179,11 @@ func (r *Receiver) setUpCollectdConfig(extensions map[configmodels.Extension]com
 			continue
 		}
 
-		cfg, ok := c.(*smartagentextension.Config)
+		cfgProvider, ok := c.(smartagentextension.SmartAgentConfigProvider)
 		if !ok {
 			continue
 		}
-		r.config.collectdConfig = cfg.CollectdConfig
-		r.config.bundleDir = cfg.BundleDir
+		r.config.saConfigProvider = cfgProvider
 
 		// If there are multiple extensions configured, pick the first one. Ideally,
 		// there would only be one extension.
@@ -191,21 +193,28 @@ func (r *Receiver) setUpCollectdConfig(extensions map[configmodels.Extension]com
 
 // getCollectdConfig returns a *config.CollectdConfig for r.config.collectdConfig.
 func (r *Receiver) getCollectdConfig() *config.CollectdConfig {
+	collectdConfig := r.config.saConfigProvider.CollectdConfig()
 	return &config.CollectdConfig{
 		DisableCollectd:      false,
-		Timeout:              r.config.collectdConfig.Timeout,
-		ReadThreads:          r.config.collectdConfig.ReadThreads,
-		WriteThreads:         r.config.collectdConfig.WriteThreads,
-		WriteQueueLimitHigh:  r.config.collectdConfig.WriteQueueLimitHigh,
-		WriteQueueLimitLow:   r.config.collectdConfig.WriteQueueLimitLow,
-		LogLevel:             r.config.collectdConfig.LogLevel,
-		IntervalSeconds:      r.config.collectdConfig.IntervalSeconds,
-		WriteServerIPAddr:    r.config.collectdConfig.WriteServerIPAddr,
-		WriteServerPort:      r.config.collectdConfig.WriteServerPort,
-		ConfigDir:            r.config.collectdConfig.ConfigDir,
-		BundleDir:            r.config.bundleDir,
+		Timeout:              collectdConfig.Timeout,
+		ReadThreads:          collectdConfig.ReadThreads,
+		WriteThreads:         collectdConfig.WriteThreads,
+		WriteQueueLimitHigh:  collectdConfig.WriteQueueLimitHigh,
+		WriteQueueLimitLow:   collectdConfig.WriteQueueLimitLow,
+		LogLevel:             collectdConfig.LogLevel,
+		IntervalSeconds:      collectdConfig.IntervalSeconds,
+		WriteServerIPAddr:    collectdConfig.WriteServerIPAddr,
+		WriteServerPort:      collectdConfig.WriteServerPort,
+		ConfigDir:            collectdConfig.ConfigDir,
+		BundleDir:            r.config.saConfigProvider.BundleDir(),
 		HasGenericJMXMonitor: true,
 		InstanceName:         "",
 		WriteServerQuery:     "",
 	}
+}
+
+func (r *Receiver) setUpEnvironment() {
+	bundleDir := r.config.saConfigProvider.BundleDir()
+	os.Setenv(constants.BundleDirEnvVar, bundleDir)
+	os.Setenv("JAVA_HOME", filepath.Join(bundleDir, "jre"))
 }

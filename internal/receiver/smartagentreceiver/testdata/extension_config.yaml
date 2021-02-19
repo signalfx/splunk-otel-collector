@@ -1,0 +1,26 @@
+extensions:
+  smartagent/partial_settings:
+    bundleDir: /opt/
+    collectd:
+      timeout: 10
+      readThreads: 1
+      writeThreads: 4
+      writeQueueLimitHigh: 5
+      configDir: /etc/
+
+receivers:
+  examplereceiver:
+
+processors:
+  exampleprocessor:
+
+exporters:
+  exampleexporter:
+
+service:
+  extensions: [smartagent/partial_settings]
+  pipelines:
+    metrics:
+      receivers: [examplereceiver]
+      processors: [exampleprocessor]
+      exporters: [exampleexporter]

@@ -19,13 +19,17 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
+	"os"
+	"path"
 	"testing"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/uptime"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config/configtest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/extension/healthcheckextension"
 	"go.uber.org/zap"
@@ -47,7 +51,7 @@ func TestSmartAgentReceiverCollectdConfigOverrides(t *testing.T) {
 	}
 	r := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
 	host := &mockHost{
-		smartagentextensionConfig: getSmartAgentExtensionConfig(),
+		smartagentextensionConfig: getSmartAgentExtensionConfig(t),
 	}
 
 	// Test whether config overrides are correctly loaded from smartagent extension factory.
@@ -58,35 +62,44 @@ func TestSmartAgentReceiverCollectdConfigOverrides(t *testing.T) {
 	r.Shutdown(context.Background())
 	require.Equal(t, &config.CollectdConfig{
 		DisableCollectd:      false,
-		Timeout:              40,
+		Timeout:              10,
 		ReadThreads:          1,
 		WriteThreads:         4,
 		WriteQueueLimitHigh:  5,
-		WriteQueueLimitLow:   1,
-		LogLevel:             "info",
-		IntervalSeconds:      5,
+		WriteQueueLimitLow:   400000,
+		LogLevel:             "notice",
+		IntervalSeconds:      0,
 		WriteServerIPAddr:    "127.9.8.7",
 		WriteServerPort:      0,
-		ConfigDir:            "/etc/collectd/collectd.conf",
-		BundleDir:            "/opt/bin/collectd/",
+		ConfigDir:            "/etc/",
+		BundleDir:            "/opt/",
 		HasGenericJMXMonitor: true,
 		InstanceName:         "",
 		WriteServerQuery:     "",
 	}, r.getCollectdConfig())
+
+	// Ensure envs are setup.
+	require.Equal(t, "/opt/", os.Getenv("SIGNALFX_BUNDLE_DIR"))
+	require.Equal(t, "/opt/jre", os.Getenv("JAVA_HOME"))
 }
 
-func getSmartAgentExtensionConfig() *smartagentextension.Config {
-	saExtension := smartagentextension.NewFactory()
-	saExtensionCfg := saExtension.CreateDefaultConfig().(*smartagentextension.Config)
-	saExtensionCfg.CollectdConfig.ReadThreads = 1
-	saExtensionCfg.CollectdConfig.WriteThreads = 4
-	saExtensionCfg.CollectdConfig.WriteQueueLimitHigh = 5
-	saExtensionCfg.CollectdConfig.WriteQueueLimitLow = 1
-	saExtensionCfg.CollectdConfig.LogLevel = "info"
-	saExtensionCfg.CollectdConfig.IntervalSeconds = 5
-	saExtensionCfg.CollectdConfig.ConfigDir = "/etc/collectd/collectd.conf"
-	saExtensionCfg.BundleDir = "/opt/bin/collectd/"
-	return saExtensionCfg
+func getSmartAgentExtensionConfig(t *testing.T) *smartagentextension.Config {
+	factories, err := componenttest.ExampleComponents()
+	require.Nil(t, err)
+
+	factory := smartagentextension.NewFactory()
+	factories.Extensions[typeStr] = factory
+	cfg, err := configtest.LoadConfigFile(
+		t, path.Join(".", "testdata", "extension_config.yaml"), factories,
+	)
+	require.NoError(t, err)
+
+	partialSettingsConfig := cfg.Extensions["smartagent/partial_settings"]
+	require.NotNil(t, partialSettingsConfig)
+
+	out, ok := partialSettingsConfig.(*smartagentextension.Config)
+	require.True(t, ok)
+	return out
 }
 
 type mockHost struct {

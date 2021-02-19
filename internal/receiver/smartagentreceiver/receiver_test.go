@@ -251,7 +251,7 @@ func TestSmartAgentReceiverNonCollectd(t *testing.T) {
 	receiver.Start(context.Background(), componenttest.NewNopHost())
 
 	// Simple test to ensure that collectd config is not loaded for non-collectd monitors.
-	require.Empty(t, receiver.config.collectdConfig)
+	require.Empty(t, receiver.config.saConfigProvider)
 
 	receiver.Shutdown(context.Background())
 }

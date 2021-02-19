@@ -53,8 +53,9 @@ type Receiver struct {
 var _ component.MetricsReceiver = (*Receiver)(nil)
 
 var (
-	rusToZap              *logrusToZap
-	configureCollectdOnce sync.Once
+	rusToZap                 *logrusToZap
+	configureCollectdOnce    sync.Once
+	configureEnvironmentOnce sync.Once
 )
 
 func init() {
@@ -147,14 +148,19 @@ func (r *Receiver) createMonitor(
 		output.AddExtraDimension(k, v)
 	}
 
+	// Configure SmartAgentConfigProvider to gather any global config overrides and
+	// set required envs.
+	configureEnvironmentOnce.Do(func() {
+		r.setUpSmartConfigProvider(extensions)
+		r.setUpEnvironment()
+	})
+
 	// Note, that this receiver has to configure main collectd even for collectd/custom monitor,
 	// despite the fact that, that monitor stands up its own instance of collectd to prevent this
 	// panic "Main collectd instance should not be accessed before being configured".
 	if r.config.monitorConfig.MonitorConfigCore().IsCollectdBased() {
 		configureCollectdOnce.Do(func() {
 			r.logger.Info("Configuring collectd")
-			r.setUpCollectdConfig(extensions)
-			r.setUpEnvironment()
 			err = configureMainCollectd(r.getCollectdConfig())
 		})
 	}
@@ -166,7 +172,7 @@ func configureMainCollectd(collectdConfig *config.CollectdConfig) error {
 	return collectd.ConfigureMainCollectd(collectdConfig)
 }
 
-func (r *Receiver) setUpCollectdConfig(extensions map[configmodels.Extension]component.ServiceExtension) {
+func (r *Receiver) setUpSmartConfigProvider(extensions map[configmodels.Extension]component.ServiceExtension) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
 	defaultCfg := f.CreateDefaultConfig().(smartagentextension.SmartAgentConfigProvider)

@@ -15,59 +15,109 @@
 package smartagentextension
 
 import (
+	"fmt"
+	"reflect"
+	"strings"
+
+	"github.com/signalfx/defaults"
+	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/config/configmodels"
+	"gopkg.in/yaml.v2"
 )
+
+// SmartAgentConfigProvider exposes config fields to other packages.
+// This is needed since fields such as fields such as bundleDir and
+// collectdConfig are mapped to camel case fields in the config and
+// hence are not exposed.
+type SmartAgentConfigProvider interface {
+	BundleDir() string
+	CollectdConfig() config.CollectdConfig
+}
+
+var _ SmartAgentConfigProvider = (*Config)(nil)
 
 type Config struct {
 	configmodels.ExtensionSettings `mapstructure:",squash"`
-	BundleDir                      string         `mapstructure:"bundleDir"`
-	CollectdConfig                 CollectdConfig `mapstructure:"collectd"`
+	bundleDir                      string
+	collectdConfig                 config.CollectdConfig
 }
 
-// CollectdConfig fields have a direct mapping to fields on
-// collect.CollectdConfig in the SignalFx Agent.
-// https://github.com/signalfx/signalfx-agent/blob/v5.7.2/pkg/core/config/config.go#L342
-type CollectdConfig struct {
-	// How many read intervals before abandoning a metric. Doesn't affect much
-	// in normal usage.
-	// See [Timeout](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#timeout_iterations).
-	Timeout int `mapstructure:"timeout"`
-	// Number of threads dedicated to executing read callbacks. See
-	// [ReadThreads](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#readthreads_num)
-	ReadThreads int `mapstructure:"readThreads"`
-	// Number of threads dedicated to writing value lists to write callbacks.
-	// This should be much less than readThreads because writing is batched in
-	// the write_http plugin that writes back to the agent.
-	// See [WriteThreads](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#writethreads_num).
-	WriteThreads int `mapstructure:"writeThreads"`
-	// The maximum numbers of values in the queue to be written back to the
-	// agent from collectd.  Since the values are written to a local socket
-	// that the agent exposes, there should be almost no queuing and the
-	// default should be more than sufficient. See
-	// [WriteQueueLimitHigh](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#writequeuelimithigh_highnum)
-	WriteQueueLimitHigh int `mapstructure:"writeQueueLimitHigh"`
-	// The lowest number of values in the collectd queue before which metrics
-	// begin being randomly dropped.  See
-	// [WriteQueueLimitLow](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#writequeuelimitlow_lownum)
-	WriteQueueLimitLow int `mapstructure:"writeQueueLimitLow"`
-	// Collectd's log level -- info, notice, warning, or err
-	LogLevel string `mapstructure:"logLevel"`
-	// A default read interval for collectd plugins.  If zero or undefined,
-	// will default to 10 seconds. Some collectd python monitors do not
-	// support overridding the interval at the monitor level, but this
-	// setting will apply to them.
-	IntervalSeconds int `mapstructure:"intervalSeconds"`
-	// The local IP address of the server that the agent exposes to which
-	// collectd will send metrics.  This defaults to 127.9.8.7, but can be
-	// overridden if needed.
-	WriteServerIPAddr string `mapstructure:"writeServerIPAddr"`
-	// The port of the agent's collectd metric sink server.  If set to zero
-	// (the default) it will allow the OS to assign it a free port.
-	WriteServerPort uint16 `mapstructure:"writeServerPort"`
-	// This is where the agent will write the collectd collect files that it
-	// manages.  If you have secrets in those files, consider setting this to a
-	// path on a tmpfs mount.  The files in this directory should be considered
-	// transient -- there is no value in editing them by hand.  If you want to
-	// add your own collectd collect, see the collectd/custom monitor.
-	ConfigDir string `mapstructure:"configDir"`
+func (c Config) BundleDir() string {
+	return c.bundleDir
+}
+
+func (c Config) CollectdConfig() config.CollectdConfig {
+	return c.collectdConfig
+}
+
+func customUnmarshaller(componentViperSection *viper.Viper, intoCfg interface{}) error {
+	allSettings := componentViperSection.AllSettings()
+	extensionCfg := intoCfg.(*Config)
+
+	if bundleDir, ok := allSettings["bundledir"]; ok {
+		extensionCfg.bundleDir = fmt.Sprintf("%s", bundleDir)
+		delete(allSettings, "bundledir")
+	}
+
+	var collectdSettings map[string]interface{}
+	var ok bool
+	if collectdSettings, ok = allSettings["collectd"].(map[string]interface{}); !ok {
+		// Nothing to do if user specified collectd settings do not exist.
+		// Defaults will be picked up.
+		return nil
+	}
+
+	var collectdConfig config.CollectdConfig
+	yamlTags := yamlTagsFromStruct(reflect.TypeOf(collectdConfig))
+
+	for key, val := range collectdSettings {
+		updatedKey := yamlTags[key]
+		if updatedKey != "" {
+			delete(collectdSettings, key)
+			collectdSettings[updatedKey] = val
+		}
+	}
+
+	asBytes, err := yaml.Marshal(collectdSettings)
+	if err != nil {
+		return fmt.Errorf("failed constructing raw collectd config block: %w", err)
+	}
+
+	err = yaml.UnmarshalStrict(asBytes, &collectdConfig)
+	if err != nil {
+		return fmt.Errorf("failed creating collectd config: %w", err)
+	}
+
+	err = defaults.Set(&collectdConfig)
+	if err != nil {
+		return fmt.Errorf("failed setting collectd config defaults: %w", err)
+	}
+
+	extensionCfg.collectdConfig = collectdConfig
+	return nil
+}
+
+// Copied from smartagent receiver.
+func yamlTagsFromStruct(s reflect.Type) map[string]string {
+	yamlTags := map[string]string{}
+	for i := 0; i < s.NumField(); i++ {
+		field := s.Field(i)
+		tag := field.Tag
+		yamlTag := strings.Split(tag.Get("yaml"), ",")[0]
+		lowerTag := strings.ToLower(yamlTag)
+		if yamlTag != lowerTag {
+			yamlTags[lowerTag] = yamlTag
+		}
+
+		fieldType := field.Type
+		if fieldType.Kind() == reflect.Struct {
+			otherFields := yamlTagsFromStruct(fieldType)
+			for k, v := range otherFields {
+				yamlTags[k] = v
+			}
+		}
+	}
+
+	return yamlTags
 }

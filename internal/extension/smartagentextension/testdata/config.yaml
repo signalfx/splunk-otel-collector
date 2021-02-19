@@ -12,7 +12,14 @@ extensions:
       intervalSeconds: 5
       writeServerIPAddr: 10.100.12.1
       writeServerPort: 9090
-      configDir: /etc/collectd/collectd.conf
+      configDir: /etc/
+  smartagent/partial_settings:
+    collectd:
+      timeout: 10
+      readThreads: 1
+      writeThreads: 4
+      writeQueueLimitHigh: 5
+      configDir: /etc/
 
 receivers:
   examplereceiver:

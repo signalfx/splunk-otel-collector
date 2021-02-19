@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
+	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/extension/extensionhelper"
@@ -33,7 +34,9 @@ func NewFactory() component.ExtensionFactory {
 	return extensionhelper.NewFactory(
 		typeStr,
 		createDefaultConfig,
-		createExtension)
+		createExtension,
+		extensionhelper.WithCustomUnmarshaler(customUnmarshaller),
+	)
 }
 
 var bundleDir = func() string {
@@ -57,15 +60,15 @@ func createDefaultConfig() configmodels.Extension {
 			TypeVal: typeStr,
 			NameVal: string(typeStr),
 		},
-		BundleDir: bundleDir,
-		CollectdConfig: CollectdConfig{
+		bundleDir: bundleDir,
+		collectdConfig: config.CollectdConfig{
 			Timeout:             40,
 			ReadThreads:         5,
 			WriteThreads:        2,
 			WriteQueueLimitHigh: 500000,
 			WriteQueueLimitLow:  400000,
 			LogLevel:            "notice",
-			IntervalSeconds:     10,
+			IntervalSeconds:     0,
 			WriteServerIPAddr:   "127.9.8.7",
 			WriteServerPort:     0,
 			ConfigDir:           "/var/run/signalfx-agent/collectd",

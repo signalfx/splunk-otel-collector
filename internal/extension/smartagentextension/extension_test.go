@@ -18,6 +18,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
@@ -32,8 +33,8 @@ func TestExtension(t *testing.T) {
 			Logger: zap.NewNop(),
 		},
 		&Config{
-			BundleDir: "/bundle/",
-			CollectdConfig: CollectdConfig{
+			bundleDir: "/bundle/",
+			collectdConfig: config.CollectdConfig{
 				Timeout:   10,
 				ConfigDir: "/config/",
 			},

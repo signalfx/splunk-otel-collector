@@ -18,7 +18,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configmodels"
@@ -27,7 +27,7 @@ import (
 
 func TestLoadConfig(t *testing.T) {
 	factories, err := componenttest.ExampleComponents()
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	factory := NewFactory()
 	factories.Extensions[typeStr] = factory
@@ -38,7 +38,7 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, len(cfg.Extensions), 2)
+	require.Equal(t, len(cfg.Extensions), 3)
 
 	emptyConfig := cfg.Extensions["smartagent/default_settings"]
 	require.NotNil(t, emptyConfig)
@@ -48,15 +48,15 @@ func TestLoadConfig(t *testing.T) {
 				TypeVal: "smartagent",
 				NameVal: "smartagent/default_settings",
 			},
-			BundleDir: bundleDir,
-			CollectdConfig: CollectdConfig{
+			bundleDir: bundleDir,
+			collectdConfig: config.CollectdConfig{
 				Timeout:             40,
 				ReadThreads:         5,
 				WriteThreads:        2,
 				WriteQueueLimitHigh: 500000,
 				WriteQueueLimitLow:  400000,
 				LogLevel:            "notice",
-				IntervalSeconds:     10,
+				IntervalSeconds:     0,
 				WriteServerIPAddr:   "127.9.8.7",
 				WriteServerPort:     0,
 				ConfigDir:           "/var/run/signalfx-agent/collectd",
@@ -72,8 +72,8 @@ func TestLoadConfig(t *testing.T) {
 				TypeVal: "smartagent",
 				NameVal: "smartagent/all_settings",
 			},
-			BundleDir: "/opt/bin/collectd/",
-			CollectdConfig: CollectdConfig{
+			bundleDir: "/opt/bin/collectd/",
+			collectdConfig: config.CollectdConfig{
 				Timeout:             10,
 				ReadThreads:         1,
 				WriteThreads:        4,
@@ -83,8 +83,32 @@ func TestLoadConfig(t *testing.T) {
 				IntervalSeconds:     5,
 				WriteServerIPAddr:   "10.100.12.1",
 				WriteServerPort:     9090,
-				ConfigDir:           "/etc/collectd/collectd.conf",
+				ConfigDir:           "/etc/",
 			},
 		}
 	}(), allSettingsConfig)
+
+	partialSettingsConfig := cfg.Extensions["smartagent/partial_settings"]
+	require.NotNil(t, partialSettingsConfig)
+	require.Equal(t, func() *Config {
+		return &Config{
+			ExtensionSettings: configmodels.ExtensionSettings{
+				TypeVal: "smartagent",
+				NameVal: "smartagent/partial_settings",
+			},
+			bundleDir: bundleDir,
+			collectdConfig: config.CollectdConfig{
+				Timeout:             10,
+				ReadThreads:         1,
+				WriteThreads:        4,
+				WriteQueueLimitHigh: 5,
+				WriteQueueLimitLow:  400000,
+				LogLevel:            "notice",
+				IntervalSeconds:     0,
+				WriteServerIPAddr:   "127.9.8.7",
+				WriteServerPort:     0,
+				ConfigDir:           "/etc/",
+			},
+		}
+	}(), partialSettingsConfig)
 }

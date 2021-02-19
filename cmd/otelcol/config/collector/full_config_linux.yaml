@@ -86,7 +86,7 @@ receivers:
   #############################################################################
 
   # Enables the k8s cluster receiver with default settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/k8sclusterreceiver
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8sclusterreceiver
   # NOTE: It is very likely additional configuration is required
   k8s_cluster:
 

@@ -1,0 +1,532 @@
+###############################################################################
+###############################################################################
+# Full Configuration Example
+# Requires opentelemetry-collector-contrib or a distribution based on it
+###############################################################################
+###############################################################################
+
+###############################################################################
+# Receivers
+# How you get data into the Collector (can be push or pull based)
+# Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver
+###############################################################################
+# This section is for configuration only; must be enabled in service section
+# No need to remove receivers even if not used
+# Only change this section if the default settings are not sufficient
+# One advanced configuration that may be required is TLS/mTLS settings
+# https://github.com/open-telemetry/opentelemetry-collector/blob/main/config/configtls/README.md
+receivers:
+
+  #############################################################################
+  # Traces + Metrics + Logs
+  #############################################################################
+
+  # Enables the splunk hec receiver with default settings
+  #  - grpc (default endpoint = 0.0.0.0:8088)
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/splunkhecreceiver
+  splunk_hec:
+    #access_token_passthrough: true
+
+  #############################################################################
+  # Traces + Metrics
+  #############################################################################
+
+  # Enables the opencensus receiver with default settings
+  #  - grpc (default endpoint = 0.0.0.0:55678)
+  #  - http (default endpoint = 0.0.0.0:55678)
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/opencensusreceiver
+  opencensus:
+
+  # Enables the otlp receiver with default settings
+  #  - grpc (default endpoint = 0.0.0.0:4317)
+  #  - http (default endpoint = 0.0.0.0:55681)
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+  #############################################################################
+  # Traces
+  #############################################################################
+
+  # Enables the jaeger receiver with default settings
+  #  - grpc (default endpoint = 0.0.0.0:14250)
+  #  - thrift_binary (default endpoint = 0.0.0.0:6832/udp)
+  #  - thrift_compact (default endpoint = 0.0.0.0:6831/udp)
+  #  - thrift_http (default endpoint = 0.0.0.0:14268)
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/jaegerreceiver
+  jaeger:
+    protocols:
+      grpc:
+      thrift_binary:
+      thrift_compact:
+      thrift_http:
+
+  # Enables the kafka receiver with default settings
+  #  - brokers = localhost:9092
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/kafkareceiver
+  # NOTE: It is very likely additional configuration is required
+  kafka:
+    protocol_version: 2.0.0
+
+  # Enables the sapm receiver with default settings
+  #  - grpc (default endpoint = 0.0.0.0:7276)
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sapmreceiver
+  sapm:
+    #access_token_passthrough: true
+
+  # Enables the zipkin receiver with default settings
+  #  - grpc (default endpoint = 0.0.0.0:9411)
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/zipkinreceiver
+  zipkin:
+
+  #############################################################################
+  # Metrics
+  #############################################################################
+
+  # Enables the k8s cluster receiver with default settings
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/k8sclusterreceiver
+  # NOTE: It is very likely additional configuration is required
+  k8s_cluster:
+
+  # Enables the kubeletstats receiver with default settings
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/kubeletstatsreceiver
+  # NOTE: It is very likely additional configuration is required
+  kubeletstats:
+    auth_type: "serviceAccount"
+    insecure_skip_verify: true
+
+  # Enables the hostmetric receiver with default settings
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/hostmetricsreceiver
+  hostmetrics:
+    collection_interval: 1m
+    scrapers:
+      cpu:
+      disk:
+      load:
+      filesystem:
+      memory:
+      network:
+      processes:
+      paging:
+
+  # Enables the prometheus receiver -- should only be used for local metric collection
+  # This section is used to collect the OpenTelemetry Collector metrics
+  # Even if just a Splunk APM customer, these metrics are included
+  prometheus:
+    config:
+      scrape_configs:
+      - job_name: 'otel-collector'
+        scrape_interval: 10s
+        static_configs:
+        - targets: ['0.0.0.0:8888']
+        metric_relabel_configs:
+          - source_labels: [ __name__ ]
+            regex: '.*grpc_io.*'
+            action: drop
+
+  # Enables the prometheus simple receiver with default settings
+  #  - grpc (default endpoint = 0.0.0.0:9090)
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/simpleprometheusreceiver
+  # NOTE: It is very likely additional configuration is required
+  prometheus_simple:
+
+  # Enables the signalfx receiver with default settings
+  #  - grpc (default endpoint = 0.0.0.0:9943)
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/signalfxreceiver
+  signalfx:
+    #access_token_passthrough: true
+
+  #############################################################################
+  # Logs
+  #############################################################################
+
+  # Enables the fluentforward receiver with default settings
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/fluentforwardreceiver
+  fluentforward:
+    endpoint: 0.0.0.0:8006
+
+###############################################################################
+# Processors
+# What to do with data as it passes from receivers to exporters
+# Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor
+###############################################################################
+# This section is for configuration only; must be enabled in service section
+# No need to remove processors even if not used
+# Some processors have default settings that often do not need to be changed (e.g. batch)
+# Some processors require configuration (e.g. attributes)
+###############################################################################
+processors:
+
+  #############################################################################
+  # Traces + Metrics + Logs
+  #############################################################################
+
+  # Enables the batch processor with default settings
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor
+  batch:
+
+  # Enables the batch processor with default settings
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sprocessor
+  # NOTE: It is very likely additional configuration is required
+  k8s_tagger:
+
+  # Enables the resouce processor with default settings
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/resourceprocessor
+  # NOTE: These settings need to be change when using this processor
+  resource:
+    attributes:
+    - key: cloud.zone
+      value: "zone-1"
+      action: upsert
+    - key: k8s.cluster.name
+      from_attribute: k8s-cluster
+      action: insert
+    - key: redundant-attribute
+      action: delete
+
+  # Enables the resource detection processor with default settings
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/resourcedetectionprocessor
+  # NOTE: This processor settings need to be change when using this processor
+  #resouredection:
+    # # a list of resource detectors to run, valid options are: "env", "system",  "gce", "ec2", "ecs", "elastic_beanstalk"
+    #detectors: [ <string> ]
+    # # determines if existing resource attributes should be overridden or preserved, defaults to true
+    #override: <bool>
+
+  # Enables the memory limiter processor with default settings
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/memorylimiter
+  # Enabling the memory_limiter is strongly recommended for every pipeline.
+  # Configuration is based on the amount of memory allocated to the collector.
+  # The configuration below assumes 2GB of memory. In general, the ballast
+  # should be set to 1/3 of the collector's memory, the limit should be 90% of
+  # the collector's memory up to 2GB.
+  # NOTE: These settings need to be change when using this processor
+  memory_limiter:
+    ballast_size_mib: 650
+    check_interval: 2s
+    limit_mib: 1800
+
+  #############################################################################
+  # Traces
+  #############################################################################
+
+  # Enables the attributes processor with default settings
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/attributesprocessor
+  # NOTE: These settings need to be change when using this processor
+  attributes:
+    actions:
+      - action: insert
+        key: environment
+        value: test
+  attributes/example:
+    actions:
+      - action: delete
+        key: db.statement
+      - action: extract
+        key: "http.url"
+        pattern: ^(?P<http_protocol>.*):\/\/(?P<http_domain>.*)\/(?P<http_path>.*)(\?|\&)(?P<http_query_params>.*)
+      - action: hash
+        key: email
+      - action: insert
+        key: build_num
+        value: 1.5.7
+      - action: update
+        from_attribute: foo
+        key: bar
+      - action: upsert
+        key: region
+        value: "planet-earth"
+
+  # Enables the span processor with example settings
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/spanprocessor
+  # NOTE: These settings need to be change when using this processor
+  span/from_attributes:
+    name:
+      from_attributes: ["db.svc", "operation"]
+      separator: "::"
+  span/to_attributes:
+    name:
+      to_attributes:
+        rules:
+          - ^\/api\/v1\/document\/(?P<documentId>.*)\/update$
+
+  #############################################################################
+  # Metrics
+  #############################################################################
+
+  # Enables the filter processor with example settings
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/filterprocessor
+  # NOTE: These settings need to be change when using this processor
+  filter/1:
+    metrics:
+      include:
+        match_type: regexp
+        metric_names:
+          - prefix/.*
+          - prefix_.*
+        resource_attributes:
+          - Key: container.name
+            Value: app_container_1
+      exclude:
+        match_type: strict
+        metric_names:
+          - hello_world
+          - hello/world
+
+  # Enables the metrics transform processor with default settings
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/metricstransformprocessor
+  # NOTE: This processor settings need to be change when using this processor
+  #transforms:
+  #
+  #  ### SPECIFY WHICH METRIC(S) TO MATCH
+  #  # include specifies the metric name used to determine which metric(s) to operate on
+  #- include: <metric_name>
+  #  # match_type specifies whether the include name should be used as a strict match or regexp match, default = strict
+  #  match_type: {strict, regexp}
+
+  #  ### SPECIFY THE ACTION TO TAKE ON THE MATCHED METRIC(S)
+  #  # action specifies if the operations (specified below) are performed on metrics in place (update), on an inserted clone (insert), or on a new combined metric (combine)
+  #  action: {update, insert, combine}
+
+  #  ### SPECIFY HOW TO TRANSFORM THE METRIC GENERATED AS A RESULT OF APPLYING THE ABOVE ACTION
+  #  # new_name specifies the updated name of the metric; if action is insert or combine, new_name is required
+  #  new_name: <new_metric_name_inserted>
+  #  # aggregation_type defines how combined data points will be aggregated; if action is combine, aggregation_type is required
+  #  aggregation_type: {sum, mean, min, max}
+  #  # submatch_case specifies the case that should be used when adding label values based on regexp submatches when performing a combine action; leave blank to use the submatch value as is
+  #  submatch_case: {lower, upper}
+  #  # operations contain a list of operations that will be performed on the resulting metric(s)
+  #  operations:
+  #      # action defines the type of operation that will be performed, see examples below for more details
+  #    - action: {add_label, update_label, delete_label_value, toggle_scalar_data_type, aggregate_labels, aggregate_label_values}
+  #      # label specifies the label to operate on
+  #      label: <label>
+  #      # new_label specifies the updated name of the label; if action is add_label, new_label is required
+  #      new_label: <new_label>
+  #      # aggregated_values contains a list of label values that will be aggregated; if action is aggregate_label_values, aggregated_values is required
+  #      aggregated_values: [values...]
+  #      # new_value specifies the updated name of the label value; if action is add_label or aggregate_label_values, new_value is required
+  #      new_value: <new_value>
+  #      # label_value specifies the label value for which points should be deleted; if action is delete_label_value, label_value is required
+  #      label_value: <label_value>
+  #      # label_set contains a list of labels that will remain after aggregation; if action is aggregate_labels, label_set is required
+  #      label_set: [labels...]
+  #      # aggregation_type defines how data points will be aggregated; if action is aggregate_labels or aggregate_label_values, aggregation_type is required
+  #      aggregation_type: {sum, mean, min, max}
+  #      # value_actions contain a list of operations that will be performed on the selected label
+  #      value_actions:
+  #          # value specifies the value to operate on
+  #        - value: <current_label_value>
+  #          # new_value specifies the updated value
+  #          new_value: <new_label_value>
+
+###############################################################################
+# Exporters
+# How you get data out of the Collector (can be push or pull based)
+# Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter
+###############################################################################
+# This section is for configuration only; must be enabled in service section
+# No need to remove exporters even if not used
+# Exporters require custom configuration because destination settings are unknown
+# One advanced configuration that may be required is TLS/mTLS settings
+# https://github.com/open-telemetry/opentelemetry-collector/blob/main/config/configtls/README.md
+###############################################################################
+exporters:
+
+  #############################################################################
+  # Traces + Metrics + Logs
+  #############################################################################
+
+  # Enables the splunk hec exporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter
+  # TODO: These settings should be updated to the proper destination
+  splunk_hec:
+    # Splunk HTTP Event Collector token.
+    token: "${SPLUNK_HEC_TOKEN}"
+    # URL to a Splunk instance to send data to.
+    endpoint: "https://${SPLUNK_ENDPOINT}:8088/services/collector"
+    # Optional Splunk source: https://docs.splunk.com/Splexicon:Source
+    source: "otel"
+    # Optional Splunk source type: https://docs.splunk.com/Splexicon:Sourcetype
+    sourcetype: "otel"
+    # Splunk index, optional name of the Splunk index targeted.
+    index: "metrics"
+    # Maximum HTTP connections to use simultaneously when sending data. Defaults to 100.
+    max_connections: 200
+    # Whether to disable gzip compression over HTTP. Defaults to false.
+    disable_compression: false
+    # HTTP timeout when sending data. Defaults to 10s.
+    timeout: 10s
+    # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
+    insecure_skip_verify: false
+
+  #############################################################################
+  # Traces
+  #############################################################################
+
+  # Enables the jaeger exporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/jaegerexporter
+  # NOTE: These settings should be updated to the proper destination
+  jaeger:
+    endpoint: jaeger-all-in-one:14250
+    insecure: true
+
+  # Enables the otlp grpc exporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter
+  # NOTE: These settings should be updated to the proper destination
+  otlp:
+    endpoint: otelcol2:4317
+
+  # Enables the otlp http exporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter
+  # NOTE: These settings should be updated to the proper destination
+  otlphttp:
+    endpoint: otelcol2:55681
+
+  # Enables the sapm exporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter
+  # TODO: Add access token and realm
+  sapm:
+    access_token: "${SPLUNK_ACCESS_TOKEN}"
+    endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace"
+
+  # Enables the zipkin exporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/zipkinexporter
+  # NOTE: These settings should be updated to the proper destination
+  zipkin:
+    endpoint: "http://some.url:9411/api/v2/spans"
+    insecure: true
+
+  #############################################################################
+  # Metrics
+  #############################################################################
+
+  # Enables the prometheus exporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/prometheusexporter
+  # NOTE: These settings should be updated prior to use
+  prometheus:
+    endpoint: "1.2.3.4:1234"
+    namespace: test-space
+    const_labels:
+      label1: value1
+      "another label": spaced value
+    send_timestamps: true
+
+  # Enables the prometheus exporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/prometheusexporter
+  # NOTE: These settings should be updated to the proper destination
+  prometheusremotewrite:
+    endpoint: "http://some.url:9411/api/prom/push"
+
+  # Enables the signalfx exporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter
+  # TODO: Add access token and realm
+  signalfx:
+    access_token: "${SPLUNK_ACCESS_TOKEN}"
+    realm: "${SPLUNK_REALM}"
+
+  #############################################################################
+  # Local
+  #############################################################################
+
+  # Enables the file exporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/fileexporter
+  file:
+    path: ./filename.json
+
+  # Enables the logging exporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter
+  # NOTE: This exporter is very helpful in troubleshooting issues
+  logging:
+    loglevel: debug
+
+###############################################################################
+# Extensions
+# Handling things outside of primary telemetry data
+# This includes things like health checks and service discovery
+###############################################################################
+# This section is for configuration only; must be enabled in service section
+# No need to remove extensions even if not used
+# Some processors have default settings that often do not need to be changed (e.g. batch)
+# Some processors require configuration (e.g. attributes)
+###############################################################################
+extensions:
+
+  # Enables the fluentbit extension
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/fluentbitextension
+  # NOTE: These settings should be updated prior to use
+  fluentbit:
+    executable_path: /usr/src/fluent-bit/build/bin/fluent-bit
+    tcp_endpoint: 127.0.0.1:8006
+    config: |
+      [SERVICE]
+          parsers_file /usr/src/fluent-bit/conf/parsers.conf
+      [INPUT]
+          name tail
+          path /var/log/mylog
+          parser apache
+
+  # Enables the health check extension
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/healthcheckextension
+  health_check:
+
+  # Enables the http forwarder extension
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarder
+  # TODO: Add realm
+  http_forwarder:
+    #ingress:
+    #  endpoint: 0.0.0.0:6060
+    egress:
+      endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
+
+  # Enables the host observer extension
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/hostobserver
+  # NOTE: This requires privileged access by the Collector
+  host_observer:
+
+  # Enables the k8s observer extension
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/k8sobserver
+  # NOTE: It is very likely additional configuration is required
+  k8s_observer:
+
+  # Enables the pprof extension
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/pprofextension
+  pprof:
+    #endpoint: 0.0.0.0:1777
+
+  # Enables the zpages extension
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/zpagesextension
+  zpages:
+    #endpoint: 0.0.0.0:55679
+
+###############################################################################
+# Service
+# In order to enable a configuration it must be defined in this section
+# Two different types of services exist today
+# NOTE: Be sure you understand how processors work
+###############################################################################
+service:
+
+  # Which extensions you want to enable
+  extensions: [health_check, http_forwarder, zpages]
+
+  # Pipelines are data source specific today
+  # Every data source is made up of at least one receiver and one exporter
+  # If processors are defined then order specific is order applied
+  # Recommended processors here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor#recommended-processors
+  # NOTE: Receivers expose ports so ensure no other application uses the same ports
+  pipelines:
+    traces:
+      receivers: [jaeger, opencensus, otlp, sapm, zipkin]
+      processors: [memory_limiter, batch]
+      exporters: [sapm, signalfx]
+    metrics:
+      receivers: [opencensus, otlp, signalfx, prometheus]
+      processors: [memory_limiter, batch]
+      exporters: [signalfx]
+    logs:
+      receivers: [signalfx]
+      processors: [memory_limiter, batch]
+      exporters: [signalfx]

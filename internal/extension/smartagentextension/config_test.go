@@ -143,8 +143,8 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 	saConfigProvider, ok := allSettingsConfig.(SmartAgentConfigProvider)
 	require.True(t, ok)
 
-	require.Equal(t, func() config.CollectdConfig {
-		return config.CollectdConfig{
+	require.Equal(t, func() *config.CollectdConfig {
+		return &config.CollectdConfig{
 			Timeout:              10,
 			ReadThreads:          1,
 			WriteThreads:         4,

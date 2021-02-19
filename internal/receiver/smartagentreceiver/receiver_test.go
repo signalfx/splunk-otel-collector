@@ -38,6 +38,8 @@ import (
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/extension/healthcheckextension"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 )
@@ -263,17 +265,21 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 	}
 }
 
-func TestSmartAgentCconfigProviderOverrides(t *testing.T) {
+func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
-	r := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
+	observedLogger, logs := observer.New(zapcore.WarnLevel)
+	logger := zap.New(observedLogger)
+	r := NewReceiver(logger, cfg, consumertest.NewMetricsNop())
 	host := &mockHost{
 		smartagentextensionConfig: getSmartAgentExtensionConfig(t),
 	}
 
 	require.NoError(t, r.Start(context.Background(), host))
 	require.NoError(t, r.Shutdown(context.Background()))
-	require.Equal(t, config.CollectdConfig{
+	require.Equal(t, 1, logs.Len())
+	require.Equal(t, "multiple smartagent extensions found, using the first one encountered", logs.All()[0].Message)
+	require.Equal(t, &config.CollectdConfig{
 		DisableCollectd:      false,
 		Timeout:              10,
 		ReadThreads:          1,
@@ -293,7 +299,7 @@ func TestSmartAgentCconfigProviderOverrides(t *testing.T) {
 
 	// Ensure envs are setup.
 	require.Equal(t, "/opt/", os.Getenv("SIGNALFX_BUNDLE_DIR"))
-	require.Equal(t, filepath.Join("opt", "jre"), os.Getenv("JAVA_HOME"))
+	require.Equal(t, filepath.Join("/opt", "jre"), os.Getenv("JAVA_HOME"))
 }
 
 func getSmartAgentExtensionConfig(t *testing.T) *smartagentextension.Config {
@@ -333,9 +339,16 @@ func (m *mockHost) GetExtensions() map[configmodels.Extension]component.ServiceE
 	}
 
 	randomExtensionConfig := &healthcheckextension.Config{}
+	smartagentextensionConfig2 := &smartagentextension.Config{
+		ExtensionSettings: configmodels.ExtensionSettings{
+			TypeVal: "smartagent",
+			NameVal: "smartagent",
+		},
+	}
 	return map[configmodels.Extension]component.ServiceExtension{
 		m.smartagentextensionConfig: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
 		randomExtensionConfig:       getExtension(healthcheckextension.NewFactory(), randomExtensionConfig),
+		smartagentextensionConfig2:  getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
 	}
 }
 

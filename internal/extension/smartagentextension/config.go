@@ -31,7 +31,7 @@ import (
 // are mapped to camel case fields in the config and hence are not exposed.
 type SmartAgentConfigProvider interface {
 	BundleDir() string
-	CollectdConfig() config.CollectdConfig
+	CollectdConfig() *config.CollectdConfig
 }
 
 var _ SmartAgentConfigProvider = (*Config)(nil)
@@ -46,8 +46,8 @@ func (c Config) BundleDir() string {
 	return c.bundleDir
 }
 
-func (c Config) CollectdConfig() config.CollectdConfig {
-	return c.collectdConfig
+func (c Config) CollectdConfig() *config.CollectdConfig {
+	return &c.collectdConfig
 }
 
 func customUnmarshaller(componentViperSection *viper.Viper, intoCfg interface{}) error {

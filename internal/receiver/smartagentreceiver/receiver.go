@@ -152,7 +152,7 @@ func (r *Receiver) createMonitor(
 	// Configure SmartAgentConfigProvider to gather any global config overrides and
 	// set required envs.
 	configureEnvironmentOnce.Do(func() {
-		setUpSmartAgentConfigProvider(extensions)
+		r.setUpSmartAgentConfigProvider(extensions)
 		setUpEnvironment()
 	})
 
@@ -162,18 +162,14 @@ func (r *Receiver) createMonitor(
 	if r.config.monitorConfig.MonitorConfigCore().IsCollectdBased() {
 		configureCollectdOnce.Do(func() {
 			r.logger.Info("Configuring collectd")
-			err = configureMainCollectd(saConfigProvider.CollectdConfig())
+			err = collectd.ConfigureMainCollectd(saConfigProvider.CollectdConfig())
 		})
 	}
 
 	return monitor, err
 }
 
-func configureMainCollectd(collectdConfig config.CollectdConfig) error {
-	return collectd.ConfigureMainCollectd(&collectdConfig)
-}
-
-func setUpSmartAgentConfigProvider(extensions map[configmodels.Extension]component.ServiceExtension) {
+func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[configmodels.Extension]component.ServiceExtension) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
 	defaultCfg := f.CreateDefaultConfig().(smartagentextension.SmartAgentConfigProvider)
@@ -181,20 +177,29 @@ func setUpSmartAgentConfigProvider(extensions map[configmodels.Extension]compone
 
 	// Do a lookup for any smartagent extensions to pick up common collectd options
 	// to be applied across instances of the receiver.
+	var foundAtLeastOne bool
+	var multipleSAExtensions bool
 	for c := range extensions {
 		if c.Type() != f.Type() {
 			continue
 		}
 
-		cfgProvider, ok := c.(smartagentextension.SmartAgentConfigProvider)
-		if !ok {
+		if foundAtLeastOne {
+			multipleSAExtensions = true
+			continue
+		}
+
+		var cfgProvider smartagentextension.SmartAgentConfigProvider
+		cfgProvider, foundAtLeastOne = c.(smartagentextension.SmartAgentConfigProvider)
+		if !foundAtLeastOne {
 			continue
 		}
 		saConfigProvider = cfgProvider
+		r.logger.Info("Smart Agent Config provider configured", zap.String("extension_name", c.Name()))
+	}
 
-		// If there are multiple extensions configured, pick the first one. Ideally,
-		// there would only be one extension.
-		break
+	if multipleSAExtensions {
+		r.logger.Warn("multiple smartagent extensions found, using the first one encountered")
 	}
 }
 

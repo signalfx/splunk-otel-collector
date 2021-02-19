@@ -9,7 +9,7 @@ collectd. These options are mapped to the [collectd config options](https://docs
 in the SignalFx Agent. Note that if this extension is not configured, the defaults in `smartagent`
 receiver will be used.
 
-In the below example configuration, `config_dir` and `bundle_dir` will be used for all instances
+In the below example configuration, `configDir` and `bundleDir` will be used for all instances
 of the `smartagent` receiver that wrap around a collectd based monitor.
 
 ```yaml
@@ -17,7 +17,7 @@ extensions:
   smartagent:
     bundleDir: /bundle/
     collectd:
-      configDir: /etc/collectd/collectd.conf
+      configDir: /etc/collectd/
 ```
 
 The full list of settings exposed for this receiver are documented [here](./config.go)

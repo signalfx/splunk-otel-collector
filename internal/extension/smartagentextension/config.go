@@ -27,9 +27,8 @@ import (
 )
 
 // SmartAgentConfigProvider exposes config fields to other packages.
-// This is needed since fields such as fields such as bundleDir and
-// collectdConfig are mapped to camel case fields in the config and
-// hence are not exposed.
+// This is needed since fields such  as bundleDir and collectdConfig
+// are mapped to camel case fields in the config and hence are not exposed.
 type SmartAgentConfigProvider interface {
 	BundleDir() string
 	CollectdConfig() config.CollectdConfig

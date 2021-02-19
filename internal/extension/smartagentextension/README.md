@@ -15,7 +15,7 @@ of the `smartagent` receiver that wrap around a collectd based monitor.
 ```yaml
 extensions:
   smartagent:
-  bundleDir: /opt/bin/collectd/
+    bundleDir: /bundle/
     collectd:
       configDir: /etc/collectd/collectd.conf
 ```

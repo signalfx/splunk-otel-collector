@@ -31,6 +31,7 @@ func TestDefaultComponents(t *testing.T) {
 		"host_observer",
 		"k8s_observer",
 		"http_forwarder",
+		"smartagent",
 	}
 	expectedReceivers := []configmodels.Type{
 		"jaeger",

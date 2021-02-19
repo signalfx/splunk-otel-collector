@@ -21,6 +21,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configcheck"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/config/configtest"
 )
@@ -42,6 +43,7 @@ func TestLoadConfig(t *testing.T) {
 
 	emptyConfig := cfg.Extensions["smartagent/default_settings"]
 	require.NotNil(t, emptyConfig)
+	require.NoError(t, configcheck.ValidateConfig(emptyConfig))
 	require.Equal(t, func() *Config {
 		return &Config{
 			ExtensionSettings: configmodels.ExtensionSettings{
@@ -66,6 +68,7 @@ func TestLoadConfig(t *testing.T) {
 
 	allSettingsConfig := cfg.Extensions["smartagent/all_settings"]
 	require.NotNil(t, allSettingsConfig)
+	require.NoError(t, configcheck.ValidateConfig(allSettingsConfig))
 	require.Equal(t, func() *Config {
 		return &Config{
 			ExtensionSettings: configmodels.ExtensionSettings{
@@ -90,6 +93,7 @@ func TestLoadConfig(t *testing.T) {
 
 	partialSettingsConfig := cfg.Extensions["smartagent/partial_settings"]
 	require.NotNil(t, partialSettingsConfig)
+	require.NoError(t, configcheck.ValidateConfig(partialSettingsConfig))
 	require.Equal(t, func() *Config {
 		return &Config{
 			ExtensionSettings: configmodels.ExtensionSettings{
@@ -111,4 +115,56 @@ func TestLoadConfig(t *testing.T) {
 			},
 		}
 	}(), partialSettingsConfig)
+}
+
+func TestSmartAgentConfigProvider(t *testing.T) {
+	factories, err := componenttest.ExampleComponents()
+	require.Nil(t, err)
+
+	factory := NewFactory()
+	factories.Extensions[typeStr] = factory
+	cfg, err := configtest.LoadConfigFile(
+		t, path.Join(".", "testdata", "config.yaml"), factories,
+	)
+
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	require.GreaterOrEqual(t, len(cfg.Extensions), 1)
+
+	allSettingsConfig := cfg.Extensions["smartagent/all_settings"]
+	require.NotNil(t, allSettingsConfig)
+
+	saConfigProvider, ok := allSettingsConfig.(SmartAgentConfigProvider)
+	require.True(t, ok)
+
+	require.Equal(t, func() config.CollectdConfig {
+		return config.CollectdConfig{
+			Timeout:             10,
+			ReadThreads:         1,
+			WriteThreads:        4,
+			WriteQueueLimitHigh: 5,
+			WriteQueueLimitLow:  1,
+			LogLevel:            "info",
+			IntervalSeconds:     5,
+			WriteServerIPAddr:   "10.100.12.1",
+			WriteServerPort:     9090,
+			ConfigDir:           "/etc/",
+		}
+	}(), saConfigProvider.CollectdConfig())
+	require.Equal(t, "/opt/bin/collectd/", saConfigProvider.BundleDir())
+}
+
+func TestLoadInvalidConfig(t *testing.T) {
+	factories, err := componenttest.ExampleComponents()
+	require.Nil(t, err)
+
+	factory := NewFactory()
+	factories.Extensions[typeStr] = factory
+	cfg, err := configtest.LoadConfigFile(
+		t, path.Join(".", "testdata", "invalid_config.yaml"), factories,
+	)
+
+	require.Error(t, err)
+	require.Nil(t, cfg)
 }

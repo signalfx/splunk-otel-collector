@@ -28,8 +28,6 @@ import (
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"gopkg.in/yaml.v2"
-
-	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 )
 
 const defaultIntervalSeconds = 10
@@ -38,9 +36,8 @@ type Config struct {
 	configmodels.ReceiverSettings `mapstructure:",squash"`
 	// Generally an observer/receivercreator-set value via Endpoint.Target.
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
-	Endpoint         string `mapstructure:"endpoint"`
-	monitorConfig    config.MonitorCustomConfig
-	saConfigProvider smartagentextension.SmartAgentConfigProvider
+	Endpoint      string `mapstructure:"endpoint"`
+	monitorConfig config.MonitorCustomConfig
 }
 
 func (rCfg *Config) validate() error {

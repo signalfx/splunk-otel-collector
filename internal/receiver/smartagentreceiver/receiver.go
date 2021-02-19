@@ -56,6 +56,7 @@ var (
 	rusToZap                 *logrusToZap
 	configureCollectdOnce    sync.Once
 	configureEnvironmentOnce sync.Once
+	saConfigProvider         smartagentextension.SmartAgentConfigProvider
 )
 
 func init() {
@@ -151,8 +152,8 @@ func (r *Receiver) createMonitor(
 	// Configure SmartAgentConfigProvider to gather any global config overrides and
 	// set required envs.
 	configureEnvironmentOnce.Do(func() {
-		r.setUpSmartAgentConfigProvider(extensions)
-		r.setUpEnvironment()
+		setUpSmartAgentConfigProvider(extensions)
+		setUpEnvironment()
 	})
 
 	// Note, that this receiver has to configure main collectd even for collectd/custom monitor,
@@ -172,11 +173,11 @@ func configureMainCollectd(collectdConfig *config.CollectdConfig) error {
 	return collectd.ConfigureMainCollectd(collectdConfig)
 }
 
-func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[configmodels.Extension]component.ServiceExtension) {
+func setUpSmartAgentConfigProvider(extensions map[configmodels.Extension]component.ServiceExtension) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
 	defaultCfg := f.CreateDefaultConfig().(smartagentextension.SmartAgentConfigProvider)
-	r.config.saConfigProvider = defaultCfg
+	saConfigProvider = defaultCfg
 
 	// Do a lookup for any smartagent extensions to pick up common collectd options
 	// to be applied across instances of the receiver.
@@ -189,7 +190,7 @@ func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[configmodels.Ext
 		if !ok {
 			continue
 		}
-		r.config.saConfigProvider = cfgProvider
+		saConfigProvider = cfgProvider
 
 		// If there are multiple extensions configured, pick the first one. Ideally,
 		// there would only be one extension.
@@ -197,9 +198,11 @@ func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[configmodels.Ext
 	}
 }
 
+// TODO: Remove this method in a subsequent PR, instead set all the values correctly
+//  in the extension's default config.
 // getCollectdConfig returns a *config.CollectdConfig for r.config.collectdConfig.
 func (r *Receiver) getCollectdConfig() *config.CollectdConfig {
-	collectdConfig := r.config.saConfigProvider.CollectdConfig()
+	collectdConfig := saConfigProvider.CollectdConfig()
 	return &config.CollectdConfig{
 		DisableCollectd:      false,
 		Timeout:              collectdConfig.Timeout,
@@ -212,15 +215,15 @@ func (r *Receiver) getCollectdConfig() *config.CollectdConfig {
 		WriteServerIPAddr:    collectdConfig.WriteServerIPAddr,
 		WriteServerPort:      collectdConfig.WriteServerPort,
 		ConfigDir:            collectdConfig.ConfigDir,
-		BundleDir:            r.config.saConfigProvider.BundleDir(),
+		BundleDir:            saConfigProvider.BundleDir(),
 		HasGenericJMXMonitor: true,
 		InstanceName:         "",
 		WriteServerQuery:     "",
 	}
 }
 
-func (r *Receiver) setUpEnvironment() {
-	bundleDir := r.config.saConfigProvider.BundleDir()
+func setUpEnvironment() {
+	bundleDir := saConfigProvider.BundleDir()
 	os.Setenv(constants.BundleDirEnvVar, bundleDir)
 	os.Setenv("JAVA_HOME", filepath.Join(bundleDir, "jre"))
 }

@@ -514,7 +514,7 @@ service:
 
   # Pipelines are data source specific today
   # Every data source is made up of at least one receiver and one exporter
-  # If processors are defined then order specific is order applied
+  # If processors are defined then order specific is the order applied
   # Recommended processors here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor#recommended-processors
   # NOTE: Receivers expose ports so ensure no other application uses the same ports
   pipelines:

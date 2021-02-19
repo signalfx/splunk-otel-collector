@@ -272,7 +272,8 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	logger := zap.New(observedLogger)
 	r := NewReceiver(logger, cfg, consumertest.NewMetricsNop())
 	host := &mockHost{
-		smartagentextensionConfig: getSmartAgentExtensionConfig(t),
+		smartagentextensionConfig:  getSmartAgentExtensionConfig(t),
+		smartagentextensionConfig2: getSmartAgentExtensionConfig(t),
 	}
 
 	require.NoError(t, r.Start(context.Background(), host))
@@ -322,7 +323,8 @@ func getSmartAgentExtensionConfig(t *testing.T) *smartagentextension.Config {
 }
 
 type mockHost struct {
-	smartagentextensionConfig *smartagentextension.Config
+	smartagentextensionConfig  *smartagentextension.Config
+	smartagentextensionConfig2 *smartagentextension.Config
 }
 
 func (m *mockHost) ReportFatalError(err error) {
@@ -337,18 +339,16 @@ func (m *mockHost) GetExtensions() map[configmodels.Extension]component.ServiceE
 		TypeVal: "smartagent",
 		NameVal: "smartagent",
 	}
+	m.smartagentextensionConfig2.ExtensionSettings = configmodels.ExtensionSettings{
+		TypeVal: "smartagent",
+		NameVal: "smartagent/extra",
+	}
 
 	randomExtensionConfig := &healthcheckextension.Config{}
-	smartagentextensionConfig2 := &smartagentextension.Config{
-		ExtensionSettings: configmodels.ExtensionSettings{
-			TypeVal: "smartagent",
-			NameVal: "smartagent",
-		},
-	}
 	return map[configmodels.Extension]component.ServiceExtension{
-		m.smartagentextensionConfig: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
-		randomExtensionConfig:       getExtension(healthcheckextension.NewFactory(), randomExtensionConfig),
-		smartagentextensionConfig2:  getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
+		m.smartagentextensionConfig:  getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
+		randomExtensionConfig:        getExtension(healthcheckextension.NewFactory(), randomExtensionConfig),
+		m.smartagentextensionConfig2: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig2),
 	}
 }
 

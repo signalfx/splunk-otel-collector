@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
@@ -262,7 +263,7 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 	}
 }
 
-func TestSmartAgentReceiverCollectdConfigOverrides(t *testing.T) {
+func TestSmartAgentCconfigProviderOverrides(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
 	r := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
@@ -292,7 +293,7 @@ func TestSmartAgentReceiverCollectdConfigOverrides(t *testing.T) {
 
 	// Ensure envs are setup.
 	require.Equal(t, "/opt/", os.Getenv("SIGNALFX_BUNDLE_DIR"))
-	require.Equal(t, "/opt/jre", os.Getenv("JAVA_HOME"))
+	require.Equal(t, filepath.Join("opt", "jre"), os.Getenv("JAVA_HOME"))
 }
 
 func getSmartAgentExtensionConfig(t *testing.T) *smartagentextension.Config {

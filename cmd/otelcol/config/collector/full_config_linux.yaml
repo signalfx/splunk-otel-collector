@@ -91,7 +91,7 @@ receivers:
   k8s_cluster:
 
   # Enables the kubeletstats receiver with default settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/kubeletstatsreceiver
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver
   # NOTE: It is very likely additional configuration is required
   kubeletstats:
     auth_type: "serviceAccount"

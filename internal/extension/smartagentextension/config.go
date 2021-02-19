@@ -97,7 +97,6 @@ func customUnmarshaller(componentViperSection *viper.Viper, intoCfg interface{})
 	return nil
 }
 
-// Copied from smartagent receiver.
 func yamlTagsFromStruct(s reflect.Type) map[string]string {
 	yamlTags := map[string]string{}
 	for i := 0; i < s.NumField(); i++ {
@@ -107,14 +106,6 @@ func yamlTagsFromStruct(s reflect.Type) map[string]string {
 		lowerTag := strings.ToLower(yamlTag)
 		if yamlTag != lowerTag {
 			yamlTags[lowerTag] = yamlTag
-		}
-
-		fieldType := field.Type
-		if fieldType.Kind() == reflect.Struct {
-			otherFields := yamlTagsFromStruct(fieldType)
-			for k, v := range otherFields {
-				yamlTags[k] = v
-			}
 		}
 	}
 

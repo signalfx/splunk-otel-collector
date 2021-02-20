@@ -67,7 +67,7 @@ data:
       #attributes/copyfromexistingkey:
         #actions:
         #- key: environment
-          #from_attribute: YOUR_EXISTING_TAG_NAMEE
+          #from_attribute: YOUR_EXISTING_TAG_NAME
           #action: upsert
       # Optional: If you want to add an environment tag
       # If this option is enabled it must be added to the pipeline section below
@@ -87,12 +87,10 @@ data:
       # https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md
       memory_limiter:
         # TODO: Ensure this is set properly
-        ballast_size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
+        ballast_size_mib: 150
         check_interval: 2s
         # TODO: Ensure this is set properly
-        limit_mib: ${SPLUNK_MEMORY_LIMIT_PERCENTAGE}
-        # TODO: Ensure this is set properly
-        spike_limit_mib: ${SPLUNK_MEMORY_SPIKE_PERCENTAGE}
+        limit_mib: 450
     exporters:
       # Traces
       sapm:
@@ -103,7 +101,7 @@ data:
       # Metrics
       signalfx:
         # TODO: Ensure this is set properly
-        access_token: "${SPLUNK_TOKEN}"
+        access_token: "${SPLUNK_ACCESS_TOKEN}"
         # TODO: Ensure this is set properly
         realm: "${SPLUNK_REALM}"
     service:
@@ -122,57 +120,25 @@ data:
           processors: [memory_limiter, batch]
           exporters: [signalfx]
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: otel-collector
-  labels:
-    app: opentelemetry
-    component: otel-collector
-spec:
-  ports:
-  - name: health # Default Health Check port.
-    port: 13133
-  - name: jaeger-grpc # Default endpoint for Jaeger gRPC receiver.
-    port: 14250
-  - name: jaeger-thrift # Default endpoint for Jaeger Thrift receiver.
-    port: 14268
-  - name: opencensus # Default endpoint for OpenCensus receiver.
-    port: 55678
-  - name: otlp # Default endpoint for OpenTelemetry gRPC receiver.
-    port: 4317
-  - name: http-forwarder # Default endpoint for HTTP Forwarder extension.
-    port: 6060
-  - name: sapm # Default endpoint for SignalFx APM receiver.
-    port: 7276
-  - name: zipkin # Default endpoint for Zipkin trace receiver.
-    port: 9411
-  - name: signalfx # Default endpoint for SignalFx metrics receiver.
-    port: 9943
-  selector:
-    component: otel-collector
----
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
-  name: otel-collector
+  name: otel-agent
   labels:
     app: opentelemetry
-    component: otel-collector
+    component: otel-agent
 spec:
   selector:
     matchLabels:
       app: opentelemetry
-      component: otel-collector
+      component: otel-agent
   minReadySeconds: 5
   progressDeadlineSeconds: 120
-  # TODO: Ensure this is set properly
-  replicas: 1
   template:
     metadata:
       labels:
         app: opentelemetry
-        component: otel-collector
+        component: otel-agent
     spec:
       containers:
       - command:
@@ -180,19 +146,20 @@ spec:
           - "--config=/conf/otel-collector-config.yaml"
           # TODO: Ensure this is set properly
 #           Memory Ballast size should be max 1/3 to 1/2 of memory.
-          - "--mem-ballast-size-mib=683"
+          - "--mem-ballast-size-mib=150"
     # TODO: Ensure this is set properly
+    # WARN: It is not recommended to use the latest tag in production deployments!
     image: quay.io/signalfx/splunk-otel-collector:latest
-        name: otel-collector
+        name: otel-agent
         resources:
           limits:
             # TODO: Ensure this is set properly
-            cpu: 1
+            cpu: 500m
             # TODO: Ensure this is set properly
-            memory: 2Gi
+            memory: 500Mi
           requests:
-            cpu: 200m
-            memory: 400Mi
+            cpu: 100m
+            memory: 100Mi
         ports:
         - containerPort: 13133 # Default endpoint for Health Check.
         - containerPort: 14250 # Default endpoint for Jaeger gRPC receiver.
@@ -200,6 +167,10 @@ spec:
         - containerPort: 55678 # Default endpoint for OpenCensus receiver.
         - containerPort: 4317  # Default endpoint for OpenTelemetry gRPC receiver.
         - containerPort: 6060  # Default endpoint for HTTP Forwarder extension.
+        - containerPort: 6831  # Default endpoint for Jaeger Thrift compact receiver.
+          protocol: UDP
+        - containerPort: 6832  # Default endpoint for Jaeger Thrift binary receiver.
+          protocol: UDP
         - containerPort: 7276  # Default endpoint for SignalFx APM receiver.
         - containerPort: 8888  # Default endpoint for querying metrics.
         - containerPort: 9411  # Default endpoint for Zipkin trace receiver.

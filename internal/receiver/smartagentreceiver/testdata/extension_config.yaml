@@ -1,19 +1,13 @@
 extensions:
-  smartagent/default_settings:
-  smartagent/all_settings:
-    bundleDir: /opt/bin/collectd/
+  smartagent/partial_settings:
+    bundleDir: /opt/
     collectd:
       timeout: 10
       readThreads: 1
       writeThreads: 4
       writeQueueLimitHigh: 5
-      writeQueueLimitLow: 1
-      logLevel: info
-      intervalSeconds: 5
-      writeServerIPAddr: 10.100.12.1
-      writeServerPort: 9090
       configDir: /etc/
-  smartagent/partial_settings:
+  smartagent/extra:
     bundleDir: /opt/
     collectd:
       timeout: 10
@@ -32,7 +26,7 @@ exporters:
   exampleexporter:
 
 service:
-  extensions: [smartagent/default_settings, smartagent/all_settings]
+  extensions: [smartagent/partial_settings, smartagent/extra]
   pipelines:
     metrics:
       receivers: [examplereceiver]

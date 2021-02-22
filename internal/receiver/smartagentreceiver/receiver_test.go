@@ -20,6 +20,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -280,7 +281,7 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	require.NoError(t, r.Start(context.Background(), host))
 	require.NoError(t, r.Shutdown(context.Background()))
 	require.Equal(t, 1, logs.Len())
-	require.Equal(t, "multiple smartagent extensions found, using the first one encountered", logs.All()[0].Message)
+	require.True(t, strings.HasPrefix(logs.All()[0].Message, "multiple smartagent extensions found, using "))
 	require.Equal(t, &config.CollectdConfig{
 		DisableCollectd:      false,
 		Timeout:              10,

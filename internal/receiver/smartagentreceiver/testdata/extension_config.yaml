@@ -26,7 +26,7 @@ exporters:
   exampleexporter:
 
 service:
-  extensions: [smartagent/partial_settings]
+  extensions: [smartagent/partial_settings, smartagent/extra]
   pipelines:
     metrics:
       receivers: [examplereceiver]

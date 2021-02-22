@@ -176,6 +176,7 @@ func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[configmodels.Ext
 	// to be applied across instances of the receiver.
 	var foundAtLeastOne bool
 	var multipleSAExtensions bool
+	var chosenExtension string
 	for c := range extensions {
 		if c.Type() != f.Type() {
 			continue
@@ -192,11 +193,12 @@ func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[configmodels.Ext
 			continue
 		}
 		saConfigProvider = cfgProvider
-		r.logger.Info("Smart Agent Config provider configured", zap.String("extension_name", c.Name()))
+		chosenExtension = c.Name()
+		r.logger.Info("Smart Agent Config provider configured", zap.String("extension_name", chosenExtension))
 	}
 
 	if multipleSAExtensions {
-		r.logger.Warn("multiple smartagent extensions found, using the first one encountered")
+		r.logger.Warn(fmt.Sprintf("multiple smartagent extensions found, using %s", chosenExtension))
 	}
 }
 

@@ -17,18 +17,25 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
 
+	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
+	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 )
 
 const setOutputErrMsg = "unable to set Output field of monitor"
@@ -45,7 +52,12 @@ type Receiver struct {
 
 var _ component.MetricsReceiver = (*Receiver)(nil)
 
-var rusToZap *logrusToZap
+var (
+	rusToZap                 *logrusToZap
+	configureCollectdOnce    sync.Once
+	configureEnvironmentOnce sync.Once
+	saConfigProvider         smartagentextension.SmartAgentConfigProvider
+)
 
 func init() {
 	rusToZap = newLogrusToZap()
@@ -76,7 +88,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
 	}, r.logger)
 
-	r.monitor, err = r.createMonitor(monitorType)
+	r.monitor, err = r.createMonitor(monitorType, host.GetExtensions())
 	if err != nil {
 		return fmt.Errorf("failed creating monitor %q: %w", monitorType, err)
 	}
@@ -109,14 +121,16 @@ func (r *Receiver) Shutdown(context.Context) error {
 	return err
 }
 
-func (r *Receiver) createMonitor(monitorType string) (interface{}, error) {
+func (r *Receiver) createMonitor(
+	monitorType string,
+	extensions map[configmodels.Extension]component.ServiceExtension) (monitor interface{}, err error) {
 	// retrieve registered MonitorFactory from agent's registration store
 	monitorFactory, ok := monitors.MonitorFactories[monitorType]
 	if !ok {
 		return nil, fmt.Errorf("unable to find MonitorFactory for %q", monitorType)
 	}
 
-	monitor := monitorFactory() // monitor is a pointer to a monitor struct
+	monitor = monitorFactory() // monitor is a pointer to a monitor struct
 
 	output := NewOutput(*r.config, r.nextConsumer, r.logger)
 	set, err := SetStructFieldWithExplicitType(
@@ -135,5 +149,61 @@ func (r *Receiver) createMonitor(monitorType string) (interface{}, error) {
 		output.AddExtraDimension(k, v)
 	}
 
-	return monitor, nil
+	// Configure SmartAgentConfigProvider to gather any global config overrides and
+	// set required envs.
+	configureEnvironmentOnce.Do(func() {
+		r.setUpSmartAgentConfigProvider(extensions)
+		setUpEnvironment()
+	})
+
+	if r.config.monitorConfig.MonitorConfigCore().IsCollectdBased() {
+		configureCollectdOnce.Do(func() {
+			r.logger.Info("Configuring collectd")
+			err = collectd.ConfigureMainCollectd(saConfigProvider.CollectdConfig())
+		})
+	}
+
+	return monitor, err
+}
+
+func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[configmodels.Extension]component.ServiceExtension) {
+	// If smartagent extension is not configured, use the default config.
+	f := smartagentextension.NewFactory()
+	defaultCfg := f.CreateDefaultConfig().(smartagentextension.SmartAgentConfigProvider)
+	saConfigProvider = defaultCfg
+
+	// Do a lookup for any smartagent extensions to pick up common collectd options
+	// to be applied across instances of the receiver.
+	var foundAtLeastOne bool
+	var multipleSAExtensions bool
+	var chosenExtension string
+	for c := range extensions {
+		if c.Type() != f.Type() {
+			continue
+		}
+
+		if foundAtLeastOne {
+			multipleSAExtensions = true
+			continue
+		}
+
+		var cfgProvider smartagentextension.SmartAgentConfigProvider
+		cfgProvider, foundAtLeastOne = c.(smartagentextension.SmartAgentConfigProvider)
+		if !foundAtLeastOne {
+			continue
+		}
+		saConfigProvider = cfgProvider
+		chosenExtension = c.Name()
+		r.logger.Info("Smart Agent Config provider configured", zap.String("extension_name", chosenExtension))
+	}
+
+	if multipleSAExtensions {
+		r.logger.Warn(fmt.Sprintf("multiple smartagent extensions found, using %s", chosenExtension))
+	}
+}
+
+func setUpEnvironment() {
+	bundleDir := saConfigProvider.BundleDir()
+	os.Setenv(constants.BundleDirEnvVar, bundleDir)
+	os.Setenv("JAVA_HOME", filepath.Join(bundleDir, "jre"))
 }

@@ -22,7 +22,6 @@ Run the below command on your host. Replace these variables:
 
 - `SPLUNK_REALM`: Which realm to send the data to (for example: `us0`)
 - `SPLUNK_ACCESS_TOKEN`: Access token to authenticate requests
-- `SPLUNK_MEMORY_TOTAL_MIB`: Total memory allocated to the Collector in MiB
 
 ```sh
 curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
@@ -34,6 +33,20 @@ You can view the [source](../../internal/buildscripts/packaging/installer/instal
 for more details and available options.
 
 ## Advanced Configuration
+
+### Collector Memory Configuration
+
+Optionally, the `SPLUNK_MEMORY_TOTAL_MIB` variable can be passed to change the
+memory allocation configured in the Collector:
+
+> By default, this variable is set to `512`.
+
+```sh
+curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
+sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
+```
+
+### Fluentd Configuration
 
 By default, the fluentd service will be installed and configured to forward
 log events with the `@SPLUNK` label to the collector (see the note below for

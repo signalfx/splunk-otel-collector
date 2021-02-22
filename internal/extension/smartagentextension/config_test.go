@@ -62,7 +62,7 @@ func TestLoadConfig(t *testing.T) {
 				WriteServerIPAddr:    "127.9.8.7",
 				WriteServerPort:      0,
 				ConfigDir:            "/var/run/signalfx-agent/collectd",
-				HasGenericJMXMonitor: true,
+				HasGenericJMXMonitor: false,
 			},
 		}
 	}(), emptyConfig)
@@ -89,7 +89,7 @@ func TestLoadConfig(t *testing.T) {
 				WriteServerPort:      9090,
 				ConfigDir:            "/etc/",
 				BundleDir:            "/opt/bin/collectd/",
-				HasGenericJMXMonitor: true,
+				HasGenericJMXMonitor: false,
 			},
 		}
 	}(), allSettingsConfig)
@@ -116,7 +116,7 @@ func TestLoadConfig(t *testing.T) {
 				WriteServerPort:      0,
 				BundleDir:            "/opt/",
 				ConfigDir:            "/etc/",
-				HasGenericJMXMonitor: true,
+				HasGenericJMXMonitor: false,
 			},
 		}
 	}(), partialSettingsConfig)
@@ -156,7 +156,7 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 			WriteServerPort:      9090,
 			BundleDir:            "/opt/bin/collectd/",
 			ConfigDir:            "/etc/",
-			HasGenericJMXMonitor: true,
+			HasGenericJMXMonitor: false,
 		}
 	}(), saConfigProvider.CollectdConfig())
 	require.Equal(t, "/opt/bin/collectd/", saConfigProvider.BundleDir())

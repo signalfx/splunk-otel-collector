@@ -295,7 +295,7 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		WriteServerPort:      0,
 		ConfigDir:            "/etc/",
 		BundleDir:            "/opt/",
-		HasGenericJMXMonitor: true,
+		HasGenericJMXMonitor: false,
 		InstanceName:         "",
 		WriteServerQuery:     "",
 	}, saConfigProvider.CollectdConfig())

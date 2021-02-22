@@ -98,11 +98,6 @@ func customUnmarshaller(componentViperSection *viper.Viper, intoCfg interface{})
 		collectdConfig.IntervalSeconds = defaultIntervalSeconds
 	}
 
-	// If the HasGenericJMXMonitor is unset and not user specified, set it to true.
-	if !collectdConfig.HasGenericJMXMonitor && collectdSettings["hasgenericjmxmonitor"] == nil {
-		collectdConfig.HasGenericJMXMonitor = true
-	}
-
 	collectdConfig.BundleDir = extensionCfg.bundleDir
 	extensionCfg.collectdConfig = collectdConfig
 

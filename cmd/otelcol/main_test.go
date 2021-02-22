@@ -45,21 +45,10 @@ func TestContains(t *testing.T) {
 }
 
 func TestUseMemorySizeFromEnvVar(t *testing.T) {
-	testArgs := [][]string{
+    testArgs := [][]string{
 		{"", "0"},
-	}
-	for _, v := range testArgs {
-		n, _ := strconv.Atoi(v[1])
-		os.Setenv(ballastEnvVarName, v[0])
-		useMemorySizeFromEnvVar(n)
-		result := contains(os.Args, "--mem-ballast-size-mib")
-		if result {
-			t.Errorf("Expected false got true while testing %v", v)
-		}
-	}
-	testArgs = [][]string{
-		{"10", "0"},
-		{"", "10"},
+		{"35", "0"},
+		{"", "100"},
 	}
 	for _, v := range testArgs {
 		n, _ := strconv.Atoi(v[1])
@@ -77,46 +66,10 @@ func TestUseConfigFromEnvVar(t *testing.T) {
 	if result {
 		t.Error("Expected false got true while looking for --config")
 	}
-	os.Setenv(configEnvVarName, "../../"+defaultLocalSAPMNonLinuxConfig)
+	os.Setenv(configEnvVarName, "../../"+defaultLocalOTLPConfig)
 	useConfigFromEnvVar()
 	result = contains(os.Args, "--config")
 	if !(result) {
 		t.Error("Expected true got false while looking for --config")
 	}
-	useMemorySettingsMiBFromEnvVar(0)
-	_, present := os.LookupEnv(memLimitMiBEnvVarName)
-	if present {
-		t.Error("Expected false got true while looking for environment variable")
-	}
-	os.Unsetenv(configEnvVarName)
-}
-
-func HelperUseMemorySettingsFromEnvVar(limitEnv string, limit int, spikeEnv string, spike int, t *testing.T) {
-	envVarVal, _ := strconv.Atoi(os.Getenv(limitEnv))
-	if envVarVal != limit {
-		t.Errorf("Expected %d but got %d", limit, envVarVal)
-	}
-	envVarVal, _ = strconv.Atoi(os.Getenv(spikeEnv))
-	if envVarVal != spike {
-		t.Errorf("Expected %d but got %d", spike, envVarVal)
-	}
-	os.Unsetenv(limitEnv)
-	os.Unsetenv(spikeEnv)
-}
-
-func TestSetMemorySettingsToEnvVar(t *testing.T) {
-	setMemorySettingsToEnvVar(10, memLimitMiBEnvVarName, 5, memSpikeMiBEnvVarName)
-	HelperUseMemorySettingsFromEnvVar(memLimitMiBEnvVarName, 10, memSpikeMiBEnvVarName, 5, t)
-}
-func TestUseMemorySettingsMiBFromEnvVar(t *testing.T) {
-	useMemorySettingsMiBFromEnvVar(100)
-	HelperUseMemorySettingsFromEnvVar(memLimitMiBEnvVarName, 90, memSpikeMiBEnvVarName, 25, t)
-	useMemorySettingsMiBFromEnvVar(30000)
-	HelperUseMemorySettingsFromEnvVar(memLimitMiBEnvVarName, 27952, memSpikeMiBEnvVarName, 2048, t)
-
-	setMemorySettingsToEnvVar(10, memLimitMiBEnvVarName, 5, memSpikeMiBEnvVarName)
-	useMemorySettingsMiBFromEnvVar(0)
-	HelperUseMemorySettingsFromEnvVar(memLimitMiBEnvVarName, 10, memSpikeMiBEnvVarName, 5, t)
-	useMemorySettingsMiBFromEnvVar(100)
-	HelperUseMemorySettingsFromEnvVar(memLimitMiBEnvVarName, 90, memSpikeMiBEnvVarName, 25, t)
 }

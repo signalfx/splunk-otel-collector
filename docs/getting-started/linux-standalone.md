@@ -86,7 +86,6 @@ the Collector. The following environmental variables are required:
 
 - `SPLUNK_REALM` (no default): Which realm to send the data to (for example: `us0`)
 - `SPLUNK_ACCESS_TOKEN` (no default): Access token to authenticate requests
-- `SPLUNK_MEMORY_TOTAL_MIB` (no default): Total memory allocated to the Collector.
 
 <details>
 <summary>
@@ -95,16 +94,11 @@ Optional environment variables
 
 - `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk_config_linux.yaml`): Which configuration to load.
 - `SPLUNK_BALLAST_SIZE_MIB` (no default): How much memory to allocate to the ballast.
-- For Linux systems:
-  - `SPLUNK_MEMORY_LIMIT_PERCENTAGE` (default = `90`): Maximum total memory to be allocated by the process heap.
-  - `SPLUNK_MEMORY_SPIKE_PERCENTAGE` (default = `20`): Maximum spike between the measurements of memory usage.
-- For non-Linux systems:
-  - `SPLUNK_MEMORY_LIMIT_MIB` (no default): Maximum total memory to be allocated by the process heap.
-  - `SPLUNK_MEMORY_SPIKE_MIB` (no default): Maximum spike between the measurements of memory usage.
+- `SPLUNK_MEMORY_TOTAL_MIB` (default = `512`): Total memory allocated to the Collector.
 
-> `SPLUNK_MEMORY_TOTAL_MIB` automatically configures the ballast, memory limit,
-> and memory spike. If the optional environment variables are defined, they
-> will override the value calculated from `SPLUNK_MEMORY_TOTAL_MIB`.
+> `SPLUNK_MEMORY_TOTAL_MIB` automatically configures the ballast and memory limit.
+> If `SPLUNK_BALLAST_SIZE_MIB` is also defined, it will override the value calculated
+> by `SPLUNK_MEMORY_TOTAL_MIB`.
 </details>
 
 ### Docker
@@ -112,11 +106,13 @@ Optional environment variables
 Deploy the latest Docker image.
 
 ```bash
-$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
-    -e SPLUNK_REALM=us0 -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678:55678 \
-    -p 4317:4317 -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
+$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
+    -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678:55678 -p 4317:4317 \
+    -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
     --name otelcol quay.io/signalfx/splunk-otel-collector:latest
 ```
+
+> Use of a SemVer tag over `latest` is highly recommended.
 
 A docker-compose example is also available [here](../../examples/docker-compose). To use it:
 
@@ -133,8 +129,7 @@ $ git clone https://github.com/signalfx/splunk-otel-collector.git
 $ cd splunk-otel-collector
 $ make install-tools
 $ make otelcol
-$ SPLUNK_ACCESS_TOKEN=12345 SPLUNK_MEMORY_TOTAL_MIB=1024 SPLUNK_REALM=us0 \
-    ./bin/otelcol
+$ SPLUNK_ACCESS_TOKEN=12345 SPLUNK_REALM=us0 ./bin/otelcol
 ```
 
 ## Advanced Configuration
@@ -149,14 +144,15 @@ specified.
 For example in Docker:
 
 ```bash
-$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
-    -e SPLUNK_REALM=us0 -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678:55678 \
-    -p 4317:4317 -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
+$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
+    -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678:55678 -p 4317:4317 \
+    -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
     --name otelcol quay.io/signalfx/splunk-otel-collector:latest \
         --log-level=DEBUG
 ```
 
 > Use `--help` to see all available CLI arguments.
+> Use of a SemVer tag over `latest` is highly recommended.
 
 ### Custom Configuration
 
@@ -171,12 +167,14 @@ custom configuration.
 For example in Docker:
 
 ```bash
-$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_MEMORY_TOTAL_MIB=1024 \
-    -e SPLUNK_REALM=us0 -e SPLUNK_CONFIG=/etc/collector.yaml -p 13133:13133 -p 14250:14250 \
+$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
+    -e SPLUNK_CONFIG=/etc/collector.yaml -p 13133:13133 -p 14250:14250 \
     -p 14268:14268 -p 55678:55678 -p 4317:4317 -p 6060:6060 -p 7276:7276 -p 8888:8888 \
     -p 9411:9411 -p 9943:9943 -v collector.yaml:/etc/collector.yaml:ro \
     --name otelcol quay.io/signalfx/splunk-otel-collector:latest
 ```
+
+> Use of a SemVer tag over `latest` is highly recommended.
 
 In the case of Docker, a volume mount may be required to load custom
 configuration as shown above.

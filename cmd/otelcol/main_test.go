@@ -45,7 +45,7 @@ func TestContains(t *testing.T) {
 }
 
 func TestUseMemorySizeFromEnvVar(t *testing.T) {
-    testArgs := [][]string{
+	testArgs := [][]string{
 		{"", "0"},
 		{"35", "0"},
 		{"", "100"},

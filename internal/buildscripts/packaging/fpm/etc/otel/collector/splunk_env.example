@@ -1,5 +1,5 @@
 # Sample environment file for passing variables to the splunk-otel-collector service.
-# See /etc/otel/collector/splunk_config_linux.yaml for how these variables will be consumed.
+# See /etc/otel/collector/splunk_config.yaml for how these variables will be consumed.
 
 # To use this file, update the values below appropriately,
 # and save the changes to "/etc/otel/collector/splunk_env".
@@ -32,17 +32,10 @@ SPLUNK_HEC_URL=https://ingest.us0.signalfx.com/v1/log
 SPLUNK_HEC_TOKEN=12345
 
 # Total memory in MIB to allocate to the collector.
-# Automatically configures the ballast, memory limit, and memory spike.
-# To explicitly set these values, uncomment and set the
-# SPLUNK_BALLAST_SIZE_MIB, SPLUNK_MEMORY_LIMIT_PERCENTAGE, and
-# SPLUNK_MEMORY_SPIKE_PERCENTAGE variables below.
+# Automatically configures the ballast and memory limit.
+# If `SPLUNK_BALLAST_SIZE_MIB` is also defined, it will override
+# the value calculated by `SPLUNK_MEMORY_TOTAL_MIB`.
 SPLUNK_MEMORY_TOTAL_MIB=1024
 
 # How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.
 # SPLUNK_BALLAST_SIZE_MIB=683
-
-# Maximum total memory to be allocated by the process heap.
-# SPLUNK_MEMORY_LIMIT_PERCENTAGE=90
-
-# Maximum spike between the measurements of memory usage.
-# SPLUNK_MEMORY_SPIKE_PERCENTAGE=20

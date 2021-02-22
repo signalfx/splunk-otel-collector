@@ -519,11 +519,11 @@ service:
   # NOTE: Receivers expose ports so ensure no other application uses the same ports
   pipelines:
     traces:
-      receivers: [jaeger, opencensus, otlp, sapm, zipkin]
+      receivers: [jaeger, otlp, sapm, zipkin]
       processors: [memory_limiter, batch]
       exporters: [sapm, signalfx]
     metrics:
-      receivers: [opencensus, otlp, signalfx, prometheus]
+      receivers: [otlp, signalfx, prometheus]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:

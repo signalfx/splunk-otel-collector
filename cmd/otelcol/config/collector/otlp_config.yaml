@@ -48,7 +48,7 @@ processors:
 
 exporters:
   # Traces
-  otlp:
+  otlphttp:
     endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace/otlp"
     headers:
       "X-SF-Token": "${SPLUNK_ACCESS_TOKEN}"
@@ -74,7 +74,7 @@ service:
     traces:
       receivers: [jaeger, otlp, sapm, zipkin]
       processors: [memory_limiter, batch]
-      exporters: [otlp]
+      exporters: [otlphttp, signalfx]
     metrics:
       receivers: [otlp, signalfx, prometheus]
       processors: [memory_limiter, batch]

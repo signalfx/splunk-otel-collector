@@ -73,7 +73,7 @@ service:
     traces:
       receivers: [jaeger, otlp, sapm, zipkin]
       processors: [memory_limiter, batch]
-      exporters: [sapm]
+      exporters: [sapm, signalfx]
     metrics:
       receivers: [otlp, signalfx, prometheus]
       processors: [memory_limiter, batch]

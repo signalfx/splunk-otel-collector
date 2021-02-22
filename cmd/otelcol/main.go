@@ -39,10 +39,10 @@ const (
 	realmEnvVarName       = "SPLUNK_REALM"
 	tokenEnvVarName       = "SPLUNK_ACCESS_TOKEN"
 
-	defaultDockerSAPMConfig        = "/etc/otel/collector/splunk_config.yaml"
-	defaultDockerOTLPConfig        = "/etc/otel/collector/otlp_config.yaml"
-	defaultLocalSAPMConfig         = "cmd/otelcol/config/collector/splunk_config.yaml"
-	defaultLocalOTLPConfig         = "cmd/otelcol/config/collector/otlp_config.yaml"
+	defaultDockerSAPMConfig        = "/etc/otel/collector/splunk_config_linux.yaml"
+	defaultDockerOTLPConfig        = "/etc/otel/collector/otlp_config_linux.yaml"
+	defaultLocalSAPMConfig         = "cmd/otelcol/config/collector/splunk_config_linux.yaml"
+	defaultLocalOTLPConfig         = "cmd/otelcol/config/collector/otlp_config_linux.yaml"
 	defaultMemoryBallastPercentage = 33
 	defaultMemoryTotalMiB          = 512
 )

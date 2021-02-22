@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -35,27 +34,17 @@ import (
 const (
 	ballastEnvVarName     = "SPLUNK_BALLAST_SIZE_MIB"
 	configEnvVarName      = "SPLUNK_CONFIG"
-	memLimitEnvVarName    = "SPLUNK_MEMORY_LIMIT_PERCENTAGE"
 	memLimitMiBEnvVarName = "SPLUNK_MEMORY_LIMIT_MIB"
-	memSpikeEnvVarName    = "SPLUNK_MEMORY_SPIKE_PERCENTAGE"
-	memSpikeMiBEnvVarName = "SPLUNK_MEMORY_SPIKE_MIB"
 	memTotalEnvVarName    = "SPLUNK_MEMORY_TOTAL_MIB"
 	realmEnvVarName       = "SPLUNK_REALM"
 	tokenEnvVarName       = "SPLUNK_ACCESS_TOKEN"
 
-	defaultDockerSAPMLinuxConfig    = "/etc/otel/collector/splunk_config_linux.yaml"
-	defaultDockerSAPMNonLinuxConfig = "/etc/otel/collector/splunk_config_non_linux.yaml"
-	defaultDockerOTLPLinuxConfig    = "/etc/otel/collector/otlp_config_linux.yaml"
-	defaultDockerOTLPNonLinuxConfig = "/etc/otel/collector/otlp_config_non_linux.yaml"
-	defaultLocalSAPMLinuxConfig     = "cmd/otelcol/config/collector/splunk_config_linux.yaml"
-	defaultLocalSAPMNonLinuxConfig  = "cmd/otelcol/config/collector/splunk_config_non_linux.yaml"
-	defaultLocalOTLPLinuxConfig     = "cmd/otelcol/config/collector/otlp_config_linux.yaml"
-	defaultLocalOTLPNonLinuxConfig  = "cmd/otelcol/config/collector/otlp_config_non_linux.yaml"
-	defaultMemoryBallastPercentage  = 50
-	defaultMemoryLimitPercentage    = 90
-	defaultMemoryLimitMaxMiB        = 2048
-	defaultMemorySpikePercentage    = 25
-	defaultMemorySpikeMaxMiB        = 2048
+	defaultDockerSAPMConfig        = "/etc/otel/collector/splunk_config.yaml"
+	defaultDockerOTLPConfig        = "/etc/otel/collector/otlp_config.yaml"
+	defaultLocalSAPMConfig         = "cmd/otelcol/config/collector/splunk_config.yaml"
+	defaultLocalOTLPConfig         = "cmd/otelcol/config/collector/otlp_config.yaml"
+	defaultMemoryBallastPercentage = 33
+	defaultMemoryTotalMiB          = 512
 )
 
 func main() {
@@ -100,61 +89,34 @@ func contains(arr []string, str string) bool {
 func checkSetEnvVars() {
 	// Check if the total memory is specified via the env var.
 	memTotalEnvVarVal := os.Getenv(memTotalEnvVarName)
-	memTotalSizeMiB := 0
+	memTotalSizeMiB := defaultMemoryTotalMiB
 	if memTotalEnvVarVal != "" {
 		// Check if it is a numeric value.
 		val, err := strconv.Atoi(memTotalEnvVarVal)
 		if err != nil {
 			log.Fatalf("Expected a number in %s env variable but got %s", memTotalEnvVarName, memTotalEnvVarVal)
 		}
-		if 10 > val {
-			log.Fatalf("Expected a number greater than 10 for %s env variable but got %s", memTotalEnvVarName, memTotalEnvVarVal)
+		if 99 > val {
+			log.Fatalf("Expected a number greater than 99 for %s env variable but got %s", memTotalEnvVarName, memTotalEnvVarVal)
 		}
 		memTotalSizeMiB = val
 	}
+	log.Printf("Set memory limit to %d MiB", memTotalSizeMiB)
+	os.Setenv(memLimitMiBEnvVarName, strconv.Itoa(memTotalSizeMiB))
 
 	// Check runtime parameters
 	// Runtime parameters take priority over environment variables
 	// Runtime parameters are not validated
 	args := os.Args[1:]
-	if !contains(args, "--mem-ballast-size-mib") {
-		useMemorySizeFromEnvVar(memTotalSizeMiB)
-	} else {
-		log.Printf("Ballast CLI argument found, ignoring %s if set", ballastEnvVarName)
-	}
 	if !contains(args, "--config") {
 		useConfigFromEnvVar()
 	} else {
 		log.Printf("Config CLI argument found, please ensure memory_limiter settings are correct")
 	}
-	if runtime.GOOS == "linux" {
-		useMemorySettingsPercentageFromEnvVar()
+	if !contains(args, "--mem-ballast-size-mib") {
+		useMemorySizeFromEnvVar(memTotalSizeMiB)
 	} else {
-		useMemorySettingsMiBFromEnvVar(memTotalSizeMiB)
-	}
-}
-
-func useMemorySizeFromEnvVar(memTotalSizeMiB int) {
-	// Check if the ballast is specified via the env var.
-	ballastSize := os.Getenv(ballastEnvVarName)
-	if ballastSize != "" {
-		// Check if it is a numeric value.
-		val, err := strconv.Atoi(ballastSize)
-		if err != nil {
-			log.Fatalf("Expected a number in %s env variable but got %s", ballastEnvVarName, ballastSize)
-		}
-		if 0 > val {
-			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", ballastEnvVarName, ballastSize)
-		}
-
-		// Inject the command line flag that controls the ballast size.
-		os.Args = append(os.Args, "--mem-ballast-size-mib="+ballastSize)
-	} else if memTotalSizeMiB > 0 {
-		halfMem := strconv.Itoa(memTotalSizeMiB * defaultMemoryBallastPercentage / 100)
-		log.Printf("Set ballast to %s MiB", halfMem)
-		// Inject the command line flag that controls the ballast size.
-		os.Args = append(os.Args, "--mem-ballast-size-mib="+halfMem)
-		os.Setenv(ballastEnvVarName, halfMem)
+		log.Printf("Ballast CLI argument found, ignoring %s if set", ballastEnvVarName)
 	}
 }
 
@@ -163,30 +125,16 @@ func useConfigFromEnvVar() {
 	config := os.Getenv(configEnvVarName)
 	// If not attempt to use a default config; supports Docker and local
 	if config == "" {
-		if runtime.GOOS == "linux" {
-			_, err := os.Stat(defaultDockerSAPMLinuxConfig)
-			if err == nil {
-				config = defaultDockerSAPMLinuxConfig
-			}
-			_, err = os.Stat(defaultLocalSAPMLinuxConfig)
-			if err == nil {
-				config = defaultLocalSAPMLinuxConfig
-			}
-			if config == "" {
-				log.Fatalf("Unable to find the default configuration file, ensure %s environment variable is set properly", configEnvVarName)
-			}
-		} else {
-			_, err := os.Stat(defaultDockerSAPMNonLinuxConfig)
-			if err == nil {
-				config = defaultDockerSAPMNonLinuxConfig
-			}
-			_, err = os.Stat(defaultLocalSAPMNonLinuxConfig)
-			if err == nil {
-				config = defaultLocalSAPMNonLinuxConfig
-			}
-			if config == "" {
-				log.Fatalf("Unable to find the default configuration file, ensure %s environment variable is set properly", configEnvVarName)
-			}
+		_, err := os.Stat(defaultDockerSAPMConfig)
+		if err == nil {
+			config = defaultDockerSAPMConfig
+		}
+		_, err = os.Stat(defaultLocalSAPMConfig)
+		if err == nil {
+			config = defaultLocalSAPMConfig
+		}
+		if config == "" {
+			log.Fatalf("Unable to find the default configuration file, ensure %s environment variable is set properly", configEnvVarName)
 		}
 	} else {
 		// Check if file exists.
@@ -198,27 +146,18 @@ func useConfigFromEnvVar() {
 
 	switch config {
 	case
-		defaultDockerSAPMLinuxConfig,
-		defaultDockerSAPMNonLinuxConfig,
-		defaultDockerOTLPLinuxConfig,
-		defaultDockerOTLPNonLinuxConfig,
-		defaultLocalSAPMLinuxConfig,
-		defaultLocalSAPMNonLinuxConfig,
-		defaultLocalOTLPLinuxConfig,
-		defaultLocalOTLPNonLinuxConfig:
+		defaultDockerSAPMConfig,
+		defaultDockerOTLPConfig,
+		defaultLocalSAPMConfig,
+		defaultLocalOTLPConfig:
 		// The following environment variables are required.
 		// If any are missing stop here.
 		requiredEnvVars := []string{realmEnvVarName, tokenEnvVarName}
 		for _, v := range requiredEnvVars {
 			if len(os.Getenv(v)) == 0 {
-				log.Printf("Usage: %s=12345 %s=us0 %s=1024 %s", tokenEnvVarName, realmEnvVarName, memTotalEnvVarName, os.Args[0])
+				log.Printf("Usage: %s=12345 %s=us0 %s", tokenEnvVarName, realmEnvVarName, os.Args[0])
 				log.Fatalf("ERROR: Missing environment variable %s", v)
 			}
-		}
-		// Needed for backwards compatibility
-		if len(os.Getenv(memTotalEnvVarName)) == 0 && len(os.Getenv(ballastEnvVarName)) == 0 {
-			log.Printf("Usage: %s=12345 %s=us0 %s=1024 %s", tokenEnvVarName, realmEnvVarName, memTotalEnvVarName, os.Args[0])
-			log.Fatalf("ERROR: Missing environment variable %s", memTotalEnvVarName)
 		}
 	}
 
@@ -226,125 +165,28 @@ func useConfigFromEnvVar() {
 	os.Args = append(os.Args, "--config="+config)
 }
 
-func checkMemorySettingsMiBFromEnvVar(envVar string, memTotalSizeMiB int) int {
-	// Check if the memory limit is specified via the env var
-	// Ensure memory limit is valid
-	args := os.Args[1:]
-	var envVarResult int = 0
-	envVarVal := os.Getenv(envVar)
-	switch {
-	case envVarVal != "":
+func useMemorySizeFromEnvVar(memTotalSizeMiB int) {
+	// Check if the ballast is specified via the env var.
+	ballastSize := os.Getenv(ballastEnvVarName)
+	if ballastSize != "" {
 		// Check if it is a numeric value.
-		val, err := strconv.Atoi(envVarVal)
+		val, err := strconv.Atoi(ballastSize)
 		if err != nil {
-			log.Fatalf("Expected a number in %s env variable but got %s", envVar, envVarVal)
+			log.Fatalf("Expected a number in %s env variable but got %s", ballastEnvVarName, ballastSize)
 		}
-		if 0 > val {
-			log.Fatalf("Expected a number greater than 0 for %s env variable but got %s", envVar, envVarVal)
+		if 33 > val {
+			log.Fatalf("Expected a number greater than 33 for %s env variable but got %s", ballastEnvVarName, ballastSize)
 		}
-		envVarResult = val
-	case memTotalSizeMiB > 0:
-		break
-	case contains(args, "--config"):
-		break
-	default:
-		log.Printf("Usage: %s=12345 %s=us0 %s=684 %s=1024 %s=256 %s", tokenEnvVarName, realmEnvVarName, ballastEnvVarName, memLimitMiBEnvVarName, memSpikeMiBEnvVarName, os.Args[0])
-		log.Fatalf("ERROR: Missing environment variable %s", envVar)
-	}
-	return envVarResult
-}
 
-func useMemorySettingsMiBFromEnvVar(memTotalSizeMiB int) {
-	args := os.Args[1:]
-	// Check if memory limit is specified via environment variable
-	memLimit := checkMemorySettingsMiBFromEnvVar(memLimitMiBEnvVarName, memTotalSizeMiB)
-	// Use if set, otherwise check if memory total size is specified via environment variable
-	if memLimit == 0 {
-		// Use if set, otherwise config parameter must be passed
-		if memTotalSizeMiB == 0 {
-			if !contains(args, "--config") {
-				panic("PANIC: Both memory limit MiB and memory total size are set to zero. This should never happen.")
-			}
-		}
-		// If not set, compute based on memory total size specified
-		// and default memory limit percentage const
-		memLimitMiB := memTotalSizeMiB * defaultMemoryLimitPercentage / 100
-		// The memory limit should be set to defaultMemoryLimitPercentage of total memory
-		// while reserving a maximum of defaultMemoryLimitMaxMiB of memory.
-		if (memTotalSizeMiB - memLimitMiB) < defaultMemoryLimitMaxMiB {
-			memLimit = memLimitMiB
-		} else {
-			memLimit = (memTotalSizeMiB - defaultMemoryLimitMaxMiB)
-		}
-		if memLimit != 0 {
-			log.Printf("Set memory limit to %d MiB", memLimit)
-		}
-	}
-	// Check if memory spike is specified via environment variable
-	memSpike := checkMemorySettingsMiBFromEnvVar(memSpikeMiBEnvVarName, memTotalSizeMiB)
-	// Use if set, otherwise check if memory total size is specified via environment variable
-	if memSpike == 0 {
-		// Use if set, otherwise config parameter must be passed
-		if memTotalSizeMiB == 0 {
-			if !contains(args, "--config") {
-				panic("PANIC: Both memory limit MiB and memory total size are set to zero. This should never happen.")
-			}
-		}
-		// If not set, compute based on memory total size specified
-		// and default memory spike percentage const
-		memSpikeMiB := memTotalSizeMiB * defaultMemorySpikePercentage / 100
-		// The memory spike should be set to defaultMemorySpikePercentage of total memory
-		// while specifying a maximum of defaultMemorySpikeMaxMiB of memory.
-		if memSpikeMiB < defaultMemorySpikeMaxMiB {
-			memSpike = memSpikeMiB
-		} else {
-			memSpike = defaultMemorySpikeMaxMiB
-		}
-		if memSpike != 0 {
-			log.Printf("Set memory spike limit to %d MiB", memSpike)
-		}
-	}
-	setMemorySettingsToEnvVar(memLimit, memLimitMiBEnvVarName, memSpike, memSpikeMiBEnvVarName)
-}
-
-func checkMemorySettingsPercentageFromEnvVar(envVar string, defaultVal int) int {
-	// Check if the memory limit is specified via the env var
-	// Ensure memory limit is valid
-	var envVarResult int
-	envVarVal := os.Getenv(envVar)
-	if envVarVal != "" {
-		// Check if it is a numeric value.
-		val, err := strconv.Atoi(envVarVal)
-		if err != nil {
-			log.Fatalf("Expected a number in %s env variable but got %s", envVar, envVarVal)
-		}
-		if 0 > val || val > 100 {
-			log.Fatalf("Expected a number in the range 0-100 for %s env variable but got %s", envVar, envVarVal)
-		}
-		envVarResult = val
+		// Inject the command line flag that controls the ballast size.
+		os.Args = append(os.Args, "--mem-ballast-size-mib="+ballastSize)
 	} else {
-		envVarResult = defaultVal
+		ballastSize = strconv.Itoa(memTotalSizeMiB * defaultMemoryBallastPercentage / 100)
+		// Inject the command line flag that controls the ballast size.
+		os.Args = append(os.Args, "--mem-ballast-size-mib="+ballastSize)
+		os.Setenv(ballastEnvVarName, ballastSize)
 	}
-	return envVarResult
-}
-
-func useMemorySettingsPercentageFromEnvVar() {
-	memLimit := checkMemorySettingsPercentageFromEnvVar(memLimitEnvVarName, defaultMemoryLimitPercentage)
-	memSpike := checkMemorySettingsPercentageFromEnvVar(memSpikeEnvVarName, defaultMemorySpikePercentage)
-	setMemorySettingsToEnvVar(memLimit, memLimitEnvVarName, memSpike, memSpikeEnvVarName)
-}
-
-func setMemorySettingsToEnvVar(limit int, limitName string, spike int, spikeName string) {
-	// Ensure spike and limit are valid
-	if spike >= limit && spike != 0 {
-		log.Fatalf("%s env variable must be less than %s env variable but got %d and %d respectively", spikeName, limitName, spike, limit)
-	}
-
-	// Set memory environment variables
-	if spike != 0 {
-		os.Setenv(limitName, strconv.Itoa(limit))
-		os.Setenv(spikeName, strconv.Itoa(spike))
-	}
+	log.Printf("Set ballast to %s MiB", ballastSize)
 }
 
 func runInteractive(params service.Parameters) error {

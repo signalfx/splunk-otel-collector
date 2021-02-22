@@ -91,24 +91,6 @@ func TestUseConfigFromEnvVar(t *testing.T) {
 	os.Unsetenv(configEnvVarName)
 }
 
-func TestCheckMemorySettingMiBFromEnvVar(t *testing.T) {
-	testArgs := [][]string{
-		{"", "10", "0"},
-		{"10", "0", "10"},
-		{"10", "100", "10"},
-	}
-	for _, v := range testArgs {
-		n, _ := strconv.Atoi(v[1])
-		r, _ := strconv.Atoi(v[2])
-		os.Setenv(memLimitMiBEnvVarName, v[0])
-		result := checkMemorySettingsMiBFromEnvVar(memLimitMiBEnvVarName, n)
-		if result != r {
-			t.Errorf("Expected %d but got %d", r, result)
-		}
-	}
-	os.Unsetenv(memLimitMiBEnvVarName)
-}
-
 func HelperUseMemorySettingsFromEnvVar(limitEnv string, limit int, spikeEnv string, spike int, t *testing.T) {
 	envVarVal, _ := strconv.Atoi(os.Getenv(limitEnv))
 	if envVarVal != limit {
@@ -137,25 +119,4 @@ func TestUseMemorySettingsMiBFromEnvVar(t *testing.T) {
 	HelperUseMemorySettingsFromEnvVar(memLimitMiBEnvVarName, 10, memSpikeMiBEnvVarName, 5, t)
 	useMemorySettingsMiBFromEnvVar(100)
 	HelperUseMemorySettingsFromEnvVar(memLimitMiBEnvVarName, 90, memSpikeMiBEnvVarName, 25, t)
-}
-
-func TestCheckMemorySettingsPercentageFromEnvVar(t *testing.T) {
-	result := checkMemorySettingsPercentageFromEnvVar(memLimitEnvVarName, defaultMemoryLimitPercentage)
-	if result != defaultMemoryLimitPercentage {
-		t.Errorf("Expected %d but got %d", defaultMemoryLimitPercentage, result)
-	}
-	setMemorySettingsToEnvVar(10, memLimitEnvVarName, 5, memSpikeEnvVarName)
-	result = checkMemorySettingsMiBFromEnvVar(memLimitEnvVarName, 10)
-	if result != 10 {
-		t.Errorf("Expected %d but got %d", 10, result)
-	}
-	os.Unsetenv(memLimitEnvVarName)
-	os.Unsetenv(memSpikeEnvVarName)
-}
-
-func TestUseMemorySettingsPercentageFromEnvVar(t *testing.T) {
-	useMemorySettingsPercentageFromEnvVar()
-	HelperUseMemorySettingsFromEnvVar(memLimitEnvVarName, 90, memSpikeEnvVarName, 25, t)
-	setMemorySettingsToEnvVar(10, memLimitEnvVarName, 5, memSpikeEnvVarName)
-	HelperUseMemorySettingsFromEnvVar(memLimitEnvVarName, 10, memSpikeEnvVarName, 5, t)
 }

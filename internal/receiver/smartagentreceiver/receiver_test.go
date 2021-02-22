@@ -271,9 +271,10 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	observedLogger, logs := observer.New(zapcore.WarnLevel)
 	logger := zap.New(observedLogger)
 	r := NewReceiver(logger, cfg, consumertest.NewMetricsNop())
+	configs := getSmartAgentExtensionConfig(t)
 	host := &mockHost{
-		smartagentextensionConfig:  getSmartAgentExtensionConfig(t),
-		smartagentextensionConfig2: getSmartAgentExtensionConfig(t),
+		smartagentextensionConfig:      configs[0],
+		smartagentextensionConfigExtra: configs[1],
 	}
 
 	require.NoError(t, r.Start(context.Background(), host))
@@ -303,7 +304,7 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	require.Equal(t, filepath.Join("/opt", "jre"), os.Getenv("JAVA_HOME"))
 }
 
-func getSmartAgentExtensionConfig(t *testing.T) *smartagentextension.Config {
+func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {
 	factories, err := componenttest.ExampleComponents()
 	require.Nil(t, err)
 
@@ -317,14 +318,20 @@ func getSmartAgentExtensionConfig(t *testing.T) *smartagentextension.Config {
 	partialSettingsConfig := cfg.Extensions["smartagent/partial_settings"]
 	require.NotNil(t, partialSettingsConfig)
 
-	out, ok := partialSettingsConfig.(*smartagentextension.Config)
+	extraSettingsConfig := cfg.Extensions["smartagent/extra"]
+	require.NotNil(t, extraSettingsConfig)
+
+	one, ok := partialSettingsConfig.(*smartagentextension.Config)
 	require.True(t, ok)
-	return out
+
+	two, ok := extraSettingsConfig.(*smartagentextension.Config)
+	require.True(t, ok)
+	return []*smartagentextension.Config{one, two}
 }
 
 type mockHost struct {
-	smartagentextensionConfig  *smartagentextension.Config
-	smartagentextensionConfig2 *smartagentextension.Config
+	smartagentextensionConfig      *smartagentextension.Config
+	smartagentextensionConfigExtra *smartagentextension.Config
 }
 
 func (m *mockHost) ReportFatalError(err error) {
@@ -335,20 +342,11 @@ func (m *mockHost) GetFactory(kind component.Kind, componentType configmodels.Ty
 }
 
 func (m *mockHost) GetExtensions() map[configmodels.Extension]component.ServiceExtension {
-	m.smartagentextensionConfig.ExtensionSettings = configmodels.ExtensionSettings{
-		TypeVal: "smartagent",
-		NameVal: "smartagent",
-	}
-	m.smartagentextensionConfig2.ExtensionSettings = configmodels.ExtensionSettings{
-		TypeVal: "smartagent",
-		NameVal: "smartagent/extra",
-	}
-
 	randomExtensionConfig := &healthcheckextension.Config{}
 	return map[configmodels.Extension]component.ServiceExtension{
-		m.smartagentextensionConfig:  getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
-		randomExtensionConfig:        getExtension(healthcheckextension.NewFactory(), randomExtensionConfig),
-		m.smartagentextensionConfig2: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig2),
+		m.smartagentextensionConfig:      getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
+		randomExtensionConfig:            getExtension(healthcheckextension.NewFactory(), randomExtensionConfig),
+		m.smartagentextensionConfigExtra: nil,
 	}
 }
 

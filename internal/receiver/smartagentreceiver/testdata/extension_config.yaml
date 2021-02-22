@@ -7,6 +7,14 @@ extensions:
       writeThreads: 4
       writeQueueLimitHigh: 5
       configDir: /etc/
+  smartagent/extra:
+    bundleDir: /opt/
+    collectd:
+      timeout: 10
+      readThreads: 1
+      writeThreads: 4
+      writeQueueLimitHigh: 5
+      configDir: /etc/
 
 receivers:
   examplereceiver:

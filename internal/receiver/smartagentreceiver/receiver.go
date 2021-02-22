@@ -156,9 +156,6 @@ func (r *Receiver) createMonitor(
 		setUpEnvironment()
 	})
 
-	// Note, that this receiver has to configure main collectd even for collectd/custom monitor,
-	// despite the fact that, that monitor stands up its own instance of collectd to prevent this
-	// panic "Main collectd instance should not be accessed before being configured".
 	if r.config.monitorConfig.MonitorConfigCore().IsCollectdBased() {
 		configureCollectdOnce.Do(func() {
 			r.logger.Info("Configuring collectd")

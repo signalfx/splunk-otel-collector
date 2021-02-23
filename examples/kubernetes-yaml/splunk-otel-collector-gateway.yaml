@@ -87,10 +87,10 @@ data:
       # https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md
       memory_limiter:
         # TODO: Ensure this is set properly
-        ballast_size_mib: 650
+        ballast_size_mib: 168
         check_interval: 2s
         # TODO: Ensure this is set properly
-        limit_mib: 1800
+        limit_mib: 460
     exporters:
       # Traces
       sapm:
@@ -176,7 +176,7 @@ spec:
           - "--config=/conf/otel-collector-config.yaml"
           # TODO: Ensure this is set properly
 #           Memory Ballast size should be max 1/3 to 1/2 of memory.
-          - "--mem-ballast-size-mib=650"
+          - "--mem-ballast-size-mib=168"
     # TODO: Ensure this is set properly
     # WARN: It is not recommended to use the latest tag in production deployments!
     image: quay.io/signalfx/splunk-otel-collector:latest
@@ -184,9 +184,9 @@ spec:
         resources:
           limits:
             # TODO: Ensure this is set properly
-            cpu: 1
+            cpu: 500m
             # TODO: Ensure this is set properly
-            memory: 2Gi
+            memory: 512Mi
           requests:
             cpu: 200m
             memory: 400Mi

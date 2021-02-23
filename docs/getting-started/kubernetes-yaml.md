@@ -12,16 +12,27 @@ Given the Collector can be deployed as [an agent or
 gateway](https://github.com/signalfx/splunk-otel-collector#getting-started),
 the YAML required depends on the configuration.
 
-An example configuration for deploying a gateway instance is available
+An example configuration for deploying either as an agent or a gateway instance
+is available
 [here](../../examples/kubernetes-yaml/splunk-otel-collector-gateway.yaml).
 
-> Please be advised you must ensure all the TODO items in the YAML are updated
-> correctly. You cannot deploy the example YAML as-is.
+> Please be advised you MUST configure at least the SPLUNK_ACCESS_TOKEN and
+> SPLUNK_REALM for the configuration to work. Several additional TODO sections
+> can be updated as needed.
 
-Once the YAML file is updated you can deploy it with:
+Once the YAML file is updated you can deploy it with with `kubectl`.
+
+Agent:
+
+```bash
+$ kubectl apply -f splunk-otel-collector-agent.yaml
+```
+
+> Note agent is configured to send direct to Splunk SaaS endpoints. It can be
+> reconfigured to send to a gateway.
+
+Gateway instance:
 
 ```bash
 $ kubectl apply -f splunk-otel-collector-gateway.yaml
 ```
-
-If you want to deploy as an agent, it is recommended to configure a DaemonSet.

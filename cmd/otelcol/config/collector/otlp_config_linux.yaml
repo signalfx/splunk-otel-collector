@@ -36,9 +36,8 @@ processors:
   # Configuration is based on the amount of memory allocated to the collector.
   # In general, the ballast should be set to 1/3 of the collector's memory, the limit
   # should be 90% of the collector's memory up to 2GB. The simplest way to specify the
-  # ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable. This will override
-  # the value of --mem-ballast-size-mib command line flag. If SPLUNK_BALLAST_SIZE_MIB
-  # is not defined then --mem-ballast-size-mib command line flag must be manually specified.
+  # ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable. Alternatively, the
+  # --mem-ballast-size-mib command line flag can be passed and take priority.
   # For more information about memory limiter, see
   # https://github.com/open-telemetry/opentelemetry-collector/blob/master/processor/memorylimiter/README.md
   memory_limiter:

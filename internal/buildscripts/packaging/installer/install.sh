@@ -73,7 +73,7 @@ fluent_config_path="${fluent_config_dir}/fluent.conf"
 
 default_stage="release"
 default_realm="us0"
-default_memory_size="1024"
+default_memory_size="512"
 default_collector_version="latest"
 default_td_agent_version="4.0.1"
 default_td_agent_version_jessie="3.3.0-1"
@@ -399,35 +399,35 @@ usage() {
 Usage: $0 [options] [access_token]
 
 Installs the Splunk OpenTelemetry Collector from the package repos.
-If access_token is not provided, it will prompted for on stdin.
+If access_token is not provided, it will be prompted for on stdin.
 
 Options:
 
-  --collector-version <version>     The splunk-otel-collector package version to install (default: "$default_collector_version")
-  --realm <us0|us1|eu0|...>         The Splunk realm to use (default: "$default_realm")
-                                    The ingest, api, trace, and HEC endpoint URLs will automatically be inferred by this value
-  --ingest-url <url>                Set the ingest endpoint URL explicitly instead of the endpoint inferred from the specified realm
-                                    (default: https://ingest.REALM.signalfx.com)
   --api-url <url>                   Set the api endpoint URL explicitly instead of the endpoint inferred from the specified realm
                                     (default: https://api.REALM.signalfx.com)
-  --trace-url <url>                 Set the trace endpoint URL explicitly instead of the endpoint inferred from the specified realm
-                                    (default: https://ingest.REALM.signalfx.com/v2/trace)
-  --hec-url <url>                   Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm
-                                    (default: https://ingest.REALM.signalfx.com/v1/log)
-  --hec-token <token>               Set the HEC token if different than the specified Splunk access_token
-  --memory <memory size>            Total memory in MIB to allocate to the collector; automatically calculates the ballast size
-                                    (default: "$default_memory_size")
   --ballast <ballast size>          Set the ballast size explicitly instead of the value calculated from the --memory option
                                     This should be set to 1/3 to 1/2 of configured memory
-  --service-user <user>             Set the user for the splunk-otel-collector service (default: "$default_service_user")
-                                    The user will be created if it does not exist
+  --beta                            Use the beta package repo instead of the primary
+  --collector-version <version>     The splunk-otel-collector package version to install (default: "$default_collector_version")
+  --hec-token <token>               Set the HEC token if different than the specified Splunk access_token
+  --hec-url <url>                   Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm
+                                    (default: https://ingest.REALM.signalfx.com/v1/log)
+  --ingest-url <url>                Set the ingest endpoint URL explicitly instead of the endpoint inferred from the specified realm
+                                    (default: https://ingest.REALM.signalfx.com)
+  --memory <memory size>            Total memory in MIB to allocate to the collector; automatically calculates the ballast size
+                                    (default: "$default_memory_size")
+  --realm <us0|us1|eu0|...>         The Splunk realm to use (default: "$default_realm")
+                                    The ingest, api, trace, and HEC endpoint URLs will automatically be inferred by this value
   --service-group <group>           Set the group for the splunk-otel-collector service (default: "$default_service_group")
                                     The group will be created if it does not exist
+  --service-user <user>             Set the user for the splunk-otel-collector service (default: "$default_service_user")
+                                    The user will be created if it does not exist
+  --test                            Use the test package repo instead of the primary
+  --trace-url <url>                 Set the trace endpoint URL explicitly instead of the endpoint inferred from the specified realm
+                                    (default: https://ingest.REALM.signalfx.com/v2/trace)
   --with[out]-fluentd               Whether to install and configure fluentd to forward log events to the collector
                                     (default: --with-fluentd)
-  --test                            Use the test package repo instead of the primary
-  --beta                            Use the beta package repo instead of the primary
-  --                                Use -- if your access_token starts with -
+  --                                Use -- if access_token starts with -
 
 EOH
   exit 0

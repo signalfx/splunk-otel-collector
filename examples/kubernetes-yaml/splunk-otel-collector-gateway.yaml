@@ -108,11 +108,11 @@ data:
       extensions: [health_check, http_forwarder, zpages]
       pipelines:
         traces:
-          receivers: [jaeger, opencensus, otlp, sapm, zipkin]
+          receivers: [jaeger, otlp, sapm, zipkin]
           processors: [memory_limiter, batch]
           exporters: [sapm, signalfx]
         metrics:
-          receivers: [opencensus, otlp, signalfx, prometheus, hostmetrics]
+          receivers: [otlp, signalfx, prometheus, hostmetrics]
           processors: [memory_limiter, batch]
           exporters: [signalfx]
         logs:
@@ -135,8 +135,6 @@ spec:
     port: 14250
   - name: jaeger-thrift # Default endpoint for Jaeger Thrift receiver.
     port: 14268
-  - name: opencensus # Default endpoint for OpenCensus receiver.
-    port: 55678
   - name: otlp # Default endpoint for OpenTelemetry gRPC receiver.
     port: 4317
   - name: http-forwarder # Default endpoint for HTTP Forwarder extension.
@@ -196,7 +194,6 @@ spec:
         - containerPort: 13133 # Default endpoint for Health Check.
         - containerPort: 14250 # Default endpoint for Jaeger gRPC receiver.
         - containerPort: 14268 # Default endpoint for Jaeger Thrift receiver.
-        - containerPort: 55678 # Default endpoint for OpenCensus receiver.
         - containerPort: 4317  # Default endpoint for OpenTelemetry gRPC receiver.
         - containerPort: 6060  # Default endpoint for HTTP Forwarder extension.
         - containerPort: 7276  # Default endpoint for SignalFx APM receiver.

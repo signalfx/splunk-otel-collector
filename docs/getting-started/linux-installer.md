@@ -25,8 +25,7 @@ Run the below command on your host. Replace these variables:
 
 ```sh
 curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
-sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --memory SPLUNK_TOTAL_MEMORY_MIB \
-    -- SPLUNK_ACCESS_TOKEN
+sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
 ```
 
 You can view the [source](../../internal/buildscripts/packaging/installer/install.sh)
@@ -43,7 +42,8 @@ memory allocation configured in the Collector:
 
 ```sh
 curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
-sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
+sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --memory SPLUNK_TOTAL_MEMORY_MIB \
+    -- SPLUNK_ACCESS_TOKEN
 ```
 
 ### Fluentd Configuration

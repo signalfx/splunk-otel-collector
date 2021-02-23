@@ -28,7 +28,6 @@ With the Collector configured, the following endpoints are accessible:
 
 - `http(s)://<collectorFQDN>:13133/` Health endpoint useful for load balancer monitoring
 - `http(s)://<collectorFQDN>:[14250|14268]` Jaeger [gRPC|Thrift HTTP] receiver
-- `http(s)://<collectorFQDN>:55678` OpenCensus gRPC and HTTP receiver
 - `http(s)://localhost:55679/debug/[tracez|pipelinez]` zPages monitoring
 - `http(s)://<collectorFQDN>:4317` OpenTelemetry gRPC receiver
 - `http(s)://<collectorFQDN>:6060` HTTP Forwarder used to receive Smart Agent `apiUrl` data
@@ -107,7 +106,7 @@ Deploy the latest Docker image.
 
 ```bash
 $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
-    -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678:55678 -p 4317:4317 \
+    -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 4317:4317 \
     -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
     --name otelcol quay.io/signalfx/splunk-otel-collector:latest
 ```
@@ -145,7 +144,7 @@ For example in Docker:
 
 ```bash
 $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
-    -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 55678:55678 -p 4317:4317 \
+    -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 4317:4317 \
     -p 6060:6060 -p 7276:7276 -p 8888:8888 -p 9411:9411 -p 9943:9943 \
     --name otelcol quay.io/signalfx/splunk-otel-collector:latest \
         --log-level=DEBUG
@@ -169,7 +168,7 @@ For example in Docker:
 ```bash
 $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
     -e SPLUNK_CONFIG=/etc/collector.yaml -p 13133:13133 -p 14250:14250 \
-    -p 14268:14268 -p 55678:55678 -p 4317:4317 -p 6060:6060 -p 7276:7276 -p 8888:8888 \
+    -p 14268:14268 -p 4317:4317 -p 6060:6060 -p 7276:7276 -p 8888:8888 \
     -p 9411:9411 -p 9943:9943 -v collector.yaml:/etc/collector.yaml:ro \
     --name otelcol quay.io/signalfx/splunk-otel-collector:latest
 ```

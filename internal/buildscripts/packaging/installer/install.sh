@@ -399,7 +399,7 @@ usage() {
 Usage: $0 [options] [access_token]
 
 Installs the Splunk OpenTelemetry Collector from the package repos.
-If access_token is not provided, it will prompted for on stdin.
+If access_token is not provided, it will be prompted for on stdin.
 
 Options:
 
@@ -427,7 +427,7 @@ Options:
                                     (default: https://ingest.REALM.signalfx.com/v2/trace)
   --with[out]-fluentd               Whether to install and configure fluentd to forward log events to the collector
                                     (default: --with-fluentd)
-  --                                Use -- if your access_token starts with -
+  --                                Use -- if access_token starts with -
 
 EOH
   exit 0

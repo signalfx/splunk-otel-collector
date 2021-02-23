@@ -37,7 +37,6 @@ import (
 	"go.opentelemetry.io/collector/config/configtest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/extension/healthcheckextension"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -280,8 +279,14 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 
 	require.NoError(t, r.Start(context.Background(), host))
 	require.NoError(t, r.Shutdown(context.Background()))
-	require.Equal(t, 1, logs.Len())
-	require.True(t, strings.HasPrefix(logs.All()[0].Message, "multiple smartagent extensions found, using "))
+	require.True(t, func() bool {
+		for _, message := range logs.All() {
+			if strings.HasPrefix(message.Message, "multiple smartagent extensions found, using ") {
+				return true
+			}
+		}
+		return false
+	}())
 	require.Equal(t, &config.CollectdConfig{
 		DisableCollectd:      false,
 		Timeout:              10,
@@ -343,10 +348,11 @@ func (m *mockHost) GetFactory(kind component.Kind, componentType configmodels.Ty
 }
 
 func (m *mockHost) GetExtensions() map[configmodels.Extension]component.ServiceExtension {
-	randomExtensionConfig := &healthcheckextension.Config{}
+	exampleFactory := componenttest.ExampleExtensionFactory{}
+	randomExtensionConfig := exampleFactory.CreateDefaultConfig()
 	return map[configmodels.Extension]component.ServiceExtension{
 		m.smartagentextensionConfig:      getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
-		randomExtensionConfig:            getExtension(healthcheckextension.NewFactory(), randomExtensionConfig),
+		randomExtensionConfig:            getExtension(&exampleFactory, randomExtensionConfig),
 		m.smartagentextensionConfigExtra: nil,
 	}
 }

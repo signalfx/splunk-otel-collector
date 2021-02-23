@@ -15,14 +15,18 @@
 package smartagentreceiver
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
+	metadata "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
 	"github.com/signalfx/golib/v3/event"
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.uber.org/zap"
 )
 
@@ -65,4 +69,64 @@ func TestExtraDimensions(t *testing.T) {
 	cp.AddExtraDimension("another_dimension_name", "another_dimension_value")
 	assert.Equal(t, "another_dimension_value", cp.extraDimensions["another_dimension_name"])
 	assert.Empty(t, output.extraDimensions["another_dimension_name"])
+}
+
+func TestSendDimensionUpdate(t *testing.T) {
+	me := mockMetadataExporter{}
+	output := NewOutput(Config{}, &me, zap.NewNop())
+
+	dim := types.Dimension{
+		Name:  "my_dimension",
+		Value: "my_dimension_value",
+		Properties: map[string]string{
+			"property": "property_value",
+		},
+	}
+	output.SendDimensionUpdate(&dim)
+	received := me.received
+	assert.Equal(t, 1, len(received))
+	update := *(received[0])
+	assert.Equal(t, "my_dimension", update.ResourceIDKey)
+	assert.Equal(t, metadata.ResourceID("my_dimension_value"), update.ResourceID)
+	assert.Equal(t, map[string]string{"property": "property_value"}, update.MetadataToUpdate)
+}
+
+func TestSendDimensionUpdateWithInvalidExporter(t *testing.T) {
+	output := NewOutput(Config{}, consumertest.NewMetricsNop(), zap.NewNop())
+	dim := types.Dimension{Name: "error"}
+
+	// doesn't panic
+	output.SendDimensionUpdate(&dim)
+}
+
+func TestSendDimensionUpdateConsumeMetadataErrors(t *testing.T) {
+	me := mockMetadataExporter{}
+	output := NewOutput(Config{}, &me, zap.NewNop())
+
+	dim := types.Dimension{
+		Name: "error",
+	}
+	output.SendDimensionUpdate(&dim)
+	received := me.received
+	assert.Equal(t, 1, len(received))
+	update := *(received[0])
+	assert.Equal(t, "has_errored", update.ResourceIDKey)
+}
+
+type mockMetadataExporter struct {
+	received []*metadata.MetadataUpdate
+}
+
+func (me *mockMetadataExporter) ConsumeMetrics(context.Context, pdata.Metrics) error {
+	return nil
+}
+
+func (me *mockMetadataExporter) ConsumeMetadata(updates []*metadata.MetadataUpdate) error {
+	me.received = append(me.received, updates...)
+
+	if updates[0].ResourceIDKey == "error" {
+		updates[0].ResourceIDKey = "has_errored"
+		return fmt.Errorf("some error")
+	}
+	return nil
 }

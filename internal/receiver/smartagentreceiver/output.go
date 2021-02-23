@@ -18,6 +18,7 @@ import (
 	"context"
 	"time"
 
+	metadata "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
 	"github.com/signalfx/golib/v3/trace"
@@ -35,24 +36,38 @@ const internalTransport = "internal"
 // It is what provides metrics to the next MetricsConsumer (to be implemented later).  At this stage it is only
 // a logging instance.
 type Output struct {
-	receiverName    string
-	nextConsumer    consumer.MetricsConsumer
-	logger          *zap.Logger
-	converter       Converter
-	extraDimensions map[string]string
+	receiverName         string
+	nextConsumer         consumer.MetricsConsumer
+	nextMetadataConsumer *metadata.MetadataExporter
+	logger               *zap.Logger
+	converter            Converter
+	extraDimensions      map[string]string
 }
 
 var _ types.Output = (*Output)(nil)
 var _ types.FilteringOutput = (*Output)(nil)
 
 func NewOutput(config Config, nextConsumer consumer.MetricsConsumer, logger *zap.Logger) *Output {
-	return &Output{
-		receiverName:    config.Name(),
-		nextConsumer:    nextConsumer,
-		logger:          logger,
-		converter:       Converter{logger: logger},
-		extraDimensions: map[string]string{},
+	metadataExporter := getMetadataExporter(nextConsumer)
+	if metadataExporter == nil {
+		logger.Warn("no dimension updates are possible as is not a MetadataExporter", zap.Any("consumer", nextConsumer))
 	}
+
+	return &Output{
+		receiverName:         config.Name(),
+		nextConsumer:         nextConsumer,
+		nextMetadataConsumer: metadataExporter,
+		logger:               logger,
+		converter:            Converter{logger: logger},
+		extraDimensions:      map[string]string{},
+	}
+}
+
+func getMetadataExporter(nextConsumer consumer.MetricsConsumer) *metadata.MetadataExporter {
+	if exporter, ok := nextConsumer.(metadata.MetadataExporter); ok {
+		return &exporter
+	}
+	return nil
 }
 
 func (output *Output) AddDatapointExclusionFilter(filter dpfilters.DatapointFilter) {
@@ -110,7 +125,14 @@ func (output *Output) SendSpans(spans ...*trace.Span) {
 }
 
 func (output *Output) SendDimensionUpdate(dimension *types.Dimension) {
-	output.logger.Debug("SendDimensionUpdate has been called.", zap.Any("dimension", dimension.String()))
+	if output.nextMetadataConsumer == nil {
+		return
+	}
+	metadataUpdate := dimensionToMetadataUpdate(*dimension)
+	err := (*output.nextMetadataConsumer).ConsumeMetadata([]*metadata.MetadataUpdate{&metadataUpdate})
+	if err != nil {
+		output.logger.Debug("SendDimensionUpdate has failed", zap.Error(err))
+	}
 }
 
 func (output *Output) AddExtraDimension(key, value string) {

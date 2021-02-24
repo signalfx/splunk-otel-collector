@@ -52,11 +52,13 @@ func TestLoadConfig(t *testing.T) {
 	assert.Equal(t, len(cfg.Receivers), 5)
 
 	haproxyCfg := cfg.Receivers["smartagent/haproxy"].(*Config)
+	expectedMetadataClients := []string{"exampleexporter/one", "exampleexporter/two"}
 	require.Equal(t, &Config{
 		ReceiverSettings: configmodels.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/haproxy",
 		},
+		MetadataClients: &expectedMetadataClients,
 		monitorConfig: &haproxy.Config{
 			MonitorConfig: config.MonitorConfig{
 				Type:                "haproxy",
@@ -72,12 +74,14 @@ func TestLoadConfig(t *testing.T) {
 	}, haproxyCfg)
 	require.NoError(t, haproxyCfg.validate())
 
+	var nilMetadataClients []string
 	redisCfg := cfg.Receivers["smartagent/redis"].(*Config)
 	require.Equal(t, &Config{
 		ReceiverSettings: configmodels.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/redis",
 		},
+		MetadataClients: &nilMetadataClients,
 		monitorConfig: &redis.Config{
 			MonitorConfig: config.MonitorConfig{
 				Type:                "collectd/redis",
@@ -378,5 +382,35 @@ func TestLoadInvalidConfigWithUnsupportedEndpoint(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err,
 		"error reading receivers configuration for smartagent/nagios: unable to set monitor Host field using Endpoint-derived value of localhost: no field Host of type string detected")
+	require.Nil(t, cfg)
+}
+
+func TestLoadInvalidConfigWithNonArrayMetadataClients(t *testing.T) {
+	factories, err := componenttest.ExampleComponents()
+	assert.Nil(t, err)
+
+	factory := NewFactory()
+	factories.Receivers[configmodels.Type(typeStr)] = factory
+	cfg, err := configtest.LoadConfigFile(
+		t, path.Join(".", "testdata", "invalid_nonarray_metadata_clients.yaml"), factories,
+	)
+	require.Error(t, err)
+	require.EqualError(t, err,
+		"error reading receivers configuration for smartagent/haproxy: metadataClients must be an array of compatible exporter names")
+	require.Nil(t, cfg)
+}
+
+func TestLoadInvalidConfigWithNonStringArrayMetadataClients(t *testing.T) {
+	factories, err := componenttest.ExampleComponents()
+	assert.Nil(t, err)
+
+	factory := NewFactory()
+	factories.Receivers[configmodels.Type(typeStr)] = factory
+	cfg, err := configtest.LoadConfigFile(
+		t, path.Join(".", "testdata", "invalid_float_metadata_clients.yaml"), factories,
+	)
+	require.Error(t, err)
+	require.EqualError(t, err,
+		"error reading receivers configuration for smartagent/haproxy: metadataClients must be an array of compatible exporter names")
 	require.Nil(t, cfg)
 }

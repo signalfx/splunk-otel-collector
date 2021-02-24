@@ -25,6 +25,8 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
 	"go.uber.org/zap"
@@ -36,38 +38,61 @@ const internalTransport = "internal"
 // It is what provides metrics to the next MetricsConsumer (to be implemented later).  At this stage it is only
 // a logging instance.
 type Output struct {
-	receiverName         string
-	nextConsumer         consumer.MetricsConsumer
-	nextMetadataConsumer *metadata.MetadataExporter
-	logger               *zap.Logger
-	converter            Converter
-	extraDimensions      map[string]string
+	receiverName          string
+	nextConsumer          consumer.MetricsConsumer
+	nextMetadataConsumers []*metadata.MetadataExporter
+	logger                *zap.Logger
+	converter             Converter
+	extraDimensions       map[string]string
 }
 
 var _ types.Output = (*Output)(nil)
 var _ types.FilteringOutput = (*Output)(nil)
 
-func NewOutput(config Config, nextConsumer consumer.MetricsConsumer, logger *zap.Logger) *Output {
-	metadataExporter := getMetadataExporter(nextConsumer)
-	if metadataExporter == nil {
-		logger.Warn("no dimension updates are possible as is not a MetadataExporter", zap.Any("consumer", nextConsumer))
-	}
-
+func NewOutput(config Config, nextConsumer consumer.MetricsConsumer, host component.Host, logger *zap.Logger) *Output {
+	metadataExporters := getMetadataExporters(config, host, nextConsumer, logger)
 	return &Output{
-		receiverName:         config.Name(),
-		nextConsumer:         nextConsumer,
-		nextMetadataConsumer: metadataExporter,
-		logger:               logger,
-		converter:            Converter{logger: logger},
-		extraDimensions:      map[string]string{},
+		receiverName:          config.Name(),
+		nextConsumer:          nextConsumer,
+		nextMetadataConsumers: metadataExporters,
+		logger:                logger,
+		converter:             Converter{logger: logger},
+		extraDimensions:       map[string]string{},
 	}
 }
 
-func getMetadataExporter(nextConsumer consumer.MetricsConsumer) *metadata.MetadataExporter {
-	if exporter, ok := nextConsumer.(metadata.MetadataExporter); ok {
-		return &exporter
+func getMetadataExporters(config Config, host component.Host, nextConsumer consumer.MetricsConsumer, logger *zap.Logger) []*metadata.MetadataExporter {
+	var exporters []*metadata.MetadataExporter
+
+	if config.MetadataClients != nil {
+		builtExporters := host.GetExporters()[configmodels.MetricsDataType]
+		for _, client := range *config.MetadataClients {
+			var exporter component.Exporter
+			for k, v := range builtExporters {
+				if k.Name() == client {
+					exporter = v
+					break
+				}
+			}
+			if metadataExporter, ok := exporter.(metadata.MetadataExporter); ok {
+				exporters = append(exporters, &metadataExporter)
+			} else {
+				logger.Warn(
+					"provided metadataClients item not a MetadataExporter.  cannot send dimension updates",
+					zap.String("client", client),
+				)
+			}
+		}
+		// Only if no metadataClients have been provided do we default to nextConsumer, if possible
+	} else if exporter, ok := nextConsumer.(metadata.MetadataExporter); ok {
+		exporters = append(exporters, &exporter)
 	}
-	return nil
+
+	if len(exporters) == 0 {
+		logger.Warn("no dimension updates are possible as no valid metadataClients have been provided and next pipeline component isn't a MetadataExporter")
+	}
+
+	return exporters
 }
 
 func (output *Output) AddDatapointExclusionFilter(filter dpfilters.DatapointFilter) {
@@ -125,13 +150,17 @@ func (output *Output) SendSpans(spans ...*trace.Span) {
 }
 
 func (output *Output) SendDimensionUpdate(dimension *types.Dimension) {
-	if output.nextMetadataConsumer == nil {
+	if len(output.nextMetadataConsumers) == 0 {
 		return
 	}
+
 	metadataUpdate := dimensionToMetadataUpdate(*dimension)
-	err := (*output.nextMetadataConsumer).ConsumeMetadata([]*metadata.MetadataUpdate{&metadataUpdate})
-	if err != nil {
-		output.logger.Debug("SendDimensionUpdate has failed", zap.Error(err))
+	for _, consumer := range output.nextMetadataConsumers {
+		exporter := *consumer
+		err := exporter.ConsumeMetadata([]*metadata.MetadataUpdate{&metadataUpdate})
+		if err != nil {
+			output.logger.Debug("SendDimensionUpdate has failed", zap.Error(err))
+		}
 	}
 }
 

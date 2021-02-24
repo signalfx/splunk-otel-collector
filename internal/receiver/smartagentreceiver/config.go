@@ -32,12 +32,15 @@ import (
 
 const defaultIntervalSeconds = 10
 
+var errMetadataClientValue = fmt.Errorf("metadataClients must be an array of compatible exporter names")
+
 type Config struct {
 	configmodels.ReceiverSettings `mapstructure:",squash"`
 	// Generally an observer/receivercreator-set value via Endpoint.Target.
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
-	Endpoint      string `mapstructure:"endpoint"`
-	monitorConfig config.MonitorCustomConfig
+	Endpoint        string    `mapstructure:"endpoint"`
+	MetadataClients *[]string `mapstructure:"metadataclients"`
+	monitorConfig   config.MonitorCustomConfig
 }
 
 func (rCfg *Config) validate() error {
@@ -75,6 +78,26 @@ func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error
 	if endpoint, ok = allSettings["endpoint"]; ok {
 		receiverCfg.Endpoint = fmt.Sprintf("%s", endpoint)
 		delete(allSettings, "endpoint")
+	}
+
+	// Config.metadataClients should end up a *[]string, and we need to arrive at that from
+	// allSetting's interface{} value.  This block sets the config field and removes the
+	// map entry to not interfere w/ the subsequent monitor custom config unmarshalling.
+	if metadataClients, containsClients := allSettings["metadataclients"]; containsClients {
+		if clients, isSlice := metadataClients.([]interface{}); isSlice {
+			var mClients []string
+			for _, c := range clients {
+				if client, isString := c.(string); isString {
+					mClients = append(mClients, client)
+				} else {
+					return errMetadataClientValue
+				}
+			}
+			receiverCfg.MetadataClients = &mClients
+		} else {
+			return errMetadataClientValue
+		}
+		delete(allSettings, "metadataclients")
 	}
 
 	// monitors.ConfigTemplates is a map that all monitors use to register their custom configs in the Smart Agent.

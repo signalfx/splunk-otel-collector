@@ -88,7 +88,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
 	}, r.logger)
 
-	r.monitor, err = r.createMonitor(monitorType, host.GetExtensions())
+	r.monitor, err = r.createMonitor(monitorType, host)
 	if err != nil {
 		return fmt.Errorf("failed creating monitor %q: %w", monitorType, err)
 	}
@@ -121,9 +121,7 @@ func (r *Receiver) Shutdown(context.Context) error {
 	return err
 }
 
-func (r *Receiver) createMonitor(
-	monitorType string,
-	extensions map[configmodels.Extension]component.ServiceExtension) (monitor interface{}, err error) {
+func (r *Receiver) createMonitor(monitorType string, host component.Host) (monitor interface{}, err error) {
 	// retrieve registered MonitorFactory from agent's registration store
 	monitorFactory, ok := monitors.MonitorFactories[monitorType]
 	if !ok {
@@ -132,7 +130,7 @@ func (r *Receiver) createMonitor(
 
 	monitor = monitorFactory() // monitor is a pointer to a monitor struct
 
-	output := NewOutput(*r.config, r.nextConsumer, r.logger)
+	output := NewOutput(*r.config, r.nextConsumer, host, r.logger)
 	set, err := SetStructFieldWithExplicitType(
 		monitor, "Output", output,
 		reflect.TypeOf((*types.Output)(nil)).Elem(),
@@ -152,7 +150,7 @@ func (r *Receiver) createMonitor(
 	// Configure SmartAgentConfigProvider to gather any global config overrides and
 	// set required envs.
 	configureEnvironmentOnce.Do(func() {
-		r.setUpSmartAgentConfigProvider(extensions)
+		r.setUpSmartAgentConfigProvider(host.GetExtensions())
 		setUpEnvironment()
 	})
 

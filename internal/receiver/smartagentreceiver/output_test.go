@@ -25,13 +25,15 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.uber.org/zap"
 )
 
 func TestOutput(t *testing.T) {
-	output := NewOutput(Config{}, consumertest.NewMetricsNop(), zap.NewNop())
+	output := NewOutput(Config{}, consumertest.NewMetricsNop(), componenttest.NewNopHost(), zap.NewNop())
 	output.AddDatapointExclusionFilter(dpfilters.DatapointFilter(nil))
 	assert.Empty(t, output.EnabledMetrics())
 	assert.True(t, output.HasEnabledMetricInGroup(""))
@@ -50,7 +52,7 @@ func TestOutput(t *testing.T) {
 }
 
 func TestExtraDimensions(t *testing.T) {
-	output := NewOutput(Config{}, consumertest.NewMetricsNop(), zap.NewNop())
+	output := NewOutput(Config{}, consumertest.NewMetricsNop(), componenttest.NewNopHost(), zap.NewNop())
 	assert.Empty(t, output.extraDimensions)
 
 	output.RemoveExtraDimension("not_a_known_dimension_name")
@@ -73,7 +75,8 @@ func TestExtraDimensions(t *testing.T) {
 
 func TestSendDimensionUpdate(t *testing.T) {
 	me := mockMetadataExporter{}
-	output := NewOutput(Config{}, &me, zap.NewNop())
+
+	output := NewOutput(Config{}, &me, componenttest.NewNopHost(), zap.NewNop())
 
 	dim := types.Dimension{
 		Name:  "my_dimension",
@@ -92,33 +95,51 @@ func TestSendDimensionUpdate(t *testing.T) {
 }
 
 func TestSendDimensionUpdateWithInvalidExporter(t *testing.T) {
-	output := NewOutput(Config{}, consumertest.NewMetricsNop(), zap.NewNop())
+	output := NewOutput(Config{}, consumertest.NewMetricsNop(), componenttest.NewNopHost(), zap.NewNop())
 	dim := types.Dimension{Name: "error"}
 
 	// doesn't panic
 	output.SendDimensionUpdate(&dim)
 }
 
-func TestSendDimensionUpdateConsumeMetadataErrors(t *testing.T) {
-	me := mockMetadataExporter{}
-	output := NewOutput(Config{}, &me, zap.NewNop())
+func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
+	me := mockMetadataExporter{name: "mockmetadataexporter"}
+	output := NewOutput(
+		Config{
+			MetadataClients: &[]string{"mockmetadataexporter", "exampleexporter"},
+		}, &componenttest.ExampleExporterConsumer{},
+		&hostWithExporters{exporter: &me},
+		zap.NewNop(),
+	)
 
 	dim := types.Dimension{
 		Name: "error",
 	}
 	output.SendDimensionUpdate(&dim)
 	received := me.received
-	assert.Equal(t, 1, len(received))
+	require.Equal(t, 1, len(received))
+	update := *(received[0])
+	assert.Equal(t, "has_errored", update.ResourceIDKey)
+}
+
+func TestSendDimensionUpdateFromNextConsumerMetadataExporters(t *testing.T) {
+	me := mockMetadataExporter{}
+	output := NewOutput(Config{}, &me, componenttest.NewNopHost(), zap.NewNop())
+
+	dim := types.Dimension{
+		Name: "error",
+	}
+	output.SendDimensionUpdate(&dim)
+	received := me.received
+	require.Equal(t, 1, len(received))
 	update := *(received[0])
 	assert.Equal(t, "has_errored", update.ResourceIDKey)
 }
 
 type mockMetadataExporter struct {
+	name     string
 	received []*metadata.MetadataUpdate
-}
-
-func (me *mockMetadataExporter) ConsumeMetrics(context.Context, pdata.Metrics) error {
-	return nil
+	componenttest.ExampleExporterConsumer
 }
 
 func (me *mockMetadataExporter) ConsumeMetadata(updates []*metadata.MetadataUpdate) error {
@@ -130,3 +151,33 @@ func (me *mockMetadataExporter) ConsumeMetadata(updates []*metadata.MetadataUpda
 	}
 	return nil
 }
+
+type hostWithExporters struct {
+	exporter *mockMetadataExporter
+	componenttest.NopHost
+}
+
+func (h *hostWithExporters) GetExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
+	exporters := map[configmodels.DataType]map[configmodels.Exporter]component.Exporter{}
+	exporterMap := map[configmodels.Exporter]component.Exporter{}
+	exporters[configmodels.MetricsDataType] = exporterMap
+
+	me := namedEntity{name: h.exporter.name}
+	exporterMap[&me] = component.MetricsExporter(h.exporter)
+
+	exampleExporterFactory := componenttest.ExampleExporterFactory{}
+	exampleExporter, _ := exampleExporterFactory.CreateMetricsExporter(
+		context.Background(), component.ExporterCreateParams{}, nil,
+	)
+	exporterMap[exampleExporterFactory.CreateDefaultConfig()] = exampleExporter
+
+	return exporters
+}
+
+type namedEntity struct {
+	name string
+}
+
+func (ne *namedEntity) Type() configmodels.Type { return configmodels.Type(ne.name) }
+func (ne *namedEntity) Name() string            { return ne.name }
+func (ne *namedEntity) SetName(_ string)        {}

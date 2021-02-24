@@ -56,9 +56,13 @@ func TestRedirectMonitorLogs(t *testing.T) {
 		monitor1Logger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
 		monitor2Logger := logrus.WithFields(logrus.Fields{"monitorType": "monitor2"})
 
+		// Case where logs do not have "monitorType" field
+		monitor3Logger := logrus.WithFields(logrus.Fields{})
+
 		// Checking that the logrus standard logger is the logger for monitor1 and monitor2.
 		require.Same(t, logrus.StandardLogger(), monitor1Logger.Logger, "Expected the standard logrus logger")
 		require.Same(t, logrus.StandardLogger(), monitor2Logger.Logger, "Expected the standard logrus logger")
+		require.Same(t, logrus.StandardLogger(), monitor3Logger.Logger, "Expected the standard logrus logger")
 
 		// Simulating the creation of logrus keys for monitor1 and monitor2 in the smart agent receiver where:
 		// 1. the monitor types (i.e. monitor1, monitor2) are known.
@@ -70,24 +74,29 @@ func TestRedirectMonitorLogs(t *testing.T) {
 		monitor2ZapLogger, monitor2ZapLogs := newObservedLogs(zapLevel)
 
 		// Simulating logrus to zap redirections in receiver.
-		logToZap := newLogrusToZap()
+		defaultLogger, defaultLogs := newObservedLogs(zapLevel)
+		logToZap := newLogrusToZap(defaultLogger)
 		logToZap.redirect(monitor1LogrusKey, monitor1ZapLogger)
 		logToZap.redirect(monitor2LogrusKey, monitor2ZapLogger)
 
 		logMsg1 := "a log msg1"
 		logMsg2 := "a log msg2"
+		logMsg3 := "a log msg3"
 
 		// Simulating logging a message in the monitor1.
 		logAt(monitor1Logger, logrusLevel, logMsg1)
 		logAt(monitor2Logger, logrusLevel, logMsg2)
+		logAt(monitor3Logger, logrusLevel, logMsg3)
 
 		// Checking the zap logger is logging the same number of messages logged by monitor1.
 		require.Equal(t, 1, monitor1ZapLogs.Len(), fmt.Sprintf("Expected 1 log message, got %d", monitor1ZapLogs.Len()))
 		require.Equal(t, 1, monitor2ZapLogs.Len(), fmt.Sprintf("Expected 1 log message, got %d", monitor2ZapLogs.Len()))
+		require.Equal(t, 1, defaultLogs.Len(), fmt.Sprintf("Expected 1 log message, got %d", defaultLogs.Len()))
 
 		// Checking that the zap logger is logging the message logged by monitor1.
 		require.Equal(t, logMsg1, monitor1ZapLogs.All()[0].Message, fmt.Sprintf("Expected message '%s', got '%s'", logMsg1, monitor1ZapLogs.All()[0].Message))
 		require.Equal(t, logMsg2, monitor2ZapLogs.All()[0].Message, fmt.Sprintf("Expected message '%s', got '%s'", logMsg2, monitor2ZapLogs.All()[0].Message))
+		require.Equal(t, logMsg3, defaultLogs.All()[0].Message, fmt.Sprintf("Expected message '%s', got '%s'", logMsg3, defaultLogs.All()[0].Message))
 
 		logToZap.unRedirect(monitor1LogrusKey, monitor1ZapLogger)
 		logToZap.unRedirect(monitor2LogrusKey, monitor2ZapLogger)
@@ -121,7 +130,7 @@ func TestRedirectSameMonitorManyInstancesLogs(t *testing.T) {
 		instance2ZapLogger, instance2ZapLogs := newObservedLogs(zapLevel)
 
 		// Simulating logrus to zap redirections in in the smart agent receiver.
-		logToZap := newLogrusToZap()
+		logToZap := newLogrusToZap(nil)
 		logToZap.redirect(instance1LogrusKey, instance1ZapLogger)
 		logToZap.redirect(instance2LogrusKey, instance2ZapLogger)
 
@@ -154,7 +163,7 @@ func TestLevelsMapShouldIncludeAllLogrusLevels(t *testing.T) {
 }
 
 func TestLevelsShouldReturnAllLogrusLevels(t *testing.T) {
-	hook := newLogrusToZap()
+	hook := newLogrusToZap(nil)
 	levels := hook.Levels()
 	for i := range logrus.AllLevels {
 		require.Equal(t, logrus.AllLevels[i], levels[i], fmt.Sprintf("Expected log level %s not found", logrus.AllLevels[i].String()))
@@ -164,7 +173,7 @@ func TestLevelsShouldReturnAllLogrusLevels(t *testing.T) {
 func TestRedirectShouldSetLogrusKeyLoggerReportCallerTrue(t *testing.T) {
 	src := logrusKey{Logger: logrus.New(), monitorType: "monitor1"}
 	dst := zap.NewNop()
-	logToZap := newLogrusToZap()
+	logToZap := newLogrusToZap(nil)
 	logToZap.redirect(src, dst)
 	require.True(t, src.ReportCaller, "Expected the logrus key logger to report caller")
 	logToZap.unRedirect(src, dst)
@@ -174,7 +183,7 @@ func TestRedirectShouldUniquelyAddHooksToLogrusKeyLogger(t *testing.T) {
 	src := logrusKey{Logger: logrus.New(), monitorType: "monitor1"}
 	require.Equal(t, 0, len(src.Hooks), fmt.Sprintf("Expected 0 hooks, got %d", len(src.Hooks)))
 
-	logToZap := newLogrusToZap()
+	logToZap := newLogrusToZap(nil)
 	// These multiple redirect calls should add hook once to log levels.
 	logToZap.redirect(src, zap.NewNop())
 	logToZap.redirect(src, zap.NewNop())

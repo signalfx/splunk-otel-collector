@@ -60,7 +60,7 @@ var (
 )
 
 func init() {
-	rusToZap = newLogrusToZap()
+	rusToZap = newLogrusToZap(nil)
 }
 
 func NewReceiver(logger *zap.Logger, config Config, nextConsumer consumer.MetricsConsumer) *Receiver {

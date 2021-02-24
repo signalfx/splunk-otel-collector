@@ -95,10 +95,14 @@ func (l *logrusKey) removeHook(remove logrus.Hook, levels ...logrus.Level) {
 	l.ReplaceHooks(keep)
 }
 
-func newLogrusToZap() *logrusToZap {
-	logger, err := newDefaultLoggerCfg().Build()
-	if err != nil {
-		log.Fatalf("Cannot initialize the default zap logger: %v", err)
+func newLogrusToZap(defaultLogger *zap.Logger) *logrusToZap {
+	logger := defaultLogger
+	var err error
+	if logger == nil {
+		logger, err = newDefaultLoggerCfg().Build()
+		if err != nil {
+			log.Fatalf("Cannot initialize the default zap logger: %v", err)
+		}
 	}
 	defer logger.Sync()
 
@@ -197,15 +201,9 @@ func (l *logrusToZap) Fire(e *logrus.Entry) error {
 		fields = append(fields, zap.Any(k, v))
 	}
 
-	if monitorType == "" {
-		l.defaultLogger.Warn("Cannot find zap logger for monitor. The log field monitorType is missing or blank.")
-		return nil
-	}
-
 	logger, _ := l.loggerMapValue0(logrusKey{e.Logger, monitorType})
 	if logger == nil {
-		l.defaultLogger.Warn(fmt.Sprintf("Cannot find zap logger for monitorType %s", monitorType))
-		return nil
+		logger = l.defaultLogger
 	}
 
 	if ce := logger.Check(levelsMap[e.Level], e.Message); ce != nil {

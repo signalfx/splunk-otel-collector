@@ -1,0 +1,21 @@
+receivers:
+  smartagent/haproxy:
+    metadataClients: [1234.45, 2345.56]
+    type: haproxy
+    intervalSeconds: 123
+    username: SomeUser
+    password: secret
+
+processors:
+  exampleprocessor:
+
+exporters:
+  exampleexporter:
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/haproxy
+      processors: [exampleprocessor]
+      exporters: [exampleexporter]

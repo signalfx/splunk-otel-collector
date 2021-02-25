@@ -1,5 +1,4 @@
-# Configuration file that uses the Splunk exporters (SAPM, SignalFX) to push
-# data to Splunk products.
+# Configuration file to push data to Splunk products.
 
 extensions:
   health_check:
@@ -97,7 +96,11 @@ service:
       receivers: [otlp, signalfx, prometheus, hostmetrics]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
+    logs/signalfx:
+      receivers: [signalfx]
+      processors: [memory_limiter, batch]
+      exporters: [signalfx]
     logs:
-      receivers: [signalfx, fluentforward]
+      receivers: [fluentforward]
       processors: [memory_limiter, batch, resourcedetection]
-      exporters: [signalfx, splunk_hec]
+      exporters: [splunk_hec]

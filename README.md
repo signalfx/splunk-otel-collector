@@ -104,7 +104,7 @@ If a Collector handles both trace and metric data then both must be accounted
 for when sizing. For example, 5K spans per second plus 10K data points per
 second would require 1 CPU core.
 
-The recommendation is to use a ratio of 1:2 for CPU:memory. By default, the
+The recommendation is to use a ratio of 1 CPU to 2 GB of memory. By default, the
 Collector is configured to use 512 MB of memory.
 
 > The Collector does not persist data to disk so no disk space is required.

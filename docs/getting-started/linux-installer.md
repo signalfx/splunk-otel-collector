@@ -3,11 +3,11 @@
 For non-containerized Linux environments, an installer script is available. The
 script deploys and configures:
 
-- Splunk Connector for Linux
+- Splunk OpenTelemetry Connector for Linux
 - [TD Agent
 (Fluentd)](https://www.fluentd.org/)
 
-> IMPORTANT: systemctl is required for automatic service management.
+> IMPORTANT: systemd is required to use this script.
 
 Currently, the following Linux distributions and versions are supported:
 
@@ -33,10 +33,11 @@ for more details and available options.
 
 ## Advanced Configuration
 
-### Collector Memory Configuration
+### Additional Script Options
 
-Optionally, the `SPLUNK_MEMORY_TOTAL_MIB` variable can be passed to change the
-memory allocation configured in the Collector:
+Additional configuration options supported by the script can be found by
+running the script with the `-h` flag. One variable that may need to changed
+is `SPLUNK_MEMORY_TOTAL_MIB` in order to configure the memory allocation:
 
 > By default, this variable is set to `512`.
 
@@ -45,6 +46,19 @@ curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-co
 sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --memory SPLUNK_TOTAL_MEMORY_MIB \
     -- SPLUNK_ACCESS_TOKEN
 ```
+
+### Collector Configuration
+
+The Collector comes with a default configuration which can be found at
+`/etc/otel/collector/splunk_otel_linux.yaml`. This configuration can be
+modified as needed. Possible configuration options can be found in the
+`receivers`, `processors`, `exporters`, and `extensions` folders of either:
+
+- [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector)
+- [OpenTelemetry Collector Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib)
+
+After modification, the Collector services needed to be restarted: `sudo
+systemctl restart splunk-otel-collector`.
 
 ### Fluentd Configuration
 

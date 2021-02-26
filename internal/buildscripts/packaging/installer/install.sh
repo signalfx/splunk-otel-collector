@@ -55,29 +55,34 @@ get_distro_codename() {
   echo "$codename"
 }
 
-distro="$( get_distro )"
-distro_version="$( get_distro_version )"
-distro_codename="$( get_distro_codename )"
-repo_base="https://splunk.jfrog.io/splunk"
-deb_repo_base="${repo_base}/otel-collector-deb"
-rpm_repo_base="${repo_base}/otel-collector-rpm"
-debian_gpg_key_url="${deb_repo_base}/splunk-B3CD4420.gpg"
-yum_gpg_key_url="${rpm_repo_base}/splunk-B3CD4420.pub"
-td_agent_repo_base="https://packages.treasuredata.com"
-td_agent_gpg_key_url="${td_agent_repo_base}/GPG-KEY-td-agent"
 collector_config_dir="/etc/otel/collector"
 collector_config_path="${collector_config_dir}/splunk_config_linux.yaml"
 collector_env_path="${collector_config_dir}/splunk_env"
+distro="$( get_distro )"
+distro_codename="$( get_distro_codename )"
+distro_version="$( get_distro_version )"
+repo_base="https://splunk.jfrog.io/splunk"
+
+debian_gpg_key_url="${deb_repo_base}/splunk-B3CD4420.gpg"
+deb_repo_base="${repo_base}/otel-collector-deb"
+
+rpm_repo_base="${repo_base}/otel-collector-rpm"
+yum_gpg_key_url="${rpm_repo_base}/splunk-B3CD4420.pub"
+
 fluent_config_dir="${collector_config_dir}/fluentd"
 fluent_config_path="${fluent_config_dir}/fluent.conf"
+td_agent_repo_base="https://packages.treasuredata.com"
+td_agent_gpg_key_url="${td_agent_repo_base}/GPG-KEY-td-agent"
 
 default_stage="release"
 default_realm="us0"
 default_memory_size="512"
+
 default_collector_version="latest"
 default_td_agent_version="4.0.1"
 default_td_agent_version_jessie="3.3.0-1"
 default_td_agent_version_stretch="3.7.1-0"
+
 default_service_user="splunk-otel-collector"
 default_service_group="splunk-otel-collector"
 
@@ -544,28 +549,28 @@ parse_args_and_install() {
     access_token=$(request_access_token)
   fi
 
-  if [ -z "$hec_token" ]; then
-    hec_token="$access_token"
-  fi
-
-  if [ -z "$ingest_url" ]; then
-    ingest_url="https://ingest.${realm}.signalfx.com"
-  fi
-
   if [ -z "$api_url" ]; then
     api_url="https://api.${realm}.signalfx.com"
   fi
 
-  if [ -z "$trace_url" ]; then
-    trace_url="${ingest_url}/v2/trace"
+  if [ -z "$hec_token" ]; then
+    hec_token="$access_token"
   fi
 
   if [ -z "$hec_url" ]; then
     hec_url="${ingest_url}/v1/log"
   fi
 
+  if [ -z "$ingest_url" ]; then
+    ingest_url="https://ingest.${realm}.signalfx.com"
+  fi
+
   if [ "$with_fluentd" != "true" ]; then
     td_agent_version=""
+  fi
+
+  if [ -z "$trace_url" ]; then
+    trace_url="${ingest_url}/v2/trace"
   fi
 
   echo "Splunk OpenTelemetry Collector Version: ${collector_version}"
@@ -630,7 +635,7 @@ parse_args_and_install() {
   fi
 
   cat <<EOH
-The Splunk OpenTelemetry Collector has been successfully installed.
+The Splunk OpenTelemetry Connector for Linux has been successfully installed.
 
 Make sure that your system's time is relatively accurate or else datapoints may not be accepted.
 

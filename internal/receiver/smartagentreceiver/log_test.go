@@ -77,9 +77,7 @@ func TestRedirectMonitorLogs(t *testing.T) {
 		defaultZapLogger, defaultLogs := newObservedLogs(zapLevel)
 
 		// Simulating logrus to zap redirections in receiver.
-		logToZap := newLogrusToZap(func() *zap.Logger {
-			return defaultZapLogger
-		})
+		logToZap := newLogrusToZap(func() *zap.Logger { return defaultZapLogger })
 		logToZap.redirect(monitor1LogrusKey, monitor1ZapLogger)
 		logToZap.redirect(monitor2LogrusKey, monitor2ZapLogger)
 		logToZap.redirect(monitor3LogrusKey, monitor3ZapLogger)
@@ -326,7 +324,7 @@ func TestLogrusToZapLevel(t *testing.T) {
 			logger, err := test.zapConfig.Build()
 			require.NoError(t, err)
 
-			logToZap := newLogrusToZap(func() *zap.Logger { return logger })
+			logToZap := newLogrusToZap(loggerProvider(logger.Core()))
 			defaultLoggerCore := logToZap.defaultLogger.Core()
 
 			for _, level := range test.levelsEnabled {

@@ -398,7 +398,7 @@ usage() {
   cat <<EOH >&2
 Usage: $0 [options] [access_token]
 
-Installs the Splunk OpenTelemetry Collector from the package repos.
+Installs the Splunk OpenTelemetry Connector for Linux from the package repos.
 If access_token is not provided, it will be prompted for on stdin.
 
 Options:
@@ -434,76 +434,80 @@ EOH
 }
 
 parse_args_and_install() {
-  local stage="$default_stage"
-  local realm="$default_realm"
-  local memory="$default_memory_size"
-  local ballast=
   local access_token=
-  local insecure=
-  local collector_version="$default_collector_version"
-  local service_user="$default_service_user"
-  local service_group="$default_service_group"
-  local with_fluentd="true"
-  local ingest_url=
   local api_url=
-  local trace_url=
-  local hec_url=
+  local ballast=
+  local collector_version="$default_collector_version"
   local hec_token=
+  local hec_url=
+  local ingest_url=
+  local insecure=
+  local memory="$default_memory_size"
+  local realm="$default_realm"
+  local service_group="$default_service_group"
+  local stage="$default_stage"
+  local service_user="$default_service_user"
   local td_agent_version="$default_td_agent_version"
+  local trace_url=
+  local with_fluentd="true"
 
   while [ -n "${1-}" ]; do
     case $1 in
-      --beta)
-        stage="beta"
-        ;;
-      --test)
-        stage="test"
-        ;;
-      --ingest-url)
-        ingest_url="$2"
-        shift 1
-        ;;
       --api-url)
         api_url="$2"
-        shift 1
-        ;;
-      --trace-url)
-        trace_url="$2"
-        shift 1
-        ;;
-      --hec-url)
-        hec_url="$2"
-        shift 1
-        ;;
-      --realm)
-        realm="$2"
-        shift 1
-        ;;
-      --memory)
-        memory="$2"
         shift 1
         ;;
       --ballast)
         ballast="$2"
         shift 1
         ;;
-      --insecure)
-        insecure="true"
+      --beta)
+        stage="beta"
         ;;
       --collector-version)
         collector_version="$2"
         shift 1
         ;;
-      --service-user)
-        service_user="$2"
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      --hec-token)
+        hec_token="$2"
+        shift 1
+        ;;
+      --hec-url)
+        hec_url="$2"
+        shift 1
+        ;;
+      --ingest-url)
+        ingest_url="$2"
+        shift 1
+        ;;
+      --insecure)
+        insecure="true"
+        ;;
+      --memory)
+        memory="$2"
+        shift 1
+        ;;
+      --realm)
+        realm="$2"
         shift 1
         ;;
       --service-group)
         service_group="$2"
         shift 1
         ;;
-      --hec-token)
-        hec_token="$2"
+      --service-user)
+        service_user="$2"
+        shift 1
+        ;;
+      --test)
+        stage="test"
+        ;;
+      --trace-url)
+        trace_url="$2"
         shift 1
         ;;
       --with-fluentd)
@@ -515,10 +519,6 @@ parse_args_and_install() {
       --)
         access_token="$2"
         shift 1
-        ;;
-      -h|--help)
-        usage
-        exit 0
         ;;
       -*)
         echo "Unknown option $1" >&2

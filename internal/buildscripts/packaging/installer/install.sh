@@ -394,6 +394,39 @@ install() {
   esac
 }
 
+uninstall() {
+  case "$distro" in
+    ubuntu|debian)
+      for agent in splunk-otel-collector td-agent; do
+        if command -v $agent >/dev/null 2>&1; then
+          apt-get remove $agent 2>&1
+          echo "Successfully removed $agent"
+        else
+          echo "Unable to locate $agent"
+        fi
+      done
+      ;;
+    amzn|centos|ol|rhel)
+      for agent in splunk-otel-collector td-agent; do
+        if command -v $agent >/dev/null 2>&1; then
+          if command -v yum >/dev/null 2>&1; then
+            yum remove $agent 2>&1
+          else
+            dnf remove $agent 2>&1
+          fi
+          echo "Successfully removed $agent"
+        else
+          echo "Unable to locate $agent"
+        fi
+      done
+      ;;
+    *)
+      echo "Your distro ($distro) is not supported or could not be determined" >&2
+      exit 1
+      ;;
+  esac
+}
+
 usage() {
   cat <<EOH >&2
 Usage: $0 [options] [access_token]
@@ -427,6 +460,7 @@ Options:
                                     (default: https://ingest.REALM.signalfx.com/v2/trace)
   --with[out]-fluentd               Whether to install and configure fluentd to forward log events to the collector
                                     (default: --with-fluentd)
+  --uninstall                       Removes the Splunk OpenTelemetry Connector for Linux
   --                                Use -- if access_token starts with -
 
 EOH
@@ -450,6 +484,7 @@ parse_args_and_install() {
   local hec_url=
   local hec_token=
   local td_agent_version="$default_td_agent_version"
+  local uninstall="false"
 
   while [ -n "${1-}" ]; do
     case $1 in
@@ -512,6 +547,9 @@ parse_args_and_install() {
       --without-fluentd)
         with_fluentd="false"
         ;;
+      --uninstall)
+        uninstall="true"
+        ;;
       --)
         access_token="$2"
         shift 1
@@ -537,6 +575,11 @@ parse_args_and_install() {
     esac
     shift 1
   done
+
+  if [ "$uninstall" = true ]; then
+      uninstall
+      exit 0
+  fi
 
   ensure_not_installed
 

@@ -63,8 +63,8 @@ distro_codename="$( get_distro_codename )"
 distro_version="$( get_distro_version )"
 repo_base="https://splunk.jfrog.io/splunk"
 
-debian_gpg_key_url="${deb_repo_base}/splunk-B3CD4420.gpg"
 deb_repo_base="${repo_base}/otel-collector-deb"
+debian_gpg_key_url="${deb_repo_base}/splunk-B3CD4420.gpg"
 
 rpm_repo_base="${repo_base}/otel-collector-rpm"
 yum_gpg_key_url="${rpm_repo_base}/splunk-B3CD4420.pub"
@@ -553,16 +553,16 @@ parse_args_and_install() {
     api_url="https://api.${realm}.signalfx.com"
   fi
 
+  if [ -z "$ingest_url" ]; then
+    ingest_url="https://ingest.${realm}.signalfx.com"
+  fi
+
   if [ -z "$hec_token" ]; then
     hec_token="$access_token"
   fi
 
   if [ -z "$hec_url" ]; then
     hec_url="${ingest_url}/v1/log"
-  fi
-
-  if [ -z "$ingest_url" ]; then
-    ingest_url="https://ingest.${realm}.signalfx.com"
   fi
 
   if [ "$with_fluentd" != "true" ]; then

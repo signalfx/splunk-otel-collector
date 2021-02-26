@@ -37,6 +37,16 @@ var (
 		// No zap level equivalent to trace. Mapping trace to debug.
 		logrus.TraceLevel: zapcore.DebugLevel,
 	}
+
+	zapLevels = []zapcore.Level{
+		zapcore.DebugLevel,
+		zapcore.InfoLevel,
+		zapcore.WarnLevel,
+		zapcore.ErrorLevel,
+		zapcore.DPanicLevel,
+		zapcore.PanicLevel,
+		zapcore.FatalLevel,
+	}
 )
 
 var _ logrus.Hook = (*logrusToZap)(nil)
@@ -95,11 +105,18 @@ func (l *logrusKey) removeHook(remove logrus.Hook, levels ...logrus.Level) {
 	l.ReplaceHooks(keep)
 }
 
-func newLogrusToZap() *logrusToZap {
-	logger, err := newDefaultLoggerCfg().Build()
-	if err != nil {
-		log.Fatalf("Cannot initialize the default zap logger: %v", err)
+func loggerProvider(core zapcore.Core) func() *zap.Logger {
+	return func() *zap.Logger {
+		logger, err := newDefaultLoggerCfg(core).Build()
+		if err != nil {
+			log.Fatalf("Cannot initialize the default zap logger: %v", err)
+		}
+		return logger
 	}
+}
+
+func newLogrusToZap(loggerProvider func() *zap.Logger) *logrusToZap {
+	logger := loggerProvider()
 	defer logger.Sync()
 
 	return &logrusToZap{
@@ -114,7 +131,7 @@ func newLogrusToZap() *logrusToZap {
 	}
 }
 
-func newDefaultLoggerCfg() *zap.Config {
+func newDefaultLoggerCfg(core zapcore.Core) *zap.Config {
 	defaultLoggerCfg := zap.NewProductionConfig()
 	defaultLoggerCfg.Encoding = "console"
 	defaultLoggerCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
@@ -123,7 +140,17 @@ func newDefaultLoggerCfg() *zap.Config {
 		"component_kind": "receiver",
 		"component_type": "smartagent",
 	}
+	defaultLoggerCfg.Level.SetLevel(getLevelFromCore(core))
 	return &defaultLoggerCfg
+}
+
+func getLevelFromCore(core zapcore.Core) zapcore.Level {
+	for i := range zapLevels {
+		if core.Enabled(zapLevels[i]) {
+			return zapLevels[i]
+		}
+	}
+	return zapcore.InfoLevel
 }
 
 func (l *logrusToZap) redirect(src logrusKey, dst *zap.Logger) {
@@ -197,15 +224,9 @@ func (l *logrusToZap) Fire(e *logrus.Entry) error {
 		fields = append(fields, zap.Any(k, v))
 	}
 
-	if monitorType == "" {
-		l.defaultLogger.Warn("Cannot find zap logger for monitor. The log field monitorType is missing or blank.")
-		return nil
-	}
-
 	logger, _ := l.loggerMapValue0(logrusKey{e.Logger, monitorType})
 	if logger == nil {
-		l.defaultLogger.Warn(fmt.Sprintf("Cannot find zap logger for monitorType %s", monitorType))
-		return nil
+		logger = l.defaultLogger
 	}
 
 	if ce := logger.Check(levelsMap[e.Level], e.Message); ce != nil {

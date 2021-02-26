@@ -55,29 +55,34 @@ get_distro_codename() {
   echo "$codename"
 }
 
-distro="$( get_distro )"
-distro_version="$( get_distro_version )"
-distro_codename="$( get_distro_codename )"
-repo_base="https://splunk.jfrog.io/splunk"
-deb_repo_base="${repo_base}/otel-collector-deb"
-rpm_repo_base="${repo_base}/otel-collector-rpm"
-debian_gpg_key_url="${deb_repo_base}/splunk-B3CD4420.gpg"
-yum_gpg_key_url="${rpm_repo_base}/splunk-B3CD4420.pub"
-td_agent_repo_base="https://packages.treasuredata.com"
-td_agent_gpg_key_url="${td_agent_repo_base}/GPG-KEY-td-agent"
 collector_config_dir="/etc/otel/collector"
 collector_config_path="${collector_config_dir}/splunk_config_linux.yaml"
 collector_env_path="${collector_config_dir}/splunk_env"
+distro="$( get_distro )"
+distro_codename="$( get_distro_codename )"
+distro_version="$( get_distro_version )"
+repo_base="https://splunk.jfrog.io/splunk"
+
+deb_repo_base="${repo_base}/otel-collector-deb"
+debian_gpg_key_url="${deb_repo_base}/splunk-B3CD4420.gpg"
+
+rpm_repo_base="${repo_base}/otel-collector-rpm"
+yum_gpg_key_url="${rpm_repo_base}/splunk-B3CD4420.pub"
+
 fluent_config_dir="${collector_config_dir}/fluentd"
 fluent_config_path="${fluent_config_dir}/fluent.conf"
+td_agent_repo_base="https://packages.treasuredata.com"
+td_agent_gpg_key_url="${td_agent_repo_base}/GPG-KEY-td-agent"
 
 default_stage="release"
 default_realm="us0"
 default_memory_size="512"
+
 default_collector_version="latest"
 default_td_agent_version="4.0.1"
 default_td_agent_version_jessie="3.3.0-1"
 default_td_agent_version_stretch="3.7.1-0"
+
 default_service_user="splunk-otel-collector"
 default_service_group="splunk-otel-collector"
 
@@ -260,10 +265,13 @@ install_yum_package() {
 }
 
 ensure_not_installed() {
-  if command -v otelcol >/dev/null 2>&1; then
-    echo "The collector binary already exists at $( command -v otelcol ) which implies that the collector has already been installed. Please uninstall the collector and re-run this script." >&2
-    exit 1
-  fi
+  for agent in otelcol td-agent; do
+    if command -v $agent >/dev/null 2>&1; then
+        echo "An agent binary already exists at $( command -v $agent ) which implies that the agent has already been installed." >&2
+        echo "Please uninstall the agent and re-run this script." >&2
+      exit 1
+    fi
+  done
 }
 
 configure_env_file() {
@@ -431,7 +439,7 @@ usage() {
   cat <<EOH >&2
 Usage: $0 [options] [access_token]
 
-Installs the Splunk OpenTelemetry Collector from the package repos.
+Installs the Splunk OpenTelemetry Connector for Linux from the package repos.
 If access_token is not provided, it will be prompted for on stdin.
 
 Options:
@@ -458,9 +466,9 @@ Options:
   --test                            Use the test package repo instead of the primary
   --trace-url <url>                 Set the trace endpoint URL explicitly instead of the endpoint inferred from the specified realm
                                     (default: https://ingest.REALM.signalfx.com/v2/trace)
+  --uninstall                       Removes the Splunk OpenTelemetry Connector for Linux
   --with[out]-fluentd               Whether to install and configure fluentd to forward log events to the collector
                                     (default: --with-fluentd)
-  --uninstall                       Removes the Splunk OpenTelemetry Connector for Linux
   --                                Use -- if access_token starts with -
 
 EOH
@@ -468,78 +476,85 @@ EOH
 }
 
 parse_args_and_install() {
-  local stage="$default_stage"
-  local realm="$default_realm"
-  local memory="$default_memory_size"
-  local ballast=
   local access_token=
-  local insecure=
-  local collector_version="$default_collector_version"
-  local service_user="$default_service_user"
-  local service_group="$default_service_group"
-  local with_fluentd="true"
-  local ingest_url=
   local api_url=
-  local trace_url=
-  local hec_url=
+  local ballast=
+  local collector_version="$default_collector_version"
   local hec_token=
+  local hec_url=
+  local ingest_url=
+  local insecure=
+  local memory="$default_memory_size"
+  local realm="$default_realm"
+  local service_group="$default_service_group"
+  local stage="$default_stage"
+  local service_user="$default_service_user"
   local td_agent_version="$default_td_agent_version"
+  local trace_url=
   local uninstall="false"
+  local with_fluentd="true"
 
   while [ -n "${1-}" ]; do
     case $1 in
-      --beta)
-        stage="beta"
-        ;;
-      --test)
-        stage="test"
-        ;;
-      --ingest-url)
-        ingest_url="$2"
-        shift 1
-        ;;
       --api-url)
         api_url="$2"
-        shift 1
-        ;;
-      --trace-url)
-        trace_url="$2"
-        shift 1
-        ;;
-      --hec-url)
-        hec_url="$2"
-        shift 1
-        ;;
-      --realm)
-        realm="$2"
-        shift 1
-        ;;
-      --memory)
-        memory="$2"
         shift 1
         ;;
       --ballast)
         ballast="$2"
         shift 1
         ;;
-      --insecure)
-        insecure="true"
+      --beta)
+        stage="beta"
         ;;
       --collector-version)
         collector_version="$2"
         shift 1
         ;;
-      --service-user)
-        service_user="$2"
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      --hec-token)
+        hec_token="$2"
+        shift 1
+        ;;
+      --hec-url)
+        hec_url="$2"
+        shift 1
+        ;;
+      --ingest-url)
+        ingest_url="$2"
+        shift 1
+        ;;
+      --insecure)
+        insecure="true"
+        ;;
+      --memory)
+        memory="$2"
+        shift 1
+        ;;
+      --realm)
+        realm="$2"
         shift 1
         ;;
       --service-group)
         service_group="$2"
         shift 1
         ;;
-      --hec-token)
-        hec_token="$2"
+      --service-user)
+        service_user="$2"
         shift 1
+        ;;
+      --test)
+        stage="test"
+        ;;
+      --trace-url)
+        trace_url="$2"
+        shift 1
+        ;;
+      --uninstall)
+        uninstall="true"
         ;;
       --with-fluentd)
         with_fluentd="true"
@@ -547,16 +562,9 @@ parse_args_and_install() {
       --without-fluentd)
         with_fluentd="false"
         ;;
-      --uninstall)
-        uninstall="true"
-        ;;
       --)
         access_token="$2"
         shift 1
-        ;;
-      -h|--help)
-        usage
-        exit 0
         ;;
       -*)
         echo "Unknown option $1" >&2
@@ -587,20 +595,16 @@ parse_args_and_install() {
     access_token=$(request_access_token)
   fi
 
-  if [ -z "$hec_token" ]; then
-    hec_token="$access_token"
+  if [ -z "$api_url" ]; then
+    api_url="https://api.${realm}.signalfx.com"
   fi
 
   if [ -z "$ingest_url" ]; then
     ingest_url="https://ingest.${realm}.signalfx.com"
   fi
 
-  if [ -z "$api_url" ]; then
-    api_url="https://api.${realm}.signalfx.com"
-  fi
-
-  if [ -z "$trace_url" ]; then
-    trace_url="${ingest_url}/v2/trace"
+  if [ -z "$hec_token" ]; then
+    hec_token="$access_token"
   fi
 
   if [ -z "$hec_url" ]; then
@@ -609,6 +613,10 @@ parse_args_and_install() {
 
   if [ "$with_fluentd" != "true" ]; then
     td_agent_version=""
+  fi
+
+  if [ -z "$trace_url" ]; then
+    trace_url="${ingest_url}/v2/trace"
   fi
 
   echo "Splunk OpenTelemetry Collector Version: ${collector_version}"
@@ -673,7 +681,7 @@ parse_args_and_install() {
   fi
 
   cat <<EOH
-The Splunk OpenTelemetry Collector has been successfully installed.
+The Splunk OpenTelemetry Connector for Linux has been successfully installed.
 
 Make sure that your system's time is relatively accurate or else datapoints may not be accepted.
 

@@ -260,10 +260,13 @@ install_yum_package() {
 }
 
 ensure_not_installed() {
-  if command -v otelcol >/dev/null 2>&1; then
-    echo "The collector binary already exists at $( command -v otelcol ) which implies that the collector has already been installed. Please uninstall the collector and re-run this script." >&2
-    exit 1
-  fi
+  for agent in otelcol td-agent; do
+    if command -v $agent >/dev/null 2>&1; then
+        echo "An agent binary already exists at $( command -v $agent ) which implies that the agent has already been installed." >&2
+        echo "Please uninstall the agent and re-run this script." >&2
+      exit 1
+    fi
+  done
 }
 
 configure_env_file() {

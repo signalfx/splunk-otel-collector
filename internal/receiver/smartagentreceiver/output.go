@@ -89,7 +89,7 @@ func getMetadataExporters(config Config, host component.Host, nextConsumer consu
 	}
 
 	if len(exporters) == 0 {
-		logger.Info("no dimension updates are possible as no valid metadataClients have been provided and next pipeline component isn't a MetadataExporter")
+		logger.Debug("no dimension updates are possible as no valid metadataClients have been provided and next pipeline component isn't a MetadataExporter")
 	}
 
 	return exporters

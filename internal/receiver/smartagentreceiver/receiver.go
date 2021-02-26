@@ -57,11 +57,8 @@ var (
 	configureCollectdOnce    sync.Once
 	configureEnvironmentOnce sync.Once
 	saConfigProvider         smartagentextension.SmartAgentConfigProvider
+	configureRusToZapOnce    sync.Once
 )
-
-func init() {
-	rusToZap = newLogrusToZap(nil)
-}
 
 func NewReceiver(logger *zap.Logger, config Config, nextConsumer consumer.MetricsConsumer) *Receiver {
 	return &Receiver{
@@ -81,6 +78,10 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 	monitorType := configCore.Type
 	monitorName := strings.ReplaceAll(r.config.Name(), "/", "")
 	configCore.MonitorID = types.MonitorID(monitorName)
+
+	configureRusToZapOnce.Do(func() {
+		rusToZap = newLogrusToZap(loggerProvider(r.logger.Core()))
+	})
 
 	// source logger set to the standard logrus logger because it is assumed that is what the monitor is using.
 	rusToZap.redirect(logrusKey{

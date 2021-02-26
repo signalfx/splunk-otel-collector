@@ -69,15 +69,20 @@ func TestRedirectMonitorLogs(t *testing.T) {
 		// 2. the logger is assumed to be the standard logrus logger.
 		monitor1LogrusKey := logrusKey{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
 		monitor2LogrusKey := logrusKey{Logger: logrus.StandardLogger(), monitorType: "monitor2"}
+		monitor3LogrusKey := logrusKey{Logger: logrus.StandardLogger(), monitorType: "monitor3"}
 
 		monitor1ZapLogger, monitor1ZapLogs := newObservedLogs(zapLevel)
 		monitor2ZapLogger, monitor2ZapLogs := newObservedLogs(zapLevel)
+		monitor3ZapLogger, monitor3ZapLogs := newObservedLogs(zapLevel)
+		defaultZapLogger, defaultLogs := newObservedLogs(zapLevel)
 
 		// Simulating logrus to zap redirections in receiver.
-		defaultLogger, defaultLogs := newObservedLogs(zapLevel)
-		logToZap := newLogrusToZap(defaultLogger)
+		logToZap := newLogrusToZap(func() *zap.Logger {
+			return defaultZapLogger
+		})
 		logToZap.redirect(monitor1LogrusKey, monitor1ZapLogger)
 		logToZap.redirect(monitor2LogrusKey, monitor2ZapLogger)
+		logToZap.redirect(monitor3LogrusKey, monitor3ZapLogger)
 
 		logMsg1 := "a log msg1"
 		logMsg2 := "a log msg2"
@@ -91,6 +96,7 @@ func TestRedirectMonitorLogs(t *testing.T) {
 		// Checking the zap logger is logging the same number of messages logged by monitor1.
 		require.Equal(t, 1, monitor1ZapLogs.Len(), fmt.Sprintf("Expected 1 log message, got %d", monitor1ZapLogs.Len()))
 		require.Equal(t, 1, monitor2ZapLogs.Len(), fmt.Sprintf("Expected 1 log message, got %d", monitor2ZapLogs.Len()))
+		require.Equal(t, 0, monitor3ZapLogs.Len(), fmt.Sprintf("Expected 0 log message, got %d", monitor3ZapLogs.Len()))
 		require.Equal(t, 1, defaultLogs.Len(), fmt.Sprintf("Expected 1 log message, got %d", defaultLogs.Len()))
 
 		// Checking that the zap logger is logging the message logged by monitor1.
@@ -130,7 +136,7 @@ func TestRedirectSameMonitorManyInstancesLogs(t *testing.T) {
 		instance2ZapLogger, instance2ZapLogs := newObservedLogs(zapLevel)
 
 		// Simulating logrus to zap redirections in in the smart agent receiver.
-		logToZap := newLogrusToZap(nil)
+		logToZap := newLogrusToZap(zap.NewNop)
 		logToZap.redirect(instance1LogrusKey, instance1ZapLogger)
 		logToZap.redirect(instance2LogrusKey, instance2ZapLogger)
 
@@ -163,7 +169,7 @@ func TestLevelsMapShouldIncludeAllLogrusLevels(t *testing.T) {
 }
 
 func TestLevelsShouldReturnAllLogrusLevels(t *testing.T) {
-	hook := newLogrusToZap(nil)
+	hook := newLogrusToZap(zap.NewNop)
 	levels := hook.Levels()
 	for i := range logrus.AllLevels {
 		require.Equal(t, logrus.AllLevels[i], levels[i], fmt.Sprintf("Expected log level %s not found", logrus.AllLevels[i].String()))
@@ -173,7 +179,7 @@ func TestLevelsShouldReturnAllLogrusLevels(t *testing.T) {
 func TestRedirectShouldSetLogrusKeyLoggerReportCallerTrue(t *testing.T) {
 	src := logrusKey{Logger: logrus.New(), monitorType: "monitor1"}
 	dst := zap.NewNop()
-	logToZap := newLogrusToZap(nil)
+	logToZap := newLogrusToZap(zap.NewNop)
 	logToZap.redirect(src, dst)
 	require.True(t, src.ReportCaller, "Expected the logrus key logger to report caller")
 	logToZap.unRedirect(src, dst)
@@ -183,7 +189,7 @@ func TestRedirectShouldUniquelyAddHooksToLogrusKeyLogger(t *testing.T) {
 	src := logrusKey{Logger: logrus.New(), monitorType: "monitor1"}
 	require.Equal(t, 0, len(src.Hooks), fmt.Sprintf("Expected 0 hooks, got %d", len(src.Hooks)))
 
-	logToZap := newLogrusToZap(nil)
+	logToZap := newLogrusToZap(zap.NewNop)
 	// These multiple redirect calls should add hook once to log levels.
 	logToZap.redirect(src, zap.NewNop())
 	logToZap.redirect(src, zap.NewNop())
@@ -193,6 +199,144 @@ func TestRedirectShouldUniquelyAddHooksToLogrusKeyLogger(t *testing.T) {
 		got := len(src.Hooks[level])
 		require.Equal(t, 1, got, fmt.Sprintf("Expected 1 hook for log level %s, got %d", level.String(), got))
 		require.Equal(t, logToZap, src.Hooks[level][0], fmt.Sprintf("Expected hook for log level %s not found", level.String()))
+	}
+}
+
+func TestLogrusToZapLevel(t *testing.T) {
+	tests := []struct {
+		name           string
+		zapConfig      *zap.Config
+		levelsEnabled  []zapcore.Level
+		levelsDisabled []zapcore.Level
+	}{
+		{
+			name: "debug",
+			zapConfig: &zap.Config{
+				Level: zap.NewAtomicLevelAt(zap.DebugLevel),
+			},
+			levelsEnabled: zapLevels,
+		},
+		{
+			name: "info",
+			zapConfig: &zap.Config{
+				Level: zap.NewAtomicLevelAt(zap.InfoLevel),
+			},
+			levelsEnabled: []zapcore.Level{
+				zapcore.InfoLevel,
+				zapcore.WarnLevel,
+				zapcore.ErrorLevel,
+				zapcore.DPanicLevel,
+				zapcore.PanicLevel,
+				zapcore.FatalLevel,
+			},
+			levelsDisabled: []zapcore.Level{
+				zapcore.DebugLevel,
+			},
+		},
+		{
+			name: "warn",
+			zapConfig: &zap.Config{
+				Level: zap.NewAtomicLevelAt(zap.WarnLevel),
+			},
+			levelsEnabled: []zapcore.Level{
+				zapcore.WarnLevel,
+				zapcore.ErrorLevel,
+				zapcore.DPanicLevel,
+				zapcore.PanicLevel,
+				zapcore.FatalLevel,
+			},
+			levelsDisabled: []zapcore.Level{
+				zapcore.InfoLevel,
+				zapcore.DebugLevel,
+			},
+		},
+		{
+			name: "error",
+			zapConfig: &zap.Config{
+				Level: zap.NewAtomicLevelAt(zap.ErrorLevel),
+			},
+			levelsEnabled: []zapcore.Level{
+				zapcore.ErrorLevel,
+				zapcore.DPanicLevel,
+				zapcore.PanicLevel,
+				zapcore.FatalLevel,
+			},
+			levelsDisabled: []zapcore.Level{
+				zapcore.InfoLevel,
+				zapcore.WarnLevel,
+				zapcore.DebugLevel,
+			},
+		},
+		{
+			name: "dpanic",
+			zapConfig: &zap.Config{
+				Level: zap.NewAtomicLevelAt(zap.DPanicLevel),
+			},
+			levelsEnabled: []zapcore.Level{
+				zapcore.DPanicLevel,
+				zapcore.PanicLevel,
+				zapcore.FatalLevel,
+			},
+			levelsDisabled: []zapcore.Level{
+				zapcore.DebugLevel,
+				zapcore.InfoLevel,
+				zapcore.WarnLevel,
+				zapcore.ErrorLevel,
+			},
+		},
+		{
+			name: "panic",
+			zapConfig: &zap.Config{
+				Level: zap.NewAtomicLevelAt(zap.PanicLevel),
+			},
+			levelsEnabled: []zapcore.Level{
+				zapcore.PanicLevel,
+				zapcore.FatalLevel,
+			},
+			levelsDisabled: []zapcore.Level{
+				zapcore.DebugLevel,
+				zapcore.InfoLevel,
+				zapcore.WarnLevel,
+				zapcore.ErrorLevel,
+				zapcore.DPanicLevel,
+			},
+		},
+		{
+			name: "fatal",
+			zapConfig: &zap.Config{
+				Level: zap.NewAtomicLevelAt(zap.FatalLevel),
+			},
+			levelsEnabled: []zapcore.Level{
+				zapcore.FatalLevel,
+			},
+			levelsDisabled: []zapcore.Level{
+				zapcore.DebugLevel,
+				zapcore.InfoLevel,
+				zapcore.WarnLevel,
+				zapcore.ErrorLevel,
+				zapcore.PanicLevel,
+				zapcore.DPanicLevel,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.zapConfig.Encoding = "json"
+			logger, err := test.zapConfig.Build()
+			require.NoError(t, err)
+
+			logToZap := newLogrusToZap(func() *zap.Logger { return logger })
+			defaultLoggerCore := logToZap.defaultLogger.Core()
+
+			for _, level := range test.levelsEnabled {
+				require.True(t, defaultLoggerCore.Enabled(level), fmt.Sprintf("level:%s", level))
+			}
+
+			for _, level := range test.levelsDisabled {
+				require.False(t, defaultLoggerCore.Enabled(level), fmt.Sprintf("level:%s", level))
+			}
+		})
 	}
 }
 

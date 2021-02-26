@@ -402,6 +402,39 @@ install() {
   esac
 }
 
+uninstall() {
+  case "$distro" in
+    ubuntu|debian)
+      for agent in splunk-otel-collector td-agent; do
+        if command -v $agent >/dev/null 2>&1; then
+          apt-get remove $agent 2>&1
+          echo "Successfully removed $agent"
+        else
+          echo "Unable to locate $agent"
+        fi
+      done
+      ;;
+    amzn|centos|ol|rhel)
+      for agent in splunk-otel-collector td-agent; do
+        if command -v $agent >/dev/null 2>&1; then
+          if command -v yum >/dev/null 2>&1; then
+            yum remove $agent 2>&1
+          else
+            dnf remove $agent 2>&1
+          fi
+          echo "Successfully removed $agent"
+        else
+          echo "Unable to locate $agent"
+        fi
+      done
+      ;;
+    *)
+      echo "Your distro ($distro) is not supported or could not be determined" >&2
+      exit 1
+      ;;
+  esac
+}
+
 usage() {
   cat <<EOH >&2
 Usage: $0 [options] [access_token]
@@ -433,6 +466,7 @@ Options:
   --test                            Use the test package repo instead of the primary
   --trace-url <url>                 Set the trace endpoint URL explicitly instead of the endpoint inferred from the specified realm
                                     (default: https://ingest.REALM.signalfx.com/v2/trace)
+  --uninstall                       Removes the Splunk OpenTelemetry Connector for Linux
   --with[out]-fluentd               Whether to install and configure fluentd to forward log events to the collector
                                     (default: --with-fluentd)
   --                                Use -- if access_token starts with -
@@ -457,6 +491,7 @@ parse_args_and_install() {
   local service_user="$default_service_user"
   local td_agent_version="$default_td_agent_version"
   local trace_url=
+  local uninstall="false"
   local with_fluentd="true"
 
   while [ -n "${1-}" ]; do
@@ -518,6 +553,9 @@ parse_args_and_install() {
         trace_url="$2"
         shift 1
         ;;
+      --uninstall)
+        uninstall="true"
+        ;;
       --with-fluentd)
         with_fluentd="true"
         ;;
@@ -545,6 +583,11 @@ parse_args_and_install() {
     esac
     shift 1
   done
+
+  if [ "$uninstall" = true ]; then
+      uninstall
+      exit 0
+  fi
 
   ensure_not_installed
 

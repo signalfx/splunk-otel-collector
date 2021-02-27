@@ -60,11 +60,14 @@ can specify the following parameters:
 - `--hec-url URL`
 - `--hec-token TOKEN`
 
-**Note**: The installer script does not include any fluentd log sources. Custom
-fluentd source config files can be added to the
-`/etc/otel/collector/fluentd/conf.d` directory after installation. Config files
-added to this directory should have a `.conf` extension, and the `td-agent`
-service will need to be restarted to include/enable the new files, i.e.
-`sudo systemctl restart td-agent`.  A sample config and instructions for
-collecting journald log events is available at
-`/etc/otel/collector/fluentd/conf.d/journald.conf.example`.
+Custom fluentd source config files can be added to the
+`/etc/otel/collector/fluentd/conf.d` directory after installation. Please note:
+
+- Config files added to this directory should have a `.conf` extension.
+- Ensure that the "td-agent" user has permissions to access the new config
+  files and the paths defined within.
+- The `td-agent` service will need to be restarted to include/enable the new
+  files, i.e. `sudo systemctl restart td-agent`.
+
+A sample config and instructions for collecting journald log events is
+available at `/etc/otel/collector/fluentd/conf.d/journald.conf.example`.

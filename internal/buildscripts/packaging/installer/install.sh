@@ -373,6 +373,9 @@ install() {
         install_apt_package "td-agent" "$td_agent_version"
         systemctl stop td-agent
       fi
+      if [ -f "/opt/td-agent/bin/fluent-cap-ctl" ]; then
+        apt-get -y install build-essential pkg-config libcap-ng-deb
+      fi
       ;;
     amzn|centos|ol|rhel)
       if [ -z "$distro_version" ]; then
@@ -386,12 +389,28 @@ install() {
         install_yum_package "td-agent" "$td_agent_version"
         systemctl stop td-agent
       fi
+      if [ -f "/opt/td-agent/bin/fluent-cap-ctl" ]; then
+        for package in build-essential pkg-config libcap-ng-deb; do
+          install_yum_package "$package" ""
+        done
+      fi
       ;;
     *)
       echo "Your distro ($distro) is not supported or could not be determined" >&2
       exit 1
       ;;
   esac
+
+  if [ -f "/opt/td-agent/bin/fluent-cap-ctl" ]; then
+    td-agent-gem install capng_c
+    /opt/td-agent/bin/fluent-cap-ctl --add dac_read_search -f /opt/td-agent/bin/ruby
+    /opt/td-agent/bin/fluent-cap-ctl --add dac_override -f /opt/td-agent/bin/ruby
+  else
+    getent group adm >/dev/null 2>&1
+    if [ $? == 0 ]; then
+      usermod -a -G adm td-agent
+    fi
+  fi
 }
 
 usage() {

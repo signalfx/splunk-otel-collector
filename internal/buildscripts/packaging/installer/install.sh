@@ -374,7 +374,7 @@ install() {
         systemctl stop td-agent
       fi
       if [ -f "/opt/td-agent/bin/fluent-cap-ctl" ]; then
-        apt-get -y install build-essential pkg-config libcap-ng-deb
+        apt-get -y install build-essential pkg-config libcap-ng-dev
       fi
       ;;
     amzn|centos|ol|rhel)
@@ -389,10 +389,9 @@ install() {
         install_yum_package "td-agent" "$td_agent_version"
         systemctl stop td-agent
       fi
-      if [ -f "/opt/td-agent/bin/fluent-cap-ctl" ]; then
-        for package in build-essential pkg-config libcap-ng-deb; do
-          install_yum_package "$package" ""
-        done
+      if [ -f "/opt/td-agent/bin/fluent-cap-ctl" -a command -v yum >/dev/null 2>&1; ]; then
+        yum group install "Developement Tools"
+        install_yum_package "libcap-ng-devel" ""
       fi
       ;;
     *)
@@ -406,8 +405,7 @@ install() {
     /opt/td-agent/bin/fluent-cap-ctl --add dac_read_search -f /opt/td-agent/bin/ruby
     /opt/td-agent/bin/fluent-cap-ctl --add dac_override -f /opt/td-agent/bin/ruby
   else
-    getent group adm >/dev/null 2>&1
-    if [ $? == 0 ]; then
+    if getent group adm >/dev/null 2>&1; then
       usermod -a -G adm td-agent
     fi
   fi

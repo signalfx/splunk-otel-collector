@@ -42,7 +42,7 @@ function Install-Tools {
 function New-MSI(
     [string]$Otelcol="./bin/otelcol_windows_amd64.exe",
     [string]$Version="0.0.1",
-    [string]$Config="./cmd/otelcol/config/collector/agent_config_windows.yaml"
+    [string]$Config="./cmd/otelcol/config/collector/agent_config.yaml"
 ) {
     candle -arch x64 -dOtelcol="$Otelcol" -dVersion="$Version" -dConfig="$Config" internal/buildscripts/packaging/msi/splunk-otel-collector.wxs
     light splunk-otel-collector.wixobj
@@ -64,10 +64,11 @@ function Confirm-MSI {
     $configpath = Resolve-Path "\ProgramData\Splunk\OpenTelemetry Collector\config.yaml"
     echo "Updating $configpath ..."
     ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_ACCESS_TOKEN}', 'testing123') | Set-Content -Path "$configpath"
-    ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_REALM}', 'us0') | Set-Content -Path "$configpath"
-    ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_BALLAST_SIZE_MIB}', '512') | Set-Content -Path "$configpath"
-    ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_MEMORY_LIMIT_MIB}', '1024') | Set-Content -Path "$configpath"
-    ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_MEMORY_SPIKE_MIB}', '512') | Set-Content -Path "$configpath"
+    ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_API_URL}', 'https://api.us0.signalfx.com') | Set-Content -Path "$configpath"
+    ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_HEC_URL}', 'https://ingest.us0.signalfx.com/v1/log') | Set-Content -Path "$configpath"
+    ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_HEC_TOKEN}', 'testing456') | Set-Content -Path "$configpath"
+    ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_INGEST_URL}', 'https://ingest.us0.signalfx.com') | Set-Content -Path "$configpath"
+    ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_TRACE_URL}', 'https://ingest.us0.signalfx.com/v2/trace') | Set-Content -Path "$configpath"
 
     # start service
     echo "Starting service ..."

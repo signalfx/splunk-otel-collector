@@ -22,7 +22,7 @@ REPO_DIR="$( cd $SCRIPT_DIR/../../../../ && pwd )"
 IMAGE_NAME="felfert/wix:latest"
 WXS_PATH="./internal/buildscripts/packaging/msi/splunk-otel-collector.wxs"
 OTELCOL="./bin/otelcol_windows_amd64.exe"
-CONFIG="./cmd/otelcol/config/collector/agent_config_windows.yaml"
+CONFIG="./cmd/otelcol/config/collector/agent_config.yaml"
 OUTPUT_DIR="./dist"
 
 usage() {

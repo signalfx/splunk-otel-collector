@@ -23,6 +23,9 @@ INSTALLER_PATH = REPO_DIR / "internal" / "buildscripts" / "packaging" / "install
 STAGE = os.environ.get("STAGE", "release")
 VERSIONS = os.environ.get("VERSIONS", "latest").split(",")
 
+SPLUNK_ENV_PATH = "/etc/otel/collector/splunk_env"
+TOTAL_MEMORY = "256"
+BALLAST = "128"
 
 @pytest.mark.installer
 @pytest.mark.parametrize(
@@ -33,7 +36,12 @@ VERSIONS = os.environ.get("VERSIONS", "latest").split(",")
 @pytest.mark.parametrize("version", VERSIONS)
 @pytest.mark.parametrize("memory_option", ["memory", "ballast"])
 def test_installer(distro, version, memory_option):
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm us0 --{memory_option} 256"
+    install_cmd = f"sh -x /test/install.sh -- testing123 --realm us0"
+
+    if memory_option == "memory":
+        install_cmd = f"{install_cmd} --{memory_option} {TOTAL_MEMORY}"
+    elif memory_option == "ballast":
+        install_cmd = f"{install_cmd} --{memory_option} {BALLAST}"
 
     if version != "latest":
         install_cmd = f"{install_cmd} --collector-version {version.lstrip('v')}"
@@ -51,12 +59,12 @@ def test_installer(distro, version, memory_option):
 
         try:
             # verify env file created with configured parameters
-            run_container_cmd(container, "grep '^SPLUNK_ACCESS_TOKEN=testing123$' /etc/otel/collector/splunk_env")
-            run_container_cmd(container, "grep '^SPLUNK_REALM=us0$' /etc/otel/collector/splunk_env")
+            run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN=testing123$' {SPLUNK_ENV_PATH}")
+            run_container_cmd(container, f"grep '^SPLUNK_REALM=us0$' {SPLUNK_ENV_PATH}")
             if memory_option == "memory":
-                run_container_cmd(container, "grep '^SPLUNK_MEMORY_TOTAL_MIB=256$' /etc/otel/collector/splunk_env")
+                run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={TOTAL_MEMORY}$' {SPLUNK_ENV_PATH}")
             elif memory_option == "ballast":
-                run_container_cmd(container, "grep '^SPLUNK_BALLAST_SIZE_MIB=256$' /etc/otel/collector/splunk_env")
+                run_container_cmd(container, f"grep '^SPLUNK_BALLAST_SIZE_MIB={BALLAST}$' {SPLUNK_ENV_PATH}")
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
@@ -82,7 +90,7 @@ def test_installer(distro, version, memory_option):
 @pytest.mark.parametrize("version", VERSIONS)
 def test_installer_service_owner(distro, version):
     service_owner = "test-user"
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm us0 --memory 256"
+    install_cmd = f"sh -x /test/install.sh -- testing123 --realm us0 --memory {TOTAL_MEMORY}"
     install_cmd = f"{install_cmd} --service-user {service_owner} --service-group {service_owner}"
 
     if version != "latest":
@@ -101,9 +109,9 @@ def test_installer_service_owner(distro, version):
 
         try:
             # verify env file created with configured parameters
-            run_container_cmd(container, "grep '^SPLUNK_ACCESS_TOKEN=testing123$' /etc/otel/collector/splunk_env")
-            run_container_cmd(container, "grep '^SPLUNK_REALM=us0$' /etc/otel/collector/splunk_env")
-            run_container_cmd(container, "grep '^SPLUNK_MEMORY_TOTAL_MIB=256$' /etc/otel/collector/splunk_env")
+            run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN=testing123$' {SPLUNK_ENV_PATH}")
+            run_container_cmd(container, f"grep '^SPLUNK_REALM=us0$' {SPLUNK_ENV_PATH}")
+            run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={TOTAL_MEMORY}$' {SPLUNK_ENV_PATH}")
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=service_owner))

@@ -435,16 +435,6 @@ install() {
       exit 1
       ;;
   esac
-
-  if [ -f "/opt/td-agent/bin/fluent-cap-ctl" ]; then
-    td-agent-gem install capng_c
-    /opt/td-agent/bin/fluent-cap-ctl --add dac_read_search -f /opt/td-agent/bin/ruby
-    /opt/td-agent/bin/fluent-cap-ctl --add dac_override -f /opt/td-agent/bin/ruby
-  else
-    if getent group adm >/dev/null 2>&1; then
-      usermod -a -G adm td-agent
-    fi
-  fi
 }
 
 uninstall() {

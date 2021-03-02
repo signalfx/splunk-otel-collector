@@ -429,10 +429,6 @@ install() {
         done
         systemctl stop td-agent
       fi
-      if [ -f "/opt/td-agent/bin/fluent-cap-ctl" -a command -v yum >/dev/null 2>&1; ]; then
-        yum group install "Developement Tools"
-        install_yum_package "libcap-ng-devel" ""
-      fi
       ;;
     *)
       echo "Your distro ($distro) is not supported or could not be determined" >&2

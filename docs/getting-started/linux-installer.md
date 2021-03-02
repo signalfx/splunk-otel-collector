@@ -63,7 +63,7 @@ modified as needed. Possible configuration options can be found in the
 - [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector)
 - [OpenTelemetry Collector Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib)
 
-After modification, the Collector services needed to be restarted:
+After modification, the Collector service needs to be restarted:
 
 ```sh
 sudo systemctl restart splunk-otel-collector
@@ -84,20 +84,22 @@ can specify the following parameters for the installer script:
 - `--hec-token TOKEN`
 
 The main fluentd configuration file will be installed to
-`/etc/otel/collector/fluentd/fluent.conf`.
+`/etc/otel/collector/fluentd/fluent.conf`. Custom fluentd source config files
+can be added to the `/etc/otel/collector/fluentd/conf.d` directory after 
+installation. Please note:
 
-Custom input sources and configurations can be added to the
-`/etc/otel/collector/fluentd/conf.d/` directory after installation.  All files
-with the `.conf` extension in this directory will automatically be included by
-fluentd.
+- All files in this directory ending `.conf` extension will automatically be
+ included by Fluentd.
+- The "td-agent" user must have permissions to access the files specified in
+  the config files and the paths defined within.
+- By default, Fluentd will be configured to collect systemd journal log events
+from `/var/log/journal`.
 
-By default, fluentd will be configured to collect systemd journal log events
-from `/var/log/journal`. See `/etc/otel/collector/fluentd/conf.d/journald.conf`
-for the default source configuration.
+After any configuration modification, the td-agent service needs to be restarted:
 
-If the fluentd configuration is modified or new config files are added, the
-fluentd service must be restarted to apply the changes:
-`sudo systemctl restart td-agent`.
+```sh
+sudo systemctl restart td-agent
+```
 
 ### Uninstall
 

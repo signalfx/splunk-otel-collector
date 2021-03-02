@@ -1,4 +1,13 @@
-# Configuration file to push data to Splunk products.
+# Default configuration file for the Linux (deb/rpm) and Windows MSI collector packages
+
+# If the collector is installed without the Linux/Windows installer script, the following
+# environment variables are required to be manually defined or configured below:
+# - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
+# - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.signalfx.com
+# - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
+# - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://ingest.us0.signalfx.com/v1/log
+# - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
+# - SPLUNK_TRACE_URL: The Splunk trace endpoint URL, e.g. https://ingest.us0.signalfx.com/v2/trace
 
 extensions:
   health_check:
@@ -19,6 +28,7 @@ receivers:
       filesystem:
       memory:
       network:
+      process:
       processes:
       paging:
   jaeger:
@@ -55,9 +65,8 @@ processors:
   # Configuration is based on the amount of memory allocated to the collector.
   # In general, the ballast should be set to 1/3 of the collector's memory, the limit
   # should be 90% of the collector's memory up to 2GB. The simplest way to specify the
-  # ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable. This will override
-  # the value of --mem-ballast-size-mib command line flag. If SPLUNK_BALLAST_SIZE_MIB
-  # is not defined then --mem-ballast-size-mib command line flag must be manually specified.
+  # ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable. Alternatively, the
+  # --mem-ballast-size-mib command line flag can be passed and take priority.
   # For more information about memory limiter, see
   # https://github.com/open-telemetry/opentelemetry-collector/blob/master/processor/memorylimiter/README.md
   memory_limiter:

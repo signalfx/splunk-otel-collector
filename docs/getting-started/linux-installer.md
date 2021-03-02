@@ -4,8 +4,7 @@ For non-containerized Linux environments, an installer script is available. The
 script deploys and configures:
 
 - Splunk OpenTelemetry Connector for Linux
-- [TD Agent
-(Fluentd)](https://www.fluentd.org/)
+- [Fluentd (via the TD Agent)](https://www.fluentd.org/)
 
 > IMPORTANT: systemd is required to use this script.
 
@@ -36,10 +35,17 @@ for more details and available options.
 ### Additional Script Options
 
 Additional configuration options supported by the script can be found by
-running the script with the `-h` flag. One variable that may need to changed
-is `SPLUNK_MEMORY_TOTAL_MIB` in order to configure the memory allocation:
+running the script with the `-h` flag.
 
-> By default, this variable is set to `512`.
+```sh
+$ sh /tmp/splunk-otel-collector.sh -h
+```
+
+One additional parameter that may need to changed is `--memory` in order to
+configure the memory allocation.
+
+> By default, this variable is set to `512`. If you have allocated more memory
+> to the Collector then you must increase this setting.
 
 ```sh
 curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
@@ -57,8 +63,11 @@ modified as needed. Possible configuration options can be found in the
 - [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector)
 - [OpenTelemetry Collector Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib)
 
-After modification, the Collector services needed to be restarted: `sudo
-systemctl restart splunk-otel-collector`.
+After modification, the Collector services needed to be restarted:
+
+```sh
+sudo systemctl restart splunk-otel-collector
+```
 
 ### Fluentd Configuration
 
@@ -89,3 +98,13 @@ for the default source configuration.
 If the fluentd configuration is modified or new config files are added, the
 fluentd service must be restarted to apply the changes:
 `sudo systemctl restart td-agent`.
+
+### Uninstall
+
+If you wish to uninstall you can run:
+
+```sh
+$ sudo sh /tmp/splunk-otel-collector.sh --uninstall
+```
+
+> Note that configuration files may be left on the filesystem.

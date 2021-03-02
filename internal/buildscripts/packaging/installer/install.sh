@@ -408,9 +408,6 @@ install() {
         apt-get -y install build-essential libcap-ng0 libcap-ng-dev pkg-config
         systemctl stop td-agent
       fi
-      if [ -f "/opt/td-agent/bin/fluent-cap-ctl" ]; then
-        apt-get -y install build-essential pkg-config libcap-ng-dev
-      fi
       ;;
     amzn|centos|ol|rhel)
       if [ -z "$distro_version" ]; then

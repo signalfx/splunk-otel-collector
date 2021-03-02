@@ -69,8 +69,12 @@ debian_gpg_key_url="${deb_repo_base}/splunk-B3CD4420.gpg"
 rpm_repo_base="${repo_base}/otel-collector-rpm"
 yum_gpg_key_url="${rpm_repo_base}/splunk-B3CD4420.pub"
 
+fluent_capng_c_version="0.2.2"
 fluent_config_dir="${collector_config_dir}/fluentd"
 fluent_config_path="${fluent_config_dir}/fluent.conf"
+fluent_plugin_systemd_version="1.0.1"
+journald_config_path="${fluent_config_dir}/conf.d/journald.conf"
+
 td_agent_repo_base="https://packages.treasuredata.com"
 td_agent_gpg_key_url="${td_agent_repo_base}/GPG-KEY-td-agent"
 
@@ -79,7 +83,7 @@ default_realm="us0"
 default_memory_size="512"
 
 default_collector_version="latest"
-default_td_agent_version="4.0.1"
+default_td_agent_version="4.1.0"
 default_td_agent_version_jessie="3.3.0-1"
 default_td_agent_version_stretch="3.7.1-0"
 
@@ -267,8 +271,8 @@ install_yum_package() {
 ensure_not_installed() {
   for agent in otelcol td-agent; do
     if command -v $agent >/dev/null 2>&1; then
-        echo "An agent binary already exists at $( command -v $agent ) which implies that the agent has already been installed." >&2
-        echo "Please uninstall the agent and re-run this script." >&2
+      echo "An agent binary already exists at $( command -v $agent ) which implies that the agent has already been installed." >&2
+      echo "Please uninstall the agent and re-run this script." >&2
       exit 1
     fi
   done
@@ -325,20 +329,6 @@ EOH
   systemctl daemon-reload
 }
 
-configure_fluentd_service() {
-  local override_src_path="$fluent_config_dir/splunk-otel-collector.conf"
-  local override_dest_path="/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf"
-
-  if [ -f "$override_src_path" ]; then
-    systemctl stop td-agent
-    mkdir -p $(dirname $override_dest_path)
-    cp -f $override_src_path $override_dest_path
-    chown root:root $override_dest_path
-    chmod 644 $override_dest_path
-    systemctl daemon-reload
-  fi
-}
-
 fluent_plugin_installed() {
   local name="1"
 
@@ -350,9 +340,45 @@ install_fluent_plugin() {
   local version="${2:-}"
 
   if [ -n "$version" ]; then
-    td-agent install "$name" --version "$version"
+    td-agent-gem install "$name" --version "$version"
   else
-    td-agent install "$name"
+    td-agent-gem install "$name"
+  fi
+}
+
+configure_fluentd() {
+  local override_src_path="$fluent_config_dir/splunk-otel-collector.conf"
+  local override_dest_path="/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf"
+
+  if [ -f "$override_src_path" ]; then
+    systemctl stop td-agent
+    mkdir -p $(dirname $override_dest_path)
+    cp -f $override_src_path $override_dest_path
+    chown root:root $override_dest_path
+    chmod 644 $override_dest_path
+    systemctl daemon-reload
+
+    # ensure the td-agent user has access to the config dir
+    chown -R td-agent:td-agent "$fluent_config_dir"
+
+    # configure permissions/capabilities
+    if [ -f /opt/td-agent/bin/fluent-cap-ctl ]; then
+      if ! fluent_plugin_installed "capng_c"; then
+        install_fluent_plugin "capng_c" "$fluent_capng_c_version"
+      fi
+      /opt/td-agent/bin/fluent-cap-ctl --add "dac_override,dac_read_search" -f /opt/td-agent/bin/ruby
+    else
+      if getent group adm >/dev/null 2>&1; then
+        usermod -a -G adm td-agent
+      fi
+      if getent group systemd-journal 2>&1; then
+        usermod -a -G systemd-journal td-agent
+      fi
+    fi
+
+    if ! fluent_plugin_installed "fluent-plugin-systemd"; then
+      install_fluent_plugin "fluent-plugin-systemd" "$fluent_plugin_systemd_version"
+    fi
   fi
 }
 
@@ -379,6 +405,7 @@ install() {
         install_td_agent_apt_repo "$td_agent_version"
         apt-get -y update
         install_apt_package "td-agent" "$td_agent_version"
+        apt-get -y install build-essential libcap-ng0 libcap-ng-dev pkg-config
         systemctl stop td-agent
       fi
       ;;
@@ -392,6 +419,14 @@ install() {
       if [ -n "$td_agent_version" ]; then
         install_td_agent_yum_repo "$td_agent_version"
         install_yum_package "td-agent" "$td_agent_version"
+        if command -v yum >/dev/null 2>&1; then
+          yum group install -y 'Development Tools'
+        else
+          dnf group install -y 'Development Tools'
+        fi
+        for pkg in libcap-ng libcap-ng-devel pkgconfig; do
+          install_yum_package "$pkg" ""
+        done
         systemctl stop td-agent
       fi
       ;;
@@ -670,7 +705,7 @@ parse_args_and_install() {
     # only start fluentd with our custom config to avoid port conflicts within the default config
     systemctl stop td-agent
     if [ -f "$fluent_config_path" ]; then
-      configure_fluentd_service
+      configure_fluentd
       systemctl restart td-agent
     else
       if [ -f /etc/td-agent/td-agent.conf ]; then
@@ -707,6 +742,9 @@ All files with the .conf extension in this directory will automatically be inclu
 Note: The fluentd service runs as the "td-agent" user.  When adding new input sources or configuration
 files to the ${fluent_config_dir}/conf.d/ directory, ensure that the "td-agent" user has permissions
 to access the new config files and the paths defined within.
+
+By default, fluentd has been configured to collect systemd journal log events from /var/log/journal.
+See $journald_config_path for the default source configuration.
 
 If the fluentd configuration is modified or new config files are added, the fluentd service must be
 restarted to apply the changes by running the following command as root:

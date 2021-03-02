@@ -62,23 +62,30 @@ systemctl restart splunk-otel-collector`.
 
 ### Fluentd Configuration
 
-By default, the fluentd service will be installed and configured to forward
-log events with the `@SPLUNK` label to the collector (see the note below for
-how to add fluentd log sources), and the collector will send these events to
-the HEC ingest endpoint determined by the `--realm SPLUNK_REALM` option, e.g.
+By default, the fluentd service will be installed and configured to forward log
+events with the `@SPLUNK` label to the collector (see below for how to add
+custom fluentd log sources), and the collector will send these events to the
+HEC ingest endpoint determined by the `--realm SPLUNK_REALM` option, e.g.
 `https://ingest.SPLUNK_REALM.signalfx.com/v1/log`.
 
 To configure the collector to send log events to a custom HEC endpoint URL, you
-can specify the following parameters:
+can specify the following parameters for the installer script:
 
 - `--hec-url URL`
 - `--hec-token TOKEN`
 
-**Note**: The installer script does not include any fluentd log sources. Custom
-fluentd source config files can be added to the
-`/etc/otel/collector/fluentd/conf.d` directory after installation. Config files
-added to this directory should have a `.conf` extension, and the `td-agent`
-service will need to be restarted to include/enable the new files, i.e.
-`sudo systemctl restart td-agent`.  A sample config and instructions for
-collecting journald log events is available at
-`/etc/otel/collector/fluentd/conf.d/journald.conf.example`.
+The main fluentd configuration file will be installed to
+`/etc/otel/collector/fluentd/fluent.conf`.
+
+Custom input sources and configurations can be added to the
+`/etc/otel/collector/fluentd/conf.d/` directory after installation.  All files
+with the `.conf` extension in this directory will automatically be included by
+fluentd.
+
+By default, fluentd will be configured to collect systemd journal log events
+from `/var/log/journal`. See `/etc/otel/collector/fluentd/conf.d/journald.conf`
+for the default source configuration.
+
+If the fluentd configuration is modified or new config files are added, the
+fluentd service must be restarted to apply the changes:
+`sudo systemctl restart td-agent`.

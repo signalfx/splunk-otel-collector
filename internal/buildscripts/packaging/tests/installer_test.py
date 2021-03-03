@@ -54,10 +54,11 @@ def test_installer(distro, version, memory_option):
     with run_distro_container(distro) as container:
         # run installer script
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
-        run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
-        time.sleep(5)
 
         try:
+            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
+            time.sleep(5)
+
             # verify env file created with configured parameters
             run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN=testing123$' {SPLUNK_ENV_PATH}")
             run_container_cmd(container, f"grep '^SPLUNK_REALM=us0$' {SPLUNK_ENV_PATH}")
@@ -78,6 +79,8 @@ def test_installer(distro, version, memory_option):
 
         finally:
             run_container_cmd(container, "journalctl -u td-agent --no-pager")
+            if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
+                run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
 
 

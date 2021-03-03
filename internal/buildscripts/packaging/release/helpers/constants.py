@@ -47,4 +47,4 @@ CLOUDFRONT_DISTRIBUTION_ID = "EJH671JAOI5SN"
 # MSI
 WIX_IMAGE = "felfert/wix:latest"
 WXS_PATH = "internal/buildscripts/packaging/msi/splunk-otel-collector.wxs"
-MSI_CONFIG = "cmd/otelcol/config/collector/agent_config_windows.yaml"
+MSI_CONFIG = "cmd/otelcol/config/collector/agent_config.yaml"

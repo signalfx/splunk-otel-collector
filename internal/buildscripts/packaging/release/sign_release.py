@@ -124,11 +124,12 @@ def main():
         if resp.lower() not in ("y", "yes"):
             sys.exit(1)
 
+    if not args.assets_dir:
+        args.assets_dir = os.path.join(ASSETS_BASE_DIR, args.tag)
+
     if args.path:
         assets = get_local_assets(args)
     else:
-        if not args.assets_dir:
-            args.assets_dir = os.path.join(ASSETS_BASE_DIR, args.tag)
         resp = input(f"Downloading assets from {github_release.html_url} to '{args.assets_dir}'.\nContinue? [y/N]: ")
         if resp.lower() not in ("y", "yes"):
             sys.exit(1)

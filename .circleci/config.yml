@@ -451,9 +451,13 @@ jobs:
           command: |
             $Version = if ($env:CIRCLE_TAG -match '^v(\d+\.\d+\.\d+)') { $Matches[1] } else { "0.0.1.$env:CIRCLE_BUILD_NUM" }
             .\internal\buildscripts\packaging\msi\make.ps1 New-MSI -Version $Version
+            Remove-Item -Force -Recurse .\dist -Exclude *.msi
       - run:
-          name: Validate MSI
-          command: .\internal\buildscripts\packaging\msi\make.ps1 Confirm-MSI
+          name: Installation test
+          command: |
+            $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
+            $env:VERIFY_ACCESS_TOKEN = "false"
+            .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -msi_path "$msi_path"
       - persist_to_workspace:
           root: ~/
           paths: project/dist/*.msi

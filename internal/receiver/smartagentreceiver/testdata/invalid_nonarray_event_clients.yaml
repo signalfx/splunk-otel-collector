@@ -1,6 +1,6 @@
 receivers:
   smartagent/haproxy:
-    metadataClients: [1234.45, 2345.56]
+    eventClients: notanarray
     type: haproxy
     intervalSeconds: 123
     username: SomeUser

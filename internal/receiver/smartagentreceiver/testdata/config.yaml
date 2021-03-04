@@ -1,12 +1,14 @@
 receivers:
   smartagent/haproxy:
-    metadataClients: [exampleexporter/one, exampleexporter/two]
+    dimensionClients: [exampleexporter/one, exampleexporter/two]
+    eventClients: [exampleexporter/two, exampleexporter/three]
     type: haproxy
     intervalSeconds: 123
     username: SomeUser
     password: secret
   smartagent/redis:
-    metadataClients: []
+    dimensionClients: []
+    eventClients: []
     type: collectd/redis
     host: localhost
     port: 6379

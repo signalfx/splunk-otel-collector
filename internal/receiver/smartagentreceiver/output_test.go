@@ -107,7 +107,7 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 	me := mockMetadataClient{name: "mockmetadataexporter"}
 	output := NewOutput(
 		Config{
-			MetadataClients: &[]string{"mockmetadataexporter", "exampleexporter", "metricsreceiver", "notareceiver", "notreal"},
+			DimensionClients: &[]string{"mockmetadataexporter", "exampleexporter", "metricsreceiver", "notareceiver", "notreal"},
 		}, &componenttest.ExampleExporterConsumer{},
 		&hostWithExporters{exporter: &me},
 		zap.NewNop(),
@@ -172,7 +172,7 @@ func TestSendEventWithInvalidExporter(t *testing.T) {
 
 func TestSendEventWithoutMetadataClients(t *testing.T) {
 	output := NewOutput(Config{
-		MetadataClients: &[]string{},
+		EventClients: &[]string{},
 	}, consumertest.NewMetricsNop(),
 		componenttest.NewNopHost(),
 		zap.NewNop(),
@@ -185,7 +185,7 @@ func TestSendEventFromConfigMetadataExporters(t *testing.T) {
 	me := mockMetadataClient{name: "mockmetadataexporter"}
 	output := NewOutput(
 		Config{
-			MetadataClients: &[]string{"mockmetadataexporter", "exampleexporter", "notareceiver", "notreal"},
+			EventClients: &[]string{"mockmetadataexporter", "exampleexporter", "notareceiver", "notreal"},
 		}, &componenttest.ExampleExporterConsumer{},
 		&hostWithExporters{exporter: &me},
 		zap.NewNop(),

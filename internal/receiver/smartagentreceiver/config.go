@@ -32,15 +32,17 @@ import (
 
 const defaultIntervalSeconds = 10
 
-var errMetadataClientValue = fmt.Errorf("metadataClients must be an array of compatible exporter names")
+var errDimensionClientValue = fmt.Errorf("dimensionClients must be an array of compatible exporter names")
+var errEventClientValue = fmt.Errorf("eventClients must be an array of compatible exporter names")
 
 type Config struct {
 	configmodels.ReceiverSettings `mapstructure:",squash"`
 	// Generally an observer/receivercreator-set value via Endpoint.Target.
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
-	Endpoint        string    `mapstructure:"endpoint"`
-	MetadataClients *[]string `mapstructure:"metadataclients"`
-	monitorConfig   config.MonitorCustomConfig
+	Endpoint         string    `mapstructure:"endpoint"`
+	DimensionClients *[]string `mapstructure:"dimensionclients"`
+	EventClients     *[]string `mapstructure:"eventclients"`
+	monitorConfig    config.MonitorCustomConfig
 }
 
 func (rCfg *Config) validate() error {
@@ -80,24 +82,17 @@ func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error
 		delete(allSettings, "endpoint")
 	}
 
-	// Config.metadataClients should end up a *[]string, and we need to arrive at that from
-	// allSetting's interface{} value.  This block sets the config field and removes the
-	// map entry to not interfere w/ the subsequent monitor custom config unmarshalling.
-	if metadataClients, containsClients := allSettings["metadataclients"]; containsClients {
-		if clients, isSlice := metadataClients.([]interface{}); isSlice {
-			var mClients []string
-			for _, c := range clients {
-				if client, isString := c.(string); isString {
-					mClients = append(mClients, client)
-				} else {
-					return errMetadataClientValue
-				}
-			}
-			receiverCfg.MetadataClients = &mClients
-		} else {
-			return errMetadataClientValue
-		}
-		delete(allSettings, "metadataclients")
+	// Config.DimensionClients and Config.EventClients should end up as *[]string, and we
+	// need to arrive at that from allSetting's interface{} value.
+	vas := viperAllSettings(allSettings)
+	var err error
+	receiverCfg.DimensionClients, err = vas.getPointerToStringSliceFromYaml("dimensionclients", errDimensionClientValue)
+	if err != nil {
+		return err
+	}
+	receiverCfg.EventClients, err = vas.getPointerToStringSliceFromYaml("eventclients", errEventClientValue)
+	if err != nil {
+		return err
 	}
 
 	// monitors.ConfigTemplates is a map that all monitors use to register their custom configs in the Smart Agent.
@@ -143,6 +138,29 @@ func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error
 
 	receiverCfg.monitorConfig = monitorConfig.(config.MonitorCustomConfig)
 	return nil
+}
+
+type viperAllSettings map[string]interface{}
+
+func (allSettings viperAllSettings) getPointerToStringSliceFromYaml(key string, errToReturn error) (*[]string, error) {
+	var slicePtr *[]string
+	if value, ok := allSettings[key]; ok {
+		if valueAsSlice, isSlice := value.([]interface{}); isSlice {
+			var items []string
+			for _, c := range valueAsSlice {
+				if client, isString := c.(string); isString {
+					items = append(items, client)
+				} else {
+					return nil, errToReturn
+				}
+			}
+			slicePtr = &items
+		} else {
+			return nil, errToReturn
+		}
+		delete(allSettings, key)
+	}
+	return slicePtr, nil
 }
 
 // Walks through a custom monitor config struct type, creating a map of

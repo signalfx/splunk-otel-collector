@@ -29,6 +29,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.uber.org/zap"
 )
 
@@ -74,7 +75,7 @@ func TestExtraDimensions(t *testing.T) {
 }
 
 func TestSendDimensionUpdate(t *testing.T) {
-	me := mockMetadataExporter{}
+	me := mockMetadataClient{}
 
 	output := NewOutput(Config{}, &me, componenttest.NewNopHost(), zap.NewNop())
 
@@ -86,7 +87,7 @@ func TestSendDimensionUpdate(t *testing.T) {
 		},
 	}
 	output.SendDimensionUpdate(&dim)
-	received := me.received
+	received := me.receivedMetadataUpdates
 	assert.Equal(t, 1, len(received))
 	update := *(received[0])
 	assert.Equal(t, "my_dimension", update.ResourceIDKey)
@@ -103,10 +104,10 @@ func TestSendDimensionUpdateWithInvalidExporter(t *testing.T) {
 }
 
 func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
-	me := mockMetadataExporter{name: "mockmetadataexporter"}
+	me := mockMetadataClient{name: "mockmetadataexporter"}
 	output := NewOutput(
 		Config{
-			MetadataClients: &[]string{"mockmetadataexporter", "exampleexporter"},
+			DimensionClients: []string{"mockmetadataexporter", "exampleexporter", "metricsreceiver", "notareceiver", "notreal"},
 		}, &componenttest.ExampleExporterConsumer{},
 		&hostWithExporters{exporter: &me},
 		zap.NewNop(),
@@ -116,34 +117,100 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 		Name: "error",
 	}
 	output.SendDimensionUpdate(&dim)
-	received := me.received
+	received := me.receivedMetadataUpdates
 	require.Equal(t, 1, len(received))
 	update := *(received[0])
 	assert.Equal(t, "has_errored", update.ResourceIDKey)
 }
 
 func TestSendDimensionUpdateFromNextConsumerMetadataExporters(t *testing.T) {
-	me := mockMetadataExporter{}
+	me := mockMetadataClient{}
 	output := NewOutput(Config{}, &me, componenttest.NewNopHost(), zap.NewNop())
 
 	dim := types.Dimension{
 		Name: "error",
 	}
 	output.SendDimensionUpdate(&dim)
-	received := me.received
+	received := me.receivedMetadataUpdates
 	require.Equal(t, 1, len(received))
 	update := *(received[0])
 	assert.Equal(t, "has_errored", update.ResourceIDKey)
 }
 
-type mockMetadataExporter struct {
-	name     string
-	received []*metadata.MetadataUpdate
+func TestSendEvent(t *testing.T) {
+	me := mockMetadataClient{}
+
+	output := NewOutput(Config{}, &me, componenttest.NewNopHost(), zap.NewNop())
+
+	event := event.Event{
+		EventType: "my_event",
+		Properties: map[string]interface{}{
+			"property": "property_value",
+		},
+	}
+	output.SendEvent(&event)
+	received := me.receivedLogs
+	require.Equal(t, 1, len(received))
+	log := received[0]
+	logRecord := log.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).Logs().At(0)
+	assert.Equal(t, "my_event", logRecord.Name())
+	attributes := logRecord.Attributes()
+	eventProperties, ok := attributes.Get("com.splunk.signalfx.event_properties")
+	require.True(t, ok)
+	val, ok := eventProperties.MapVal().Get("property")
+	require.True(t, ok)
+	assert.Equal(t, "property_value", val.StringVal())
+}
+
+func TestSendEventWithInvalidExporter(t *testing.T) {
+	output := NewOutput(Config{}, &metricsReceiver{}, componenttest.NewNopHost(), zap.NewNop())
+	event := event.Event{EventType: "error"}
+
+	// doesn't panic
+	output.SendEvent(&event)
+}
+
+func TestSendEventWithoutMetadataClients(t *testing.T) {
+	output := NewOutput(Config{
+		EventClients: []string{},
+	}, consumertest.NewMetricsNop(),
+		componenttest.NewNopHost(),
+		zap.NewNop(),
+	)
+	// doesn't panic
+	output.SendEvent(&event.Event{})
+}
+
+func TestSendEventFromConfigMetadataExporters(t *testing.T) {
+	me := mockMetadataClient{name: "mockmetadataexporter"}
+	output := NewOutput(
+		Config{
+			EventClients: []string{"mockmetadataexporter", "exampleexporter", "notareceiver", "notreal"},
+		}, &componenttest.ExampleExporterConsumer{},
+		&hostWithExporters{exporter: &me},
+		zap.NewNop(),
+	)
+
+	event := event.Event{
+		EventType: "error",
+	}
+	output.SendEvent(&event)
+	received := me.receivedLogs
+	require.Equal(t, 1, len(received))
+	log := received[0]
+	logRecord := log.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).Logs().At(0)
+	assert.Equal(t, "has_errored", logRecord.Name())
+}
+
+type mockMetadataClient struct {
+	name                    string
+	receivedMetadataUpdates []*metadata.MetadataUpdate
+	receivedLogs            []pdata.Logs
 	componenttest.ExampleExporterConsumer
 }
 
-func (me *mockMetadataExporter) ConsumeMetadata(updates []*metadata.MetadataUpdate) error {
-	me.received = append(me.received, updates...)
+func (me *mockMetadataClient) ConsumeMetadata(updates []*metadata.MetadataUpdate) error {
+	me.receivedMetadataUpdates = append(me.receivedMetadataUpdates, updates...)
 
 	if updates[0].ResourceIDKey == "error" {
 		updates[0].ResourceIDKey = "has_errored"
@@ -152,8 +219,25 @@ func (me *mockMetadataExporter) ConsumeMetadata(updates []*metadata.MetadataUpda
 	return nil
 }
 
+func (me *mockMetadataClient) ConsumeLogs(ctx context.Context, logs pdata.Logs) error {
+	me.receivedLogs = append(me.receivedLogs, logs)
+
+	logRecord := logs.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).Logs().At(0)
+	if logRecord.Name() == "error" {
+		logRecord.SetName("has_errored")
+		return fmt.Errorf("some error")
+	}
+	return nil
+}
+
+type notAReceiver struct{ component.Component }
+
+type metricsReceiver struct{ component.Component }
+
+func (mr *metricsReceiver) ConsumeMetrics(context.Context, pdata.Metrics) error { return nil }
+
 type hostWithExporters struct {
-	exporter *mockMetadataExporter
+	exporter *mockMetadataClient
 	componenttest.NopHost
 }
 
@@ -170,6 +254,12 @@ func (h *hostWithExporters) GetExporters() map[configmodels.DataType]map[configm
 		context.Background(), component.ExporterCreateParams{}, nil,
 	)
 	exporterMap[exampleExporterFactory.CreateDefaultConfig()] = exampleExporter
+
+	receiver := namedEntity{name: "metricsreceiver"}
+	exporterMap[&receiver] = &metricsReceiver{}
+
+	notReceiver := namedEntity{name: "notareceiver"}
+	exporterMap[&notReceiver] = &notAReceiver{}
 
 	return exporters
 }

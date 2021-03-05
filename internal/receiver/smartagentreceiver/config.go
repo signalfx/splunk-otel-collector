@@ -32,15 +32,17 @@ import (
 
 const defaultIntervalSeconds = 10
 
-var errMetadataClientValue = fmt.Errorf("metadataClients must be an array of compatible exporter names")
+var errDimensionClientValue = fmt.Errorf("dimensionClients must be an array of compatible exporter names")
+var errEventClientValue = fmt.Errorf("eventClients must be an array of compatible exporter names")
 
 type Config struct {
 	configmodels.ReceiverSettings `mapstructure:",squash"`
 	// Generally an observer/receivercreator-set value via Endpoint.Target.
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
-	Endpoint        string    `mapstructure:"endpoint"`
-	MetadataClients *[]string `mapstructure:"metadataclients"`
-	monitorConfig   config.MonitorCustomConfig
+	Endpoint         string   `mapstructure:"endpoint"`
+	DimensionClients []string `mapstructure:"dimensionclients"`
+	EventClients     []string `mapstructure:"eventclients"`
+	monitorConfig    config.MonitorCustomConfig
 }
 
 func (rCfg *Config) validate() error {
@@ -64,9 +66,9 @@ func (rCfg *Config) validate() error {
 // mergeConfigs is used as a custom unmarshaller to dynamically create the desired Smart Agent monitor config
 // from the provided receiver config content.
 func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error {
-	// AllSettings() will include anything not already unmarshalled in the Config instance (*intoCfg).
-	// This includes all Smart Agent monitor config settings that can be unmarshalled to their
-	// respective custom monitor config types.
+	// AllSettings() is the user provided config and intoCfg is the default Config instance we populate to
+	// form the final desired version. To do so, we manually obtain all Config items, leaving only Smart Agent
+	// monitor config settings to be unmarshalled to their respective custom monitor config types.
 	allSettings := componentViperSection.AllSettings()
 	monitorType, ok := allSettings["type"].(string)
 	if !ok || monitorType == "" {
@@ -80,24 +82,14 @@ func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error
 		delete(allSettings, "endpoint")
 	}
 
-	// Config.metadataClients should end up a *[]string, and we need to arrive at that from
-	// allSetting's interface{} value.  This block sets the config field and removes the
-	// map entry to not interfere w/ the subsequent monitor custom config unmarshalling.
-	if metadataClients, containsClients := allSettings["metadataclients"]; containsClients {
-		if clients, isSlice := metadataClients.([]interface{}); isSlice {
-			var mClients []string
-			for _, c := range clients {
-				if client, isString := c.(string); isString {
-					mClients = append(mClients, client)
-				} else {
-					return errMetadataClientValue
-				}
-			}
-			receiverCfg.MetadataClients = &mClients
-		} else {
-			return errMetadataClientValue
-		}
-		delete(allSettings, "metadataclients")
+	var err error
+	receiverCfg.DimensionClients, err = getStringSliceFromAllSettings(allSettings, "dimensionclients", errDimensionClientValue)
+	if err != nil {
+		return err
+	}
+	receiverCfg.EventClients, err = getStringSliceFromAllSettings(allSettings, "eventclients", errEventClientValue)
+	if err != nil {
+		return err
 	}
 
 	// monitors.ConfigTemplates is a map that all monitors use to register their custom configs in the Smart Agent.
@@ -143,6 +135,26 @@ func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error
 
 	receiverCfg.monitorConfig = monitorConfig.(config.MonitorCustomConfig)
 	return nil
+}
+
+func getStringSliceFromAllSettings(allSettings map[string]interface{}, key string, errToReturn error) ([]string, error) {
+	var items []string
+	if value, ok := allSettings[key]; ok {
+		items = []string{}
+		if valueAsSlice, isSlice := value.([]interface{}); isSlice {
+			for _, c := range valueAsSlice {
+				if client, isString := c.(string); isString {
+					items = append(items, client)
+				} else {
+					return nil, errToReturn
+				}
+			}
+		} else {
+			return nil, errToReturn
+		}
+		delete(allSettings, key)
+	}
+	return items, nil
 }
 
 // Walks through a custom monitor config struct type, creating a map of

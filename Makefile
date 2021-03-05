@@ -19,6 +19,8 @@ ALL_SRC := $(shell find . -name '*.go' \
 # ALL_PKGS is the list of all packages where ALL_SRC files reside.
 ALL_PKGS := $(shell go list $(sort $(dir $(ALL_SRC))))
 
+ALL_TESTS_DIRS := $(shell find tests -name *_test.go | xargs dirname | uniq | sort -r)
+
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
 
@@ -69,6 +71,15 @@ all: checklicense impi lint misspell test otelcol
 .PHONY: test
 test:
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKGS)
+
+.PHONY: integration-test
+integration-test:
+	@set -e; for dir in $(ALL_TESTS_DIRS); do \
+	  echo "go test ./... in $${dir}"; \
+	  (cd "$${dir}" && \
+	   $(GOTEST) -v -timeout 5m -count 1 ./... ); \
+	done
+
 
 .PHONY: test-with-cover
 test-with-cover:

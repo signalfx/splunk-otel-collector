@@ -1,0 +1,97 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: haproxy_active_servers
+            type: DoubleGauge
+          - name: haproxy_backup_servers
+            type: DoubleGauge
+          - name: haproxy_bytes_in
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_bytes_out
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_client_aborts
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_compress_bypass
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_compress_in
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_compress_out
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_compress_responses
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_connection_rate
+            type: DoubleGauge
+          - name: haproxy_connection_rate_max
+            type: DoubleGauge
+          - name: haproxy_connection_total
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_denied_request
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_denied_response
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_denied_tcp_connections
+            type: DoubleGauge
+          - name: haproxy_denied_tcp_sessions
+            type: DoubleGauge
+          - name: haproxy_error_connections
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_error_request
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_error_response
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_intercepted_requests
+            type: DoubleGauge
+          - name: haproxy_last_session
+            type: DoubleGauge
+          - name: haproxy_queue_current
+            type: DoubleGauge
+          - name: haproxy_queue_max
+            type: DoubleGauge
+          - name: haproxy_queue_time_average
+            type: DoubleGauge
+          - name: haproxy_redispatched
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_request_rate
+            type: DoubleGauge
+          - name: haproxy_request_rate_max
+            type: DoubleGauge
+          - name: haproxy_request_total
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_response_1xx
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_response_2xx
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_response_3xx
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_response_4xx
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_response_5xx
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_response_other
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_response_time_average
+            type: DoubleGauge
+          - name: haproxy_retries
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_server_aborts
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_server_selected_total
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_session_current
+            type: DoubleGauge
+          - name: haproxy_session_limit
+            type: DoubleGauge
+          - name: haproxy_session_max
+            type: DoubleGauge
+          - name: haproxy_session_rate
+            type: DoubleGauge
+          - name: haproxy_session_rate_limit
+            type: DoubleGauge
+          - name: haproxy_session_rate_max
+            type: DoubleGauge
+          - name: haproxy_session_time_average
+            type: DoubleGauge
+          - name: haproxy_session_total
+            type: DoubleMonotonicCumulativeSum
+          - name: haproxy_status
+            type: DoubleGauge

@@ -1,0 +1,25 @@
+extensions:
+  smartagent:
+    bundleDir: /opt/bundle
+    collectd:
+      configDir: /tmp/collectd/config
+
+receivers:
+  smartagent/collectd_kafka_producer:
+    type: collectd/kafka_producer
+    host: localhost
+    port: 8099
+    intervalSeconds: 1
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+
+service:
+  extensions: [smartagent]
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/collectd_kafka_producer
+      exporters: [otlp]

@@ -1,0 +1,83 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: gauge.storage.ram.usedByData
+            type: IntGauge
+          - name: gauge.storage.ram.total
+            type: IntGauge
+          - name: gauge.storage.hdd.total
+            type: IntGauge
+          - name: gauge.storage.ram.quotaTotal
+            type: IntGauge
+          - name: gauge.storage.ram.quotaTotalPerNode
+            type: IntGauge
+          - name: gauge.storage.ram.quotaUsedPerNode
+            type: IntGauge
+          - name: gauge.storage.ram.quotaUsed
+            type: IntGauge
+          - name: gauge.storage.hdd.used
+            type: IntGauge
+          - name: gauge.storage.ram.used
+            type: IntGauge
+          - name: gauge.storage.hdd.quotaTotal
+            type: IntGauge
+          - name: gauge.nodes.system.swap_total
+            type: IntGauge
+          - name: gauge.nodes.system.swap_used
+            type: IntGauge
+          - name: gauge.storage.hdd.free
+            type: IntGauge
+          - name: gauge.nodes.system.cpu_utilization_rate
+            type: IntGauge
+          - name: gauge.storage.hdd.usedByData
+            type: IntGauge
+          - name: gauge.nodes.system.mem_total
+            type: IntGauge
+          - name: gauge.nodes.system.mem_free
+            type: IntGauge
+          - name: gauge.nodes.mcdMemoryReserved
+            type: IntGauge
+          - name: gauge.nodes.mcdMemoryAllocated
+            type: IntGauge
+          - name: gauge.nodes.memoryFree
+            type: IntGauge
+          - name: gauge.nodes.memoryTotal
+            type: IntGauge
+          - name: gauge.nodes.system.cpu_utilization_rate
+            type: DoubleGauge
+          - name: gauge.nodes.system.swap_total
+            type: IntGauge
+          - name: gauge.nodes.system.mem_total
+            type: IntGauge
+          - name: gauge.nodes.system.mem_free
+            type: IntGauge
+          - name: gauge.nodes.memoryTotal
+            type: IntGauge
+          - name: gauge.nodes.memoryFree
+            type: IntGauge
+          - name: gauge.nodes.mcdMemoryReserved
+            type: IntGauge
+          - name: gauge.nodes.mcdMemoryAllocated
+            type: IntGauge
+          - name: gauge.nodes.system.cpu_utilization_rate
+            type: DoubleGauge
+          - name: gauge.nodes.system.mem_free
+            type: IntGauge
+          - name: gauge.nodes.memoryFree
+            type: IntGauge
+          - name: gauge.nodes.system.cpu_utilization_rate
+            type: DoubleGauge
+          - name: gauge.nodes.system.mem_free
+            type: IntGauge
+          - name: gauge.nodes.memoryFree
+            type: IntGauge
+          - name: gauge.nodes.system.mem_free
+            type: IntGauge
+          - name: gauge.nodes.memoryFree
+            type: IntGauge
+          - name: gauge.nodes.system.cpu_utilization_rate
+            type: DoubleGauge
+          - name: gauge.nodes.system.mem_free
+            type: IntGauge
+          - name: gauge.nodes.memoryFree
+            type: IntGauge

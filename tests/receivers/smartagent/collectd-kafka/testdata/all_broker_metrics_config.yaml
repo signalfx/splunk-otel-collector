@@ -1,0 +1,26 @@
+extensions:
+  smartagent:
+    bundleDir: /opt/bundle
+    collectd:
+      configDir: /tmp/collectd/config
+
+receivers:
+  smartagent/collectd_kafka:
+    type: collectd/kafka
+    host: localhost
+    port: 7099
+    clusterName: testCluster
+    intervalSeconds: 1
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+
+service:
+  extensions: [smartagent]
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/collectd_kafka
+      exporters: [otlp]

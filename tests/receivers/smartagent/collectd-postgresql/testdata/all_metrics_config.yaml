@@ -1,0 +1,30 @@
+extensions:
+  smartagent:
+    bundleDir: /opt/bundle
+    collectd:
+      configDir: /tmp/collectd/config
+
+receivers:
+  smartagent/collectd_postgresql:
+    type: collectd/postgresql
+    host: localhost
+    port: 5432
+    username: test_user
+    password: test_password
+    databases:
+      - name: test_db
+      - name: postgres
+    intervalSeconds: 1
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+
+service:
+  extensions: [smartagent]
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/collectd_postgresql
+      exporters: [otlp]

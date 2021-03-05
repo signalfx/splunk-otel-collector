@@ -1,0 +1,33 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: apache_bytes
+            type: IntMonotonicCumulativeSum
+          - name: apache_connections
+            type: IntGauge
+          - name: apache_idle_workers
+            type: IntGauge
+          - name: apache_requests
+            type: IntMonotonicCumulativeSum
+          - name: apache_scoreboard.closing
+            type: IntGauge
+          - name: apache_scoreboard.dnslookup
+            type: IntGauge
+          - name: apache_scoreboard.finishing
+            type: IntGauge
+          - name: apache_scoreboard.idle_cleanup
+            type: IntGauge
+          - name: apache_scoreboard.keepalive
+            type: IntGauge
+          - name: apache_scoreboard.logging
+            type: IntGauge
+          - name: apache_scoreboard.open
+            type: IntGauge
+          - name: apache_scoreboard.reading
+            type: IntGauge
+          - name: apache_scoreboard.sending
+            type: IntGauge
+          - name: apache_scoreboard.starting
+            type: IntGauge
+          - name: apache_scoreboard.waiting
+            type: IntGauge

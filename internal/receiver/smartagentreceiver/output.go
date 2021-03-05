@@ -117,7 +117,7 @@ func getLogsConsumers(
 // MetricsExporters, the only truly supported component type.
 // If config.MetadataClients is nil, it will return a slice with nextConsumer if it's a MetricsExporter.
 func getClientsFromMetricsExporters(
-	specifiedClients *[]string, host component.Host, nextConsumer *consumer.MetricsConsumer, fieldName string, logger *zap.Logger,
+	specifiedClients []string, host component.Host, nextConsumer *consumer.MetricsConsumer, fieldName string, logger *zap.Logger,
 ) (clients []*interface{}) {
 	if specifiedClients == nil {
 		// default to nextConsumer if no clients have been provided
@@ -127,7 +127,7 @@ func getClientsFromMetricsExporters(
 	}
 
 	builtExporters := host.GetExporters()[configmodels.MetricsDataType]
-	for _, client := range *specifiedClients {
+	for _, client := range specifiedClients {
 		var found bool
 		for exporterConfig, exporter := range builtExporters {
 			if exporterConfig.Name() == client {

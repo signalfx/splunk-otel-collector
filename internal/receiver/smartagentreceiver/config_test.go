@@ -59,8 +59,8 @@ func TestLoadConfig(t *testing.T) {
 			TypeVal: typeStr,
 			NameVal: typeStr + "/haproxy",
 		},
-		DimensionClients: &expectedDimensionClients,
-		EventClients:     &expectedEventClients,
+		DimensionClients: expectedDimensionClients,
+		EventClients:     expectedEventClients,
 		monitorConfig: &haproxy.Config{
 			MonitorConfig: config.MonitorConfig{
 				Type:                "haproxy",
@@ -76,15 +76,14 @@ func TestLoadConfig(t *testing.T) {
 	}, haproxyCfg)
 	require.NoError(t, haproxyCfg.validate())
 
-	var nilClients []string
 	redisCfg := cfg.Receivers["smartagent/redis"].(*Config)
 	require.Equal(t, &Config{
 		ReceiverSettings: configmodels.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/redis",
 		},
-		DimensionClients: &nilClients,
-		EventClients:     &nilClients,
+		DimensionClients: []string{},
+		EventClients:     []string{},
 		monitorConfig: &redis.Config{
 			MonitorConfig: config.MonitorConfig{
 				Type:                "collectd/redis",

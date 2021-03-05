@@ -31,6 +31,7 @@ type CollectorProcess struct {
 	Path             string
 	ConfigPath       string
 	Args             []string
+	Env              map[string]string
 	Logger           *zap.Logger
 	LogLevel         string
 	Process          *subprocess.Subprocess
@@ -54,9 +55,15 @@ func (collector CollectorProcess) WithConfigPath(path string) CollectorProcess {
 	return collector
 }
 
-// []string{"--log-level", collector.LogLevel, "--config", collector.ConfigPath} by default
+// []string{"--log-level", collector.LogLevel, "--config", collector.ConfigPath, "--metrics-level", "none"} by default
 func (collector CollectorProcess) WithArgs(args ...string) CollectorProcess {
 	collector.Args = args
+	return collector
+}
+
+// empty by default
+func (collector CollectorProcess) WithEnv(env map[string]string) CollectorProcess {
+	collector.Env = env
 	return collector
 }
 
@@ -90,11 +97,15 @@ func (collector CollectorProcess) Build() (*CollectorProcess, error) {
 		collector.LogLevel = "info"
 	}
 	if collector.Args == nil {
-		collector.Args = []string{"--log-level", collector.LogLevel, "--config", collector.ConfigPath}
+		collector.Args = []string{
+			"--log-level", collector.LogLevel, "--config", collector.ConfigPath, "--metrics-level", "none",
+		}
 	}
+
 	collector.subprocessConfig = &subprocess.Config{
-		ExecutablePath: collector.Path,
-		Args:           collector.Args,
+		ExecutablePath:       collector.Path,
+		Args:                 collector.Args,
+		EnvironmentVariables: collector.Env,
 	}
 	collector.Process = subprocess.NewSubprocess(collector.subprocessConfig, collector.Logger)
 	return &collector, nil

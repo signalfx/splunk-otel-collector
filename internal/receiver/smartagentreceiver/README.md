@@ -19,7 +19,11 @@ should be used.
 [Collector processors](https://github.com/open-telemetry/opentelemetry-collector/blob/master/processor/README.md).
 1. Monitors with [dimension property and tag update
 functionality](https://dev.splunk.com/observability/docs/datamodel#Creating-or-updating-custom-properties-and-tags)
-require an associated `metadataClients` field that references the name of the SignalFx exporter you are using in your
+require an associated `dimensionClients` field that references the name of the SignalFx exporter you are using in your
+pipeline.
+1. Monitors with [event-sending
+functionality](https://dev.splunk.com/observability/docs/datamodel/ingest#Send-custom-events)
+require an associated `eventClients` field that references the name of the SignalFx exporter you are using in your
 pipeline.
 
 Example:
@@ -37,7 +41,8 @@ receivers:
     type: postgresql
     host: mypostgresinstance
     port: 5432
-    metadataClients: [signalfx]
+    dimensionClients: [signalfx]
+    eventClients: [signalfx]
 ```
 
 The full list of settings exposed for this receiver are documented for

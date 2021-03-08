@@ -202,6 +202,75 @@ func TestSendEventFromConfigMetadataExporters(t *testing.T) {
 	assert.Equal(t, "has_errored", logRecord.Name())
 }
 
+func TestDimensionClientDefaultsToSFxExporter(t *testing.T) {
+	me := mockMetadataClient{name: "signalfx"}
+	output := NewOutput(
+		Config{DimensionClients: nil}, &componenttest.ExampleExporterConsumer{},
+		&hostWithExporters{exporter: &me},
+		zap.NewNop(),
+	)
+
+	dim := types.Dimension{
+		Name: "some_dimension",
+	}
+	output.SendDimensionUpdate(&dim)
+	received := me.receivedMetadataUpdates
+	require.Equal(t, 1, len(received))
+	update := *(received[0])
+	assert.Equal(t, "some_dimension", update.ResourceIDKey)
+}
+
+func TestDimensionClientDefaultsRequiresLoneSFxExporter(t *testing.T) {
+	me := mockMetadataClient{name: "signalfx"}
+	output := NewOutput(
+		Config{DimensionClients: nil}, &componenttest.ExampleExporterConsumer{},
+		&hostWithTwoSFxExporters{sfxExporter: &me},
+		zap.NewNop(),
+	)
+
+	dim := types.Dimension{
+		Name: "some_dimension",
+	}
+	output.SendDimensionUpdate(&dim)
+	received := me.receivedMetadataUpdates
+	require.Zero(t, len(received))
+}
+
+func TestEventClientDefaultsToSFxExporter(t *testing.T) {
+	me := mockMetadataClient{name: "signalfx"}
+	output := NewOutput(
+		Config{EventClients: nil}, &metricsReceiver{},
+		&hostWithExporters{exporter: &me},
+		zap.NewNop(),
+	)
+
+	event := event.Event{
+		EventType: "my_event",
+	}
+	output.SendEvent(&event)
+	received := me.receivedLogs
+	require.Equal(t, 1, len(received))
+	log := received[0]
+	logRecord := log.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).Logs().At(0)
+	assert.Equal(t, "my_event", logRecord.Name())
+}
+
+func TestEventClientDefaultsRequiresLoneSFxExporter(t *testing.T) {
+	me := mockMetadataClient{name: "signalfx"}
+	output := NewOutput(
+		Config{EventClients: nil}, &metricsReceiver{},
+		&hostWithTwoSFxExporters{sfxExporter: &me},
+		zap.NewNop(),
+	)
+
+	event := event.Event{
+		EventType: "my_event",
+	}
+	output.SendEvent(&event)
+	received := me.receivedLogs
+	require.Zero(t, len(received))
+}
+
 type mockMetadataClient struct {
 	name                    string
 	receivedMetadataUpdates []*metadata.MetadataUpdate
@@ -241,13 +310,10 @@ type hostWithExporters struct {
 	componenttest.NopHost
 }
 
-func (h *hostWithExporters) GetExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
+func getExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
 	exporters := map[configmodels.DataType]map[configmodels.Exporter]component.Exporter{}
 	exporterMap := map[configmodels.Exporter]component.Exporter{}
 	exporters[configmodels.MetricsDataType] = exporterMap
-
-	me := namedEntity{name: h.exporter.name}
-	exporterMap[&me] = component.MetricsExporter(h.exporter)
 
 	exampleExporterFactory := componenttest.ExampleExporterFactory{}
 	exampleExporter, _ := exampleExporterFactory.CreateMetricsExporter(
@@ -264,10 +330,37 @@ func (h *hostWithExporters) GetExporters() map[configmodels.DataType]map[configm
 	return exporters
 }
 
-type namedEntity struct {
-	name string
+func (h *hostWithExporters) GetExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
+	exporters := getExporters()
+	exporterMap := exporters[configmodels.MetricsDataType]
+
+	me := namedEntity{name: h.exporter.name, _type: h.exporter.name}
+	exporterMap[&me] = component.MetricsExporter(h.exporter)
+	return exporters
 }
 
-func (ne *namedEntity) Type() configmodels.Type { return configmodels.Type(ne.name) }
+type hostWithTwoSFxExporters struct {
+	sfxExporter *mockMetadataClient
+	componenttest.NopHost
+}
+
+func (h *hostWithTwoSFxExporters) GetExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
+	exporters := getExporters()
+	exporterMap := exporters[configmodels.MetricsDataType]
+
+	meOne := namedEntity{name: "sfx1", _type: "signalfx"}
+	exporterMap[&meOne] = component.MetricsExporter(h.sfxExporter)
+
+	meTwo := namedEntity{name: "sfx2", _type: "signalfx"}
+	exporterMap[&meTwo] = component.MetricsExporter(h.sfxExporter)
+	return exporters
+}
+
+type namedEntity struct {
+	name  string
+	_type string
+}
+
+func (ne *namedEntity) Type() configmodels.Type { return configmodels.Type(ne._type) }
 func (ne *namedEntity) Name() string            { return ne.name }
 func (ne *namedEntity) SetName(_ string)        {}

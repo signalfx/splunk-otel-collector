@@ -73,12 +73,21 @@ func getMetadataExporters(
 ) []*metadata.MetadataExporter {
 	var exporters []*metadata.MetadataExporter
 
-	metadataExporters := getClientsFromMetricsExporters(config.DimensionClients, host, nextConsumer, "dimensionClients", logger)
+	metadataExporters, noClientsSpecified := getClientsFromMetricsExporters(config.DimensionClients, host, nextConsumer, "dimensionClients", logger)
 	for _, client := range metadataExporters {
 		if metadataExporter, ok := (*client).(metadata.MetadataExporter); ok {
 			exporters = append(exporters, &metadataExporter)
 		} else {
 			logger.Info("cannot send dimension updates to dimension client", zap.Any("client", *client))
+		}
+	}
+
+	if len(exporters) == 0 && noClientsSpecified {
+		sfxExporter := getLoneSFxExporter(host)
+		if sfxExporter != nil {
+			if sfx, ok := sfxExporter.(metadata.MetadataExporter); ok {
+				exporters = append(exporters, &sfx)
+			}
 		}
 	}
 
@@ -97,12 +106,21 @@ func getLogsConsumers(
 ) []*consumer.LogsConsumer {
 	var consumers []*consumer.LogsConsumer
 
-	eventClients := getClientsFromMetricsExporters(config.EventClients, host, nextConsumer, "eventClients", logger)
+	eventClients, noClientsSpecified := getClientsFromMetricsExporters(config.EventClients, host, nextConsumer, "eventClients", logger)
 	for _, client := range eventClients {
 		if logsExporter, ok := (*client).(consumer.LogsConsumer); ok {
 			consumers = append(consumers, &logsExporter)
 		} else {
 			logger.Info("cannot send events to event client", zap.Any("client", *client))
+		}
+	}
+
+	if len(consumers) == 0 && noClientsSpecified {
+		sfxExporter := getLoneSFxExporter(host)
+		if sfxExporter != nil {
+			if sfx, ok := sfxExporter.(consumer.LogsConsumer); ok {
+				consumers = append(consumers, &sfx)
+			}
 		}
 	}
 
@@ -118,8 +136,9 @@ func getLogsConsumers(
 // If config.MetadataClients is nil, it will return a slice with nextConsumer if it's a MetricsExporter.
 func getClientsFromMetricsExporters(
 	specifiedClients []string, host component.Host, nextConsumer *consumer.MetricsConsumer, fieldName string, logger *zap.Logger,
-) (clients []*interface{}) {
+) (clients []*interface{}, wasNil bool) {
 	if specifiedClients == nil {
+		wasNil = true
 		// default to nextConsumer if no clients have been provided
 		asInterface := (*nextConsumer).(interface{})
 		clients = append(clients, &asInterface)
@@ -143,7 +162,24 @@ func getClientsFromMetricsExporters(
 			)
 		}
 	}
-	return clients
+	return
+}
+
+func getLoneSFxExporter(host component.Host) component.Exporter {
+	builtExporters := host.GetExporters()[configmodels.MetricsDataType]
+	var sfxExporter component.Exporter
+	for exporterConfig, exporter := range builtExporters {
+		if exporterConfig.Type() == "signalfx" {
+			if sfxExporter == nil {
+				sfxExporter = exporter
+			} else { // we've already found one so no lone instance to use as default
+				return nil
+			}
+
+		}
+	}
+	return sfxExporter
+
 }
 
 func (output *Output) AddDatapointExclusionFilter(filter dpfilters.DatapointFilter) {

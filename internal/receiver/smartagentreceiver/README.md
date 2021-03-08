@@ -19,12 +19,18 @@ should be used.
 [Collector processors](https://github.com/open-telemetry/opentelemetry-collector/blob/master/processor/README.md).
 1. Monitors with [dimension property and tag update
 functionality](https://dev.splunk.com/observability/docs/datamodel#Creating-or-updating-custom-properties-and-tags)
-require an associated `dimensionClients` field that references the name of the SignalFx exporter you are using in your
-pipeline.
+allow an associated `dimensionClients` field that references the name of the SignalFx exporter you are using in your
+pipeline.  If you do not specify any exporters via this field, the receiver will attempt to use the associated
+pipeline.  If the next element of the pipeline isn't compatible with dimension update behavior, if a lone SignalFx
+exporter was configured for your deployment, it will be selected.  If no dimension update behavior is desired,
+you can specify the empty array `[]` to disable.
 1. Monitors with [event-sending
 functionality](https://dev.splunk.com/observability/docs/datamodel/ingest#Send-custom-events)
-require an associated `eventClients` field that references the name of the SignalFx exporter you are using in your
-pipeline.
+allow an associated `eventClients` field that references the name of the SignalFx exporter you are using in your
+pipeline.  If you do not specify any exporters via this field, the receiver will attempt to use the associated pipeline.
+If the next element of the pipeline isn't compatible with event reporting behavior, if a lone SignalFx exporter was
+configured for your deployment, it will be selected.  If no event-sending behavior is desired, you can specify the
+empty array `[]` to disable.
 
 Example:
 

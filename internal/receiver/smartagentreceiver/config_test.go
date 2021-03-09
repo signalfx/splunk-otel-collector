@@ -25,6 +25,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/hadoop"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/redis"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/filesystems"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/prometheusexporter"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/ntpq"
@@ -415,4 +416,78 @@ func TestLoadInvalidConfigWithNonStringArrayDimensionClients(t *testing.T) {
 	require.EqualError(t, err,
 		"error reading receivers configuration for smartagent/haproxy: dimensionClients must be an array of compatible exporter names")
 	require.Nil(t, cfg)
+}
+
+func TestFilteringConfig(t *testing.T) {
+	factories, err := componenttest.ExampleComponents()
+	assert.Nil(t, err)
+
+	factory := NewFactory()
+	factories.Receivers[configmodels.Type(typeStr)] = factory
+	cfg, err := configtest.LoadConfigFile(
+		t, path.Join(".", "testdata", "filtering_config.yaml"), factories,
+	)
+
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	fsCfg := cfg.Receivers["smartagent/filesystems"].(*Config)
+	require.Equal(t, &Config{
+		ReceiverSettings: configmodels.ReceiverSettings{
+			TypeVal: typeStr,
+			NameVal: typeStr + "/filesystems",
+		},
+		monitorConfig: &filesystems.Config{
+			MonitorConfig: config.MonitorConfig{
+				Type: "filesystems",
+				DatapointsToExclude: []config.MetricFilter{
+					{
+						MetricName: "df_inodes.*",
+						Dimensions: map[string]interface{}{
+							"mountpoint": []interface{}{"*", "!/hostfs/var/lib/cni"},
+						},
+					},
+				},
+				ExtraGroups:  []string{"inodes"},
+				ExtraMetrics: []string{"percent_bytes.reserved"},
+			},
+		},
+	}, fsCfg)
+	require.NoError(t, fsCfg.validate())
+}
+
+func TestInvalidFilteringConfig(t *testing.T) {
+	factories, err := componenttest.ExampleComponents()
+	assert.Nil(t, err)
+
+	factory := NewFactory()
+	factories.Receivers[configmodels.Type(typeStr)] = factory
+	cfg, err := configtest.LoadConfigFile(
+		t, path.Join(".", "testdata", "invalid_filtering_config.yaml"), factories,
+	)
+
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	fsCfg := cfg.Receivers["smartagent/filesystems"].(*Config)
+	require.Equal(t, &Config{
+		ReceiverSettings: configmodels.ReceiverSettings{
+			TypeVal: typeStr,
+			NameVal: typeStr + "/filesystems",
+		},
+		monitorConfig: &filesystems.Config{
+			MonitorConfig: config.MonitorConfig{
+				Type: "filesystems",
+				DatapointsToExclude: []config.MetricFilter{
+					{
+						MetricNames: []string{"./[0-"},
+					},
+				},
+			},
+		},
+	}, fsCfg)
+
+	err = fsCfg.validate()
+	require.Error(t, err)
+	require.EqualError(t, err, "unexpected end of input")
 }

@@ -73,7 +73,7 @@ func getMetadataExporters(
 ) []*metadata.MetadataExporter {
 	var exporters []*metadata.MetadataExporter
 
-	metadataExporters, noClientsSpecified := getClientsFromMetricsExporters(config.DimensionClients, host, nextConsumer, "dimensionClients", logger)
+	metadataExporters, noClientsSpecified := getClientsFromMetricsExporters(config.DimensionClients, host, nextConsumer, "dimensionClients", configmodels.MetricsDataType, logger)
 	for _, client := range metadataExporters {
 		if metadataExporter, ok := (*client).(metadata.MetadataExporter); ok {
 			exporters = append(exporters, &metadataExporter)
@@ -83,7 +83,7 @@ func getMetadataExporters(
 	}
 
 	if len(exporters) == 0 && noClientsSpecified {
-		sfxExporter := getLoneSFxExporter(host)
+		sfxExporter := getLoneSFxExporter(host, configmodels.MetricsDataType)
 		if sfxExporter != nil {
 			if sfx, ok := sfxExporter.(metadata.MetadataExporter); ok {
 				exporters = append(exporters, &sfx)
@@ -106,7 +106,7 @@ func getLogsConsumers(
 ) []*consumer.LogsConsumer {
 	var consumers []*consumer.LogsConsumer
 
-	eventClients, noClientsSpecified := getClientsFromMetricsExporters(config.EventClients, host, nextConsumer, "eventClients", logger)
+	eventClients, noClientsSpecified := getClientsFromMetricsExporters(config.EventClients, host, nextConsumer, "eventClients", configmodels.LogsDataType, logger)
 	for _, client := range eventClients {
 		if logsExporter, ok := (*client).(consumer.LogsConsumer); ok {
 			consumers = append(consumers, &logsExporter)
@@ -116,7 +116,7 @@ func getLogsConsumers(
 	}
 
 	if len(consumers) == 0 && noClientsSpecified {
-		sfxExporter := getLoneSFxExporter(host)
+		sfxExporter := getLoneSFxExporter(host, configmodels.LogsDataType)
 		if sfxExporter != nil {
 			if sfx, ok := sfxExporter.(consumer.LogsConsumer); ok {
 				consumers = append(consumers, &sfx)
@@ -135,7 +135,7 @@ func getLogsConsumers(
 // MetricsExporters, the only truly supported component type.
 // If config.MetadataClients is nil, it will return a slice with nextConsumer if it's a MetricsExporter.
 func getClientsFromMetricsExporters(
-	specifiedClients []string, host component.Host, nextConsumer *consumer.MetricsConsumer, fieldName string, logger *zap.Logger,
+	specifiedClients []string, host component.Host, nextConsumer *consumer.MetricsConsumer, fieldName string, exporterType configmodels.DataType, logger *zap.Logger,
 ) (clients []*interface{}, wasNil bool) {
 	if specifiedClients == nil {
 		wasNil = true
@@ -145,37 +145,39 @@ func getClientsFromMetricsExporters(
 		return
 	}
 
-	builtExporters := host.GetExporters()[configmodels.MetricsDataType]
-	for _, client := range specifiedClients {
-		var found bool
-		for exporterConfig, exporter := range builtExporters {
-			if exporterConfig.Name() == client {
-				asInterface := exporter.(interface{})
-				clients = append(clients, &asInterface)
-				found = true
+	if builtExporters, ok := host.GetExporters()[exporterType]; ok {
+		for _, client := range specifiedClients {
+			var found bool
+			for exporterConfig, exporter := range builtExporters {
+				if exporterConfig.Name() == client {
+					asInterface := exporter.(interface{})
+					clients = append(clients, &asInterface)
+					found = true
+				}
 			}
-		}
-		if !found {
-			logger.Info(
-				fmt.Sprintf("specified %s is not an available exporter", fieldName),
-				zap.String("client", client),
-			)
+			if !found {
+				logger.Info(
+					fmt.Sprintf("specified %s is not an available exporter", fieldName),
+					zap.String("client", client),
+				)
+			}
 		}
 	}
 	return
 }
 
-func getLoneSFxExporter(host component.Host) component.Exporter {
-	builtExporters := host.GetExporters()[configmodels.MetricsDataType]
+func getLoneSFxExporter(host component.Host, exporterType configmodels.DataType) component.Exporter {
 	var sfxExporter component.Exporter
-	for exporterConfig, exporter := range builtExporters {
-		if exporterConfig.Type() == "signalfx" {
-			if sfxExporter == nil {
-				sfxExporter = exporter
-			} else { // we've already found one so no lone instance to use as default
-				return nil
-			}
+	if builtExporters, ok := host.GetExporters()[exporterType]; ok {
+		for exporterConfig, exporter := range builtExporters {
+			if exporterConfig.Type() == "signalfx" {
+				if sfxExporter == nil {
+					sfxExporter = exporter
+				} else { // we've already found one so no lone instance to use as default
+					return nil
+				}
 
+			}
 		}
 	}
 	return sfxExporter

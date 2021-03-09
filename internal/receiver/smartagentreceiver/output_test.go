@@ -312,20 +312,23 @@ type hostWithExporters struct {
 
 func getExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
 	exporters := map[configmodels.DataType]map[configmodels.Exporter]component.Exporter{}
-	exporterMap := map[configmodels.Exporter]component.Exporter{}
-	exporters[configmodels.MetricsDataType] = exporterMap
+	logExporterMap := map[configmodels.Exporter]component.Exporter{}
+	exporters[configmodels.LogsDataType] = logExporterMap
+
+	metricExporterMap := map[configmodels.Exporter]component.Exporter{}
+	exporters[configmodels.MetricsDataType] = metricExporterMap
 
 	exampleExporterFactory := componenttest.ExampleExporterFactory{}
 	exampleExporter, _ := exampleExporterFactory.CreateMetricsExporter(
 		context.Background(), component.ExporterCreateParams{}, nil,
 	)
-	exporterMap[exampleExporterFactory.CreateDefaultConfig()] = exampleExporter
+	metricExporterMap[exampleExporterFactory.CreateDefaultConfig()] = exampleExporter
 
 	receiver := namedEntity{name: "metricsreceiver"}
-	exporterMap[&receiver] = &metricsReceiver{}
+	metricExporterMap[&receiver] = &metricsReceiver{}
 
 	notReceiver := namedEntity{name: "notareceiver"}
-	exporterMap[&notReceiver] = &notAReceiver{}
+	metricExporterMap[&notReceiver] = &notAReceiver{}
 
 	return exporters
 }
@@ -336,6 +339,9 @@ func (h *hostWithExporters) GetExporters() map[configmodels.DataType]map[configm
 
 	me := namedEntity{name: h.exporter.name, _type: h.exporter.name}
 	exporterMap[&me] = component.MetricsExporter(h.exporter)
+
+	exporterMap = exporters[configmodels.LogsDataType]
+	exporterMap[&me] = component.LogsExporter(h.exporter)
 	return exporters
 }
 
@@ -353,6 +359,11 @@ func (h *hostWithTwoSFxExporters) GetExporters() map[configmodels.DataType]map[c
 
 	meTwo := namedEntity{name: "sfx2", _type: "signalfx"}
 	exporterMap[&meTwo] = component.MetricsExporter(h.sfxExporter)
+
+	exporterMap = exporters[configmodels.LogsDataType]
+	exporterMap[&meOne] = component.LogsExporter(h.sfxExporter)
+	exporterMap[&meTwo] = component.LogsExporter(h.sfxExporter)
+
 	return exporters
 }
 

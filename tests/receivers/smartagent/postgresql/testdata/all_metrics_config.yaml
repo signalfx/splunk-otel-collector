@@ -12,17 +12,12 @@ receivers:
 
 exporters:
   otlp:
-    endpoint: localhost:23456
+    endpoint: "${OTLP_ENDPOINT}"
     insecure: true
-
-  logging:
-    loglevel: debug
-    sampling_initial: 1
-    sampling_thereafter: 10
 
 service:
   pipelines:
     metrics:
       receivers:
         - smartagent/postgresql
-      exporters: [otlp, logging]
+      exporters: [otlp]

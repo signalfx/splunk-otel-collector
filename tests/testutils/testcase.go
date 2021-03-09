@@ -21,6 +21,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/testutil"
 	"go.uber.org/zap"
@@ -28,6 +29,9 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 )
 
+// A Testcase is a central helper utility to provide Container, OTLPMetricsReceiverSink, ResourceMetrics,
+// SplunkOtelCollector, and ObservedLogs to integration tests with minimal boilerplate.  It also embeds *testing.T
+// for easy testing and testify usage.
 type Testcase struct {
 	*testing.T
 	Logger                  *zap.Logger
@@ -36,6 +40,8 @@ type Testcase struct {
 	OTLPEndpoint            string
 }
 
+// Recommended constructor that will automatically configure an OTLPMetricsReceiverSink with available endpoint and
+// ObservedLogs.
 func NewTestcase(t *testing.T) *Testcase {
 	tc := Testcase{T: t}
 	var logCore zapcore.Core
@@ -51,6 +57,7 @@ func NewTestcase(t *testing.T) *Testcase {
 	return &tc
 }
 
+// Loads and validates a ResourceMetrics instance, assuming it's located in ./testdata/resource_metrics
 func (t *Testcase) ResourceMetrics(filename string) *ResourceMetrics {
 	expectedResourceMetrics, err := LoadResourceMetrics(
 		path.Join(".", "testdata", "resource_metrics", filename),
@@ -60,24 +67,27 @@ func (t *Testcase) ResourceMetrics(filename string) *ResourceMetrics {
 	return expectedResourceMetrics
 }
 
+// Builds and starts all provided Container builder instances, returning them and a validating stop function.
 func (t *Testcase) Containers(builders ...Container) (containers []*Container, stop func()) {
 	for _, builder := range builders {
 		containers = append(containers, builder.Build())
 	}
 
 	for _, container := range containers {
-		require.NoError(t, container.Start(context.Background()))
+		assert.NoError(t, container.Start(context.Background()))
 	}
 
 	stop = func() {
 		for _, container := range containers {
-			require.NoError(t, container.Stop(context.Background()))
+			assert.NoError(t, container.Stop(context.Background()))
 		}
 	}
 
 	return
 }
 
+// CollectorProcess builds and starts a collector process using the desired config filename
+// (assuming it's in the ./testdata directory) returning it and a validating shutdown function.
 func (t *Testcase) SplunkOtelCollector(configFilename string) (*CollectorProcess, func()) {
 	collector, err := NewCollectorProcess().WithConfigPath(
 		path.Join(".", "testdata", configFilename),
@@ -92,6 +102,8 @@ func (t *Testcase) SplunkOtelCollector(configFilename string) (*CollectorProcess
 	return collector, func() { require.NoError(t, collector.Shutdown()) }
 }
 
+// PrintLogsOnFailure will print all ObserverLogs messages if the test has failed.  It's intended to be
+// deferred after Testcase creation.
 func (t *Testcase) PrintLogsOnFailure() {
 	if !t.Failed() {
 		return
@@ -102,10 +114,15 @@ func (t *Testcase) PrintLogsOnFailure() {
 	}
 }
 
+// Validating shutdown helper for the Testcase's OTLPMetricsReceiverSink
 func (t *Testcase) ShutdownOTLPMetricsReceiverSink() {
 	require.NoError(t, t.OTLPMetricsReceiverSink.Shutdown())
 }
 
+// AssertAllMetricsReceived is a central helper, designed to avoid most boilerplate.  Using the desired
+// ResourceMetrics and Collector Config filenames and a slice of Container builders, AssertAllMetricsReceived
+// creates a Testcase, builds and starts all Container and CollectorProcess instances, and asserts that all
+// expected ResourceMetrics are received before running validated cleanup functionality.
 func AssertAllMetricsReceived(t *testing.T, resourceMetricsFilename, collectorConfigFilename string, containers []Container) {
 	tc := NewTestcase(t)
 	defer tc.PrintLogsOnFailure()

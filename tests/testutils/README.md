@@ -139,4 +139,28 @@ defer func() { require.NoError(t, collector.Shutdown()) }()
 // path will be first `bin/otelcol` match in a parent directory
 collector, err = testutils.NewCollectorProcess().WithArgs("--tested-feature", "--etc").Build()
 ```
-____
+
+### Testcase
+
+All the above test utilities can be easily configured by the `Testcase` helper to avoid unnecessary boilerplate in
+resource creation and cleanup.  The associated OTLPMetricsReceiverSink for each `Testcase` will have an OS-provided
+endpoint that can be rendered via the `"${OTLP_ENDPOINT}"` environment variable in your tested config. `testutils`
+provides a general `AssertAllMetricsReceived()` function that utilizes this type to stand up all the necessary resources
+associated with a test and assert that all expected metrics are received:
+
+```go
+import "github.com/signafx/splunk-otel-collector/tests/testutils"
+
+func MyTest(t *testing.T) {
+    containers := []testutils.Container{
+        testutils.NewContainer().WithImage("my_docker_image"),
+        testutils.NewContainer().WithImage("my_other_docker_image"),
+    }
+
+    // will implicitly create a Testcase with OTLPMetricsReceiverSink listening at $OTLP_ENDPOINT,
+    // ./testdata/resource_metrics/my_resource_metrics.yaml ResourceMetrics instance, CollectorProcess with
+    // ./testdata/my_collector_config.yaml config, and build and start all specified containers before calling
+    // otlpMetricsReceiverSink.AssertAllMetricsReceived() with a 30s wait duration.
+    testutils.AssertAllMetricsReceived(t, "my_resource_metrics.yaml", "my_collector_config.yaml", containers)
+}
+```

@@ -22,30 +22,16 @@ import (
 )
 
 func TestPostgresReceiverProvidesAllMetrics(t *testing.T) {
-	containers := []testutils.Container{
-		testutils.NewContainer().WithContext(
-			path.Join(".", "testdata", "server"),
-		).WithEnv(map[string]string{
-			"POSTGRES_DB":       "test_db",
-			"POSTGRES_USER":     "postgres",
-			"POSTGRES_PASSWORD": "postgres",
-		}).WithExposedPorts(
-			"5432:5432",
-		).WithName("postgres-server").WithNetworks(
-			"postgres",
-		).WillWaitForPorts("5432").WillWaitForLogs(
-			"database system is ready to accept connections",
-		),
-		testutils.NewContainer().WithContext(
-			path.Join(".", "testdata", "client"),
-		).WithEnv(map[string]string{
-			"POSTGRES_SERVER": "postgres-server",
-		}).WithName("postgres-client").WithNetworks(
-			"postgres",
-		).WillWaitForLogs("Beginning psql requests"),
-	}
+	server := testutils.NewContainer().WithContext(path.Join(".", "testdata", "server")).WithEnv(
+		map[string]string{"POSTGRES_DB": "test_db", "POSTGRES_USER": "postgres", "POSTGRES_PASSWORD": "postgres"},
+	).WithExposedPorts("5432:5432").WithName("postgres-server").WithNetworks(
+		"postgres",
+	).WillWaitForPorts("5432").WillWaitForLogs("database system is ready to accept connections")
 
-	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", containers,
-	)
+	client := testutils.NewContainer().WithContext(path.Join(".", "testdata", "client")).WithEnv(
+		map[string]string{"POSTGRES_SERVER": "postgres-server"},
+	).WithName("postgres-client").WithNetworks("postgres").WillWaitForLogs("Beginning psql requests")
+	containers := []testutils.Container{server, client}
+
+	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml", containers)
 }

@@ -146,14 +146,16 @@ func (otlp *OTLPMetricsReceiverSink) AssertAllMetricsReceived(t *testing.T, expe
 	var err error
 	assert.Eventually(t, func() bool {
 		if otlp.MetricsCount() == 0 {
+			if err == nil {
+				err = fmt.Errorf("no metrics received")
+			}
 			return false
 		}
 		receivedOTLPMetrics := otlp.AllMetrics()
 		otlp.Reset()
 
-		var receivedResourceMetrics ResourceMetrics
-		receivedResourceMetrics, err = PDataToResourceMetrics(receivedOTLPMetrics...)
-		require.NoError(t, err)
+		receivedResourceMetrics, e := PDataToResourceMetrics(receivedOTLPMetrics...)
+		require.NoError(t, e)
 		require.NotNil(t, receivedResourceMetrics)
 		receivedMetrics = FlattenResourceMetrics(receivedMetrics, receivedResourceMetrics)
 
@@ -161,5 +163,11 @@ func (otlp *OTLPMetricsReceiverSink) AssertAllMetricsReceived(t *testing.T, expe
 		containsAll, err = receivedMetrics.ContainsAll(expectedResourceMetrics)
 		return containsAll
 	}, waitTime, 10*time.Millisecond, "Failed to receive expected metrics")
+
+	//testify won't render exceptionally long errors, so leaving this here for easy debugging
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+	}
+
 	return err
 }

@@ -18,8 +18,9 @@ import (
 	"context"
 	"io"
 	"path"
-	sort "sort"
+	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -290,11 +291,14 @@ func TestTestcontainersContainerMethodsRequireBuilding(t *testing.T) {
 }
 
 type logConsumer struct {
+	sync.Mutex
 	statements []string
 }
 
 func (lc *logConsumer) Accept(l testcontainers.Log) {
 	trimmed := strings.TrimSpace(string(l.Content))
+	lc.Lock()
+	defer lc.Unlock()
 	lc.statements = append(lc.statements, trimmed)
 }
 
@@ -364,6 +368,8 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 	assert.Equal(t, 0, ec)
 	require.NoError(t, err)
 	require.Eventually(t, func() bool {
+		lc.Lock()
+		defer lc.Unlock()
 		for _, statement := range lc.statements {
 			if statement == "some message" {
 				return true

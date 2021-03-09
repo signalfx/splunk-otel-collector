@@ -85,7 +85,7 @@ func TestCollectorProcessBuildDefaults(t *testing.T) {
 	assert.Equal(t, "someconfigpath", collector.ConfigPath)
 	assert.NotNil(t, collector.Logger)
 	assert.Equal(t, "info", collector.LogLevel)
-	assert.Equal(t, []string{"--log-level", "info", "--config", "someconfigpath"}, collector.Args)
+	assert.Equal(t, []string{"--log-level", "info", "--config", "someconfigpath", "--metrics-level", "none"}, collector.Args)
 }
 
 func TestStartAndShutdownInvalidWithoutBuilding(t *testing.T) {

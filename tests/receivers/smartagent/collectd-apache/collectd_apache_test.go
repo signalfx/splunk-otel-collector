@@ -25,7 +25,7 @@ func TestCollectdApacheReceiverProvidesAllMetrics(t *testing.T) {
 	containers := []testutils.Container{
 		testutils.NewContainer().WithContext(
 			path.Join(".", "testdata", "server"),
-		).WithExposedPorts("8080:80").WithName("activemq").WillWaitForPorts("80"),
+		).WithExposedPorts("8080:80").WithName("apache").WillWaitForPorts("80"),
 	}
 
 	testutils.AssertAllMetricsReceived(

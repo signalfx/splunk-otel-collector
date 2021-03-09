@@ -25,7 +25,7 @@ func TestCollectdCassandraReceiverProvidesAllMetrics(t *testing.T) {
 	containers := []testutils.Container{
 		testutils.NewContainer().WithContext(
 			path.Join(".", "testdata", "server"),
-		).WithExposedPorts("7199:7199").WithName("activemq").WillWaitForPorts("7199"),
+		).WithExposedPorts("7199:7199").WithName("cassandra").WillWaitForPorts("7199"),
 	}
 
 	testutils.AssertAllMetricsReceived(

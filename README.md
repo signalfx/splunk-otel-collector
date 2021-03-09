@@ -55,7 +55,7 @@ The Collector is supported on and packaged for a variety of platforms including:
   - [Installer script (recommended)](./docs/getting-started/linux-installer.md)
   - [Standalone](./docs/getting-started/linux-standalone.md)
 - Windows
-  - Install script (coming soon!)
+  - [Installer script (recommended)](./docs/getting-started/windows-installer.md)
   - [Standalone](./docs/getting-started/windows-standalone.md)
 
 You can consult additional use cases in the [examples](./examples) directory.

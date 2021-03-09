@@ -42,12 +42,27 @@ function Install-Tools {
 function New-MSI(
     [string]$Otelcol="./bin/otelcol_windows_amd64.exe",
     [string]$Version="0.0.1",
-    [string]$Config="./cmd/otelcol/config/collector/agent_config.yaml"
+    [string]$BuildDir="./dist",
+    [string]$Config="./cmd/otelcol/config/collector/agent_config.yaml",
+    [string]$FluentdConfig="./internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf",
+    [string]$FluentdConfDir="./internal/buildscripts/packaging/msi/fluentd/conf.d"
 ) {
-    candle -arch x64 -dOtelcol="$Otelcol" -dVersion="$Version" -dConfig="$Config" internal/buildscripts/packaging/msi/splunk-otel-collector.wxs
-    light splunk-otel-collector.wixobj
-    mkdir dist -ErrorAction Ignore
-    Move-Item -Force splunk-otel-collector.msi dist/splunk-otel-collector-$Version-amd64.msi
+    $msiName = "splunk-otel-collector-$Version-amd64.msi"
+    $filesDir = "$BuildDir\msi"
+    if (Test-Path "$filesDir") {
+        Remove-Item -Force -Recurse "$filesDir"
+    }
+    mkdir "$filesDir\fluentd\conf.d" -ErrorAction Ignore
+    Copy-Item "$Config" "$filesDir\config.yaml"
+    Copy-Item "$FluentdConfig" "$filesDir\fluentd\td-agent.conf"
+    Copy-Item "$FluentdConfDir\*.conf" "$filesDir\fluentd\conf.d" -Recurse
+    heat dir "$filesDir" -srd -sreg -gg -template fragment -cg ConfigFiles -dr INSTALLDIR -out "$BuildDir\configfiles.wsx"
+    candle -arch x64 -out "$BuildDir\configfiles.wixobj" "$BuildDir\configfiles.wsx"
+    candle -arch x64 -out "$BuildDir\splunk-otel-collector.wixobj" -dVersion="$Version" -dOtelcol="$Otelcol" .\internal\buildscripts\packaging\msi\splunk-otel-collector.wxs
+    light -ext WixUtilExtension.dll -sval -spdb -out "$BuildDir\$msiName" -b "$filesDir" "$BuildDir\splunk-otel-collector.wixobj" "$BuildDir\configfiles.wixobj"
+    if (!(Test-Path "$BuildDir\$msiName")) {
+        throw "$BuildDir\$msiName not found!"
+    }
 }
 
 function Confirm-MSI {

@@ -15,6 +15,7 @@
 import hashlib
 import os
 import re
+import shutil
 import sys
 import tempfile
 import time
@@ -33,6 +34,8 @@ from .constants import (
     CHAPERONE_API_URL,
     CLOUDFRONT_DISTRIBUTION_ID,
     DEFAULT_TIMEOUT,
+    FLUENTD_CONFD,
+    FLUENTD_CONFIG,
     MSI_CONFIG,
     PACKAGE_NAME,
     REPO_DIR,
@@ -408,17 +411,14 @@ def msi_exists_in_s3(s3_client, path):
 
 
 def invalidate_cloudfront(paths):
-    cloudfront = boto3.client('cloudfront')
+    cloudfront = boto3.client("cloudfront")
     print(f"Invalidating cloudfront for {paths} ...")
     resp = cloudfront.create_invalidation(
         DistributionId=CLOUDFRONT_DISTRIBUTION_ID,
         InvalidationBatch={
-            'Paths': {
-                'Quantity': len(paths),
-                'Items': [f"/{path}" for path in paths]
-            },
-            'CallerReference': f"splunk-otel-collector-msi-{time.time()}",
-        }
+            "Paths": {"Quantity": len(paths), "Items": [f"/{path}" for path in paths]},
+            "CallerReference": f"splunk-otel-collector-msi-{time.time()}",
+        },
     )
     print(resp)
     assert resp.get("ResponseMetadata", {}).get("HTTPStatusCode") == 201, "Failed to submit invalidation request!"
@@ -430,7 +430,6 @@ def build_msi(exe_path, args):
     msi_version = args.tag.strip("v")
     msi_name = f"{PACKAGE_NAME}-{msi_version}-amd64.msi"
     msi_path = os.path.join(args.assets_dir, msi_name)
-    wixobj = f"{PACKAGE_NAME}.wixobj"
 
     print(f"Building {msi_path} with {exe_path} ...")
     if not args.force and os.path.isfile(msi_path):
@@ -440,30 +439,58 @@ def build_msi(exe_path, args):
         os.remove(msi_path)
 
     client = docker.from_env()
+
     container_options = {
         "remove": True,
         "volumes": {
             REPO_DIR: {"bind": "/work", "mode": "rw"},
-            os.path.abspath(exe_path): {"bind": "/otelcol/otelcol.exe", "mode": "ro"},
         },
         "working_dir": "/work",
     }
 
-    candle_opts = f'-arch x64 -dOtelcol="/otelcol/otelcol.exe" -dVersion="{msi_version}" -dConfig="{MSI_CONFIG}"'
-    cmd = f"candle {candle_opts} {WXS_PATH}"
-    output = client.containers.run(WIX_IMAGE, command=cmd, **container_options)
-    print(output.decode("utf-8"))
-    assert os.path.isfile(wixobj), f"{wixobj} not found!"
-
-    cmd = f"light {wixobj} -sval -spdb -out {msi_name}"
-    output = client.containers.run(WIX_IMAGE, command=cmd, **container_options)
-    print(output.decode("utf-8"))
-    assert os.path.isfile(msi_name), f"{msi_name} not found!"
-
-    os.makedirs(args.assets_dir, exist_ok=True)
-    os.rename(msi_name, msi_path)
-    if os.path.isfile(wixobj):
-        os.remove(wixobj)
+    with tempfile.TemporaryDirectory(dir=str(REPO_DIR)) as build_dir:
+        base_dir = os.path.basename(build_dir)
+        config_dir = os.path.join(build_dir, "config")
+        fluentd_dir = os.path.join(config_dir, "fluentd")
+        os.makedirs(fluentd_dir, exist_ok=True)
+        shutil.copy(exe_path, os.path.join(build_dir, "otelcol.exe"))
+        shutil.copy(os.path.join(str(REPO_DIR), MSI_CONFIG), os.path.join(config_dir, "config.yaml"))
+        shutil.copy(os.path.join(str(REPO_DIR), FLUENTD_CONFIG), os.path.join(fluentd_dir, "td-agent.conf"))
+        shutil.copytree(os.path.join(str(REPO_DIR), FLUENTD_CONFD), os.path.join(fluentd_dir, "conf.d"))
+        cont_config_dir = os.path.join(base_dir, "config")
+        cmd = (
+            f"heat dir {cont_config_dir} -srd -sreg -gg -template fragment "
+            f"-cg ConfigFiles -dr INSTALLDIR -out {os.path.join(base_dir, 'configfiles.wsx')}"
+        )
+        output = client.containers.run(WIX_IMAGE, command=cmd, **container_options)
+        print(output.decode("utf-8"))
+        assert os.path.isfile(os.path.join(build_dir, "configfiles.wsx")), "configfiles.wsx not found!"
+        cmd = (
+            f"candle -arch x64 -out {os.path.join(base_dir, 'configfiles.wixobj')} "
+            f"{os.path.join(base_dir, 'configfiles.wsx')}"
+        )
+        output = client.containers.run(WIX_IMAGE, command=cmd, **container_options)
+        print(output.decode("utf-8"))
+        assert os.path.isfile(os.path.join(build_dir, "configfiles.wixobj")), "configfiles.wixobj not found!"
+        cmd = (
+            f"candle -arch x64 -out {os.path.join(base_dir, 'splunk-otel-collector.wixobj')} "
+            f'-dVersion="{msi_version}" -dOtelcol="{os.path.join(base_dir, "otelcol.exe")}" {WXS_PATH}'
+        )
+        output = client.containers.run(WIX_IMAGE, command=cmd, **container_options)
+        print(output.decode("utf-8"))
+        assert os.path.isfile(
+            os.path.join(build_dir, "splunk-otel-collector.wixobj")
+        ), "splunk-otel-collector.wixobj not found!"
+        cmd = (
+            f"light -ext WixUtilExtension.dll -sval -spdb -out {os.path.join(base_dir, msi_name)} "
+            f"-b {cont_config_dir} {os.path.join(base_dir, 'splunk-otel-collector.wixobj')} "
+            f"{os.path.join(base_dir, 'configfiles.wixobj')}"
+        )
+        output = client.containers.run(WIX_IMAGE, command=cmd, **container_options)
+        print(output.decode("utf-8"))
+        assert os.path.isfile(os.path.join(build_dir, msi_name)), f"{msi_name} not found!"
+        os.makedirs(args.assets_dir, exist_ok=True)
+        os.rename(os.path.join(build_dir, msi_name), msi_path)
 
     return msi_path
 
@@ -486,7 +513,7 @@ def release_msi_to_s3(asset, args, **signing_args):
 
     if args.stage != "github" and not args.no_push:
         session = boto3.Session(profile_name="prod")
-        s3_client = session.client('s3')
+        s3_client = session.client("s3")
         s3_path = f"{S3_MSI_BASE_DIR}/{args.stage}/{asset.name}"
         print(f"Uploading {asset.name} to {S3_BUCKET}/{s3_path} ...")
         if not args.force and msi_exists_in_s3(s3_client, s3_path):

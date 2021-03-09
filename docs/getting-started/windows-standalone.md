@@ -36,11 +36,12 @@ Before starting the `splunk-otel-collector` service, the following variables
 in the default config file need to be replaced by the appropriate values for
 your environment:
 
-- `${SPLUNK_ACCESS_TOKEN}`: Access token to authenticate requests
-- `${SPLUNK_REALM}`: Which realm to send the data to (for example: `us0`)
-- `${SPLUNK_BALLAST_SIZE_MIB}`: How much memory to allocate to the ballast.
-- `${SPLUNK_MEMORY_LIMIT_MIB}`: Maximum total memory to be allocated by the process heap.
-- `${SPLUNK_MEMORY_SPIKE_MIB}`: Maximum spike between the measurements of memory usage.
+- `${SPLUNK_ACCESS_TOKEN}`: The Splunk access token to authenticate requests
+- `${SPLUNK_API_URL}`: The Splunk API URL, e.g. `https://api.us0.signalfx.com`
+- `${SPLUNK_HEC_TOKEN}`: The Splunk HEC authentication token
+- `${SPLUNK_HEC_URL}`: The Splunk HEC endpoint URL, e.g. `https://ingest.us0.signalfx.com/v1/log`
+- `${SPLUNK_INGEST_URL}`: The Splunk ingest URL, e.g. `https://ingest.us0.signalfx.com`
+- `${SPLUNK_TRACE_URL}`: The Splunk trace endpoint URL, e.g. `https://ingest.us0.signalfx.com/v2/trace`
 
 After updating all variables in the config file, start the
 `splunk-otel-collector` service by rebooting the system or running the

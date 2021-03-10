@@ -178,7 +178,7 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 	return monitor, err
 }
 
-func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[configmodels.Extension]component.Extension) {
+func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[configmodels.NamedEntity]component.Extension) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
 	defaultCfg := f.CreateDefaultConfig().(smartagentextension.SmartAgentConfigProvider)

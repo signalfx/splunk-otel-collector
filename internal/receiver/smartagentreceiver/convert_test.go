@@ -82,13 +82,13 @@ func pdataMetrics(dataType pdata.MetricDataType, val interface{}, timeReceived t
 		dps.(pdata.IntDataPointSlice).Resize(1)
 		dp := dps.(pdata.IntDataPointSlice).At(0)
 		labels = dp.LabelsMap()
-		dp.SetTimestamp(pdata.TimestampUnixNano(timeReceived.UnixNano()))
+		dp.SetTimestamp(pdata.Timestamp(timeReceived.UnixNano()))
 		dp.SetValue(int64(val.(int)))
 	case pdata.MetricDataTypeDoubleGauge, pdata.MetricDataTypeDoubleSum:
 		dps.(pdata.DoubleDataPointSlice).Resize(1)
 		dp := dps.(pdata.DoubleDataPointSlice).At(0)
 		labels = dp.LabelsMap()
-		dp.SetTimestamp(pdata.TimestampUnixNano(timeReceived.UnixNano()))
+		dp.SetTimestamp(pdata.Timestamp(timeReceived.UnixNano()))
 		dp.SetValue(val.(float64))
 	}
 

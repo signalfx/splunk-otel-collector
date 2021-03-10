@@ -155,7 +155,7 @@ func fillIntDatapoint(datapoint *sfx.Datapoint, dps pdata.IntDataPointSlice, tim
 
 	dps.Resize(1)
 	dp := dps.At(0)
-	dp.SetTimestamp(pdata.TimestampUnixNano(uint64(timestamp.UnixNano())))
+	dp.SetTimestamp(pdata.Timestamp(uint64(timestamp.UnixNano())))
 	dp.SetValue(intValue.Int())
 	fillInLabels(datapoint.Dimensions, dp.LabelsMap())
 
@@ -176,7 +176,7 @@ func fillDoubleDatapoint(datapoint *sfx.Datapoint, dps pdata.DoubleDataPointSlic
 
 	dps.Resize(1)
 	dp := dps.At(0)
-	dp.SetTimestamp(pdata.TimestampUnixNano(uint64(timestamp.UnixNano())))
+	dp.SetTimestamp(pdata.Timestamp(uint64(timestamp.UnixNano())))
 	dp.SetValue(floatValue.Float())
 	fillInLabels(datapoint.Dimensions, dp.LabelsMap())
 

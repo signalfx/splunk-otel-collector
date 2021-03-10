@@ -1,0 +1,45 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: counter.HiveExternalCatalog.fileCacheHits
+            type: IntMonotonicCumulativeSum
+          - name: counter.HiveExternalCatalog.filesDiscovered
+            type: IntMonotonicCumulativeSum
+          - name: counter.HiveExternalCatalog.hiveClientCalls
+            type: IntMonotonicCumulativeSum
+          - name: counter.HiveExternalCatalog.parallelListingJobCount
+            type: IntMonotonicCumulativeSum
+          - name: counter.HiveExternalCatalog.partitionsFetched
+            type: IntMonotonicCumulativeSum
+          - name: gauge.jvm.heap.committed
+            type: IntGauge
+          - name: gauge.jvm.heap.used
+            type: IntGauge
+          - name: gauge.jvm.non-heap.committed
+            type: IntGauge
+          - name: gauge.jvm.non-heap.used
+            type: IntGauge
+          - name: gauge.jvm.pools.Code-Cache.committed
+            type: IntGauge
+          - name: gauge.jvm.pools.Code-Cache.used
+            type: IntGauge
+          - name: gauge.jvm.pools.Compressed-Class-Space.committed
+            type: IntGauge
+          - name: gauge.jvm.pools.Compressed-Class-Space.used
+            type: IntGauge
+          - name: gauge.jvm.pools.Metaspace.committed
+            type: IntGauge
+          - name: gauge.jvm.pools.Metaspace.used
+            type: IntGauge
+          - name: gauge.jvm.total.committed
+            type: IntGauge
+          - name: gauge.jvm.total.used
+            type: IntGauge
+          - name: gauge.master.aliveWorkers
+            type: IntGauge
+          - name: gauge.master.apps
+            type: IntGauge
+          - name: gauge.master.waitingApps
+            type: IntGauge
+          - name: gauge.master.workers
+            type: IntGauge

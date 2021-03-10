@@ -1,0 +1,81 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+        - name: gauge.amq.TotalConsumerCount
+          type: IntGauge
+        - name: gauge.amq.TotalDequeueCount
+          type: IntGauge
+        - name: gauge.amq.TotalEnqueueCount
+          type: IntGauge
+        - name: gauge.amq.TotalMessageCount
+          type: IntGauge
+        - name: gauge.amq.TotalProducerCount
+          type: IntGauge
+        - name: gauge.amq.queue.AverageBlockedTime
+          type: IntGauge
+        - name: gauge.amq.queue.AverageEnqueueTime
+          type: IntGauge
+        - name: gauge.amq.queue.AverageMessageSize
+          type: IntGauge
+        - name: gauge.amq.queue.BlockedSends
+          type: IntGauge
+        - name: gauge.amq.queue.ConsumerCount
+          type: IntGauge
+        - name: gauge.amq.queue.DequeueCount
+          type: IntGauge
+        - name: gauge.amq.queue.EnqueueCount
+          type: IntGauge
+        - name: gauge.amq.queue.ExpiredCount
+          type: IntGauge
+        - name: gauge.amq.queue.ForwardCount
+          type: IntGauge
+        - name: gauge.amq.queue.InFlightCount
+          type: IntGauge
+        - name: gauge.amq.queue.ProducerCount
+          type: IntGauge
+        - name: gauge.amq.queue.QueueSize
+          type: IntGauge
+        - name: gauge.amq.queue.TotalBlockedTime
+          type: IntGauge
+        - name: gauge.amq.topic.AverageBlockedTime
+          type: IntGauge
+        - name: gauge.amq.topic.AverageEnqueueTime
+          type: IntGauge
+        - name: gauge.amq.topic.AverageMessageSize
+          type: IntGauge
+        - name: gauge.amq.topic.BlockedSends
+          type: IntGauge
+        - name: gauge.amq.topic.ConsumerCount
+          type: IntGauge
+        - name: gauge.amq.topic.DequeueCount
+          type: IntGauge
+        - name: gauge.amq.topic.EnqueueCount
+          type: IntGauge
+        - name: gauge.amq.topic.ExpiredCount
+          type: IntGauge
+        - name: gauge.amq.topic.ForwardCount
+          type: IntGauge
+        - name: gauge.amq.topic.InFlightCount
+          type: IntGauge
+        - name: gauge.amq.topic.ProducerCount
+          type: IntGauge
+        - name: gauge.amq.topic.QueueSize
+          type: IntGauge
+        - name: gauge.amq.topic.TotalBlockedTime
+          type: IntGauge
+        - name: gauge.jvm.threads.count
+          type: IntGauge
+        - name: gauge.loaded_classes
+          type: IntGauge
+        - name: invocations
+          type: IntMonotonicCumulativeSum
+        - name: jmx_memory.committed
+          type: IntGauge
+        - name: jmx_memory.init
+          type: IntGauge
+        - name: jmx_memory.max
+          type: IntGauge
+        - name: jmx_memory.used
+          type: IntGauge
+        - name: total_time_in_ms.collection_time
+          type: IntMonotonicCumulativeSum

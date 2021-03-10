@@ -1,0 +1,61 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: counter.kafka-bytes-in
+            type: IntMonotonicCumulativeSum
+          - name: counter.kafka-bytes-out
+            type: IntMonotonicCumulativeSum
+          - name: counter.kafka-isr-expands
+            type: IntMonotonicCumulativeSum
+          - name: counter.kafka-isr-shrinks
+            type: IntMonotonicCumulativeSum
+          - name: counter.kafka-leader-election-rate
+            type: IntMonotonicCumulativeSum
+          - name: counter.kafka-messages-in
+            type: IntMonotonicCumulativeSum
+          - name: counter.kafka-unclean-elections-rate
+            type: IntMonotonicCumulativeSum
+          - name: counter.kafka.fetch-consumer.total-time.count
+            type: IntMonotonicCumulativeSum
+          - name: counter.kafka.fetch-follower.total-time.count
+            type: IntMonotonicCumulativeSum
+          - name: counter.kafka.produce.total-time.count
+            type: IntMonotonicCumulativeSum
+          - name: gauge.jvm.threads.count
+            type: IntGauge
+          - name: gauge.kafka-active-controllers
+            type: IntGauge
+          - name: gauge.kafka-max-lag
+            type: IntGauge
+          - name: gauge.kafka-offline-partitions-count
+            type: IntGauge
+          - name: gauge.kafka-request-queue
+            type: IntGauge
+          - name: gauge.kafka-underreplicated-partitions
+            type: IntGauge
+          - name: gauge.kafka.fetch-consumer.total-time.99th
+            type: IntGauge
+          - name: gauge.kafka.fetch-consumer.total-time.median
+            type: IntGauge
+          - name: gauge.kafka.fetch-follower.total-time.99th
+            type: IntGauge
+          - name: gauge.kafka.fetch-follower.total-time.median
+            type: IntGauge
+          - name: gauge.kafka.produce.total-time.99th
+            type: IntGauge
+          - name: gauge.kafka.produce.total-time.median
+            type: IntGauge
+          - name: gauge.loaded_classes
+            type: IntGauge
+          - name: invocations
+            type: IntMonotonicCumulativeSum
+          - name: jmx_memory.committed
+            type: IntGauge
+          - name: jmx_memory.init
+            type: IntGauge
+          - name: jmx_memory.max
+            type: IntGauge
+          - name: jmx_memory.used
+            type: IntGauge
+          - name: total_time_in_ms.collection_time
+            type: IntMonotonicCumulativeSum

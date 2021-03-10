@@ -1,0 +1,29 @@
+extensions:
+  smartagent:
+    bundleDir: /opt/bundle
+    collectd:
+      configDir: /tmp/collectd/config
+
+receivers:
+  smartagent/collectd_spark_master:
+    type: collectd/spark
+    host: localhost
+    port: 8080
+    clusterType: Standalone
+    isMaster: true
+    collectApplicationMetrics: true
+    enhancedMetrics: true
+    intervalSeconds: 1
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+
+service:
+  extensions: [smartagent]
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/collectd_spark_master
+      exporters: [otlp]

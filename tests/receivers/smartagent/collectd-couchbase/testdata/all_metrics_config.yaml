@@ -1,0 +1,28 @@
+extensions:
+  smartagent:
+    bundleDir: /opt/bundle
+    collectd:
+      configDir: /tmp/collectd/config
+
+receivers:
+  smartagent/collectd_couchbase:
+    type: collectd/couchbase
+    host: localhost
+    port: 8091
+    collectTarget: NODE
+    username: administrator
+    password: password
+    intervalSeconds: 1
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+
+service:
+  extensions: [smartagent]
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/collectd_couchbase
+      exporters: [otlp]

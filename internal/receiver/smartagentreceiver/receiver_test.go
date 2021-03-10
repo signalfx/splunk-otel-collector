@@ -357,17 +357,17 @@ func (m *mockHost) GetFactory(kind component.Kind, componentType configmodels.Ty
 	return nil
 }
 
-func (m *mockHost) GetExtensions() map[configmodels.Extension]component.ServiceExtension {
+func (m *mockHost) GetExtensions() map[configmodels.Extension]component.Extension {
 	exampleFactory := componenttest.ExampleExtensionFactory{}
 	randomExtensionConfig := exampleFactory.CreateDefaultConfig()
-	return map[configmodels.Extension]component.ServiceExtension{
+	return map[configmodels.Extension]component.Extension{
 		m.smartagentextensionConfig:      getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
 		randomExtensionConfig:            getExtension(&exampleFactory, randomExtensionConfig),
 		m.smartagentextensionConfigExtra: nil,
 	}
 }
 
-func getExtension(f component.ExtensionFactory, cfg configmodels.Extension) component.ServiceExtension {
+func getExtension(f component.ExtensionFactory, cfg configmodels.Extension) component.Extension {
 	e, err := f.CreateExtension(context.Background(), component.ExtensionCreateParams{}, cfg)
 	if err != nil {
 		panic(err)

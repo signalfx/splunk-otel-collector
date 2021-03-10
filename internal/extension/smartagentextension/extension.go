@@ -24,7 +24,7 @@ import (
 type smartAgentConfigExtension struct {
 }
 
-var _ component.ServiceExtension = (*smartAgentConfigExtension)(nil)
+var _ component.Extension = (*smartAgentConfigExtension)(nil)
 
 func (sae *smartAgentConfigExtension) Start(_ context.Context, _ component.Host) error {
 	return nil

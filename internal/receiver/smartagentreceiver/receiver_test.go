@@ -253,6 +253,7 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
 			monitors.MonitorFactories["notarealmonitor"] = test.monitorFactory
+			monitors.MonitorMetadatas["notarealmonitor"] = &monitors.Metadata{MonitorType: "notarealmonitor"}
 
 			cfg := newConfig("invalid", "notarealmonitor", 123)
 			receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
@@ -263,6 +264,15 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 			)
 		})
 	}
+}
+
+func TestFilteringNoMetadata(t *testing.T) {
+	t.Cleanup(cleanUp)
+	monitors.MonitorFactories["fakemonitor"] = func() interface{} { return struct{}{} }
+	cfg := newConfig("valid", "fakemonitor", 1)
+	receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
+	err := receiver.Start(context.Background(), componenttest.NewNopHost())
+	require.EqualError(t, err, "failed creating monitor \"fakemonitor\": could not find monitor metadata of type fakemonitor")
 }
 
 func TestSmartAgentConfigProviderOverrides(t *testing.T) {

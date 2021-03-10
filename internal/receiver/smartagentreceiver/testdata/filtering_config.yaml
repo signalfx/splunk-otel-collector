@@ -1,0 +1,22 @@
+receivers:
+  smartagent/filesystems:
+    type: filesystems
+    extraMetrics: [percent_bytes.reserved]
+    extraGroups: [inodes]
+    datapointsToExclude:
+    - metricName: df_inodes.*
+      dimensions:
+        mountpoint: ['*', '!/hostfs/var/lib/cni']
+
+processors:
+  exampleprocessor:
+
+exporters:
+  exampleexporter:
+
+service:
+  pipelines:
+    metrics:
+      receivers: [smartagent/filesystems]
+      processors: [exampleprocessor]
+      exporters: [exampleexporter]

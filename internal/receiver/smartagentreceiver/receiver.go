@@ -131,7 +131,20 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 
 	monitor = monitorFactory() // monitor is a pointer to a monitor struct
 
-	output := NewOutput(*r.config, r.nextConsumer, host, r.logger)
+	// Make metadata nil if we aren't using built in filtering and then none of
+	// the new filtering logic will apply.
+	metadata, ok := monitors.MonitorMetadatas[monitorType]
+	if !ok || metadata == nil {
+		// This indicates a programming error in not specifying metadata, not
+		// bad user input
+		return nil, fmt.Errorf("could not find monitor metadata of type %s", monitorType)
+	}
+	monitorFiltering, err := newMonitorFiltering(r.config.monitorConfig, metadata, r.logger)
+	if err != nil {
+		return nil, err
+	}
+
+	output := NewOutput(*r.config, monitorFiltering, r.nextConsumer, host, r.logger)
 	set, err := SetStructFieldWithExplicitType(
 		monitor, "Output", output,
 		reflect.TypeOf((*types.Output)(nil)).Elem(),

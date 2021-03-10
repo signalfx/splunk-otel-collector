@@ -47,12 +47,13 @@ type Output struct {
 	logger               *zap.Logger
 	converter            Converter
 	extraDimensions      map[string]string
+	monitorFiltering     *monitorFiltering
 }
 
 var _ types.Output = (*Output)(nil)
 var _ types.FilteringOutput = (*Output)(nil)
 
-func NewOutput(config Config, nextConsumer consumer.MetricsConsumer, host component.Host, logger *zap.Logger) *Output {
+func NewOutput(config Config, filtering *monitorFiltering, nextConsumer consumer.MetricsConsumer, host component.Host, logger *zap.Logger) *Output {
 	metadataExporters := getMetadataExporters(config, host, &nextConsumer, logger)
 	logConsumers := getLogsConsumers(config, host, &nextConsumer, logger)
 	return &Output{
@@ -63,6 +64,7 @@ func NewOutput(config Config, nextConsumer consumer.MetricsConsumer, host compon
 		logger:               logger,
 		converter:            Converter{logger: logger},
 		extraDimensions:      map[string]string{},
+		monitorFiltering:     filtering,
 	}
 }
 
@@ -148,21 +150,22 @@ func getClientsFromMetricsExporters(
 
 func (output *Output) AddDatapointExclusionFilter(filter dpfilters.DatapointFilter) {
 	output.logger.Debug("AddDatapointExclusionFilter has been called", zap.Any("filter", filter))
+	output.monitorFiltering.AddDatapointExclusionFilter(filter)
 }
 
 func (output *Output) EnabledMetrics() []string {
 	output.logger.Debug("EnabledMetrics has been called.")
-	return []string{}
+	return output.monitorFiltering.EnabledMetrics()
 }
 
 func (output *Output) HasEnabledMetricInGroup(group string) bool {
 	output.logger.Debug("HasEnabledMetricInGroup has been called", zap.String("group", group))
-	return true
+	return output.monitorFiltering.HasEnabledMetricInGroup(group)
 }
 
 func (output *Output) HasAnyExtraMetrics() bool {
 	output.logger.Debug("HasAnyExtraMetrics has been called.")
-	return true
+	return output.monitorFiltering.HasAnyExtraMetrics()
 }
 
 // Some monitors will clone their Output to provide to child monitors with their own extraDimensions
@@ -177,6 +180,7 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 	ctx := obsreport.ReceiverContext(context.Background(), output.receiverName, internalTransport)
 	ctx = obsreport.StartMetricsReceiveOp(ctx, typeStr, internalTransport)
 
+	datapoints = output.filterDatapoints(datapoints)
 	for _, dp := range datapoints {
 		// Output's extraDimensions take priority over datapoint's
 		dp.Dimensions = utils.MergeStringMaps(dp.Dimensions, output.extraDimensions)
@@ -249,4 +253,14 @@ func (output *Output) AddDefaultSpanTag(key, value string) {
 
 func (output *Output) RemoveDefaultSpanTag(key string) {
 	output.logger.Debug("RemoveDefaultSpanTag has been called.", zap.String("key", key))
+}
+
+func (output *Output) filterDatapoints(datapoints []*datapoint.Datapoint) []*datapoint.Datapoint {
+	filteredDatapoints := make([]*datapoint.Datapoint, 0, len(datapoints))
+	for _, dp := range datapoints {
+		if output.monitorFiltering.filterSet == nil || !output.monitorFiltering.filterSet.Matches(dp) {
+			filteredDatapoints = append(filteredDatapoints, dp)
+		}
+	}
+	return filteredDatapoints
 }

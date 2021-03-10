@@ -1,0 +1,17 @@
+receivers:
+  smartagent/haproxy:
+    type: haproxy
+    url: http://localhost:8080/stats?stats;csv
+    intervalSeconds: 1
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/haproxy
+      exporters: [otlp]

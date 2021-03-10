@@ -1,0 +1,27 @@
+extensions:
+  smartagent:
+    bundleDir: /opt/bundle
+    collectd:
+      configDir: /tmp/collectd/config
+
+receivers:
+  smartagent/collectd_cassandra:
+    type: collectd/cassandra
+    host: localhost
+    port: 7199
+    username: cassandra
+    password: cassandra
+    intervalSeconds: 1
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+
+service:
+  extensions: [smartagent]
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/collectd_cassandra
+      exporters: [otlp]

@@ -1,0 +1,119 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: pg_blks.heap_hit
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.heap_hit-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.heap_hit-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.heap_read
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.heap_read-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.idx_hit
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.idx_hit-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.idx_hit-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.idx_read
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.idx_read-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.idx_read-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.tidx_hit
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.tidx_hit-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.tidx_hit-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.tidx_read
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.tidx_read-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.tidx_read-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.toast_hit
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.toast_hit-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.toast_hit-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.toast_read
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.toast_read-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_blks.toast_read-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_db_size
+            type: IntGauge
+          - name: pg_n_tup_c.del
+            type: IntMonotonicCumulativeSum
+          - name: pg_n_tup_c.del-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_n_tup_c.del-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_n_tup_c.hot_upd
+            type: IntMonotonicCumulativeSum
+          - name: pg_n_tup_c.hot_upd-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_n_tup_c.hot_upd-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_n_tup_c.ins
+            type: IntMonotonicCumulativeSum
+          - name: pg_n_tup_c.ins-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_n_tup_c.ins-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_n_tup_c.upd
+            type: IntMonotonicCumulativeSum
+          - name: pg_n_tup_c.upd-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_n_tup_c.upd-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_n_tup_g.dead
+            type: IntGauge
+          - name: pg_n_tup_g.dead-test_schema-table_one
+            type: IntGauge
+          - name: pg_n_tup_g.dead-test_schema-table_two
+            type: IntGauge
+          - name: pg_n_tup_g.live
+            type: IntGauge
+          - name: pg_n_tup_g.live-test_schema-table_one
+            type: IntGauge
+          - name: pg_n_tup_g.live-test_schema-table_two
+            type: IntGauge
+          - name: pg_numbackends
+            type: IntGauge
+          - name: pg_scan.idx
+            type: IntMonotonicCumulativeSum
+          - name: pg_scan.idx-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_scan.idx-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_scan.idx_tup_fetch
+            type: IntMonotonicCumulativeSum
+          - name: pg_scan.idx_tup_fetch-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_scan.idx_tup_fetch-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_scan.seq
+            type: IntMonotonicCumulativeSum
+          - name: pg_scan.seq-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_scan.seq-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_scan.seq_tup_read
+            type: IntMonotonicCumulativeSum
+          - name: pg_scan.seq_tup_read-test_schema-table_one
+            type: IntMonotonicCumulativeSum
+          - name: pg_scan.seq_tup_read-test_schema-table_two
+            type: IntMonotonicCumulativeSum
+          - name: pg_xact.commit
+            type: IntMonotonicCumulativeSum
+          - name: pg_xact.num_deadlocks
+            type: IntMonotonicCumulativeSum
+          - name: pg_xact.rollback
+            type: IntMonotonicCumulativeSum

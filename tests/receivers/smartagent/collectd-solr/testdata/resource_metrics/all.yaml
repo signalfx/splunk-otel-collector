@@ -1,0 +1,63 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: counter.solr.http_2xx_responses
+            type: IntMonotonicCumulativeSum
+          - name: counter.solr.http_4xx_responses
+            type: IntMonotonicCumulativeSum
+          - name: counter.solr.http_5xx_responses
+            type: IntMonotonicCumulativeSum
+          - name: counter.solr.http_requests
+            type: IntMonotonicCumulativeSum
+          - name: counter.solr.node_collections_requests
+            type: IntMonotonicCumulativeSum
+          - name: counter.solr.node_cores_requests
+            type: IntMonotonicCumulativeSum
+          - name: counter.solr.node_metrics_requests
+            type: IntMonotonicCumulativeSum
+          - name: counter.solr.node_zookeeper_requests
+            type: IntMonotonicCumulativeSum
+          - name: counter.solr.replication_handler_requests
+            type: IntMonotonicCumulativeSum
+          - name: counter.solr.search_query_requests
+            type: IntMonotonicCumulativeSum
+          - name: counter.solr.update_handler_requests
+            type: IntMonotonicCumulativeSum
+          - name: gauge.solr.core_deleted_docs
+            type: IntGauge
+          - name: gauge.solr.core_index_size
+            type: IntGauge
+          - name: gauge.solr.core_max_docs
+            type: IntGauge
+          - name: gauge.solr.core_num_docs
+            type: IntGauge
+          - name: gauge.solr.core_totalspace
+            type: IntGauge
+          - name: gauge.solr.core_usablespace
+            type: IntGauge
+          - name: gauge.solr.document_cache_cumulative_hitratio
+            type: IntGauge
+          - name: gauge.solr.field_value_cache_cumulative_hitratio
+            type: IntGauge
+          - name: gauge.solr.jetty_request_latency
+            type: DoubleGauge
+          - name: gauge.solr.jvm_heap_usage
+            type: DoubleGauge
+          - name: gauge.solr.jvm_memory_pools_Code-Cache_usage
+            type: DoubleGauge
+          - name: gauge.solr.jvm_memory_pools_Metaspace_usage
+            type: DoubleGauge
+          - name: gauge.solr.jvm_total_memory
+            type: IntGauge
+          - name: gauge.solr.jvm_total_memory_used
+            type: IntGauge
+          - name: gauge.solr.query_result_cache_cumulative_hitratio
+            type: IntGauge
+          - name: gauge.solr.replication_handler_response
+            type: IntGauge
+          - name: gauge.solr.search_query_response
+            type: DoubleGauge
+          - name: gauge.solr.searcher_warmup
+            type: IntGauge
+          - name: gauge.solr.update_request_handler_response
+            type: DoubleGauge

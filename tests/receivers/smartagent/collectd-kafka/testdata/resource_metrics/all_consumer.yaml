@@ -1,0 +1,29 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: gauge.jvm.threads.count
+            type: IntGauge
+          - name: gauge.kafka.consumer.bytes-consumed-rate
+            type: DoubleGauge
+          - name: gauge.kafka.consumer.fetch-rate
+            type: DoubleGauge
+          - name: gauge.kafka.consumer.fetch-size-avg
+            type: DoubleGauge
+          - name: gauge.kafka.consumer.records-consumed-rate
+            type: DoubleGauge
+          - name: gauge.kafka.consumer.records-lag-max
+            type: IntGauge
+          - name: gauge.loaded_classes
+            type: IntGauge
+          - name: invocations
+            type: IntMonotonicCumulativeSum
+          - name: jmx_memory.committed
+            type: IntGauge
+          - name: jmx_memory.init
+            type: IntGauge
+          - name: jmx_memory.max
+            type: IntGauge
+          - name: jmx_memory.used
+            type: IntGauge
+          - name: total_time_in_ms.collection_time
+            type: IntMonotonicCumulativeSum

@@ -1,0 +1,99 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: counter.hadoop.cluster.metrics.total_mb
+            type: IntMonotonicCumulativeSum
+          - name: counter.hadoop.cluster.metrics.total_nodes
+            type: IntMonotonicCumulativeSum
+          - name: counter.hadoop.cluster.metrics.total_virtual_cores
+            type: IntMonotonicCumulativeSum
+          - name: gauge.hadoop.cluster.metrics.active_nodes
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.allocated_mb
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.allocated_virtual_cores
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.apps_completed
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.apps_failed
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.apps_killed
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.apps_pending
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.apps_running
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.apps_submitted
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.available_mb
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.available_virtual_cores
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.containers_allocated
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.containers_pending
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.containers_reserved
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.decommissioned_nodes
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.lost_nodes
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.rebooted_nodes
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.reserved_mb
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.reserved_virtual_cores
+            type: IntGauge
+          - name: gauge.hadoop.cluster.metrics.unhealthy_nodes
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.nodes.availMemoryMB
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.nodes.availableVirtualCores
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.nodes.numContainers
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.nodes.usedMemoryMB
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.nodes.usedVirtualCores
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.absoluteCapacity
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.absoluteMaxCapacity
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.absoluteUsedCapacity
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.allocatedContainers
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.capacity
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.maxApplications
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.maxApplicationsPerUser
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.maxCapacity
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.numActiveApplications
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.numApplications
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.numContainers
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.numPendingApplications
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.pendingContainers
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.reservedContainers
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.usedCapacity
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.userLimit
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.leaf.queue.userLimitFactor
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.root.queue.capacity
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.root.queue.maxCapacity
+            type: IntGauge
+          - name: gauge.hadoop.resource.manager.scheduler.root.queue.usedCapacity
+            type: IntGauge

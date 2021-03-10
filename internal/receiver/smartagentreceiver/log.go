@@ -54,9 +54,9 @@ var _ logrus.Hook = (*logrusToZap)(nil)
 // logrusToZap stores a mapping of logrus to zap loggers in loggerMap and hooks to the logrus loggers.
 type logrusToZap struct {
 	loggerMap     map[logrusKey][]*zap.Logger
-	mu            sync.Mutex
 	noopLogger    *logrus.Logger
 	defaultLogger *zap.Logger
+	mu            sync.Mutex
 }
 
 type noopFormatter struct{}

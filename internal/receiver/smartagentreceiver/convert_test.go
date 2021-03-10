@@ -104,11 +104,11 @@ func pdataMetrics(dataType pdata.MetricDataType, val interface{}, timeReceived t
 
 func TestToMetrics(t *testing.T) {
 	tests := []struct {
+		timeReceived    time.Time
+		expectedMetrics pdata.Metrics
 		name            string
 		datapoints      []*sfx.Datapoint
-		expectedMetrics pdata.Metrics
 		expectedDropped int
-		timeReceived    time.Time
 	}{
 		{
 			name:            "IntGauge",

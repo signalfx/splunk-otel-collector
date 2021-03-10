@@ -28,9 +28,9 @@ import (
 
 func TestEventToLog(tt *testing.T) {
 	for _, test := range []struct {
-		name        string
 		event       event.Event
 		expectedLog pdata.Logs
+		name        string
 	}{
 		{
 			name:  "event zero value",

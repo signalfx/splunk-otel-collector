@@ -20,7 +20,7 @@ receivers:
   fluentforward:
     endpoint: 127.0.0.1:8006
   hostmetrics:
-    collection_interval: 1m
+    collection_interval: 10s
     scrapers:
       cpu:
       disk:

@@ -100,7 +100,7 @@ receivers:
   # Enables the hostmetric receiver with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/hostmetricsreceiver
   hostmetrics:
-    collection_interval: 1m
+    collection_interval: 10s
     scrapers:
       cpu:
       disk:

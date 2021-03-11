@@ -21,12 +21,17 @@ data:
         scrapers:
           cpu:
           disk:
-          load:
           filesystem:
           memory:
           network:
-          processes:
+          # System load average metrics https://en.wikipedia.org/wiki/Load_(computing)
+          load:
+          # Paging/Swap space utilization and I/O metrics
           paging:
+          # Aggregated system process count metrics
+          processes:
+          # System processes metrics, disabled by default
+          # process:
       jaeger:
         protocols:
           grpc:

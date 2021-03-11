@@ -45,6 +45,15 @@ processors:
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
 
+  # Optional: The following processor can be used to add a default "deployment.environment" attribute to the traces
+  # when it's not populated by instrumentation libraries.
+  # If enabled, make sure to enable this processor in the pipeline below.
+  #resource/add_environment:
+    #attributes:
+      #- action: insert
+        #value: staging/production/...
+        #key: deployment.environment
+
 exporters:
   # Traces
   otlphttp:
@@ -72,7 +81,10 @@ service:
   pipelines:
     traces:
       receivers: [jaeger, otlp, sapm, zipkin]
-      processors: [memory_limiter, batch]
+      processors: 
+      - memory_limiter
+      - batch
+      #- resource/add_environment
       exporters: [otlphttp, signalfx]
     metrics:
       receivers: [otlp, signalfx, prometheus]

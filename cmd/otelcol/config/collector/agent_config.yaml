@@ -81,6 +81,15 @@ processors:
     detectors: [system]
     override: true
 
+  # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and 
+  # traces when it's not populated by instrumentation libraries.
+  # If enabled, make sure to enable this processor in the pipeline below.
+  #resource/add_environment:
+    #attributes:
+      #- action: insert
+        #value: staging/production/...
+        #key: deployment.environment
+
 exporters:
   # Traces
   sapm:
@@ -103,7 +112,11 @@ service:
   pipelines:
     traces:
       receivers: [jaeger, otlp, sapm, zipkin]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: 
+      - memory_limiter
+      - batch
+      - resourcedetection
+      #- resource/add_environment
       exporters: [sapm, signalfx]
     metrics:
       receivers: [otlp, signalfx, prometheus, hostmetrics]
@@ -115,5 +128,9 @@ service:
       exporters: [signalfx]
     logs:
       receivers: [fluentforward]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: 
+      - memory_limiter
+      - batch
+      - resourcedetection
+      #- resource/add_environment
       exporters: [splunk_hec]

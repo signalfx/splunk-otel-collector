@@ -36,13 +36,13 @@ var errDimensionClientValue = fmt.Errorf("dimensionClients must be an array of c
 var errEventClientValue = fmt.Errorf("eventClients must be an array of compatible exporter names")
 
 type Config struct {
+	monitorConfig                 config.MonitorCustomConfig
 	configmodels.ReceiverSettings `mapstructure:",squash"`
 	// Generally an observer/receivercreator-set value via Endpoint.Target.
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
 	Endpoint         string   `mapstructure:"endpoint"`
 	DimensionClients []string `mapstructure:"dimensionclients"`
 	EventClients     []string `mapstructure:"eventclients"`
-	monitorConfig    config.MonitorCustomConfig
 }
 
 func (rCfg *Config) validate() error {

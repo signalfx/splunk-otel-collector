@@ -40,14 +40,14 @@ const internalTransport = "internal"
 // nextDimensionClients, and all events to the nextEventClients as determined by the associated
 // items in Config.MetadataClients.
 type Output struct {
-	receiverName         string
 	nextConsumer         consumer.MetricsConsumer
-	nextDimensionClients []*metadata.MetadataExporter
-	nextEventClients     []*consumer.LogsConsumer
+	extraDimensions      map[string]string
 	logger               *zap.Logger
 	converter            Converter
-	extraDimensions      map[string]string
 	monitorFiltering     *monitorFiltering
+	receiverName         string
+	nextDimensionClients []*metadata.MetadataExporter
+	nextEventClients     []*consumer.LogsConsumer
 }
 
 var _ types.Output = (*Output)(nil)

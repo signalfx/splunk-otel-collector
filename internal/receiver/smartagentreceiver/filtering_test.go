@@ -230,28 +230,27 @@ func TestNewMonitorFilteringWithExtraMetrics(t *testing.T) {
 
 func TestNewMonitorFilteringInvalid(t *testing.T) {
 	tests := []struct {
-		err      string
 		conf     config.MonitorCustomConfig
 		metadata *monitors.Metadata
+		err      string
 	}{
 		{
-			"unable to construct extraMetrics filter: metric name cannot be empty",
 			&config.MonitorConfig{
 				Type:         "test-monitor",
 				ExtraMetrics: []string{"  "},
 			},
 			exhaustiveMetadata,
+			"unable to construct extraMetrics filter: metric name cannot be empty",
 		},
 		{
-			"unable to construct extraMetrics filter: group cannot be empty",
 			&config.MonitorConfig{
 				Type:        "test-monitor",
 				ExtraGroups: []string{"  "},
 			},
 			exhaustiveMetadata,
+			"unable to construct extraMetrics filter: group cannot be empty",
 		},
 		{
-			"new filters can't be negated",
 			&config.MonitorConfig{
 				Type: "test-monitor",
 				DatapointsToExclude: []config.MetricFilter{
@@ -262,6 +261,7 @@ func TestNewMonitorFilteringInvalid(t *testing.T) {
 				},
 			},
 			exhaustiveMetadata,
+			"new filters can't be negated",
 		},
 	}
 	for _, test := range tests {

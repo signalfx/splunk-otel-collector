@@ -38,7 +38,7 @@ func eventToLog(event *event.Event, logger *zap.Logger) pdata.Logs {
 	if !event.Timestamp.IsZero() {
 		unixNano = event.Timestamp.UnixNano()
 	}
-	lr.SetTimestamp(pdata.TimestampUnixNano(unixNano))
+	lr.SetTimestamp(pdata.Timestamp(unixNano))
 
 	// size for event category and dimension attributes
 	attrsCapacity := 1 + len(event.Dimensions)

@@ -37,7 +37,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenterror"
+	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/exporter/fileexporter"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
@@ -136,5 +136,5 @@ func Get() (component.Factories, error) {
 		Exporters:  exporters,
 	}
 
-	return factories, componenterror.CombineErrors(errs)
+	return factories, consumererror.CombineErrors(errs)
 }

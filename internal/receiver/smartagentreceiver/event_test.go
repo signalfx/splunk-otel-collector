@@ -28,9 +28,9 @@ import (
 
 func TestEventToLog(tt *testing.T) {
 	for _, test := range []struct {
-		name        string
 		event       event.Event
 		expectedLog pdata.Logs
+		name        string
 	}{
 		{
 			name:  "event zero value",
@@ -135,7 +135,7 @@ func newExpectedLog(eventType string, properties map[string]pdata.AttributeValue
 	logSlice.Resize(1)
 	lr := logSlice.At(0)
 	lr.SetName(eventType)
-	lr.SetTimestamp(pdata.TimestampUnixNano(timestamp))
+	lr.SetTimestamp(pdata.Timestamp(timestamp))
 
 	attrs := lr.Attributes()
 	for k, v := range properties {

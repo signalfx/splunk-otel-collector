@@ -42,7 +42,7 @@ The Collector provides a single binary and two deployment methods:
 Observability
 Suite](https://www.splunk.com/en_us/form/splunk-observability-suite.html) at
 this time. The [SignalFx Smart
-Agent](https://github.com/signalfx/signalfx-agent) or [Splunk Unverisal
+Agent](https://github.com/signalfx/signalfx-agent) or [Splunk Universal
 Forwarder](https://docs.splunk.com/Documentation/Forwarder/8.1.2/Forwarder/Abouttheuniversalforwarder)
 should be used for all other products.
 

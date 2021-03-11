@@ -9,6 +9,7 @@ script deploys and configures:
 Currently, the following Windows versions are supported and requires PowerShell
 3.0 or newer:
 
+- Windows Server 2012 64-bit
 - Windows Server 2016 64-bit
 - Windows Server 2019 64-bit
 

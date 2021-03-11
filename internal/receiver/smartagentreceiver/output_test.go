@@ -300,12 +300,19 @@ func (mr *metricsReceiver) ConsumeMetrics(context.Context, pdata.Metrics) error 
 
 type hostWithExporters struct {
 	exporter *mockMetadataClient
-	componenttest.NopHost
 }
 
-func (h *hostWithExporters) GetExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
-	exporters := map[configmodels.DataType]map[configmodels.Exporter]component.Exporter{}
-	exporterMap := map[configmodels.Exporter]component.Exporter{}
+func (h *hostWithExporters) ReportFatalError(_ error) {}
+func (h *hostWithExporters) GetFactory(_ component.Kind, _ configmodels.Type) component.Factory {
+	return nil
+}
+func (h *hostWithExporters) GetExtensions() map[configmodels.NamedEntity]component.Extension {
+	return nil
+}
+
+func (h *hostWithExporters) GetExporters() map[configmodels.DataType]map[configmodels.NamedEntity]component.Exporter {
+	exporters := map[configmodels.DataType]map[configmodels.NamedEntity]component.Exporter{}
+	exporterMap := map[configmodels.NamedEntity]component.Exporter{}
 	exporters[configmodels.MetricsDataType] = exporterMap
 
 	me := namedEntity{name: h.exporter.name}

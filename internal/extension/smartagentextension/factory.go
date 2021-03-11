@@ -81,6 +81,6 @@ func createExtension(
 	_ context.Context,
 	_ component.ExtensionCreateParams,
 	cfg configmodels.Extension,
-) (component.ServiceExtension, error) {
+) (component.Extension, error) {
 	return newSmartAgentConfigExtension(cfg)
 }

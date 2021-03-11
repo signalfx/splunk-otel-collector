@@ -56,8 +56,12 @@ get_distro_codename() {
 }
 
 collector_config_dir="/etc/otel/collector"
-collector_config_path="${collector_config_dir}/gateway_config.yaml"
-collector_env_path="${collector_config_dir}/splunk_env"
+collector_config_path="${collector_config_dir}/agent_config.yaml"
+collector_config_old_path="${collector_config_dir}/splunk_config_linux.yaml"
+collector_env_path="${collector_config_dir}/splunk-otel-collector.conf"
+collector_env_old_path="${collector_config_dir}/splunk_env"
+collector_bundle_dir="/usr/lib/splunk-otel-collector"
+collectd_config_dir="${collector_bundle_dir}/run/collectd"
 distro="$( get_distro )"
 distro_codename="$( get_distro_codename )"
 distro_version="$( get_distro_version )"
@@ -679,6 +683,13 @@ parse_args_and_install() {
   create_user_group "$service_user" "$service_group"
   configure_service_owner "$service_user" "$service_group"
 
+  if [ ! -f "${collector_env_path}.example" ]; then
+    collector_env_path=$collector_env_old_path
+  fi
+  if [ ! -f "${collector_config_path}" ]; then
+    collector_config_path=$collector_config_old_path
+  fi
+  configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
   configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
   configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"
   configure_env_file "SPLUNK_API_URL" "$api_url" "$collector_env_path"
@@ -690,6 +701,16 @@ parse_args_and_install() {
     configure_env_file "SPLUNK_BALLAST_SIZE_MIB" "$ballast" "$collector_env_path"
   else
     configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
+  fi
+  if [ -d "$collector_bundle_dir" ]; then
+    configure_env_file "SPLUNK_BUNDLE_DIR" "$collector_bundle_dir" "$collector_env_path"
+    # ensure the collector service owner has access to the bundle dir
+    chown -R $service_user:$service_group "$collector_bundle_dir"
+  fi
+  if [ -d "$collectd_config_dir" ]; then
+    configure_env_file "SPLUNK_COLLECTD_DIR" "$collectd_config_dir" "$collector_env_path"
+    # ensure the collector service owner has access to the collectd dir
+    chown -R $service_user:$service_group "$collectd_config_dir"
   fi
 
   # ensure the collector service owner has access to the config dir

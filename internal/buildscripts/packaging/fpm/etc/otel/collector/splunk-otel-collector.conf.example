@@ -1,14 +1,17 @@
 # Sample environment file for passing variables to the splunk-otel-collector service.
-# See /etc/otel/collector/gateway_config.yaml for how these variables will be consumed.
+# See /etc/otel/collector/agent_config.yaml for how these variables will be consumed.
 
 # To use this file, update the values below appropriately,
-# and save the changes to "/etc/otel/collector/splunk_env".
+# and save the changes to "/etc/otel/collector/splunk-otel-collector.conf".
 
 # Then run the following commands to apply the changes and restart the service:
 #   sudo systemctl restart splunk-otel-collector.service
 
 # Command-line options for the splunk-otel-collector service. Run `/usr/bin/otelcol --help` to see all available options.
 OTELCOL_OPTIONS=""
+
+# Path to the config file for the collector.
+SPLUNK_CONFIG=/etc/otel/collector/agent_config.yaml
 
 # Access token to authenticate requests.
 SPLUNK_ACCESS_TOKEN=12345
@@ -39,3 +42,10 @@ SPLUNK_MEMORY_TOTAL_MIB=1024
 
 # How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.
 # SPLUNK_BALLAST_SIZE_MIB=683
+
+# The path to the Smart Agent bundle.
+SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector
+
+# The path to the collectd config directory for the Smart Agent.
+# This directory must be read/writable by the collector process.
+SPLUNK_COLLECTD_DIR=/usr/lib/splunk-otel-collector/run/collectd

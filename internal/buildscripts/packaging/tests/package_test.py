@@ -40,7 +40,8 @@ def test_collector_package_install(distro):
     service_name = "splunk-otel-collector"
     service_owner = "splunk-otel-collector"
     service_proc = "otelcol"
-    config_path = "/etc/otel/collector/splunk_env"
+    config_path = "/etc/otel/collector/splunk-otel-collector.conf"
+    bundle_dir = "/usr/lib/splunk-otel-collector"
 
     pkg_path = get_package(distro, pkg_name, pkg_dir)
     assert pkg_path, f"{pkg_name} package not found in {pkg_dir}"
@@ -50,13 +51,16 @@ def test_collector_package_install(distro):
     with run_distro_container(distro) as container:
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
 
-        # install package
-        if distro in DEB_DISTROS:
-            run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
-        else:
-            run_container_cmd(container, f"rpm -i /test/{pkg_base}")
-
         try:
+            # install package
+            if distro in DEB_DISTROS:
+                run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
+            else:
+                run_container_cmd(container, f"rpm -i /test/{pkg_base}")
+
+            run_container_cmd(container, f"test -d {bundle_dir}")
+            run_container_cmd(container, f"test -d {bundle_dir}/run/collectd")
+
             # verify service is not running after install without config file
             time.sleep(5)
             assert not service_is_running(container, service_name, service_owner, service_proc)

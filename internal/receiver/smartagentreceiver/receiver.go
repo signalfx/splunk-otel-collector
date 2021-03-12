@@ -41,13 +41,14 @@ import (
 const setOutputErrMsg = "unable to set Output field of monitor"
 
 type Receiver struct {
-	logger       *zap.Logger
-	config       *Config
-	monitor      interface{}
-	nextConsumer consumer.MetricsConsumer
-
-	startOnce sync.Once
-	stopOnce  sync.Once
+	monitor             interface{}
+	nextMetricsConsumer consumer.MetricsConsumer
+	nextLogsConsumer    consumer.LogsConsumer
+	logger              *zap.Logger
+	config              *Config
+	startOnce           sync.Once
+	stopOnce            sync.Once
+	sync.Mutex
 }
 
 var _ component.MetricsReceiver = (*Receiver)(nil)
@@ -60,12 +61,23 @@ var (
 	configureRusToZapOnce    sync.Once
 )
 
-func NewReceiver(logger *zap.Logger, config Config, nextConsumer consumer.MetricsConsumer) *Receiver {
+func NewReceiver(logger *zap.Logger, config Config) *Receiver {
 	return &Receiver{
-		logger:       logger,
-		config:       &config,
-		nextConsumer: nextConsumer,
+		logger: logger,
+		config: &config,
 	}
+}
+
+func (r *Receiver) registerMetricsConsumer(metricsConsumer consumer.MetricsConsumer) {
+	r.Lock()
+	defer r.Unlock()
+	r.nextMetricsConsumer = metricsConsumer
+}
+
+func (r *Receiver) registerLogsConsumer(logsConsumer consumer.LogsConsumer) {
+	r.Lock()
+	defer r.Unlock()
+	r.nextLogsConsumer = logsConsumer
 }
 
 func (r *Receiver) Start(_ context.Context, host component.Host) error {
@@ -144,7 +156,7 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 		return nil, err
 	}
 
-	output := NewOutput(*r.config, monitorFiltering, r.nextConsumer, host, r.logger)
+	output := NewOutput(*r.config, monitorFiltering, r.nextMetricsConsumer, r.nextLogsConsumer, host, r.logger)
 	set, err := SetStructFieldWithExplicitType(
 		monitor, "Output", output,
 		reflect.TypeOf((*types.Output)(nil)).Elem(),

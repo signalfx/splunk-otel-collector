@@ -34,7 +34,7 @@ func TestCreateDefaultConfig(t *testing.T) {
 	assert.NoError(t, configcheck.ValidateConfig(cfg))
 }
 
-func TestCreateReceiver(t *testing.T) {
+func TestCreateMetricsReceiver(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
@@ -43,9 +43,11 @@ func TestCreateReceiver(t *testing.T) {
 	receiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewMetricsNop())
 	assert.NoError(t, err)
 	assert.NotNil(t, receiver)
+
+	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
 }
 
-func TestCreateReceiverWithInvalidConfig(t *testing.T) {
+func TestCreateMetricsReceiverWithInvalidConfig(t *testing.T) {
 	factory := NewFactory()
 	cfg := &Config{}
 	require.Error(t, cfg.validate())
@@ -55,4 +57,79 @@ func TestCreateReceiverWithInvalidConfig(t *testing.T) {
 	require.Error(t, err)
 	assert.EqualError(t, err, "you must supply a valid Smart Agent Monitor config")
 	assert.Nil(t, receiver)
+
+	assert.NotContains(t, receiverStore, cfg)
+}
+
+func TestCreateLogsReceiver(t *testing.T) {
+	factory := NewFactory()
+	cfg := factory.CreateDefaultConfig()
+	cfg.(*Config).monitorConfig = &haproxy.Config{}
+
+	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	receiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, consumertest.NewLogsNop())
+	assert.NoError(t, err)
+	assert.NotNil(t, receiver)
+
+	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
+}
+
+func TestCreateLogsReceiverWithInvalidConfig(t *testing.T) {
+	factory := NewFactory()
+	cfg := &Config{}
+	require.Error(t, cfg.validate())
+
+	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	receiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, consumertest.NewLogsNop())
+	require.Error(t, err)
+	assert.EqualError(t, err, "you must supply a valid Smart Agent Monitor config")
+	assert.Nil(t, receiver)
+
+	assert.NotContains(t, receiverStore, cfg)
+}
+
+func TestCreateMetricAndThenLogsReceiver(t *testing.T) {
+	factory := NewFactory()
+	cfg := factory.CreateDefaultConfig()
+	cfg.(*Config).monitorConfig = &haproxy.Config{}
+
+	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	nextMetricsConsumer := consumertest.NewMetricsNop()
+	metricsReceiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, nextMetricsConsumer)
+	assert.NoError(t, err)
+	assert.NotNil(t, metricsReceiver)
+
+	nextLogsConsumer := consumertest.NewLogsNop()
+	logsReceiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, nextLogsConsumer)
+	assert.NoError(t, err)
+	assert.NotNil(t, logsReceiver)
+
+	assert.Same(t, metricsReceiver, logsReceiver)
+	assert.Same(t, metricsReceiver, receiverStore[cfg.(*Config)])
+
+	assert.Same(t, nextMetricsConsumer, metricsReceiver.(*Receiver).nextMetricsConsumer)
+	assert.Same(t, nextLogsConsumer, metricsReceiver.(*Receiver).nextLogsConsumer)
+}
+
+func TestCreateLogsAndThenMetricsReceiver(t *testing.T) {
+	factory := NewFactory()
+	cfg := factory.CreateDefaultConfig()
+	cfg.(*Config).monitorConfig = &haproxy.Config{}
+
+	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	nextLogsConsumer := consumertest.NewLogsNop()
+	logsReceiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, nextLogsConsumer)
+	assert.NoError(t, err)
+	assert.NotNil(t, logsReceiver)
+
+	nextMetricsConsumer := consumertest.NewMetricsNop()
+	metricsReceiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, nextMetricsConsumer)
+	assert.NoError(t, err)
+	assert.NotNil(t, metricsReceiver)
+
+	assert.Same(t, logsReceiver, metricsReceiver)
+	assert.Same(t, logsReceiver, receiverStore[cfg.(*Config)])
+
+	assert.Same(t, nextLogsConsumer, logsReceiver.(*Receiver).nextLogsConsumer)
+	assert.Same(t, nextMetricsConsumer, logsReceiver.(*Receiver).nextMetricsConsumer)
 }

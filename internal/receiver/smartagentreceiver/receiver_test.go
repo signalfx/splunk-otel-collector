@@ -85,7 +85,8 @@ func TestSmartAgentReceiver(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 10)
 	consumer := new(consumertest.MetricsSink)
-	receiver := NewReceiver(zap.NewNop(), cfg, consumer)
+	receiver := NewReceiver(zap.NewNop(), cfg)
+	receiver.registerMetricsConsumer(consumer)
 
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.NoError(t, err)
@@ -177,7 +178,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("invalid", "cpu", -123)
-	receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
+	receiver := NewReceiver(zap.NewNop(), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	assert.EqualError(t, err,
 		"config validation failed for \"smartagent/invalid\": intervalSeconds must be greater than 0s (-123 provided)",
@@ -187,7 +188,7 @@ func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("invalid", "notamonitortype", 1)
-	receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
+	receiver := NewReceiver(zap.NewNop(), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	assert.EqualError(t, err,
 		"failed creating monitor \"notamonitortype\": unable to find MonitorFactory for \"notamonitortype\"",
@@ -197,7 +198,7 @@ func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 func TestMultipleStartAndShutdownInvocations(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
-	receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
+	receiver := NewReceiver(zap.NewNop(), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
@@ -216,7 +217,7 @@ func TestMultipleStartAndShutdownInvocations(t *testing.T) {
 func TestOutOfOrderShutdownInvocations(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
-	receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
+	receiver := NewReceiver(zap.NewNop(), cfg)
 
 	err := receiver.Shutdown(context.Background())
 	require.Error(t, err)
@@ -228,7 +229,7 @@ func TestOutOfOrderShutdownInvocations(t *testing.T) {
 func TestInvalidMonitorStateAtShutdown(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
-	receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
+	receiver := NewReceiver(zap.NewNop(), cfg)
 	receiver.monitor = new(interface{})
 
 	err := receiver.Shutdown(context.Background())
@@ -256,7 +257,7 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 			monitors.MonitorMetadatas["notarealmonitor"] = &monitors.Metadata{MonitorType: "notarealmonitor"}
 
 			cfg := newConfig("invalid", "notarealmonitor", 123)
-			receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
+			receiver := NewReceiver(zap.NewNop(), cfg)
 			err := receiver.Start(context.Background(), componenttest.NewNopHost())
 			require.Error(tt, err)
 			assert.Contains(tt, err.Error(),
@@ -270,7 +271,7 @@ func TestFilteringNoMetadata(t *testing.T) {
 	t.Cleanup(cleanUp)
 	monitors.MonitorFactories["fakemonitor"] = func() interface{} { return struct{}{} }
 	cfg := newConfig("valid", "fakemonitor", 1)
-	receiver := NewReceiver(zap.NewNop(), cfg, consumertest.NewMetricsNop())
+	receiver := NewReceiver(zap.NewNop(), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.EqualError(t, err, "failed creating monitor \"fakemonitor\": could not find monitor metadata of type fakemonitor")
 }
@@ -280,7 +281,8 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	cfg := newConfig("valid", "cpu", 1)
 	observedLogger, logs := observer.New(zapcore.WarnLevel)
 	logger := zap.New(observedLogger)
-	r := NewReceiver(logger, cfg, consumertest.NewMetricsNop())
+	r := NewReceiver(logger, cfg)
+
 	configs := getSmartAgentExtensionConfig(t)
 	host := &mockHost{
 		smartagentextensionConfig:      configs[0],

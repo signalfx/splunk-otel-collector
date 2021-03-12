@@ -54,14 +54,12 @@ func TestLoadConfig(t *testing.T) {
 
 	haproxyCfg := cfg.Receivers["smartagent/haproxy"].(*Config)
 	expectedDimensionClients := []string{"exampleexporter/one", "exampleexporter/two"}
-	expectedEventClients := []string{"exampleexporter/two", "exampleexporter/three"}
 	require.Equal(t, &Config{
 		ReceiverSettings: configmodels.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/haproxy",
 		},
 		DimensionClients: expectedDimensionClients,
-		EventClients:     expectedEventClients,
 		monitorConfig: &haproxy.Config{
 			MonitorConfig: config.MonitorConfig{
 				Type:                "haproxy",
@@ -84,7 +82,6 @@ func TestLoadConfig(t *testing.T) {
 			NameVal: typeStr + "/redis",
 		},
 		DimensionClients: []string{},
-		EventClients:     []string{},
 		monitorConfig: &redis.Config{
 			MonitorConfig: config.MonitorConfig{
 				Type:                "collectd/redis",
@@ -388,18 +385,18 @@ func TestLoadInvalidConfigWithUnsupportedEndpoint(t *testing.T) {
 	require.Nil(t, cfg)
 }
 
-func TestLoadInvalidConfigWithNonArrayEventClients(t *testing.T) {
+func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
 	factories, err := componenttest.ExampleComponents()
 	assert.Nil(t, err)
 
 	factory := NewFactory()
 	factories.Receivers[configmodels.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "invalid_nonarray_event_clients.yaml"), factories,
+		t, path.Join(".", "testdata", "invalid_nonarray_dimension_clients.yaml"), factories,
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
-		"error reading receivers configuration for smartagent/haproxy: eventClients must be an array of compatible exporter names")
+		"error reading receivers configuration for smartagent/haproxy: dimensionClients must be an array of compatible exporter names")
 	require.Nil(t, cfg)
 }
 

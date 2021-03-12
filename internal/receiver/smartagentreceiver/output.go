@@ -16,7 +16,6 @@ package smartagentreceiver
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	metadata "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
@@ -36,31 +35,33 @@ import (
 const internalTransport = "internal"
 
 // Output is an implementation of a Smart Agent FilteringOutput that receives datapoints, events, and dimension updates
-// from a configured monitor.  It will forward all datapoints to the nextConsumer, all dimension updates to the
-// nextDimensionClients, and all events to the nextEventClients as determined by the associated
-// items in Config.MetadataClients.
+// from a configured monitor.  It will forward all datapoints to the nextMetricsConsumer, all dimension updates to the
+// nextDimensionClients as determined by the associated items in Config.MetadataClients, and all events to the
+// nextLogsConsumer.
 type Output struct {
-	nextConsumer         consumer.MetricsConsumer
+	nextMetricsConsumer  consumer.MetricsConsumer
+	nextLogsConsumer     consumer.LogsConsumer
 	extraDimensions      map[string]string
 	logger               *zap.Logger
 	converter            Converter
 	monitorFiltering     *monitorFiltering
 	receiverName         string
 	nextDimensionClients []*metadata.MetadataExporter
-	nextEventClients     []*consumer.LogsConsumer
 }
 
 var _ types.Output = (*Output)(nil)
 var _ types.FilteringOutput = (*Output)(nil)
 
-func NewOutput(config Config, filtering *monitorFiltering, nextConsumer consumer.MetricsConsumer, host component.Host, logger *zap.Logger) *Output {
-	metadataExporters := getMetadataExporters(config, host, &nextConsumer, logger)
-	logConsumers := getLogsConsumers(config, host, &nextConsumer, logger)
+func NewOutput(
+	config Config, filtering *monitorFiltering, nextMetricsConsumer consumer.MetricsConsumer,
+	nextLogsConsumer consumer.LogsConsumer, host component.Host, logger *zap.Logger,
+) *Output {
+	metadataExporters := getMetadataExporters(config, host, &nextMetricsConsumer, logger)
 	return &Output{
 		receiverName:         config.Name(),
-		nextConsumer:         nextConsumer,
+		nextMetricsConsumer:  nextMetricsConsumer,
+		nextLogsConsumer:     nextLogsConsumer,
 		nextDimensionClients: metadataExporters,
-		nextEventClients:     logConsumers,
 		logger:               logger,
 		converter:            Converter{logger: logger},
 		extraDimensions:      map[string]string{},
@@ -71,16 +72,25 @@ func NewOutput(config Config, filtering *monitorFiltering, nextConsumer consumer
 // getMetadataExporters walks through obtained Config.MetadataClients and returns all matching registered MetadataExporters,
 // if any.  At this time the SignalFx exporter is the only supported use case and adopter of this type.
 func getMetadataExporters(
-	config Config, host component.Host, nextConsumer *consumer.MetricsConsumer, logger *zap.Logger,
+	config Config, host component.Host, nextMetricsConsumer *consumer.MetricsConsumer, logger *zap.Logger,
 ) []*metadata.MetadataExporter {
 	var exporters []*metadata.MetadataExporter
 
-	metadataExporters := getClientsFromMetricsExporters(config.DimensionClients, host, nextConsumer, "dimensionClients", logger)
+	metadataExporters, noClientsSpecified := getDimensionClientsFromMetricsExporters(config.DimensionClients, host, nextMetricsConsumer, logger)
 	for _, client := range metadataExporters {
 		if metadataExporter, ok := (*client).(metadata.MetadataExporter); ok {
 			exporters = append(exporters, &metadataExporter)
 		} else {
 			logger.Info("cannot send dimension updates to dimension client", zap.Any("client", *client))
+		}
+	}
+
+	if len(exporters) == 0 && noClientsSpecified {
+		sfxExporter := getLoneSFxExporter(host, configmodels.MetricsDataType)
+		if sfxExporter != nil {
+			if sfx, ok := sfxExporter.(metadata.MetadataExporter); ok {
+				exporters = append(exporters, &sfx)
+			}
 		}
 	}
 
@@ -91,61 +101,59 @@ func getMetadataExporters(
 	return exporters
 }
 
-// getLogsConsumers walks through obtained Config.EventClients and returns all matching registered LogsConsumers,
-// if any.  At this time the SignalFx exporter is the only real target use case, but it's unexported and
-// as implemented all specified combination MetricsExporters and LogsConsumers will be returned.
-func getLogsConsumers(
-	config Config, host component.Host, nextConsumer *consumer.MetricsConsumer, logger *zap.Logger,
-) []*consumer.LogsConsumer {
-	var consumers []*consumer.LogsConsumer
-
-	eventClients := getClientsFromMetricsExporters(config.EventClients, host, nextConsumer, "eventClients", logger)
-	for _, client := range eventClients {
-		if logsExporter, ok := (*client).(consumer.LogsConsumer); ok {
-			consumers = append(consumers, &logsExporter)
-		} else {
-			logger.Info("cannot send events to event client", zap.Any("client", *client))
-		}
-	}
-
-	if len(consumers) == 0 {
-		logger.Debug("no SFx events are possible as no valid eventClients have been provided and next pipeline component isn't a LogsConsumer")
-	}
-
-	return consumers
-}
-
-// getClientsFromMetricsExporters will walk through all provided config.DimensionClients and retrieve matching registered
+// getDimensionClientsFromMetricsExporters will walk through all provided config.DimensionClients and retrieve matching registered
 // MetricsExporters, the only truly supported component type.
-// If config.MetadataClients is nil, it will return a slice with nextConsumer if it's a MetricsExporter.
-func getClientsFromMetricsExporters(
-	specifiedClients []string, host component.Host, nextConsumer *consumer.MetricsConsumer, fieldName string, logger *zap.Logger,
-) (clients []*interface{}) {
+// If config.MetadataClients is nil, it will return a slice with nextMetricsConsumer if it's a MetricsExporter.
+func getDimensionClientsFromMetricsExporters(
+	specifiedClients []string, host component.Host, nextMetricsConsumer *consumer.MetricsConsumer, logger *zap.Logger,
+) (clients []*metadata.MetadataExporter, wasNil bool) {
 	if specifiedClients == nil {
-		// default to nextConsumer if no clients have been provided
-		asInterface := (*nextConsumer).(interface{})
-		clients = append(clients, &asInterface)
+		wasNil = true
+		// default to nextMetricsConsumer if no clients have been provided
+		if asMetadataExporter, ok := (*nextMetricsConsumer).(metadata.MetadataExporter); ok {
+			clients = append(clients, &asMetadataExporter)
+		}
 		return
 	}
 
-	builtExporters := host.GetExporters()[configmodels.MetricsDataType]
-	for _, client := range specifiedClients {
-		var found bool
-		for exporterConfig, exporter := range builtExporters {
-			if exporterConfig.Name() == client {
-				asInterface := exporter.(interface{})
-				clients = append(clients, &asInterface)
-				found = true
+	if builtExporters, ok := host.GetExporters()[configmodels.MetricsDataType]; ok {
+		for _, client := range specifiedClients {
+			var found bool
+			for exporterConfig, exporter := range builtExporters {
+				if exporterConfig.Name() == client {
+					if asMetadataExporter, ok := exporter.(metadata.MetadataExporter); ok {
+						clients = append(clients, &asMetadataExporter)
+					}
+					found = true
+				}
+			}
+			if !found {
+				logger.Info(
+					"specified dimension client is not an available exporter",
+					zap.String("client", client),
+				)
 			}
 		}
-		if !found {
-			logger.Info(
-				fmt.Sprintf("specified %s is not an available exporter", fieldName),
-				zap.String("client", client),
-			)
+	}
+	return
+}
+
+func getLoneSFxExporter(host component.Host, exporterType configmodels.DataType) component.Exporter {
+	var sfxExporter component.Exporter
+	if builtExporters, ok := host.GetExporters()[exporterType]; ok {
+		for exporterConfig, exporter := range builtExporters {
+			if exporterConfig.Type() == "signalfx" {
+				if sfxExporter == nil {
+					sfxExporter = exporter
+				} else { // we've already found one so no lone instance to use as default
+					return nil
+				}
+
+			}
 		}
 	}
-	return clients
+	return sfxExporter
+
 }
 
 func (output *Output) AddDatapointExclusionFilter(filter dpfilters.DatapointFilter) {
@@ -177,6 +185,10 @@ func (output *Output) Copy() types.Output {
 }
 
 func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
+	if output.nextMetricsConsumer == nil {
+		return
+	}
+
 	ctx := obsreport.ReceiverContext(context.Background(), output.receiverName, internalTransport)
 	ctx = obsreport.StartMetricsReceiveOp(ctx, typeStr, internalTransport)
 
@@ -192,21 +204,19 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 	}
 
 	_, numPoints := metrics.MetricAndDataPointCount()
-	err := output.nextConsumer.ConsumeMetrics(context.Background(), metrics)
+	err := output.nextMetricsConsumer.ConsumeMetrics(context.Background(), metrics)
 	obsreport.EndMetricsReceiveOp(ctx, typeStr, numPoints, err)
 }
 
 func (output *Output) SendEvent(event *event.Event) {
-	if len(output.nextEventClients) == 0 {
+	if output.nextLogsConsumer == nil {
 		return
 	}
 
 	logRecord := eventToLog(event, output.logger)
-	for _, logsConsumer := range output.nextEventClients {
-		err := (*logsConsumer).ConsumeLogs(context.Background(), logRecord)
-		if err != nil {
-			output.logger.Debug("SendEvent has failed", zap.Error(err))
-		}
+	err := output.nextLogsConsumer.ConsumeLogs(context.Background(), logRecord)
+	if err != nil {
+		output.logger.Debug("SendEvent has failed", zap.Error(err))
 	}
 }
 

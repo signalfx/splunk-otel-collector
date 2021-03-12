@@ -33,7 +33,6 @@ import (
 const defaultIntervalSeconds = 10
 
 var errDimensionClientValue = fmt.Errorf("dimensionClients must be an array of compatible exporter names")
-var errEventClientValue = fmt.Errorf("eventClients must be an array of compatible exporter names")
 
 type Config struct {
 	monitorConfig                 config.MonitorCustomConfig
@@ -42,7 +41,6 @@ type Config struct {
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
 	Endpoint         string   `mapstructure:"endpoint"`
 	DimensionClients []string `mapstructure:"dimensionclients"`
-	EventClients     []string `mapstructure:"eventclients"`
 }
 
 func (rCfg *Config) validate() error {
@@ -84,10 +82,6 @@ func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error
 
 	var err error
 	receiverCfg.DimensionClients, err = getStringSliceFromAllSettings(allSettings, "dimensionclients", errDimensionClientValue)
-	if err != nil {
-		return err
-	}
-	receiverCfg.EventClients, err = getStringSliceFromAllSettings(allSettings, "eventclients", errEventClientValue)
 	if err != nil {
 		return err
 	}

@@ -8,6 +8,7 @@ receivers:
       username: test_user
       password: test_password
     masterDBName: test_db
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

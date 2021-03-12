@@ -9,6 +9,7 @@ receivers:
     type: collectd/apache
     host: localhost
     port: 8080
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

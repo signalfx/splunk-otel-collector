@@ -9,6 +9,7 @@ receivers:
     type: collectd/solr
     host: localhost
     port: 8983
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

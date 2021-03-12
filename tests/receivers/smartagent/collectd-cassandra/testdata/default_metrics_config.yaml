@@ -5,11 +5,12 @@ extensions:
       configDir: /tmp/collectd/config
 
 receivers:
-  smartagent/collectd_nginx:
-    type: collectd/nginx
+  smartagent/collectd_cassandra:
+    type: collectd/cassandra
     host: localhost
-    port: 8123
-    extraMetrics: ["*"]
+    port: 7199
+    username: cassandra
+    password: cassandra
     intervalSeconds: 1
 
 exporters:
@@ -22,5 +23,5 @@ service:
   pipelines:
     metrics:
       receivers:
-        - smartagent/collectd_nginx
+        - smartagent/collectd_cassandra
       exporters: [otlp]

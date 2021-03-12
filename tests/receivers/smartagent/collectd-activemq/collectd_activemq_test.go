@@ -21,14 +21,18 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestCollectdActiveMQReceiverProvidesAllMetrics(t *testing.T) {
-	containers := []testutils.Container{
-		testutils.NewContainer().WithContext(
-			path.Join(".", "testdata", "server"),
-		).WithExposedPorts("1099:1099").WithName("activemq").WillWaitForPorts("1099"),
-	}
+var activemq = []testutils.Container{testutils.NewContainer().WithContext(
+	path.Join(".", "testdata", "server"),
+).WithExposedPorts("1099:1099").WithName("activemq").WillWaitForPorts("1099")}
 
+func TestCollectdActiveMQReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", containers,
+		t, "all.yaml", "all_metrics_config.yaml", activemq,
+	)
+}
+
+func TestCollectdActiveMQReceiverProvidesDefaultMetrics(t *testing.T) {
+	testutils.AssertAllMetricsReceived(
+		t, "default.yaml", "default_metrics_config.yaml", activemq,
 	)
 }

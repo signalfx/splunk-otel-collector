@@ -5,11 +5,12 @@ extensions:
       configDir: /tmp/collectd/config
 
 receivers:
-  smartagent/collectd_nginx:
-    type: collectd/nginx
+  smartagent/collectd_activemq:
+    type: collectd/activemq
     host: localhost
-    port: 8123
-    extraMetrics: ["*"]
+    port: 1099
+    username: testuser
+    password: testing123
     intervalSeconds: 1
 
 exporters:
@@ -22,5 +23,5 @@ service:
   pipelines:
     metrics:
       receivers:
-        - smartagent/collectd_nginx
+        - smartagent/collectd_activemq
       exporters: [otlp]

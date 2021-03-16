@@ -5,11 +5,10 @@ extensions:
       configDir: /tmp/collectd/config
 
 receivers:
-  smartagent/collectd_nginx:
-    type: collectd/nginx
+  smartagent/collectd_apache:
+    type: collectd/apache
     host: localhost
-    port: 8123
-    extraMetrics: ["*"]
+    port: 8080
     intervalSeconds: 1
 
 exporters:
@@ -22,5 +21,5 @@ service:
   pipelines:
     metrics:
       receivers:
-        - smartagent/collectd_nginx
+        - smartagent/collectd_apache
       exporters: [otlp]

@@ -12,6 +12,7 @@ receivers:
     collectTarget: NODE
     username: administrator
     password: password
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

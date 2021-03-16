@@ -21,14 +21,20 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestCollectdApacheReceiverProvidesAllMetrics(t *testing.T) {
-	containers := []testutils.Container{
-		testutils.NewContainer().WithContext(
-			path.Join(".", "testdata", "server"),
-		).WithExposedPorts("8080:80").WithName("apache").WillWaitForPorts("80"),
-	}
+var apache = []testutils.Container{
+	testutils.NewContainer().WithContext(
+		path.Join(".", "testdata", "server"),
+	).WithExposedPorts("8080:80").WithName("apache").WillWaitForPorts("80"),
+}
 
+func TestCollectdApacheReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", containers,
+		t, "all.yaml", "all_metrics_config.yaml", apache,
+	)
+}
+
+func TestCollectdApacheReceiverProvidesDefaultMetrics(t *testing.T) {
+	testutils.AssertAllMetricsReceived(
+		t, "default.yaml", "default_metrics_config.yaml", apache,
 	)
 }

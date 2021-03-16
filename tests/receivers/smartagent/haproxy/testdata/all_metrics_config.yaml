@@ -2,6 +2,7 @@ receivers:
   smartagent/haproxy:
     type: haproxy
     url: http://localhost:8080/stats?stats;csv
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

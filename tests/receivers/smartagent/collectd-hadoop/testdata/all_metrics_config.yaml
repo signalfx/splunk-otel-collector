@@ -10,6 +10,7 @@ receivers:
     host: localhost
     port: 8088
     verbose: true
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

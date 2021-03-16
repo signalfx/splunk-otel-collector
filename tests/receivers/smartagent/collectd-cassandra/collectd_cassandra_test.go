@@ -21,14 +21,20 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestCollectdCassandraReceiverProvidesAllMetrics(t *testing.T) {
-	containers := []testutils.Container{
-		testutils.NewContainer().WithContext(
-			path.Join(".", "testdata", "server"),
-		).WithExposedPorts("7199:7199").WithName("cassandra").WillWaitForPorts("7199"),
-	}
+var cassandra = []testutils.Container{
+	testutils.NewContainer().WithContext(
+		path.Join(".", "testdata", "server"),
+	).WithExposedPorts("7199:7199").WithName("cassandra").WillWaitForPorts("7199"),
+}
 
+func TestCollectdCassandraReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", containers,
+		t, "all.yaml", "all_metrics_config.yaml", cassandra,
+	)
+}
+
+func TestCollectdCassandraReceiverProvidesDefaultMetrics(t *testing.T) {
+	testutils.AssertAllMetricsReceived(
+		t, "default.yaml", "default_metrics_config.yaml", cassandra,
 	)
 }

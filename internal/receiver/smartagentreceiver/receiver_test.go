@@ -228,6 +228,23 @@ func TestOutOfOrderShutdownInvocations(t *testing.T) {
 	)
 }
 
+func TestMultipleInstacesOfSameMonitorType(t *testing.T) {
+	t.Cleanup(cleanUp)
+	cfg := newConfig("valid", "cpu", 1)
+	fstRcvr := NewReceiver(zap.NewNop(), cfg)
+
+	ctx := context.Background()
+	mh := internaltest.NewAssertNoError(t)
+	require.NoError(t, fstRcvr.Start(ctx, mh))
+
+	sndRcvr := NewReceiver(zap.NewNop(), cfg)
+
+	require.NoError(t, fstRcvr.Shutdown(ctx))
+
+	assert.NoError(t, sndRcvr.Start(ctx, mh))
+	assert.NoError(t, sndRcvr.Shutdown(ctx))
+}
+
 func TestInvalidMonitorStateAtShutdown(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
@@ -333,23 +350,6 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	require.Equal(t, "/run", os.Getenv("HOST_RUN"))
 	require.Equal(t, "/var", os.Getenv("HOST_VAR"))
 	require.Equal(t, "/etc", os.Getenv("HOST_ETC"))
-}
-
-func TestReceiverLifecycle(t *testing.T) {
-	t.Cleanup(cleanUp)
-	cfg := newConfig("valid", "cpu", 1)
-	fstRcvr := NewReceiver(zap.NewNop(), cfg)
-
-	ctx := context.Background()
-	mh := internaltest.NewAssertNoError(t)
-	require.NoError(t, fstRcvr.Start(ctx, mh))
-
-	sndRcvr := NewReceiver(zap.NewNop(), cfg)
-
-	require.NoError(t, fstRcvr.Shutdown(ctx))
-
-	assert.NoError(t, sndRcvr.Start(ctx, mh))
-	assert.NoError(t, sndRcvr.Shutdown(ctx))
 }
 
 func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {

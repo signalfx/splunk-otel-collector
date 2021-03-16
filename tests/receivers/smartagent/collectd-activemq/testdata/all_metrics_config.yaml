@@ -11,6 +11,7 @@ receivers:
     port: 1099
     username: testuser
     password: testing123
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

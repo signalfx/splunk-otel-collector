@@ -9,6 +9,7 @@ receivers:
     type: collectd/kafka_producer
     host: localhost
     port: 8099
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

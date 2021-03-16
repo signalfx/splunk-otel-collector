@@ -9,6 +9,7 @@ receivers:
     type: collectd/kafka_consumer
     host: localhost
     port: 9099
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

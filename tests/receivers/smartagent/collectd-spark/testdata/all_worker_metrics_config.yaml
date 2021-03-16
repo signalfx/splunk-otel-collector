@@ -12,6 +12,7 @@ receivers:
     clusterType: Standalone
     isMaster: false
     enhancedMetrics: true
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

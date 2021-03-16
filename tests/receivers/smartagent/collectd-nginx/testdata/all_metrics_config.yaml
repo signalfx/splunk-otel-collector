@@ -9,6 +9,7 @@ receivers:
     type: collectd/nginx
     host: localhost
     port: 8123
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

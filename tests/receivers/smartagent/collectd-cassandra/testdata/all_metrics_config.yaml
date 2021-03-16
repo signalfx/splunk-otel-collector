@@ -11,6 +11,7 @@ receivers:
     port: 7199
     username: cassandra
     password: cassandra
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

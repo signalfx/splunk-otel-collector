@@ -13,6 +13,7 @@ receivers:
     isMaster: true
     collectApplicationMetrics: true
     enhancedMetrics: true
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

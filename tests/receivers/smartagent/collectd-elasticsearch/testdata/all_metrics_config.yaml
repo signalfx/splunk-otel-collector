@@ -11,6 +11,7 @@ receivers:
     port: 9200
     username: elastic
     password: testing123
+    extraMetrics: ["*"]
     intervalSeconds: 1
 
 exporters:

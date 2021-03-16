@@ -1,0 +1,13 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: apache_bytes
+            type: IntMonotonicCumulativeSum
+          - name: apache_connections
+            type: IntGauge
+          - name: apache_idle_workers
+            type: IntGauge
+          - name: apache_requests
+            type: IntMonotonicCumulativeSum
+          - name: apache_scoreboard.open
+            type: IntGauge

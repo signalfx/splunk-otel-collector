@@ -1,0 +1,27 @@
+extensions:
+  smartagent:
+    bundleDir: /opt/bundle
+    collectd:
+      configDir: /tmp/collectd/config
+
+receivers:
+  smartagent/collectd_activemq:
+    type: collectd/activemq
+    host: localhost
+    port: 1099
+    username: testuser
+    password: testing123
+    intervalSeconds: 1
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+
+service:
+  extensions: [smartagent]
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/collectd_activemq
+      exporters: [otlp]

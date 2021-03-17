@@ -68,7 +68,7 @@ EOH
 yum install -y splunk-otel-collector
 ```
 2. A default configuration file will be installed to
-   `/etc/otel/collector/splunk_config_linux.yaml` if it does not already exist.
+   `/etc/otel/collector/gateway_config` if it does not already exist.
 3. The `/etc/otel/collector/splunk_env` environment file is required to start
    the `splunk-otel-collector` systemd service.  A sample environment file will
    be installed to `/etc/otel/collector/splunk_env.example` that includes the
@@ -91,7 +91,7 @@ the Collector. The following environmental variables are required:
 Optional environment variables
 </summary>
 
-- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk_config_linux.yaml`): Which configuration to load.
+- `SPLUNK_CONFIG` (default = `/etc/otel/collector/gateway_config`): Which configuration to load.
 - `SPLUNK_BALLAST_SIZE_MIB` (no default): How much memory to allocate to the ballast.
 - `SPLUNK_MEMORY_TOTAL_MIB` (default = `512`): Total memory allocated to the Collector.
 
@@ -181,5 +181,5 @@ configuration as shown above.
 If the custom configuration includes a `memory_limiter` processor then the
 `ballast_size_mib` parameter should be the same as the
 `SPLUNK_BALLAST_SIZE_MIB` environment variable. See
-[splunk_config_linux.yaml](cmd/otelcol/config/collector/splunk_config_linux.yaml)
+[gateway_config](cmd/otelcol/config/collector/gateway_config)
 as an example.

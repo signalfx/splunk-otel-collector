@@ -56,7 +56,7 @@ get_distro_codename() {
 }
 
 collector_config_dir="/etc/otel/collector"
-collector_config_path="${collector_config_dir}/splunk_config_linux.yaml"
+collector_config_path="${collector_config_dir}/gateway_config"
 collector_env_path="${collector_config_dir}/splunk_env"
 distro="$( get_distro )"
 distro_codename="$( get_distro_codename )"

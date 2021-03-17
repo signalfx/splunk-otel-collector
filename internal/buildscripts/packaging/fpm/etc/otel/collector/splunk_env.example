@@ -1,5 +1,5 @@
 # Sample environment file for passing variables to the splunk-otel-collector service.
-# See /etc/otel/collector/splunk_config_linux.yaml for how these variables will be consumed.
+# See /etc/otel/collector/gateway_config.yaml for how these variables will be consumed.
 
 # To use this file, update the values below appropriately,
 # and save the changes to "/etc/otel/collector/splunk_env".

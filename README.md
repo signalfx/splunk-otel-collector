@@ -136,10 +136,11 @@ information about the health and status of Collector instances.
 
 ## Troubleshooting
 
-See the [Collector troubleshooting
+Start by reviewing the [Collector troubleshooting
 documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/troubleshooting.md).
-Additional troubleshooting information can be found in the [getting
-started](getting-started) READMEs.
+
+For troubleshooting information specific to this distribution, please review
+[troubleshooting.md](docs/troubleshooting.md).
 
 ## License
 

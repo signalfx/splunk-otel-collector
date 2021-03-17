@@ -90,6 +90,7 @@ matrix](https://github.com/open-telemetry/community/blob/47813530864b9fe5a5146f4
 | carbon         |            |           |            |
 | collectd       |            |           |            |
 | fluentdforward |            |           |            |
+| smartagent     |            |           |            |
 | statsd         |            |           |            |
 
 ## Sizing
@@ -149,6 +150,24 @@ documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/ma
 
 For troubleshooting information specific to this distribution, please review
 [troubleshooting.md](docs/troubleshooting.md).
+
+## Migrating from the SignalFx Smart Agent
+
+The Splunk distribution of OpenTelemetry Collector will be the next
+generation agent and gateway for Splunk APM and Splunk Infrastructure
+Monitoring.  As such, it is the replacement for the [SignalFx Smart
+Agent](https://github.com/signalfx/signalfx-agent).
+
+This distribution provides helpful components to assist current Smart Agent
+users in their transition to OpenTelemetry Collector and help ensure that
+no loss of functionality is experienced.  The [Smart Agent
+Receiver](./internal/receiver/smartagentreceiver/README.md), its associated
+[Extension](./internal/extension/smartagentextension/README.md), and other
+Collector components provide a means of integrating all Smart Agent metric
+monitors into your Collector pipelines.
+
+A detailed overview of our suggested migration practices is provided
+[here](./internal/receiver/smartagentreceiver/MIGRATING.md).
 
 ## License
 

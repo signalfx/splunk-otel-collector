@@ -11,7 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package smartagentreceiver
+
+package converter
 
 import (
 	"fmt"
@@ -28,14 +29,10 @@ var (
 	errNoFloatValue                   = fmt.Errorf("no valid value for expected FloatValue")
 )
 
-type Converter struct {
-	logger *zap.Logger
-}
-
 // Based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.15.0/receiver/signalfxreceiver/signalfxv2_to_metricdata.go
 // toMetrics() will respect the timestamp of any datapoint that isn't the zero value for time.Time,
 // using timeReceived otherwise.
-func (c *Converter) toMetrics(datapoints []*sfx.Datapoint, timeReceived time.Time) (pdata.Metrics, int) {
+func sfxDatapointsToPDataMetrics(datapoints []*sfx.Datapoint, timeReceived time.Time, logger *zap.Logger) (pdata.Metrics, int) {
 	numDropped := 0
 	md := pdata.NewMetrics()
 	md.ResourceMetrics().Resize(1)
@@ -57,7 +54,7 @@ func (c *Converter) toMetrics(datapoints []*sfx.Datapoint, timeReceived time.Tim
 		err := setDataType(datapoint, m)
 		if err != nil {
 			numDropped++
-			c.logger.Debug("SignalFx datapoint type conversion error",
+			logger.Debug("SignalFx datapoint type conversion error",
 				zap.Error(err),
 				zap.String("metric", datapoint.String()))
 			continue
@@ -78,7 +75,7 @@ func (c *Converter) toMetrics(datapoints []*sfx.Datapoint, timeReceived time.Tim
 
 		if err != nil {
 			numDropped++
-			c.logger.Debug("SignalFx datapoint datum conversion error",
+			logger.Debug("SignalFx datapoint datum conversion error",
 				zap.Error(err),
 				zap.String("metric", datapoint.Metric))
 			continue
@@ -92,6 +89,7 @@ func (c *Converter) toMetrics(datapoints []*sfx.Datapoint, timeReceived time.Tim
 	return md, numDropped
 
 }
+
 func setDataType(datapoint *sfx.Datapoint, m pdata.Metric) error {
 	sfxMetricType := datapoint.MetricType
 	if sfxMetricType == sfx.Timestamp {

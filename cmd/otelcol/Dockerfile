@@ -10,7 +10,7 @@ RUN chmod 755 /otelcol
 FROM scratch
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=otelcol /otelcol /
-COPY config/collector/splunk_config_linux.yaml /etc/otel/collector/splunk_config_linux.yaml
+COPY config/collector/gateway_config.yaml /etc/otel/collector/gateway_config.yaml
 COPY config/collector/otlp_config_linux.yaml /etc/otel/collector/otlp_config_linux.yaml
 ENTRYPOINT ["/otelcol"]
 EXPOSE 13133 14250 14268 55680 4317 6060 7276 8888 9411 9443

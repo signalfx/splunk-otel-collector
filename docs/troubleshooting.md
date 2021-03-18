@@ -5,7 +5,7 @@
 If either the splunk-otel-collector or td-agent services are not properly
 installed and configured:
 
-- Ensure the OS is supported
+- Ensure the OS [is supported](getting-started/linux-installer.md#linux-installer-script)
 - Ensure the OS has systemd installed
 - Ensure pid1 can be accessed (custom configuration required for containerized
   environments)

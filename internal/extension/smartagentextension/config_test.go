@@ -62,6 +62,7 @@ func TestLoadConfig(t *testing.T) {
 				WriteServerIPAddr:    "127.9.8.7",
 				WriteServerPort:      0,
 				ConfigDir:            "/var/run/signalfx-agent/collectd",
+				BundleDir:            bundleDir,
 				HasGenericJMXMonitor: false,
 			},
 		}

@@ -62,9 +62,9 @@ func customUnmarshaller(componentViperSection *viper.Viper, intoCfg interface{})
 	var collectdSettings map[string]interface{}
 	var ok bool
 	if collectdSettings, ok = allSettings["collectd"].(map[string]interface{}); !ok {
-		// Nothing to do if user specified collectd settings do not exist.
-		// Defaults will be picked up.
-		return nil
+		// We must set the BundleDir field on the resulting CollectdConfig
+		// so we use an empty instance.  Defaults will be picked up.
+		collectdSettings = map[string]interface{}{}
 	}
 
 	var collectdConfig config.CollectdConfig

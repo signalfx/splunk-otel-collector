@@ -134,6 +134,14 @@ The default configuration automatically scrapes the Collector's own metrics and
 sends the data using the `signalfx` exporter. A built-in dashboard provides
 information about the health and status of Collector instances.
 
+## Security
+
+Start by reviewing the [Collector security
+documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/security.md).
+
+For security information specific to this distribution, please review
+[security.md](docs/security.md).
+
 ## Troubleshooting
 
 Start by reviewing the [Collector troubleshooting

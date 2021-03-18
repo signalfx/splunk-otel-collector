@@ -69,7 +69,7 @@ receiving trace data over JSON. Zipkin provides some example data
 As a result, you can test by running something like the following:
 
 ```bash
-$ wget https://raw.githubusercontent.com/openzipkin/zipkin/master/zipkin-lens/testdata/yelp.json
+$ curl -OL https://raw.githubusercontent.com/openzipkin/zipkin/master/zipkin-lens/testdata/yelp.json
 $ curl -X POST localhost:9411/api/v2/spans -H'Content-Type: application/json' -d @yelp.json
 ```
 

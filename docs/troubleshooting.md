@@ -49,7 +49,7 @@ $ echo "2021-03-17 02:14:44 +0000 [debug]: test" | systemctl-cat
 
 - Check [zpages](https://github.com/open-telemetry/opentelemetry-collector/blob/main/extension/zpagesextension) for samples (`http://localhost:55679/debug/tracez`); may require
   `endpoint` configuration
-- Enable logging exporter and check logs (`journalctl -u
+- Enable [logging exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter) and check logs (`journalctl -u
   splunk-otel-collector.service -f`)
 - Review the [Collector troubleshooting
   documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/troubleshooting.md).

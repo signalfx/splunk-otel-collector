@@ -38,7 +38,7 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	assert.Nil(t, err)
 
 	factory := NewFactory()
@@ -53,7 +53,7 @@ func TestLoadConfig(t *testing.T) {
 	assert.Equal(t, len(cfg.Receivers), 5)
 
 	haproxyCfg := cfg.Receivers["smartagent/haproxy"].(*Config)
-	expectedDimensionClients := []string{"exampleexporter/one", "exampleexporter/two"}
+	expectedDimensionClients := []string{"nop/one", "nop/two"}
 	require.Equal(t, &Config{
 		ReceiverSettings: configmodels.ReceiverSettings{
 			TypeVal: typeStr,
@@ -155,7 +155,7 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestLoadInvalidConfigWithoutType(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	assert.Nil(t, err)
 
 	factory := NewFactory()
@@ -170,7 +170,7 @@ func TestLoadInvalidConfigWithoutType(t *testing.T) {
 }
 
 func TestLoadInvalidConfigWithUnknownType(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	assert.Nil(t, err)
 
 	factory := NewFactory()
@@ -185,7 +185,7 @@ func TestLoadInvalidConfigWithUnknownType(t *testing.T) {
 }
 
 func TestLoadInvalidConfigWithUnexpectedTag(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	assert.Nil(t, err)
 
 	factory := NewFactory()
@@ -200,7 +200,7 @@ func TestLoadInvalidConfigWithUnexpectedTag(t *testing.T) {
 }
 
 func TestLoadInvalidConfigs(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	assert.Nil(t, err)
 
 	factory := NewFactory()
@@ -254,7 +254,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 }
 
 func TestLoadConfigWithEndpoints(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	assert.Nil(t, err)
 
 	factory := NewFactory()
@@ -356,7 +356,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 }
 
 func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	assert.Nil(t, err)
 
 	factory := NewFactory()
@@ -371,7 +371,7 @@ func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {
 }
 
 func TestLoadInvalidConfigWithUnsupportedEndpoint(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	assert.Nil(t, err)
 
 	factory := NewFactory()
@@ -386,7 +386,7 @@ func TestLoadInvalidConfigWithUnsupportedEndpoint(t *testing.T) {
 }
 
 func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	assert.Nil(t, err)
 
 	factory := NewFactory()
@@ -401,7 +401,7 @@ func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
 }
 
 func TestLoadInvalidConfigWithNonStringArrayDimensionClients(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	assert.Nil(t, err)
 
 	factory := NewFactory()
@@ -416,7 +416,7 @@ func TestLoadInvalidConfigWithNonStringArrayDimensionClients(t *testing.T) {
 }
 
 func TestFilteringConfig(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	assert.Nil(t, err)
 
 	factory := NewFactory()
@@ -454,7 +454,7 @@ func TestFilteringConfig(t *testing.T) {
 }
 
 func TestInvalidFilteringConfig(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	assert.Nil(t, err)
 
 	factory := NewFactory()

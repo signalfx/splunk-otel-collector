@@ -5,15 +5,15 @@ receivers:
     notASupportedTag: somevalue
 
 processors:
-  exampleprocessor:
+  nop:
 
 exporters:
-  exampleexporter:
+  nop:
 
 service:
   pipelines:
     metrics:
       receivers:
         - smartagent/unexpectedtag
-      processors: [exampleprocessor]
-      exporters: [exampleexporter]
+      processors: [nop]
+      exporters: [nop]

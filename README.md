@@ -137,7 +137,7 @@ information about the health and status of Collector instances.
 ## Security
 
 Start by reviewing the [Collector security
-documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/security.md).
+documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/security.md).
 
 For security information specific to this distribution, please review
 [security.md](docs/security.md).

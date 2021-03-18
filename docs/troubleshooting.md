@@ -19,16 +19,6 @@ $ tail -f /var/log/foo.log
 $ journalctl -u my-service.service -f
 ```
 
-You can manually generate logs if needed
-
-> Note: Properly structured syslog may be required for Fluentd to properly pick
-> up the log line
-
-```bash
-$ echo "2021-03-17 02:14:44 +0000 [debug]: test" >>/var/log/syslog.log
-$ echo "2021-03-17 02:14:44 +0000 [debug]: test" | systemctl-cat
-```
-
 ### Is Fluentd configured properly?
 
 - Is td-agent running? (`systemctl status td-agent`)
@@ -52,3 +42,38 @@ $ echo "2021-03-17 02:14:44 +0000 [debug]: test" | systemctl-cat
   splunk-otel-collector.service -f`)
 - Review the [Collector troubleshooting
   documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/troubleshooting.md).
+
+### Sending synthetic data
+
+You can manually generate logs if needed. By default, Fluentd should monitor
+journald and `/var/log/syslog.log` for events.
+
+> Note: Properly structured syslog may be required for Fluentd to properly pick
+> up the log line
+
+```bash
+$ echo "2021-03-17 02:14:44 +0000 [debug]: test" >>/var/log/syslog.log
+$ echo "2021-03-17 02:14:44 +0000 [debug]: test" | systemctl-cat
+```
+
+## Trace Collection
+
+### Sending synthetic data
+
+How can you test the Collector is able to receive spans without instrumenting
+an application?
+
+By default, the Collector enables the Zipkin receiver, which is capable of
+receiving trace data over JSON. Zipkin provides some example data
+[here](https://github.com/openzipkin/zipkin/tree/master/zipkin-lens/testdata).
+As a result, you can test by running something like the following:
+
+```bash
+$ wget https://raw.githubusercontent.com/openzipkin/zipkin/master/zipkin-lens/testdata/yelp.json
+$ curl -X POST localhost:9411/api/v2/spans -H'Content-Type: application/json' -d @yelp.json
+```
+
+> NOTE: Update `localhost` as appropriate to reach the Collector.
+
+No response means the request was successfully sent. You can also pass `-v` to
+the `curl` command to confirm.

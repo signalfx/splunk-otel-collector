@@ -39,7 +39,7 @@ $ echo "2021-03-17 02:14:44 +0000 [debug]: test" | systemctl-cat
   configuration files to in the `conf.d` directory as needed.
 - Enable debug logging in `fluentd.conf` (`log_level debug`), restart td-agent
   (`systemctl restart td-agent`), and check `/var/log/td-agent/td-agent.log`
-- While every attempt is made to properly configuration permissions, it is
+- While every attempt is made to properly configure permissions, it is
   possible td-agent does not have the permission required to collect logs.
   Debug logging should indicate this issue.
 - This means things are working (requires debug logging enabled): `2021-03-17

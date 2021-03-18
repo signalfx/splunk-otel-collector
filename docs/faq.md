@@ -9,7 +9,7 @@
 - **Can upstream opentelemetry-collector or opentelemetry-collector-contrib be
   used instead?** Definitely, however we will not supply hands-on technical support for customers using the upstream distribution.
 - **What’s different between Splunk distro and upstream?** Supported by Splunk, better
-  defaults for Splunk products, usability improvements, tools to support
+  defaults for Splunk products, bundled FluentD for log capture, tools to support
   migration from SignalFx products. Note, we take an upstream-first approach,
   distros allow us to move fast.
 - **Can AWS Distro for OpenTelemetry be used?** For Splunk APM and

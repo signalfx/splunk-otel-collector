@@ -7,7 +7,7 @@ This distribution can be deployed in the below ways.
 ![splunk-otel-collector-recommended-arch](images/splunk-otel-collector-recommended-arch.png)
 
 If Helm or the installer script is used then the architecture will look similar
-to above. The actual configuration of the components is as follows:
+to above. The default configuration of the components is as follows:
 
 - [splunk-otel-collector (otelcol)](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 - [td-agent (fluentd)](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd)
@@ -26,4 +26,5 @@ configured. Note the default configuration for standalone is gateway-mode instea
 ![splunk-otel-collector-recommended-gateway-arch](images/splunk-otel-collector-recommended-gateway-arch.png)
 
 It is possible to manually configure the splunk-otel-collector running as an
-agent to send to a splunk-otel-collector gateway instance/cluster.
+agent to send to a splunk-otel-collector gateway instance/cluster. This
+requires changing the pipeline exporters in the agent to point to the gateway.

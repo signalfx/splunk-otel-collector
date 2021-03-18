@@ -323,7 +323,7 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 }
 
 func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	require.Nil(t, err)
 
 	factory := smartagentextension.NewFactory()
@@ -360,11 +360,11 @@ func (m *mockHost) GetFactory(kind component.Kind, componentType configmodels.Ty
 }
 
 func (m *mockHost) GetExtensions() map[configmodels.NamedEntity]component.Extension {
-	exampleFactory := componenttest.ExampleExtensionFactory{}
+	exampleFactory := componenttest.NewNopExtensionFactory()
 	randomExtensionConfig := exampleFactory.CreateDefaultConfig()
 	return map[configmodels.NamedEntity]component.Extension{
 		m.smartagentextensionConfig:      getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
-		randomExtensionConfig:            getExtension(&exampleFactory, randomExtensionConfig),
+		randomExtensionConfig:            getExtension(exampleFactory, randomExtensionConfig),
 		m.smartagentextensionConfigExtra: nil,
 	}
 }

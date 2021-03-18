@@ -4,7 +4,7 @@ The Smart Agent Receiver allows you to utilize existing [SignalFx Smart Agent mo
 as OpenTelemetry Collector metric receivers.  It assumes that you have a properly configured environment with a
 functional [Smart Agent release bundle](https://github.com/signalfx/signalfx-agent/releases/latest) on your system.
 
-**Alpha: No stability or functional guarantees are made at this time.  Configuration and behavior may change without notice.**
+**Beta: No stability or functional guarantees are made at this time.  Configuration and behavior may change without notice.**
 
 ## Configuration
 
@@ -82,4 +82,4 @@ service:
 ```
 
 For a more detailed description of migrating your Smart Agent monitor usage to the Splunk distribution of
-OpenTelemetry Collector please see the [migration guide](./MIGRATING.md).
+OpenTelemetry Collector please see the [migration guide](../../../docs/signalfx-smart-agent-migration.md).

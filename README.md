@@ -80,6 +80,7 @@ matrix](https://github.com/open-telemetry/community/blob/47813530864b9fe5a5146f4
 | sapm             | resourcedetection |           |               |
 | signalfx         | span              |           |               |
 | simpleprometheus |                   |           |               |
+| smartagent       |                   |           |               |
 | splunkhec        |                   |           |               |
 | zipkin           |                   |           |               |
 
@@ -90,7 +91,6 @@ matrix](https://github.com/open-telemetry/community/blob/47813530864b9fe5a5146f4
 | carbon         |            |           |            |
 | collectd       |            |           |            |
 | fluentdforward |            |           |            |
-| smartagent     |            |           |            |
 | statsd         |            |           |            |
 
 ## Sizing
@@ -167,7 +167,7 @@ Collector components provide a means of integrating all Smart Agent metric
 monitors into your Collector pipelines.
 
 A detailed overview of our suggested migration practices is provided
-[here](./internal/receiver/smartagentreceiver/MIGRATING.md).
+[here](./docs/signalfx-smart-agent-migration.md).
 
 ## License
 

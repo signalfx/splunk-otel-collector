@@ -20,23 +20,6 @@ configurations](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/
 which can be configured via environment variables. How these variables are
 configured depends on the installation method leveraged.
 
-<details>
-<summary>
-Accessible endpoints
-</summary>
-With the Collector configured, the following endpoints are accessible:
-
-- `http(s)://<collectorFQDN>:13133/` Health endpoint useful for load balancer monitoring
-- `http(s)://<collectorFQDN>:[14250|14268]` Jaeger [gRPC|Thrift HTTP] receiver
-- `http(s)://localhost:55679/debug/[tracez|pipelinez]` zPages monitoring
-- `http(s)://<collectorFQDN>:4317` OpenTelemetry gRPC receiver
-- `http(s)://<collectorFQDN>:6060` HTTP Forwarder used to receive Smart Agent `apiUrl` data
-- `http(s)://<collectorFQDN>:7276` SignalFx Infrastructure Monitoring gRPC receiver
-- `http(s)://localhost:8888/metrics` Prometheus metrics for the Collector
-- `http(s)://<collectorFQDN>:9411/api/[v1|v2]/spans` Zipkin JSON (can be set to proto)receiver
-- `http(s)://<collectorFQDN>:9943/v2/trace` SignalFx APM receiver
-</details>
-
 ### DEB and RPM Packages
 
 If you prefer to install the collector without the [installer script

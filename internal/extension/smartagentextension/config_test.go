@@ -27,7 +27,7 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	require.Nil(t, err)
 
 	factory := NewFactory()
@@ -123,7 +123,7 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestSmartAgentConfigProvider(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	require.Nil(t, err)
 
 	factory := NewFactory()
@@ -163,7 +163,7 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 }
 
 func TestLoadInvalidConfig(t *testing.T) {
-	factories, err := componenttest.ExampleComponents()
+	factories, err := componenttest.NopFactories()
 	require.Nil(t, err)
 
 	factory := NewFactory()

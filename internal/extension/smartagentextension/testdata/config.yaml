@@ -23,18 +23,18 @@ extensions:
       configDir: /etc/
 
 receivers:
-  examplereceiver:
+  nop:
 
 processors:
-  exampleprocessor:
+  nop:
 
 exporters:
-  exampleexporter:
+  nop:
 
 service:
   extensions: [smartagent/default_settings, smartagent/all_settings]
   pipelines:
     metrics:
-      receivers: [examplereceiver]
-      processors: [exampleprocessor]
-      exporters: [exampleexporter]
+      receivers: [nop]
+      processors: [nop]
+      exporters: [nop]

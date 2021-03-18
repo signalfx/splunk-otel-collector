@@ -158,7 +158,7 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 			DimensionClients: []string{"mockmetadataexporter", "exampleexporter", "metricsreceiver", "notareceiver", "notreal"},
 		},
 		fakeMonitorFiltering(),
-		&componenttest.ExampleExporterConsumer{},
+		consumertest.NewMetricsNop(),
 		consumertest.NewLogsNop(),
 		&hostWithExporters{exporter: &me},
 		zap.NewNop(),
@@ -217,7 +217,7 @@ func TestDimensionClientDefaultsToSFxExporter(t *testing.T) {
 	output := NewOutput(
 		Config{DimensionClients: nil},
 		fakeMonitorFiltering(),
-		&componenttest.ExampleExporterConsumer{},
+		consumertest.NewMetricsNop(),
 		consumertest.NewLogsNop(),
 		&hostWithExporters{exporter: &me},
 		zap.NewNop(),
@@ -238,7 +238,7 @@ func TestDimensionClientDefaultsRequiresLoneSFxExporter(t *testing.T) {
 	output := NewOutput(
 		Config{DimensionClients: nil},
 		fakeMonitorFiltering(),
-		&componenttest.ExampleExporterConsumer{},
+		consumertest.NewMetricsNop(),
 		consumertest.NewLogsNop(),
 		&hostWithTwoSFxExporters{sfxExporter: &me},
 		zap.NewNop(),
@@ -264,7 +264,18 @@ type mockMetadataClient struct {
 	name                    string
 	receivedMetadataUpdates []*metadata.MetadataUpdate
 	receivedLogs            []pdata.Logs
-	componenttest.ExampleExporterConsumer
+}
+
+func (me *mockMetadataClient) Start(_ context.Context, _ component.Host) error {
+	panic("implement me")
+}
+
+func (me *mockMetadataClient) Shutdown(_ context.Context) error {
+	panic("implement me")
+}
+
+func (me *mockMetadataClient) ConsumeMetrics(_ context.Context, _ pdata.Metrics) error {
+	panic("implement me")
 }
 
 func (me *mockMetadataClient) ConsumeMetadata(updates []*metadata.MetadataUpdate) error {
@@ -314,7 +325,7 @@ func getExporters() map[configmodels.DataType]map[configmodels.NamedEntity]compo
 	metricExporterMap := map[configmodels.NamedEntity]component.Exporter{}
 	exporters[configmodels.MetricsDataType] = metricExporterMap
 
-	exampleExporterFactory := componenttest.ExampleExporterFactory{}
+	exampleExporterFactory := componenttest.NewNopExporterFactory()
 	exampleExporter, _ := exampleExporterFactory.CreateMetricsExporter(
 		context.Background(), component.ExporterCreateParams{}, nil,
 	)

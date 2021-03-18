@@ -42,7 +42,7 @@ sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --before-install "$PREINSTALL_PATH" \
     --after-install "$POSTINSTALL_PATH" \
     --before-remove "$PREUNINSTALL_PATH" \
-    --config-files /etc/otel/collector/splunk_config_linux.yaml \
+    --config-files /etc/otel/collector/gateway_config.yaml \
     --config-files /etc/otel/collector/fluentd \
     "$buildroot/"=/
 

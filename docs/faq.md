@@ -7,7 +7,7 @@
   provides full support for this distribution; customers use this distribution
   in production today.
 - **Can upstream opentelemetry-collector or opentelemetry-collector-contrib be
-  used instead?** Yes, however Splunk does not provide support for upstream.
+  used instead?** Definitely, however we will not supply hands-on technical support for customers using the upstream distribution.
 - **What’s different between Splunk distro and upstream?** Supported by Splunk, better
   defaults for Splunk products, usability improvements, tools to support
   migration from SignalFx products. Note, we take an upstream-first approach,

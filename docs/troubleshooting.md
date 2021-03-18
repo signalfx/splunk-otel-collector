@@ -8,7 +8,6 @@ installed and configured:
 - Ensure the OS [is supported](getting-started/linux-installer.md#linux-installer-script)
 - Ensure the OS has systemd installed
 - Ensure not running in a containerized environment (for non-production environments see [this post](https://developers.redhat.com/blog/2014/05/05/running-systemd-within-docker-container/) for a workaround)
-  environments)
 - Check installation logs for more details
 
 ## Log Collection

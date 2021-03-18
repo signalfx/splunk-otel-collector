@@ -17,7 +17,7 @@ installed and configured:
   (e.g. /v1/log); possible network/firewall/port issue
 - 429 (TOO MANY REQUESTS): Org is not provisioned for the amount of traffic
   being sent; reduce traffic or request increase in capacity
-- 503 (SERVICE UNAVAILABLE): If for Log Observer this is the same as 429
+- 503 (SERVICE UNAVAILABLE): If using the Log Observer, this is the same as 429.
   (because that is how HECv1 responds)
 
 ## Log Collection

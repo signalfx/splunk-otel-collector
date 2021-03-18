@@ -234,7 +234,7 @@ func TestMultipleInstacesOfSameMonitorType(t *testing.T) {
 	fstRcvr := NewReceiver(zap.NewNop(), cfg)
 
 	ctx := context.Background()
-	mh := internaltest.NewAssertNoError(t)
+	mh := internaltest.NewAssertNoErrorHost(t)
 	require.NoError(t, fstRcvr.Start(ctx, mh))
 
 	sndRcvr := NewReceiver(zap.NewNop(), cfg)

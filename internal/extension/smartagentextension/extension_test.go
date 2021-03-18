@@ -45,7 +45,7 @@ func TestExtensionLifecycle(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, fstExt)
 
-	mh := componenttest.NewAssertNoError(t)
+	mh := componenttest.NewAssertNoErrorHost(t)
 	require.NoError(t, fstExt.Start(ctx, mh))
 
 	sndExt, err := f.CreateExtension(ctx, createParams, cfg)

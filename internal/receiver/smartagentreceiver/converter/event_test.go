@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package smartagentreceiver
+package converter
 
 import (
 	"fmt"
@@ -26,7 +26,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func TestEventToLog(tt *testing.T) {
+func TestEventToPDataLogs(tt *testing.T) {
 	for _, test := range []struct {
 		event       event.Event
 		expectedLog pdata.Logs
@@ -118,7 +118,8 @@ func TestEventToLog(tt *testing.T) {
 		},
 	} {
 		tt.Run(test.name, func(t *testing.T) {
-			log := eventToLog(&test.event, zap.NewNop())
+			c := NewConverter(zap.NewNop())
+			log := c.EventToPDataLogs(&test.event)
 			assertLogsEqual(t, test.expectedLog, log)
 		})
 	}

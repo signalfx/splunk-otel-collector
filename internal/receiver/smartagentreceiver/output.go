@@ -43,7 +43,10 @@ const internalTransport = "internal"
 type Output struct {
 	nextMetricsConsumer  consumer.MetricsConsumer
 	nextLogsConsumer     consumer.LogsConsumer
+	nextTracesConsumer   consumer.TracesConsumer
 	extraDimensions      map[string]string
+	extraSpanTags        map[string]string
+	defaultSpanTags      map[string]string
 	logger               *zap.Logger
 	converter            converter.Converter
 	monitorFiltering     *monitorFiltering
@@ -56,17 +59,21 @@ var _ types.FilteringOutput = (*Output)(nil)
 
 func NewOutput(
 	config Config, filtering *monitorFiltering, nextMetricsConsumer consumer.MetricsConsumer,
-	nextLogsConsumer consumer.LogsConsumer, host component.Host, logger *zap.Logger,
+	nextLogsConsumer consumer.LogsConsumer, nextTracesConsumer consumer.TracesConsumer, host component.Host,
+	logger *zap.Logger,
 ) *Output {
 	metadataExporters := getMetadataExporters(config, host, &nextMetricsConsumer, logger)
 	return &Output{
 		receiverName:         config.Name(),
 		nextMetricsConsumer:  nextMetricsConsumer,
 		nextLogsConsumer:     nextLogsConsumer,
+		nextTracesConsumer:   nextTracesConsumer,
 		nextDimensionClients: metadataExporters,
 		logger:               logger,
 		converter:            converter.NewConverter(logger),
 		extraDimensions:      map[string]string{},
+		extraSpanTags:        map[string]string{},
+		defaultSpanTags:      map[string]string{},
 		monitorFiltering:     filtering,
 	}
 }
@@ -183,6 +190,8 @@ func (output *Output) Copy() types.Output {
 	output.logger.Debug("Copying Output", zap.Any("output", output))
 	cp := *output
 	cp.extraDimensions = utils.CloneStringMap(output.extraDimensions)
+	cp.extraSpanTags = utils.CloneStringMap(output.extraSpanTags)
+	cp.defaultSpanTags = utils.CloneStringMap(output.defaultSpanTags)
 	return &cp
 }
 
@@ -223,7 +232,28 @@ func (output *Output) SendEvent(event *event.Event) {
 }
 
 func (output *Output) SendSpans(spans ...*trace.Span) {
-	output.logger.Debug("SendSpans has been called.", zap.Any("Span", spans))
+	if output.nextTracesConsumer == nil {
+		return
+	}
+
+	for _, span := range spans {
+		for name, value := range output.defaultSpanTags {
+			if span.Tags == nil {
+				span.Tags = map[string]string{}
+			}
+			// If the tags are already set, don't override
+			if _, ok := span.Tags[name]; !ok {
+				span.Tags[name] = value
+			}
+		}
+		span.Tags = utils.MergeStringMaps(span.Tags, output.extraSpanTags)
+	}
+
+	traces := output.converter.SpansToPDataTraces(spans)
+	err := output.nextTracesConsumer.ConsumeTraces(context.Background(), traces)
+	if err != nil {
+		output.logger.Debug("SendSpans has failed", zap.Error(err))
+	}
 }
 
 func (output *Output) SendDimensionUpdate(dimension *types.Dimension) {
@@ -252,19 +282,19 @@ func (output *Output) RemoveExtraDimension(key string) {
 }
 
 func (output *Output) AddExtraSpanTag(key, value string) {
-	output.logger.Debug("AddExtraSpanTag has been called.", zap.String("key", key), zap.String("value", value))
+	output.extraSpanTags[key] = value
 }
 
 func (output *Output) RemoveExtraSpanTag(key string) {
-	output.logger.Debug("RemoveExtraSpanTag has been called.", zap.String("key", key))
+	delete(output.extraSpanTags, key)
 }
 
 func (output *Output) AddDefaultSpanTag(key, value string) {
-	output.logger.Debug("AddDefaultSpanTag has been called.", zap.String("key", key), zap.String("value", value))
+	output.defaultSpanTags[key] = value
 }
 
 func (output *Output) RemoveDefaultSpanTag(key string) {
-	output.logger.Debug("RemoveDefaultSpanTag has been called.", zap.String("key", key))
+	delete(output.defaultSpanTags, key)
 }
 
 func (output *Output) filterDatapoints(datapoints []*datapoint.Datapoint) []*datapoint.Datapoint {

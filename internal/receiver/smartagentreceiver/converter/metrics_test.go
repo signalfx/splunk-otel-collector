@@ -11,7 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package smartagentreceiver
+
+package converter
 
 import (
 	"testing"
@@ -102,7 +103,7 @@ func pdataMetrics(dataType pdata.MetricDataType, val interface{}, timeReceived t
 	return metrics
 }
 
-func TestToMetrics(t *testing.T) {
+func TestDatapointsToPDataMetrics(t *testing.T) {
 	tests := []struct {
 		timeReceived    time.Time
 		expectedMetrics pdata.Metrics
@@ -255,7 +256,7 @@ func TestToMetrics(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
 			converter := Converter{logger: zap.NewNop()}
-			md, dropped := converter.toMetrics(test.datapoints, test.timeReceived)
+			md, dropped := converter.DatapointsToPDataMetrics(test.datapoints, test.timeReceived)
 			sortLabels(tt, md)
 
 			assert.Equal(tt, test.expectedMetrics, md)

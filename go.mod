@@ -34,6 +34,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.22.1-0.20210317183837-f8c550fe1926
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.22.1-0.20210317183837-f8c550fe1926
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.22.1-0.20210317183837-f8c550fe1926
+	github.com/openzipkin/zipkin-go v0.2.5
 	github.com/ory/go-acc v0.2.6
 	github.com/pavius/impi v0.0.3
 	github.com/securego/gosec/v2 v2.6.1

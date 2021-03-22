@@ -30,6 +30,8 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/smartagentreceiver/converter"
 )
 
 const internalTransport = "internal"
@@ -43,7 +45,7 @@ type Output struct {
 	nextLogsConsumer     consumer.LogsConsumer
 	extraDimensions      map[string]string
 	logger               *zap.Logger
-	converter            Converter
+	converter            converter.Converter
 	monitorFiltering     *monitorFiltering
 	receiverName         string
 	nextDimensionClients []*metadata.MetadataExporter
@@ -63,7 +65,7 @@ func NewOutput(
 		nextLogsConsumer:     nextLogsConsumer,
 		nextDimensionClients: metadataExporters,
 		logger:               logger,
-		converter:            Converter{logger: logger},
+		converter:            converter.NewConverter(logger),
 		extraDimensions:      map[string]string{},
 		monitorFiltering:     filtering,
 	}
@@ -198,7 +200,7 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 		dp.Dimensions = utils.MergeStringMaps(dp.Dimensions, output.extraDimensions)
 	}
 
-	metrics, numDropped := output.converter.toMetrics(datapoints, time.Now())
+	metrics, numDropped := output.converter.DatapointsToPDataMetrics(datapoints, time.Now())
 	if numDropped > 0 {
 		output.logger.Debug("SendDatapoints has dropped points", zap.Int("numDropped", numDropped))
 	}
@@ -213,7 +215,7 @@ func (output *Output) SendEvent(event *event.Event) {
 		return
 	}
 
-	logRecord := eventToLog(event, output.logger)
+	logRecord := output.converter.EventToPDataLogs(event)
 	err := output.nextLogsConsumer.ConsumeLogs(context.Background(), logRecord)
 	if err != nil {
 		output.logger.Debug("SendEvent has failed", zap.Error(err))

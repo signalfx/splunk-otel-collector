@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package smartagentreceiver
+package converter
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ const (
 
 // eventToLog converts a SFx event to a pdata.Logs entry suitable for consumption by LogConsumer.
 // based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/5de076e9773bdb7617b544a57fa0a4b848cec92c/receiver/signalfxreceiver/signalfxv2_event_to_logdata.go#L27
-func eventToLog(event *event.Event, logger *zap.Logger) pdata.Logs {
+func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) pdata.Logs {
 	logs, lr := newLogs()
 
 	lr.SetName(event.EventType)

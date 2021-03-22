@@ -3,7 +3,7 @@ Description=Splunk OpenTelemetry Collector
 After=network.target
 
 [Service]
-EnvironmentFile=/etc/otel/collector/splunk_env
+EnvironmentFile=/etc/otel/collector/splunk-otel-collector.conf
 ExecStart=/usr/bin/otelcol $OTELCOL_OPTIONS
 KillMode=mixed
 Restart=on-failure

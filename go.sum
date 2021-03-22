@@ -242,6 +242,8 @@ github.com/aws/aws-sdk-go v1.34.28/go.mod h1:H7NKnBqNVzoTJpGfLrQkkD+ytBA93eiDYi/
 github.com/aws/aws-sdk-go v1.35.5/go.mod h1:tlPOdRjfxPBpNIwqDj61rmsnA85v9jc0Ps9+muhnW+k=
 github.com/aws/aws-sdk-go v1.37.30 h1:fZeVg3QuTkWE/dEvPQbK6AL32+3G9ofJfGFSPS1XLH0=
 github.com/aws/aws-sdk-go v1.37.30/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
+github.com/aws/aws-sdk-go v1.38.0 h1:mqnmtdW8rGIQmp2d0WRFLua0zW0Pel0P6/vd3gJuViY=
+github.com/aws/aws-sdk-go v1.38.0/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
 github.com/aws/aws-sdk-go-v2 v0.18.0/go.mod h1:JWVYvqSMppoMJC0x5wdwiImzgXTI9FuZwxzkQq9wy+g=
 github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f/go.mod h1:AuiFmCCPBSrqvVMvuqFuk0qogytodnVFVSN5CeJB8Gc=
 github.com/beevik/ntp v0.3.0 h1:xzVrPrE4ziasFXgBVBZJDP0Wg/KpMwk2KHJ4Ba8GrDw=
@@ -1865,10 +1867,10 @@ github.com/signalfx/ondiskencoding v0.0.0-20191121154813-762ffb677f8e/go.mod h1:
 github.com/signalfx/sapm-proto v0.4.0/go.mod h1:x3gtwJ1GRejtkghB4nYpwixh2zqJrLbPU959ZNhM0Fk=
 github.com/signalfx/sapm-proto v0.7.0 h1:u6MErnxMDK5WQgOfPEMcS7gti5DQJKppAmAml8jJYbo=
 github.com/signalfx/sapm-proto v0.7.0/go.mod h1:y4b+wJlBKH7AzdastAgdWHrfMBB/QYN+u+20SEA94C4=
-github.com/signalfx/signalfx-agent v1.0.1-0.20210218155823-9b6186460a32 h1:grl/vtxBJV45QpA7xbwjMHl1MglTG9ikgDLgtaL5LEY=
-github.com/signalfx/signalfx-agent v1.0.1-0.20210218155823-9b6186460a32/go.mod h1:QAlzDNY63Puk2rG5dTEOxzu4ZkAMfoLdElqxzWBir9o=
-github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210218155823-9b6186460a32 h1:sB9dzUPGfx5HT/LTTxOMbJG8NYAs9xBYOWgE1OPexxs=
-github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210218155823-9b6186460a32/go.mod h1:pNaqfprM2bSCBhE8sTT2NtasSWEsIJbrmnIF0ap/Cvg=
+github.com/signalfx/signalfx-agent v1.0.1-0.20210322175059-8828c6244c88 h1:nE5rM6JLMS1kwxICrZIt7wuCiXyB/YOEfWjY1HDRKqg=
+github.com/signalfx/signalfx-agent v1.0.1-0.20210322175059-8828c6244c88/go.mod h1:H1n/mrz8NlfUOAzVQGzNG7MyoUslmD/es20hIEhYqpE=
+github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210322175059-8828c6244c88 h1:2J6791UyrIoz/gx4asrGF1LuW0I1QcqE1ch5cQgTzFI=
+github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210322175059-8828c6244c88/go.mod h1:pNaqfprM2bSCBhE8sTT2NtasSWEsIJbrmnIF0ap/Cvg=
 github.com/signalfx/signalfx-go v1.6.38-0.20200518153434-ceee8d2570d5 h1:+tu30Q5SkbYMBmI3sgDJTB9M1/Ga8z0V0LGDVY1D99g=
 github.com/signalfx/signalfx-go v1.6.38-0.20200518153434-ceee8d2570d5/go.mod h1:CeCGXKT2wqqky0Nz8eV0NH/CpMPE7tzYUcV8eQS1U1s=
 github.com/signalfx/signalfx-go-tracing v1.2.0/go.mod h1:JoTkkhSBe42ns9/AsvtqX7lLiiS6YwE0Q7J0DZFzt00=

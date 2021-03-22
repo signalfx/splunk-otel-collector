@@ -56,7 +56,7 @@ sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --memory SPLUNK_MEMOR
 ### Collector Configuration
 
 The Collector comes with a default configuration which can be found at
-`/etc/otel/collector/splunk_otel_linux.yaml`. This configuration can be
+`/etc/otel/collector/agent_config.yaml`. This configuration can be
 modified as needed. Possible configuration options can be found in the
 `receivers`, `processors`, `exporters`, and `extensions` folders of either:
 

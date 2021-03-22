@@ -19,6 +19,7 @@ import (
 
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
+	"github.com/signalfx/golib/v3/trace"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.uber.org/zap"
 )
@@ -33,9 +34,16 @@ func NewConverter(logger *zap.Logger) Converter {
 
 func (c Converter) DatapointsToPDataMetrics(datapoints []*datapoint.Datapoint, timeReceived time.Time) (pdata.Metrics, int) {
 	return sfxDatapointsToPDataMetrics(datapoints, timeReceived, c.logger)
-
 }
 
 func (c Converter) EventToPDataLogs(event *event.Event) pdata.Logs {
 	return sfxEventToPDataLogs(event, c.logger)
+}
+
+func (c Converter) SpansToPDataTraces(spans []*trace.Span) pdata.Traces {
+	traces, err := sfxSpansToPDataTraces(spans, c.logger)
+	if err != nil {
+		c.logger.Error("error converting SFx spans to pdata.Traces", zap.Error(err))
+	}
+	return traces
 }

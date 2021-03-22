@@ -4,8 +4,8 @@
 # environment variables are required to be manually defined or configured below:
 # - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
 # - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.signalfx.com
-# - SPLUNK_BUNDLE_DIR: The path to the Smart Agent bundle, e.g. /usr/lib/splunk-otel-collector
-# - SPLUNK_COLLECTD_DIR: The path to the collectd config directory for the Smart Agent, e.g. /usr/lib/splunk-otel-collector/run/collectd
+# - SPLUNK_BUNDLE_DIR: The path to the Smart Agent bundle, e.g. /usr/lib/splunk-otel-collector/agent-bundle
+# - SPLUNK_COLLECTD_DIR: The path to the collectd config directory for the Smart Agent, e.g. /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://ingest.us0.signalfx.com/v1/log
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com

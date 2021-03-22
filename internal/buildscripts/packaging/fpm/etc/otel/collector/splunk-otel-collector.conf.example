@@ -44,8 +44,8 @@ SPLUNK_MEMORY_TOTAL_MIB=1024
 # SPLUNK_BALLAST_SIZE_MIB=683
 
 # The path to the Smart Agent bundle.
-SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector
+SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
 
 # The path to the collectd config directory for the Smart Agent.
 # This directory must be read/writable by the collector process.
-SPLUNK_COLLECTD_DIR=/usr/lib/splunk-otel-collector/run/collectd
+SPLUNK_COLLECTD_DIR=/usr/lib/splunk-otel-collector/agent-bundle/run/collectd

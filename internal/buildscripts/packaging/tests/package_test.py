@@ -41,7 +41,7 @@ def test_collector_package_install(distro):
     service_owner = "splunk-otel-collector"
     service_proc = "otelcol"
     config_path = "/etc/otel/collector/splunk-otel-collector.conf"
-    bundle_dir = "/usr/lib/splunk-otel-collector"
+    bundle_dir = "/usr/lib/splunk-otel-collector/agent-bundle"
 
     pkg_path = get_package(distro, pkg_name, pkg_dir)
     assert pkg_path, f"{pkg_name} package not found in {pkg_dir}"

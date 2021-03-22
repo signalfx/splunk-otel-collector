@@ -23,7 +23,8 @@ SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"
 FLUENTD_CONFIG_INSTALL_DIR="/etc/otel/collector/fluentd"
 
 SMART_AGENT_RELEASE_URL="https://api.github.com/repos/signalfx/signalfx-agent/releases"
-SMART_AGENT_INSTALL_PATH="/usr/lib/splunk-otel-collector"
+BUNDLE_BASE_DIR="/usr/lib/splunk-otel-collector"
+AGENT_BUNDLE_INSTALL_DIR="$BUNDLE_BASE_DIR/agent-bundle"
 
 PREINSTALL_PATH="$FPM_DIR/preinstall.sh"
 POSTINSTALL_PATH="$FPM_DIR/postinstall.sh"
@@ -72,11 +73,11 @@ download_smart_agent() {
     echo "Downloading $dl_url ..."
     curl -sL "$dl_url" -o "$buildroot/signalfx-agent.tar.gz"
 
-    mkdir -p "$buildroot/usr/lib"
-    tar -xzf "$buildroot/signalfx-agent.tar.gz" -C "$buildroot/usr/lib"
-    mv "$buildroot/usr/lib/signalfx-agent" "$buildroot/$SMART_AGENT_INSTALL_PATH"
-    rm -f "$buildroot/$SMART_AGENT_INSTALL_PATH/bin/signalfx-agent"
-    rm -f "$buildroot/$SMART_AGENT_INSTALL_PATH/bin/agent-status"
+    mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
+    tar -xzf "$buildroot/signalfx-agent.tar.gz" -C "$buildroot/$BUNDLE_BASE_DIR"
+    mv "$buildroot/$BUNDLE_BASE_DIR/signalfx-agent" "$buildroot/$AGENT_BUNDLE_INSTALL_DIR"
+    rm -f "$buildroot/$AGENT_BUNDLE_INSTALL_DIR/bin/signalfx-agent"
+    rm -f "$buildroot/$AGENT_BUNDLE_INSTALL_DIR/bin/agent-status"
     rm -f "$buildroot/signalfx-agent.tar.gz"
 }
 
@@ -102,8 +103,8 @@ setup_files_and_permissions() {
     sudo chown root:root "$buildroot/$SERVICE_INSTALL_PATH"
     sudo chmod 644 "$buildroot/$SERVICE_INSTALL_PATH"
 
-    if [ -d "$buildroot/$SMART_AGENT_INSTALL_PATH" ]; then
-        sudo chown -R $SERVICE_USER:$SERVICE_GROUP "$buildroot/$SMART_AGENT_INSTALL_PATH"
-        sudo chmod -R 755 "$buildroot/$SMART_AGENT_INSTALL_PATH"
+    if [ -d "$buildroot/$BUNDLE_BASE_DIR" ]; then
+        sudo chown -R $SERVICE_USER:$SERVICE_GROUP "$buildroot/$BUNDLE_BASE_DIR"
+        sudo chmod -R 755 "$buildroot/$BUNDLE_BASE_DIR"
     fi
 }

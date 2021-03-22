@@ -4,7 +4,7 @@ This directory contains a custom fluentd configuration to forward log events
 to the Splunk OpenTelemetry Collector.  By default, the collector will listen
 on 127.0.0.1:8006 for log events forwarded from fluentd.  See the
 "fluentforward" receiver in the default collector config at
-/etc/otel/collector/gateway_config.yaml for details or to make any changes
+/etc/otel/collector/agent_config.yaml for details or to make any changes
 to the collector.
 
 Directory contents:

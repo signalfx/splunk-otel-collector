@@ -1,6 +1,6 @@
-# Splunk distribution of OpenTelemetry Collector
+# Splunk Distribution of OpenTelemetry Collector
 
-The Splunk distribution of [OpenTelemetry
+The Splunk Distribution of [OpenTelemetry
 Collector](https://github.com/open-telemetry/opentelemetry-collector) provides
 a binary that can receive, process and export trace, metric and log data. This
 distribution is supported by Splunk.
@@ -80,6 +80,7 @@ matrix](https://github.com/open-telemetry/community/blob/47813530864b9fe5a5146f4
 | sapm             | resourcedetection |           |               |
 | signalfx         | span              |           |               |
 | simpleprometheus |                   |           |               |
+| smartagent       |                   |           |               |
 | splunkhec        |                   |           |               |
 | zipkin           |                   |           |               |
 
@@ -149,6 +150,24 @@ documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/ma
 
 For troubleshooting information specific to this distribution, please review
 [troubleshooting.md](docs/troubleshooting.md).
+
+## Migrating from the SignalFx Smart Agent
+
+The Splunk Distribution of OpenTelemetry Collector is the next-generation
+agent and gateway for Splunk APM and Splunk Infrastructure Monitoring.
+As such, it is the replacement for the [SignalFx Smart
+Agent](https://github.com/signalfx/signalfx-agent).
+
+This distribution provides helpful components to assist current Smart Agent
+users in their transition to OpenTelemetry Collector and ensure no functionality
+loss.  The [Smart Agent
+Receiver](./internal/receiver/smartagentreceiver/README.md), its associated
+[extension](./internal/extension/smartagentextension/README.md), and other
+Collector components provide a means of integrating all Smart Agent metric
+monitors into your Collector pipelines.
+
+A detailed overview of our suggested migration practices is provided in the
+[migration guide](./docs/signalfx-smart-agent-migration.md).
 
 ## License
 

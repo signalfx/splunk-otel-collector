@@ -38,7 +38,11 @@ import (
 )
 
 func TestOutput(t *testing.T) {
-	output := NewOutput(Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), consumertest.NewLogsNop(), componenttest.NewNopHost(), zap.NewNop())
+	output := NewOutput(
+		Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(),
+		consumertest.NewLogsNop(), consumertest.NewTracesNop(),
+		componenttest.NewNopHost(), zap.NewNop(),
+	)
 	output.AddDatapointExclusionFilter(dpfilters.DatapointFilter(nil))
 	assert.False(t, output.HasAnyExtraMetrics())
 	assert.NotSame(t, &output, output.Copy())
@@ -64,13 +68,19 @@ func TestHasEnabledMetric(t *testing.T) {
 		Groups: utils.StringSet("mem"),
 	}, zap.NewNop())
 	require.NoError(t, err)
-	output := NewOutput(Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(), componenttest.NewNopHost(), zap.NewNop())
+	output := NewOutput(
+		Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
+		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+	)
 	assert.Equal(t, []string{"mem.used"}, output.EnabledMetrics())
 
 	// Empty metadata
 	monitorFiltering, err = newMonitorFiltering(&config.MonitorConfig{}, nil, zap.NewNop())
 	require.NoError(t, err)
-	output = NewOutput(Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(), componenttest.NewNopHost(), zap.NewNop())
+	output = NewOutput(
+		Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
+		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+	)
 	assert.Empty(t, output.EnabledMetrics())
 }
 
@@ -90,19 +100,28 @@ func TestHasEnabledMetricInGroup(t *testing.T) {
 		},
 	}, zap.NewNop())
 	require.NoError(t, err)
-	output := NewOutput(Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(), componenttest.NewNopHost(), zap.NewNop())
+	output := NewOutput(
+		Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
+		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+	)
 	assert.True(t, output.HasEnabledMetricInGroup("mem"))
 	assert.False(t, output.HasEnabledMetricInGroup("cpu"))
 
 	// Empty metadata
 	monitorFiltering, err = newMonitorFiltering(&config.MonitorConfig{}, nil, zap.NewNop())
 	require.NoError(t, err)
-	output = NewOutput(Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(), componenttest.NewNopHost(), zap.NewNop())
+	output = NewOutput(
+		Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
+		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+	)
 	assert.False(t, output.HasEnabledMetricInGroup("any"))
 }
 
 func TestExtraDimensions(t *testing.T) {
-	output := NewOutput(Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), consumertest.NewLogsNop(), componenttest.NewNopHost(), zap.NewNop())
+	output := NewOutput(
+		Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
+		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+	)
 	assert.Empty(t, output.extraDimensions)
 
 	output.RemoveExtraDimension("not_a_known_dimension_name")
@@ -125,7 +144,10 @@ func TestExtraDimensions(t *testing.T) {
 
 func TestSendDimensionUpdate(t *testing.T) {
 	me := mockMetadataClient{}
-	output := NewOutput(Config{}, fakeMonitorFiltering(), &me, consumertest.NewLogsNop(), componenttest.NewNopHost(), zap.NewNop())
+	output := NewOutput(
+		Config{}, fakeMonitorFiltering(), &me, consumertest.NewLogsNop(), consumertest.NewTracesNop(),
+		componenttest.NewNopHost(), zap.NewNop(),
+	)
 
 	dim := types.Dimension{
 		Name:  "my_dimension",
@@ -144,7 +166,10 @@ func TestSendDimensionUpdate(t *testing.T) {
 }
 
 func TestSendDimensionUpdateWithInvalidExporter(t *testing.T) {
-	output := NewOutput(Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), consumertest.NewLogsNop(), componenttest.NewNopHost(), zap.NewNop())
+	output := NewOutput(
+		Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
+		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+	)
 	dim := types.Dimension{Name: "error"}
 
 	// doesn't panic
@@ -160,6 +185,7 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 		fakeMonitorFiltering(),
 		consumertest.NewMetricsNop(),
 		consumertest.NewLogsNop(),
+		consumertest.NewTracesNop(),
 		&hostWithExporters{exporter: &me},
 		zap.NewNop(),
 	)
@@ -176,7 +202,10 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 
 func TestSendDimensionUpdateFromNextConsumerMetadataExporters(t *testing.T) {
 	me := mockMetadataClient{}
-	output := NewOutput(Config{}, fakeMonitorFiltering(), &me, consumertest.NewLogsNop(), componenttest.NewNopHost(), zap.NewNop())
+	output := NewOutput(
+		Config{}, fakeMonitorFiltering(), &me, consumertest.NewLogsNop(),
+		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+	)
 
 	dim := types.Dimension{
 		Name: "error",
@@ -190,7 +219,10 @@ func TestSendDimensionUpdateFromNextConsumerMetadataExporters(t *testing.T) {
 
 func TestSendEvent(t *testing.T) {
 	me := mockMetadataClient{}
-	output := NewOutput(Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), &me, componenttest.NewNopHost(), zap.NewNop())
+	output := NewOutput(
+		Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), &me,
+		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+	)
 
 	event := event.Event{
 		EventType: "my_event",
@@ -219,6 +251,7 @@ func TestDimensionClientDefaultsToSFxExporter(t *testing.T) {
 		fakeMonitorFiltering(),
 		consumertest.NewMetricsNop(),
 		consumertest.NewLogsNop(),
+		consumertest.NewTracesNop(),
 		&hostWithExporters{exporter: &me},
 		zap.NewNop(),
 	)
@@ -240,6 +273,7 @@ func TestDimensionClientDefaultsRequiresLoneSFxExporter(t *testing.T) {
 		fakeMonitorFiltering(),
 		consumertest.NewMetricsNop(),
 		consumertest.NewLogsNop(),
+		consumertest.NewTracesNop(),
 		&hostWithTwoSFxExporters{sfxExporter: &me},
 		zap.NewNop(),
 	)

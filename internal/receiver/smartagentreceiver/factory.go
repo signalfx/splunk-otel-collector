@@ -62,6 +62,7 @@ func NewFactory() component.ReceiverFactory {
 		receiverhelper.WithCustomUnmarshaler(mergeConfigs),
 		receiverhelper.WithMetrics(createMetricsReceiver),
 		receiverhelper.WithLogs(createLogsReceiver),
+		receiverhelper.WithTraces(createTracesReceiver),
 	)
 }
 
@@ -78,14 +79,14 @@ func createMetricsReceiver(
 	_ context.Context,
 	params component.ReceiverCreateParams,
 	cfg configmodels.Receiver,
-	consumer consumer.MetricsConsumer,
+	metricsConsumer consumer.MetricsConsumer,
 ) (component.MetricsReceiver, error) {
 	receiver, err := getOrCreateReceiver(cfg, params.Logger)
 	if err != nil {
 		return nil, err
 	}
 
-	receiver.registerMetricsConsumer(consumer)
+	receiver.registerMetricsConsumer(metricsConsumer)
 	return receiver, nil
 }
 
@@ -93,13 +94,28 @@ func createLogsReceiver(
 	_ context.Context,
 	params component.ReceiverCreateParams,
 	cfg configmodels.Receiver,
-	consumer consumer.LogsConsumer,
+	logsConsumer consumer.LogsConsumer,
 ) (component.LogsReceiver, error) {
 	receiver, err := getOrCreateReceiver(cfg, params.Logger)
 	if err != nil {
 		return nil, err
 	}
 
-	receiver.registerLogsConsumer(consumer)
+	receiver.registerLogsConsumer(logsConsumer)
+	return receiver, nil
+}
+
+func createTracesReceiver(
+	_ context.Context,
+	params component.ReceiverCreateParams,
+	cfg configmodels.Receiver,
+	tracesConsumer consumer.TracesConsumer,
+) (component.TracesReceiver, error) {
+	receiver, err := getOrCreateReceiver(cfg, params.Logger)
+	if err != nil {
+		return nil, err
+	}
+
+	receiver.registerTracesConsumer(tracesConsumer)
 	return receiver, nil
 }

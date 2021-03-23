@@ -237,15 +237,17 @@ func (output *Output) SendSpans(spans ...*trace.Span) {
 	}
 
 	for _, span := range spans {
+		if span.Tags == nil {
+			span.Tags = map[string]string{}
+		}
+
 		for name, value := range output.defaultSpanTags {
-			if span.Tags == nil {
-				span.Tags = map[string]string{}
-			}
 			// If the tags are already set, don't override
 			if _, ok := span.Tags[name]; !ok {
 				span.Tags[name] = value
 			}
 		}
+
 		span.Tags = utils.MergeStringMaps(span.Tags, output.extraSpanTags)
 	}
 

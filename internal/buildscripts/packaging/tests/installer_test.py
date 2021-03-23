@@ -23,7 +23,8 @@ INSTALLER_PATH = REPO_DIR / "internal" / "buildscripts" / "packaging" / "install
 STAGE = os.environ.get("STAGE", "release")
 VERSIONS = os.environ.get("VERSIONS", "latest").split(",")
 
-SPLUNK_ENV_PATH = "/etc/otel/collector/splunk_env"
+SPLUNK_ENV_PATH = "/etc/otel/collector/splunk-otel-collector.conf"
+OLD_SPLUNK_ENV_PATH = "/etc/otel/collector/splunk_env"
 TOTAL_MEMORY = "256"
 BALLAST = "128"
 
@@ -60,12 +61,15 @@ def test_installer(distro, version, memory_option):
             time.sleep(5)
 
             # verify env file created with configured parameters
-            run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN=testing123$' {SPLUNK_ENV_PATH}")
-            run_container_cmd(container, f"grep '^SPLUNK_REALM=us0$' {SPLUNK_ENV_PATH}")
+            splunk_env_path = SPLUNK_ENV_PATH
+            if container.exec_run(f"test -f {OLD_SPLUNK_ENV_PATH}").exit_code == 0:
+                splunk_env_path = OLD_SPLUNK_ENV_PATH
+            run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN=testing123$' {splunk_env_path}")
+            run_container_cmd(container, f"grep '^SPLUNK_REALM=us0$' {splunk_env_path}")
             if memory_option == "memory":
-                run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={TOTAL_MEMORY}$' {SPLUNK_ENV_PATH}")
+                run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={TOTAL_MEMORY}$' {splunk_env_path}")
             elif memory_option == "ballast":
-                run_container_cmd(container, f"grep '^SPLUNK_BALLAST_SIZE_MIB={BALLAST}$' {SPLUNK_ENV_PATH}")
+                run_container_cmd(container, f"grep '^SPLUNK_BALLAST_SIZE_MIB={BALLAST}$' {splunk_env_path}")
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
@@ -112,9 +116,12 @@ def test_installer_service_owner(distro, version):
 
         try:
             # verify env file created with configured parameters
-            run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN=testing123$' {SPLUNK_ENV_PATH}")
-            run_container_cmd(container, f"grep '^SPLUNK_REALM=us0$' {SPLUNK_ENV_PATH}")
-            run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={TOTAL_MEMORY}$' {SPLUNK_ENV_PATH}")
+            splunk_env_path = SPLUNK_ENV_PATH
+            if container.exec_run(f"test -f {OLD_SPLUNK_ENV_PATH}").exit_code == 0:
+                splunk_env_path = OLD_SPLUNK_ENV_PATH
+            run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN=testing123$' {splunk_env_path}")
+            run_container_cmd(container, f"grep '^SPLUNK_REALM=us0$' {splunk_env_path}")
+            run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={TOTAL_MEMORY}$' {splunk_env_path}")
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=service_owner))

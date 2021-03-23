@@ -45,6 +45,8 @@ endif
 BUILD_X3=-X $(BUILD_INFO_IMPORT_PATH).BuildType=$(BUILD_TYPE)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2} ${BUILD_X3}"
 
+SMART_AGENT_RELEASE=v5.9.1
+
 ### FUNCTIONS
 
 # Function to execute a command. Note the empty line before endef to make sure each command
@@ -212,4 +214,4 @@ binaries-windows_amd64:
 %-package:
 	$(MAKE) binaries-linux_$(ARCH)
 	docker build -t otelcol-fpm internal/buildscripts/packaging/fpm
-	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) otelcol-fpm
+	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) -e SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) otelcol-fpm

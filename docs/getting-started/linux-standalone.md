@@ -51,13 +51,14 @@ EOH
 yum install -y splunk-otel-collector
 ```
 2. A default configuration file will be installed to
-   `/etc/otel/collector/splunk_config_linux.yaml` if it does not already exist.
-3. The `/etc/otel/collector/splunk_env` environment file is required to start
-   the `splunk-otel-collector` systemd service.  A sample environment file will
-   be installed to `/etc/otel/collector/splunk_env.example` that includes the
+   `/etc/otel/collector/agent_config.yaml` if it does not already exist.
+3. The `/etc/otel/collector/splunk-otel-collector.conf` environment file is
+   required to start the `splunk-otel-collector` systemd service.  A sample
+   environment file will be installed to
+   `/etc/otel/collector/splunk-otel-collector.conf.example` that includes the
    required environment variables for the default config.  To utilize this
    sample file, set the variables as appropriate and save the file as
-   `/etc/otel/collector/splunk_env`.
+   `/etc/otel/collector/splunk-otel-collector.conf`.
 4. Start/Restart the service with
    `sudo systemctl restart splunk-otel-collector.service`.
 
@@ -74,7 +75,7 @@ the Collector. The following environmental variables are required:
 Optional environment variables
 </summary>
 
-- `SPLUNK_CONFIG` (default = `/etc/otel/collector/splunk_config_linux.yaml`): Which configuration to load.
+- `SPLUNK_CONFIG` (default = `/etc/otel/collector/gateway_config.yaml`): Which configuration to load.
 - `SPLUNK_BALLAST_SIZE_MIB` (no default): How much memory to allocate to the ballast.
 - `SPLUNK_MEMORY_TOTAL_MIB` (default = `512`): Total memory allocated to the Collector.
 
@@ -152,7 +153,7 @@ For example in Docker:
 $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
     -e SPLUNK_CONFIG=/etc/collector.yaml -p 13133:13133 -p 14250:14250 \
     -p 14268:14268 -p 4317:4317 -p 6060:6060 -p 7276:7276 -p 8888:8888 \
-    -p 9411:9411 -p 9943:9943 -v collector.yaml:/etc/collector.yaml:ro \
+    -p 9411:9411 -p 9943:9943 -v "${PWD}/collector.yaml":/etc/collector.yaml:ro \
     --name otelcol quay.io/signalfx/splunk-otel-collector:latest
 ```
 
@@ -164,5 +165,5 @@ configuration as shown above.
 If the custom configuration includes a `memory_limiter` processor then the
 `ballast_size_mib` parameter should be the same as the
 `SPLUNK_BALLAST_SIZE_MIB` environment variable. See
-[splunk_config_linux.yaml](cmd/otelcol/config/collector/splunk_config_linux.yaml)
+[gateway_config.yaml](../../cmd/otelcol/config/collector/gateway_config.yaml)
 as an example.

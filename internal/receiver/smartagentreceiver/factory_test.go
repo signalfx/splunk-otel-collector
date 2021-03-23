@@ -88,7 +88,34 @@ func TestCreateLogsReceiverWithInvalidConfig(t *testing.T) {
 	assert.NotContains(t, receiverStore, cfg)
 }
 
-func TestCreateMetricAndThenLogsReceiver(t *testing.T) {
+func TestCreateTracesReceiver(t *testing.T) {
+	factory := NewFactory()
+	cfg := factory.CreateDefaultConfig()
+	cfg.(*Config).monitorConfig = &haproxy.Config{}
+
+	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	receiver, err := factory.CreateTracesReceiver(context.Background(), params, cfg, consumertest.NewTracesNop())
+	assert.NoError(t, err)
+	assert.NotNil(t, receiver)
+
+	assert.Same(t, receiver, receiverStore[cfg.(*Config)])
+}
+
+func TestCreateTracesReceiverWithInvalidConfig(t *testing.T) {
+	factory := NewFactory()
+	cfg := &Config{}
+	require.Error(t, cfg.validate())
+
+	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	receiver, err := factory.CreateTracesReceiver(context.Background(), params, cfg, consumertest.NewTracesNop())
+	require.Error(t, err)
+	assert.EqualError(t, err, "you must supply a valid Smart Agent Monitor config")
+	assert.Nil(t, receiver)
+
+	assert.NotContains(t, receiverStore, cfg)
+}
+
+func TestCreateMetricsThenLogsAndThenTracesReceiver(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
@@ -104,19 +131,31 @@ func TestCreateMetricAndThenLogsReceiver(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, logsReceiver)
 
+	nextTracesConsumer := consumertest.NewTracesNop()
+	tracesReceiver, err := factory.CreateTracesReceiver(context.Background(), params, cfg, nextTracesConsumer)
+	assert.NoError(t, err)
+	assert.NotNil(t, tracesReceiver)
+
 	assert.Same(t, metricsReceiver, logsReceiver)
+	assert.Same(t, logsReceiver, tracesReceiver)
 	assert.Same(t, metricsReceiver, receiverStore[cfg.(*Config)])
 
 	assert.Same(t, nextMetricsConsumer, metricsReceiver.(*Receiver).nextMetricsConsumer)
 	assert.Same(t, nextLogsConsumer, metricsReceiver.(*Receiver).nextLogsConsumer)
+	assert.Same(t, nextTracesConsumer, metricsReceiver.(*Receiver).nextTracesConsumer)
 }
 
-func TestCreateLogsAndThenMetricsReceiver(t *testing.T) {
+func TestCreateTracesThenLogsAndThenMetricsReceiver(t *testing.T) {
 	factory := NewFactory()
 	cfg := factory.CreateDefaultConfig()
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
 	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	nextTracesConsumer := consumertest.NewTracesNop()
+	tracesReceiver, err := factory.CreateTracesReceiver(context.Background(), params, cfg, nextTracesConsumer)
+	assert.NoError(t, err)
+	assert.NotNil(t, tracesReceiver)
+
 	nextLogsConsumer := consumertest.NewLogsNop()
 	logsReceiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, nextLogsConsumer)
 	assert.NoError(t, err)
@@ -127,9 +166,11 @@ func TestCreateLogsAndThenMetricsReceiver(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, metricsReceiver)
 
-	assert.Same(t, logsReceiver, metricsReceiver)
-	assert.Same(t, logsReceiver, receiverStore[cfg.(*Config)])
+	assert.Same(t, metricsReceiver, logsReceiver)
+	assert.Same(t, logsReceiver, tracesReceiver)
+	assert.Same(t, metricsReceiver, receiverStore[cfg.(*Config)])
 
-	assert.Same(t, nextLogsConsumer, logsReceiver.(*Receiver).nextLogsConsumer)
-	assert.Same(t, nextMetricsConsumer, logsReceiver.(*Receiver).nextMetricsConsumer)
+	assert.Same(t, nextMetricsConsumer, metricsReceiver.(*Receiver).nextMetricsConsumer)
+	assert.Same(t, nextLogsConsumer, metricsReceiver.(*Receiver).nextLogsConsumer)
+	assert.Same(t, nextTracesConsumer, metricsReceiver.(*Receiver).nextTracesConsumer)
 }

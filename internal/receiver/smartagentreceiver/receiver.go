@@ -44,6 +44,7 @@ type Receiver struct {
 	monitor             interface{}
 	nextMetricsConsumer consumer.MetricsConsumer
 	nextLogsConsumer    consumer.LogsConsumer
+	nextTracesConsumer  consumer.TracesConsumer
 	logger              *zap.Logger
 	config              *Config
 	startOnce           sync.Once
@@ -78,6 +79,12 @@ func (r *Receiver) registerLogsConsumer(logsConsumer consumer.LogsConsumer) {
 	r.Lock()
 	defer r.Unlock()
 	r.nextLogsConsumer = logsConsumer
+}
+
+func (r *Receiver) registerTracesConsumer(tracesConsumer consumer.TracesConsumer) {
+	r.Lock()
+	defer r.Unlock()
+	r.nextTracesConsumer = tracesConsumer
 }
 
 func (r *Receiver) Start(_ context.Context, host component.Host) error {
@@ -156,7 +163,9 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 		return nil, err
 	}
 
-	output := NewOutput(*r.config, monitorFiltering, r.nextMetricsConsumer, r.nextLogsConsumer, host, r.logger)
+	output := NewOutput(
+		*r.config, monitorFiltering, r.nextMetricsConsumer, r.nextLogsConsumer, r.nextTracesConsumer, host, r.logger,
+	)
 	set, err := SetStructFieldWithExplicitType(
 		monitor, "Output", output,
 		reflect.TypeOf((*types.Output)(nil)).Elem(),

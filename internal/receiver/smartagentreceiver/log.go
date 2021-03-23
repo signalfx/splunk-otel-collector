@@ -195,9 +195,6 @@ func (l *logrusToZap) Levels() []logrus.Level {
 // Fire is a logrus.Hook implementation that is called when logging on the logging levels returned by Levels.
 // A zap log entry is created from the supplied logrus entry and written out.
 func (l *logrusToZap) Fire(e *logrus.Entry) error {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	var monitorType string
 
 	fields := make([]zapcore.Field, 0)
@@ -230,6 +227,9 @@ func (l *logrusToZap) Fire(e *logrus.Entry) error {
 }
 
 func (l *logrusToZap) loggerMapValue0(src logrusKey) (*zap.Logger, bool) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	if l.loggerMap == nil {
 		return nil, false
 	}

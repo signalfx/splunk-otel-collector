@@ -23,17 +23,19 @@ allow an associated `dimensionClients` field that references the name of the Sig
 pipeline.  These monitors include `ecs-metadata`, `heroku-metadata`, `kubernetes-cluster`, `openshift-cluster`, `postgresql`,
 and `sql`.
 If you do not specify any exporters via this field, the receiver will attempt to use the associated
-pipeline.  If the next element of the pipeline isn't compatible with dimension update behavior and if a lone SignalFx
-exporter was configured for your deployment, it will be selected.  If no dimension update behavior is desired,
+pipeline.  If the next element of the pipeline isn't compatible with the dimension update behavior, and if you configured
+a single SignalFx exporter for your deployment, the exporter will be selected.  If no dimension update behavior is desired,
 you can specify the empty array `[]` to disable.
 1. Monitors with [event-sending
 functionality](https://dev.splunk.com/observability/docs/datamodel/ingest#Send-custom-events) should also be made members of
 a `logs` pipeline that utilizes a [SignalFx
 exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/signalfxexporter/README.md)
 that will make the event submission requests.  It's recommended, and in the case of the Processlist monitor required,
-to use a Resource Detection to ensure that host identity and other useful information is made available as event
-dimensions.  Receiver entries that should be added to logs pipelines `nagios`, `processlist`, and potentially any
-`telegraf/*` monitors like `telegraf/exec`.
+to use a [Resource Detection
+processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md)
+to ensure that host identity and other useful information is made available as event dimensions.
+Receiver entries that should be added to logs pipelines include `nagios`, `processlist`, and potentially any
+`telegraf/*` monitors like `telegraf/exec`.  An example of this is provided below.
 
 Example:
 
@@ -81,5 +83,5 @@ service:
         - signalfx
 ```
 
-For a more detailed description of migrating your Smart Agent monitor usage to the Splunk distribution of
+For a more detailed description of migrating your Smart Agent monitor usage to the Splunk Distribution of
 OpenTelemetry Collector please see the [migration guide](../../../docs/signalfx-smart-agent-migration.md).

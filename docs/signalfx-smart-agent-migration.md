@@ -1,15 +1,15 @@
-# Migrating from the Smart Agent to the Splunk distribution of OpenTelemetry Collector
+# Migrating from the SignalFx Smart Agent to the Splunk Distribution of OpenTelemetry Collector
 
 The [SignalFx Smart Agent's](https://github.com/signalfx/signalfx-agent/blob/master/README.md)
-metric monitors allow realtime insights into how your target services and
+metric monitors allow real-time insights into how your target services and
 applications are performing.  These metric gathering utilities have an
 equivalent counterpart in the OpenTelemetry Collector, the metric receiver.
 The [Smart Agent Receiver](./README.md) is a wrapper utility that allows the
 embedding of Smart Agent monitors within your Collector pipelines.
 
-The Smart Agent Receiver works in much the same way your Smart Agent deployment
-does and is based on the relocation of your desired monitor configuration into
-that of your Collector deployment.
+Based on the relocation of your desired monitor configurations in your Collector
+deployment, the Smart Agent Receiver works in much the same way your Smart Agent
+deployment does.
 
 Given an example Smart Agent monitor configuration:
 

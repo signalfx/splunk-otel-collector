@@ -187,6 +187,23 @@ func (l *logrusToZap) unRedirect(src logrusKey, dst *zap.Logger) {
 	l.loggerMap[src] = keep
 }
 
+func (l *logrusToZap) loggerMapValue0(src logrusKey) (*zap.Logger, bool) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	if l.loggerMap == nil {
+		return nil, false
+	}
+
+	loggers, inMap := l.loggerMap[src]
+
+	if len(loggers) > 0 {
+		return loggers[0], inMap
+	}
+
+	return nil, inMap
+}
+
 // Levels is a logrus.Hook implementation that returns all logrus logging levels.
 func (l *logrusToZap) Levels() []logrus.Level {
 	return logrus.AllLevels
@@ -224,21 +241,4 @@ func (l *logrusToZap) Fire(e *logrus.Entry) error {
 	e.Logger = l.noopLogger
 
 	return nil
-}
-
-func (l *logrusToZap) loggerMapValue0(src logrusKey) (*zap.Logger, bool) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
-	if l.loggerMap == nil {
-		return nil, false
-	}
-
-	loggers, inMap := l.loggerMap[src]
-
-	if len(loggers) > 0 {
-		return loggers[0], inMap
-	}
-
-	return nil, inMap
 }

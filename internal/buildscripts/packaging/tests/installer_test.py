@@ -81,6 +81,7 @@ def test_installer(distro, version, memory_option):
             else:
                 assert container.exec_run("systemctl status td-agent").exit_code != 0
 
+            run_container_cmd(container, "sh -x /test/install.sh --uninstall")
         finally:
             run_container_cmd(container, "journalctl -u td-agent --no-pager")
             if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:

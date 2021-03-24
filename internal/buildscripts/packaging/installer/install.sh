@@ -334,7 +334,7 @@ EOH
 }
 
 fluent_plugin_installed() {
-  local name="1"
+  local name="$1"
 
   td-agent-gem list "$name" --exact | grep -q "$name"
 }
@@ -444,26 +444,44 @@ install() {
 uninstall() {
   case "$distro" in
     ubuntu|debian)
-      for agent in splunk-otel-collector td-agent; do
-        if command -v $agent >/dev/null 2>&1; then
-          apt-get remove $agent 2>&1
-          echo "Successfully removed $agent"
-        else
-          echo "Unable to locate $agent"
+      for agent in otelcol td-agent; do
+        if command -v $agent 2>&1 >/dev/null; then
+          pkg="$agent"
+          if [ "$agent" = "otelcol" ]; then
+            pkg="splunk-otel-collector"
+          fi
+          if dpkg -s $pkg 2>&1 >/dev/null; then
+            apt-get remove -y $pkg 2>&1
+            echo "Successfully removed the $pkg package"
+          else
+            agent_path="$( command -v agent )"
+            echo "$agent_path exists but the $pkg package is not installed" >&2
+            echo "$agent_path needs to be manually removed/uninstalled" >&2
+            exit 1
+          fi
         fi
       done
       ;;
     amzn|centos|ol|rhel)
-      for agent in splunk-otel-collector td-agent; do
-        if command -v $agent >/dev/null 2>&1; then
-          if command -v yum >/dev/null 2>&1; then
-            yum remove $agent 2>&1
-          else
-            dnf remove $agent 2>&1
+      for agent in otelcol td-agent; do
+        if command -v $agent 2>&1 >/dev/null; then
+          pkg="$agent"
+          if [ "$agent" = "otelcol" ]; then
+            pkg="splunk-otel-collector"
           fi
-          echo "Successfully removed $agent"
-        else
-          echo "Unable to locate $agent"
+          if rpm -q $pkg 2>&1 >/dev/null; then
+            if command -v yum >/dev/null 2>&1; then
+              yum remove -y $pkg 2>&1
+            else
+              dnf remove -y $pkg 2>&1
+            fi
+            echo "Successfully removed the $pkg package"
+          else
+            agent_path="$( command -v agent )"
+            echo "$agent_path exists but the $pkg package is not installed" >&2
+            echo "$agent_path needs to be manually removed/uninstalled" >&2
+            exit 1
+          fi
         fi
       done
       ;;

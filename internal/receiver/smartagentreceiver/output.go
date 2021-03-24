@@ -41,9 +41,9 @@ const internalTransport = "internal"
 // nextDimensionClients as determined by the associated items in Config.MetadataClients, and all events to the
 // nextLogsConsumer.
 type Output struct {
-	nextMetricsConsumer  consumer.MetricsConsumer
-	nextLogsConsumer     consumer.LogsConsumer
-	nextTracesConsumer   consumer.TracesConsumer
+	nextMetricsConsumer  consumer.Metrics
+	nextLogsConsumer     consumer.Logs
+	nextTracesConsumer   consumer.Traces
 	extraDimensions      map[string]string
 	extraSpanTags        map[string]string
 	defaultSpanTags      map[string]string
@@ -58,8 +58,8 @@ var _ types.Output = (*Output)(nil)
 var _ types.FilteringOutput = (*Output)(nil)
 
 func NewOutput(
-	config Config, filtering *monitorFiltering, nextMetricsConsumer consumer.MetricsConsumer,
-	nextLogsConsumer consumer.LogsConsumer, nextTracesConsumer consumer.TracesConsumer, host component.Host,
+	config Config, filtering *monitorFiltering, nextMetricsConsumer consumer.Metrics,
+	nextLogsConsumer consumer.Logs, nextTracesConsumer consumer.Traces, host component.Host,
 	logger *zap.Logger,
 ) *Output {
 	metadataExporters := getMetadataExporters(config, host, &nextMetricsConsumer, logger)
@@ -81,7 +81,7 @@ func NewOutput(
 // getMetadataExporters walks through obtained Config.MetadataClients and returns all matching registered MetadataExporters,
 // if any.  At this time the SignalFx exporter is the only supported use case and adopter of this type.
 func getMetadataExporters(
-	config Config, host component.Host, nextMetricsConsumer *consumer.MetricsConsumer, logger *zap.Logger,
+	config Config, host component.Host, nextMetricsConsumer *consumer.Metrics, logger *zap.Logger,
 ) []*metadata.MetadataExporter {
 	var exporters []*metadata.MetadataExporter
 
@@ -114,7 +114,7 @@ func getMetadataExporters(
 // MetricsExporters, the only truly supported component type.
 // If config.MetadataClients is nil, it will return a slice with nextMetricsConsumer if it's a MetricsExporter.
 func getDimensionClientsFromMetricsExporters(
-	specifiedClients []string, host component.Host, nextMetricsConsumer *consumer.MetricsConsumer, logger *zap.Logger,
+	specifiedClients []string, host component.Host, nextMetricsConsumer *consumer.Metrics, logger *zap.Logger,
 ) (clients []*metadata.MetadataExporter, wasNil bool) {
 	if specifiedClients == nil {
 		wasNil = true

@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
@@ -47,13 +46,11 @@ func TestExtensionLifecycle(t *testing.T) {
 
 	mh := componenttest.NewAssertNoErrorHost(t)
 	require.NoError(t, fstExt.Start(ctx, mh))
-
-	sndExt, err := f.CreateExtension(ctx, createParams, cfg)
-	assert.NoError(t, err)
-	assert.NotNil(t, sndExt)
-
 	require.NoError(t, fstExt.Shutdown(ctx))
 
+	sndExt, err := f.CreateExtension(ctx, createParams, cfg)
+	require.NoError(t, err)
+	require.NotNil(t, sndExt)
 	require.NoError(t, sndExt.Start(ctx, mh))
 	require.NoError(t, sndExt.Shutdown(ctx))
 }

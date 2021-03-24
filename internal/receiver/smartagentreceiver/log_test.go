@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -53,18 +54,18 @@ func TestRedirectMonitorLogs(t *testing.T) {
 		}
 
 		// Simulating the creation of logrus entry/loggers in monitors (monitor1, monitor2).
-		monitor1Logger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
-		monitor2Logger := logrus.WithFields(logrus.Fields{"monitorType": "monitor2"})
+		monitor1LogrusLogger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
+		monitor2LogrusLogger := logrus.WithFields(logrus.Fields{"monitorType": "monitor2"})
 
 		// Case where logs do not have "monitorType" field
-		monitor3Logger := logrus.WithFields(logrus.Fields{})
+		monitor3LogrusLogger := logrus.WithFields(logrus.Fields{})
 
-		// Checking that the logrus standard logger is the logger for monitor1 and monitor2.
-		require.Same(t, logrus.StandardLogger(), monitor1Logger.Logger, "Expected the standard logrus logger")
-		require.Same(t, logrus.StandardLogger(), monitor2Logger.Logger, "Expected the standard logrus logger")
-		require.Same(t, logrus.StandardLogger(), monitor3Logger.Logger, "Expected the standard logrus logger")
+		// Checking that the logrus standard logger is the logger in the monitors.
+		require.Same(t, logrus.StandardLogger(), monitor1LogrusLogger.Logger, "Expected the standard logrus logger")
+		require.Same(t, logrus.StandardLogger(), monitor2LogrusLogger.Logger, "Expected the standard logrus logger")
+		require.Same(t, logrus.StandardLogger(), monitor3LogrusLogger.Logger, "Expected the standard logrus logger")
 
-		// Simulating the creation of logrus keys for monitor1 and monitor2 in the smart agent receiver where:
+		// Simulating the creation of logrus keys for the monitors where:
 		// 1. the monitor types (i.e. monitor1, monitor2) are known.
 		// 2. the logger is assumed to be the standard logrus logger.
 		monitor1LogrusKey := logrusKey{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
@@ -76,7 +77,7 @@ func TestRedirectMonitorLogs(t *testing.T) {
 		monitor3ZapLogger, monitor3ZapLogs := newObservedLogs(zapLevel)
 		defaultZapLogger, defaultLogs := newObservedLogs(zapLevel)
 
-		// Simulating logrus to zap redirections in receiver.
+		// Logrus to zap redirections.
 		logToZap := newLogrusToZap(func() *zap.Logger { return defaultZapLogger })
 		logToZap.redirect(monitor1LogrusKey, monitor1ZapLogger)
 		logToZap.redirect(monitor2LogrusKey, monitor2ZapLogger)
@@ -86,24 +87,71 @@ func TestRedirectMonitorLogs(t *testing.T) {
 		logMsg2 := "a log msg2"
 		logMsg3 := "a log msg3"
 
-		// Simulating logging a message in the monitor1.
-		logAt(monitor1Logger, logrusLevel, logMsg1)
-		logAt(monitor2Logger, logrusLevel, logMsg2)
-		logAt(monitor3Logger, logrusLevel, logMsg3)
+		// Logrus logging.
+		logAt(monitor1LogrusLogger, logrusLevel, logMsg1)
+		logAt(monitor2LogrusLogger, logrusLevel, logMsg2)
+		logAt(monitor3LogrusLogger, logrusLevel, logMsg3)
 
-		// Checking the zap logger is logging the same number of messages logged by monitor1.
+		// Checking zap logs for redirected logrus logs.
 		require.Equal(t, 1, monitor1ZapLogs.Len(), fmt.Sprintf("Expected 1 log message, got %d", monitor1ZapLogs.Len()))
-		require.Equal(t, 1, monitor2ZapLogs.Len(), fmt.Sprintf("Expected 1 log message, got %d", monitor2ZapLogs.Len()))
-		require.Equal(t, 0, monitor3ZapLogs.Len(), fmt.Sprintf("Expected 0 log message, got %d", monitor3ZapLogs.Len()))
-		require.Equal(t, 1, defaultLogs.Len(), fmt.Sprintf("Expected 1 log message, got %d", defaultLogs.Len()))
-
-		// Checking that the zap logger is logging the message logged by monitor1.
 		require.Equal(t, logMsg1, monitor1ZapLogs.All()[0].Message, fmt.Sprintf("Expected message '%s', got '%s'", logMsg1, monitor1ZapLogs.All()[0].Message))
+
+		require.Equal(t, 1, monitor2ZapLogs.Len(), fmt.Sprintf("Expected 1 log message, got %d", monitor2ZapLogs.Len()))
 		require.Equal(t, logMsg2, monitor2ZapLogs.All()[0].Message, fmt.Sprintf("Expected message '%s', got '%s'", logMsg2, monitor2ZapLogs.All()[0].Message))
+
+		require.Equal(t, 0, monitor3ZapLogs.Len(), fmt.Sprintf("Expected 0 log message, got %d", monitor3ZapLogs.Len()))
 		require.Equal(t, logMsg3, defaultLogs.All()[0].Message, fmt.Sprintf("Expected message '%s', got '%s'", logMsg3, defaultLogs.All()[0].Message))
+
+		require.Equal(t, 1, defaultLogs.Len(), fmt.Sprintf("Expected 1 log message, got %d", defaultLogs.Len()))
 
 		logToZap.unRedirect(monitor1LogrusKey, monitor1ZapLogger)
 		logToZap.unRedirect(monitor2LogrusKey, monitor2ZapLogger)
+		logToZap.unRedirect(monitor3LogrusKey, monitor3ZapLogger)
+	}
+}
+
+func TestRedirectMonitorLogsWithNilLoggerMap(t *testing.T) {
+	for logrusLevel, zapLevel := range levelsMap {
+		//TODO: handle fatal and panic levels
+		if logrusLevel == logrus.FatalLevel || logrusLevel == logrus.PanicLevel {
+			continue
+		}
+
+		// Simulating the creation of logrus entry/logger in monitor1.
+		monitor1LogrusLogger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
+
+		// Simulating the creation of logrus key for monitor1 in the smart agent receiver where:
+		// 1. the monitor types (i.e. monitor1) are known.
+		// 2. the logger is assumed to be the standard logrus logger.
+		monitor1LogrusKey := logrusKey{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
+
+		monitor1ZapLogger, monitor1ZapLogs := newObservedLogs(zapLevel)
+		defaultZapLogger, defaultZapLogs := newObservedLogs(zapLevel)
+
+		// Logrus to zap redirection.
+		logToZap := newLogrusToZap(func() *zap.Logger { return defaultZapLogger })
+		logToZap.redirect(monitor1LogrusKey, monitor1ZapLogger)
+
+		require.Len(t, logToZap.loggerMap, 1)
+		require.Len(t, logToZap.loggerMap[monitor1LogrusKey], 1)
+		require.Equal(t, monitor1ZapLogger, logToZap.loggerMap[monitor1LogrusKey][0])
+
+		// Setting loggerMap to nil
+		logToZap.loggerMap = nil
+
+		logMsg := "a log msg"
+
+		// Logrus logging.
+		logAt(monitor1LogrusLogger, logrusLevel, logMsg)
+
+		// Logrus logs should not be redirected to monitor1ZapLogger.
+		assert.Equal(t, 0, monitor1ZapLogs.Len(), fmt.Sprintf("Expected 0 log message, got %d", monitor1ZapLogs.Len()))
+
+		// Logrus logs should be redirected to defaultZapLogger when loggerMap is nil.
+		assert.Equal(t, 1, defaultZapLogs.Len(), fmt.Sprintf("Expected 1 log message, got %d", monitor1ZapLogs.Len()))
+		require.Equal(t, logMsg, defaultZapLogs.All()[0].Message, fmt.Sprintf("Expected message '%s', got '%s'", logMsg, defaultZapLogs.All()[0].Message))
+
+		logToZap.unRedirect(monitor1LogrusKey, monitor1ZapLogger)
 	}
 }
 
@@ -115,8 +163,8 @@ func TestRedirectSameMonitorManyInstancesLogs(t *testing.T) {
 		}
 
 		// Simulating the creation of logrus entry/loggers in instances of a monitor (monitor1).
-		instance1Logger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
-		instance2Logger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
+		instance1LogrusLogger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
+		instance2LogrusLogger := logrus.WithFields(logrus.Fields{"monitorType": "monitor1"})
 
 		// Simulating the creation of logrus keys for the instances of monitor1 in the smart agent receiver where:
 		// 1. the monitor type (i.e. monitor1) is known.
@@ -125,8 +173,8 @@ func TestRedirectSameMonitorManyInstancesLogs(t *testing.T) {
 		instance2LogrusKey := logrusKey{Logger: logrus.StandardLogger(), monitorType: "monitor1"}
 
 		// Checking that the logrus standard logger is the logger for both monitor1 instances.
-		require.Same(t, logrus.StandardLogger(), instance1Logger.Logger, "Expected the standard logrus logger")
-		require.Same(t, logrus.StandardLogger(), instance2Logger.Logger, "Expected the standard logrus logger")
+		require.Same(t, logrus.StandardLogger(), instance1LogrusLogger.Logger, "Expected the standard logrus logger")
+		require.Same(t, logrus.StandardLogger(), instance2LogrusLogger.Logger, "Expected the standard logrus logger")
 		// Checking that the logrus keys are equal.
 		require.Equal(t, instance1LogrusKey, instance2LogrusKey, "Expected the standard logrus logger")
 
@@ -142,8 +190,8 @@ func TestRedirectSameMonitorManyInstancesLogs(t *testing.T) {
 		logMsg2 := "a log msg2"
 
 		// Simulating logging messages in the instances of monitor1.
-		logAt(instance1Logger, logrusLevel, logMsg1)
-		logAt(instance2Logger, logrusLevel, logMsg2)
+		logAt(instance1LogrusLogger, logrusLevel, logMsg1)
+		logAt(instance2LogrusLogger, logrusLevel, logMsg2)
 
 		// Asserting that messages logged by all instances get logged by the zap logger of the first instance.
 		require.Equal(t, 2, instance1ZapLogs.Len(), fmt.Sprintf("Expected 2 log message, got %d", instance1ZapLogs.Len()))

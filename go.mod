@@ -41,7 +41,7 @@ require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.16
 	github.com/signalfx/signalfx-agent v1.0.1-0.20210322175059-8828c6244c88
-	github.com/sirupsen/logrus v1.8.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	go.opentelemetry.io/collector v0.22.1-0.20210317222125-85804ff25770

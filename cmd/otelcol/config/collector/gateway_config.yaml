@@ -84,7 +84,7 @@ service:
   pipelines:
     traces:
       receivers: [jaeger, otlp, sapm, zipkin]
-      processors: 
+      processors:
       - memory_limiter
       - batch
       #- resource/add_environment

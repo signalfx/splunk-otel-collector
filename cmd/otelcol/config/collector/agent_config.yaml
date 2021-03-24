@@ -112,13 +112,16 @@ exporters:
     endpoint: "${SPLUNK_HEC_URL}"
     source: "otel"
     sourcetype: "otel"
+  # Debug
+  #logging:
+    #loglevel: debug
 
 service:
   extensions: [health_check, http_forwarder, zpages]
   pipelines:
     traces:
       receivers: [jaeger, otlp, sapm, zipkin]
-      processors: 
+      processors:
       - memory_limiter
       - batch
       - resourcedetection
@@ -134,7 +137,7 @@ service:
       exporters: [signalfx]
     logs:
       receivers: [fluentforward]
-      processors: 
+      processors:
       - memory_limiter
       - batch
       - resourcedetection

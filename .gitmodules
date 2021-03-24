@@ -1,0 +1,3 @@
+[submodule "otel"]
+	path = opentelemetry-collector-contrib
+	url = git@github.com:open-telemetry/opentelemetry-collector-contrib.git

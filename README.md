@@ -2,8 +2,12 @@
 
 The Splunk Distribution of [OpenTelemetry
 Collector](https://github.com/open-telemetry/opentelemetry-collector) provides
-a binary that can receive, process and export trace, metric and log data. This
-distribution is supported by Splunk.
+a binary that can receive, process and export trace, metric and log data.
+
+**Installations that use this distribution can receive direct help from Splunk's support teams.**
+Customers are free to use the core OpenTelemetry OSS components (several do!) and we will provide best
+effort guidance to them for any issues that crop up, however only the Splunk distributions are in
+scope for official Splunk support and support-related SLAs.
 
 The Collector currently supports:
 

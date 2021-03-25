@@ -14,22 +14,23 @@ ways](../#getting-started). It is possible, but not supported, to configure a
 Splunk Forwarder to send data to Splunk OpenTelemetry Collector in the
 following ways:
 
-- Splunk Heavy Forwarder with either TCP or Syslog out to Fluentd in Splunk
-  OpenTelemetry Collector
 - Splunk Universal Forwarder with TCP out to Fluentd in Splunk OpenTelemetry
   Collector
+- Splunk Heavy Forwarder with either TCP or Syslog out to Fluentd in Splunk
+  OpenTelemetry Collector
 
 Please note that there are differences between a Universal and Heavy Forwarder:
 
 - Read
   https://docs.splunk.com/Documentation/SplunkCloud/latest/Forwarding/Typesofforwarders
-- HF adds source, sourcetype, and host; UF may not add same metadata
-- UF support all-or-nothing forwarding; HF offers flexibility
+- Neither the UF nor HF adds Splunk leveraged metadata (e.g. source,
+  sourcetype, and host) when forwarding in TCP
+- UF supports all-or-nothing forwarding; HF offers flexibility
 
 The most common deployment models to test Splunk Forwarder integration are:
 
-- UF > S2S out > HF > TCP out > Fluentd (via Splunk OpenTelemetry Connector)
 - UF > TCP out > Fluentd (via Splunk OpenTelemetry Connector)
+- UF > S2S out > HF > TCP out > Fluentd (via Splunk OpenTelemetry Connector)
 
 ## Configuring Universal or Heavy Forwarder
 

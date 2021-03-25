@@ -4,8 +4,9 @@ The [SignalFx Smart Agent's](https://github.com/signalfx/signalfx-agent/blob/mas
 metric monitors allow real-time insights into how your target services and
 applications are performing.  These metric gathering utilities have an
 equivalent counterpart in the OpenTelemetry Collector, the metric receiver.
-The [Smart Agent Receiver](./README.md) is a wrapper utility that allows the
-embedding of Smart Agent monitors within your Collector pipelines.
+The [Smart Agent Receiver](../internal/receiver/smartagentreceiver/README.md)
+is a wrapper utility that allows the embedding of Smart Agent monitors within
+your Collector pipelines.
 
 Based on the relocation of your desired monitor configurations in your Collector
 deployment, the Smart Agent Receiver works in much the same way your Smart Agent
@@ -29,6 +30,8 @@ collectd:
   writeQueueLimitLow: 600000
 
 monitors:
+  - type: signalfx-forwarder
+    listenAddress: 0.0.0.0:9080
   - type: collectd/activemq
     discoveryRule: container_image =~ "activemq" && private_port == 1099
     extraDimensions:
@@ -41,7 +44,10 @@ monitors:
       my_other_dimension: my_other_dimension_value
 ```
 
-Here is an equivalent, recommended Collector configuration utilizing the
+Below is an equivalent, recommended Collector configuration.  Notice that the
+`signalfx-forwarder` monitor's associated `smartagent/signalfx-forwarder` receiver instance
+is part of a `traces` pipeline using the `sapm` exporter.  The additional metric
+monitors utilize the
 [Receiver Creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/master/receiver/receivercreator/README.md):
 
 ```yaml
@@ -57,20 +63,23 @@ extensions:
       writeQueueLimitLow: 600000
 
 receivers:
+  smartagent/signalfx-forwarder:
+    type: signalfx-forwarder
+    listenAddress: 0.0.0.0:9080
   receiver_creator:
     receivers:
       smartagent/activemq:
-        rule: type.port && pod.name == "activemq" && port == 1099
+        rule: type == "port" && pod.name matches "activemq" && port == 1099
         config:
           type: collectd/activemq
           extraDimensions:
             my_dimension: my_dimension_value
       smartagent/apache:
-        rule: type.port && pod.name == "apache" && port == 80
+        rule: type == "port" && pod.name matches "apache" && port == 80
         config:
           type: collectd/apache
       smartagent/postgresql:
-        rule: type.port && pod.name == "postgresql" && port == 7199
+        rule: type == "port" && pod.name matches "postgresql" && port == 7199
         config:
           type: postgresql
           extraDimensions:
@@ -102,6 +111,9 @@ exporters:
   signalfx:
     access_token: "${SIGNALFX_ACCESS_TOKEN}"
     realm: us1
+  sapm:
+    access_token: "${SIGNALFX_ACCESS_TOKEN}"
+    endpoint: https://ingest.us1.signalfx.com/v2/trace
 
 service:
   extensions:
@@ -115,4 +127,11 @@ service:
         - resourcedetection
       exporters:
         - signalfx
+    traces:
+      receivers:
+        - smartagent/signalfx-forwarder
+      processors:
+        - resourcedetection
+      exporters:
+        - sapm
 ```

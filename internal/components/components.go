@@ -86,6 +86,7 @@ func Get() (component.Factories, error) {
 		fluentforwardreceiver.NewFactory(),
 		jaegerreceiver.NewFactory(),
 		k8sclusterreceiver.NewFactory(),
+		kafkareceiver.NewFactory(),
 		kubeletstatsreceiver.NewFactory(),
 		opencensusreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
@@ -106,6 +107,7 @@ func Get() (component.Factories, error) {
 
 	exporters, err := component.MakeExporterFactoryMap(
 		fileexporter.NewFactory(),
+		kafkaexporter.NewFactory(),
 		loggingexporter.NewFactory(),
 		otlpexporter.NewFactory(),
 		sapmexporter.NewFactory(),

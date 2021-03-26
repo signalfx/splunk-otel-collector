@@ -92,9 +92,10 @@ matrix](https://github.com/open-telemetry/community/blob/47813530864b9fe5a5146f4
 
 | Receivers      | Processors | Exporters | Extensions |
 | :-------:      | :--------: | :-------: | :--------: |
-| carbon         |            |           |            |
+| carbon         |            | kafka     |            |
 | collectd       |            |           |            |
 | fluentdforward |            |           |            |
+| kafka          |            |           |            |
 | statsd         |            |           |            |
 
 ## Sizing

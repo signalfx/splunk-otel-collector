@@ -79,7 +79,7 @@ func createMetricsReceiver(
 	_ context.Context,
 	params component.ReceiverCreateParams,
 	cfg configmodels.Receiver,
-	metricsConsumer consumer.MetricsConsumer,
+	metricsConsumer consumer.Metrics,
 ) (component.MetricsReceiver, error) {
 	receiver, err := getOrCreateReceiver(cfg, params.Logger)
 	if err != nil {
@@ -94,7 +94,7 @@ func createLogsReceiver(
 	_ context.Context,
 	params component.ReceiverCreateParams,
 	cfg configmodels.Receiver,
-	logsConsumer consumer.LogsConsumer,
+	logsConsumer consumer.Logs,
 ) (component.LogsReceiver, error) {
 	receiver, err := getOrCreateReceiver(cfg, params.Logger)
 	if err != nil {
@@ -109,7 +109,7 @@ func createTracesReceiver(
 	_ context.Context,
 	params component.ReceiverCreateParams,
 	cfg configmodels.Receiver,
-	tracesConsumer consumer.TracesConsumer,
+	tracesConsumer consumer.Traces,
 ) (component.TracesReceiver, error) {
 	receiver, err := getOrCreateReceiver(cfg, params.Logger)
 	if err != nil {

@@ -42,9 +42,9 @@ const setOutputErrMsg = "unable to set Output field of monitor"
 
 type Receiver struct {
 	monitor             interface{}
-	nextMetricsConsumer consumer.MetricsConsumer
-	nextLogsConsumer    consumer.LogsConsumer
-	nextTracesConsumer  consumer.TracesConsumer
+	nextMetricsConsumer consumer.Metrics
+	nextLogsConsumer    consumer.Logs
+	nextTracesConsumer  consumer.Traces
 	logger              *zap.Logger
 	config              *Config
 	startOnce           sync.Once
@@ -69,19 +69,19 @@ func NewReceiver(logger *zap.Logger, config Config) *Receiver {
 	}
 }
 
-func (r *Receiver) registerMetricsConsumer(metricsConsumer consumer.MetricsConsumer) {
+func (r *Receiver) registerMetricsConsumer(metricsConsumer consumer.Metrics) {
 	r.Lock()
 	defer r.Unlock()
 	r.nextMetricsConsumer = metricsConsumer
 }
 
-func (r *Receiver) registerLogsConsumer(logsConsumer consumer.LogsConsumer) {
+func (r *Receiver) registerLogsConsumer(logsConsumer consumer.Logs) {
 	r.Lock()
 	defer r.Unlock()
 	r.nextLogsConsumer = logsConsumer
 }
 
-func (r *Receiver) registerTracesConsumer(tracesConsumer consumer.TracesConsumer) {
+func (r *Receiver) registerTracesConsumer(tracesConsumer consumer.Traces) {
 	r.Lock()
 	defer r.Unlock()
 	r.nextTracesConsumer = tracesConsumer

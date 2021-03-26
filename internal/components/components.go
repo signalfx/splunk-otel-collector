@@ -39,6 +39,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/exporter/fileexporter"
+	"go.opentelemetry.io/collector/exporter/kafkaexporter"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/extension/healthcheckextension"
@@ -53,6 +54,7 @@ import (
 	"go.opentelemetry.io/collector/receiver/fluentforwardreceiver"
 	"go.opentelemetry.io/collector/receiver/hostmetricsreceiver"
 	"go.opentelemetry.io/collector/receiver/jaegerreceiver"
+	"go.opentelemetry.io/collector/receiver/kafkareceiver"
 	"go.opentelemetry.io/collector/receiver/opencensusreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/prometheusreceiver"
@@ -84,6 +86,7 @@ func Get() (component.Factories, error) {
 		fluentforwardreceiver.NewFactory(),
 		jaegerreceiver.NewFactory(),
 		k8sclusterreceiver.NewFactory(),
+		kafkareceiver.NewFactory(),
 		kubeletstatsreceiver.NewFactory(),
 		opencensusreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
@@ -104,6 +107,7 @@ func Get() (component.Factories, error) {
 
 	exporters, err := component.MakeExporterFactoryMap(
 		fileexporter.NewFactory(),
+		kafkaexporter.NewFactory(),
 		loggingexporter.NewFactory(),
 		otlpexporter.NewFactory(),
 		sapmexporter.NewFactory(),

@@ -81,6 +81,21 @@ def test_installer(distro, version, memory_option):
             else:
                 assert container.exec_run("systemctl status td-agent").exit_code != 0
 
+            # test support bundle script
+            assert container.exec_run("/etc/otel/collector/splunk-support-bundle.sh -t /tmp/splunk-support-bundle").exit_code == 0
+            assert container.exec_run("test -f /tmp/splunk-support-bundle/config/splunk_config_linux.yaml").exit_code == 0
+            assert container.exec_run("test -f /tmp/splunk-support-bundle/logs/splunk-otel-collector.log").exit_code == 0
+            assert container.exec_run("test -f /tmp/splunk-support-bundle/logs/splunk-otel-collector.txt").exit_code == 0
+            if container.exec_run("test -f /etc/otel/collector/fluentd/fluent.conf").exit_code == 0:
+                assert container.exec_run("test -f /tmp/splunk-support-bundle/logs/td-agent.log").exit_code == 0
+                assert container.exec_run("test -f /tmp/splunk-support-bundle/logs/td-agent.txt").exit_code == 0
+            assert container.exec_run("test -f /tmp/splunk-support-bundle/metrics/collector-metrics.txt").exit_code == 0
+            assert container.exec_run("test -f /tmp/splunk-support-bundle/metrics/df.txt").exit_code == 0
+            assert container.exec_run("test -f /tmp/splunk-support-bundle/metrics/free.txt").exit_code == 0
+            assert container.exec_run("test -f /tmp/splunk-support-bundle/metrics/top.txt").exit_code == 0
+            assert container.exec_run("test -f /tmp/splunk-support-bundle/zpages/tracez.html").exit_code == 0
+            assert container.exec_run("test -f /tmp/splunk-support-bundle.tar.gz").exit_code == 0
+
             run_container_cmd(container, "sh -x /test/install.sh --uninstall")
         finally:
             run_container_cmd(container, "journalctl -u td-agent --no-pager")

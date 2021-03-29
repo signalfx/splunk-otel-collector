@@ -149,9 +149,6 @@ For security information specific to this distribution, please review
 
 ## Troubleshooting
 
-Start by reviewing the [Collector troubleshooting
-documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/troubleshooting.md).
-
 For troubleshooting information specific to this distribution, please review
 [troubleshooting.md](docs/troubleshooting.md).
 

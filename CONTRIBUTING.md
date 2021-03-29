@@ -11,13 +11,6 @@ In addition to this document, please review our [Code of
 Conduct](CODE_OF_CONDUCT.md). For any code of conduct questions or comments
 please email oss@splunk.com.
 
-
-## Reporting Security Issues
-
-Please *DO NOT* report security vulnerabilities with public GitHub issue
-reports. Please [report security issues here](
-https://www.splunk.com/en_us/product-security/report.html).
-
 ## Reporting Bugs/Feature Requests
 
 We welcome you to use the GitHub issue tracker to report bugs or suggest

@@ -125,7 +125,7 @@ def get_args():
     parser.add_argument(
         "--stage",
         type=str,
-        default="release",
+        default="test",
         metavar="STAGE",
         choices=STAGES,
         required=False,
@@ -137,7 +137,7 @@ def get_args():
             If STAGE is 'github', the packages will be signed and *only* pushed to the Github release.
             If STAGE is 'release', the packages will be signed, pushed to Artifactory, S3, and Github, and the
             'Pre-release' label will be removed from the Github release.
-            Defaults to 'release'.
+            Defaults to 'test'.
         """,
     )
     parser.add_argument(

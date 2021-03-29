@@ -63,7 +63,7 @@ journald and `/var/log/syslog.log` for events.
 
 ```bash
 $ echo "2021-03-17 02:14:44 +0000 [debug]: test" >>/var/log/syslog.log
-$ echo "2021-03-17 02:14:44 +0000 [debug]: test" | systemctl-cat
+$ echo "2021-03-17 02:14:44 +0000 [debug]: test" | systemd-cat
 ```
 
 ## Trace Collection

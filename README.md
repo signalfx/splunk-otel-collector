@@ -111,40 +111,6 @@ The Collector is supported on and packaged for a variety of platforms including:
 
 You can consult additional use cases in the [examples](./examples) directory.
 
-## Supported Components
-
-The distribution offers support for the following components. Support is based
-on the [OpenTelemetry maturity
-matrix](https://github.com/open-telemetry/community/blob/47813530864b9fe5a5146f466a58bd2bb94edc72/maturity-matrix.yaml#L57).
-
-### Beta
-
-| Receivers        | Processors        | Exporters | Extensions    |
-| :--------------: | :--------:        | :-------: | :--------:    |
-| hostmetrics      | attributes        | file      | healthcheck   |
-| jaeger           | batch             | logging   | httpforwarder |
-| k8s_cluster      | filter            | otlp      | host_observer |
-| kubeletstats     | k8s_tagger        | sapm      | k8s_observer  |
-| opencensus       | memorylimiter     | signalfx  | pprof         |
-| otlp             | metrictransform   | splunkhec | zpages        |
-| receiver_creator | resource          |           |               |
-| sapm             | resourcedetection |           |               |
-| signalfx         | span              |           |               |
-| simpleprometheus |                   |           |               |
-| smartagent       |                   |           |               |
-| splunkhec        |                   |           |               |
-| zipkin           |                   |           |               |
-
-### Alpha
-
-| Receivers      | Processors | Exporters | Extensions |
-| :-------:      | :--------: | :-------: | :--------: |
-| carbon         |            | kafka     |            |
-| collectd       |            |           |            |
-| fluentdforward |            |           |            |
-| kafka          |            |           |            |
-| statsd         |            |           |            |
-
 ## License
 
 [Apache Software License version 2.0](./LICENSE).

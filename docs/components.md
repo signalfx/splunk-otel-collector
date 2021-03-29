@@ -15,7 +15,7 @@ removed prior to the 1.0 release.
 | jaeger           | filter            | otlp      | host_observer |
 | k8s_cluster      | k8s_tagger        | sapm      | k8s_observer  |
 | kubeletstats     | memorylimiter     | signalfx  | pprof         |
-| opencensus       | metrictransform   | splunkhec | zpages        |
+| opencensus       | metrictransform   | splunk_hec | zpages        |
 | otlp             | resource          |           |               |
 | receiver_creator | resourcedetection |           |               |
 | sapm             | span              |           |               |

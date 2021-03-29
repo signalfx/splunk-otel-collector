@@ -111,64 +111,6 @@ The Collector is supported on and packaged for a variety of platforms including:
 
 You can consult additional use cases in the [examples](./examples) directory.
 
-## Sizing
-
-The OpenTelemetry Collector can be scaled up or out as needed. Sizing is based
-on the amount of data per data source and requires 1 CPU core per:
-
-- Traces: 10,000 spans per second
-- Metrics: 20,000 data points per second
-
-If a Collector handles both trace and metric data then both must be accounted
-for when sizing. For example, 5K spans per second plus 10K data points per
-second would require 1 CPU core.
-
-The recommendation is to use a ratio of 1 CPU to 2 GB of memory. By default, the
-Collector is configured to use 512 MB of memory.
-
-> The Collector does not persist data to disk so no disk space is required.
-
-### Agent
-
-For Agent instances, scale up resources as needed. Typically only a single
-agent runs per application or host so properly sizing the agent is important.
-Multiple independent agents could be deployed on a given application or host
-depending on the use-case. For example, a privileged agent could be deployed
-alongside an unprivileged agent.
-
-### Gateway
-
-For Gateway instances, allocate at least a CPU core per Collector. Note that
-multiple Collectors can deployed behind a simple round-robin load balancer for
-availability and performance reasons. Each Collector runs independently, so
-scale increases linearly with the number of Collectors you deploy.
-
-The recommendation is to configure at least N+1 redundancy, which means a load
-balancer and a minimum of two Collector instances should be configured
-initially.
-
-## Monitoring
-
-The default configuration automatically scrapes the Collector's own metrics and
-sends the data using the `signalfx` exporter. A built-in dashboard provides
-information about the health and status of Collector instances.
-
-## Security
-
-Start by reviewing the [Collector security
-documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/security.md).
-
-For security information specific to this distribution, please review
-[security.md](docs/security.md).
-
-## Troubleshooting
-
-Start by reviewing the [Collector troubleshooting
-documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/troubleshooting.md).
-
-For troubleshooting information specific to this distribution, please review
-[troubleshooting.md](docs/troubleshooting.md).
-
 ## License
 
 [Apache Software License version 2.0](./LICENSE).

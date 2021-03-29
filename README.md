@@ -30,6 +30,8 @@
   <strong>
     <a href="docs/architecture.md">Architecture</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+    <a href="docs/components.md">Components</a>
+    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="docs/monitoring.md">Monitoring</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="docs/security.md">Security</a>

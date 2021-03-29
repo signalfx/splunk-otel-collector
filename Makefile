@@ -6,9 +6,6 @@ ADDLICENSE= addlicense
 ALL_DOC := $(shell find . \( -name "*.md" -o -name "*.yaml" \) \
                                 -type f | sort)
 
-# ALL_MODULES includes ./* dirs (excludes . dir)
-ALL_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
-
 # All source code excluding any third party code and excluding the testbed.
 # This is the code that we want to run tests for and lint, staticcheck, etc.
 ALL_SRC := $(shell find . -name '*.go' \
@@ -107,6 +104,9 @@ checklicense:
 			echo "Check License finished successfully"; \
 		fi
 
+# ALL_MODULES includes ./* dirs (excludes . dir)
+ALL_GO_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
+ALL_PYTHON_DEPS := $(shell find . -type f \( -name "setup.py" -o -name "requirements.txt" \) -exec dirname {} \; | sort | egrep  '^./')
 DEPENDABOT_PATH=./.github/dependabot.yml
 .PHONY: gendependabot
 gendependabot:
@@ -115,10 +115,14 @@ gendependabot:
 	@echo "version: 2" >> ${DEPENDABOT_PATH}
 	@echo "updates:" >> ${DEPENDABOT_PATH}
 	@echo "Add entry for \"/\""
-	@echo "  - package-ecosystem: \"gomod\"\n    directory: \"/\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH}
-	@set -e; for dir in $(ALL_MODULES); do \
+	@echo "  - package-ecosystem: \"gomod\"\n    directory: \"/\"\n    schedule:\n      interval: \"daily\"" >> ${DEPENDABOT_PATH}
+	@set -e; for dir in $(ALL_GO_MODULES); do \
 		(echo "Add entry for \"$${dir:1}\"" && \
-		  echo "  - package-ecosystem: \"gomod\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH} ); \
+		  echo "  - package-ecosystem: \"gomod\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"daily\"" >> ${DEPENDABOT_PATH} ); \
+	done
+	@set -e; for dir in $(ALL_PYTHON_DEPS); do \
+		(echo "Add entry for \"$${dir:1}\"" && \
+		  echo "  - package-ecosystem: \"pip\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"daily\"" >> ${DEPENDABOT_PATH} ); \
 	done
 
 .PHONY: misspell

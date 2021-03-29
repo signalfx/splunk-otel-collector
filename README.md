@@ -6,7 +6,7 @@
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="CONTRIBUTING.md">Getting Involved</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="CONTRIBUTING.md">Migrating from Smart Agent</a>
+    <a href="docs/signalfx-smart-agent-migration.md">Migrating from Smart Agent</a>
   </strong>
 </p>
 
@@ -14,7 +14,7 @@
   <a href="https://goreportcard.com/report/github.com/signalfx/splunk-otel-collector">
     <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/signalfx/splunk-otel-collector?style=for-the-badge">
   </a>
-  <a href="https://circleci.com/gh/signafx/splunk-otel-collector">
+  <a href="https://circleci.com/gh/signalfx/splunk-otel-collector">
     <img alt="Build Status" src="https://img.shields.io/circleci/build/github/signalfx/splunk-otel-collector?style=for-the-badge">
   </a>
   <a href="https://codecov.io/gh/signalfx/splunk-otel-collector/branch/main/">

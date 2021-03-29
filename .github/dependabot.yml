@@ -5,12 +5,24 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
   - package-ecosystem: "gomod"
     directory: "/examples/prometheus-federation/prom-counter"
     schedule:
-      interval: "weekly"
+      interval: "daily"
   - package-ecosystem: "gomod"
     directory: "/examples/splunk-hec/logging"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+  - package-ecosystem: "gomod"
+    directory: "/tests"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pip"
+    directory: "/internal/buildscripts/packaging/release"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pip"
+    directory: "/internal/buildscripts/packaging/tests"
+    schedule:
+      interval: "daily"

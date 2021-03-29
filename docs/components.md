@@ -22,7 +22,7 @@ removed prior to the 1.0 release.
 | signalfx         |                   |           |               |
 | simpleprometheus |                   |           |               |
 | smartagent       |                   |           |               |
-| splunkhec        |                   |           |               |
+| splunk_hec       |                   |           |               |
 | zipkin           |                   |           |               |
 
 ## Alpha

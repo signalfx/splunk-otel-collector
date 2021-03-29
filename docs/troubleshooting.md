@@ -35,7 +35,10 @@ In addition, it is important to gather support information including:
 - Logs and ideally debug logs
   - Docker: `docker logs my-container >my-container.log`
   - Journald: `journalctl -u my-service >my-service.log`
-  - Kubernetes: `kubectl logs my-pod >my-pod.log`
+  - Kubernetes:
+      `kubectl describe pod my-pod`
+      `kubectl logs my-pod otel-collector >my-pod-otel.log`
+      `kubectl logs my-pod fluentd >my-pod-fluentd.log`
 
 Support bundle scripts are provided to make it easier to collect information:
 

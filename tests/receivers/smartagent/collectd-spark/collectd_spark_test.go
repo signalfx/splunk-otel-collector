@@ -61,8 +61,8 @@ func TestCollectdSparkReceiverProvidesAllMetrics(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, rc)
 
-	for _, args := range []struct{
-		name string
+	for _, args := range []struct {
+		name                    string
 		resourceMetricsFilename string
 		collectorConfigFilename string
 	}{

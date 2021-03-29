@@ -20,9 +20,9 @@ import (
 	"strings"
 
 	"github.com/signalfx/defaults"
-	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/spf13/viper"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"gopkg.in/yaml.v2"
 )
 
@@ -31,22 +31,22 @@ import (
 // are mapped to camel case fields in the config and hence are not exposed.
 type SmartAgentConfigProvider interface {
 	BundleDir() string
-	CollectdConfig() *config.CollectdConfig
+	CollectdConfig() *saconfig.CollectdConfig
 }
 
 var _ SmartAgentConfigProvider = (*Config)(nil)
 
 type Config struct {
-	configmodels.ExtensionSettings `mapstructure:",squash"`
-	bundleDir                      string
-	collectdConfig                 config.CollectdConfig
+	config.ExtensionSettings `mapstructure:",squash"`
+	bundleDir                string
+	collectdConfig           saconfig.CollectdConfig
 }
 
 func (c Config) BundleDir() string {
 	return c.bundleDir
 }
 
-func (c Config) CollectdConfig() *config.CollectdConfig {
+func (c Config) CollectdConfig() *saconfig.CollectdConfig {
 	return &c.collectdConfig
 }
 
@@ -67,7 +67,7 @@ func customUnmarshaller(componentViperSection *viper.Viper, intoCfg interface{})
 		collectdSettings = map[string]interface{}{}
 	}
 
-	var collectdConfig config.CollectdConfig
+	var collectdConfig saconfig.CollectdConfig
 	yamlTags := yamlTagsFromStruct(reflect.TypeOf(collectdConfig))
 
 	for key, val := range collectdSettings {

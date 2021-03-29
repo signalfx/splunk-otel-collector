@@ -19,7 +19,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/apache"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/genericjmx"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/kafka"
@@ -28,7 +28,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtest"
 )
 
@@ -37,7 +37,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[configmodels.Type(typeStr)] = factory
+	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "linux_config.yaml"), factories,
 	)
@@ -49,15 +49,15 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 
 	apacheCfg := cfg.Receivers["smartagent/apache"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/apache",
 		},
 		monitorConfig: &apache.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/apache",
 				IntervalSeconds:     234,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 			Host: "localhost",
 			Port: 6379,
@@ -68,16 +68,16 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 
 	kafkaCfg := cfg.Receivers["smartagent/kafka"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/kafka",
 		},
 		monitorConfig: &kafka.Config{
 			Config: genericjmx.Config{
-				MonitorConfig: config.MonitorConfig{
+				MonitorConfig: saconfig.MonitorConfig{
 					Type:                "collectd/kafka",
 					IntervalSeconds:     345,
-					DatapointsToExclude: []config.MetricFilter{},
+					DatapointsToExclude: []saconfig.MetricFilter{},
 				},
 				Host:       "localhost",
 				Port:       7199,
@@ -90,15 +90,15 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 
 	memcachedCfg := cfg.Receivers["smartagent/memcached"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/memcached",
 		},
 		monitorConfig: &memcached.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/memcached",
 				IntervalSeconds:     456,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 			Host: "localhost",
 			Port: 5309,
@@ -108,15 +108,15 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 
 	phpCfg := cfg.Receivers["smartagent/php"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/php",
 		},
 		monitorConfig: &php.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/php-fpm",
 				IntervalSeconds:     0,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 			Path: "/status",
 		},

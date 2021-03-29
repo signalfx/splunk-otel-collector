@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
 	"github.com/stretchr/testify/assert"
@@ -33,7 +33,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/consumer/pdata"
@@ -64,12 +64,12 @@ var expectedCPUMetrics = map[string]pdata.MetricDataType{
 
 func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
 	return Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: fmt.Sprintf("%s/%s", typeStr, nameVal),
 		},
 		monitorConfig: &cpu.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:            monitorType,
 				IntervalSeconds: intervalSeconds,
 				ExtraDimensions: map[string]string{
@@ -299,7 +299,7 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		}
 		return false
 	}())
-	require.Equal(t, &config.CollectdConfig{
+	require.Equal(t, &saconfig.CollectdConfig{
 		DisableCollectd:      false,
 		Timeout:              10,
 		ReadThreads:          1,
@@ -355,21 +355,21 @@ type mockHost struct {
 func (m *mockHost) ReportFatalError(err error) {
 }
 
-func (m *mockHost) GetFactory(kind component.Kind, componentType configmodels.Type) component.Factory {
+func (m *mockHost) GetFactory(kind component.Kind, componentType config.Type) component.Factory {
 	return nil
 }
 
-func (m *mockHost) GetExtensions() map[configmodels.NamedEntity]component.Extension {
+func (m *mockHost) GetExtensions() map[config.NamedEntity]component.Extension {
 	exampleFactory := componenttest.NewNopExtensionFactory()
 	randomExtensionConfig := exampleFactory.CreateDefaultConfig()
-	return map[configmodels.NamedEntity]component.Extension{
+	return map[config.NamedEntity]component.Extension{
 		m.smartagentextensionConfig:      getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
 		randomExtensionConfig:            getExtension(exampleFactory, randomExtensionConfig),
 		m.smartagentextensionConfigExtra: nil,
 	}
 }
 
-func getExtension(f component.ExtensionFactory, cfg configmodels.Extension) component.Extension {
+func getExtension(f component.ExtensionFactory, cfg config.Extension) component.Extension {
 	e, err := f.CreateExtension(context.Background(), component.ExtensionCreateParams{}, cfg)
 	if err != nil {
 		panic(err)
@@ -377,6 +377,6 @@ func getExtension(f component.ExtensionFactory, cfg configmodels.Extension) comp
 	return e
 }
 
-func (m *mockHost) GetExporters() map[configmodels.DataType]map[configmodels.NamedEntity]component.Exporter {
+func (m *mockHost) GetExporters() map[config.DataType]map[config.NamedEntity]component.Exporter {
 	return nil
 }

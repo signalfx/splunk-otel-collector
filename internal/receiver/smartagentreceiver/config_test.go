@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/httpclient"
-	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/consul"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/hadoop"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/python"
@@ -33,7 +33,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtest"
 )
 
@@ -42,7 +42,7 @@ func TestLoadConfig(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[configmodels.Type(typeStr)] = factory
+	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "config.yaml"), factories,
 	)
@@ -55,16 +55,16 @@ func TestLoadConfig(t *testing.T) {
 	haproxyCfg := cfg.Receivers["smartagent/haproxy"].(*Config)
 	expectedDimensionClients := []string{"nop/one", "nop/two"}
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/haproxy",
 		},
 		DimensionClients: expectedDimensionClients,
 		monitorConfig: &haproxy.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "haproxy",
 				IntervalSeconds:     123,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 			Username:  "SomeUser",
 			Password:  "secret",
@@ -77,16 +77,16 @@ func TestLoadConfig(t *testing.T) {
 
 	redisCfg := cfg.Receivers["smartagent/redis"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/redis",
 		},
 		DimensionClients: []string{},
 		monitorConfig: &redis.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/redis",
 				IntervalSeconds:     234,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 			Host: "localhost",
 			Port: 6379,
@@ -96,15 +96,15 @@ func TestLoadConfig(t *testing.T) {
 
 	hadoopCfg := cfg.Receivers["smartagent/hadoop"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/hadoop",
 		},
 		monitorConfig: &hadoop.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/hadoop",
 				IntervalSeconds:     345,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 			CommonConfig: python.CommonConfig{},
 			Host:         "localhost",
@@ -115,15 +115,15 @@ func TestLoadConfig(t *testing.T) {
 
 	etcdCfg := cfg.Receivers["smartagent/etcd"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/etcd",
 		},
 		monitorConfig: &prometheusexporter.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "etcd",
 				IntervalSeconds:     456,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 			HTTPConfig: httpclient.HTTPConfig{
 				HTTPTimeout: timeutil.Duration(10 * time.Second),
@@ -138,15 +138,15 @@ func TestLoadConfig(t *testing.T) {
 	tr := true
 	ntpqCfg := cfg.Receivers["smartagent/ntpq"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/ntpq",
 		},
 		monitorConfig: &ntpq.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "telegraf/ntpq",
 				IntervalSeconds:     567,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 			DNSLookup: &tr,
 		},
@@ -159,7 +159,7 @@ func TestLoadInvalidConfigWithoutType(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[configmodels.Type(typeStr)] = factory
+	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "without_type.yaml"), factories,
 	)
@@ -174,7 +174,7 @@ func TestLoadInvalidConfigWithUnknownType(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[configmodels.Type(typeStr)] = factory
+	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "unknown_type.yaml"), factories,
 	)
@@ -189,7 +189,7 @@ func TestLoadInvalidConfigWithUnexpectedTag(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[configmodels.Type(typeStr)] = factory
+	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "unexpected_tag.yaml"), factories,
 	)
@@ -204,7 +204,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[configmodels.Type(typeStr)] = factory
+	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "invalid_config.yaml"), factories,
 	)
@@ -215,15 +215,15 @@ func TestLoadInvalidConfigs(t *testing.T) {
 
 	negativeIntervalCfg := cfg.Receivers["smartagent/negativeintervalseconds"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/negativeintervalseconds",
 		},
 		monitorConfig: &redis.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/redis",
 				IntervalSeconds:     -234,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 		},
 	}, negativeIntervalCfg)
@@ -233,15 +233,15 @@ func TestLoadInvalidConfigs(t *testing.T) {
 
 	missingRequiredCfg := cfg.Receivers["smartagent/missingrequired"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/missingrequired",
 		},
 		monitorConfig: &consul.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/consul",
 				IntervalSeconds:     0,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 			Port:          5309,
 			TelemetryHost: "0.0.0.0",
@@ -258,7 +258,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[configmodels.Type(typeStr)] = factory
+	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "endpoints_config.yaml"), factories,
 	)
@@ -270,16 +270,16 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 
 	haproxyCfg := cfg.Receivers["smartagent/haproxy"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/haproxy",
 		},
 		Endpoint: "haproxyhost:2345",
 		monitorConfig: &haproxy.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "haproxy",
 				IntervalSeconds:     123,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 			Host:      "haproxyhost",
 			Port:      2345,
@@ -294,16 +294,16 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 
 	redisCfg := cfg.Receivers["smartagent/redis"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/redis",
 		},
 		Endpoint: "redishost",
 		monitorConfig: &redis.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/redis",
 				IntervalSeconds:     234,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 			Host: "redishost",
 			Port: 6379,
@@ -313,16 +313,16 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 
 	hadoopCfg := cfg.Receivers["smartagent/hadoop"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/hadoop",
 		},
 		Endpoint: "hadoophost:12345",
 		monitorConfig: &hadoop.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/hadoop",
 				IntervalSeconds:     345,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 			CommonConfig: python.CommonConfig{},
 			Host:         "localhost",
@@ -333,16 +333,16 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 
 	etcdCfg := cfg.Receivers["smartagent/etcd"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/etcd",
 		},
 		Endpoint: "etcdhost:5555",
 		monitorConfig: &prometheusexporter.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "etcd",
 				IntervalSeconds:     456,
-				DatapointsToExclude: []config.MetricFilter{},
+				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 			HTTPConfig: httpclient.HTTPConfig{
 				HTTPTimeout: timeutil.Duration(10 * time.Second),
@@ -360,7 +360,7 @@ func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[configmodels.Type(typeStr)] = factory
+	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "invalid_endpoint.yaml"), factories,
 	)
@@ -375,7 +375,7 @@ func TestLoadInvalidConfigWithUnsupportedEndpoint(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[configmodels.Type(typeStr)] = factory
+	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "unsupported_endpoint.yaml"), factories,
 	)
@@ -390,7 +390,7 @@ func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[configmodels.Type(typeStr)] = factory
+	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "invalid_nonarray_dimension_clients.yaml"), factories,
 	)
@@ -405,7 +405,7 @@ func TestLoadInvalidConfigWithNonStringArrayDimensionClients(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[configmodels.Type(typeStr)] = factory
+	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "invalid_float_dimension_clients.yaml"), factories,
 	)
@@ -420,7 +420,7 @@ func TestFilteringConfig(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[configmodels.Type(typeStr)] = factory
+	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "filtering_config.yaml"), factories,
 	)
@@ -430,14 +430,14 @@ func TestFilteringConfig(t *testing.T) {
 
 	fsCfg := cfg.Receivers["smartagent/filesystems"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/filesystems",
 		},
 		monitorConfig: &filesystems.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type: "filesystems",
-				DatapointsToExclude: []config.MetricFilter{
+				DatapointsToExclude: []saconfig.MetricFilter{
 					{
 						MetricName: "df_inodes.*",
 						Dimensions: map[string]interface{}{
@@ -458,7 +458,7 @@ func TestInvalidFilteringConfig(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[configmodels.Type(typeStr)] = factory
+	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "invalid_filtering_config.yaml"), factories,
 	)
@@ -468,14 +468,14 @@ func TestInvalidFilteringConfig(t *testing.T) {
 
 	fsCfg := cfg.Receivers["smartagent/filesystems"].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr + "/filesystems",
 		},
 		monitorConfig: &filesystems.Config{
-			MonitorConfig: config.MonitorConfig{
+			MonitorConfig: saconfig.MonitorConfig{
 				Type: "filesystems",
-				DatapointsToExclude: []config.MetricFilter{
+				DatapointsToExclude: []saconfig.MetricFilter{
 					{
 						MetricNames: []string{"./[0-"},
 					},

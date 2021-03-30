@@ -79,7 +79,7 @@ $ journalctl -u my-service.service -f
 ### Is Fluentd configured properly?
 
 - Is td-agent running? (`systemctl status td-agent`)
-- If you changes the configuration did you restart fluentd? (`systemctl restart td-agent`)
+- If you changed the configuration did you restart fluentd? (`systemctl restart td-agent`)
 - Check `fluentd.conf` and `conf.d/\*`; ensure `@label @SPLUNK` is added to
   every source otherwise logs are not collected!
 - Manual configuration may be required to collect logs off the source. Add

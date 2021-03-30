@@ -5,7 +5,7 @@ documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/ma
 
 ## Gathering Support Information
 
-If you are unable to determine why something is not working then you can [email
+Existing customers unable to determine why something is not working can [email
 support](mailto:signalfx-support@splunk.com). When opening a support request,
 it is important to include as much information about the issue as possible
 including:

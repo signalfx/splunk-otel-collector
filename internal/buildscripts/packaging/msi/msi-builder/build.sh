@@ -177,13 +177,14 @@ download_and_extract_smart_agent() {
 
     unzip -d "$build_dir" "${build_dir}/signalfx-agent.zip"
     mv "${build_dir}/SignalFxAgent" "$output_dir"
-    rm -rf "${output_dir}/bin"
 
     # Delete unnecessary files.
+    rm -rf "${output_dir}/bin"
+    rm -rf "${output_dir}/etc"
     find "$output_dir" -type d -name __pycache__ | xargs rm -rf {} \;
     find "$output_dir" -regextype sed -regex ".*py[co]" -delete
     # This defers resolving https://github.com/wixtoolset/issues/issues/5314, which appears to require building on windows.
-    # Check if test file content's path is >= 126 (128 w/ 'Z:' in wine).
+    # Check if test file content's path is >= 126 (128 w/ 'Z:' prefix in wine).
     find "$output_dir" -wholename "*/tests/*" -exec bash -c 'if [ `echo "{}" | wc -c` -ge 126 ]; then rm -f {}; fi' \;
     rm -f "${build_dir}/signalfx-agent.zip"
 }

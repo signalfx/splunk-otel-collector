@@ -22,11 +22,11 @@ import (
 
 	"github.com/signalfx/defaults"
 	_ "github.com/signalfx/signalfx-agent/pkg/core" // required to invoke monitor registration via init() calls
-	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/spf13/viper"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"gopkg.in/yaml.v2"
 )
 
@@ -35,8 +35,8 @@ const defaultIntervalSeconds = 10
 var errDimensionClientValue = fmt.Errorf("dimensionClients must be an array of compatible exporter names")
 
 type Config struct {
-	monitorConfig                 config.MonitorCustomConfig
-	configmodels.ReceiverSettings `mapstructure:",squash"`
+	monitorConfig           saconfig.MonitorCustomConfig
+	config.ReceiverSettings `mapstructure:",squash"`
 	// Generally an observer/receivercreator-set value via Endpoint.Target.
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
 	Endpoint         string   `mapstructure:"endpoint"`
@@ -88,7 +88,7 @@ func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error
 
 	// monitors.ConfigTemplates is a map that all monitors use to register their custom configs in the Smart Agent.
 	// The values are always pointers to an actual custom config.
-	var customMonitorConfig config.MonitorCustomConfig
+	var customMonitorConfig saconfig.MonitorCustomConfig
 	if customMonitorConfig, ok = monitors.ConfigTemplates[monitorType]; !ok {
 		return fmt.Errorf("no known monitor type %q", monitorType)
 	}
@@ -127,7 +127,7 @@ func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error
 		return err
 	}
 
-	receiverCfg.monitorConfig = monitorConfig.(config.MonitorCustomConfig)
+	receiverCfg.monitorConfig = monitorConfig.(saconfig.MonitorCustomConfig)
 	return nil
 }
 

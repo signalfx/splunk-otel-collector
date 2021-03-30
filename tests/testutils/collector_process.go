@@ -117,7 +117,7 @@ func (collector *CollectorProcess) Start() error {
 	}
 	go func() {
 		// drain stdout/err buffer (already logged for us)
-		for _ = range collector.Process.Stdout {
+		for range collector.Process.Stdout {
 		}
 	}()
 

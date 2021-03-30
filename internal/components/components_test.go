@@ -20,11 +20,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 )
 
 func TestDefaultComponents(t *testing.T) {
-	expectedExtensions := []configmodels.Type{
+	expectedExtensions := []config.Type{
 		"health_check",
 		"host_observer",
 		"http_forwarder",
@@ -33,7 +33,7 @@ func TestDefaultComponents(t *testing.T) {
 		"smartagent",
 		"zpages",
 	}
-	expectedReceivers := []configmodels.Type{
+	expectedReceivers := []config.Type{
 		"carbon",
 		"collectd",
 		"fluentforward",
@@ -55,7 +55,7 @@ func TestDefaultComponents(t *testing.T) {
 		"statsd",
 		"zipkin",
 	}
-	expectedProcessors := []configmodels.Type{
+	expectedProcessors := []config.Type{
 		"attributes",
 		"batch",
 		"filter",
@@ -66,7 +66,7 @@ func TestDefaultComponents(t *testing.T) {
 		"resourcedetection",
 		"span",
 	}
-	expectedExporters := []configmodels.Type{
+	expectedExporters := []config.Type{
 		"file",
 		"kafka",
 		"logging",

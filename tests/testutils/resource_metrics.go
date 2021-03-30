@@ -162,7 +162,7 @@ func toInterfaceMap(stringMap map[string]string) map[string]interface{} {
 // Nested map use cases (e.g. deep Resource Attributes) require enhancement.
 func MapToString(toHash map[string]interface{}) string {
 	var keys []string
-	for k, _ := range toHash {
+	for k := range toHash {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

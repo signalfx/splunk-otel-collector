@@ -24,14 +24,14 @@ import (
 	"sync"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
-	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
 
@@ -116,7 +116,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 	err = componenterror.ErrAlreadyStarted
 	r.startOnce.Do(func() {
 		// starts the monitor
-		err = config.CallConfigure(r.monitor, r.config.monitorConfig)
+		err = saconfig.CallConfigure(r.monitor, r.config.monitorConfig)
 	})
 	return err
 }
@@ -199,7 +199,7 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 	return monitor, err
 }
 
-func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[configmodels.NamedEntity]component.Extension) {
+func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[config.NamedEntity]component.Extension) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
 	defaultCfg := f.CreateDefaultConfig().(smartagentextension.SmartAgentConfigProvider)

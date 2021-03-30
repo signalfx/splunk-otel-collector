@@ -18,11 +18,11 @@ import (
 	"path"
 	"testing"
 
-	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configcheck"
-	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/config/configtest"
 )
 
@@ -46,12 +46,12 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, configcheck.ValidateConfig(emptyConfig))
 	require.Equal(t, func() *Config {
 		return &Config{
-			ExtensionSettings: configmodels.ExtensionSettings{
+			ExtensionSettings: config.ExtensionSettings{
 				TypeVal: "smartagent",
 				NameVal: "smartagent/default_settings",
 			},
 			bundleDir: bundleDir,
-			collectdConfig: config.CollectdConfig{
+			collectdConfig: saconfig.CollectdConfig{
 				Timeout:              40,
 				ReadThreads:          5,
 				WriteThreads:         2,
@@ -73,12 +73,12 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, configcheck.ValidateConfig(allSettingsConfig))
 	require.Equal(t, func() *Config {
 		return &Config{
-			ExtensionSettings: configmodels.ExtensionSettings{
+			ExtensionSettings: config.ExtensionSettings{
 				TypeVal: "smartagent",
 				NameVal: "smartagent/all_settings",
 			},
 			bundleDir: "/opt/bin/collectd/",
-			collectdConfig: config.CollectdConfig{
+			collectdConfig: saconfig.CollectdConfig{
 				Timeout:              10,
 				ReadThreads:          1,
 				WriteThreads:         4,
@@ -100,12 +100,12 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, configcheck.ValidateConfig(partialSettingsConfig))
 	require.Equal(t, func() *Config {
 		return &Config{
-			ExtensionSettings: configmodels.ExtensionSettings{
+			ExtensionSettings: config.ExtensionSettings{
 				TypeVal: "smartagent",
 				NameVal: "smartagent/partial_settings",
 			},
 			bundleDir: "/opt/",
-			collectdConfig: config.CollectdConfig{
+			collectdConfig: saconfig.CollectdConfig{
 				Timeout:              10,
 				ReadThreads:          1,
 				WriteThreads:         4,
@@ -144,8 +144,8 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 	saConfigProvider, ok := allSettingsConfig.(SmartAgentConfigProvider)
 	require.True(t, ok)
 
-	require.Equal(t, func() *config.CollectdConfig {
-		return &config.CollectdConfig{
+	require.Equal(t, func() *saconfig.CollectdConfig {
+		return &saconfig.CollectdConfig{
 			Timeout:              10,
 			ReadThreads:          1,
 			WriteThreads:         4,

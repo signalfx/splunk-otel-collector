@@ -20,15 +20,15 @@ import (
 	"path/filepath"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
-	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/extension/extensionhelper"
 )
 
 const (
-	typeStr                configmodels.Type = "smartagent"
-	defaultIntervalSeconds int               = 10
+	typeStr                config.Type = "smartagent"
+	defaultIntervalSeconds int         = 10
 )
 
 func NewFactory() component.ExtensionFactory {
@@ -55,14 +55,14 @@ var bundleDir = func() string {
 	return out
 }()
 
-func createDefaultConfig() configmodels.Extension {
+func createDefaultConfig() config.Extension {
 	return &Config{
-		ExtensionSettings: configmodels.ExtensionSettings{
+		ExtensionSettings: config.ExtensionSettings{
 			TypeVal: typeStr,
 			NameVal: string(typeStr),
 		},
 		bundleDir: bundleDir,
-		collectdConfig: config.CollectdConfig{
+		collectdConfig: saconfig.CollectdConfig{
 			Timeout:             40,
 			ReadThreads:         5,
 			WriteThreads:        2,
@@ -80,7 +80,7 @@ func createDefaultConfig() configmodels.Extension {
 func createExtension(
 	_ context.Context,
 	_ component.ExtensionCreateParams,
-	cfg configmodels.Extension,
+	cfg config.Extension,
 ) (component.Extension, error) {
 	return newSmartAgentConfigExtension(cfg)
 }

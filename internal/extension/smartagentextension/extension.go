@@ -18,7 +18,7 @@ import (
 	"context"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 )
 
 type smartAgentConfigExtension struct {
@@ -34,6 +34,6 @@ func (sae *smartAgentConfigExtension) Shutdown(_ context.Context) error {
 	return nil
 }
 
-func newSmartAgentConfigExtension(_ configmodels.Extension) (*smartAgentConfigExtension, error) {
+func newSmartAgentConfigExtension(_ config.Extension) (*smartAgentConfigExtension, error) {
 	return &smartAgentConfigExtension{}, nil
 }

@@ -334,12 +334,12 @@ func TestFlattenResourceMetricsByResourceIdentity(t *testing.T) {
 	resource := Resource{Attributes: map[string]interface{}{"attribute_one": nil, "attribute_two": 123.456}}
 	resourceMetrics := ResourceMetrics{
 		ResourceMetrics: []ResourceMetric{
-			ResourceMetric{Resource: resource},
-			ResourceMetric{Resource: resource},
-			ResourceMetric{Resource: resource},
+			{Resource: resource},
+			{Resource: resource},
+			{Resource: resource},
 		},
 	}
-	expectedResourceMetrics := ResourceMetrics{ResourceMetrics: []ResourceMetric{ResourceMetric{Resource: resource}}}
+	expectedResourceMetrics := ResourceMetrics{ResourceMetrics: []ResourceMetric{{Resource: resource}}}
 	require.Equal(t, expectedResourceMetrics, FlattenResourceMetrics(resourceMetrics))
 }
 
@@ -350,15 +350,15 @@ func TestFlattenResourceMetricsByInstrumentationLibraryMetricsIdentity(t *testin
 	}, Metrics: []Metric{}}
 	resourceMetrics := ResourceMetrics{
 		ResourceMetrics: []ResourceMetric{
-			ResourceMetric{Resource: resource, ILMs: []InstrumentationLibraryMetrics{}},
-			ResourceMetric{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm}},
-			ResourceMetric{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm, ilm}},
-			ResourceMetric{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm, ilm, ilm}},
+			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{}},
+			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm}},
+			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm, ilm}},
+			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm, ilm, ilm}},
 		},
 	}
 	expectedResourceMetrics := ResourceMetrics{
 		ResourceMetrics: []ResourceMetric{
-			ResourceMetric{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm}},
+			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm}},
 		},
 	}
 	require.Equal(t, expectedResourceMetrics, FlattenResourceMetrics(resourceMetrics))
@@ -367,9 +367,9 @@ func TestFlattenResourceMetricsByInstrumentationLibraryMetricsIdentity(t *testin
 func TestFlattenResourceMetricsByMetricsIdentity(t *testing.T) {
 	resource := Resource{Attributes: map[string]interface{}{}}
 	metrics := []Metric{
-		Metric{Name: "a metric", Unit: "a unit", Description: "a description", Value: 123},
-		Metric{Name: "another metric", Unit: "another unit", Description: "another description", Value: 234},
-		Metric{Name: "yet anothert metric", Unit: "yet anothe unit", Description: "yet anothet description", Value: 345},
+		{Name: "a metric", Unit: "a unit", Description: "a description", Value: 123},
+		{Name: "another metric", Unit: "another unit", Description: "another description", Value: 234},
+		{Name: "yet anothert metric", Unit: "yet anothe unit", Description: "yet anothet description", Value: 345},
 	}
 	ilm := InstrumentationLibraryMetrics{Metrics: metrics}
 	ilmRepeated := InstrumentationLibraryMetrics{Metrics: append(metrics, metrics...)}
@@ -377,16 +377,16 @@ func TestFlattenResourceMetricsByMetricsIdentity(t *testing.T) {
 	ilmWithoutMetrics := InstrumentationLibraryMetrics{}
 	resourceMetrics := ResourceMetrics{
 		ResourceMetrics: []ResourceMetric{
-			ResourceMetric{Resource: resource, ILMs: []InstrumentationLibraryMetrics{}},
-			ResourceMetric{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm}},
-			ResourceMetric{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilmRepeated}},
-			ResourceMetric{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilmRepeatedTwice}},
-			ResourceMetric{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilmWithoutMetrics}},
+			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{}},
+			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm}},
+			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilmRepeated}},
+			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilmRepeatedTwice}},
+			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilmWithoutMetrics}},
 		},
 	}
 	expectedResourceMetrics := ResourceMetrics{
 		ResourceMetrics: []ResourceMetric{
-			ResourceMetric{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm}},
+			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm}},
 		},
 	}
 	require.Equal(t, expectedResourceMetrics, FlattenResourceMetrics(resourceMetrics))

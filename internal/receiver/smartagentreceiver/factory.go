@@ -19,7 +19,7 @@ import (
 	"sync"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.uber.org/zap"
@@ -36,7 +36,7 @@ var (
 	receiverStore     = map[*Config]*Receiver{}
 )
 
-func getOrCreateReceiver(cfg configmodels.Receiver, logger *zap.Logger) (*Receiver, error) {
+func getOrCreateReceiver(cfg config.Receiver, logger *zap.Logger) (*Receiver, error) {
 	receiverStoreLock.Lock()
 	defer receiverStoreLock.Unlock()
 	receiverConfig := cfg.(*Config)
@@ -66,9 +66,9 @@ func NewFactory() component.ReceiverFactory {
 	)
 }
 
-func CreateDefaultConfig() configmodels.Receiver {
+func CreateDefaultConfig() config.Receiver {
 	return &Config{
-		ReceiverSettings: configmodels.ReceiverSettings{
+		ReceiverSettings: config.ReceiverSettings{
 			TypeVal: typeStr,
 			NameVal: typeStr,
 		},
@@ -78,8 +78,8 @@ func CreateDefaultConfig() configmodels.Receiver {
 func createMetricsReceiver(
 	_ context.Context,
 	params component.ReceiverCreateParams,
-	cfg configmodels.Receiver,
-	metricsConsumer consumer.MetricsConsumer,
+	cfg config.Receiver,
+	metricsConsumer consumer.Metrics,
 ) (component.MetricsReceiver, error) {
 	receiver, err := getOrCreateReceiver(cfg, params.Logger)
 	if err != nil {
@@ -93,8 +93,8 @@ func createMetricsReceiver(
 func createLogsReceiver(
 	_ context.Context,
 	params component.ReceiverCreateParams,
-	cfg configmodels.Receiver,
-	logsConsumer consumer.LogsConsumer,
+	cfg config.Receiver,
+	logsConsumer consumer.Logs,
 ) (component.LogsReceiver, error) {
 	receiver, err := getOrCreateReceiver(cfg, params.Logger)
 	if err != nil {
@@ -108,8 +108,8 @@ func createLogsReceiver(
 func createTracesReceiver(
 	_ context.Context,
 	params component.ReceiverCreateParams,
-	cfg configmodels.Receiver,
-	tracesConsumer consumer.TracesConsumer,
+	cfg config.Receiver,
+	tracesConsumer consumer.Traces,
 ) (component.TracesReceiver, error) {
 	receiver, err := getOrCreateReceiver(cfg, params.Logger)
 	if err != nil {

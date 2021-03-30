@@ -55,7 +55,7 @@
    and back to the Github release.
    ```
    $ source venv/bin/activate  # if not already in virtualenv
-   $ ./internal/buildscripts/packaging/release/sign_release.py
+   $ ./internal/buildscripts/packaging/release/sign_release.py --stage release
    ```
    This may take 10+ minutes to complete.  The "Pre-release" label will then be
    removed from the Github release.  Run the script with `--help` for more

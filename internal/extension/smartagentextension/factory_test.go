@@ -18,14 +18,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 )
 
 func TestFactory(t *testing.T) {
 	f := NewFactory()
 
 	expectedType := "smartagent"
-	require.Equal(t, configmodels.Type(expectedType), f.Type())
+	require.Equal(t, config.Type(expectedType), f.Type())
 
 	cfg := f.CreateDefaultConfig()
 	require.Equal(t, expectedType, string(cfg.Type()))

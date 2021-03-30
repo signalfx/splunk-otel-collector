@@ -1,4 +1,15 @@
-# Migrating from the SignalFx Smart Agent to the Splunk Distribution of OpenTelemetry Collector
+# Migrating from the SignalFx Smart Agent
+
+The Splunk Distribution of OpenTelemetry Collector is the next-generation agent
+and gateway for Splunk Observability products. As such, it is the replacement
+for the [SignalFx Smart Agent](https://github.com/signalfx/signalfx-agent).
+This distribution provides helpful components to assist current Smart Agent
+users in their transition to OpenTelemetry Collector and ensure no functionality
+loss.  The [Smart Agent
+Receiver](./internal/receiver/smartagentreceiver/README.md), its associated
+[extension](./internal/extension/smartagentextension/README.md), and other
+Collector components provide a means of integrating all Smart Agent metric
+monitors into your Collector pipelines.
 
 The [SignalFx Smart Agent's](https://github.com/signalfx/signalfx-agent/blob/master/README.md)
 metric monitors allow real-time insights into how your target services and

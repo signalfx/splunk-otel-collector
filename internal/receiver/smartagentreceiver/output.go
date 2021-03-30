@@ -26,7 +26,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
 	"go.uber.org/zap"
@@ -41,9 +41,9 @@ const internalTransport = "internal"
 // nextDimensionClients as determined by the associated items in Config.MetadataClients, and all events to the
 // nextLogsConsumer.
 type Output struct {
-	nextMetricsConsumer  consumer.MetricsConsumer
-	nextLogsConsumer     consumer.LogsConsumer
-	nextTracesConsumer   consumer.TracesConsumer
+	nextMetricsConsumer  consumer.Metrics
+	nextLogsConsumer     consumer.Logs
+	nextTracesConsumer   consumer.Traces
 	extraDimensions      map[string]string
 	extraSpanTags        map[string]string
 	defaultSpanTags      map[string]string
@@ -58,8 +58,8 @@ var _ types.Output = (*Output)(nil)
 var _ types.FilteringOutput = (*Output)(nil)
 
 func NewOutput(
-	config Config, filtering *monitorFiltering, nextMetricsConsumer consumer.MetricsConsumer,
-	nextLogsConsumer consumer.LogsConsumer, nextTracesConsumer consumer.TracesConsumer, host component.Host,
+	config Config, filtering *monitorFiltering, nextMetricsConsumer consumer.Metrics,
+	nextLogsConsumer consumer.Logs, nextTracesConsumer consumer.Traces, host component.Host,
 	logger *zap.Logger,
 ) *Output {
 	metadataExporters := getMetadataExporters(config, host, &nextMetricsConsumer, logger)
@@ -81,11 +81,11 @@ func NewOutput(
 // getMetadataExporters walks through obtained Config.MetadataClients and returns all matching registered MetadataExporters,
 // if any.  At this time the SignalFx exporter is the only supported use case and adopter of this type.
 func getMetadataExporters(
-	config Config, host component.Host, nextMetricsConsumer *consumer.MetricsConsumer, logger *zap.Logger,
+	cfg Config, host component.Host, nextMetricsConsumer *consumer.Metrics, logger *zap.Logger,
 ) []*metadata.MetadataExporter {
 	var exporters []*metadata.MetadataExporter
 
-	metadataExporters, noClientsSpecified := getDimensionClientsFromMetricsExporters(config.DimensionClients, host, nextMetricsConsumer, logger)
+	metadataExporters, noClientsSpecified := getDimensionClientsFromMetricsExporters(cfg.DimensionClients, host, nextMetricsConsumer, logger)
 	for _, client := range metadataExporters {
 		if metadataExporter, ok := (*client).(metadata.MetadataExporter); ok {
 			exporters = append(exporters, &metadataExporter)
@@ -95,7 +95,7 @@ func getMetadataExporters(
 	}
 
 	if len(exporters) == 0 && noClientsSpecified {
-		sfxExporter := getLoneSFxExporter(host, configmodels.MetricsDataType)
+		sfxExporter := getLoneSFxExporter(host, config.MetricsDataType)
 		if sfxExporter != nil {
 			if sfx, ok := sfxExporter.(metadata.MetadataExporter); ok {
 				exporters = append(exporters, &sfx)
@@ -114,7 +114,7 @@ func getMetadataExporters(
 // MetricsExporters, the only truly supported component type.
 // If config.MetadataClients is nil, it will return a slice with nextMetricsConsumer if it's a MetricsExporter.
 func getDimensionClientsFromMetricsExporters(
-	specifiedClients []string, host component.Host, nextMetricsConsumer *consumer.MetricsConsumer, logger *zap.Logger,
+	specifiedClients []string, host component.Host, nextMetricsConsumer *consumer.Metrics, logger *zap.Logger,
 ) (clients []*metadata.MetadataExporter, wasNil bool) {
 	if specifiedClients == nil {
 		wasNil = true
@@ -125,7 +125,7 @@ func getDimensionClientsFromMetricsExporters(
 		return
 	}
 
-	if builtExporters, ok := host.GetExporters()[configmodels.MetricsDataType]; ok {
+	if builtExporters, ok := host.GetExporters()[config.MetricsDataType]; ok {
 		for _, client := range specifiedClients {
 			var found bool
 			for exporterConfig, exporter := range builtExporters {
@@ -147,7 +147,7 @@ func getDimensionClientsFromMetricsExporters(
 	return
 }
 
-func getLoneSFxExporter(host component.Host, exporterType configmodels.DataType) component.Exporter {
+func getLoneSFxExporter(host component.Host, exporterType config.DataType) component.Exporter {
 	var sfxExporter component.Exporter
 	if builtExporters, ok := host.GetExporters()[exporterType]; ok {
 		for exporterConfig, exporter := range builtExporters {

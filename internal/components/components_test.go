@@ -20,31 +20,31 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 )
 
 func TestDefaultComponents(t *testing.T) {
-	expectedExtensions := []configmodels.Type{
+	expectedExtensions := []config.Type{
 		"health_check",
-		"pprof",
-		"zpages",
 		"host_observer",
-		"k8s_observer",
 		"http_forwarder",
+		"k8s_observer",
+		"pprof",
 		"smartagent",
+		"zpages",
 	}
-	expectedReceivers := []configmodels.Type{
-		"jaeger",
-		"zipkin",
-		"prometheus",
-		"opencensus",
-		"otlp",
-		"hostmetrics",
-		"fluentforward",
+	expectedReceivers := []config.Type{
 		"carbon",
 		"collectd",
+		"fluentforward",
+		"hostmetrics",
+		"jaeger",
 		"k8s_cluster",
+		"kafka",
 		"kubeletstats",
+		"opencensus",
+		"otlp",
+		"prometheus",
 		"prometheus_exec",
 		"prometheus_simple",
 		"receiver_creator",
@@ -53,21 +53,23 @@ func TestDefaultComponents(t *testing.T) {
 		"smartagent",
 		"splunk_hec",
 		"statsd",
+		"zipkin",
 	}
-	expectedProcessors := []configmodels.Type{
+	expectedProcessors := []config.Type{
 		"attributes",
-		"resource",
 		"batch",
-		"memory_limiter",
-		"span",
 		"filter",
 		"k8s_tagger",
+		"memory_limiter",
 		"metricstransform",
+		"resource",
 		"resourcedetection",
+		"span",
 	}
-	expectedExporters := []configmodels.Type{
-		"logging",
+	expectedExporters := []config.Type{
 		"file",
+		"kafka",
+		"logging",
 		"otlp",
 		"sapm",
 		"signalfx",

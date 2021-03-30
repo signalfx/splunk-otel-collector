@@ -24,14 +24,14 @@ import (
 	"sync"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
-	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
 
@@ -42,9 +42,9 @@ const setOutputErrMsg = "unable to set Output field of monitor"
 
 type Receiver struct {
 	monitor             interface{}
-	nextMetricsConsumer consumer.MetricsConsumer
-	nextLogsConsumer    consumer.LogsConsumer
-	nextTracesConsumer  consumer.TracesConsumer
+	nextMetricsConsumer consumer.Metrics
+	nextLogsConsumer    consumer.Logs
+	nextTracesConsumer  consumer.Traces
 	logger              *zap.Logger
 	config              *Config
 	startOnce           sync.Once
@@ -69,19 +69,19 @@ func NewReceiver(logger *zap.Logger, config Config) *Receiver {
 	}
 }
 
-func (r *Receiver) registerMetricsConsumer(metricsConsumer consumer.MetricsConsumer) {
+func (r *Receiver) registerMetricsConsumer(metricsConsumer consumer.Metrics) {
 	r.Lock()
 	defer r.Unlock()
 	r.nextMetricsConsumer = metricsConsumer
 }
 
-func (r *Receiver) registerLogsConsumer(logsConsumer consumer.LogsConsumer) {
+func (r *Receiver) registerLogsConsumer(logsConsumer consumer.Logs) {
 	r.Lock()
 	defer r.Unlock()
 	r.nextLogsConsumer = logsConsumer
 }
 
-func (r *Receiver) registerTracesConsumer(tracesConsumer consumer.TracesConsumer) {
+func (r *Receiver) registerTracesConsumer(tracesConsumer consumer.Traces) {
 	r.Lock()
 	defer r.Unlock()
 	r.nextTracesConsumer = tracesConsumer
@@ -116,7 +116,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 	err = componenterror.ErrAlreadyStarted
 	r.startOnce.Do(func() {
 		// starts the monitor
-		err = config.CallConfigure(r.monitor, r.config.monitorConfig)
+		err = saconfig.CallConfigure(r.monitor, r.config.monitorConfig)
 	})
 	return err
 }
@@ -199,7 +199,7 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 	return monitor, err
 }
 
-func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[configmodels.NamedEntity]component.Extension) {
+func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[config.NamedEntity]component.Extension) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
 	defaultCfg := f.CreateDefaultConfig().(smartagentextension.SmartAgentConfigProvider)

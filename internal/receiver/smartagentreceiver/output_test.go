@@ -22,7 +22,7 @@ import (
 	metadata "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
-	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
@@ -31,7 +31,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.uber.org/zap"
@@ -59,7 +59,7 @@ func TestOutput(t *testing.T) {
 }
 
 func TestHasEnabledMetric(t *testing.T) {
-	monitorFiltering, err := newMonitorFiltering(&config.MonitorConfig{}, &monitors.Metadata{
+	monitorFiltering, err := newMonitorFiltering(&saconfig.MonitorConfig{}, &monitors.Metadata{
 		DefaultMetrics: utils.StringSet("mem.used"),
 		Metrics: map[string]monitors.MetricInfo{
 			"mem.used": {Type: datapoint.Counter, Group: "mem"},
@@ -75,7 +75,7 @@ func TestHasEnabledMetric(t *testing.T) {
 	assert.Equal(t, []string{"mem.used"}, output.EnabledMetrics())
 
 	// Empty metadata
-	monitorFiltering, err = newMonitorFiltering(&config.MonitorConfig{}, nil, zap.NewNop())
+	monitorFiltering, err = newMonitorFiltering(&saconfig.MonitorConfig{}, nil, zap.NewNop())
 	require.NoError(t, err)
 	output = NewOutput(
 		Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
@@ -85,7 +85,7 @@ func TestHasEnabledMetric(t *testing.T) {
 }
 
 func TestHasEnabledMetricInGroup(t *testing.T) {
-	monitorFiltering, err := newMonitorFiltering(&config.MonitorConfig{}, &monitors.Metadata{
+	monitorFiltering, err := newMonitorFiltering(&saconfig.MonitorConfig{}, &monitors.Metadata{
 		DefaultMetrics: utils.StringSet("mem.used"),
 		Metrics: map[string]monitors.MetricInfo{
 			"cpu.min":  {Type: datapoint.Gauge, Group: "cpu"},
@@ -108,7 +108,7 @@ func TestHasEnabledMetricInGroup(t *testing.T) {
 	assert.False(t, output.HasEnabledMetricInGroup("cpu"))
 
 	// Empty metadata
-	monitorFiltering, err = newMonitorFiltering(&config.MonitorConfig{}, nil, zap.NewNop())
+	monitorFiltering, err = newMonitorFiltering(&saconfig.MonitorConfig{}, nil, zap.NewNop())
 	require.NoError(t, err)
 	output = NewOutput(
 		Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
@@ -342,10 +342,10 @@ func (mr *mockMetricsReceiver) ConsumeMetrics(context.Context, pdata.Metrics) er
 type nopHost struct{}
 
 func (h *nopHost) ReportFatalError(_ error) {}
-func (h *nopHost) GetFactory(_ component.Kind, _ configmodels.Type) component.Factory {
+func (h *nopHost) GetFactory(_ component.Kind, _ config.Type) component.Factory {
 	return nil
 }
-func (h *nopHost) GetExtensions() map[configmodels.NamedEntity]component.Extension {
+func (h *nopHost) GetExtensions() map[config.NamedEntity]component.Extension {
 	return nil
 }
 
@@ -354,10 +354,10 @@ type hostWithExporters struct {
 	exporter *mockMetadataClient
 }
 
-func getExporters() map[configmodels.DataType]map[configmodels.NamedEntity]component.Exporter {
-	exporters := map[configmodels.DataType]map[configmodels.NamedEntity]component.Exporter{}
-	metricExporterMap := map[configmodels.NamedEntity]component.Exporter{}
-	exporters[configmodels.MetricsDataType] = metricExporterMap
+func getExporters() map[config.DataType]map[config.NamedEntity]component.Exporter {
+	exporters := map[config.DataType]map[config.NamedEntity]component.Exporter{}
+	metricExporterMap := map[config.NamedEntity]component.Exporter{}
+	exporters[config.MetricsDataType] = metricExporterMap
 
 	exampleExporterFactory := componenttest.NewNopExporterFactory()
 	exampleExporter, _ := exampleExporterFactory.CreateMetricsExporter(
@@ -374,9 +374,9 @@ func getExporters() map[configmodels.DataType]map[configmodels.NamedEntity]compo
 	return exporters
 }
 
-func (h *hostWithExporters) GetExporters() map[configmodels.DataType]map[configmodels.NamedEntity]component.Exporter {
+func (h *hostWithExporters) GetExporters() map[config.DataType]map[config.NamedEntity]component.Exporter {
 	exporters := getExporters()
-	exporterMap := exporters[configmodels.MetricsDataType]
+	exporterMap := exporters[config.MetricsDataType]
 
 	me := namedEntity{name: h.exporter.name, _type: h.exporter.name}
 	exporterMap[&me] = component.MetricsExporter(h.exporter)
@@ -388,9 +388,9 @@ type hostWithTwoSFxExporters struct {
 	sfxExporter *mockMetadataClient
 }
 
-func (h *hostWithTwoSFxExporters) GetExporters() map[configmodels.DataType]map[configmodels.NamedEntity]component.Exporter {
+func (h *hostWithTwoSFxExporters) GetExporters() map[config.DataType]map[config.NamedEntity]component.Exporter {
 	exporters := getExporters()
-	exporterMap := exporters[configmodels.MetricsDataType]
+	exporterMap := exporters[config.MetricsDataType]
 
 	meOne := namedEntity{name: "sfx1", _type: "signalfx"}
 	exporterMap[&meOne] = component.MetricsExporter(h.sfxExporter)
@@ -405,6 +405,6 @@ type namedEntity struct {
 	_type string
 }
 
-func (ne *namedEntity) Type() configmodels.Type { return configmodels.Type(ne._type) }
-func (ne *namedEntity) Name() string            { return ne.name }
-func (ne *namedEntity) SetName(_ string)        {}
+func (ne *namedEntity) Type() config.Type { return config.Type(ne._type) }
+func (ne *namedEntity) Name() string      { return ne.name }
+func (ne *namedEntity) SetName(_ string)  {}

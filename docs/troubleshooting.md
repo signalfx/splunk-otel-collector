@@ -89,7 +89,7 @@ $ journalctl -u my-service.service -f
 - While every attempt is made to properly configure permissions, it is
   possible td-agent does not have the permission required to collect logs.
   Debug logging should indicate this issue.
-- It is possible the `<parser>` section configuration is not matching the log events
+- It is possible the `<parser>` section configuration is not matching the log events.
 - This means things are working (requires debug logging enabled): `2021-03-17
   02:14:44 +0000 [debug]: #0 connect new socket`
 

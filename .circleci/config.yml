@@ -237,6 +237,12 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - windows-msi-validation:
+          requires:
+            - windows-msi
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
 
 jobs:
   setup-environment:
@@ -404,6 +410,7 @@ jobs:
   installer-script-test:
     machine:
       image: ubuntu-1604:202007-01
+      docker_layer_caching: true
     parallelism: 2
     steps:
       - checkout
@@ -433,30 +440,35 @@ jobs:
       - save_pytest_results
 
   windows-msi:
+    machine:
+      image: ubuntu-1604:202007-01
+      docker_layer_caching: true
+    steps:
+      - attach_to_workspace
+      - run:
+          name: Build msi-builder image
+          command: docker build -t msi-builder internal/buildscripts/packaging/msi/msi-builder
+      - run:
+          name: Build MSI
+          command: |
+            mkdir dist
+            export VERSION_TAG="${CIRCLE_TAG/v/}"
+            docker run --rm -v $(pwd):/project -u 0 msi-builder "${VERSION_TAG:-0.0.1.$CIRCLE_BUILD_NUM}"
+      - persist_to_workspace:
+          root: ~/
+          paths: project/dist/*.msi
+      - store_artifacts:
+          path: dist
+
+  windows-msi-validation:
     executor:
       name: win/default
       shell: powershell.exe
     steps:
       - attach_to_workspace
       - run:
-          command: mkdir -p dist
-      - run:
-          name: Install Wix Toolset
-          command: .\internal\buildscripts\packaging\msi\make.ps1 Install-Tools
-      - run:
-          name: Build MSI
-          command: |
-            $Version = if ($env:CIRCLE_TAG -match '^v(\d+\.\d+\.\d+)') { $Matches[1] } else { "0.0.1.$env:CIRCLE_BUILD_NUM" }
-            .\internal\buildscripts\packaging\msi\make.ps1 New-MSI -Version $Version
-            Remove-Item -Force -Recurse .\dist -Exclude *.msi
-      - run:
           name: Installation test
           command: |
             $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
             $env:VERIFY_ACCESS_TOKEN = "false"
             .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -msi_path "$msi_path"
-      - persist_to_workspace:
-          root: ~/
-          paths: project/dist/*.msi
-      - store_artifacts:
-          path: dist

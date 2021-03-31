@@ -2,7 +2,7 @@ bin/
 dist/
 
 # GoLand IDEA
-/.idea/
+.idea
 *.iml
 
 # VS Code

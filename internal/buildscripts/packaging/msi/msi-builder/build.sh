@@ -16,39 +16,35 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
-REPO_DIR="$( cd $SCRIPT_DIR/../../../../ && pwd )"
-
-IMAGE_NAME="felfert/wix:latest"
-WXS_PATH="./internal/buildscripts/packaging/msi/splunk-otel-collector.wxs"
-OTELCOL="./bin/otelcol_windows_amd64.exe"
-CONFIG="./cmd/otelcol/config/collector/agent_config.yaml"
-FLUENTD_CONFIG="./internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"
-FLUENTD_CONFD="./internal/buildscripts/packaging/msi/fluentd/conf.d"
-OUTPUT_DIR="./dist"
+WXS_PATH="/project/internal/buildscripts/packaging/msi/splunk-otel-collector.wxs"
+OTELCOL="/project/bin/otelcol_windows_amd64.exe"
+CONFIG="/project/cmd/otelcol/config/collector/agent_config.yaml"
+FLUENTD_CONFIG="/project/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"
+FLUENTD_CONFD="/project/internal/buildscripts/packaging/msi/fluentd/conf.d"
+SPLUNK_ICON="/project/internal/buildscripts/packaging/msi/splunk.ico"
+OUTPUT_DIR="/project/dist"
 
 usage() {
     cat <<EOH >&2
 usage: ${BASH_SOURCE[0]} [OPTIONS] VERSION
 
 Description:
-    Build the MSI with the '$IMAGE_NAME' docker image.
+    Build the Splunk OpenTelemetry MSI from the project available at /project.
     By default, the MSI is saved as '${OUTPUT_DIR}/splunk-otel-collector-VERSION-amd64.msi'.
 
-Required Arguments:
-    VERSION:        The version for the MSI. The version should be in the form "N.N.N" or "N.N.N.N".
-
 OPTIONS:
-    --otelcol PATH:     Relative path from the repo base directory to the otelcol exe.
-                        Defaults to '$OTELCOL'.
-    --config PATH:      Relative path from the repo base directory to the agent config.
-                        Defaults to '$CONFIG'.
-    --fluentd PATH:     Relative path from the repo base directory to the fluentd config.
-                        Defaults to '$FLUENTD_CONFIG'.
-    --eventlog PATH:    Relative path from the repo base directory to the eventlog config.
-                        Defaults to '$EVENTLOG_CONFIG'.
-    --output DIR:       Directory to save the MSI.
-                        Defaults to '$OUTPUT_DIR'.
+    --otelcol PATH:          Absolute path to the otelcol exe.
+                             Defaults to '$OTELCOL'.
+    --config PATH:           Absolute path to the agent config.
+                             Defaults to '$CONFIG'.
+    --fluentd PATH:          Absolute path to the fluentd config.
+                             Defaults to '$FLUENTD_CONFIG'.
+    --fluentd-confd PATH:    Absolute path to the conf.d.
+                             Defaults to '$FLUENTD_CONFD'.
+    --splunk-icon PATH:      Absolute path to the splunk.ico.
+                             Defaults to '$SPLUNK_ICON'.
+    --output DIR:            Directory to save the MSI.
+                             Defaults to '$OUTPUT_DIR'.
 
 EOH
 }
@@ -59,6 +55,7 @@ parse_args_and_build() {
     local fluentd_config="$FLUENTD_CONFIG"
     local fluentd_confd="$FLUENTD_CONFD"
     local output="$OUTPUT_DIR"
+    local splunk_icon="$SPLUNK_ICON"
     local version=
 
     while [ -n "${1-}" ]; do
@@ -77,6 +74,10 @@ parse_args_and_build() {
                 ;;
             --fluentd-confd)
                 fluentd_confd="$2"
+                shift 1
+                ;;
+            --splunk-icon)
+                splunk_icon="$2"
                 shift 1
                 ;;
             --output)
@@ -107,8 +108,8 @@ parse_args_and_build() {
         exit 1
     fi
 
-    docker_run="docker run --rm -v ${REPO_DIR}:/work -w /work $IMAGE_NAME"
-    build_dir="${output}/build"
+    set -x
+    build_dir="/work/build"
     files_dir="${build_dir}/msi"
     msi_name="splunk-otel-collector-${version}-amd64.msi"
 
@@ -121,10 +122,27 @@ parse_args_and_build() {
     cp "$fluentd_config" "${files_dir}/fluentd/td-agent.conf"
     cp "${fluentd_confd}"/*.conf "${files_dir}/fluentd/conf.d/"
 
-    $docker_run heat dir "$files_dir" -srd -sreg -gg -template fragment -cg ConfigFiles -dr INSTALLDIR -out "${build_dir}/configfiles.wsx"
-    $docker_run candle -arch x64 -out "${build_dir}/configfiles.wixobj" "${build_dir}/configfiles.wsx"
-    $docker_run candle -arch x64 -out "${build_dir}/splunk-otel-collector.wixobj" -dVersion="$version" -dOtelcol="$otelcol" "$WXS_PATH"
-    $docker_run light -ext WixUtilExtension.dll -sval -out "${output}/${msi_name}" -b "${files_dir}" "${build_dir}/splunk-otel-collector.wixobj" "${build_dir}/configfiles.wixobj"
+    # kludge to satisfy relative path in splunk-otel-collector.wxs
+    mkdir -p /work/internal/buildscripts/packaging/msi
+    cp "${splunk_icon}" "/work/internal/buildscripts/packaging/msi/splunk.ico"
+
+    cd /work
+    configFilesWsx="${build_dir}/configfiles.wsx"
+    heat dir "$files_dir" -srd -sreg -gg -template fragment -cg ConfigFiles -dr INSTALLDIR -out "${configFilesWsx//\//\\}"
+
+    configFilesWixObj="${build_dir}/configfiles.wixobj"
+    candle -arch x64 -out "${configFilesWixObj//\//\\}" "${configFilesWsx//\//\\}"
+
+    collectorWixObj="${build_dir}/splunk-otel-collector.wixobj"
+    candle -arch x64 -out "${collectorWixObj//\//\\}" -dVersion="$version" -dOtelcol="$otelcol" "${WXS_PATH//\//\\}"
+
+    msi="${build_dir}/${msi_name}"
+    light -ext WixUtilExtension.dll -sval -out "${msi//\//\\}" -b "${files_dir//\//\\}" "${collectorWixObj//\//\\}" "${configFilesWixObj//\//\\}"
+
+    mkdir -p $output
+    cp "${msi}" "${output}/${msi_name}"
+    { set +x; } 2>/dev/null
+
     echo "MSI saved to ${output}/${msi_name}"
 }
 

@@ -438,59 +438,31 @@ def build_msi(exe_path, args):
             sys.exit(1)
         os.remove(msi_path)
 
-    client = docker.from_env()
+    os.makedirs(args.assets_dir, exist_ok=True)
 
-    container_options = {
-        "remove": True,
-        "volumes": {
-            REPO_DIR: {"bind": "/work", "mode": "rw"},
-        },
-        "working_dir": "/work",
-    }
+    client = docker.from_env()
+    msi_builder_path = os.path.join(REPO_DIR, "internal", "buildscripts", "packaging", "msi", "msi-builder")
+    msi_builder_image, _ = client.images.build(path=msi_builder_path)
 
     with tempfile.TemporaryDirectory(dir=str(REPO_DIR)) as build_dir:
-        base_dir = os.path.basename(build_dir)
-        config_dir = os.path.join(build_dir, "config")
-        fluentd_dir = os.path.join(config_dir, "fluentd")
-        os.makedirs(fluentd_dir, exist_ok=True)
-        shutil.copy(exe_path, os.path.join(build_dir, "otelcol.exe"))
-        shutil.copy(os.path.join(str(REPO_DIR), MSI_CONFIG), os.path.join(config_dir, "config.yaml"))
-        shutil.copy(os.path.join(str(REPO_DIR), FLUENTD_CONFIG), os.path.join(fluentd_dir, "td-agent.conf"))
-        shutil.copytree(os.path.join(str(REPO_DIR), FLUENTD_CONFD), os.path.join(fluentd_dir, "conf.d"))
-        cont_config_dir = os.path.join(base_dir, "config")
-        cmd = (
-            f"heat dir {cont_config_dir} -srd -sreg -gg -template fragment "
-            f"-cg ConfigFiles -dr INSTALLDIR -out {os.path.join(base_dir, 'configfiles.wsx')}"
-        )
-        output = client.containers.run(WIX_IMAGE, command=cmd, **container_options)
-        print(output.decode("utf-8"))
-        assert os.path.isfile(os.path.join(build_dir, "configfiles.wsx")), "configfiles.wsx not found!"
-        cmd = (
-            f"candle -arch x64 -out {os.path.join(base_dir, 'configfiles.wixobj')} "
-            f"{os.path.join(base_dir, 'configfiles.wsx')}"
-        )
-        output = client.containers.run(WIX_IMAGE, command=cmd, **container_options)
-        print(output.decode("utf-8"))
-        assert os.path.isfile(os.path.join(build_dir, "configfiles.wixobj")), "configfiles.wixobj not found!"
-        cmd = (
-            f"candle -arch x64 -out {os.path.join(base_dir, 'splunk-otel-collector.wixobj')} "
-            f'-dVersion="{msi_version}" -dOtelcol="{os.path.join(base_dir, "otelcol.exe")}" {WXS_PATH}'
-        )
-        output = client.containers.run(WIX_IMAGE, command=cmd, **container_options)
-        print(output.decode("utf-8"))
-        assert os.path.isfile(
-            os.path.join(build_dir, "splunk-otel-collector.wixobj")
-        ), "splunk-otel-collector.wixobj not found!"
-        cmd = (
-            f"light -ext WixUtilExtension.dll -sval -spdb -out {os.path.join(base_dir, msi_name)} "
-            f"-b {cont_config_dir} {os.path.join(base_dir, 'splunk-otel-collector.wixobj')} "
-            f"{os.path.join(base_dir, 'configfiles.wixobj')}"
-        )
-        output = client.containers.run(WIX_IMAGE, command=cmd, **container_options)
+        container_options = {
+            "remove": True,
+            "volumes": {
+                REPO_DIR: {"bind": "/project", "mode": "ro"},
+                build_dir: {"bind": "/work/stage", "mode": "rw"},
+            },
+            "user": 0,
+            "working_dir": "/work",
+            "environment": {'OUTPUT_DIR': "/work/stage"},
+            "command": f"{msi_version}",
+        }
+        output = client.containers.run(msi_builder_image, **container_options)
         print(output.decode("utf-8"))
         assert os.path.isfile(os.path.join(build_dir, msi_name)), f"{msi_name} not found!"
         os.makedirs(args.assets_dir, exist_ok=True)
         os.rename(os.path.join(build_dir, msi_name), msi_path)
+        assert os.path.isfile(msi_path), f"{msi_name} not found in {args.assets_dir}!"
+        print(f"Successfully built {msi_path}.")
 
     return msi_path
 

@@ -210,7 +210,7 @@ install_apt_package() {
     version="=${version}"
   fi
 
-  apt-get -y install -o Dpkg::Options::="--force-confold" ${package_name}${version}
+  apt-get -y install ${package_name}${version}
 }
 
 install_collector_yum_repo() {

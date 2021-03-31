@@ -5,10 +5,13 @@ go 1.15
 require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/client9/misspell v0.3.4
+	github.com/docker/docker v20.10.5+incompatible
+	github.com/docker/go-connections v0.4.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/gogo/googleapis v1.4.0 // indirect
 	github.com/golangci/golangci-lint v1.38.0
 	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76
+	github.com/hashicorp/vault/api v1.0.5-0.20201001211907-38d91b749c77
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/moby/sys/mount v0.2.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.23.1-0.20210329222335-aed9fa4fb5b7
@@ -24,6 +27,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.23.1-0.20210329222335-aed9fa4fb5b7
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.23.1-0.20210329222335-aed9fa4fb5b7
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.0.0-20210329222335-aed9fa4fb5b7
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.23.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.23.1-0.20210329222335-aed9fa4fb5b7
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.23.1-0.20210329222335-aed9fa4fb5b7
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.23.1-0.20210329222335-aed9fa4fb5b7
@@ -44,6 +48,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
+	github.com/testcontainers/testcontainers-go v0.10.0
 	go.opentelemetry.io/collector v0.23.1-0.20210329172532-38e57614135f
 	go.uber.org/zap v1.16.0
 	golang.org/x/sys v0.0.0-20210315160823-c6e025ad8005

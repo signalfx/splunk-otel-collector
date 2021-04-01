@@ -31,12 +31,6 @@ receivers:
   # Traces + Metrics
   #############################################################################
 
-  # Enables the opencensus receiver with default settings
-  #  - grpc (default endpoint = 0.0.0.0:55678)
-  #  - http (default endpoint = 0.0.0.0:55678)
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/opencensusreceiver
-  opencensus:
-
   # Enables the otlp receiver with default settings
   #  - grpc (default endpoint = 0.0.0.0:4317)
   #  - http (default endpoint = 0.0.0.0:55681)

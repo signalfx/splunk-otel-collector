@@ -8,7 +8,6 @@ receivers:
       thrift_binary:
       thrift_compact:
       thrift_http:
-  opencensus:
   otlp:
     protocols:
       grpc:

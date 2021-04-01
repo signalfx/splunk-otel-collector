@@ -17,14 +17,21 @@ package smartagentextension
 import (
 	"path"
 	"testing"
+	"time"
 
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/core/config/sources"
+	"github.com/signalfx/signalfx-agent/pkg/core/config/sources/file"
+	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configcheck"
 	"go.opentelemetry.io/collector/config/configtest"
 )
+
+var tru = true
+var flse = false
 
 func TestLoadConfig(t *testing.T) {
 	factories, err := componenttest.NopFactories()
@@ -45,81 +52,47 @@ func TestLoadConfig(t *testing.T) {
 	require.NotNil(t, emptyConfig)
 	require.NoError(t, configcheck.ValidateConfig(emptyConfig))
 	require.Equal(t, func() *Config {
-		return &Config{
-			ExtensionSettings: config.ExtensionSettings{
-				TypeVal: "smartagent",
-				NameVal: "smartagent/default_settings",
-			},
-			bundleDir: bundleDir,
-			collectdConfig: saconfig.CollectdConfig{
-				Timeout:              40,
-				ReadThreads:          5,
-				WriteThreads:         2,
-				WriteQueueLimitHigh:  500000,
-				WriteQueueLimitLow:   400000,
-				LogLevel:             "notice",
-				IntervalSeconds:      10,
-				WriteServerIPAddr:    "127.9.8.7",
-				WriteServerPort:      0,
-				ConfigDir:            "/var/run/signalfx-agent/collectd",
-				BundleDir:            bundleDir,
-				HasGenericJMXMonitor: false,
-			},
-		}
+		cfg := defaultConfig()
+		cfg.ExtensionSettings.NameVal = "smartagent/default_settings"
+		return &cfg
 	}(), emptyConfig)
 
 	allSettingsConfig := cfg.Extensions["smartagent/all_settings"]
 	require.NotNil(t, allSettingsConfig)
 	require.NoError(t, configcheck.ValidateConfig(allSettingsConfig))
 	require.Equal(t, func() *Config {
-		return &Config{
-			ExtensionSettings: config.ExtensionSettings{
-				TypeVal: "smartagent",
-				NameVal: "smartagent/all_settings",
-			},
-			bundleDir: "/opt/bin/collectd/",
-			collectdConfig: saconfig.CollectdConfig{
-				Timeout:              10,
-				ReadThreads:          1,
-				WriteThreads:         4,
-				WriteQueueLimitHigh:  5,
-				WriteQueueLimitLow:   1,
-				LogLevel:             "info",
-				IntervalSeconds:      5,
-				WriteServerIPAddr:    "10.100.12.1",
-				WriteServerPort:      9090,
-				ConfigDir:            "/etc/",
-				BundleDir:            "/opt/bin/collectd/",
-				HasGenericJMXMonitor: false,
-			},
-		}
+		cfg := defaultConfig()
+		cfg.ExtensionSettings.NameVal = "smartagent/all_settings"
+		cfg.BundleDir = "/opt/bin/collectd/"
+		cfg.Collectd.Timeout = 10
+		cfg.Collectd.ReadThreads = 1
+		cfg.Collectd.WriteThreads = 4
+		cfg.Collectd.WriteQueueLimitHigh = 5
+		cfg.Collectd.WriteQueueLimitLow = 1
+		cfg.Collectd.LogLevel = "info"
+		cfg.Collectd.IntervalSeconds = 5
+		cfg.Collectd.WriteServerIPAddr = "10.100.12.1"
+		cfg.Collectd.WriteServerPort = 9090
+		cfg.Collectd.ConfigDir = "/etc/"
+		cfg.Collectd.BundleDir = "/opt/bin/collectd/"
+		cfg.Collectd.HasGenericJMXMonitor = false
+		return &cfg
 	}(), allSettingsConfig)
 
 	partialSettingsConfig := cfg.Extensions["smartagent/partial_settings"]
 	require.NotNil(t, partialSettingsConfig)
 	require.NoError(t, configcheck.ValidateConfig(partialSettingsConfig))
 	require.Equal(t, func() *Config {
-		return &Config{
-			ExtensionSettings: config.ExtensionSettings{
-				TypeVal: "smartagent",
-				NameVal: "smartagent/partial_settings",
-			},
-			bundleDir: "/opt/",
-			collectdConfig: saconfig.CollectdConfig{
-				Timeout:              10,
-				ReadThreads:          1,
-				WriteThreads:         4,
-				WriteQueueLimitHigh:  5,
-				WriteQueueLimitLow:   400000,
-				LogLevel:             "notice",
-				IntervalSeconds:      10,
-				WriteServerIPAddr:    "127.9.8.7",
-				WriteServerPort:      0,
-				BundleDir:            "/opt/",
-				ConfigDir:            "/etc/",
-				HasGenericJMXMonitor: false,
-			},
-		}
+		cfg := defaultConfig()
+		cfg.ExtensionSettings.NameVal = "smartagent/partial_settings"
+		cfg.BundleDir = "/opt/"
+		cfg.Collectd.Timeout = 10
+		cfg.Collectd.ReadThreads = 1
+		cfg.Collectd.WriteThreads = 4
+		cfg.Collectd.WriteQueueLimitHigh = 5
+		cfg.Collectd.ConfigDir = "/etc/"
+		cfg.Collectd.BundleDir = "/opt/"
+		return &cfg
 	}(), partialSettingsConfig)
 }
 
@@ -144,8 +117,8 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 	saConfigProvider, ok := allSettingsConfig.(SmartAgentConfigProvider)
 	require.True(t, ok)
 
-	require.Equal(t, func() *saconfig.CollectdConfig {
-		return &saconfig.CollectdConfig{
+	require.Equal(t, func() saconfig.CollectdConfig {
+		return saconfig.CollectdConfig{
 			Timeout:              10,
 			ReadThreads:          1,
 			WriteThreads:         4,
@@ -159,8 +132,8 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 			ConfigDir:            "/etc/",
 			HasGenericJMXMonitor: false,
 		}
-	}(), saConfigProvider.CollectdConfig())
-	require.Equal(t, "/opt/bin/collectd/", saConfigProvider.BundleDir())
+	}(), saConfigProvider.SmartAgentConfig().Collectd)
+	require.Equal(t, "/opt/bin/collectd/", saConfigProvider.SmartAgentConfig().BundleDir)
 }
 
 func TestLoadInvalidConfig(t *testing.T) {
@@ -175,4 +148,97 @@ func TestLoadInvalidConfig(t *testing.T) {
 
 	require.Error(t, err)
 	require.Nil(t, cfg)
+}
+
+func defaultConfig() Config {
+	return Config{
+		ExtensionSettings: config.ExtensionSettings{
+			TypeVal: "smartagent",
+			NameVal: "smartagent",
+		},
+		Config: saconfig.Config{
+			BundleDir:              bundleDir,
+			SignalFxRealm:          "us0",
+			IntervalSeconds:        10,
+			CloudMetadataTimeout:   timeutil.Duration(2 * time.Second),
+			GlobalDimensions:       map[string]string{},
+			GlobalSpanTags:         map[string]string{},
+			ValidateDiscoveryRules: &flse,
+			Observers:              []saconfig.ObserverConfig{},
+			Monitors:               []saconfig.MonitorConfig{},
+			EnableBuiltInFiltering: &tru,
+			InternalStatusHost:     "localhost",
+			InternalStatusPort:     8095,
+			ProfilingHost:          "127.0.0.1",
+			ProfilingPort:          6060,
+			ProcPath:               "/proc",
+			EtcPath:                "/etc",
+			VarPath:                "/var",
+			RunPath:                "/run",
+			SysPath:                "/sys",
+			Collectd: saconfig.CollectdConfig{
+				Timeout:              40,
+				ReadThreads:          5,
+				WriteThreads:         2,
+				WriteQueueLimitHigh:  500000,
+				WriteQueueLimitLow:   400000,
+				LogLevel:             "notice",
+				IntervalSeconds:      10,
+				WriteServerIPAddr:    "127.9.8.7",
+				WriteServerPort:      0,
+				ConfigDir:            "/var/run/signalfx-agent/collectd",
+				BundleDir:            bundleDir,
+				HasGenericJMXMonitor: false,
+			},
+			Writer: saconfig.WriterConfig{
+				DatapointMaxBatchSize:                 1000,
+				MaxDatapointsBuffered:                 25000,
+				TraceSpanMaxBatchSize:                 1000,
+				TraceExportFormat:                     "zipkin",
+				MaxRequests:                           10,
+				Timeout:                               timeutil.Duration(5 * time.Second),
+				EventSendIntervalSeconds:              1,
+				PropertiesMaxRequests:                 20,
+				PropertiesMaxBuffered:                 10000,
+				PropertiesSendDelaySeconds:            30,
+				PropertiesHistorySize:                 10000,
+				LogTraceSpans:                         false,
+				LogDimensionUpdates:                   false,
+				LogDroppedDatapoints:                  false,
+				SendTraceHostCorrelationMetrics:       &tru,
+				StaleServiceTimeout:                   timeutil.Duration(5 * time.Minute),
+				TraceHostCorrelationPurgeInterval:     timeutil.Duration(1 * time.Minute),
+				TraceHostCorrelationMetricsInterval:   timeutil.Duration(1 * time.Minute),
+				TraceHostCorrelationMaxRequestRetries: 2,
+				MaxTraceSpansInFlight:                 100000,
+				Splunk:                                nil,
+				SignalFxEnabled:                       &tru,
+				ExtraHeaders:                          nil,
+				HostIDDims:                            nil,
+				IngestURL:                             "",
+				APIURL:                                "",
+				EventEndpointURL:                      "",
+				TraceEndpointURL:                      "",
+				SignalFxAccessToken:                   "",
+				GlobalDimensions:                      nil,
+				GlobalSpanTags:                        nil,
+				MetricsToInclude:                      nil,
+				MetricsToExclude:                      nil,
+				PropertiesToExclude:                   nil,
+			},
+			Logging: saconfig.LogConfig{
+				Level:  "info",
+				Format: "text",
+			},
+			PropertiesToExclude: []saconfig.PropertyFilterConfig{},
+			MetricsToExclude:    []saconfig.MetricFilter{},
+			MetricsToInclude:    []saconfig.MetricFilter{},
+			Sources: sources.SourceConfig{
+				Watch: &tru,
+				File: file.Config{
+					PollRateSeconds: 5,
+				},
+			},
+		},
+	}
 }

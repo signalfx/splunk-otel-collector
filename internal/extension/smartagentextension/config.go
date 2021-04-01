@@ -26,50 +26,62 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// SmartAgentConfigProvider exposes config fields to other packages.
-// This is needed since fields such  as bundleDir and collectdConfig
-// are mapped to camel case fields in the config and hence are not exposed.
+// SmartAgentConfigProvider exposes global saconfig.Config to other components
 type SmartAgentConfigProvider interface {
-	BundleDir() string
-	CollectdConfig() *saconfig.CollectdConfig
+	SmartAgentConfig() *saconfig.Config
 }
 
 var _ SmartAgentConfigProvider = (*Config)(nil)
 
 type Config struct {
 	config.ExtensionSettings `mapstructure:",squash"`
-	bundleDir                string
-	collectdConfig           saconfig.CollectdConfig
+	// Agent uses yaml, which mapstructure doesn't support.
+	// Custom unmarshaller required for yaml and SFx defaults usage.
+	saconfig.Config `mapstructure:"-,squash"`
 }
 
-func (c Config) BundleDir() string {
-	return c.bundleDir
-}
-
-func (c Config) CollectdConfig() *saconfig.CollectdConfig {
-	return &c.collectdConfig
+func (c Config) SmartAgentConfig() *saconfig.Config {
+	return &c.Config
 }
 
 func customUnmarshaller(componentViperSection *viper.Viper, intoCfg interface{}) error {
 	allSettings := componentViperSection.AllSettings()
 	extensionCfg := intoCfg.(*Config)
 
-	if bundleDir, ok := allSettings["bundledir"]; ok {
-		extensionCfg.bundleDir = fmt.Sprintf("%s", bundleDir)
-		delete(allSettings, "bundledir")
+	config, err := smartAgentConfigFromSettingsMap(allSettings)
+	if err != nil {
+		return err
+	}
+
+	if config.BundleDir == "" {
+		config.BundleDir = extensionCfg.Config.BundleDir
+	}
+	config.Collectd.BundleDir = config.BundleDir
+
+	extensionCfg.Config = *config
+	return nil
+}
+
+func smartAgentConfigFromSettingsMap(settings map[string]interface{}) (*saconfig.Config, error) {
+	var config saconfig.Config
+	yamlTags := yamlTagsFromStruct(reflect.TypeOf(config))
+
+	for key, val := range settings {
+		updatedKey := yamlTags[key]
+		if updatedKey != "" {
+			delete(settings, key)
+			settings[updatedKey] = val
+		}
 	}
 
 	var collectdSettings map[string]interface{}
 	var ok bool
-	if collectdSettings, ok = allSettings["collectd"].(map[string]interface{}); !ok {
-		// We must set the BundleDir field on the resulting CollectdConfig
-		// so we use an empty instance.  Defaults will be picked up.
+	if collectdSettings, ok = settings["collectd"].(map[string]interface{}); !ok {
 		collectdSettings = map[string]interface{}{}
 	}
 
 	var collectdConfig saconfig.CollectdConfig
-	yamlTags := yamlTagsFromStruct(reflect.TypeOf(collectdConfig))
-
+	yamlTags = yamlTagsFromStruct(reflect.TypeOf(collectdConfig))
 	for key, val := range collectdSettings {
 		updatedKey := yamlTags[key]
 		if updatedKey != "" {
@@ -78,30 +90,30 @@ func customUnmarshaller(componentViperSection *viper.Viper, intoCfg interface{})
 		}
 	}
 
-	asBytes, err := yaml.Marshal(collectdSettings)
+	settings["collectd"] = collectdSettings
+
+	asBytes, err := yaml.Marshal(settings)
 	if err != nil {
-		return fmt.Errorf("failed constructing raw collectd config block: %w", err)
+		return nil, fmt.Errorf("failed constructing raw Smart Agent config: %w", err)
 	}
 
-	err = yaml.UnmarshalStrict(asBytes, &collectdConfig)
+	err = yaml.UnmarshalStrict(asBytes, &config)
 	if err != nil {
-		return fmt.Errorf("failed creating collectd config: %w", err)
+		return nil, fmt.Errorf("failed creating Smart Agent config: %w", err)
 	}
 
-	err = defaults.Set(&collectdConfig)
+	err = defaults.Set(&config)
 	if err != nil {
-		return fmt.Errorf("failed setting collectd config defaults: %w", err)
+		return nil, fmt.Errorf("failed setting config defaults: %w", err)
 	}
 
 	// The default on CollectdConfig is 0, use the default if this is the case.
-	if collectdConfig.IntervalSeconds == 0 {
-		collectdConfig.IntervalSeconds = defaultIntervalSeconds
+	if config.Collectd.IntervalSeconds == 0 {
+		config.Collectd.IntervalSeconds = defaultIntervalSeconds
 	}
 
-	collectdConfig.BundleDir = extensionCfg.bundleDir
-	extensionCfg.collectdConfig = collectdConfig
-
-	return nil
+	config.Collectd.BundleDir = config.BundleDir
+	return &config, nil
 }
 
 func yamlTagsFromStruct(s reflect.Type) map[string]string {

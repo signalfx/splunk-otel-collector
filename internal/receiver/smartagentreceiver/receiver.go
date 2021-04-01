@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -28,6 +29,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
@@ -113,6 +115,8 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 		return fmt.Errorf("failed creating monitor %q: %w", monitorType, err)
 	}
 
+	configCore.ProcPath = saConfigProvider.SmartAgentConfig().ProcPath
+
 	err = componenterror.ErrAlreadyStarted
 	r.startOnce.Do(func() {
 		// starts the monitor
@@ -192,7 +196,7 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 	if r.config.monitorConfig.MonitorConfigCore().IsCollectdBased() {
 		configureCollectdOnce.Do(func() {
 			r.logger.Info("Configuring collectd")
-			err = collectd.ConfigureMainCollectd(saConfigProvider.CollectdConfig())
+			err = collectd.ConfigureMainCollectd(&saConfigProvider.SmartAgentConfig().Collectd)
 		})
 	}
 
@@ -236,7 +240,15 @@ func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[config.NamedEnti
 }
 
 func setUpEnvironment() {
-	bundleDir := saConfigProvider.BundleDir()
-	os.Setenv(constants.BundleDirEnvVar, bundleDir)
-	os.Setenv("JAVA_HOME", filepath.Join(bundleDir, "jre"))
+	cfg := saConfigProvider.SmartAgentConfig()
+	os.Setenv(constants.BundleDirEnvVar, cfg.BundleDir)
+	if runtime.GOOS != "windows" { // Agent bundle doesn't include jre for Windows
+		os.Setenv("JAVA_HOME", filepath.Join(cfg.BundleDir, "jre"))
+	}
+
+	os.Setenv(hostfs.HostProcVar, cfg.ProcPath)
+	os.Setenv(hostfs.HostEtcVar, cfg.EtcPath)
+	os.Setenv(hostfs.HostVarVar, cfg.VarPath)
+	os.Setenv(hostfs.HostRunVar, cfg.RunPath)
+	os.Setenv(hostfs.HostSysVar, cfg.SysPath)
 }

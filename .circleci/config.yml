@@ -375,6 +375,7 @@ jobs:
   build-package:
     machine:
       image: ubuntu-1604:202007-01
+      docker_layer_caching: true
     parameters:
       package_type:
         type: enum

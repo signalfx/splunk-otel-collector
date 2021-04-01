@@ -16,8 +16,9 @@ Each `smartagent` receiver configuration acts a drop-in replacement for each sup
 and associated [Observer extensions](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/extension/observer/README.md)
 should be used.
 1. The [`signalfx-forwarder`](https://github.com/signalfx/signalfx-agent/blob/master/docs/monitors/signalfx-forwarder.md)
-monitor should be made part of a `traces` pipeline utilizing the [`sapm`
-exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/sapmexporter/README.md)
+monitor should be made part of both `metrics` and `traces` pipelines utilizing the
+[`signalfx`](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/signalfxexporter/README.md)
+and [`sapm`](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/sapmexporter/README.md) exporters, respectively.
 1. All metric content replacement and transformation rules should utilize existing
 [Collector processors](https://github.com/open-telemetry/opentelemetry-collector/blob/master/processor/README.md).
 1. Monitors with [dimension property and tag update
@@ -76,6 +77,7 @@ service:
       receivers:
         - smartagent/postgresql
         - smartagent/kafka
+        - smartagent/signalfx-forwarder
       processors:
         - resourcedetection
       exporters:

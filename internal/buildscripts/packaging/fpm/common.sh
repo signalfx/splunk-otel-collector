@@ -29,8 +29,10 @@ SERVICE_USER="splunk-otel-collector"
 SERVICE_GROUP="splunk-otel-collector"
 
 OTELCOL_INSTALL_PATH="/usr/bin/otelcol"
-CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/agent_config.yaml"
-CONFIG_INSTALL_PATH="/etc/otel/collector/agent_config.yaml"
+AGENT_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/agent_config.yaml"
+AGENT_CONFIG_INSTALL_PATH="/etc/otel/collector/agent_config.yaml"
+GATEWAY_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/gateway_config.yaml"
+GATEWAY_CONFIG_INSTALL_PATH="/etc/otel/collector/gateway_config.yaml"
 SERVICE_REPO_PATH="$FPM_DIR/$SERVICE_NAME.service"
 SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"
 
@@ -107,7 +109,8 @@ setup_files_and_permissions() {
     sudo chmod 755 "$buildroot/$OTELCOL_INSTALL_PATH"
 
     cp -r "$FPM_DIR/etc" "$buildroot/etc"
-    cp -f "$CONFIG_REPO_PATH" "$buildroot/$CONFIG_INSTALL_PATH"
+    cp -f "$AGENT_CONFIG_REPO_PATH" "$buildroot/$AGENT_CONFIG_INSTALL_PATH"
+    cp -f "$GATEWAY_CONFIG_REPO_PATH" "$buildroot/$GATEWAY_CONFIG_INSTALL_PATH"
     sudo chown -R $SERVICE_USER:$SERVICE_GROUP "$buildroot/etc/otel"
     sudo chmod -R 755 "$buildroot/etc/otel"
     sudo chmod 600 "$buildroot/etc/otel/collector/$SERVICE_NAME.conf.example"

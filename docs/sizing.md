@@ -3,11 +3,15 @@
 The OpenTelemetry Collector can be scaled up or out as needed. Sizing is based
 on the amount of data per data source and requires 1 CPU core per:
 
-- Traces: 10,000 spans per second
+- Traces: 15,000 spans per second
 - Metrics: 20,000 data points per second
+- Logs: 10,000 log records per second
+
+Note: The sizing recommendation for logs also account for `td-agent` (`fluentd`),
+that forwards logs to the [`fluentforward` receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/fluentforwardreceiver) in the Collector.
 
 If a Collector handles both trace and metric data then both must be accounted
-for when sizing. For example, 5K spans per second plus 10K data points per
+for when sizing. For example, 7.5K spans per second plus 10K data points per
 second would require 1 CPU core.
 
 The recommendation is to use a ratio of 1 CPU to 2 GB of memory. By default, the

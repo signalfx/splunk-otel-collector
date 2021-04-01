@@ -56,24 +56,20 @@ var bundleDir = func() string {
 }()
 
 func createDefaultConfig() config.Extension {
+	cfg, _ := smartAgentConfigFromSettingsMap(map[string]interface{}{})
+	if cfg == nil {
+		// We won't truly be using this default in our custom unmarshaler
+		// so zero value is adequate
+		cfg = &saconfig.Config{}
+	}
+	cfg.BundleDir = bundleDir
+	cfg.Collectd.BundleDir = bundleDir
 	return &Config{
 		ExtensionSettings: config.ExtensionSettings{
 			TypeVal: typeStr,
 			NameVal: string(typeStr),
 		},
-		bundleDir: bundleDir,
-		collectdConfig: saconfig.CollectdConfig{
-			Timeout:             40,
-			ReadThreads:         5,
-			WriteThreads:        2,
-			WriteQueueLimitHigh: 500000,
-			WriteQueueLimitLow:  400000,
-			LogLevel:            "notice",
-			IntervalSeconds:     defaultIntervalSeconds,
-			WriteServerIPAddr:   "127.9.8.7",
-			WriteServerPort:     0,
-			ConfigDir:           "/var/run/signalfx-agent/collectd",
-		},
+		Config: *cfg,
 	}
 }
 

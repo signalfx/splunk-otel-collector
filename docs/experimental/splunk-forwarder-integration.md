@@ -63,13 +63,12 @@ monitors. For example, `tcp.conf` could be added with the following:
 <source>
    @type tcp
    @label @SPLUNK
-   tag "tcp.events"
+   tag tcp.events
    port 20001
-   bind "0.0.0.0"
+   bind 0.0.0.0
    delimiter "\n"
    <parse>
      @type "none"
-     message_key "_raw"
    </parse>
  </source>
 ```

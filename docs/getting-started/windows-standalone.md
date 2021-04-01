@@ -11,7 +11,7 @@ The collector will be installed to
 `splunk-otel-collector` service will be created but not started.
 
 A default config file will be copied to
-`\ProgramData\Splunk\OpenTelemetry Collector\config.yaml` if it does not
+`\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml` if it does not
 already exist.  This file is required to start the `splunk-otel-collector`
 service.
 
@@ -50,6 +50,25 @@ following command in a PowerShell terminal:
 
 ```sh
 PS> Start-Service splunk-otel-collector
+```
+
+To modify the default path to the configuration file for the
+`splunk-otel-collector` service, run `regdit` and modify the `SPLUNK_CONFIG`
+value in the
+`HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`
+registry key, or run the following PowerShell command (replace `PATH` with the
+full path to the new configuration file):
+
+```powershell
+Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_CONFIG" -value "PATH"
+```
+
+After modifying the configuration file or registry key, apply the changes by
+restarting the system or running the following PowerShell commands:
+
+```powershell
+Stop-Service splunk-otel-collector
+Start-Service splunk-otel-collector
 ```
 
 The collector logs and errors can be viewed in the Windows Event Viewer.

@@ -36,6 +36,10 @@
     (OPTIONAL) Total memory in MIB to allocate to the collector; automatically calculates the ballast size (default: "512").
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -memory 1024
+.PARAMETER mode
+    (OPTIONAL) Configure the collector service to run in "agent" or "gateway" mode (default: "agent").
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -mode "gateway"
 .PARAMETER ingest_url
     (OPTIONAL) Set the base ingest URL explicitly instead of the URL inferred from the specified realm (default: https://ingest.REALM.signalfx.com).
     .EXAMPLE
@@ -87,6 +91,7 @@ param (
     [parameter(Mandatory=$true)][string]$access_token = "",
     [string]$realm = "us0",
     [string]$memory = "512",
+    [ValidateSet('agent','gateway')][string]$mode = "agent",
     [string]$ingest_url = "",
     [string]$api_url = "",
     [string]$trace_url = "",
@@ -107,7 +112,10 @@ $service_name = "splunk-otel-collector"
 $signalfx_dl = "https://dl.signalfx.com"
 $installation_path = "\Program Files"
 $program_data_path = "\ProgramData\Splunk\OpenTelemetry Collector"
-$config_path = "$program_data_path\config.yaml"
+$old_config_path = "$program_data_path\config.yaml"
+$agent_config_path = "$program_data_path\agent_config.yaml"
+$gateway_config_path = "$program_data_path\gateway_config.yaml"
+$config_path = ""
 $tempdir = "\tmp\Splunk\OpenTelemetry Collector"
 $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
@@ -398,22 +406,48 @@ echo "Installing $msi_path ..."
 Start-Process msiexec.exe -Wait -ArgumentList "/qn /norestart /i `"$msi_path`""
 echo "- Done"
 
-# copy the default config to $program_data_path if somehow the msi install did not
-if (!(Test-Path -Path "$config_path") -And (Test-Path -Path "$installation_path\Splunk\OpenTelemetry Collector\config.yaml")) {
-    echo "$config_path not found"
-    echo "Copying default config.yaml to $config_path"
-    mkdir "$program_data_path" -ErrorAction Ignore
-    Copy-Item "$installation_path\Splunk\OpenTelemetry Collector\config.yaml" "$config_path"
+# copy the default configs to $program_data_path
+mkdir "$program_data_path" -ErrorAction Ignore
+if (!(Test-Path -Path "$agent_config_path") -And (Test-Path -Path "$installation_path\Splunk\OpenTelemetry Collector\agent_config.yaml")) {
+    echo "$agent_config_path not found"
+    echo "Copying default agent_config.yaml to $agent_config_path"
+    Copy-Item "$installation_path\Splunk\OpenTelemetry Collector\agent_config.yaml" "$agent_config_path"
+}
+if (!(Test-Path -Path "$gateway_config_path") -And (Test-Path -Path "$installation_path\Splunk\OpenTelemetry Collector\gateway_config.yaml")) {
+    echo "$gateway_config_path not found"
+    echo "Copying default gateway_config.yaml to $gateway_config_path"
+    Copy-Item "$installation_path\Splunk\OpenTelemetry Collector\gateway_config.yaml" "$gateway_config_path"
+}
+if (!(Test-Path -Path "$old_config_path") -And (Test-Path -Path "$installation_path\Splunk\OpenTelemetry Collector\config.yaml")) {
+    echo "$old_config_path not found"
+    echo "Copying default config.yaml to $old_config_path"
+    Copy-Item "$installation_path\Splunk\OpenTelemetry Collector\config.yaml" "$old_config_path"
+}
+
+if (($mode -Eq "agent") -And (Test-Path -Path "$agent_config_path")) {
+    $config_path = $agent_config_path
+} elseif (($mode -Eq "gateway") -And (Test-Path -Path "$gateway_config_path")) {
+    $config_path = $gateway_config_path
+}
+
+if ($config_path -Eq "") {
+    if (Test-Path -Path "$old_config_path") {
+        $config_path = $old_config_path
+    } else {
+        throw "The installed splunk-otel-collector package does not include a supported config file!"
+    }
 }
 
 update_registry -path "$regkey" -name "SPLUNK_ACCESS_TOKEN" -value "$access_token"
 update_registry -path "$regkey" -name "SPLUNK_API_URL" -value "$api_url"
+update_registry -path "$regkey" -name "SPLUNK_BUNDLE_DIR" -value "$bundle_dir"
+update_registry -path "$regkey" -name "SPLUNK_CONFIG" -value "$config_path"
 update_registry -path "$regkey" -name "SPLUNK_HEC_TOKEN" -value "$hec_token"
 update_registry -path "$regkey" -name "SPLUNK_HEC_URL" -value "$hec_url"
 update_registry -path "$regkey" -name "SPLUNK_INGEST_URL" -value "$ingest_url"
 update_registry -path "$regkey" -name "SPLUNK_MEMORY_TOTAL_MIB" -value "$memory"
+update_registry -path "$regkey" -name "SPLUNK_REALM" -value "$realm"
 update_registry -path "$regkey" -name "SPLUNK_TRACE_URL" -value "$trace_url"
-update_registry -path "$regkey" -name "SPLUNK_BUNDLE_DIR" -value "$bundle_dir"
 
 echo "Starting $service_name service..."
 start_service -name "$service_name" -config_path "$config_path"

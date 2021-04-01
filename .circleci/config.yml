@@ -240,6 +240,16 @@ workflows:
       - windows-msi-validation:
           requires:
             - windows-msi
+          name: windows-msi-agent-test
+          mode: agent
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - windows-msi-validation:
+          requires:
+            - windows-msi
+          name: windows-msi-gateway-test
+          mode: gateway
           filters:
             tags:
               only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
@@ -465,11 +475,16 @@ jobs:
     executor:
       name: win/default
       shell: powershell.exe
+    parameters:
+      mode:
+        type: enum
+        enum: ["agent", "gateway"]
     steps:
       - attach_to_workspace
       - run:
           name: Installation test
           command: |
+            Set-PSDebug -Trace 1
             $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
             $env:VERIFY_ACCESS_TOKEN = "false"
-            .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -msi_path "$msi_path"
+            .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -msi_path "$msi_path" -mode "<< parameters.mode >>"

@@ -1,5 +1,49 @@
 # Troubleshooting
 
+Start by reviewing the [OpenTelemetry Collector troubleshooting
+documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/troubleshooting.md).
+
+## Gathering Support Information
+
+Existing customers unable to determine why something is not working can [email
+support](mailto:signalfx-support@splunk.com). When opening a support request,
+it is important to include as much information about the issue as possible
+including:
+
+- What did you try to do?
+- What happened?
+- What did you expect to happen?
+- Have you found any workaround?
+- How impactful is the issue?
+- How can we produce the issue?
+
+End-to-end architecture information is helpful including:
+
+- What is generating the data?
+- Where was the data configured to go to?
+- What format was the data sent in?
+- How is the next hop configured?
+- Where is the data configured to go from here?
+- What format was the data sent in?
+- Any dns/firewall/networking/proxy information to be aware of?
+
+In addition, it is important to gather support information including:
+
+- Configuration file
+  - Kubernetes: `kubectl get configmap my-configmap -o yaml >my-configmap.yaml`
+  - Linux: `/etc/otel/collector`
+- Logs and ideally debug logs
+  - Docker: `docker logs my-container >my-container.log`
+  - Journald: `journalctl -u my-service >my-service.log`
+  - Kubernetes:
+      `kubectl describe pod my-pod`
+      `kubectl logs my-pod otel-collector >my-pod-otel.log`
+      `kubectl logs my-pod fluentd >my-pod-fluentd.log`
+
+Support bundle scripts are provided to make it easier to collect information:
+
+- Linux (if installer script was used): `/etc/otel/collector/splunk-support-bundle.sh`
+
 ## Linux Installer
 
 If either the splunk-otel-collector or td-agent services are not properly
@@ -7,13 +51,16 @@ installed and configured:
 
 - Ensure the OS [is supported](getting-started/linux-installer.md#linux-installer-script)
 - Ensure the OS has systemd installed
-- Ensure not running in a containerized environment (for non-production environments see [this post](https://developers.redhat.com/blog/2014/05/05/running-systemd-within-docker-container/) for a workaround)
+- Ensure not running in a containerized environment (for non-production
+  environments see [this
+  post](https://developers.redhat.com/blog/2014/05/05/running-systemd-within-docker-container/)
+  for a workaround)
 - Check installation logs for more details
 
 ## HTTP Error Codes
 
 - 401 (UNAUTHORIZED): Configured access token or realm is incorrect
-- 404 (NOT FOUND): Likely configuration parameter is wrong like endpoint or URI
+- 404 (NOT FOUND): Likely configuration parameter is wrong like endpoint or path
   (e.g. /v1/log); possible network/firewall/port issue
 - 429 (TOO MANY REQUESTS): Org is not provisioned for the amount of traffic
   being sent; reduce traffic or request increase in capacity
@@ -32,6 +79,7 @@ $ journalctl -u my-service.service -f
 ### Is Fluentd configured properly?
 
 - Is td-agent running? (`systemctl status td-agent`)
+- If you changed the configuration did you restart fluentd? (`systemctl restart td-agent`)
 - Check `fluentd.conf` and `conf.d/\*`; ensure `@label @SPLUNK` is added to
   every source otherwise logs are not collected!
 - Manual configuration may be required to collect logs off the source. Add
@@ -41,15 +89,19 @@ $ journalctl -u my-service.service -f
 - While every attempt is made to properly configure permissions, it is
   possible td-agent does not have the permission required to collect logs.
   Debug logging should indicate this issue.
+- It is possible the `<parser>` section configuration is not matching the log events.
 - This means things are working (requires debug logging enabled): `2021-03-17
   02:14:44 +0000 [debug]: #0 connect new socket`
 
 ### Is OTelCol configured properly?
 
-- Check [zpages](https://github.com/open-telemetry/opentelemetry-collector/blob/main/extension/zpagesextension) for samples (`http://localhost:55679/debug/tracez`); may require
-  `endpoint` configuration
-- Enable [logging exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter) and check logs (`journalctl -u
-  splunk-otel-collector.service -f`)
+- Check
+  [zpages](https://github.com/open-telemetry/opentelemetry-collector/blob/main/extension/zpagesextension)
+  for samples (`http://localhost:55679/debug/tracez`); may require `endpoint`
+  configuration
+- Enable [logging
+  exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter)
+  and check logs (`journalctl -u splunk-otel-collector.service -f`)
 - Review the [Collector troubleshooting
   documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/troubleshooting.md).
 

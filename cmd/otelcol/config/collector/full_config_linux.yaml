@@ -396,6 +396,7 @@ exporters:
   # Enables the otlp grpc exporter
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter
   # NOTE: These settings should be updated to the proper destination
+  # WARN: https://ingest.${SPLUNK_REALM}.signalfx.com does NOT support gRPC at this time; use otlphttp exporter instead
   otlp:
     endpoint: otelcol2:4317
 
@@ -404,6 +405,9 @@ exporters:
   # NOTE: These settings should be updated to the proper destination
   otlphttp:
     endpoint: otelcol2:55681
+    compression: gzip
+    headers:
+      X-SF-TOKEN: "${SPLUNK_ACCESS_TOKEN}"
 
   # Enables the sapm exporter
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter

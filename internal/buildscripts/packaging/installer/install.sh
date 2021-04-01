@@ -56,8 +56,9 @@ get_distro_codename() {
 }
 
 collector_config_dir="/etc/otel/collector"
-collector_config_path="${collector_config_dir}/agent_config.yaml"
-collector_config_old_path="${collector_config_dir}/splunk_config_linux.yaml"
+agent_config_path="${collector_config_dir}/agent_config.yaml"
+gateway_config_path="${collector_config_dir}/gateway_config.yaml"
+old_config_path="${collector_config_dir}/splunk_config_linux.yaml"
 collector_env_path="${collector_config_dir}/splunk-otel-collector.conf"
 collector_env_old_path="${collector_config_dir}/splunk_env"
 collector_bundle_dir="/usr/lib/splunk-otel-collector/agent-bundle"
@@ -514,6 +515,7 @@ Options:
                                     (default: https://ingest.REALM.signalfx.com)
   --memory <memory size>            Total memory in MIB to allocate to the collector; automatically calculates the ballast size
                                     (default: "$default_memory_size")
+  --mode <agent|gateway>            Configure the collector service to run in agent or gateway mode (default: "agent")
   --realm <us0|us1|eu0|...>         The Splunk realm to use (default: "$default_realm")
                                     The ingest, api, trace, and HEC endpoint URLs will automatically be inferred by this value
   --service-group <group>           Set the group for the splunk-otel-collector service (default: "$default_service_group")
@@ -549,7 +551,9 @@ parse_args_and_install() {
   local td_agent_version="$default_td_agent_version"
   local trace_url=
   local uninstall="false"
+  local mode="agent"
   local with_fluentd="true"
+  local collector_config_path=
 
   while [ -n "${1-}" ]; do
     case $1 in
@@ -589,6 +593,18 @@ parse_args_and_install() {
         ;;
       --memory)
         memory="$2"
+        shift 1
+        ;;
+      --mode)
+        case $2 in
+          agent|gateway)
+            mode="$2"
+            ;;
+          *)
+            echo "Unsupported mode '$2'" >&2
+            exit 1
+            ;;
+        esac
         shift 1
         ;;
       --realm)
@@ -701,12 +717,39 @@ parse_args_and_install() {
   create_user_group "$service_user" "$service_group"
   configure_service_owner "$service_user" "$service_group"
 
+  if [ "$mode" = "agent" ]; then
+    if [ -f "$agent_config_path" ]; then
+      # use the agent config if the installed package includes it
+      collector_config_path="$agent_config_path"
+    elif [ -f "$old_config_path" ]; then
+      # use the old config if the installed package does not include the new agent config
+      collector_config_path="$old_config_path"
+    fi
+  else
+    if [ -f "$gateway_config_path" ]; then
+      # use the gateway config if the installed package includes it
+      collector_config_path="$gateway_config_path"
+    elif [ -f "$agent_config_path" ]; then
+      # use the agent config if the installed package includes it
+      collector_config_path="$agent_config_path"
+    elif [ -f "$old_config_path" ]; then
+      # use the old config if the installed package does not include the new agent or gateway config
+      collector_config_path="$old_config_path"
+    fi
+  fi
+
+  if [ -z "$collector_config_path" ]; then
+    echo "ERROR: The installed splunk-otel-collector package does not include a supported config file!" >&2
+    exit 1
+  elif [ ! -f "$collector_config_path" ]; then
+    echo "ERROR: Config file $collector_config_path not found!" >&2
+    exit 1
+  fi
+
   if [ ! -f "${collector_env_path}.example" ]; then
     collector_env_path=$collector_env_old_path
   fi
-  if [ ! -f "${collector_config_path}" ]; then
-    collector_config_path=$collector_config_old_path
-  fi
+
   configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"
   configure_env_file "SPLUNK_ACCESS_TOKEN" "$access_token" "$collector_env_path"
   configure_env_file "SPLUNK_REALM" "$realm" "$collector_env_path"

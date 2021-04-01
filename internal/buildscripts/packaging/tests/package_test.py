@@ -54,7 +54,9 @@ def test_collector_package_install(distro):
     service_name = "splunk-otel-collector"
     service_owner = "splunk-otel-collector"
     service_proc = "otelcol"
-    config_path = "/etc/otel/collector/splunk-otel-collector.conf"
+    env_path = "/etc/otel/collector/splunk-otel-collector.conf"
+    agent_config_path = "/etc/otel/collector/agent_config.yaml"
+    gateway_config_path = "/etc/otel/collector/gateway_config.yaml"
     bundle_dir = "/usr/lib/splunk-otel-collector/agent-bundle"
 
     pkg_path = get_package(distro, pkg_name, pkg_dir)
@@ -75,12 +77,15 @@ def test_collector_package_install(distro):
             run_container_cmd(container, f"test -d {bundle_dir}")
             run_container_cmd(container, f"test -d {bundle_dir}/run/collectd")
 
+            run_container_cmd(container, f"test -f {agent_config_path}")
+            run_container_cmd(container, f"test -f {gateway_config_path}")
+
             # verify service is not running after install without config file
             time.sleep(5)
             assert not service_is_running(container, service_name, service_owner, service_proc)
 
             # verify service starts with config file
-            run_container_cmd(container, f"cp -f {config_path}.example {config_path}")
+            run_container_cmd(container, f"cp -f {env_path}.example {env_path}")
             run_container_cmd(container, f"systemctl start {service_name}")
             time.sleep(5)
             assert wait_for(lambda: service_is_running(container, service_name, service_owner, service_proc))
@@ -111,4 +116,4 @@ def test_collector_package_install(distro):
         assert not service_is_running(container, service_name, service_owner, service_proc)
 
         # verify config file is not removed
-        run_container_cmd(container, f"test -f {config_path}")
+        run_container_cmd(container, f"test -f {env_path}")

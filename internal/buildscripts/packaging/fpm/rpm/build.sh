@@ -58,7 +58,8 @@ sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --before-install "$PREINSTALL_PATH" \
     --after-install "$POSTINSTALL_PATH" \
     --before-remove "$PREUNINSTALL_PATH" \
-    --config-files "$CONFIG_INSTALL_PATH" \
+    --config-files "$AGENT_CONFIG_INSTALL_PATH" \
+    --config-files "$GATEWAY_CONFIG_INSTALL_PATH" \
     --config-files "$FLUENTD_CONFIG_INSTALL_DIR" \
     "$buildroot/"=/
 

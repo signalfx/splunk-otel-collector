@@ -6,8 +6,8 @@ for the [SignalFx Smart Agent](https://github.com/signalfx/signalfx-agent).
 This distribution provides helpful components to assist current Smart Agent
 users in their transition to OpenTelemetry Collector and ensure no functionality
 loss.  The [Smart Agent
-Receiver](./internal/receiver/smartagentreceiver/README.md), its associated
-[extension](./internal/extension/smartagentextension/README.md), and other
+Receiver](../internal/receiver/smartagentreceiver/README.md), its associated
+[extension](../internal/extension/smartagentextension/README.md), and other
 Collector components provide a means of integrating all Smart Agent metric
 monitors into your Collector pipelines.
 
@@ -57,8 +57,8 @@ monitors:
 
 Below is an equivalent, recommended Collector configuration.  Notice that the
 `signalfx-forwarder` monitor's associated `smartagent/signalfx-forwarder` receiver instance
-is part of a `traces` pipeline using the `sapm` exporter.  The additional metric
-monitors utilize the
+is part of both `metrics` and `traces` pipelines using the `signalfx` and `sapm` exporters,
+respectively. The additional metric monitors utilize the
 [Receiver Creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/master/receiver/receivercreator/README.md):
 
 ```yaml
@@ -134,6 +134,7 @@ service:
     metrics:
       receivers:
         - receivor_creator
+        - smartagent/signalfx-forwarder
       processors:
         - resourcedetection
       exporters:

@@ -28,6 +28,9 @@ receivers:
             action: drop
   sapm:
   signalfx:
+  smartagent/signalfx-forwarder:
+    type: signalfx-forwarder
+    listenAddress: 0.0.0.0:9080
   zipkin:
 
 processors:
@@ -80,14 +83,14 @@ service:
   extensions: [health_check, http_forwarder, zpages]
   pipelines:
     traces:
-      receivers: [jaeger, otlp, sapm, zipkin]
+      receivers: [jaeger, otlp, sapm, smartagent/signalfx-forwarder, zipkin]
       processors:
       - memory_limiter
       - batch
       #- resource/add_environment
       exporters: [otlphttp, signalfx]
     metrics:
-      receivers: [otlp, signalfx, prometheus]
+      receivers: [otlp, prometheus, signalfx, smartagent/signalfx-forwarder]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:

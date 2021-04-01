@@ -76,6 +76,12 @@ receivers:
   sapm:
     #access_token_passthrough: true
 
+  # Enables the Smart Agent's SignalFx Forwarder with default settings
+  # - listenAddress: 127.0.0.1:9080
+  # - serverTimeout: 5 (seconds)
+  smartagent/signalfx-forwarder:
+    type: signalfx-forwarder
+
   # Enables the zipkin receiver with default settings
   #  - grpc (default endpoint = 0.0.0.0:9411)
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/zipkinreceiver
@@ -533,14 +539,14 @@ service:
   # NOTE: Receivers expose ports so ensure no other application uses the same ports
   pipelines:
     traces:
-      receivers: [jaeger, otlp, sapm, zipkin]
+      receivers: [jaeger, otlp, sapm, smartagent/signalfx-forwarder, zipkin]
       processors: 
       - memory_limiter
       - batch
       #- resource/add_environment
       exporters: [sapm, signalfx]
     metrics:
-      receivers: [otlp, signalfx, prometheus]
+      receivers: [otlp, prometheus, signalfx, smartagent/signalfx-forwarder]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:

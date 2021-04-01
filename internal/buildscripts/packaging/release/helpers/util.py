@@ -445,6 +445,7 @@ def build_msi(exe_path, args):
     msi_builder_image, _ = client.images.build(path=msi_builder_path)
 
     with tempfile.TemporaryDirectory(dir=str(REPO_DIR)) as build_dir:
+        shutil.copy(exe_path, os.path.join(build_dir, "otelcol.exe"))
         container_options = {
             "remove": True,
             "volumes": {
@@ -454,7 +455,7 @@ def build_msi(exe_path, args):
             "user": 0,
             "working_dir": "/work",
             "environment": {'OUTPUT_DIR': "/work/stage"},
-            "command": f"{msi_version}",
+            "command": [f"--otelcol /work/stage/otelcol.exe {msi_version}"],
         }
         output = client.containers.run(msi_builder_image, **container_options)
         print(output.decode("utf-8"))

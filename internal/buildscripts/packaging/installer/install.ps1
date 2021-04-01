@@ -60,6 +60,10 @@
     (OPTIONAL) Whether to install and configure fluentd to forward log events to the collector (default: $true)
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_fluentd $false
+.PARAMETER bundle_dir
+    (OPTIONAL) The location of your Smart Agent bundle for monitor functionality (default: C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle)
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -bundle_dir "C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle"
 .PARAMETER insecure
     (OPTIONAL) If true then certificates will not be checked when downloading resources. Defaults to '$false'.
     .EXAMPLE
@@ -91,6 +95,7 @@ param (
     [bool]$insecure = $false,
     [string]$collector_version = "",
     [bool]$with_fluentd = $true,
+    [string]$bundle_dir = "",
     [ValidateSet('test','beta','release')][string]$stage = "release",
     [string]$msi_path = "",
     [bool]$UNIT_TEST = $false
@@ -351,6 +356,10 @@ if ($hec_token -eq "") {
     $hec_token = "$access_token"
 }
 
+if ($bundle_dir -eq "") {
+    $bundle_dir = "C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle"
+}
+
 if ("$env:VERIFY_ACCESS_TOKEN" -ne "false") {
     # verify access token
     echo 'Verifying Access Token...'
@@ -404,6 +413,7 @@ update_registry -path "$regkey" -name "SPLUNK_HEC_URL" -value "$hec_url"
 update_registry -path "$regkey" -name "SPLUNK_INGEST_URL" -value "$ingest_url"
 update_registry -path "$regkey" -name "SPLUNK_MEMORY_TOTAL_MIB" -value "$memory"
 update_registry -path "$regkey" -name "SPLUNK_TRACE_URL" -value "$trace_url"
+update_registry -path "$regkey" -name "SPLUNK_BUNDLE_DIR" -value "$bundle_dir"
 
 echo "Starting $service_name service..."
 start_service -name "$service_name" -config_path "$config_path"

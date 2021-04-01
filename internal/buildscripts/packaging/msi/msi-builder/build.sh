@@ -21,6 +21,7 @@ OTELCOL="/project/bin/otelcol_windows_amd64.exe"
 CONFIG="/project/cmd/otelcol/config/collector/agent_config.yaml"
 FLUENTD_CONFIG="/project/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"
 FLUENTD_CONFD="/project/internal/buildscripts/packaging/msi/fluentd/conf.d"
+SMART_AGENT_RELEASE="latest"
 SPLUNK_ICON="/project/internal/buildscripts/packaging/msi/splunk.ico"
 OUTPUT_DIR="/project/dist"
 
@@ -41,6 +42,8 @@ OPTIONS:
                              Defaults to '$FLUENTD_CONFIG'.
     --fluentd-confd PATH:    Absolute path to the conf.d.
                              Defaults to '$FLUENTD_CONFD'.
+    --smart-agent VERSION:   The released version of the Smart Agent bundle to include (will be downloaded).
+                             Defaults to '$SMART_AGENT_RELEASE'.
     --splunk-icon PATH:      Absolute path to the splunk.ico.
                              Defaults to '$SPLUNK_ICON'.
     --output DIR:            Directory to save the MSI.
@@ -54,8 +57,9 @@ parse_args_and_build() {
     local config="$CONFIG"
     local fluentd_config="$FLUENTD_CONFIG"
     local fluentd_confd="$FLUENTD_CONFD"
-    local output="$OUTPUT_DIR"
+    local smart_agent_release="$SMART_AGENT_RELEASE"
     local splunk_icon="$SPLUNK_ICON"
+    local output="$OUTPUT_DIR"
     local version=
 
     while [ -n "${1-}" ]; do
@@ -74,6 +78,10 @@ parse_args_and_build() {
                 ;;
             --fluentd-confd)
                 fluentd_confd="$2"
+                shift 1
+                ;;
+            --smart-agent)
+                smart_agent_release="$2"
                 shift 1
                 ;;
             --splunk-icon)
@@ -122,6 +130,8 @@ parse_args_and_build() {
     cp "$fluentd_config" "${files_dir}/fluentd/td-agent.conf"
     cp "${fluentd_confd}"/*.conf "${files_dir}/fluentd/conf.d/"
 
+    download_and_extract_smart_agent "$smart_agent_release" "$build_dir" "$files_dir"
+
     # kludge to satisfy relative path in splunk-otel-collector.wxs
     mkdir -p /work/internal/buildscripts/packaging/msi
     cp "${splunk_icon}" "/work/internal/buildscripts/packaging/msi/splunk.ico"
@@ -144,6 +154,39 @@ parse_args_and_build() {
     { set +x; } 2>/dev/null
 
     echo "MSI saved to ${output}/${msi_name}"
+}
+
+download_and_extract_smart_agent() {
+    SMART_AGENT_RELEASE_URL="https://dl.signalfx.com/windows/release/zip"
+    SMART_AGENT_LATEST_URL="${SMART_AGENT_RELEASE_URL}/latest/latest.txt"
+    local version="$1"
+    local build_dir="$2"
+    local output_dir="$3/agent-bundle"
+
+    if [ "$version" = "latest" ]; then
+        version=$( curl -sL "$SMART_AGENT_LATEST_URL" )
+        if [ -z "$version" ]; then
+            echo "Failed to get version for latest release from ${SMART_AGENT_LATEST_URL}" >&2
+            exit 1
+        fi
+    fi
+
+    dl_url="$SMART_AGENT_RELEASE_URL/SignalFxAgent-$version-win64.zip"
+    echo "Downloading ${dl_url}..."
+    curl -sL "$dl_url" -o "${build_dir}/signalfx-agent.zip"
+
+    unzip -d "$build_dir" "${build_dir}/signalfx-agent.zip"
+    mv "${build_dir}/SignalFxAgent" "$output_dir"
+
+    # Delete unnecessary files.
+    rm -rf "${output_dir}/bin"
+    rm -rf "${output_dir}/etc"
+    find "$output_dir" -type d -name __pycache__ | xargs rm -rf {} \;
+    find "$output_dir" -regextype sed -regex ".*py[co]" -delete
+    # This defers resolving https://github.com/wixtoolset/issues/issues/5314, which appears to require building on windows.
+    # Check if test file content's path is >= 126 (128 w/ 'Z:' prefix in wine).
+    find "$output_dir" -wholename "*/tests/*" -exec bash -c 'if [ `echo "{}" | wc -c` -ge 126 ]; then rm -f {}; fi' \;
+    rm -f "${build_dir}/signalfx-agent.zip"
 }
 
 parse_args_and_build $@

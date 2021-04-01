@@ -65,6 +65,7 @@ key and passed to the Collector service:
 - `SPLUNK_INGEST_URL`: The Splunk ingest URL, e.g. `https://ingest.us0.signalfx.com`
 - `SPLUNK_MEMORY_TOTAL_MIB`: Total memory in MiB allocated to the collector, e.g. `512`
 - `SPLUNK_TRACE_URL`: The Splunk trace endpoint URL, e.g. `https://ingest.us0.signalfx.com/v2/trace`
+- `SPLUNK_BUNDLE_DIR`: The location of your Smart Agent bundle for monitor functionality, e.g. `C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle`
 
 To modify these values, run `regdit` and browse to the path, or run the
 following PowerShell command (replace `ENV_VAR` and `VALUE` for the desired

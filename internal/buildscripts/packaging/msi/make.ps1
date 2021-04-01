@@ -84,6 +84,7 @@ function Confirm-MSI {
     ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_HEC_TOKEN}', 'testing456') | Set-Content -Path "$configpath"
     ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_INGEST_URL}', 'https://ingest.us0.signalfx.com') | Set-Content -Path "$configpath"
     ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_TRACE_URL}', 'https://ingest.us0.signalfx.com/v2/trace') | Set-Content -Path "$configpath"
+    ((Get-Content -path "$configpath" -Raw) -Replace '\${SPLUNK_BUNDLE_DIR}', 'C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle') | Set-Content -Path "$configpath"
 
     # start service
     echo "Starting service ..."

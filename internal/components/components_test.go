@@ -42,7 +42,6 @@ func TestDefaultComponents(t *testing.T) {
 		"k8s_cluster",
 		"kafka",
 		"kubeletstats",
-		"opencensus",
 		"otlp",
 		"prometheus",
 		"prometheus_exec",

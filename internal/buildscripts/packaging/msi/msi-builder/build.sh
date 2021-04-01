@@ -18,7 +18,8 @@ set -euo pipefail
 
 WXS_PATH="/project/internal/buildscripts/packaging/msi/splunk-otel-collector.wxs"
 OTELCOL="/project/bin/otelcol_windows_amd64.exe"
-CONFIG="/project/cmd/otelcol/config/collector/agent_config.yaml"
+AGENT_CONFIG="/project/cmd/otelcol/config/collector/agent_config.yaml"
+GATEWAY_CONFIG="/project/cmd/otelcol/config/collector/gateway_config.yaml"
 FLUENTD_CONFIG="/project/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"
 FLUENTD_CONFD="/project/internal/buildscripts/packaging/msi/fluentd/conf.d"
 SMART_AGENT_RELEASE="latest"
@@ -36,8 +37,10 @@ Description:
 OPTIONS:
     --otelcol PATH:          Absolute path to the otelcol exe.
                              Defaults to '$OTELCOL'.
-    --config PATH:           Absolute path to the agent config.
-                             Defaults to '$CONFIG'.
+    --agent-config PATH:     Absolute path to the agent config.
+                             Defaults to '$AGENT_CONFIG'.
+    --gateway-config PATH:   Absolute path to the gateway config.
+                             Defaults to '$GATEWAY_CONFIG'.
     --fluentd PATH:          Absolute path to the fluentd config.
                              Defaults to '$FLUENTD_CONFIG'.
     --fluentd-confd PATH:    Absolute path to the conf.d.
@@ -54,7 +57,8 @@ EOH
 
 parse_args_and_build() {
     local otelcol="$OTELCOL"
-    local config="$CONFIG"
+    local agent_config="$AGENT_CONFIG"
+    local gateway_config="$GATEWAY_CONFIG"
     local fluentd_config="$FLUENTD_CONFIG"
     local fluentd_confd="$FLUENTD_CONFD"
     local smart_agent_release="$SMART_AGENT_RELEASE"
@@ -68,8 +72,12 @@ parse_args_and_build() {
                 otelcol="$2"
                 shift 1
                 ;;
-            --config)
-                config="$2"
+            --agent-config)
+                agent_config="$2"
+                shift 1
+                ;;
+            --gateway-config)
+                gateway_config="$2"
                 shift 1
                 ;;
             --fluentd)
@@ -126,7 +134,8 @@ parse_args_and_build() {
     fi
 
     mkdir -p "${files_dir}/fluentd/conf.d"
-    cp "$config" "${files_dir}/config.yaml"
+    cp "$agent_config" "${files_dir}/agent_config.yaml"
+    cp "$gateway_config" "${files_dir}/gateway_config.yaml"
     cp "$fluentd_config" "${files_dir}/fluentd/td-agent.conf"
     cp "${fluentd_confd}"/*.conf "${files_dir}/fluentd/conf.d/"
 

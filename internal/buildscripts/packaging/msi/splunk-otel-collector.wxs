@@ -28,7 +28,6 @@
                         Start="auto"
                         Account="LocalSystem"
                         ErrorControl="normal"
-                        Arguments=" --config=&quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\config.yaml&quot;"
                         Interactive="no" />
                      <ServiceControl
                         Id="StartStopRemoveService"
@@ -38,6 +37,9 @@
                         Wait="yes" />
                      <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\splunk-otel-collector">
                         <RegistryValue Type="expandable" Name="EventMessageFile" Value="%SystemRoot%\System32\EventCreate.exe"/>
+                     </RegistryKey>
+                     <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Control\Session Manager\Environment">
+                        <RegistryValue Type="string" Name="SPLUNK_CONFIG" Value="[CommonAppDataFolder]Splunk\OpenTelemetry Collector\agent_config.yaml"/>
                      </RegistryKey>
                   </Component>
                </Directory>
@@ -56,14 +58,14 @@
          <DirectorySearch Id="AppDataFolderSearch" Path="[CommonAppDataFolder]">
             <DirectorySearch Id="SplunkSearch" Path="Splunk">
                <DirectorySearch Id="OpenTelemetryCollectorSearch" Path="OpenTelemetry Collector">
-                  <FileSearch Id="ConfigSearch" Name="config.yaml" />
+                  <FileSearch Id="ConfigSearch" Name="agent_config.yaml" />
                </DirectorySearch>
             </DirectorySearch>
          </DirectorySearch>
       </Property>
 
-      <!-- Copy the default config file to ProgramData if it does not already exist -->
-      <CustomAction Id="CopyConfig" ExeCommand="xcopy /y &quot;[INSTALLDIR]config.yaml&quot; &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\config.yaml*&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
+      <!-- Copy the default agent config file to ProgramData if it does not already exist -->
+      <CustomAction Id="CopyConfig" ExeCommand="xcopy /y &quot;[INSTALLDIR]agent_config.yaml&quot; &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\agent_config.yaml*&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
       <InstallExecuteSequence>
          <Custom Action="CopyConfig" After="InstallFiles">NOT CONFIG_FILE_EXISTS AND NOT Installed</Custom>
       </InstallExecuteSequence>

@@ -46,7 +46,7 @@ Replace the `SPLUNK_MEMORY_TOTAL_MIB` variable with the desired value.
 ### Collector Configuration
 
 The Collector comes with a default configuration which can be found at
-`\ProgramData\Splunk\OpenTelemetry Collector\config.yaml`. This configuration
+`\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`. This configuration
 can be modified as needed. Possible configuration options can be found in the
 `receivers`, `processors`, `exporters`, and `extensions` folders of either:
 
@@ -60,12 +60,14 @@ key and passed to the Collector service:
 
 - `SPLUNK_ACCESS_TOKEN`: The Splunk access token to authenticate requests
 - `SPLUNK_API_URL`: The Splunk API URL, e.g. `https://api.us0.signalfx.com`
+- `SPLUNK_BUNDLE_DIR`: The location of your Smart Agent bundle for monitor functionality, e.g. `C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle`
+- `SPLUNK_CONFIG`: The path to the collector config file, e.g. `C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`
 - `SPLUNK_HEC_TOKEN`: The Splunk HEC authentication token
 - `SPLUNK_HEC_URL`: The Splunk HEC endpoint URL, e.g. `https://ingest.us0.signalfx.com/v1/log`
 - `SPLUNK_INGEST_URL`: The Splunk ingest URL, e.g. `https://ingest.us0.signalfx.com`
 - `SPLUNK_MEMORY_TOTAL_MIB`: Total memory in MiB allocated to the collector, e.g. `512`
+- `SPLUNK_REALM`: The Splunk realm to send the data to, e.g. `us0`
 - `SPLUNK_TRACE_URL`: The Splunk trace endpoint URL, e.g. `https://ingest.us0.signalfx.com/v2/trace`
-- `SPLUNK_BUNDLE_DIR`: The location of your Smart Agent bundle for monitor functionality, e.g. `C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle`
 
 To modify these values, run `regdit` and browse to the path, or run the
 following PowerShell command (replace `ENV_VAR` and `VALUE` for the desired

@@ -20,6 +20,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -299,7 +300,7 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		}
 		return false
 	}())
-	require.Equal(t, &saconfig.CollectdConfig{
+	require.Equal(t, saconfig.CollectdConfig{
 		DisableCollectd:      false,
 		Timeout:              10,
 		ReadThreads:          1,
@@ -315,11 +316,22 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		HasGenericJMXMonitor: false,
 		InstanceName:         "",
 		WriteServerQuery:     "",
-	}, saConfigProvider.CollectdConfig())
+	}, saConfigProvider.SmartAgentConfig().Collectd)
 
 	// Ensure envs are setup.
 	require.Equal(t, "/opt/", os.Getenv("SIGNALFX_BUNDLE_DIR"))
-	require.Equal(t, filepath.Join("/opt", "jre"), os.Getenv("JAVA_HOME"))
+
+	if runtime.GOOS == "windows" {
+		require.NotEqual(t, filepath.Join("/opt", "jre"), os.Getenv("JAVA_HOME"))
+	} else {
+		require.Equal(t, filepath.Join("/opt", "jre"), os.Getenv("JAVA_HOME"))
+	}
+
+	require.Equal(t, "/proc", os.Getenv("HOST_PROC"))
+	require.Equal(t, "/sys", os.Getenv("HOST_SYS"))
+	require.Equal(t, "/run", os.Getenv("HOST_RUN"))
+	require.Equal(t, "/var", os.Getenv("HOST_VAR"))
+	require.Equal(t, "/etc", os.Getenv("HOST_ETC"))
 }
 
 func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {

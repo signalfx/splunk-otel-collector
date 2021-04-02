@@ -56,11 +56,15 @@ components (several do!) and we will provide best effort guidance to them for
 any issues that crop up, however only the Splunk distributions are in scope for
 official Splunk support and support-related SLAs.
 
-The Collector currently supports:
+This distribution currently supports:
 
 - [Splunk APM](https://www.splunk.com/en_us/software/splunk-apm.html) via the
   [`sapm`
   exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/sapmexporter).
+  The [`otlphttp`
+  exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)
+  can be used with a [custom
+  configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/otlp_config_linux.yaml).
   More information available
   [here](https://docs.signalfx.com/en/latest/apm/apm-getting-started/apm-opentelemetry-collector.html).
 - [Splunk Infrastructure
@@ -82,7 +86,7 @@ The Collector currently supports:
 
 ## Getting Started
 
-The Collector provides a single binary and two deployment methods:
+This distribution provides a single binary and two deployment methods:
 
 - Agent: A Collector instance running with the application or on the same host
   as the application (e.g. binary, sidecar, or daemonset).
@@ -97,7 +101,7 @@ Agent](https://github.com/signalfx/signalfx-agent) or [Splunk Universal
 Forwarder](https://docs.splunk.com/Documentation/Forwarder/8.1.2/Forwarder/Abouttheuniversalforwarder)
 should be used for all other products.
 
-The Collector is supported on and packaged for a variety of platforms including:
+This distribution is supported on and packaged for a variety of platforms including:
 
 - Kubernetes
   - [Helm (recommended)](https://github.com/signalfx/splunk-otel-collector-chart)

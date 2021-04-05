@@ -18,6 +18,7 @@ package vaultconfigsource
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -29,6 +30,17 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
+var errInvalidPollInterval = errors.New("poll interval must be greater than zero")
+
+// Error wrapper types to help with testability
+type (
+	errClientRead    struct{ error }
+	errNilSecret     struct{ error }
+	errNilSecretData struct{ error }
+	errBadSelector   struct{ error }
+)
+
+// vaultSession implements the configsource.Session interface.
 type vaultSession struct {
 	logger *zap.Logger
 
@@ -55,7 +67,8 @@ func (v *vaultSession) Retrieve(_ context.Context, selector string, _ interface{
 			return nil, err
 		}
 
-		// Watcher is only supported for the first value retrieved.
+		// The keys come all from the same secret so creating a watcher only for the
+		// first it is fine.
 		var err error
 		watchForUpdateFn, err = v.buildWatcherFn()
 		if err != nil {
@@ -65,7 +78,7 @@ func (v *vaultSession) Retrieve(_ context.Context, selector string, _ interface{
 
 	value := traverseToKey(v.secret.Data, selector)
 	if value == nil {
-		return nil, fmt.Errorf("no value at path %q for key %q", v.path, selector)
+		return nil, &errBadSelector{fmt.Errorf("no value at path %q for key %q", v.path, selector)}
 	}
 
 	return newRetrieved(value, watchForUpdateFn), nil
@@ -79,18 +92,20 @@ func (v *vaultSession) Close(context.Context) error {
 	close(v.doneCh)
 	v.watchersWG.Wait()
 
-	// Vault doesn't have a close for its client, close completed.
+	// Vault doesn't have a close for its client, close is completed.
 	return nil
 }
 
-func newSession(client *api.Client, path string) (*vaultSession, error) {
-	// TODO: pass from factory.
-	logger, _ := zap.NewDevelopment()
+func newSession(client *api.Client, path string, logger *zap.Logger, pollInterval time.Duration) (*vaultSession, error) {
+	if pollInterval <= 0 {
+		return nil, errInvalidPollInterval
+	}
+
 	return &vaultSession{
 		logger:       logger,
 		client:       client,
 		path:         path,
-		pollInterval: 2 * time.Second,
+		pollInterval: pollInterval,
 		doneCh:       make(chan struct{}),
 	}, nil
 }
@@ -98,17 +113,17 @@ func newSession(client *api.Client, path string) (*vaultSession, error) {
 func (v *vaultSession) readSecret() error {
 	secret, err := v.client.Logical().Read(v.path)
 	if err != nil {
-		return err
+		return &errClientRead{err}
 	}
 
 	// Invalid path does not return error but a nil secret.
 	if secret == nil {
-		return fmt.Errorf("no secret found at %q", v.path)
+		return &errNilSecret{fmt.Errorf("no secret found at %q", v.path)}
 	}
 
 	// Incorrect path for v2 return nil data and warnings.
 	if secret.Data == nil {
-		return fmt.Errorf("no data at %q warnings: %v", v.path, secret.Warnings)
+		return &errNilSecretData{fmt.Errorf("no data at %q warnings: %v", v.path, secret.Warnings)}
 	}
 
 	v.secret = secret
@@ -117,18 +132,20 @@ func (v *vaultSession) readSecret() error {
 
 func (v *vaultSession) buildWatcherFn() (func() error, error) {
 	switch {
-	// Dynamic secrets can be either renewable or leased.
 	case v.secret.Renewable:
-		return v.buildRenewerWatcher()
-	// TODO: leased secrets need to periodically
+		// Dynamic secret supporting renewal.
+		return v.buildLifetimeWatcher()
+	case v.secret.LeaseDuration > 0:
+		// Version 1 lease: re-fetch it periodically.
+		return v.buildV1LeaseWatcher()
 	default:
 		// Not a dynamic secret the best that can be done is polling.
 		return v.buildPollingWatcher()
 	}
 }
 
-func (v *vaultSession) buildRenewerWatcher() (func() error, error) {
-	renewer, err := v.client.NewRenewer(&api.RenewerInput{
+func (v *vaultSession) buildLifetimeWatcher() (func() error, error) {
+	vaultWatcher, err := v.client.NewLifetimeWatcher(&api.RenewerInput{
 		Secret: v.secret,
 	})
 	if err != nil {
@@ -139,15 +156,15 @@ func (v *vaultSession) buildRenewerWatcher() (func() error, error) {
 		v.watchersWG.Add(1)
 		defer v.watchersWG.Done()
 
-		go renewer.Renew()
-		defer renewer.Stop()
+		go vaultWatcher.Start()
+		defer vaultWatcher.Stop()
 
 		for {
 			select {
-			case <-renewer.RenewCh():
+			case <-vaultWatcher.RenewCh():
 				v.logger.Debug("vault secret renewed", zap.String("path", v.path))
-			case err := <-renewer.DoneCh():
-				// Renewal stopped, error or now the client needs to re-fetch the configuration.
+			case err := <-vaultWatcher.DoneCh():
+				// Renewal stopped, error or not the client needs to re-fetch the configuration.
 				if err == nil {
 					return configsource.ErrValueUpdated
 				}
@@ -161,7 +178,32 @@ func (v *vaultSession) buildRenewerWatcher() (func() error, error) {
 	return watcherFn, nil
 }
 
-// buildPollingWatcher builds a WatchFotUpdate function that monitors for changes on
+// buildV1LeaseWatcher builds a watcher function that takes the TTL given
+// by Vault and triggers the re-fetch of the secret when half of the TTl
+// has passed. In principle, this could be changed to actually check if the
+// values of the secret were actually changed or not.
+func (v *vaultSession) buildV1LeaseWatcher() (func() error, error) {
+	watcherFn := func() error {
+		v.watchersWG.Add(1)
+		defer v.watchersWG.Done()
+
+		// The lease duration is a hint of time to re-fetch the values.
+		// The SmartAgent waits for half ot the lease duration.
+		updateWait := time.Duration(v.secret.LeaseDuration/2) * time.Second
+		select {
+		case <-time.After(updateWait):
+			// This is triggering a re-fetch. In principle this could actually
+			// check for changes in the values.
+			return configsource.ErrValueUpdated
+		case <-v.doneCh:
+			return configsource.ErrSessionClosed
+		}
+	}
+
+	return watcherFn, nil
+}
+
+// buildPollingWatcher builds a watcher function that monitors for changes on
 // the v.secret metadata. In principle this could be done for the actual value of
 // the retrieved keys. However, checking for metadata keeps this in sync with the
 // SignalFx SmartAgent behavior.
@@ -175,17 +217,21 @@ func (v *vaultSession) buildPollingWatcher() (func() error, error) {
 	// added to the secret.
 	mdValue := v.secret.Data["metadata"]
 	if mdValue == nil || !strings.Contains(v.path, "/data/") {
-		// TODO: Log reason for no support.
+		v.logger.Warn("Missing metadata to create polling watcher for vault config source", zap.String("path", v.path))
 		return watcherNotSupported, nil
 	}
 
 	mdMap, ok := mdValue.(map[string]interface{})
 	if !ok {
-		// TODO: Log reason for no support.
+		v.logger.Warn("Metadata not in the expected format to create polling watcher for vault config source", zap.String("path", v.path))
 		return watcherNotSupported, nil
 	}
 
 	originalVersion := v.extractVersionMetadata(mdMap, "created_time", "version")
+	if originalVersion == nil {
+		v.logger.Warn("Failed to extract version metadata to create to create polling watcher for vault config source", zap.String("path", v.path))
+		return watcherNotSupported, nil
+	}
 
 	watcherFn := func() error {
 		v.watchersWG.Add(1)
@@ -200,9 +246,9 @@ func (v *vaultSession) buildPollingWatcher() (func() error, error) {
 			case <-ticker.C:
 				metadataSecret, err := v.client.Logical().Read(metadataPath)
 				if err != nil {
-					// Docs are not clear about how to differentiate between temporary and permanent errors
-					// here. TODO: Count number of consecutive failures before failing
-					return err
+					// Docs are not clear about how to differentiate between temporary and permanent errors.
+					// Assume that the configuration needs to be re-fetched.
+					return fmt.Errorf("failed to read secret metadata at %q: %w", metadataPath, err)
 				}
 
 				if metadataSecret == nil || metadataSecret.Data == nil {
@@ -231,22 +277,27 @@ func (v *vaultSession) buildPollingWatcher() (func() error, error) {
 	return watcherFn, nil
 }
 
+type versionMetadata struct {
+	Timestamp string
+	Version   int64
+}
+
 func (v *vaultSession) extractVersionMetadata(metadataMap map[string]interface{}, timestampKey, versionKey string) *versionMetadata {
 	timestamp, ok := metadataMap[timestampKey].(string)
 	if !ok {
-		// TODO: Log reason for no support.
+		v.logger.Warn("Missing or unexpected type for timestamp on the metadata map", zap.String("key", timestampKey))
 		return nil
 	}
 
 	versionNumber, ok := metadataMap[versionKey].(json.Number)
 	if !ok {
-		// TODO: Log reason for no support.
+		v.logger.Warn("Missing or unexpected type for version on the metadata map", zap.String("key", versionKey))
 		return nil
 	}
 
 	versionInt, err := versionNumber.Int64()
 	if err != nil {
-		// TODO: Log reason for no support.
+		v.logger.Warn("Failed to parse version number into an integer", zap.String("key", versionKey), zap.String("version_number", string(versionNumber)))
 		return nil
 	}
 
@@ -256,9 +307,22 @@ func (v *vaultSession) extractVersionMetadata(metadataMap map[string]interface{}
 	}
 }
 
-type versionMetadata struct {
-	Timestamp string
-	Version   int64
+// Allows key to be dot-delimited to traverse nested maps.
+func traverseToKey(data map[string]interface{}, key string) interface{} {
+	parts := strings.Split(key, ".")
+
+	for i := 0; ; i++ {
+		partVal := data[parts[i]]
+		if i == len(parts)-1 {
+			return partVal
+		}
+
+		var ok bool
+		data, ok = partVal.(map[string]interface{})
+		if !ok {
+			return nil
+		}
+	}
 }
 
 func watcherNotSupported() error {

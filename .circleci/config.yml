@@ -259,6 +259,7 @@ jobs:
     executor: golang
     steps:
       - checkout
+      - setup_remote_docker
       - persist_to_workspace:
           root: ~/
           paths: project
@@ -370,6 +371,7 @@ jobs:
       GOPATH=~/go
     steps:
       - checkout
+      - setup_remote_docker
       - restore_module_cache
       - run:
           name: Upgrade golang

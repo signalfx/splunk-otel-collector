@@ -17,10 +17,10 @@ package vaultconfigsource
 
 import (
 	"context"
-	"go.uber.org/zap"
 	"time"
 
 	"github.com/hashicorp/vault/api"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )

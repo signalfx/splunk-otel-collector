@@ -20,13 +20,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 	"os/exec"
 	"runtime"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
@@ -80,8 +82,7 @@ func TestVaultSessionForKV(t *testing.T) {
 	require.NoError(t, s.RetrieveEnd(context.Background()))
 
 	var watcherErr error
-	var doneCh chan struct{}
-	doneCh = make(chan struct{})
+	doneCh := make(chan struct{})
 	go func() {
 		defer close(doneCh)
 		watcherErr = retrieved.WatchForUpdate()
@@ -311,8 +312,7 @@ func TestVaultV1NonWatchableSecret(t *testing.T) {
 	require.NoError(t, s.RetrieveEnd(context.Background()))
 
 	var watcherErr error
-	var doneCh chan struct{}
-	doneCh = make(chan struct{})
+	doneCh := make(chan struct{})
 	go func() {
 		defer close(doneCh)
 		watcherErr = retrievedValue.WatchForUpdate()
@@ -401,6 +401,7 @@ func requireCmdRun(t *testing.T, cli string) {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
+	time.Sleep(500 * time.Millisecond)
 	if err != nil {
 		err = fmt.Errorf("cmd.Run() %s %v failed %w. stdout: %q stderr: %q", cmd.Path, cmd.Args, err, stdout.String(), stderr.String())
 	}

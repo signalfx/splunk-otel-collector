@@ -49,8 +49,6 @@ type vaultSession struct {
 	path         string
 	pollInterval time.Duration
 
-	watcherFn func() error
-
 	doneCh     chan struct{}
 	watchersWG sync.WaitGroup
 }

@@ -11,7 +11,7 @@ require (
 	github.com/gogo/googleapis v1.4.0 // indirect
 	github.com/golangci/golangci-lint v1.38.0
 	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76
-	github.com/hashicorp/vault/api v1.0.5-0.20201001211907-38d91b749c77
+	github.com/hashicorp/vault/api v1.1.0 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/moby/sys/mount v0.2.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.23.1-0.20210329222335-aed9fa4fb5b7

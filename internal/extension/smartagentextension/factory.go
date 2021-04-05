@@ -18,6 +18,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
@@ -41,18 +42,26 @@ func NewFactory() component.ExtensionFactory {
 }
 
 var bundleDir = func() string {
-	out := os.Getenv(constants.BundleDirEnvVar)
-	if out == "" {
-		exePath, err := os.Executable()
-		if err != nil {
-			panic("Cannot determine agent executable path, cannot continue")
-		}
-		out, err = filepath.Abs(filepath.Join(filepath.Dir(exePath), ".."))
-		if err != nil {
-			panic("Cannot determine absolute path of executable parent dir " + exePath)
+	dir := os.Getenv(constants.BundleDirEnvVar)
+	if dir == "" {
+		if runtime.GOOS == "windows" {
+			pfDir := os.Getenv("programfiles")
+			if pfDir == "" {
+				pfDir = "C:\\Program Files"
+			}
+			dir = filepath.Join(pfDir, "Splunk", "OpenTelemetry Collector", "agent-bundle")
+			if exePath, err := os.Executable(); err == nil {
+				if colocatedBundle, err := filepath.Abs(filepath.Join(filepath.Dir(exePath), "agent-bundle")); err == nil {
+					if info, err := os.Stat(colocatedBundle); err == nil && info.IsDir() {
+						dir = colocatedBundle
+					}
+				}
+			}
+		} else {
+			dir = "/usr/lib/splunk-otel-collector/agent-bundle"
 		}
 	}
-	return out
+	return dir
 }()
 
 func createDefaultConfig() config.Extension {

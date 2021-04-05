@@ -334,11 +334,11 @@ func TestVaultRetrieveErrors(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
+		err      error
 		name     string
 		path     string
 		token    string
 		selector string
-		err      error
 	}{
 		{
 			name:  "bad_token",
@@ -410,9 +410,9 @@ func requireCmdRun(t *testing.T, cli string) {
 
 func Test_vaultSession_extractVersionMetadata(t *testing.T) {
 	tests := []struct {
-		name        string
 		metadataMap map[string]interface{}
 		expectedMd  *versionMetadata
+		name        string
 	}{
 		{
 			name: "typical",

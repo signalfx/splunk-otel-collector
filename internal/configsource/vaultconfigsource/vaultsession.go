@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/hashicorp/vault/api"
@@ -43,14 +42,14 @@ type (
 // vaultSession implements the configsource.Session interface.
 type vaultSession struct {
 	logger *zap.Logger
+	client *api.Client
+	secret *api.Secret
 
-	client       *api.Client
-	secret       *api.Secret
-	path         string
+	doneCh chan struct{}
+
+	path string
+
 	pollInterval time.Duration
-
-	doneCh     chan struct{}
-	watchersWG sync.WaitGroup
 }
 
 var _ configsource.Session = (*vaultSession)(nil)
@@ -88,7 +87,6 @@ func (v *vaultSession) RetrieveEnd(context.Context) error {
 
 func (v *vaultSession) Close(context.Context) error {
 	close(v.doneCh)
-	v.watchersWG.Wait()
 
 	// Vault doesn't have a close for its client, close is completed.
 	return nil
@@ -151,9 +149,6 @@ func (v *vaultSession) buildLifetimeWatcher() (func() error, error) {
 	}
 
 	watcherFn := func() error {
-		v.watchersWG.Add(1)
-		defer v.watchersWG.Done()
-
 		go vaultWatcher.Start()
 		defer vaultWatcher.Stop()
 
@@ -182,9 +177,6 @@ func (v *vaultSession) buildLifetimeWatcher() (func() error, error) {
 // values of the secret were actually changed or not.
 func (v *vaultSession) buildV1LeaseWatcher() (func() error, error) {
 	watcherFn := func() error {
-		v.watchersWG.Add(1)
-		defer v.watchersWG.Done()
-
 		// The lease duration is a hint of time to re-fetch the values.
 		// The SmartAgent waits for half ot the lease duration.
 		updateWait := time.Duration(v.secret.LeaseDuration/2) * time.Second
@@ -232,9 +224,6 @@ func (v *vaultSession) buildPollingWatcher() (func() error, error) {
 	}
 
 	watcherFn := func() error {
-		v.watchersWG.Add(1)
-		defer v.watchersWG.Done()
-
 		metadataPath := strings.Replace(v.path, "/data/", "/metadata/", 1)
 		ticker := time.NewTicker(v.pollInterval)
 		defer ticker.Stop()

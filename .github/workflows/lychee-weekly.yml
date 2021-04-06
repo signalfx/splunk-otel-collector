@@ -1,0 +1,18 @@
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+jobs:
+  linkChecker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Link Checker
+        uses: lycheeverse/lychee-action@v1.0.6
+        with:
+          args: -v -n "*.md" "**/*.md"
+      - name: Create Issue From File
+        uses: peter-evans/create-issue-from-file@v2
+        with:
+          title: Link Checker Report
+          content-filepath: ./lychee/out.md
+          labels: report, automated issue

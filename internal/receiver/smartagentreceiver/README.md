@@ -2,15 +2,19 @@
 
 The Smart Agent Receiver allows you to utilize existing [SignalFx Smart Agent monitors](https://github.com/signalfx/signalfx-agent#monitors)
 as OpenTelemetry Collector metric receivers.  It assumes that you have a properly configured environment with a
-functional [Smart Agent release bundle](https://github.com/signalfx/signalfx-agent/releases/latest) on your system.
+functional [Smart Agent release bundle](https://github.com/signalfx/signalfx-agent/releases/latest) on your system,
+which is already provided for supported Splunk Distribution of OpenTelemetry Collector
+[installation paths](https://github.com/signalfx/splunk-otel-collector#getting-started).
 
-**Beta: No stability or functional guarantees are made at this time.  Configuration and behavior may change without notice.**
+**Beta: All Smart Agent monitors are supported at this time.  Configuration and behavior may change without notice.**
 
 ## Configuration
 
 Each `smartagent` receiver configuration acts a drop-in replacement for each supported Smart Agent Monitor
 [configuration](https://github.com/signalfx/signalfx-agent/blob/master/docs/monitor-config.md) with some exceptions:
 
+1. Any Agent global or collectd desired configuration should be performed via the
+[Smart Agent Extension](../../extension/smartagentextension/README.md).
 1. In lieu of `discoveryRule` support, the Collector's
 [`receivercreator`](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/master/receiver/receivercreator/README.md)
 and associated [Observer extensions](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/extension/observer/README.md)

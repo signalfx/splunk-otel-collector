@@ -87,7 +87,7 @@ processors:
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
   resourcedetection:
     detectors: [system]
-    override: true
+    override: false
 
   # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and 
   # traces when it's not populated by instrumentation libraries.

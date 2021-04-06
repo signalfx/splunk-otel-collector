@@ -9,7 +9,7 @@ jobs:
       - name: Link Checker
         uses: lycheeverse/lychee-action@v1.0.6
         with:
-          args: --exclude ".*.signalfx.com" --exclude "localhost:.*" -v -n "*.md" "**/*.md"
+          args: --exclude ".*.signalfx.com" --exclude "splunk.jfrog.io.*basearch" --exclude "localhost:.*" -v -n "*.md" "**/*.md"
       - name: Create Issue From File
         uses: peter-evans/create-issue-from-file@v2
         with:

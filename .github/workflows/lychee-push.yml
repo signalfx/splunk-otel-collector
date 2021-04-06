@@ -8,6 +8,6 @@ jobs:
         id: lychee
         uses: lycheeverse/lychee-action@v1.0.6
         with:
-          args: -v -n "*.md" "**/*.md"
+          args: --exclude "*.signalfx.com" -E -v -n "*.md" "**/*.md"
       - name: Fail if there were link errors
         run: exit ${{ steps.lychee.outputs.exit_code }}

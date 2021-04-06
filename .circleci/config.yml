@@ -377,9 +377,14 @@ jobs:
             choco upgrade golang --version=1.15
             refreshenv
             go env -w CGO_ENABLED=0
+            go install github.com/ory/go-acc
+            (New-Object System.Net.WebClient).DownloadFile("https://codecov.io/bash", "C:\Users\circleci\project\codecov.sh")
       - run:
-          name: Unit tests
-          command: go test ./...
+          name: Unit tests with coverage
+          command: go-acc ./...
+      - run:
+          name: Upload coverage
+          command: bash codecov.sh -f coverage.txt
       - save_module_cache
 
   build-package:

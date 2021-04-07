@@ -70,6 +70,7 @@ func TestDefaultComponents(t *testing.T) {
 		"kafka",
 		"logging",
 		"otlp",
+		"otlphttp",
 		"sapm",
 		"signalfx",
 		"splunk_hec",

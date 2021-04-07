@@ -313,8 +313,8 @@ func assertSpansAreEqual(t *testing.T, expectedResourceSpans, resourceSpans pdat
 				assert.Equal(t, expectedSpan.TraceID(), span.TraceID())
 				assert.Equal(t, expectedSpan.SpanID(), span.SpanID())
 				assert.Equal(t, expectedSpan.ParentSpanID(), span.ParentSpanID())
-				assert.Equal(t, expectedSpan.StartTime(), span.StartTime())
-				assert.Equal(t, expectedSpan.EndTime(), span.EndTime())
+				assert.Equal(t, expectedSpan.StartTimestamp(), span.StartTimestamp())
+				assert.Equal(t, expectedSpan.EndTimestamp(), span.EndTimestamp())
 				assert.Equal(t, expectedSpan.Status(), span.Status())
 				assert.Equal(t, expectedSpan.Links(), span.Links())
 
@@ -438,8 +438,8 @@ func newPDataSpan(
 	span.SetParentSpanID(pdata.NewSpanID(pID))
 
 	span.SetKind(kind)
-	span.SetStartTime(pdata.Timestamp(startTime))
-	span.SetEndTime(pdata.Timestamp(endTime))
+	span.SetStartTimestamp(pdata.Timestamp(startTime))
+	span.SetEndTimestamp(pdata.Timestamp(endTime))
 	attrs := span.Attributes()
 	attrs.InitEmptyWithCapacity(len(attributes))
 	for k, val := range attributes {

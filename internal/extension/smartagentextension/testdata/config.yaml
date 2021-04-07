@@ -2,6 +2,11 @@ extensions:
   smartagent/default_settings:
   smartagent/all_settings:
     bundleDir: /opt/bin/collectd/
+    procPath: /my_proc
+    etcPath: /my_etc
+    varPath: /my_var
+    runPath: /my_run
+    sysPath: /my_sys
     collectd:
       timeout: 10
       readThreads: 1

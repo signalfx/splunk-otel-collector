@@ -64,6 +64,11 @@ func TestLoadConfig(t *testing.T) {
 		cfg := defaultConfig()
 		cfg.ExtensionSettings.NameVal = "smartagent/all_settings"
 		cfg.BundleDir = "/opt/bin/collectd/"
+		cfg.ProcPath = "/my_proc"
+		cfg.EtcPath = "/my_etc"
+		cfg.VarPath = "/my_var"
+		cfg.RunPath = "/my_run"
+		cfg.SysPath = "/my_sys"
 		cfg.Collectd.Timeout = 10
 		cfg.Collectd.ReadThreads = 1
 		cfg.Collectd.WriteThreads = 4

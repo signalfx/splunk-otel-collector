@@ -43,6 +43,7 @@ import (
 	"go.opentelemetry.io/collector/exporter/kafkaexporter"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
+	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/extension/healthcheckextension"
 	"go.opentelemetry.io/collector/extension/pprofextension"
 	"go.opentelemetry.io/collector/extension/zpagesextension"
@@ -108,6 +109,7 @@ func Get() (component.Factories, error) {
 		kafkaexporter.NewFactory(),
 		loggingexporter.NewFactory(),
 		otlpexporter.NewFactory(),
+		otlphttpexporter.NewFactory(),
 		sapmexporter.NewFactory(),
 		signalfxexporter.NewFactory(),
 		splunkhecexporter.NewFactory(),

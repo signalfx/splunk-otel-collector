@@ -13,10 +13,10 @@ removed prior to the 1.0 release.
 | fluentforward    | attributes        | file       | healthcheck   |
 | hostmetrics      | batch             | logging    | httpforwarder |
 | jaeger           | filter            | otlp       | host_observer |
-| k8s_cluster      | k8s_tagger        | sapm       | k8s_observer  |
-| kubeletstats     | memorylimiter     | signalfx   | pprof         |
-| otlp             | metrictransform   | splunk_hec | zpages        |
-| receiver_creator | resource          |            |               |
+| k8s_cluster      | k8s_tagger        | otlphttp   | k8s_observer  |
+| kubeletstats     | memorylimiter     | sapm       | pprof         |
+| otlp             | metrictransform   | signalfx   | zpages        |
+| receiver_creator | resource          | splunk_hec |               |
 | sapm             | resourcedetection |            |               |
 | signalfx         | span              |            |               |
 | simpleprometheus |                   |            |               |

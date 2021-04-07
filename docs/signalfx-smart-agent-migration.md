@@ -32,6 +32,12 @@ apiUrl: https://api.us1.signalfx.com
 
 bundleDir: /opt/my-smart-agent-bundle
 
+procPath: /my_custom_proc
+etcPath: /my_custom_etc
+varPath: /my_custom_var
+runPath: /my_custom_run
+sysPath: /my_custom_sys
+
 observers:
   - type: k8s-api
 
@@ -39,6 +45,7 @@ collectd:
   readThreads: 10
   writeQueueLimitHigh: 1000000
   writeQueueLimitLow: 600000
+  configDir: "/tmp/signalfx-agent/collectd"
 
 monitors:
   - type: signalfx-forwarder
@@ -68,10 +75,16 @@ extensions:
     node: ${K8S_NODE_NAME}
   smartagent:
     bundleDir: /opt/my-smart-agent-bundle
+    procPath: /my_custom_proc
+    etcPath: /my_custom_etc
+    varPath: /my_custom_var
+    runPath: /my_custom_run
+    sysPath: /my_custom_sys
     collectd:
       readThreads: 10
       writeQueueLimitHigh: 1000000
       writeQueueLimitLow: 600000
+      configDir: "/tmp/signalfx-agent/collectd"
 
 receivers:
   smartagent/signalfx-forwarder:

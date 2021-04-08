@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/docker/docker v20.10.5+incompatible
 	github.com/docker/go-connections v0.4.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.23.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.24.0
 	github.com/stretchr/testify v1.7.0
 	github.com/testcontainers/testcontainers-go v0.9.1-0.20210310113556-71053970d434
 	go.opentelemetry.io/collector v0.24.0

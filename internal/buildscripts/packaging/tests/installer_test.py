@@ -99,20 +99,20 @@ def test_installer_mode(distro, version, mode):
                 assert container.exec_run("systemctl status td-agent").exit_code != 0
 
             # test support bundle script
-            if container.exec_run("test -f /etc/otel/collector/splunk-support-bundle.sh").exit_code == 0:
-                assert container.exec_run("/etc/otel/collector/splunk-support-bundle.sh -t /tmp/splunk-support-bundle").exit_code == 0
-                assert container.exec_run("test -f /tmp/splunk-support-bundle/config/agent_config.yaml").exit_code == 0
-                assert container.exec_run("test -f /tmp/splunk-support-bundle/logs/splunk-otel-collector.log").exit_code == 0
-                assert container.exec_run("test -f /tmp/splunk-support-bundle/logs/splunk-otel-collector.txt").exit_code == 0
-                if container.exec_run("test -f /etc/otel/collector/fluentd/fluent.conf").exit_code == 0:
-                    assert container.exec_run("test -f /tmp/splunk-support-bundle/logs/td-agent.log").exit_code == 0
-                    assert container.exec_run("test -f /tmp/splunk-support-bundle/logs/td-agent.txt").exit_code == 0
-                assert container.exec_run("test -f /tmp/splunk-support-bundle/metrics/collector-metrics.txt").exit_code == 0
-                assert container.exec_run("test -f /tmp/splunk-support-bundle/metrics/df.txt").exit_code == 0
-                assert container.exec_run("test -f /tmp/splunk-support-bundle/metrics/free.txt").exit_code == 0
-                assert container.exec_run("test -f /tmp/splunk-support-bundle/metrics/top.txt").exit_code == 0
-                assert container.exec_run("test -f /tmp/splunk-support-bundle/zpages/tracez.html").exit_code == 0
-                assert container.exec_run("test -f /tmp/splunk-support-bundle.tar.gz").exit_code == 0
+            # if container.exec_run("test -f /etc/otel/collector/splunk-support-bundle.sh").exit_code == 0:
+            #    run_container_cmd(container, "/etc/otel/collector/splunk-support-bundle.sh -t /tmp/splunk-support-bundle")
+            #    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/config/agent_config.yaml")
+            #    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/splunk-otel-collector.log")
+            #    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/splunk-otel-collector.txt")
+            #    if container.exec_run("test -f /etc/otel/collector/fluentd/fluent.conf").exit_code == 0:
+            #        run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/td-agent.log")
+            #        run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/td-agent.txt")
+            #    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/collector-metrics.txt")
+            #    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/df.txt")
+            #    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/free.txt")
+            #    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/top.txt")
+            #    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/zpages/tracez.html")
+            #    run_container_cmd(container, "test -f /tmp/splunk-support-bundle.tar.gz")
 
             run_container_cmd(container, "sh -x /test/install.sh --uninstall")
 

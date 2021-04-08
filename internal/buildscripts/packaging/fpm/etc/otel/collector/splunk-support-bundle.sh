@@ -74,9 +74,9 @@ createTempDir() {
         echo "ERROR: TMPDIR ($TMPDIR) exists. Exiting."
         exit 1
     else
-        mkdir "$TMPDIR"
+        mkdir -p "$TMPDIR"
         for d in logs metrics zpages; do
-            mkdir "$TMPDIR"/$d
+            mkdir -p "$TMPDIR"/$d
         done
     fi
 }
@@ -235,7 +235,6 @@ tarResults() {
 }
 
 main() {
-    createTempDir
     checkCommands
     getConfig
     getStatus
@@ -248,4 +247,5 @@ main() {
 
 # Attempt to generate a support bundle
 # Capture all output
+createTempDir
 main 2>&1 | tee -a "$TMPDIR"/stdout.log

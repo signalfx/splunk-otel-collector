@@ -3,7 +3,7 @@
 FROM debian:buster
 
 RUN apt-get update &&\
-    apt-get install -yq ca-certificates curl procps systemd
+    apt-get install -yq ca-certificates curl procps systemd wget
 
 ENV container docker
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \

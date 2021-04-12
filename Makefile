@@ -43,6 +43,7 @@ BUILD_X3=-X $(BUILD_INFO_IMPORT_PATH).BuildType=$(BUILD_TYPE)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2} ${BUILD_X3}"
 
 SMART_AGENT_RELEASE=v5.9.1
+SKIP_COMPILE=false
 
 ### FUNCTIONS
 
@@ -189,7 +190,9 @@ delete-tag:
 
 .PHONY: docker-otelcol
 docker-otelcol:
+ifneq ($(SKIP_COMPILE), true)
 	GOOS=linux $(MAKE) otelcol
+endif
 	cp ./bin/otelcol_linux_amd64 ./cmd/otelcol/otelcol
 	docker build -t otelcol --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) ./cmd/otelcol/
 	rm ./cmd/otelcol/otelcol
@@ -216,6 +219,16 @@ binaries-windows_amd64:
 .PHONY: deb-rpm-package
 %-package: ARCH ?= amd64
 %-package:
+ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-linux_$(ARCH)
+endif
 	docker build -t otelcol-fpm internal/buildscripts/packaging/fpm
 	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) -e SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) otelcol-fpm
+
+.PHONY: msi
+msi:
+ifneq ($(SKIP_COMPILE), true)
+	$(MAKE) binaries-windows_amd64
+endif
+	docker build -t msi-builder internal/buildscripts/packaging/msi/msi-builder
+	docker run --rm -v $(CURDIR):/project -u 0 msi-builder $(VERSION)

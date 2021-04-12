@@ -23,6 +23,7 @@ commands:
           dist/splunk-otel-collector-*.aarch64.rpm
           dist/splunk-otel-collector-*.x86_64.rpm
           dist/splunk-otel-collector-*-amd64.msi
+          dist/image.tar
     steps:
       - run:
           name: Check if files exist
@@ -66,9 +67,9 @@ commands:
 
     steps:
       - run:
-          name: Build image
+          name: Load and tag image
           command: |
-            make docker-otelcol
+            docker load -i dist/image.tar
             docker tag otelcol:latest quay.io/signalfx/<< parameters.repo >>:<< parameters.tag >>
             docker tag otelcol:latest quay.io/signalfx/<< parameters.repo >>:latest
       - run:
@@ -169,6 +170,12 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - docker-otelcol:
+          requires:
+            - cross-compile
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
       - test:
           requires:
             - setup-environment
@@ -191,6 +198,7 @@ workflows:
             - deb-package
             - rpm-package
             - windows-msi
+            - docker-otelcol
           filters:
             branches:
               ignore: /.*/
@@ -206,6 +214,7 @@ workflows:
             - deb-package
             - rpm-package
             - windows-msi
+            - docker-otelcol
           filters:
             branches:
               only: main
@@ -328,6 +337,33 @@ jobs:
           name: Code coverage
           command: bash <(curl -s https://codecov.io/bash)
 
+  docker-otelcol:
+    docker:
+      - image: cimg/go:1.15
+    steps:
+      - attach_to_workspace
+      - setup_remote_docker
+      - run:
+          name: Build docker image
+          command: make docker-otelcol SKIP_COMPILE=true
+      - run:
+          name: Run docker image
+          command: |
+            docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
+            sleep 10
+            if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
+              docker logs otelcol
+              exit 1
+            fi
+      - run:
+          name: Save docker image
+          command: |
+            mkdir -p dist
+            docker save -o dist/image.tar otelcol:latest
+      - persist_to_workspace:
+          root: ~/
+          paths: project/dist
+
   publish-stable:
     docker:
       - image: cimg/go:1.15
@@ -344,6 +380,7 @@ jobs:
             cp bin/* dist/
             # exclude the otelcol symlink from the release
             [ -e dist/otelcol ] && rm -f dist/otelcol
+            [ -e dist/image.tar ] && rm -f dist/image.tar
       - run:
           name: Calculate checksums
           command: cd dist && shasum -a 256 * > checksums.txt
@@ -398,14 +435,11 @@ jobs:
     steps:
       - attach_to_workspace
       - run:
-          name: Build fpm image
-          command: docker build -t otelcol-fpm internal/buildscripts/packaging/fpm
-      - run:
           name: Build << parameters.package_type >> amd64 package
-          command: docker run --rm -v $(pwd):/repo -e PACKAGE="<< parameters.package_type >>" -e VERSION="${CIRCLE_TAG:-}" -e ARCH="amd64" otelcol-fpm
+          command: make << parameters.package_type>>-package SKIP_COMPILE=true VERSION="${CIRCLE_TAG:-}" ARCH="amd64"
       - run:
           name: Build << parameters.package_type >> arm64 package
-          command: docker run --rm -v $(pwd):/repo -e PACKAGE="<< parameters.package_type >>" -e VERSION="${CIRCLE_TAG:-}" -e ARCH="arm64" otelcol-fpm
+          command: make << parameters.package_type>>-package SKIP_COMPILE=true VERSION="${CIRCLE_TAG:-}" ARCH="arm64"
       - install_pytest
       - run:
           name: Test << parameters.package_type >> package installation
@@ -462,14 +496,11 @@ jobs:
     steps:
       - attach_to_workspace
       - run:
-          name: Build msi-builder image
-          command: docker build -t msi-builder internal/buildscripts/packaging/msi/msi-builder
-      - run:
           name: Build MSI
           command: |
-            mkdir dist
-            export VERSION_TAG="${CIRCLE_TAG/v/}"
-            docker run --rm -v $(pwd):/project -u 0 msi-builder "${VERSION_TAG:-0.0.1.$CIRCLE_BUILD_NUM}"
+            mkdir -p dist
+            export VERSION_TAG="${CIRCLE_TAG#v}"
+            make msi SKIP_COMPILE=true VERSION="${VERSION_TAG:-0.0.1.$CIRCLE_BUILD_NUM}"
       - persist_to_workspace:
           root: ~/
           paths: project/dist/*.msi

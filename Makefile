@@ -191,7 +191,7 @@ delete-tag:
 docker-otelcol:
 	GOOS=linux $(MAKE) otelcol
 	cp ./bin/otelcol_linux_amd64 ./cmd/otelcol/otelcol
-	docker build -t otelcol ./cmd/otelcol/
+	docker build -t otelcol --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) ./cmd/otelcol/
 	rm ./cmd/otelcol/otelcol
 
 .PHONY: binaries-all-sys

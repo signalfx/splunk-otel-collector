@@ -25,7 +25,7 @@ extensions:
       readThreads: 1
       writeThreads: 4
       writeQueueLimitHigh: 5
-      configDir: /etc/
+      configDir: /var/run/signalfx-agent/collectd
 
 receivers:
   nop:

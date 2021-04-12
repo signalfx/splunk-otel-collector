@@ -16,6 +16,7 @@ package smartagentextension
 
 import (
 	"path"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -95,7 +96,7 @@ func TestLoadConfig(t *testing.T) {
 		cfg.Collectd.ReadThreads = 1
 		cfg.Collectd.WriteThreads = 4
 		cfg.Collectd.WriteQueueLimitHigh = 5
-		cfg.Collectd.ConfigDir = "/etc/"
+		cfg.Collectd.ConfigDir = "/var/run/signalfx-agent/collectd"
 		cfg.Collectd.BundleDir = "/opt/"
 		return &cfg
 	}(), partialSettingsConfig)
@@ -191,7 +192,7 @@ func defaultConfig() Config {
 				IntervalSeconds:      10,
 				WriteServerIPAddr:    "127.9.8.7",
 				WriteServerPort:      0,
-				ConfigDir:            "/var/run/signalfx-agent/collectd",
+				ConfigDir:            filepath.Join(bundleDir, "run", "collectd"),
 				BundleDir:            bundleDir,
 				HasGenericJMXMonitor: false,
 			},

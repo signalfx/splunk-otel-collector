@@ -16,6 +16,7 @@ package smartagentextension
 
 import (
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -48,6 +49,15 @@ func customUnmarshaller(componentViperSection *viper.Viper, intoCfg interface{})
 	allSettings := componentViperSection.AllSettings()
 	extensionCfg := intoCfg.(*Config)
 
+	configDirSet := false
+	if collectd, ok := allSettings["collectd"]; ok {
+		if collectdBlock, ok := collectd.(map[string]interface{}); ok {
+			if _, ok := collectdBlock["configdir"]; ok {
+				configDirSet = true
+			}
+		}
+	}
+
 	config, err := smartAgentConfigFromSettingsMap(allSettings)
 	if err != nil {
 		return err
@@ -57,6 +67,10 @@ func customUnmarshaller(componentViperSection *viper.Viper, intoCfg interface{})
 		config.BundleDir = extensionCfg.Config.BundleDir
 	}
 	config.Collectd.BundleDir = config.BundleDir
+
+	if !configDirSet {
+		config.Collectd.ConfigDir = filepath.Join(config.Collectd.BundleDir, "run", "collectd")
+	}
 
 	extensionCfg.Config = *config
 	return nil

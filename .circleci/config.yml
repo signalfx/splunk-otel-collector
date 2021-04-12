@@ -349,7 +349,7 @@ jobs:
       - run:
           name: Run docker image
           command: |
-            docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 --name otelcol otelcol:latest
+            docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
             sleep 10
             if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
               docker logs otelcol
@@ -496,14 +496,11 @@ jobs:
     steps:
       - attach_to_workspace
       - run:
-          name: Build msi-builder image
-          command: docker build -t msi-builder internal/buildscripts/packaging/msi/msi-builder
-      - run:
           name: Build MSI
           command: |
-            mkdir dist
-            export VERSION_TAG="${CIRCLE_TAG/v/}"
-            docker run --rm -v $(pwd):/project -u 0 msi-builder "${VERSION_TAG:-0.0.1.$CIRCLE_BUILD_NUM}"
+            mkdir -p dist
+            export VERSION_TAG="${CIRCLE_TAG#v}"
+            make msi SKIP_COMPILE=true VERSION="${VERSION_TAG:-0.0.1.$CIRCLE_BUILD_NUM}"
       - persist_to_workspace:
           root: ~/
           paths: project/dist/*.msi

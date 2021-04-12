@@ -224,3 +224,11 @@ ifneq ($(SKIP_COMPILE), true)
 endif
 	docker build -t otelcol-fpm internal/buildscripts/packaging/fpm
 	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) -e SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) otelcol-fpm
+
+.PHONY: msi
+msi:
+ifneq ($(SKIP_COMPILE), true)
+	$(MAKE) binaries-windows_amd64
+endif
+	docker build -t msi-builder internal/buildscripts/packaging/msi/msi-builder
+	docker run --rm -v $(CURDIR):/project -u 0 msi-builder $(VERSION)

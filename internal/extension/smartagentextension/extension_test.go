@@ -21,30 +21,38 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenttest"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/components/componenttest"
 )
 
-func TestExtension(t *testing.T) {
-	f := NewFactory()
-	e, err := f.CreateExtension(
-		context.Background(),
-		component.ExtensionCreateParams{
-			Logger: zap.NewNop(),
-		},
-		&Config{
-			Config: config.Config{
-				BundleDir: "/bundle/",
-				Collectd: config.CollectdConfig{
-					Timeout:   10,
-					ConfigDir: "/config/",
-				},
+func TestExtensionLifecycle(t *testing.T) {
+	ctx := context.Background()
+	createParams := component.ExtensionCreateParams{
+		Logger: zap.NewNop(),
+	}
+	cfg := &Config{
+		Config: config.Config{
+			BundleDir: "/bundle/",
+			Collectd: config.CollectdConfig{
+				Timeout:   10,
+				ConfigDir: "/config/",
 			},
 		},
-	)
-	require.NoError(t, err)
-	require.NotNil(t, e)
+	}
 
-	require.NoError(t, e.Start(context.Background(), componenttest.NewNopHost()))
-	require.NoError(t, e.Shutdown(context.Background()))
+	f := NewFactory()
+	fstExt, err := f.CreateExtension(ctx, createParams, cfg)
+	require.NoError(t, err)
+	require.NotNil(t, fstExt)
+
+	mh := componenttest.NewAssertNoErrorHost(t)
+	require.NoError(t, fstExt.Start(ctx, mh))
+	require.NoError(t, fstExt.Shutdown(ctx))
+
+	sndExt, err := f.CreateExtension(ctx, createParams, cfg)
+	require.NoError(t, err)
+	require.NotNil(t, sndExt)
+	require.NoError(t, sndExt.Start(ctx, mh))
+	require.NoError(t, sndExt.Shutdown(ctx))
 }

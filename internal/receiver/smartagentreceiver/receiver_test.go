@@ -42,6 +42,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 
+	internaltest "github.com/signalfx/splunk-otel-collector/internal/components/componenttest"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 )
 
@@ -225,6 +226,21 @@ func TestOutOfOrderShutdownInvocations(t *testing.T) {
 	assert.EqualError(t, err,
 		"smartagentreceiver's Shutdown() called before Start() or with invalid monitor state",
 	)
+}
+
+func TestMultipleInstacesOfSameMonitorType(t *testing.T) {
+	t.Cleanup(cleanUp)
+	cfg := newConfig("valid", "cpu", 1)
+	fstRcvr := NewReceiver(zap.NewNop(), cfg)
+
+	ctx := context.Background()
+	mh := internaltest.NewAssertNoErrorHost(t)
+	require.NoError(t, fstRcvr.Start(ctx, mh))
+	require.NoError(t, fstRcvr.Shutdown(ctx))
+
+	sndRcvr := NewReceiver(zap.NewNop(), cfg)
+	assert.NoError(t, sndRcvr.Start(ctx, mh))
+	assert.NoError(t, sndRcvr.Shutdown(ctx))
 }
 
 func TestInvalidMonitorStateAtShutdown(t *testing.T) {

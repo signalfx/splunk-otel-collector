@@ -8,6 +8,11 @@
 
 - Fix HEC Exporter throwing 400s (https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/3032)
 
+### 💡 Enhancements 💡
+- Remove unnecessary hostname mapping in fluentd configs (#250)
+- Add OTLP HTTP exporter (#252)
+- Env variable NO_WINDOWS_SERVICE to force interactive mode on Windows (#254)
+
 ## v0.24.0
 
 ### 🛑 Breaking changes 🛑

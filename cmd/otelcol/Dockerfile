@@ -25,7 +25,7 @@ RUN mkdir -p "$(dirname "/usr/lib/splunk-otel-collector/agent-bundle")" && \
 
 FROM scratch
 ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
-ENV SPLUNK_COLLECTD_DIR=$SIGNALFX_BUNDLE_DIR/run/collectd
+ENV SPLUNK_COLLECTD_DIR=${SPLUNK_BUNDLE_DIR}/run/collectd
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=otelcol /otelcol /
 # Maintaining interpreter location as required.

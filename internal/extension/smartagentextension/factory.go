@@ -73,6 +73,8 @@ func createDefaultConfig() config.Extension {
 	}
 	cfg.BundleDir = bundleDir
 	cfg.Collectd.BundleDir = bundleDir
+	cfg.Collectd.ConfigDir = filepath.Join(bundleDir, "run", "collectd")
+
 	return &Config{
 		ExtensionSettings: config.ExtensionSettings{
 			TypeVal: typeStr,

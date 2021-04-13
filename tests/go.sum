@@ -827,8 +827,8 @@ github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1y
 github.com/onsi/gomega v1.10.2 h1:aY/nuoWlKJud2J6U0E3NWsjlg+0GtwXxgEqthRdzlcs=
 github.com/onsi/gomega v1.10.2/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/op/go-logging v0.0.0-20160315200505-970db520ece7/go.mod h1:HzydrMdWErDVzsI23lYNej1Htcns9BCg93Dk0bBINWk=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.24.0 h1:lepRkNbEJDWuH1neuc+qPqPh1ys6QSVAMZiKne5tvrk=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.24.0/go.mod h1:tR/dOYoq6Uky6SYCcqAHA/dZU4savuTNRnXpZ4pWMlQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.24.1-0.20210409203624-f1ee616c4d90 h1:cUViOe5xsV7GyGwkU1adx+Vt7T89ygduCcM6Fij5L/U=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.24.1-0.20210409203624-f1ee616c4d90/go.mod h1:tR/dOYoq6Uky6SYCcqAHA/dZU4savuTNRnXpZ4pWMlQ=
 github.com/opencontainers/go-digest v0.0.0-20180430190053-c9281466c8b2/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
 github.com/opencontainers/go-digest v1.0.0-rc1/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=

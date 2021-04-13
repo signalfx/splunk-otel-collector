@@ -43,10 +43,10 @@ func PDataToResourceMetrics(pdataMetrics ...pdata.Metrics) (ResourceMetrics, err
 						addDoubleSum(&ilms, pdataMetric)
 					case pdata.MetricDataTypeIntHistogram:
 						panic(fmt.Sprintf("%s not yet supported", pdata.MetricDataTypeIntHistogram))
-					case pdata.MetricDataTypeDoubleHistogram:
-						panic(fmt.Sprintf("%s not yet supported", pdata.MetricDataTypeDoubleHistogram))
-					case pdata.MetricDataTypeDoubleSummary:
-						panic(fmt.Sprintf("%s not yet supported", pdata.MetricDataTypeDoubleSummary))
+					case pdata.MetricDataTypeHistogram:
+						panic(fmt.Sprintf("%s not yet supported", pdata.MetricDataTypeHistogram))
+					case pdata.MetricDataTypeSummary:
+						panic(fmt.Sprintf("%s not yet supported", pdata.MetricDataTypeSummary))
 					default:
 						panic(fmt.Sprintf("unexpected data type: %s", pdataMetric.DataType()))
 					}

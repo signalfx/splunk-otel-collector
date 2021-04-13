@@ -17,10 +17,10 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"runtime"
 	"sync"
 
@@ -62,6 +62,7 @@ var (
 	configureEnvironmentOnce sync.Once
 	saConfigProvider         smartagentextension.SmartAgentConfigProvider
 	configureRusToZapOnce    sync.Once
+	nonWordCharacters        = regexp.MustCompile(`[^\w]+`)
 )
 
 func NewReceiver(logger *zap.Logger, config Config) *Receiver {
@@ -97,7 +98,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 
 	configCore := r.config.monitorConfig.MonitorConfigCore()
 	monitorType := configCore.Type
-	monitorName := url.PathEscape(r.config.Name())
+	monitorName := nonWordCharacters.ReplaceAllString(r.config.Name(), "")
 	configCore.MonitorID = types.MonitorID(monitorName)
 
 	configureRusToZapOnce.Do(func() {

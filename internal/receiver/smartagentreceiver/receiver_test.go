@@ -327,7 +327,7 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		IntervalSeconds:      10,
 		WriteServerIPAddr:    "127.9.8.7",
 		WriteServerPort:      0,
-		ConfigDir:            "/etc/",
+		ConfigDir:            filepath.Join("/opt", "run", "collectd"),
 		BundleDir:            "/opt/",
 		HasGenericJMXMonitor: false,
 		InstanceName:         "",

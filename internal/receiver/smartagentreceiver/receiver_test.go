@@ -93,7 +93,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
-	assert.EqualValues(t, "smartagent%2Fvalid", cfg.monitorConfig.MonitorConfigCore().MonitorID)
+	assert.EqualValues(t, "smartagentvalid", cfg.monitorConfig.MonitorConfigCore().MonitorID)
 	monitor, isMonitor := receiver.monitor.(*cpu.Monitor)
 	require.True(t, isMonitor)
 

@@ -48,7 +48,8 @@
 
 The Splunk Distribution of [OpenTelemetry
 Collector](https://github.com/open-telemetry/opentelemetry-collector) provides
-a binary that can receive, process and export trace, metric and log data.
+a unified way to receive, process and export metric, trace, and log data for
+[Splunk Observability Cloud](https://www.observability.splunk.com/).
 
 **Installations that use this distribution can receive direct help from
 Splunk's support teams.** Customers are free to use the core OpenTelemetry OSS
@@ -86,20 +87,17 @@ This distribution currently supports:
 
 ## Getting Started
 
+All you need to get started is your:
+
+- [Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
+- [Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
+
 This distribution provides a single binary and two deployment methods:
 
 - Agent: A Collector instance running with the application or on the same host
   as the application (e.g. binary, sidecar, or daemonset).
 - Gateway: One or more Collector instances running as a standalone service
   (e.g. container or deployment) typically per cluster, datacenter or region.
-
-> Use of the Collector running as an agent is only supported for the [Splunk
-Observability
-Suite](https://www.splunk.com/en_us/form/splunk-observability-suite.html) at
-this time. The [SignalFx Smart
-Agent](https://github.com/signalfx/signalfx-agent) or [Splunk Universal
-Forwarder](https://docs.splunk.com/Documentation/Forwarder/8.1.2/Forwarder/Abouttheuniversalforwarder)
-should be used for all other products.
 
 This distribution is supported on and packaged for a variety of platforms including:
 

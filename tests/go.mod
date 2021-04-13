@@ -3,7 +3,7 @@ module github.com/signalfx/splunk-otel-collector/tests
 go 1.15
 
 require (
-	github.com/docker/docker v20.10.5+incompatible
+	github.com/docker/docker v20.10.6+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.24.1-0.20210409203624-f1ee616c4d90
 	github.com/stretchr/testify v1.7.0

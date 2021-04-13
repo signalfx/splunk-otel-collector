@@ -17,11 +17,11 @@ package smartagentreceiver
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
 	"runtime"
-	"strings"
 	"sync"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
@@ -97,7 +97,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 
 	configCore := r.config.monitorConfig.MonitorConfigCore()
 	monitorType := configCore.Type
-	monitorName := strings.ReplaceAll(r.config.Name(), "/", "")
+	monitorName := url.PathEscape(r.config.Name())
 	configCore.MonitorID = types.MonitorID(monitorName)
 
 	configureRusToZapOnce.Do(func() {

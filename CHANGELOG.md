@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## v0.24.2
+
+### 💡 Enhancements 💡
+
+- Include smart agent bundle in docker image (#241)
+- Use agent bundle-relative Collectd ConfigDir default (#263, #268)
+
+### 🧰 Bug fixes 🧰
+
+- Sanitize monitor IDs in SA receiver (#266, #269)
+
 ## v0.24.1
 
 ### 🧰 Bug fixes 🧰
@@ -49,4 +60,3 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 - `smartagent` extension: Ensure propagation of collectd bundle dir (#180)
 - `smartagent` receiver: Fix logrus logger hook data race condition (#181)
-

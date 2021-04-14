@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.24.2
+
+### 💡 Enhancements 💡
+
+- Include smart agent bundle in docker image (#241)
+- Use agent bundle-relative Collectd ConfigDir default (#263)
+- Fully adopt default collectd config directory (#268)
+
+### 🧰 Bug fixes 🧰
+
+- URL encode monitor IDs in SA receiver (#266, #269)
+
 ## v0.24.1
 
 ### 🧰 Bug fixes 🧰

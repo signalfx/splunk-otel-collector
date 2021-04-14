@@ -11,7 +11,7 @@
 
 ### 🧰 Bug fixes 🧰
 
-- URL encode monitor IDs in SA receiver (#266, #269)
+- Sanitize monitor IDs in SA receiver (#266, #269)
 
 ## v0.24.1
 

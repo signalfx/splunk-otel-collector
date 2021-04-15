@@ -61,7 +61,7 @@ This distribution currently supports:
 
 - [Splunk APM](https://www.splunk.com/en_us/software/splunk-apm.html) via the
   [`sapm`
-  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/sapmexporter).
+  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter).
   The [`otlphttp`
   exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)
   can be used with a [custom
@@ -71,17 +71,17 @@ This distribution currently supports:
 - [Splunk Infrastructure
   Monitoring](https://www.splunk.com/en_us/software/infrastructure-monitoring.html)
   via the [`signalfx`
-  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/signalfxexporter).
+  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter).
   More information available
   [here](https://docs.signalfx.com/en/latest/otel/imm-otel-collector.html).
 - [Splunk Log Observer](https://www.splunk.com/en_us/form/splunk-log-observer.html) via
   the [`splunk_hec`
-  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/splunkhecexporter).
+  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
 - [Splunk Cloud](https://www.splunk.com/en_us/software/splunk-cloud.html) or
   [Splunk
   Enterprise](https://www.splunk.com/en_us/software/splunk-enterprise.html) via
   the [`splunk_hec`
-  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/exporter/splunkhecexporter).
+  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
 
 > :construction: This project is currently in **BETA**.
 
@@ -103,7 +103,7 @@ This distribution is supported on and packaged for a variety of platforms includ
 
 - Kubernetes
   - [Helm (recommended)](https://github.com/signalfx/splunk-otel-collector-chart)
-  - [YAML](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/master/exporter/sapmexporter/examples/signalfx-k8s.yaml)
+  - [YAML](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/sapmexporter/examples/signalfx-k8s.yaml)
 - Linux
   - [Installer script (recommended)](./docs/getting-started/linux-installer.md)
   - [Standalone](./docs/getting-started/linux-standalone.md)

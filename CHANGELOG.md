@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v0.24.3
+
+### 💡 Enhancements 💡
+
+- Add AKS resource detector (https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/3035)
+
+### 🧰 Bug fixes 🧰
+
+- Fallback to `os.Hostname` when FQDN is not available (https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/3099)
+
 ## v0.24.2
 
 ### 💡 Enhancements 💡

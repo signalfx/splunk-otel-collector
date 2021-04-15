@@ -17,10 +17,9 @@ package configsource
 import (
 	"context"
 
-	"go.uber.org/zap"
-
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.uber.org/zap"
 )
 
 // CreateParams is passed to Factory.Create* functions.

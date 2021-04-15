@@ -24,18 +24,17 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.uber.org/zap"
 )
 
 func TestConfigSourceManager_NewManager(t *testing.T) {
 	tests := []struct {
-		name      string
-		file      string
 		factories Factories
 		wantErr   error
+		name      string
+		file      string
 	}{
 		{
 			name: "basic_config",
@@ -150,9 +149,9 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 	testErr := errors.New("test error")
 
 	tests := []struct {
-		name            string
 		config          map[string]interface{}
 		configSourceMap map[string]ConfigSource
+		name            string
 	}{
 		{
 			name: "incorrect_cfgsrc_ref",
@@ -451,10 +450,10 @@ func TestManager_expandString(t *testing.T) {
 	}()
 
 	tests := []struct {
-		name    string
-		input   string
 		want    interface{}
 		wantErr error
+		name    string
+		input   string
 	}{
 		{
 			name:  "literal_string",
@@ -538,11 +537,11 @@ func TestManager_expandString(t *testing.T) {
 
 func Test_parseCfgSrc(t *testing.T) {
 	tests := []struct {
+		params     interface{}
 		name       string
 		str        string
 		cfgSrcName string
 		selector   string
-		params     interface{}
 		wantErr    bool
 	}{
 		{

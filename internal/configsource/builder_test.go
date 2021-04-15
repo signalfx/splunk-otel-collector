@@ -20,10 +20,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.uber.org/zap"
 )
 
 func TestConfigSourceBuild(t *testing.T) {
@@ -38,11 +37,11 @@ func TestConfigSourceBuild(t *testing.T) {
 	}
 
 	tests := []struct {
-		name               string
 		configSettings     map[string]ConfigSettings
 		factories          Factories
 		expectedCfgSources map[string]ConfigSource
 		wantErr            error
+		name               string
 	}{
 		{
 			name: "unknown_config_source",

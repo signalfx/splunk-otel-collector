@@ -24,12 +24,11 @@ import (
 	"strings"
 	"sync"
 
-	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
-
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumererror"
+	"go.uber.org/zap"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -161,17 +160,17 @@ type Manager struct {
 	// sessions track all the Session objects used to retrieve values to be injected
 	// into the configuration.
 	sessions map[string]Session
-	// watchers keeps track of all WatchForUpdate functions for retrieved values.
-	watchers []func() error
-	// watchersWG is used to ensure that Close waits for all WatchForUpdate calls
-	// to complete.
-	watchersWG sync.WaitGroup
 	// watchingCh is used to notify users of the Manager that the WatchForUpdate function
 	// is ready and waiting for notifications.
 	watchingCh chan struct{}
 	// closeCh is used to notify the Manager WatchForUpdate function that the manager
 	// is being closed.
 	closeCh chan struct{}
+	// watchers keeps track of all WatchForUpdate functions for retrieved values.
+	watchers []func() error
+	// watchersWG is used to ensure that Close waits for all WatchForUpdate calls
+	// to complete.
+	watchersWG sync.WaitGroup
 }
 
 // NewManager creates a new instance of a Manager to be used to inject data from

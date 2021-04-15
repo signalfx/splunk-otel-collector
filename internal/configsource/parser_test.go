@@ -21,7 +21,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"go.opentelemetry.io/collector/config"
 )
 
@@ -32,11 +31,11 @@ func TestConfigSourceParser(t *testing.T) {
 		"tstcfgsrc": &mockCfgSrcFactory{},
 	}
 	tests := []struct {
-		name      string
-		file      string
 		factories Factories
 		expected  map[string]ConfigSettings
 		wantErr   error
+		name      string
+		file      string
 	}{
 		{
 			name:      "basic_config",

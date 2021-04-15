@@ -19,7 +19,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cast"
-
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configparser"
 )

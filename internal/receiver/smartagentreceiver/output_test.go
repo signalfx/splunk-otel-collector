@@ -39,8 +39,8 @@ import (
 
 func TestOutput(t *testing.T) {
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(),
-		consumertest.NewLogsNop(), consumertest.NewTracesNop(),
+		Config{}, fakeMonitorFiltering(), consumertest.NewNop(),
+		consumertest.NewNop(), consumertest.NewNop(),
 		componenttest.NewNopHost(), zap.NewNop(),
 	)
 	output.AddDatapointExclusionFilter(dpfilters.DatapointFilter(nil))
@@ -69,8 +69,8 @@ func TestHasEnabledMetric(t *testing.T) {
 	}, zap.NewNop())
 	require.NoError(t, err)
 	output := NewOutput(
-		Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
-		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
+		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
 	)
 	assert.Equal(t, []string{"mem.used"}, output.EnabledMetrics())
 
@@ -78,8 +78,8 @@ func TestHasEnabledMetric(t *testing.T) {
 	monitorFiltering, err = newMonitorFiltering(&saconfig.MonitorConfig{}, nil, zap.NewNop())
 	require.NoError(t, err)
 	output = NewOutput(
-		Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
-		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
+		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
 	)
 	assert.Empty(t, output.EnabledMetrics())
 }
@@ -101,8 +101,8 @@ func TestHasEnabledMetricInGroup(t *testing.T) {
 	}, zap.NewNop())
 	require.NoError(t, err)
 	output := NewOutput(
-		Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
-		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
+		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
 	)
 	assert.True(t, output.HasEnabledMetricInGroup("mem"))
 	assert.False(t, output.HasEnabledMetricInGroup("cpu"))
@@ -111,16 +111,16 @@ func TestHasEnabledMetricInGroup(t *testing.T) {
 	monitorFiltering, err = newMonitorFiltering(&saconfig.MonitorConfig{}, nil, zap.NewNop())
 	require.NoError(t, err)
 	output = NewOutput(
-		Config{}, monitorFiltering, consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
-		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
+		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
 	)
 	assert.False(t, output.HasEnabledMetricInGroup("any"))
 }
 
 func TestExtraDimensions(t *testing.T) {
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
-		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
+		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
 	)
 	assert.Empty(t, output.extraDimensions)
 
@@ -145,7 +145,7 @@ func TestExtraDimensions(t *testing.T) {
 func TestSendDimensionUpdate(t *testing.T) {
 	me := mockMetadataClient{}
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), &me, consumertest.NewLogsNop(), consumertest.NewTracesNop(),
+		Config{}, fakeMonitorFiltering(), &me, consumertest.NewNop(), consumertest.NewNop(),
 		componenttest.NewNopHost(), zap.NewNop(),
 	)
 
@@ -167,8 +167,8 @@ func TestSendDimensionUpdate(t *testing.T) {
 
 func TestSendDimensionUpdateWithInvalidExporter(t *testing.T) {
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
-		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
+		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
 	)
 	dim := types.Dimension{Name: "error"}
 
@@ -183,9 +183,9 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 			DimensionClients: []string{"mockmetadataexporter", "exampleexporter", "metricsreceiver", "notareceiver", "notreal"},
 		},
 		fakeMonitorFiltering(),
-		consumertest.NewMetricsNop(),
-		consumertest.NewLogsNop(),
-		consumertest.NewTracesNop(),
+		consumertest.NewNop(),
+		consumertest.NewNop(),
+		consumertest.NewNop(),
 		&hostWithExporters{exporter: &me},
 		zap.NewNop(),
 	)
@@ -203,8 +203,8 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 func TestSendDimensionUpdateFromNextConsumerMetadataExporters(t *testing.T) {
 	me := mockMetadataClient{}
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), &me, consumertest.NewLogsNop(),
-		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+		Config{}, fakeMonitorFiltering(), &me, consumertest.NewNop(),
+		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
 	)
 
 	dim := types.Dimension{
@@ -220,8 +220,8 @@ func TestSendDimensionUpdateFromNextConsumerMetadataExporters(t *testing.T) {
 func TestSendEvent(t *testing.T) {
 	me := mockMetadataClient{}
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), &me,
-		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), &me,
+		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
 	)
 
 	event := event.Event{
@@ -249,9 +249,9 @@ func TestDimensionClientDefaultsToSFxExporter(t *testing.T) {
 	output := NewOutput(
 		Config{DimensionClients: nil},
 		fakeMonitorFiltering(),
-		consumertest.NewMetricsNop(),
-		consumertest.NewLogsNop(),
-		consumertest.NewTracesNop(),
+		consumertest.NewNop(),
+		consumertest.NewNop(),
+		consumertest.NewNop(),
 		&hostWithExporters{exporter: &me},
 		zap.NewNop(),
 	)
@@ -271,9 +271,9 @@ func TestDimensionClientDefaultsRequiresLoneSFxExporter(t *testing.T) {
 	output := NewOutput(
 		Config{DimensionClients: nil},
 		fakeMonitorFiltering(),
-		consumertest.NewMetricsNop(),
-		consumertest.NewLogsNop(),
-		consumertest.NewTracesNop(),
+		consumertest.NewNop(),
+		consumertest.NewNop(),
+		consumertest.NewNop(),
 		&hostWithTwoSFxExporters{sfxExporter: &me},
 		zap.NewNop(),
 	)

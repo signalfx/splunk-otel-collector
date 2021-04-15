@@ -29,7 +29,7 @@ import (
 
 func TestSendSpansWithoutNextTracesConsumer(t *testing.T) {
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
+		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		nil, componenttest.NewNopHost(), zap.NewNop(),
 	)
 
@@ -38,8 +38,8 @@ func TestSendSpansWithoutNextTracesConsumer(t *testing.T) {
 
 func TestExtraSpanTags(t *testing.T) {
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
-		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
+		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
 	)
 	assert.Empty(t, output.extraSpanTags)
 
@@ -63,8 +63,8 @@ func TestExtraSpanTags(t *testing.T) {
 
 func TestDefaultSpanTags(t *testing.T) {
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
-		consumertest.NewTracesNop(), componenttest.NewNopHost(), zap.NewNop(),
+		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
+		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
 	)
 	assert.Empty(t, output.defaultSpanTags)
 
@@ -89,7 +89,7 @@ func TestDefaultSpanTags(t *testing.T) {
 func TestSendSpansWithDefaultAndExtraSpanTags(t *testing.T) {
 	tracesSink := consumertest.TracesSink{}
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
+		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		&tracesSink, componenttest.NewNopHost(), zap.NewNop(),
 	)
 	output.AddExtraSpanTag("will_be_overridden", "added extra value (want)")
@@ -178,9 +178,9 @@ func TestSendSpansWithConsumerError(t *testing.T) {
 	logger := zap.New(obs)
 
 	err := fmt.Errorf("desired error")
-	tracesConsumer := consumertest.NewTracesErr(err)
+	tracesConsumer := consumertest.NewErr(err)
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), consumertest.NewMetricsNop(), consumertest.NewLogsNop(),
+		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		tracesConsumer, componenttest.NewNopHost(), logger,
 	)
 

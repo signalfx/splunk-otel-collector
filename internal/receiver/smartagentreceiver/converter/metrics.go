@@ -183,7 +183,8 @@ func fillDoubleDatapoint(datapoint *sfx.Datapoint, dps pdata.DoubleDataPointSlic
 }
 
 func fillInLabels(dimensions map[string]string, labels pdata.StringMap) {
-	labels.InitEmptyWithCapacity(len(dimensions))
+	labels.Clear()
+	labels.EnsureCapacity(len(dimensions))
 	for k, v := range dimensions {
 		labels.Insert(k, v)
 	}

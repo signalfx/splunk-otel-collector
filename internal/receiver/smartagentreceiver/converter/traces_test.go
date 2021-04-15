@@ -441,7 +441,8 @@ func newPDataSpan(
 	span.SetStartTimestamp(pdata.Timestamp(startTime))
 	span.SetEndTimestamp(pdata.Timestamp(endTime))
 	attrs := span.Attributes()
-	attrs.InitEmptyWithCapacity(len(attributes))
+	attrs.Clear()
+	attrs.EnsureCapacity(len(attributes))
 	for k, val := range attributes {
 		switch v := val.(type) {
 		case string:

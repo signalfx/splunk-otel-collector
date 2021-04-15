@@ -22,7 +22,6 @@ import (
 
 	"github.com/signalfx/defaults"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
-	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/config"
 	"gopkg.in/yaml.v2"
 )
@@ -33,6 +32,7 @@ type SmartAgentConfigProvider interface {
 }
 
 var _ SmartAgentConfigProvider = (*Config)(nil)
+var _ config.CustomUnmarshable = (*Config)(nil)
 
 type Config struct {
 	config.ExtensionSettings `mapstructure:",squash"`
@@ -41,13 +41,12 @@ type Config struct {
 	saconfig.Config `mapstructure:"-,squash"`
 }
 
-func (c Config) SmartAgentConfig() *saconfig.Config {
-	return &c.Config
+func (cfg Config) SmartAgentConfig() *saconfig.Config {
+	return &cfg.Config
 }
 
-func customUnmarshaller(componentViperSection *viper.Viper, intoCfg interface{}) error {
-	allSettings := componentViperSection.AllSettings()
-	extensionCfg := intoCfg.(*Config)
+func (cfg *Config) Unmarshal(componentParser *config.Parser) error {
+	allSettings := componentParser.Viper().AllSettings()
 
 	configDirSet := false
 	if collectd, ok := allSettings["collectd"]; ok {
@@ -64,7 +63,7 @@ func customUnmarshaller(componentViperSection *viper.Viper, intoCfg interface{})
 	}
 
 	if config.BundleDir == "" {
-		config.BundleDir = extensionCfg.Config.BundleDir
+		config.BundleDir = cfg.Config.BundleDir
 	}
 	config.Collectd.BundleDir = config.BundleDir
 
@@ -72,7 +71,7 @@ func customUnmarshaller(componentViperSection *viper.Viper, intoCfg interface{})
 		config.Collectd.ConfigDir = filepath.Join(config.Collectd.BundleDir, "run", "collectd")
 	}
 
-	extensionCfg.Config = *config
+	cfg.Config = *config
 	return nil
 }
 

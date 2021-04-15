@@ -37,7 +37,6 @@ func NewFactory() component.ExtensionFactory {
 		typeStr,
 		createDefaultConfig,
 		createExtension,
-		extensionhelper.WithCustomUnmarshaler(customUnmarshaller),
 	)
 }
 

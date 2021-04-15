@@ -25,12 +25,13 @@ import (
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
-	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/config"
 	"gopkg.in/yaml.v2"
 )
 
 const defaultIntervalSeconds = 10
+
+var _ config.CustomUnmarshable = (*Config)(nil)
 
 var errDimensionClientValue = fmt.Errorf("dimensionClients must be an array of compatible exporter names")
 
@@ -43,45 +44,44 @@ type Config struct {
 	DimensionClients []string `mapstructure:"dimensionclients"`
 }
 
-func (rCfg *Config) validate() error {
-	if rCfg.monitorConfig == nil {
+func (cfg *Config) validate() error {
+	if cfg.monitorConfig == nil {
 		return fmt.Errorf("you must supply a valid Smart Agent Monitor config")
 	}
 
-	monitorConfigCore := rCfg.monitorConfig.MonitorConfigCore()
+	monitorConfigCore := cfg.monitorConfig.MonitorConfigCore()
 	if monitorConfigCore.IntervalSeconds == 0 {
 		monitorConfigCore.IntervalSeconds = defaultIntervalSeconds
 	} else if monitorConfigCore.IntervalSeconds < 0 {
 		return fmt.Errorf("intervalSeconds must be greater than 0s (%d provided)", monitorConfigCore.IntervalSeconds)
 	}
 
-	if err := validation.ValidateStruct(rCfg.monitorConfig); err != nil {
+	if err := validation.ValidateStruct(cfg.monitorConfig); err != nil {
 		return err
 	}
-	return validation.ValidateCustomConfig(rCfg.monitorConfig)
+	return validation.ValidateCustomConfig(cfg.monitorConfig)
 }
 
-// mergeConfigs is used as a custom unmarshaller to dynamically create the desired Smart Agent monitor config
+// Unmarshal dynamically creates the desired Smart Agent monitor config
 // from the provided receiver config content.
-func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error {
+func (cfg *Config) Unmarshal(componentParser *config.Parser) error {
 	// AllSettings() is the user provided config and intoCfg is the default Config instance we populate to
 	// form the final desired version. To do so, we manually obtain all Config items, leaving only Smart Agent
 	// monitor config settings to be unmarshalled to their respective custom monitor config types.
-	allSettings := componentViperSection.AllSettings()
+	allSettings := componentParser.Viper().AllSettings()
 	monitorType, ok := allSettings["type"].(string)
 	if !ok || monitorType == "" {
 		return fmt.Errorf("you must specify a \"type\" for a smartagent receiver")
 	}
 
-	receiverCfg := intoCfg.(*Config)
 	var endpoint interface{}
 	if endpoint, ok = allSettings["endpoint"]; ok {
-		receiverCfg.Endpoint = fmt.Sprintf("%s", endpoint)
+		cfg.Endpoint = fmt.Sprintf("%s", endpoint)
 		delete(allSettings, "endpoint")
 	}
 
 	var err error
-	receiverCfg.DimensionClients, err = getStringSliceFromAllSettings(allSettings, "dimensionclients", errDimensionClientValue)
+	cfg.DimensionClients, err = getStringSliceFromAllSettings(allSettings, "dimensionclients", errDimensionClientValue)
 	if err != nil {
 		return err
 	}
@@ -122,12 +122,12 @@ func mergeConfigs(componentViperSection *viper.Viper, intoCfg interface{}) error
 		return fmt.Errorf("failed setting Smart Agent Monitor config defaults: %w", err)
 	}
 
-	err = setHostAndPortViaEndpoint(receiverCfg.Endpoint, monitorConfig)
+	err = setHostAndPortViaEndpoint(cfg.Endpoint, monitorConfig)
 	if err != nil {
 		return err
 	}
 
-	receiverCfg.monitorConfig = monitorConfig.(saconfig.MonitorCustomConfig)
+	cfg.monitorConfig = monitorConfig.(saconfig.MonitorCustomConfig)
 	return nil
 }
 

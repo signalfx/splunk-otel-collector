@@ -46,7 +46,8 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) pdata.Logs {
 		attrsCapacity++
 	}
 	attrs := lr.Attributes()
-	attrs.InitEmptyWithCapacity(attrsCapacity)
+	attrs.Clear()
+	attrs.EnsureCapacity(attrsCapacity)
 
 	if event.Category == 0 {
 		// This attribute must be present or SFx exporter will not know it's an event
@@ -62,7 +63,8 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) pdata.Logs {
 	if len(event.Properties) > 0 {
 		propMapVal := pdata.NewAttributeValueMap()
 		propMap := propMapVal.MapVal()
-		propMap.InitEmptyWithCapacity(len(event.Properties))
+		propMap.Clear()
+		propMap.EnsureCapacity(len(event.Properties))
 
 		for property, value := range event.Properties {
 			if value == nil {

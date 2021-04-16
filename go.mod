@@ -44,7 +44,7 @@ require (
 	github.com/signalfx/signalfx-agent v1.0.1-0.20210325135021-a18ea9d77b40
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
-	go.opentelemetry.io/collector v0.24.1-0.20210415171520-9ff58cbcbdb1
+	go.opentelemetry.io/collector v0.24.1-0.20210416180505-2b33043a5024
 	go.uber.org/zap v1.16.0
 	golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4
 	gopkg.in/yaml.v2 v2.4.0

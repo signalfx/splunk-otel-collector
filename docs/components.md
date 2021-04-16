@@ -36,5 +36,6 @@ new release. In addition, any of these components may be removed prior to the
 | :-------:      | :--------: | :-------: | :--------: |
 | carbon         |            | kafka     |            |
 | collectd       |            |           |            |
+| filelog        |            |           |            |
 | kafka          |            |           |            |
 | statsd         |            |           |            |

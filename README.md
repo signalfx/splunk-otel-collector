@@ -83,17 +83,11 @@ exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree
 
 ## Getting Started
 
-All you need to get started is your:
+All you need to get started is:
 
-- [Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
-- [Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
-
-This distribution provides a single binary and two deployment methods:
-
-- Agent: A Collector instance running with the application or on the same host
-  as the application (e.g. binary, sidecar, or daemonset).
-- Gateway: One or more Collector instances running as a standalone service
-  (e.g. container or deployment) typically per cluster, datacenter or region.
+- [Splunk Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
+- [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
+- [Agent or Gateway mode](docs/agent-vs-gateway.md)
 
 This distribution is supported on and packaged for a variety of platforms including:
 

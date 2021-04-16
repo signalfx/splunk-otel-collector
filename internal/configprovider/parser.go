@@ -20,7 +20,6 @@ import (
 
 	"github.com/spf13/cast"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configparser"
 )
 
 const (
@@ -58,10 +57,12 @@ func loadSettings(css map[string]interface{}, factories Factories) (map[string]C
 		// TODO: expand env vars.
 
 		// Decode the key into type and fullName components.
-		typeStr, fullName, err := configparser.DecodeTypeAndName(key)
+		componentID, err := config.IDFromString(key)
 		if err != nil {
 			return nil, &errInvalidTypeAndNameKey{fmt.Errorf("invalid %s type and name key %q: %v", configSourcesKey, key, err)}
 		}
+		typeStr := componentID.Type()
+		fullName := componentID.String()
 
 		// Find the factory based on "type" that we read from config source.
 		factory := factories[typeStr]

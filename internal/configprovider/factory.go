@@ -19,6 +19,7 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
 )
 
@@ -46,7 +47,7 @@ type Factory interface {
 	CreateDefaultConfig() ConfigSettings
 
 	// CreateConfigSource creates a configuration source based on the given config.
-	CreateConfigSource(ctx context.Context, params CreateParams, cfg ConfigSettings) (ConfigSource, error)
+	CreateConfigSource(ctx context.Context, params CreateParams, cfg ConfigSettings) (configsource.ConfigSource, error)
 }
 
 // Factories maps the type of a ConfigSource to the respective factory object.

@@ -14,9 +14,13 @@
 
 package configprovider
 
+import (
+	"go.opentelemetry.io/collector/config/experimental/configsource"
+)
+
 // WatcherNotSupported is the a watcher function that always returns ErrWatcherNotSupported.
 func WatcherNotSupported() error {
-	return ErrWatcherNotSupported
+	return configsource.ErrWatcherNotSupported
 }
 
 type retrieved struct {
@@ -25,14 +29,14 @@ type retrieved struct {
 }
 
 // NewRetrieved is a helper that implements the Retrieved interface.
-func NewRetrieved(value interface{}, watchForUpdateFn func() error) Retrieved {
+func NewRetrieved(value interface{}, watchForUpdateFn func() error) configsource.Retrieved {
 	return &retrieved{
 		value,
 		watchForUpdateFn,
 	}
 }
 
-var _ Retrieved = (*retrieved)(nil)
+var _ configsource.Retrieved = (*retrieved)(nil)
 
 func (r *retrieved) Value() interface{} {
 	return r.value

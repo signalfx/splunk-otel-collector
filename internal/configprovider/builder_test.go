@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
 )
 
@@ -39,7 +40,7 @@ func TestConfigSourceBuild(t *testing.T) {
 	tests := []struct {
 		configSettings     map[string]ConfigSettings
 		factories          Factories
-		expectedCfgSources map[string]ConfigSource
+		expectedCfgSources map[string]configsource.ConfigSource
 		wantErr            error
 		name               string
 	}{
@@ -101,7 +102,7 @@ func TestConfigSourceBuild(t *testing.T) {
 				},
 			},
 			factories: testFactories,
-			expectedCfgSources: map[string]ConfigSource{
+			expectedCfgSources: map[string]configsource.ConfigSource{
 				"tstcfgsrc/named": &testConfigSource{
 					ValueMap: map[string]valueEntry{
 						"tstcfgsrc/named": {
@@ -146,6 +147,6 @@ func (m *mockNilCfgSrcFactory) CreateDefaultConfig() ConfigSettings {
 	}
 }
 
-func (m *mockNilCfgSrcFactory) CreateConfigSource(context.Context, CreateParams, ConfigSettings) (ConfigSource, error) {
+func (m *mockNilCfgSrcFactory) CreateConfigSource(context.Context, CreateParams, ConfigSettings) (configsource.ConfigSource, error) {
 	return nil, nil
 }

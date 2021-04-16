@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 
+	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
 )
 
@@ -28,8 +29,8 @@ type (
 )
 
 // Build builds the ConfigSource objects according to the given ConfigSettings.
-func Build(ctx context.Context, configSourcesSettings map[string]ConfigSettings, params CreateParams, factories Factories) (map[string]ConfigSource, error) {
-	cfgSources := make(map[string]ConfigSource, len(configSourcesSettings))
+func Build(ctx context.Context, configSourcesSettings map[string]ConfigSettings, params CreateParams, factories Factories) (map[string]configsource.ConfigSource, error) {
+	cfgSources := make(map[string]configsource.ConfigSource, len(configSourcesSettings))
 	for fullName, cfgSrcSettings := range configSourcesSettings {
 		// If we have the setting we also have the factory.
 		factory, ok := factories[cfgSrcSettings.Type()]

@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/experimental/configsource"
 )
 
 func TestConfigSourceParser(t *testing.T) {
@@ -126,7 +127,7 @@ func (m *mockCfgSrcFactory) CreateDefaultConfig() ConfigSettings {
 	}
 }
 
-func (m *mockCfgSrcFactory) CreateConfigSource(_ context.Context, _ CreateParams, cfg ConfigSettings) (ConfigSource, error) {
+func (m *mockCfgSrcFactory) CreateConfigSource(_ context.Context, _ CreateParams, cfg ConfigSettings) (configsource.ConfigSource, error) {
 	if m.ErrOnCreateConfigSource != nil {
 		return nil, m.ErrOnCreateConfigSource
 	}

@@ -1,7 +1,7 @@
-# Linux Standalone
+# Linux Manual
 
 The easiest and recommended way to get started is with the [Linux installer
-script](./linux-installer.md). Alternatively, standalone installation is available.
+script](./linux-installer.md). Alternatively, binary installation is available.
 All Intel, AMD and ARM systemd-based operating systems are supported including
 CentOS, Debian, Oracle, Red Hat and Ubuntu. This installation method is useful
 for containerized environments or users wanting other common deployment
@@ -11,7 +11,7 @@ The following deployment options are supported:
 
 - [DEB and RPM Packages](#deb-and-rpm-packages)
 - [Docker](#docker)
-- [Standalone](#standalone)
+- [Binary](#binary)
 
 ## Getting Started
 
@@ -103,7 +103,7 @@ A docker-compose example is also available [here](../../examples/docker-compose)
 - Edit the `.env` appropriately for your environment
 - Run `docker-compose up`
 
-### Standalone
+### Binary
 
 Run as a binary on the local system:
 

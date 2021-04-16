@@ -44,20 +44,12 @@
 
 ---
 
-# Splunk Distribution of OpenTelemetry Collector
+# Splunk OpenTelemetry Connector
 
-The Splunk Distribution of [OpenTelemetry
-Collector](https://github.com/open-telemetry/opentelemetry-collector) provides
-a unified way to receive, process and export metric, trace, and log data for
-[Splunk Observability Cloud](https://www.observability.splunk.com/).
-
-**Installations that use this distribution can receive direct help from
-Splunk's support teams.** Customers are free to use the core OpenTelemetry OSS
-components (several do!) and we will provide best effort guidance to them for
-any issues that crop up, however only the Splunk distributions are in scope for
-official Splunk support and support-related SLAs.
-
-This distribution currently supports:
+Splunk OpenTelemetry Connector is a distribution of the [OpenTelemetry
+Collector](https://github.com/open-telemetry/opentelemetry-collector). It
+provides a unified way to receive, process, and export metric, trace, and log
+data for [Splunk Observability Cloud](https://www.observability.splunk.com/):
 
 - [Splunk APM](https://www.splunk.com/en_us/software/splunk-apm.html) via the
   [`sapm`
@@ -77,39 +69,37 @@ This distribution currently supports:
 - [Splunk Log Observer](https://www.splunk.com/en_us/form/splunk-log-observer.html) via
   the [`splunk_hec`
   exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
-- [Splunk Cloud](https://www.splunk.com/en_us/software/splunk-cloud.html) or
-  [Splunk
-  Enterprise](https://www.splunk.com/en_us/software/splunk-enterprise.html) via
-  the [`splunk_hec`
-  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
 
-> :construction: This project is currently in **BETA**.
+While it is recommended to use [Splunk
+Forwarders](https://www.splunk.com/en_us/products/splunk-enterprise/features/forwarders.html)
+to send data to [Splunk
+Cloud](https://www.splunk.com/en_us/software/splunk-cloud.html) or [Splunk
+Enterprise](https://www.splunk.com/en_us/software/splunk-enterprise.html),
+Splunk OpenTelemetry Connector can be configured to send data to them via the
+[`splunk_hec`
+exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
+
+> :construction: This project is currently in **BETA** ([what does beta mean?](docs/beta-definition.md)).
 
 ## Getting Started
 
-All you need to get started is your:
+All you need to get started is:
 
-- [Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
-- [Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
-
-This distribution provides a single binary and two deployment methods:
-
-- Agent: A Collector instance running with the application or on the same host
-  as the application (e.g. binary, sidecar, or daemonset).
-- Gateway: One or more Collector instances running as a standalone service
-  (e.g. container or deployment) typically per cluster, datacenter or region.
+- [Splunk Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
+- [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
+- [Agent or Gateway mode](docs/agent-vs-gateway.md)
 
 This distribution is supported on and packaged for a variety of platforms including:
 
 - Kubernetes
   - [Helm (recommended)](https://github.com/signalfx/splunk-otel-collector-chart)
-  - [YAML](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/sapmexporter/examples/signalfx-k8s.yaml)
+  - [YAML](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/kubernetes-yaml.md)
 - Linux
   - [Installer script (recommended)](./docs/getting-started/linux-installer.md)
-  - [Standalone](./docs/getting-started/linux-standalone.md)
+  - [Manual](./docs/getting-started/linux-manual.md)
 - Windows
   - [Installer script (recommended)](./docs/getting-started/windows-installer.md)
-  - [Standalone](./docs/getting-started/windows-standalone.md)
+  - [Manual](./docs/getting-started/windows-manual.md)
 
 You can consult additional use cases in the [examples](./examples) directory.
 

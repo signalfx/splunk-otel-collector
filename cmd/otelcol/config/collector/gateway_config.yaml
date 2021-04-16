@@ -1,6 +1,14 @@
 # Configuration file that uses the Splunk exporters (SAPM, SignalFx) to push
 # data to Splunk products.
 
+extensions:
+  health_check:
+  http_forwarder:
+    egress:
+      endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
+  zpages:
+    #endpoint: 0.0.0.0:55679
+
 receivers:
   jaeger:
     protocols:
@@ -69,14 +77,6 @@ exporters:
   # Debug
   #logging:
     #loglevel: debug
-
-extensions:
-  health_check:
-  http_forwarder:
-    egress:
-      endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
-  zpages:
-    #endpoint: 0.0.0.0:55679
 
 service:
   extensions: [health_check, http_forwarder, zpages]

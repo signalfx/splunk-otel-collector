@@ -100,10 +100,10 @@ This distribution is supported on and packaged for a variety of platforms includ
   - [YAML](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/kubernetes-yaml.md)
 - Linux
   - [Installer script (recommended)](./docs/getting-started/linux-installer.md)
-  - [Standalone](./docs/getting-started/linux-standalone.md)
+  - [Manual](./docs/getting-started/linux-manual.md)
 - Windows
   - [Installer script (recommended)](./docs/getting-started/windows-installer.md)
-  - [Standalone](./docs/getting-started/windows-standalone.md)
+  - [Manual](./docs/getting-started/windows-manual.md)
 
 You can consult additional use cases in the [examples](./examples) directory.
 

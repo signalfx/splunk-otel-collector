@@ -33,7 +33,7 @@ vulnerability is detected for a dependency of this project then either:
 By default, the Collector exposes the following endpoints:
 
 - `http(s)://<collectorFQDN>:13133/` Health endpoint useful for load balancer monitoring
-- `http(s)://<collectorFQDN>:[14250|14268]` Jaeger [gRPC|Thrift HTTP] receiver
+- `http(s)://<collectorFQDN>:[14250|14268]/api/traces` Jaeger [gRPC|Thrift HTTP] receiver
 - `http(s)://localhost:55679/debug/[tracez|pipelinez]` zPages monitoring
 - `http(s)://<collectorFQDN>:4317` OpenTelemetry gRPC receiver
 - `http(s)://<collectorFQDN>:6060` HTTP Forwarder used to receive Smart Agent `apiUrl` data

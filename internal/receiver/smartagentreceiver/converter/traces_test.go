@@ -318,22 +318,23 @@ func assertSpansAreEqual(t *testing.T, expectedResourceSpans, resourceSpans pdat
 				assert.Equal(t, expectedSpan.Status(), span.Status())
 				assert.Equal(t, expectedSpan.Links(), span.Links())
 
-				updateMap := func(m map[string]interface{}) func(k string, v pdata.AttributeValue) {
-					return func(k string, v pdata.AttributeValue) {
+				updateMap := func(m map[string]interface{}) func(k string, v pdata.AttributeValue) bool {
+					return func(k string, v pdata.AttributeValue) bool {
 						switch v.Type() {
 						case pdata.AttributeValueSTRING:
 							m[k] = v.StringVal()
 						case pdata.AttributeValueINT:
 							m[k] = v.IntVal()
 						}
+						return true
 					}
 				}
 
 				attributeMap := map[string]interface{}{}
-				span.Attributes().ForEach(updateMap(attributeMap))
+				span.Attributes().Range(updateMap(attributeMap))
 
 				expectedAttributeMap := map[string]interface{}{}
-				expectedSpan.Attributes().ForEach(updateMap(expectedAttributeMap))
+				expectedSpan.Attributes().Range(updateMap(expectedAttributeMap))
 
 				assert.Equal(t, expectedAttributeMap, attributeMap)
 

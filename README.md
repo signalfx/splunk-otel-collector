@@ -44,20 +44,14 @@
 
 ---
 
-# Splunk Distribution of OpenTelemetry Collector
+# Splunk OpenTelemetry Connector
 
-The Splunk Distribution of [OpenTelemetry
-Collector](https://github.com/open-telemetry/opentelemetry-collector) provides
-a unified way to receive, process and export metric, trace, and log data for
-[Splunk Observability Cloud](https://www.observability.splunk.com/).
+Splunk OpenTelemetry Connector is a distribution of the [OpenTelemetry
+Collector](https://github.com/open-telemetry/opentelemetry-collector). It
+provides a unified way to receive, process, and export metric, trace, and log
+data for [Splunk Observability Cloud](https://www.observability.splunk.com/).
 
-**Installations that use this distribution can receive direct help from
-Splunk's support teams.** Customers are free to use the core OpenTelemetry OSS
-components (several do!) and we will provide best effort guidance to them for
-any issues that crop up, however only the Splunk distributions are in scope for
-official Splunk support and support-related SLAs.
-
-This distribution currently supports:
+This distribution supports:
 
 - [Splunk APM](https://www.splunk.com/en_us/software/splunk-apm.html) via the
   [`sapm`
@@ -83,7 +77,7 @@ This distribution currently supports:
   the [`splunk_hec`
   exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
 
-> :construction: This project is currently in **BETA**.
+> :construction: This project is currently in **BETA** ([what does beta mean?](docs/beta-definition.md)).
 
 ## Getting Started
 
@@ -103,7 +97,7 @@ This distribution is supported on and packaged for a variety of platforms includ
 
 - Kubernetes
   - [Helm (recommended)](https://github.com/signalfx/splunk-otel-collector-chart)
-  - [YAML](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/sapmexporter/examples/signalfx-k8s.yaml)
+  - [YAML](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/kubernetes-yaml.md)
 - Linux
   - [Installer script (recommended)](./docs/getting-started/linux-installer.md)
   - [Standalone](./docs/getting-started/linux-standalone.md)

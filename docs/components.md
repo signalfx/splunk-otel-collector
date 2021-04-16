@@ -8,21 +8,21 @@ These components are considered stable. While in beta, breaking changes may be
 introduced in a new release. In addition, any of these components may be
 removed prior to the 1.0 release.
 
-| Receivers        | Processors        | Exporters  | Extensions    |
-| :--------------: | :--------:        | :-------:  | :--------:    |
-| fluentforward    | attributes        | file       | healthcheck   |
-| hostmetrics      | batch             | logging    | httpforwarder |
-| jaeger           | filter            | otlp       | host_observer |
-| k8s_cluster      | k8s_tagger        | otlphttp   | k8s_observer  |
-| kubeletstats     | memorylimiter     | sapm       | pprof         |
-| otlp             | metrictransform   | signalfx   | zpages        |
-| receiver_creator | resource          | splunk_hec |               |
-| sapm             | resourcedetection |            |               |
-| signalfx         | span              |            |               |
-| simpleprometheus |                   |            |               |
-| smartagent       |                   |            |               |
-| splunk_hec       |                   |            |               |
-| zipkin           |                   |            |               |
+| Receivers        | Processors           | Exporters  | Extensions    |
+| :--------------: | :--------:           | :-------:  | :--------:    |
+| fluentforward    | attributes           | file       | healthcheck   |
+| hostmetrics      | batch                | logging    | httpforwarder |
+| jaeger           | filter               | otlp       | host_observer |
+| k8s_cluster      | k8s_tagger           | otlphttp   | k8s_observer  |
+| kubeletstats     | memorylimiter        | sapm       | pprof         |
+| otlp             | metrictransform      | signalfx   | zpages        |
+| receiver_creator | probabilisticsampler | splunk_hec |               |
+| sapm             | resource             |            |               |
+| signalfx         | resourcedetection    |            |               |
+| simpleprometheus | span                 |            |               |
+| smartagent       |                      |            |               |
+| splunk_hec       |                      |            |               |
+| zipkin           |                      |            |               |
 
 ## Alpha
 

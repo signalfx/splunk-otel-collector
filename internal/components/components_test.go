@@ -62,6 +62,7 @@ func TestDefaultComponents(t *testing.T) {
 		"k8s_tagger",
 		"memory_limiter",
 		"metricstransform",
+		"probabilistic_sampler",
 		"resource",
 		"resourcedetection",
 		"span",

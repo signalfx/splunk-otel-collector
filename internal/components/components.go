@@ -52,6 +52,7 @@ import (
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/processor/filterprocessor"
 	"go.opentelemetry.io/collector/processor/memorylimiter"
+	"go.opentelemetry.io/collector/processor/probabilisticsamplerprocessor"
 	"go.opentelemetry.io/collector/processor/resourceprocessor"
 	"go.opentelemetry.io/collector/processor/spanprocessor"
 	"go.opentelemetry.io/collector/receiver/hostmetricsreceiver"
@@ -127,6 +128,7 @@ func Get() (component.Factories, error) {
 		k8sprocessor.NewFactory(),
 		memorylimiter.NewFactory(),
 		metricstransformprocessor.NewFactory(),
+		probabilisticsamplerprocessor.NewFactory(),
 		resourcedetectionprocessor.NewFactory(),
 		resourceprocessor.NewFactory(),
 		spanprocessor.NewFactory(),

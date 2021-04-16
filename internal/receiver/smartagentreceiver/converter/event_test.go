@@ -158,23 +158,24 @@ func assertLogsEqual(t *testing.T, expected, received pdata.Logs) {
 }
 
 func assertAttributeMapContainsAll(t *testing.T, first, second pdata.AttributeMap) {
-	first.ForEach(func(firstKey string, firstValue pdata.AttributeValue) {
+	first.Range(func(firstKey string, firstValue pdata.AttributeValue) bool {
 		secondValue, ok := second.Get(firstKey)
 		require.True(t, ok, fmt.Sprintf("first attribute %s not in second", firstKey))
 		require.Equal(t, firstValue.Type(), secondValue.Type())
 		if secondValue.Type() == pdata.AttributeValueMAP {
 			assertAttributeMapContainsAll(t, firstValue.MapVal(), secondValue.MapVal())
-			return
+			return true
 		}
 
 		if secondValue.Type() == pdata.AttributeValueDOUBLE {
 			// account for float32 -> float64 precision
 			assert.InDelta(t, firstValue.DoubleVal(), secondValue.DoubleVal(), .001)
-			return
+			return true
 		}
 
 		assert.EqualValues(t, firstValue, secondValue,
 			"second value doesn't match first for first key %s", firstKey,
 		)
+		return true
 	})
 }

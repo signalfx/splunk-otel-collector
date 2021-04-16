@@ -21,6 +21,7 @@ extensions:
     collectd:
       configDir: "${SPLUNK_COLLECTD_DIR}"
   zpages:
+    #endpoint: 0.0.0.0:55679
 
 receivers:
   fluentforward:
@@ -52,7 +53,7 @@ receivers:
       grpc:
       http:
   # This section is used to collect the OpenTelemetry Collector metrics
-  # Even if just a Splunk µAPM customer, these metrics are included
+  # Even if just a Splunk APM customer, these metrics are included
   prometheus:
     config:
       scrape_configs:

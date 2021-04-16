@@ -30,16 +30,26 @@ vulnerability is detected for a dependency of this project then either:
 
 ## Exposed endpoints
 
-By default, the Collector exposes the following endpoints:
+By default, the Splunk OpenTelemetry Connector exposes several endpoints.
+Endpoints will either be exposed:
 
-- `http(s)://<collectorFQDN>:13133/` Health endpoint useful for load balancer monitoring
-- `http(s)://<collectorFQDN>:[14250|14268]/api/traces` Jaeger [gRPC|Thrift HTTP] receiver
+- Locally (`localhost`): Within the service
+- Publicly (`0.0.0.0`): On all network interfaces
+
+The endpoints exposed depends on which mode the Splunk OpenTelemetry Connector
+is configured in.
+
+- `http(s)://0.0.0.0:13133/` Health endpoint useful for load balancer monitoring
+- `http(s)://0.0.0.0:[6831|6832|14250|14268]/api/traces` Jaeger [gRPC|Thrift HTTP] receiver
 - `http(s)://localhost:55679/debug/[tracez|pipelinez]` zPages monitoring
-- `http(s)://<collectorFQDN>:4317` OpenTelemetry gRPC receiver
-- `http(s)://<collectorFQDN>:6060` HTTP Forwarder used to receive Smart Agent `apiUrl` data
-- `http(s)://<collectorFQDN>:7276` SignalFx Infrastructure Monitoring gRPC receiver
+- `http(s)://0.0.0.0:4317` OpenTelemetry gRPC receiver
+- `http(s)://0.0.0.0:6060` HTTP Forwarder used to receive Smart Agent `apiUrl` data
+- `http(s)://0.0.0.0:7276` SignalFx Infrastructure Monitoring gRPC receiver
 - `http(s)://localhost:8888/metrics` Prometheus metrics for the Collector
-- `http(s)://<collectorFQDN>:9411/api/[v1|v2]/spans` Zipkin JSON (can be set to proto) receiver
-- `http(s)://<collectorFQDN>:9943/v2/trace` SignalFx APM receiver
+- `http(s)://localhost:8006` Fluent forward receiver
+- `http(s)://0.0.0.0:9080` SignalFx forwarder receiver
+- `http(s)://0.0.0.0:9411/api/[v1|v2]/spans` Zipkin JSON (can be set to proto) receiver
+- `http(s)://0.0.0.0:9943/v2/trace` SignalFx APM receiver
 
-Receivers can and should be disabled if not required for an environment.
+Components, especially receivers, can and should be disabled if not required
+for an environment.

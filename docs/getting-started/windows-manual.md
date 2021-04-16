@@ -1,4 +1,4 @@
-# Windows Standalone
+# Windows Manual
 
 A Windows MSI package (64-bit only) is available to download at
 [https://github.com/signalfx/splunk-otel-collector/releases

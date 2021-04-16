@@ -43,7 +43,6 @@ require (
 	github.com/signalfx/golib/v3 v3.3.16
 	github.com/signalfx/signalfx-agent v1.0.1-0.20210325135021-a18ea9d77b40
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cast v1.3.1 // indirect
 	github.com/stretchr/testify v1.7.0
 	go.opentelemetry.io/collector v0.24.1-0.20210416180505-2b33043a5024
 	go.uber.org/zap v1.16.0

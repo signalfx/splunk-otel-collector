@@ -23,6 +23,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.24.1-0.20210415203603-95b1d75d82fd
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.24.1-0.20210415203603-95b1d75d82fd
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.24.1-0.20210415203603-95b1d75d82fd
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.24.1-0.20210415203603-95b1d75d82fd
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.0.0-20210415203603-95b1d75d82fd
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.24.1-0.20210415203603-95b1d75d82fd
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.24.1-0.20210415203603-95b1d75d82fd
@@ -57,6 +58,7 @@ replace (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.0.0-00010101000000-000000000000 => github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.24.1-0.20210415203603-95b1d75d82fd
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.0.0-00010101000000-000000000000 => github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.24.1-0.20210415203603-95b1d75d82fd
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.0.0-00010101000000-000000000000 => github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.24.1-0.20210415203603-95b1d75d82fd
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/stanza v0.0.0-00010101000000-000000000000 => github.com/open-telemetry/opentelemetry-collector-contrib/internal/stanza v0.24.1-0.20210415203603-95b1d75d82fd
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.24.1-0.20210415203603-95b1d75d82fd
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.0.0-00010101000000-000000000000 => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.24.1-0.20210415203603-95b1d75d82fd
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.0.0-00010101000000-000000000000 => github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.24.1-0.20210415203603-95b1d75d82fd

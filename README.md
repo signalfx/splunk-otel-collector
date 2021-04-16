@@ -79,7 +79,7 @@ Splunk OpenTelemetry Connector can be configured to send data to them via the
 [`splunk_hec`
 exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
 
-> :construction: This project is currently in **BETA** ([what does beta mean?](docs/beta-definition.md)).
+> :construction: This project is currently in **BETA** ([what does beta mean?](docs/beta-definition.md))
 
 ## Getting Started
 

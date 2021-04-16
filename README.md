@@ -49,9 +49,7 @@
 Splunk OpenTelemetry Connector is a distribution of the [OpenTelemetry
 Collector](https://github.com/open-telemetry/opentelemetry-collector). It
 provides a unified way to receive, process, and export metric, trace, and log
-data for [Splunk Observability Cloud](https://www.observability.splunk.com/).
-
-This distribution supports:
+data for [Splunk Observability Cloud](https://www.observability.splunk.com/):
 
 - [Splunk APM](https://www.splunk.com/en_us/software/splunk-apm.html) via the
   [`sapm`
@@ -71,11 +69,15 @@ This distribution supports:
 - [Splunk Log Observer](https://www.splunk.com/en_us/form/splunk-log-observer.html) via
   the [`splunk_hec`
   exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
-- [Splunk Cloud](https://www.splunk.com/en_us/software/splunk-cloud.html) or
-  [Splunk
-  Enterprise](https://www.splunk.com/en_us/software/splunk-enterprise.html) via
-  the [`splunk_hec`
-  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
+
+While it is recommended to use [Splunk
+Forwarders](https://www.splunk.com/en_us/products/splunk-enterprise/features/forwarders.html)
+to send data to [Splunk
+Cloud](https://www.splunk.com/en_us/software/splunk-cloud.html) or [Splunk
+Enterprise](https://www.splunk.com/en_us/software/splunk-enterprise.html),
+Splunk OpenTelemetry Connector can be configured to send data to them via the
+[`splunk_hec`
+exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
 
 > :construction: This project is currently in **BETA** ([what does beta mean?](docs/beta-definition.md)).
 

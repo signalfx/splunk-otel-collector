@@ -31,7 +31,13 @@ and logs.
 
 By default, Splunk OpenTelemetry Connector in agent mode is configured to send data
 directly to Splunk Observability Cloud. Alternatively, it can be configured to
-send to Splunk OpenTelemetry Connector in gateway mode.
+send to Splunk OpenTelemetry Connector in gateway mode. To send data to a
+gateway, change the
+[configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml):
+
+- Update `extensions.http_forwarder.egress.endpoint` (supports `${SPLUNK_GATEWAY_URL}` environment variable)
+- Update `exporters.otlp.endpoint` (supports `${SPLUNK_GATEWAY_URL}` environment variable)
+- Update `service.pipelines.[traces|metrics|logs].exporters`
 
 ## Gateway
 

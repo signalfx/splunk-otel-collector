@@ -16,6 +16,8 @@ extensions:
   http_forwarder:
     egress:
       endpoint: "${SPLUNK_API_URL}"
+      # Use instead when sending to gateway
+      #endpoint: "${SPLUNK_GATEWAY_URL}"
   smartagent:
     bundleDir: "${SPLUNK_BUNDLE_DIR}"
     collectd:
@@ -115,9 +117,13 @@ exporters:
     endpoint: "${SPLUNK_HEC_URL}"
     source: "otel"
     sourcetype: "otel"
+  # Send to gateway
+  otlp:
+    endpoint: "${SPLUNK_GATEWAY_URL}:4317"
+    insecure: true
   # Debug
-  #logging:
-    #loglevel: debug
+  logging:
+    loglevel: debug
 
 service:
   extensions: [health_check, http_forwarder, zpages]
@@ -130,14 +136,20 @@ service:
       - resourcedetection
       #- resource/add_environment
       exporters: [sapm, signalfx]
+      # Use instead when sending to gateway
+      #exporters: [otlp]
     metrics:
       receivers: [hostmetrics, otlp, prometheus, signalfx, smartagent/signalfx-forwarder]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
+      # Use instead when sending to gateway
+      #exporters: [otlp]
     logs/signalfx:
       receivers: [signalfx]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
+      # Use instead when sending to gateway
+      #exporters: [otlp]
     logs:
       receivers: [fluentforward]
       processors:
@@ -146,3 +158,5 @@ service:
       - resourcedetection
       #- resource/add_environment
       exporters: [splunk_hec]
+      # Use instead when sending to gateway
+      #exporters: [otlp]

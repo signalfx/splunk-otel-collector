@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configsource
+package configprovider
 
 import (
 	"bytes"
@@ -26,6 +26,7 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
@@ -156,10 +157,10 @@ type (
 type Manager struct {
 	// configSources is map from ConfigSource names (as defined in the configuration)
 	// and the respective instances.
-	configSources map[string]ConfigSource
+	configSources map[string]configsource.ConfigSource
 	// sessions track all the Session objects used to retrieve values to be injected
 	// into the configuration.
-	sessions map[string]Session
+	sessions map[string]configsource.Session
 	// watchingCh is used to notify users of the Manager that the WatchForUpdate function
 	// is ready and waiting for notifications.
 	watchingCh chan struct{}
@@ -240,11 +241,11 @@ func (m *Manager) WatchForUpdate() error {
 
 			err := watcherFn()
 			switch {
-			case errors.Is(err, ErrWatcherNotSupported):
+			case errors.Is(err, configsource.ErrWatcherNotSupported):
 				// The watcher for the retrieved value is not supported, nothing to
 				// do, just exit from the goroutine.
 				return
-			case errors.Is(err, ErrSessionClosed):
+			case errors.Is(err, configsource.ErrSessionClosed):
 				// The Session from which this watcher was retrieved is being closed.
 				// There is no error to report, just exit from the goroutine.
 				return
@@ -271,7 +272,7 @@ func (m *Manager) WatchForUpdate() error {
 		return err
 	case <-m.closeCh:
 		// This covers the case that all watchers returned ErrWatcherNotSupported.
-		return ErrSessionClosed
+		return configsource.ErrSessionClosed
 	}
 }
 
@@ -297,10 +298,10 @@ func (m *Manager) Close(ctx context.Context) error {
 	return consumererror.Combine(errs)
 }
 
-func newManager(configSources map[string]ConfigSource) *Manager {
+func newManager(configSources map[string]configsource.ConfigSource) *Manager {
 	return &Manager{
 		configSources: configSources,
-		sessions:      make(map[string]Session),
+		sessions:      make(map[string]configsource.Session),
 		watchingCh:    make(chan struct{}),
 		closeCh:       make(chan struct{}),
 	}
@@ -346,7 +347,7 @@ func (m *Manager) expandStringValues(ctx context.Context, value interface{}) (in
 
 // expandConfigSource retrieve data from the specified config source and injects them into
 // the configuration. The Manager tracks sessions and watcher objects as needed.
-func (m *Manager) expandConfigSource(ctx context.Context, cfgSrc ConfigSource, s string) (interface{}, error) {
+func (m *Manager) expandConfigSource(ctx context.Context, cfgSrc configsource.ConfigSource, s string) (interface{}, error) {
 	cfgSrcName, selector, params, err := parseCfgSrc(s)
 	if err != nil {
 		return nil, err
@@ -509,7 +510,7 @@ func parseCfgSrc(s string) (cfgSrcName, selector string, params interface{}, err
 		selector = strings.Trim(parts[0], " ")
 
 		if len(parts) > 1 && len(parts[1]) > 0 {
-			v := config.NewViper()
+			v := config.NewParser().Viper()
 			v.SetConfigType("yaml")
 			if err = v.ReadConfig(bytes.NewReader([]byte(parts[1]))); err != nil {
 				return

@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configsource
+package configprovider
 
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"path"
 	"testing"
@@ -26,6 +25,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
 )
 
@@ -81,7 +81,7 @@ func TestConfigSourceManager_NewManager(t *testing.T) {
 
 func TestConfigSourceManager_Simple(t *testing.T) {
 	ctx := context.Background()
-	manager := newManager(map[string]ConfigSource{
+	manager := newManager(map[string]configsource.ConfigSource{
 		"tstcfgsrc": &testConfigSource{
 			ValueMap: map[string]valueEntry{
 				"test_selector": {Value: "test_value"},
@@ -119,7 +119,7 @@ func TestConfigSourceManager_Simple(t *testing.T) {
 	manager.WaitForWatcher()
 	assert.NoError(t, manager.Close(ctx))
 	<-doneCh
-	assert.ErrorIs(t, errWatcher, ErrSessionClosed)
+	assert.ErrorIs(t, errWatcher, configsource.ErrSessionClosed)
 }
 
 func TestConfigSourceManager_ResolveRemoveConfigSourceSection(t *testing.T) {
@@ -132,7 +132,7 @@ func TestConfigSourceManager_ResolveRemoveConfigSourceSection(t *testing.T) {
 		},
 	}
 
-	manager := newManager(map[string]ConfigSource{
+	manager := newManager(map[string]configsource.ConfigSource{
 		"tstcfgsrc": &testConfigSource{},
 	})
 
@@ -150,7 +150,7 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 
 	tests := []struct {
 		config          map[string]interface{}
-		configSourceMap map[string]ConfigSource
+		configSourceMap map[string]configsource.ConfigSource
 		name            string
 	}{
 		{
@@ -158,7 +158,7 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 			config: map[string]interface{}{
 				"cfgsrc": "$tstcfgsrc:selector?{invalid}",
 			},
-			configSourceMap: map[string]ConfigSource{
+			configSourceMap: map[string]configsource.ConfigSource{
 				"tstcfgsrc": &testConfigSource{},
 			},
 		},
@@ -167,7 +167,7 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 			config: map[string]interface{}{
 				"cfgsrc": "$tstcfgsrc:selector",
 			},
-			configSourceMap: map[string]ConfigSource{
+			configSourceMap: map[string]configsource.ConfigSource{
 				"tstcfgsrc": &testConfigSource{ErrOnNewSession: testErr},
 			},
 		},
@@ -176,7 +176,7 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 			config: map[string]interface{}{
 				"cfgsrc": "$tstcfgsrc:selector",
 			},
-			configSourceMap: map[string]ConfigSource{
+			configSourceMap: map[string]configsource.ConfigSource{
 				"tstcfgsrc": &testConfigSource{ErrOnRetrieve: testErr},
 			},
 		},
@@ -185,7 +185,7 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 			config: map[string]interface{}{
 				"cfgsrc": "$tstcfgsrc:selector",
 			},
-			configSourceMap: map[string]ConfigSource{
+			configSourceMap: map[string]configsource.ConfigSource{
 				"tstcfgsrc": &testConfigSource{
 					ErrOnRetrieveEnd: testErr,
 					ValueMap: map[string]valueEntry{
@@ -209,7 +209,7 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 
 func TestConfigSourceManager_ArraysAndMaps(t *testing.T) {
 	ctx := context.Background()
-	manager := newManager(map[string]ConfigSource{
+	manager := newManager(map[string]configsource.ConfigSource{
 		"tstcfgsrc": &testConfigSource{
 			ValueMap: map[string]valueEntry{
 				"elem0": {Value: "elem0_value"},
@@ -268,7 +268,7 @@ func TestConfigSourceManager_ParamsHandling(t *testing.T) {
 		return nil
 	}
 
-	manager := newManager(map[string]ConfigSource{
+	manager := newManager(map[string]configsource.ConfigSource{
 		"tstcfgsrc": &tstCfgSrc,
 	})
 
@@ -292,7 +292,7 @@ func TestConfigSourceManager_WatchForUpdate(t *testing.T) {
 	ctx := context.Background()
 	watchForUpdateCh := make(chan error, 1)
 
-	manager := newManager(map[string]ConfigSource{
+	manager := newManager(map[string]configsource.ConfigSource{
 		"tstcfgsrc": &testConfigSource{
 			ValueMap: map[string]valueEntry{
 				"test_selector": {
@@ -323,10 +323,10 @@ func TestConfigSourceManager_WatchForUpdate(t *testing.T) {
 	}()
 
 	manager.WaitForWatcher()
-	watchForUpdateCh <- ErrValueUpdated
+	watchForUpdateCh <- configsource.ErrValueUpdated
 
 	<-doneCh
-	assert.ErrorIs(t, errWatcher, ErrValueUpdated)
+	assert.ErrorIs(t, errWatcher, configsource.ErrValueUpdated)
 	assert.NoError(t, manager.Close(ctx))
 }
 
@@ -341,11 +341,11 @@ func TestConfigSourceManager_MultipleWatchForUpdate(t *testing.T) {
 		case errFromWatchForUpdate := <-watchForUpdateCh:
 			return errFromWatchForUpdate
 		case <-watchDoneCh:
-			return ErrSessionClosed
+			return configsource.ErrSessionClosed
 		}
 	}
 
-	manager := newManager(map[string]ConfigSource{
+	manager := newManager(map[string]configsource.ConfigSource{
 		"tstcfgsrc": &testConfigSource{
 			ValueMap: map[string]valueEntry{
 				"test_selector": {
@@ -379,11 +379,11 @@ func TestConfigSourceManager_MultipleWatchForUpdate(t *testing.T) {
 	manager.WaitForWatcher()
 
 	for i := 0; i < watchForUpdateChSize; i++ {
-		watchForUpdateCh <- ErrValueUpdated
+		watchForUpdateCh <- configsource.ErrValueUpdated
 	}
 
 	<-doneCh
-	assert.ErrorIs(t, errWatcher, ErrValueUpdated)
+	assert.ErrorIs(t, errWatcher, configsource.ErrValueUpdated)
 	close(watchForUpdateCh)
 	assert.NoError(t, manager.Close(ctx))
 }
@@ -409,7 +409,7 @@ func TestConfigSourceManager_EnvVarHandling(t *testing.T) {
 		return nil
 	}
 
-	manager := newManager(map[string]ConfigSource{
+	manager := newManager(map[string]configsource.ConfigSource{
 		"tstcfgsrc": &tstCfgSrc,
 	})
 
@@ -431,7 +431,7 @@ func TestConfigSourceManager_EnvVarHandling(t *testing.T) {
 
 func TestManager_expandString(t *testing.T) {
 	ctx := context.Background()
-	manager := newManager(map[string]ConfigSource{
+	manager := newManager(map[string]configsource.ConfigSource{
 		"tstcfgsrc": &testConfigSource{
 			ValueMap: map[string]valueEntry{
 				"str_key": {Value: "test_value"},
@@ -620,69 +620,4 @@ func Test_parseCfgSrc(t *testing.T) {
 			assert.Equal(t, tt.params, params)
 		})
 	}
-}
-
-// testConfigSource a ConfigSource to be used in tests.
-type testConfigSource struct {
-	ValueMap map[string]valueEntry
-
-	ErrOnNewSession  error
-	ErrOnRetrieve    error
-	ErrOnRetrieveEnd error
-	ErrOnClose       error
-
-	OnRetrieve func(ctx context.Context, selector string, params interface{}) error
-}
-
-type valueEntry struct {
-	Value            interface{}
-	WatchForUpdateFn func() error
-}
-
-var _ (ConfigSource) = (*testConfigSource)(nil)
-var _ (Session) = (*testConfigSource)(nil)
-
-func (t *testConfigSource) NewSession(context.Context) (Session, error) {
-	if t.ErrOnNewSession != nil {
-		return nil, t.ErrOnNewSession
-	}
-	return t, nil
-}
-
-func (t *testConfigSource) Retrieve(ctx context.Context, selector string, params interface{}) (Retrieved, error) {
-	if t.OnRetrieve != nil {
-		if err := t.OnRetrieve(ctx, selector, params); err != nil {
-			return nil, err
-		}
-	}
-
-	if t.ErrOnRetrieve != nil {
-		return nil, t.ErrOnRetrieve
-	}
-
-	entry, ok := t.ValueMap[selector]
-	if !ok {
-		return nil, fmt.Errorf("no value for selector %q", selector)
-	}
-
-	watchForUpdateFn := func() error {
-		return ErrWatcherNotSupported
-	}
-
-	if entry.WatchForUpdateFn != nil {
-		watchForUpdateFn = entry.WatchForUpdateFn
-	}
-
-	return &retrieved{
-		value:            entry.Value,
-		watchForUpdateFn: watchForUpdateFn,
-	}, nil
-}
-
-func (t *testConfigSource) RetrieveEnd(context.Context) error {
-	return t.ErrOnRetrieveEnd
-}
-
-func (t *testConfigSource) Close(context.Context) error {
-	return t.ErrOnClose
 }

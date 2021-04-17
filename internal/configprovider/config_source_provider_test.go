@@ -34,10 +34,10 @@ import (
 
 func TestConfigSourceParserProvider(t *testing.T) {
 	tests := []struct {
-		factories      []Factory
 		parserProvider parserprovider.ParserProvider
 		wantErr        error
 		name           string
+		factories      []Factory
 	}{
 		{
 			name: "success",

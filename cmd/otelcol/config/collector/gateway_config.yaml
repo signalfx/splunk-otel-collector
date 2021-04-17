@@ -3,23 +3,32 @@
 
 extensions:
   health_check:
+    endpoint: 0.0.0.0:13133
   http_forwarder:
+    ingress:
+      endpoint: 0.0.0.0:6060
     egress:
       endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
   zpages:
-    #endpoint: 0.0.0.0:55679
+    endpoint: 0.0.0.0:55679
 
 receivers:
   jaeger:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:14250
       thrift_binary:
+        endpoint: 0.0.0.0:6832
       thrift_compact:
+        endpoint: 0.0.0.0:6831
       thrift_http:
+        endpoint: 0.0.0.0:14268
   otlp:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:4317
       http:
+        endpoint: 0.0.0.0:55681
   # This section is used to collect the OpenTelemetry Collector metrics
   # Even if just a Splunk APM customer, these metrics are included
   prometheus:
@@ -34,8 +43,11 @@ receivers:
             regex: '.*grpc_io.*'
             action: drop
   sapm:
+    endpoint: 0.0.0.0:7276
   signalfx:
+    endpoint: 0.0.0.0:9943
   zipkin:
+    endpoint: 0.0.0.0:9411
 
 processors:
   batch:

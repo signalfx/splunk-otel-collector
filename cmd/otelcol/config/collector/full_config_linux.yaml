@@ -38,7 +38,9 @@ receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:4317
       http:
+        endpoint: 0.0.0.0:55681
 
   #############################################################################
   # Traces
@@ -53,9 +55,13 @@ receivers:
   jaeger:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:14250
       thrift_binary:
+        endpoint: 0.0.0.0:6832
       thrift_compact:
+        endpoint: 0.0.0.0:6831
       thrift_http:
+        endpoint: 0.0.0.0:14268
 
   # Enables the kafka receiver with default settings
   #  - brokers = localhost:9092
@@ -68,6 +74,7 @@ receivers:
   #  - grpc (default endpoint = 0.0.0.0:7276)
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sapmreceiver
   sapm:
+    endpoint: 0.0.0.0:7276
     #access_token_passthrough: true
 
   # Enables the Smart Agent's SignalFx Forwarder with default settings
@@ -80,6 +87,7 @@ receivers:
   #  - grpc (default endpoint = 0.0.0.0:9411)
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/zipkinreceiver
   zipkin:
+    endpoint: 0.0.0.0:9411
 
   #############################################################################
   # Metrics
@@ -141,6 +149,7 @@ receivers:
   #  - grpc (default endpoint = 0.0.0.0:9943)
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/signalfxreceiver
   signalfx:
+    endpoint: 0.0.0.0:9943
     #access_token_passthrough: true
 
   #############################################################################
@@ -489,13 +498,14 @@ extensions:
   # Enables the health check extension
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/healthcheckextension
   health_check:
+    endpoint: 0.0.0.0:13133
 
   # Enables the http forwarder extension
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarder
   # TODO: Add realm
   http_forwarder:
-    #ingress:
-    #  endpoint: 0.0.0.0:6060
+    ingress:
+      endpoint: 0.0.0.0:6060
     egress:
       endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
 

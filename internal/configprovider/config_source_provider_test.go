@@ -33,11 +33,11 @@ import (
 )
 
 func TestConfigSourceParserProvider(t *testing.T) {
-	tests := []struct{
-		factories []Factory
+	tests := []struct {
+		factories      []Factory
 		parserProvider parserprovider.ParserProvider
-		wantErr error
-		name string
+		wantErr        error
+		name           string
 	}{
 		{
 			name: "success",
@@ -82,7 +82,7 @@ func TestConfigSourceParserProvider(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func (t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			factories := tt.factories
 			if factories == nil {
 				factories = DefaultConfigSources()
@@ -143,7 +143,7 @@ func (mpp *mockParserProvider) Get() (*config.Parser, error) {
 	return config.NewParser(), nil
 }
 
-type errOnParserProviderGet struct {error}
+type errOnParserProviderGet struct{ error }
 
 type fileParserProvider struct {
 	FileName string

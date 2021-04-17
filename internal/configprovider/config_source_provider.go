@@ -25,7 +25,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type errDuplicatedConfigSourceFactory struct { error }
+type errDuplicatedConfigSourceFactory struct{ error }
 
 type configSourceParserProvider struct {
 	logger       *zap.Logger

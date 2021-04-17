@@ -24,8 +24,8 @@ import (
 
 func TestVaultNewConfigSource(t *testing.T) {
 	tests := []struct {
-		name    string
 		config  *Config
+		name    string
 		wantErr bool
 	}{
 		{

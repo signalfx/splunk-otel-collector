@@ -35,9 +35,9 @@ func TestVaultFactory_CreateConfigSource(t *testing.T) {
 		Logger: zap.NewNop(),
 	}
 	tests := []struct {
-		name    string
 		config  *Config
 		wantErr error
+		name    string
 	}{
 		{
 			name:    "missing_endpoint",

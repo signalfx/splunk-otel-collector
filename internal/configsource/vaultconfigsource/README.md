@@ -16,20 +16,42 @@ Vault config sources:
 ```yaml
 config_sources:
   vault:
-    # endpoint is the Vault server address. It can also be provided by the standard Vault
-    # environment variable VAULT_ADDR. This option takes priority over the environment
-    # variable if provided.
+    # endpoint is the Vault server address. It is equivalent to the Vault tool
+    # environment variable VAULT_ADDR.
     endpoint: http://localhost:8200
     # path is the Vault path to the secret location.
     path: secret/data/kv
-    # token is used to access the Vault server. The standard Vault environment variable
-    # VAULT_TOKEN can be used instead. This option takes priority over the environment
-    # variable if provided.
-    token: some_toke_value
-    # is used only for non-dynamic V2 K/V secret stores. It is the interval in which the
-    # config source will check for changes on the data on the given Vault path. Defaults
-    # to 1 minute if not specified.
+    # poll_interval is used only for non-dynamic V2 K/V secret stores. It is
+    # the interval in which the config source will check for changes on the
+    # data on the given Vault path. Defaults to 1 minute if not specified.
     poll_interval: 90s
+    # auth is a section used to indicate the authentication method to be used.
+    # Exactly one method must be specified, it must be one of the following:
+    # "token", "iam", or "gcp".
+    auth:
+      # token is used to access the Vault server. It is equivalent to the Vault tool
+      # environment variable VAULT_TOKEN.
+      token: some_toke_value
+      # iam is used on AWS deployments to generate the required Vault token.
+      # For details about each of the settings below, see
+      # https://github.com/hashicorp/vault/blob/v1.1.0/builtin/credential/aws/cli.go#L148
+      iam:
+        aws_access_key_id: key_id
+        aws_secret_access_key: access_key
+        aws_security_token: security_token
+        header_value: header_value
+        mount: aws
+        role: role
+      # gcp is used on GCP deployments to generate the required Vault token.
+      # For details about each of the settings below, see
+      # https://github.com/hashicorp/vault-plugin-auth-gcp/blob/e1f6784b379d277038ca0661606aa8d23791e392/plugin/cli.go#L138
+      gcp:
+        role: role
+        mount: gcp
+        credentials: json_string # This setting is not recommended.
+        jwp_ext: 10m
+        service_account: some_account
+        project: project_id
 ```
 
 If multiple paths are needed create different instances of the config source, example:
@@ -39,9 +61,15 @@ config_sources:
     # Assuming that the environment variables VAULT_ADDR and VAULT_TOKEN are the defined
     # and the different secrets are on the same server but at different paths.
     vault/kv:
+      endpoint: $VAULT_ADDR
       path: secret/data/kv
+      auth:
+        token: $VAULT_TOKEN
     vault/db:
+      endpoint: $VAULT_ADDR
       path: database/creds/collector_role
+      auth:
+        token: $VAULT_TOKEN
 
 # Both Vault config sources can be used via their full name. Hypothetical example:
 components:

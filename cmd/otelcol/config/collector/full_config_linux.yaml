@@ -48,7 +48,7 @@ receivers:
   #  - grpc (default endpoint = 0.0.0.0:14250)
   #  - thrift_binary (default endpoint = 0.0.0.0:6832/udp)
   #  - thrift_compact (default endpoint = 0.0.0.0:6831/udp)
-  #  - thrift_http (default endpoint = 0.0.0.0:14268)
+  #  - thrift_http (default endpoint = 0.0.0.0:14268/api/traces)
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/jaegerreceiver
   jaeger:
     protocols:
@@ -77,7 +77,7 @@ receivers:
     type: signalfx-forwarder
 
   # Enables the zipkin receiver with default settings
-  #  - grpc (default endpoint = 0.0.0.0:9411)
+  #  - grpc (default endpoint = 0.0.0.0:9411/api/[v1|v2]/spans)
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/zipkinreceiver
   zipkin:
 

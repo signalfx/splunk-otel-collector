@@ -36,10 +36,13 @@ const (
 
 // Private error types to help with testability.
 type (
-	errMissingEndpoint         struct{ error }
+	errEmptyAuth               struct{ error }
+	errEmptyToken              struct{ error }
 	errInvalidEndpoint         struct{ error }
-	errMissingToken            struct{ error }
+	errMissingAuthentication   struct{ error }
+	errMissingEndpoint         struct{ error }
 	errMissingPath             struct{ error }
+	errMultipleAuthMethods     struct{ error }
 	errNonPositivePollInterval struct{ error }
 )
 
@@ -67,12 +70,12 @@ func (v *vaultFactory) CreateConfigSource(_ context.Context, params configprovid
 		return nil, &errInvalidEndpoint{fmt.Errorf("invalid endpoint %q: %w", vaultCfg.Endpoint, err)}
 	}
 
-	if vaultCfg.Token == "" {
-		return nil, &errMissingToken{errors.New("cannot connect to vault with an empty token")}
-	}
-
 	if vaultCfg.Path == "" {
 		return nil, &errMissingPath{errors.New("cannot connect to vault with an empty path")}
+	}
+
+	if err := validateAuth(vaultCfg.Authentication); err != nil {
+		return nil, err
 	}
 
 	if vaultCfg.PollInterval <= 0 {
@@ -85,4 +88,36 @@ func (v *vaultFactory) CreateConfigSource(_ context.Context, params configprovid
 // NewFactory creates a factory for Vault ConfigSource objects.
 func NewFactory() configprovider.Factory {
 	return &vaultFactory{}
+}
+
+func validateAuth(auth *Authentication) error {
+	if auth == nil {
+		return &errMissingAuthentication{errors.New("cannot connect to vault without an explicit auth method")}
+	}
+
+	countMethods := 0
+	if auth.Token != nil {
+		countMethods++
+		if *auth.Token == "" {
+			return &errEmptyToken{errors.New("token cannot be empty")}
+		}
+	}
+
+	if auth.IAMAuthentication != nil {
+		countMethods++
+	}
+
+	if auth.GCPAuthentication != nil {
+		countMethods++
+	}
+
+	if countMethods == 0 {
+		return &errEmptyAuth{errors.New("auth cannot be empty, exactly one method must be used")}
+	}
+
+	if countMethods > 1 {
+		return &errMultipleAuthMethods{errors.New("multiple auth methods were set, use only one")}
+	}
+
+	return nil
 }

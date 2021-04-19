@@ -29,6 +29,7 @@ import (
 )
 
 func TestVaultFactory_CreateConfigSource(t *testing.T) {
+	emptyStr := ""
 	factory := NewFactory()
 	assert.Equal(t, config.Type("vault"), factory.Type())
 	createParams := configprovider.CreateParams{
@@ -52,17 +53,53 @@ func TestVaultFactory_CreateConfigSource(t *testing.T) {
 			wantErr: &errInvalidEndpoint{},
 		},
 		{
-			name: "missing_token",
+			name: "missing_auth",
 			config: &Config{
 				Endpoint: "http://localhost:8200",
+				Path:     "some/path",
 			},
-			wantErr: &errMissingToken{},
+			wantErr: &errMissingAuthentication{},
+		},
+		{
+			name: "empty_auth",
+			config: &Config{
+				Endpoint:       "http://localhost:8200",
+				Path:           "some/path",
+				Authentication: &Authentication{},
+			},
+			wantErr: &errEmptyAuth{},
+		},
+		{
+			name: "multiple_auth_methods",
+			config: &Config{
+				Endpoint: "http://localhost:8200",
+				Path:     "some/path",
+				Authentication: &Authentication{
+					Token:             &tokenStr,
+					IAMAuthentication: &IAMAuthentication{},
+					GCPAuthentication: &GCPAuthentication{},
+				},
+			},
+			wantErr: &errMultipleAuthMethods{},
+		},
+		{
+			name: "empty_token",
+			config: &Config{
+				Endpoint: "http://localhost:8200",
+				Path:     "some/path",
+				Authentication: &Authentication{
+					Token: &emptyStr,
+				},
+			},
+			wantErr: &errEmptyToken{},
 		},
 		{
 			name: "missing_path",
 			config: &Config{
 				Endpoint: "http://localhost:8200",
-				Token:    "some_token",
+				Authentication: &Authentication{
+					Token: &tokenStr,
+				},
 			},
 			wantErr: &errMissingPath{},
 		},
@@ -70,16 +107,20 @@ func TestVaultFactory_CreateConfigSource(t *testing.T) {
 			name: "invalid_poll_interval",
 			config: &Config{
 				Endpoint: "http://localhost:8200",
-				Token:    "some_token",
-				Path:     "some/path",
+				Authentication: &Authentication{
+					Token: &tokenStr,
+				},
+				Path: "some/path",
 			},
 			wantErr: &errNonPositivePollInterval{},
 		},
 		{
 			name: "success",
 			config: &Config{
-				Endpoint:     "http://localhost:8200",
-				Token:        "some_token",
+				Endpoint: "http://localhost:8200",
+				Authentication: &Authentication{
+					Token: &tokenStr,
+				},
 				Path:         "some/path",
 				PollInterval: 2 * time.Minute,
 			},

@@ -32,12 +32,18 @@ func TestVaultNewConfigSource(t *testing.T) {
 			name: "minimal",
 			config: &Config{
 				Endpoint: "https://some.server:1234/",
+				Authentication: &Authentication{
+					Token: &tokenStr,
+				},
 			},
 		},
 		{
 			name: "invalid_endpoint",
 			config: &Config{
 				Endpoint: "some\bad_endpoint",
+				Authentication: &Authentication{
+					Token: &tokenStr,
+				},
 			},
 			wantErr: true,
 		},

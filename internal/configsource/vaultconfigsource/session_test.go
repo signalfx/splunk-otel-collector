@@ -58,6 +58,8 @@ const (
 	setupKVVer1NoTTL  = "docker exec " + vaultContainer + " vault kv put kv/my-secret ttl=0s my-value=s3cr3t"
 )
 
+var tokenStr = token // As a variable so it can be used as a pointer.
+
 func TestVaultSessionForKV(t *testing.T) {
 	requireCmdRun(t, startVault)
 	defer requireCmdRun(t, stopVault)
@@ -65,8 +67,10 @@ func TestVaultSessionForKV(t *testing.T) {
 
 	logger := zap.NewNop()
 	config := Config{
-		Endpoint:     address,
-		Token:        token,
+		Endpoint: address,
+		Authentication: &Authentication{
+			Token: &tokenStr,
+		},
 		Path:         "secret/data/kv",
 		PollInterval: 2 * time.Second,
 	}
@@ -109,8 +113,10 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 
 	logger := zap.NewNop()
 	config := Config{
-		Endpoint:     address,
-		Token:        token,
+		Endpoint: address,
+		Authentication: &Authentication{
+			Token: &tokenStr,
+		},
 		Path:         "secret/data/kv",
 		PollInterval: 2 * time.Second,
 	}
@@ -190,8 +196,10 @@ func TestVaultRenewableSecret(t *testing.T) {
 
 	logger := zap.NewNop()
 	config := Config{
-		Endpoint:     address,
-		Token:        token,
+		Endpoint: address,
+		Authentication: &Authentication{
+			Token: &tokenStr,
+		},
 		Path:         "database/creds/my-role",
 		PollInterval: 2 * time.Second,
 	}
@@ -261,8 +269,10 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 
 	logger := zap.NewNop()
 	config := Config{
-		Endpoint:     address,
-		Token:        token,
+		Endpoint: address,
+		Authentication: &Authentication{
+			Token: &tokenStr,
+		},
 		Path:         "kv/my-secret",
 		PollInterval: 2 * time.Second,
 	}
@@ -329,8 +339,10 @@ func TestVaultV1NonWatchableSecret(t *testing.T) {
 
 	logger := zap.NewNop()
 	config := Config{
-		Endpoint:     address,
-		Token:        token,
+		Endpoint: address,
+		Authentication: &Authentication{
+			Token: &tokenStr,
+		},
 		Path:         "kv/my-secret",
 		PollInterval: 2 * time.Second,
 	}
@@ -413,8 +425,10 @@ func TestVaultRetrieveErrors(t *testing.T) {
 
 			logger := zap.NewNop()
 			config := Config{
-				Endpoint:     address,
-				Token:        testToken,
+				Endpoint: address,
+				Authentication: &Authentication{
+					Token: &testToken,
+				},
 				Path:         tt.path,
 				PollInterval: 2 * time.Second,
 			}

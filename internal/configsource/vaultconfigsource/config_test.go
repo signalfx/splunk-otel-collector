@@ -40,6 +40,8 @@ func TestVaultLoadConfig(t *testing.T) {
 	actualSettings, err := configprovider.Load(context.Background(), v, factories)
 	require.NoError(t, err)
 
+	devToken := "dev_token"
+	otherToken := "other_token"
 	expectedSettings := map[string]configprovider.ConfigSettings{
 		"vault": &Config{
 			Settings: &configprovider.Settings{
@@ -47,9 +49,11 @@ func TestVaultLoadConfig(t *testing.T) {
 				NameVal: "vault",
 			},
 			Endpoint:     "http://localhost:8200",
-			Token:        "dev_token",
 			Path:         "secret/kv",
 			PollInterval: 1 * time.Minute,
+			Authentication: &Authentication{
+				Token: &devToken,
+			},
 		},
 		"vault/poll_interval": &Config{
 			Settings: &configprovider.Settings{
@@ -57,9 +61,11 @@ func TestVaultLoadConfig(t *testing.T) {
 				NameVal: "vault/poll_interval",
 			},
 			Endpoint:     "https://localhost:8200",
-			Token:        "other_token",
 			Path:         "other/path/kv",
 			PollInterval: 10 * time.Second,
+			Authentication: &Authentication{
+				Token: &otherToken,
+			},
 		},
 	}
 

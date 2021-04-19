@@ -21,19 +21,31 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
-// Config holds the configuration for the creation of Vault ConfigSource objects.
+// Config holds the configuration for the creation of Vault config source objects.
 type Config struct {
 	*configprovider.Settings
 	// Endpoint is the address of the Vault server, typically it is set via the
 	// VAULT_ADDR environment variable for the Vault CLI.
 	Endpoint string `mapstructure:"endpoint"`
-	// Token is the token to be used to access the Vault server, typically is set
-	// via the VAULT_TOKEN environment variable for the Vault CLI.
-	Token string `mapstructure:"token"`
 	// Path is the Vault path where the secret to be retrieved is located.
 	Path string `mapstructure:"path"`
+	// Authentication defines used authentication mechanism.
+	Authentication *Authentication `mapstructure:"auth"`
 	// PollInterval is the interval in which the config source will check for
 	// changes on the data on the given Vault path. This is only used for
 	// non-dynamic secret stores. Defaults to 1 minute if not specified.
 	PollInterval time.Duration `mapstructure:"poll_interval"`
+}
+
+// Authentication holds the authentication configuration for Vault config source objects.
+type Authentication struct {
+	// Token is the token to be used to access the Vault server, typically is set
+	// via the VAULT_TOKEN environment variable for the Vault CLI.
+	Token *string `mapstructure:"token"`
+	// IAMAuthentication holds the authentication options for AWS IAM. The options
+	// are the same as the vault CLI tool, see https://github.com/hashicorp/vault/blob/v1.1.0/builtin/credential/aws/cli.go#L148.
+	IAMAuthentication *IAMAuthentication `mapstructure:"iam"`
+	// GCPAuthentication holds the authentication options for GCP. The options
+	// are the same as the vault CLI tool, see https://github.com/hashicorp/vault-plugin-auth-gcp/blob/e1f6784b379d277038ca0661606aa8d23791e392/plugin/cli.go#L120.
+	GCPAuthentication *GCPAuthentication `mapstructure:"gcp"`
 }

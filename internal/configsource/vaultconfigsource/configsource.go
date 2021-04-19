@@ -17,6 +17,7 @@ package vaultconfigsource
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/vault/api"
@@ -47,7 +48,12 @@ func newConfigSource(logger *zap.Logger, cfg *Config) (*vaultConfigSource, error
 		return nil, err
 	}
 
-	client.SetToken(cfg.Token)
+	token, err := getClientToken(client, *cfg.Authentication)
+	if err != nil {
+		return nil, err
+	}
+
+	client.SetToken(token)
 
 	return &vaultConfigSource{
 		logger:       logger,
@@ -55,4 +61,16 @@ func newConfigSource(logger *zap.Logger, cfg *Config) (*vaultConfigSource, error
 		path:         cfg.Path,
 		pollInterval: cfg.PollInterval,
 	}, nil
+}
+
+func getClientToken(client *api.Client, auth Authentication) (string, error) {
+	switch {
+	case auth.Token != nil:
+		return *auth.Token, nil
+	case auth.IAMAuthentication != nil:
+		return auth.IAMAuthentication.Token(client)
+	case auth.GCPAuthentication != nil:
+		return auth.GCPAuthentication.Token(client)
+	}
+	return "", &errEmptyAuth{errors.New("auth cannot be empty, exactly one method must be used")}
 }

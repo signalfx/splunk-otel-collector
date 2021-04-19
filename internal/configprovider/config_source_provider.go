@@ -52,6 +52,9 @@ func NewConfigSourceParserProvider(logger *zap.Logger, appStartInfo component.Ap
 	}
 }
 
+// Get returns a config.Parser that wraps the parserprovider.Default() with a parser
+// that can load and inject data from config sources. If there are no config sources
+// in the configuration the returned parser behaves like the parserprovider.Default().
 func (c *configSourceParserProvider) Get() (*config.Parser, error) {
 	defaultParser, err := c.pp.Get()
 	if err != nil {
@@ -77,10 +80,14 @@ func (c *configSourceParserProvider) Get() (*config.Parser, error) {
 	return parser, nil
 }
 
+// WatchForUpdate is used to monitor for updates on configuration values that
+// were retrieved from config sources.
 func (c *configSourceParserProvider) WatchForUpdate() error {
 	return c.csm.WatchForUpdate()
 }
 
+// Close ends the watch for updates and closes the parser provider and respective
+// config sources.
 func (c *configSourceParserProvider) Close(ctx context.Context) error {
 	return c.csm.Close(ctx)
 }

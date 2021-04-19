@@ -24,13 +24,13 @@ import (
 // Config holds the configuration for the creation of Vault config source objects.
 type Config struct {
 	*configprovider.Settings
+	// Authentication defines the authentication method to be used.
+	Authentication *Authentication `mapstructure:"auth"`
 	// Endpoint is the address of the Vault server, typically it is set via the
 	// VAULT_ADDR environment variable for the Vault CLI.
 	Endpoint string `mapstructure:"endpoint"`
 	// Path is the Vault path where the secret to be retrieved is located.
 	Path string `mapstructure:"path"`
-	// Authentication defines used authentication mechanism.
-	Authentication *Authentication `mapstructure:"auth"`
 	// PollInterval is the interval in which the config source will check for
 	// changes on the data on the given Vault path. This is only used for
 	// non-dynamic secret stores. Defaults to 1 minute if not specified.

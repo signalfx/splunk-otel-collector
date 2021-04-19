@@ -26,8 +26,13 @@ GO_ACC=go-acc
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 GOSEC=gosec
-GOTEST=go test
+
+# CircleCI runtime.NumCPU() is for host machine despite container instance only granting 2.
+# If we are in a CI job, limit to 2 (and scale as we increase executor size).
+NUM_CORES := $(shell if [ -z ${CIRCLE_JOB} ]; then echo `getconf _NPROCESSORS_ONLN` ; else echo 2; fi )
+GOTEST=go test -p $(NUM_CORES)
 GOTEST_OPT?= -v -race -timeout 180s
+
 IMPI=impi
 LINT=golangci-lint
 MISSPELL=misspell -error
@@ -85,7 +90,7 @@ integration-test:
 test-with-cover:
 	@echo Verifying that all packages have test files to count in coverage
 	@echo pre-compiling tests
-	@time go test -i $(ALL_PKGS)
+	@time go test -p $(NUM_CORES) -i $(ALL_PKGS)
 	$(GO_ACC) $(ALL_PKGS)
 	go tool cover -html=coverage.txt -o coverage.html
 

@@ -34,9 +34,7 @@ from .constants import (
     CHAPERONE_API_URL,
     CLOUDFRONT_DISTRIBUTION_ID,
     DEFAULT_TIMEOUT,
-    FLUENTD_CONFD,
-    FLUENTD_CONFIG,
-    MSI_CONFIG,
+    INSTALLER_SCRIPTS,
     PACKAGE_NAME,
     REPO_DIR,
     S3_BUCKET,
@@ -44,8 +42,6 @@ from .constants import (
     SIGN_TYPES,
     SIGNED_ARTIFACTS_REPO_URL,
     STAGING_REPO_URL,
-    WIX_IMAGE,
-    WXS_PATH,
 )
 
 
@@ -402,7 +398,7 @@ def release_rpm_to_artifactory(asset, args, **signing_args):
         )
 
 
-def msi_exists_in_s3(s3_client, path):
+def s3_file_exists(s3_client, path):
     results = s3_client.list_objects(Bucket=S3_BUCKET, Prefix=f"{path}")
     for content in results.get("Contents", []):
         if content.get("Key") == path:
@@ -417,11 +413,22 @@ def invalidate_cloudfront(paths):
         DistributionId=CLOUDFRONT_DISTRIBUTION_ID,
         InvalidationBatch={
             "Paths": {"Quantity": len(paths), "Items": [f"/{path}" for path in paths]},
-            "CallerReference": f"splunk-otel-collector-msi-{time.time()}",
+            "CallerReference": f"splunk-otel-collector-{time.time()}",
         },
     )
     print(resp)
     assert resp.get("ResponseMetadata", {}).get("HTTPStatusCode") == 201, "Failed to submit invalidation request!"
+
+
+def upload_file_to_s3(local_path, s3_path, force=False, profile="prod"):
+    session = boto3.Session(profile_name=profile)
+    s3_client = session.client("s3")
+    if not force and s3_file_exists(s3_client, s3_path):
+        resp = input(f"{S3_BUCKET}/{s3_path} already exists.\nOverwrite [y/N]: ")
+        if resp.lower() not in ("y", "yes"):
+            sys.exit(1)
+    print(f"Uploading {local_path} to {S3_BUCKET}/{s3_path} ...")
+    s3_client.upload_file(local_path, S3_BUCKET, s3_path)
 
 
 def build_msi(exe_path, args):
@@ -485,25 +492,18 @@ def release_msi_to_s3(asset, args, **signing_args):
         msi_path = asset.path
 
     if args.stage != "github" and not args.no_push:
-        session = boto3.Session(profile_name="prod")
-        s3_client = session.client("s3")
         s3_path = f"{S3_MSI_BASE_DIR}/{args.stage}/{asset.name}"
-        print(f"Uploading {asset.name} to {S3_BUCKET}/{s3_path} ...")
-        if not args.force and msi_exists_in_s3(s3_client, s3_path):
-            resp = input(f"{S3_BUCKET}/{s3_path} already exists.\nOverwrite [y/N]: ")
-            if resp.lower() not in ("y", "yes"):
-                sys.exit(1)
-        s3_client.upload_file(msi_path, S3_BUCKET, s3_path)
+        upload_file_to_s3(msi_path, s3_path, force=args.force)
         with tempfile.TemporaryDirectory() as tmpdir:
             latest_txt = os.path.join(tmpdir, "latest.txt")
             match = re.match(f"^{PACKAGE_NAME}-(\d+\.\d+\.\d+(\.\d+)?)-amd64.msi$", asset.name)
-            assert match, f"Failed to version from '{asset.name}'!"
+            assert match, f"Failed to get version from '{asset.name}'!"
             msi_version = match.group(1)
             with open(latest_txt, "w") as fd:
                 fd.write(msi_version)
             s3_latest_path = f"{S3_MSI_BASE_DIR}/{args.stage}/latest.txt"
             print(f"Updating {S3_BUCKET}/{s3_latest_path} for version '{msi_version}' ...")
-            s3_client.upload_file(latest_txt, S3_BUCKET, s3_latest_path)
+            upload_file_to_s3(latest_txt, s3_latest_path, force=True)
             invalidate_cloudfront([s3_path, s3_latest_path])
 
 
@@ -543,3 +543,15 @@ def download_github_assets(github_release, args):
             sys.exit(1)
 
     return assets, checksums_asset
+
+
+def release_installers_to_s3(force=False):
+    resp = input("Releasing installer scripts to S3:\nContinue [y/N]: ")
+    if resp.lower() not in ("y", "yes"):
+        sys.exit(1)
+
+    for s3_path, local_path in INSTALLER_SCRIPTS.items():
+        assert os.path.isfile(local_path), f"{local_path} not found!"
+        upload_file_to_s3(str(local_path), s3_path, force=force)
+
+    invalidate_cloudfront(INSTALLER_SCRIPTS.keys())

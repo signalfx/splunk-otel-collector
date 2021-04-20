@@ -66,7 +66,7 @@ func (v *vaultSession) Retrieve(_ context.Context, selector string, _ interface{
 		}
 
 		// The keys come all from the same secret so creating a watcher only for the
-		// first it is fine.
+		// first is fine.
 		var err error
 		watchForUpdateFn, err = v.buildWatcherFn()
 		if err != nil {
@@ -107,6 +107,8 @@ func newSession(client *api.Client, path string, logger *zap.Logger, pollInterva
 	}, nil
 }
 
+// readSecret reads the secret from the vaultSession path and if successful
+// it stores the secret on the vaultSession secret field.
 func (v *vaultSession) readSecret() error {
 	secret, err := v.client.Logical().Read(v.path)
 	if err != nil {
@@ -297,6 +299,8 @@ func (v *vaultSession) extractVersionMetadata(metadataMap map[string]interface{}
 
 // Allows key to be dot-delimited to traverse nested maps.
 func traverseToKey(data map[string]interface{}, key string) interface{} {
+	// Since strings.Split is called with a non-empty separator it will always return
+	// a slice with at least one element.
 	parts := strings.Split(key, ".")
 
 	for i := 0; ; i++ {

@@ -1,4 +1,4 @@
-# Vault Config Source
+# Vault Config Source (Alpha)
 
 Use the [Vault](https://www.vaultproject.io/) config source to retrieve data from
 Vault and inject it into your collector configuration. It supports:

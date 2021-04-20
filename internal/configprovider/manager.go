@@ -39,6 +39,9 @@ const (
 	// configSourceNameDelimChar is the char used to terminate the name of config source
 	// when it is used to retrieve values to inject in the configuration
 	configSourceNameDelimChar = ':'
+	// typeAndNameSeparator is the separator that is used between type and name in type/name
+	// composite keys.
+	typeAndNameSeparator = '/'
 )
 
 // private error types to help with testability
@@ -405,18 +408,19 @@ func (m *Manager) expandString(ctx context.Context, s string) (interface{}, erro
 
 			case s[j+1] == '{':
 				// Bracketed usage, consume everything until first '}' exactly as os.Expand.
-				expandableContent, w = getShellName(s[j+1:])
+				expandableContent, w = scanToClosingBracket(s[j+1:])
 				expandableContent = strings.Trim(expandableContent, " ") // Allow for some spaces.
-				if len(expandableContent) > 1 && strings.Contains(expandableContent, string(configSourceNameDelimChar)) {
+				delimIndex := strings.Index(expandableContent, string(configSourceNameDelimChar))
+				if len(expandableContent) > 1 && delimIndex > -1 {
 					// Bracket expandableContent contains ':' treating it as a config source.
-					cfgSrcName, _ = getShellName(expandableContent)
+					cfgSrcName = expandableContent[:delimIndex]
 				}
 
 			default:
 				// Non-bracketed usage, ie.: found the prefix char, it can be either a config
 				// source or an environment variable.
 				var name string
-				name, w = getShellName(s[j+1:])
+				name, w = getTokenName(s[j+1:])
 				expandableContent = name // Assume for now that it is an env var.
 
 				// Peek next char after name, if it is a config source name delimiter treat the remaining of the
@@ -604,6 +608,62 @@ func osExpandEnv(buf []byte, name string, w int) []byte {
 	return buf
 }
 
+// scanToClosingBracket consumes everything until a closing bracket '}' following the
+// same logic of function getShellName (os package, env.go) when handling environment
+// variables with the "${<env_var>}" syntax. It returns the expression between brackets
+// and the number of characters consumed from the original string.
+func scanToClosingBracket(s string) (string, int) {
+	for i := 1; i < len(s); i++ {
+		if s[i] == '}' {
+			if i == 1 {
+				return "", 2 // Bad syntax; eat "${}"
+			}
+			return s[1:i], i + 1
+		}
+	}
+	return "", 1 // Bad syntax; eat "${"
+}
+
+// getTokenName consumes characters until it has the name of either an environment
+// variable or config source. It returns the name of the config source or enviroment
+// variable and the number of characters consumed from the original string.
+func getTokenName(s string) (string, int) {
+	if len(s) > 0 && isShellSpecialVar(s[0]) {
+		// Special shell character, treat it os.Expand function.
+		return s[0:1], 1
+	}
+
+	var i int
+	firstNameSepIdx := -1
+	for i = 0; i < len(s); i++ {
+		if isAlphaNum(s[i]) {
+			// Continue while alphanumeric plus underscore.
+			continue
+		}
+
+		if s[i] == typeAndNameSeparator && firstNameSepIdx == -1 {
+			// If this is the first type name separator store the index and continue.
+			firstNameSepIdx = i
+			continue
+		}
+
+		// It is one of the following cases:
+		// 1. End of string
+		// 2. Reached a non-alphanumeric character, preceded by at most one
+		//    typeAndNameSeparator character.
+		break
+	}
+
+	if firstNameSepIdx != -1 && (i >= len(s) || s[i] != configSourceNameDelimChar) {
+		// Found a second non alpha-numeric character before the end of the string
+		// but it is not the config source delimiter. Use the name until the first
+		// name delimiter.
+		return s[:firstNameSepIdx], firstNameSepIdx
+	}
+
+	return s[:i], i
+}
+
 // Below are helper functions used by os.Expand, copied without changes from original sources (env.go).
 
 // isShellSpecialVar reports whether the character identifies a special
@@ -619,33 +679,4 @@ func isShellSpecialVar(c uint8) bool {
 // isAlphaNum reports whether the byte is an ASCII letter, number, or underscore
 func isAlphaNum(c uint8) bool {
 	return c == '_' || '0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z'
-}
-
-// getShellName returns the name that begins the string and the number of bytes
-// consumed to extract it. If the name is enclosed in {}, it's part of a ${}
-// expansion and two more bytes are needed than the length of the name.
-func getShellName(s string) (string, int) {
-	switch {
-	case s[0] == '{':
-		if len(s) > 2 && isShellSpecialVar(s[1]) && s[2] == '}' {
-			return s[1:2], 3
-		}
-		// Scan to closing brace
-		for i := 1; i < len(s); i++ {
-			if s[i] == '}' {
-				if i == 1 {
-					return "", 2 // Bad syntax; eat "${}"
-				}
-				return s[1:i], i + 1
-			}
-		}
-		return "", 1 // Bad syntax; eat "${"
-	case isShellSpecialVar(s[0]):
-		return s[0:1], 1
-	}
-	// Scan alphanumerics.
-	var i int
-	for i = 0; i < len(s) && isAlphaNum(s[i]); i++ {
-	}
-	return s[:i], i
 }

@@ -385,8 +385,8 @@ jobs:
           name: Calculate checksums
           command: cd dist && shasum -a 256 * > checksums.txt
       - run:
-          name: Create Github pre-release and upload artifacts
-          command: ghr --prerelease -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG dist/
+          name: Create Github draft release and upload artifacts
+          command: ghr --draft -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG dist/
 
   publish-dev:
     docker:

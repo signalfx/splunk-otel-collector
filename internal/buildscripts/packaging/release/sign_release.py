@@ -29,6 +29,7 @@ from helpers.util import (
     release_rpm_to_artifactory,
     release_msi_to_s3,
     sign_exe,
+    release_installers_to_s3,
 )
 
 
@@ -119,17 +120,18 @@ def main():
     if not args.tag:
         args.tag = github_release.tag_name
 
-    if not args.no_push and not args.download_only and args.stage == "release" and not github_release.prerelease:
-        resp = input(f"{github_release.html_url} is not labeled 'Pre-release'.\nContinue? [y/N]: ")
+    if not args.no_push and not args.download_only and args.stage == "release" and not github_release.draft:
+        resp = input(f"{github_release.html_url} is not a draft.\nContinue? [y/N]: ")
         if resp.lower() not in ("y", "yes"):
             sys.exit(1)
 
     if not args.assets_dir:
         args.assets_dir = os.path.join(ASSETS_BASE_DIR, args.tag)
 
+    assets = []
     if args.path:
         assets = get_local_assets(args)
-    else:
+    elif args.component != ["installer"]:
         resp = input(f"Downloading assets from {github_release.html_url} to '{args.assets_dir}'.\nContinue? [y/N]: ")
         if resp.lower() not in ("y", "yes"):
             sys.exit(1)
@@ -138,19 +140,20 @@ def main():
         if args.download_only:
             sys.exit(0)
 
-    if args.no_push:
-        print("Signing the following asset(s):")
-    elif args.stage == "release":
-        print(f"Releasing the following asset(s) to the '{args.stage}' stage and {github_release.html_url}:")
-    elif args.stage == "github":
-        print(f"Releasing the following asset(s) to {github_release.html_url}:")
-    else:
-        print(f"Releasing the following asset(s) to the '{args.stage}' stage:")
-    for asset in assets:
-        print(asset.path)
-    resp = input("Continue? [y/N]: ")
-    if resp.lower() not in ("y", "yes"):
-        sys.exit(1)
+    if assets:
+        if args.no_push and args.stage != "test":
+            print("Signing the following asset(s):")
+        elif args.stage == "release":
+            print(f"Releasing the following asset(s) to the '{args.stage}' stage and {github_release.html_url}:")
+        elif args.stage == "github":
+            print(f"Releasing the following asset(s) to {github_release.html_url}:")
+        else:
+            print(f"Releasing the following asset(s) to the '{args.stage}' stage:")
+        for asset in assets:
+            print(asset.path)
+        resp = input("Continue? [y/N]: ")
+        if resp.lower() not in ("y", "yes"):
+            sys.exit(1)
 
     for asset in assets:
         if asset.component == "deb":
@@ -190,9 +193,13 @@ def main():
                         github_asset.delete_asset()
                         break
                 github_release.upload_asset(asset.signed_path, name=asset.name)
-        if github_release.prerelease and args.stage == "release":
-            print(f"Removing 'Pre-release' label from {github_release.html_url}")
-            github_release.update_release(name=github_release.title, message=github_release.body, prerelease=False)
+        if github_release.draft and args.stage == "release":
+            print(f"Publishing release {github_release.html_url}")
+            github_release.update_release(name=github_release.title, message=github_release.body, draft=False)
+
+    # Release installer scripts to S3
+    if args.stage == "release" and not args.no_push and "installer" in args.component:
+        release_installers_to_s3(force=args.force)
 
 
 if __name__ == "__main__":

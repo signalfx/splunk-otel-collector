@@ -71,9 +71,6 @@ func TestConfigSourceParserProvider(t *testing.T) {
 		},
 		{
 			name: "manager_resolve_error",
-			factories: []Factory{
-				&mockCfgSrcFactory{},
-			},
 			parserProvider: &fileParserProvider{
 				FileName: path.Join("testdata", "manager_resolve_error.yaml"),
 			},
@@ -85,7 +82,9 @@ func TestConfigSourceParserProvider(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			factories := tt.factories
 			if factories == nil {
-				factories = DefaultConfigSources()
+				factories = []Factory{
+					&mockCfgSrcFactory{},
+				}
 			}
 
 			pp := NewConfigSourceParserProvider(

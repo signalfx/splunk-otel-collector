@@ -35,13 +35,6 @@ type configSourceParserProvider struct {
 	factories    []Factory
 }
 
-// DefaultConfigSources return the default config sources available.
-func DefaultConfigSources() []Factory {
-	return []Factory{
-		// TODO: Initially empty, will add Vault, etcd, Zookeeper, etc.
-	}
-}
-
 // NewConfigSourceParserProvider creates a ParserProvider that uses config sources.
 func NewConfigSourceParserProvider(logger *zap.Logger, appStartInfo component.ApplicationStartInfo, factories ...Factory) parserprovider.ParserProvider {
 	return &configSourceParserProvider{

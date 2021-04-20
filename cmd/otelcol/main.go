@@ -75,7 +75,7 @@ func main() {
 	parserProvider := configprovider.NewConfigSourceParserProvider(
 		zap.NewNop(), // The service logger is not available yet, setting it to NoP.
 		info,
-		configprovider.DefaultConfigSources()...,
+		// TODO: Add config source factories.
 	)
 	serviceParams := service.Parameters{
 		ApplicationStartInfo: info,

@@ -26,3 +26,75 @@ updates:
     directory: "/internal/buildscripts/packaging/tests"
     schedule:
       interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/cmd/otelcol"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/examples/prometheus-federation/prom-counter"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/examples/splunk-hec/logging"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/internal/buildscripts/packaging/fpm"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/internal/buildscripts/packaging/msi/msi-builder"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/tests/receivers/smartagent/collectd-activemq/testdata/server"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/tests/receivers/smartagent/collectd-apache/testdata/server"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/tests/receivers/smartagent/collectd-cassandra/testdata/server"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/tests/receivers/smartagent/collectd-couchbase/testdata/server"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/tests/receivers/smartagent/collectd-elasticsearch/testdata/server"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/tests/receivers/smartagent/collectd-hadoop/testdata/server"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/tests/receivers/smartagent/collectd-kafka/testdata/kafka"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/tests/receivers/smartagent/collectd-nginx/testdata/server"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/tests/receivers/smartagent/collectd-solr/testdata/server"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/tests/receivers/smartagent/collectd-spark/testdata/server"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/tests/receivers/smartagent/haproxy/testdata/server"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/tests/receivers/smartagent/postgresql/testdata/client"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/tests/receivers/smartagent/postgresql/testdata/server"
+    schedule:
+      interval: "daily"

@@ -10,8 +10,7 @@ Vault and inject it into your collector configuration. It supports:
 ## Configuration
 
 Under the `config_sources:` use `vault:` or `vault/<name>:` to create a Vault config
-source Under the latter section, the following parameters are available to customize
-Vault config sources:
+source. The following parameters are available to customize Vault config sources:
 
 ```yaml
 config_sources:

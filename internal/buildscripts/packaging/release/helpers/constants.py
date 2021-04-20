@@ -37,7 +37,7 @@ STAGING_REPO_URL = f"{STAGING_URL}/{STAGING_REPO}"
 REPO_DIR = Path(__file__).parent.parent.parent.parent.parent.parent.resolve()
 ASSETS_BASE_DIR = REPO_DIR / "dist" / "release"
 COLLECTOR_REPO = "signalfx/splunk-otel-collector"
-COMPONENTS = ["deb", "rpm", "windows"]
+COMPONENTS = ["deb", "rpm", "windows", "installer"]
 PACKAGE_NAME = "splunk-otel-collector"
 STAGES = ("release", "beta", "test", "github")
 S3_BUCKET = "public-downloads--signalfuse-com"
@@ -50,3 +50,10 @@ WXS_PATH = "internal/buildscripts/packaging/msi/splunk-otel-collector.wxs"
 MSI_CONFIG = "cmd/otelcol/config/collector/agent_config.yaml"
 FLUENTD_CONFIG = "internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"
 FLUENTD_CONFD = "internal/buildscripts/packaging/msi/fluentd/conf.d"
+
+# Installer scripts
+INSTALLER_SCRIPTS_DIR = REPO_DIR / "internal" / "buildscripts" / "packaging" / "installer"
+INSTALLER_SCRIPTS = {
+    "splunk-otel-collector.sh": INSTALLER_SCRIPTS_DIR / "install.sh",
+    "splunk-otel-collector.ps1": INSTALLER_SCRIPTS_DIR / "install.ps1",
+}

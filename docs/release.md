@@ -46,17 +46,16 @@
 1. Ensure that the build and tests for the tag are successful.
 1. Ensure that the `quay.io/signalfx/splunk-otel-collector:<VERSION>` image
    was built and pushed.
-1. Ensure that the release was created and that the packages were published to
-   [Github Releases](https://github.com/signalfx/splunk-otel-collector/releases/).
-   The packages will be unsigned, and the release will be labeled as a
-   "Pre-release".
+1. Ensure that the Github draft release was created and that the unsigned
+   packages were published to [Github Releases](
+   https://github.com/signalfx/splunk-otel-collector/releases/).
 1. Run the following script in virtualenv to download the packages from the
-   Github release, sign them, and push the signed packages to Artifactory, S3,
-   and back to the Github release.
+   Github draft release, sign them, push the signed packages to
+   Artifactory, S3, and back to the Github draft release.
    ```
    $ source venv/bin/activate  # if not already in virtualenv
    $ ./internal/buildscripts/packaging/release/sign_release.py --stage release
    ```
-   This may take 10+ minutes to complete.  The "Pre-release" label will then be
-   removed from the Github release.  Run the script with `--help` for more
-   details and to see all available options.
+   This may take 10+ minutes to complete.  Upon completion, the Github draft
+   release will be published.  Run the script with `--help` for more details
+   and to see all available options.

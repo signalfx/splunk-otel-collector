@@ -77,6 +77,30 @@ custom fluentd log sources), and the collector will send these events to the
 HEC ingest endpoint determined by the `--realm SPLUNK_REALM` option, e.g.
 `https://ingest.SPLUNK_REALM.signalfx.com/v1/log`.
 
+The following fluentd plugins will also be installed:
+
+- [capng_c](https://github.com/fluent-plugins-nursery/capng_c) for enabling [Linux capabilities](https://docs.fluentd.org/deployment/linux-capability)
+- [fluent-plugin-systemd](https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) for systemd journal log collection
+
+Additionally, the following dependencies will be installed as prerequisites for
+the fluentd plugins:
+
+- Debian-based systems:
+  - `build-essential`
+  - `libcap-ng0`
+  - `libcap-ng-dev`
+  - `pkg-config`
+
+- RPM-based systems:
+  - `Development Tools`
+  - `libcap-ng`
+  - `libcap-ng-devel`
+  - `pkgconfig`
+
+> If log collection is not required, run the installer script with the
+> `--without-fluentd` option to skip installation of fluentd and the
+> plugins/dependencies listed above.
+
 To configure the collector to send log events to a custom HEC endpoint URL, you
 can specify the following parameters for the installer script:
 
@@ -103,10 +127,15 @@ sudo systemctl restart td-agent
 
 ### Uninstall
 
-If you wish to uninstall you can run:
+If you wish to uninstall the collector and fluentd you can run:
 
 ```sh
 $ sudo sh /tmp/splunk-otel-collector.sh --uninstall
 ```
 
-> Note that configuration files may be left on the filesystem.
+> Note that configuration files may be left on the filesystem.  On RPM-based
+> systems, modified configuration files will be renamed with the `.rpmsave`
+> extension and can be manually deleted if they are no longer needed.  On
+> Debian-based systems, modified configuration files will persist and should
+> be manually deleted before re-running the installer script if you do not
+> intend on re-using these configuration files.

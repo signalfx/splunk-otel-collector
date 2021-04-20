@@ -17,6 +17,7 @@ package configprovider
 
 import (
 	"context"
+	"os"
 	"path"
 	"testing"
 
@@ -35,6 +36,7 @@ func TestConfigSourceParser(t *testing.T) {
 	tests := []struct {
 		factories Factories
 		expected  map[string]ConfigSettings
+		envvars   map[string]string
 		wantErr   error
 		name      string
 		file      string
@@ -60,6 +62,31 @@ func TestConfigSourceParser(t *testing.T) {
 					Endpoint: "default_endpoint",
 				},
 			},
+		},
+		{
+			name:      "env_var_on_load",
+			file:      "env_var_on_load",
+			factories: testFactories,
+			envvars: map[string]string{
+				"ENV_VAR_ENDPOINT": "env_var_endpoint",
+				"ENV_VAR_TOKEN":    "env_var_token",
+			},
+			expected: map[string]ConfigSettings{
+				"tstcfgsrc": &mockCfgSrcSettings{
+					Settings: Settings{
+						TypeVal: "tstcfgsrc",
+						NameVal: "tstcfgsrc",
+					},
+					Endpoint: "https://env_var_endpoint:8200",
+					Token:    "env_var_token",
+				},
+			},
+		},
+		{
+			name:      "cfgsrc_load_cannot_use_cfgsrc",
+			file:      "cfgsrc_load_use_cfgsrc",
+			factories: testFactories,
+			wantErr:   &errUnknownConfigSource{},
 		},
 		{
 			name:      "bad_name",
@@ -93,6 +120,14 @@ func TestConfigSourceParser(t *testing.T) {
 			cfgFile := path.Join("testdata", tt.file+".yaml")
 			v, err := config.NewParserFromFile(cfgFile)
 			require.NoError(t, err)
+
+			for key, value := range tt.envvars {
+				require.NoError(t, os.Setenv(key, value))
+				keyToUnset := key
+				defer func() {
+					assert.NoError(t, os.Unsetenv(keyToUnset))
+				}()
+			}
 
 			cfgSrcSettings, err := Load(ctx, v, tt.factories)
 			require.IsType(t, tt.wantErr, err)

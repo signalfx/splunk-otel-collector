@@ -288,13 +288,7 @@ configure_env_file() {
   local value="$2"
   local env_file="$3"
 
-  mkdir -p "$(dirname $env_file)"
-
-  if [ -f "$env_file" ] && grep -q "^${key}=" "$env_file"; then
-    sed -i "s|^${key}=.*|${key}=${value}|" "$env_file"
-  else
-    echo "${key}=${value}" >> "$env_file"
-  fi
+  echo "${key}=${value}" >> "$env_file"
 }
 
 create_user_group() {
@@ -452,7 +446,8 @@ uninstall() {
             pkg="splunk-otel-collector"
           fi
           if dpkg -s $pkg 2>&1 >/dev/null; then
-            apt-get remove -y $pkg 2>&1
+            systemctl stop $pkg || true
+            apt-get purge -y $pkg 2>&1
             echo "Successfully removed the $pkg package"
           else
             agent_path="$( command -v agent )"
@@ -471,6 +466,7 @@ uninstall() {
             pkg="splunk-otel-collector"
           fi
           if rpm -q $pkg 2>&1 >/dev/null; then
+            systemctl stop $pkg || true
             if command -v yum >/dev/null 2>&1; then
               yum remove -y $pkg 2>&1
             else
@@ -748,6 +744,13 @@ parse_args_and_install() {
 
   if [ ! -f "${collector_env_path}.example" ]; then
     collector_env_path=$collector_env_old_path
+  fi
+
+  mkdir -p "$(dirname $collector_env_path)"
+
+  # remove existing env file and recreate with current values
+  if [ -f "$collector_env_path" ]; then
+    rm -f "$collector_env_path"
   fi
 
   configure_env_file "SPLUNK_CONFIG" "$collector_config_path" "$collector_env_path"

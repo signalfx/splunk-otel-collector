@@ -625,7 +625,7 @@ func scanToClosingBracket(s string) (string, int) {
 }
 
 // getTokenName consumes characters until it has the name of either an environment
-// variable or config source. It returns the name of the config source or enviroment
+// variable or config source. It returns the name of the config source or environment
 // variable and the number of characters consumed from the original string.
 func getTokenName(s string) (string, int) {
 	if len(s) > 0 && isShellSpecialVar(s[0]) {

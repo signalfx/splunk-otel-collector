@@ -26,8 +26,10 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/service"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
+	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
 )
 
@@ -70,7 +72,18 @@ func main() {
 		GitHash:  version.GitHash,
 	}
 
-	if err := run(service.Parameters{ApplicationStartInfo: info, Factories: factories}); err != nil {
+	parserProvider := configprovider.NewConfigSourceParserProvider(
+		zap.NewNop(), // The service logger is not available yet, setting it to NoP.
+		info,
+		// TODO: Add config source factories.
+	)
+	serviceParams := service.Parameters{
+		ApplicationStartInfo: info,
+		Factories:            factories,
+		ParserProvider:       parserProvider,
+	}
+
+	if err := run(serviceParams); err != nil {
 		log.Fatal(err)
 	}
 }

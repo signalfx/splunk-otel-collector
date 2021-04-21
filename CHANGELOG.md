@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## v0.25.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.25.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.25.0) and the [opentelemetry-collector-contrib v0.25.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.25.0) releases.
+
+## 🚀 New components 🚀
+
+- [filelog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver) receiver (#289)
+- [probabilisticsampler](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/probabilisticsamplerprocessor) processor (#300)
+
+### 💡 Enhancements 💡
+
+- Add the config source manager (#295, #303)
+
+### 🧰 Bug fixes 🧰
+
+- Correct Jaeger Thrift HTTP Receiver URL to /api/traces (#288)
+
 ## v0.24.3
 
 ### 💡 Enhancements 💡

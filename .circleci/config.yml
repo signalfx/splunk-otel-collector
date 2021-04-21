@@ -386,7 +386,7 @@ jobs:
           command: cd dist && shasum -a 256 * > checksums.txt
       - run:
           name: Create Github draft release and upload artifacts
-          command: ghr --draft -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG dist/
+          command: ghr --draft -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -n $CIRCLE_TAG --replace $CIRCLE_TAG dist/
 
   publish-dev:
     docker:

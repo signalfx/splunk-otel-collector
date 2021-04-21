@@ -1,0 +1,6 @@
+config_sources:
+  zookeeper:
+    endpoints: [http://localhost:1234]
+  zookeeper/timeout:
+    endpoints: [https://localhost:3010]
+    Timeout: 8s 

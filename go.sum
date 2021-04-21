@@ -1545,6 +1545,7 @@ github.com/onsi/gomega v1.10.2/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1y
 github.com/onsi/gomega v1.10.4 h1:NiTx7EEvBzu9sFOD1zORteLSt3o8gnlvZZwSE9TnY9U=
 github.com/onsi/gomega v1.10.4/go.mod h1:g/HbgYopi++010VEqkFgJHKC09uJiW9UkXvMUuKHUCQ=
 github.com/op/go-logging v0.0.0-20160315200505-970db520ece7/go.mod h1:HzydrMdWErDVzsI23lYNej1Htcns9BCg93Dk0bBINWk=
+github.com/open-telemetry/opentelemetry-collector-contrib v0.25.0 h1:Mp0umWlKgLwkhbYYYiW03DbYgv19CEdj6SdgbcBPWlM=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.24.1-0.20210416173851-62c6f89406ce h1:hPyHH4M0inkVGsga1vctt2HLiW72M0RqxLJKAOJZHLM=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.24.1-0.20210416173851-62c6f89406ce/go.mod h1:x/Cpo/lhQeew4wYmztfkE8zIMY3IU/hX6vUDFIKIra8=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.24.1-0.20210416173851-62c6f89406ce h1:y3qdQXNNI7tClIiHVgAdLzCJgJpi/bc1DWyrzAcmBPk=
@@ -1587,6 +1588,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforward
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.24.1-0.20210416173851-62c6f89406ce/go.mod h1:SS3jc41gxdGlLCc5L6tEXxDTdgt0s9dTuIKzXACtY1Y=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.24.1-0.20210416173851-62c6f89406ce h1:tRE4ox4lWprS6TGdnzA+M9KAMXCqUQtyqJappAoXC/o=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.24.1-0.20210416173851-62c6f89406ce/go.mod h1:xfxOIGXNODmD3fFpzyLdqrdxlgc3kCNy66Rauy48WbY=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.25.0 h1:6u/ZIKWYaiOrTRMLGqaxEJf8GvXInDKU7KS9HP9LYZ8=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.25.0/go.mod h1:BZVKKoaAdPd7KtBpROUjNaix0OEbgYM47MZQbMj09ME=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.24.1-0.20210416173851-62c6f89406ce h1:Asv8zDP5QoBBN9GKEJgE/9TGCbWXz4ZHKZgXjHsR7cM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.24.1-0.20210416173851-62c6f89406ce/go.mod h1:3JYoFbMNJ0IxckrP39Y1hzbaBXtmZvqkkVMHCEaSOBM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.24.1-0.20210416173851-62c6f89406ce h1:dPT/wzV8hYDQ2w4wQF9uUabI43TE6BBYqqcaRIEwF58=
@@ -2137,6 +2140,8 @@ go.opentelemetry.io/collector v0.22.0/go.mod h1:sBkAGYUQSh1f+owCK0aPV2uLcUB6rPHE
 go.opentelemetry.io/collector v0.24.1-0.20210415212744-f6074afdb426/go.mod h1:hXpdip0pVo+lISHAzPtu13QIRHgqC1zZ/4EdgoEC0fc=
 go.opentelemetry.io/collector v0.24.1-0.20210416180505-2b33043a5024 h1:ldkdEzbFOJ7Ah2Ifu/D2/ocTM8m9kmWws4oc0oqQY98=
 go.opentelemetry.io/collector v0.24.1-0.20210416180505-2b33043a5024/go.mod h1:hXpdip0pVo+lISHAzPtu13QIRHgqC1zZ/4EdgoEC0fc=
+go.opentelemetry.io/collector v0.25.0 h1:CVrqPgr0Kr/Se1ihS6jam1/n4hndXk3GHHAOsruSDzw=
+go.opentelemetry.io/collector v0.25.0/go.mod h1:hXpdip0pVo+lISHAzPtu13QIRHgqC1zZ/4EdgoEC0fc=
 go.opentelemetry.io/otel v0.19.0 h1:Lenfy7QHRXPZVsw/12CWpxX6d/JkrX8wrx2vO8G80Ng=
 go.opentelemetry.io/otel v0.19.0/go.mod h1:j9bF567N9EfomkSidSfmMwIwIBuP37AMAIzVW85OxSg=
 go.opentelemetry.io/otel/metric v0.19.0/go.mod h1:8f9fglJPRnXuskQmKpnad31lcLJ2VmNNqIsx/uIwBSc=

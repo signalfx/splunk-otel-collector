@@ -26,6 +26,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.24.1-0.20210416173851-62c6f89406ce
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.24.1-0.20210416173851-62c6f89406ce
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.24.1-0.20210416173851-62c6f89406ce
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.25.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.24.1-0.20210416173851-62c6f89406ce
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.24.1-0.20210416173851-62c6f89406ce
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.24.1-0.20210416173851-62c6f89406ce
@@ -45,7 +46,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.3.1
 	github.com/stretchr/testify v1.7.0
-	go.opentelemetry.io/collector v0.24.1-0.20210416180505-2b33043a5024
+	go.opentelemetry.io/collector v0.25.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4
 	gopkg.in/yaml.v2 v2.4.0

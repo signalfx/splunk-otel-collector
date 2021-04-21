@@ -9,6 +9,9 @@ require (
 	github.com/gogo/googleapis v1.4.0 // indirect
 	github.com/golangci/golangci-lint v1.38.0
 	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76
+	github.com/hashicorp/vault v1.7.0
+	github.com/hashicorp/vault-plugin-auth-gcp v0.9.0
+	github.com/hashicorp/vault/api v1.1.0
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/moby/sys/mount v0.2.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.24.1-0.20210416173851-62c6f89406ce

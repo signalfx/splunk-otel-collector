@@ -1,0 +1,12 @@
+config_sources:
+  vault:
+    endpoint: http://localhost:8200
+    path: secret/kv
+    auth:
+      token: dev_token
+  vault/poll_interval:
+    endpoint: https://localhost:8200
+    path: other/path/kv
+    poll_interval: 10s
+    auth:
+      token: other_token

@@ -30,6 +30,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsources"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
 )
 
@@ -75,7 +76,7 @@ func main() {
 	parserProvider := configprovider.NewConfigSourceParserProvider(
 		zap.NewNop(), // The service logger is not available yet, setting it to NoP.
 		info,
-		// TODO: Add config source factories.
+		configsources.Get()...,
 	)
 	serviceParams := service.Parameters{
 		ApplicationStartInfo: info,

@@ -165,15 +165,15 @@ impi:
 
 .PHONY: install-tools
 install-tools:
-	go install github.com/client9/misspell/cmd/misspell
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint
-	go install github.com/google/addlicense
-	go install github.com/jstemmer/go-junit-report
-	go install github.com/ory/go-acc
-	go install github.com/pavius/impi/cmd/impi
-	go install github.com/securego/gosec/cmd/gosec
-	go install honnef.co/go/tools/cmd/staticcheck
-	go install github.com/tcnksm/ghr
+	go install github.com/client9/misspell/cmd/misspell@v0.3.4
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.38.0
+	go install github.com/google/addlicense@v0.0.0-20200906110928-a0294312aa76
+	go install github.com/jstemmer/go-junit-report@v0.9.1
+	go install github.com/ory/go-acc@v0.2.6
+	go install github.com/pavius/impi/cmd/impi@v0.0.3
+	go install github.com/securego/gosec/v2/cmd/gosec@v2.6.1
+	go install honnef.co/go/tools/cmd/staticcheck@v0.1.2
+	go install github.com/tcnksm/ghr@v0.13.0
 
 .PHONY: otelcol
 otelcol:

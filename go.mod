@@ -1,19 +1,14 @@
 module github.com/signalfx/splunk-otel-collector
 
-go 1.15
+go 1.16
 
 require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
-	github.com/client9/misspell v0.3.4
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/gogo/googleapis v1.4.0 // indirect
-	github.com/golangci/golangci-lint v1.38.0
-	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76
 	github.com/hashicorp/vault v1.7.0
 	github.com/hashicorp/vault-plugin-auth-gcp v0.9.0
 	github.com/hashicorp/vault/api v1.1.0
-	github.com/jstemmer/go-junit-report v0.9.1
-	github.com/moby/sys/mount v0.2.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.25.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.25.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.25.0
@@ -41,9 +36,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.25.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.25.0
 	github.com/openzipkin/zipkin-go v0.2.5
-	github.com/ory/go-acc v0.2.6
-	github.com/pavius/impi v0.0.3
-	github.com/securego/gosec/v2 v2.6.1
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.16
 	github.com/signalfx/signalfx-agent v1.0.1-0.20210325135021-a18ea9d77b40
@@ -54,7 +46,6 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4
 	gopkg.in/yaml.v2 v2.4.0
-	honnef.co/go/tools v0.1.2
 )
 
 replace (

@@ -438,6 +438,11 @@ func TestManager_expandString(t *testing.T) {
 				"int_key": {Value: 1},
 			},
 		},
+		"tstcfgsrc/named": &testConfigSource{
+			ValueMap: map[string]valueEntry{
+				"int_key": {Value: 42},
+			},
+		},
 	})
 
 	require.NoError(t, os.Setenv("envvar", "envvar_value"))
@@ -524,6 +529,26 @@ func TestManager_expandString(t *testing.T) {
 			name:  "interpolated_and_delimited_cfgsrc",
 			input: "0/${ tstcfgsrc: $envvar_str_key }/2/${tstcfgsrc:int_key}",
 			want:  "0/test_value/2/1",
+		},
+		{
+			name:  "named_config_src",
+			input: "$tstcfgsrc/named:int_key",
+			want:  42,
+		},
+		{
+			name:  "named_config_src_bracketed",
+			input: "${tstcfgsrc/named:int_key}",
+			want:  42,
+		},
+		{
+			name:  "envvar_name_separator",
+			input: "$envvar/test/test",
+			want:  "envvar_value/test/test",
+		},
+		{
+			name:    "envvar_treated_as_cfgsrc",
+			input:   "$envvar/test:test",
+			wantErr: &errUnknownConfigSource{},
 		},
 	}
 	for _, tt := range tests {

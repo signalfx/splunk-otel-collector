@@ -12,7 +12,7 @@ Zookeeper config sources:
 ```yaml
 config_sources:
   zookeeper:
-    # endpoint is the Zooekeeper server addresses. Config source will try to connect to
+    # endpoint is the Zookeeper server addresses. Config source will try to connect to
     # these endpoints to access an Zookeeper cluster.
     endpoints: [http://localhost:2181]
     # timeout sets the amount of time for which a session is considered valid after

@@ -38,4 +38,5 @@ new release. In addition, any of these components may be removed prior to the
 | collectd       |            |           |            |
 | filelog        |            |           |            |
 | kafka          |            |           |            |
+| kafkametrics   |            |           |            |
 | statsd         |            |           |            |

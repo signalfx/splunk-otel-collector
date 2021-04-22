@@ -42,6 +42,7 @@ func TestDefaultComponents(t *testing.T) {
 		"jaeger",
 		"k8s_cluster",
 		"kafka",
+		"kafkametrics",
 		"kubeletstats",
 		"otlp",
 		"prometheus",

@@ -46,11 +46,11 @@ from .constants import (
 
 
 class Asset(object):
-    def __init__(self, url=None, path=None):
+    def __init__(self, url=None, path=None, name=None):
         assert url or path, "Either url= or path= is required!"
         self.url = url
         self.path = path
-        self.name = self._get_name()
+        self.name = name if name else self._get_name()
         self.component = self._get_component()
         self.sign_type = self._get_sign_type()
         self.checksum = None
@@ -89,7 +89,7 @@ class Asset(object):
                 if resp.lower() not in ("y", "yes"):
                     return None
                 os.remove(dest)
-            download_file(self.url, dest, user, token)
+            download_file(self.url, dest, user, token, headers={"Accept": "application/octet-stream"})
             self.path = dest
             self.checksum = get_checksum(self.path, hashlib.sha256())
             return self.path
@@ -165,10 +165,10 @@ def artifactory_file_exists(url, user, token):
     return requests.head(url, auth=(user, token)).status_code == 200
 
 
-def download_file(url, dest, user=None, token=None):
+def download_file(url, dest, user=None, token=None, headers=None):
     print(f"downloading {url} to {dest} ...")
 
-    resp = requests.get(url, auth=(user, token))
+    resp = requests.get(url, auth=(user, token), headers=headers)
 
     assert resp.status_code == 200, f"download failed:\n{resp.reason}\n{resp.text}"
 
@@ -528,9 +528,9 @@ def download_github_assets(github_release, args):
     for asset in github_release.get_assets():
         ext = os.path.splitext(asset.name)[-1].strip(".")
         if asset.name == "checksums.txt":
-            checksums_asset = Asset(url=asset.browser_download_url)
+            checksums_asset = Asset(url=asset.url, name=asset.name)
         elif ext and ext in args.component or ("windows" in args.component and ext == "exe"):
-            assets.append(Asset(url=asset.browser_download_url))
+            assets.append(Asset(url=asset.url, name=asset.name))
 
     assert checksums_asset, f"checksums.txt not found in {github_release.html_url}!"
     checksums_path = os.path.join(args.assets_dir, checksums_asset.name)

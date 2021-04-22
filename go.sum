@@ -1629,6 +1629,7 @@ github.com/onsi/gomega v1.10.2/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1y
 github.com/onsi/gomega v1.10.4 h1:NiTx7EEvBzu9sFOD1zORteLSt3o8gnlvZZwSE9TnY9U=
 github.com/onsi/gomega v1.10.4/go.mod h1:g/HbgYopi++010VEqkFgJHKC09uJiW9UkXvMUuKHUCQ=
 github.com/op/go-logging v0.0.0-20160315200505-970db520ece7/go.mod h1:HzydrMdWErDVzsI23lYNej1Htcns9BCg93Dk0bBINWk=
+github.com/open-telemetry/opentelemetry-collector-contrib v0.25.0 h1:Mp0umWlKgLwkhbYYYiW03DbYgv19CEdj6SdgbcBPWlM=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.25.0 h1:V6QtC0sB38ArVeCemfP8++o95xhvUTSeKZ7l0xj1BKs=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.25.0/go.mod h1:IggQ66UVuBNmOBXkt+D3L3JR2ny36mwHvFZhjGujKz4=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.25.0 h1:4t6+Hz7mb8+eauPrAGKI4JVBgUpaZhJPs/r5SaZkz7I=
@@ -1675,6 +1676,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforward
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.25.0/go.mod h1:GDHWSxkbSFNSfvjU6sbvM9M1KkwfmKG2a0X6WhOVKRo=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.25.0 h1:LyiPTuwnmsDbokUfddjo9vFj72Pdljw1323IHFcHcbk=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.25.0/go.mod h1:DhPFl3QsLnrVk10Q1rcl4Chau0tMswHcFs1yDIrA36A=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.25.0 h1:6u/ZIKWYaiOrTRMLGqaxEJf8GvXInDKU7KS9HP9LYZ8=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.25.0/go.mod h1:BZVKKoaAdPd7KtBpROUjNaix0OEbgYM47MZQbMj09ME=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.25.0 h1:L60N2Vykj9YldMpJP+l3AQO97Iymqh6R5khUdGYAQhM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.25.0/go.mod h1:pKtDgKmTPYQK92II6GYOpTZWFatbe17af8q0OtnbhF4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.25.0 h1:OiwZEbfwxhyUSy4Flo6m1iCZRkkbH43XAvMhXd3gAuI=

@@ -636,7 +636,6 @@ github.com/go-playground/locales v0.13.0/go.mod h1:taPMhCMXrRLJO55olJkUXHZBHCxTM
 github.com/go-playground/universal-translator v0.16.0/go.mod h1:1AnU7NaIRDWWzGEKwgtJRd2xk99HeFyHw3yid4rvQIY=
 github.com/go-playground/universal-translator v0.17.0 h1:icxd5fm+REJzpZx7ZfpaD876Lmtgy7VtROAbHHXk8no=
 github.com/go-playground/universal-translator v0.17.0/go.mod h1:UkSxE5sNxxRwHyU+Scu5vgOQjsIJAF8j9muTVoKLVtA=
-github.com/go-redis/redis/v7 v7.4.0 h1:7obg6wUoj05T0EpY0o8B59S9w5yeMWql7sw2kwNW1x4=
 github.com/go-redis/redis/v7 v7.4.0/go.mod h1:JDNMw23GTyLNC4GZu9njt15ctBQVn7xjRfnwdHj/Dcg=
 github.com/go-sql-driver/mysql v1.4.0/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
 github.com/go-sql-driver/mysql v1.4.1/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
@@ -1646,7 +1645,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hos
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.25.0/go.mod h1:3s8Y3FMV+3c6nbgcnE7Hx8uDtnQWd1/26k21vUK6/Mw=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.25.0 h1:YjS/ZqqASX4FPFRUwawNijADMIph4KHLbiod35jNyno=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.25.0/go.mod h1:ytvq5NIDe2cJwfLmRdny6TcE0sNgDX0zmIPK1DaqrJI=
-github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.0.0-20210403015025-665fae9cf30e h1:5zhK0b2NNPVm9MbJgnFGen7zZcvhEoXR2H08Kwzt4M4=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.0.0-20210403015025-665fae9cf30e/go.mod h1:bcHZD6InuWGs1ZU+7XACxfYXj4boKCYB3SwDG4SWCxI=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.25.0 h1:BiTk+gnVChdnu6e88RghIO6a9ILF4O3hyleeixuUUs8=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.25.0/go.mod h1:L60v1n/xIInsPpxLWRdm+UrnGVyTnf+UzpfdxTOxv+E=

@@ -1,7 +1,7 @@
 # Troubleshooting
 
 Start by reviewing the [OpenTelemetry Collector troubleshooting
-documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/troubleshooting.md).
+documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/troubleshooting.md).
 
 ## Gathering Support Information
 
@@ -103,7 +103,7 @@ $ journalctl -u my-service.service -f
   exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter)
   and check logs (`journalctl -u splunk-otel-collector.service -f`)
 - Review the [Collector troubleshooting
-  documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/troubleshooting.md).
+  documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/troubleshooting.md).
 
 ### Sending synthetic data
 

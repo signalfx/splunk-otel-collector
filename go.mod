@@ -4,7 +4,9 @@ go 1.16
 
 require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
+	github.com/cenkalti/backoff/v4 v4.1.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect
+	github.com/go-zookeeper/zk v1.0.2
 	github.com/gogo/googleapis v1.4.0 // indirect
 	github.com/hashicorp/vault v1.7.0
 	github.com/hashicorp/vault-plugin-auth-gcp v0.9.0
@@ -42,6 +44,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.3.1
 	github.com/stretchr/testify v1.7.0
+	go.etcd.io/etcd v0.5.0-alpha.5.0.20200425165423-262c93980547
 	go.opentelemetry.io/collector v0.25.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4

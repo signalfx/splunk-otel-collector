@@ -29,7 +29,9 @@ func TestConfigSourcesGet(t *testing.T) {
 	tests := []struct {
 		configSourceType config.Type
 	}{
+		{"etcd2"},
 		{"vault"},
+		{"zookeeper"},
 	}
 
 	defaultCfgSrcFactories := Get()

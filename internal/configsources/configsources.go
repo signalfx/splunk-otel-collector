@@ -18,12 +18,16 @@ package configsources
 
 import (
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource/etcd2configsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/vaultconfigsource"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource/zookeeperconfigsource"
 )
 
 // Get returns the factories to all config sources available to the user.
 func Get() []configprovider.Factory {
 	return []configprovider.Factory{
+		etcd2configsource.NewFactory(),
 		vaultconfigsource.NewFactory(),
+		zookeeperconfigsource.NewFactory(),
 	}
 }

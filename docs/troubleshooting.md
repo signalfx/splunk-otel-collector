@@ -68,7 +68,7 @@ ports](https://github.com/signalfx/splunk-otel-collector-chart/blob/main/helm-ch
 
 ### pattern not matched
 
-This messages will come from Fluentd and means that the `<parser>` was unable
+This message will come from Fluentd and means that the `<parser>` was unable
 to match based on the log message. As a result, the log message will not be
 collected. Check the [Fluentd
 configuration](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd)

@@ -6,6 +6,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/client9/misspell v0.3.4
 	github.com/go-playground/universal-translator v0.17.0 // indirect
+	github.com/go-zookeeper/zk v1.0.2
 	github.com/gogo/googleapis v1.4.0 // indirect
 	github.com/golangci/golangci-lint v1.38.0
 	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76

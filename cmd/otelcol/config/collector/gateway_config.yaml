@@ -46,7 +46,7 @@ processors:
   # ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable. Alternatively, the
   # --mem-ballast-size-mib command line flag can be passed and take priority.
   # For more information about memory limiter, see
-  # https://github.com/open-telemetry/opentelemetry-collector/blob/master/processor/memorylimiter/README.md
+  # https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md
   memory_limiter:
     ballast_size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
     check_interval: 2s

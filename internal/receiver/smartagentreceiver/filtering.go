@@ -14,7 +14,7 @@
 
 package smartagentreceiver
 
-// Ported from https://github.com/signalfx/signalfx-agent/blob/master/pkg/monitors/filtering.go
+// Ported from https://github.com/signalfx/signalfx-agent/blob/main/pkg/monitors/filtering.go
 
 import (
 	"errors"

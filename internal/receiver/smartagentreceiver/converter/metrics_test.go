@@ -25,7 +25,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/master/receiver/signalfxreceiver/signalfxv2_to_metricdata_test.go
+// based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/signalfxreceiver/signalfxv2_to_metricdata_test.go
 
 var now = time.Now()
 

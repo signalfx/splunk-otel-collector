@@ -96,7 +96,7 @@ test-with-cover:
 
 .PHONY: addlicense
 addlicense:
-	$(ADDLICENSE) -c 'Splunk, Inc.' $(ALL_SRC)
+	$(ADDLICENSE) -y "" -c 'Splunk, Inc.' $(ALL_SRC)
 
 .PHONY: checklicense
 checklicense:

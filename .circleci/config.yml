@@ -333,9 +333,10 @@ jobs:
       - run:
           name: Coverage tests
           command: make test-with-cover
-      - run:
-          name: Code coverage
-          command: bash <(curl -s https://codecov.io/bash)
+# DISABLE CODECOV UNTIL THE SCRIPT IS AUDITED AND WE ARE CERTAIN IT IS OK TO TO EXECUTE IT.
+#      - run:
+#          name: Code coverage
+#          command: bash <(curl -s https://codecov.io/bash)
 
   docker-otelcol:
     docker:
@@ -415,13 +416,14 @@ jobs:
             refreshenv
             go env -w CGO_ENABLED=0
             go install github.com/ory/go-acc@v0.2.6
-            (New-Object System.Net.WebClient).DownloadFile("https://codecov.io/bash", "C:\Users\circleci\project\codecov.sh")
+# DISABLE CODECOV UNTIL THE SCRIPT IS AUDITED AND WE ARE CERTAIN IT IS OK TO TO EXECUTE IT.
+#            (New-Object System.Net.WebClient).DownloadFile("https://codecov.io/bash", "C:\Users\circleci\project\codecov.sh")
       - run:
           name: Unit tests with coverage
           command: go-acc ./...
-      - run:
-          name: Upload coverage
-          command: bash codecov.sh -f coverage.txt
+#      - run:
+#          name: Upload coverage
+#          command: bash codecov.sh -f coverage.txt
       - save_module_cache
 
   build-package:

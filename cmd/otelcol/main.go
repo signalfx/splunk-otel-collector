@@ -67,10 +67,8 @@ func main() {
 	}
 
 	info := component.ApplicationStartInfo{
-		ExeName:  "otelcol",
-		LongName: "OpenTelemetry Collector",
-		Version:  version.Version,
-		GitHash:  version.GitHash,
+		ExeName: "otelcol",
+		Version: version.Version,
 	}
 
 	parserProvider := configprovider.NewConfigSourceParserProvider(

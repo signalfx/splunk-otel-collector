@@ -68,7 +68,6 @@ replace (
 // each of these is required for the smartagentreceiver
 replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
-	github.com/dancannon/gorethink => gopkg.in/gorethink/gorethink.v4 v4.0.0
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20201211214327-200738592ced
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v1.8.2-0.20201105135750-00f16d1ac3a4
 	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210325135021-a18ea9d77b40

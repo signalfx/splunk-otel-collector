@@ -40,12 +40,9 @@ MISSPELL_CORRECTION=misspell -w
 STATIC_CHECK=staticcheck
 
 BUILD_INFO_IMPORT_PATH=github.com/signalfx/splunk-otel-collector/internal/version
-BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).GitHash=$(GIT_SHA)
-ifdef VERSION
-BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
-endif
-BUILD_X3=-X $(BUILD_INFO_IMPORT_PATH).BuildType=$(BUILD_TYPE)
-BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2} ${BUILD_X3}"
+VERSION=$(shell git describe --match "v[0-9]*" HEAD)
+BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
+BUILD_INFO=-ldflags "${BUILD_X1}"
 
 SMART_AGENT_RELEASE=v5.9.1
 SKIP_COMPILE=false

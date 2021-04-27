@@ -88,6 +88,7 @@ All you need to get started is:
 - [Splunk Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
 - [Agent or Gateway mode](docs/agent-vs-gateway.md)
+- [Doublecheck exposed ports](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md#exposed-endpoints) to make sure your environment doesn't have conflicts- these can be changed via Collector Agent's configuration
 
 This distribution is supported on and packaged for a variety of platforms including:
 

@@ -21,12 +21,14 @@ import (
 	"os"
 	"strings"
 
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
 
 const (
-	defaultEndpoint = "localhost:5555"
+	defaultConfigServerEndpoint   = "localhost:55555"
+	defaultConfigServerPortEnvVar = "SPLUNK_CONFIG_SERVER_PORT"
 )
 
 type configServer struct {
@@ -46,8 +48,8 @@ func newConfigServer(logger *zap.Logger, initial, effective map[string]interface
 }
 
 func (cs *configServer) start() error {
-	endpoint := defaultEndpoint
-	if portOverride, ok := os.LookupEnv("SPLUNK_CONFIG_SERVER_PORT"); ok {
+	endpoint := defaultConfigServerEndpoint
+	if portOverride, ok := os.LookupEnv(defaultConfigServerPortEnvVar); ok {
 		if portOverride == "" {
 			// If explicitly set to empty do not start the server.
 			return nil
@@ -82,7 +84,8 @@ func (cs *configServer) start() error {
 	go func() {
 		defer close(cs.doneCh)
 
-		if httpErr := cs.server.Serve(listener); httpErr != http.ErrServerClosed {
+		httpErr := cs.server.Serve(listener)
+		if httpErr != http.ErrServerClosed {
 			cs.logger.Error("config server error", zap.Error(err))
 		}
 	}()
@@ -108,6 +111,10 @@ func (cs *configServer) muxHandleFunc(config map[string]interface{}) (func(http.
 	}
 
 	return func(writer http.ResponseWriter, request *http.Request) {
+		if request.Method != "GET" {
+			writer.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
 		_, _ = writer.Write(configYAML)
 	}, nil
 }
@@ -122,6 +129,8 @@ func simpleRedact(config map[string]interface{}) map[string]interface{} {
 			}
 		case map[string]interface{}:
 			v = simpleRedact(value)
+		case map[interface{}]interface{}:
+			v = simpleRedact(cast.ToStringMap(value))
 		}
 
 		redactedConfig[k] = v
@@ -133,7 +142,18 @@ func simpleRedact(config map[string]interface{}) map[string]interface{} {
 // shouldRedactKey applies a simple check to see if the contents of the given key
 // should be redacted or not.
 func shouldRedactKey(k string) bool {
-	fragments := []string{"access", "auth", "credential", "creds", "login", "password", "pwd", "user"}
+	fragments := []string{
+		"access",
+		"api_key",
+		"apikey",
+		"auth",
+		"credential",
+		"creds",
+		"login",
+		"password",
+		"pwd",
+		"user",
+	}
 
 	for _, fragment := range fragments {
 		if strings.Contains(k, fragment) {

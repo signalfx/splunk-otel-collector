@@ -152,6 +152,7 @@ func shouldRedactKey(k string) bool {
 		"login",
 		"password",
 		"pwd",
+		"token",
 		"user",
 	}
 

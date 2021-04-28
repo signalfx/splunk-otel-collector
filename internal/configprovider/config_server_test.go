@@ -151,8 +151,6 @@ func assertValidYAMLPages(t *testing.T, expected map[string]interface{}, path st
 	respBytes, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	// Use viper to unmarshal to the more friendly instead of yaml internal maps get unmarshalled
-	// as map[string]interface{} instead of map[interface{}]interface{}.
 	var unmarshalled map[string]interface{}
 	require.NoError(t, yaml.Unmarshal(respBytes, &unmarshalled))
 

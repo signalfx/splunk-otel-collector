@@ -1,4 +1,4 @@
-// Copyright 2020 Splunk, Inc.
+// Copyright Splunk, Inc.
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +18,13 @@ package envvarconfigsource
 import (
 	"context"
 	"fmt"
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/spf13/cast"
+	"os"
+
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
-	"os"
+
+	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 // Private error types to help with testability.
@@ -47,7 +50,7 @@ var _ configsource.Session = (*envVarSession)(nil)
 func (e *envVarSession) Retrieve(_ context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
 	retrieveParams := retrieveParams{}
 	if params != nil {
-		paramsParser := config.NewParser()
+		paramsParser := config.NewParserFromStringMap(cast.ToStringMap(params))
 		if err := paramsParser.UnmarshalExact(&retrieveParams); err != nil {
 			return nil, &errInvalidRetrieveParams{fmt.Errorf("failed to unmarshall retrieve params: %w", err)}
 		}
@@ -60,8 +63,13 @@ func (e *envVarSession) Retrieve(_ context.Context, selector string, params inte
 	}
 
 	defaultValue, ok := e.defaults[selector]
-	if !ok && retrieveParams.Required {
-		return nil, &errMissingRequiredEnvVar{fmt.Errorf("env var %q is required but not defined and not present on defaults", selector)}
+	if !ok {
+		if retrieveParams.Required {
+			return nil, &errMissingRequiredEnvVar{fmt.Errorf("env var %q is required but not defined and not present on defaults", selector)}
+		}
+
+		// To keep with default behavior for env vars not defined set the value to empty string
+		defaultValue = ""
 	}
 
 	return configprovider.NewRetrieved(defaultValue, configprovider.WatcherNotSupported), nil

@@ -1,4 +1,4 @@
-// Copyright 2020 Splunk, Inc.
+// Copyright Splunk, Inc.
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +18,9 @@ package envvarconfigsource
 import (
 	"context"
 
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
+
+	"go.opentelemetry.io/collector/config/experimental/configsource"
 )
 
 type envVarConfigSource struct {

@@ -88,8 +88,10 @@ processors:
     ballast_size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
+  ## detect if the collector is running on a cloud system
+  ## important for creating unique cloud provider dimensions
   resourcedetection:
-    detectors: [system]
+    detectors: [system, gce, ecs, ec2, azure]
     override: false
 
   # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and 

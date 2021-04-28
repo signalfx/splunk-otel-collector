@@ -99,13 +99,7 @@ func (cfg *Config) Unmarshal(componentParser *config.Parser) error {
 	// which is a problem when unmarshalling custom agent monitor configs.  Here we use a map of lowercase to supported
 	// case tag key names and update the keys where applicable.
 	yamlTags := yamlTagsFromStruct(monitorConfigType)
-	for key, val := range allSettings {
-		updatedKey := yamlTags[key]
-		if updatedKey != "" {
-			delete(allSettings, key)
-			allSettings[updatedKey] = val
-		}
-	}
+	recursivelyCapitalizeConfigKeys(allSettings, yamlTags)
 
 	asBytes, err := yaml.Marshal(allSettings)
 	if err != nil {
@@ -129,6 +123,19 @@ func (cfg *Config) Unmarshal(componentParser *config.Parser) error {
 
 	cfg.monitorConfig = monitorConfig.(saconfig.MonitorCustomConfig)
 	return nil
+}
+
+func recursivelyCapitalizeConfigKeys(settings map[string]interface{}, yamlTags map[string]string) {
+	for key, val := range settings {
+		updatedKey := yamlTags[key]
+		if updatedKey != "" {
+			delete(settings, key)
+			settings[updatedKey] = val
+			if m, ok := val.(map[string]interface{}); ok {
+				recursivelyCapitalizeConfigKeys(m, yamlTags)
+			}
+		}
+	}
 }
 
 func getStringSliceFromAllSettings(allSettings map[string]interface{}, key string, errToReturn error) ([]string, error) {
@@ -165,10 +172,19 @@ func yamlTagsFromStruct(s reflect.Type) map[string]string {
 		}
 
 		fieldType := field.Type
-		if fieldType.Kind() == reflect.Struct {
+		switch fieldType.Kind() {
+		case reflect.Struct:
 			otherFields := yamlTagsFromStruct(fieldType)
 			for k, v := range otherFields {
 				yamlTags[k] = v
+			}
+		case reflect.Ptr:
+			fieldTypeElem := fieldType.Elem()
+			if fieldTypeElem.Kind() == reflect.Struct {
+				otherFields := yamlTagsFromStruct(fieldTypeElem)
+				for k, v := range otherFields {
+					yamlTags[k] = v
+				}
 			}
 		}
 	}

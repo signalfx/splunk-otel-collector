@@ -18,9 +18,8 @@ package envvarconfigsource
 import (
 	"context"
 
-	"go.uber.org/zap"
-
 	"go.opentelemetry.io/collector/config/experimental/configsource"
+	"go.uber.org/zap"
 )
 
 type envVarConfigSource struct {

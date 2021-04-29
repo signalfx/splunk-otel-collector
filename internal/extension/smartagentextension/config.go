@@ -18,12 +18,13 @@ import (
 	"fmt"
 	"path/filepath"
 	"reflect"
-	"strings"
 
 	"github.com/signalfx/defaults"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"go.opentelemetry.io/collector/config"
 	"gopkg.in/yaml.v2"
+
+	"github.com/signalfx/splunk-otel-collector/internal/utils"
 )
 
 // SmartAgentConfigProvider exposes global saconfig.Config to other components
@@ -77,15 +78,7 @@ func (cfg *Config) Unmarshal(componentParser *config.Parser) error {
 
 func smartAgentConfigFromSettingsMap(settings map[string]interface{}) (*saconfig.Config, error) {
 	var config saconfig.Config
-	yamlTags := yamlTagsFromStruct(reflect.TypeOf(config))
-
-	for key, val := range settings {
-		updatedKey := yamlTags[key]
-		if updatedKey != "" {
-			delete(settings, key)
-			settings[updatedKey] = val
-		}
-	}
+	utils.RespectYamlTagsInAllSettings(reflect.TypeOf(config), settings)
 
 	var collectdSettings map[string]interface{}
 	var ok bool
@@ -94,14 +87,7 @@ func smartAgentConfigFromSettingsMap(settings map[string]interface{}) (*saconfig
 	}
 
 	var collectdConfig saconfig.CollectdConfig
-	yamlTags = yamlTagsFromStruct(reflect.TypeOf(collectdConfig))
-	for key, val := range collectdSettings {
-		updatedKey := yamlTags[key]
-		if updatedKey != "" {
-			delete(collectdSettings, key)
-			collectdSettings[updatedKey] = val
-		}
-	}
+	utils.RespectYamlTagsInAllSettings(reflect.TypeOf(collectdConfig), collectdSettings)
 
 	settings["collectd"] = collectdSettings
 
@@ -127,19 +113,4 @@ func smartAgentConfigFromSettingsMap(settings map[string]interface{}) (*saconfig
 
 	config.Collectd.BundleDir = config.BundleDir
 	return &config, nil
-}
-
-func yamlTagsFromStruct(s reflect.Type) map[string]string {
-	yamlTags := map[string]string{}
-	for i := 0; i < s.NumField(); i++ {
-		field := s.Field(i)
-		tag := field.Tag
-		yamlTag := strings.Split(tag.Get("yaml"), ",")[0]
-		lowerTag := strings.ToLower(yamlTag)
-		if yamlTag != lowerTag {
-			yamlTags[lowerTag] = yamlTag
-		}
-	}
-
-	return yamlTags
 }

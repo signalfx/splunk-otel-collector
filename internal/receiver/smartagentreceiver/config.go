@@ -27,6 +27,8 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"go.opentelemetry.io/collector/config"
 	"gopkg.in/yaml.v2"
+
+	"github.com/signalfx/splunk-otel-collector/internal/utils"
 )
 
 const defaultIntervalSeconds = 10
@@ -94,12 +96,7 @@ func (cfg *Config) Unmarshal(componentParser *config.Parser) error {
 	}
 	monitorConfigType := reflect.TypeOf(customMonitorConfig).Elem()
 	monitorConfig := reflect.New(monitorConfigType).Interface()
-
-	// Viper is case insensitive and doesn't preserve a record of actual yaml map key cases from the provided config,
-	// which is a problem when unmarshalling custom agent monitor configs.  Here we use a map of lowercase to supported
-	// case tag key names and update the keys where applicable.
-	yamlTags := yamlTagsFromStruct(monitorConfigType)
-	recursivelyCapitalizeConfigKeys(allSettings, yamlTags)
+	utils.RespectYamlTagsInAllSettings(monitorConfigType, allSettings)
 
 	asBytes, err := yaml.Marshal(allSettings)
 	if err != nil {
@@ -125,19 +122,6 @@ func (cfg *Config) Unmarshal(componentParser *config.Parser) error {
 	return nil
 }
 
-func recursivelyCapitalizeConfigKeys(settings map[string]interface{}, yamlTags map[string]string) {
-	for key, val := range settings {
-		updatedKey := yamlTags[key]
-		if updatedKey != "" {
-			delete(settings, key)
-			settings[updatedKey] = val
-			if m, ok := val.(map[string]interface{}); ok {
-				recursivelyCapitalizeConfigKeys(m, yamlTags)
-			}
-		}
-	}
-}
-
 func getStringSliceFromAllSettings(allSettings map[string]interface{}, key string, errToReturn error) ([]string, error) {
 	var items []string
 	if value, ok := allSettings[key]; ok {
@@ -156,40 +140,6 @@ func getStringSliceFromAllSettings(allSettings map[string]interface{}, key strin
 		delete(allSettings, key)
 	}
 	return items, nil
-}
-
-// Walks through a custom monitor config struct type, creating a map of
-// lowercase to supported yaml struct tag name cases.
-func yamlTagsFromStruct(s reflect.Type) map[string]string {
-	yamlTags := map[string]string{}
-	for i := 0; i < s.NumField(); i++ {
-		field := s.Field(i)
-		tag := field.Tag
-		yamlTag := strings.Split(tag.Get("yaml"), ",")[0]
-		lowerTag := strings.ToLower(yamlTag)
-		if yamlTag != lowerTag {
-			yamlTags[lowerTag] = yamlTag
-		}
-
-		fieldType := field.Type
-		switch fieldType.Kind() {
-		case reflect.Struct:
-			otherFields := yamlTagsFromStruct(fieldType)
-			for k, v := range otherFields {
-				yamlTags[k] = v
-			}
-		case reflect.Ptr:
-			fieldTypeElem := fieldType.Elem()
-			if fieldTypeElem.Kind() == reflect.Struct {
-				otherFields := yamlTagsFromStruct(fieldTypeElem)
-				for k, v := range otherFields {
-					yamlTags[k] = v
-				}
-			}
-		}
-	}
-
-	return yamlTags
 }
 
 // If using the receivercreator, observer-provided endpoints should be used to set

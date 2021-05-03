@@ -9,6 +9,6 @@ COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod a+x /work/build.sh /docker-entrypoint.sh
 
 ENV OUTPUT_DIR=project/dist
-ENV SMART_AGENT_RELEASE=5.9.1
+ENV SMART_AGENT_RELEASE=5.10.2
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

@@ -244,6 +244,7 @@ func defaultConfig() Config {
 				File: file.Config{
 					PollRateSeconds: 5,
 				},
+				RemoteWatch: &tru,
 			},
 		},
 	}

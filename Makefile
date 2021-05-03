@@ -110,6 +110,7 @@ checklicense:
 # ALL_MODULES includes ./* dirs (excludes . dir)
 ALL_GO_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
 ALL_PYTHON_DEPS := $(shell find . -type f \( -name "setup.py" -o -name "requirements.txt" \) -exec dirname {} \; | sort | egrep  '^./')
+ALL_DOCKERFILES := $(shell find . -type f -name Dockerfile -exec dirname {} \; | grep -v '^./tests' | sort)
 DEPENDABOT_PATH=./.github/dependabot.yml
 .PHONY: gendependabot
 gendependabot:
@@ -126,6 +127,10 @@ gendependabot:
 	@set -e; for dir in $(ALL_PYTHON_DEPS); do \
 		(echo "Add entry for \"$${dir:1}\"" && \
 		  echo "  - package-ecosystem: \"pip\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"daily\"" >> ${DEPENDABOT_PATH} ); \
+	done
+	@set -e; for dir in $(ALL_DOCKERFILES); do \
+		(echo "Add entry for \"$${dir:1}\"" && \
+		  echo "  - package-ecosystem: \"docker\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"daily\"" >> ${DEPENDABOT_PATH} ); \
 	done
 
 .PHONY: misspell

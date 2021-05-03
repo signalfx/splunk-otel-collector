@@ -1,18 +1,15 @@
-ARG SMART_AGENT_RELEASE=v5.10.2
-ARG ALPINE_VERSION=3.12
-
-FROM alpine:${ALPINE_VERSION} as certs
+FROM alpine:3.12 as certs
 RUN apk --update add ca-certificates
 
-FROM alpine:${ALPINE_VERSION} AS otelcol
+FROM alpine:3.12 AS otelcol
 COPY otelcol /
 # Note that this shouldn't be necessary, but in some cases the file seems to be
 # copied with the execute bit lost (see #1317)
 RUN chmod 755 /otelcol
 
-FROM alpine:${ALPINE_VERSION} AS smartagent
+FROM alpine:3.12 AS smartagent
 ARG SMART_AGENT_RELEASE
-RUN mkdir -p "$(dirname "/usr/lib/splunk-otel-collector/agent-bundle")" && \
+RUN mkdir -p /usr/lib/splunk-otel-collector && \
     SMART_AGENT=signalfx-agent-${SMART_AGENT_RELEASE#v}.tar.gz && \
     URL=https://github.com/signalfx/signalfx-agent/releases/download/${SMART_AGENT_RELEASE}/$SMART_AGENT && \
     wget "$URL" && tar -xzf $SMART_AGENT && mv signalfx-agent /usr/lib/splunk-otel-collector/agent-bundle && \
@@ -26,6 +23,7 @@ RUN mkdir -p "$(dirname "/usr/lib/splunk-otel-collector/agent-bundle")" && \
 FROM scratch
 ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
 ENV SPLUNK_COLLECTD_DIR=${SPLUNK_BUNDLE_DIR}/run/collectd
+ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/bin
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=otelcol /otelcol /
 # Maintaining interpreter location as required.

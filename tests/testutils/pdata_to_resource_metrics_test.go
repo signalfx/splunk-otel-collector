@@ -10,8 +10,7 @@ import (
 
 func pdataMetrics() pdata.Metrics {
 	metrics := pdata.NewMetrics()
-	metrics.ResourceMetrics().Resize(1)
-	resourceMetrics := metrics.ResourceMetrics().At(0)
+	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
 	attrs := resourceMetrics.Resource().Attributes()
 	attrs.InsertBool("bool", true)
 	attrs.InsertString("string", "a_string")
@@ -20,13 +19,11 @@ func pdataMetrics() pdata.Metrics {
 	attrs.InsertNull("null")
 
 	ilms := resourceMetrics.InstrumentationLibraryMetrics()
-	ilms.Resize(3)
-
-	ilms.At(0).InstrumentationLibrary().SetName("an_instrumentation_library_name")
-	ilms.At(0).InstrumentationLibrary().SetVersion("an_instrumentation_library_version")
-	ilmOneMetrics := ilms.At(0).Metrics()
-	ilmOneMetrics.Resize(2)
-	ilmOneMetricOne := ilmOneMetrics.At(0)
+	ilmOne := ilms.AppendEmpty()
+	ilmOne.InstrumentationLibrary().SetName("an_instrumentation_library_name")
+	ilmOne.InstrumentationLibrary().SetVersion("an_instrumentation_library_version")
+	ilmOneMetrics := ilmOne.Metrics()
+	ilmOneMetricOne := ilmOneMetrics.AppendEmpty()
 	ilmOneMetricOne.SetName("an_int_gauge")
 	ilmOneMetricOne.SetDescription("an_int_gauge_description")
 	ilmOneMetricOne.SetUnit("an_int_gauge_unit")
@@ -38,7 +35,7 @@ func pdataMetrics() pdata.Metrics {
 	ilmOneMetricOneDps.At(1).SetValue(23456)
 	ilmOneMetricOneDps.At(1).LabelsMap().Insert("label_name_2", "label_value_2")
 
-	ilmOneMetricTwo := ilmOneMetrics.At(1)
+	ilmOneMetricTwo := ilmOneMetrics.AppendEmpty()
 	ilmOneMetricTwo.SetName("a_double_gauge")
 	ilmOneMetricTwo.SetDescription("a_double_gauge_description")
 	ilmOneMetricTwo.SetUnit("a_double_gauge_unit")
@@ -50,12 +47,11 @@ func pdataMetrics() pdata.Metrics {
 	ilmOneMetricTwoDps.At(1).SetValue(345.67)
 	ilmOneMetricTwoDps.At(1).LabelsMap().Insert("label_name_4", "label_value_4")
 
-	ilms.At(1).InstrumentationLibrary().SetName("an_instrumentation_library_without_version_or_metrics")
+	ilms.AppendEmpty().InstrumentationLibrary().SetName("an_instrumentation_library_without_version_or_metrics")
 
-	ilmThreeMetrics := ilms.At(2).Metrics()
-	ilmThreeMetrics.Resize(12)
+	ilmThreeMetrics := ilms.AppendEmpty().Metrics()
 
-	ilmThreeMetricOne := ilmThreeMetrics.At(0)
+	ilmThreeMetricOne := ilmThreeMetrics.AppendEmpty()
 	ilmThreeMetricOne.SetName("a_monotonic_cumulative_int_sum")
 	ilmThreeMetricOne.SetDescription("a_monotonic_cumulative_int_sum_description")
 	ilmThreeMetricOne.SetUnit("a_monotonic_cumulative_int_sum_unit")
@@ -69,7 +65,7 @@ func pdataMetrics() pdata.Metrics {
 	ilmThreeMetricOneDps.At(1).SetValue(45678)
 	ilmThreeMetricOneDps.At(1).LabelsMap().Insert("label_name_6", "label_value_6")
 
-	ilmThreeMetricTwo := ilmThreeMetrics.At(1)
+	ilmThreeMetricTwo := ilmThreeMetrics.AppendEmpty()
 	ilmThreeMetricTwo.SetName("a_monotonic_delta_int_sum")
 	ilmThreeMetricTwo.SetDescription("a_monotonic_delta_int_sum_description")
 	ilmThreeMetricTwo.SetUnit("a_monotonic_delta_int_sum_unit")
@@ -83,7 +79,7 @@ func pdataMetrics() pdata.Metrics {
 	ilmThreeMetricTwoDps.At(1).SetValue(67890)
 	ilmThreeMetricTwoDps.At(1).LabelsMap().Insert("label_name_8", "label_value_8")
 
-	ilmThreeMetricThree := ilmThreeMetrics.At(2)
+	ilmThreeMetricThree := ilmThreeMetrics.AppendEmpty()
 	ilmThreeMetricThree.SetName("a_monotonic_unspecified_int_sum")
 	ilmThreeMetricThree.SetDescription("a_monotonic_unspecified_int_sum_description")
 	ilmThreeMetricThree.SetUnit("a_monotonic_unspecified_int_sum_unit")
@@ -97,7 +93,7 @@ func pdataMetrics() pdata.Metrics {
 	ilmThreeMetricThreeDps.At(1).SetValue(89012)
 	ilmThreeMetricThreeDps.At(1).LabelsMap().Insert("label_name_10", "label_value_10")
 
-	ilmThreeMetricFour := ilmThreeMetrics.At(3)
+	ilmThreeMetricFour := ilmThreeMetrics.AppendEmpty()
 	ilmThreeMetricFour.SetName("a_monotonic_cumulative_double_sum")
 	ilmThreeMetricFour.SetDescription("a_monotonic_cumulative_double_sum_description")
 	ilmThreeMetricFour.SetUnit("a_monotonic_cumulative_double_sum_unit")
@@ -111,7 +107,7 @@ func pdataMetrics() pdata.Metrics {
 	ilmThreeMetricFourDps.At(1).SetValue(567.89)
 	ilmThreeMetricFourDps.At(1).LabelsMap().Insert("label_name_12", "label_value_12")
 
-	ilmThreeMetricFive := ilmThreeMetrics.At(4)
+	ilmThreeMetricFive := ilmThreeMetrics.AppendEmpty()
 	ilmThreeMetricFive.SetName("a_monotonic_delta_double_sum")
 	ilmThreeMetricFive.SetDescription("a_monotonic_delta_double_sum_description")
 	ilmThreeMetricFive.SetUnit("a_monotonic_delta_double_sum_unit")
@@ -125,7 +121,7 @@ func pdataMetrics() pdata.Metrics {
 	ilmThreeMetricFiveDps.At(1).SetValue(789.01)
 	ilmThreeMetricFiveDps.At(1).LabelsMap().Insert("label_name_14", "label_value_14")
 
-	ilmThreeMetricSix := ilmThreeMetrics.At(5)
+	ilmThreeMetricSix := ilmThreeMetrics.AppendEmpty()
 	ilmThreeMetricSix.SetName("a_monotonic_unspecified_double_sum")
 	ilmThreeMetricSix.SetDescription("a_monotonic_unspecified_double_sum_description")
 	ilmThreeMetricSix.SetUnit("a_monotonic_unspecified_double_sum_unit")
@@ -139,7 +135,7 @@ func pdataMetrics() pdata.Metrics {
 	ilmThreeMetricSixDps.At(1).SetValue(901.23)
 	ilmThreeMetricSixDps.At(1).LabelsMap().Insert("label_name_16", "label_value_16")
 
-	ilmThreeMetricSeven := ilmThreeMetrics.At(6)
+	ilmThreeMetricSeven := ilmThreeMetrics.AppendEmpty()
 	ilmThreeMetricSeven.SetName("a_nonmonotonic_cumulative_int_sum")
 	ilmThreeMetricSeven.SetDescription("a_nonmonotonic_cumulative_int_sum_description")
 	ilmThreeMetricSeven.SetUnit("a_nonmonotonic_cumulative_int_sum_unit")
@@ -153,7 +149,7 @@ func pdataMetrics() pdata.Metrics {
 	ilmThreeMetricSevenDps.At(1).SetValue(123456)
 	ilmThreeMetricSevenDps.At(1).LabelsMap().Insert("label_name_18", "label_value_18")
 
-	ilmThreeMetricEight := ilmThreeMetrics.At(7)
+	ilmThreeMetricEight := ilmThreeMetrics.AppendEmpty()
 	ilmThreeMetricEight.SetName("a_nonmonotonic_delta_int_sum")
 	ilmThreeMetricEight.SetDescription("a_nonmonotonic_delta_int_sum_description")
 	ilmThreeMetricEight.SetUnit("a_nonmonotonic_delta_int_sum_unit")
@@ -167,7 +163,7 @@ func pdataMetrics() pdata.Metrics {
 	ilmThreeMetricEightDps.At(1).SetValue(345678)
 	ilmThreeMetricEightDps.At(1).LabelsMap().Insert("label_name_20", "label_value_20")
 
-	ilmThreeMetricNine := ilmThreeMetrics.At(8)
+	ilmThreeMetricNine := ilmThreeMetrics.AppendEmpty()
 	ilmThreeMetricNine.SetName("a_nonmonotonic_unspecified_int_sum")
 	ilmThreeMetricNine.SetDescription("a_nonmonotonic_unspecified_int_sum_description")
 	ilmThreeMetricNine.SetUnit("a_nonmonotonic_unspecified_int_sum_unit")
@@ -181,7 +177,7 @@ func pdataMetrics() pdata.Metrics {
 	ilmThreeMetricNineDps.At(1).SetValue(567890)
 	ilmThreeMetricNineDps.At(1).LabelsMap().Insert("label_name_22", "label_value_22")
 
-	ilmThreeMetricTen := ilmThreeMetrics.At(9)
+	ilmThreeMetricTen := ilmThreeMetrics.AppendEmpty()
 	ilmThreeMetricTen.SetName("a_nonmonotonic_cumulative_double_sum")
 	ilmThreeMetricTen.SetDescription("a_nonmonotonic_cumulative_double_sum_description")
 	ilmThreeMetricTen.SetUnit("a_nonmonotonic_cumulative_double_sum_unit")
@@ -195,7 +191,7 @@ func pdataMetrics() pdata.Metrics {
 	ilmThreeMetricTenDps.At(1).SetValue(2345.67)
 	ilmThreeMetricTenDps.At(1).LabelsMap().Insert("label_name_24", "label_value_24")
 
-	ilmThreeMetricEleven := ilmThreeMetrics.At(10)
+	ilmThreeMetricEleven := ilmThreeMetrics.AppendEmpty()
 	ilmThreeMetricEleven.SetName("a_nonmonotonic_delta_double_sum")
 	ilmThreeMetricEleven.SetDescription("a_nonmonotonic_delta_double_sum_description")
 	ilmThreeMetricEleven.SetUnit("a_nonmonotonic_delta_double_sum_unit")
@@ -209,7 +205,7 @@ func pdataMetrics() pdata.Metrics {
 	ilmThreeMetricElevenDps.At(1).SetValue(4567.89)
 	ilmThreeMetricElevenDps.At(1).LabelsMap().Insert("label_name_26", "label_value_26")
 
-	ilmThreeMetricTwelve := ilmThreeMetrics.At(11)
+	ilmThreeMetricTwelve := ilmThreeMetrics.AppendEmpty()
 	ilmThreeMetricTwelve.SetName("a_nonmonotonic_unspecified_double_sum")
 	ilmThreeMetricTwelve.SetDescription("a_nonmonotonic_unspecified_double_sum_description")
 	ilmThreeMetricTwelve.SetUnit("a_nonmonotonic_unspecified_double_sum_unit")

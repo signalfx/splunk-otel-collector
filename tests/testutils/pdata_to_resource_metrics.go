@@ -17,9 +17,10 @@ func PDataToResourceMetrics(pdataMetrics ...pdata.Metrics) (ResourceMetrics, err
 		for i := 0; i < numRM; i++ {
 			rm := ResourceMetric{}
 			pdataRM := pdataRMs.At(i)
-			pdataRM.Resource().Attributes().ForEach(
-				func(k string, v pdata.AttributeValue) {
+			pdataRM.Resource().Attributes().Range(
+				func(k string, v pdata.AttributeValue) bool {
 					addResourceAttribute(&rm, k, v)
+					return true
 				},
 			)
 			pdataILMs := pdataRM.InstrumentationLibraryMetrics()
@@ -86,9 +87,9 @@ func addDoubleSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 		dp := doubleSum.DataPoints().At(l)
 		val := dp.Value()
 		labels := map[string]string{}
-		dp.LabelsMap().ForEach(func(k, v string) {
+		dp.LabelsMap().Range(func(k, v string) bool {
 			labels[k] = v
-
+			return true
 		})
 		metric := Metric{
 			Name:        metric.Name(),
@@ -155,9 +156,9 @@ func addIntSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 		dp := intSum.DataPoints().At(l)
 		val := dp.Value()
 		labels := map[string]string{}
-		dp.LabelsMap().ForEach(func(k, v string) {
+		dp.LabelsMap().Range(func(k, v string) bool {
 			labels[k] = v
-
+			return true
 		})
 		metric := Metric{
 			Name:        metric.Name(),
@@ -177,9 +178,9 @@ func addDoubleGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 		dp := doubleGauge.DataPoints().At(l)
 		val := dp.Value()
 		labels := map[string]string{}
-		dp.LabelsMap().ForEach(func(k, v string) {
+		dp.LabelsMap().Range(func(k, v string) bool {
 			labels[k] = v
-
+			return true
 		})
 		metric := Metric{
 			Name:        metric.Name(),
@@ -199,9 +200,9 @@ func addIntGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 		dp := intGauge.DataPoints().At(l)
 		val := dp.Value()
 		labels := map[string]string{}
-		dp.LabelsMap().ForEach(func(k, v string) {
+		dp.LabelsMap().Range(func(k, v string) bool {
 			labels[k] = v
-
+			return true
 		})
 		metric := Metric{
 			Name:        metric.Name(),

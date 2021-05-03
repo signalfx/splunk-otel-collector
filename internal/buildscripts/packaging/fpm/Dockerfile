@@ -12,6 +12,6 @@ ENV PACKAGE="deb"
 ENV VERSION=""
 ENV ARCH="amd64"
 ENV OUTPUT_DIR="/repo/dist/"
-ENV SMART_AGENT_RELEASE="v5.9.1"
+ENV SMART_AGENT_RELEASE="v5.10.2"
 
 CMD ./internal/buildscripts/packaging/fpm/$PACKAGE/build.sh "$VERSION" "$ARCH" "$OUTPUT_DIR" "$SMART_AGENT_RELEASE"

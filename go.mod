@@ -39,8 +39,8 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.25.1-0.20210427211609-b747cdc7e2d9
 	github.com/openzipkin/zipkin-go v0.2.5
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
-	github.com/signalfx/golib/v3 v3.3.16
-	github.com/signalfx/signalfx-agent v1.0.1-0.20210325135021-a18ea9d77b40
+	github.com/signalfx/golib/v3 v3.3.33
+	github.com/signalfx/signalfx-agent v1.0.1-0.20210503202607-8862b3ba9c0d
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.3.1
 	github.com/stretchr/testify v1.7.0
@@ -70,7 +70,7 @@ replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20201211214327-200738592ced
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v1.8.2-0.20201105135750-00f16d1ac3a4
-	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210325135021-a18ea9d77b40
+	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210503202607-8862b3ba9c0d
 	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required for smartagentreceiver to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
 	google.golang.org/grpc => google.golang.org/grpc v1.29.1 // required for smartagentreceiver's go.etcd.io/etcd dep
 )

@@ -1,4 +1,4 @@
-// Copyright 2021, OpenTelemetry Authors
+// Copyright OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
@@ -49,8 +48,6 @@ type Receiver struct {
 	nextTracesConsumer  consumer.Traces
 	logger              *zap.Logger
 	config              *Config
-	startOnce           sync.Once
-	stopOnce            sync.Once
 	sync.Mutex
 }
 
@@ -118,12 +115,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 
 	configCore.ProcPath = saConfigProvider.SmartAgentConfig().ProcPath
 
-	err = componenterror.ErrAlreadyStarted
-	r.startOnce.Do(func() {
-		// starts the monitor
-		err = saconfig.CallConfigure(r.monitor, r.config.monitorConfig)
-	})
-	return err
+	return saconfig.CallConfigure(r.monitor, r.config.monitorConfig)
 }
 
 func (r *Receiver) Shutdown(context.Context) error {
@@ -132,18 +124,14 @@ func (r *Receiver) Shutdown(context.Context) error {
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
 	}, r.logger)
 
-	err := componenterror.ErrAlreadyStopped
 	if r.monitor == nil {
-		err = fmt.Errorf("smartagentreceiver's Shutdown() called before Start() or with invalid monitor state")
+		return fmt.Errorf("smartagentreceiver's Shutdown() called before Start() or with invalid monitor state")
 	} else if shutdownable, ok := (r.monitor).(monitors.Shutdownable); !ok {
-		err = fmt.Errorf("invalid monitor state at Shutdown(): %#v", r.monitor)
+		return fmt.Errorf("invalid monitor state at Shutdown(): %#v", r.monitor)
 	} else {
-		r.stopOnce.Do(func() {
-			shutdownable.Shutdown()
-			err = nil
-		})
+		shutdownable.Shutdown()
 	}
-	return err
+	return nil
 }
 
 func (r *Receiver) createMonitor(monitorType string, host component.Host) (monitor interface{}, err error) {

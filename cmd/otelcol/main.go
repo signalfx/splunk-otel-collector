@@ -1,4 +1,4 @@
-// Copyright 2020 Splunk, Inc.
+// Copyright Splunk, Inc.
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +26,11 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/service"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
+	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsources"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
 )
 
@@ -64,13 +67,22 @@ func main() {
 	}
 
 	info := component.ApplicationStartInfo{
-		ExeName:  "otelcol",
-		LongName: "OpenTelemetry Collector",
-		Version:  version.Version,
-		GitHash:  version.GitHash,
+		ExeName: "otelcol",
+		Version: version.Version,
 	}
 
-	if err := run(service.Parameters{ApplicationStartInfo: info, Factories: factories}); err != nil {
+	parserProvider := configprovider.NewConfigSourceParserProvider(
+		zap.NewNop(), // The service logger is not available yet, setting it to NoP.
+		info,
+		configsources.Get()...,
+	)
+	serviceParams := service.Parameters{
+		ApplicationStartInfo: info,
+		Factories:            factories,
+		ParserProvider:       parserProvider,
+	}
+
+	if err := run(serviceParams); err != nil {
 		log.Fatal(err)
 	}
 }

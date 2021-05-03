@@ -1,7 +1,7 @@
 # Troubleshooting
 
 Start by reviewing the [OpenTelemetry Collector troubleshooting
-documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/troubleshooting.md).
+documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/troubleshooting.md).
 
 ## Gathering Support Information
 
@@ -43,6 +43,36 @@ In addition, it is important to gather support information including:
 Support bundle scripts are provided to make it easier to collect information:
 
 - Linux (if installer script was used): `/etc/otel/collector/splunk-support-bundle.sh`
+
+## Error Messages and Reasons
+
+### bind: address already in use
+
+Something is already using the port that the current configuration requires.
+
+- Is another application using that port?
+- Is Jaeger or Zipkin already configured in the environment?
+
+The configuration can be modified to use another port if required. This
+typically requires modifying either:
+
+- Receiver `endpoint`
+- Extensions `endpoint`
+- [Metrics
+  address](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/troubleshooting.md#metrics)
+  (if port `8888`)
+
+Note on Kubernetes, this requires updating the chart values for both
+configuration and [exposed
+ports](https://github.com/signalfx/splunk-otel-collector-chart/blob/main/helm-charts/splunk-otel-collector/values.yaml#L108).
+
+### pattern not matched
+
+This message will come from Fluentd and means that the `<parser>` was unable
+to match based on the log message. As a result, the log message will not be
+collected. Check the [Fluentd
+configuration](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd)
+and update as required.
 
 ## Linux Installer
 
@@ -103,7 +133,7 @@ $ journalctl -u my-service.service -f
   exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter)
   and check logs (`journalctl -u splunk-otel-collector.service -f`)
 - Review the [Collector troubleshooting
-  documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/troubleshooting.md).
+  documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/troubleshooting.md).
 
 ### Sending synthetic data
 

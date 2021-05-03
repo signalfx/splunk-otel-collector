@@ -1,4 +1,4 @@
-// Copyright 2021 Splunk, Inc.
+// Copyright Splunk, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 package smartagentreceiver
 
-// Ported from https://github.com/signalfx/signalfx-agent/blob/master/pkg/monitors/filtering_test.go
+// Ported from https://github.com/signalfx/signalfx-agent/blob/main/pkg/monitors/filtering_test.go
 
 import (
 	"fmt"

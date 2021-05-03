@@ -1,4 +1,4 @@
-// Copyright 2021, OpenTelemetry Authors
+// Copyright OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/master/receiver/signalfxreceiver/signalfxv2_to_metricdata_test.go
+// based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/signalfxreceiver/signalfxv2_to_metricdata_test.go
 
 var now = time.Now()
 

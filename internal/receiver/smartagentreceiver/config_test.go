@@ -1,4 +1,4 @@
-// Copyright 2021, OpenTelemetry Authors
+// Copyright OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import (
 	"time"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/httpclient"
+	"github.com/signalfx/signalfx-agent/pkg/core/common/kubelet"
+	"github.com/signalfx/signalfx-agent/pkg/core/common/kubernetes"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/consul"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/hadoop"
@@ -27,7 +29,10 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/redis"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/filesystems"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/volumes"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/prometheusexporter"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/common/parser"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/exec"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/ntpq"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 	"github.com/stretchr/testify/assert"
@@ -487,4 +492,66 @@ func TestInvalidFilteringConfig(t *testing.T) {
 	err = fsCfg.validate()
 	require.Error(t, err)
 	require.EqualError(t, err, "unexpected end of input")
+}
+
+func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
+	factories, err := componenttest.NopFactories()
+	assert.Nil(t, err)
+
+	factory := NewFactory()
+	factories.Receivers[config.Type(typeStr)] = factory
+	cfg, err := configtest.LoadConfigFile(
+		t, path.Join(".", "testdata", "nested_monitor_config.yaml"), factories,
+	)
+
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.Equal(t, len(cfg.Receivers), 2)
+
+	telegrafExecCfg := cfg.Receivers["smartagent/exec"].(*Config)
+	require.Equal(t, &Config{
+		ReceiverSettings: config.ReceiverSettings{
+			TypeVal: typeStr,
+			NameVal: typeStr + "/exec",
+		},
+		monitorConfig: &exec.Config{
+			MonitorConfig: saconfig.MonitorConfig{
+				Type:                "telegraf/exec",
+				DatapointsToExclude: []saconfig.MetricFilter{},
+			},
+			Commands: []string{
+				`powershell.exe -Command "\Monitoring\Get_Directory.ps1"`,
+			},
+			TelegrafParser: &parser.Config{
+				DataFormat: "influx",
+			},
+		},
+	}, telegrafExecCfg)
+	require.NoError(t, telegrafExecCfg.validate())
+
+	k8sVolumesCfg := cfg.Receivers["smartagent/kubernetes_volumes"].(*Config)
+	tru := true
+	require.Equal(t, &Config{
+		ReceiverSettings: config.ReceiverSettings{
+			TypeVal: typeStr,
+			NameVal: typeStr + "/kubernetes_volumes",
+		},
+		monitorConfig: &volumes.Config{
+			MonitorConfig: saconfig.MonitorConfig{
+				Type:                "kubernetes-volumes",
+				DatapointsToExclude: []saconfig.MetricFilter{},
+			},
+			KubeletAPI: kubelet.APIConfig{
+				URL:        "https://192.168.99.103:10250",
+				AuthType:   "serviceAccount",
+				SkipVerify: &tru,
+			},
+			KubernetesAPI: &kubernetes.APIConfig{
+				AuthType:   "serviceAccount",
+				SkipVerify: false,
+			},
+		},
+	}, k8sVolumesCfg)
+	require.NoError(t, k8sVolumesCfg.validate())
 }

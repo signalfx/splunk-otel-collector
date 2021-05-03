@@ -1,4 +1,4 @@
-// Copyright 2020 Splunk, Inc.
+// Copyright Splunk, Inc.
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,6 +42,7 @@ func TestDefaultComponents(t *testing.T) {
 		"jaeger",
 		"k8s_cluster",
 		"kafka",
+		"kafkametrics",
 		"kubeletstats",
 		"otlp",
 		"prometheus",

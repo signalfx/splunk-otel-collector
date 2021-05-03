@@ -6,7 +6,7 @@ orbs:
 executors:
   golang:
     docker:
-      - image: cimg/go:1.15
+      - image: cimg/go:1.16
 
 commands:
   verify_dist_files_exist:
@@ -333,13 +333,14 @@ jobs:
       - run:
           name: Coverage tests
           command: make test-with-cover
-      - run:
-          name: Code coverage
-          command: bash <(curl -s https://codecov.io/bash)
+# DISABLE CODECOV UNTIL THE SCRIPT IS AUDITED AND WE ARE CERTAIN IT IS OK TO TO EXECUTE IT.
+#      - run:
+#          name: Code coverage
+#          command: bash <(curl -s https://codecov.io/bash)
 
   docker-otelcol:
     docker:
-      - image: cimg/go:1.15
+      - image: cimg/go:1.16
     steps:
       - attach_to_workspace
       - setup_remote_docker
@@ -366,7 +367,7 @@ jobs:
 
   publish-stable:
     docker:
-      - image: cimg/go:1.15
+      - image: cimg/go:1.16
     steps:
       - attach_to_workspace
       - verify_dist_files_exist
@@ -390,7 +391,7 @@ jobs:
 
   publish-dev:
     docker:
-      - image: cimg/go:1.15
+      - image: cimg/go:1.16
     steps:
       - attach_to_workspace
       - verify_dist_files_exist
@@ -411,17 +412,18 @@ jobs:
       - run:
           name: Upgrade golang
           command: |
-            choco upgrade golang --version=1.15
+            choco upgrade golang --version=1.16
             refreshenv
             go env -w CGO_ENABLED=0
-            go install github.com/ory/go-acc
-            (New-Object System.Net.WebClient).DownloadFile("https://codecov.io/bash", "C:\Users\circleci\project\codecov.sh")
+            go install github.com/ory/go-acc@v0.2.6
+# DISABLE CODECOV UNTIL THE SCRIPT IS AUDITED AND WE ARE CERTAIN IT IS OK TO TO EXECUTE IT.
+#            (New-Object System.Net.WebClient).DownloadFile("https://codecov.io/bash", "C:\Users\circleci\project\codecov.sh")
       - run:
           name: Unit tests with coverage
           command: go-acc ./...
-      - run:
-          name: Upload coverage
-          command: bash codecov.sh -f coverage.txt
+#      - run:
+#          name: Upload coverage
+#          command: bash codecov.sh -f coverage.txt
       - save_module_cache
 
   build-package:

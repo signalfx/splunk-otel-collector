@@ -1,4 +1,4 @@
-// Copyright 2021, OpenTelemetry Authors
+// Copyright OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtest"
@@ -197,23 +196,15 @@ func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 	)
 }
 
-func TestMultipleStartAndShutdownInvocations(t *testing.T) {
+func TestStartAndShutdown(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
 	receiver := NewReceiver(zap.NewNop(), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
-	err = receiver.Start(context.Background(), componenttest.NewNopHost())
-	require.Error(t, err)
-	assert.Equal(t, err, componenterror.ErrAlreadyStarted)
-
 	err = receiver.Shutdown(context.Background())
 	require.NoError(t, err)
-
-	err = receiver.Shutdown(context.Background())
-	require.Error(t, err)
-	assert.Equal(t, err, componenterror.ErrAlreadyStopped)
 }
 
 func TestOutOfOrderShutdownInvocations(t *testing.T) {

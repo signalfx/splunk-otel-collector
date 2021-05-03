@@ -1,4 +1,4 @@
-// Copyright 2020 Splunk, Inc.
+// Copyright Splunk, Inc.
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,15 +15,5 @@
 
 package version
 
-const (
-	buildDev = "dev"
-)
-
 // Version variable will be replaced at link time after `make` has been run.
 var Version = "latest"
-
-// GitHash variable will be replaced at link time after `make` has been run.
-var GitHash = "<NOT PROPERLY GENERATED>"
-
-// BuildType should be one of (dev, release).
-var BuildType = buildDev

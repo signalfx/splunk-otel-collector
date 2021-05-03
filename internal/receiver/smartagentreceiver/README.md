@@ -11,20 +11,20 @@ which is already provided for supported Splunk Distribution of OpenTelemetry Col
 ## Configuration
 
 Each `smartagent` receiver configuration acts a drop-in replacement for each supported Smart Agent Monitor
-[configuration](https://github.com/signalfx/signalfx-agent/blob/master/docs/monitor-config.md) with some exceptions:
+[configuration](https://github.com/signalfx/signalfx-agent/blob/main/docs/monitor-config.md) with some exceptions:
 
 1. Any Agent global or collectd desired configuration should be performed via the
 [Smart Agent Extension](../../extension/smartagentextension/README.md).
 1. In lieu of `discoveryRule` support, the Collector's
-[`receivercreator`](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/master/receiver/receivercreator/README.md)
-and associated [Observer extensions](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/master/extension/observer/README.md)
+[`receivercreator`](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/receivercreator/README.md)
+and associated [Observer extensions](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/README.md)
 should be used.
-1. The [`signalfx-forwarder`](https://github.com/signalfx/signalfx-agent/blob/master/docs/monitors/signalfx-forwarder.md)
+1. The [`signalfx-forwarder`](https://github.com/signalfx/signalfx-agent/blob/main/docs/monitors/signalfx-forwarder.md)
 monitor should be made part of both `metrics` and `traces` pipelines utilizing the
 [`signalfx`](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/signalfxexporter/README.md)
 and [`sapm`](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/sapmexporter/README.md) exporters, respectively.
 1. All metric content replacement and transformation rules should utilize existing
-[Collector processors](https://github.com/open-telemetry/opentelemetry-collector/blob/master/processor/README.md).
+[Collector processors](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/README.md).
 1. Monitors with [dimension property and tag update
 functionality](https://dev.splunk.com/observability/docs/datamodel#Creating-or-updating-custom-properties-and-tags)
 allow an associated `dimensionClients` field that references the name of the SignalFx exporter you are using in your

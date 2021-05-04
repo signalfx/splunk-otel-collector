@@ -385,9 +385,8 @@ jobs:
       - run:
           name: Calculate checksums
           command: cd dist && shasum -a 256 * > checksums.txt
-      - run:
-          name: Create Github draft release and upload artifacts
-          command: ghr --draft -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $CIRCLE_TAG dist/
+      - store_artifacts:
+          path: dist
 
   publish-dev:
     docker:
@@ -399,6 +398,18 @@ jobs:
       - publish_docker_images:
           repo: splunk-otel-collector-dev
           tag: ${CIRCLE_SHA1}
+      - run:
+          name: Prepare release artifacts
+          command: |
+            cp bin/* dist/
+            # exclude the otelcol symlink from the release
+            [ -e dist/otelcol ] && rm -f dist/otelcol
+            [ -e dist/image.tar ] && rm -f dist/image.tar
+      - run:
+          name: Calculate checksums
+          command: cd dist && shasum -a 256 * > checksums.txt
+      - store_artifacts:
+          path: dist
 
   windows-test:
     executor:

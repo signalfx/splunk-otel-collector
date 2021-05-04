@@ -345,7 +345,7 @@ func (h *nopHost) ReportFatalError(_ error) {}
 func (h *nopHost) GetFactory(_ component.Kind, _ config.Type) component.Factory {
 	return nil
 }
-func (h *nopHost) GetExtensions() map[config.NamedEntity]component.Extension {
+func (h *nopHost) GetExtensions() map[config.ComponentID]component.Extension {
 	return nil
 }
 
@@ -354,32 +354,29 @@ type hostWithExporters struct {
 	exporter *mockMetadataClient
 }
 
-func getExporters() map[config.DataType]map[config.NamedEntity]component.Exporter {
-	exporters := map[config.DataType]map[config.NamedEntity]component.Exporter{}
-	metricExporterMap := map[config.NamedEntity]component.Exporter{}
+func getExporters() map[config.DataType]map[config.ComponentID]component.Exporter {
+	exporters := map[config.DataType]map[config.ComponentID]component.Exporter{}
+	metricExporterMap := map[config.ComponentID]component.Exporter{}
 	exporters[config.MetricsDataType] = metricExporterMap
 
 	exampleExporterFactory := componenttest.NewNopExporterFactory()
 	exampleExporter, _ := exampleExporterFactory.CreateMetricsExporter(
 		context.Background(), component.ExporterCreateParams{}, nil,
 	)
-	metricExporterMap[exampleExporterFactory.CreateDefaultConfig()] = exampleExporter
 
-	receiver := namedEntity{name: "metricsreceiver"}
-	metricExporterMap[&receiver] = &mockMetricsReceiver{}
-
-	notReceiver := namedEntity{name: "notareceiver"}
-	metricExporterMap[&notReceiver] = &notAReceiver{}
+	metricExporterMap[exampleExporterFactory.CreateDefaultConfig().ID()] = exampleExporter
+	metricExporterMap[config.MustIDFromString("metricsreceiver")] = &mockMetricsReceiver{}
+	metricExporterMap[config.MustIDFromString("notareceiver")] = &notAReceiver{}
 
 	return exporters
 }
 
-func (h *hostWithExporters) GetExporters() map[config.DataType]map[config.NamedEntity]component.Exporter {
+func (h *hostWithExporters) GetExporters() map[config.DataType]map[config.ComponentID]component.Exporter {
 	exporters := getExporters()
 	exporterMap := exporters[config.MetricsDataType]
 
-	me := namedEntity{name: h.exporter.name, _type: h.exporter.name}
-	exporterMap[&me] = component.MetricsExporter(h.exporter)
+	// Add internal exporter to the list.
+	exporterMap[config.MustIDFromString(h.exporter.name)] = component.MetricsExporter(h.exporter)
 	return exporters
 }
 
@@ -388,23 +385,14 @@ type hostWithTwoSFxExporters struct {
 	sfxExporter *mockMetadataClient
 }
 
-func (h *hostWithTwoSFxExporters) GetExporters() map[config.DataType]map[config.NamedEntity]component.Exporter {
+func (h *hostWithTwoSFxExporters) GetExporters() map[config.DataType]map[config.ComponentID]component.Exporter {
 	exporters := getExporters()
 	exporterMap := exporters[config.MetricsDataType]
 
-	meOne := namedEntity{name: "sfx1", _type: "signalfx"}
-	exporterMap[&meOne] = component.MetricsExporter(h.sfxExporter)
+	meOne := config.MustIDFromString("signalfx/sfx1")
+	exporterMap[meOne] = component.MetricsExporter(h.sfxExporter)
 
-	meTwo := namedEntity{name: "sfx2", _type: "signalfx"}
-	exporterMap[&meTwo] = component.MetricsExporter(h.sfxExporter)
+	meTwo := config.MustIDFromString("signalfx/sfx2")
+	exporterMap[meTwo] = component.MetricsExporter(h.sfxExporter)
 	return exporters
 }
-
-type namedEntity struct {
-	name  string
-	_type string
-}
-
-func (ne *namedEntity) Type() config.Type { return config.Type(ne._type) }
-func (ne *namedEntity) Name() string      { return ne.name }
-func (ne *namedEntity) SetName(_ string)  {}

@@ -50,8 +50,8 @@ type Output struct {
 	logger               *zap.Logger
 	converter            converter.Converter
 	monitorFiltering     *monitorFiltering
-	receiverName         string
-	nextDimensionClients []*metadata.MetadataExporter
+	receiverID           config.ComponentID
+	nextDimensionClients []metadata.MetadataExporter
 }
 
 var _ types.Output = (*Output)(nil)
@@ -62,13 +62,12 @@ func NewOutput(
 	nextLogsConsumer consumer.Logs, nextTracesConsumer consumer.Traces, host component.Host,
 	logger *zap.Logger,
 ) *Output {
-	metadataExporters := getMetadataExporters(config, host, &nextMetricsConsumer, logger)
 	return &Output{
-		receiverName:         config.Name(),
+		receiverID:           config.ID(),
 		nextMetricsConsumer:  nextMetricsConsumer,
 		nextLogsConsumer:     nextLogsConsumer,
 		nextTracesConsumer:   nextTracesConsumer,
-		nextDimensionClients: metadataExporters,
+		nextDimensionClients: getMetadataExporters(config, host, &nextMetricsConsumer, logger),
 		logger:               logger,
 		converter:            converter.NewConverter(logger),
 		extraDimensions:      map[string]string{},
@@ -82,13 +81,13 @@ func NewOutput(
 // if any.  At this time the SignalFx exporter is the only supported use case and adopter of this type.
 func getMetadataExporters(
 	cfg Config, host component.Host, nextMetricsConsumer *consumer.Metrics, logger *zap.Logger,
-) []*metadata.MetadataExporter {
-	var exporters []*metadata.MetadataExporter
+) []metadata.MetadataExporter {
+	var exporters []metadata.MetadataExporter
 
 	metadataExporters, noClientsSpecified := getDimensionClientsFromMetricsExporters(cfg.DimensionClients, host, nextMetricsConsumer, logger)
 	for _, client := range metadataExporters {
 		if metadataExporter, ok := (*client).(metadata.MetadataExporter); ok {
-			exporters = append(exporters, &metadataExporter)
+			exporters = append(exporters, metadataExporter)
 		} else {
 			logger.Info("cannot send dimension updates to dimension client", zap.Any("client", *client))
 		}
@@ -98,7 +97,7 @@ func getMetadataExporters(
 		sfxExporter := getLoneSFxExporter(host, config.MetricsDataType)
 		if sfxExporter != nil {
 			if sfx, ok := sfxExporter.(metadata.MetadataExporter); ok {
-				exporters = append(exporters, &sfx)
+				exporters = append(exporters, sfx)
 			}
 		}
 	}
@@ -129,7 +128,7 @@ func getDimensionClientsFromMetricsExporters(
 		for _, client := range specifiedClients {
 			var found bool
 			for exporterConfig, exporter := range builtExporters {
-				if exporterConfig.Name() == client {
+				if exporterConfig.String() == client {
 					if asMetadataExporter, ok := exporter.(metadata.MetadataExporter); ok {
 						clients = append(clients, &asMetadataExporter)
 					}
@@ -157,7 +156,6 @@ func getLoneSFxExporter(host component.Host, exporterType config.DataType) compo
 				} else { // we've already found one so no lone instance to use as default
 					return nil
 				}
-
 			}
 		}
 	}
@@ -185,7 +183,7 @@ func (output *Output) HasAnyExtraMetrics() bool {
 	return output.monitorFiltering.HasAnyExtraMetrics()
 }
 
-// Some monitors will clone their Output to provide to child monitors with their own extraDimensions
+// Copy clones the Output to provide to child monitors with their own extraDimensions.
 func (output *Output) Copy() types.Output {
 	output.logger.Debug("Copying Output", zap.Any("output", output))
 	cp := *output
@@ -200,7 +198,7 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 		return
 	}
 
-	ctx := obsreport.ReceiverContext(context.Background(), output.receiverName, internalTransport)
+	ctx := obsreport.ReceiverContext(context.Background(), output.receiverID.String(), internalTransport)
 	ctx = obsreport.StartMetricsReceiveOp(ctx, typeStr, internalTransport)
 
 	datapoints = output.filterDatapoints(datapoints)
@@ -265,8 +263,7 @@ func (output *Output) SendDimensionUpdate(dimension *types.Dimension) {
 
 	metadataUpdate := dimensionToMetadataUpdate(*dimension)
 	for _, consumer := range output.nextDimensionClients {
-		exporter := *consumer
-		err := exporter.ConsumeMetadata([]*metadata.MetadataUpdate{&metadataUpdate})
+		err := consumer.ConsumeMetadata([]*metadata.MetadataUpdate{&metadataUpdate})
 		if err != nil {
 			output.logger.Debug("SendDimensionUpdate has failed", zap.Error(err))
 		}

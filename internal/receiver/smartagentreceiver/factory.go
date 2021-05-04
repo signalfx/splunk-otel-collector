@@ -67,10 +67,7 @@ func NewFactory() component.ReceiverFactory {
 
 func CreateDefaultConfig() config.Receiver {
 	return &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr,
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewID(typeStr)),
 	}
 }
 

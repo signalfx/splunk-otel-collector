@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtest"
 )
 
@@ -41,7 +42,7 @@ func TestBundleDirDefault(t *testing.T) {
 
 	require.GreaterOrEqual(t, len(cfg.Extensions), 1)
 
-	allSettingsConfig := cfg.Extensions["smartagent/default_settings"]
+	allSettingsConfig := cfg.Extensions[config.NewIDWithName(typeStr, "default_settings")]
 	require.NotNil(t, allSettingsConfig)
 
 	ext, err := factory.CreateExtension(context.Background(), component.ExtensionCreateParams{}, allSettingsConfig)

@@ -120,7 +120,7 @@ $tempdir = "\tmp\Splunk\OpenTelemetry Collector"
 $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
 $fluentd_msi_name = "td-agent-4.0.1-x64.msi"
-$fluentd_dl_url = "http://packages.treasuredata.com.s3.amazonaws.com/4/windows/$fluentd_msi_name"
+$fluentd_dl_url = "https://packages.treasuredata.com/4/windows/$fluentd_msi_name"
 $fluentd_base_dir = "\opt\td-agent"
 $fluentd_config_dir = "$fluentd_base_dir\etc\td-agent"
 $fluentd_config_path = "$fluentd_config_dir\td-agent.conf"

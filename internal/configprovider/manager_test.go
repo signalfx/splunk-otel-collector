@@ -240,11 +240,11 @@ map:
 	expectedFile := path.Join("testdata", "yaml_injection_expected.yaml")
 	expectedParser, err := config.NewParserFromFile(expectedFile)
 	require.NoError(t, err)
-	expectedCfg := expectedParser.Viper().AllSettings()
+	expectedCfg := expectedParser.ToStringMap()
 
 	res, err := manager.Resolve(ctx, cp)
 	require.NoError(t, err)
-	actualCfg := res.Viper().AllSettings()
+	actualCfg := res.ToStringMap()
 	assert.Equal(t, expectedCfg, actualCfg)
 	assert.NoError(t, manager.Close(ctx))
 }

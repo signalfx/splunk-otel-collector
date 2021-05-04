@@ -29,27 +29,51 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+func TestConfigServer_RequireEnvVar(t *testing.T) {
+	initial := map[string]interface{}{
+		"minimal": "config",
+	}
+
+	cs := newConfigServer(zap.NewNop(), initial, initial)
+	require.NotNil(t, cs)
+
+	require.NoError(t, cs.start())
+	t.Cleanup(func() {
+		require.NoError(t, cs.shutdown())
+	})
+
+	client := &http.Client{}
+	path := "/debug/configz/initial"
+	_, err := client.Get("http://" + defaultConfigServerEndpoint + path)
+	assert.Error(t, err)
+}
+
 func TestConfigServer_EnvVar(t *testing.T) {
 	alternativePort := strconv.FormatUint(uint64(testutil.GetAvailablePort(t)), 10)
+	require.NoError(t, os.Setenv(configServerEnabledEnvVar, "true"))
+	t.Cleanup(func() {
+		assert.NoError(t, os.Unsetenv(configServerEnabledEnvVar))
+	})
+
 	tests := []struct {
-		name       string
-		envVar     string
-		endpoint   string
-		setEnvVar  bool
-		serverDown bool
+		name          string
+		portEnvVar    string
+		endpoint      string
+		setPortEnvVar bool
+		serverDown    bool
 	}{
 		{
 			name: "default",
 		},
 		{
-			name:       "disable_server",
-			setEnvVar:  true, // Explicitly setting it to empty to disable the server.
-			serverDown: true,
+			name:          "disable_server",
+			setPortEnvVar: true, // Explicitly setting it to empty to disable the server.
+			serverDown:    true,
 		},
 		{
-			name:     "change_port",
-			envVar:   alternativePort,
-			endpoint: "http://localhost:" + alternativePort,
+			name:       "change_port",
+			portEnvVar: alternativePort,
+			endpoint:   "http://localhost:" + alternativePort,
 		},
 	}
 
@@ -59,10 +83,10 @@ func TestConfigServer_EnvVar(t *testing.T) {
 				"key": "value",
 			}
 
-			if tt.envVar != "" || tt.setEnvVar {
-				require.NoError(t, os.Setenv(defaultConfigServerPortEnvVar, tt.envVar))
+			if tt.portEnvVar != "" || tt.setPortEnvVar {
+				require.NoError(t, os.Setenv(configServerPortEnvVar, tt.portEnvVar))
 				defer func() {
-					assert.NoError(t, os.Unsetenv(defaultConfigServerPortEnvVar))
+					assert.NoError(t, os.Unsetenv(configServerPortEnvVar))
 				}()
 			}
 
@@ -94,6 +118,11 @@ func TestConfigServer_EnvVar(t *testing.T) {
 }
 
 func TestConfigServer_Serve(t *testing.T) {
+	require.NoError(t, os.Setenv(configServerEnabledEnvVar, "true"))
+	t.Cleanup(func() {
+		assert.NoError(t, os.Unsetenv(configServerEnabledEnvVar))
+	})
+
 	initial := map[string]interface{}{
 		"field":   "not_redacted",
 		"api_key": "not_redacted_on_initial",

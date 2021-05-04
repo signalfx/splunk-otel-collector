@@ -27,8 +27,10 @@ import (
 )
 
 const (
-	defaultConfigServerEndpoint   = "localhost:55555"
-	defaultConfigServerPortEnvVar = "SPLUNK_CONFIG_SERVER_PORT"
+	configServerEnabledEnvVar = "SPLUNK_DEBUG_CONFIG_SERVER"
+	configServerPortEnvVar    = "SPLUNK_DEBUG_CONFIG_SERVER_PORT"
+
+	defaultConfigServerEndpoint = "localhost:55555"
 )
 
 type configServer struct {
@@ -48,8 +50,13 @@ func newConfigServer(logger *zap.Logger, initial, effective map[string]interface
 }
 
 func (cs *configServer) start() error {
+	if enabled := os.Getenv(configServerEnabledEnvVar); enabled != "true" {
+		// The config server needs to be explicitly enabled for the time being.
+		return nil
+	}
+
 	endpoint := defaultConfigServerEndpoint
-	if portOverride, ok := os.LookupEnv(defaultConfigServerPortEnvVar); ok {
+	if portOverride, ok := os.LookupEnv(configServerPortEnvVar); ok {
 		if portOverride == "" {
 			// If explicitly set to empty do not start the server.
 			return nil

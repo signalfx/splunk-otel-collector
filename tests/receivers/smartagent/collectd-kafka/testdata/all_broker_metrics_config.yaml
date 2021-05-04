@@ -1,9 +1,3 @@
-extensions:
-  smartagent:
-    bundleDir: /opt/bundle
-    collectd:
-      configDir: /tmp/collectd/config
-
 receivers:
   smartagent/collectd_kafka:
     type: collectd/kafka
@@ -19,7 +13,6 @@ exporters:
     insecure: true
 
 service:
-  extensions: [smartagent]
   pipelines:
     metrics:
       receivers:

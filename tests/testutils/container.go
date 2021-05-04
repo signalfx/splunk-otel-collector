@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 
+	dockerContainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
@@ -28,16 +29,17 @@ import (
 // Container is a combination builder and testcontainers.Container wrapper
 // for convenient creation and management of docker images and containers.
 type Container struct {
-	Image             string
-	Dockerfile        testcontainers.FromDockerfile
-	Cmd               []string
-	Env               map[string]string
-	ExposedPorts      []string
-	ContainerName     string
-	ContainerNetworks []string
-	WaitingFor        []wait.Strategy
-	req               *testcontainers.ContainerRequest
-	container         *testcontainers.Container
+	Image                string
+	Dockerfile           testcontainers.FromDockerfile
+	Cmd                  []string
+	Env                  map[string]string
+	ExposedPorts         []string
+	ContainerName        string
+	ContainerNetworks    []string
+	ContainerNetworkMode string
+	WaitingFor           []wait.Strategy
+	req                  *testcontainers.ContainerRequest
+	container            *testcontainers.Container
 }
 
 var _ testcontainers.Container = (*Container)(nil)
@@ -114,6 +116,11 @@ func (container Container) WithNetworks(networks ...string) Container {
 	return container
 }
 
+func (container Container) WithNetworkMode(mode string) Container {
+	container.ContainerNetworkMode = mode
+	return container
+}
+
 func (container Container) WillWaitForPorts(ports ...string) Container {
 	for _, port := range ports {
 		container.WaitingFor = append(container.WaitingFor, wait.ForListeningPort(nat.Port(port)))
@@ -129,6 +136,10 @@ func (container Container) WillWaitForLogs(logStatements ...string) Container {
 }
 
 func (container Container) Build() *Container {
+	networkMode := dockerContainer.NetworkMode("default")
+	if container.ContainerNetworkMode != "" {
+		networkMode = dockerContainer.NetworkMode(container.ContainerNetworkMode)
+	}
 	container.req = &testcontainers.ContainerRequest{
 		Image:          container.Image,
 		FromDockerfile: container.Dockerfile,
@@ -137,6 +148,7 @@ func (container Container) Build() *Container {
 		ExposedPorts:   container.ExposedPorts,
 		Name:           container.ContainerName,
 		Networks:       container.ContainerNetworks,
+		NetworkMode:    networkMode,
 		WaitingFor:     wait.ForAll(container.WaitingFor...),
 	}
 	return &container

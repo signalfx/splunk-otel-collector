@@ -9,7 +9,7 @@ is:
 ([see example](./testutils/testdata/resourceMetrics.yaml))
 1. Spin up your target resources as [docker containers](./testutils/README.md#test-containers).
 1. Stand up an in-memory [OTLP metrics receiver and sink](./testutils/README.md#otlp-metrics-receiver-sink) capable of detecting if/when desired data are received.
-1. Spin up your [Collector as a subprocess](./testutils/README.md#collector-process) configured to report to this OTLP receiver.
+1. Spin up your Collector [as a subprocess](./testutils/README.md#collector-process) or [as a container](./testutils/README.md#collector-container) configured to report to this OTLP receiver.
   
 ...but if you are interested in something else enhancements and contributions are a great way to ensure this library
 is more useful overall.

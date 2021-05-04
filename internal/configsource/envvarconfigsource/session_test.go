@@ -45,6 +45,9 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 		{
 			name:     "missing_not_required",
 			selector: "UNDEFINED_ENV_VAR",
+			params: map[string]interface{}{
+				"optional": true,
+			},
 			expected: "", // The default behavior for undefined env var is empty string.
 		},
 		{
@@ -55,18 +58,12 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 			wantErr: &errInvalidRetrieveParams{},
 		},
 		{
-			name: "missing_required",
-			params: map[string]interface{}{
-				"required": true,
-			},
+			name:     "missing_required",
 			selector: "UNDEFINED_ENV_VAR",
 			wantErr:  &errMissingRequiredEnvVar{},
 		},
 		{
 			name: "required_on_defaults",
-			params: map[string]interface{}{
-				"required": true,
-			},
 			defaults: map[string]interface{}{
 				"FALLBACK_ENV_VAR": "fallback_env_var",
 			},

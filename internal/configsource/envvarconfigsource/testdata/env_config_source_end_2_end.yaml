@@ -8,6 +8,6 @@ config_sources:
 
 config:
   from_defined_env_var: ${env:_TEST_ENV_VAR_CFG_SRC}
-  from_undefined_env_var: ${env:_UNDEFINED_ENV_VAR}/some/path
+  from_undefined_env_var: ${env:_UNDEFINED_ENV_VAR?optional=true}/some/path
   field_from_default: $env:k0
-  map_from_default: $env:cfg?required=true
+  map_from_default: $env:cfg?optional=true

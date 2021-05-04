@@ -34,10 +34,11 @@ type (
 )
 
 type retrieveParams struct {
-	// Retrieve parameter for the config source. If set to true and the environment
-	// variable specified on the selector is not defined or not available on the
-	// defaults the call to Retrieve will fail.
-	Required bool `mapstructure:"required"`
+	// Optional is used to change the default behavior when an environment variable
+	// requested via the config source is not defined. By default the value of this
+	// field is 'false' which will cause an error if the specified environment variable
+	// is not defined. Set it to 'true' to ignore not defined environment variables.
+	Optional bool `mapstructure:"optional"`
 }
 
 // envVarSession implements the configsource.Session interface.
@@ -64,7 +65,7 @@ func (e *envVarSession) Retrieve(_ context.Context, selector string, params inte
 
 	defaultValue, ok := e.defaults[selector]
 	if !ok {
-		if actualParams.Required {
+		if !actualParams.Optional {
 			return nil, &errMissingRequiredEnvVar{fmt.Errorf("env var %q is required but not defined and not present on defaults", selector)}
 		}
 

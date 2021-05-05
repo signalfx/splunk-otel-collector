@@ -30,8 +30,8 @@ import (
 func TestConfigSourceBuild(t *testing.T) {
 	ctx := context.Background()
 	params := CreateParams{
-		Logger:               zap.NewNop(),
-		ApplicationStartInfo: component.ApplicationStartInfo{},
+		Logger:    zap.NewNop(),
+		BuildInfo: component.DefaultBuildInfo(),
 	}
 
 	testFactories := Factories{

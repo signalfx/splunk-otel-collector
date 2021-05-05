@@ -30,8 +30,8 @@ type CreateParams struct {
 	// ConfigSource to be used later as well.
 	Logger *zap.Logger
 
-	// ApplicationStartInfo can be used to retrieve data according to version, etc.
-	ApplicationStartInfo component.ApplicationStartInfo
+	// BuildInfo can be used to retrieve data according to version, etc.
+	BuildInfo component.BuildInfo
 }
 
 // Factory is a factory interface for configuration sources.

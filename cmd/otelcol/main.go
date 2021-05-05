@@ -66,8 +66,8 @@ func main() {
 		log.Fatalf("failed to build default components: %v", err)
 	}
 
-	info := component.ApplicationStartInfo{
-		ExeName: "otelcol",
+	info := component.BuildInfo{
+		Command: "otelcol",
 		Version: version.Version,
 	}
 
@@ -77,9 +77,9 @@ func main() {
 		configsources.Get()...,
 	)
 	serviceParams := service.Parameters{
-		ApplicationStartInfo: info,
-		Factories:            factories,
-		ParserProvider:       parserProvider,
+		BuildInfo:      info,
+		Factories:      factories,
+		ParserProvider: parserProvider,
 	}
 
 	if err := run(serviceParams); err != nil {

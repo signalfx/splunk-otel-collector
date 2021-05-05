@@ -32,4 +32,4 @@ COPY config/collector/gateway_config.yaml    /etc/otel/collector/gateway_config.
 COPY config/collector/otlp_config_linux.yaml /etc/otel/collector/otlp_config_linux.yaml
 COPY config/collector/agent_config.yaml      /etc/otel/collector/agent_config.yaml
 ENTRYPOINT ["/otelcol"]
-EXPOSE 13133 14250 14268 55680 4317 6060 7276 8888 9411 9443 9080
+EXPOSE 13133 14250 14268 4317 6060 7276 8888 9411 9443 9080

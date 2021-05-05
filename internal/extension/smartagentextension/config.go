@@ -37,7 +37,7 @@ type Config struct {
 }
 
 func (cfg *Config) Unmarshal(componentParser *config.Parser) error {
-	allSettings := componentParser.Viper().AllSettings()
+	allSettings := componentParser.ToStringMap()
 
 	configDirSet := false
 	if collectd, ok := allSettings["collectd"]; ok {

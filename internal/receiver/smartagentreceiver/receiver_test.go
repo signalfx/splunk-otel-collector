@@ -323,7 +323,7 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 		HasGenericJMXMonitor: false,
 		InstanceName:         "",
 		WriteServerQuery:     "",
-	}, saConfigProvider.SmartAgentConfig().Collectd)
+	}, saConfig.Collectd)
 
 	// Ensure envs are setup.
 	require.Equal(t, "/opt/", os.Getenv("SIGNALFX_BUNDLE_DIR"))
@@ -384,7 +384,7 @@ func (m *mockHost) GetExtensions() map[config.NamedEntity]component.Extension {
 	return map[config.NamedEntity]component.Extension{
 		m.smartagentextensionConfig:      getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
 		randomExtensionConfig:            getExtension(exampleFactory, randomExtensionConfig),
-		m.smartagentextensionConfigExtra: nil,
+		m.smartagentextensionConfigExtra: getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfigExtra),
 	}
 }
 

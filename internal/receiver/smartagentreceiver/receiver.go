@@ -57,7 +57,7 @@ var (
 	rusToZap                 *logrusToZap
 	configureCollectdOnce    sync.Once
 	configureEnvironmentOnce sync.Once
-	saConfigProvider         smartagentextension.SmartAgentConfigProvider
+	saConfig                 *saconfig.Config
 	configureRusToZapOnce    sync.Once
 	nonWordCharacters        = regexp.MustCompile(`[^\w]+`)
 )
@@ -113,7 +113,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 		return fmt.Errorf("failed creating monitor %q: %w", monitorType, err)
 	}
 
-	configCore.ProcPath = saConfigProvider.SmartAgentConfig().ProcPath
+	configCore.ProcPath = saConfig.ProcPath
 
 	return saconfig.CallConfigure(r.monitor, r.config.monitorConfig)
 }
@@ -185,7 +185,7 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 	if r.config.monitorConfig.MonitorConfigCore().IsCollectdBased() {
 		configureCollectdOnce.Do(func() {
 			r.logger.Info("Configuring collectd")
-			err = collectd.ConfigureMainCollectd(&saConfigProvider.SmartAgentConfig().Collectd)
+			err = collectd.ConfigureMainCollectd(&saConfig.Collectd)
 		})
 	}
 
@@ -195,15 +195,14 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[config.NamedEntity]component.Extension) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
-	defaultCfg := f.CreateDefaultConfig().(smartagentextension.SmartAgentConfigProvider)
-	saConfigProvider = defaultCfg
+	saConfig = &f.CreateDefaultConfig().(*smartagentextension.Config).Config
 
 	// Do a lookup for any smartagent extensions to pick up common collectd options
 	// to be applied across instances of the receiver.
 	var foundAtLeastOne bool
 	var multipleSAExtensions bool
 	var chosenExtension string
-	for c := range extensions {
+	for c, ext := range extensions {
 		if c.Type() != f.Type() {
 			continue
 		}
@@ -214,11 +213,11 @@ func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[config.NamedEnti
 		}
 
 		var cfgProvider smartagentextension.SmartAgentConfigProvider
-		cfgProvider, foundAtLeastOne = c.(smartagentextension.SmartAgentConfigProvider)
+		cfgProvider, foundAtLeastOne = ext.(smartagentextension.SmartAgentConfigProvider)
 		if !foundAtLeastOne {
 			continue
 		}
-		saConfigProvider = cfgProvider
+		saConfig = cfgProvider.SmartAgentConfig()
 		chosenExtension = c.Name()
 		r.logger.Info("Smart Agent Config provider configured", zap.String("extension_name", chosenExtension))
 	}
@@ -229,15 +228,14 @@ func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[config.NamedEnti
 }
 
 func setUpEnvironment() {
-	cfg := saConfigProvider.SmartAgentConfig()
-	os.Setenv(constants.BundleDirEnvVar, cfg.BundleDir)
+	os.Setenv(constants.BundleDirEnvVar, saConfig.BundleDir)
 	if runtime.GOOS != "windows" { // Agent bundle doesn't include jre for Windows
-		os.Setenv("JAVA_HOME", filepath.Join(cfg.BundleDir, "jre"))
+		os.Setenv("JAVA_HOME", filepath.Join(saConfig.BundleDir, "jre"))
 	}
 
-	os.Setenv(hostfs.HostProcVar, cfg.ProcPath)
-	os.Setenv(hostfs.HostEtcVar, cfg.EtcPath)
-	os.Setenv(hostfs.HostVarVar, cfg.VarPath)
-	os.Setenv(hostfs.HostRunVar, cfg.RunPath)
-	os.Setenv(hostfs.HostSysVar, cfg.SysPath)
+	os.Setenv(hostfs.HostProcVar, saConfig.ProcPath)
+	os.Setenv(hostfs.HostEtcVar, saConfig.EtcPath)
+	os.Setenv(hostfs.HostVarVar, saConfig.VarPath)
+	os.Setenv(hostfs.HostRunVar, saConfig.RunPath)
+	os.Setenv(hostfs.HostSysVar, saConfig.SysPath)
 }

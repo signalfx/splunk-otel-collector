@@ -67,7 +67,7 @@ func TestConfigSourceManager_NewManager(t *testing.T) {
 			parser, err := config.NewParserFromFile(filename)
 			require.NoError(t, err)
 
-			manager, err := NewManager(parser, zap.NewNop(), component.DefaultApplicationStartInfo(), tt.factories)
+			manager, err := NewManager(parser, zap.NewNop(), component.DefaultBuildInfo(), tt.factories)
 			require.IsType(t, tt.wantErr, err)
 			if tt.wantErr != nil {
 				require.Nil(t, manager)

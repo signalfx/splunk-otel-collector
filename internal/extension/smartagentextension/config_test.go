@@ -123,6 +123,9 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 	require.NotNil(t, allSettingsConfig)
 
 	ext, err := factory.CreateExtension(context.Background(), component.ExtensionCreateParams{}, allSettingsConfig)
+	require.NoError(t, err)
+	require.NotNil(t, ext)
+
 	saConfigProvider, ok := ext.(SmartAgentConfigProvider)
 	require.True(t, ok)
 

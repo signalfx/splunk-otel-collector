@@ -140,6 +140,23 @@ defer func() { require.NoError(t, collector.Shutdown()) }()
 collector, err = testutils.NewCollectorProcess().WithArgs("--tested-feature", "--etc").Build()
 ```
 
+### Collector Container
+
+The `CollectorContainer` is an equivalent helper type to the `CollectorProcess` but will run a container in host network
+mode for an arbitrary Collector image and tag using the config you provide.  If an image is not specified it will use a default
+of `"quay.io/signalfx/splunk-otel-collector-dev:latest"`.
+
+```go
+import "github.com/signafx/splunk-otel-collector/tests/testutils"
+
+collector, err := testutils.NewCollectorContainer().WithImage("quay.io/signalfx/splunk-otel-collector:latest",
+).WithConfigPath("my_config_path").Build()
+
+err = collector.Start()
+require.NoError(t, err)
+defer func() { require.NoError(t, collector.Shutdown()) }()
+```
+
 ### Testcase
 
 All the above test utilities can be easily configured by the `Testcase` helper to avoid unnecessary boilerplate in
@@ -147,6 +164,9 @@ resource creation and cleanup.  The associated OTLPMetricsReceiverSink for each 
 endpoint that can be rendered via the `"${OTLP_ENDPOINT}"` environment variable in your tested config. `testutils`
 provides a general `AssertAllMetricsReceived()` function that utilizes this type to stand up all the necessary resources
 associated with a test and assert that all expected metrics are received:
+
+If the `SPLUNK_OTEL_COLLECTOR_IMAGE` environment variable is set and not empty its value will be used to start a
+`CollectorContainer` instead of a subprocess.
 
 ```go
 import "github.com/signafx/splunk-otel-collector/tests/testutils"

@@ -1,9 +1,3 @@
-extensions:
-  smartagent:
-    bundleDir: /opt/bundle
-    collectd:
-      configDir: /tmp/collectd/config
-
 receivers:
   smartagent/collectd_spark_master:
     type: collectd/spark
@@ -22,7 +16,6 @@ exporters:
     insecure: true
 
 service:
-  extensions: [smartagent]
   pipelines:
     metrics:
       receivers:

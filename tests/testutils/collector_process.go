@@ -27,6 +27,8 @@ import (
 const binaryPathSuffix = "/bin/otelcol"
 const findExecutableErrorMsg = "unable to find collector executable path.  Be sure to run `make otelcol`"
 
+var _ Collector = (*CollectorProcess)(nil)
+
 type CollectorProcess struct {
 	Path             string
 	ConfigPath       string
@@ -50,36 +52,36 @@ func (collector CollectorProcess) WithPath(path string) CollectorProcess {
 }
 
 // Required
-func (collector CollectorProcess) WithConfigPath(path string) CollectorProcess {
+func (collector CollectorProcess) WithConfigPath(path string) Collector {
 	collector.ConfigPath = path
-	return collector
+	return &collector
 }
 
 // []string{"--log-level", collector.LogLevel, "--config", collector.ConfigPath, "--metrics-level", "none"} by default
-func (collector CollectorProcess) WithArgs(args ...string) CollectorProcess {
+func (collector CollectorProcess) WithArgs(args ...string) Collector {
 	collector.Args = args
-	return collector
+	return &collector
 }
 
 // empty by default
-func (collector CollectorProcess) WithEnv(env map[string]string) CollectorProcess {
+func (collector CollectorProcess) WithEnv(env map[string]string) Collector {
 	collector.Env = env
-	return collector
+	return &collector
 }
 
 // Nop logger by default
-func (collector CollectorProcess) WithLogger(logger *zap.Logger) CollectorProcess {
+func (collector CollectorProcess) WithLogger(logger *zap.Logger) Collector {
 	collector.Logger = logger
-	return collector
+	return &collector
 }
 
 // info by default
-func (collector CollectorProcess) WithLogLevel(level string) CollectorProcess {
+func (collector CollectorProcess) WithLogLevel(level string) Collector {
 	collector.LogLevel = level
-	return collector
+	return &collector
 }
 
-func (collector CollectorProcess) Build() (*CollectorProcess, error) {
+func (collector CollectorProcess) Build() (Collector, error) {
 	if collector.ConfigPath == "" && collector.Args == nil {
 		return nil, fmt.Errorf("you must specify a ConfigPath for your CollectorProcess before building")
 	}

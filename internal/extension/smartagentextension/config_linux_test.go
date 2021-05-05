@@ -16,10 +16,12 @@
 package smartagentextension
 
 import (
+	"context"
 	"path"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/configtest"
 )
@@ -42,7 +44,11 @@ func TestBundleDirDefault(t *testing.T) {
 	allSettingsConfig := cfg.Extensions["smartagent/default_settings"]
 	require.NotNil(t, allSettingsConfig)
 
-	saConfigProvider, ok := allSettingsConfig.(SmartAgentConfigProvider)
+	ext, err := factory.CreateExtension(context.Background(), component.ExtensionCreateParams{}, allSettingsConfig)
+	require.NoError(t, err)
+	require.NotNil(t, ext)
+
+	saConfigProvider, ok := ext.(SmartAgentConfigProvider)
 	require.True(t, ok)
 
 	require.Equal(t, "/usr/lib/splunk-otel-collector/agent-bundle", saConfigProvider.SmartAgentConfig().BundleDir)

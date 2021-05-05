@@ -27,12 +27,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/utils"
 )
 
-// SmartAgentConfigProvider exposes global saconfig.Config to other components
-type SmartAgentConfigProvider interface {
-	SmartAgentConfig() *saconfig.Config
-}
-
-var _ SmartAgentConfigProvider = (*Config)(nil)
 var _ config.CustomUnmarshable = (*Config)(nil)
 
 type Config struct {
@@ -40,10 +34,6 @@ type Config struct {
 	// Agent uses yaml, which mapstructure doesn't support.
 	// Custom unmarshaller required for yaml and SFx defaults usage.
 	saconfig.Config `mapstructure:"-,squash"`
-}
-
-func (cfg Config) SmartAgentConfig() *saconfig.Config {
-	return &cfg.Config
 }
 
 func (cfg *Config) Unmarshal(componentParser *config.Parser) error {

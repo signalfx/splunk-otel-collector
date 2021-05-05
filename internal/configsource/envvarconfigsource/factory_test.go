@@ -13,48 +13,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configsources
+package envvarconfigsource
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
-func TestConfigSourcesGet(t *testing.T) {
-	tests := []struct {
-		configSourceType config.Type
-	}{
-		{"env"},
-		{"etcd2"},
-		{"vault"},
-		{"zookeeper"},
+func TestEnvVarConfigSourceFactory_CreateConfigSource(t *testing.T) {
+	factory := NewFactory()
+	assert.Equal(t, config.Type("env"), factory.Type())
+	createParams := configprovider.CreateParams{
+		Logger: zap.NewNop(),
 	}
-
-	defaultCfgSrcFactories := Get()
-	require.Equal(t, len(tests), len(defaultCfgSrcFactories))
-
-	cfgSrcFactoryMap := make(map[config.Type]struct{})
+	tests := []struct {
+		config *Config
+		name   string
+	}{
+		{
+			name:   "no_defaults",
+			config: &Config{},
+		},
+		{
+			name: "with_defaults",
+			config: &Config{
+				Defaults: map[string]interface{}{
+					"k0": "v0",
+				},
+			},
+		},
+	}
 	for _, tt := range tests {
-		t.Run(string(tt.configSourceType), func(t *testing.T) {
-			var factory configprovider.Factory
-			for _, f := range defaultCfgSrcFactories {
-				if f.Type() == tt.configSourceType {
-					// Ensure no duplicated factories.
-					if _, ok := cfgSrcFactoryMap[tt.configSourceType]; ok {
-						assert.Fail(t, "duplicated config source factory")
-					}
-					cfgSrcFactoryMap[f.Type()] = struct{}{}
-					factory = f
-					break
-				}
-			}
-
-			require.NotNil(t, factory, "missing or nil config source factory")
+		t.Run(tt.name, func(t *testing.T) {
+			actual, err := factory.CreateConfigSource(context.Background(), createParams, tt.config)
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
 		})
 	}
 }

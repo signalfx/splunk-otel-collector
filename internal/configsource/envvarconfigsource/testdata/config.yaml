@@ -1,0 +1,10 @@
+config_sources:
+  # First environment config source doesn't have any defaults to fallback.
+  env:
+  # An environment config source with defaults to fallback.
+  env/with_fallback:
+    defaults:
+      k0: 42
+      m0:
+        k0: v0
+        k1: v1

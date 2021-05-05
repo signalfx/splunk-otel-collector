@@ -17,14 +17,20 @@ package smartagentextension
 import (
 	"context"
 
+	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 )
 
-type smartAgentConfigExtension struct {
+// SmartAgentConfigProvider exposes global saconfig.Config to other components
+type SmartAgentConfigProvider interface {
+	SmartAgentConfig() *saconfig.Config
 }
 
-var _ component.Extension = (*smartAgentConfigExtension)(nil)
+type smartAgentConfigExtension struct {
+	saCfg *saconfig.Config
+}
+
+var _ SmartAgentConfigProvider = (*smartAgentConfigExtension)(nil)
 
 func (sae *smartAgentConfigExtension) Start(_ context.Context, _ component.Host) error {
 	return nil
@@ -34,6 +40,10 @@ func (sae *smartAgentConfigExtension) Shutdown(_ context.Context) error {
 	return nil
 }
 
-func newSmartAgentConfigExtension(_ config.Extension) (*smartAgentConfigExtension, error) {
-	return &smartAgentConfigExtension{}, nil
+func (sae *smartAgentConfigExtension) SmartAgentConfig() *saconfig.Config {
+	return sae.saCfg
+}
+
+func newSmartAgentConfigExtension(cfg *Config) (component.Extension, error) {
+	return &smartAgentConfigExtension{saCfg: &cfg.Config}, nil
 }

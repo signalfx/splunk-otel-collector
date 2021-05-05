@@ -88,5 +88,5 @@ func createExtension(
 	_ component.ExtensionCreateParams,
 	cfg config.Extension,
 ) (component.Extension, error) {
-	return newSmartAgentConfigExtension(cfg)
+	return newSmartAgentConfigExtension(cfg.(*Config))
 }

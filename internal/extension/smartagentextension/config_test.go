@@ -15,6 +15,7 @@
 package smartagentextension
 
 import (
+	"context"
 	"path"
 	"path/filepath"
 	"testing"
@@ -25,6 +26,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/config/sources/file"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configcheck"
@@ -120,7 +122,11 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 	allSettingsConfig := cfg.Extensions["smartagent/all_settings"]
 	require.NotNil(t, allSettingsConfig)
 
-	saConfigProvider, ok := allSettingsConfig.(SmartAgentConfigProvider)
+	ext, err := factory.CreateExtension(context.Background(), component.ExtensionCreateParams{}, allSettingsConfig)
+	require.NoError(t, err)
+	require.NotNil(t, ext)
+
+	saConfigProvider, ok := ext.(SmartAgentConfigProvider)
 	require.True(t, ok)
 
 	require.Equal(t, func() saconfig.CollectdConfig {

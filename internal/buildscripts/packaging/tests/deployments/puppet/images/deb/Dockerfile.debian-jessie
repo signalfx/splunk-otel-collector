@@ -1,0 +1,37 @@
+FROM debian:jessie
+
+RUN apt-get update &&\
+    apt-get install -yq ca-certificates procps systemd wget apt-transport-https libcap2-bin curl gnupg lsb-release
+
+ARG PUPPET_RELEASE="6"
+RUN wget https://apt.puppetlabs.com/puppet${PUPPET_RELEASE}-release-jessie.deb && \
+    dpkg -i puppet${PUPPET_RELEASE}-release-jessie.deb && \
+    apt-get update && \
+    apt-get install -y puppet-agent
+
+ENV PATH=/opt/puppetlabs/bin:$PATH
+
+ENV container docker
+
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \   
+    "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \                    
+    rm -f /lib/systemd/system/multi-user.target.wants/*;\ 
+    rm -f /lib/systemd/system/local-fs.target.wants/*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+    rm -f /lib/systemd/system/anaconda.target.wants/*;
+
+# Keep it from wiping our scratch dir in /tmp/scratch
+RUN rm -f /usr/lib/tmpfiles.d/tmp.conf;
+
+RUN systemctl set-default multi-user.target
+ENV init /lib/systemd/systemd
+
+RUN puppet module install puppetlabs-stdlib --version 4.24.0
+RUN puppet module install puppetlabs-apt --version 7.0.0
+
+COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/splunk_otel_collector
+
+VOLUME [ "/sys/fs/cgroup" ]
+
+CMD ["/sbin/init"]

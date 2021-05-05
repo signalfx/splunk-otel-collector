@@ -24,6 +24,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/spf13/cast"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
@@ -448,7 +449,27 @@ func (m *Manager) expandString(ctx context.Context, s string) (interface{}, erro
 				consumedAll := j+w+1 == len(s)
 				if consumedAll && len(buf) == 0 {
 					// This is the only expandableContent on the string, config
-					// source is free to return interface{}.
+					// source is free to return interface{} but parse it as YAML
+					// if it is a string or byte slice.
+					switch value := retrieved.(type) {
+					case []byte:
+						if err := yaml.Unmarshal(value, &retrieved); err != nil {
+							// The byte slice is an invalid YAML keep the original.
+							retrieved = value
+						}
+					case string:
+						if err := yaml.Unmarshal([]byte(value), &retrieved); err != nil {
+							// The string is an invalid YAML keep it as the original.
+							retrieved = value
+						}
+					}
+
+					if mapIFace, ok := retrieved.(map[interface{}]interface{}); ok {
+						// yaml.Unmarshal returns map[interface{}]interface{} but config
+						// parser uses map[string]interface{}, fix it with a cast.
+						retrieved = cast.ToStringMap(mapIFace)
+					}
+
 					return retrieved, nil
 				}
 

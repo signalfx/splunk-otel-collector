@@ -90,12 +90,12 @@ func (r *Receiver) registerTracesConsumer(tracesConsumer consumer.Traces) {
 func (r *Receiver) Start(_ context.Context, host component.Host) error {
 	err := r.config.validate()
 	if err != nil {
-		return fmt.Errorf("config validation failed for %q: %w", r.config.Name(), err)
+		return fmt.Errorf("config validation failed for %q: %w", r.config.ID().String(), err)
 	}
 
 	configCore := r.config.monitorConfig.MonitorConfigCore()
 	monitorType := configCore.Type
-	monitorName := nonWordCharacters.ReplaceAllString(r.config.Name(), "")
+	monitorName := nonWordCharacters.ReplaceAllString(r.config.ID().String(), "")
 	configCore.MonitorID = types.MonitorID(monitorName)
 
 	configureRusToZapOnce.Do(func() {
@@ -192,7 +192,7 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 	return monitor, err
 }
 
-func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[config.NamedEntity]component.Extension) {
+func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[config.ComponentID]component.Extension) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
 	saConfig = &f.CreateDefaultConfig().(*smartagentextension.Config).Config
@@ -201,7 +201,7 @@ func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[config.NamedEnti
 	// to be applied across instances of the receiver.
 	var foundAtLeastOne bool
 	var multipleSAExtensions bool
-	var chosenExtension string
+	var chosenExtension config.ComponentID
 	for c, ext := range extensions {
 		if c.Type() != f.Type() {
 			continue
@@ -218,12 +218,12 @@ func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[config.NamedEnti
 			continue
 		}
 		saConfig = cfgProvider.SmartAgentConfig()
-		chosenExtension = c.Name()
-		r.logger.Info("Smart Agent Config provider configured", zap.String("extension_name", chosenExtension))
+		chosenExtension = c
+		r.logger.Info("Smart Agent Config provider configured", zap.Stringer("extension_name", chosenExtension))
 	}
 
 	if multipleSAExtensions {
-		r.logger.Warn(fmt.Sprintf("multiple smartagent extensions found, using %s", chosenExtension))
+		r.logger.Warn(fmt.Sprintf("multiple smartagent extensions found, using %v", chosenExtension))
 	}
 }
 

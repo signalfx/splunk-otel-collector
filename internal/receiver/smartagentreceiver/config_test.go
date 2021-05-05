@@ -47,7 +47,7 @@ func TestLoadConfig(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[typeStr] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "config.yaml"), factories,
 	)
@@ -57,13 +57,10 @@ func TestLoadConfig(t *testing.T) {
 
 	assert.Equal(t, len(cfg.Receivers), 5)
 
-	haproxyCfg := cfg.Receivers["smartagent/haproxy"].(*Config)
+	haproxyCfg := cfg.Receivers[config.NewIDWithName(typeStr, "haproxy")].(*Config)
 	expectedDimensionClients := []string{"nop/one", "nop/two"}
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/haproxy",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "haproxy")),
 		DimensionClients: expectedDimensionClients,
 		monitorConfig: &haproxy.Config{
 			MonitorConfig: saconfig.MonitorConfig{
@@ -80,12 +77,9 @@ func TestLoadConfig(t *testing.T) {
 	}, haproxyCfg)
 	require.NoError(t, haproxyCfg.validate())
 
-	redisCfg := cfg.Receivers["smartagent/redis"].(*Config)
+	redisCfg := cfg.Receivers[config.NewIDWithName(typeStr, "redis")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/redis",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "redis")),
 		DimensionClients: []string{},
 		monitorConfig: &redis.Config{
 			MonitorConfig: saconfig.MonitorConfig{
@@ -99,12 +93,9 @@ func TestLoadConfig(t *testing.T) {
 	}, redisCfg)
 	require.NoError(t, redisCfg.validate())
 
-	hadoopCfg := cfg.Receivers["smartagent/hadoop"].(*Config)
+	hadoopCfg := cfg.Receivers[config.NewIDWithName(typeStr, "hadoop")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/hadoop",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "hadoop")),
 		monitorConfig: &hadoop.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/hadoop",
@@ -118,12 +109,9 @@ func TestLoadConfig(t *testing.T) {
 	}, hadoopCfg)
 	require.NoError(t, hadoopCfg.validate())
 
-	etcdCfg := cfg.Receivers["smartagent/etcd"].(*Config)
+	etcdCfg := cfg.Receivers[config.NewIDWithName(typeStr, "etcd")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/etcd",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "etcd")),
 		monitorConfig: &prometheusexporter.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "etcd",
@@ -141,12 +129,9 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, etcdCfg.validate())
 
 	tr := true
-	ntpqCfg := cfg.Receivers["smartagent/ntpq"].(*Config)
+	ntpqCfg := cfg.Receivers[config.NewIDWithName(typeStr, "ntpq")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/ntpq",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "ntpq")),
 		monitorConfig: &ntpq.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "telegraf/ntpq",
@@ -164,7 +149,7 @@ func TestLoadInvalidConfigWithoutType(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[typeStr] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "without_type.yaml"), factories,
 	)
@@ -179,7 +164,7 @@ func TestLoadInvalidConfigWithUnknownType(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[typeStr] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "unknown_type.yaml"), factories,
 	)
@@ -194,7 +179,7 @@ func TestLoadInvalidConfigWithUnexpectedTag(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[typeStr] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "unexpected_tag.yaml"), factories,
 	)
@@ -209,7 +194,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[typeStr] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "invalid_config.yaml"), factories,
 	)
@@ -218,12 +203,9 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	require.NotNil(t, cfg)
 	assert.Equal(t, len(cfg.Receivers), 2)
 
-	negativeIntervalCfg := cfg.Receivers["smartagent/negativeintervalseconds"].(*Config)
+	negativeIntervalCfg := cfg.Receivers[config.NewIDWithName(typeStr, "negativeintervalseconds")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/negativeintervalseconds",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "negativeintervalseconds")),
 		monitorConfig: &redis.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/redis",
@@ -236,12 +218,9 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, "intervalSeconds must be greater than 0s (-234 provided)")
 
-	missingRequiredCfg := cfg.Receivers["smartagent/missingrequired"].(*Config)
+	missingRequiredCfg := cfg.Receivers[config.NewIDWithName(typeStr, "missingrequired")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/missingrequired",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "missingrequired")),
 		monitorConfig: &consul.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/consul",
@@ -263,7 +242,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[typeStr] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "endpoints_config.yaml"), factories,
 	)
@@ -273,13 +252,10 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 
 	assert.Equal(t, len(cfg.Receivers), 4)
 
-	haproxyCfg := cfg.Receivers["smartagent/haproxy"].(*Config)
+	haproxyCfg := cfg.Receivers[config.NewIDWithName(typeStr, "haproxy")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/haproxy",
-		},
-		Endpoint: "haproxyhost:2345",
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "haproxy")),
+		Endpoint:         "haproxyhost:2345",
 		monitorConfig: &haproxy.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "haproxy",
@@ -297,13 +273,10 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, haproxyCfg)
 	require.NoError(t, haproxyCfg.validate())
 
-	redisCfg := cfg.Receivers["smartagent/redis"].(*Config)
+	redisCfg := cfg.Receivers[config.NewIDWithName(typeStr, "redis")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/redis",
-		},
-		Endpoint: "redishost",
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "redis")),
+		Endpoint:         "redishost",
 		monitorConfig: &redis.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/redis",
@@ -316,13 +289,10 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, redisCfg)
 	require.NoError(t, redisCfg.validate())
 
-	hadoopCfg := cfg.Receivers["smartagent/hadoop"].(*Config)
+	hadoopCfg := cfg.Receivers[config.NewIDWithName(typeStr, "hadoop")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/hadoop",
-		},
-		Endpoint: "hadoophost:12345",
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "hadoop")),
+		Endpoint:         "hadoophost:12345",
 		monitorConfig: &hadoop.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/hadoop",
@@ -336,13 +306,10 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, hadoopCfg)
 	require.NoError(t, hadoopCfg.validate())
 
-	etcdCfg := cfg.Receivers["smartagent/etcd"].(*Config)
+	etcdCfg := cfg.Receivers[config.NewIDWithName(typeStr, "etcd")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/etcd",
-		},
-		Endpoint: "etcdhost:5555",
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "etcd")),
+		Endpoint:         "etcdhost:5555",
 		monitorConfig: &prometheusexporter.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "etcd",
@@ -365,7 +332,7 @@ func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[typeStr] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "invalid_endpoint.yaml"), factories,
 	)
@@ -380,7 +347,7 @@ func TestLoadInvalidConfigWithUnsupportedEndpoint(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[typeStr] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "unsupported_endpoint.yaml"), factories,
 	)
@@ -395,7 +362,7 @@ func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[typeStr] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "invalid_nonarray_dimension_clients.yaml"), factories,
 	)
@@ -410,7 +377,7 @@ func TestLoadInvalidConfigWithNonStringArrayDimensionClients(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[typeStr] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "invalid_float_dimension_clients.yaml"), factories,
 	)
@@ -425,7 +392,7 @@ func TestFilteringConfig(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[typeStr] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "filtering_config.yaml"), factories,
 	)
@@ -433,12 +400,9 @@ func TestFilteringConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	fsCfg := cfg.Receivers["smartagent/filesystems"].(*Config)
+	fsCfg := cfg.Receivers[config.NewIDWithName(typeStr, "filesystems")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/filesystems",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "filesystems")),
 		monitorConfig: &filesystems.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type: "filesystems",
@@ -463,7 +427,7 @@ func TestInvalidFilteringConfig(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[typeStr] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "invalid_filtering_config.yaml"), factories,
 	)
@@ -471,12 +435,9 @@ func TestInvalidFilteringConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	fsCfg := cfg.Receivers["smartagent/filesystems"].(*Config)
+	fsCfg := cfg.Receivers[config.NewIDWithName(typeStr, "filesystems")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/filesystems",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "filesystems")),
 		monitorConfig: &filesystems.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type: "filesystems",
@@ -499,7 +460,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[typeStr] = factory
 	cfg, err := configtest.LoadConfigFile(
 		t, path.Join(".", "testdata", "nested_monitor_config.yaml"), factories,
 	)
@@ -509,12 +470,9 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 
 	assert.Equal(t, len(cfg.Receivers), 2)
 
-	telegrafExecCfg := cfg.Receivers["smartagent/exec"].(*Config)
+	telegrafExecCfg := cfg.Receivers[config.NewIDWithName(typeStr, "exec")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/exec",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "exec")),
 		monitorConfig: &exec.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "telegraf/exec",
@@ -530,13 +488,10 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 	}, telegrafExecCfg)
 	require.NoError(t, telegrafExecCfg.validate())
 
-	k8sVolumesCfg := cfg.Receivers["smartagent/kubernetes_volumes"].(*Config)
+	k8sVolumesCfg := cfg.Receivers[config.NewIDWithName(typeStr, "kubernetes_volumes")].(*Config)
 	tru := true
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/kubernetes_volumes",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "kubernetes_volumes")),
 		monitorConfig: &volumes.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "kubernetes-volumes",

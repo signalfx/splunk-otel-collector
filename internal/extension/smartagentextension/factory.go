@@ -75,11 +75,8 @@ func createDefaultConfig() config.Extension {
 	cfg.Collectd.ConfigDir = filepath.Join(bundleDir, "run", "collectd")
 
 	return &Config{
-		ExtensionSettings: config.ExtensionSettings{
-			TypeVal: typeStr,
-			NameVal: string(typeStr),
-		},
-		Config: *cfg,
+		ExtensionSettings: config.NewExtensionSettings(config.NewID(typeStr)),
+		Config:            *cfg,
 	}
 }
 

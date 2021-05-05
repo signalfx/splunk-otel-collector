@@ -51,21 +51,21 @@ func TestLoadConfig(t *testing.T) {
 
 	require.Equal(t, len(cfg.Extensions), 3)
 
-	emptyConfig := cfg.Extensions["smartagent/default_settings"]
+	emptyConfig := cfg.Extensions[config.NewIDWithName(typeStr, "default_settings")]
 	require.NotNil(t, emptyConfig)
 	require.NoError(t, configcheck.ValidateConfig(emptyConfig))
 	require.Equal(t, func() *Config {
 		cfg := defaultConfig()
-		cfg.ExtensionSettings.NameVal = "smartagent/default_settings"
+		cfg.ExtensionSettings.SetIDName("default_settings")
 		return &cfg
 	}(), emptyConfig)
 
-	allSettingsConfig := cfg.Extensions["smartagent/all_settings"]
+	allSettingsConfig := cfg.Extensions[config.NewIDWithName(typeStr, "all_settings")]
 	require.NotNil(t, allSettingsConfig)
 	require.NoError(t, configcheck.ValidateConfig(allSettingsConfig))
 	require.Equal(t, func() *Config {
 		cfg := defaultConfig()
-		cfg.ExtensionSettings.NameVal = "smartagent/all_settings"
+		cfg.ExtensionSettings.SetIDName("all_settings")
 		cfg.BundleDir = "/opt/bin/collectd/"
 		cfg.ProcPath = "/my_proc"
 		cfg.EtcPath = "/my_etc"
@@ -87,12 +87,12 @@ func TestLoadConfig(t *testing.T) {
 		return &cfg
 	}(), allSettingsConfig)
 
-	partialSettingsConfig := cfg.Extensions["smartagent/partial_settings"]
+	partialSettingsConfig := cfg.Extensions[config.NewIDWithName(typeStr, "partial_settings")]
 	require.NotNil(t, partialSettingsConfig)
 	require.NoError(t, configcheck.ValidateConfig(partialSettingsConfig))
 	require.Equal(t, func() *Config {
 		cfg := defaultConfig()
-		cfg.ExtensionSettings.NameVal = "smartagent/partial_settings"
+		cfg.ExtensionSettings.SetIDName("partial_settings")
 		cfg.BundleDir = "/opt/"
 		cfg.Collectd.Timeout = 10
 		cfg.Collectd.ReadThreads = 1
@@ -119,7 +119,7 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 
 	require.GreaterOrEqual(t, len(cfg.Extensions), 1)
 
-	allSettingsConfig := cfg.Extensions["smartagent/all_settings"]
+	allSettingsConfig := cfg.Extensions[config.NewIDWithName(typeStr, "all_settings")]
 	require.NotNil(t, allSettingsConfig)
 
 	ext, err := factory.CreateExtension(context.Background(), component.ExtensionCreateParams{}, allSettingsConfig)
@@ -164,10 +164,7 @@ func TestLoadInvalidConfig(t *testing.T) {
 
 func defaultConfig() Config {
 	return Config{
-		ExtensionSettings: config.ExtensionSettings{
-			TypeVal: "smartagent",
-			NameVal: "smartagent",
-		},
+		ExtensionSettings: config.NewExtensionSettings(config.NewID(typeStr)),
 		Config: saconfig.Config{
 			BundleDir:              bundleDir,
 			SignalFxRealm:          "us0",

@@ -47,12 +47,9 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 
 	assert.Equal(t, len(cfg.Receivers), 4)
 
-	apacheCfg := cfg.Receivers["smartagent/apache"].(*Config)
+	apacheCfg := cfg.Receivers[config.NewIDWithName(typeStr, "apache")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/apache",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "apache")),
 		monitorConfig: &apache.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/apache",
@@ -66,12 +63,9 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	}, apacheCfg)
 	require.NoError(t, apacheCfg.validate())
 
-	kafkaCfg := cfg.Receivers["smartagent/kafka"].(*Config)
+	kafkaCfg := cfg.Receivers[config.NewIDWithName(typeStr, "kafka")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/kafka",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "kafka")),
 		monitorConfig: &kafka.Config{
 			Config: genericjmx.Config{
 				MonitorConfig: saconfig.MonitorConfig{
@@ -88,12 +82,9 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	}, kafkaCfg)
 	require.NoError(t, kafkaCfg.validate())
 
-	memcachedCfg := cfg.Receivers["smartagent/memcached"].(*Config)
+	memcachedCfg := cfg.Receivers[config.NewIDWithName(typeStr, "memcached")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/memcached",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "memcached")),
 		monitorConfig: &memcached.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/memcached",
@@ -106,12 +97,9 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	}, memcachedCfg)
 	require.NoError(t, memcachedCfg.validate())
 
-	phpCfg := cfg.Receivers["smartagent/php"].(*Config)
+	phpCfg := cfg.Receivers[config.NewIDWithName(typeStr, "php")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.ReceiverSettings{
-			TypeVal: typeStr,
-			NameVal: typeStr + "/php",
-		},
+		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "php")),
 		monitorConfig: &php.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/php-fpm",

@@ -22,7 +22,12 @@ import (
 // ConfigSettings is the interface required to be implemented by the settings of
 // all ConfigSource objects.
 type ConfigSettings interface {
-	config.NamedEntity
+	// Name gets the config source name.
+	Name() string
+	// SetName sets the config source name.
+	SetName(name string)
+	// Type sets the config source type.
+	Type() config.Type
 }
 
 // Settings defines common settings of a ConfigSource configuration.

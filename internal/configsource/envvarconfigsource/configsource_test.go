@@ -72,7 +72,7 @@ func TestEnvVarConfigSource_End2End(t *testing.T) {
 	factories := configprovider.Factories{
 		"env": NewFactory(),
 	}
-	m, err := configprovider.NewManager(p, zap.NewNop(), component.DefaultApplicationStartInfo(), factories)
+	m, err := configprovider.NewManager(p, zap.NewNop(), component.DefaultBuildInfo(), factories)
 	require.NoError(t, err)
 	require.NotNil(t, m)
 

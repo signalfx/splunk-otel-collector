@@ -24,9 +24,8 @@ import (
 func TestFactory(t *testing.T) {
 	f := NewFactory()
 
-	expectedType := "smartagent"
-	require.Equal(t, config.Type(expectedType), f.Type())
+	require.EqualValues(t, typeStr, f.Type())
 
 	cfg := f.CreateDefaultConfig()
-	require.Equal(t, expectedType, string(cfg.Type()))
+	require.Equal(t, config.NewID(typeStr), cfg.ID())
 }

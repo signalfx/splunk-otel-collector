@@ -106,8 +106,7 @@ func TestConfigSourceManager_Simple(t *testing.T) {
 
 	res, err := manager.Resolve(ctx, cp)
 	require.NoError(t, err)
-	actualCfg := res.Viper().AllSettings()
-	assert.Equal(t, expectedCfg, actualCfg)
+	assert.Equal(t, expectedCfg, res.ToStringMap())
 
 	doneCh := make(chan struct{})
 	var errWatcher error
@@ -141,7 +140,7 @@ func TestConfigSourceManager_ResolveRemoveConfigSourceSection(t *testing.T) {
 	require.NotNil(t, res)
 
 	delete(cfg, "config_sources")
-	assert.Equal(t, cfg, res.Viper().AllSettings())
+	assert.Equal(t, cfg, res.ToStringMap())
 }
 
 func TestConfigSourceManager_ResolveErrors(t *testing.T) {
@@ -227,12 +226,10 @@ func TestConfigSourceManager_ArraysAndMaps(t *testing.T) {
 	expectedFile := path.Join("testdata", "arrays_and_maps_expected.yaml")
 	expectedParser, err := config.NewParserFromFile(expectedFile)
 	require.NoError(t, err)
-	expectedCfg := expectedParser.Viper().AllSettings()
 
 	res, err := manager.Resolve(ctx, cp)
 	require.NoError(t, err)
-	actualCfg := res.Viper().AllSettings()
-	assert.Equal(t, expectedCfg, actualCfg)
+	assert.Equal(t, expectedParser.ToStringMap(), res.ToStringMap())
 	assert.NoError(t, manager.Close(ctx))
 }
 
@@ -279,12 +276,10 @@ func TestConfigSourceManager_ParamsHandling(t *testing.T) {
 	expectedFile := path.Join("testdata", "params_handling_expected.yaml")
 	expectedParser, err := config.NewParserFromFile(expectedFile)
 	require.NoError(t, err)
-	expectedCfg := expectedParser.Viper().AllSettings()
 
 	res, err := manager.Resolve(ctx, cp)
 	require.NoError(t, err)
-	actualCfg := res.Viper().AllSettings()
-	assert.Equal(t, expectedCfg, actualCfg)
+	assert.Equal(t, expectedParser.ToStringMap(), res.ToStringMap())
 	assert.NoError(t, manager.Close(ctx))
 }
 
@@ -420,12 +415,10 @@ func TestConfigSourceManager_EnvVarHandling(t *testing.T) {
 	expectedFile := path.Join("testdata", "envvar_cfgsrc_mix_expected.yaml")
 	expectedParser, err := config.NewParserFromFile(expectedFile)
 	require.NoError(t, err)
-	expectedCfg := expectedParser.Viper().AllSettings()
 
 	res, err := manager.Resolve(ctx, cp)
 	require.NoError(t, err)
-	actualCfg := res.Viper().AllSettings()
-	assert.Equal(t, expectedCfg, actualCfg)
+	assert.Equal(t, expectedParser.ToStringMap(), res.ToStringMap())
 	assert.NoError(t, manager.Close(ctx))
 }
 

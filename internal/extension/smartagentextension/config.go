@@ -47,7 +47,7 @@ func (cfg Config) SmartAgentConfig() *saconfig.Config {
 }
 
 func (cfg *Config) Unmarshal(componentParser *config.Parser) error {
-	allSettings := componentParser.Viper().AllSettings()
+	allSettings := componentParser.ToStringMap()
 
 	configDirSet := false
 	if collectd, ok := allSettings["collectd"]; ok {

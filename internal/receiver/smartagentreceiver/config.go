@@ -70,7 +70,7 @@ func (cfg *Config) Unmarshal(componentParser *config.Parser) error {
 	// AllSettings() is the user provided config and intoCfg is the default Config instance we populate to
 	// form the final desired version. To do so, we manually obtain all Config items, leaving only Smart Agent
 	// monitor config settings to be unmarshalled to their respective custom monitor config types.
-	allSettings := componentParser.Viper().AllSettings()
+	allSettings := componentParser.ToStringMap()
 	monitorType, ok := allSettings["type"].(string)
 	if !ok || monitorType == "" {
 		return fmt.Errorf("you must specify a \"type\" for a smartagent receiver")

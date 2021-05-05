@@ -89,7 +89,7 @@ func TestConfigSourceParserProvider(t *testing.T) {
 
 			pp := NewConfigSourceParserProvider(
 				zap.NewNop(),
-				component.DefaultApplicationStartInfo(),
+				component.DefaultBuildInfo(),
 				factories...,
 			)
 			require.NotNil(t, pp)

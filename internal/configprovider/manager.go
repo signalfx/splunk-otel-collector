@@ -180,15 +180,15 @@ type Manager struct {
 // NewManager creates a new instance of a Manager to be used to inject data from
 // ConfigSource objects into a configuration and watch for updates on the injected
 // data.
-func NewManager(parser *config.Parser, logger *zap.Logger, appStartInfo component.ApplicationStartInfo, factories Factories) (*Manager, error) {
+func NewManager(parser *config.Parser, logger *zap.Logger, buildInfo component.BuildInfo, factories Factories) (*Manager, error) {
 	configSourcesSettings, err := Load(context.Background(), parser, factories)
 	if err != nil {
 		return nil, err
 	}
 
 	params := CreateParams{
-		Logger:               logger,
-		ApplicationStartInfo: appStartInfo,
+		Logger:    logger,
+		BuildInfo: buildInfo,
 	}
 	cfgSources, err := Build(context.Background(), configSourcesSettings, params, factories)
 	if err != nil {

@@ -28,20 +28,20 @@ import (
 type errDuplicatedConfigSourceFactory struct{ error }
 
 type configSourceParserProvider struct {
-	logger       *zap.Logger
-	csm          *Manager
-	pp           parserprovider.ParserProvider
-	appStartInfo component.ApplicationStartInfo
-	factories    []Factory
+	logger    *zap.Logger
+	csm       *Manager
+	pp        parserprovider.ParserProvider
+	buildInfo component.BuildInfo
+	factories []Factory
 }
 
 // NewConfigSourceParserProvider creates a ParserProvider that uses config sources.
-func NewConfigSourceParserProvider(logger *zap.Logger, appStartInfo component.ApplicationStartInfo, factories ...Factory) parserprovider.ParserProvider {
+func NewConfigSourceParserProvider(logger *zap.Logger, buildInfo component.BuildInfo, factories ...Factory) parserprovider.ParserProvider {
 	return &configSourceParserProvider{
-		pp:           parserprovider.Default(),
-		logger:       logger,
-		factories:    factories,
-		appStartInfo: appStartInfo,
+		pp:        parserprovider.Default(),
+		logger:    logger,
+		factories: factories,
+		buildInfo: buildInfo,
 	}
 }
 
@@ -59,7 +59,7 @@ func (c *configSourceParserProvider) Get() (*config.Parser, error) {
 		return nil, err
 	}
 
-	csm, err := NewManager(defaultParser, c.logger, c.appStartInfo, factories)
+	csm, err := NewManager(defaultParser, c.logger, c.buildInfo, factories)
 	if err != nil {
 		return nil, err
 	}

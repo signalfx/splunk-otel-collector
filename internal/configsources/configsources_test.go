@@ -29,6 +29,7 @@ func TestConfigSourcesGet(t *testing.T) {
 	tests := []struct {
 		configSourceType config.Type
 	}{
+		{"env"},
 		{"etcd2"},
 		{"vault"},
 		{"zookeeper"},

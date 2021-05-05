@@ -1,0 +1,8 @@
+config:
+  from_defined_env_var: test_env_var
+  from_undefined_env_var: /some/path
+  field_from_default: 42
+  map_from_default:
+    k0: a string value
+    k1: true
+

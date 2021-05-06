@@ -149,10 +149,18 @@ spec:
     port: 13133
   - name: jaeger-grpc # Default endpoint for Jaeger gRPC receiver.
     port: 14250
-  - name: jaeger-thrift # Default endpoint for Jaeger Thrift receiver.
+  - name: thrift-binary # Default endpoint for Jaeger Thrift receiver.
+    port: 6832
+    protocol: UDP
+  - name: thrift-compact
+    port: 6831
+    protocol: UDP
+  - name: thrift-http # Default endpoint for Jaeger Thrift receiver.
     port: 14268
   - name: otlp # Default endpoint for OpenTelemetry gRPC receiver.
     port: 4317
+  - name: otlp-http # Default endpoint for OpenTelemetry gRPC receiver.
+    port: 55681
   - name: http-forwarder # Default endpoint for HTTP Forwarder extension.
     port: 6060
   - name: sapm # Default endpoint for SignalFx APM receiver.

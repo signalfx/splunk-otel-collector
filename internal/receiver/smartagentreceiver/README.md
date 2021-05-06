@@ -73,7 +73,11 @@ processors:
 
 exporters:
   signalfx:
+    access_token: "${SIGNALFX_ACCESS_TOKEN}"
+    realm: us1
   sapm:
+    access_token: "${SIGNALFX_ACCESS_TOKEN}"
+    endpoint: https://ingest.us1.signalfx.com/v2/trace
 
 service:
   pipelines:

@@ -60,12 +60,15 @@ monitors:
     discoveryRule: container_image =~ "postgresql" && private_port == 7199
     extraDimensions:
       my_other_dimension: my_other_dimension_value
+  - type: processlist
 ```
 
 Below is an equivalent, recommended Collector configuration.  Notice that the
 `signalfx-forwarder` monitor's associated `smartagent/signalfx-forwarder` receiver instance
 is part of both `metrics` and `traces` pipelines using the `signalfx` and `sapm` exporters,
-respectively. The additional metric monitors utilize the
+respectively. Also note the `processlist` monitor's associated `smartagent/processlist` receiver
+instance is part of `logs` pipeline using the `resourcedetection` processor and a `signalfx` exporter.
+The additional metric monitors utilize the
 [Receiver Creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/receivercreator/README.md):
 
 ```yaml
@@ -110,6 +113,8 @@ receivers:
             my_other_dimension: my_other_dimension_value
     watch_observers:
       - k8s_observer
+  smartagent/processlist:
+    type: processlist
 
 processors:
   resourcedetection:
@@ -146,7 +151,7 @@ service:
   pipelines:
     metrics:
       receivers:
-        - receivor_creator
+        - receiver_creator
         - smartagent/signalfx-forwarder
       processors:
         - resourcedetection
@@ -159,4 +164,11 @@ service:
         - resourcedetection
       exporters:
         - sapm
+    logs:
+      receivers:
+        - smartagent/processlist
+      processors:
+        - resourcedetection
+      exporters:
+        - signalfx
 ```

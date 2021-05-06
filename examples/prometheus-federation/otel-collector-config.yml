@@ -11,6 +11,7 @@ receivers:
     otlp:
         protocols:
             grpc:
+              endpoint: 0.0.0.0:4317
 
 exporters:
     splunk_hec/metrics:
@@ -39,6 +40,7 @@ processors:
 
 extensions:
     health_check:
+      endpoint: 0.0.0.0:13133
     pprof:
       endpoint: :1888
     zpages:

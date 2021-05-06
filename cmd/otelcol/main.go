@@ -271,7 +271,7 @@ func setMemoryLimit(memTotalSizeMiB int) {
 	args := os.Args[1:]
 	b := getKeyValue(args, "--mem-ballast-size-mib")
 	ballastSize, _ := strconv.Atoi(b)
-	if (ballastSize * 2) >= memLimit {
+	if (ballastSize * 2) > memLimit {
 		log.Fatalf("Memory limit (%v) is less than 2x ballast (%v). Increase memory limit or decrease ballast size.", memLimit, ballastSize)
 	}
 

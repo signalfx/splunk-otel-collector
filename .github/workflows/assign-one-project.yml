@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   issues: write
+  metadata: read
   pull-requests: write
 env:
   MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

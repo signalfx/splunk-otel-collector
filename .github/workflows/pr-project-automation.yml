@@ -6,7 +6,7 @@ on:
 permissions:
   actions: write
   checks: write
-  contents: read
+  contents: write
   pull-requests: write
   metadata: read
   repository projects: write

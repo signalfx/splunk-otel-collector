@@ -2,10 +2,12 @@ name: Issue Project Automation
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, reopened]
 permissions:
   contents: read
   pull-requests: write
+  metadata: read
+  repository projects: read
 
 jobs:
   automate-project-columns:

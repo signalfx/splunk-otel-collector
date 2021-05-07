@@ -10,6 +10,7 @@ permissions:
   pull-requests: write
   metadata: read
   repository projects: write
+  statuses: write
 
 jobs:
   automate-project-columns:

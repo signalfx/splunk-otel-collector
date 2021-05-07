@@ -4,6 +4,8 @@ on:
   pull_request:
     types: [opened, reopened]
 permissions:
+  actions: write
+  checks: write
   contents: read
   pull-requests: write
   metadata: read

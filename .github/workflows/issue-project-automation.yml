@@ -3,9 +3,6 @@ name: Issue Project Automation
 on:
   issues:
     types: [opened]
-permissions:
-  contents: read
-  issues: write
 
 jobs:
   automate-project-columns:

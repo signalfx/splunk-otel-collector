@@ -125,6 +125,10 @@ exporters:
     access_token: "${SPLUNK_ACCESS_TOKEN}"
     api_url: "${SPLUNK_API_URL}"
     ingest_url: "${SPLUNK_INGEST_URL}"
+    # Use instead when sending to gateway
+    #api: http://${SPLUNK_GATEWAY_URL}:6060
+    #ingest_url: http://${SPLUNK_GATEWAY_URL}:9943
+    correlation:
   # Logs
   splunk_hec:
     token: "${SPLUNK_HEC_TOKEN}"
@@ -151,7 +155,7 @@ service:
       #- resource/add_environment
       exporters: [sapm, signalfx]
       # Use instead when sending to gateway
-      #exporters: [otlp]
+      #exporters: [otlp, signalfx]
     metrics:
       receivers: [hostmetrics, otlp, prometheus, signalfx, smartagent/signalfx-forwarder]
       processors: [memory_limiter, batch, resourcedetection]

@@ -2,7 +2,7 @@ name: Issue Project Automation
 
 on:
   issues:
-    types: [opened]
+    types: [opened, reopened]
 permissions:
   contents: read
   issues: write

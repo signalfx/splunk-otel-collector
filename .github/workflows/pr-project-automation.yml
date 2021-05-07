@@ -3,7 +3,6 @@ name: Issue Project Automation
 on:
   pull_request:
     types: [opened, reopened]
-  statuses: write
 
 jobs:
   automate-project-columns:

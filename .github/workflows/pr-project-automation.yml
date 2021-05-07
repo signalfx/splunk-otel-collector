@@ -3,13 +3,6 @@ name: Issue Project Automation
 on:
   pull_request:
     types: [opened, reopened]
-permissions:
-  actions: write
-  checks: write
-  contents: write
-  pull-requests: write
-  metadata: read
-  repository projects: write
   statuses: write
 
 jobs:

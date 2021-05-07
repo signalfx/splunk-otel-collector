@@ -7,6 +7,7 @@ permissions:
   contents: read
   issues: write
   metadata: read
+  repository projects: read
 
 jobs:
   automate-project-columns:

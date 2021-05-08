@@ -262,6 +262,10 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - puppet-test:
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
 
 jobs:
   setup-environment:
@@ -481,7 +485,7 @@ jobs:
           name: Check for relevant changes
           command: |
             # Only run installer tests for main branch, tags, or if the branch has relevant changes
-            if [[ "$CIRCLE_BRANCH" != "main" ]] && [[ -z "${CIRCLE_TAG:-}" ]] && ! .circleci/scripts/changes-include internal/buildscripts/packaging; then
+            if [[ "$CIRCLE_BRANCH" != "main" ]] && [[ -z "${CIRCLE_TAG:-}" ]] && ! .circleci/scripts/changes-include internal/buildscripts/packaging/installer internal/buildscripts/packaging/tests; then
               echo "SKIP_TESTS=yes" >> $BASH_ENV
             fi
       - install_pytest
@@ -537,3 +541,49 @@ jobs:
             $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
             $env:VERIFY_ACCESS_TOKEN = "false"
             .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -msi_path "$msi_path" -mode "<< parameters.mode >>"
+
+  puppet-test:
+    machine:
+      image: ubuntu-1604:202007-01
+      docker_layer_caching: true
+    parallelism: 2
+    steps:
+      - checkout
+      - run:
+          name: Lint
+          command: |
+            # Only run lint for main branch, tags, or if the branch has relevant changes
+            if [[ "$CIRCLE_BRANCH" = "main" ]] || [[ -n "${CIRCLE_TAG:-}" ]] || .circleci/scripts/changes-include deployments/puppet; then
+              make -C deployments/puppet lint
+            fi
+      - run:
+          name: Rake spec
+          command: |
+            # Only run rake-spec for main branch, tags, or if the branch has relevant changes
+            if [[ "$CIRCLE_BRANCH" = "main" ]] || [[ -n "${CIRCLE_TAG:-}" ]] || .circleci/scripts/changes-include deployments/puppet; then
+              make -C deployments/puppet rake-spec
+            fi
+      - run:
+          name: Check for relevant changes
+          command: |
+            # Only run puppet tests for main branch, tags, or if the branch has relevant changes
+            if [[ "$CIRCLE_BRANCH" != "main" ]] && [[ -z "${CIRCLE_TAG:-}" ]] && ! .circleci/scripts/changes-include deployments/puppet internal/buildscripts/packaging/tests; then
+              echo "SKIP_TESTS=yes" >> $BASH_ENV
+            fi
+      - install_pytest
+      - run:
+          name: Test puppet module
+          command: |
+            [[ "$SKIP_TESTS" = "yes" ]] && exit 0
+            mkdir -p ~/testresults
+            if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
+              PACKAGE_TYPE=deb
+            else
+              PACKAGE_TYPE=rpm
+            fi
+            pytest -n2 --verbose -m $PACKAGE_TYPE \
+              --junitxml=~/testresults/results.xml \
+              --html=~/testresults/results.html \
+              --self-contained-html \
+              internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
+      - save_pytest_results

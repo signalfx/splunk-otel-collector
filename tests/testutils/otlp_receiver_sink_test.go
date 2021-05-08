@@ -103,11 +103,11 @@ func otlpExporter(t *testing.T) component.MetricsExporter {
 	exporterCfg := otlpexporter.Config{
 		ExporterSettings: &config.ExporterSettings{NameVal: "otlp", TypeVal: "otlp"},
 		GRPCClientSettings: configgrpc.GRPCClientSettings{
-		Endpoint: "localhost:4317",
-		TLSSetting: configtls.TLSClientSetting{
-			Insecure: true,
-		},
-	}}
+			Endpoint: "localhost:4317",
+			TLSSetting: configtls.TLSClientSetting{
+				Insecure: true,
+			},
+		}}
 	otlpExporterFactory := otlpexporter.NewFactory()
 	ctx := context.Background()
 	createParams := component.ExporterCreateParams{Logger: zap.NewNop()}

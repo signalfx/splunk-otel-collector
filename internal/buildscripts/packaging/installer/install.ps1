@@ -336,11 +336,11 @@ if (service_installed -name "$service_name") {
     throw "The $service_name service is already installed. Remove/Uninstall the collector and re-run this script."
 }
 
-if (service_installed -name "$fluentd_service_name") {
+if ($with_fluentd -And (service_installed -name "$fluentd_service_name")) {
     throw "The $fluentd_service_name service is already installed. Remove/Uninstall fluentd and re-run this script."
 }
 
-if (Test-Path -Path "$fluentd_base_dir\bin\fluentd") {
+if ($with_fluentd -And (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
     throw "$fluentd_base_dir\bin\fluentd is already installed. Remove/Uninstall fluentd and re-run this script."
 }
 

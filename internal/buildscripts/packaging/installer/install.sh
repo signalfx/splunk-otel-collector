@@ -274,7 +274,14 @@ install_yum_package() {
 }
 
 ensure_not_installed() {
-  for agent in otelcol td-agent; do
+  local with_fluentd="$1"
+  local agents="otelcol"
+
+  if [ "$with_fluentd" = "true" ]; then
+    agents="$agents td-agent"
+  fi
+
+  for agent in $agents; do
     if command -v $agent >/dev/null 2>&1; then
       echo "An agent binary already exists at $( command -v $agent ) which implies that the agent has already been installed." >&2
       echo "Please uninstall the agent and re-run this script." >&2
@@ -658,7 +665,7 @@ parse_args_and_install() {
       exit 0
   fi
 
-  ensure_not_installed
+  ensure_not_installed "$with_fluentd"
 
   if [ -z "$access_token" ]; then
     access_token=$(request_access_token)

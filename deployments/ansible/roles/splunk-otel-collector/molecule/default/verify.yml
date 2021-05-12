@@ -1,0 +1,21 @@
+---
+- name: Verify scenario with the default configuration
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Import shared verification tasks
+      ansible.builtin.import_tasks: ../shared/verify_tasks.yml
+
+    - name: Assert SPLUNK_ACCESS_TOKEN env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_ACCESS_TOKEN=fake-token
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+
+    - name: Assert SPLUNK_REALM env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_REALM=fake-realm
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes

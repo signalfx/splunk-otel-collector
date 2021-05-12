@@ -1,0 +1,17 @@
+---
+- name: Make sure access token is provided
+  ansible.builtin.assert:
+    that: splunk_access_token
+    fail_msg: splunk_access_token variable must be provided
+
+- name: Make sure host OS is supported
+  ansible.builtin.assert:
+    that: ansible_os_family in ["Debian", "RedHat"]
+    fail_msg: "{{ ansible_os_family }} OS family currently is not supported"
+
+- name: Linux deployment
+  ansible.builtin.import_tasks: linux_install.yml
+
+- name: Linux deployment
+  ansible.builtin.import_tasks: linux_install_fluentd.yml
+  when: install_fluentd

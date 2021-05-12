@@ -1,0 +1,60 @@
+on: 
+  pull_request:
+    paths:
+    - 'deployments/ansible/roles/splunk-otel-collector/**'
+
+defaults:
+  run:
+    working-directory: 'deployments/ansible/roles/splunk-otel-collector'
+
+jobs:
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install test dependencies.
+        run: pip3 install yamllint
+
+      - name: Lint code.
+        run: yamllint .
+
+  molecule-test:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro:
+          - amazonlinux2
+          - centos7
+          - centos8
+          - debian9
+          - debian10
+          - ubuntu2004
+
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install test dependencies.
+        run: pip3 install ansible molecule[docker] docker
+
+      - name: Run Molecule tests.
+        run: molecule --base-config ./molecule/config/docker.yml test --all
+        env:
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'
+          MOLECULE_DISTRO: ${{ matrix.distro }}

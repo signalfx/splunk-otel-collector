@@ -1,0 +1,34 @@
+---
+# Install FluentD agent from yum repository
+
+- name: Set td-agent distro code
+  ansible.builtin.set_fact:
+    distro_code: "{{ 'amazon' if ansible_distribution == 'Amazon' else 'redhat' }}"
+
+- name: Add td-agent repo to yum source list
+  ansible.builtin.yum_repository:
+    name: td_agent
+    description: TreasureData Repository
+    baseurl: "{{ td_agent_repo_base }}/{{ td_agent_major_version }}/{{ distro_code }}\
+      /{{ ansible_distribution_major_version }}/$basearch/"
+    gpgkey: "{{ td_agent_repo_base }}/GPG-KEY-td-agent"
+    gpgcheck: yes
+    enabled: yes
+
+- name: Install td-agent via yum package manager
+  ansible.builtin.yum:
+    name: td-agent-{{ td_agent_version }}
+    state: present
+    allow_downgrade: yes
+    update_cache: yes
+  notify: "reload td-agent"
+
+- name: Install FluentD Linux capability module yum dependencies
+  ansible.builtin.yum:
+    name:
+      - "@Development tools"
+      - libcap-ng
+      - libcap-ng-devel
+      - pkgconfig
+    state: present
+    update_cache: yes

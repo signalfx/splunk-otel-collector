@@ -1,0 +1,31 @@
+---
+# Install Splunk OpenTelemetry Collector from apt repository
+
+- name: Install apt dependencies for secure transport
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - gnupg
+    state: present
+    update_cache: yes
+
+- name: Add an apt signing key for Splunk OpenTelemetry Collector
+  ansible.builtin.apt_key:
+    url: "{{ splunk_repo_base_url }}/otel-collector-deb/splunk-B3CD4420.gpg"
+    keyring: /etc/apt/trusted.gpg.d/splunk.gpg
+
+- name: Add Splunk OpenTelemetry Collector repo to apt source list
+  ansible.builtin.apt_repository:
+    repo: "deb {{ splunk_repo_base_url }}/otel-collector-deb release main"
+    filename: splunk-otel-collector.list
+    state: present
+
+- name: Install Splunk OpenTelemetry Collector via apt package manager
+  ansible.builtin.apt:
+    name: splunk-otel-collector{% if collector_version != "latest" %}={{ collector_version }}{% endif %}
+    state: "{% if collector_version != 'latest' %}present{% else %}latest{% endif %}"
+    force: yes
+    update_cache: yes
+  notify:
+    - "reload otel-collector"
+    - "reload td-agent"

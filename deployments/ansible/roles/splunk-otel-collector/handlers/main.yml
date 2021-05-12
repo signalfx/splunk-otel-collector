@@ -1,0 +1,22 @@
+---
+# handlers file for splunk-otel-collector
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  listen:
+    - reload otel-collector
+    - reload td-agent
+
+- name: Restart td-agent
+  ansible.builtin.service:
+    name: td-agent
+    state: restarted
+  when: install_fluentd
+  listen: "reload td-agent"
+
+- name: Restart Splunk OpenTelemetry Collector
+  ansible.builtin.service:
+    name: splunk-otel-collector
+    state: restarted
+  listen: "reload otel-collector"

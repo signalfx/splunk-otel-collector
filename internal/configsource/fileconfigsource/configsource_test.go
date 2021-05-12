@@ -17,7 +17,7 @@ package fileconfigsource
 
 import (
 	"context"
-	"os"
+	"io/ioutil"
 	"path"
 	"testing"
 	"time"
@@ -89,8 +89,7 @@ func TestFileConfigSource_End2End(t *testing.T) {
 
 	// Touch one of the files to trigger an update.
 	yamlDataFile := path.Join("testdata", "yaml_data_file")
-	currentTime := time.Now().Local()
-	require.NoError(t, os.Chtimes(yamlDataFile, currentTime, currentTime))
+	touchFile(t, yamlDataFile)
 
 	select {
 	case <-watchDone:
@@ -104,4 +103,10 @@ func TestFileConfigSource_End2End(t *testing.T) {
 	expected, err = config.NewParserFromFile(file)
 	require.NoError(t, err)
 	require.NotNil(t, expected)
+}
+
+func touchFile(t *testing.T, file string) {
+	contents, err := ioutil.ReadFile(file)
+	require.NoError(t, err)
+	require.NoError(t, ioutil.WriteFile(file, contents, 0))
 }

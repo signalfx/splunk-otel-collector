@@ -20,8 +20,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"runtime"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -114,13 +114,14 @@ func TestFileConfigSource_DeleteFile(t *testing.T) {
 	require.NotNil(t, r)
 	assert.Equal(t, []byte("42"), r.Value())
 
-	currentTime := time.Now().Local()
-	err = os.Chtimes(dst, currentTime, currentTime)
-	assert.Error(t, err)
 	assert.Equal(t, configsource.ErrWatcherNotSupported, r.WatchForUpdate())
 }
 
 func TestFileConfigSource_DeleteFileError(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("Windows only test")
+	}
+
 	s, err := newSession()
 	require.NoError(t, err)
 	require.NotNil(t, s)

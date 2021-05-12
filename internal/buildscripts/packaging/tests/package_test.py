@@ -65,6 +65,16 @@ def test_collector_package_install(distro):
     pkg_base = os.path.basename(pkg_path)
 
     with run_distro_container(distro) as container:
+        # install setcap dependency
+        if distro in RPM_DISTROS:
+            if container.exec_run("command -v yum").exit_code == 0:
+                run_container_cmd(container, "yum install -y libcap")
+            else:
+                run_container_cmd(container, "dnf install -y libcap")
+        else:
+            run_container_cmd(container, "apt-get update")
+            run_container_cmd(container, "apt-get install -y libcap2-bin")
+
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
 
         try:

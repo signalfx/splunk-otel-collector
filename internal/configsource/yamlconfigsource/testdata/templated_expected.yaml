@@ -1,0 +1,5 @@
+component:
+  int_field: 42
+  map:
+    str_field: a_string
+    bool_field: true

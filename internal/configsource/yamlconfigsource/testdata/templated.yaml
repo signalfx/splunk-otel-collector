@@ -1,0 +1,9 @@
+config_sources:
+  yaml:
+
+component: |
+  $yaml: ./testdata/yaml_template
+  k0: 42
+  cfg:
+    k0: a_string
+    k1: true

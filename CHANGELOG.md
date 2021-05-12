@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+## v0.26.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.26.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.26.0) and the [opentelemetry-collector-contrib v0.26.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.26.0) releases.
+
+## 🚀 New components 🚀
+
+- [kafkametrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkametricsreceiver) receiver
+
+### 💡 Enhancements 💡
+
+- zookeeper config source (#318)
+- etcd2 config source (#317)
+- Enable primary cloud resource detection in the default agent config (#344)
+- Unset exclusion and translations by default in gateway config (#350)
+- Update bundled Smart Agent to [v5.10.2](https://github.com/signalfx/signalfx-agent/releases/tag/v5.10.2) (#354)
+- Set PATH in the docker image to include Smart Agent bundled utilities (#313)
+- Remove 55680 exposed port from the docker image (#371)
+- Expose initial and effective config for debugging purposes (#325)
+- Add a config source for env vars (#348)
+
+### 🧰 Bug fixes 🧰
+
+- `smartagent` receiver: Remove premature protection for Start/Stop, trust Service to start/stop once (#342)
+- `smartagent` receiver and extension: Fix config parsing for structs and pointers to structs (#345)
+
 ## v0.25.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.25.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.25.0) and the [opentelemetry-collector-contrib v0.25.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.25.0) releases.

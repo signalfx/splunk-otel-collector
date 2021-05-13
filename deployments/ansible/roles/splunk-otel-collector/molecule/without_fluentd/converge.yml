@@ -1,5 +1,5 @@
 ---
-- name: Converge
+- name: Converge scenario without fluentd installation
   hosts: all
   become: yes
   vars:

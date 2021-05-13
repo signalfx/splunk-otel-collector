@@ -17,14 +17,15 @@ package yamlconfigsource
 
 import (
 	"context"
+	"path"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
-	"path"
-	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )

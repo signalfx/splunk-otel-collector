@@ -18,12 +18,13 @@ package yamlconfigsource
 import (
 	"bytes"
 	"context"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
 	"os"
 	"path"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/config"
 )
 
 func TestYAMLConfigSource_Session(t *testing.T) {

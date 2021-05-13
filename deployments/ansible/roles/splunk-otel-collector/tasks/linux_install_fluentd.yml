@@ -43,7 +43,7 @@
     owner: td-agent
     group: td-agent
   when: fluentd_config_source
-  notify: "reload td-agent"
+  notify: "restart td-agent"
 
 - name: Make sure td-agent.service.d directory exists
   ansible.builtin.file:
@@ -57,7 +57,7 @@
     owner: root
     group: root
     mode: 0644
-  notify: "reload td-agent"
+  notify: "restart td-agent"
 
 - name: Check fluent-cap-ctl
   stat:
@@ -73,7 +73,7 @@
     version: "0.2.2"
   when: fluent_cap_ctl.stat.exists
   register: capng_c
-  notify: "reload td-agent"
+  notify: "restart td-agent"
 
 - name: Check installed Linux capabilities
   ansible.builtin.command:
@@ -105,7 +105,7 @@
   with_items:
     - systemd-journal
     - adm
-  notify: "reload td-agent"
+  notify: "restart td-agent"
 
 - name: Install fluent-plugin-systemd
   community.general.gem:
@@ -114,4 +114,4 @@
     state: present
     user_install: no
     version: "1.0.1"
-  notify: "reload td-agent"
+  notify: "restart td-agent"

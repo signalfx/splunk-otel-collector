@@ -27,5 +27,5 @@
     force: yes
     update_cache: yes
   notify:
-    - "reload otel-collector"
-    - "reload td-agent"
+    - "restart splunk-otel-collector"
+    - "restart td-agent"

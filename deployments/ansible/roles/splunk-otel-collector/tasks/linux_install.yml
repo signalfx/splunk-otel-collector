@@ -24,7 +24,7 @@
     owner: "{{ service_user }}"
     group: "{{ service_group }}"
     mode: 0600
-  notify: "reload otel-collector"
+  notify: "restart splunk-otel-collector"
 
 - name: Push custom config for Splunk OTel Collector, if provided
   ansible.builtin.copy:
@@ -34,7 +34,7 @@
     group: "{{ service_group }}"
     mode: 0644
   when: collector_config_source
-  notify: "reload otel-collector"
+  notify: "restart splunk-otel-collector"
 
 - name: Install FluentD
   import_tasks: linux_install_fluentd.yml

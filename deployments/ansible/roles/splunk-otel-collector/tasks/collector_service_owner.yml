@@ -30,7 +30,7 @@
   ansible.builtin.template:
     src: collector-service-owner.conf.j2
     dest: /etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf
-  notify: "reload otel-collector"
+  notify: "restart splunk-otel-collector"
 
 - name: Set Otel Collector agent bundle directory
   ansible.builtin.file:

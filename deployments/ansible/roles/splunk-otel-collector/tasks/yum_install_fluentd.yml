@@ -21,7 +21,7 @@
     state: present
     allow_downgrade: yes
     update_cache: yes
-  notify: "reload td-agent"
+  notify: "restart td-agent"
 
 - name: Install FluentD Linux capability module yum dependencies
   ansible.builtin.yum:

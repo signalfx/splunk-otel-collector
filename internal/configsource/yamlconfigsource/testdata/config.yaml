@@ -1,0 +1,4 @@
+config_sources:
+  # YAML config source doesn't have any parameters.
+  yaml:
+  yaml/named:

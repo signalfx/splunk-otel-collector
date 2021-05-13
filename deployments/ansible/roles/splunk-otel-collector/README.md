@@ -1,4 +1,4 @@
-# Role Name
+# Splunk OpenTelemetry Connector Ansible Role
 
 Ansible role that installs Splunk OpenTelemetry Connector configured to
 collect metrics, traces and logs from Linux machines and send data to [Splunk 

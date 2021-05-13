@@ -38,6 +38,8 @@ jobs:
           - centos8
           - debian9
           - debian10
+          - ubuntu1604
+          - ubuntu1804
           - ubuntu2004
 
     steps:

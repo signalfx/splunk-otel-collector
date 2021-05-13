@@ -44,21 +44,6 @@
 
 ---
 
-# Splunk OpenTelemetry Connector
-
-Splunk OpenTelemetry Connector is a distribution of the [OpenTelemetry
-Collector](https://github.com/open-telemetry/opentelemetry-collector). It
-provides a unified way to receive, process, and export metric, trace, and log
-data for [Splunk Observability Cloud](https://www.observability.splunk.com/):
-
-- [Splunk APM](https://www.splunk.com/en_us/software/splunk-apm.html) via the
-  [`sapm`
-  exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter).
-  The [`otlphttp`
-  exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)
-  can be used with a [custom
-  configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/otlp_config_linux.yaml).
-  More information available
   [here](https://docs.signalfx.com/en/latest/apm/apm-getting-started/apm-opentelemetry-collector.html).
 - [Splunk Infrastructure
   Monitoring](https://www.splunk.com/en_us/software/infrastructure-monitoring.html)

@@ -1,1 +1,3 @@
 * @signalfx/gdi-data-collection-approvers @signalfx/gdi-data-collection-maintainers
+
+.github/CODEOWNERS @signalfx/gdi-data-collection-maintainers

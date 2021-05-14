@@ -1,0 +1,117 @@
+---
+# td-agent Linux installation
+
+- name: Set required td-agent version
+  ansible.builtin.set_fact:
+    td_agent_version: |
+      {%- if td_agent_version -%}
+        {{ td_agent_version }}
+      {%- elif ansible_distribution_release == "stretch" -%}
+        3.7.1-0
+      {%- elif ansible_distribution_release == "jessie" -%}
+        3.3.0-1
+      {%- elif ansible_os_family == "Debian" -%}
+        4.1.1-1
+      {%- else -%}
+        4.1.1
+      {%- endif -%}
+
+- name: Set required td-agent major version
+  ansible.builtin.set_fact:
+    td_agent_major_version: "{{ td_agent_version.split('.')[0] }}"
+
+- name: Install FluentD with apt package manager
+  ansible.builtin.import_tasks: apt_install_fluentd.yml
+  when: ansible_os_family == "Debian"
+
+- name: Install FluentD with yum package manager
+  ansible.builtin.import_tasks: yum_install_fluentd.yml
+  when: ansible_os_family == "RedHat"
+
+- name: Make sure td-agent can read provided config
+  ansible.builtin.file:
+    path: /etc/otel/collector/fluentd
+    state: directory
+    owner: td-agent
+    group: td-agent
+    recurse: yes
+
+- name: Push custom FluentD config, if provided
+  ansible.builtin.copy:
+    src: "{{ fluentd_config_source }}"
+    dest: "{{ fluentd_config }}"
+    owner: td-agent
+    group: td-agent
+  when: fluentd_config_source
+  notify: "restart td-agent"
+
+- name: Make sure td-agent.service.d directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/td-agent.service.d
+    state: directory
+
+- name: Apply td-agent service config
+  ansible.builtin.template:
+    src: td-agent.conf.j2
+    dest: /etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "restart td-agent"
+
+- name: Check fluent-cap-ctl
+  stat:
+    path: /opt/td-agent/bin/fluent-cap-ctl
+  register: fluent_cap_ctl
+
+- name: Install capng_c fluentd plugin
+  community.general.gem:
+    executable: td-agent-gem
+    name: capng_c
+    state: present
+    user_install: no
+    version: "0.2.2"
+  when: fluent_cap_ctl.stat.exists
+  register: capng_c
+  notify: "restart td-agent"
+
+- name: Check installed Linux capabilities
+  ansible.builtin.command:
+    cmd: "/opt/td-agent/bin/fluent-cap-ctl --get -f /opt/td-agent/bin/ruby"
+  changed_when: false
+  register: cap_get
+  when: fluent_cap_ctl.stat.exists
+
+- name: Install Linux capabilities
+  ansible.builtin.command:
+    cmd: '/opt/td-agent/bin/fluent-cap-ctl --add "dac_override,dac_read_search" -f /opt/td-agent/bin/ruby'
+  when: >
+    fluent_cap_ctl.stat.exists and
+    ("dac_override" not in cap_get['stdout'] or "dac_read_search" not in cap_get['stdout'])
+
+- name: Determine available groups
+  getent:
+    database: group
+    split: ':'
+  when: not fluent_cap_ctl.stat.exists
+
+- name: Add td-agent user to systemd-journal and adm groups
+  ansible.builtin.user:
+    name: td-agent
+    append: yes
+    groups:
+      - "{{ item }}"
+  when: not fluent_cap_ctl.stat.exists and item in getent_group
+  with_items:
+    - systemd-journal
+    - adm
+  notify: "restart td-agent"
+
+- name: Install fluent-plugin-systemd
+  community.general.gem:
+    executable: td-agent-gem
+    name: fluent-plugin-systemd
+    state: present
+    user_install: no
+    version: "1.0.1"
+  notify: "restart td-agent"

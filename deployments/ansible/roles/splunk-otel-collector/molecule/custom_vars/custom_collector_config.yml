@@ -1,0 +1,40 @@
+---
+# Custom collector config for test purposes
+
+receivers:
+  fluentforward:
+    endpoint: 127.0.0.1:8006
+  otlp:
+    protocols:
+      grpc:
+      http:
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['127.0.0.1:8888']
+
+processors:
+  memory_limiter:
+    ballast_size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
+    check_interval: 2s
+    limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
+
+exporters:
+  logging/debug:
+    loglevel: debug
+  logging/info:
+    loglevel: info
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter]
+      exporters: [logging/info]
+    logs:
+      receivers: [fluentforward, otlp]
+      processors: [memory_limiter]
+      exporters: [logging/debug]

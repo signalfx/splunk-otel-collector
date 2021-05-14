@@ -1,0 +1,12 @@
+---
+# Based on ansible-lint config
+extends: default
+
+rules:
+  line-length:
+    max: 120
+    level: error
+  key-duplicates: enable
+  new-lines:
+    type: unix
+  truthy: disable

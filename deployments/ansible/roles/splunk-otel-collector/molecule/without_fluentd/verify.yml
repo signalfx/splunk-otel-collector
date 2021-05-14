@@ -1,0 +1,15 @@
+---
+- name: Verify scenario without fluentd installation
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert splunk-otel-collector service is running
+      assert:
+        that: ansible_facts.services['splunk-otel-collector.service'].state == 'running'
+
+    - name: Assert td-agent service is not installed
+      assert:
+        that: "'td-agent.service' not in ansible_facts.services"

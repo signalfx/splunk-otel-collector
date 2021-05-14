@@ -1,0 +1,41 @@
+---
+# Ensure a custom system group and user created for Splunk OTel Collector service
+
+- name: Ensure service group created for Splunk Otel Collector
+  ansible.builtin.group:
+    name: "{{ service_group }}"
+    system: yes
+
+- name: Ensure service user created for Splunk Otel Collector
+  ansible.builtin.user:
+    name: "{{ service_user }}"
+    group: "{{ service_group }}"
+    system: yes
+    shell: /sbin/nologin
+    home: /etc/otel/collector
+
+- name: Set Otel Collector config directory
+  ansible.builtin.file:
+    path: /etc/otel/collector
+    state: directory
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+
+- name: Ensure systemd service directory for Splunk Otel Collector exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/splunk-otel-collector.service.d
+    state: directory
+
+- name: Set systemd service owner for Splunk Otel Collector
+  ansible.builtin.template:
+    src: collector-service-owner.conf.j2
+    dest: /etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf
+  notify: "restart splunk-otel-collector"
+
+- name: Set Otel Collector agent bundle directory
+  ansible.builtin.file:
+    path: "{{ agent_bundle_dir }}"
+    state: directory
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    recurse: yes

@@ -1,0 +1,31 @@
+---
+# Install FluentD agent from apt registry
+
+- name: Add an apt signing key for td-agent
+  ansible.builtin.apt_key:
+    url: "{{ td_agent_repo_base }}/GPG-KEY-td-agent"
+    state: present
+
+- name: Add td-agent repo to apt source list
+  ansible.builtin.apt_repository:
+    repo: "deb {{ td_agent_repo_base }}/{{ td_agent_major_version }}/{{ ansible_distribution | lower }}\
+      /{{ ansible_distribution_release }}/ {{ ansible_distribution_release }} contrib"
+    filename: td_agent.list
+    state: present
+
+- name: Install td-agent via apt package manager
+  ansible.builtin.apt:
+    name: td-agent={{ td_agent_version }}
+    state: present
+    update_cache: yes
+  notify: "restart td-agent"
+
+- name: Install FluentD Linux capability module apt dependencies
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - libcap-ng0
+      - libcap-ng-dev
+      - pkg-config
+    state: present
+    update_cache: yes

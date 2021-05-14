@@ -1,0 +1,91 @@
+---
+- name: Verify scenario with custom variables
+  hosts: all
+  gather_facts: false
+  become: yes
+  tasks:
+    - name: Import shared verification tasks
+      ansible.builtin.import_tasks: ../shared/verify_tasks.yml
+
+    - name: Check custom_config.yaml
+      stat:
+        path: /etc/otel/collector/custom_config.yml
+      register: custom_collector_config
+
+    - name: Assert custom_config.yaml is created
+      assert:
+        that: custom_collector_config.stat.exists
+
+    - name: Assert custom_config.yaml is used
+      ansible.builtin.lineinfile:
+        line: SPLUNK_CONFIG=/etc/otel/collector/custom_config.yml
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+
+    - name: Populate package facts
+      ansible.builtin.package_facts:
+
+    - name: Assert specified version of splunk-otel-collector is installed
+      assert:
+        that: ansible_facts.packages['splunk-otel-collector'][0].version == '0.24.3'
+
+    - name: Assert custom service user is set
+      ansible.builtin.lineinfile:
+        line: User=custom-user
+        dest: /etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf
+        state: present
+      check_mode: yes
+
+    - name: Assert custom service group is set
+      ansible.builtin.lineinfile:
+        line: Group=custom-group
+        dest: /etc/systemd/system/splunk-otel-collector.service.d/service-owner.conf
+        state: present
+      check_mode: yes
+
+    - name: Assert SPLUNK_MEMORY_TOTAL_MIB env var is set
+      ansible.builtin.lineinfile:
+        line: SPLUNK_MEMORY_TOTAL_MIB=256
+        dest: /etc/otel/collector/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+
+    - name: Look for ballast config in collector service output
+      ansible.builtin.shell:
+        cmd: 'journalctl -u splunk-otel-collector | grep "Set ballast to 100 MiB"'
+      register: result
+      changed_when: false
+      failed_when: not result.stdout
+
+    - name: Check custom_fluentd.conf
+      stat:
+        path: /etc/otel/collector/fluentd/custom_fluentd.conf
+      register: custom_fluentd_config
+
+    - name: Assert custom_fluentd.conf is created
+      assert:
+        that: custom_fluentd_config.stat.exists
+
+    - name: Assert custom_fluentd.conf is used
+      ansible.builtin.lineinfile:
+        line: Environment=FLUENT_CONF=/etc/otel/collector/fluentd/custom_fluentd.conf
+        dest: /etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf
+        state: present
+      check_mode: yes
+
+    - name: Send a test log message
+      ansible.builtin.uri:
+        body: json={"log":"test logs pipeline"}
+        method: POST
+        url: http://localhost:9880/app.log
+      changed_when: false
+
+    - name: Look for the test log message in collector service output
+      ansible.builtin.shell:
+        cmd: 'journalctl -u splunk-otel-collector | grep "Body: test logs pipeline"'
+      register: result
+      changed_when: false
+      until: result.stdout
+      retries: 20
+      delay: 1

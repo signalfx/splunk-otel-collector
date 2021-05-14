@@ -1,0 +1,18 @@
+---
+# molecule config based on vagrant and virtualbox for local usage on any OS
+
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+platforms:
+  - name: focal64
+    box: ubuntu/focal64
+  - name: centos8
+    box: centos/8
+  - name: buster64
+    box: debian/buster64
+  - name: amazonlinux
+    box: bento/amazonlinux-2
+provisioner:
+  name: ansible

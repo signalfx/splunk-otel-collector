@@ -1,0 +1,11 @@
+---
+- name: Converge scenario without fluentd installation
+  hosts: all
+  become: yes
+  vars:
+    splunk_access_token: fake-token
+    install_fluentd: no
+  tasks:
+    - name: "Include splunk-otel-collector"
+      include_role:
+        name: "splunk-otel-collector"

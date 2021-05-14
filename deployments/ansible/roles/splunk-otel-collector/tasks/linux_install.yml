@@ -1,0 +1,41 @@
+---
+# splunk-otel-collector Linux installation
+
+- name: Set Linux packages sources
+  ansible.builtin.set_fact:
+    splunk_repo_base_url: https://splunk.jfrog.io/splunk
+    td_agent_repo_base: https://packages.treasuredata.com
+
+- name: Install Splunk OpenTelemetry Collector with apt package manager
+  ansible.builtin.import_tasks: apt_install_otel_collector.yml
+  when: ansible_os_family == "Debian"
+
+- name: Install Splunk OpenTelemetry Collector with yum package manager
+  ansible.builtin.import_tasks: yum_install_otel_collector.yml
+  when: ansible_os_family == "RedHat"
+
+- name: Set Splunk Otel Collector service owner
+  import_tasks: collector_service_owner.yml
+
+- name: Set up env file for Splunk OTel Collector service
+  ansible.builtin.template:
+    src: splunk-otel-collector.conf.j2
+    dest: /etc/otel/collector/splunk-otel-collector.conf
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: 0600
+  notify: "restart splunk-otel-collector"
+
+- name: Push custom config for Splunk OTel Collector, if provided
+  ansible.builtin.copy:
+    src: "{{ collector_config_source }}"
+    dest: "{{ collector_config }}"
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: 0644
+  when: collector_config_source
+  notify: "restart splunk-otel-collector"
+
+- name: Install FluentD
+  import_tasks: linux_install_fluentd.yml
+  when: install_fluentd

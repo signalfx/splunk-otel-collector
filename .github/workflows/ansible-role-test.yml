@@ -1,7 +1,7 @@
 on: 
   pull_request:
     paths:
-    - 'deployments/ansible/roles/splunk-otel-collector/**'
+      - 'deployments/ansible/roles/splunk-otel-collector/**'
 
 defaults:
   run:
@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install test dependencies.
+      - name: Install yamllint.
         run: pip3 install yamllint
 
       - name: Lint code.

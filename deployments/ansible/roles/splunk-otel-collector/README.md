@@ -13,9 +13,9 @@ Observability Cloud](https://www.splunk.com/en_us/observability.html).
 
 ## Usage
 
-To install the role, clone the agent repo to your control host and add the 
-`splunk-otel-collector` role directory to its `roles_path` in `ansible.cfg`, 
-or use this document's directory as your working directory.
+To install the role, clone the repo to your control host and add the 
+`.deployments/ansible/roles/splunk-otel-collector` directory to `roles_path` in 
+`ansible.cfg`, or use this document's directory as your working directory.
 
 To use this role, simply include the `splunk-otel-collector` role invocation 
 in your playbook. The following example shows how to use the role in a
@@ -53,15 +53,15 @@ playbook with minimal required configuration:
   collector service. (**default:** `https://api.{{ splunk_realm }}.signalfx.com`)
 
 - `collector_version`: Version of the collector package to install, e.g.
-  `0.26.0`. (**default:** `latest`)
+  `0.25.0`. (**default:** `latest`)
 
 - `collector_config`: Splunk OTel Collector config YAML file. Can be set to 
-  /etc/otel/collector/gateway_config.yaml to install the collector in gateway
+  `/etc/otel/collector/gateway_config.yaml` to install the collector in gateway
   mode. (**default:** `/etc/otel/collector/agent_config.yaml`)
 
 - `collector_config_source`: Source path to a Splunk OTel Collector config YAML 
-  file on a control node that will be uploaded and set in place of
-  `collector_config` in remote nodes. Can be used to submit a custom collector 
+  file on your control host that will be uploaded and set in place of
+  `collector_config` in remote hosts. Can be used to submit a custom collector 
   config, e.g. `./custom_collector_config.yaml`. (**default:** `""` meaning 
   that nothing will be copied and existing `collector_config` will be used)
 
@@ -107,9 +107,9 @@ playbook with minimal required configuration:
 - `fluentd_config`: Path to the fluentd config file on the remote host.
   (**default:** `/etc/otel/collector/fluentd/fluent.conf`)
 
-- `fluentd_config_source`: Source path to a fluentd config file on a 
-  control node that will be uploaded and set in place of `fluentd_config` on
-  remote nodes. Can be used to submit a custom fluentd config,
+- `fluentd_config_source`: Source path to a fluentd config file on your 
+  control host that will be uploaded and set in place of `fluentd_config` on
+  remote hosts. Can be used to submit a custom fluentd config,
   e.g. `./custom_fluentd_config.conf`. (**default:** `""` meaning 
   that nothing will be copied and existing `fluentd_config` will be used)
 

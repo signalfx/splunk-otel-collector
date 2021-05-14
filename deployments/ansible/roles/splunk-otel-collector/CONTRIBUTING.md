@@ -20,13 +20,14 @@ following software is installed:
   - ansible 
   - molecule
   - molecule-vagrant
+  - python-vagrant
 
-MacOS installation steps:
+Installation steps for MacOS:
 
 ```sh
 brew tap hashicorp/tap
 brew install virtualbox vagrant python3
-pip3 install ansible molecule molecule-vagrant
+pip3 install -r requirements-dev-macos.txt
 ```
 
 Use the following arguments with every molecule command 
@@ -51,10 +52,20 @@ molecule --base-config ./molecule/config/vagrant.yml test --all
 
 Development on a Linux machine is simpler, all you need is docker. 
 
-Linux installation steps:
+Make sure the following software is installed:
 
-- Make sure [Python3](https://www.python.org/downloads) is installed
-- `pip3 install ansible molecule[docker] docker`
+- [Docker](https://docs.docker.com/get-docker/)
+- [Python3](https://www.python.org/downloads)
+- Python packages:
+  - ansible 
+  - molecule
+  - molecule-docker
+
+Installation steps for Linux:
+
+1. Make sure Python 3 and [pip](https://pip.pypa.io/en/stable/installing/) are installed : `pip3 --version`
+1. Make sure Docker is installed and can be managed by the current user: `docker ps`
+1. Install python packages: `pip3 install -r requirements-dev-linux.txt`
 
 Use the following arguments with every molecule command 
 `--base-config ./molecule/config/docker.yml`.

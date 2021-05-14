@@ -21,7 +21,7 @@
     owner: "{{ service_user }}"
     group: "{{ service_group }}"
 
-- name: Ensure systemd service directory for Splunk Otel Collector
+- name: Ensure systemd service directory for Splunk Otel Collector exists
   ansible.builtin.file:
     path: /etc/systemd/system/splunk-otel-collector.service.d
     state: directory

@@ -7,10 +7,6 @@
     - name: Import shared verification tasks
       ansible.builtin.import_tasks: ../shared/verify_tasks.yml
 
-    - name: Assert td-agent service is running
-      assert:
-        that: ansible_facts.services['td-agent.service'].state == 'running'
-
     - name: Check custom_config.yaml
       stat:
         path: /etc/otel/collector/custom_config.yml
@@ -30,7 +26,7 @@
     - name: Populate package facts
       ansible.builtin.package_facts:
 
-    - name: Assert splunk-otel-collector version is set
+    - name: Assert specified version of splunk-otel-collector is installed
       assert:
         that: ansible_facts.packages['splunk-otel-collector'][0].version == '0.24.3'
 

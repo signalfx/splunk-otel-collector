@@ -6,6 +6,6 @@
     splunk_access_token: fake-token
     install_fluentd: no
   tasks:
-    - name: "Include splunk_otel_collector"
+    - name: "Include signalfx.splunk_otel_collector.collector role"
       include_role:
-        name: "splunk_otel_collector"
+        name: "collector"

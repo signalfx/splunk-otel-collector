@@ -1,6 +1,9 @@
 ---
 # molecule config based on docker for CI usage on a Linux system only
-
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ./molecule/requirements.yml
 driver:
   name: docker
 platforms:

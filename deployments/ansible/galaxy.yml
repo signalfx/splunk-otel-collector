@@ -1,0 +1,24 @@
+---
+namespace: signalfx
+name: datacollection
+description: Ansible collection for Splunk OpenTelemetry Collector role
+version: 0.1.0
+readme: README.md
+authors:
+  - Splunk Inc.
+dependencies:
+  community.general: "*"
+license:
+  - "Apache-2.0"
+tags:
+  - splunk
+  - opentelemetry
+  - telemetry
+  - collection
+  - traces
+  - metrics
+  - logs
+repository: https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible
+build_ignore:
+  - contributing
+  - molecule

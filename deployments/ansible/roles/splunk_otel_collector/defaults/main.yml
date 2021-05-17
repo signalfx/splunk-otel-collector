@@ -6,20 +6,21 @@ splunk_access_token: ""
 
 splunk_realm: us0
 
-collector_version: latest
+splunk_otel_collector_version: latest
 
 # Set this variable to /etc/otel/collector/gateway_config.yaml in order to
 # deploy splunk-otel-collector in gateway mode
-collector_config: /etc/otel/collector/agent_config.yaml
-# Set collector_config_source to copy a custom config from a local path
-collector_config_source: ""
+splunk_otel_collector_config: /etc/otel/collector/agent_config.yaml
+# Set splunk_otel_collector_config_source to copy a custom config from
+# a local path to splunk_otel_collector_config on remote hosts
+splunk_otel_collector_config_source: ""
 
-service_user: splunk-otel-collector
-service_group: splunk-otel-collector
+splunk_service_user: splunk-otel-collector
+splunk_service_group: splunk-otel-collector
 
-memory_total_mib: 512
+splunk_memory_total_mib: 512
 # 1/3 of memory_mib by default
-ballast_size_mib: ""
+splunk_ballast_size_mib: ""
 
 install_fluentd: true
 
@@ -28,8 +29,8 @@ install_fluentd: true
 # and 4.1.1 for other distros.
 td_agent_version: ""
 
-fluentd_config: /etc/otel/collector/fluentd/fluent.conf
-fluentd_config_source: ""
+splunk_fluentd_config: /etc/otel/collector/fluentd/fluent.conf
+splunk_fluentd_config_source: ""
 
 agent_bundle_dir: /usr/lib/splunk-otel-collector/agent-bundle
 splunk_collectd_dir: /usr/lib/splunk-otel-collector/agent-bundle/run/collectd

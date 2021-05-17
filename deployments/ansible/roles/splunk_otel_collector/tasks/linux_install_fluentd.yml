@@ -38,11 +38,11 @@
 
 - name: Push custom FluentD config, if provided
   ansible.builtin.copy:
-    src: "{{ fluentd_config_source }}"
-    dest: "{{ fluentd_config }}"
+    src: "{{ splunk_fluentd_config_source }}"
+    dest: "{{ splunk_fluentd_config }}"
     owner: td-agent
     group: td-agent
-  when: fluentd_config_source
+  when: "'{{ splunk_fluentd_config_source }}'"
   notify: "restart td-agent"
 
 - name: Make sure td-agent.service.d directory exists

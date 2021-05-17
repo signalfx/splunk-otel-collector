@@ -21,19 +21,19 @@
   ansible.builtin.template:
     src: splunk-otel-collector.conf.j2
     dest: /etc/otel/collector/splunk-otel-collector.conf
-    owner: "{{ service_user }}"
-    group: "{{ service_group }}"
+    owner: "{{ splunk_service_user }}"
+    group: "{{ splunk_service_group }}"
     mode: 0600
   notify: "restart splunk-otel-collector"
 
 - name: Push custom config for Splunk OTel Collector, if provided
   ansible.builtin.copy:
-    src: "{{ collector_config_source }}"
-    dest: "{{ collector_config }}"
-    owner: "{{ service_user }}"
-    group: "{{ service_group }}"
+    src: "{{ splunk_otel_collector_config_source }}"
+    dest: "{{ splunk_otel_collector_config }}"
+    owner: "{{ splunk_service_user }}"
+    group: "{{ splunk_service_group }}"
     mode: 0644
-  when: collector_config_source
+  when: "'{{ splunk_otel_collector_config_source }}'"
   notify: "restart splunk-otel-collector"
 
 - name: Install FluentD

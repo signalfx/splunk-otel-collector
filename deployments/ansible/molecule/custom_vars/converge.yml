@@ -1,0 +1,19 @@
+---
+- name: Converge scenario with custom variables
+  hosts: all
+  become: yes
+  vars:
+    splunk_access_token: fake-token
+    splunk_otel_collector_version: 0.24.3
+    splunk_otel_collector_config: /etc/otel/collector/custom_config.yml
+    splunk_otel_collector_config_source: ./custom_collector_config.yml
+    splunk_service_user: custom-user
+    splunk_service_group: custom-group
+    splunk_memory_total_mib: 256
+    splunk_ballast_size_mib: 100
+    splunk_fluentd_config: /etc/otel/collector/fluentd/custom_fluentd.conf
+    splunk_fluentd_config_source: ./custom_fluentd_config.conf
+  tasks:
+    - name: "Include splunk_otel_collector"
+      include_role:
+        name: "splunk_otel_collector"

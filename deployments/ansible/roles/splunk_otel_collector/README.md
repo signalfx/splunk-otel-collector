@@ -13,25 +13,23 @@ Observability Cloud](https://www.splunk.com/en_us/observability.html).
 
 ## Usage
 
-To install the role, clone the repo to your control host and add the 
-`.deployments/ansible/roles/splunk-otel-collector` directory to `roles_path` in 
-`ansible.cfg`, or use this document's directory as your working directory.
+To use this role, simply include the 
+`signalfx.datacollection.splunk_otel_collector` role invocation in your 
+playbook. Note that this role requires root access. The following example shows 
+how to use the role in a playbook with minimal required configuration:
 
-To use this role, simply include the `splunk-otel-collector` role invocation 
-in your playbook. The following example shows how to use the role in a
-playbook with minimal required configuration:
 
 ```yaml
 - name: Install Splunk OpenTelemetry Connector
   hosts: all
   become: yes
-  vars:
-    splunk_access_token: YOUR_ACCESS_TOKEN
-    splunk_realm: SPLUNK_REALM
   tasks:
-    - name: "Include splunk-otel-collector"
+    - name: "Include splunk_otel_collector"
       include_role:
-        name: "splunk-otel-collector"
+        name: "signalfx.datacollection.splunk_otel_collector"
+      vars:
+        splunk_access_token: YOUR_ACCESS_TOKEN
+        splunk_realm: SPLUNK_REALM
 ```
 
 ## Role Variables
@@ -52,18 +50,18 @@ playbook with minimal required configuration:
   The `SPLUNK_API_URL` environment variable will be set with this value for the
   collector service. (**default:** `https://api.{{ splunk_realm }}.signalfx.com`)
 
-- `collector_version`: Version of the collector package to install, e.g.
+- `splunk_otel_collector_version`: Version of the collector package to install, e.g.
   `0.25.0`. (**default:** `latest`)
 
-- `collector_config`: Splunk OTel Collector config YAML file. Can be set to 
+- `splunk_otel_collector_config`: Splunk OTel Collector config YAML file. Can be set to 
   `/etc/otel/collector/gateway_config.yaml` to install the collector in gateway
   mode. (**default:** `/etc/otel/collector/agent_config.yaml`)
 
-- `collector_config_source`: Source path to a Splunk OTel Collector config YAML 
+- `splunk_otel_collector_config_source`: Source path to a Splunk OTel Collector config YAML 
   file on your control host that will be uploaded and set in place of
-  `collector_config` in remote hosts. Can be used to submit a custom collector 
+  `splunk_otel_collector_config` in remote hosts. Can be used to submit a custom collector 
   config, e.g. `./custom_collector_config.yaml`. (**default:** `""` meaning 
-  that nothing will be copied and existing `collector_config` will be used)
+  that nothing will be copied and existing `splunk_otel_collector_config` will be used)
 
 - `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
   https://github.com/signalfx/splunk-otel-collector/blob/main/internal/extension/smartagentextension/README.md).
@@ -80,15 +78,15 @@ playbook with minimal required configuration:
   variable will be set to this value for the collector service.  (**default:**
   `/usr/lib/splunk-otel-collector/agent-bundle`)
 
-- `service_user` and `service_group` (Linux only): Set the user/group
+- `splunk_service_user` and `splunk_service_group` (Linux only): Set the user/group
   ownership for the collector service. The user/group will be created if they
   do not exist. (**default:** `splunk-otel-collector`)
 
-- `memory_total_mib`: Amount of memory in MiB allocated to the Splunk OTel 
+- `splunk_memory_total_mib`: Amount of memory in MiB allocated to the Splunk OTel 
   Collector. (**default:** `512`)
 
-- `ballast_size_mib`: Memory ballast size in MiB that will be set to the Splunk 
-  OTel Collector. (**default:** 1/3 of `memory_total_mib`)
+- `splunk_ballast_size_mib`: Memory ballast size in MiB that will be set to the Splunk 
+  OTel Collector. (**default:** 1/3 of `splunk_memory_total_mib`)
 
 - `install_fluentd`: Whether to install/manage fluentd and dependencies for log
   collection. The dependencies include [capng_c](
@@ -104,16 +102,11 @@ playbook with minimal required configuration:
   installed (**default:** `3.3.0` for Debian jessie, `3.7.1` for Debian 
   stretch, and `4.1.1` for other distros`)
 
-- `fluentd_config`: Path to the fluentd config file on the remote host.
+- `splunk_fluentd_config`: Path to the fluentd config file on the remote host.
   (**default:** `/etc/otel/collector/fluentd/fluent.conf`)
 
-- `fluentd_config_source`: Source path to a fluentd config file on your 
-  control host that will be uploaded and set in place of `fluentd_config` on
+- `splunk_fluentd_config_source`: Source path to a fluentd config file on your 
+  control host that will be uploaded and set in place of `splunk_fluentd_config` on
   remote hosts. Can be used to submit a custom fluentd config,
   e.g. `./custom_fluentd_config.conf`. (**default:** `""` meaning 
-  that nothing will be copied and existing `fluentd_config` will be used)
-
-## Contributing
-
-Check [Contributing guidelines](./CONTRIBUTING.md) if you see something that 
-needs to be improved in this Ansible role.
+  that nothing will be copied and existing `splunk_fluentd_config` will be used)

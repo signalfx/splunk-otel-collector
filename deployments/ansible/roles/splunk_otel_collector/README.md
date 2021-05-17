@@ -14,7 +14,7 @@ Observability Cloud](https://www.splunk.com/en_us/observability.html).
 ## Usage
 
 To use this role, simply include the 
-`signalfx.datacollection.splunk_otel_collector` role invocation in your 
+`signalfx.splunk_otel_collector.collector` role invocation in your 
 playbook. Note that this role requires root access. The following example shows 
 how to use the role in a playbook with minimal required configuration:
 
@@ -26,7 +26,7 @@ how to use the role in a playbook with minimal required configuration:
   tasks:
     - name: "Include splunk_otel_collector"
       include_role:
-        name: "signalfx.datacollection.splunk_otel_collector"
+        name: "signalfx.splunk_otel_collector.collector"
       vars:
         splunk_access_token: YOUR_ACCESS_TOKEN
         splunk_realm: SPLUNK_REALM

@@ -11,13 +11,18 @@ dependencies:
 license:
   - "Apache-2.0"
 tags:
-  - splunk
-  - opentelemetry
-  - telemetry
-  - collection
-  - traces
-  - metrics
+  - agent
+  - apm
+  - collector
+  - connector
+  - gateway
   - logs
+  - metrics
+  - observability
+  - opentelemetry
+  - splunk
+  - telemetry
+  - traces
 repository: https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible
 build_ignore:
   - contributing

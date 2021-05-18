@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package yamlconfigsource
+package templateconfigsource
 
 import (
 	"bytes"
@@ -25,12 +25,12 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
-// yamlSession implements the configsource.Session interface.
-type yamlSession struct{}
+// templateSession implements the configsource.Session interface.
+type templateSession struct{}
 
-var _ configsource.Session = (*yamlSession)(nil)
+var _ configsource.Session = (*templateSession)(nil)
 
-func (ys *yamlSession) Retrieve(_ context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
+func (ts *templateSession) Retrieve(_ context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
 	tmpl, err := template.ParseFiles(selector)
 	if err != nil {
 		return nil, err
@@ -44,14 +44,14 @@ func (ys *yamlSession) Retrieve(_ context.Context, selector string, params inter
 	return configprovider.NewRetrieved(buf.Bytes(), configprovider.WatcherNotSupported), nil
 }
 
-func (ys *yamlSession) RetrieveEnd(context.Context) error {
+func (ts *templateSession) RetrieveEnd(context.Context) error {
 	return nil
 }
 
-func (ys *yamlSession) Close(context.Context) error {
+func (ts *templateSession) Close(context.Context) error {
 	return nil
 }
 
-func newSession() (*yamlSession, error) {
-	return &yamlSession{}, nil
+func newSession() (*templateSession, error) {
+	return &templateSession{}, nil
 }

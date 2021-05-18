@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package yamlconfigsource
+package templateconfigsource
 
 import (
 	"bytes"
@@ -27,7 +27,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 )
 
-func TestYAMLConfigSource_Session(t *testing.T) {
+func TestTemplateConfigSource_Session(t *testing.T) {
 	tests := []struct {
 		defaults map[string]interface{}
 		params   map[string]interface{}

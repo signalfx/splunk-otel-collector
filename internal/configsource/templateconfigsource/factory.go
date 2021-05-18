@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package yamlconfigsource
+package templateconfigsource
 
 import (
 	"context"
@@ -26,26 +26,26 @@ import (
 
 const (
 	// The "type" of file config sources in configuration.
-	typeStr = "yaml"
+	typeStr = "template"
 )
 
-type yamlFactory struct{}
+type templateFactory struct{}
 
-func (y *yamlFactory) Type() config.Type {
+func (tf *templateFactory) Type() config.Type {
 	return typeStr
 }
 
-func (y *yamlFactory) CreateDefaultConfig() configprovider.ConfigSettings {
+func (tf *templateFactory) CreateDefaultConfig() configprovider.ConfigSettings {
 	return &Config{
 		Settings: configprovider.NewSettings(typeStr),
 	}
 }
 
-func (y *yamlFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.ConfigSettings) (configsource.ConfigSource, error) {
+func (tf *templateFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.ConfigSettings) (configsource.ConfigSource, error) {
 	return newConfigSource(params.Logger, cfg.(*Config))
 }
 
-// NewFactory creates a factory for YAML ConfigSource objects.
+// NewFactory creates a factory for template ConfigSource objects.
 func NewFactory() configprovider.Factory {
-	return &yamlFactory{}
+	return &templateFactory{}
 }

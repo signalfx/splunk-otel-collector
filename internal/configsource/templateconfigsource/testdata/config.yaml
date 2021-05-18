@@ -1,0 +1,4 @@
+config_sources:
+  # Template config source doesn't have any parameters.
+  template:
+  template/named:

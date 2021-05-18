@@ -13,23 +13,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package yamlconfigsource
+package templateconfigsource
 
 import (
 	"context"
+	"testing"
 
-	"go.opentelemetry.io/collector/config/experimental/configsource"
+	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/collector/config"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
-type yamlConfigSource struct{}
+func TestTemplateConfigSourceFactory_CreateConfigSource(t *testing.T) {
+	factory := NewFactory()
+	assert.Equal(t, config.Type("template"), factory.Type())
+	createParams := configprovider.CreateParams{
+		Logger: zap.NewNop(),
+	}
 
-var _ configsource.ConfigSource = (*yamlConfigSource)(nil)
-
-func (y *yamlConfigSource) NewSession(context.Context) (configsource.Session, error) {
-	return newSession()
-}
-
-func newConfigSource(_ *zap.Logger, _ *Config) (*yamlConfigSource, error) {
-	return &yamlConfigSource{}, nil
+	actual, err := factory.CreateConfigSource(context.Background(), createParams, &Config{})
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
 }

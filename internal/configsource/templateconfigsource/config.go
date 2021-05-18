@@ -13,13 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package yamlconfigsource
+package templateconfigsource
 
 import (
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
-// Config holds the configuration for the creation of YAML config source objects.
+// Config holds the configuration for the creation of template config source objects.
 type Config struct {
 	*configprovider.Settings
 }

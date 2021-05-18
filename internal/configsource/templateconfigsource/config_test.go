@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package yamlconfigsource
+package templateconfigsource
 
 import (
 	"context"
@@ -28,7 +28,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
-func TestYAMLConfigSourceLoadConfig(t *testing.T) {
+func TestTemplateConfigSourceLoadConfig(t *testing.T) {
 	fileName := path.Join("testdata", "config.yaml")
 	v, err := config.NewParserFromFile(fileName)
 	require.NoError(t, err)
@@ -41,16 +41,16 @@ func TestYAMLConfigSourceLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedSettings := map[string]configprovider.ConfigSettings{
-		"yaml": &Config{
+		"template": &Config{
 			Settings: &configprovider.Settings{
-				TypeVal: "yaml",
-				NameVal: "yaml",
+				TypeVal: "template",
+				NameVal: "template",
 			},
 		},
-		"yaml/named": &Config{
+		"template/named": &Config{
 			Settings: &configprovider.Settings{
-				TypeVal: "yaml",
-				NameVal: "yaml/named",
+				TypeVal: "template",
+				NameVal: "template/named",
 			},
 		},
 	}

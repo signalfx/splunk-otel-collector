@@ -1,19 +1,19 @@
-# YAML Config Source (Alpha)
+# Template Config Source (Alpha)
 
-Use the YAML config source to inject [golang templates](https://pkg.go.dev/text/template)
+Use the template config source to inject [golang templates](https://pkg.go.dev/text/template)
 into the configuration.
 
 ## Configuration
 
-Under the `config_sources:` use `yaml:` or `yaml/<name>:` to create a
-YAML config source.
+Under the `config_sources:` use `template:` or `template/<name>:` to create a
+template config source.
 
 ```yaml
 config_sources:
-  yaml:
+  template:
 ```
 
-The parameters of an YAML config source are passed to template to be processed.
+The parameters of a template config source are passed to template to be processed.
 For example, assuming that `./templates/component_template` looks like:
 
 ```terminal
@@ -25,14 +25,14 @@ Given the configuration file:
 
 ```yaml
 config_sources:
-  yaml:
+  template:
 
 components:
   # component_0 is built from the ./templates/component_template file
   # according to the template parameters and commands. The example below
   # defines a few parameters to be used by the template.
   component_0: |
-    $yaml: ./templates/component_template
+    $template: ./templates/component_template
     my_glob_pattern: /var/**/*.log
     my_format: json
 ```
@@ -40,9 +40,6 @@ components:
 The effective configuration will be:
 
 ```yaml
-config_sources:
-  yaml:
-
 components:
   component_0:
     logs_path: /var/**/*.log

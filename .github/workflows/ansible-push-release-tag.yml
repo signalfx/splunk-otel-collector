@@ -31,13 +31,13 @@ jobs:
           file: deployments/ansible/galaxy.yml
           version: version
 
-      - name: Set new Ansible Release Tag
-        run: git tag ansible-v${{ steps.read-galaxy-yaml.outputs.version }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Push tags
-        uses: ad-m/github-push-action@v0.6.0
+        uses: actions/github-script@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          tags: true
+          script: |
+              await github.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: "tags/ansible-v${{ steps.read-galaxy-yaml.outputs.version }}"
+              })

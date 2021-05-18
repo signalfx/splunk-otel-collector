@@ -34,7 +34,7 @@ jobs:
       - name: Push Release Tag
         uses: actions/github-script@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
               await github.git.createRef({
                 owner: context.repo.owner,

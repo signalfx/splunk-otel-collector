@@ -2,6 +2,30 @@ stages:
   - build
   - release
 
+.setup-environment:
+  image: 'cimg/go:1.16'
+  variables:
+    GOPATH: "$CI_PROJECT_DIR/.go"
+  before_script:
+    - mkdir -p .go
+  script:
+    - make install-tools
+  cache:
+    paths:
+      - .go/pkg/mod
+      - .go/bin
+
+compile:
+  extends: .setup-environment
+  stage: build
+  parallel:
+    matrix:
+      - TARGET: [binaries-darwin_amd64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64]
+  script: make $TARGET
+  artifacts:
+    paths:
+      - bin/
+
 .ansible:
   image: 'cimg/python:3.9'
   only:

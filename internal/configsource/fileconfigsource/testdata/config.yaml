@@ -1,0 +1,4 @@
+config_sources:
+  # File config source doesn't have any parameters.
+  file:
+  file/named:

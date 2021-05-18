@@ -1,0 +1,7 @@
+config:
+  scalar_data: 42
+  yaml_data:
+    field: value
+    map:
+      k0: 42
+      k1: v1

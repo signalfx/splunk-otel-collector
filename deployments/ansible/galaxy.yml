@@ -9,7 +9,7 @@ authors:
 dependencies:
   community.general: "*"
 license:
-  - "Apache-2.0"
+  - Apache-2.0
 tags:
   - agent
   - apm

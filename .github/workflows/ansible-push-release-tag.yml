@@ -32,11 +32,10 @@ jobs:
           version: version
 
       - name: Push Ansible Release Tag
-        id: check-tag
         run: >
-          git tag ${RELEASE_TAG} 2>/dev/null 
-            && git push "${REMOTE_REPO}" --tags
-            || echo "tag already exists"
+          git tag ${RELEASE_TAG} 2>/dev/null
+          && git push "${REMOTE_REPO}" --tags
+          || echo "tag already exists"
         env:
           RELEASE_TAG: ansible-v${{ steps.read-galaxy-yaml.outputs.version }}
           REMOTE_REPO: https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${REPOSITORY}.git

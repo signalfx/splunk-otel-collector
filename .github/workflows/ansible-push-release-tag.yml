@@ -7,9 +7,6 @@ on:
     paths:
       - deployments/ansible/galaxy.yml
 
-permissions:
-  contents: write
-
 jobs:
   push-ansible-release-tag:
     runs-on: ubuntu-latest

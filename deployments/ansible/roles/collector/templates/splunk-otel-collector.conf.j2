@@ -1,4 +1,4 @@
-SPLUNK_CONFIG={{ collector_config }}
+SPLUNK_CONFIG={{ splunk_otel_collector_config }}
 SPLUNK_ACCESS_TOKEN={{ splunk_access_token }}
 SPLUNK_REALM={{ splunk_realm }}
 SPLUNK_API_URL={{ splunk_api_url | default("https://api." + splunk_realm + ".signalfx.com") }}
@@ -6,7 +6,7 @@ SPLUNK_INGEST_URL={{ splunk_ingest_url | default("https://ingest." + splunk_real
 SPLUNK_TRACE_URL=${SPLUNK_INGEST_URL}/v2/trace
 SPLUNK_HEC_URL=${SPLUNK_INGEST_URL}/v1/log
 SPLUNK_HEC_TOKEN={{ splunk_access_token }}
-SPLUNK_MEMORY_TOTAL_MIB={{ memory_total_mib }}
-SPLUNK_BALLAST_SIZE_MIB={{ ballast_size_mib }}
+SPLUNK_MEMORY_TOTAL_MIB={{ splunk_memory_total_mib }}
+SPLUNK_BALLAST_SIZE_MIB={{ splunk_ballast_size_mib }}
 SPLUNK_BUNDLE_DIR={{ agent_bundle_dir }}
 SPLUNK_COLLECTD_DIR={{ splunk_collectd_dir }}

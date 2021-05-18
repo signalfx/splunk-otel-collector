@@ -1,11 +1,11 @@
 on: 
   pull_request:
     paths:
-      - 'deployments/ansible/roles/splunk-otel-collector/**'
+      - 'deployments/ansible/**'
 
 defaults:
   run:
-    working-directory: 'deployments/ansible/roles/splunk-otel-collector'
+    working-directory: 'deployments/ansible'
 
 jobs:
 

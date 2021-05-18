@@ -1,6 +1,9 @@
 ---
 # molecule config based on vagrant and virtualbox for local usage on any OS
-
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ./molecule/requirements.yml
 driver:
   name: vagrant
   provider:

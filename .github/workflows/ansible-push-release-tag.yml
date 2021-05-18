@@ -39,6 +39,6 @@ jobs:
               await github.git.createRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                ref: "tags/ansible-v${{ steps.read-galaxy-yaml.outputs.version }}",
+                ref: "refs/tags/ansible-v${{ steps.read-galaxy-yaml.outputs.version }}",
                 sha: context.sha
               })

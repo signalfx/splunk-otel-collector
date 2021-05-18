@@ -13,13 +13,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package templateconfigsource
+package includeconfigsource
 
 import (
+	"context"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/collector/config"
+	"go.uber.org/zap"
+
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
-// Config holds the configuration for the creation of template config source objects.
-type Config struct {
-	*configprovider.Settings
+func TestIncludeConfigSourceFactory_CreateConfigSource(t *testing.T) {
+	factory := NewFactory()
+	assert.Equal(t, config.Type("include"), factory.Type())
+	createParams := configprovider.CreateParams{
+		Logger: zap.NewNop(),
+	}
+
+	actual, err := factory.CreateConfigSource(context.Background(), createParams, &Config{})
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
 }

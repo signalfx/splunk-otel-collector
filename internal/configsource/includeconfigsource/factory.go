@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package templateconfigsource
+package includeconfigsource
 
 import (
 	"context"
@@ -26,26 +26,26 @@ import (
 
 const (
 	// The "type" of file config sources in configuration.
-	typeStr = "template"
+	typeStr = "include"
 )
 
-type templateFactory struct{}
+type includeFactory struct{}
 
-func (tf *templateFactory) Type() config.Type {
+func (f *includeFactory) Type() config.Type {
 	return typeStr
 }
 
-func (tf *templateFactory) CreateDefaultConfig() configprovider.ConfigSettings {
+func (f *includeFactory) CreateDefaultConfig() configprovider.ConfigSettings {
 	return &Config{
 		Settings: configprovider.NewSettings(typeStr),
 	}
 }
 
-func (tf *templateFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.ConfigSettings) (configsource.ConfigSource, error) {
+func (f *includeFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.ConfigSettings) (configsource.ConfigSource, error) {
 	return newConfigSource(params.Logger, cfg.(*Config))
 }
 
-// NewFactory creates a factory for template ConfigSource objects.
+// NewFactory creates a factory for include ConfigSource objects.
 func NewFactory() configprovider.Factory {
-	return &templateFactory{}
+	return &includeFactory{}
 }

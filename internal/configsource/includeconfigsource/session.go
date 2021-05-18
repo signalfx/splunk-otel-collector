@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package templateconfigsource
+package includeconfigsource
 
 import (
 	"bytes"
@@ -25,12 +25,12 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
-// templateSession implements the configsource.Session interface.
-type templateSession struct{}
+// includeSession implements the configsource.Session interface.
+type includeSession struct{}
 
-var _ configsource.Session = (*templateSession)(nil)
+var _ configsource.Session = (*includeSession)(nil)
 
-func (ts *templateSession) Retrieve(_ context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
+func (is *includeSession) Retrieve(_ context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
 	tmpl, err := template.ParseFiles(selector)
 	if err != nil {
 		return nil, err
@@ -44,14 +44,14 @@ func (ts *templateSession) Retrieve(_ context.Context, selector string, params i
 	return configprovider.NewRetrieved(buf.Bytes(), configprovider.WatcherNotSupported), nil
 }
 
-func (ts *templateSession) RetrieveEnd(context.Context) error {
+func (is *includeSession) RetrieveEnd(context.Context) error {
 	return nil
 }
 
-func (ts *templateSession) Close(context.Context) error {
+func (is *includeSession) Close(context.Context) error {
 	return nil
 }
 
-func newSession() (*templateSession, error) {
-	return &templateSession{}, nil
+func newSession() (*includeSession, error) {
+	return &includeSession{}, nil
 }

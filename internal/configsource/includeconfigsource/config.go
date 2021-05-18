@@ -13,23 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package templateconfigsource
+package includeconfigsource
 
 import (
-	"context"
-
-	"go.opentelemetry.io/collector/config/experimental/configsource"
-	"go.uber.org/zap"
+	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
-type templateConfigSource struct{}
-
-var _ configsource.ConfigSource = (*templateConfigSource)(nil)
-
-func (t *templateConfigSource) NewSession(context.Context) (configsource.Session, error) {
-	return newSession()
-}
-
-func newConfigSource(_ *zap.Logger, _ *Config) (*templateConfigSource, error) {
-	return &templateConfigSource{}, nil
+// Config holds the configuration for the creation of include config source objects.
+type Config struct {
+	*configprovider.Settings
 }

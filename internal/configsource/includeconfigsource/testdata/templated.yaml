@@ -1,0 +1,16 @@
+config_sources:
+  include:
+
+component_0: |
+  $include: ./testdata/component_template
+  glob_pattern: /var/**/*.log
+  format: json
+
+component_1: $include:./testdata/no_params_template
+
+component_2: |
+  $include: ./testdata/yaml_template
+  k0: 42
+  cfg:
+    k0: a_string
+    k1: true

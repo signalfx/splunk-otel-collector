@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package templateconfigsource
+package includeconfigsource
 
 import (
 	"bytes"
@@ -27,7 +27,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 )
 
-func TestTemplateConfigSource_Session(t *testing.T) {
+func TestIncludeConfigSource_Session(t *testing.T) {
 	tests := []struct {
 		defaults map[string]interface{}
 		params   map[string]interface{}
@@ -70,6 +70,7 @@ func TestTemplateConfigSource_Session(t *testing.T) {
 				return
 			}
 
+			require.NoError(t, err)
 			require.NotNil(t, r)
 			buf := bytes.NewBuffer(r.Value().([]byte))
 			p, err := config.NewParserFromBuffer(buf)

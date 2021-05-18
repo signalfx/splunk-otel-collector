@@ -1,0 +1,4 @@
+config_sources:
+  # Include config source doesn't have any parameters.
+  include:
+  include/named:

@@ -17,6 +17,7 @@ package yamlconfigsource
 
 import (
 	"context"
+	"github.com/stretchr/testify/assert"
 	"path"
 	"testing"
 
@@ -59,6 +60,9 @@ func TestYAMLConfigSourceLoadConfig(t *testing.T) {
 	params := configprovider.CreateParams{
 		Logger: zap.NewNop(),
 	}
-	_, err = configprovider.Build(context.Background(), actualSettings, params, factories)
+	cfgSrcs, err := configprovider.Build(context.Background(), actualSettings, params, factories)
 	require.NoError(t, err)
+	for k := range expectedSettings {
+		assert.Contains(t, cfgSrcs, k)
+	}
 }

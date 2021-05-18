@@ -32,20 +32,8 @@ func TestYAMLConfigSourceFactory_CreateConfigSource(t *testing.T) {
 	createParams := configprovider.CreateParams{
 		Logger: zap.NewNop(),
 	}
-	tests := []struct {
-		config *Config
-		name   string
-	}{
-		{
-			name:   "default",
-			config: &Config{},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			actual, err := factory.CreateConfigSource(context.Background(), createParams, tt.config)
-			assert.NoError(t, err)
-			assert.NotNil(t, actual)
-		})
-	}
+
+	actual, err := factory.CreateConfigSource(context.Background(), createParams, &Config{})
+	assert.NoError(t, err)
+	assert.NotNil(t, actual)
 }

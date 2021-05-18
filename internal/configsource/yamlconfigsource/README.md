@@ -14,11 +14,11 @@ config_sources:
 ```
 
 The parameters of an YAML config source are passed to template to be processed.
-For example, assumint that `./templates/component_template` looks like:
+For example, assuming that `./templates/component_template` looks like:
 
 ```terminal
-logs_path: {{ .glob_pattern }}
-log_format: {{ .format }}
+logs_path: {{ .my_glob_pattern }}
+log_format: {{ .my_format }}
 ```
 
 Given the configuration file:
@@ -33,8 +33,8 @@ components:
   # defines a few parameters to be used by the template.
   component_0: |
     $yaml: ./templates/component_template
-    glob_pattern: /var/**/*.log
-    format: json
+    my_glob_pattern: /var/**/*.log
+    my_format: json
 ```
 
 The effective configuration will be:

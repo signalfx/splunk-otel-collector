@@ -84,3 +84,10 @@ To run the full test suite:
 ```sh
 molecule --base-config ./molecule/config/docker.yml test --all
 ```
+
+## Making new release of the Ansible Collection
+
+To cut a new release of the Ansible Collection, just bump the version in
+[galaxy.yml](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/ansible/galaxy.yml),
+and it'll automatically build a new version of the collection and publish it to 
+[Ansible Galaxy](https://galaxy.ansible.com/signalfx/splunk_otel_collector).

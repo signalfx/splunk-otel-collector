@@ -1,0 +1,35 @@
+stages:
+  - build
+  - release
+
+.ansible:
+  image: 'cimg/python:3.9'
+  only:
+    - /^ansible-v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - branches
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  cache:
+    paths:
+      - .cache/pip
+
+ansible-build:
+  extends: .ansible
+  stage: build
+  artifacts:
+    paths:
+      - dist/
+  before_script:
+    - pip3 install ansible==3.4.0
+  script:
+    - ansible-galaxy collection build ./deployments/ansible --output-path ./dist
+
+ansible-release:
+  extends: .ansible
+  stage: release
+  before_script:
+    - pip3 install ansible==3.4.0 yq==2.12.0
+  script:
+    - export COLLECTION_VERSION=$(cat ./deployments/ansible/galaxy.yml | yq .version -r)
+    - ansible-galaxy collection publish ./dist/signalfx-splunk_otel_collector-${COLLECTION_VERSION}.tar.gz --token=${ANSIBLE_GALAXY_TOKEN} 

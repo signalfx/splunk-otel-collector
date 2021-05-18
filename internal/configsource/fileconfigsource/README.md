@@ -5,9 +5,10 @@ configuration.
 
 ## Configuration
 
-Under the `config_sources:` use `file:` or `file/<name>:` to create a
-file config source. The following parameters are available to
-customize file config sources:
+Under the top-level `config_sources:` component mapping use `file:` or
+`file/<name>:` to create a file config source capable of reading from
+subsequently specified files and detecting their changes:
+
 
 ```yaml
 config_sources:
@@ -15,10 +16,13 @@ config_sources:
 ```
 
 By default, the config source will monitor for updates on the used files
-and will trigger a configuration reload when they are updated. Optionally,
-the config source can be configured to delete the injected file (typically
-to remove secrets from the file system) or to not watch for changes to the
-file.
+and will trigger a configuration reload when they are updated.
+Configuration reload causes temporary interruption of the data flow during
+the time taken to shut down the current pipeline configuration and start the
+new one. 
+Optionally, the file config source can be configured to delete the injected file
+(typically to remove secrets from the file system) as soon as its value is read
+or to not watch for changes to the file.
 
 ```yaml
 config_sources:

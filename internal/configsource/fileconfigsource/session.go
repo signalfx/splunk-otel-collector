@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cast"
@@ -66,7 +67,7 @@ func (fs *fileSession) Retrieve(_ context.Context, selector string, params inter
 		}
 	}
 
-	bytes, err := ioutil.ReadFile(selector) // nolint: gosec
+	bytes, err := ioutil.ReadFile(filepath.Clean(selector))
 	if err != nil {
 		return nil, &errMissingRequiredFile{err}
 	}

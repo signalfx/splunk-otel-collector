@@ -33,22 +33,9 @@ import (
 )
 
 func TestFileConfigSourceNew(t *testing.T) {
-	tests := []struct {
-		config *Config
-		name   string
-	}{
-		{
-			name:   "default",
-			config: &Config{},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cfgSrc, err := newConfigSource(zap.NewNop(), tt.config)
-			require.NoError(t, err)
-			require.NotNil(t, cfgSrc)
-		})
-	}
+	cfgSrc, err := newConfigSource(zap.NewNop(), &Config{})
+	require.NoError(t, err)
+	require.NotNil(t, cfgSrc)
 }
 
 func TestFileConfigSource_End2End(t *testing.T) {
@@ -80,8 +67,8 @@ func TestFileConfigSource_End2End(t *testing.T) {
 	}()
 	m.WaitForWatcher()
 
-	file = path.Join("testdata", "file_config_source_end_2_end_expected.yaml")
-	expected, err := config.NewParserFromFile(file)
+	fileWithExpectedData := path.Join("testdata", "file_config_source_end_2_end_expected.yaml")
+	expected, err := config.NewParserFromFile(fileWithExpectedData)
 	require.NoError(t, err)
 	require.NotNil(t, expected)
 
@@ -99,10 +86,11 @@ func TestFileConfigSource_End2End(t *testing.T) {
 
 	assert.ErrorIs(t, watchErr, configsource.ErrValueUpdated)
 
-	// Value should not have changed.
-	expected, err = config.NewParserFromFile(file)
+	// Value should not have changed, resolve it again and confirm.
+	r, err = m.Resolve(ctx, p)
 	require.NoError(t, err)
-	require.NotNil(t, expected)
+	require.NotNil(t, r)
+	assert.Equal(t, expected.ToStringMap(), r.ToStringMap())
 }
 
 func touchFile(t *testing.T, file string) {

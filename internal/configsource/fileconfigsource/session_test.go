@@ -119,6 +119,8 @@ func TestFileConfigSource_DeleteFile(t *testing.T) {
 
 func TestFileConfigSource_DeleteFileError(t *testing.T) {
 	if runtime.GOOS != "windows" {
+		// Locking the file is trivial on Windows, but not on *nix given the
+		// golang API, run the test only on Windows.
 		t.Skip("Windows only test")
 	}
 

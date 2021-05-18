@@ -20,6 +20,7 @@ import (
 	"path"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
 	"go.uber.org/zap"
@@ -59,6 +60,9 @@ func TestFileConfigSourceLoadConfig(t *testing.T) {
 	params := configprovider.CreateParams{
 		Logger: zap.NewNop(),
 	}
-	_, err = configprovider.Build(context.Background(), actualSettings, params, factories)
+	cfgSrcs, err := configprovider.Build(context.Background(), actualSettings, params, factories)
 	require.NoError(t, err)
+	for k := range expectedSettings {
+		assert.Contains(t, cfgSrcs, k)
+	}
 }

@@ -1,0 +1,11 @@
+fixtures:
+  forge_modules:
+    stdlib:
+      repo: "puppetlabs/stdlib"
+      ref: "4.24.0"
+    apt:
+      repo: "puppetlabs/apt"
+      ref: "7.0.0"
+    yum:
+      repo: "puppet/yum"
+      ref: "4.3.0"

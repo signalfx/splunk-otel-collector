@@ -1,3 +1,17 @@
+# Copyright Splunk Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import glob
 import os
 import tarfile
@@ -28,18 +42,19 @@ def retry(function, exception, max_attempts=5, interval=5):
 
 
 @contextmanager
-def run_distro_container(distro, timeout=DEFAULT_TIMEOUT):
+def run_distro_container(distro, dockerfile=None, path=TESTS_DIR, buildargs=None, timeout=DEFAULT_TIMEOUT):
     client = docker.from_env()
 
-    assert distro in DEB_DISTROS + RPM_DISTROS, f"'{distro}' distro not supported!"
+    if not dockerfile:
+        if distro in DEB_DISTROS:
+            dockerfile = TESTS_DIR / "images" / "deb" / f"Dockerfile.{distro}"
+        else:
+            dockerfile = TESTS_DIR / "images" / "rpm" / f"Dockerfile.{distro}"
 
-    if distro in DEB_DISTROS:
-        dockerfile = TESTS_DIR / "images" / "deb" / f"Dockerfile.{distro}"
-    else:
-        dockerfile = TESTS_DIR / "images" / "rpm" / f"Dockerfile.{distro}"
+    assert os.path.isfile(str(dockerfile)), f"{dockerfile} not found!"
 
     image, _ = retry(
-        lambda: client.images.build(path=str(TESTS_DIR), dockerfile=str(dockerfile), pull=True, rm=True, forcerm=True),
+        lambda: client.images.build(path=str(path), dockerfile=str(dockerfile), pull=True, rm=True, forcerm=True, buildargs=buildargs),
         docker.errors.BuildError,
     )
 

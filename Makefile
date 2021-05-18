@@ -44,7 +44,7 @@ VERSION=$(shell git describe --match "v[0-9]*" HEAD)
 BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1}"
 
-SMART_AGENT_RELEASE=v5.10.2
+SMART_AGENT_RELEASE=$(shell cat internal/buildscripts/packaging/smart-agent-release.txt)
 SKIP_COMPILE=false
 
 ### FUNCTIONS
@@ -237,5 +237,4 @@ msi:
 ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-windows_amd64
 endif
-	docker build -t msi-builder internal/buildscripts/packaging/msi/msi-builder
-	docker run --rm -v $(CURDIR):/project -u 0 -e SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) msi-builder $(VERSION)
+	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(SMART_AGENT_RELEASE)"

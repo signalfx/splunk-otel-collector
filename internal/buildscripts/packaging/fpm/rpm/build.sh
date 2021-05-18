@@ -22,14 +22,19 @@ SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 VERSION="${1:-}"
 ARCH="${2:-amd64}"
 OUTPUT_DIR="${3:-$REPO_DIR/dist}"
-SMART_AGENT_RELEASE="${4:-latest}"
+SMART_AGENT_RELEASE="${4:-}"
 
 if [[ -z "$VERSION" ]]; then
     VERSION="$( get_version )"
-    # rpm doesn't like dashes in the version, replace with tildas
-    VERSION="${VERSION/'-'/'~'}"
 fi
+
+# rpm doesn't like dashes in the version, replace with tildas
+VERSION="${VERSION/'-'/'~'}"
 VERSION="${VERSION#v}"
+
+if [[ -z "$SMART_AGENT_RELEASE" ]]; then
+    SMART_AGENT_RELEASE="$(cat $SMART_AGENT_RELEASE_PATH)"
+fi
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
 

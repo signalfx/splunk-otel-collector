@@ -31,7 +31,7 @@ jobs:
           file: deployments/ansible/galaxy.yml
           version: version
 
-      - name: Push tags
+      - name: Push Release Tag
         uses: actions/github-script@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -39,5 +39,6 @@ jobs:
               await github.git.createRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                ref: "tags/ansible-v${{ steps.read-galaxy-yaml.outputs.version }}"
+                ref: "tags/ansible-v${{ steps.read-galaxy-yaml.outputs.version }}",
+                sha: context.sha
               })

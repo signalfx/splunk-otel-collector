@@ -1,7 +1,7 @@
 # Ansible Collection with Splunk OpenTelemetry Connector Role
 
 Ansible Collection `signalfx.splunk_otel_collector` contains just one [Ansible 
-role for Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible/roles/splunk-otel-collector): 
+role for Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible/roles/collector): 
 `signalfx.splunk_otel_collector.collector`.
 
 The role installs Splunk OpenTelemetry Connector configured to
@@ -35,7 +35,7 @@ Note that this role requires root access.
 ```
 
 Full documentation on how to configure the role:
-[Splunk OpenTelemetry Connector Role](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible/roles/splunk-otel-collector)
+[Splunk OpenTelemetry Connector Role](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible/roles/collector)
 
 ## Contributing
 

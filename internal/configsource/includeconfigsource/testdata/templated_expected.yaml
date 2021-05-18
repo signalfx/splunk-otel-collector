@@ -1,0 +1,12 @@
+component_0:
+  logs_path: /var/**/*.log
+  log_format: json
+
+component_1:
+  bool_field: true
+
+component_2:
+  int_field: 42
+  map:
+    str_field: a_string
+    bool_field: true

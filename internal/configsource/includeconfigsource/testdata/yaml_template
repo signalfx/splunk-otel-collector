@@ -1,0 +1,4 @@
+int_field: {{ .k0 }}
+map:
+  str_field: {{ .cfg.k0 }}
+  bool_field: {{ .cfg.k1 }}

@@ -1,0 +1,2 @@
+logs_path: {{ .glob_pattern }}
+log_format: {{ .format }}

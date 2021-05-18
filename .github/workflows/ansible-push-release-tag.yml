@@ -38,4 +38,4 @@ jobs:
           || echo "tag already exists"
         env:
           RELEASE_TAG: ansible-v${{ steps.read-galaxy-yaml.outputs.version }}
-          REMOTE_REPO: https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${REPOSITORY}.git
+          REMOTE_REPO: https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git

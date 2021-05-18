@@ -12,8 +12,9 @@
 
 - name: Install Splunk OpenTelemetry Collector via yum package manager
   ansible.builtin.yum:
-    name: splunk-otel-collector{% if collector_version != "latest" %}-{{ collector_version }}{% endif %}
-    state: "{% if collector_version != 'latest' %}present{% else %}latest{% endif %}"
+    name: "splunk-otel-collector{% if splunk_otel_collector_version != 'latest' %}\
+      -{{ splunk_otel_collector_version }}{% endif %}"
+    state: "{% if splunk_otel_collector_version != 'latest' %}present{% else %}latest{% endif %}"
     allow_downgrade: yes
     update_cache: yes
   notify:

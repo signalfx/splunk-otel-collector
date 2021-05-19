@@ -33,7 +33,52 @@ func TestIncludeConfigSourceFactory_CreateConfigSource(t *testing.T) {
 		Logger: zap.NewNop(),
 	}
 
-	actual, err := factory.CreateConfigSource(context.Background(), createParams, &Config{})
-	assert.NoError(t, err)
-	assert.NotNil(t, actual)
+	tests := []struct {
+		name     string
+		config   Config
+		expected *includeConfigSource
+		wantErr  bool
+	}{
+		{
+			name:     "default",
+			expected: &includeConfigSource{},
+		},
+		{
+			name:   "delete_files",
+			config: Config{DeleteFiles: true},
+			expected: &includeConfigSource{
+				Config{DeleteFiles: true},
+			},
+		},
+		{
+			name:   "watch_files",
+			config: Config{WatchFiles: true},
+			expected: &includeConfigSource{
+				Config{WatchFiles: true},
+			},
+		},
+		{
+			name: "err_on_delete_and_watch",
+			config: Config{
+				DeleteFiles: true,
+				WatchFiles:  true,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual, err := factory.CreateConfigSource(context.Background(), createParams, &tt.config)
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, actual)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.NotNil(t, actual)
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
 }

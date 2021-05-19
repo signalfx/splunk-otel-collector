@@ -10,9 +10,15 @@
     update_cache: yes
 
 - name: Add an apt signing key for Splunk OpenTelemetry Collector
-  ansible.builtin.apt_key:
+  # TODO: Uncomment once ansible-core 4.0.1 released.
+  #       Using ansible.builtin.get_url for now due to bug in ansible-core 4.0.0
+  #       https://github.com/ansible/ansible/issues/74424
+  # ansible.builtin.apt_key:
+  #   url: "{{ splunk_repo_base_url }}/otel-collector-deb/splunk-B3CD4420.gpg"
+  #   keyring: /etc/apt/trusted.gpg.d/splunk.gpg
+  ansible.builtin.get_url:
     url: "{{ splunk_repo_base_url }}/otel-collector-deb/splunk-B3CD4420.gpg"
-    keyring: /etc/apt/trusted.gpg.d/splunk.gpg
+    dest: /etc/apt/trusted.gpg.d/splunk.gpg
 
 - name: Add Splunk OpenTelemetry Collector repo to apt source list
   ansible.builtin.apt_repository:

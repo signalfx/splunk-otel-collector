@@ -35,9 +35,9 @@ type (
 
 // includeSession implements the configsource.Session interface.
 type includeSession struct {
-	Config
 	watcher      *fsnotify.Watcher
 	watchedFiles map[string]struct{}
+	Config
 }
 
 var _ configsource.Session = (*includeSession)(nil)
@@ -49,7 +49,7 @@ func (is *includeSession) Retrieve(_ context.Context, selector string, params in
 	}
 
 	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, params); err != nil {
+	if err = tmpl.Execute(&buf, params); err != nil {
 		return nil, err
 	}
 

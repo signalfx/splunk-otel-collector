@@ -34,9 +34,9 @@ func TestIncludeConfigSourceFactory_CreateConfigSource(t *testing.T) {
 	}
 
 	tests := []struct {
+		expected *includeConfigSource
 		name     string
 		config   Config
-		expected *includeConfigSource
 		wantErr  bool
 	}{
 		{

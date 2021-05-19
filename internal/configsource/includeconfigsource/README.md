@@ -7,7 +7,7 @@ or plain files into the configuration.
 
 Under the `config_sources:` use `include:` or `include/<name>:` to create a
 template config source.
-The following parameters are available to customize Vault config sources:
+The following parameters are available to customize the include config sources:
 
 ```yaml
 config_sources:

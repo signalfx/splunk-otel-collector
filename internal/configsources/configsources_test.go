@@ -31,6 +31,7 @@ func TestConfigSourcesGet(t *testing.T) {
 	}{
 		{"env"},
 		{"etcd2"},
+		{"include"},
 		{"vault"},
 		{"zookeeper"},
 	}

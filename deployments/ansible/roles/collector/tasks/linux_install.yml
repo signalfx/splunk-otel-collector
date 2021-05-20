@@ -15,7 +15,7 @@
   when: ansible_os_family == "RedHat"
 
 - name: Set Splunk Otel Collector service owner
-  import_tasks: collector_service_owner.yml
+  ansible.builtin.import_tasks: collector_service_owner.yml
 
 - name: Set up env file for Splunk OTel Collector service
   ansible.builtin.template:
@@ -33,9 +33,9 @@
     owner: "{{ splunk_service_user }}"
     group: "{{ splunk_service_group }}"
     mode: 0644
-  when: "'{{ splunk_otel_collector_config_source }}'"
+  when: splunk_otel_collector_config_source != ''
   notify: "restart splunk-otel-collector"
 
 - name: Install FluentD
-  import_tasks: linux_install_fluentd.yml
+  ansible.builtin.import_tasks: linux_install_fluentd.yml
   when: install_fluentd

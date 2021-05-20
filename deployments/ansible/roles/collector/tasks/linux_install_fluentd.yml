@@ -42,7 +42,7 @@
     dest: "{{ splunk_fluentd_config }}"
     owner: td-agent
     group: td-agent
-  when: "'{{ splunk_fluentd_config_source }}'"
+  when: splunk_fluentd_config_source != ''
   notify: "restart td-agent"
 
 - name: Make sure td-agent.service.d directory exists
@@ -60,7 +60,7 @@
   notify: "restart td-agent"
 
 - name: Check fluent-cap-ctl
-  stat:
+  ansible.builtin.stat:
     path: /opt/td-agent/bin/fluent-cap-ctl
   register: fluent_cap_ctl
 
@@ -90,7 +90,7 @@
     ("dac_override" not in cap_get['stdout'] or "dac_read_search" not in cap_get['stdout'])
 
 - name: Determine available groups
-  getent:
+  ansible.builtin.getent:
     database: group
     split: ':'
   when: not fluent_cap_ctl.stat.exists

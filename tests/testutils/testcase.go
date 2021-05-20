@@ -23,6 +23,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/testutil"
@@ -40,6 +41,7 @@ type Testcase struct {
 	ObservedLogs            *observer.ObservedLogs
 	OTLPMetricsReceiverSink *OTLPMetricsReceiverSink
 	OTLPEndpoint            string
+	ID                      string
 }
 
 // Recommended constructor that will automatically configure an OTLPMetricsReceiverSink with available endpoint and
@@ -56,6 +58,10 @@ func NewTestcase(t *testing.T) *Testcase {
 	tc.OTLPMetricsReceiverSink, err = NewOTLPMetricsReceiverSink().WithEndpoint(tc.OTLPEndpoint).WithLogger(tc.Logger).Build()
 	require.NoError(tc, err)
 	require.NoError(tc, tc.OTLPMetricsReceiverSink.Start())
+
+	id, err := uuid.NewRandom()
+	require.NoError(tc, err)
+	tc.ID = id.String()
 	return &tc
 }
 
@@ -101,12 +107,24 @@ func (t *Testcase) SplunkOtelCollector(configFilename string) (Collector, func()
 	}
 
 	var err error
-	collector, err = collector.WithConfigPath(
+	collector = collector.WithConfigPath(
 		path.Join(".", "testdata", configFilename),
 	).WithEnv(map[string]string{
-		"OTLP_ENDPOINT": t.OTLPEndpoint,
-	}).WithLogLevel("debug").WithLogger(t.Logger).Build()
+		"OTLP_ENDPOINT":  t.OTLPEndpoint,
+		"SPLUNK_TEST_ID": t.ID,
+	}).WithLogLevel("debug").WithLogger(t.Logger)
 
+	splunkEnv := map[string]string{}
+	for _, s := range os.Environ() {
+		split := strings.Split(s, "=")
+		if strings.HasPrefix(strings.ToUpper(split[0]), "SPLUNK_") {
+			splunkEnv[split[0]] = split[1]
+
+		}
+	}
+	collector = collector.WithEnv(splunkEnv)
+
+	collector, err = collector.Build()
 	require.NoError(t, err)
 	require.NotNil(t, collector)
 	require.NoError(t, collector.Start())
@@ -116,6 +134,8 @@ func (t *Testcase) SplunkOtelCollector(configFilename string) (Collector, func()
 
 // PrintLogsOnFailure will print all ObserverLogs messages if the test has failed.  It's intended to be
 // deferred after Testcase creation.
+// There is a bug in testcontainers-go so it's not certain these are complete:
+// https://github.com/testcontainers/testcontainers-go/pull/323
 func (t *Testcase) PrintLogsOnFailure() {
 	if !t.Failed() {
 		return

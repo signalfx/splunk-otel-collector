@@ -1,4 +1,4 @@
-# Ansible Collection with Splunk OpenTelemetry Connector Role
+# Ansible Collection for Splunk OpenTelemetry Connector
 
 Ansible Collection `signalfx.splunk_otel_collector` contains just one [Ansible 
 role for Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible/roles/collector): 

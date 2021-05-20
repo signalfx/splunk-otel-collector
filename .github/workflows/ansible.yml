@@ -1,0 +1,124 @@
+name: Ansible
+
+# The workflow triggered by any change in deployments/ansible/.
+# 1. Run lint checks and Ansible Molecule tests.
+# 2. Push a new "ansible-v<VERSION>" tag, if the version was updated
+#    in deployments/ansible/galaxy.yml.
+
+on: 
+  push:
+    paths:
+      - 'deployments/ansible/**'
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: 'deployments/ansible'
+
+jobs:
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install yamllint.
+        run: pip3 install yamllint
+
+      - name: Lint code.
+        run: yamllint .
+
+  test:
+    name: Test
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ansible:
+          - ansible~=2.9.0
+          - ansible~=3.0
+          - ansible~=4.0
+        distro:
+          - amazonlinux2
+          - centos7
+          - centos8
+          - debian9
+          - debian10
+          - ubuntu1604
+          - ubuntu1804
+          - ubuntu2004
+
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install test dependencies.
+        run: >
+          pip3 install 
+          ${{ matrix.ansible }}
+          molecule==3.3.0 
+          molecule-docker==0.2.4 
+          docker==5.0.0
+
+      - name: Run Molecule tests.
+        run: molecule --base-config ./molecule/config/docker.yml test --all
+        env:
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'
+          MOLECULE_DISTRO: ${{ matrix.distro }}
+
+  push-release-tag:
+    name: Push Release Tag
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Read current version of the Ansible Collection
+        id: read-galaxy-yaml
+        uses: cumulusds/get-yaml-paths-action@v0.1.0
+        with:
+          file: deployments/ansible/galaxy.yml
+          version: version
+      
+      - name: Ensure version is fetched from galaxy.yml
+        if: steps.read-galaxy-yaml.outputs.version == ''
+        run: echo "Fail to read version from galaxy.yml" && exit 1
+
+      - name: Push new release tag if it doesn't exist
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+              const tagRef = "tags/ansible-v${{ steps.read-galaxy-yaml.outputs.version }}"
+              const existingRefs = await github.git.listMatchingRefs({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: tagRef
+              })
+              if (existingRefs.data.length === 0) {
+                await github.git.createRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: "refs/" + tagRef,
+                  sha: context.sha
+                })
+              } else {
+                console.log(tagRef + " already exists")
+              }

@@ -50,7 +50,7 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 		{
 			name:     "no_params_template",
 			selector: "no_params_template",
-			expected: []byte("bool_field: true\n"),
+			expected: []byte("bool_field: true"),
 		},
 	}
 

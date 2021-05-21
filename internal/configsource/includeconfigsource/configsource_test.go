@@ -17,8 +17,10 @@ package includeconfigsource
 
 import (
 	"context"
+	"io/ioutil"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,12 +31,6 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
-
-func TestIncludeConfigSourceNew(t *testing.T) {
-	cfgSrc, err := newConfigSource(zap.NewNop(), &Config{})
-	require.NoError(t, err)
-	require.NotNil(t, cfgSrc)
-}
 
 func TestIncludeConfigSource_End2End(t *testing.T) {
 	file := path.Join("testdata", "templated.yaml")
@@ -73,4 +69,65 @@ func TestIncludeConfigSource_End2End(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, expected)
 	assert.Equal(t, expected.ToStringMap(), r.ToStringMap())
+}
+
+func TestIncludeConfigSource_WatchFile(t *testing.T) {
+	file := path.Join("testdata", "templated.yaml")
+	p, err := config.NewParserFromFile(file)
+	require.NoError(t, err)
+	require.NotNil(t, p)
+
+	factories := configprovider.Factories{
+		"include": NewFactory(),
+	}
+	m, err := configprovider.NewManager(p, zap.NewNop(), component.DefaultBuildInfo(), factories)
+	require.NoError(t, err)
+	require.NotNil(t, m)
+
+	ctx := context.Background()
+	r, err := m.Resolve(ctx, p)
+	require.NoError(t, err)
+	require.NotNil(t, r)
+	t.Cleanup(func() {
+		assert.NoError(t, m.Close(ctx))
+	})
+
+	var watchErr error
+	watchDone := make(chan struct{})
+	go func() {
+		defer close(watchDone)
+		watchErr = m.WatchForUpdate()
+	}()
+	m.WaitForWatcher()
+
+	fileWithExpectedData := path.Join("testdata", "templated_expected.yaml")
+	expected, err := config.NewParserFromFile(fileWithExpectedData)
+	require.NoError(t, err)
+	require.NotNil(t, expected)
+
+	assert.Equal(t, expected.ToStringMap(), r.ToStringMap())
+
+	// Touch one of the files to trigger an update.
+	yamlDataFile := path.Join("testdata", "yaml_data_file")
+	touchFile(t, yamlDataFile)
+
+	select {
+	case <-watchDone:
+	case <-time.After(3 * time.Second):
+		require.Fail(t, "expected file change notification didn't happen")
+	}
+
+	assert.ErrorIs(t, watchErr, configsource.ErrValueUpdated)
+
+	// Value should not have changed, resolve it again and confirm.
+	r, err = m.Resolve(ctx, p)
+	require.NoError(t, err)
+	require.NotNil(t, r)
+	assert.Equal(t, expected.ToStringMap(), r.ToStringMap())
+}
+
+func touchFile(t *testing.T, file string) {
+	contents, err := ioutil.ReadFile(file)
+	require.NoError(t, err)
+	require.NoError(t, ioutil.WriteFile(file, contents, 0))
 }

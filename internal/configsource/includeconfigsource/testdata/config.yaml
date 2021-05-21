@@ -1,4 +1,7 @@
 config_sources:
   # Include config source doesn't have any parameters.
   include:
-  include/named:
+  include/delete_files:
+    delete_files: true
+  include/watch_files:
+    watch_files: true

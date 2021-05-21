@@ -10,3 +10,12 @@ component_2:
   map:
     str_field: a_string
     bool_field: true
+
+component_3:
+  scalar_data: 42
+  yaml_data:
+    field: value
+    map:
+      k0: 42
+      k1: v1
+

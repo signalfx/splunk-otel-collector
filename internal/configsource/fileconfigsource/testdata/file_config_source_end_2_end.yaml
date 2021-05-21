@@ -1,6 +1,0 @@
-config_sources:
-  file:
-
-config:
-  scalar_data: ${file:./testdata/scalar_data_file}
-  yaml_data: $file:./testdata/yaml_data_file

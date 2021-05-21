@@ -1,5 +1,7 @@
 config_sources:
   include:
+  include/watch:
+    watch_files: true
 
 component_0: |
   $include: ./testdata/component_template
@@ -14,3 +16,7 @@ component_2: |
   cfg:
     k0: a_string
     k1: true
+
+component_3:
+  scalar_data: ${include/watch:./testdata/scalar_data_file}
+  yaml_data: $include/watch:./testdata/yaml_data_file

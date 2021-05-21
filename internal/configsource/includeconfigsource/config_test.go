@@ -47,11 +47,19 @@ func TestIncludeConfigSourceLoadConfig(t *testing.T) {
 				NameVal: "include",
 			},
 		},
-		"include/named": &Config{
+		"include/delete_files": &Config{
 			Settings: &configprovider.Settings{
 				TypeVal: "include",
-				NameVal: "include/named",
+				NameVal: "include/delete_files",
 			},
+			DeleteFiles: true,
+		},
+		"include/watch_files": &Config{
+			Settings: &configprovider.Settings{
+				TypeVal: "include",
+				NameVal: "include/watch_files",
+			},
+			WatchFiles: true,
 		},
 	}
 

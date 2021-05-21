@@ -35,7 +35,7 @@ func (i *includeConfigSource) NewSession(context.Context) (configsource.Session,
 
 func newConfigSource(_ *zap.Logger, config *Config) (*includeConfigSource, error) {
 	if config.DeleteFiles && config.WatchFiles {
-		return nil, errors.New("cannot be configured to delete and watch file at the same time")
+		return nil, errors.New(`cannot be configured with "delete_files" and "watch_files" at the same time`)
 	}
 
 	return &includeConfigSource{*config}, nil

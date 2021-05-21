@@ -1,7 +1,8 @@
 # Include Config Source (Alpha)
 
 Use the include config source to inject [golang templates](https://pkg.go.dev/text/template)
-or plain files into the configuration.
+or plain files into the configuration. The config source can be used to insert scalar data
+or complete YAML sections.
 
 ## Configuration
 
@@ -13,7 +14,7 @@ The following parameters are available to customize the include config sources:
 config_sources:
   include:
   include/my_name_00:
-    # delete_files can be used to make the "include" config source to delete the
+    # delete_files can be used to make the "include" config source delete the
     # files referenced by it. This is typically used to remove secrets from the
     # file system. The file is deleted as soon as its value is read by the config
     # source. The default value is false. It is an invalid configuration to set it
@@ -30,7 +31,8 @@ config_sources:
     watch_files: true
 ```
 
-Example on how to use the `delete_files` and `watch_files`:
+Example of how to use the `delete_files` and `watch_files`:
+
 ```yaml
 config_sources:
   include/default:
@@ -56,6 +58,23 @@ components:
     # If the file '/etc/configs/my_config' is changed the collector configuration
     # will be reloaded.
     component_field: ${include/watch_for_updates:/etc/configs/my_config} 
+```
+
+The config source can be used to insert complete sections of the configuration:
+
+```yaml
+config_sources:
+  include:
+
+# The 'receivers' section is filled with the contests of /etc/configs/receivers.yaml 
+receivers: ${include:/etc/configs/receivers.yaml}
+
+# The 'exporters' section is filled with the contests of /etc/configs/exporters.yaml 
+exporters: ${include:/etc/configs/exporters.yaml}
+
+service:
+  # The 'pipelines' section is filled with the contests of /etc/configs/pipelines.yaml 
+  pipelines: ${include:/etc/configs/pipelines.yaml}
 ```
 
 If the file being included is a [golang template](https://pkg.go.dev/text/template)

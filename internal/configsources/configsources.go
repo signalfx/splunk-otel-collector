@@ -20,6 +20,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/envvarconfigsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/etcd2configsource"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource/includeconfigsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/vaultconfigsource"
 	"github.com/signalfx/splunk-otel-collector/internal/configsource/zookeeperconfigsource"
 )
@@ -29,6 +30,7 @@ func Get() []configprovider.Factory {
 	return []configprovider.Factory{
 		envvarconfigsource.NewFactory(),
 		etcd2configsource.NewFactory(),
+		includeconfigsource.NewFactory(),
 		vaultconfigsource.NewFactory(),
 		zookeeperconfigsource.NewFactory(),
 	}

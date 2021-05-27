@@ -11,10 +11,12 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-zookeeper/zk v1.0.2
+	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.7.0
 	github.com/hashicorp/vault-plugin-auth-gcp v0.9.0
 	github.com/hashicorp/vault/api v1.1.0
 	github.com/hashicorp/vault/sdk v0.2.1 // indirect
+	github.com/jaegertracing/jaeger v1.26.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.36.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.36.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.36.0
@@ -28,6 +30,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension v0.36.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.36.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.36.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.36.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.36.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.36.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.36.0
@@ -149,7 +152,6 @@ require (
 	github.com/go-test/deep v1.0.7 // indirect
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -201,7 +203,6 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20200307190119-3430c5407db8 // indirect
 	github.com/jackc/pgtype v1.3.0 // indirect
 	github.com/jackc/pgx/v4 v4.6.0 // indirect
-	github.com/jaegertracing/jaeger v1.26.0 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.0.0 // indirect
@@ -257,7 +258,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.36.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/stanza v0.36.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.36.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.36.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus v0.36.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/scraperhelper v0.36.0 // indirect
 	github.com/open-telemetry/opentelemetry-log-collection v0.20.0 // indirect

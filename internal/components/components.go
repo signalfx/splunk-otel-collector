@@ -67,6 +67,7 @@ import (
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 
+	"github.com/signalfx/splunk-otel-collector/internal/exporter/httpsinkexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/smartagentreceiver"
 )
@@ -125,6 +126,7 @@ func Get() (component.Factories, error) {
 		sapmexporter.NewFactory(),
 		signalfxexporter.NewFactory(),
 		splunkhecexporter.NewFactory(),
+		httpsinkexporter.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)

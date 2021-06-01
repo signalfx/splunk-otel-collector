@@ -48,7 +48,7 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 			params: map[string]interface{}{
 				"optional": true,
 			},
-			expected: "", // The default behavior for undefined env var is empty string.
+			expected: nil,
 		},
 		{
 			name: "invalid_param",

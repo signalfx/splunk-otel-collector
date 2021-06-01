@@ -473,8 +473,13 @@ func (m *Manager) expandString(ctx context.Context, s string) (interface{}, erro
 					return retrieved, nil
 				}
 
-				// Either there was a prefix already or there are still
-				// characters to be processed.
+				// Either there was a prefix already or there are still characters to be processed.
+				if retrieved == nil {
+					// Since this is going to be concatenated to a string use "" instead of nil,
+					// otherwise the string will end up with "<nil>".
+					retrieved = ""
+				}
+
 				buf = append(buf, fmt.Sprintf("%v", retrieved)...)
 			}
 

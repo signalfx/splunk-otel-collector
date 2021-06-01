@@ -68,9 +68,6 @@ func (e *envVarSession) Retrieve(_ context.Context, selector string, params inte
 		if !actualParams.Optional {
 			return nil, &errMissingRequiredEnvVar{fmt.Errorf("env var %q is required but not defined and not present on defaults", selector)}
 		}
-
-		// To keep with default behavior for env vars not defined set the value to empty string
-		defaultValue = ""
 	}
 
 	return configprovider.NewRetrieved(defaultValue, configprovider.WatcherNotSupported), nil

@@ -472,6 +472,7 @@ func TestManager_expandString(t *testing.T) {
 			ValueMap: map[string]valueEntry{
 				"str_key": {Value: "test_value"},
 				"int_key": {Value: 1},
+				"nil_key": {Value: nil},
 			},
 		},
 		"tstcfgsrc/named": &testConfigSource{
@@ -585,6 +586,15 @@ func TestManager_expandString(t *testing.T) {
 			name:    "envvar_treated_as_cfgsrc",
 			input:   "$envvar/test:test",
 			wantErr: &errUnknownConfigSource{},
+		},
+		{
+			name:  "retrieved_nil",
+			input: "${tstcfgsrc:nil_key}",
+		},
+		{
+			name:  "retrieved_nil_on_string",
+			input: "prefix-${tstcfgsrc:nil_key}-suffix",
+			want:  "prefix--suffix",
 		},
 	}
 	for _, tt := range tests {

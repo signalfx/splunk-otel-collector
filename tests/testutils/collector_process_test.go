@@ -38,20 +38,24 @@ func TestCollectorProcessBuilders(t *testing.T) {
 	assert.Equal(t, "somepath", withPath.Path)
 	assert.Empty(t, builder.Path)
 
-	withConfigPath := builder.WithConfigPath("someconfigpath")
+	withConfigPath, ok := builder.WithConfigPath("someconfigpath").(*CollectorProcess)
+	require.True(t, ok)
 	assert.Equal(t, "someconfigpath", withConfigPath.ConfigPath)
 	assert.Empty(t, builder.ConfigPath)
 
-	withArgs := builder.WithArgs("arg_one", "arg_two", "arg_three")
+	withArgs, ok := builder.WithArgs("arg_one", "arg_two", "arg_three").(*CollectorProcess)
+	require.True(t, ok)
 	assert.Equal(t, []string{"arg_one", "arg_two", "arg_three"}, withArgs.Args)
 	assert.Empty(t, builder.Args)
 
 	logger := zap.NewNop()
-	withLogger := builder.WithLogger(logger)
+	withLogger, ok := builder.WithLogger(logger).(*CollectorProcess)
+	require.True(t, ok)
 	assert.Same(t, logger, withLogger.Logger)
 	assert.Nil(t, builder.Logger)
 
-	withLogLevel := builder.WithLogLevel("someloglevel")
+	withLogLevel, ok := builder.WithLogLevel("someloglevel").(*CollectorProcess)
+	require.True(t, ok)
 	assert.Equal(t, "someloglevel", withLogLevel.LogLevel)
 	assert.Empty(t, builder.LogLevel)
 }
@@ -77,9 +81,12 @@ func TestCollectorProcessBuildDefaults(t *testing.T) {
 	// specifying Path to avoid built otelcol requirement
 	builder := NewCollectorProcess().WithPath("somepath").WithConfigPath("someconfigpath")
 
-	collector, err := builder.Build()
+	c, err := builder.Build()
 	require.NoError(t, err)
-	require.NotNil(t, collector)
+	require.NotNil(t, c)
+
+	collector, ok := c.(*CollectorProcess)
+	require.True(t, ok)
 
 	assert.Equal(t, "somepath", collector.Path)
 	assert.Equal(t, "someconfigpath", collector.ConfigPath)
@@ -110,7 +117,10 @@ func TestCollectorProcessWithInvalidPaths(t *testing.T) {
 	err = collector.Start()
 	require.NoError(t, err)
 
-	require.Equal(t, -1, collector.Process.Pid())
+	cp, ok := collector.(*CollectorProcess)
+	require.True(t, ok)
+
+	require.Equal(t, -1, cp.Process.Pid())
 
 	assert.Eventually(t, func() bool {
 		for _, entry := range logObserver.All() {

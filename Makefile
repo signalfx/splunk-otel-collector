@@ -47,6 +47,13 @@ BUILD_INFO=-ldflags "${BUILD_X1}"
 SMART_AGENT_RELEASE=v5.10.2
 SKIP_COMPILE=false
 
+# For integration testing against local changes you can run
+# SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
+# for local docker build testing or
+# SPLUNK_OTEL_COLLECTOR_IMAGE='' make -e otelcol integration-test
+# for local binary testing (agent-bundle configuration required)
+export SPLUNK_OTEL_COLLECTOR_IMAGE?=quay.io/signalfx/splunk-otel-collector-dev:latest
+
 ### FUNCTIONS
 
 # Function to execute a command. Note the empty line before endef to make sure each command
@@ -81,7 +88,6 @@ integration-test:
 	  (cd "$${dir}" && \
 	   $(GOTEST) -v -timeout 5m -count 1 ./... ); \
 	done
-
 
 .PHONY: test-with-cover
 test-with-cover:

@@ -17,7 +17,9 @@ package testutils
 import (
 	"context"
 	"fmt"
+	"os"
 	"path"
+	"strings"
 	"testing"
 	"time"
 
@@ -86,10 +88,20 @@ func (t *Testcase) Containers(builders ...Container) (containers []*Container, s
 	return
 }
 
-// CollectorProcess builds and starts a collector process using the desired config filename
+// SplunkOtelCollector builds and starts a collector container or process using the desired config filename
 // (assuming it's in the ./testdata directory) returning it and a validating shutdown function.
-func (t *Testcase) SplunkOtelCollector(configFilename string) (*CollectorProcess, func()) {
-	collector, err := NewCollectorProcess().WithConfigPath(
+func (t *Testcase) SplunkOtelCollector(configFilename string) (Collector, func()) {
+	var collector Collector
+	if image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE"); strings.TrimSpace(image) != "" {
+		cc := NewCollectorContainer().WithImage(image)
+		collector = &cc
+	} else {
+		cp := NewCollectorProcess()
+		collector = &cp
+	}
+
+	var err error
+	collector, err = collector.WithConfigPath(
 		path.Join(".", "testdata", configFilename),
 	).WithEnv(map[string]string{
 		"OTLP_ENDPOINT": t.OTLPEndpoint,

@@ -92,7 +92,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					"0123456789abcdef0123456789abcdef",
 					"0123456789abcdef",
 					"123456789abcdef0",
-					pdata.SpanKindSERVER,
+					pdata.SpanKindServer,
 					1000, 3000,
 					map[string]interface{}{
 						"some tag":      "some tag value",
@@ -140,7 +140,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					"0",
 					"1",
 					"0",
-					pdata.SpanKindCLIENT,
+					pdata.SpanKindClient,
 					1000, 3000,
 					map[string]interface{}{
 						"some tag": "some tag value",
@@ -195,7 +195,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					"0123456789abcdef",
 					"12345678",
 					"23456789",
-					pdata.SpanKindCONSUMER,
+					pdata.SpanKindConsumer,
 					1000, 3000,
 					map[string]interface{}{
 						"some tag":      "some tag value",
@@ -321,9 +321,9 @@ func assertSpansAreEqual(t *testing.T, expectedResourceSpans, resourceSpans pdat
 				updateMap := func(m map[string]interface{}) func(k string, v pdata.AttributeValue) bool {
 					return func(k string, v pdata.AttributeValue) bool {
 						switch v.Type() {
-						case pdata.AttributeValueSTRING:
+						case pdata.AttributeValueTypeString:
 							m[k] = v.StringVal()
-						case pdata.AttributeValueINT:
+						case pdata.AttributeValueTypeInt:
 							m[k] = v.IntVal()
 						}
 						return true

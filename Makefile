@@ -7,7 +7,7 @@ ALL_DOC := $(shell find . \( -name "*.md" -o -name "*.yaml" \) \
                                 -type f | sort)
 
 # All source code excluding any third party code and excluding the testbed.
-# This is the code that we want to run tests for and lint, staticcheck, etc.
+# This is the code that we want to run tests for and lint, etc.
 ALL_SRC := $(shell find . -name '*.go' \
 							-not -path './examples/*' \
 							-not -path './tests/*' \
@@ -25,7 +25,6 @@ GIT_SHA=$(shell git rev-parse --short HEAD)
 GO_ACC=go-acc
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
-GOSEC=gosec
 
 # CircleCI runtime.NumCPU() is for host machine despite container instance only granting 2.
 # If we are in a CI job, limit to 2 (and scale as we increase executor size).
@@ -37,7 +36,6 @@ IMPI=impi
 LINT=golangci-lint
 MISSPELL=misspell -error
 MISSPELL_CORRECTION=misspell -w
-STATIC_CHECK=staticcheck
 
 BUILD_INFO_IMPORT_PATH=github.com/signalfx/splunk-otel-collector/internal/version
 VERSION=$(shell git describe --match "v[0-9]*" HEAD)
@@ -147,24 +145,8 @@ misspell:
 misspell-correction:
 	$(MISSPELL_CORRECTION) $(ALL_DOC)
 
-.PHONY: lint-gosec
-lint-gosec:
-	# TODO: Consider to use gosec from golangci-lint
-	$(GOSEC) -quiet -exclude=G104 $(ALL_PKGS)
-
-.PHONY: lint-static-check
-lint-static-check:
-	@STATIC_CHECK_OUT=`$(STATIC_CHECK) $(ALL_PKGS) 2>&1`; \
-		if [ "$$STATIC_CHECK_OUT" ]; then \
-			echo "$(STATIC_CHECK) FAILED => static check errors:\n"; \
-			echo "$$STATIC_CHECK_OUT\n"; \
-			exit 1; \
-		else \
-			echo "Static check finished successfully"; \
-		fi
-
 .PHONY: lint
-lint: lint-static-check
+lint:
 	$(LINT) run
 
 .PHONY: impi
@@ -174,13 +156,11 @@ impi:
 .PHONY: install-tools
 install-tools:
 	go install github.com/client9/misspell/cmd/misspell@v0.3.4
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.38.0
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.40.1
 	go install github.com/google/addlicense@v0.0.0-20200906110928-a0294312aa76
 	go install github.com/jstemmer/go-junit-report@v0.9.1
 	go install github.com/ory/go-acc@v0.2.6
 	go install github.com/pavius/impi/cmd/impi@v0.0.3
-	go install github.com/securego/gosec/v2/cmd/gosec@v2.6.1
-	go install honnef.co/go/tools/cmd/staticcheck@v0.1.2
 	go install github.com/tcnksm/ghr@v0.13.0
 
 .PHONY: otelcol

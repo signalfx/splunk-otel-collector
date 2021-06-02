@@ -293,9 +293,6 @@ jobs:
       - run:
           name: Lint
           command: make -j4 checklicense impi lint misspell
-      - run:
-          name: Golang Security Checker
-          command: make lint-gosec
 
   cross-compile:
     executor: golang

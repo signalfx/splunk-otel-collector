@@ -66,16 +66,19 @@ linters-settings:
 
     enable-all: true
 
-  golint:
+  revive:
     # minimal confidence for issues, default is 0.8
     min-confidence: 0.8
+
   gofmt:
     # simplify code: gofmt with `-s` option, true by default
     simplify: true
+
   goimports:
     # put imports beginning with prefix after 3rd-party packages;
     # it's a comma-separated list of prefixes
     local-prefixes: github.com/signalfx/splunk-otel-collector
+
   misspell:
     # Correct spellings using locale preferences for US or UK.
     # Default is to use a neutral variety of English.
@@ -93,20 +96,15 @@ linters:
   disable:
     - errcheck
   enable:
+    - exportloopref
+    - gocritic
     - gofmt
     - goimports
-    - golint
+    - gosec
     - govet
-    - staticcheck
     - misspell
-    - scopelint
+    - revive
+    - staticcheck
     - unconvert
-    - gocritic
+    - unparam
 
-issues:
-  # Excluding configuration per-path, per-linter, per-text and per-source
-  exclude-rules:
-    # Exclude some linters from running on tests files.
-    - path: _test\.go
-      linters:
-        - scopelint

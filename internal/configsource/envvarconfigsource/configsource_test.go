@@ -50,8 +50,7 @@ func TestEnvVarConfigSourceNew(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfgSrc, err := newConfigSource(zap.NewNop(), tt.config)
-			require.NoError(t, err)
+			cfgSrc := newConfigSource(zap.NewNop(), tt.config)
 			require.NotNil(t, cfgSrc)
 			require.NotNil(t, cfgSrc.defaults)
 		})

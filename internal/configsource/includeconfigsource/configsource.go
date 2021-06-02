@@ -30,7 +30,7 @@ type includeConfigSource struct {
 var _ configsource.ConfigSource = (*includeConfigSource)(nil)
 
 func (i *includeConfigSource) NewSession(context.Context) (configsource.Session, error) {
-	return newSession(i.Config)
+	return newSession(i.Config), nil
 }
 
 func newConfigSource(_ *zap.Logger, config *Config) (*includeConfigSource, error) {

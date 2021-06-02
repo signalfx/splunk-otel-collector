@@ -81,8 +81,8 @@ func (e *envVarSession) Close(context.Context) error {
 	return nil
 }
 
-func newSession(defaults map[string]interface{}) (*envVarSession, error) {
+func newSession(defaults map[string]interface{}) *envVarSession {
 	return &envVarSession{
 		defaults: defaults,
-	}, nil
+	}
 }

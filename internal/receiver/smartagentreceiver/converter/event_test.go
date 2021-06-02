@@ -162,12 +162,12 @@ func assertAttributeMapContainsAll(t *testing.T, first, second pdata.AttributeMa
 		secondValue, ok := second.Get(firstKey)
 		require.True(t, ok, fmt.Sprintf("first attribute %s not in second", firstKey))
 		require.Equal(t, firstValue.Type(), secondValue.Type())
-		if secondValue.Type() == pdata.AttributeValueMAP {
+		if secondValue.Type() == pdata.AttributeValueTypeMap {
 			assertAttributeMapContainsAll(t, firstValue.MapVal(), secondValue.MapVal())
 			return true
 		}
 
-		if secondValue.Type() == pdata.AttributeValueDOUBLE {
+		if secondValue.Type() == pdata.AttributeValueTypeDouble {
 			// account for float32 -> float64 precision
 			assert.InDelta(t, firstValue.DoubleVal(), secondValue.DoubleVal(), .001)
 			return true

@@ -32,6 +32,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.uber.org/zap"
@@ -143,9 +144,9 @@ func TestExtraDimensions(t *testing.T) {
 }
 
 func TestSendDimensionUpdate(t *testing.T) {
-	me := mockMetadataClient{}
+	mmc := mockMetadataClient{id: config.NewID("signalfx")}
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), &me, consumertest.NewNop(), consumertest.NewNop(),
+		Config{}, fakeMonitorFiltering(), &mmc, consumertest.NewNop(), consumertest.NewNop(),
 		componenttest.NewNopHost(), zap.NewNop(),
 	)
 
@@ -157,7 +158,7 @@ func TestSendDimensionUpdate(t *testing.T) {
 		},
 	}
 	output.SendDimensionUpdate(&dim)
-	received := me.receivedMetadataUpdates
+	received := mmc.receivedMetadataUpdates
 	assert.Equal(t, 1, len(received))
 	update := *(received[0])
 	assert.Equal(t, "my_dimension", update.ResourceIDKey)
@@ -177,7 +178,7 @@ func TestSendDimensionUpdateWithInvalidExporter(t *testing.T) {
 }
 
 func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
-	me := mockMetadataClient{name: "mockmetadataexporter"}
+	mmc := mockMetadataClient{id: config.NewID("mockmetadataexporter")}
 	output := NewOutput(
 		Config{
 			DimensionClients: []string{"mockmetadataexporter", "exampleexporter", "metricsreceiver", "notareceiver", "notreal"},
@@ -186,7 +187,7 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 		consumertest.NewNop(),
 		consumertest.NewNop(),
 		consumertest.NewNop(),
-		&hostWithExporters{exporter: &me},
+		&hostWithExporters{exporter: &mmc},
 		zap.NewNop(),
 	)
 
@@ -194,16 +195,16 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 		Name: "error",
 	}
 	output.SendDimensionUpdate(&dim)
-	received := me.receivedMetadataUpdates
+	received := mmc.receivedMetadataUpdates
 	require.Equal(t, 1, len(received))
 	update := *(received[0])
 	assert.Equal(t, "has_errored", update.ResourceIDKey)
 }
 
 func TestSendDimensionUpdateFromNextConsumerMetadataExporters(t *testing.T) {
-	me := mockMetadataClient{}
+	mmc := mockMetadataClient{id: config.NewID("signalfx")}
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), &me, consumertest.NewNop(),
+		Config{}, fakeMonitorFiltering(), &mmc, consumertest.NewNop(),
 		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
 	)
 
@@ -211,16 +212,16 @@ func TestSendDimensionUpdateFromNextConsumerMetadataExporters(t *testing.T) {
 		Name: "error",
 	}
 	output.SendDimensionUpdate(&dim)
-	received := me.receivedMetadataUpdates
+	received := mmc.receivedMetadataUpdates
 	require.Equal(t, 1, len(received))
 	update := *(received[0])
 	assert.Equal(t, "has_errored", update.ResourceIDKey)
 }
 
 func TestSendEvent(t *testing.T) {
-	me := mockMetadataClient{}
+	mmc := mockMetadataClient{id: config.NewID("signalfx")}
 	output := NewOutput(
-		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), &me,
+		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), &mmc,
 		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
 	)
 
@@ -231,7 +232,7 @@ func TestSendEvent(t *testing.T) {
 		},
 	}
 	output.SendEvent(&event)
-	received := me.receivedLogs
+	received := mmc.receivedLogs
 	require.Equal(t, 1, len(received))
 	log := received[0]
 	logRecord := log.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).Logs().At(0)
@@ -245,14 +246,14 @@ func TestSendEvent(t *testing.T) {
 }
 
 func TestDimensionClientDefaultsToSFxExporter(t *testing.T) {
-	me := mockMetadataClient{name: "signalfx"}
+	mmc := mockMetadataClient{id: config.NewID("signalfx")}
 	output := NewOutput(
 		Config{DimensionClients: nil},
 		fakeMonitorFiltering(),
 		consumertest.NewNop(),
 		consumertest.NewNop(),
 		consumertest.NewNop(),
-		&hostWithExporters{exporter: &me},
+		&hostWithExporters{exporter: &mmc},
 		zap.NewNop(),
 	)
 
@@ -260,21 +261,21 @@ func TestDimensionClientDefaultsToSFxExporter(t *testing.T) {
 		Name: "some_dimension",
 	}
 	output.SendDimensionUpdate(&dim)
-	received := me.receivedMetadataUpdates
+	received := mmc.receivedMetadataUpdates
 	require.Equal(t, 1, len(received))
 	update := *(received[0])
 	assert.Equal(t, "some_dimension", update.ResourceIDKey)
 }
 
 func TestDimensionClientDefaultsRequiresLoneSFxExporter(t *testing.T) {
-	me := mockMetadataClient{name: "signalfx"}
+	mmc := mockMetadataClient{id: config.NewID("signalfx")}
 	output := NewOutput(
 		Config{DimensionClients: nil},
 		fakeMonitorFiltering(),
 		consumertest.NewNop(),
 		consumertest.NewNop(),
 		consumertest.NewNop(),
-		&hostWithTwoSFxExporters{sfxExporter: &me},
+		&hostWithTwoSFxExporters{sfxExporter: &mmc},
 		zap.NewNop(),
 	)
 
@@ -282,7 +283,7 @@ func TestDimensionClientDefaultsRequiresLoneSFxExporter(t *testing.T) {
 		Name: "some_dimension",
 	}
 	output.SendDimensionUpdate(&dim)
-	received := me.receivedMetadataUpdates
+	received := mmc.receivedMetadataUpdates
 	require.Zero(t, len(received))
 }
 
@@ -295,25 +296,29 @@ func fakeMonitorFiltering() *monitorFiltering {
 }
 
 type mockMetadataClient struct {
-	name                    string
+	id                      config.ComponentID
 	receivedMetadataUpdates []*metadata.MetadataUpdate
 	receivedLogs            []pdata.Logs
 }
 
-func (me *mockMetadataClient) Start(_ context.Context, _ component.Host) error {
+func (mmc *mockMetadataClient) Capabilities() consumer.Capabilities {
 	panic("implement me")
 }
 
-func (me *mockMetadataClient) Shutdown(_ context.Context) error {
+func (mmc *mockMetadataClient) Start(_ context.Context, _ component.Host) error {
 	panic("implement me")
 }
 
-func (me *mockMetadataClient) ConsumeMetrics(_ context.Context, _ pdata.Metrics) error {
+func (mmc *mockMetadataClient) Shutdown(_ context.Context) error {
 	panic("implement me")
 }
 
-func (me *mockMetadataClient) ConsumeMetadata(updates []*metadata.MetadataUpdate) error {
-	me.receivedMetadataUpdates = append(me.receivedMetadataUpdates, updates...)
+func (mmc *mockMetadataClient) ConsumeMetrics(_ context.Context, _ pdata.Metrics) error {
+	panic("implement me")
+}
+
+func (mmc *mockMetadataClient) ConsumeMetadata(updates []*metadata.MetadataUpdate) error {
+	mmc.receivedMetadataUpdates = append(mmc.receivedMetadataUpdates, updates...)
 
 	if updates[0].ResourceIDKey == "error" {
 		updates[0].ResourceIDKey = "has_errored"
@@ -322,8 +327,8 @@ func (me *mockMetadataClient) ConsumeMetadata(updates []*metadata.MetadataUpdate
 	return nil
 }
 
-func (me *mockMetadataClient) ConsumeLogs(ctx context.Context, logs pdata.Logs) error {
-	me.receivedLogs = append(me.receivedLogs, logs)
+func (mmc *mockMetadataClient) ConsumeLogs(ctx context.Context, logs pdata.Logs) error {
+	mmc.receivedLogs = append(mmc.receivedLogs, logs)
 
 	logRecord := logs.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).Logs().At(0)
 	if logRecord.Name() == "error" {
@@ -365,8 +370,8 @@ func getExporters() map[config.DataType]map[config.ComponentID]component.Exporte
 	)
 
 	metricExporterMap[exampleExporterFactory.CreateDefaultConfig().ID()] = exampleExporter
-	metricExporterMap[config.MustIDFromString("metricsreceiver")] = &mockMetricsReceiver{}
-	metricExporterMap[config.MustIDFromString("notareceiver")] = &notAReceiver{}
+	metricExporterMap[config.NewID("metricsreceiver")] = &mockMetricsReceiver{}
+	metricExporterMap[config.NewID("notareceiver")] = &notAReceiver{}
 
 	return exporters
 }
@@ -376,7 +381,7 @@ func (h *hostWithExporters) GetExporters() map[config.DataType]map[config.Compon
 	exporterMap := exporters[config.MetricsDataType]
 
 	// Add internal exporter to the list.
-	exporterMap[config.MustIDFromString(h.exporter.name)] = component.MetricsExporter(h.exporter)
+	exporterMap[h.exporter.id] = component.MetricsExporter(h.exporter)
 	return exporters
 }
 
@@ -389,10 +394,10 @@ func (h *hostWithTwoSFxExporters) GetExporters() map[config.DataType]map[config.
 	exporters := getExporters()
 	exporterMap := exporters[config.MetricsDataType]
 
-	meOne := config.MustIDFromString("signalfx/sfx1")
+	meOne := config.NewIDWithName("signalfx", "sfx1")
 	exporterMap[meOne] = component.MetricsExporter(h.sfxExporter)
 
-	meTwo := config.MustIDFromString("signalfx/sfx2")
+	meTwo := config.NewIDWithName("signalfx", "sfx2")
 	exporterMap[meTwo] = component.MetricsExporter(h.sfxExporter)
 	return exporters
 }

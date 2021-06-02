@@ -198,8 +198,8 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 		return
 	}
 
-	ctx := obsreport.ReceiverContext(context.Background(), output.receiverID.String(), internalTransport)
-	ctx = obsreport.StartMetricsReceiveOp(ctx, typeStr, internalTransport)
+	ctx := obsreport.ReceiverContext(context.Background(), output.receiverID, internalTransport)
+	ctx = obsreport.StartMetricsReceiveOp(ctx, output.receiverID, internalTransport)
 
 	datapoints = output.filterDatapoints(datapoints)
 	for _, dp := range datapoints {

@@ -88,7 +88,7 @@ func loadSettings(css map[string]interface{}, factories Factories) (map[string]C
 		settingsParser := config.NewParserFromStringMap(cast.ToStringMap(value))
 
 		// Decode the key into type and fullName components.
-		componentID, err := config.IDFromString(key)
+		componentID, err := config.NewIDFromString(key)
 		if err != nil {
 			return nil, &errInvalidTypeAndNameKey{fmt.Errorf("invalid %s type and name key %q: %v", configSourcesKey, key, err)}
 		}

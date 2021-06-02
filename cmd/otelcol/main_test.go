@@ -57,7 +57,7 @@ func TestGetKeyValue(t *testing.T) {
 	}
 }
 
-func TestCheckRuntimeParams(t *testing.T) {
+func TestCheckRuntimeParams(*testing.T) {
 	oldArgs := os.Args
 	os.Setenv(configEnvVarName, "../../"+defaultLocalSAPMConfig)
 	setConfig()

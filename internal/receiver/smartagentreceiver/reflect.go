@@ -19,7 +19,7 @@ import (
 	"reflect"
 )
 
-// Sets the first occurrence of a (potentially embedded) struct field w/ name fieldName and first occurring fieldType
+// SetStructFieldWithExplicitType sets the first occurrence of a (potentially embedded) struct field w/ name fieldName and first occurring fieldType
 // to desired value, if available.  Returns true if successfully set, false otherwise.
 // Error contains if field undetected or if issues occur with reflect usage.
 func SetStructFieldWithExplicitType(strukt interface{}, fieldName string, value interface{}, fieldTypes ...reflect.Type) (bool, error) {
@@ -34,13 +34,13 @@ func SetStructFieldWithExplicitType(strukt interface{}, fieldName string, value 
 	return false, err
 }
 
-// Same as SetStructField() but only if first occurrence of the field is of zero value.
+// SetStructFieldIfZeroValue same as SetStructField() but only if first occurrence of the field is of zero value.
 func SetStructFieldIfZeroValue(strukt interface{}, fieldName string, value interface{}) (bool, error) {
 	fieldType := reflect.TypeOf(value)
 	return setStructField(strukt, fieldName, value, fieldType, true)
 }
 
-// Finds the first occurrence of a valid, settable field value from a potentially embedded struct
+// GetSettableStructFieldValue finds the first occurrence of a valid, settable field value from a potentially embedded struct
 // with a fieldName of desired type.
 // Based on https://github.com/signalfx/signalfx-agent/blob/731c2a0b5ff5ac324130453b02dd9cb7c912c0d5/pkg/utils/reflection.go#L36
 func GetSettableStructFieldValue(strukt interface{}, fieldName string, fieldType reflect.Type) (*reflect.Value, error) {

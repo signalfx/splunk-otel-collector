@@ -53,7 +53,7 @@ func (s *zkSession) Retrieve(ctx context.Context, selector string, _ interface{}
 		return nil, err
 	}
 
-	return configprovider.NewRetrieved(value, newWatcher(ctx, watchCh, s.closeCh)), nil
+	return configprovider.NewRetrieved(value, newWatcher(watchCh, s.closeCh)), nil
 }
 
 func (s *zkSession) RetrieveEnd(context.Context) error {
@@ -65,7 +65,7 @@ func (s *zkSession) Close(context.Context) error {
 	return nil
 }
 
-func newWatcher(ctx context.Context, watchCh <-chan zk.Event, closeCh <-chan struct{}) func() error {
+func newWatcher(watchCh <-chan zk.Event, closeCh <-chan struct{}) func() error {
 	return func() error {
 		select {
 		case <-closeCh:

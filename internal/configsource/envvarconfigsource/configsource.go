@@ -29,15 +29,15 @@ type envVarConfigSource struct {
 var _ configsource.ConfigSource = (*envVarConfigSource)(nil)
 
 func (e *envVarConfigSource) NewSession(context.Context) (configsource.Session, error) {
-	return newSession(e.defaults)
+	return newSession(e.defaults), nil
 }
 
-func newConfigSource(_ *zap.Logger, cfg *Config) (*envVarConfigSource, error) {
+func newConfigSource(_ *zap.Logger, cfg *Config) *envVarConfigSource {
 	defaults := make(map[string]interface{})
 	if cfg.Defaults != nil {
 		defaults = cfg.Defaults
 	}
 	return &envVarConfigSource{
 		defaults: defaults,
-	}, nil
+	}
 }

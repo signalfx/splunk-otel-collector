@@ -83,11 +83,11 @@ func (is *includeSession) Close(context.Context) error {
 	return nil
 }
 
-func newSession(config Config) (*includeSession, error) {
+func newSession(config Config) *includeSession {
 	return &includeSession{
 		Config:       config,
 		watchedFiles: make(map[string]struct{}),
-	}, nil
+	}
 }
 
 func (is *includeSession) watchFile(file string) (func() error, error) {

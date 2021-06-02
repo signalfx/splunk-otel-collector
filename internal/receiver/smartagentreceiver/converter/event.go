@@ -23,7 +23,9 @@ import (
 )
 
 const (
-	SFxEventCategoryKey   = "com.splunk.signalfx.event_category"
+	// SFxEventCategoryKey key for splunk event category,
+	SFxEventCategoryKey = "com.splunk.signalfx.event_category"
+	// SFxEventPropertiesKey key for splunk event properties.
 	SFxEventPropertiesKey = "com.splunk.signalfx.event_properties"
 )
 

@@ -84,8 +84,7 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 				defaults = make(map[string]interface{})
 			}
 
-			s, err := newSession(defaults)
-			require.NoError(t, err)
+			s := newSession(defaults)
 			require.NotNil(t, s)
 
 			ctx := context.Background()

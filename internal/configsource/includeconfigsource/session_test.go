@@ -56,8 +56,7 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s, err := newSession(Config{})
-			require.NoError(t, err)
+			s := newSession(Config{})
 			require.NotNil(t, s)
 
 			ctx := context.Background()
@@ -82,8 +81,7 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 }
 
 func TestIncludeConfigSource_DeleteFile(t *testing.T) {
-	s, err := newSession(Config{DeleteFiles: true})
-	require.NoError(t, err)
+	s := newSession(Config{DeleteFiles: true})
 	require.NotNil(t, s)
 
 	ctx := context.Background()
@@ -97,7 +95,7 @@ func TestIncludeConfigSource_DeleteFile(t *testing.T) {
 	contents, err := ioutil.ReadFile(src)
 	require.NoError(t, err)
 	dst := path.Join("testdata", "copy_scalar_data_file")
-	require.NoError(t, ioutil.WriteFile(dst, contents, 0644))
+	require.NoError(t, ioutil.WriteFile(dst, contents, 0600))
 	t.Cleanup(func() {
 		// It should be removed prior to this so an error is expected.
 		assert.Error(t, os.Remove(dst))
@@ -119,8 +117,7 @@ func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
 		t.Skip("Windows only test")
 	}
 
-	s, err := newSession(Config{DeleteFiles: true})
-	require.NoError(t, err)
+	s := newSession(Config{DeleteFiles: true})
 	require.NotNil(t, s)
 
 	ctx := context.Background()
@@ -134,7 +131,7 @@ func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
 	contents, err := ioutil.ReadFile(src)
 	require.NoError(t, err)
 	dst := path.Join("testdata", "copy_scalar_data_file")
-	require.NoError(t, ioutil.WriteFile(dst, contents, 0644))
+	require.NoError(t, ioutil.WriteFile(dst, contents, 0600))
 	f, err := os.OpenFile(dst, os.O_RDWR, 0)
 	require.NoError(t, err)
 	t.Cleanup(func() {

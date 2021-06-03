@@ -18,6 +18,8 @@ directory.
 
 ## Examples
 
+#### CLI Usage
+
 ###### Using the current working directory as the working directory:
 
 ```
@@ -28,4 +30,58 @@ directory.
 
 ```
 > translatesfx path/to/sfx/config.yaml path/to/sfx
+```
+#### Example Input/Output
+
+Given the following input
+```yaml
+signalFxAccessToken: {"#from": "env:SFX_ACCESS_TOKEN"}
+ingestUrl: {"#from": "testdata/ingest_url", default: "https://ingest.signalfx.com"}
+apiUrl: {"#from": "testdata/api_url", default: "https://api.signalfx.com"}
+traceEndpointUrl: {"#from": 'testdata/trace_endpoint_url', default: "https://ingest.signalfx.com/v2/trace"}
+
+intervalSeconds: 10
+
+logging:
+  level: info
+
+monitors:
+  - {"#from": "testdata/monitors/*.yaml", flatten: true, optional: true}
+  - type: memory
+```
+
+and the following included files:
+
+###### monitors/cpu.yaml
+```yaml
+- type: cpu
+```
+
+###### monitors/load.yaml
+```yaml
+- type: load
+```
+
+`translatesfx` will output:
+```yaml
+receivers:
+  smartagent/cpu:
+    type: cpu
+  smartagent/load:
+    type: load
+  smartagent/memory:
+    type: memory
+exporters:
+  signalfx:
+    access_token: ${SFX_ACCESS_TOKEN}
+    realm: us1
+service:
+  pipelines:
+    metrics:
+      receivers:
+      - smartagent/cpu
+      - smartagent/load
+      - smartagent/memory
+      exporters:
+      - signalfx
 ```

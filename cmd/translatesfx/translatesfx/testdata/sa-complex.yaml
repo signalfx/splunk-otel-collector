@@ -9,12 +9,6 @@ intervalSeconds: 10
 logging:
   level: info
 
-observers:
-  - type: host
-
 monitors:
   - {"#from": "testdata/monitors/*.yaml", flatten: true, optional: true}
   - type: memory
-
-writer:
-  traceExportFormat: sapm

@@ -115,7 +115,7 @@ func TestExpand_SAComplex(t *testing.T) {
 	require.NoError(t, err)
 	expanded, _ := expandSA(v, "")
 	m := expanded.(map[interface{}]interface{})
-	assert.Equal(t, "http://api.us1.signalfx.com", m["apiUrl"])
+	assert.Equal(t, "https://api.us1.signalfx.com", m["apiUrl"])
 	monitors := m["monitors"].([]interface{})
 	cpuFound, loadFound := false, false
 	for _, monitor := range monitors {

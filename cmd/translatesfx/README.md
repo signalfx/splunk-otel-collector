@@ -20,7 +20,7 @@ directory.
 
 #### CLI Usage
 
-###### Using the current working directory as the working directory:
+###### Using the current working directory:
 
 ```
 > translatesfx path/to/sfx/config.yaml
@@ -36,9 +36,9 @@ directory.
 Given the following input
 ```yaml
 signalFxAccessToken: {"#from": "env:SFX_ACCESS_TOKEN"}
-ingestUrl: {"#from": "testdata/ingest_url", default: "https://ingest.signalfx.com"}
-apiUrl: {"#from": "testdata/api_url", default: "https://api.signalfx.com"}
-traceEndpointUrl: {"#from": 'testdata/trace_endpoint_url', default: "https://ingest.signalfx.com/v2/trace"}
+ingestUrl: {"#from": "ingest_url", default: "https://ingest.signalfx.com"}
+apiUrl: {"#from": "api_url", default: "https://api.signalfx.com"}
+traceEndpointUrl: {"#from": 'trace_endpoint_url', default: "https://ingest.signalfx.com/v2/trace"}
 
 intervalSeconds: 10
 
@@ -46,11 +46,26 @@ logging:
   level: info
 
 monitors:
-  - {"#from": "testdata/monitors/*.yaml", flatten: true, optional: true}
+  - {"#from": "monitors/*.yaml", flatten: true, optional: true}
   - type: memory
 ```
 
 and the following included files:
+
+###### ingest_url
+```
+https://ingest.us1.signalfx.com
+```
+
+###### api_url
+```
+https://api.us1.signalfx.com
+```
+
+###### trace_endpoint_url
+```
+https://ingest.signalfx.com/v2/trace
+```
 
 ###### monitors/cpu.yaml
 ```yaml

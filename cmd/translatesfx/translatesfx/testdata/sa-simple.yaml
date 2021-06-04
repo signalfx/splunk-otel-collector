@@ -1,0 +1,25 @@
+---
+signalFxAccessToken: "abc123"
+ingestUrl: "https://ingest.lab0.signalfx.com"
+apiUrl: "https://api.signalfx.com"
+traceEndpointUrl: "https://ingest.signalfx.com/v2/trace"
+
+intervalSeconds: 10
+
+logging:
+  level: info
+
+monitors:
+  - type: cpu
+  - type: filesystems
+  - type: disk-io
+  - type: net-io
+  - type: load
+  - type: memory
+  - type: vmem
+  - type: vsphere
+    host: 192.168.51.133
+    username: administrator@vsphere.local
+    password: s3cr3t
+    insecureSkipVerify: true
+    filter: "Datacenter == 'My Datacenter' && Cluster == 'My Cluster'"

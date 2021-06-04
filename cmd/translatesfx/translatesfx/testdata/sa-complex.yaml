@@ -1,0 +1,14 @@
+---
+signalFxAccessToken: {"#from": "env:SFX_ACCESS_TOKEN"}
+ingestUrl: {"#from": "testdata/ingest_url", default: "https://ingest.signalfx.com"}
+apiUrl: {"#from": "testdata/api_url", default: "https://api.signalfx.com"}
+traceEndpointUrl: {"#from": 'testdata/trace_endpoint_url', default: "https://ingest.signalfx.com/v2/trace"}
+
+intervalSeconds: 10
+
+logging:
+  level: info
+
+monitors:
+  - {"#from": "testdata/monitors/*.yaml", flatten: true, optional: true}
+  - type: memory

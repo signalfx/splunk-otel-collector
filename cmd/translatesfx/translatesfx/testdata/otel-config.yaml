@@ -1,0 +1,14 @@
+receivers:
+  smartagent/cpu:
+    type: cpu
+    intervalSeconds: 10
+exporters:
+  signalfx:
+    access_token: <replace_with_actual_access_token>
+    realm: us1
+    timeout: 5s
+service:
+  pipelines:
+    metrics:
+      receivers: [smartagent/cpu]
+      exporters: [signalfx]

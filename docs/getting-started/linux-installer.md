@@ -114,8 +114,8 @@ installation. Please note:
 
 - All files in this directory ending `.conf` extension will automatically be
  included by Fluentd.
-- The "td-agent" user must have permissions to access the files specified in
-  the config files and the paths defined within.
+- The "td-agent" user must have permissions to access the config files and the
+  paths defined within.
 - By default, Fluentd will be configured to collect systemd journal log events
 from `/var/log/journal`.
 
@@ -123,6 +123,29 @@ After any configuration modification, the td-agent service needs to be restarted
 
 ```sh
 sudo systemctl restart td-agent
+```
+
+**Note:** If the `td-agent` package is upgraded after initial installation, [Linux
+capabilities](https://docs.fluentd.org/deployment/linux-capability) may need
+to be set for the new version by performing the following steps (only
+applicable for `td-agent` versions 4.1 or newer):
+
+1. Check for the enabled capabilities:
+```sh
+$ sudo /opt/td-agent/bin/fluent-cap-ctl --get -f /opt/td-agent/bin/ruby
+Capabilities in '/opt/td-agent/bin/ruby',
+Effective:   dac_override, dac_read_search
+Inheritable: dac_override, dac_read_search
+Permitted:   dac_override, dac_read_search
+```
+
+2. If the output from the previous command does not include `dac_override` and
+   `dac_read_search` as shown above, run the following commands:
+```sh
+$ sudo td-agent-gem install capng_c
+$ sudo /opt/td-agent/bin/fluent-cap-ctl --add "dac_override,dac_read_search" -f /opt/td-agent/bin/ruby
+$ sudo systemctl daemon-reload
+$ sudo systemctl restart td-agent
 ```
 
 ### Uninstall

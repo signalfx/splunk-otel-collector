@@ -14,17 +14,19 @@
 
 import argparse
 import os
-import sys
 
 from .constants import (
     ARTIFACTORY_URL,
-    COMPONENTS,
     DEFAULT_ARTIFACTORY_USERNAME,
     DEFAULT_STAGING_USERNAME,
     DEFAULT_TIMEOUT,
+    EXTENSIONS,
+    S3_BUCKET,
     STAGES,
     STAGING_URL,
 )
+
+from .util import Asset
 
 
 def add_signing_args(parser):
@@ -98,29 +100,48 @@ def check_artifactory_args(args):
     assert args.artifactory_token, f"Artifactory token not set for {ARTIFACTORY_URL}"
 
 
-def add_github_args(parser):
-    github_args = parser.add_argument_group("Github Credentials")
-    github_args.add_argument(
-        "--github-token",
+def add_aws_args(parser):
+    aws_args = parser.add_argument_group("AWS Access Key")
+    aws_args.add_argument(
+        "--aws-key-id",
         type=str,
-        default=os.environ.get("GITHUB_TOKEN"),
-        metavar="GITHUB_TOKEN",
+        default=os.environ.get("AWS_ACCESS_KEY_ID"),
+        metavar="AWS_ACCESS_KEY_ID",
         required=False,
         help=f"""
-            Personal Github token.
-            Required if the GITHUB_TOKEN env var is not set and STAGE is 'release'.
+            AWS Access Key ID for s3://{S3_BUCKET}.
+            Required if the AWS_ACCESS_KEY_ID env var is not set'.
+        """,
+    )
+    aws_args.add_argument(
+        "--aws-key",
+        type=str,
+        default=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        metavar="AWS_SECRET_ACCESS_KEY",
+        required=False,
+        help=f"""
+            AWS Secret Access Key for s3://{S3_BUCKET}.
+            Required if the AWS_SECRET_ACCESS_KEY env var is not set'.
         """,
     )
 
 
-def check_github_args(args):
-    assert args.github_token, "Github token not set"
+def check_aws_args(args):
+    assert args.aws_key_id, "AWS Access Key ID not set"
+    assert args.aws_key, "AWS Secret Access Key not set"
 
 
-def get_args():
+def get_asset(path):
+    assert os.path.isfile(path), f"{path} not found!"
+    asset = Asset(path=path)
+    assert asset.component, f"{path} is not a supported file!"
+    return asset
+
+
+def get_args_and_asset():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="Sign and release assets from Github Releases.",
+        description="Sign and release splunk-otel-collector assets.",
     )
     parser.add_argument(
         "--stage",
@@ -130,13 +151,8 @@ def get_args():
         choices=STAGES,
         required=False,
         help=f"""
-            Stage for pushing the packages to Artifactory and S3.
+            Stage for pushing the assets to Artifactory and S3.
             Should be one of {STAGES}.
-            If STAGE is 'test', the packages will *not* be signed and *only* pushed to Artifactory and S3.
-            If STAGE is 'beta', the packages will be signed and *only* pushed to Artifactory and S3.
-            If STAGE is 'github', the packages will be signed and *only* pushed to the Github release.
-            If STAGE is 'release', the packages will be signed, pushed to Artifactory, S3, and Github, and the
-            'Pre-release' label will be removed from the Github release.
             Defaults to 'test'.
         """,
     )
@@ -145,67 +161,39 @@ def get_args():
         action="store_true",
         default=False,
         required=False,
-        help="Only download and sign the assets. Do not push the assets to Artifactory, S3, or Github.",
+        help="Only sign the assets. Do not push the assets to Artifactory and/or S3.",
     )
     parser.add_argument(
-        "--tag",
-        type=str,
-        default=None,
-        metavar="TAG",
-        required=False,
-        help="Existing Github release tag (e.g. 'v1.2.3'). Defaults to the latest release tag.",
-    )
-    parser.add_argument(
-        "--download-only",
+        "--no-sign-msi",
         action="store_true",
         default=False,
         required=False,
-        help="Download assets from the Github release and exit.",
-    )
-    parser.add_argument(
-        "--assets-dir",
-        type=str,
-        default=None,
-        metavar="DIR",
-        required=False,
-        help=f"""
-            Directory to save the downloaded assets from the Github release.
-            The directory will be created if it does not exist.
-            This option is ignored if the '--path' option is also specified.
-            Defaults to 'dist/release/<RELEASE_TAG>' in the repo root directory.
-            Signed assets will be saved to the 'signed' sub-directory, e.g. 'dist/release/<RELEASE_TAG>/signed'.
-        """,
-    )
-    parser.add_argument(
-        "--component",
-        type=str,
-        default=[],
-        metavar="COMPONENT",
-        choices=COMPONENTS,
-        action="append",
-        required=False,
-        help=f"""
-            Only download, sign, and release the specified component from the Github release.
-            Should be one of {COMPONENTS}.
-            If COMPONENT is 'windows', the exe will be signed, and the msi will be rebuilt with the signed exe.
-            This option may be specified multiple times for multiple components.
-            The default is to perform a full sign/release for all supported components.
-            This option is ignored if the '--path' option is also specified.
+        help="""
+            Do not sign the MSI specified by the --path option.
+            Only push the MSI to S3.
+            NOTE: Assumes the MSI is already signed.
         """,
     )
     parser.add_argument(
         "--path",
         type=str,
-        default=[],
+        default=None,
         metavar="PATH",
-        action="append",
+        required=False,
+        help=f"""
+            Sign/release a local file.
+            Only files with {EXTENSIONS} extensions or is named 'otelcol_darwin_*' are supported.
+            Required if the --installers option is not specified.
+        """,
+    )
+    parser.add_argument(
+        "--installers",
+        action="store_true",
+        default=False,
         required=False,
         help="""
-            Sign/release a local file instead of downloading the assets from the Github release.
-            This option may be specified multiple times for multiple files.
-            Only files with .deb, .rpm, or .exe extensions are supported.
-            If the file is .exe, the msi will also be built and signed/released.
-            NOTE: This option is only applicable if STAGE is 'test' or 'beta'.
+            Release the installer scripts to S3.
+            Required if the --path option is not specified.
         """,
     )
     parser.add_argument(
@@ -226,24 +214,23 @@ def get_args():
 
     add_artifactory_args(parser)
     add_signing_args(parser)
-    add_github_args(parser)
+    add_aws_args(parser)
 
     args = parser.parse_args()
 
-    if not args.component:
-        args.component = COMPONENTS
+    assert args.path or args.installers, "Either --path or --installers must be specified"
 
-    if args.stage != "test":
+    asset = None
+    if args.path:
+        asset = get_asset(args.path)
+
+    if asset and not (asset.component == "msi" and args.no_sign_msi):
         check_signing_args(args)
 
     if not args.no_push:
-        if args.stage in ("beta", "release"):
+        if args.installers or asset.component == "msi":
+            check_aws_args(args)
+        elif asset.component in ("deb", "rpm"):
             check_artifactory_args(args)
 
-        if args.stage in ("github", "release"):
-            check_github_args(args)
-            if args.path:
-                print("The '--path' option is not supported for the 'github' or 'release' stage.")
-                sys.exit(1)
-
-    return args
+    return args, asset

@@ -34,6 +34,7 @@ from .constants import (
     CHAPERONE_API_URL,
     CLOUDFRONT_DISTRIBUTION_ID,
     DEFAULT_TIMEOUT,
+    EXTENSIONS,
     INSTALLER_SCRIPTS,
     PACKAGE_NAME,
     REPO_DIR,
@@ -41,6 +42,7 @@ from .constants import (
     S3_MSI_BASE_DIR,
     SIGN_TYPES,
     SIGNED_ARTIFACTS_REPO_URL,
+    SMART_AGENT_RELEASE_PATH,
     STAGING_REPO_URL,
 )
 
@@ -70,8 +72,10 @@ class Asset(object):
     def _get_component(self):
         if self.name:
             ext = os.path.splitext(self.name)[-1].strip(".")
-            if ext:
+            if ext and ext in EXTENSIONS:
                 return ext.lower()
+            elif self.name.startswith("otelcol_darwin_"):
+                return "osx"
         return None
 
     def _get_sign_type(self):
@@ -80,6 +84,8 @@ class Asset(object):
                 return "RPM"
             elif self.component in ("exe", "msi"):
                 return "WIN"
+            elif self.component == "osx":
+                return "OSX"
         return None
 
     def download(self, dest, user=None, token=None, overwrite=False):
@@ -319,7 +325,7 @@ def upload_package_to_artifactory(
 
 
 def release_deb_to_artifactory(asset, args, **signing_args):
-    if args.no_push or args.stage == "github":
+    if args.no_push:
         # nothing to do for deb packages
         return
 
@@ -341,8 +347,6 @@ def release_deb_to_artifactory(asset, args, **signing_args):
         if resp.lower() not in ("y", "yes"):
             sys.exit(1)
 
-    sign_metadata = False if args.stage == "test" else True
-
     upload_package_to_artifactory(
         asset.path,
         dest_url,
@@ -350,7 +354,7 @@ def release_deb_to_artifactory(asset, args, **signing_args):
         token,
         metadata_api_url,
         metadata_url,
-        sign_metadata=sign_metadata,
+        sign_metadata=True,
         timeout=args.timeout,
         **signing_args,
     )
@@ -368,31 +372,25 @@ def release_rpm_to_artifactory(asset, args, **signing_args):
     metadata_url = f"{ARTIFACTORY_RPM_REPO_URL}/{args.stage}/{arch}/repodata/repomd.xml"
     dest_url = f"{ARTIFACTORY_RPM_REPO_URL}/{args.stage}/{arch}/{asset.name}"
 
-    if args.stage != "github" and not args.no_push:
+    if not args.no_push:
         if not args.force and artifactory_file_exists(dest_url, user, token):
             resp = input(f"{dest_url} already exists.\nOverwrite? [y/N]: ")
             if resp.lower() not in ("y", "yes"):
                 sys.exit(1)
 
-    rpm_path = asset.path
-    sign_metadata = False
+    print(f"Signing {asset.name} (may take 10+ minutes):")
+    if not asset.sign(overwrite=args.force, timeout=args.timeout, **signing_args):
+        sys.exit(1)
 
-    if args.stage != "test":
-        print(f"Signing {asset.name} (may take 10+ minutes):")
-        if not asset.sign(overwrite=args.force, timeout=args.timeout, **signing_args):
-            sys.exit(1)
-        rpm_path = asset.signed_path
-        sign_metadata = True
-
-    if args.stage != "github" and not args.no_push:
+    if not args.no_push:
         upload_package_to_artifactory(
-            rpm_path,
+            asset.signed_path,
             dest_url,
             user,
             token,
             metadata_api_url,
             metadata_url,
-            sign_metadata=sign_metadata,
+            sign_metadata=True,
             timeout=args.timeout,
             **signing_args,
         )
@@ -406,8 +404,9 @@ def s3_file_exists(s3_client, path):
     return False
 
 
-def invalidate_cloudfront(paths):
-    cloudfront = boto3.client("cloudfront")
+def invalidate_cloudfront(paths, aws_key_id, aws_key):
+    session = boto3.Session(aws_access_key_id=aws_key_id, aws_secret_access_key=aws_key)
+    cloudfront = session.client("cloudfront")
     print(f"Invalidating cloudfront for {paths} ...")
     resp = cloudfront.create_invalidation(
         DistributionId=CLOUDFRONT_DISTRIBUTION_ID,
@@ -420,8 +419,8 @@ def invalidate_cloudfront(paths):
     assert resp.get("ResponseMetadata", {}).get("HTTPStatusCode") == 201, "Failed to submit invalidation request!"
 
 
-def upload_file_to_s3(local_path, s3_path, force=False, profile="prod"):
-    session = boto3.Session(profile_name=profile)
+def upload_file_to_s3(local_path, s3_path, aws_key_id, aws_key, force=False):
+    session = boto3.Session(aws_access_key_id=aws_key_id, aws_secret_access_key=aws_key)
     s3_client = session.client("s3")
     if not force and s3_file_exists(s3_client, s3_path):
         resp = input(f"{S3_BUCKET}/{s3_path} already exists.\nOverwrite [y/N]: ")
@@ -431,12 +430,21 @@ def upload_file_to_s3(local_path, s3_path, force=False, profile="prod"):
     s3_client.upload_file(local_path, S3_BUCKET, s3_path)
 
 
-def build_msi(exe_path, args):
+def get_smart_agent_release():
+    with open(SMART_AGENT_RELEASE_PATH, "r") as fd:
+        release = fd.read().strip()
+        assert release, f"Failed to get Smart Agent release version from {SMART_AGENT_RELEASE_PATH}"
+        return release
+
+
+def build_msi(exe_path, args, msi_dir=None):
     assert exe_path, f"{exe_path} not found!"
 
     msi_version = args.tag.strip("v")
     msi_name = f"{PACKAGE_NAME}-{msi_version}-amd64.msi"
-    msi_path = os.path.join(args.assets_dir, msi_name)
+    if not msi_dir:
+        msi_dir = os.path.dirname(exe_path)
+    msi_path = os.path.join(msi_dir, msi_name)
 
     print(f"Building {msi_path} with {exe_path} ...")
     if not args.force and os.path.isfile(msi_path):
@@ -445,7 +453,7 @@ def build_msi(exe_path, args):
             sys.exit(1)
         os.remove(msi_path)
 
-    os.makedirs(args.assets_dir, exist_ok=True)
+    os.makedirs(msi_dir, exist_ok=True)
 
     client = docker.from_env()
     msi_builder_path = os.path.join(REPO_DIR, "internal", "buildscripts", "packaging", "msi", "msi-builder")
@@ -461,29 +469,27 @@ def build_msi(exe_path, args):
             },
             "user": 0,
             "working_dir": "/work",
-            "environment": {'OUTPUT_DIR': "/work/stage"},
+            "environment": {'OUTPUT_DIR': "/work/stage", "SMART_AGENT_RELEASE": get_smart_agent_release()},
             "command": [f"--otelcol /work/stage/otelcol.exe {msi_version}"],
         }
         output = client.containers.run(msi_builder_image, **container_options)
         print(output.decode("utf-8"))
         assert os.path.isfile(os.path.join(build_dir, msi_name)), f"{msi_name} not found!"
-        os.makedirs(args.assets_dir, exist_ok=True)
         os.rename(os.path.join(build_dir, msi_name), msi_path)
-        assert os.path.isfile(msi_path), f"{msi_name} not found in {args.assets_dir}!"
+        assert os.path.isfile(msi_path), f"{msi_name} not found in {msi_dir}!"
         print(f"Successfully built {msi_path}.")
 
     return msi_path
 
 
 def sign_exe(asset, args, **signing_args):
-    if args.stage != "test":
-        print(f"Signing {asset.name} (may take 10+ minutes):")
-        if not asset.sign(timeout=args.timeout, overwrite=args.force, **signing_args):
-            sys.exit(1)
+    print(f"Signing {asset.name} (may take 10+ minutes):")
+    if not asset.sign(timeout=args.timeout, overwrite=args.force, **signing_args):
+        sys.exit(1)
 
 
 def release_msi_to_s3(asset, args, **signing_args):
-    if args.stage != "test":
+    if not args.no_sign_msi:
         print(f"Signing {asset.name} (may take 10+ minutes):")
         if not asset.sign(timeout=args.timeout, overwrite=args.force, **signing_args):
             sys.exit(1)
@@ -491,9 +497,9 @@ def release_msi_to_s3(asset, args, **signing_args):
     else:
         msi_path = asset.path
 
-    if args.stage != "github" and not args.no_push:
+    if not args.no_push:
         s3_path = f"{S3_MSI_BASE_DIR}/{args.stage}/{asset.name}"
-        upload_file_to_s3(msi_path, s3_path, force=args.force)
+        upload_file_to_s3(msi_path, s3_path, args.aws_key_id, args.aws_key, force=args.force)
         with tempfile.TemporaryDirectory() as tmpdir:
             latest_txt = os.path.join(tmpdir, "latest.txt")
             match = re.match(f"^{PACKAGE_NAME}-(\d+\.\d+\.\d+(\.\d+)?)-amd64.msi$", asset.name)
@@ -503,8 +509,8 @@ def release_msi_to_s3(asset, args, **signing_args):
                 fd.write(msi_version)
             s3_latest_path = f"{S3_MSI_BASE_DIR}/{args.stage}/latest.txt"
             print(f"Updating {S3_BUCKET}/{s3_latest_path} for version '{msi_version}' ...")
-            upload_file_to_s3(latest_txt, s3_latest_path, force=True)
-            invalidate_cloudfront([s3_path, s3_latest_path])
+            upload_file_to_s3(latest_txt, s3_latest_path, args.aws_key_id, args.aws_key, force=True)
+            invalidate_cloudfront([s3_path, s3_latest_path], args.aws_key_id, args.aws_key)
 
 
 def get_github_release(repo_name, tag=None, token=None):
@@ -529,7 +535,7 @@ def download_github_assets(github_release, args):
         ext = os.path.splitext(asset.name)[-1].strip(".")
         if asset.name == "checksums.txt":
             checksums_asset = Asset(url=asset.browser_download_url)
-        elif ext and ext in args.component or ("windows" in args.component and ext == "exe"):
+        elif ext and ext in args.component:
             assets.append(Asset(url=asset.browser_download_url))
 
     assert checksums_asset, f"checksums.txt not found in {github_release.html_url}!"
@@ -545,13 +551,14 @@ def download_github_assets(github_release, args):
     return assets, checksums_asset
 
 
-def release_installers_to_s3(force=False):
-    resp = input("Releasing installer scripts to S3:\nContinue [y/N]: ")
-    if resp.lower() not in ("y", "yes"):
-        sys.exit(1)
+def release_installers_to_s3(aws_key_id, aws_key, force=False):
+    if not force:
+        resp = input("Releasing installer scripts to S3:\nContinue [y/N]: ")
+        if resp.lower() not in ("y", "yes"):
+            sys.exit(1)
 
     for s3_path, local_path in INSTALLER_SCRIPTS.items():
         assert os.path.isfile(local_path), f"{local_path} not found!"
-        upload_file_to_s3(str(local_path), s3_path, force=force)
+        upload_file_to_s3(str(local_path), s3_path, aws_key_id, aws_key, force=force)
 
-    invalidate_cloudfront(INSTALLER_SCRIPTS.keys())
+    invalidate_cloudfront(INSTALLER_SCRIPTS.keys(), aws_key_id, aws_key)

@@ -8,6 +8,6 @@ jobs:
         id: lychee
         uses: lycheeverse/lychee-action@v1.0.6
         with:
-          args: --exclude "ingest.*.signalfx.com" --exclude "splunk.jfrog.io.*basearch" --exclude "localhost:.*" -v -n "*.md" "**/*.md"
+          args: --exclude "api.*.signalfx.com" --exclude "ingest.*.signalfx.com" --exclude "splunk.jfrog.io.*basearch" --exclude "localhost:.*" -v -n "*.md" "**/*.md"
       - name: Fail if there were link errors
         run: exit ${{ steps.lychee.outputs.exit_code }}

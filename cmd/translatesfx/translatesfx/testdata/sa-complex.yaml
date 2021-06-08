@@ -1,5 +1,5 @@
 ---
-signalFxAccessToken: {"#from": "env:SFX_ACCESS_TOKEN"}
+signalFxAccessToken: {"#from": "testdata/token"}
 ingestUrl: {"#from": "testdata/ingest_url", default: "https://ingest.signalfx.com"}
 apiUrl: {"#from": "testdata/api_url", default: "https://api.signalfx.com"}
 traceEndpointUrl: {"#from": 'testdata/trace_endpoint_url', default: "https://ingest.signalfx.com/v2/trace"}

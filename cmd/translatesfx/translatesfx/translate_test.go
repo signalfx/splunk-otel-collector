@@ -30,8 +30,8 @@ func TestExpandedToCfgInfo(t *testing.T) {
 	err = yaml.UnmarshalStrict(yml, &v)
 	require.NoError(t, err)
 	expanded, _ := expandSA(v, "")
-	cfg := saExpandedToCfgInfo(expanded.(map[interface{}]interface{}))
+	cfg := saExpandedToCfgInfo(expanded.(map[interface{}]interface{}), "")
 	assert.Equal(t, "us1", cfg.realm)
-	assert.Equal(t, "${SFX_ACCESS_TOKEN}", cfg.accessToken)
+	assert.Equal(t, "${include:testdata/token}", cfg.accessToken)
 	assert.Equal(t, 3, len(cfg.monitors))
 }

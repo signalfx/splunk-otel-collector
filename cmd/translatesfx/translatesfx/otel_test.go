@@ -43,11 +43,14 @@ func TestMonitorToReceiver(t *testing.T) {
 }
 
 func TestAPIURLToRealm(t *testing.T) {
-	us1 := apiURLToRealm("https://api.us1.signalfx.com")
+	us1 := apiURLToRealm("https://api.us1.signalfx.com", "")
 	assert.Equal(t, "us1", us1)
 
-	us0 := apiURLToRealm("https://api.signalfx.com")
+	us0 := apiURLToRealm("https://api.signalfx.com", "")
 	assert.Equal(t, "us0", us0)
+
+	include := apiURLToRealm("${include:testdata/api_url}", "")
+	assert.Equal(t, "us1", include)
 }
 
 func testvSphereMonitorCfg() map[interface{}]interface{} {

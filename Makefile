@@ -87,6 +87,10 @@ integration-test:
 	   $(GOTEST) -v -timeout 5m -count 1 ./... ); \
 	done
 
+.PHONY: end-to-end-test
+end-to-end-test:
+	@set -e; cd tests/endtoend && $(GOTEST) -v -tags endtoend -timeout 5m -count 1 ./...
+
 .PHONY: test-with-cover
 test-with-cover:
 	@echo Verifying that all packages have test files to count in coverage

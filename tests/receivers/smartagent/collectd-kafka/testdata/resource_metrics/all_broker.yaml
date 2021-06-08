@@ -44,7 +44,6 @@ resource_metrics:
           - name: gauge.kafka.produce.total-time.99th
             type: IntGauge
           - name: gauge.kafka.produce.total-time.median
-            type: IntGauge
           - name: gauge.loaded_classes
             type: IntGauge
           - name: invocations

@@ -33,6 +33,7 @@ type CollectorContainer struct {
 	Image          string
 	ConfigPath     string
 	Args           []string
+	Ports          []string
 	Logger         *zap.Logger
 	LogLevel       string
 	Container      Container
@@ -48,6 +49,11 @@ func NewCollectorContainer() CollectorContainer {
 // quay.io/signalfx/splunk-otel-collector:latest by default
 func (collector CollectorContainer) WithImage(image string) CollectorContainer {
 	collector.Image = image
+	return collector
+}
+
+func (collector CollectorContainer) WithExposedPorts(ports ...string) CollectorContainer {
+	collector.Ports = append(collector.Ports, ports...)
 	return collector
 }
 
@@ -102,6 +108,11 @@ func (collector CollectorContainer) Build() (Collector, error) {
 	collector.Container = collector.Container.WithContextArchive(
 		collector.contextArchive,
 	).WithNetworkMode("host").WillWaitForLogs("Everything is ready. Begin running and processing data.")
+
+	collector.Container = collector.Container.WithExposedPorts(collector.Ports...)
+
+	collector.Container = collector.Container.WithCmd("--config", "/etc/config.yaml", "--log-level", "debug")
+
 	collector.Container = *(collector.Container.Build())
 
 	return &collector, nil
@@ -154,7 +165,7 @@ func (collector CollectorContainer) buildContextArchive() (io.Reader, error) {
 
 		dockerfile += `
 COPY config.yaml /etc/config.yaml
-ENV SPLUNK_CONFIG=/etc/config.yaml
+# ENV SPLUNK_CONFIG=/etc/config.yaml
 
 ENV SPLUNK_ACCESS_TOKEN=12345
 ENV SPLUNK_REALM=us0

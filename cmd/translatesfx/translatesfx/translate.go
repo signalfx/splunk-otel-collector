@@ -19,6 +19,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -28,7 +29,7 @@ type saCfgInfo struct {
 	monitors    []interface{}
 }
 
-func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) (saCfgInfo, error) {
+func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}, wd string) (saCfgInfo, error) {
 	realm, err := apiURLToRealm(saExpanded["apiUrl"].(string))
 	if err != nil {
 		return saCfgInfo{}, err
@@ -47,7 +48,33 @@ func resolvePath(path, wd string) string {
 	return filepath.Join(wd, path)
 }
 
-func apiURLToRealm(ingestURL string) (string, error) {
+var includeRegexp = regexp.MustCompile(`\${include:(.*)}`)
+
+func apiURLToRealm(ingestURL string, wd string) string {
+	u := ingestURL
+	if matches := includeRegexp.FindStringSubmatch(ingestURL); len(matches) == 2 {
+		u = expandIncludeURL(resolvePath(matches[1], wd))
+	}
+	return plainURLToRealm(u)
+}
+
+func resolvePath(path, wd string) string {
+	if path[:1] == string(os.PathSeparator) {
+		return path
+	}
+	return filepath.Join(wd, path)
+}
+
+func expandIncludeURL(fname string) string {
+	// TODO prepend working dir?
+	bytes, err := os.ReadFile(fname)
+	if err != nil {
+		log.Fatalf("error reading file %s: %v", fname, err)
+	}
+	return string(bytes)
+}
+
+func plainURLToRealm(ingestURL string) (string, error) {
 	u, err := url.Parse(ingestURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to get realm from api %v: %v", ingestURL, err)

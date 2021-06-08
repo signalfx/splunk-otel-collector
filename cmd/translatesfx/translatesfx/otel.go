@@ -31,7 +31,8 @@ func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 	}
 	return otelCfg{
 		ConfigSources: map[string]interface{}{
-			"include": nil,
+			// TODO check if should be nil
+			"include": map[string]interface{}{},
 		},
 		Receivers: receivers,
 		Exporters: sfxExporter(cfg.accessToken, cfg.realm),

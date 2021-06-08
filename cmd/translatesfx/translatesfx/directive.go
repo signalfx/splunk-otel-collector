@@ -143,18 +143,18 @@ type directive struct {
 	optional bool
 }
 
-func (d directive) render(forceExpand bool) (interface{}, error) {
-	expanded, err := d.expandFromSource(forceExpand)
+func (d directive) render() (interface{}, error) {
+	expanded, err := d.expandFromSource()
 	if err != nil {
 		return nil, err
 	}
 	return expanded, err
 }
 
-func (d directive) expandFromSource(forceExpand bool) (interface{}, error) {
+func (d directive) expandFromSource() (interface{}, error) {
 	switch d.fromType {
 	case directiveSourceFile:
-		return d.handleFileType(forceExpand)
+		return d.handleFileType()
 	case directiveSourceEnv:
 		return d.expandEnv()
 	case directiveSourceUnknown:
@@ -176,10 +176,10 @@ func directiveSource(from string) string {
 	return from[:idx]
 }
 
-func (d directive) handleFileType(forceExpand bool) (interface{}, error) {
+func (d directive) handleFileType() (interface{}, error) {
 	// configsource doesn't handle flatten, glob, or default values at this time, so
 	// we inline the value if any of those are specified in the #from directive
-	if forceExpand || d.flatten || hasGlob(d.fromPath) || d.defaultV != "" {
+	if d.flatten || hasGlob(d.fromPath) || d.defaultV != "" {
 		return d.expandFiles()
 	}
 	// otherwise we replace the #from directive with a configsource one

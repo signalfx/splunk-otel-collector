@@ -66,7 +66,7 @@ func translateConfig(fname, wd string) {
 	if !ok {
 		log.Fatalf("top-level yaml type is not a map: file %q", fname)
 	}
-	saInfo, err := saExpandedToCfgInfo(expandedMap)
+	saInfo, err := saExpandedToCfgInfo(expandedMap, wd)
 	if err != nil {
 		log.Fatalf("error expanding config: %v", err)
 	}

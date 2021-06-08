@@ -38,6 +38,7 @@ SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"
 
 FLUENTD_CONFIG_INSTALL_DIR="/etc/otel/collector/fluentd"
 
+SMART_AGENT_RELEASE_PATH="${FPM_DIR}/../smart-agent-release.txt"
 SMART_AGENT_RELEASE_URL="https://api.github.com/repos/signalfx/signalfx-agent/releases"
 BUNDLE_BASE_DIR="/usr/lib/splunk-otel-collector"
 AGENT_BUNDLE_INSTALL_DIR="$BUNDLE_BASE_DIR/agent-bundle"

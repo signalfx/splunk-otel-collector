@@ -1,6 +1,268 @@
+default:
+  image: 'docker.repo.splunkdev.net/ci-cd/ci-container:debian-buster'
+
 stages:
   - build
+  - sign
+  - package
   - release
+  - github-release
+
+.go-cache:
+  image: 'docker.repo.splunkdev.net/ci-cd/ci-container:golang-1.16'
+  variables:
+    GOPATH: "$CI_PROJECT_DIR/.go"
+  before_script:
+    - mkdir -p $GOPATH
+    - make install-tools
+  cache:
+    key: "go-cache"
+    paths:
+      - .go/pkg/mod
+      - .go/bin
+
+compile:
+  extends: .go-cache
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  stage: build
+  parallel:
+    matrix:
+      - TARGET: [binaries-darwin_amd64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64]
+  script: make $TARGET
+  after_script:
+    - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
+  artifacts:
+    paths:
+      - bin/
+
+.sign-release-cache:
+  image: 'docker.repo.splunkdev.net/ci-cd/ci-container:python-3.9'
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  cache:
+    key: "sign-release-pip-cache"
+    paths:
+      - .cache/pip
+  before_script:
+    - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
+
+.sign-release:
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  script:
+    - |
+      set -ex
+      STAGE="test"
+      if [[ "${CI_COMMIT_TAG:-}" =~ beta ]]; then
+        STAGE="beta"
+      elif [[ "${CI_COMMIT_TAG:-}" =~ ^[0-9]\.[0-9]\.[0-9]$ ]]; then
+        STAGE="release"
+      fi
+      for path in ${PATHS:-}; do
+        if [ ! -f "$path" ]; then
+          echo "$path not found!"
+          exit 1
+        fi
+        python3 internal/buildscripts/packaging/release/sign_release.py --force --stage=$STAGE --path=$path ${OPTIONS:-}
+      done
+
+sign-exe:
+  extends:
+    - .sign-release-cache
+    - .sign-release
+  stage: sign
+  variables:
+    PATHS: bin/otelcol_windows_amd64.exe
+    OPTIONS: "--no-push"
+  after_script:
+    - mkdir -p dist/signed
+    - mv bin/signed/otelcol_windows_amd64.exe dist/signed/
+  artifacts:
+    paths:
+      - dist/signed/otelcol_windows_amd64.exe
+
+sign-osx:
+  extends:
+    - .sign-release-cache
+    - .sign-release
+  stage: sign
+  variables:
+    PATHS: bin/otelcol_darwin_amd64
+    OPTIONS: "--no-push"
+  after_script:
+    - mkdir -p dist/signed
+    - mv bin/signed/otelcol_darwin_amd64 dist/signed/
+  artifacts:
+    paths:
+      - dist/signed/otelcol_darwin_amd64
+
+build-image:
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  stage: package
+  script:
+    - make docker-otelcol SKIP_COMPILE=true
+  after_script:
+    - mkdir -p dist
+    - docker save -o dist/otelcol.tar otelcol:latest
+  artifacts:
+    paths:
+      - dist/otelcol.tar
+
+.build-deb-rpm:
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  stage: package
+  parallel:
+    matrix:
+      - ARCH: [amd64, arm64]
+  before_script:
+    - ./internal/buildscripts/packaging/fpm/install-deps.sh
+  script:
+    - ./internal/buildscripts/packaging/fpm/${PKG_TYPE}/build.sh "${CI_COMMIT_TAG:-}" "$ARCH" "./dist"
+
+build-deb:
+  extends: .build-deb-rpm
+  variables:
+    PKG_TYPE: deb
+  artifacts:
+    paths:
+      - dist/*.deb
+
+build-rpm:
+  extends: .build-deb-rpm
+  variables:
+    PKG_TYPE: rpm
+  artifacts:
+    paths:
+      - dist/*.rpm
+
+build-msi:
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  stage: package
+  before_script:
+    # build the MSI with the signed exe
+    - cp -f dist/signed/otelcol_windows_amd64.exe bin/otelcol_windows_amd64.exe
+  script:
+    - make msi SKIP_COMPILE=true VERSION=${CI_COMMIT_TAG:-}
+  artifacts:
+    paths:
+      - dist/*.msi
+
+.push-docker-image:
+  stage: release
+  script:
+    - if [ "${CI_COMMIT_TAG:-}" = "$IMAGE_TAG" ]; then export IMAGE_TAG="${IMAGE_TAG#v}"; fi
+    - docker load -i dist/otelcol.tar
+    - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
+    - |
+      echo "Tagging and pushing quay.io/signalfx/${IMAGE_NAME}:${IMAGE_TAG}"
+      docker tag otelcol:latest quay.io/signalfx/${IMAGE_NAME}:${IMAGE_TAG}
+      docker push quay.io/signalfx/${IMAGE_NAME}:${IMAGE_TAG}
+    - |
+      if [[ "$IMAGE_TAG" =~ ^[0-9]\.[0-9]\.[0-9]$ ]]; then
+        echo "Tagging and pushing quay.io/signalfx/${IMAGE_NAME}:latest"
+        docker tag otelcol:latest quay.io/signalfx/${IMAGE_NAME}:latest
+        docker push quay.io/signalfx/${IMAGE_NAME}:latest
+      fi
+
+push-dev-image:
+  extends: .push-docker-image
+  only:
+    - main
+  variables:
+    IMAGE_NAME: splunk-otel-collector-dev
+    IMAGE_TAG: "$CI_COMMIT_SHA"
+
+push-image:
+  extends: .push-docker-image
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - branches
+  variables:
+    IMAGE_NAME: splunk-otel-collector
+    IMAGE_TAG: "$CI_COMMIT_TAG"
+
+release-debs:
+  extends:
+    - .sign-release-cache
+    - .sign-release
+  stage: release
+  variables:
+    PATHS: dist/*.deb
+  after_script:
+    # stage the debs to be picked up by the github-release job
+    - mkdir -p dist/signed
+    - cp dist/*.deb dist/signed/
+  artifacts:
+    paths:
+      - dist/signed/*.deb
+
+release-rpms:
+  extends:
+    - .sign-release-cache
+    - .sign-release
+  stage: release
+  variables:
+    PATHS: dist/*.rpm
+  artifacts:
+    paths:
+      - dist/signed/*.rpm
+
+# only sign the MSI; disable push to S3 until we get a token
+release-msi:
+  extends:
+    - .sign-release-cache
+    - .sign-release
+  stage: release
+  variables:
+    PATHS: dist/*.msi
+    OPTIONS: "--no-push"
+  artifacts:
+    paths:
+      - dist/signed/*.msi
+
+# release installer scripts; disabled until we get a token for pushing to S3
+.release-installers:
+  extends:
+    - .sign-release-cache
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  stage: release
+  script:
+    - python3 internal/buildscripts/packaging/release/sign_release.py --force --installers
+
+github-release:
+  extends: .go-cache
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  stage: github-release
+  before_script:
+    - mkdir -p dist/assets
+  script:
+    - cp bin/otelcol_linux_* dist/assets/
+    - cp dist/signed/* dist/assets/
+    - cd dist/assets && shasum -a 256 * > checksums.txt
+    - ghr -t $GITHUB_TOKEN -u signalfx -r splunk-otel-collector --replace "$CI_COMMIT_TAG" dist/assets/
+  artifacts:
+    paths:
+      - dist/assets
 
 .ansible:
   image: 'cimg/python:3.9'
@@ -11,6 +273,7 @@ stages:
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   cache:
+    key: "ansible-pip-cache"
     paths:
       - .cache/pip
 

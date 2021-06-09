@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## v0.28.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.28.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.28.0) and the [opentelemetry-collector-contrib v0.28.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.28.0) releases.
+
+### 💡 Enhancements 💡
+
+- Initial puppet module for linux (#405)
+- Add YAML config source (#402)
+- Add file support to include config source (#397, #419)
+
+### 🧰 Bug fixes 🧰
+
+- Correctly handle nil value on the config provider (#434)
+
 ## v0.26.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.26.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.26.0) and the [opentelemetry-collector-contrib v0.26.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.26.0) releases.

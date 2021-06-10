@@ -24,6 +24,7 @@ type Collector interface {
 	WithEnv(env map[string]string) Collector
 	WithLogger(logger *zap.Logger) Collector
 	WithLogLevel(level string) Collector
+	WillFail(fail bool) Collector
 	Build() (Collector, error)
 	Start() error
 	Shutdown() error

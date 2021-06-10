@@ -43,6 +43,16 @@ func TestCollectorContainerBuilders(t *testing.T) {
 	assert.Equal(t, []string{"arg_one", "arg_two", "arg_three"}, withArgs.Args)
 	assert.Empty(t, builder.Args)
 
+	willFail, ok := builder.WillFail(true).(*CollectorContainer)
+	require.True(t, ok)
+	assert.True(t, willFail.Fail)
+	assert.False(t, builder.Fail)
+
+	wontFail, ok := willFail.WillFail(false).(*CollectorContainer)
+	require.True(t, ok)
+	assert.False(t, wontFail.Fail)
+	assert.True(t, willFail.Fail)
+
 	logger := zap.NewNop()
 	withLogger, ok := builder.WithLogger(logger).(*CollectorContainer)
 	require.True(t, ok)

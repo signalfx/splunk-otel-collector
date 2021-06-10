@@ -36,6 +36,7 @@ type CollectorProcess struct {
 	Env              map[string]string
 	Logger           *zap.Logger
 	LogLevel         string
+	Fail             bool
 	Process          *subprocess.Subprocess
 	subprocessConfig *subprocess.Config
 }
@@ -78,6 +79,12 @@ func (collector CollectorProcess) WithLogger(logger *zap.Logger) Collector {
 // info by default
 func (collector CollectorProcess) WithLogLevel(level string) Collector {
 	collector.LogLevel = level
+	return &collector
+}
+
+// noop at this time
+func (collector CollectorProcess) WillFail(fail bool) Collector {
+	collector.Fail = fail
 	return &collector
 }
 

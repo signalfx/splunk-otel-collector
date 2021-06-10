@@ -1,0 +1,15 @@
+receivers:
+  hostmetrics:
+    collection_interval: 1s
+    scrapers:
+      cpu:
+
+exporters:
+  logging:
+    logLevel: debug
+
+service:
+  pipelines:
+    metrics:
+      receivers: [hostmetrics]
+      exporters: [logging]

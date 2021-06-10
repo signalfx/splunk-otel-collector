@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/testcontainers/testcontainers-go"
 	"go.uber.org/zap"
@@ -36,6 +37,7 @@ type CollectorContainer struct {
 	Ports          []string
 	Logger         *zap.Logger
 	LogLevel       string
+	Fail           bool
 	Container      Container
 	contextArchive io.Reader
 	logConsumer    collectorLogConsumer
@@ -63,7 +65,7 @@ func (collector CollectorContainer) WithConfigPath(path string) Collector {
 	return &collector
 }
 
-// []string{} by default, but currently a noop
+// []string{} by default
 func (collector CollectorContainer) WithArgs(args ...string) Collector {
 	collector.Args = args
 	return &collector
@@ -87,6 +89,11 @@ func (collector CollectorContainer) WithLogLevel(level string) Collector {
 	return &collector
 }
 
+func (collector CollectorContainer) WillFail(fail bool) Collector {
+	collector.Fail = fail
+	return &collector
+}
+
 func (collector CollectorContainer) Build() (Collector, error) {
 	if collector.Image == "" {
 		collector.Image = "quay.io/signalfx/splunk-otel-collector:latest"
@@ -107,11 +114,19 @@ func (collector CollectorContainer) Build() (Collector, error) {
 	}
 	collector.Container = collector.Container.WithContextArchive(
 		collector.contextArchive,
-	).WithNetworkMode("host").WillWaitForLogs("Everything is ready. Begin running and processing data.")
+	).WithNetworkMode("host")
 
 	collector.Container = collector.Container.WithExposedPorts(collector.Ports...)
 
-	collector.Container = collector.Container.WithCmd("--config", "/etc/config.yaml", "--log-level", "debug")
+	if collector.Fail {
+		collector.Container = collector.Container.WillWaitForLogs("")
+	} else {
+		collector.Container = collector.Container.WillWaitForLogs("Everything is ready. Begin running and processing data.")
+	}
+
+	if len(collector.Args) > 0 {
+		collector.Container = collector.Container.WithCmd(collector.Args...)
+	}
 
 	collector.Container = *(collector.Container.Build())
 
@@ -139,7 +154,7 @@ func (collector *CollectorContainer) Shutdown() error {
 	return collector.Container.Terminate(context.Background())
 }
 
-func (collector CollectorContainer) buildContextArchive() (io.Reader, error) {
+func (collector *CollectorContainer) buildContextArchive() (io.Reader, error) {
 	var buf bytes.Buffer
 	tarWriter := tar.NewWriter(&buf)
 
@@ -163,13 +178,26 @@ func (collector CollectorContainer) buildContextArchive() (io.Reader, error) {
 			return nil, err
 		}
 
-		dockerfile += `
-COPY config.yaml /etc/config.yaml
-# ENV SPLUNK_CONFIG=/etc/config.yaml
+		dockerfile += "COPY config.yaml /etc/config.yaml\n"
 
-ENV SPLUNK_ACCESS_TOKEN=12345
-ENV SPLUNK_REALM=us0
-`
+		// We need to tell the Collector to use the provided config
+		// but only if not already done so in the test
+		var configSetByArgs bool
+		for _, c := range collector.Args {
+			if strings.Contains(c, "--config") {
+				configSetByArgs = true
+			}
+		}
+		_, configSetByEnvVar := collector.Container.Env["SPLUNK_CONFIG"]
+		if !configSetByArgs && !configSetByEnvVar {
+			// only specify w/ args if none are used in the test
+			if len(collector.Args) == 0 {
+				collector.Args = append(collector.Args, "--config", "/etc/config.yaml")
+			} else {
+				// fallback to env var
+				collector.Container.Env["SPLUNK_CONFIG"] = "/etc/config.yaml"
+			}
+		}
 	}
 
 	header := tar.Header{

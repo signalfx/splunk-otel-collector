@@ -127,14 +127,17 @@ func checkRuntimeParams() {
 	args := os.Args[1:]
 	config := ""
 
-	// Check if config flag was passed
-	// If so, ensure config env var is not set
-	// Then set config properly
+	// Check if config flag was passed and its value differs from config env var.
+	// If so, log that it will be used instead of env var value and set env var with that value.
+	// This allows users to set `--config` and have it take priority when running from most contexts.
 	cliConfig := getKeyValue(args, "--config")
 	if cliConfig != "" {
 		config = os.Getenv(configEnvVarName)
-		if config != "" {
-			log.Fatalf("Both %v and '--config' were specified, but only one is allowed", configEnvVarName)
+		if config != "" && config != cliConfig {
+			log.Printf(
+				"Both %v and '--config' were specified. Overriding %q environment variable value with %q for this session",
+				configEnvVarName, config, cliConfig,
+			)
 		}
 		os.Setenv(configEnvVarName, cliConfig)
 	}
@@ -210,7 +213,7 @@ func setConfig() {
 		for _, v := range requiredEnvVars {
 			if len(os.Getenv(v)) == 0 {
 				log.Printf("Usage: %s=12345 %s=us0 %s", tokenEnvVarName, realmEnvVarName, os.Args[0])
-				log.Fatalf("ERROR: Missing environment variable %s", v)
+				log.Fatalf("ERROR: Missing required environment variable %s with default config path %s", v, config)
 			}
 		}
 	}

@@ -9,8 +9,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 💡 Enhancements 💡
 
 - Initial puppet module for linux (#405)
-- Add YAML config source (#402)
-- Add file support to include config source (#397, #419)
+- Add `include` config source (#419, #402, #397)
 
 ### 🧰 Bug fixes 🧰
 

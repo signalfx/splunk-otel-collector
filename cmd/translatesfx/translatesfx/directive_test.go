@@ -65,7 +65,7 @@ func TestRender_ConfigSource(t *testing.T) {
 		"#from": "testdata/token",
 	}, "")
 	require.NoError(t, err)
-	v, err := d.render()
+	v, err := d.render(false)
 	require.NoError(t, err)
 	assert.Equal(t, "${include:testdata/token}", v.(string))
 }
@@ -76,7 +76,7 @@ func TestRender_FileExpansion_Simple(t *testing.T) {
 		"default": "foo", // specify a default to force file expansion
 	}, "")
 	require.NoError(t, err)
-	v, err := d.render()
+	v, err := d.render(false)
 	require.NoError(t, err)
 	assert.Equal(t, "abc123", v.(string))
 }
@@ -87,7 +87,7 @@ func TestRender_FileExpansion_Map(t *testing.T) {
 		"default": "foo", // specify a default to force file expansion
 	}, "")
 	require.NoError(t, err)
-	v, err := d.render()
+	v, err := d.render(false)
 	require.NoError(t, err)
 	assert.Equal(t, map[interface{}]interface{}{
 		"foo": "bar",
@@ -100,7 +100,7 @@ func TestRender_FileExpansion_Wildcard(t *testing.T) {
 		"#from": "testdata/cfgs/map*.yaml", // asterisk forces file expansion
 	}, "")
 	require.NoError(t, err)
-	v, err := d.render()
+	v, err := d.render(false)
 	require.NoError(t, err)
 	assert.NotNil(t, v)
 }
@@ -111,7 +111,7 @@ func TestRender_FileExpansion_MissingNonOptionalFile(t *testing.T) {
 		"default": "foo", // specify a default to force file expansion
 	}, "")
 	require.NoError(t, err)
-	rendered, err := d.render()
+	rendered, err := d.render(false)
 	require.NoError(t, err)
 	assert.Equal(t, "foo", rendered)
 }
@@ -153,7 +153,7 @@ func TestHandleFileDirective(t *testing.T) {
 		flatten:  false,
 		optional: false,
 	}
-	expanded, err := d.handleFileType()
+	expanded, err := d.handleFileType(false)
 	require.NoError(t, err)
 	assert.Equal(t, "${include:testdata/token}", expanded)
 }

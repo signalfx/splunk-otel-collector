@@ -15,7 +15,6 @@
 package translatesfx
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -39,18 +38,18 @@ func TestSAToOtelConfig(t *testing.T) {
 
 func TestMonitorToReceiver(t *testing.T) {
 	receiver := saMonitorToOtelReceiver(testvSphereMonitorCfg())
-	fmt.Printf("[%v]\n", receiver)
+	v, ok := receiver["smartagent/vsphere"]
+	require.True(t, ok)
+	m := v.(map[interface{}]interface{})
+	assert.Equal(t, "vsphere", m["type"])
 }
 
 func TestAPIURLToRealm(t *testing.T) {
-	us1 := apiURLToRealm("https://api.us1.signalfx.com", "")
+	us1, _ := apiURLToRealm("https://api.us1.signalfx.com")
 	assert.Equal(t, "us1", us1)
 
-	us0 := apiURLToRealm("https://api.signalfx.com", "")
+	us0, _ := apiURLToRealm("https://api.signalfx.com")
 	assert.Equal(t, "us0", us0)
-
-	include := apiURLToRealm("${include:testdata/api_url}", "")
-	assert.Equal(t, "us1", include)
 }
 
 func testvSphereMonitorCfg() map[interface{}]interface{} {

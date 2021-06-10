@@ -29,8 +29,9 @@ func TestExpandedToCfgInfo(t *testing.T) {
 	var v interface{}
 	err = yaml.UnmarshalStrict(yml, &v)
 	require.NoError(t, err)
-	expanded, _ := expandSA(v, "")
-	cfg := saExpandedToCfgInfo(expanded.(map[interface{}]interface{}), "")
+	expanded, _, _ := expandSA(v, "")
+	cfg, err := saExpandedToCfgInfo(expanded.(map[interface{}]interface{}))
+	require.NoError(t, err)
 	assert.Equal(t, "us1", cfg.realm)
 	assert.Equal(t, "${include:testdata/token}", cfg.accessToken)
 	assert.Equal(t, 3, len(cfg.monitors))

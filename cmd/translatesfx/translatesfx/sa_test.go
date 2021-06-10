@@ -28,7 +28,7 @@ func TestExpandSA_Map(t *testing.T) {
 	var v interface{}
 	err := yaml.UnmarshalStrict([]byte(yml), &v)
 	require.NoError(t, err)
-	out, _ := expandSA(v, "")
+	out, _, _ := expand(v, "", yamlPath{})
 	require.NoError(t, err)
 	expected := `myMap:
   baz: glarch
@@ -42,7 +42,7 @@ func TestExpandSA_List(t *testing.T) {
 	var v interface{}
 	err := yaml.UnmarshalStrict([]byte(yml), &v)
 	require.NoError(t, err)
-	out, _ := expandSA(v, "")
+	out, _, _ := expand(v, "", yamlPath{})
 	expandedYaml, err := yaml.Marshal(out)
 	require.NoError(t, err)
 	expected := `myList:
@@ -61,7 +61,7 @@ func TestExpandSA_FlattenSlice(t *testing.T) {
 	var v interface{}
 	err := yaml.UnmarshalStrict([]byte(yml), &v)
 	require.NoError(t, err)
-	out, _ := expandSA(v, "")
+	out, _, _ := expand(v, "", yamlPath{})
 	expandedYaml, err := yaml.Marshal(out)
 	require.NoError(t, err)
 	expected := `list:
@@ -82,7 +82,7 @@ func TestExpandSA_FlattenMap(t *testing.T) {
 	var v interface{}
 	err := yaml.UnmarshalStrict([]byte(yml), &v)
 	require.NoError(t, err)
-	expanded, _ := expandSA(v, "")
+	expanded, _, _ := expand(v, "", yamlPath{})
 	require.NoError(t, err)
 	expected := map[interface{}]interface{}{
 		"map": map[interface{}]interface{}{
@@ -100,7 +100,8 @@ func TestExpandSA_Complex(t *testing.T) {
 	var v interface{}
 	err = yaml.UnmarshalStrict(yml, &v)
 	require.NoError(t, err)
-	expanded, _ := expandSA(v, "")
+	expanded, _, err := expandSA(v, "")
+	require.NoError(t, err)
 	m := expanded.(map[interface{}]interface{})
 	assert.Equal(t, "https://api.us1.signalfx.com", m["apiUrl"])
 	monitors := m["monitors"].([]interface{})
@@ -118,8 +119,39 @@ func TestExpandSA_Complex(t *testing.T) {
 	assert.True(t, loadFound)
 }
 
-func toYaml(t *testing.T, out interface{}) string {
-	expandedYaml, err := yaml.Marshal(out)
+func TestMultiMonitors(t *testing.T) {
+	yml, err := ioutil.ReadFile("testdata/sa-multimonitors.yaml")
+	require.NoError(t, err)
+	var v interface{}
+	err = yaml.UnmarshalStrict(yml, &v)
+	require.NoError(t, err)
+	expanded, _, err := expandSA(v, "")
+	require.NoError(t, err)
+	m := expanded.(map[interface{}]interface{})
+	assert.Equal(t, 2, len(m["monitors"].([]interface{})))
+}
+
+func TestYamlPath(t *testing.T) {
+	yp0 := yamlPath{
+		forcePaths: []string{"/foo"},
+	}
+	yp1 := yp0.key("aaa")
+	assert.Equal(t, "/aaa", yp1.curr)
+	yp2 := yp1.index(0)
+	assert.Equal(t, "/aaa/0", yp2.curr)
+	yp3 := yp2.key("xyz")
+	assert.Equal(t, "/aaa/0/xyz", yp3.curr)
+	assert.False(t, yp1.forceExpand())
+
+	yp1 = yp0.key("foo")
+	assert.Equal(t, "/foo", yp1.curr)
+	assert.True(t, yp1.forceExpand())
+	yp2 = yp1.key("bar")
+	assert.True(t, yp2.forceExpand())
+}
+
+func toYaml(t *testing.T, v interface{}) string {
+	expandedYaml, err := yaml.Marshal(v)
 	require.NoError(t, err)
 	return string(expandedYaml)
 }

@@ -15,11 +15,10 @@
 package translatesfx
 
 import (
-	"log"
+	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 )
 
@@ -29,22 +28,16 @@ type saCfgInfo struct {
 	monitors    []interface{}
 }
 
-func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}, wd string) saCfgInfo {
+func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) (saCfgInfo, error) {
+	realm, err := apiURLToRealm(saExpanded["apiUrl"].(string))
+	if err != nil {
+		return saCfgInfo{}, err
+	}
 	return saCfgInfo{
 		accessToken: saExpanded["signalFxAccessToken"].(string),
-		realm:       apiURLToRealm(saExpanded["apiUrl"].(string), wd),
+		realm:       realm,
 		monitors:    saExpanded["monitors"].([]interface{}),
-	}
-}
-
-var includeRegexp = regexp.MustCompile(`\${include:(.*)}`)
-
-func apiURLToRealm(ingestURL string, wd string) string {
-	u := ingestURL
-	if matches := includeRegexp.FindStringSubmatch(ingestURL); len(matches) == 2 {
-		u = expandIncludeURL(resolvePath(matches[1], wd))
-	}
-	return plainURLToRealm(u)
+	}, nil
 }
 
 func resolvePath(path, wd string) string {
@@ -54,27 +47,18 @@ func resolvePath(path, wd string) string {
 	return filepath.Join(wd, path)
 }
 
-func expandIncludeURL(fname string) string {
-	// TODO prepend working dir?
-	bytes, err := os.ReadFile(fname)
-	if err != nil {
-		log.Fatalf("error reading file %s: %v", fname, err)
-	}
-	return string(bytes)
-}
-
-func plainURLToRealm(ingestURL string) string {
+func apiURLToRealm(ingestURL string) (string, error) {
 	u, err := url.Parse(ingestURL)
 	if err != nil {
-		log.Fatalf("failed to get realm: %v", err)
+		return "", fmt.Errorf("failed to get realm from api %v: %v", ingestURL, err)
 	}
 
 	host := strings.ToLower(u.Host)
 	if host == "api.signalfx.com" {
-		return "us0"
+		return "us0", nil
 	}
 
 	parts := strings.Split(u.Host, ".")
 	realm := parts[1]
-	return realm
+	return realm, nil
 }

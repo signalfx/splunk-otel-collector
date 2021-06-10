@@ -58,12 +58,18 @@ func translateConfig(fname, wd string) {
 	if err != nil {
 		log.Fatalf("error unmarshaling file %q: %v", fname, err)
 	}
-	saExpanded, _ := expandSA(orig, wd)
+	saExpanded, _, err := expandSA(orig, wd)
+	if err != nil {
+		log.Fatalf("error expanding Smart Agent config: %v", err)
+	}
 	expandedMap, ok := saExpanded.(map[interface{}]interface{})
 	if !ok {
 		log.Fatalf("top-level yaml type is not a map: file %q", fname)
 	}
-	saInfo := saExpandedToCfgInfo(expandedMap, wd)
+	saInfo, err := saExpandedToCfgInfo(expandedMap)
+	if err != nil {
+		log.Fatalf("error expanding config: %v", err)
+	}
 	oc := saInfoToOtelConfig(saInfo)
 	bytes, err = yaml.Marshal(oc)
 	if err != nil {

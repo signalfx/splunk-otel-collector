@@ -76,7 +76,7 @@ func main() {
 		info,
 		configsources.Get()...,
 	)
-	serviceParams := service.Parameters{
+	serviceParams := service.AppSettings{
 		BuildInfo:      info,
 		Factories:      factories,
 		ParserProvider: parserProvider,
@@ -282,7 +282,7 @@ func setMemoryLimit(memTotalSizeMiB int) {
 	log.Printf("Set memory limit to %d MiB", memLimit)
 }
 
-func runInteractive(params service.Parameters) error {
+func runInteractive(params service.AppSettings) error {
 	app, err := service.New(params)
 	if err != nil {
 		return fmt.Errorf("failed to construct the application: %w", err)

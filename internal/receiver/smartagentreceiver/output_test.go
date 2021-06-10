@@ -366,7 +366,7 @@ func getExporters() map[config.DataType]map[config.ComponentID]component.Exporte
 
 	exampleExporterFactory := componenttest.NewNopExporterFactory()
 	exampleExporter, _ := exampleExporterFactory.CreateMetricsExporter(
-		context.Background(), component.ExporterCreateParams{}, nil,
+		context.Background(), component.ExporterCreateSettings{}, nil,
 	)
 
 	metricExporterMap[exampleExporterFactory.CreateDefaultConfig().ID()] = exampleExporter

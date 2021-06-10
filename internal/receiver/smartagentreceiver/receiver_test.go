@@ -344,8 +344,8 @@ func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {
 
 	factory := smartagentextension.NewFactory()
 	factories.Extensions[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "extension_config.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "extension_config.yaml"), factories,
 	)
 	require.NoError(t, err)
 
@@ -386,7 +386,7 @@ func (m *mockHost) GetExtensions() map[config.ComponentID]component.Extension {
 }
 
 func getExtension(f component.ExtensionFactory, cfg config.Extension) component.Extension {
-	e, err := f.CreateExtension(context.Background(), component.ExtensionCreateParams{}, cfg)
+	e, err := f.CreateExtension(context.Background(), component.ExtensionCreateSettings{}, cfg)
 	if err != nil {
 		panic(err)
 	}

@@ -48,8 +48,8 @@ func TestLoadConfig(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "config.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "config.yaml"), factories,
 	)
 
 	require.NoError(t, err)
@@ -150,8 +150,8 @@ func TestLoadInvalidConfigWithoutType(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "without_type.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "without_type.yaml"), factories,
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
@@ -165,8 +165,8 @@ func TestLoadInvalidConfigWithUnknownType(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "unknown_type.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "unknown_type.yaml"), factories,
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
@@ -180,8 +180,8 @@ func TestLoadInvalidConfigWithUnexpectedTag(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "unexpected_tag.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "unexpected_tag.yaml"), factories,
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
@@ -195,8 +195,8 @@ func TestLoadInvalidConfigs(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "invalid_config.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "invalid_config.yaml"), factories,
 	)
 
 	require.NoError(t, err)
@@ -243,8 +243,8 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "endpoints_config.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "endpoints_config.yaml"), factories,
 	)
 
 	require.NoError(t, err)
@@ -333,8 +333,8 @@ func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "invalid_endpoint.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "invalid_endpoint.yaml"), factories,
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
@@ -348,8 +348,8 @@ func TestLoadInvalidConfigWithUnsupportedEndpoint(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "unsupported_endpoint.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "unsupported_endpoint.yaml"), factories,
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
@@ -363,8 +363,8 @@ func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "invalid_nonarray_dimension_clients.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "invalid_nonarray_dimension_clients.yaml"), factories,
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
@@ -378,8 +378,8 @@ func TestLoadInvalidConfigWithNonStringArrayDimensionClients(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "invalid_float_dimension_clients.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "invalid_float_dimension_clients.yaml"), factories,
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
@@ -393,8 +393,8 @@ func TestFilteringConfig(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "filtering_config.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "filtering_config.yaml"), factories,
 	)
 
 	require.NoError(t, err)
@@ -428,8 +428,8 @@ func TestInvalidFilteringConfig(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "invalid_filtering_config.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "invalid_filtering_config.yaml"), factories,
 	)
 
 	require.NoError(t, err)
@@ -461,8 +461,8 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
-		t, path.Join(".", "testdata", "nested_monitor_config.yaml"), factories,
+	cfg, err := configtest.LoadConfig(
+		path.Join(".", "testdata", "nested_monitor_config.yaml"), factories,
 	)
 
 	require.NoError(t, err)

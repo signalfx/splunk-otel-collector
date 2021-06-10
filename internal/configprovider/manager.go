@@ -26,7 +26,7 @@ import (
 
 	"github.com/spf13/cast"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.uber.org/zap"
@@ -181,7 +181,7 @@ type Manager struct {
 // NewManager creates a new instance of a Manager to be used to inject data from
 // ConfigSource objects into a configuration and watch for updates on the injected
 // data.
-func NewManager(parser *config.Parser, logger *zap.Logger, buildInfo component.BuildInfo, factories Factories) (*Manager, error) {
+func NewManager(parser *configparser.Parser, logger *zap.Logger, buildInfo component.BuildInfo, factories Factories) (*Manager, error) {
 	configSourcesSettings, err := Load(context.Background(), parser, factories)
 	if err != nil {
 		return nil, err
@@ -199,11 +199,11 @@ func NewManager(parser *config.Parser, logger *zap.Logger, buildInfo component.B
 	return newManager(cfgSources), nil
 }
 
-// Resolve inspects the given config.Parser and resolves all config sources referenced
-// in the configuration, returning a config.Parser fully resolved. This must be called only
+// Resolve inspects the given configparser.Parser and resolves all config sources referenced
+// in the configuration, returning a configparser.Parser fully resolved. This must be called only
 // once per lifetime of a Manager object.
-func (m *Manager) Resolve(ctx context.Context, parser *config.Parser) (*config.Parser, error) {
-	res := config.NewParser()
+func (m *Manager) Resolve(ctx context.Context, parser *configparser.Parser) (*configparser.Parser, error) {
+	res := configparser.NewParser()
 	allKeys := parser.AllKeys()
 	for _, k := range allKeys {
 		if strings.HasPrefix(k, configSourcesKey) {
@@ -540,8 +540,8 @@ func parseCfgSrc(s string) (cfgSrcName, selector string, params interface{}, err
 		selector = strings.Trim(parts[0], " ")
 
 		if len(parts) > 1 && len(parts[1]) > 0 {
-			var p *config.Parser
-			if p, err = config.NewParserFromBuffer(bytes.NewReader([]byte(parts[1]))); err != nil {
+			var p *configparser.Parser
+			if p, err = configparser.NewParserFromBuffer(bytes.NewReader([]byte(parts[1]))); err != nil {
 				return
 			}
 			params = p.ToStringMap()
@@ -601,7 +601,7 @@ func parseParamsAsURLQuery(s string) (interface{}, error) {
 }
 
 // expandEnvVars is used to expand environment variables with the same syntax used
-// by config.Parser.
+// by configparser.Parser.
 func expandEnvVars(s string) string {
 	return os.Expand(s, func(str string) string {
 		// This allows escaping environment variable substitution via $$, e.g.

@@ -21,7 +21,7 @@ import (
 	"os"
 
 	"github.com/spf13/cast"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -51,7 +51,7 @@ var _ configsource.Session = (*envVarSession)(nil)
 func (e *envVarSession) Retrieve(_ context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
 	actualParams := retrieveParams{}
 	if params != nil {
-		paramsParser := config.NewParserFromStringMap(cast.ToStringMap(params))
+		paramsParser := configparser.NewParserFromStringMap(cast.ToStringMap(params))
 		if err := paramsParser.UnmarshalExact(&actualParams); err != nil {
 			return nil, &errInvalidRetrieveParams{fmt.Errorf("failed to unmarshall retrieve params: %w", err)}
 		}

@@ -33,7 +33,7 @@ func TestBundleDirDefault(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Extensions[typeStr] = factory
-	cfg, err := configtest.LoadConfigFile(
+	cfg, err := configtest.LoadConfig(
 		t, path.Join(".", "testdata", "config.yaml"), factories,
 	)
 
@@ -45,7 +45,7 @@ func TestBundleDirDefault(t *testing.T) {
 	allSettingsConfig := cfg.Extensions[config.NewIDWithName(typeStr, "default_settings")]
 	require.NotNil(t, allSettingsConfig)
 
-	ext, err := factory.CreateExtension(context.Background(), component.ExtensionCreateParams{}, allSettingsConfig)
+	ext, err := factory.CreateExtension(context.Background(), component.ExtensionCreateSettings{}, allSettingsConfig)
 	require.NoError(t, err)
 	require.NotNil(t, ext)
 

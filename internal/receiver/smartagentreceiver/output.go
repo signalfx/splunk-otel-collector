@@ -52,6 +52,7 @@ type Output struct {
 	monitorFiltering     *monitorFiltering
 	receiverID           config.ComponentID
 	nextDimensionClients []metadata.MetadataExporter
+	reporter             *obsreport.Receiver
 }
 
 var _ types.Output = (*Output)(nil)
@@ -74,6 +75,10 @@ func NewOutput(
 		extraSpanTags:        map[string]string{},
 		defaultSpanTags:      map[string]string{},
 		monitorFiltering:     filtering,
+		reporter: obsreport.NewReceiver(obsreport.ReceiverSettings{
+			ReceiverID: config.ID(),
+			Transport:  internalTransport,
+		}),
 	}
 }
 
@@ -199,7 +204,7 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 	}
 
 	ctx := obsreport.ReceiverContext(context.Background(), output.receiverID, internalTransport)
-	ctx = obsreport.StartMetricsReceiveOp(ctx, output.receiverID, internalTransport)
+	ctx = output.reporter.StartMetricsOp(ctx)
 
 	datapoints = output.filterDatapoints(datapoints)
 	for _, dp := range datapoints {
@@ -214,7 +219,7 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 
 	_, numPoints := metrics.MetricAndDataPointCount()
 	err := output.nextMetricsConsumer.ConsumeMetrics(context.Background(), metrics)
-	obsreport.EndMetricsReceiveOp(ctx, typeStr, numPoints, err)
+	output.reporter.EndMetricsOp(ctx, typeStr, numPoints, err)
 }
 
 func (output *Output) SendEvent(event *event.Event) {

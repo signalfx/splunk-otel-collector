@@ -39,7 +39,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	factory := NewFactory()
 	factories.Receivers[config.Type(typeStr)] = factory
 	cfg, err := configtest.LoadConfig(
-		t, path.Join(".", "testdata", "linux_config.yaml"), factories,
+		path.Join(".", "testdata", "linux_config.yaml"), factories,
 	)
 
 	require.NoError(t, err)

@@ -48,11 +48,11 @@ type Output struct {
 	extraSpanTags        map[string]string
 	defaultSpanTags      map[string]string
 	logger               *zap.Logger
+	reporter             *obsreport.Receiver
 	converter            converter.Converter
 	monitorFiltering     *monitorFiltering
 	receiverID           config.ComponentID
 	nextDimensionClients []metadata.MetadataExporter
-	reporter             *obsreport.Receiver
 }
 
 var _ types.Output = (*Output)(nil)

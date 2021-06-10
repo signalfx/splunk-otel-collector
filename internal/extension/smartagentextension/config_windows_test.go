@@ -34,7 +34,7 @@ func TestBundleDirDefault(t *testing.T) {
 	factory := NewFactory()
 	factories.Extensions[typeStr] = factory
 	cfg, err := configtest.LoadConfig(
-		t, path.Join(".", "testdata", "config.yaml"), factories,
+		path.Join(".", "testdata", "config.yaml"), factories,
 	)
 
 	require.NoError(t, err)

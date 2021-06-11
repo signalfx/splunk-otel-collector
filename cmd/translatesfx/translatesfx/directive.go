@@ -74,17 +74,16 @@ func parseDirective(m map[interface{}]interface{}) (out directive, err error) {
 	return
 }
 
-func parseFrom(from string) (s source, target string, err error) {
+func parseFrom(from string) (source, string, error) {
 	idx := strings.Index(from, ":")
 	if idx == -1 {
 		return directiveSourceFile, from, nil
 	}
-	s = strToSource(from[:idx])
+	s := strToSource(from[:idx])
 	if s == directiveSourceUnknown {
-		return s, target, fmt.Errorf("#from fromType type unknown: %s", from)
+		return s, "", fmt.Errorf("#from fromType type unknown: %s", from)
 	}
-	target = from[idx+1:]
-	return
+	return s, from[idx+1:], nil
 }
 
 func strToSource(s string) source {

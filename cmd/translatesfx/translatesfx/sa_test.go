@@ -95,18 +95,6 @@ func TestExpand_FlattenMap(t *testing.T) {
 	assert.Equal(t, expected, expanded)
 }
 
-func TestExpand_HandleError(t *testing.T) {
-	yml := `myList: [{"#from": "bad/path"}]`
-	var v interface{}
-	err := yaml.UnmarshalStrict([]byte(yml), &v)
-	require.NoError(t, err)
-	out, _ := expandSA(v, "")
-	expected := `myList:
-- '#from': bad/path
-`
-	assert.Equal(t, expected, toYaml(t, out))
-}
-
 func TestExpand_SAComplex(t *testing.T) {
 	yml, err := ioutil.ReadFile("testdata/sa-complex.yaml")
 	require.NoError(t, err)
@@ -132,22 +120,22 @@ func TestExpand_SAComplex(t *testing.T) {
 }
 
 func TestProcessDirective_Simple(t *testing.T) {
-	d := map[interface{}]interface{}{
+	d, err := parseDirective(map[interface{}]interface{}{
 		"#from": "testdata/token",
-	}
-	v, flatten, err := processDirective(d, "")
+	})
 	require.NoError(t, err)
-	assert.False(t, flatten)
+	v, err := processDirective(d, "")
+	require.NoError(t, err)
 	assert.Equal(t, "abc123", v.(string))
 }
 
 func TestProcessDirective_Map(t *testing.T) {
-	d := map[interface{}]interface{}{
+	d, err := parseDirective(map[interface{}]interface{}{
 		"#from": "testdata/map.yaml",
-	}
-	v, flatten, err := processDirective(d, "")
+	})
 	require.NoError(t, err)
-	assert.False(t, flatten)
+	v, err := processDirective(d, "")
+	require.NoError(t, err)
 	assert.Equal(t, map[interface{}]interface{}{
 		"foo": "bar",
 		"baz": "glarch",
@@ -155,30 +143,32 @@ func TestProcessDirective_Map(t *testing.T) {
 }
 
 func TestProcessDirective_Wildcard(t *testing.T) {
-	d := map[interface{}]interface{}{
+	d, err := parseDirective(map[interface{}]interface{}{
 		"#from": "testdata/cfgs/map*.yaml",
-	}
-	v, flatten, err := processDirective(d, "")
+	})
 	require.NoError(t, err)
-	assert.False(t, flatten)
+	v, err := processDirective(d, "")
+	require.NoError(t, err)
 	assert.NotNil(t, v)
 }
 
 func TestProcessDirective_MissingNonOptionalFile(t *testing.T) {
-	d := map[interface{}]interface{}{
+	d, err := parseDirective(map[interface{}]interface{}{
 		"#from": "testdata/missing",
-	}
-	_, _, err := processDirective(d, "")
+	})
+	require.NoError(t, err)
+	_, err = processDirective(d, "")
 	require.Error(t, err)
 	assert.True(t, strings.HasPrefix(err.Error(), "#from files not found"))
 }
 
 func TestProcessDirective_Default(t *testing.T) {
-	d := map[interface{}]interface{}{
+	d, err := parseDirective(map[interface{}]interface{}{
 		"#from":   "testdata/missing",
 		"default": "foo",
-	}
-	v, _, err := processDirective(d, "")
+	})
+	require.NoError(t, err)
+	v, err := processDirective(d, "")
 	require.NoError(t, err)
 	require.Equal(t, "foo", v)
 }
@@ -186,19 +176,6 @@ func TestProcessDirective_Default(t *testing.T) {
 func TestGetSource(t *testing.T) {
 	assert.Equal(t, "env", directiveSource("env:SIGNALFX_ACCESS_TOKEN"))
 	assert.Equal(t, "", directiveSource("foo"))
-}
-
-func TestIsOptional(t *testing.T) {
-	opt, err := isOptional(map[interface{}]interface{}{
-		"optional": true,
-	})
-	require.NoError(t, err)
-	assert.True(t, opt)
-
-	_, err = isOptional(map[interface{}]interface{}{
-		"optional": 42,
-	})
-	require.Error(t, err)
 }
 
 func TestMerge_Slices(t *testing.T) {
@@ -224,14 +201,6 @@ func TestMerge_Empty(t *testing.T) {
 	merged, err := merge(nil)
 	require.NoError(t, err)
 	require.Empty(t, merged)
-}
-
-func TestExpandEnv(t *testing.T) {
-	expanded, err := expandEnv(map[interface{}]interface{}{
-		"#from": "env:SIGNALFX_ACCESS_TOKEN",
-	})
-	require.NoError(t, err)
-	assert.Equal(t, "${SIGNALFX_ACCESS_TOKEN}", expanded)
 }
 
 func toYaml(t *testing.T, out interface{}) string {

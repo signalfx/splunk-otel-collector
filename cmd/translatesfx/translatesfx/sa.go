@@ -16,6 +16,7 @@ package translatesfx
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -52,12 +53,16 @@ func expandSlice(l []interface{}, wd string) (interface{}, bool) {
 }
 
 func expandMap(m map[interface{}]interface{}, wd string) (interface{}, bool) {
-	if _, ok := m["#from"]; ok {
-		replacement, flatten, err := processDirective(m, wd)
+	d, err := parseDirective(m)
+	if err != nil {
+		log.Fatalf("parseDirective failed: %v: error %v", m, err)
+	}
+	if d.isDirective {
+		replacement, err := processDirective(d, wd)
 		if err == nil {
-			return replacement, flatten
+			return replacement, d.flatten
 		}
-		fmt.Printf("unable to process directive: %v: error: %v\n", m, err)
+		log.Fatalf("processDirective failed: %v: error: %v", m, err)
 	}
 	out := map[interface{}]interface{}{}
 	for k, v := range m {
@@ -75,33 +80,29 @@ func expandMap(m map[interface{}]interface{}, wd string) (interface{}, bool) {
 	return out, false
 }
 
-func processDirective(directive map[interface{}]interface{}, wd string) (interface{}, bool, error) {
-	expanded, err := expandFromSource(directive, wd)
+func processDirective(d directive, wd string) (interface{}, error) {
+	expanded, err := expandFromSource(d, wd)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
-
-	return expanded, flatten(directive), err
+	return expanded, err
 }
 
-func expandFromSource(directive map[interface{}]interface{}, wd string) (interface{}, error) {
-	source := directiveSource(directive["#from"].(string))
-	switch source {
-	case "", "file":
-		return expandFiles(directive, wd)
-	case "env":
-		return expandEnv(directive)
-	case "watch", "remoteWatch", "zookeeper", "etcd2", "consul", "vault":
-		return nil, fmt.Errorf("#from source type not supported by translatesfx at this time: %s", source)
+func expandFromSource(d directive, wd string) (interface{}, error) {
+	switch d.fromType {
+	case directiveSourceFile:
+		return expandFiles(d, wd)
+	case directiveSourceEnv:
+		return expandEnv(d)
+	case directiveSourceUnknown:
+		return nil, fmt.Errorf("#from fromType type unknown: %v", d.fromType)
+	default:
+		return nil, fmt.Errorf("#from fromType type not supported by translatesfx at this time: %v", d.fromType)
 	}
-	return nil, fmt.Errorf("#from source type unknown: %s", source)
 }
 
-func expandEnv(directive map[interface{}]interface{}) (interface{}, error) {
-	from := directive["#from"].(string)
-	idx := strings.Index(from, ":")
-	envVar := from[idx+1:]
-	return fmt.Sprintf("${%s}", envVar), nil
+func expandEnv(d directive) (interface{}, error) {
+	return fmt.Sprintf("${%s}", d.fromPath), nil
 }
 
 func directiveSource(from string) string {
@@ -112,21 +113,10 @@ func directiveSource(from string) string {
 	return from[:idx]
 }
 
-func flatten(directive map[interface{}]interface{}) bool {
-	flatten := false
-	if f, ok := directive["flatten"]; ok {
-		if ok = f.(bool); ok {
-			flatten = f.(bool)
-		}
-	}
-	return flatten
-}
-
-func expandFiles(directive map[interface{}]interface{}, wd string) (interface{}, error) {
-	from := directive["#from"].(string)
-	fromFullpath := from
-	if from[:1] != string(os.PathSeparator) {
-		fromFullpath = filepath.Join(wd, from)
+func expandFiles(d directive, wd string) (interface{}, error) {
+	fromFullpath := d.fromPath
+	if d.fromPath[:1] != string(os.PathSeparator) {
+		fromFullpath = filepath.Join(wd, d.fromPath)
 	}
 	paths, err := filepath.Glob(fromFullpath)
 	if err != nil {
@@ -134,20 +124,12 @@ func expandFiles(directive map[interface{}]interface{}, wd string) (interface{},
 	}
 
 	if len(paths) == 0 {
-		defaultVal, err := getDefault(directive)
-		if err != nil {
-			return nil, err
-		}
-		if defaultVal != "" {
-			return defaultVal, nil
+		if d.defaultV != "" {
+			return d.defaultV, nil
 		}
 
-		optional, err := isOptional(directive)
-		if err != nil {
-			return nil, err
-		}
-		if !optional {
-			return nil, fmt.Errorf("#from files not found and directive not marked optional: %v", directive)
+		if !d.optional {
+			return nil, fmt.Errorf("#from files not found and directive not marked optional: %v", d)
 		}
 	}
 
@@ -160,26 +142,6 @@ func expandFiles(directive map[interface{}]interface{}, wd string) (interface{},
 		items = append(items, unmarshaled)
 	}
 	return merge(items)
-}
-
-func getDefault(directive map[interface{}]interface{}) (string, error) {
-	if v, ok := directive["default"]; ok {
-		if out, ok := v.(string); ok {
-			return out, nil
-		}
-		return "", fmt.Errorf(`unable to parse "default" field in #from directive: %v`, directive)
-	}
-	return "", nil
-}
-
-func isOptional(directive map[interface{}]interface{}) (bool, error) {
-	if v, ok := directive["optional"]; ok {
-		if optional, ok := v.(bool); ok {
-			return optional, nil
-		}
-		return false, fmt.Errorf(`unable to parse "optional" field in #from directive: %v`, directive)
-	}
-	return false, nil
 }
 
 func unmarshal(path string) (interface{}, error) {

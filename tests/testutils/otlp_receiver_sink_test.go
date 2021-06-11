@@ -101,7 +101,7 @@ func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
 
 func otlpExporter(t *testing.T) component.MetricsExporter {
 	exporterCfg := otlpexporter.Config{
-		ExporterSettings: &config.ExporterSettings{NameVal: "otlp", TypeVal: "otlp"},
+		ExporterSettings: config.NewExporterSettings(config.NewIDWithName("otlp", "otlp")),
 		GRPCClientSettings: configgrpc.GRPCClientSettings{
 			Endpoint: "localhost:4317",
 			TLSSetting: configtls.TLSClientSetting{
@@ -110,7 +110,7 @@ func otlpExporter(t *testing.T) component.MetricsExporter {
 		}}
 	otlpExporterFactory := otlpexporter.NewFactory()
 	ctx := context.Background()
-	createParams := component.ExporterCreateParams{Logger: zap.NewNop()}
+	createParams := component.ExporterCreateSettings{Logger: zap.NewNop()}
 	exporter, err := otlpExporterFactory.CreateMetricsExporter(ctx, createParams, &exporterCfg)
 	require.NoError(t, err)
 	require.NotNil(t, exporter)

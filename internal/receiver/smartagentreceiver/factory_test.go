@@ -39,7 +39,7 @@ func TestCreateMetricsReceiver(t *testing.T) {
 	cfg := factory.CreateDefaultConfig()
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
-	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	params := component.ReceiverCreateSettings{Logger: zap.NewNop()}
 	receiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	assert.NoError(t, err)
 	assert.NotNil(t, receiver)
@@ -52,7 +52,7 @@ func TestCreateMetricsReceiverWithInvalidConfig(t *testing.T) {
 	cfg := &Config{}
 	require.Error(t, cfg.validate())
 
-	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	params := component.ReceiverCreateSettings{Logger: zap.NewNop()}
 	receiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	require.Error(t, err)
 	assert.EqualError(t, err, "you must supply a valid Smart Agent Monitor config")
@@ -66,7 +66,7 @@ func TestCreateLogsReceiver(t *testing.T) {
 	cfg := factory.CreateDefaultConfig()
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
-	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	params := component.ReceiverCreateSettings{Logger: zap.NewNop()}
 	receiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	assert.NoError(t, err)
 	assert.NotNil(t, receiver)
@@ -79,7 +79,7 @@ func TestCreateLogsReceiverWithInvalidConfig(t *testing.T) {
 	cfg := &Config{}
 	require.Error(t, cfg.validate())
 
-	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	params := component.ReceiverCreateSettings{Logger: zap.NewNop()}
 	receiver, err := factory.CreateLogsReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	require.Error(t, err)
 	assert.EqualError(t, err, "you must supply a valid Smart Agent Monitor config")
@@ -93,7 +93,7 @@ func TestCreateTracesReceiver(t *testing.T) {
 	cfg := factory.CreateDefaultConfig()
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
-	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	params := component.ReceiverCreateSettings{Logger: zap.NewNop()}
 	receiver, err := factory.CreateTracesReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	assert.NoError(t, err)
 	assert.NotNil(t, receiver)
@@ -106,7 +106,7 @@ func TestCreateTracesReceiverWithInvalidConfig(t *testing.T) {
 	cfg := &Config{}
 	require.Error(t, cfg.validate())
 
-	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	params := component.ReceiverCreateSettings{Logger: zap.NewNop()}
 	receiver, err := factory.CreateTracesReceiver(context.Background(), params, cfg, consumertest.NewNop())
 	require.Error(t, err)
 	assert.EqualError(t, err, "you must supply a valid Smart Agent Monitor config")
@@ -120,7 +120,7 @@ func TestCreateMetricsThenLogsAndThenTracesReceiver(t *testing.T) {
 	cfg := factory.CreateDefaultConfig()
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
-	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	params := component.ReceiverCreateSettings{Logger: zap.NewNop()}
 	nextMetricsConsumer := consumertest.NewNop()
 	metricsReceiver, err := factory.CreateMetricsReceiver(context.Background(), params, cfg, nextMetricsConsumer)
 	assert.NoError(t, err)
@@ -150,7 +150,7 @@ func TestCreateTracesThenLogsAndThenMetricsReceiver(t *testing.T) {
 	cfg := factory.CreateDefaultConfig()
 	cfg.(*Config).monitorConfig = &haproxy.Config{}
 
-	params := component.ReceiverCreateParams{Logger: zap.NewNop()}
+	params := component.ReceiverCreateSettings{Logger: zap.NewNop()}
 	nextTracesConsumer := consumertest.NewNop()
 	tracesReceiver, err := factory.CreateTracesReceiver(context.Background(), params, cfg, nextTracesConsumer)
 	assert.NoError(t, err)

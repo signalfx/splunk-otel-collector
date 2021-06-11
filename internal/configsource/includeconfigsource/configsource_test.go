@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
 
@@ -34,7 +34,7 @@ import (
 
 func TestIncludeConfigSource_End2End(t *testing.T) {
 	file := path.Join("testdata", "templated.yaml")
-	p, err := config.NewParserFromFile(file)
+	p, err := configparser.NewParserFromFile(file)
 	require.NoError(t, err)
 	require.NotNil(t, p)
 
@@ -65,7 +65,7 @@ func TestIncludeConfigSource_End2End(t *testing.T) {
 	m.WaitForWatcher()
 
 	fileWithExpectedData := path.Join("testdata", "templated_expected.yaml")
-	expected, err := config.NewParserFromFile(fileWithExpectedData)
+	expected, err := configparser.NewParserFromFile(fileWithExpectedData)
 	assert.NoError(t, err)
 	assert.NotNil(t, expected)
 	assert.Equal(t, expected.ToStringMap(), r.ToStringMap())
@@ -73,7 +73,7 @@ func TestIncludeConfigSource_End2End(t *testing.T) {
 
 func TestIncludeConfigSource_WatchFile(t *testing.T) {
 	file := path.Join("testdata", "templated.yaml")
-	p, err := config.NewParserFromFile(file)
+	p, err := configparser.NewParserFromFile(file)
 	require.NoError(t, err)
 	require.NotNil(t, p)
 
@@ -101,7 +101,7 @@ func TestIncludeConfigSource_WatchFile(t *testing.T) {
 	m.WaitForWatcher()
 
 	fileWithExpectedData := path.Join("testdata", "templated_expected.yaml")
-	expected, err := config.NewParserFromFile(fileWithExpectedData)
+	expected, err := configparser.NewParserFromFile(fileWithExpectedData)
 	require.NoError(t, err)
 	require.NotNil(t, expected)
 

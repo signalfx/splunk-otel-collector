@@ -22,6 +22,7 @@ import (
 	"github.com/signalfx/defaults"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configparser"
 	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/internal/utils"
@@ -36,7 +37,7 @@ type Config struct {
 	saconfig.Config `mapstructure:"-,squash"`
 }
 
-func (cfg *Config) Unmarshal(componentParser *config.Parser) error {
+func (cfg *Config) Unmarshal(componentParser *configparser.Parser) error {
 	allSettings := componentParser.ToStringMap()
 
 	configDirSet := false

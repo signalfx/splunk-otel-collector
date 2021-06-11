@@ -20,7 +20,7 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/service/parserprovider"
 	"go.uber.org/zap"
 )
@@ -49,7 +49,7 @@ func NewConfigSourceParserProvider(logger *zap.Logger, buildInfo component.Build
 // Get returns a config.Parser that wraps the parserprovider.Default() with a parser
 // that can load and inject data from config sources. If there are no config sources
 // in the configuration the returned parser behaves like the parserprovider.Default().
-func (c *configSourceParserProvider) Get() (*config.Parser, error) {
+func (c *configSourceParserProvider) Get() (*configparser.Parser, error) {
 	defaultParser, err := c.pp.Get()
 	if err != nil {
 		return nil, err

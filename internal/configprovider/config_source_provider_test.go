@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/service/parserprovider"
 	"go.uber.org/zap"
@@ -135,11 +135,11 @@ type mockParserProvider struct {
 
 var _ (parserprovider.ParserProvider) = (*mockParserProvider)(nil)
 
-func (mpp *mockParserProvider) Get() (*config.Parser, error) {
+func (mpp *mockParserProvider) Get() (*configparser.Parser, error) {
 	if mpp.ErrOnGet {
 		return nil, &errOnParserProviderGet{errors.New("mockParserProvider.Get() forced test error")}
 	}
-	return config.NewParser(), nil
+	return configparser.NewParser(), nil
 }
 
 type errOnParserProviderGet struct{ error }
@@ -150,6 +150,6 @@ type fileParserProvider struct {
 
 var _ (parserprovider.ParserProvider) = (*fileParserProvider)(nil)
 
-func (fpp *fileParserProvider) Get() (*config.Parser, error) {
-	return config.NewParserFromFile(fpp.FileName)
+func (fpp *fileParserProvider) Get() (*configparser.Parser, error) {
+	return configparser.NewParserFromFile(fpp.FileName)
 }

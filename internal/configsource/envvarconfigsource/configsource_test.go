@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configparser"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -64,7 +64,7 @@ func TestEnvVarConfigSource_End2End(t *testing.T) {
 	}()
 
 	file := path.Join("testdata", "env_config_source_end_2_end.yaml")
-	p, err := config.NewParserFromFile(file)
+	p, err := configparser.NewParserFromFile(file)
 	require.NoError(t, err)
 	require.NotNil(t, p)
 
@@ -88,7 +88,7 @@ func TestEnvVarConfigSource_End2End(t *testing.T) {
 	assert.NoError(t, m.Close(ctx))
 
 	file = path.Join("testdata", "env_config_source_end_2_end_expected.yaml")
-	expected, err := config.NewParserFromFile(file)
+	expected, err := configparser.NewParserFromFile(file)
 	require.NoError(t, err)
 	require.NotNil(t, expected)
 

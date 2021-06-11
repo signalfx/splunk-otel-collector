@@ -106,20 +106,25 @@ func addDoubleSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pdata.AttributeValue) {
 	var val interface{}
 	switch value.Type() {
-	case pdata.AttributeValueSTRING:
+	case pdata.AttributeValueTypeString:
 		val = value.StringVal()
-	case pdata.AttributeValueBOOL:
+	case pdata.AttributeValueTypeBool:
 		val = value.BoolVal()
-	case pdata.AttributeValueINT:
+	case pdata.AttributeValueTypeInt:
 		val = value.IntVal()
-	case pdata.AttributeValueDOUBLE:
+	case pdata.AttributeValueTypeDouble:
 		val = value.DoubleVal()
-	case pdata.AttributeValueMAP:
+	case pdata.AttributeValueTypeMap:
 		// Coerce to map[string]interface{}
 		val = tracetranslator.AttributeMapToMap(value.MapVal())
-	case pdata.AttributeValueARRAY:
+	case pdata.AttributeValueTypeArray:
 		// Coerce to []interface{}
-		val = tracetranslator.AttributeArrayToSlice(value.ArrayVal())
+		// Required pdata helper is not exposed so we pass value as a map
+		// and use helper that calls it internally.
+		toTranslate := pdata.NewAttributeMap()
+		toTranslate.Insert(name, value)
+		translated := tracetranslator.AttributeMapToMap(toTranslate)
+		val = translated[name]
 	default:
 		val = nil
 	}

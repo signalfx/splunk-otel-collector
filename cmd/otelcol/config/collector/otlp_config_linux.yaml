@@ -20,7 +20,7 @@ receivers:
         endpoint: 0.0.0.0:55681
   # This section is used to collect the OpenTelemetry Collector metrics
   # Even if just a Splunk APM customer, these metrics are included
-  prometheus:
+  prometheus/internal:
     config:
       scrape_configs:
       - job_name: 'otel-collector'
@@ -65,6 +65,12 @@ processors:
         #value: staging/production/...
         #key: deployment.environment
 
+  # detect if the collector is running on a cloud system.
+  # overrides resource attributes set by receivers
+  resourcedetection/internal:
+    detectors: [system, gce, ecs, ec2, azure]
+    override: true
+
 exporters:
   # Traces
   otlphttp:
@@ -102,8 +108,12 @@ service:
       #- resource/add_environment
       exporters: [otlphttp, signalfx]
     metrics:
-      receivers: [otlp, prometheus, signalfx, smartagent/signalfx-forwarder]
+      receivers: [otlp, signalfx, smartagent/signalfx-forwarder]
       processors: [memory_limiter, batch]
+      exporters: [signalfx]
+    metrics/internal:
+      receivers: [prometheus/internal]
+      processors: [memory_limiter, batch, resourcedetection/internal]
       exporters: [signalfx]
     logs:
       receivers: [signalfx]

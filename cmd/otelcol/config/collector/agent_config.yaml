@@ -65,7 +65,7 @@ receivers:
         endpoint: 0.0.0.0:55681
   # This section is used to collect the OpenTelemetry Collector metrics
   # Even if just a Splunk APM customer, these metrics are included
-  prometheus:
+  prometheus/internal:
     config:
       scrape_configs:
       - job_name: 'otel-collector'
@@ -100,11 +100,16 @@ processors:
     ballast_size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
-  ## detect if the collector is running on a cloud system
-  ## important for creating unique cloud provider dimensions
+  # detect if the collector is running on a cloud system
+  # important for creating unique cloud provider dimensions
   resourcedetection:
     detectors: [system, gce, ecs, ec2, azure]
     override: false
+
+  # Same as above but overrides resource attributes set by receivers
+  resourcedetection/internal:
+    detectors: [system, gce, ecs, ec2, azure]
+    override: true
 
   # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and 
   # traces when it's not populated by instrumentation libraries.
@@ -157,8 +162,14 @@ service:
       # Use instead when sending to gateway
       #exporters: [otlp, signalfx]
     metrics:
-      receivers: [hostmetrics, otlp, prometheus, signalfx, smartagent/signalfx-forwarder]
+      receivers: [hostmetrics, otlp, signalfx, smartagent/signalfx-forwarder]
       processors: [memory_limiter, batch, resourcedetection]
+      exporters: [signalfx]
+      # Use instead when sending to gateway
+      #exporters: [otlp]
+    metrics/internal:
+      receivers: [prometheus/internal]
+      processors: [memory_limiter, batch, resourcedetection/internal]
       exporters: [signalfx]
       # Use instead when sending to gateway
       #exporters: [otlp]

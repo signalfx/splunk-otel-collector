@@ -13,7 +13,7 @@
 // limitations under the License.
 // +build endtoend
 
-package tests
+package endtoend
 
 import (
 	"bytes"
@@ -370,6 +370,8 @@ func sendEvents(t *testing.T, eventType string) {
 
 func logsContain401(tc *testutils.Testcase, collector testutils.Collector) bool {
 	errorMsg := "HTTP 401"
+	errorMsg2 := "HTTP/2.0 401"
+
 	// There is a bug in testcontainers-go so we can't rely on the
 	// LogProducer until resolved: https://github.com/testcontainers/testcontainers-go/pull/323
 	if ctr, ok := collector.(*testutils.CollectorContainer); ok {
@@ -378,7 +380,8 @@ func logsContain401(tc *testutils.Testcase, collector testutils.Collector) bool 
 		buf := new(strings.Builder)
 		_, err = io.Copy(buf, logs)
 		require.NoError(tc, err)
-		return strings.Contains(buf.String(), errorMsg)
+		errContent := buf.String()
+		return strings.Contains(errContent, errorMsg) || strings.Contains(errContent, errorMsg2)
 	}
 
 	for _, statement := range tc.ObservedLogs.All() {

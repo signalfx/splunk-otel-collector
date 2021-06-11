@@ -11,6 +11,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - Initial puppet module for linux (#405)
 - Add `include` config source (#419, #402, #397)
 - Allow setting both `SPLUNK_CONFIG` and `--config` with priority given to `--config` (#450)
+- Use internal pipelines for collector prometheus metrics (#469)
 
 ### 🧰 Bug fixes 🧰
 

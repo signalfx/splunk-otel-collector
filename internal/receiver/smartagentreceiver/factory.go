@@ -73,7 +73,7 @@ func CreateDefaultConfig() config.Receiver {
 
 func createMetricsReceiver(
 	_ context.Context,
-	params component.ReceiverCreateParams,
+	params component.ReceiverCreateSettings,
 	cfg config.Receiver,
 	metricsConsumer consumer.Metrics,
 ) (component.MetricsReceiver, error) {
@@ -88,7 +88,7 @@ func createMetricsReceiver(
 
 func createLogsReceiver(
 	_ context.Context,
-	params component.ReceiverCreateParams,
+	params component.ReceiverCreateSettings,
 	cfg config.Receiver,
 	logsConsumer consumer.Logs,
 ) (component.LogsReceiver, error) {
@@ -103,7 +103,7 @@ func createLogsReceiver(
 
 func createTracesReceiver(
 	_ context.Context,
-	params component.ReceiverCreateParams,
+	params component.ReceiverCreateSettings,
 	cfg config.Receiver,
 	tracesConsumer consumer.Traces,
 ) (component.TracesReceiver, error) {

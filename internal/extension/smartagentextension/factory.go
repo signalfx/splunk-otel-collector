@@ -82,7 +82,7 @@ func createDefaultConfig() config.Extension {
 
 func createExtension(
 	_ context.Context,
-	_ component.ExtensionCreateParams,
+	_ component.ExtensionCreateSettings,
 	cfg config.Extension,
 ) (component.Extension, error) {
 	return newSmartAgentConfigExtension(cfg.(*Config))

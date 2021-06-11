@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configparser"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -30,7 +31,7 @@ import (
 
 func TestIncludeConfigSourceLoadConfig(t *testing.T) {
 	fileName := path.Join("testdata", "config.yaml")
-	v, err := config.NewParserFromFile(fileName)
+	v, err := configparser.NewParserFromFile(fileName)
 	require.NoError(t, err)
 
 	factories := map[config.Type]configprovider.Factory{

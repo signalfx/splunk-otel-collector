@@ -28,7 +28,7 @@ import (
 
 func TestExtensionLifecycle(t *testing.T) {
 	ctx := context.Background()
-	createParams := component.ExtensionCreateParams{
+	createParams := component.ExtensionCreateSettings{
 		Logger: zap.NewNop(),
 	}
 	cfg := &Config{

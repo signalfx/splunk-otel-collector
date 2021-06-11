@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## v0.28.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.28.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.28.0) and the [opentelemetry-collector-contrib v0.28.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.28.0) releases.
+
+### 💡 Enhancements 💡
+
+- Initial puppet module for linux (#405)
+- Add `include` config source (#419, #402, #397)
+- Allow setting both `SPLUNK_CONFIG` and `--config` with priority given to `--config` (#450)
+- Use internal pipelines for collector prometheus metrics (#469)
+
+### 🧰 Bug fixes 🧰
+
+- Correctly handle nil value on the config provider (#434)
+
 ## v0.26.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.26.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.26.0) and the [opentelemetry-collector-contrib v0.26.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.26.0) releases.

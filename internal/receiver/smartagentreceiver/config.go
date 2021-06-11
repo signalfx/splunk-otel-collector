@@ -26,6 +26,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configparser"
 	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/internal/utils"
@@ -66,7 +67,7 @@ func (cfg *Config) validate() error {
 
 // Unmarshal dynamically creates the desired Smart Agent monitor config
 // from the provided receiver config content.
-func (cfg *Config) Unmarshal(componentParser *config.Parser) error {
+func (cfg *Config) Unmarshal(componentParser *configparser.Parser) error {
 	// AllSettings() is the user provided config and intoCfg is the default Config instance we populate to
 	// form the final desired version. To do so, we manually obtain all Config items, leaving only Smart Agent
 	// monitor config settings to be unmarshalled to their respective custom monitor config types.

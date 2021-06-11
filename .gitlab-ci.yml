@@ -15,6 +15,7 @@ stages:
   before_script:
     - mkdir -p $GOPATH
     - make install-tools
+    - export PATH=$GOPATH/bin:$PATH
   cache:
     key: "go-cache"
     paths:
@@ -60,7 +61,7 @@ compile:
       STAGE="test"
       if [[ "${CI_COMMIT_TAG:-}" =~ beta ]]; then
         STAGE="beta"
-      elif [[ "${CI_COMMIT_TAG:-}" =~ ^[0-9]\.[0-9]\.[0-9]$ ]]; then
+      elif [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         STAGE="release"
       fi
       for path in ${PATHS:-}; do
@@ -172,7 +173,7 @@ build-msi:
       docker tag otelcol:latest quay.io/signalfx/${IMAGE_NAME}:${IMAGE_TAG}
       docker push quay.io/signalfx/${IMAGE_NAME}:${IMAGE_TAG}
     - |
-      if [[ "$IMAGE_TAG" =~ ^[0-9]\.[0-9]\.[0-9]$ ]]; then
+      if [[ "$IMAGE_NAME" = "splunk-otel-collector-dev" ]] || [[ "$IMAGE_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         echo "Tagging and pushing quay.io/signalfx/${IMAGE_NAME}:latest"
         docker tag otelcol:latest quay.io/signalfx/${IMAGE_NAME}:latest
         docker push quay.io/signalfx/${IMAGE_NAME}:latest

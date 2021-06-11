@@ -23,6 +23,7 @@ import (
 )
 
 type saCfgInfo struct {
+	globalDims  map[interface{}]interface{}
 	accessToken string
 	realm       string
 	monitors    []interface{}
@@ -33,10 +34,15 @@ func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) (saCfgInfo, err
 	if err != nil {
 		return saCfgInfo{}, err
 	}
+	var globalDims map[interface{}]interface{}
+	if gd, ok := saExpanded["globalDimensions"]; ok {
+		globalDims = gd.(map[interface{}]interface{})
+	}
 	return saCfgInfo{
 		accessToken: saExpanded["signalFxAccessToken"].(string),
 		realm:       realm,
 		monitors:    saExpanded["monitors"].([]interface{}),
+		globalDims:  globalDims,
 	}, nil
 }
 
@@ -47,10 +53,10 @@ func resolvePath(path, wd string) string {
 	return filepath.Join(wd, path)
 }
 
-func apiURLToRealm(ingestURL string) (string, error) {
-	u, err := url.Parse(ingestURL)
+func apiURLToRealm(apiURL string) (string, error) {
+	u, err := url.Parse(apiURL)
 	if err != nil {
-		return "", fmt.Errorf("failed to get realm from api %v: %v", ingestURL, err)
+		return "", fmt.Errorf("failed to parse apiURL %v: %v", apiURL, err)
 	}
 
 	host := strings.ToLower(u.Host)

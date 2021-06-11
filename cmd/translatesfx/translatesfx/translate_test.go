@@ -23,17 +23,33 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func TestExpandedToCfgInfo(t *testing.T) {
-	yml, err := ioutil.ReadFile("testdata/sa-complex.yaml")
+func TestSAExpandedToCfgInfo(t *testing.T) {
+	v := fromYAML(t, "testdata/sa-complex.yaml")
+	expanded, err := expandSA(v, "")
 	require.NoError(t, err)
-	var v interface{}
-	err = yaml.UnmarshalStrict(yml, &v)
-	require.NoError(t, err)
-	expanded, _, _ := expandSA(v, "")
-	cfg, err := saExpandedToCfgInfo(expanded.(map[interface{}]interface{}))
+	cfg, err := saExpandedToCfgInfo(expanded)
 	require.NoError(t, err)
 	require.NoError(t, err)
 	assert.Equal(t, "us1", cfg.realm)
 	assert.Equal(t, "${include:testdata/token}", cfg.accessToken)
 	assert.Equal(t, 3, len(cfg.monitors))
+	assert.Equal(t, 2, len(cfg.globalDims))
+}
+
+func TestSAExpandedToConfigInfo_SASimple(t *testing.T) {
+	v := fromYAML(t, "testdata/sa-simple.yaml")
+	expanded, err := expandSA(v, "")
+	require.NoError(t, err)
+	cfg, err := saExpandedToCfgInfo(expanded)
+	require.NoError(t, err)
+	assert.Nil(t, cfg.globalDims)
+}
+
+func fromYAML(t *testing.T, filename string) interface{} {
+	yml, err := ioutil.ReadFile(filename)
+	require.NoError(t, err)
+	var v interface{}
+	err = yaml.UnmarshalStrict(yml, &v)
+	require.NoError(t, err)
+	return v
 }

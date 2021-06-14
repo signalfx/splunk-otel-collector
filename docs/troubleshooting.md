@@ -169,3 +169,13 @@ $ curl -X POST localhost:9411/api/v2/spans -H'Content-Type: application/json' -d
 
 No response means the request was successfully sent. You can also pass `-v` to
 the `curl` command to confirm.
+
+## APM - Infrastructure Correlation
+
+### Set up the APM Service - infrastructure correlation metrics
+
+How do you setup the collector to capture and send the relevant data to show
+correlated infrastructure metrics in the APM service dashboards?
+
+Follow the steps outlined [here](apm-infra-correlation.md). If you are not able to set up the APM
+service after following these steps, contact [support](#gathering-support-information)

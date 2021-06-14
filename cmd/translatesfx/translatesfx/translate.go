@@ -15,8 +15,10 @@
 package translatesfx
 
 import (
-	"log"
+	"fmt"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -26,26 +28,37 @@ type saCfgInfo struct {
 	monitors    []interface{}
 }
 
-func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) saCfgInfo {
+func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) (saCfgInfo, error) {
+	realm, err := apiURLToRealm(saExpanded["apiUrl"].(string))
+	if err != nil {
+		return saCfgInfo{}, err
+	}
 	return saCfgInfo{
 		accessToken: saExpanded["signalFxAccessToken"].(string),
-		realm:       apiURLToRealm(saExpanded["apiUrl"].(string)),
+		realm:       realm,
 		monitors:    saExpanded["monitors"].([]interface{}),
-	}
+	}, nil
 }
 
-func apiURLToRealm(ingestURL string) string {
+func resolvePath(path, wd string) string {
+	if path[:1] == string(os.PathSeparator) {
+		return path
+	}
+	return filepath.Join(wd, path)
+}
+
+func apiURLToRealm(ingestURL string) (string, error) {
 	u, err := url.Parse(ingestURL)
 	if err != nil {
-		log.Fatalf("failed to get realm: %v", err)
+		return "", fmt.Errorf("failed to get realm from api %v: %v", ingestURL, err)
 	}
 
 	host := strings.ToLower(u.Host)
 	if host == "api.signalfx.com" {
-		return "us0"
+		return "us0", nil
 	}
 
 	parts := strings.Split(u.Host, ".")
 	realm := parts[1]
-	return realm
+	return realm, nil
 }

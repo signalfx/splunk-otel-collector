@@ -15,9 +15,10 @@
 package translatesfx
 
 type otelCfg struct {
-	Receivers map[string]interface{}
-	Exporters map[string]interface{}
-	Service   map[string]interface{}
+	ConfigSources map[string]interface{} `yaml:"config_sources"`
+	Receivers     map[string]interface{}
+	Exporters     map[string]interface{}
+	Service       map[string]interface{}
 }
 
 func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
@@ -29,6 +30,9 @@ func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 		}
 	}
 	return otelCfg{
+		ConfigSources: map[string]interface{}{
+			"include": nil,
+		},
 		Receivers: receivers,
 		Exporters: sfxExporter(cfg.accessToken, cfg.realm),
 		Service: map[string]interface{}{

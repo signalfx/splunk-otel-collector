@@ -16,31 +16,39 @@ package translatesfx
 
 import (
 	"fmt"
-	"log"
-	"os"
-	"path/filepath"
 	"strings"
-
-	"gopkg.in/yaml.v2"
 )
 
-// expandSA takes an unmarshalled Smart Agent config struct and returns a config
+// expand takes an unmarshalled Smart Agent config struct and returns a config
 // with any SA #from directives translated into their Otel equivalent.
-func expandSA(in interface{}, wd string) (interface{}, bool) {
+func expandSA(orig interface{}, wd string) (interface{}, bool, error) {
+	return expand(orig, wd, yamlPath{
+		// Prevent these two top-level SA config keys from getting translated into their
+		// configsource equivalent. We need monitors expanded/inlined so we can
+		// translate them, and apiURL is used to get the realm, then not used in the
+		// final otel config.
+		forcePaths: []string{"/monitors", "/apiUrl"},
+	})
+}
+
+func expand(in interface{}, wd string, yp yamlPath) (interface{}, bool, error) {
 	switch t := in.(type) {
 	case []interface{}:
-		return expandSlice(t, wd)
+		return expandSlice(t, wd, yp)
 	case map[interface{}]interface{}:
-		return expandMap(t, wd)
+		return expandMap(t, wd, yp)
 	default:
-		return in, false
+		return in, false, nil
 	}
 }
 
-func expandSlice(l []interface{}, wd string) (interface{}, bool) {
+func expandSlice(l []interface{}, wd string, yp yamlPath) (interface{}, bool, error) {
 	var out []interface{}
-	for _, v := range l {
-		next, flatten := expandSA(v, wd)
+	for i, v := range l {
+		next, flatten, err := expand(v, wd, yp.index(i))
+		if err != nil {
+			return nil, false, err
+		}
 		if flatten {
 			if a, ok := next.([]interface{}); ok {
 				out = append(out, a...)
@@ -49,24 +57,24 @@ func expandSlice(l []interface{}, wd string) (interface{}, bool) {
 			out = append(out, next)
 		}
 	}
-	return out, false
+	return out, false, nil
 }
 
-func expandMap(m map[interface{}]interface{}, wd string) (interface{}, bool) {
-	d, err := parseDirective(m)
+func expandMap(m map[interface{}]interface{}, wd string, yp yamlPath) (interface{}, bool, error) {
+	d, isDirective, err := parseDirective(m, wd)
 	if err != nil {
-		log.Fatalf("parseDirective failed: %v: error %v", m, err)
+		return nil, false, err
 	}
-	if d.isDirective {
-		replacement, err := processDirective(d, wd)
-		if err == nil {
-			return replacement, d.flatten
+	if isDirective {
+		rendered, err := d.render(yp.forceExpand())
+		if err != nil {
+			return nil, false, err
 		}
-		log.Fatalf("processDirective failed: %v: error: %v", m, err)
+		return rendered, d.flatten, nil
 	}
 	out := map[interface{}]interface{}{}
 	for k, v := range m {
-		expanded, flatten := expandSA(v, wd)
+		expanded, flatten, _ := expand(v, wd, yp.key(k.(string)))
 		if flatten {
 			if flattened, ok := expanded.(map[interface{}]interface{}); ok {
 				for fk, fv := range flattened {
@@ -77,124 +85,33 @@ func expandMap(m map[interface{}]interface{}, wd string) (interface{}, bool) {
 			out[k] = expanded
 		}
 	}
-	return out, false
+	return out, false, nil
 }
 
-func processDirective(d directive, wd string) (interface{}, error) {
-	expanded, err := expandFromSource(d, wd)
-	if err != nil {
-		return nil, err
-	}
-	return expanded, err
+// yamlPath keeps track of the current yaml path and stores forcePaths so
+// callers can check whether the current or parent path is marked as
+// force-expand.
+type yamlPath struct {
+	curr       string
+	forcePaths []string
 }
 
-func expandFromSource(d directive, wd string) (interface{}, error) {
-	switch d.fromType {
-	case directiveSourceFile:
-		return expandFiles(d, wd)
-	case directiveSourceEnv:
-		return expandEnv(d)
-	case directiveSourceUnknown:
-		return nil, fmt.Errorf("#from fromType type unknown: %v", d.fromType)
-	default:
-		return nil, fmt.Errorf("#from fromType type not supported by translatesfx at this time: %v", d.fromType)
-	}
+func (p yamlPath) index(i int) yamlPath {
+	p.curr += fmt.Sprintf("/%d", i)
+	return p
 }
 
-func expandEnv(d directive) (interface{}, error) {
-	return fmt.Sprintf("${%s}", d.fromPath), nil
+func (p yamlPath) key(k string) yamlPath {
+	p.curr += fmt.Sprintf("/%s", k)
+	return p
 }
 
-func directiveSource(from string) string {
-	idx := strings.Index(from, ":")
-	if idx == -1 {
-		return ""
-	}
-	return from[:idx]
-}
-
-func expandFiles(d directive, wd string) (interface{}, error) {
-	fromFullpath := d.fromPath
-	if d.fromPath[:1] != string(os.PathSeparator) {
-		fromFullpath = filepath.Join(wd, d.fromPath)
-	}
-	paths, err := filepath.Glob(fromFullpath)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(paths) == 0 {
-		if d.defaultV != "" {
-			return d.defaultV, nil
-		}
-
-		if !d.optional {
-			return nil, fmt.Errorf("#from files not found and directive not marked optional: %v", d)
+func (p yamlPath) forceExpand() bool {
+	for _, forcePath := range p.forcePaths {
+		// not bulletproof, but enough for our tiny usecase
+		if strings.HasPrefix(p.curr, forcePath) {
+			return true
 		}
 	}
-
-	var items []interface{}
-	for _, path := range paths {
-		unmarshaled, err := unmarshal(path)
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, unmarshaled)
-	}
-	return merge(items)
-}
-
-func unmarshal(path string) (interface{}, error) {
-	bytes, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	var replacement interface{}
-	err = yaml.UnmarshalStrict(bytes, &replacement)
-	if err != nil {
-		return nil, err
-	}
-	return replacement, nil
-}
-
-func merge(items []interface{}) (interface{}, error) {
-	switch len(items) {
-	case 0:
-		return nil, nil
-	case 1:
-		return items[0], nil
-	}
-	switch items[0].(type) {
-	case []interface{}:
-		return mergeSlices(items)
-	case map[interface{}]interface{}:
-		return mergeMaps(items)
-	}
-	return nil, fmt.Errorf("unable to merge: %v", items)
-}
-
-func mergeSlices(items []interface{}) (interface{}, error) {
-	var out []interface{}
-	for _, item := range items {
-		l, ok := item.([]interface{})
-		if !ok {
-			return nil, fmt.Errorf("mergeSlices: type coersion failed for item %v in items %v", item, items)
-		}
-		out = append(out, l...)
-	}
-	return out, nil
-}
-
-func mergeMaps(items []interface{}) (interface{}, error) {
-	out := map[interface{}]interface{}{}
-	for _, item := range items {
-		m, ok := item.(map[interface{}]interface{})
-		if !ok {
-			return nil, fmt.Errorf("mergeMaps: type coersion failed for item %v in items %v", item, items)
-		}
-		for k, v := range m {
-			out[k] = v
-		}
-	}
-	return out, nil
+	return false
 }

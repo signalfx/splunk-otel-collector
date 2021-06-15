@@ -297,3 +297,20 @@ ansible-release:
   script:
     - export COLLECTION_VERSION=$(cat ./deployments/ansible/galaxy.yml | yq .version -r)
     - ansible-galaxy collection publish ./dist/signalfx-splunk_otel_collector-${COLLECTION_VERSION}.tar.gz --token=${ANSIBLE_GALAXY_TOKEN} 
+
+puppet-release:
+  image: 'docker-hub.repo.splunkdev.net/ruby:2.6-buster'
+  stage: release
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^puppet-v[0-9]+\.[0-9]+\.[0-9]+.*/
+  before_script:
+    - gem install bundler
+    - cd deployments/puppet
+    - bundle install
+    - bundle exec rake module:clean
+  script:
+    - bundle exec rake module:push
+  artifacts:
+    paths:
+      - deployments/puppet/pkg/*.tar.gz

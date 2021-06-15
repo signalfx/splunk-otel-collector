@@ -21,14 +21,15 @@ import (
 
 // expand takes an unmarshalled Smart Agent config struct and returns a config
 // with any SA #from directives translated into their Otel equivalent.
-func expandSA(orig interface{}, wd string) (interface{}, bool, error) {
-	return expand(orig, wd, yamlPath{
-		// Prevent these two top-level SA config keys from getting translated into their
+func expandSA(orig interface{}, wd string) (map[interface{}]interface{}, error) {
+	expanded, _, err := expand(orig, wd, yamlPath{
+		// Prevent these three top-level SA config keys from getting translated into their
 		// configsource equivalent. We need monitors expanded/inlined so we can
-		// translate them, and apiURL is used to get the realm, then not used in the
-		// final otel config.
-		forcePaths: []string{"/monitors", "/apiUrl"},
+		// translate them, apiURL is used to get the realm, and globalDimensions is used
+		// to create a metricstransform processor.
+		forcePaths: []string{"/monitors", "/apiUrl", "/globalDimensions"},
 	})
+	return expanded.(map[interface{}]interface{}), err
 }
 
 func expand(in interface{}, wd string, yp yamlPath) (interface{}, bool, error) {
@@ -88,9 +89,8 @@ func expandMap(m map[interface{}]interface{}, wd string, yp yamlPath) (interface
 	return out, false, nil
 }
 
-// yamlPath keeps track of the current yaml path and stores forcePaths so
-// callers can check whether the current or parent path is marked as
-// force-expand.
+// yamlPath keeps track of the current yaml path and uses forcePaths
+// to determine whether to force expand a part of the config.
 type yamlPath struct {
 	curr       string
 	forcePaths []string

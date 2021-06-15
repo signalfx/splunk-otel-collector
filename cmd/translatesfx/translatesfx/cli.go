@@ -49,29 +49,20 @@ func paths(args []string) (cfgFname string, wd string) {
 // translateConfig takes a Smart Agent config file path and a working directory,
 // then prints a translated Otel configuration to stdout.
 func translateConfig(fname, wd string) {
-	bytes, err := os.ReadFile(fname)
+	orig, err := loadCfg(fname)
 	if err != nil {
-		log.Fatalf("error reading file %q: %v", fname, err)
+		log.Fatalf("error loading config %q: %v", fname, err)
 	}
-	var orig interface{}
-	err = yaml.UnmarshalStrict(bytes, &orig)
-	if err != nil {
-		log.Fatalf("error unmarshaling file %q: %v", fname, err)
-	}
-	saExpanded, _, err := expandSA(orig, wd)
+	saExpanded, err := expandSA(orig, wd)
 	if err != nil {
 		log.Fatalf("error expanding Smart Agent config: %v", err)
 	}
-	expandedMap, ok := saExpanded.(map[interface{}]interface{})
-	if !ok {
-		log.Fatalf("top-level yaml type is not a map: file %q", fname)
-	}
-	saInfo, err := saExpandedToCfgInfo(expandedMap)
+	saInfo, err := saExpandedToCfgInfo(saExpanded)
 	if err != nil {
 		log.Fatalf("error expanding config: %v", err)
 	}
 	oc := saInfoToOtelConfig(saInfo)
-	bytes, err = yaml.Marshal(oc)
+	bytes, err := yaml.Marshal(oc)
 	if err != nil {
 		log.Fatalf("error marshaling config: %v", err)
 	}
@@ -80,4 +71,14 @@ func translateConfig(fname, wd string) {
 # verify config before attempting to use in production.`
 	fmt.Println(header)
 	fmt.Println(string(bytes))
+}
+
+func loadCfg(fname string) (interface{}, error) {
+	bytes, err := os.ReadFile(fname)
+	if err != nil {
+		return nil, err
+	}
+	var orig interface{}
+	err = yaml.UnmarshalStrict(bytes, &orig)
+	return orig, err
 }

@@ -6,6 +6,10 @@ traceEndpointUrl: {"#from": 'testdata/trace_endpoint_url', default: "https://ing
 
 intervalSeconds: 10
 
+globalDimensions:
+  foo: bar
+  baz: glarch
+
 logging:
   level: info
 

@@ -44,6 +44,15 @@ func TestMonitorToReceiver(t *testing.T) {
 	assert.Equal(t, "vsphere", m["type"])
 }
 
+func testvSphereMonitorCfg() map[interface{}]interface{} {
+	return map[interface{}]interface{}{
+		"type":     "vsphere",
+		"host":     "localhost",
+		"username": "administrator",
+		"password": "abc123",
+	}
+}
+
 func TestAPIURLToRealm(t *testing.T) {
 	us1, _ := apiURLToRealm("https://api.us1.signalfx.com")
 	assert.Equal(t, "us1", us1)
@@ -52,11 +61,45 @@ func TestAPIURLToRealm(t *testing.T) {
 	assert.Equal(t, "us0", us0)
 }
 
-func testvSphereMonitorCfg() map[interface{}]interface{} {
-	return map[interface{}]interface{}{
-		"type":     "vsphere",
-		"host":     "localhost",
-		"username": "administrator",
-		"password": "abc123",
-	}
+func TestDimsToMTP(t *testing.T) {
+	block := dimsToMetricsTransformProcessor(map[interface{}]interface{}{
+		"aaa": "bbb",
+	})
+	transforms := block["transforms"].([]map[interface{}]interface{})
+	transform := transforms[0]
+	assert.Equal(t, ".*", transform["include"])
+	assert.Equal(t, "regexp", transform["match_type"])
+	assert.Equal(t, "update", transform["action"])
+	ops := transform["operations"].([]map[interface{}]interface{})
+	assert.Equal(t, 1, len(ops))
+	assert.Equal(t, map[interface{}]interface{}{
+		"action":    "add_label",
+		"new_label": "aaa",
+		"new_value": "bbb",
+	}, ops[0])
+}
+
+func TestMetricsTransform_NoGlobalDims(t *testing.T) {
+	cfg := fromYAML(t, "testdata/sa-simple.yaml")
+	expanded, err := expandSA(cfg, "")
+	require.NoError(t, err)
+	info, err := saExpandedToCfgInfo(expanded)
+	require.NoError(t, err)
+	oc := saInfoToOtelConfig(info)
+	_, ok := oc.Processors["metricstransform"]
+	assert.False(t, ok)
+}
+
+func TestMetricsTransform_GlobalDims(t *testing.T) {
+	cfg := fromYAML(t, "testdata/sa-complex.yaml")
+	expanded, err := expandSA(cfg, "")
+	require.NoError(t, err)
+	info, err := saExpandedToCfgInfo(expanded)
+	require.NoError(t, err)
+	oc := saInfoToOtelConfig(info)
+	_, ok := oc.Processors["metricstransform"]
+	assert.True(t, ok)
+	pipelines := oc.Service["pipelines"].(map[string]interface{})
+	metrics := pipelines["metrics"].(rpe)
+	assert.NotNil(t, metrics.Processors)
 }

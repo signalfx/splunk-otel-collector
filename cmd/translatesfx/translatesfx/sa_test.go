@@ -15,7 +15,6 @@
 package translatesfx
 
 import (
-	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -95,16 +94,11 @@ func TestExpandSA_FlattenMap(t *testing.T) {
 }
 
 func TestExpandSA_Complex(t *testing.T) {
-	yml, err := ioutil.ReadFile("testdata/sa-complex.yaml")
+	v := fromYAML(t, "testdata/sa-complex.yaml")
+	expanded, err := expandSA(v, "")
 	require.NoError(t, err)
-	var v interface{}
-	err = yaml.UnmarshalStrict(yml, &v)
-	require.NoError(t, err)
-	expanded, _, err := expandSA(v, "")
-	require.NoError(t, err)
-	m := expanded.(map[interface{}]interface{})
-	assert.Equal(t, "https://api.us1.signalfx.com", m["apiUrl"])
-	monitors := m["monitors"].([]interface{})
+	assert.Equal(t, "https://api.us1.signalfx.com", expanded["apiUrl"])
+	monitors := expanded["monitors"].([]interface{})
 	cpuFound, loadFound := false, false
 	for _, monitor := range monitors {
 		monMap := monitor.(map[interface{}]interface{})
@@ -120,15 +114,10 @@ func TestExpandSA_Complex(t *testing.T) {
 }
 
 func TestMultiMonitors(t *testing.T) {
-	yml, err := ioutil.ReadFile("testdata/sa-multimonitors.yaml")
+	v := fromYAML(t, "testdata/sa-multimonitors.yaml")
+	expanded, err := expandSA(v, "")
 	require.NoError(t, err)
-	var v interface{}
-	err = yaml.UnmarshalStrict(yml, &v)
-	require.NoError(t, err)
-	expanded, _, err := expandSA(v, "")
-	require.NoError(t, err)
-	m := expanded.(map[interface{}]interface{})
-	assert.Equal(t, 2, len(m["monitors"].([]interface{})))
+	assert.Equal(t, 2, len(expanded["monitors"].([]interface{})))
 }
 
 func TestYamlPath(t *testing.T) {

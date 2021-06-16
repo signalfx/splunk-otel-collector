@@ -103,3 +103,39 @@ func TestMetricsTransform_GlobalDims(t *testing.T) {
 	metrics := pipelines["metrics"].(rpe)
 	assert.NotNil(t, metrics.Processors)
 }
+
+func TestMetricsTransform_CollectD(t *testing.T) {
+	cfg := fromYAML(t, "testdata/sa-collectd.yaml")
+	expanded, err := expandSA(cfg, "")
+	require.NoError(t, err)
+	info, err := saExpandedToCfgInfo(expanded)
+	require.NoError(t, err)
+	oc := saInfoToOtelConfig(info)
+	v, ok := oc.Extensions["smartagent"]
+	require.True(t, ok)
+	saExt, ok := v.(map[string]interface{})
+	require.True(t, ok)
+	assert.Equal(t, 7, len(saExt))
+	v = saExt["collectd"]
+	collectd, ok := v.(map[interface{}]interface{})
+	require.True(t, ok)
+	assert.Equal(t, 4, len(collectd))
+	v = oc.Service["extensions"]
+	serviceExt, ok := v.([]string)
+	require.True(t, ok)
+	assert.Equal(t, 1, len(serviceExt))
+}
+
+func TestMetricsTransform_DeleteDiscoverRules(t *testing.T) {
+	cfg := fromYAML(t, "testdata/sa-discoveryrules.yaml")
+	expanded, err := expandSA(cfg, "")
+	require.NoError(t, err)
+	info, err := saExpandedToCfgInfo(expanded)
+	require.NoError(t, err)
+	oc := saInfoToOtelConfig(info)
+	for k, v := range oc.Receivers {
+		receiver := v.(map[interface{}]interface{})
+		_, found := receiver["discoveryRule"]
+		assert.False(t, found, "discoveryRule not deleted for %s", k)
+	}
+}

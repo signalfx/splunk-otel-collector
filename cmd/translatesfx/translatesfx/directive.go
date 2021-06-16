@@ -218,6 +218,13 @@ func (d directive) expandFiles() (interface{}, error) {
 	return merge(items)
 }
 
+func resolvePath(path, wd string) string {
+	if path[:1] == string(os.PathSeparator) {
+		return path
+	}
+	return filepath.Join(wd, path)
+}
+
 func unmarshal(path string) (interface{}, error) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {

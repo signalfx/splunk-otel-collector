@@ -2,7 +2,7 @@
 
 Splunk OpenTelemetry Connector provides a single binary and two deployment
 modes as outlined in the [architecture](architecture.md). The recommended
-[getting started](../#getting-started) installation steps cover deploying in
+[getting started](https://github.com/signalfx/splunk-otel-collector#getting-started) installation steps cover deploying in
 either mode and come with a [default
 configuration](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/otelcol/config/collector).
 

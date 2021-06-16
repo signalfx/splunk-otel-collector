@@ -15,6 +15,7 @@
 package translatesfx
 
 type otelCfg struct {
+	Extensions    map[string]interface{} `yaml:",omitempty"`
 	ConfigSources map[string]interface{} `yaml:"config_sources"`
 	Receivers     map[string]interface{}
 	Processors    map[string]interface{}
@@ -54,6 +55,10 @@ func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 			"metrics": rpe,
 		},
 	}
+	if len(cfg.saExtension) > 0 {
+		out.Extensions = cfg.saExtension
+		out.Service["extensions"] = []string{"smartagent"}
+	}
 	return out
 }
 
@@ -74,6 +79,8 @@ func receiverList(receivers map[string]interface{}) []string {
 }
 
 func saMonitorToOtelReceiver(monitor map[interface{}]interface{}) map[interface{}]interface{} {
+	// TODO translate discovery rule (delete for now)
+	delete(monitor, "discoveryRule")
 	return map[interface{}]interface{}{
 		"smartagent/" + monitor["type"].(string): monitor,
 	}

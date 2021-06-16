@@ -17,13 +17,12 @@ package translatesfx
 import (
 	"fmt"
 	"net/url"
-	"os"
-	"path/filepath"
 	"strings"
 )
 
 type saCfgInfo struct {
 	globalDims  map[interface{}]interface{}
+	saExtension map[string]interface{}
 	accessToken string
 	realm       string
 	monitors    []interface{}
@@ -34,23 +33,13 @@ func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) (saCfgInfo, err
 	if err != nil {
 		return saCfgInfo{}, err
 	}
-	var globalDims map[interface{}]interface{}
-	if gd, ok := saExpanded["globalDimensions"]; ok {
-		globalDims = gd.(map[interface{}]interface{})
-	}
 	return saCfgInfo{
 		accessToken: saExpanded["signalFxAccessToken"].(string),
 		realm:       realm,
 		monitors:    saExpanded["monitors"].([]interface{}),
-		globalDims:  globalDims,
+		globalDims:  globalDims(saExpanded),
+		saExtension: saExtension(saExpanded),
 	}, nil
-}
-
-func resolvePath(path, wd string) string {
-	if path[:1] == string(os.PathSeparator) {
-		return path
-	}
-	return filepath.Join(wd, path)
 }
 
 func apiURLToRealm(apiURL string) (string, error) {
@@ -67,4 +56,36 @@ func apiURLToRealm(apiURL string) (string, error) {
 	parts := strings.Split(u.Host, ".")
 	realm := parts[1]
 	return realm, nil
+}
+
+func globalDims(saExpanded map[interface{}]interface{}) map[interface{}]interface{} {
+	var out map[interface{}]interface{}
+	if gd, ok := saExpanded["globalDimensions"]; ok {
+		out = gd.(map[interface{}]interface{})
+	}
+	return out
+}
+
+func saExtension(saExpanded map[interface{}]interface{}) map[string]interface{} {
+	keys := []string{
+		"bundleDir",
+		"procPath",
+		"etcPath",
+		"varPath",
+		"runPath",
+		"sysPath",
+		"collectd",
+	}
+	extensionAttrs := map[string]interface{}{}
+	for _, key := range keys {
+		if v, ok := saExpanded[key]; ok {
+			extensionAttrs[key] = v
+		}
+	}
+	if len(extensionAttrs) == 0 {
+		return nil
+	}
+	return map[string]interface{}{
+		"smartagent": extensionAttrs,
+	}
 }

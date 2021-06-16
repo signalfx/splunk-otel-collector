@@ -55,6 +55,7 @@ compile:
     variables:
       - $CI_COMMIT_BRANCH == "main"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  retry: 2
   script:
     - |
       set -ex
@@ -108,6 +109,7 @@ build-image:
       - $CI_COMMIT_BRANCH == "main"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   stage: package
+  retry: 2
   script:
     - make docker-otelcol SKIP_COMPILE=true
   after_script:

@@ -18,7 +18,7 @@ type otelCfg struct {
 	Extensions    map[string]interface{} `yaml:",omitempty"`
 	ConfigSources map[string]interface{} `yaml:"config_sources"`
 	Receivers     map[string]interface{}
-	Processors    map[string]interface{}
+	Processors    map[string]interface{} `yaml:",omitempty"`
 	Exporters     map[string]interface{}
 	Service       map[string]interface{}
 }
@@ -66,7 +66,7 @@ func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 // deterministic ordering.
 type rpe struct {
 	Receivers  []string
-	Processors []string
+	Processors []string `yaml:",omitempty"`
 	Exporters  []string
 }
 

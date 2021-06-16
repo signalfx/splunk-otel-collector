@@ -26,7 +26,3 @@ rake-spec: dev-image
 		--rm \
 		splunk-otel-connector-puppet-dev \
 		rake spec
-
-.PHONY: release
-release:
-	./release

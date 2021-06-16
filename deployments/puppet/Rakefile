@@ -1,5 +1,6 @@
 require 'rspec'
 require 'rspec-puppet/rake_task'
+require 'puppet_blacksmith/rake_tasks'
 require 'puppetlabs_spec_helper/rake_tasks'
 
 begin

@@ -1,0 +1,54 @@
+name: Puppet
+
+# This workflow is triggered by any change in deployments/puppet/metadata.json of the main branch.
+# The 'version' property is read from this file, and a new 'puppet-v<VERSION>' tag is pushed if it does not already exist.
+
+on:
+  push:
+    paths:
+      - 'deployments/puppet/metadata.json'
+
+permissions:
+  contents: write
+
+jobs:
+  push-release-tag:
+    name: Push Release Tag
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Read version from metadata.json
+        id: read-metadata-json
+        uses: notiz-dev/github-action-json-property@release
+        with:
+          path: deployments/puppet/metadata.json
+          prop_path: version
+
+      - name: Ensure version is read from metadata.json
+        if: steps.read-metadata-json.outputs.prop == ''
+        run: echo "Fail to read version from metadata.json" && exit 1
+
+      - name: Push new release tag if it doesn't exist
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+              const tagRef = "tags/puppet-v${{ steps.read-metadata-json.outputs.prop }}"
+              const existingRefs = await github.git.listMatchingRefs({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: tagRef
+              })
+              if (existingRefs.data.length === 0) {
+                await github.git.createRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: "refs/" + tagRef,
+                  sha: context.sha
+                })
+              } else {
+                console.log(tagRef + " already exists")
+              }

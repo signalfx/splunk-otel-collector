@@ -1,11 +1,29 @@
 # Release Process
 
-To release a new version of the module, run `./release` in this directory.  You
-will need access to the SignalFx account on the Puppet Forge website, and the
-release script will give you instructions for what to do there.
+## Prerequisites
 
-You should update the version in `metadata.json` to whatever is most appropriate
-for semver and have that committed before running `./release`.
+1. You must be able to sign git commits/tags. Follow [this guide](
+   https://docs.github.com/en/github/authenticating-to-github/signing-commits)
+   to set it up.
+1. You must have access to the `o11y-gdi/splunk-otel-collector-releaser` gitlab
+   repo and CI/CD pipeline.
 
-The release script will try to make and push an annotated tag of the form
-`puppet-vX.Y.Z` where `X.Y.Z` is the version in the `./metadata.json` file.
+## Steps
+
+1. Ensure that the version in [metadata.json](./metadata.json) has been updated
+   to an appropriate semver.  If necessary, create a PR with this change and
+   wait for it to be approved and merged.
+1. Check [Github Actions](
+   https://github.com/signalfx/splunk-otel-collector/actions/workflows/puppet.yml)
+   and ensure that the workflow completed successfully.  A new
+   `puppet-v<VERSION>` tag should be pushed, where `VERSION` is the version
+   from [metadata.json](./metadata.json).
+1. Wait for the gitlab repo to be synced with the new tag (may take up to 30
+   minutes; if you have permissions, you can trigger the sync immediately from
+   repo settings in gitlab).  The CI/CD pipeline will then trigger
+   automatically for the new tag.
+1. Check the gitlab CI/CD pipeline and ensure that the `puppet-release` job
+   completes successfully.
+1. Check [https://forge.puppet.com/modules/signalfx/splunk_otel_collector](
+   https://forge.puppet.com/modules/signalfx/splunk_otel_collector) and ensure
+   that the release was published successfully.

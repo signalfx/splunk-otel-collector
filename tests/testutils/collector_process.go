@@ -43,7 +43,7 @@ type CollectorProcess struct {
 
 // To be used as a builder whose Build() method provides the actual instance capable of launching the process.
 func NewCollectorProcess() CollectorProcess {
-	return CollectorProcess{}
+	return CollectorProcess{Env: map[string]string{}}
 }
 
 // Nearest `bin/otelcol` by default
@@ -66,7 +66,9 @@ func (collector CollectorProcess) WithArgs(args ...string) Collector {
 
 // empty by default
 func (collector CollectorProcess) WithEnv(env map[string]string) Collector {
-	collector.Env = env
+	for k, v := range env {
+		collector.Env[k] = v
+	}
 	return &collector
 }
 

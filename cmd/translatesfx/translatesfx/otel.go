@@ -14,6 +14,8 @@
 
 package translatesfx
 
+import "sort"
+
 type otelCfg struct {
 	Extensions    map[string]interface{} `yaml:",omitempty"`
 	ConfigSources map[string]interface{} `yaml:"config_sources"`
@@ -107,11 +109,17 @@ func dimsToMetricsTransformProcessor(m map[interface{}]interface{}) map[interfac
 }
 
 func mtOperations(m map[interface{}]interface{}) (out []map[interface{}]interface{}) {
-	for k, v := range m {
+	var keys []string
+	for k := range m {
+		keys = append(keys, k.(string))
+	}
+	// sorted for easier testing
+	sort.Strings(keys)
+	for _, k := range keys {
 		out = append(out, map[interface{}]interface{}{
 			"action":    "add_label",
 			"new_label": k,
-			"new_value": v,
+			"new_value": m[k],
 		})
 	}
 	return

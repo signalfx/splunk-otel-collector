@@ -1,0 +1,13 @@
+signalFxAccessToken: {"#from": "token"}
+ingestUrl: https://ingest.us1.signalfx.com
+apiUrl: https://api.us1.signalfx.com
+
+bundleDir: /usr/lib/signalfx-agent
+
+collectd:
+  configDir: "/var/run/signalfx-agent"
+
+monitors:
+  - type: collectd/redis
+    host: localhost
+    port: 6379

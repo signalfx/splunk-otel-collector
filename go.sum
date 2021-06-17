@@ -413,8 +413,9 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-xdr v0.0.0-20161123171359-e6a2ba005892/go.mod h1:CTDl0pzVzE5DEzZhPfvhY/9sPFMQIxaJ9VAMs9AagrE=
 github.com/denis-tingajkin/go-header v0.4.2/go.mod h1:eLRHAVXzE5atsKAnNRDB90WHCFFnBUn4RN0nRcs1LJA=
-github.com/denisenkom/go-mssqldb v0.0.0-20200428022330-06a60b6afbbc h1:VRRKCwnzqk8QCaRC4os14xoKDdbHqqlJtJA0oc1ZAjg=
 github.com/denisenkom/go-mssqldb v0.0.0-20200428022330-06a60b6afbbc/go.mod h1:xbL0rPBG9cCiLr28tMa8zpbdarY27NDyej4t/EjAShU=
+github.com/denisenkom/go-mssqldb v0.10.0 h1:QykgLZBorFE95+gO3u9esLd0BmbvpWp0/waNNZfHBM8=
+github.com/denisenkom/go-mssqldb v0.10.0/go.mod h1:xbL0rPBG9cCiLr28tMa8zpbdarY27NDyej4t/EjAShU=
 github.com/denverdino/aliyungo v0.0.0-20170926055100-d3308649c661 h1:lrWnAyy/F72MbxIxFUzKmcMCdt9Oi8RzpAxzTNQHD7o=
 github.com/denverdino/aliyungo v0.0.0-20170926055100-d3308649c661/go.mod h1:dV8lFg6daOBZbT6/BDGIz6Y3WFGn8juu6G+CQ6LHtl0=
 github.com/dgraph-io/badger v1.6.2/go.mod h1:JW2yswe3V058sS0kZ2h/AXeDSqFjxnZcRrVH//y2UQE=
@@ -1921,10 +1922,10 @@ github.com/signalfx/ondiskencoding v0.0.0-20191121154813-762ffb677f8e/go.mod h1:
 github.com/signalfx/sapm-proto v0.4.0/go.mod h1:x3gtwJ1GRejtkghB4nYpwixh2zqJrLbPU959ZNhM0Fk=
 github.com/signalfx/sapm-proto v0.7.0 h1:u6MErnxMDK5WQgOfPEMcS7gti5DQJKppAmAml8jJYbo=
 github.com/signalfx/sapm-proto v0.7.0/go.mod h1:y4b+wJlBKH7AzdastAgdWHrfMBB/QYN+u+20SEA94C4=
-github.com/signalfx/signalfx-agent v1.0.1-0.20210610210307-b3be6d1b7fa1 h1:cD/mb3MG2GeZPfcNfpnPTMiAQKFv0lVaA3oLtsD3M3Q=
-github.com/signalfx/signalfx-agent v1.0.1-0.20210610210307-b3be6d1b7fa1/go.mod h1:++nXxEmkYxdmxw33t2JhYH6OA3objGxrGxOnwYm/ASg=
-github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210503202607-8862b3ba9c0d h1:6mbgmrauJ/5PQUm4KdOpvxZQk49eqsaepkEYK62eA9Y=
-github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210503202607-8862b3ba9c0d/go.mod h1:kIpt0GcJgz1TchUlROxluJIm6upRXt8diVqaf/Zf2o0=
+github.com/signalfx/signalfx-agent v1.0.1-0.20210617144543-be16994eef6b h1:RmeX23yI6zXBks81zqoVeobUDraCr0khEBiW79yg9ig=
+github.com/signalfx/signalfx-agent v1.0.1-0.20210617144543-be16994eef6b/go.mod h1:hquZcJTXX505btU7j1yKTGH3Vbv+5h4btOQ0HZ/Hi0I=
+github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210617144543-be16994eef6b h1:MnsPJpWGJTTPaw4x+QieKWSSHY1D6R9iXbUqdER+Hnw=
+github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210617144543-be16994eef6b/go.mod h1:kIpt0GcJgz1TchUlROxluJIm6upRXt8diVqaf/Zf2o0=
 github.com/signalfx/signalfx-go v1.6.38-0.20200518153434-ceee8d2570d5 h1:+tu30Q5SkbYMBmI3sgDJTB9M1/Ga8z0V0LGDVY1D99g=
 github.com/signalfx/signalfx-go v1.6.38-0.20200518153434-ceee8d2570d5/go.mod h1:CeCGXKT2wqqky0Nz8eV0NH/CpMPE7tzYUcV8eQS1U1s=
 github.com/signalfx/signalfx-go-tracing v1.2.0/go.mod h1:JoTkkhSBe42ns9/AsvtqX7lLiiS6YwE0Q7J0DZFzt00=

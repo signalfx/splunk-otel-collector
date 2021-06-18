@@ -2,7 +2,11 @@
 
 ## Unreleased
 
+## v0.28.1
+
 - Update bundled Smart Agent to [v5.11.0](https://github.com/signalfx/signalfx-agent/releases/tag/v5.11.0) (#487)
+- Document APM infra correlation (#458)
+- Alpha translatesfx feature additions.
 
 ## v0.28.0
 

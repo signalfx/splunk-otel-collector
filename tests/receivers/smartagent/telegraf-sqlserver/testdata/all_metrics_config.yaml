@@ -1,0 +1,21 @@
+receivers:
+  smartagent/sqlserver:
+    type: telegraf/sqlserver
+    host: localhost
+    port: 1433
+    userID: signalfxagent
+    password: Password!
+    extraMetrics: ["*"]
+    intervalSeconds: 1
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/sqlserver
+      exporters: [otlp]

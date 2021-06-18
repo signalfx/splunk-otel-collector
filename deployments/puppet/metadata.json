@@ -1,6 +1,6 @@
 {
   "name": "signalfx-splunk_otel_collector",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Splunk, Inc.",
   "summary": "This module installs the Splunk OpenTelemetry Connector via distro packages and configures it.",
   "license": "Apache-2.0",
@@ -15,6 +15,14 @@
     {
       "name": "puppet/yum",
       "version_requirement": "<= 4.3.0"
+    },
+    {
+      "name": "puppetlabs/powershell",
+      "version_requirement": "<= 5.0.0"
+    },
+    {
+      "name": "puppetlabs/registry",
+      "version_requirement": "<= 4.0.0"
     }
   ],
   "operatingsystem_support": [
@@ -53,6 +61,14 @@
         "16.04",
         "18.04",
         "20.04"
+      ]
+    },
+    {
+      "operatingsystem": "Windows",
+      "operatingsystemrelease": [
+        "2012",
+        "2016",
+        "2019"
       ]
     }
   ],

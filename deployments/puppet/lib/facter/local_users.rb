@@ -2,6 +2,7 @@
 # and returns the collection as a comma-separated list.
 
 Facter.add(:local_users) do
+  confine :kernel => 'Linux'
   setcode do
     users = Array.new
     if File.exists?("/etc/passwd")

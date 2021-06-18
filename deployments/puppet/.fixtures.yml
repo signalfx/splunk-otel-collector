@@ -9,3 +9,9 @@ fixtures:
     yum:
       repo: "puppet/yum"
       ref: "4.3.0"
+    powershell:
+      repo: "puppetlabs/powershell"
+      ref: "5.0.0"
+    registry:
+      repo: "puppetlabs/registry"
+      ref: "4.0.0"

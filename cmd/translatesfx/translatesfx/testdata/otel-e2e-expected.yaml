@@ -7,6 +7,19 @@ extensions:
       configDir: /var/run/signalfx-agent
 config_sources:
   include: null
+processors:
+  metricstransform:
+    transforms:
+      - include: .*
+        match_type: regexp
+        action: update
+        operations:
+          - action: add_label
+            new_label: aaa
+            new_value: 42
+          - action: add_label
+            new_label: bbb
+            new_value: 111
 receivers:
   smartagent/collectd/redis:
     host: localhost
@@ -18,10 +31,12 @@ exporters:
     realm: us1
 service:
   extensions:
-  - smartagent
+    - smartagent
   pipelines:
     metrics:
       receivers:
-      - smartagent/collectd/redis
+        - smartagent/collectd/redis
+      processors:
+        - metricstransform
       exporters:
-      - signalfx
+        - signalfx

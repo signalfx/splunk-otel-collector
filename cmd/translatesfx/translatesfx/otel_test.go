@@ -15,6 +15,7 @@
 package translatesfx
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -61,9 +62,24 @@ func TestAPIURLToRealm(t *testing.T) {
 	assert.Equal(t, "us0", us0)
 }
 
+func TestMTOperations(t *testing.T) {
+	ops := mtOperations(map[interface{}]interface{}{
+		"d": "3",
+		"c": "2",
+		"b": "1",
+		"a": "0",
+	})
+	a := []string{"a", "b", "c", "d"}
+	for i, op := range ops {
+		assert.Equal(t, strconv.Itoa(i), op["new_value"])
+		assert.Equal(t, a[i], op["new_label"])
+	}
+}
+
 func TestDimsToMTP(t *testing.T) {
 	block := dimsToMetricsTransformProcessor(map[interface{}]interface{}{
 		"aaa": "bbb",
+		"ccc": "ddd",
 	})
 	transforms := block["transforms"].([]map[interface{}]interface{})
 	transform := transforms[0]
@@ -71,12 +87,17 @@ func TestDimsToMTP(t *testing.T) {
 	assert.Equal(t, "regexp", transform["match_type"])
 	assert.Equal(t, "update", transform["action"])
 	ops := transform["operations"].([]map[interface{}]interface{})
-	assert.Equal(t, 1, len(ops))
+	assert.Equal(t, 2, len(ops))
 	assert.Equal(t, map[interface{}]interface{}{
 		"action":    "add_label",
 		"new_label": "aaa",
 		"new_value": "bbb",
 	}, ops[0])
+	assert.Equal(t, map[interface{}]interface{}{
+		"action":    "add_label",
+		"new_label": "ccc",
+		"new_value": "ddd",
+	}, ops[1])
 }
 
 func TestMetricsTransform_NoGlobalDims(t *testing.T) {

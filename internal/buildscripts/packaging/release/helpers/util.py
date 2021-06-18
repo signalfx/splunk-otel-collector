@@ -14,8 +14,10 @@
 
 import hashlib
 import os
+import random
 import re
 import shutil
+import string
 import sys
 import tempfile
 import time
@@ -261,7 +263,9 @@ def sign_file(src, dest, sign_type, src_user=None, src_token=None, timeout=DEFAU
     assert sign_type.upper() in SIGN_TYPES, f"sign type '{sign_type}' not supported"
 
     base = os.path.basename(src)
-    staged_artifact_url = f"{STAGING_REPO_URL}/{base}"
+    subdir = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+    staged_artifact_dir = f"{STAGING_REPO_URL}/{subdir}"
+    staged_artifact_url = f"{staged_artifact_dir}/{base}"
 
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -280,7 +284,7 @@ def sign_file(src, dest, sign_type, src_user=None, src_token=None, timeout=DEFAU
         download_file(signed_artifact_url, dest, staging_user, staging_token)
     finally:
         if artifactory_file_exists(staged_artifact_url, staging_user, staging_token):
-            delete_artifactory_file(staged_artifact_url, staging_user, staging_token)
+            delete_artifactory_file(staged_artifact_dir, staging_user, staging_token)
 
 
 def sign_artifactory_metadata(src, artifactory_user, artifactory_token, timeout=DEFAULT_TIMEOUT, **signing_args):

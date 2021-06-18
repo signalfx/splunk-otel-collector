@@ -338,6 +338,7 @@ jobs:
       - install_pytest
       - run:
           name: Test installer script
+          no_output_timeout: 30m
           command: |
             [[ "$SKIP_TESTS" = "yes" ]] && exit 0
             mkdir -p ~/testresults
@@ -420,6 +421,7 @@ jobs:
       - install_pytest
       - run:
           name: Test puppet module
+          no_output_timeout: 30m
           command: |
             [[ "$SKIP_TESTS" = "yes" ]] && exit 0
             mkdir -p ~/testresults

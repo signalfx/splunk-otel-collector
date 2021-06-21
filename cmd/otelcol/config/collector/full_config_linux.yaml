@@ -554,7 +554,7 @@ service:
   pipelines:
     traces:
       receivers: [jaeger, otlp, sapm, smartagent/signalfx-forwarder, zipkin]
-      processors: 
+      processors:
       - memory_limiter
       - batch
       #- resource/add_environment
@@ -567,7 +567,11 @@ service:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection/internal]
       exporters: [signalfx]
-    logs:
+    logs/signalfx:
       receivers: [signalfx]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
+    logs:
+      receivers: [fluentforward, otlp]
+      processors: [memory_limiter, batch]
+      exporters: [splunk_hec]

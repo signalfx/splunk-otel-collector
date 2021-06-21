@@ -35,12 +35,13 @@ import (
 )
 
 const (
-	ballastEnvVarName     = "SPLUNK_BALLAST_SIZE_MIB"
-	configEnvVarName      = "SPLUNK_CONFIG"
-	memLimitMiBEnvVarName = "SPLUNK_MEMORY_LIMIT_MIB"
-	memTotalEnvVarName    = "SPLUNK_MEMORY_TOTAL_MIB"
-	realmEnvVarName       = "SPLUNK_REALM"
-	tokenEnvVarName       = "SPLUNK_ACCESS_TOKEN"
+	ballastEnvVarName          = "SPLUNK_BALLAST_SIZE_MIB"
+	configEnvVarName           = "SPLUNK_CONFIG"
+	configServerEnabledEnvVar = "SPLUNK_DEBUG_CONFIG_SERVER"
+	memLimitMiBEnvVarName      = "SPLUNK_MEMORY_LIMIT_MIB"
+	memTotalEnvVarName         = "SPLUNK_MEMORY_TOTAL_MIB"
+	realmEnvVarName            = "SPLUNK_REALM"
+	tokenEnvVarName            = "SPLUNK_ACCESS_TOKEN"
 
 	defaultDockerSAPMConfig        = "/etc/otel/collector/gateway_config.yaml"
 	defaultDockerOTLPConfig        = "/etc/otel/collector/otlp_config_linux.yaml"
@@ -60,6 +61,10 @@ func main() {
 	if !contains(args, "-h") && !contains(args, "--help") {
 		checkRuntimeParams()
 	}
+
+	// Allow dumping configuration locally by default
+	// Used by support bundle script
+	os.Setenv(configServerEnabledEnvVar, "true")
 
 	factories, err := components.Get()
 	if err != nil {

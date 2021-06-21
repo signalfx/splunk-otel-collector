@@ -122,6 +122,15 @@ getConfig() {
         echo "       Run this script with a user who has permissions to this directory."
         exit 1
     fi
+    # Also need to get config in memory as dynamic config may modify stored config
+    # It's possible user has disabled collecting in memory config
+    if timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/55555'; then
+        curl -s http://localhost:55555/debug/configz/initial >"$TMPDIR"/config/initial.yaml 2>&1
+        curl -s http://localhost:55555/debug/configz/effective >"$TMPDIR"/config/effective.yaml 2>&1
+    else
+        echo "WARN: localhost:55555 unavailable so in memory configuration not collected"
+    fi
+
 }
 
 #######################################

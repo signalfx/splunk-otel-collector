@@ -8,6 +8,10 @@ extensions:
 config_sources:
   include: null
 processors:
+  resourcedetection:
+    detectors:
+      - system
+      - env
   metricstransform:
     transforms:
       - include: .*
@@ -37,6 +41,7 @@ service:
       receivers:
         - smartagent/collectd/redis
       processors:
+        - resourcedetection
         - metricstransform
       exporters:
         - signalfx

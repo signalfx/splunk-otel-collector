@@ -33,28 +33,33 @@ func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 			receivers[k.(string)] = v
 		}
 	}
+	const rd = "resourcedetection"
 	out := otelCfg{
 		ConfigSources: map[string]interface{}{
 			// TODO check if should be nil
 			"include": nil,
 		},
 		Receivers: receivers,
+		Processors: map[string]interface{}{
+			rd: map[string]interface{}{
+				"detectors": []string{"system", "env"},
+			},
+		},
 		Exporters: sfxExporter(cfg.accessToken, cfg.realm),
 	}
-	rpe := rpe{
-		Receivers: receiverList(receivers),
-		Exporters: []string{"signalfx"},
+	metricsPipeline := rpe{
+		Receivers:  receiverList(receivers),
+		Processors: []string{rd},
+		Exporters:  []string{"signalfx"},
 	}
 	if cfg.globalDims != nil {
 		const mt = "metricstransform"
-		out.Processors = map[string]interface{}{
-			mt: dimsToMetricsTransformProcessor(cfg.globalDims),
-		}
-		rpe.Processors = []string{mt}
+		out.Processors[mt] = dimsToMetricsTransformProcessor(cfg.globalDims)
+		metricsPipeline.Processors = append(metricsPipeline.Processors, mt)
 	}
 	out.Service = map[string]interface{}{
 		"pipelines": map[string]interface{}{
-			"metrics": rpe,
+			"metrics": metricsPipeline,
 		},
 	}
 	if len(cfg.saExtension) > 0 {

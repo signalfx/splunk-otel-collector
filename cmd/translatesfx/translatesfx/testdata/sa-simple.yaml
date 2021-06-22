@@ -1,8 +1,6 @@
 ---
 signalFxAccessToken: "abc123"
-ingestUrl: "https://ingest.lab0.signalfx.com"
-apiUrl: "https://api.signalfx.com"
-traceEndpointUrl: "https://ingest.signalfx.com/v2/trace"
+signalFxRealm: us1
 
 intervalSeconds: 10
 

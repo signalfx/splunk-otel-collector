@@ -30,6 +30,9 @@ End-to-end architecture information is helpful including:
 In addition, it is important to gather support information including:
 
 - Configuration file
+  - Running OpenTelemetry Collector
+    - `http://localhost:55555/debug/configz/initial`
+    - `http://localhost:55555/debug/configz/effective`
   - Kubernetes: `kubectl get configmap my-configmap -o yaml >my-configmap.yaml`
   - Linux: `/etc/otel/collector`
 - Logs and ideally debug logs

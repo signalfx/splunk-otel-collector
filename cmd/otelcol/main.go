@@ -35,13 +35,13 @@ import (
 )
 
 const (
-	ballastEnvVarName          = "SPLUNK_BALLAST_SIZE_MIB"
-	configEnvVarName           = "SPLUNK_CONFIG"
+	ballastEnvVarName         = "SPLUNK_BALLAST_SIZE_MIB"
+	configEnvVarName          = "SPLUNK_CONFIG"
 	configServerEnabledEnvVar = "SPLUNK_DEBUG_CONFIG_SERVER"
-	memLimitMiBEnvVarName      = "SPLUNK_MEMORY_LIMIT_MIB"
-	memTotalEnvVarName         = "SPLUNK_MEMORY_TOTAL_MIB"
-	realmEnvVarName            = "SPLUNK_REALM"
-	tokenEnvVarName            = "SPLUNK_ACCESS_TOKEN"
+	memLimitMiBEnvVarName     = "SPLUNK_MEMORY_LIMIT_MIB"
+	memTotalEnvVarName        = "SPLUNK_MEMORY_TOTAL_MIB"
+	realmEnvVarName           = "SPLUNK_REALM"
+	tokenEnvVarName           = "SPLUNK_ACCESS_TOKEN"
 
 	defaultDockerSAPMConfig        = "/etc/otel/collector/gateway_config.yaml"
 	defaultDockerOTLPConfig        = "/etc/otel/collector/otlp_config_linux.yaml"

@@ -29,7 +29,7 @@ type saCfgInfo struct {
 }
 
 func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) (saCfgInfo, error) {
-	realm, err := apiURLToRealm(saExpanded["apiUrl"].(string))
+	realm, err := apiURLToRealm(saExpanded)
 	if err != nil {
 		return saCfgInfo{}, err
 	}
@@ -42,7 +42,21 @@ func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) (saCfgInfo, err
 	}, nil
 }
 
-func apiURLToRealm(apiURL string) (string, error) {
+func apiURLToRealm(saExpanded map[interface{}]interface{}) (string, error) {
+	if v, ok := saExpanded["signalFxRealm"]; ok {
+		if realm, ok := v.(string); ok {
+			return realm, nil
+		}
+		return "", fmt.Errorf("unexpected signalFxRealm type: %v", v)
+	}
+	v, ok := saExpanded["apiUrl"]
+	if !ok {
+		return "", fmt.Errorf("unable to get realm from SA config %v", saExpanded)
+	}
+	apiURL, ok := v.(string)
+	if !ok {
+		return "", fmt.Errorf("unexpected apiURL type: %v", v)
+	}
 	u, err := url.Parse(apiURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse apiURL %v: %v", apiURL, err)

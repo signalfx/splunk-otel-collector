@@ -55,11 +55,20 @@ func testvSphereMonitorCfg() map[interface{}]interface{} {
 }
 
 func TestAPIURLToRealm(t *testing.T) {
-	us1, _ := apiURLToRealm("https://api.us1.signalfx.com")
+	us0, _ := apiURLToRealm(map[interface{}]interface{}{
+		"apiUrl": "https://api.signalfx.com",
+	})
+	assert.Equal(t, "us0", us0)
+
+	us1, _ := apiURLToRealm(map[interface{}]interface{}{
+		"apiUrl": "https://api.us1.signalfx.com",
+	})
 	assert.Equal(t, "us1", us1)
 
-	us0, _ := apiURLToRealm("https://api.signalfx.com")
-	assert.Equal(t, "us0", us0)
+	us2, _ := apiURLToRealm(map[interface{}]interface{}{
+		"signalFxRealm": "us2",
+	})
+	assert.Equal(t, "us2", us2)
 }
 
 func TestMTOperations(t *testing.T) {

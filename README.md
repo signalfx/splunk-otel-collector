@@ -88,15 +88,21 @@ All you need to get started is:
 - [Splunk Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
 - [Agent or Gateway mode](docs/agent-vs-gateway.md)
-- [Double-check exposed ports](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md#exposed-endpoints) to make sure your environment doesn't have conflicts. Ports can be changed in the collector's configuration.
+- [Double-check exposed
+  ports](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md#exposed-endpoints)
+  to make sure your environment doesn't have conflicts. Ports can be changed in
+  the collector's configuration.
 
 This distribution is supported on and packaged for a variety of platforms including:
 
 - Kubernetes
   - [Helm (recommended)](https://github.com/signalfx/splunk-otel-collector-chart)
-  - [YAML](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/kubernetes-yaml.md)
+  - [YAML](https://github.com/signalfx/splunk-otel-collector-chart/tree/main/rendered)
 - Linux
   - [Installer script (recommended)](./docs/getting-started/linux-installer.md)
+  - Configuration management
+    - [Ansible](https://galaxy.ansible.com/signalfx/splunk_otel_collector)
+    - [Puppet](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)
   - [Manual](./docs/getting-started/linux-manual.md)
 - Windows
   - [Installer script (recommended)](./docs/getting-started/windows-installer.md)

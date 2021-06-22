@@ -1,15 +1,6 @@
-signalFxAccessToken: { "#from": "token" }
+signalFxAccessToken: vapQrnjY1zL_2b-NXJdQaA
 ingestUrl: https://ingest.us1.signalfx.com
 apiUrl: https://api.us1.signalfx.com
-
-bundleDir: /usr/lib/signalfx-agent
-
-globalDimensions:
-  aaa: 42
-  bbb: 111
-
-collectd:
-  configDir: "/var/run/signalfx-agent"
 
 monitors:
   - type: collectd/redis

@@ -27,44 +27,52 @@ type otelCfg struct {
 
 func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 	receivers := map[string]interface{}{}
-	for _, monitor := range cfg.monitors {
-		receiver := saMonitorToOtelReceiver(monitor.(map[interface{}]interface{}))
+	for _, v := range cfg.monitors {
+		monitor := v.(map[interface{}]interface{})
+		receiver := saMonitorToOtelReceiver(monitor)
 		for k, v := range receiver {
 			receivers[k.(string)] = v
 		}
 	}
-	const rd = "resourcedetection"
+	const resourceDetection = "resourcedetection"
 	out := otelCfg{
 		ConfigSources: map[string]interface{}{
-			// TODO check if should be nil
 			"include": nil,
 		},
 		Receivers: receivers,
 		Processors: map[string]interface{}{
-			rd: map[string]interface{}{
+			resourceDetection: map[string]interface{}{
 				"detectors": []string{"system", "env"},
 			},
 		},
 		Exporters: sfxExporter(cfg.accessToken, cfg.realm),
 	}
+	const sfx = "signalfx"
 	metricsPipeline := rpe{
 		Receivers:  receiverList(receivers),
-		Processors: []string{rd},
-		Exporters:  []string{"signalfx"},
+		Processors: []string{resourceDetection},
+		Exporters:  []string{sfx},
 	}
 	if cfg.globalDims != nil {
-		const mt = "metricstransform"
-		out.Processors[mt] = dimsToMetricsTransformProcessor(cfg.globalDims)
-		metricsPipeline.Processors = append(metricsPipeline.Processors, mt)
+		const metricsTransform = "metricstransform"
+		out.Processors[metricsTransform] = dimsToMetricsTransformProcessor(cfg.globalDims)
+		metricsPipeline.Processors = append(metricsPipeline.Processors, metricsTransform)
 	}
+	pipelines := map[string]interface{}{"metrics": metricsPipeline}
 	out.Service = map[string]interface{}{
-		"pipelines": map[string]interface{}{
-			"metrics": metricsPipeline,
-		},
+		"pipelines": pipelines,
 	}
 	if len(cfg.saExtension) > 0 {
 		out.Extensions = cfg.saExtension
 		out.Service["extensions"] = []string{"smartagent"}
+	}
+	const sfxFwder = "smartagent/signalfx-forwarder"
+	if _, ok := receivers[sfxFwder]; ok {
+		pipelines["traces"] = rpe{
+			Receivers:  []string{sfxFwder},
+			Processors: []string{resourceDetection},
+			Exporters:  []string{sfx},
+		}
 	}
 	return out
 }

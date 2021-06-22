@@ -10,6 +10,10 @@ extensions:
     collectd:
       configDir: /var/run/signalfx-agent
 processors:
+  resourcedetection:
+    detectors:
+      - system
+      - env
   metricstransform:
     transforms:
       - action: update

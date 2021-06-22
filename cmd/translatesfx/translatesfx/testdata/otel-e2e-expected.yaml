@@ -13,6 +13,10 @@ extensions:
     auth_type: serviceAccount
     node: ${K8S_NODE_NAME}
 processors:
+  resourcedetection:
+    detectors:
+      - system
+      - env
   metricstransform:
     transforms:
       - action: update

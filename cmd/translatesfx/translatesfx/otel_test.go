@@ -181,7 +181,7 @@ func TestInfoToOtelConfig_ResourceDetectionProcessor(t *testing.T) {
 	v := oc.Processors["resourcedetection"]
 	rdProc := v.(map[string]interface{})
 	assert.Equal(t, map[string]interface{}{
-		"detectors": []string{"system", "env"},
+		"detectors": []string{"system", "env", "gce", "ecs", "ec2", "azure"},
 	}, rdProc)
 	v = oc.Service["pipelines"]
 	pipelines := v.(map[string]interface{})

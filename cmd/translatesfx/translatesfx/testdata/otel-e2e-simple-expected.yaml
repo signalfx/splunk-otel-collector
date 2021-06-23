@@ -12,6 +12,10 @@ processors:
     detectors:
       - system
       - env
+      - gce
+      - ecs
+      - ec2
+      - azure
   metricstransform:
     transforms:
       - include: .*

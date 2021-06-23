@@ -42,7 +42,7 @@ func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 		Receivers: receivers,
 		Processors: map[string]interface{}{
 			rd: map[string]interface{}{
-				"detectors": []string{"system", "env"},
+				"detectors": []string{"system", "env", "gce", "ecs", "ec2", "azure"},
 			},
 		},
 		Exporters: sfxExporter(cfg.accessToken, cfg.realm),

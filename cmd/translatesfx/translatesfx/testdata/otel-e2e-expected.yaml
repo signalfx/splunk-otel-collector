@@ -69,9 +69,9 @@ service:
         - receiver_creator
         - smartagent/signalfx-forwarder
     traces:
-      exporters:
-        - signalfx
-      processors:
-        - resourcedetection
       receivers:
         - smartagent/signalfx-forwarder
+      processors:
+        - resourcedetection
+      exporters:
+        - signalfx

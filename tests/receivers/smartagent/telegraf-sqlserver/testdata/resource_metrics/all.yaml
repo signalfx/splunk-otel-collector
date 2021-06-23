@@ -1,0 +1,241 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: sqlserver_database_io.read_bytes
+            type: IntGauge
+          - name: sqlserver_database_io.read_latency_ms
+            type: IntGauge
+          - name: sqlserver_database_io.reads
+            type: IntGauge
+          - name: sqlserver_database_io.write_bytes
+            type: IntGauge
+          - name: sqlserver_database_io.write_latency_ms
+            type: IntGauge
+          - name: sqlserver_database_io.writes
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.bound_trees
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.buffer_pool
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.clr
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.connection_pool
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.general
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.in-memory_oltp
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.log_pool
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.memoryclerk_sqltrace
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.schema_manager_user_store
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.sos_memory_clerk
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.sos_node
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.sql_optimizer
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.sql_plans
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.sql_reservations
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.sql_storage_engine
+            type: IntGauge
+          - name: sqlserver_memory_clerks.size_kb.system_rowset_store
+            type: IntGauge
+          - name: sqlserver_performance.active_memory_grant_amount_kb
+            type: DoubleGauge
+          - name: sqlserver_performance.active_temp_tables
+            type: DoubleGauge
+          - name: sqlserver_performance.background_writer_pages_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.backup_restore_throughput_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.blocked_tasks
+            type: DoubleGauge
+          - name: sqlserver_performance.buffer_cache_hit_ratio
+            type: DoubleGauge
+          - name: sqlserver_performance.bytes_received_from_replica_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.bytes_sent_to_replica_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.bytes_sent_to_transport_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.checkpoint_pages_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.cpu_limit_violation_count
+            type: DoubleGauge
+          - name: sqlserver_performance.cpu_usage_pct
+            type: DoubleGauge
+          - name: sqlserver_performance.cpu_usage_time
+            type: DoubleGauge
+          - name: sqlserver_performance.data_file_size_kb
+            type: DoubleGauge
+          - name: sqlserver_performance.disk_read_bytes_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.disk_read_io_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.disk_read_io_throttled_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.disk_write_bytes_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.disk_write_io_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.disk_write_io_throttled_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.errors_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.flow_control_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.flow_control_time_ms_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.forwarded_records_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.free_list_stalls_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.free_space_in_tempdb_kb
+            type: DoubleGauge
+          - name: sqlserver_performance.full_scans_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.index_searches_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.latch_waits_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.lazy_writes_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.lock_timeouts_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.lock_wait_count
+            type: DoubleGauge
+          - name: sqlserver_performance.lock_wait_time
+            type: DoubleGauge
+          - name: sqlserver_performance.lock_waits_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.log_apply_pending_queue
+            type: DoubleGauge
+          - name: sqlserver_performance.log_apply_ready_queue
+            type: DoubleGauge
+          - name: sqlserver_performance.log_bytes_flushed_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.log_bytes_received_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.log_file_size_kb
+            type: DoubleGauge
+          - name: sqlserver_performance.log_file_used_size_kb
+            type: DoubleGauge
+          - name: sqlserver_performance.log_flush_wait_time
+            type: DoubleGauge
+          - name: sqlserver_performance.log_flushes_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.log_send_queue
+            type: DoubleGauge
+          - name: sqlserver_performance.logins_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.logouts_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.memory_broker_clerk_size
+            type: DoubleGauge
+          - name: sqlserver_performance.memory_grants_outstanding
+            type: DoubleGauge
+          - name: sqlserver_performance.memory_grants_pending
+            type: DoubleGauge
+          - name: sqlserver_performance.number_of_deadlocks_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.page_life_expectancy
+            type: DoubleGauge
+          - name: sqlserver_performance.page_lookups_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.page_reads_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.page_splits_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.page_writes_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.pct_log_used
+            type: DoubleGauge
+          - name: sqlserver_performance.processes_blocked
+            type: DoubleGauge
+          - name: sqlserver_performance.query
+            type: DoubleGauge
+          - name: sqlserver_performance.queued_request_count
+            type: DoubleGauge
+          - name: sqlserver_performance.queued_requests
+            type: DoubleGauge
+          - name: sqlserver_performance.readahead_pages_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.receives_from_replica_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.recovery_queue
+            type: DoubleGauge
+          - name: sqlserver_performance.redone_bytes_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.reduced_memory_grant_count
+            type: DoubleGauge
+          - name: sqlserver_performance.request_count
+            type: DoubleGauge
+          - name: sqlserver_performance.requests_completed_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.resent_messages_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.sends_to_replica_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.sends_to_transport_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.sql_compilations_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.sql_re-compilations_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.target_server_memory_kb
+            type: DoubleGauge
+          - name: sqlserver_performance.temp_tables_creation_rate
+            type: DoubleGauge
+          - name: sqlserver_performance.temp_tables_for_destruction
+            type: DoubleGauge
+          - name: sqlserver_performance.total_server_memory_kb
+            type: DoubleGauge
+          - name: sqlserver_performance.transaction_delay
+            type: DoubleGauge
+          - name: sqlserver_performance.transactions_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.used_memory_kb
+            type: DoubleGauge
+          - name: sqlserver_performance.user_connections
+            type: DoubleGauge
+          - name: sqlserver_performance.version_store_size_kb
+            type: DoubleGauge
+          - name: sqlserver_performance.write_transactions_sec
+            type: DoubleGauge
+          - name: sqlserver_performance.xtp_memory_used_kb
+            type: DoubleGauge
+          - name: sqlserver_server_properties.cpu_count
+            type: IntGauge
+          - name: sqlserver_server_properties.db_offline
+            type: IntGauge
+          - name: sqlserver_server_properties.db_online
+            type: IntGauge
+          - name: sqlserver_server_properties.db_recovering
+            type: IntGauge
+          - name: sqlserver_server_properties.db_recoverypending
+            type: IntGauge
+          - name: sqlserver_server_properties.db_restoring
+            type: IntGauge
+          - name: sqlserver_server_properties.db_suspect
+            type: IntGauge
+          - name: sqlserver_server_properties.engine_edition
+            type: IntGauge
+          - name: sqlserver_server_properties.server_memory
+            type: IntGauge
+          - name: sqlserver_server_properties.uptime
+            type: IntGauge
+          - name: sqlserver_waitstats.max_wait_time_ms
+            type: IntGauge
+          - name: sqlserver_waitstats.resource_wait_ms
+            type: IntGauge
+          - name: sqlserver_waitstats.signal_wait_time_ms
+            type: IntGauge
+          - name: sqlserver_waitstats.wait_time_ms
+            type: IntGauge
+          - name: sqlserver_waitstats.waiting_tasks_count
+            type: IntGauge

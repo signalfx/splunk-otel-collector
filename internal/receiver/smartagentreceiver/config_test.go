@@ -185,7 +185,7 @@ func TestLoadInvalidConfigWithUnexpectedTag(t *testing.T) {
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
-		"error reading receivers configuration for smartagent/unexpectedtag: failed creating Smart Agent Monitor custom config: yaml: unmarshal errors:\n  line 2: field notasupportedtag not found in type redis.Config")
+		"error reading receivers configuration for smartagent/unexpectedtag: failed creating Smart Agent Monitor custom config: yaml: unmarshal errors:\n  line 2: field notASupportedTag not found in type redis.Config")
 	require.Nil(t, cfg)
 }
 

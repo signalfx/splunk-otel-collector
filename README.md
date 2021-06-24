@@ -167,7 +167,7 @@ In order to use the upstream OpenTelemetry Collector:
 
 - Use the
   [contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib)
-  distribution as commerical exporters must reside in contrib
+  distribution as commercial exporters must reside in contrib
 - Properly configuration the Collector
 
 An example configuration for upstream, that ensures [infrastructure

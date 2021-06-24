@@ -10,14 +10,6 @@ extensions:
     collectd:
       configDir: /var/run/signalfx-agent
 processors:
-  resourcedetection:
-    detectors:
-      - system
-      - env
-      - gce
-      - ecs
-      - ec2
-      - azure
   metricstransform:
     transforms:
       - action: update

@@ -114,12 +114,12 @@ You can consult additional use cases in the [examples](./examples) directory.
 
 ## More Information
 
-- [Architecture](docs/architecure.md) - way in which the Connector can be deployed
-- [Components](docs/components.md) - what the Connector supports with links to documentation
-- [Monitoring](docs/monitoring.md) - how to ensure the Connector is healthy
-- [Security](docs/security.md) - how to ensure the Connector is secure
-- [Sizing](docs/sizing.md) - how to ensure the Connector is properly sized
-- [Troubleshooting](docs/troubleshooting.md) - how to resolve common issues
+- [Architecture](docs/architecture.md): How the Connector can be deployed
+- [Components](docs/components.md): What the Connector supports with links to documentation
+- [Monitoring](docs/monitoring.md): How to ensure the Connector is healthy
+- [Security](docs/security.md): How to ensure the Connector is secure
+- [Sizing](docs/sizing.md): How to ensure the Connector is properly sized
+- [Troubleshooting](docs/troubleshooting.md): How to resolve common issues
 
 Information about migrating from the SignalFx Smart Agent can be found
 [here](docs/signalfx-smart-agent-migration.md).

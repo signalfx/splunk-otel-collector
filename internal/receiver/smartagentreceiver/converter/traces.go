@@ -20,15 +20,17 @@ import (
 	zipkinmodel "github.com/openzipkin/zipkin-go/model"
 	"github.com/signalfx/golib/v3/trace"
 	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/translator/trace/zipkin"
+	"go.opentelemetry.io/collector/translator/trace/zipkinv2"
 	"go.uber.org/zap"
 )
+
+var zipkinv2Translator = zipkinv2.ToTranslator{ParseStringTags: false}
 
 func sfxSpansToPDataTraces(spans []*trace.Span, logger *zap.Logger) (pdata.Traces, error) {
 	// SFx trace is effectively zipkin, so more convenient to convert to it and then rely
 	// on existing zipkin receiver translator
 	zipkinSpans := sfxToZipkinSpans(spans, logger)
-	return zipkin.V2SpansToInternalTraces(zipkinSpans, false)
+	return zipkinv2Translator.ToTraces(zipkinSpans)
 }
 
 func sfxToZipkinSpans(spans []*trace.Span, logger *zap.Logger) []*zipkinmodel.SpanModel {

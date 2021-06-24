@@ -109,7 +109,7 @@ func TestDimsToMTP(t *testing.T) {
 	}, ops[1])
 }
 
-func TestMetricsTransform_NoGlobalDims(t *testing.T) {
+func TestInfoToOtelConfig_NoGlobalDims(t *testing.T) {
 	cfg := fromYAML(t, "testdata/sa-simple.yaml")
 	expanded, err := expandSA(cfg, "")
 	require.NoError(t, err)
@@ -120,7 +120,7 @@ func TestMetricsTransform_NoGlobalDims(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestMetricsTransform_GlobalDims(t *testing.T) {
+func TestInfoToOtelConfig_GlobalDims(t *testing.T) {
 	cfg := fromYAML(t, "testdata/sa-complex.yaml")
 	expanded, err := expandSA(cfg, "")
 	require.NoError(t, err)
@@ -134,7 +134,7 @@ func TestMetricsTransform_GlobalDims(t *testing.T) {
 	assert.NotNil(t, metrics.Processors)
 }
 
-func TestMetricsTransform_CollectD(t *testing.T) {
+func TestInfoToOtelConfig_CollectD(t *testing.T) {
 	cfg := fromYAML(t, "testdata/sa-collectd.yaml")
 	expanded, err := expandSA(cfg, "")
 	require.NoError(t, err)
@@ -156,7 +156,7 @@ func TestMetricsTransform_CollectD(t *testing.T) {
 	assert.Equal(t, 1, len(serviceExt))
 }
 
-func TestMetricsTransform_DeleteDiscoverRules(t *testing.T) {
+func TestInfoToOtelConfig_DeleteDiscoverRules(t *testing.T) {
 	cfg := fromYAML(t, "testdata/sa-discoveryrules.yaml")
 	expanded, err := expandSA(cfg, "")
 	require.NoError(t, err)
@@ -168,4 +168,24 @@ func TestMetricsTransform_DeleteDiscoverRules(t *testing.T) {
 		_, found := receiver["discoveryRule"]
 		assert.False(t, found, "discoveryRule not deleted for %s", k)
 	}
+}
+
+func TestInfoToOtelConfig_ResourceDetectionProcessor(t *testing.T) {
+	cfg := fromYAML(t, "testdata/sa-simple.yaml")
+	expanded, err := expandSA(cfg, "")
+	require.NoError(t, err)
+	info, err := saExpandedToCfgInfo(expanded)
+	require.NoError(t, err)
+	oc := saInfoToOtelConfig(info)
+	assert.NotNil(t, oc.Processors)
+	v := oc.Processors["resourcedetection"]
+	rdProc := v.(map[string]interface{})
+	assert.Equal(t, map[string]interface{}{
+		"detectors": []string{"system", "env", "gce", "ecs", "ec2", "azure"},
+	}, rdProc)
+	v = oc.Service["pipelines"]
+	pipelines := v.(map[string]interface{})
+	v = pipelines["metrics"]
+	metricsPipeline := v.(rpe)
+	assert.Equal(t, []string{"resourcedetection"}, metricsPipeline.Processors)
 }

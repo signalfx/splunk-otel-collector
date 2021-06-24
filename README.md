@@ -44,6 +44,7 @@
 
 ---
 
+<!--PRODUCT_DOCS-->
 # Splunk OpenTelemetry Connector
 
 Splunk OpenTelemetry Connector is a distribution of the [OpenTelemetry
@@ -103,12 +104,13 @@ This distribution is supported on and packaged for a variety of platforms includ
   - Configuration management
     - [Ansible](https://galaxy.ansible.com/signalfx/splunk_otel_collector)
     - [Puppet](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)
-  - [Manual](./docs/getting-started/linux-manual.md)
+  - [Manual](./docs/getting-started/linux-manual.md) including DEB/RPM packages, Docker, and binary
 - Windows
   - [Installer script (recommended)](./docs/getting-started/windows-installer.md)
-  - [Manual](./docs/getting-started/windows-manual.md)
+  - [Manual](./docs/getting-started/windows-manual.md) including MSI with GUI and Powershell
 
 You can consult additional use cases in the [examples](./examples) directory.
+<!--PRODUCT_DOCS-->
 
 ## License
 

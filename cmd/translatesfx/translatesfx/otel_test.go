@@ -129,9 +129,8 @@ func TestInfoToOtelConfig_GlobalDims(t *testing.T) {
 	oc := saInfoToOtelConfig(info)
 	_, ok := oc.Processors["metricstransform"]
 	assert.True(t, ok)
-	pipelines := oc.Service["pipelines"].(map[string]interface{})
-	metrics := pipelines["metrics"].(rpe)
-	assert.NotNil(t, metrics.Processors)
+	mp := metricsPipeline(oc)
+	assert.NotNil(t, mp.Processors)
 }
 
 func TestInfoToOtelConfig_CollectD(t *testing.T) {
@@ -183,9 +182,40 @@ func TestInfoToOtelConfig_ResourceDetectionProcessor(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{
 		"detectors": []string{"system", "env", "gce", "ecs", "ec2", "azure"},
 	}, rdProc)
-	v = oc.Service["pipelines"]
-	pipelines := v.(map[string]interface{})
-	v = pipelines["metrics"]
-	metricsPipeline := v.(rpe)
-	assert.Equal(t, []string{"resourcedetection"}, metricsPipeline.Processors)
+	mp := metricsPipeline(oc)
+	assert.Equal(t, []string{"resourcedetection"}, mp.Processors)
+}
+
+func TestSFxForwarder(t *testing.T) {
+	cfg := fromYAML(t, "testdata/sa-forwarder.yaml")
+	expanded, err := expandSA(cfg, "")
+	require.NoError(t, err)
+	info, err := saExpandedToCfgInfo(expanded)
+	require.NoError(t, err)
+	oc := saInfoToOtelConfig(info)
+	forwarderName := "smartagent/signalfx-forwarder"
+	v := oc.Receivers[forwarderName]
+	sf := v.(map[interface{}]interface{})
+	assert.Equal(t, map[interface{}]interface{}{
+		"type":          "signalfx-forwarder",
+		"listenAddress": "0.0.0.0:9080",
+	}, sf)
+	mp := metricsPipeline(oc)
+	assert.Contains(t, mp.Receivers, forwarderName)
+	tp := tracesPipeline(oc)
+	assert.Equal(t, []string{"smartagent/signalfx-forwarder"}, tp.Receivers)
+	assert.Equal(t, []string{"resourcedetection"}, tp.Processors)
+	assert.Equal(t, []string{"signalfx"}, tp.Exporters)
+}
+
+func metricsPipeline(oc otelCfg) rpe {
+	return pipelines(oc)["metrics"].(rpe)
+}
+
+func tracesPipeline(oc otelCfg) rpe {
+	return pipelines(oc)["traces"].(rpe)
+}
+
+func pipelines(oc otelCfg) map[string]interface{} {
+	return oc.Service["pipelines"].(map[string]interface{})
 }

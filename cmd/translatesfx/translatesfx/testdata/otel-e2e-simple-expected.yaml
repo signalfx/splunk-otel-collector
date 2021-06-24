@@ -33,6 +33,9 @@ receivers:
     host: localhost
     port: 6379
     type: collectd/redis
+  smartagent/signalfx-forwarder:
+    listenAddress: 0.0.0.0:9080
+    type: signalfx-forwarder
 exporters:
   signalfx:
     access_token: ${include:token}
@@ -44,8 +47,16 @@ service:
     metrics:
       receivers:
         - smartagent/collectd/redis
+        - smartagent/signalfx-forwarder
       processors:
         - resourcedetection
         - metricstransform
+      exporters:
+        - signalfx
+    traces:
+      receivers:
+        - smartagent/signalfx-forwarder
+      processors:
+        - resourcedetection
       exporters:
         - signalfx

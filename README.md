@@ -153,8 +153,7 @@ In addition, the following components can be configured:
 ### Using Upstream OpenTelemetry Collector
 
 It is possible to use the upstream OpenTelemetry Collector instead of this
-distribution.
-The following features are not available upstream at this time:
+distribution. The following features are not available upstream at this time:
 
 - Packaging
   - Installer scripts for Linux and Windows
@@ -171,11 +170,10 @@ In order to use the upstream OpenTelemetry Collector:
   distribution as commerical exporters must reside in contrib
 - Properly configuration the Collector
 
-An example configuration for upstream available
-[here](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/upstream_agent_config.yaml).
-The example configuration ensures that [infrastructure
+An example configuration for upstream, that ensures [infrastructure
 correlation](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/apm-infra-correlation.md)
-is properly configured.
+is properly configured, is available
+[here](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/upstream_agent_config.yaml).
 <!--PRODUCT_DOCS-->
 
 ## License

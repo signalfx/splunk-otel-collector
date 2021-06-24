@@ -10,14 +10,6 @@ extensions:
     collectd:
       configDir: /var/run/signalfx-agent
 processors:
-  resourcedetection:
-    detectors:
-      - system
-      - env
-      - gce
-      - ecs
-      - ec2
-      - azure
   metricstransform:
     transforms:
       - action: update
@@ -53,21 +45,21 @@ service:
     - smartagent
   pipelines:
     logs:
-      exporters:
-        - signalfx
-      processors:
-        - resourcedetection
       receivers:
         - smartagent/processlist
-    metrics:
-      exporters:
-        - signalfx
       processors:
         - resourcedetection
-        - metricstransform
+      exporters:
+        - signalfx
+    metrics:
       receivers:
         - smartagent/collectd/redis
         - smartagent/signalfx-forwarder
+      processors:
+        - resourcedetection
+        - metricstransform
+      exporters:
+        - signalfx
     traces:
       receivers:
         - smartagent/signalfx-forwarder

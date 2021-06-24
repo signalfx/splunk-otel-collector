@@ -89,6 +89,7 @@ All you need to get started is:
 - [Splunk Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
 - [Agent or Gateway mode](docs/agent-vs-gateway.md)
+
 - [Double-check exposed
   ports](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md#exposed-endpoints)
   to make sure your environment doesn't have conflicts. Ports can be changed in
@@ -110,6 +111,18 @@ This distribution is supported on and packaged for a variety of platforms includ
   - [Manual](./docs/getting-started/windows-manual.md) including MSI with GUI and Powershell
 
 You can consult additional use cases in the [examples](./examples) directory.
+
+## More Information
+
+- [Architecture](docs/architecure.md) - way in which the Connector can be deployed
+- [Components](docs/components.md) - what the Connector supports with links to documentation
+- [Monitoring](docs/monitoring.md) - how to ensure the Connector is healthy
+- [Security](docs/security.md) - how to ensure the Connector is secure
+- [Sizing](docs/sizing.md) - how to ensure the Connector is properly sized
+- [Troubleshooting](docs/troubleshooting.md) - how to resolve common issues
+
+Information about migrating from the SignalFx Smart Agent can be found
+[here](docs/signalfx-smart-agent-migration.md).
 <!--PRODUCT_DOCS-->
 
 ## License

@@ -44,6 +44,7 @@
 
 ---
 
+<!--PRODUCT_DOCS-->
 # Splunk OpenTelemetry Connector
 
 Splunk OpenTelemetry Connector is a distribution of the [OpenTelemetry
@@ -88,10 +89,10 @@ All you need to get started is:
 - [Splunk Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
 - [Splunk Realm](https://dev.splunk.com/observability/docs/realms_in_endpoints/)
 - [Agent or Gateway mode](docs/agent-vs-gateway.md)
-- [Double-check exposed
+- [Confirm exposed
   ports](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md#exposed-endpoints)
-  to make sure your environment doesn't have conflicts. Ports can be changed in
-  the collector's configuration.
+  to make sure your environment doesn't have conflicts and that firewalls are
+  configured properly. Ports can be changed in the collector's configuration.
 
 This distribution is supported on and packaged for a variety of platforms including:
 
@@ -103,12 +104,25 @@ This distribution is supported on and packaged for a variety of platforms includ
   - Configuration management
     - [Ansible](https://galaxy.ansible.com/signalfx/splunk_otel_collector)
     - [Puppet](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)
-  - [Manual](./docs/getting-started/linux-manual.md)
+  - [Manual](./docs/getting-started/linux-manual.md) including DEB/RPM packages, Docker, and binary
 - Windows
   - [Installer script (recommended)](./docs/getting-started/windows-installer.md)
-  - [Manual](./docs/getting-started/windows-manual.md)
+  - [Manual](./docs/getting-started/windows-manual.md) including MSI with GUI and Powershell
 
 You can consult additional use cases in the [examples](./examples) directory.
+
+## More Information
+
+- [Architecture](docs/architecture.md): How the Connector can be deployed
+- [Components](docs/components.md): What the Connector supports with links to documentation
+- [Monitoring](docs/monitoring.md): How to ensure the Connector is healthy
+- [Security](docs/security.md): How to ensure the Connector is secure
+- [Sizing](docs/sizing.md): How to ensure the Connector is properly sized
+- [Troubleshooting](docs/troubleshooting.md): How to resolve common issues
+
+Information about migrating from the SignalFx Smart Agent can be found
+[here](docs/signalfx-smart-agent-migration.md).
+<!--PRODUCT_DOCS-->
 
 ## License
 

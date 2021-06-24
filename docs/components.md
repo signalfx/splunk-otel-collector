@@ -2,6 +2,8 @@
 
 The distribution offers support for the following components.
 
+> Each component has a link to configuration documentation.
+
 ## Beta
 
 These components are considered stable. While in beta, breaking changes may be

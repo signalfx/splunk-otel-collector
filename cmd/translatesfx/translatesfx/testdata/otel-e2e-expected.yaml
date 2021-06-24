@@ -60,18 +60,18 @@ service:
       exporters:
         - signalfx
     metrics:
-      receivers:
-        - receiver_creator
-        - smartagent/signalfx-forwarder
+      exporters:
+        - signalfx
       processors:
         - resourcedetection
         - metricstransform
+      receivers:
+        - receiver_creator
+        - smartagent/signalfx-forwarder
+    traces:
       exporters:
         - signalfx
-    traces:
-      receivers:
-        - smartagent/signalfx-forwarder
       processors:
         - resourcedetection
-      exporters:
-        - signalfx
+      receivers:
+        - smartagent/signalfx-forwarder

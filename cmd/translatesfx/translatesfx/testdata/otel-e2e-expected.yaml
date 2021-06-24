@@ -64,10 +64,17 @@ service:
         - signalfx
       processors:
         - resourcedetection
-        - metricstransform
+      exporters:
+        - signalfx
+    metrics:
       receivers:
         - receiver_creator
         - smartagent/signalfx-forwarder
+      processors:
+        - resourcedetection
+        - metricstransform
+      exporters:
+        - signalfx
     traces:
       receivers:
         - smartagent/signalfx-forwarder

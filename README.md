@@ -84,6 +84,15 @@ exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree
 
 ## Getting Started
 
+The following resources are available:
+
+- [Architecture](docs/architecture.md): How the Connector can be deployed
+- [Components](docs/components.md): What the Connector supports with links to documentation
+- [Monitoring](docs/monitoring.md): How to ensure the Connector is healthy
+- [Security](docs/security.md): How to ensure the Connector is secure
+- [Sizing](docs/sizing.md): How to ensure the Connector is properly sized
+- [Troubleshooting](docs/troubleshooting.md): How to resolve common issues
+
 All you need to get started is:
 
 - [Splunk Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
@@ -111,17 +120,60 @@ This distribution is supported on and packaged for a variety of platforms includ
 
 You can consult additional use cases in the [examples](./examples) directory.
 
-## More Information
+## Advanced Configuration
 
-- [Architecture](docs/architecture.md): How the Connector can be deployed
-- [Components](docs/components.md): What the Connector supports with links to documentation
-- [Monitoring](docs/monitoring.md): How to ensure the Connector is healthy
-- [Security](docs/security.md): How to ensure the Connector is secure
-- [Sizing](docs/sizing.md): How to ensure the Connector is properly sized
-- [Troubleshooting](docs/troubleshooting.md): How to resolve common issues
+A variety of default configuration files are provided:
 
-Information about migrating from the SignalFx Smart Agent can be found
-[here](docs/signalfx-smart-agent-migration.md).
+- [OpenTelemetry
+  Collector](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/otelcol/config/collector)
+  see `full_config_linux.yaml` for a commented configuration with links to full
+  documentation. `agent_config_linux.yaml` is the recommended starting
+  configuration for most environments.
+- [Fluentd](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd)
+  applicable to Helm or installer script installations only. See the `*.conf`
+  files as well as the `conf.d` directory. Common sources including filelog,
+  journald, and Windows event viewer are included.
+
+In addition, the following components can be configured:
+
+- Configuration sources
+  - [Environment variables](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/envvarconfigsource)
+  - [Etcd2](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/etcd2configsource)
+  - [Include](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/includeconfigsource)
+  - [Vault](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/vaultconfigsource)
+  - [Zookeeper](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/zookeeperconfigsource)
+- SignalFx Smart Agent
+  - [Extension](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/extension/smartagentextension)
+    offering Collectd and Python extensions
+  - [Receiver](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/smartagentreceiver)
+    offering the complete set of Smart Agent monitors
+  - Information about migrating from the SignalFx Smart Agent can be found
+    [here](docs/signalfx-smart-agent-migration.md)
+
+### Using Upstream OpenTelemetry Collector
+
+It is possible to use the upstream OpenTelemetry Collector instead of this
+distribution. The following features are not available upstream at this time:
+
+- Packaging
+  - Installer scripts for Linux and Windows
+  - Configuration management via Ansible or Puppet
+- Configuration sources
+- Several SignalFx Smart Agent capabilities
+
+:warning: Splunk only provides best-effort support for upstream OpenTelemetry
+
+In order to use the upstream OpenTelemetry Collector:
+
+- Use the
+  [contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib)
+  distribution as commercial exporters must reside in contrib
+- Properly configuration the Collector
+
+An example configuration for upstream, that ensures [infrastructure
+correlation](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/apm-infra-correlation.md)
+is properly configured, is available
+[here](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/upstream_agent_config.yaml).
 <!--PRODUCT_DOCS-->
 
 ## License

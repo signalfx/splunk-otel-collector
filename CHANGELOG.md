@@ -10,6 +10,7 @@ This Splunk OpenTelemetry Connector release includes changes from the [opentelem
 
 - Add OTLP to logs pipeline for agent (#495)
 - Enable collecting in memory config locally by default (#497)
+- Enable host metadata updates by default (#513)
 
 ## v0.28.1
 

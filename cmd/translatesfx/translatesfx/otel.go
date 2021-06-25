@@ -90,6 +90,7 @@ func receiverList(receivers map[string]interface{}) []string {
 	for k := range receivers {
 		keys = append(keys, k)
 	}
+	sort.Strings(keys)
 	return keys
 }
 

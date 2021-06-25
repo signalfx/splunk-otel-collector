@@ -1119,8 +1119,9 @@ github.com/syndtr/gocapability v0.0.0-20170704070218-db04d3cc01c8/go.mod h1:hkRG
 github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2/go.mod h1:hkRG7XYTFWNJGYcbNJQlaLq0fg1yr4J4t/NcTQtrfww=
 github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635/go.mod h1:hkRG7XYTFWNJGYcbNJQlaLq0fg1yr4J4t/NcTQtrfww=
 github.com/tchap/go-patricia v2.2.6+incompatible/go.mod h1:bmLyhP68RS6kStMGxByiQ23RP/odRBOTVjwp2cDyi6I=
-github.com/testcontainers/testcontainers-go v0.11.0 h1:HO5YOx2DYBHqcg4MzVWPj3FuHAv7USWVu94vCSsgiaM=
 github.com/testcontainers/testcontainers-go v0.11.0/go.mod h1:HztBCODzuA+YpMXGK8amjO8j50jz2gcT0BOzSKUiYIs=
+github.com/testcontainers/testcontainers-go v0.11.1 h1:FiYsB83LSGbiawoV8TpAZGfcCUbtaeeg1SXqEKUxh08=
+github.com/testcontainers/testcontainers-go v0.11.1/go.mod h1:/V0UVq+1e7NWYoqTPog179clf0Qp9TOyp4EcXaEFQz8=
 github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
 github.com/tinylib/msgp v1.0.2/go.mod h1:+d+yLhGm8mzTaHzB+wgMYrodPfmZrzkirds8fDWklFE=
 github.com/tklauser/go-sysconf v0.3.5 h1:uu3Xl4nkLzQfXNsWn15rPc/HQCJKObbt1dKJeWp3vU4=

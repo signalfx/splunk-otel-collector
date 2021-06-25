@@ -28,8 +28,6 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configparser"
 	"gopkg.in/yaml.v2"
-
-	"github.com/signalfx/splunk-otel-collector/internal/utils"
 )
 
 const defaultIntervalSeconds = 10
@@ -44,7 +42,7 @@ type Config struct {
 	// Generally an observer/receivercreator-set value via Endpoint.Target.
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
 	Endpoint         string   `mapstructure:"endpoint"`
-	DimensionClients []string `mapstructure:"dimensionclients"`
+	DimensionClients []string `mapstructure:"dimensionClients"`
 }
 
 func (cfg *Config) validate() error {
@@ -84,7 +82,7 @@ func (cfg *Config) Unmarshal(componentParser *configparser.Parser) error {
 	}
 
 	var err error
-	cfg.DimensionClients, err = getStringSliceFromAllSettings(allSettings, "dimensionclients", errDimensionClientValue)
+	cfg.DimensionClients, err = getStringSliceFromAllSettings(allSettings, "dimensionClients", errDimensionClientValue)
 	if err != nil {
 		return err
 	}
@@ -97,7 +95,6 @@ func (cfg *Config) Unmarshal(componentParser *configparser.Parser) error {
 	}
 	monitorConfigType := reflect.TypeOf(customMonitorConfig).Elem()
 	monitorConfig := reflect.New(monitorConfigType).Interface()
-	utils.RespectYamlTagsInAllSettings(monitorConfigType, allSettings)
 
 	asBytes, err := yaml.Marshal(allSettings)
 	if err != nil {

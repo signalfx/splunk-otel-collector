@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v0.29.0
+
+This Splunk OpenTelemetry Connector release includes changes from the [opentelemetry-collector v0.29.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.29.0) and the [opentelemetry-collector-contrib v0.29.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.29.0) releases.
+
+### 💡 Enhancements 💡
+
+- Add OTLP to logs pipeline for agent (#495)
+- Enable collecting in memory config locally by default (#497)
+- Enable host metadata updates by default (#513)
+
 ## v0.28.1
 
 - Update bundled Smart Agent to [v5.11.0](https://github.com/signalfx/signalfx-agent/releases/tag/v5.11.0) (#487)

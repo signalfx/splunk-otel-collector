@@ -17,15 +17,12 @@ package smartagentextension
 import (
 	"fmt"
 	"path/filepath"
-	"reflect"
 
 	"github.com/signalfx/defaults"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configparser"
 	"gopkg.in/yaml.v2"
-
-	"github.com/signalfx/splunk-otel-collector/internal/utils"
 )
 
 var _ config.CustomUnmarshable = (*Config)(nil)
@@ -43,7 +40,7 @@ func (cfg *Config) Unmarshal(componentParser *configparser.Parser) error {
 	configDirSet := false
 	if collectd, ok := allSettings["collectd"]; ok {
 		if collectdBlock, ok := collectd.(map[string]interface{}); ok {
-			if _, ok := collectdBlock["configdir"]; ok {
+			if _, ok := collectdBlock["configDir"]; ok {
 				configDirSet = true
 			}
 		}
@@ -69,16 +66,11 @@ func (cfg *Config) Unmarshal(componentParser *configparser.Parser) error {
 
 func smartAgentConfigFromSettingsMap(settings map[string]interface{}) (*saconfig.Config, error) {
 	var config saconfig.Config
-	utils.RespectYamlTagsInAllSettings(reflect.TypeOf(config), settings)
-
 	var collectdSettings map[string]interface{}
 	var ok bool
 	if collectdSettings, ok = settings["collectd"].(map[string]interface{}); !ok {
 		collectdSettings = map[string]interface{}{}
 	}
-
-	var collectdConfig saconfig.CollectdConfig
-	utils.RespectYamlTagsInAllSettings(reflect.TypeOf(collectdConfig), collectdSettings)
 
 	settings["collectd"] = collectdSettings
 

@@ -120,6 +120,7 @@ data:
         access_token: "${SPLUNK_ACCESS_TOKEN}"
         # TODO: Ensure this is set properly
         realm: "${SPLUNK_REALM}"
+        sync_host_metadata: true
     service:
       extensions: [health_check, http_forwarder, zpages]
       pipelines:

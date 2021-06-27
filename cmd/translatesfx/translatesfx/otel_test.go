@@ -58,6 +58,19 @@ func TestMonitorToReceiver_Rule(t *testing.T) {
 	require.True(t, ok)
 }
 
+func TestMonitorToReceiver_Rule(t *testing.T) {
+	otel, _ := saMonitorToOtelReceiver(map[interface{}]interface{}{
+		"type":          "redis",
+		"discoveryRule": `container_image =~ "redis" && port == 6379`,
+	})
+	v := otel["smartagent/redis"]
+	redis := v.(map[string]interface{})
+	_, ok := redis["rule"]
+	require.True(t, ok)
+	_, ok = redis["config"]
+	require.True(t, ok)
+}
+
 func TestAPIURLToRealm(t *testing.T) {
 	us0, _ := apiURLToRealm(map[interface{}]interface{}{
 		"apiUrl": "https://api.signalfx.com",

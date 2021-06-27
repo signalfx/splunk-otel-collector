@@ -24,12 +24,7 @@ import (
 )
 
 func TestSAExpandedToCfgInfo(t *testing.T) {
-	v := fromYAML(t, "testdata/sa-complex.yaml")
-	expanded, err := expandSA(v, "")
-	require.NoError(t, err)
-	cfg, err := saExpandedToCfgInfo(expanded)
-	require.NoError(t, err)
-	require.NoError(t, err)
+	cfg := yamlToCfgInfo(t, "testdata/sa-complex.yaml")
 	assert.Equal(t, "us1", cfg.realm)
 	assert.Equal(t, "${include:testdata/token}", cfg.accessToken)
 	assert.Equal(t, 3, len(cfg.monitors))
@@ -37,12 +32,24 @@ func TestSAExpandedToCfgInfo(t *testing.T) {
 }
 
 func TestSAExpandedToConfigInfo_SASimple(t *testing.T) {
-	v := fromYAML(t, "testdata/sa-simple.yaml")
+	cfg := yamlToCfgInfo(t, "testdata/sa-simple.yaml")
+	assert.Nil(t, cfg.globalDims)
+}
+
+func TestSAExpandedToCfgInfo_Observers(t *testing.T) {
+	cfg := yamlToCfgInfo(t, "testdata/sa-observers.yaml")
+	assert.Equal(t, map[interface{}]interface{}{
+		"type": "k8s-api",
+	}, cfg.observers[0])
+}
+
+func yamlToCfgInfo(t *testing.T, filename string) saCfgInfo {
+	v := fromYAML(t, filename)
 	expanded, err := expandSA(v, "")
 	require.NoError(t, err)
 	cfg, err := saExpandedToCfgInfo(expanded)
 	require.NoError(t, err)
-	assert.Nil(t, cfg.globalDims)
+	return cfg
 }
 
 func fromYAML(t *testing.T, filename string) interface{} {

@@ -26,6 +26,7 @@ type saCfgInfo struct {
 	accessToken string
 	realm       string
 	monitors    []interface{}
+	observers   []interface{}
 }
 
 func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) (saCfgInfo, error) {
@@ -39,7 +40,20 @@ func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) (saCfgInfo, err
 		monitors:    saExpanded["monitors"].([]interface{}),
 		globalDims:  globalDims(saExpanded),
 		saExtension: saExtension(saExpanded),
+		observers:   observers(saExpanded),
 	}, nil
+}
+
+func observers(saExpanded map[interface{}]interface{}) []interface{} {
+	v, ok := saExpanded["observers"]
+	if !ok {
+		return nil
+	}
+	obs, ok := v.([]interface{})
+	if !ok {
+		return nil
+	}
+	return obs
 }
 
 func apiURLToRealm(saExpanded map[interface{}]interface{}) (string, error) {

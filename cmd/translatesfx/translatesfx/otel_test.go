@@ -38,20 +38,24 @@ func TestSAToOtelConfig(t *testing.T) {
 }
 
 func TestMonitorToReceiver(t *testing.T) {
-	receiver := saMonitorToOtelReceiver(testvSphereMonitorCfg())
+	receiver, _ := saMonitorToOtelReceiver(testvSphereMonitorCfg())
 	v, ok := receiver["smartagent/vsphere"]
 	require.True(t, ok)
 	m := v.(map[interface{}]interface{})
 	assert.Equal(t, "vsphere", m["type"])
 }
 
-func testvSphereMonitorCfg() map[interface{}]interface{} {
-	return map[interface{}]interface{}{
-		"type":     "vsphere",
-		"host":     "localhost",
-		"username": "administrator",
-		"password": "abc123",
-	}
+func TestMonitorToReceiver_Rule(t *testing.T) {
+	otel, _ := saMonitorToOtelReceiver(map[interface{}]interface{}{
+		"type":          "redis",
+		"discoveryRule": `container_image =~ "redis" && port == 6379`,
+	})
+	v := otel["smartagent/redis"]
+	redis := v.(map[string]interface{})
+	_, ok := redis["rule"]
+	require.True(t, ok)
+	_, ok = redis["config"]
+	require.True(t, ok)
 }
 
 func TestAPIURLToRealm(t *testing.T) {
@@ -140,15 +144,6 @@ func TestInfoToOtelConfig_CollectD(t *testing.T) {
 	assert.Equal(t, 1, len(serviceExt))
 }
 
-func TestInfoToOtelConfig_DeleteDiscoverRules(t *testing.T) {
-	oc := yamlToOtelConfig(t, "testdata/sa-discoveryrules.yaml")
-	for k, v := range oc.Receivers {
-		receiver := v.(map[interface{}]interface{})
-		_, found := receiver["discoveryRule"]
-		assert.False(t, found, "discoveryRule not deleted for %s", k)
-	}
-}
-
 func TestInfoToOtelConfig_ResourceDetectionProcessor(t *testing.T) {
 	oc := yamlToOtelConfig(t, "testdata/sa-simple.yaml")
 	assert.NotNil(t, oc.Processors)
@@ -190,6 +185,48 @@ func TestInfoToOtelConfig_ProcessList(t *testing.T) {
 		Processors: []string{"resourcedetection"},
 		Exporters:  []string{"signalfx"},
 	}, pl)
+}
+
+func TestInfoToOtelConfig_Observers(t *testing.T) {
+	oc := yamlToOtelConfig(t, "testdata/sa-observers.yaml")
+	v, ok := oc.Extensions["k8s_observer"]
+	require.True(t, ok)
+	obs, ok := v.(map[string]interface{})
+	require.True(t, ok)
+	assert.Equal(t, map[string]interface{}{
+		"auth_type": "serviceAccount",
+		"node":      "${K8S_NODE_NAME}",
+	}, obs)
+	ext := oc.Service["extensions"].([]string)
+	assert.Equal(t, []string{"k8s_observer"}, ext)
+}
+
+func TestDiscoveryRuleToRCRule(t *testing.T) {
+	rcr := discoveryRuleToRCRule(`container_image =~ "redis" && port == 6379`)
+	assert.Equal(t, `type == "port" && pod.name matches "redis" && port == 6379`, rcr)
+}
+
+func TestAppendSlice(t *testing.T) {
+	oc := otelCfg{
+		Service: map[string]interface{}{},
+	}
+	appendSlice(oc.Service, "extensions", "aaa")
+	assert.Equal(t, map[string]interface{}{
+		"extensions": []string{"aaa"},
+	}, oc.Service)
+	appendSlice(oc.Service, "extensions", "bbb")
+	assert.Equal(t, map[string]interface{}{
+		"extensions": []string{"aaa", "bbb"},
+	}, oc.Service)
+}
+
+func testvSphereMonitorCfg() map[interface{}]interface{} {
+	return map[interface{}]interface{}{
+		"type":     "vsphere",
+		"host":     "localhost",
+		"username": "administrator",
+		"password": "abc123",
+	}
 }
 
 func yamlToOtelConfig(t *testing.T, filename string) otelCfg {

@@ -10,7 +10,7 @@ which is already provided for supported Splunk Distribution of OpenTelemetry Col
 
 ## Configuration
 
-Each `smartagent` receiver configuration acts a drop-in replacement for each supported Smart Agent Monitor
+Each `smartagent` receiver configuration acts as a drop-in replacement for each supported Smart Agent Monitor
 [configuration](https://github.com/signalfx/signalfx-agent/blob/main/docs/monitor-config.md) with some exceptions:
 
 1. Any Agent global or collectd desired configuration should be performed via the

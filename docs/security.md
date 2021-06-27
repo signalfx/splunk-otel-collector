@@ -45,7 +45,6 @@ is configured in.
 - `http(s)://localhost:55679/debug/[tracez|pipelinez]` zPages monitoring
 - `http(s)://0.0.0.0:4317` OpenTelemetry gRPC receiver
 - `http(s)://0.0.0.0:6060` HTTP Forwarder used to receive Smart Agent `apiUrl` data
-- `http(s)://0.0.0.0:7276` SignalFx Infrastructure Monitoring gRPC receiver
 - `http(s)://localhost:8888/metrics` Prometheus metrics for the Collector
 - `http(s)://localhost:8006` Fluent forward receiver
 - `http(s)://0.0.0.0:9080` SignalFx forwarder receiver

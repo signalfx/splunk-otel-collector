@@ -131,7 +131,7 @@ $ journalctl -u my-service.service -f
 - Check
   [zpages](https://github.com/open-telemetry/opentelemetry-collector/blob/main/extension/zpagesextension)
   for samples (`http://localhost:55679/debug/tracez`); may require `endpoint`
-  configuration
+  configuration (lynx is a good CLI tool if needed)
 - Enable [logging
   exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter)
   and check logs (`journalctl -u splunk-otel-collector.service -f`)
@@ -147,9 +147,17 @@ journald and `/var/log/syslog.log` for events.
 > up the log line
 
 ```bash
-$ echo "2021-03-17 02:14:44 +0000 [debug]: test" >>/var/log/syslog.log
-$ echo "2021-03-17 02:14:44 +0000 [debug]: test" | systemd-cat
+$ echo "Jun 17 02:14:44 my-server fluentd[11111]: [debug] syslog test" >>/var/log/syslog
+$ echo "2021-03-17 02:14:44 +0000 [debug]: syslog test" | systemd-cat
 ```
+
+Here is an example of a log record that will NOT be collected:
+
+```bash
+$ echo "2021-03-17 02:14:44 +0000 my-server fluentd[11111]: [debug] syslog test" >>/var/log/syslog
+```
+
+Why? Because the timestamp parser will fail. Enable debug logs to confirm this.
 
 ## Trace Collection
 

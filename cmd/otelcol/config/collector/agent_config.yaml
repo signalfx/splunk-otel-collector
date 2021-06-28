@@ -76,8 +76,6 @@ receivers:
           - source_labels: [ __name__ ]
             regex: '.*grpc_io.*'
             action: drop
-  sapm:
-    endpoint: 0.0.0.0:7276
   smartagent/signalfx-forwarder:
     type: signalfx-forwarder
     listenAddress: 0.0.0.0:9080
@@ -153,7 +151,7 @@ service:
   extensions: [health_check, http_forwarder, zpages]
   pipelines:
     traces:
-      receivers: [jaeger, otlp, sapm, smartagent/signalfx-forwarder, zipkin]
+      receivers: [jaeger, otlp, smartagent/signalfx-forwarder, zipkin]
       processors:
       - memory_limiter
       - batch

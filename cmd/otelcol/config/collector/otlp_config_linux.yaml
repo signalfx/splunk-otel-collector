@@ -101,7 +101,7 @@ service:
   extensions: [health_check, http_forwarder, zpages]
   pipelines:
     traces:
-      receivers: [jaeger, otlp, sapm, smartagent/signalfx-forwarder, zipkin]
+      receivers: [jaeger, otlp, smartagent/signalfx-forwarder, zipkin]
       processors:
       - memory_limiter
       - batch

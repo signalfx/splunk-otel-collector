@@ -553,7 +553,7 @@ service:
   # NOTE: Receivers expose ports so ensure no other application uses the same ports
   pipelines:
     traces:
-      receivers: [jaeger, otlp, sapm, smartagent/signalfx-forwarder, zipkin]
+      receivers: [jaeger, otlp, smartagent/signalfx-forwarder, zipkin]
       processors:
       - memory_limiter
       - batch

@@ -73,8 +73,6 @@ receivers:
           - source_labels: [ __name__ ]
             regex: '.*grpc_io.*'
             action: drop
-  sapm:
-    endpoint: 0.0.0.0:7276
   signalfx:
     endpoint: 0.0.0.0:9943
   zipkin:
@@ -147,7 +145,7 @@ service:
   pipelines:
     # Required for Splunk APM
     traces:
-      receivers: [jaeger, otlp, sapm, zipkin]
+      receivers: [jaeger, otlp, zipkin]
       processors:
       - memory_limiter
       - batch

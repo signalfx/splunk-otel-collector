@@ -110,23 +110,13 @@ func TestDimsToMTP(t *testing.T) {
 }
 
 func TestInfoToOtelConfig_NoGlobalDims(t *testing.T) {
-	cfg := fromYAML(t, "testdata/sa-simple.yaml")
-	expanded, err := expandSA(cfg, "")
-	require.NoError(t, err)
-	info, err := saExpandedToCfgInfo(expanded)
-	require.NoError(t, err)
-	oc := saInfoToOtelConfig(info)
+	oc := yamlToOtelConfig(t, "testdata/sa-simple.yaml")
 	_, ok := oc.Processors["metricstransform"]
 	assert.False(t, ok)
 }
 
 func TestInfoToOtelConfig_GlobalDims(t *testing.T) {
-	cfg := fromYAML(t, "testdata/sa-complex.yaml")
-	expanded, err := expandSA(cfg, "")
-	require.NoError(t, err)
-	info, err := saExpandedToCfgInfo(expanded)
-	require.NoError(t, err)
-	oc := saInfoToOtelConfig(info)
+	oc := yamlToOtelConfig(t, "testdata/sa-complex.yaml")
 	_, ok := oc.Processors["metricstransform"]
 	assert.True(t, ok)
 	mp := metricsPipeline(oc)
@@ -134,12 +124,7 @@ func TestInfoToOtelConfig_GlobalDims(t *testing.T) {
 }
 
 func TestInfoToOtelConfig_CollectD(t *testing.T) {
-	cfg := fromYAML(t, "testdata/sa-collectd.yaml")
-	expanded, err := expandSA(cfg, "")
-	require.NoError(t, err)
-	info, err := saExpandedToCfgInfo(expanded)
-	require.NoError(t, err)
-	oc := saInfoToOtelConfig(info)
+	oc := yamlToOtelConfig(t, "testdata/sa-collectd.yaml")
 	v, ok := oc.Extensions["smartagent"]
 	require.True(t, ok)
 	saExt, ok := v.(map[string]interface{})
@@ -156,12 +141,7 @@ func TestInfoToOtelConfig_CollectD(t *testing.T) {
 }
 
 func TestInfoToOtelConfig_DeleteDiscoverRules(t *testing.T) {
-	cfg := fromYAML(t, "testdata/sa-discoveryrules.yaml")
-	expanded, err := expandSA(cfg, "")
-	require.NoError(t, err)
-	info, err := saExpandedToCfgInfo(expanded)
-	require.NoError(t, err)
-	oc := saInfoToOtelConfig(info)
+	oc := yamlToOtelConfig(t, "testdata/sa-discoveryrules.yaml")
 	for k, v := range oc.Receivers {
 		receiver := v.(map[interface{}]interface{})
 		_, found := receiver["discoveryRule"]
@@ -170,12 +150,7 @@ func TestInfoToOtelConfig_DeleteDiscoverRules(t *testing.T) {
 }
 
 func TestInfoToOtelConfig_ResourceDetectionProcessor(t *testing.T) {
-	cfg := fromYAML(t, "testdata/sa-simple.yaml")
-	expanded, err := expandSA(cfg, "")
-	require.NoError(t, err)
-	info, err := saExpandedToCfgInfo(expanded)
-	require.NoError(t, err)
-	oc := saInfoToOtelConfig(info)
+	oc := yamlToOtelConfig(t, "testdata/sa-simple.yaml")
 	assert.NotNil(t, oc.Processors)
 	v := oc.Processors["resourcedetection"]
 	rdProc := v.(map[string]interface{})
@@ -186,34 +161,60 @@ func TestInfoToOtelConfig_ResourceDetectionProcessor(t *testing.T) {
 	assert.Equal(t, []string{"resourcedetection"}, mp.Processors)
 }
 
-func TestSFxForwarder(t *testing.T) {
-	cfg := fromYAML(t, "testdata/sa-forwarder.yaml")
-	expanded, err := expandSA(cfg, "")
-	require.NoError(t, err)
-	info, err := saExpandedToCfgInfo(expanded)
-	require.NoError(t, err)
-	oc := saInfoToOtelConfig(info)
-	forwarderName := "smartagent/signalfx-forwarder"
-	v := oc.Receivers[forwarderName]
-	sf := v.(map[interface{}]interface{})
+func TestInfoToOtelConfig_SFxForwarder(t *testing.T) {
+	oc := yamlToOtelConfig(t, "testdata/sa-forwarder.yaml")
+	receiverName := "smartagent/signalfx-forwarder"
+	rcvr := oc.Receivers[receiverName].(map[interface{}]interface{})
 	assert.Equal(t, map[interface{}]interface{}{
 		"type":          "signalfx-forwarder",
 		"listenAddress": "0.0.0.0:9080",
-	}, sf)
-	mp := metricsPipeline(oc)
-	assert.Contains(t, mp.Receivers, forwarderName)
+	}, rcvr)
+	pl := metricsPipeline(oc)
+	assert.Contains(t, pl.Receivers, receiverName)
 	tp := tracesPipeline(oc)
-	assert.Equal(t, []string{"smartagent/signalfx-forwarder"}, tp.Receivers)
+	assert.Equal(t, []string{receiverName}, tp.Receivers)
 	assert.Equal(t, []string{"resourcedetection"}, tp.Processors)
 	assert.Equal(t, []string{"signalfx"}, tp.Exporters)
 }
 
+func TestInfoToOtelConfig_ProcessList(t *testing.T) {
+	oc := yamlToOtelConfig(t, "testdata/sa-processlist.yaml")
+	receiverName := "smartagent/processlist"
+	rcvr := oc.Receivers[receiverName].(map[interface{}]interface{})
+	assert.Equal(t, map[interface{}]interface{}{
+		"type": "processlist",
+	}, rcvr)
+	pl := logsPipeline(oc)
+	assert.Equal(t, rpe{
+		Receivers:  []string{receiverName},
+		Processors: []string{"resourcedetection"},
+		Exporters:  []string{"signalfx"},
+	}, pl)
+}
+
+func yamlToOtelConfig(t *testing.T, filename string) otelCfg {
+	cfg := fromYAML(t, filename)
+	expanded, err := expandSA(cfg, "")
+	require.NoError(t, err)
+	info, err := saExpandedToCfgInfo(expanded)
+	require.NoError(t, err)
+	return saInfoToOtelConfig(info)
+}
+
 func metricsPipeline(oc otelCfg) rpe {
-	return pipelines(oc)["metrics"].(rpe)
+	return pipeline(oc, "metrics")
 }
 
 func tracesPipeline(oc otelCfg) rpe {
-	return pipelines(oc)["traces"].(rpe)
+	return pipeline(oc, "traces")
+}
+
+func logsPipeline(oc otelCfg) rpe {
+	return pipeline(oc, "logs")
+}
+
+func pipeline(oc otelCfg, name string) rpe {
+	return pipelines(oc)[name].(rpe)
 }
 
 func pipelines(oc otelCfg) map[string]interface{} {

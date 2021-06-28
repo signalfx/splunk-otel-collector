@@ -1,0 +1,6 @@
+signalFxAccessToken: abc123
+ingestUrl: https://ingest.us1.signalfx.com
+apiUrl: https://api.us1.signalfx.com
+
+monitors:
+  - type: processlist

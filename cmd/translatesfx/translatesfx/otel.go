@@ -25,6 +25,8 @@ type otelCfg struct {
 	Service       map[string]interface{}
 }
 
+const processlist = "smartagent/processlist"
+
 func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 	receivers := map[string]interface{}{}
 	for _, v := range cfg.monitors {
@@ -74,6 +76,13 @@ func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 			Exporters:  []string{sfx},
 		}
 	}
+	if _, ok := receivers[processlist]; ok {
+		pipelines["logs"] = rpe{
+			Receivers:  []string{processlist},
+			Processors: []string{resourceDetection},
+			Exporters:  []string{sfx},
+		}
+	}
 	return out
 }
 
@@ -88,6 +97,9 @@ type rpe struct {
 func receiverList(receivers map[string]interface{}) []string {
 	var keys []string
 	for k := range receivers {
+		if k == processlist {
+			continue
+		}
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

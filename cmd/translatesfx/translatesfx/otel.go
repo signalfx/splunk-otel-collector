@@ -28,9 +28,92 @@ type otelCfg struct {
 	Service       map[string]interface{}
 }
 
-const processlist = "smartagent/processlist"
+const (
+	processlist       = "smartagent/processlist"
+	sfxFwder          = "smartagent/signalfx-forwarder"
+	resourceDetection = "resourcedetection"
+	sfx               = "signalfx"
+	metricsTransform  = "metricstransform"
+)
 
-func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
+func saInfoToOtelConfig(sa saCfgInfo) otelCfg {
+	otel := baseOtelConfig(sa)
+
+	receivers, rcReceivers := monitorsToReceivers(sa)
+	otel.Receivers = receivers
+
+	if len(rcReceivers) > 0 {
+		otel.Receivers["receiver_creator"] = map[string]interface{}{
+			"receivers":       rcReceivers,
+			"watch_observers": []string{"k8s_observer"}, // TODO check observer type?
+		}
+	}
+
+	metricsPipeline := rpe{
+		Receivers:  receiverList(receivers),
+		Processors: []string{resourceDetection},
+		Exporters:  []string{sfx},
+	}
+
+	if sa.globalDims != nil {
+		otel.Processors[metricsTransform] = dimsToMetricsTransformProcessor(sa.globalDims)
+		metricsPipeline.Processors = append(metricsPipeline.Processors, metricsTransform)
+	}
+
+	pipelines := map[string]interface{}{"metrics": metricsPipeline}
+	otel.Service = map[string]interface{}{
+		"pipelines": pipelines,
+	}
+
+	if len(sa.saExtension) > 0 {
+		appendMap(otel.Extensions, sa.saExtension)
+		appendExtensions(otel.Service, "smartagent")
+	}
+
+	if len(sa.observers) > 0 {
+		m := saObserversToOtel(sa.observers)
+		if m != nil {
+			appendMap(otel.Extensions, m)
+			appendExtensions(otel.Service, "k8s_observer")
+		}
+	}
+
+	if _, ok := receivers[sfxFwder]; ok {
+		pipelines["traces"] = rpe{
+			Receivers:  []string{sfxFwder},
+			Processors: []string{resourceDetection},
+			Exporters:  []string{sfx},
+		}
+	}
+
+	if _, ok := receivers[processlist]; ok {
+		pipelines["logs"] = rpe{
+			Receivers:  []string{processlist},
+			Processors: []string{resourceDetection},
+			Exporters:  []string{sfx},
+		}
+	}
+
+	return otel
+}
+
+func baseOtelConfig(cfg saCfgInfo) otelCfg {
+	out := otelCfg{
+		ConfigSources: map[string]interface{}{
+			"include": nil,
+		},
+		Processors: map[string]interface{}{
+			resourceDetection: map[string]interface{}{
+				"detectors": []string{"system", "env", "gce", "ecs", "ec2", "azure"},
+			},
+		},
+		Exporters:  sfxExporter(cfg.accessToken, cfg.realm),
+		Extensions: map[string]interface{}{},
+	}
+	return out
+}
+
+func monitorsToReceivers(cfg saCfgInfo) (map[string]interface{}, map[string]interface{}) {
 	receivers := map[string]interface{}{}
 	rcReceivers := map[string]interface{}{}
 	for _, monV := range cfg.monitors {
@@ -44,68 +127,7 @@ func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 			target[k.(string)] = v
 		}
 	}
-	const resourceDetection = "resourcedetection"
-	out := otelCfg{
-		ConfigSources: map[string]interface{}{
-			"include": nil,
-		},
-		Receivers: receivers,
-		Processors: map[string]interface{}{
-			resourceDetection: map[string]interface{}{
-				"detectors": []string{"system", "env", "gce", "ecs", "ec2", "azure"},
-			},
-		},
-		Exporters:  sfxExporter(cfg.accessToken, cfg.realm),
-		Extensions: map[string]interface{}{},
-	}
-	if len(rcReceivers) > 0 {
-		out.Receivers["receiver_creator"] = map[string]interface{}{
-			"receivers":       rcReceivers,
-			"watch_observers": []string{"k8s_observer"}, // TODO check observer type?
-		}
-	}
-	const sfx = "signalfx"
-	metricsPipeline := rpe{
-		Receivers:  receiverList(receivers),
-		Processors: []string{resourceDetection},
-		Exporters:  []string{sfx},
-	}
-	if cfg.globalDims != nil {
-		const metricsTransform = "metricstransform"
-		out.Processors[metricsTransform] = dimsToMetricsTransformProcessor(cfg.globalDims)
-		metricsPipeline.Processors = append(metricsPipeline.Processors, metricsTransform)
-	}
-	pipelines := map[string]interface{}{"metrics": metricsPipeline}
-	out.Service = map[string]interface{}{
-		"pipelines": pipelines,
-	}
-	if len(cfg.saExtension) > 0 {
-		appendMap(out.Extensions, cfg.saExtension)
-		appendExtensions(out.Service, "smartagent")
-	}
-	if len(cfg.observers) > 0 {
-		m := saObserversToOtel(cfg.observers)
-		if m != nil {
-			appendMap(out.Extensions, m)
-			appendExtensions(out.Service, "k8s_observer")
-		}
-	}
-	const sfxFwder = "smartagent/signalfx-forwarder"
-	if _, ok := receivers[sfxFwder]; ok {
-		pipelines["traces"] = rpe{
-			Receivers:  []string{sfxFwder},
-			Processors: []string{resourceDetection},
-			Exporters:  []string{sfx},
-		}
-	}
-	if _, ok := receivers[processlist]; ok {
-		pipelines["logs"] = rpe{
-			Receivers:  []string{processlist},
-			Processors: []string{resourceDetection},
-			Exporters:  []string{sfx},
-		}
-	}
-	return out
+	return receivers, rcReceivers
 }
 
 func appendExtensions(m map[string]interface{}, v string) {

@@ -23,8 +23,8 @@ import (
 // with any SA #from directives translated into their Otel equivalent.
 func expandSA(orig interface{}, wd string) (map[interface{}]interface{}, error) {
 	expanded, _, err := expand(orig, wd, yamlPath{
-		// Prevent these three top-level SA config keys from getting translated into their
-		// configsource equivalent. We need monitors expanded/inlined so we can
+		// Prevent these three top-level SA config keys from getting translated into
+		// their configsource equivalent. We need monitors expanded/inlined so we can
 		// translate them, apiURL is used to get the realm, and globalDimensions is used
 		// to create a metricstransform processor.
 		forcePaths: []string{"/monitors", "/apiUrl", "/globalDimensions"},

@@ -22,8 +22,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestService_AppendExtension(t *testing.T) {
+	svc := service{}
+	svc.appendExtension("bbb")
+	svc.appendExtension("aaa")
+	assert.Equal(t, []string{"aaa", "bbb"}, svc.Extensions)
+}
+
+func TestRPE_Append(t *testing.T) {
+	r := rpe{}
+	r.appendReceiver("bbb")
+	r.appendReceiver("aaa")
+	assert.Equal(t, []string{"aaa", "bbb"}, r.Receivers)
+}
+
 func TestSAToOtelConfig(t *testing.T) {
-	expected := map[interface{}]interface{}{
+	expected := map[string]interface{}{
 		"type":     "vsphere",
 		"host":     "localhost",
 		"username": "administrator",
@@ -41,8 +55,7 @@ func TestMonitorToReceiver(t *testing.T) {
 	receiver, _ := saMonitorToOtelReceiver(testvSphereMonitorCfg())
 	v, ok := receiver["smartagent/vsphere"]
 	require.True(t, ok)
-	m := v.(map[interface{}]interface{})
-	assert.Equal(t, "vsphere", m["type"])
+	assert.Equal(t, "vsphere", v["type"])
 }
 
 func TestMonitorToReceiver_Rule(t *testing.T) {
@@ -50,21 +63,7 @@ func TestMonitorToReceiver_Rule(t *testing.T) {
 		"type":          "redis",
 		"discoveryRule": `container_image =~ "redis" && port == 6379`,
 	})
-	v := otel["smartagent/redis"]
-	redis := v.(map[string]interface{})
-	_, ok := redis["rule"]
-	require.True(t, ok)
-	_, ok = redis["config"]
-	require.True(t, ok)
-}
-
-func TestMonitorToReceiver_Rule(t *testing.T) {
-	otel, _ := saMonitorToOtelReceiver(map[interface{}]interface{}{
-		"type":          "redis",
-		"discoveryRule": `container_image =~ "redis" && port == 6379`,
-	})
-	v := otel["smartagent/redis"]
-	redis := v.(map[string]interface{})
+	redis := otel["smartagent/redis"]
 	_, ok := redis["rule"]
 	require.True(t, ok)
 	_, ok = redis["config"]
@@ -136,50 +135,44 @@ func TestInfoToOtelConfig_GlobalDims(t *testing.T) {
 	oc := yamlToOtelConfig(t, "testdata/sa-complex.yaml")
 	_, ok := oc.Processors["metricstransform"]
 	assert.True(t, ok)
-	mp := metricsPipeline(oc)
+	mp := oc.Service.Pipelines["metrics"]
 	assert.NotNil(t, mp.Processors)
 }
 
 func TestInfoToOtelConfig_CollectD(t *testing.T) {
 	oc := yamlToOtelConfig(t, "testdata/sa-collectd.yaml")
-	v, ok := oc.Extensions["smartagent"]
-	require.True(t, ok)
-	saExt, ok := v.(map[string]interface{})
+	saExt, ok := oc.Extensions["smartagent"]
 	require.True(t, ok)
 	assert.Equal(t, 7, len(saExt))
-	v = saExt["collectd"]
-	collectd, ok := v.(map[interface{}]interface{})
+	v := saExt["collectd"]
+	collectd, ok := v.(map[interface{}]interface{}) // FIXME?
 	require.True(t, ok)
 	assert.Equal(t, 4, len(collectd))
-	v = oc.Service["extensions"]
-	serviceExt, ok := v.([]string)
-	require.True(t, ok)
+	serviceExt := oc.Service.Extensions
 	assert.Equal(t, 1, len(serviceExt))
 }
 
 func TestInfoToOtelConfig_ResourceDetectionProcessor(t *testing.T) {
 	oc := yamlToOtelConfig(t, "testdata/sa-simple.yaml")
 	assert.NotNil(t, oc.Processors)
-	v := oc.Processors["resourcedetection"]
-	rdProc := v.(map[string]interface{})
+	rdProc := oc.Processors["resourcedetection"]
 	assert.Equal(t, map[string]interface{}{
 		"detectors": []string{"system", "env", "gce", "ecs", "ec2", "azure"},
 	}, rdProc)
-	mp := metricsPipeline(oc)
-	assert.Equal(t, []string{"resourcedetection"}, mp.Processors)
+	assert.Equal(t, []string{"resourcedetection"}, oc.Service.Pipelines["metrics"].Processors)
 }
 
 func TestInfoToOtelConfig_SFxForwarder(t *testing.T) {
 	oc := yamlToOtelConfig(t, "testdata/sa-forwarder.yaml")
 	receiverName := "smartagent/signalfx-forwarder"
-	rcvr := oc.Receivers[receiverName].(map[interface{}]interface{})
-	assert.Equal(t, map[interface{}]interface{}{
+	rcvr := oc.Receivers[receiverName]
+	assert.Equal(t, map[string]interface{}{
 		"type":          "signalfx-forwarder",
 		"listenAddress": "0.0.0.0:9080",
 	}, rcvr)
-	pl := metricsPipeline(oc)
+	pl := oc.Service.Pipelines["metrics"]
 	assert.Contains(t, pl.Receivers, receiverName)
-	tp := tracesPipeline(oc)
+	tp := oc.Service.Pipelines["traces"]
 	assert.Equal(t, []string{receiverName}, tp.Receivers)
 	assert.Equal(t, []string{"resourcedetection"}, tp.Processors)
 	assert.Equal(t, []string{"signalfx"}, tp.Exporters)
@@ -188,12 +181,12 @@ func TestInfoToOtelConfig_SFxForwarder(t *testing.T) {
 func TestInfoToOtelConfig_ProcessList(t *testing.T) {
 	oc := yamlToOtelConfig(t, "testdata/sa-processlist.yaml")
 	receiverName := "smartagent/processlist"
-	rcvr := oc.Receivers[receiverName].(map[interface{}]interface{})
-	assert.Equal(t, map[interface{}]interface{}{
+	rcvr := oc.Receivers[receiverName]
+	assert.Equal(t, map[string]interface{}{
 		"type": "processlist",
 	}, rcvr)
-	pl := logsPipeline(oc)
-	assert.Equal(t, rpe{
+	pl := oc.Service.Pipelines["logs"]
+	assert.Equal(t, &rpe{
 		Receivers:  []string{receiverName},
 		Processors: []string{"resourcedetection"},
 		Exporters:  []string{"signalfx"},
@@ -202,35 +195,18 @@ func TestInfoToOtelConfig_ProcessList(t *testing.T) {
 
 func TestInfoToOtelConfig_Observers(t *testing.T) {
 	oc := yamlToOtelConfig(t, "testdata/sa-observers.yaml")
-	v, ok := oc.Extensions["k8s_observer"]
-	require.True(t, ok)
-	obs, ok := v.(map[string]interface{})
+	obs, ok := oc.Extensions["k8s_observer"]
 	require.True(t, ok)
 	assert.Equal(t, map[string]interface{}{
 		"auth_type": "serviceAccount",
 		"node":      "${K8S_NODE_NAME}",
 	}, obs)
-	ext := oc.Service["extensions"].([]string)
-	assert.Equal(t, []string{"k8s_observer"}, ext)
+	assert.Equal(t, []string{"k8s_observer"}, oc.Service.Extensions)
 }
 
 func TestDiscoveryRuleToRCRule(t *testing.T) {
 	rcr := discoveryRuleToRCRule(`container_image =~ "redis" && port == 6379`)
 	assert.Equal(t, `type == "port" && pod.name matches "redis" && port == 6379`, rcr)
-}
-
-func TestAppendSlice(t *testing.T) {
-	oc := otelCfg{
-		Service: map[string]interface{}{},
-	}
-	appendExtensions(oc.Service, "aaa")
-	assert.Equal(t, map[string]interface{}{
-		"extensions": []string{"aaa"},
-	}, oc.Service)
-	appendExtensions(oc.Service, "bbb")
-	assert.Equal(t, map[string]interface{}{
-		"extensions": []string{"aaa", "bbb"},
-	}, oc.Service)
 }
 
 func testvSphereMonitorCfg() map[interface{}]interface{} {
@@ -242,31 +218,11 @@ func testvSphereMonitorCfg() map[interface{}]interface{} {
 	}
 }
 
-func yamlToOtelConfig(t *testing.T, filename string) otelCfg {
+func yamlToOtelConfig(t *testing.T, filename string) *otelCfg {
 	cfg := fromYAML(t, filename)
 	expanded, err := expandSA(cfg, "")
 	require.NoError(t, err)
 	info, err := saExpandedToCfgInfo(expanded)
 	require.NoError(t, err)
 	return saInfoToOtelConfig(info)
-}
-
-func metricsPipeline(oc otelCfg) rpe {
-	return pipeline(oc, "metrics")
-}
-
-func tracesPipeline(oc otelCfg) rpe {
-	return pipeline(oc, "traces")
-}
-
-func logsPipeline(oc otelCfg) rpe {
-	return pipeline(oc, "logs")
-}
-
-func pipeline(oc otelCfg, name string) rpe {
-	return pipelines(oc)[name].(rpe)
-}
-
-func pipelines(oc otelCfg) map[string]interface{} {
-	return oc.Service["pipelines"].(map[string]interface{})
 }

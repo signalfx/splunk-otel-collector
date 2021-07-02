@@ -210,11 +210,11 @@ func TestAppendSlice(t *testing.T) {
 	oc := otelCfg{
 		Service: map[string]interface{}{},
 	}
-	appendSlice(oc.Service, "extensions", "aaa")
+	appendExtensions(oc.Service, "aaa")
 	assert.Equal(t, map[string]interface{}{
 		"extensions": []string{"aaa"},
 	}, oc.Service)
-	appendSlice(oc.Service, "extensions", "bbb")
+	appendExtensions(oc.Service, "bbb")
 	assert.Equal(t, map[string]interface{}{
 		"extensions": []string{"aaa", "bbb"},
 	}, oc.Service)

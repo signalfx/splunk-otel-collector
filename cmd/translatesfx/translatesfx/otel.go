@@ -81,13 +81,13 @@ func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 	}
 	if len(cfg.saExtension) > 0 {
 		appendMap(out.Extensions, cfg.saExtension)
-		appendSlice(out.Service, "extensions", "smartagent")
+		appendExtensions(out.Service, "smartagent")
 	}
 	if len(cfg.observers) > 0 {
 		m := saObserversToOtel(cfg.observers)
 		if m != nil {
 			appendMap(out.Extensions, m)
-			appendSlice(out.Service, "extensions", "k8s_observer")
+			appendExtensions(out.Service, "k8s_observer")
 		}
 	}
 	const sfxFwder = "smartagent/signalfx-forwarder"
@@ -108,7 +108,8 @@ func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 	return out
 }
 
-func appendSlice(m map[string]interface{}, k string, v string) {
+func appendExtensions(m map[string]interface{}, v string) {
+	const k = "extensions"
 	_, ok := m[k]
 	if !ok {
 		m[k] = []string{v}

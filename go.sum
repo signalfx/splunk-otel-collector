@@ -1625,6 +1625,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.29.0/go.mod h1:PYHtxZg7u5QRyH+PIPmLZHM4QpPGDATFZ0ObDiZneSk=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.29.0 h1:Y1T5GxFtBJvPlCMJYBiA4x6dxB1QfuiR9f0FPepfPt8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.29.0/go.mod h1:ucu8dPMP3qdY8x7vILuWc37x98mUtKPwAj870j9y5YI=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.29.0 h1:/vYCJxc19NsHel+9vQ+fcjTTZ0ry6bIS11v6HjYLGgY=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.29.0/go.mod h1:a+zwLEaDjy+s5B0n5Qy7Nq5MnT5LyE+804Ugv+DHAtU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.29.0 h1:D3+Xcmg0e9FP69xpUJHrTphOfcv3fefQ5S9Nxac8bL8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.29.0/go.mod h1:C1EmyFbMKdqjqKn9/xVPkhKhrVtrqW8sbnW0d0hXuww=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.29.0 h1:lXGs6HG1xEFYZ5rOUbEcLwyLYFyKhk2G2FSx9RH6Q3I=

@@ -23,6 +23,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.29.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.29.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.29.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.29.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.29.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.29.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.29.0

@@ -14,7 +14,10 @@
 
 package translatesfx
 
-import "sort"
+import (
+	"sort"
+	"strings"
+)
 
 type otelCfg struct {
 	Extensions    map[string]interface{} `yaml:",omitempty"`
@@ -29,11 +32,16 @@ const processlist = "smartagent/processlist"
 
 func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 	receivers := map[string]interface{}{}
-	for _, v := range cfg.monitors {
-		monitor := v.(map[interface{}]interface{})
-		receiver := saMonitorToOtelReceiver(monitor)
+	rcReceivers := map[string]interface{}{}
+	for _, monV := range cfg.monitors {
+		monitor := monV.(map[interface{}]interface{})
+		receiver, isRC := saMonitorToOtelReceiver(monitor)
+		target := receivers
+		if isRC {
+			target = rcReceivers
+		}
 		for k, v := range receiver {
-			receivers[k.(string)] = v
+			target[k.(string)] = v
 		}
 	}
 	const resourceDetection = "resourcedetection"
@@ -47,7 +55,14 @@ func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 				"detectors": []string{"system", "env", "gce", "ecs", "ec2", "azure"},
 			},
 		},
-		Exporters: sfxExporter(cfg.accessToken, cfg.realm),
+		Exporters:  sfxExporter(cfg.accessToken, cfg.realm),
+		Extensions: map[string]interface{}{},
+	}
+	if len(rcReceivers) > 0 {
+		out.Receivers["receiver_creator"] = map[string]interface{}{
+			"receivers":       rcReceivers,
+			"watch_observers": []string{"k8s_observer"}, // TODO check observer type?
+		}
 	}
 	const sfx = "signalfx"
 	metricsPipeline := rpe{
@@ -65,8 +80,15 @@ func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 		"pipelines": pipelines,
 	}
 	if len(cfg.saExtension) > 0 {
-		out.Extensions = cfg.saExtension
-		out.Service["extensions"] = []string{"smartagent"}
+		appendMap(out.Extensions, cfg.saExtension)
+		appendExtensions(out.Service, "smartagent")
+	}
+	if len(cfg.observers) > 0 {
+		m := saObserversToOtel(cfg.observers)
+		if m != nil {
+			appendMap(out.Extensions, m)
+			appendExtensions(out.Service, "k8s_observer")
+		}
 	}
 	const sfxFwder = "smartagent/signalfx-forwarder"
 	if _, ok := receivers[sfxFwder]; ok {
@@ -84,6 +106,49 @@ func saInfoToOtelConfig(cfg saCfgInfo) otelCfg {
 		}
 	}
 	return out
+}
+
+func appendExtensions(m map[string]interface{}, v string) {
+	const k = "extensions"
+	_, ok := m[k]
+	if !ok {
+		m[k] = []string{v}
+		return
+	}
+	m[k] = append(m[k].([]string), v)
+	sort.Strings(m[k].([]string))
+}
+
+func saObserversToOtel(observers []interface{}) map[string]interface{} {
+	for _, v := range observers {
+		obs, ok := v.(map[interface{}]interface{})
+		if !ok {
+			return nil
+		}
+		typeV, ok := obs["type"]
+		if !ok {
+			return nil
+		}
+		observerType, ok := typeV.(string)
+		if !ok {
+			return nil
+		}
+		if observerType == "k8s-api" {
+			return map[string]interface{}{
+				"k8s_observer": map[string]interface{}{
+					"auth_type": "serviceAccount",
+					"node":      "${K8S_NODE_NAME}",
+				},
+			}
+		}
+	}
+	return nil
+}
+
+func appendMap(m, n map[string]interface{}) {
+	for k, v := range n {
+		m[k] = v
+	}
 }
 
 // rpe == Receivers Processors Exporters. Using this instead of a map for
@@ -106,9 +171,36 @@ func receiverList(receivers map[string]interface{}) []string {
 	return keys
 }
 
-func saMonitorToOtelReceiver(monitor map[interface{}]interface{}) map[interface{}]interface{} {
-	// TODO translate discovery rule (delete for now)
+func saMonitorToOtelReceiver(monitor map[interface{}]interface{}) (map[interface{}]interface{}, bool) {
+	if _, ok := monitor["discoveryRule"]; ok {
+		return saMonitorToRCReceiver(monitor), true
+	}
+	return saMonitorToStandardReceiver(monitor), false
+}
+
+func saMonitorToRCReceiver(monitor map[interface{}]interface{}) map[interface{}]interface{} {
+	key := "smartagent/" + monitor["type"].(string)
+	rcr := discoveryRuleToRCRule(monitor["discoveryRule"].(string))
 	delete(monitor, "discoveryRule")
+	out := map[interface{}]interface{}{
+		key: map[string]interface{}{
+			"rule":   rcr,
+			"config": monitor,
+		},
+	}
+	return out
+}
+
+func discoveryRuleToRCRule(dr string) string {
+	out := strings.ReplaceAll(dr, "=~", "matches")
+	out = strings.ReplaceAll(out, "container_image", "pod.name")
+	if strings.Contains(out, "port") {
+		out = `type == "port" && ` + out
+	}
+	return out
+}
+
+func saMonitorToStandardReceiver(monitor map[interface{}]interface{}) map[interface{}]interface{} {
 	return map[interface{}]interface{}{
 		"smartagent/" + monitor["type"].(string): monitor,
 	}

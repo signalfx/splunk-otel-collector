@@ -11,10 +11,12 @@ globalDimensions:
 collectd:
   configDir: "/var/run/signalfx-agent"
 
+observers:
+  - type: k8s-api
+
 monitors:
   - type: collectd/redis
-    host: localhost
-    port: 6379
+    discoveryRule: container_image =~ "redis" && port == 6379
   - type: signalfx-forwarder
     listenAddress: 0.0.0.0:9080
   - type: processlist

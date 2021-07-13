@@ -1,0 +1,16 @@
+---
+signalFxAccessToken: "abc123"
+signalFxRealm: us1
+
+intervalSeconds: 10
+
+logging:
+  level: info
+
+observers:
+  - type: k8s-api
+
+monitors:
+  - type: cpu
+  - type: collectd/redis
+    discoveryRule: container_image =~ "redis" && port == 6379

@@ -25,6 +25,7 @@ import (
 
 func TestDefaultComponents(t *testing.T) {
 	expectedExtensions := []config.Type{
+		"ecs_observer",
 		"health_check",
 		"host_observer",
 		"http_forwarder",

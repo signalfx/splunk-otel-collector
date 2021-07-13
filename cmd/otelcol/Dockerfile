@@ -31,5 +31,6 @@ COPY --from=smartagent /usr/lib/splunk-otel-collector/agent-bundle /usr/lib/splu
 COPY config/collector/gateway_config.yaml    /etc/otel/collector/gateway_config.yaml
 COPY config/collector/otlp_config_linux.yaml /etc/otel/collector/otlp_config_linux.yaml
 COPY config/collector/agent_config.yaml      /etc/otel/collector/agent_config.yaml
+COPY config/collector/fargate_config.yaml    /etc/otel/collector/fargate_config.yaml
 ENTRYPOINT ["/otelcol"]
 EXPOSE 13133 14250 14268 4317 6060 8888 9411 9443 9080

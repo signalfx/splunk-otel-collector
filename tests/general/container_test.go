@@ -96,8 +96,66 @@ func TestSpecifiedContainerConfigDefaultsToCmdLineArgIfEnvVarConflict(t *testing
 		for _, log := range logs.All() {
 			if strings.Contains(
 				log.Message,
-				`Both SPLUNK_CONFIG and '--config' were specified. Overriding "/not/a/real/path" environment `+
-					`variable value with "/etc/config.yaml" for this session`,
+				`Both environment variable SPLUNK_CONFIG and flag '--config' were specified. `+
+					`Using the flag value /etc/config.yaml and ignoring the environment variable value `+
+					`/not/a/real/path in this session`,
+			) {
+				return true
+			}
+		}
+		return false
+	}, 20*time.Second, time.Second)
+
+	require.Eventually(t, func() bool {
+		for _, log := range logs.All() {
+			// logged host metric to confirm basic functionality
+			if strings.Contains(log.Message, "Value: ") {
+				return true
+			}
+		}
+		return false
+	}, 5*time.Second, time.Second)
+}
+
+func TestConfigYamlEnvVarUsingLogs(t *testing.T) {
+	image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE")
+	if strings.TrimSpace(image) == "" {
+		t.Skipf("skipping container-only test")
+	}
+
+	logCore, logs := observer.New(zap.DebugLevel)
+	logger := zap.New(logCore)
+
+	configYamlEnv := map[string]string{"SPLUNK_CONFIG_YAML": `receivers:
+  hostmetrics:
+    collection_interval: 1s
+    scrapers:
+      cpu:
+exporters:
+  logging:
+    logLevel: debug
+service:
+  pipelines:
+    metrics:
+      receivers: [hostmetrics]
+      exporters: [logging]`}
+
+	collector, err := testutils.NewCollectorContainer().
+		WithImage(image).
+		WithEnv(configYamlEnv).
+		WithLogger(logger).
+		Build()
+
+	require.NoError(t, err)
+	require.NotNil(t, collector)
+	require.NoError(t, collector.Start())
+	defer func() { require.NoError(t, collector.Shutdown()) }()
+
+	require.Eventually(t, func() bool {
+		for _, log := range logs.All() {
+			if strings.Contains(
+				log.Message,
+				`Using environment variable SPLUNK_CONFIG_YAML for configuration`,
 			) {
 				return true
 			}

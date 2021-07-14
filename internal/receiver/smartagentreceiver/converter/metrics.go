@@ -19,7 +19,7 @@ import (
 	"time"
 
 	sfx "github.com/signalfx/golib/v3/datapoint"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.uber.org/zap"
 )
 
@@ -67,10 +67,10 @@ func sfxDatapointsToPDataMetrics(datapoints []*sfx.Datapoint, timeReceived time.
 			err = fillIntDatapoint(datapoint, m.IntGauge().DataPoints(), timeReceived)
 		case pdata.MetricDataTypeIntSum:
 			err = fillIntDatapoint(datapoint, m.IntSum().DataPoints(), timeReceived)
-		case pdata.MetricDataTypeDoubleGauge:
-			err = fillDoubleDatapoint(datapoint, m.DoubleGauge().DataPoints(), timeReceived)
-		case pdata.MetricDataTypeDoubleSum:
-			err = fillDoubleDatapoint(datapoint, m.DoubleSum().DataPoints(), timeReceived)
+		case pdata.MetricDataTypeGauge:
+			err = fillDoubleDatapoint(datapoint, m.Gauge().DataPoints(), timeReceived)
+		case pdata.MetricDataTypeSum:
+			err = fillDoubleDatapoint(datapoint, m.Sum().DataPoints(), timeReceived)
 		}
 
 		if err != nil {
@@ -108,15 +108,15 @@ func setDataType(datapoint *sfx.Datapoint, m pdata.Metric) error {
 	switch sfxMetricType {
 	case sfx.Gauge, sfx.Enum, sfx.Rate:
 		if isFloat {
-			m.SetDataType(pdata.MetricDataTypeDoubleGauge)
+			m.SetDataType(pdata.MetricDataTypeGauge)
 		} else {
 			m.SetDataType(pdata.MetricDataTypeIntGauge)
 		}
 	case sfx.Count:
 		if isFloat {
-			m.SetDataType(pdata.MetricDataTypeDoubleSum)
-			m.DoubleSum().SetAggregationTemporality(pdata.AggregationTemporalityDelta)
-			m.DoubleSum().SetIsMonotonic(true)
+			m.SetDataType(pdata.MetricDataTypeSum)
+			m.Sum().SetAggregationTemporality(pdata.AggregationTemporalityDelta)
+			m.Sum().SetIsMonotonic(true)
 		} else {
 			m.SetDataType(pdata.MetricDataTypeIntSum)
 			m.IntSum().SetAggregationTemporality(pdata.AggregationTemporalityDelta)
@@ -124,9 +124,9 @@ func setDataType(datapoint *sfx.Datapoint, m pdata.Metric) error {
 		}
 	case sfx.Counter:
 		if isFloat {
-			m.SetDataType(pdata.MetricDataTypeDoubleSum)
-			m.DoubleSum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
-			m.DoubleSum().SetIsMonotonic(true)
+			m.SetDataType(pdata.MetricDataTypeSum)
+			m.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+			m.Sum().SetIsMonotonic(true)
 		} else {
 			m.SetDataType(pdata.MetricDataTypeIntSum)
 			m.IntSum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)

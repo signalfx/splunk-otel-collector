@@ -36,7 +36,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -50,17 +50,17 @@ func cleanUp() {
 }
 
 var expectedCPUMetrics = map[string]pdata.MetricDataType{
-	"cpu.idle":                 pdata.MetricDataTypeDoubleSum,
-	"cpu.interrupt":            pdata.MetricDataTypeDoubleSum,
-	"cpu.nice":                 pdata.MetricDataTypeDoubleSum,
+	"cpu.idle":                 pdata.MetricDataTypeSum,
+	"cpu.interrupt":            pdata.MetricDataTypeSum,
+	"cpu.nice":                 pdata.MetricDataTypeSum,
 	"cpu.num_processors":       pdata.MetricDataTypeIntGauge,
-	"cpu.softirq":              pdata.MetricDataTypeDoubleSum,
-	"cpu.steal":                pdata.MetricDataTypeDoubleSum,
-	"cpu.system":               pdata.MetricDataTypeDoubleSum,
-	"cpu.user":                 pdata.MetricDataTypeDoubleSum,
-	"cpu.utilization":          pdata.MetricDataTypeDoubleGauge,
-	"cpu.utilization_per_core": pdata.MetricDataTypeDoubleGauge,
-	"cpu.wait":                 pdata.MetricDataTypeDoubleSum,
+	"cpu.softirq":              pdata.MetricDataTypeSum,
+	"cpu.steal":                pdata.MetricDataTypeSum,
+	"cpu.system":               pdata.MetricDataTypeSum,
+	"cpu.user":                 pdata.MetricDataTypeSum,
+	"cpu.utilization":          pdata.MetricDataTypeGauge,
+	"cpu.utilization_per_core": pdata.MetricDataTypeGauge,
+	"cpu.wait":                 pdata.MetricDataTypeSum,
 }
 
 func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
@@ -129,23 +129,23 @@ func TestSmartAgentReceiver(t *testing.T) {
 								_, ok := val.(int64)
 								assert.True(t, ok, "invalid value of MetricDataTypeIntGauge metric %s", name)
 							}
-						case pdata.MetricDataTypeDoubleGauge:
-							dg := metric.DoubleGauge()
+						case pdata.MetricDataTypeGauge:
+							dg := metric.Gauge()
 							for l := 0; l < dg.DataPoints().Len(); l++ {
 								dgdp := dg.DataPoints().At(l)
 								labels = dgdp.LabelsMap()
 								var val interface{} = dgdp.Value()
 								_, ok := val.(float64)
-								assert.True(t, ok, "invalid value of MetricDataTypeDoubleGauge metric %s", name)
+								assert.True(t, ok, "invalid value of MetricDataTypeGauge metric %s", name)
 							}
-						case pdata.MetricDataTypeDoubleSum:
-							ds := metric.DoubleSum()
+						case pdata.MetricDataTypeSum:
+							ds := metric.Sum()
 							for l := 0; l < ds.DataPoints().Len(); l++ {
 								dsdp := ds.DataPoints().At(l)
 								labels = dsdp.LabelsMap()
 								var val interface{} = dsdp.Value()
 								_, ok := val.(float64)
-								assert.True(t, ok, "invalid value of MetricDataTypeDoubleSum metric %s", name)
+								assert.True(t, ok, "invalid value of MetricDataTypeSum metric %s", name)
 							}
 						default:
 							t.Errorf("unexpected type %#v for metric %s", metric.DataType(), name)

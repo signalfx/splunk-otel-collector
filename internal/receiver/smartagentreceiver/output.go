@@ -91,11 +91,7 @@ func getMetadataExporters(
 
 	metadataExporters, noClientsSpecified := getDimensionClientsFromMetricsExporters(cfg.DimensionClients, host, nextMetricsConsumer, logger)
 	for _, client := range metadataExporters {
-		if metadataExporter, ok := (*client).(metadata.MetadataExporter); ok {
-			exporters = append(exporters, metadataExporter)
-		} else {
-			logger.Info("cannot send dimension updates to dimension client", zap.Any("client", *client))
-		}
+		exporters = append(exporters, *client)
 	}
 
 	if len(exporters) == 0 && noClientsSpecified {
@@ -203,8 +199,7 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 		return
 	}
 
-	ctx := obsreport.ReceiverContext(context.Background(), output.receiverID, internalTransport)
-	ctx = output.reporter.StartMetricsOp(ctx)
+	ctx := output.reporter.StartMetricsOp(context.Background())
 
 	datapoints = output.filterDatapoints(datapoints)
 	for _, dp := range datapoints {
@@ -217,7 +212,7 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 		output.logger.Debug("SendDatapoints has dropped points", zap.Int("numDropped", numDropped))
 	}
 
-	_, numPoints := metrics.MetricAndDataPointCount()
+	numPoints := metrics.DataPointCount()
 	err := output.nextMetricsConsumer.ConsumeMetrics(context.Background(), metrics)
 	output.reporter.EndMetricsOp(ctx, typeStr, numPoints, err)
 }

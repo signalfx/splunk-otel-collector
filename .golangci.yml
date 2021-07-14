@@ -108,3 +108,9 @@ linters:
     - unconvert
     - unparam
 
+issues:
+  exclude-rules:
+    # TODO: Fix this as a followup.
+    - text: "SA1019:.*Resize is deprecated.*"
+      linters:
+        - staticcheck

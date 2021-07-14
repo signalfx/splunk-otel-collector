@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/signalfx/golib/v3/event"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.uber.org/zap"
 )
 

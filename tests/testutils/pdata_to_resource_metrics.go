@@ -3,7 +3,7 @@ package testutils
 import (
 	"fmt"
 
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 	tracetranslator "go.opentelemetry.io/collector/translator/trace"
 )
 
@@ -36,11 +36,11 @@ func PDataToResourceMetrics(pdataMetrics ...pdata.Metrics) (ResourceMetrics, err
 					switch pdataMetric.DataType() {
 					case pdata.MetricDataTypeIntGauge:
 						addIntGauge(&ilms, pdataMetric)
-					case pdata.MetricDataTypeDoubleGauge:
+					case pdata.MetricDataTypeGauge:
 						addDoubleGauge(&ilms, pdataMetric)
 					case pdata.MetricDataTypeIntSum:
 						addIntSum(&ilms, pdataMetric)
-					case pdata.MetricDataTypeDoubleSum:
+					case pdata.MetricDataTypeSum:
 						addDoubleSum(&ilms, pdataMetric)
 					case pdata.MetricDataTypeIntHistogram:
 						panic(fmt.Sprintf("%s not yet supported", pdata.MetricDataTypeIntHistogram))
@@ -61,7 +61,7 @@ func PDataToResourceMetrics(pdataMetrics ...pdata.Metrics) (ResourceMetrics, err
 }
 
 func addDoubleSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
-	doubleSum := metric.DoubleSum()
+	doubleSum := metric.Sum()
 	var metricType MetricType
 	switch doubleSum.AggregationTemporality() {
 	case pdata.AggregationTemporalityCumulative:
@@ -178,7 +178,7 @@ func addIntSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 }
 
 func addDoubleGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
-	doubleGauge := metric.DoubleGauge()
+	doubleGauge := metric.Gauge()
 	for l := 0; l < doubleGauge.DataPoints().Len(); l++ {
 		dp := doubleGauge.DataPoints().At(l)
 		val := dp.Value()

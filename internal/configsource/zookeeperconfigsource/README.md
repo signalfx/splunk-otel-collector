@@ -12,20 +12,21 @@ Zookeeper config sources:
 ```yaml
 config_sources:
   zookeeper:
-    # endpoint is the Zookeeper server addresses. Config source will try to connect to
-    # these endpoints to access an Zookeeper cluster.
-    endpoints: [http://localhost:2181]
+    # endpoints is an array of Zookeeper server addresses. Config source will 
+    # try to connect to these endpoints to access Zookeeper clusters.
+    endpoints: [localhost:2181]
     # timeout sets the amount of time for which a session is considered valid after
     # losing connection to a server. Within the session timeout it's possible to 
     # reestablish a connection to a different server and keep the same session.
     timeout: 10s
 ```
 
-If multiple paths are needed create different instances of the config source, example:
+If multiple paths are needed, create different instances of the config 
+source. For example:
 
 ```yaml
 config_sources:
-    # Assuming that the environment variables ZOOKEEPER_ADDR is the defined and the 
+    # Assuming that the environment variable ZOOKEEPER_ADDR is defined and 
     # different secrets are on the same server but at different paths.
     zookeeper:
       endpoints: [$ZOOKEEPER_ADDR]

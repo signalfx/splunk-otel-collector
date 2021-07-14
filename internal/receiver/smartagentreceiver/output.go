@@ -68,7 +68,7 @@ func NewOutput(
 		nextMetricsConsumer:  nextMetricsConsumer,
 		nextLogsConsumer:     nextLogsConsumer,
 		nextTracesConsumer:   nextTracesConsumer,
-		nextDimensionClients: getMetadataExporters(config, host, &nextMetricsConsumer, logger),
+		nextDimensionClients: getMetadataExporters(config, host, nextMetricsConsumer, logger),
 		logger:               logger,
 		converter:            converter.NewConverter(logger),
 		extraDimensions:      map[string]string{},
@@ -85,14 +85,11 @@ func NewOutput(
 // getMetadataExporters walks through obtained Config.MetadataClients and returns all matching registered MetadataExporters,
 // if any.  At this time the SignalFx exporter is the only supported use case and adopter of this type.
 func getMetadataExporters(
-	cfg Config, host component.Host, nextMetricsConsumer *consumer.Metrics, logger *zap.Logger,
+	cfg Config, host component.Host, nextMetricsConsumer consumer.Metrics, logger *zap.Logger,
 ) []metadata.MetadataExporter {
 	var exporters []metadata.MetadataExporter
 
-	metadataExporters, noClientsSpecified := getDimensionClientsFromMetricsExporters(cfg.DimensionClients, host, nextMetricsConsumer, logger)
-	for _, client := range metadataExporters {
-		exporters = append(exporters, *client)
-	}
+	exporters, noClientsSpecified := getDimensionClientsFromMetricsExporters(cfg.DimensionClients, host, nextMetricsConsumer, logger)
 
 	if len(exporters) == 0 && noClientsSpecified {
 		sfxExporter := getLoneSFxExporter(host, config.MetricsDataType)
@@ -114,13 +111,13 @@ func getMetadataExporters(
 // MetricsExporters, the only truly supported component type.
 // If config.MetadataClients is nil, it will return a slice with nextMetricsConsumer if it's a MetricsExporter.
 func getDimensionClientsFromMetricsExporters(
-	specifiedClients []string, host component.Host, nextMetricsConsumer *consumer.Metrics, logger *zap.Logger,
-) (clients []*metadata.MetadataExporter, wasNil bool) {
+	specifiedClients []string, host component.Host, nextMetricsConsumer consumer.Metrics, logger *zap.Logger,
+) (clients []metadata.MetadataExporter, wasNil bool) {
 	if specifiedClients == nil {
 		wasNil = true
 		// default to nextMetricsConsumer if no clients have been provided
-		if asMetadataExporter, ok := (*nextMetricsConsumer).(metadata.MetadataExporter); ok {
-			clients = append(clients, &asMetadataExporter)
+		if asMetadataExporter, ok := nextMetricsConsumer.(metadata.MetadataExporter); ok {
+			clients = append(clients, asMetadataExporter)
 		}
 		return
 	}
@@ -131,7 +128,7 @@ func getDimensionClientsFromMetricsExporters(
 			for exporterConfig, exporter := range builtExporters {
 				if exporterConfig.String() == client {
 					if asMetadataExporter, ok := exporter.(metadata.MetadataExporter); ok {
-						clients = append(clients, &asMetadataExporter)
+						clients = append(clients, asMetadataExporter)
 					}
 					found = true
 				}

@@ -16,8 +16,14 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
+	"log"
 	"os"
+	"path"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestContains(t *testing.T) {
@@ -50,7 +56,7 @@ func TestGetKeyValue(t *testing.T) {
 		{"foo", "--test", "foo"},
 	}
 	for _, v := range testArgs {
-		result := getKeyValue(v, "--test")
+		_, result := getKeyValue(v, "--test")
 		if result != v[0] {
 			t.Errorf("Expected %v got %v", v[0], v)
 		}
@@ -59,9 +65,8 @@ func TestGetKeyValue(t *testing.T) {
 
 func TestCheckRuntimeParams(*testing.T) {
 	oldArgs := os.Args
-	os.Setenv(configEnvVarName, "../../"+defaultLocalSAPMConfig)
-	setConfig()
-	os.Unsetenv(configEnvVarName)
+	os.Setenv(configEnvVarName, path.Join("../../", defaultLocalSAPMConfig))
+	checkConfig()
 	checkRuntimeParams()
 
 	os.Args = oldArgs
@@ -80,7 +85,7 @@ func TestCheckRuntimeParams(*testing.T) {
 
 func HelperTestSetMemoryBallast(val string, t *testing.T) {
 	args := os.Args[1:]
-	c := getKeyValue(args, "--mem-ballast-size-mib")
+	_, c := getKeyValue(args, "--mem-ballast-size-mib")
 	if c != val {
 		t.Errorf("Expected memory ballast CLI param %v got %v", val, c)
 	}
@@ -98,15 +103,124 @@ func HelperTestSetMemoryLimit(val string, t *testing.T) {
 }
 
 func TestUseConfigFromEnvVar(t *testing.T) {
-	os.Setenv(tokenEnvVarName, "12345")
-	os.Setenv(realmEnvVarName, "us0")
-	os.Setenv(configEnvVarName, "../../"+defaultLocalSAPMConfig)
-	setConfig()
+	oldArgs := os.Args
+	defer func() {
+		os.Args = oldArgs
+	}()
+
+	configPath := path.Join("../../", defaultLocalSAPMConfig)
+	os.Setenv(configEnvVarName, configPath)
+	defer os.Unsetenv(configEnvVarName)
+	checkConfig()
 
 	args := os.Args[1:]
-	c := getKeyValue(args, "--config")
-	if c != "../../"+defaultLocalSAPMConfig {
+	_, c := getKeyValue(args, "--config")
+	if c != path.Join("../../", defaultLocalSAPMConfig) {
 		t.Error("Config CLI param not set as expected")
+	}
+}
+
+func TestConfigPrecedence(t *testing.T) {
+	validPath1 := path.Join("../../", defaultLocalSAPMConfig)
+	validPath2 := path.Join("../../", defaultLocalOTLPConfig)
+	validConfig := `receivers:
+  hostmetrics:
+    collection_interval: 1s
+    scrapers:
+      cpu:
+exporters:
+  logging:
+    logLevel: debug
+service:
+  pipelines:
+    metrics:
+      receivers: [hostmetrics]
+      exporters: [logging]`
+
+	tests := []struct {
+		name                string
+		configFlagVal       string // Flag --config value
+		splunkConfigVal     string // Environment variable SPLUNK_CONFIG value
+		splunkConfigYamlVal string // Environment variable SPLUNK_CONFIG_YAML value
+		expectedLogs        []string
+		unexpectedLogs      []string
+	}{
+		{
+			name:                "Flag --config precedences env SPLUNK_CONFIG and SPLUNK_CONFIG_YAML",
+			configFlagVal:       validPath1,
+			splunkConfigVal:     validPath2,
+			splunkConfigYamlVal: validConfig,
+			expectedLogs: []string{
+				fmt.Sprintf("Both environment variable SPLUNK_CONFIG and flag '--config' were specified. Using the flag value %s and ignoring the environment variable value %s in this session", validPath1, validPath2),
+				fmt.Sprintf("Both environment variable SPLUNK_CONFIG_YAML and flag '--config' were specified. Using the flag value %s and ignoring the environment variable in this session", validPath1),
+				fmt.Sprintf("Set config to %v", validPath1),
+			},
+			unexpectedLogs: []string{
+				fmt.Sprintf("Set config to %v", validPath2),
+				fmt.Sprintf("Using environment variable %s for configuration", configYamlEnvVarName),
+			},
+		},
+		{
+			name:                "env SPLUNK_CONFIG precedences SPLUNK_CONFIG_YAML",
+			configFlagVal:       "",
+			splunkConfigVal:     validPath2,
+			splunkConfigYamlVal: validConfig,
+			expectedLogs: []string{
+				fmt.Sprintf("Both %s and %s were specified. Using %s environment variable value %s for this session", configEnvVarName, configYamlEnvVarName, configEnvVarName, validPath2),
+				fmt.Sprintf("Set config to %v", validPath2),
+			},
+			unexpectedLogs: []string{
+				fmt.Sprintf("Set config to %v", validPath1),
+				fmt.Sprintf("Using environment variable %s for configuration", configYamlEnvVarName),
+			},
+		},
+		{
+			name:                "env SPLUNK_CONFIG_YAML used when flag --config and env SPLUNK_CONFIG not specified",
+			configFlagVal:       "",
+			splunkConfigVal:     "",
+			splunkConfigYamlVal: validConfig,
+			expectedLogs: []string{
+				fmt.Sprintf("Using environment variable %s for configuration", configYamlEnvVarName),
+			},
+			unexpectedLogs: []string{
+				fmt.Sprintf("Set config to %v", validPath1),
+				fmt.Sprintf("Set config to %v", validPath2),
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			func() {
+				oldArgs := os.Args
+				oldWriter := log.Default().Writer()
+
+				defer func() {
+					os.Args = oldArgs
+					os.Unsetenv(configEnvVarName)
+					os.Unsetenv(configYamlEnvVarName)
+					log.Default().SetOutput(oldWriter)
+				}()
+
+				actualLogsBuf := new(bytes.Buffer)
+				log.Default().SetOutput(actualLogsBuf)
+				if test.configFlagVal != "" {
+					os.Args = append(os.Args, "--config="+test.configFlagVal)
+				}
+				os.Setenv(configEnvVarName, test.splunkConfigVal)
+				os.Setenv(configYamlEnvVarName, test.splunkConfigYamlVal)
+
+				checkConfig()
+
+				actualLogs := actualLogsBuf.String()
+
+				for _, expectedLog := range test.expectedLogs {
+					assert.Contains(t, actualLogs, expectedLog)
+				}
+				for _, unexpectedLog := range test.unexpectedLogs {
+					assert.NotContains(t, actualLogs, unexpectedLog)
+				}
+			}()
+		})
 	}
 }
 
@@ -118,6 +232,7 @@ func TestSetMemoryBallast(t *testing.T) {
 
 	os.Args = oldArgs
 	os.Setenv(ballastEnvVarName, "50")
+	defer os.Unsetenv(ballastEnvVarName)
 	setMemoryBallast(100)
 
 	HelperTestSetMemoryBallast("50", t)

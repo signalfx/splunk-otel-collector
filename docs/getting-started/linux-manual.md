@@ -139,13 +139,21 @@ $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
 
 ### Custom Configuration
 
-When changes to the default configuration file is needed, a custom
-configuration file can specified and used instead. Use the `SPLUNK_CONFIG`
-environment variable or the `--config` command line argument to provide a
-custom configuration.
+When changes to the default configuration YAML file are needed, create a
+custom configuration file. Use environment variable `SPLUNK_CONFIG` or
+command line argument `--config` to provide the path to this file.
+
+Also, you can use environment variable `SPLUNK_CONFIG_YAML` to specify 
+your custom configuration YAML at the command line. This is useful in
+environments where access to the underlying file system is not readily
+available. For example, in AWS Fargate you can store your custom configuration
+YAML in a parameter in AWS Systems Manager Parameter Store, then in
+your container definition specify `SPLUNK_CONFIG_YAML` to get the
+configuration from the parameter.
 
 > Command line arguments take precedence over environment variables. This
-> applies to `--config` and `--mem-ballast-size-mib`.
+> applies to `--config` and `--mem-ballast-size-mib`. `SPLUNK_CONFIG` 
+> takes precedence over `SPLUNK_CONFIG_YAML`
 
 For example in Docker:
 
@@ -160,11 +168,41 @@ $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
 
 > Use of a SemVer tag over `latest` is highly recommended.
 
-In the case of Docker, a volume mount may be required to load custom
-configuration as shown above.
+In the case of Docker, a volume mount may be required to load the custom
+configuration file, as shown above.
 
-If the custom configuration includes a `memory_limiter` processor then the
+If the custom configuration includes a `memory_limiter` processor, then the
 `ballast_size_mib` parameter should be the same as the
 `SPLUNK_BALLAST_SIZE_MIB` environment variable. See
 [gateway_config.yaml](../../cmd/otelcol/config/collector/gateway_config.yaml)
 as an example.
+
+The following example shows the `SPLUNK_CONFIG_YAML` environment variable:
+```bash
+$ CONFIG_YAML=$(cat <<-END
+receivers:
+   hostmetrics:
+      collection_interval: 1s
+      scrapers:
+         cpu:
+exporters:
+   logging:
+      logLevel: debug
+service:
+   pipelines:
+      metrics:
+         receivers: [hostmetrics]
+         exporters: [logging]
+END
+)
+
+$ docker run --rm \
+    -e SPLUNK_CONFIG_YAML=${CONFIG_YAML} \
+    --name otelcol quay.io/signalfx/splunk-otel-collector:latest
+```
+The configuration YAML above is for collecting and logging cpu
+metrics. The YAML is assigned to parameter `CONFIG_YAML` for
+convenience in the first command. In the subsequent `docker run`
+command, parameter `CONFIG_YAML` is expanded and assigned to
+environment variable `SPLUNK_CONFIG_YAML`. Note that YAML 
+requires whitespace indentation to be maintained.

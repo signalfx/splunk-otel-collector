@@ -88,6 +88,7 @@ func TestConfigSourceParserProvider(t *testing.T) {
 			}
 
 			pp := NewConfigSourceParserProvider(
+				parserprovider.Default(),
 				zap.NewNop(),
 				component.DefaultBuildInfo(),
 				factories...,

@@ -21,7 +21,7 @@ import (
 	sfx "github.com/signalfx/golib/v3/datapoint"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.uber.org/zap"
 )
 
@@ -69,11 +69,11 @@ func pdataMetrics(dataType pdata.MetricDataType, val interface{}, timeReceived t
 	case pdata.MetricDataTypeIntSum:
 		metric.IntSum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
 		dps = metric.IntSum().DataPoints()
-	case pdata.MetricDataTypeDoubleGauge:
-		dps = metric.DoubleGauge().DataPoints()
-	case pdata.MetricDataTypeDoubleSum:
-		metric.DoubleSum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
-		dps = metric.DoubleSum().DataPoints()
+	case pdata.MetricDataTypeGauge:
+		dps = metric.Gauge().DataPoints()
+	case pdata.MetricDataTypeSum:
+		metric.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+		dps = metric.Sum().DataPoints()
 	}
 
 	var labels pdata.StringMap
@@ -85,7 +85,7 @@ func pdataMetrics(dataType pdata.MetricDataType, val interface{}, timeReceived t
 		labels = dp.LabelsMap()
 		dp.SetTimestamp(pdata.Timestamp(timeReceived.UnixNano()))
 		dp.SetValue(int64(val.(int)))
-	case pdata.MetricDataTypeDoubleGauge, pdata.MetricDataTypeDoubleSum:
+	case pdata.MetricDataTypeGauge, pdata.MetricDataTypeSum:
 		dps.(pdata.DoubleDataPointSlice).Resize(1)
 		dp := dps.(pdata.DoubleDataPointSlice).At(0)
 		labels = dp.LabelsMap()
@@ -124,7 +124,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				pt.Value = sfx.NewFloatValue(13.13)
 				return []*sfx.Datapoint{pt}
 			}(),
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeDoubleGauge, 13.13, now),
+			expectedMetrics: pdataMetrics(pdata.MetricDataTypeGauge, 13.13, now),
 		},
 		{
 			name: "IntCount",
@@ -150,8 +150,8 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				return []*sfx.Datapoint{pt}
 			}(),
 			expectedMetrics: func() pdata.Metrics {
-				m := pdataMetrics(pdata.MetricDataTypeDoubleSum, 13.13, now)
-				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).DoubleSum()
+				m := pdataMetrics(pdata.MetricDataTypeSum, 13.13, now)
+				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).Sum()
 				d.SetAggregationTemporality(pdata.AggregationTemporalityDelta)
 				d.SetIsMonotonic(true)
 				return m
@@ -181,8 +181,8 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				return []*sfx.Datapoint{pt}
 			}(),
 			expectedMetrics: func() pdata.Metrics {
-				m := pdataMetrics(pdata.MetricDataTypeDoubleSum, 13.13, now)
-				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).DoubleSum()
+				m := pdataMetrics(pdata.MetricDataTypeSum, 13.13, now)
+				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).Sum()
 				d.SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
 				d.SetIsMonotonic(true)
 				return m
@@ -331,7 +331,7 @@ func TestFillDoubleDatapointWithInvalidValue(t *testing.T) {
 
 	_, metric := pdataMetric()
 	setDataType(datapoint, metric)
-	gauge := metric.DoubleGauge()
+	gauge := metric.Gauge()
 
 	datapoint.Value = sfx.NewIntValue(123)
 	err := fillDoubleDatapoint(datapoint, gauge.DataPoints(), now)
@@ -355,13 +355,13 @@ func sortLabels(t *testing.T, metrics pdata.Metrics) {
 					for l := 0; l < m.IntSum().DataPoints().Len(); l++ {
 						m.IntSum().DataPoints().At(l).LabelsMap().Sort()
 					}
-				case pdata.MetricDataTypeDoubleGauge:
-					for l := 0; l < m.DoubleGauge().DataPoints().Len(); l++ {
-						m.DoubleGauge().DataPoints().At(l).LabelsMap().Sort()
+				case pdata.MetricDataTypeGauge:
+					for l := 0; l < m.Gauge().DataPoints().Len(); l++ {
+						m.Gauge().DataPoints().At(l).LabelsMap().Sort()
 					}
-				case pdata.MetricDataTypeDoubleSum:
-					for l := 0; l < m.DoubleSum().DataPoints().Len(); l++ {
-						m.DoubleSum().DataPoints().At(l).LabelsMap().Sort()
+				case pdata.MetricDataTypeSum:
+					for l := 0; l < m.Sum().DataPoints().Len(); l++ {
+						m.Sum().DataPoints().At(l).LabelsMap().Sort()
 					}
 				default:
 					t.Errorf("unexpected datatype: %v", m.DataType())

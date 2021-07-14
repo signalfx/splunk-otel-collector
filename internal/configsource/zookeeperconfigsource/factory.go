@@ -17,8 +17,6 @@ package zookeeperconfigsource
 import (
 	"context"
 	"errors"
-	"fmt"
-	"net/url"
 	"time"
 
 	"go.opentelemetry.io/collector/config"
@@ -35,11 +33,8 @@ const (
 	defaultTimeout  = time.Second * 10
 )
 
-// Private error types to help with testability.
-type (
-	errMissingEndpoint struct{ error }
-	errInvalidEndpoint struct{ error }
-)
+// Private error type to help with testability.
+type errMissingEndpoint struct{ error }
 
 type zkFactory struct{}
 
@@ -60,12 +55,6 @@ func (v *zkFactory) CreateConfigSource(_ context.Context, params configprovider.
 
 	if len(zkCfg.Endpoints) == 0 {
 		return nil, &errMissingEndpoint{errors.New("cannot connect to zk without any endpoints")}
-	}
-
-	for _, uri := range zkCfg.Endpoints {
-		if _, err := url.ParseRequestURI(uri); err != nil {
-			return nil, &errInvalidEndpoint{fmt.Errorf("invalid endpoint %q: %w", uri, err)}
-		}
 	}
 
 	return &zookeeperconfigsource{

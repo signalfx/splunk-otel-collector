@@ -44,23 +44,9 @@ func TestZookeeperFactory_CreateConfigSource(t *testing.T) {
 			wantErr: &errMissingEndpoint{},
 		},
 		{
-			name: "invalid_endpoint",
-			config: &Config{
-				Endpoints: []string{"some\bad/endpoint"},
-			},
-			wantErr: &errInvalidEndpoint{},
-		},
-		{
-			name: "invalid_endpoint_partial",
-			config: &Config{
-				Endpoints: []string{"http://localhost:8200", "bad endpoint"},
-			},
-			wantErr: &errInvalidEndpoint{},
-		},
-		{
 			name: "success",
 			config: &Config{
-				Endpoints: []string{"http://localhost:8200"},
+				Endpoints: []string{"localhost:8200"},
 			},
 		},
 	}

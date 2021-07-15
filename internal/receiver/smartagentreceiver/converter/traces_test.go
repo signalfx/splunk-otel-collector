@@ -407,15 +407,11 @@ func newPDataSpan(
 	attributes map[string]interface{}, events map[uint64]string,
 ) pdata.Traces {
 	td := pdata.NewTraces()
-	td.ResourceSpans().Resize(1)
-	rs := td.ResourceSpans().At(0)
+	rs := td.ResourceSpans().AppendEmpty()
 	if serviceName != "" {
 		rs.Resource().Attributes().InsertString("service.name", serviceName)
 	}
-	rs.InstrumentationLibrarySpans().Resize(1)
-	ils := rs.InstrumentationLibrarySpans().At(0)
-	ils.Spans().Resize(1)
-	span := ils.Spans().At(0)
+	span := rs.InstrumentationLibrarySpans().AppendEmpty().Spans().AppendEmpty()
 
 	span.SetName(name)
 
@@ -456,12 +452,11 @@ func newPDataSpan(
 	}
 
 	spanEvents := span.Events()
-	spanEvents.Resize(len(events))
-	var i int
+	spanEvents.EnsureCapacity(len(events))
 	for ts, v := range events {
-		spanEvents.At(i).SetTimestamp(pdata.Timestamp(ts))
-		spanEvents.At(i).SetName(v)
-		i++
+		spanEvent := spanEvents.AppendEmpty()
+		spanEvent.SetTimestamp(pdata.Timestamp(ts))
+		spanEvent.SetName(v)
 	}
 
 	return td

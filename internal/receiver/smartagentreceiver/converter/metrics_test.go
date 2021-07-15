@@ -45,14 +45,7 @@ func sfxDatapoint() *sfx.Datapoint {
 
 func pdataMetric() (pdata.Metrics, pdata.Metric) {
 	out := pdata.NewMetrics()
-	out.ResourceMetrics().Resize(1)
-	rm := out.ResourceMetrics().At(0)
-	rm.InstrumentationLibraryMetrics().Resize(1)
-	ilm := rm.InstrumentationLibraryMetrics().At(0)
-	ms := ilm.Metrics()
-
-	ms.Resize(1)
-	m := ms.At(0)
+	m := out.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty().Metrics().AppendEmpty()
 	return out, m
 }
 
@@ -80,14 +73,12 @@ func pdataMetrics(dataType pdata.MetricDataType, val interface{}, timeReceived t
 
 	switch dataType {
 	case pdata.MetricDataTypeIntGauge, pdata.MetricDataTypeIntSum:
-		dps.(pdata.IntDataPointSlice).Resize(1)
-		dp := dps.(pdata.IntDataPointSlice).At(0)
+		dp := dps.(pdata.IntDataPointSlice).AppendEmpty()
 		labels = dp.LabelsMap()
 		dp.SetTimestamp(pdata.Timestamp(timeReceived.UnixNano()))
 		dp.SetValue(int64(val.(int)))
 	case pdata.MetricDataTypeGauge, pdata.MetricDataTypeSum:
-		dps.(pdata.DoubleDataPointSlice).Resize(1)
-		dp := dps.(pdata.DoubleDataPointSlice).At(0)
+		dp := dps.(pdata.DoubleDataPointSlice).AppendEmpty()
 		labels = dp.LabelsMap()
 		dp.SetTimestamp(pdata.Timestamp(timeReceived.UnixNano()))
 		dp.SetValue(val.(float64))
@@ -301,42 +292,11 @@ func TestSetDataTypeWithInvalidDatapoints(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
-			_, metric := pdataMetric()
-			err := setDataType(test.datapoint, metric)
+			_, err := setDataTypeAndPoints(test.datapoint, pdata.NewMetricSlice(), time.Now())
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), test.expectedError)
 		})
 	}
-}
-
-func TestFillIntDatapointWithInvalidValue(t *testing.T) {
-	datapoint := sfxDatapoint()
-	datapoint.MetricType = sfx.Gauge
-	datapoint.Value = sfx.NewIntValue(123)
-
-	_, metric := pdataMetric()
-	setDataType(datapoint, metric)
-	gauge := metric.IntGauge()
-
-	datapoint.Value = sfx.NewFloatValue(123.45)
-	err := fillIntDatapoint(datapoint, gauge.DataPoints(), now)
-	require.Error(t, err)
-	assert.EqualError(t, err, "no valid value for expected IntValue")
-}
-
-func TestFillDoubleDatapointWithInvalidValue(t *testing.T) {
-	datapoint := sfxDatapoint()
-	datapoint.MetricType = sfx.Gauge
-	datapoint.Value = sfx.NewFloatValue(123.45)
-
-	_, metric := pdataMetric()
-	setDataType(datapoint, metric)
-	gauge := metric.Gauge()
-
-	datapoint.Value = sfx.NewIntValue(123)
-	err := fillDoubleDatapoint(datapoint, gauge.DataPoints(), now)
-	require.Error(t, err)
-	assert.EqualError(t, err, "no valid value for expected FloatValue")
 }
 
 func sortLabels(t *testing.T, metrics pdata.Metrics) {

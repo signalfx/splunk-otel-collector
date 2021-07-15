@@ -25,8 +25,6 @@ import (
 
 var (
 	errUnsupportedMetricTypeTimestamp = fmt.Errorf("unsupported metric type timestamp")
-	errNoIntValue                     = fmt.Errorf("no valid value for expected IntValue")
-	errNoFloatValue                   = fmt.Errorf("no valid value for expected FloatValue")
 )
 
 // Based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.15.0/receiver/signalfxreceiver/signalfxv2_to_metricdata.go
@@ -35,23 +33,17 @@ var (
 func sfxDatapointsToPDataMetrics(datapoints []*sfx.Datapoint, timeReceived time.Time, logger *zap.Logger) (pdata.Metrics, int) {
 	numDropped := 0
 	md := pdata.NewMetrics()
-	md.ResourceMetrics().Resize(1)
-	rm := md.ResourceMetrics().At(0)
-
-	rm.InstrumentationLibraryMetrics().Resize(1)
-	ilm := rm.InstrumentationLibraryMetrics().At(0)
+	ilm := md.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty()
 
 	metrics := ilm.Metrics()
-	metrics.Resize(len(datapoints))
+	metrics.EnsureCapacity(len(datapoints))
 
-	i := 0
 	for _, datapoint := range datapoints {
 		if datapoint == nil {
 			continue
 		}
 
-		m := metrics.At(i)
-		err := setDataType(datapoint, m)
+		m, err := setDataTypeAndPoints(datapoint, metrics, timeReceived)
 		if err != nil {
 			numDropped++
 			logger.Debug("SignalFx datapoint type conversion error",
@@ -61,125 +53,93 @@ func sfxDatapointsToPDataMetrics(datapoints []*sfx.Datapoint, timeReceived time.
 		}
 
 		m.SetName(datapoint.Metric)
-
-		switch m.DataType() {
-		case pdata.MetricDataTypeIntGauge:
-			err = fillIntDatapoint(datapoint, m.IntGauge().DataPoints(), timeReceived)
-		case pdata.MetricDataTypeIntSum:
-			err = fillIntDatapoint(datapoint, m.IntSum().DataPoints(), timeReceived)
-		case pdata.MetricDataTypeGauge:
-			err = fillDoubleDatapoint(datapoint, m.Gauge().DataPoints(), timeReceived)
-		case pdata.MetricDataTypeSum:
-			err = fillDoubleDatapoint(datapoint, m.Sum().DataPoints(), timeReceived)
-		}
-
-		if err != nil {
-			numDropped++
-			logger.Debug("SignalFx datapoint datum conversion error",
-				zap.Error(err),
-				zap.String("metric", datapoint.Metric))
-			continue
-		}
-
-		i++
 	}
-
-	metrics.Resize(i)
 
 	return md, numDropped
-
 }
 
-func setDataType(datapoint *sfx.Datapoint, m pdata.Metric) error {
+func setDataTypeAndPoints(datapoint *sfx.Datapoint, ms pdata.MetricSlice, timeReceived time.Time) (pdata.Metric, error) {
+	var m pdata.Metric
 	sfxMetricType := datapoint.MetricType
 	if sfxMetricType == sfx.Timestamp {
-		return errUnsupportedMetricTypeTimestamp
-	}
-
-	var isFloat bool
-	switch datapoint.Value.(type) {
-	case sfx.IntValue:
-	case sfx.FloatValue:
-		isFloat = true
-	default:
-		return fmt.Errorf("unsupported value type %T: %v", datapoint.Value, datapoint.Value)
+		return m, errUnsupportedMetricTypeTimestamp
 	}
 
 	switch sfxMetricType {
 	case sfx.Gauge, sfx.Enum, sfx.Rate:
-		if isFloat {
-			m.SetDataType(pdata.MetricDataTypeGauge)
-		} else {
+		switch val := datapoint.Value.(type) {
+		case sfx.IntValue:
+			m = ms.AppendEmpty()
 			m.SetDataType(pdata.MetricDataTypeIntGauge)
+			fillIntDatapoint(val, datapoint.Timestamp, datapoint.Dimensions, m.IntGauge().DataPoints(), timeReceived)
+		case sfx.FloatValue:
+			m = ms.AppendEmpty()
+			m.SetDataType(pdata.MetricDataTypeGauge)
+			fillDoubleDatapoint(val, datapoint.Timestamp, datapoint.Dimensions, m.Gauge().DataPoints(), timeReceived)
+		default:
+			return m, fmt.Errorf("unsupported value type %T: %v", datapoint.Value, datapoint.Value)
 		}
 	case sfx.Count:
-		if isFloat {
-			m.SetDataType(pdata.MetricDataTypeSum)
-			m.Sum().SetAggregationTemporality(pdata.AggregationTemporalityDelta)
-			m.Sum().SetIsMonotonic(true)
-		} else {
+		switch val := datapoint.Value.(type) {
+		case sfx.IntValue:
+			m = ms.AppendEmpty()
 			m.SetDataType(pdata.MetricDataTypeIntSum)
 			m.IntSum().SetAggregationTemporality(pdata.AggregationTemporalityDelta)
 			m.IntSum().SetIsMonotonic(true)
+			fillIntDatapoint(val, datapoint.Timestamp, datapoint.Dimensions, m.IntSum().DataPoints(), timeReceived)
+		case sfx.FloatValue:
+			m = ms.AppendEmpty()
+			m.SetDataType(pdata.MetricDataTypeSum)
+			m.Sum().SetAggregationTemporality(pdata.AggregationTemporalityDelta)
+			m.Sum().SetIsMonotonic(true)
+			fillDoubleDatapoint(val, datapoint.Timestamp, datapoint.Dimensions, m.Sum().DataPoints(), timeReceived)
+		default:
+			return m, fmt.Errorf("unsupported value type %T: %v", datapoint.Value, datapoint.Value)
 		}
 	case sfx.Counter:
-		if isFloat {
-			m.SetDataType(pdata.MetricDataTypeSum)
-			m.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
-			m.Sum().SetIsMonotonic(true)
-		} else {
+		switch val := datapoint.Value.(type) {
+		case sfx.IntValue:
+			m = ms.AppendEmpty()
 			m.SetDataType(pdata.MetricDataTypeIntSum)
 			m.IntSum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
 			m.IntSum().SetIsMonotonic(true)
+			fillIntDatapoint(val, datapoint.Timestamp, datapoint.Dimensions, m.IntSum().DataPoints(), timeReceived)
+		case sfx.FloatValue:
+			m = ms.AppendEmpty()
+			m.SetDataType(pdata.MetricDataTypeSum)
+			m.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+			m.Sum().SetIsMonotonic(true)
+			fillDoubleDatapoint(val, datapoint.Timestamp, datapoint.Dimensions, m.Sum().DataPoints(), timeReceived)
+		default:
+			return m, fmt.Errorf("unsupported value type %T: %v", datapoint.Value, datapoint.Value)
 		}
 	default:
-		return fmt.Errorf("unsupported metric type %T: %v", sfxMetricType, sfxMetricType)
+		return m, fmt.Errorf("unsupported metric type %T: %v", sfxMetricType, sfxMetricType)
 	}
 
-	return nil
+	return m, nil
 }
 
-func fillIntDatapoint(datapoint *sfx.Datapoint, dps pdata.IntDataPointSlice, timeReceived time.Time) error {
-	var intValue sfx.IntValue
-	var ok bool
-	if intValue, ok = datapoint.Value.(sfx.IntValue); !ok {
-		return errNoIntValue
-	}
-
-	timestamp := datapoint.Timestamp
+func fillIntDatapoint(intValue sfx.IntValue, timestamp time.Time, dimensions map[string]string, dps pdata.IntDataPointSlice, timeReceived time.Time) {
 	if timestamp.IsZero() {
 		timestamp = timeReceived
 	}
 
-	dps.Resize(1)
-	dp := dps.At(0)
+	dp := dps.AppendEmpty()
 	dp.SetTimestamp(pdata.Timestamp(uint64(timestamp.UnixNano())))
 	dp.SetValue(intValue.Int())
-	fillInLabels(datapoint.Dimensions, dp.LabelsMap())
-
-	return nil
+	fillInLabels(dimensions, dp.LabelsMap())
 }
 
-func fillDoubleDatapoint(datapoint *sfx.Datapoint, dps pdata.DoubleDataPointSlice, timeReceived time.Time) error {
-	var floatValue sfx.FloatValue
-	var ok bool
-	if floatValue, ok = datapoint.Value.(sfx.FloatValue); !ok {
-		return errNoFloatValue
-	}
-
-	timestamp := datapoint.Timestamp
+func fillDoubleDatapoint(floatValue sfx.FloatValue, timestamp time.Time, dimensions map[string]string, dps pdata.DoubleDataPointSlice, timeReceived time.Time) {
 	if timestamp.IsZero() {
 		timestamp = timeReceived
 	}
 
-	dps.Resize(1)
-	dp := dps.At(0)
+	dp := dps.AppendEmpty()
 	dp.SetTimestamp(pdata.Timestamp(uint64(timestamp.UnixNano())))
 	dp.SetValue(floatValue.Float())
-	fillInLabels(datapoint.Dimensions, dp.LabelsMap())
-
-	return nil
-
+	fillInLabels(dimensions, dp.LabelsMap())
 }
 
 func fillInLabels(dimensions map[string]string, labels pdata.StringMap) {

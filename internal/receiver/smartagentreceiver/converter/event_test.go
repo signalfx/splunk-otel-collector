@@ -127,14 +127,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 
 func newExpectedLog(eventType string, properties map[string]pdata.AttributeValue, timestamp uint64) pdata.Logs {
 	ld := pdata.NewLogs()
-	rls := ld.ResourceLogs()
-	rls.Resize(1)
-	rl := rls.At(0)
-	ills := rl.InstrumentationLibraryLogs()
-	ills.Resize(1)
-	logSlice := ills.At(0).Logs()
-	logSlice.Resize(1)
-	lr := logSlice.At(0)
+	lr := ld.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().Logs().AppendEmpty()
 	lr.SetName(eventType)
 	lr.SetTimestamp(pdata.Timestamp(timestamp))
 

@@ -104,7 +104,7 @@ type Metric struct {
 	Unit        string             `yaml:"unit,omitempty"`
 	Labels      *map[string]string `yaml:"labels,omitempty"`
 	Type        MetricType         `yaml:"type"`
-	Value       interface{}        `yaml:value,omitempty`
+	Value       interface{}        `yaml:"value,omitempty"`
 }
 
 // Returns a ResourceMetrics instance generated via parsing a valid yaml file at the provided path.

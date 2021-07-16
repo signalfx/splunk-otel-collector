@@ -30,14 +30,14 @@ var (
 // Based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.15.0/receiver/signalfxreceiver/signalfxv2_to_metricdata.go
 // toMetrics() will respect the timestamp of any datapoint that isn't the zero value for time.Time,
 // using timeReceived otherwise.
-func sfxDatapointsToPDataMetrics(datapoints []*sfx.Datapoint, timeReceived time.Time, logger *zap.Logger) (pdata.Metrics, int) {
-	numDropped := 0
+func sfxDatapointsToPDataMetrics(datapoints []*sfx.Datapoint, timeReceived time.Time, logger *zap.Logger) pdata.Metrics {
 	md := pdata.NewMetrics()
 	ilm := md.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty()
 
 	metrics := ilm.Metrics()
 	metrics.EnsureCapacity(len(datapoints))
 
+	numDropped := 0
 	for _, datapoint := range datapoints {
 		if datapoint == nil {
 			continue
@@ -55,7 +55,11 @@ func sfxDatapointsToPDataMetrics(datapoints []*sfx.Datapoint, timeReceived time.
 		m.SetName(datapoint.Metric)
 	}
 
-	return md, numDropped
+	if numDropped > 0 {
+		logger.Debug("SendDatapoints has dropped points", zap.Int("numDropped", numDropped))
+	}
+
+	return md
 }
 
 func setDataTypeAndPoints(datapoint *sfx.Datapoint, ms pdata.MetricSlice, timeReceived time.Time) (pdata.Metric, error) {

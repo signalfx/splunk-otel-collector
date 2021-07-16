@@ -24,26 +24,22 @@ import (
 	"go.uber.org/zap"
 )
 
-type Converter struct {
+type Translator struct {
 	logger *zap.Logger
 }
 
-func NewConverter(logger *zap.Logger) Converter {
-	return Converter{logger: logger}
+func NewTranslator(logger *zap.Logger) Translator {
+	return Translator{logger: logger}
 }
 
-func (c Converter) DatapointsToPDataMetrics(datapoints []*datapoint.Datapoint, timeReceived time.Time) (pdata.Metrics, int) {
-	return sfxDatapointsToPDataMetrics(datapoints, timeReceived, c.logger)
+func (c Translator) ToMetrics(datapoints []*datapoint.Datapoint) (pdata.Metrics, error) {
+	return sfxDatapointsToPDataMetrics(datapoints, time.Now(), c.logger), nil
 }
 
-func (c Converter) EventToPDataLogs(event *event.Event) pdata.Logs {
-	return sfxEventToPDataLogs(event, c.logger)
+func (c Translator) ToLogs(event *event.Event) (pdata.Logs, error) {
+	return sfxEventToPDataLogs(event, c.logger), nil
 }
 
-func (c Converter) SpansToPDataTraces(spans []*trace.Span) pdata.Traces {
-	traces, err := sfxSpansToPDataTraces(spans, c.logger)
-	if err != nil {
-		c.logger.Error("error converting SFx spans to pdata.Traces", zap.Error(err))
-	}
-	return traces
+func (c Translator) ToTraces(spans []*trace.Span) (pdata.Traces, error) {
+	return sfxSpansToPDataTraces(spans, c.logger)
 }

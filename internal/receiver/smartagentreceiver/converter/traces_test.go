@@ -221,9 +221,8 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 			obs, logs := observer.New(zap.DebugLevel)
 			logger := zap.New(obs)
 
-			c := NewConverter(logger)
-			pdataTraces := c.SpansToPDataTraces(test.sfxSpans(tt))
-			require.NotNil(t, pdataTraces)
+			pdataTraces, err := sfxSpansToPDataTraces(test.sfxSpans(tt), logger)
+			assert.NoError(tt, err)
 
 			expectedTraces := test.expectedTraces(tt)
 			assert.Equal(tt, expectedTraces.SpanCount(), pdataTraces.SpanCount())
@@ -239,12 +238,12 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 	}
 }
 
-func TestNilSFxToZipkinSpanConversion(t *testing.T) {
+func TestNilSFxSpanConversion(t *testing.T) {
 	obs, logs := observer.New(zap.DebugLevel)
 	logger := zap.New(obs)
 
-	c := NewConverter(logger)
-	traces := c.SpansToPDataTraces([]*trace.Span{nil})
+	traces, err := sfxSpansToPDataTraces([]*trace.Span{nil}, logger)
+	assert.NoError(t, err)
 	assert.Zero(t, traces.ResourceSpans().Len())
 	assert.Equal(t, 0, logs.Len())
 }
@@ -254,8 +253,8 @@ func TestInvalidSFxToZipkinSpanModelConversion(t *testing.T) {
 	obs, logs := observer.New(zap.DebugLevel)
 	logger := zap.New(obs)
 
-	c := NewConverter(logger)
-	traces := c.SpansToPDataTraces([]*trace.Span{&invalidAsZipkinJSON})
+	traces, err := sfxSpansToPDataTraces([]*trace.Span{&invalidAsZipkinJSON}, logger)
+	assert.NoError(t, err)
 	assert.Zero(t, traces.ResourceSpans().Len())
 
 	require.Equal(t, 1, logs.Len())
@@ -276,15 +275,11 @@ func TestInvalidSFxToPDataConversion(t *testing.T) {
 	obs, logs := observer.New(zap.DebugLevel)
 	logger := zap.New(obs)
 
-	c := NewConverter(logger)
-	traces := c.SpansToPDataTraces([]*trace.Span{&invalidAsPData})
-	// error is logged but core conversion persists
+	traces, err := sfxSpansToPDataTraces([]*trace.Span{&invalidAsPData}, logger)
+	// error is returned but core conversion persists
+	assert.EqualError(t, err, "invalid length for ID")
 	assert.Equal(t, 1, traces.ResourceSpans().Len())
-
-	require.Equal(t, 1, logs.Len())
-	entry := logs.All()[0]
-	assert.Equal(t, "error converting SFx spans to pdata.Traces", entry.Message)
-	assert.Equal(t, "invalid length for ID", entry.ContextMap()["error"])
+	require.Equal(t, 0, logs.Len())
 }
 
 func assertSpansAreEqual(t *testing.T, expectedResourceSpans, resourceSpans pdata.ResourceSpansSlice) {

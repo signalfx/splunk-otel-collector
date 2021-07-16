@@ -29,8 +29,7 @@ var zipkinv2Translator = zipkinv2.ToTranslator{ParseStringTags: false}
 func sfxSpansToPDataTraces(spans []*trace.Span, logger *zap.Logger) (pdata.Traces, error) {
 	// SFx trace is effectively zipkin, so more convenient to convert to it and then rely
 	// on existing zipkin receiver translator
-	zipkinSpans := sfxToZipkinSpans(spans, logger)
-	return zipkinv2Translator.ToTraces(zipkinSpans)
+	return zipkinv2Translator.ToTraces(sfxToZipkinSpans(spans, logger))
 }
 
 func sfxToZipkinSpans(spans []*trace.Span, logger *zap.Logger) []*zipkinmodel.SpanModel {

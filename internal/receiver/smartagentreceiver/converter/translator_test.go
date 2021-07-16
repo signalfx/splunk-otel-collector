@@ -23,7 +23,7 @@ import (
 
 func TestNewConverter(t *testing.T) {
 	logger := zap.NewNop()
-	c := NewConverter(logger)
+	c := NewTranslator(logger)
 	assert.NotNil(t, c)
 	assert.Same(t, logger, c.logger)
 }

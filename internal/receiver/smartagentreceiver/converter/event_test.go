@@ -118,8 +118,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 		},
 	} {
 		tt.Run(test.name, func(t *testing.T) {
-			c := NewConverter(zap.NewNop())
-			log := c.EventToPDataLogs(&test.event)
+			log := sfxEventToPDataLogs(&test.event, zap.NewNop())
 			assertLogsEqual(t, test.expectedLog, log)
 		})
 	}

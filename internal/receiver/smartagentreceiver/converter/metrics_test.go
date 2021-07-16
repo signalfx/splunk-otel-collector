@@ -100,7 +100,6 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 		expectedMetrics pdata.Metrics
 		name            string
 		datapoints      []*sfx.Datapoint
-		expectedDropped int
 	}{
 		{
 			name:            "IntGauge",
@@ -219,7 +218,6 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			name:            "nil_datapoints_ignored",
 			datapoints:      []*sfx.Datapoint{nil, sfxDatapoint(), nil},
 			expectedMetrics: pdataMetrics(pdata.MetricDataTypeIntGauge, 13, now),
-			expectedDropped: 0,
 		},
 		{
 			name: "drops_invalid_datapoints",
@@ -240,18 +238,15 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 					pt0, pt1, sfxDatapoint(), pt2}
 			}(),
 			expectedMetrics: pdataMetrics(pdata.MetricDataTypeIntGauge, 13, now),
-			expectedDropped: 3,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
-			converter := Converter{logger: zap.NewNop()}
-			md, dropped := converter.DatapointsToPDataMetrics(test.datapoints, test.timeReceived)
+			md := sfxDatapointsToPDataMetrics(test.datapoints, test.timeReceived, zap.NewNop())
 			sortLabels(tt, md)
 
 			assert.Equal(tt, test.expectedMetrics, md)
-			assert.Equal(tt, test.expectedDropped, dropped)
 		})
 	}
 }

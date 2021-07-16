@@ -16,7 +16,6 @@ package smartagentreceiver
 
 import (
 	"context"
-	"time"
 
 	metadata "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata"
 	"github.com/signalfx/golib/v3/datapoint"
@@ -49,7 +48,7 @@ type Output struct {
 	defaultSpanTags      map[string]string
 	logger               *zap.Logger
 	reporter             *obsreport.Receiver
-	converter            converter.Converter
+	translator           converter.Translator
 	monitorFiltering     *monitorFiltering
 	receiverID           config.ComponentID
 	nextDimensionClients []metadata.MetadataExporter
@@ -70,7 +69,7 @@ func NewOutput(
 		nextTracesConsumer:   nextTracesConsumer,
 		nextDimensionClients: getMetadataExporters(config, host, nextMetricsConsumer, logger),
 		logger:               logger,
-		converter:            converter.NewConverter(logger),
+		translator:           converter.NewTranslator(logger),
 		extraDimensions:      map[string]string{},
 		extraSpanTags:        map[string]string{},
 		defaultSpanTags:      map[string]string{},
@@ -204,13 +203,13 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 		dp.Dimensions = utils.MergeStringMaps(dp.Dimensions, output.extraDimensions)
 	}
 
-	metrics, numDropped := output.converter.DatapointsToPDataMetrics(datapoints, time.Now())
-	if numDropped > 0 {
-		output.logger.Debug("SendDatapoints has dropped points", zap.Int("numDropped", numDropped))
+	metrics, err := output.translator.ToMetrics(datapoints)
+	if err != nil {
+		output.logger.Error("error converting SFx datapoints to pdata.Traces", zap.Error(err))
 	}
 
 	numPoints := metrics.DataPointCount()
-	err := output.nextMetricsConsumer.ConsumeMetrics(context.Background(), metrics)
+	err = output.nextMetricsConsumer.ConsumeMetrics(context.Background(), metrics)
 	output.reporter.EndMetricsOp(ctx, typeStr, numPoints, err)
 }
 
@@ -219,8 +218,12 @@ func (output *Output) SendEvent(event *event.Event) {
 		return
 	}
 
-	logRecord := output.converter.EventToPDataLogs(event)
-	err := output.nextLogsConsumer.ConsumeLogs(context.Background(), logRecord)
+	logs, err := output.translator.ToLogs(event)
+	if err != nil {
+		output.logger.Error("error converting SFx events to pdata.Traces", zap.Error(err))
+	}
+
+	err = output.nextLogsConsumer.ConsumeLogs(context.Background(), logs)
 	if err != nil {
 		output.logger.Debug("SendEvent has failed", zap.Error(err))
 	}
@@ -246,8 +249,12 @@ func (output *Output) SendSpans(spans ...*trace.Span) {
 		span.Tags = utils.MergeStringMaps(span.Tags, output.extraSpanTags)
 	}
 
-	traces := output.converter.SpansToPDataTraces(spans)
-	err := output.nextTracesConsumer.ConsumeTraces(context.Background(), traces)
+	traces, err := output.translator.ToTraces(spans)
+	if err != nil {
+		output.logger.Error("error converting SFx spans to pdata.Traces", zap.Error(err))
+	}
+
+	err = output.nextTracesConsumer.ConsumeTraces(context.Background(), traces)
 	if err != nil {
 		output.logger.Debug("SendSpans has failed", zap.Error(err))
 	}

@@ -119,11 +119,11 @@ func (otlp *OTLPMetricsReceiverSink) AllMetrics() []pdata.Metrics {
 	return otlp.sink.AllMetrics()
 }
 
-func (otlp *OTLPMetricsReceiverSink) MetricsCount() int {
-	if err := otlp.assertBuilt("MetricsCount"); err != nil {
+func (otlp *OTLPMetricsReceiverSink) DataPointCount() int {
+	if err := otlp.assertBuilt("DataPointCount"); err != nil {
 		return 0
 	}
-	return otlp.sink.MetricsCount()
+	return otlp.sink.DataPointCount()
 }
 
 func (otlp *OTLPMetricsReceiverSink) Reset() {
@@ -145,7 +145,7 @@ func (otlp *OTLPMetricsReceiverSink) AssertAllMetricsReceived(t *testing.T, expe
 
 	var err error
 	assert.Eventually(t, func() bool {
-		if otlp.MetricsCount() == 0 {
+		if otlp.DataPointCount() == 0 {
 			if err == nil {
 				err = fmt.Errorf("no metrics received")
 			}

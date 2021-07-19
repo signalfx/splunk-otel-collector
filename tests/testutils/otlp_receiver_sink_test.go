@@ -88,7 +88,7 @@ func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
 	metrics := otlp.AllMetrics()
 	require.Nil(t, metrics)
 
-	count := otlp.MetricsCount()
+	count := otlp.DataPointCount()
 	require.Zero(t, count)
 
 	// doesn't panic
@@ -133,12 +133,12 @@ func TestOTLPReceiverMetricsAvailableToSink(t *testing.T) {
 	defer exporter.Shutdown(context.Background())
 
 	metrics := pdataMetrics()
-	expectedCount := metrics.MetricCount()
+	expectedCount := metrics.DataPointCount()
 	err = exporter.ConsumeMetrics(context.Background(), metrics)
 	require.NoError(t, err)
 
 	assert.Eventually(t, func() bool {
-		return otlp.MetricsCount() == expectedCount
+		return otlp.DataPointCount() == expectedCount
 	}, 5*time.Second, 1*time.Millisecond)
 }
 

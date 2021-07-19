@@ -76,8 +76,12 @@ all-pkgs:
 all: checklicense impi lint misspell test otelcol
 
 .PHONY: test
-test:
+test: integration-vet
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKGS)
+
+.PHONY: integration-vet
+integration-vet:
+	cd tests && go vet ./...
 
 .PHONY: integration-test
 integration-test:

@@ -32,7 +32,7 @@ func CLI(args []string) {
 }
 
 // paths returns two arguments from the command line args: cfgFname is the path
-// to the Smart Agent config that is being translated wd is the working
+// to the Smart Agent config that is being translated and wd is the working
 // directory used to evaluate file paths found in the Smart Agent config
 func paths(args []string) (cfgFname string, wd string) {
 	switch len(args) {

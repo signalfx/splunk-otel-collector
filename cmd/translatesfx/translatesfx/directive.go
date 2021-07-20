@@ -117,7 +117,7 @@ func parseField(m map[interface{}]interface{}, field string) (bool, error) {
 	}
 	out, ok := v.(bool)
 	if !ok {
-		return false, fmt.Errorf(`unable to parse field %q: %v`, field, m)
+		return false, fmt.Errorf("unable to parse field %q: %v", field, m)
 	}
 	return out, nil
 }
@@ -192,12 +192,12 @@ func hasGlob(path string) bool {
 
 func (d directive) expandFiles() (interface{}, error) {
 	path := resolvePath(d.fromPath, d.wd)
-	paths, err := filepath.Glob(path)
+	filepaths, err := filepath.Glob(path)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(paths) == 0 {
+	if len(filepaths) == 0 {
 		if d.defaultV != "" {
 			return d.defaultV, nil
 		}
@@ -208,8 +208,8 @@ func (d directive) expandFiles() (interface{}, error) {
 	}
 
 	var items []interface{}
-	for _, path := range paths {
-		unmarshaled, err := unmarshal(path)
+	for _, p := range filepaths {
+		unmarshaled, err := unmarshal(p)
 		if err != nil {
 			return nil, err
 		}

@@ -1,17 +1,27 @@
 config_sources:
   include: null
-exporters:
-  signalfx:
-    access_token: "${include:token}"
-    realm: us1
 extensions:
+  k8s_observer:
+    auth_type: serviceAccount
+    node: ${K8S_NODE_NAME}
   smartagent:
     bundleDir: /usr/lib/signalfx-agent
     collectd:
       configDir: /var/run/signalfx-agent
-  k8s_observer:
-    auth_type: serviceAccount
-    node: ${K8S_NODE_NAME}
+receivers:
+  receiver_creator:
+    receivers:
+      smartagent/collectd/redis:
+        config:
+          type: collectd/redis
+        rule: type == "port" && pod.name matches "redis" && port == 6379
+    watch_observers:
+      - k8s_observer
+  smartagent/processlist:
+    type: processlist
+  smartagent/signalfx-forwarder:
+    listenAddress: "0.0.0.0:9080"
+    type: signalfx-forwarder
 processors:
   metricstransform:
     transforms:
@@ -33,20 +43,10 @@ processors:
       - ecs
       - ec2
       - azure
-receivers:
-  receiver_creator:
-    receivers:
-      smartagent/collectd/redis:
-        config:
-          type: collectd/redis
-        rule: type == "port" && pod.name matches "redis" && port == 6379
-    watch_observers:
-      - k8s_observer
-  smartagent/processlist:
-    type: processlist
-  smartagent/signalfx-forwarder:
-    listenAddress: "0.0.0.0:9080"
-    type: signalfx-forwarder
+exporters:
+  signalfx:
+    access_token: "${include:token}"
+    realm: us1
 service:
   extensions:
     - k8s_observer

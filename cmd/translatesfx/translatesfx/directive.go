@@ -157,6 +157,8 @@ func (d directive) expandFromSource(forceExpand bool) (interface{}, error) {
 		return d.handleFileType(forceExpand)
 	case directiveSourceEnv:
 		return d.expandEnv()
+	case directiveSourceZK:
+		return d.expandZK()
 	case directiveSourceUnknown:
 		return nil, fmt.Errorf("#from fromType type unknown: %v", d.fromType)
 	default:
@@ -216,6 +218,10 @@ func (d directive) expandFiles() (interface{}, error) {
 		items = append(items, unmarshaled)
 	}
 	return merge(items)
+}
+
+func (d directive) expandZK() (interface{}, error) {
+	return fmt.Sprintf("${zookeeper:%s}", d.fromPath), nil
 }
 
 func resolvePath(path, wd string) string {

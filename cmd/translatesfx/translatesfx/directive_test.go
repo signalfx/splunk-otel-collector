@@ -116,6 +116,16 @@ func TestRender_FileExpansion_MissingNonOptionalFile(t *testing.T) {
 	assert.Equal(t, "foo", rendered)
 }
 
+func TestDirective_ZK(t *testing.T) {
+	d, _, err := parseDirective(map[interface{}]interface{}{
+		"#from": "zk:/foo/bar",
+	}, "")
+	require.NoError(t, err)
+	rendered, err := d.render(false)
+	require.NoError(t, err)
+	assert.Equal(t, "${zookeeper:/foo/bar}", rendered)
+}
+
 func TestDirectiveSource(t *testing.T) {
 	assert.Equal(t, "env", directiveSource("env:SIGNALFX_ACCESS_TOKEN"))
 	assert.Equal(t, "", directiveSource("foo"))

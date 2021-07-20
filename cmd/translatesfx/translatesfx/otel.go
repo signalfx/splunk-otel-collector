@@ -15,6 +15,7 @@
 package translatesfx
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 )
@@ -34,6 +35,7 @@ func saInfoToOtelConfig(sa saCfgInfo) *otelCfg {
 	translateGlobalDims(sa, otel)
 	translateSAExtension(sa, otel)
 	translateObservers(sa, otel)
+	translateConfigSources(sa, otel)
 	return otel
 }
 
@@ -122,6 +124,30 @@ func translateObservers(sa saCfgInfo, otel *otelCfg) {
 			otel.Service.appendExtension("k8s_observer")
 		}
 	}
+}
+
+func translateConfigSources(sa saCfgInfo, otel *otelCfg) {
+	otel.ConfigSources = map[string]interface{}{
+		"include": nil,
+	}
+	if sa.configSources == nil {
+		return
+	}
+	v, ok := sa.configSources["zookeeper"]
+	if !ok {
+		return
+	}
+	zk, ok := v.(map[interface{}]interface{})
+	if !ok {
+		return
+	}
+	m := map[string]interface{}{
+		"endpoints": zk["endpoints"],
+	}
+	if tos, ok := zk["timeoutSeconds"]; ok {
+		m["timeout"] = fmt.Sprintf("%ds", tos)
+	}
+	otel.ConfigSources["zookeeper"] = m
 }
 
 func dimsToMetricsTransformProcessor(m map[interface{}]interface{}) map[string]interface{} {

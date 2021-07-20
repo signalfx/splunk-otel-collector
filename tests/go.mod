@@ -6,7 +6,7 @@ require (
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/google/uuid v1.3.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.29.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.30.0
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.2
 	github.com/signalfx/signalfx-go v1.8.0
 	github.com/stretchr/testify v1.7.0

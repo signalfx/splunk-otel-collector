@@ -2,6 +2,7 @@
 # and returns the collection as a comma-separated list.
 
 Facter.add(:local_groups) do
+  confine :kernel => 'Linux'
   setcode do
     groups = Array.new
     if File.exists?("/etc/group")

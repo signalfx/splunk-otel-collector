@@ -26,3 +26,12 @@ rake-spec: dev-image
 		--rm \
 		splunk-otel-connector-puppet-dev \
 		rake spec
+
+.PHONY: package
+package: dev-image
+	docker run \
+		--rm \
+		-it \
+		-v $(CURDIR):/etc/puppetlabs/code/modules/splunk_otel_collector \
+		splunk-otel-connector-puppet-dev \
+		bash -ec 'bundle exec rake module:clean && bundle exec rake module:build'

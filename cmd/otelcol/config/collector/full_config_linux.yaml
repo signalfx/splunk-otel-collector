@@ -221,7 +221,7 @@ processors:
   # Configuration is based on the amount of memory allocated to the collector.
   # The configuration below assumes 2GB of memory. In general, the ballast
   # should be set to 1/3 of the collector's memory, the limit should be 90% of
-  # the collector's memory up to 2GB.
+  # the collector's memory.
   # NOTE: These settings need to be change when using this processor
   memory_limiter:
     ballast_size_mib: 650

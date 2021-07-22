@@ -6,7 +6,7 @@
 # - SPLUNK_ACCESS_TOKEN: The Splunk access token to authenticate requests
 # - SPLUNK_API_URL: The Splunk API URL, e.g. https://api.us0.signalfx.com
 # - SPLUNK_BALLAST_SIZE_MIB: This size of the ballast which should be 1/3 to 1/2 of memory allocated
-# - SPLUNK_MEMORY_LIMIT_MIB: 80% of memory allocated up to 2GB
+# - SPLUNK_MEMORY_LIMIT_MIB: 90% of memory allocated
 # - SPLUNK_HEC_TOKEN: The Splunk HEC authentication token
 # - SPLUNK_HEC_URL: The Splunk HEC endpoint URL, e.g. https://ingest.us0.signalfx.com/v1/log
 # - SPLUNK_INGEST_URL: The Splunk ingest URL, e.g. https://ingest.us0.signalfx.com
@@ -83,7 +83,7 @@ processors:
   # Enabling the memory_limiter is strongly recommended for every pipeline.
   # Configuration is based on the amount of memory allocated to the collector.
   # In general, the ballast should be set to 1/3 of the collector's memory, the limit
-  # should be 90% of the collector's memory up to 2GB. The simplest way to specify the
+  # should be 90% of the collector's memory. The simplest way to specify the
   # ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable. Alternatively, the
   # --mem-ballast-size-mib command line flag can be passed and take priority.
   # For more information about memory limiter, see

@@ -1,5 +1,9 @@
 config_sources:
   include: null
+  zookeeper:
+    endpoints:
+      - 127.0.0.1:2181
+    timeout: 10s
 extensions:
   k8s_observer:
     auth_type: serviceAccount

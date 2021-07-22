@@ -4,6 +4,12 @@ apiUrl: https://api.us1.signalfx.com
 
 bundleDir: /usr/lib/signalfx-agent
 
+configSources:
+  zookeeper:
+    endpoints:
+      - 127.0.0.1:2181
+    timeoutSeconds: 10
+
 globalDimensions:
   aaa: 42
   bbb: 111

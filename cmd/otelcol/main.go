@@ -52,7 +52,6 @@ const (
 	defaultLocalOTLPConfig         = "cmd/otelcol/config/collector/otlp_config_linux.yaml"
 	defaultMemoryBallastPercentage = 33
 	defaultMemoryLimitPercentage   = 90
-	defaultMemoryLimitMaxMiB       = 2048
 	defaultMemoryTotalMiB          = 512
 )
 
@@ -291,11 +290,6 @@ func setMemoryLimit(memTotalSizeMiB int) {
 	// If not, calculate it from memTotalSizeMiB
 	if memoryLimit == "" {
 		memLimit = memTotalSizeMiB * defaultMemoryLimitPercentage / 100
-		// The memory limit should be set to defaultMemoryLimitPercentage of total memory
-		// while reserving a maximum of defaultMemoryLimitMaxMiB of memory.
-		if (memTotalSizeMiB - memLimit) > defaultMemoryLimitMaxMiB {
-			memLimit = defaultMemoryLimitMaxMiB
-		}
 	} else {
 		memLimit, _ = strconv.Atoi(memoryLimit)
 	}

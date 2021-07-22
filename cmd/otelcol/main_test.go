@@ -249,7 +249,7 @@ func TestSetMemoryLimit(t *testing.T) {
 	os.Unsetenv(memLimitMiBEnvVarName)
 	setMemoryLimit(100000)
 
-	HelperTestSetMemoryLimit("2048", t)
+	HelperTestSetMemoryLimit("90000", t)
 
 	os.Args = oldArgs
 	os.Setenv(memLimitMiBEnvVarName, "200")

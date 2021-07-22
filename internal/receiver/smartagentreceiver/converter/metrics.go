@@ -135,7 +135,7 @@ func fillIntDatapoint(intValue sfx.IntValue, timestamp time.Time, dimensions map
 	fillInLabels(dimensions, dp.LabelsMap())
 }
 
-func fillDoubleDatapoint(floatValue sfx.FloatValue, timestamp time.Time, dimensions map[string]string, dps pdata.DoubleDataPointSlice, timeReceived time.Time) {
+func fillDoubleDatapoint(floatValue sfx.FloatValue, timestamp time.Time, dimensions map[string]string, dps pdata.NumberDataPointSlice, timeReceived time.Time) {
 	if timestamp.IsZero() {
 		timestamp = timeReceived
 	}

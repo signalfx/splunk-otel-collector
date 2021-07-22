@@ -217,14 +217,8 @@ processors:
 
   # Enables the memory limiter processor with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/memorylimiter
-  # Enabling the memory_limiter is strongly recommended for every pipeline.
-  # Configuration is based on the amount of memory allocated to the collector.
-  # The configuration below assumes 2GB of memory. In general, the ballast
-  # should be set to 1/3 of the collector's memory, the limit should be 90% of
-  # the collector's memory.
   # NOTE: These settings need to be change when using this processor
   memory_limiter:
-    ballast_size_mib: 650
     check_interval: 2s
     limit_mib: 1800
 
@@ -535,6 +529,16 @@ extensions:
   zpages:
     #endpoint: 0.0.0.0:55679
 
+  # Enables the memory_ballast extension
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/ballastextension
+  memory_ballast:
+    # Enabling the memory_limiter is strongly recommended for every pipeline.
+    # Configuration is based on the amount of memory allocated to the collector.
+    # The configuration below assumes 2GB of memory for the collector.
+    # In general, the ballast should be set to 1/3 of the collector's memory,
+    # the limit should be 90% of the collector's memory.
+    size_mib: 650
+
 ###############################################################################
 # Service
 # In order to enable a configuration it must be defined in this section
@@ -544,7 +548,7 @@ extensions:
 service:
 
   # Which extensions you want to enable
-  extensions: [health_check, http_forwarder, zpages]
+  extensions: [health_check, http_forwarder, zpages, memory_ballast]
 
   # Pipelines are data source specific today
   # Every data source is made up of at least one receiver and one exporter

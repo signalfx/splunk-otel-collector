@@ -1,8 +1,11 @@
-signalFxAccessToken: { "#from": "token" }
+signalFxAccessToken: abc123
 ingestUrl: https://ingest.us1.signalfx.com
 apiUrl: https://api.us1.signalfx.com
 
 bundleDir: /usr/lib/signalfx-agent
+
+collectd:
+  configDir: /var/run/signalfx-agent
 
 configSources:
   zookeeper:
@@ -10,19 +13,9 @@ configSources:
       - 127.0.0.1:2181
     timeoutSeconds: 10
 
-globalDimensions:
-  aaa: 42
-  bbb: 111
-
-collectd:
-  configDir: "/var/run/signalfx-agent"
-
-observers:
-  - type: k8s-api
-
 monitors:
   - type: collectd/redis
-    discoveryRule: container_image =~ "redis" && port == 6379
+    host: localhost
+    port: {"#from": "zookeeper:/redis/port"}
   - type: signalfx-forwarder
     listenAddress: 0.0.0.0:9080
-  - type: processlist

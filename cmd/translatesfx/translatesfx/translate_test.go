@@ -43,6 +43,12 @@ func TestSAExpandedToCfgInfo_Observers(t *testing.T) {
 	}, cfg.observers[0])
 }
 
+func TestSAExpandedToCfgInfo_ZK(t *testing.T) {
+	cfg := yamlToCfgInfo(t, "testdata/sa-zk.yaml")
+	zkPwd := cfg.monitors[0].(map[interface{}]interface{})["port"].(string)
+	assert.Equal(t, "${zookeeper:/redis/port}", zkPwd)
+}
+
 func yamlToCfgInfo(t *testing.T, filename string) saCfgInfo {
 	v := fromYAML(t, filename)
 	expanded, err := expandSA(v, "")

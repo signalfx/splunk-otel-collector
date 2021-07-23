@@ -46,6 +46,7 @@ import (
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
+	"go.opentelemetry.io/collector/extension/ballastextension"
 	"go.opentelemetry.io/collector/extension/healthcheckextension"
 	"go.opentelemetry.io/collector/extension/pprofextension"
 	"go.opentelemetry.io/collector/extension/zpagesextension"
@@ -77,6 +78,7 @@ func Get() (component.Factories, error) {
 		pprofextension.NewFactory(),
 		smartagentextension.NewFactory(),
 		zpagesextension.NewFactory(),
+		ballastextension.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)

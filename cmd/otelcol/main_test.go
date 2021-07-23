@@ -63,43 +63,80 @@ func TestGetKeyValue(t *testing.T) {
 	}
 }
 
-func TestCheckRuntimeParams(*testing.T) {
+func TestCheckRuntimeParams_Default(t *testing.T) {
 	oldArgs := os.Args
-	os.Setenv(configEnvVarName, path.Join("../../", defaultLocalSAPMConfig))
-	checkConfig()
+	assert.NoError(t, os.Setenv(configEnvVarName, path.Join("../../", defaultLocalSAPMConfig)))
 	checkRuntimeParams()
-
-	os.Args = oldArgs
-	os.Setenv(memTotalEnvVarName, "1000")
-	checkRuntimeParams()
-
-	os.Args = oldArgs
-	os.Setenv(ballastEnvVarName, "50")
-	setMemoryBallast(100)
-	os.Unsetenv(ballastEnvVarName)
-	checkRuntimeParams()
+	assert.Equal(t, "168", os.Getenv(ballastEnvVarName))
+	assert.Equal(t, "460", os.Getenv(memLimitMiBEnvVarName))
 
 	os.Args = oldArgs
 	os.Clearenv()
 }
 
-func HelperTestSetMemoryBallast(val string, t *testing.T) {
-	args := os.Args[1:]
-	_, c := getKeyValue(args, "--mem-ballast-size-mib")
-	if c != val {
-		t.Errorf("Expected memory ballast CLI param %v got %v", val, c)
-	}
-	b := os.Getenv(ballastEnvVarName)
-	if b != val {
-		t.Errorf("Expected memory ballast %v got %v", val, b)
-	}
+func TestCheckRuntimeParams_MemTotalEnv(t *testing.T) {
+	oldArgs := os.Args
+	assert.NoError(t, os.Setenv(configEnvVarName, path.Join("../../", defaultLocalSAPMConfig)))
+	assert.NoError(t, os.Setenv(memTotalEnvVarName, "1000"))
+	checkRuntimeParams()
+	assert.Equal(t, "330", os.Getenv(ballastEnvVarName))
+	assert.Equal(t, "900", os.Getenv(memLimitMiBEnvVarName))
+
+	os.Args = oldArgs
+	os.Clearenv()
 }
 
-func HelperTestSetMemoryLimit(val string, t *testing.T) {
-	b := os.Getenv(memLimitMiBEnvVarName)
-	if b != val {
-		t.Errorf("Expected memory limit %v got %v", val, b)
-	}
+func TestCheckRuntimeParams_MemTotalAndBallastEnvs(t *testing.T) {
+	oldArgs := os.Args
+	assert.NoError(t, os.Setenv(configEnvVarName, path.Join("../../", defaultLocalSAPMConfig)))
+	assert.NoError(t, os.Setenv(memTotalEnvVarName, "200"))
+	assert.NoError(t, os.Setenv(ballastEnvVarName, "90"))
+	checkRuntimeParams()
+	assert.Equal(t, "90", os.Getenv(ballastEnvVarName))
+	assert.Equal(t, "180", os.Getenv(memLimitMiBEnvVarName))
+
+	os.Args = oldArgs
+	os.Clearenv()
+}
+
+func TestCheckRuntimeParams_LimitAndBallastEnvs(t *testing.T) {
+	oldArgs := os.Args
+	assert.NoError(t, os.Setenv(configEnvVarName, path.Join("../../", defaultLocalSAPMConfig)))
+	assert.NoError(t, os.Setenv(memLimitMiBEnvVarName, "250"))
+	assert.NoError(t, os.Setenv(ballastEnvVarName, "120"))
+	checkRuntimeParams()
+	assert.Equal(t, "120", os.Getenv(ballastEnvVarName))
+	assert.Equal(t, "250", os.Getenv(memLimitMiBEnvVarName))
+
+	os.Args = oldArgs
+	os.Clearenv()
+}
+
+func TestCheckRuntimeParams_MemTotalLimitAndBallastEnvs(t *testing.T) {
+	oldArgs := os.Args
+	assert.NoError(t, os.Setenv(configEnvVarName, path.Join("../../", defaultLocalSAPMConfig)))
+	assert.NoError(t, os.Setenv(memTotalEnvVarName, "200"))
+	assert.NoError(t, os.Setenv(memLimitMiBEnvVarName, "150"))
+	assert.NoError(t, os.Setenv(ballastEnvVarName, "50"))
+	checkRuntimeParams()
+	assert.Equal(t, "50", os.Getenv(ballastEnvVarName))
+	assert.Equal(t, "150", os.Getenv(memLimitMiBEnvVarName))
+
+	os.Args = oldArgs
+	os.Clearenv()
+}
+
+func TestCheckRuntimeParams_MemTotalEnvAndBallastFlag(t *testing.T) {
+	oldArgs := os.Args
+	assert.NoError(t, os.Setenv(configEnvVarName, path.Join("../../", defaultLocalSAPMConfig)))
+	assert.NoError(t, os.Setenv(memTotalEnvVarName, "200"))
+	os.Args = append(os.Args, "--mem-ballast-size-mib=90")
+	checkRuntimeParams()
+	assert.Equal(t, "90", os.Getenv(ballastEnvVarName))
+	assert.Equal(t, "180", os.Getenv(memLimitMiBEnvVarName))
+
+	os.Args = oldArgs
+	os.Clearenv()
 }
 
 func TestUseConfigFromEnvVar(t *testing.T) {
@@ -222,38 +259,4 @@ service:
 			}()
 		})
 	}
-}
-
-func TestSetMemoryBallast(t *testing.T) {
-	oldArgs := os.Args
-	setMemoryBallast(100)
-
-	HelperTestSetMemoryBallast("33", t)
-
-	os.Args = oldArgs
-	os.Setenv(ballastEnvVarName, "50")
-	defer os.Unsetenv(ballastEnvVarName)
-	setMemoryBallast(100)
-
-	HelperTestSetMemoryBallast("50", t)
-	os.Args = oldArgs
-}
-
-func TestSetMemoryLimit(t *testing.T) {
-	oldArgs := os.Args
-	setMemoryLimit(100)
-
-	HelperTestSetMemoryLimit("90", t)
-
-	os.Args = oldArgs
-	os.Unsetenv(memLimitMiBEnvVarName)
-	setMemoryLimit(100000)
-
-	HelperTestSetMemoryLimit("90000", t)
-
-	os.Args = oldArgs
-	os.Setenv(memLimitMiBEnvVarName, "200")
-	setMemoryLimit(100)
-
-	HelperTestSetMemoryLimit("200", t)
 }

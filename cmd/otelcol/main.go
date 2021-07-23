@@ -291,26 +291,19 @@ func setMemoryLimit(memTotalSizeMiB int) int {
 func setDefaultEnvVars() {
 	var tmpVar string
 	realm := os.Getenv("SPLUNK_REALM")
-	tmpVar = os.Getenv("SPLUNK_API_URL")
-	if tmpVar == "" {
-		os.Setenv("SPLUNK_API_URL", "https://api."+realm+".signalfx.com")
-	}
-	tmpVar = os.Getenv("SPLUNK_INGEST_URL")
-	if tmpVar == "" {
-		os.Setenv("SPLUNK_INGEST_URL", "https://ingest."+realm+".signalfx.com")
-	}
-	tmpVar = os.Getenv("SPLUNK_TRACE_URL")
-	if tmpVar == "" {
-		os.Setenv("SPLUNK_TRACE_URL", "https://ingest."+realm+".signalfx.com/v2/trace")
-	}
-	tmpVar = os.Getenv("SPLUNK_HEC_URL")
-	if tmpVar == "" {
-		os.Setenv("SPLUNK_HEC_URL", "https://ingest."+realm+".signalfx.com/v1/log")
-	}
 	token := os.Getenv("SPLUNK_ACCESS_TOKEN")
-	tmpVar = os.Getenv("SPLUNK_HEC_TOKEN")
-	if tmpVar == "" {
-		os.Setenv("SPLUNK_HEC_TOKEN", token)
+	testArgs := [][]string{
+		{"SPLUNK_API_URL", "https://api." + realm + ".signalfx.com"},
+		{"SPLUNK_INGEST_URL", "https://ingest." + realm + ".signalfx.com"},
+		{"SPLUNK_TRACE_URL", "https://ingest." + realm + ".signalfx.com/v2/trace"},
+		{"SPLUNK_HEC_URL", "https://ingest." + realm + ".signalfx.com/v1/log"},
+		{"SPLUNK_HEC_TOKEN", token},
+	}
+	for _, v := range testArgs {
+	    tmpVar = os.Getenv(v[0])
+	    if tmpVar == "" {
+	    	os.Setenv(v[0], v[1])
+	    }
 	}
 }
 

@@ -112,6 +112,39 @@ func TestCheckRuntimeParams_LimitAndBallastEnvs(t *testing.T) {
 	os.Clearenv()
 }
 
+func TestSetDefaultEnvVars(t *testing.T) {
+	realm := "us1"
+	token := "1234"
+	val := "test"
+
+	os.Setenv("SPLUNK_REALM", realm)
+	os.Setenv("SPLUNK_ACCESS_TOKEN", token)
+	setDefaultEnvVars()
+	testArgs := [][]string{
+		{"SPLUNK_API_URL", "https://api." + realm + ".signalfx.com"},
+		{"SPLUNK_INGEST_URL", "https://ingest." + realm + ".signalfx.com"},
+		{"SPLUNK_TRACE_URL", "https://ingest." + realm + ".signalfx.com/v2/trace"},
+		{"SPLUNK_HEC_URL", "https://ingest." + realm + ".signalfx.com/v1/log"},
+		{"SPLUNK_HEC_TOKEN", token},
+	}
+	for _, v := range testArgs {
+		tmpVar := os.Getenv(v[0])
+		if tmpVar != v[1] {
+			t.Errorf("Expected %v got %v for %v", v[1], tmpVar, v[0])
+		}
+	}
+
+	testArgs2 := []string{"SPLUNK_API_URL", "SPLUNK_INGEST_URL", "SPLUNK_TRACE_URL", "SPLUNK_HEC_URL", "SPLUNK_HEC_TOKEN"}
+	for _, v := range testArgs2 {
+		os.Setenv(v, val)
+		setDefaultEnvVars()
+		tmpVar := os.Getenv(v)
+		if tmpVar != val {
+			t.Errorf("Expected %v got %v for %v", val, tmpVar, v)
+		}
+	}
+}
+
 func TestCheckRuntimeParams_MemTotalLimitAndBallastEnvs(t *testing.T) {
 	oldArgs := os.Args
 	assert.NoError(t, os.Setenv(configEnvVarName, path.Join("../../", defaultLocalSAPMConfig)))

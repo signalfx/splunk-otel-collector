@@ -62,6 +62,7 @@ func main() {
 
 	if !contains(os.Args[1:], "-h") && !contains(os.Args[1:], "--help") {
 		checkRuntimeParams()
+		setDefaultEnvVars()
 	}
 
 	// Allow dumping configuration locally by default
@@ -284,6 +285,33 @@ func setMemoryLimit(memTotalSizeMiB int) int {
 	os.Setenv(memLimitMiBEnvVarName, strconv.Itoa(memLimit))
 	log.Printf("Set memory limit to %d MiB", memLimit)
 	return memLimit
+}
+
+// Sets environment variables expected by agent_config.yaml if missing
+func setDefaultEnvVars() {
+	var tmpVar string
+	realm := os.Getenv("SPLUNK_REALM")
+	tmpVar = os.Getenv("SPLUNK_API_URL")
+	if tmpVar == "" {
+		os.Setenv("SPLUNK_API_URL", "https://api."+realm+".signalfx.com")
+	}
+	tmpVar = os.Getenv("SPLUNK_INGEST_URL")
+	if tmpVar == "" {
+		os.Setenv("SPLUNK_INGEST_URL", "https://ingest."+realm+".signalfx.com")
+	}
+	tmpVar = os.Getenv("SPLUNK_TRACE_URL")
+	if tmpVar == "" {
+		os.Setenv("SPLUNK_TRACE_URL", "https://ingest."+realm+".signalfx.com/v2/trace")
+	}
+	tmpVar = os.Getenv("SPLUNK_HEC_URL")
+	if tmpVar == "" {
+		os.Setenv("SPLUNK_HEC_URL", "https://ingest."+realm+".signalfx.com/v1/log")
+	}
+	token := os.Getenv("SPLUNK_ACCESS_TOKEN")
+	tmpVar = os.Getenv("SPLUNK_HEC_TOKEN")
+	if tmpVar == "" {
+		os.Setenv("SPLUNK_HEC_TOKEN", token)
+	}
 }
 
 // Returns a ParserProvider that reads configuration YAML from an environment variable when applicable.

@@ -300,10 +300,10 @@ func setDefaultEnvVars() {
 		{"SPLUNK_HEC_TOKEN", token},
 	}
 	for _, v := range testArgs {
-	    tmpVar = os.Getenv(v[0])
-	    if tmpVar == "" {
-	    	os.Setenv(v[0], v[1])
-	    }
+		tmpVar = os.Getenv(v[0])
+		if tmpVar == "" {
+			os.Setenv(v[0], v[1])
+		}
 	}
 }
 

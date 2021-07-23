@@ -1,3 +1,14 @@
 * @signalfx/gdi-data-collection-approvers @signalfx/gdi-data-collection-maintainers
 
 .github/CODEOWNERS @signalfx/gdi-data-collection-maintainers
+
+#####################################################
+#
+# Docs reviewers
+#
+#####################################################
+
+*.md @signalfx/docs
+*.rst @signalfx/docs
+docs/ @signalfx/docs
+README* @signalfx/docs @signalfx/gdi-specification-approvers @signalfx/gdi-specification-maintainers

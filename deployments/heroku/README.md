@@ -3,8 +3,6 @@
 A Heroku buildpack to install and run the Splunk OpenTelemetry Connector on a
 Dyno and send data to Splunk Observability Cloud.
 
-> :construction: This project is currently in **BETA**
-
 ## Getting Started
 
 [Install the Heroku CLI, login, and create an
@@ -26,7 +24,7 @@ buildpack:
 heroku labs:enable runtime-dyno-metadata
 
 # Add buildpack for Splunk OpenTelemetry Connector
-heroku buildpacks:add https://github.com/signalfx/splunk-otel-collector-heroku.git#<BUILDPACK_VERSION>
+heroku buildpacks:add https://github.com/signalfx/splunk-otel-collector.git#heroku-v<BUILDPACK_VERSION>
 # Required for test application
 #heroku buildpacks:add heroku/nodejs
 
@@ -35,7 +33,7 @@ heroku config:set SPLUNK_ACCESS_TOKEN=<YOUR_ACCESS_TOKEN>
 heroku config:set SPLUNK_REALM=<YOUR_REALM>
 
 # Optionally define custom configuration file
-#heroku config:set SPLUNK_OTEL_CONFIG=/app/test/config.yaml
+#heroku config:set SPLUNK_CONFIG=/app/config.yaml
 
 # If these buildpacks are being added to an existing project,
 # create an empty commit prior to deploying the app
@@ -54,7 +52,7 @@ Use the following environment variables to configure this buildpack
 
 | Environment Variable      | Required | Default                                             | Description                                                                     |
 | ----------------------    | -------- | -------                                             | -------------------------------------------------------------------------       |
-| `SPLUNK_REALM`            | Yes      | `us0`                                               | Your Splunk realm.                                                              |
+| `SPLUNK_REALM`            | Yes      |                                                     | Your Splunk realm.                                                              |
 | `SPLUNK_TOKEN`            | Yes      |                                                     | Your Splunk access token.                                                       |
 | `SPLUNK_API_URL`          | No       | `https://api.SPLUNK_REALM.signalfx.com`             | The Splunk API base URL.                                                        |
 | `SPLUNK_CONFIG`           | No       | `/app/config.yaml`                                  | The configuration to use. `/app/.splunk/config.yaml` used if default not found. |

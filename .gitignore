@@ -1,4 +1,4 @@
-bin/
+/bin/
 dist/
 
 # GoLand IDEA
@@ -35,3 +35,7 @@ __pycache__
 
 # Ansible Molecule
 .cache
+
+# Heroku
+deployments/heroku/test/.git
+deployments/heroku/test/node_modules

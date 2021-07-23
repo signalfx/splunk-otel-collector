@@ -289,7 +289,6 @@ func setMemoryLimit(memTotalSizeMiB int) int {
 
 // Sets environment variables expected by agent_config.yaml if missing
 func setDefaultEnvVars() {
-	var tmpVar string
 	realm := os.Getenv("SPLUNK_REALM")
 	token := os.Getenv("SPLUNK_ACCESS_TOKEN")
 	testArgs := [][]string{
@@ -300,8 +299,8 @@ func setDefaultEnvVars() {
 		{"SPLUNK_HEC_TOKEN", token},
 	}
 	for _, v := range testArgs {
-		tmpVar = os.Getenv(v[0])
-		if tmpVar == "" {
+		_, ok := os.LookupEnv(v[0])
+		if !ok {
 			os.Setenv(v[0], v[1])
 		}
 	}

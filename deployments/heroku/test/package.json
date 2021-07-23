@@ -1,0 +1,19 @@
+{
+  "name": "splunk-heroku-test",
+  "version": "0.0.1",
+  "description": "Node.js client library for Splunk",
+  "homepage": "https://splunk.com",
+  "repository": "https://github.com/signalfx/signalfx-nodejs",
+  "author": {
+    "name": "Splunk, Inc",
+    "email": "info@splunk.com",
+    "url": "https://splunk.com"
+  },
+  "dependencies": {
+    "signalfx": "^7.4.0"
+  },
+  "engines": {
+    "node": ">=8.0.0 <15"
+  },
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+echo "Splunk OpenTelemetry Connector installation" && exit 0

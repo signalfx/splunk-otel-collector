@@ -28,3 +28,7 @@ monitors:
   - type: signalfx-forwarder
     listenAddress: 0.0.0.0:9080
   - type: processlist
+  - type: vsphere
+    host: 1.2.3.4
+    username: user
+    password: $etcd2:/password

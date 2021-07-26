@@ -29,6 +29,11 @@ receivers:
   smartagent/signalfx-forwarder:
     listenAddress: "0.0.0.0:9080"
     type: signalfx-forwarder
+  smartagent/vsphere:
+    type: vsphere
+    host: 1.2.3.4
+    username: user
+    password: $etcd2:/password
 processors:
   metricstransform:
     transforms:
@@ -70,6 +75,7 @@ service:
       receivers:
         - receiver_creator
         - smartagent/signalfx-forwarder
+        - smartagent/vsphere
       processors:
         - resourcedetection
         - metricstransform

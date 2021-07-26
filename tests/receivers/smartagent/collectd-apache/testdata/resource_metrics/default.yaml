@@ -2,12 +2,12 @@ resource_metrics:
   - instrumentation_library_metrics:
       - metrics:
           - name: apache_bytes
-            type: IntMonotonicCumulativeSum
+            type: DoubleNonmonotonicUnspecifiedSum
           - name: apache_connections
-            type: IntGauge
+            type: DoubleGauge
           - name: apache_idle_workers
-            type: IntGauge
+            type: DoubleGauge
           - name: apache_requests
-            type: IntMonotonicCumulativeSum
+            type: DoubleNonmonotonicUnspecifiedSum
           - name: apache_scoreboard.open
-            type: IntGauge
+            type: DoubleGauge

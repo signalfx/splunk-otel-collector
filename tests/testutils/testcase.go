@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -106,11 +107,17 @@ func (t *Testcase) SplunkOtelCollector(configFilename string) (Collector, func()
 		collector = &cp
 	}
 
+	otlpEndpointForContainer := t.OTLPEndpoint
+	if runtime.GOOS == "darwin" {
+		port := strings.Split(otlpEndpointForContainer, ":")[1]
+		otlpEndpointForContainer = fmt.Sprintf("host.docker.internal:%s", port)
+	}
+
 	var err error
 	collector = collector.WithConfigPath(
 		path.Join(".", "testdata", configFilename),
 	).WithEnv(map[string]string{
-		"OTLP_ENDPOINT":  t.OTLPEndpoint,
+		"OTLP_ENDPOINT":  otlpEndpointForContainer,
 		"SPLUNK_TEST_ID": t.ID,
 	}).WithLogLevel("debug").WithLogger(t.Logger)
 

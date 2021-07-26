@@ -18,6 +18,7 @@ import (
 	"context"
 	"io"
 	"path"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -341,10 +342,16 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 	assert.EqualValues(t, "12345/tcp", port)
 	require.NoError(t, err)
 
+	expectedPorts := []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: "12345"}}
+	if runtime.GOOS == "darwin" {
+		expectedPorts = append(expectedPorts, nat.PortBinding{HostIP: "::", HostPort: "12345"})
+	}
+
 	portMap, err := alpine.Ports(context.Background())
 	expectedPortMap := nat.PortMap(map[nat.Port][]nat.PortBinding{
-		"12345/tcp": {{HostIP: "0.0.0.0", HostPort: "12345"}},
+		"12345/tcp": expectedPorts,
 	})
+
 	assert.EqualValues(t, expectedPortMap, portMap)
 	require.NoError(t, err)
 

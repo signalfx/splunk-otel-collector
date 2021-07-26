@@ -1,0 +1,22 @@
+signalFxAccessToken: abc123
+ingestUrl: https://ingest.us1.signalfx.com
+apiUrl: https://api.us1.signalfx.com
+
+bundleDir: /usr/lib/signalfx-agent
+
+collectd:
+  configDir: /var/run/signalfx-agent
+
+configSources:
+  etcd2:
+    endpoints:
+      - http://127.0.0.1:2379
+    username: foo
+    password: bar
+
+monitors:
+  - type: collectd/redis
+    host: {"#from": "etcd2:/redishost"}
+    port: 1234
+  - type: signalfx-forwarder
+    listenAddress: 0.0.0.0:9080

@@ -133,6 +133,12 @@ func translateConfigSources(sa saCfgInfo, otel *otelCfg) {
 	if sa.configSources == nil {
 		return
 	}
+
+	translateZK(sa, otel)
+	translateEtcd(sa, otel)
+}
+
+func translateZK(sa saCfgInfo, otel *otelCfg) {
 	v, ok := sa.configSources["zookeeper"]
 	if !ok {
 		return
@@ -148,6 +154,31 @@ func translateConfigSources(sa saCfgInfo, otel *otelCfg) {
 		m["timeout"] = fmt.Sprintf("%ds", tos)
 	}
 	otel.ConfigSources["zookeeper"] = m
+}
+
+func translateEtcd(sa saCfgInfo, otel *otelCfg) {
+	v, ok := sa.configSources["etcd2"]
+	if !ok {
+		return
+	}
+	etcd, o := v.(map[interface{}]interface{})
+	if !o {
+		return
+	}
+	m := map[string]interface{}{
+		"endpoints": etcd["endpoints"],
+	}
+	auth := map[string]interface{}{}
+	if username, ok := etcd["username"]; ok {
+		auth["username"] = username
+	}
+	if password, ok := etcd["password"]; ok {
+		auth["password"] = password
+	}
+	if len(auth) > 0 {
+		m["auth"] = auth
+	}
+	otel.ConfigSources["etcd2"] = m
 }
 
 func dimsToMetricsTransformProcessor(m map[interface{}]interface{}) map[string]interface{} {

@@ -209,6 +209,33 @@ func TestDiscoveryRuleToRCRule(t *testing.T) {
 	assert.Equal(t, `type == "port" && pod.name matches "redis" && port == 6379`, rcr)
 }
 
+func TestInfoToOtelConfig_ZK(t *testing.T) {
+	oc := yamlToOtelConfig(t, "testdata/sa-zk.yaml")
+	v, ok := oc.ConfigSources["zookeeper"]
+	require.True(t, ok)
+	zk, ok := v.(map[string]interface{})
+	require.True(t, ok)
+	assert.Equal(t, []interface{}{"127.0.0.1:2181"}, zk["endpoints"])
+	assert.Equal(t, "10s", zk["timeout"])
+}
+
+func TestInfoToOtelConfig_Etcd(t *testing.T) {
+	oc := yamlToOtelConfig(t, "testdata/sa-etcd.yaml")
+	v, ok := oc.ConfigSources["etcd2"]
+	require.True(t, ok)
+	etcd, ok := v.(map[string]interface{})
+	require.True(t, ok)
+	assert.Equal(t, []interface{}{"http://127.0.0.1:2379"}, etcd["endpoints"])
+	auth, ok := etcd["auth"]
+	require.True(t, ok)
+	assert.Equal(t, map[string]interface{}{
+		"username": "foo",
+		"password": "bar",
+	}, auth)
+	r := oc.Receivers["smartagent/collectd/redis"]
+	assert.Equal(t, "${etcd2:/redishost}", r["host"])
+}
+
 func testvSphereMonitorCfg() map[interface{}]interface{} {
 	return map[interface{}]interface{}{
 		"type":     "vsphere",

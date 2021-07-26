@@ -9,7 +9,9 @@ configSources:
     endpoints:
       - 127.0.0.1:2181
     timeoutSeconds: 10
-
+  etcd2:
+    endpoints:
+      - http://127.0.0.1:2379
 globalDimensions:
   aaa: 42
   bbb: 111
@@ -26,3 +28,7 @@ monitors:
   - type: signalfx-forwarder
     listenAddress: 0.0.0.0:9080
   - type: processlist
+  - type: vsphere
+    host: 1.2.3.4
+    username: user
+    password: $etcd2:/password

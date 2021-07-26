@@ -7,6 +7,11 @@ config_sources:
   etcd2:
     endpoints:
       - http://127.0.0.1:2379
+  vault/0:
+    endpoint: http://127.0.0.1:8200
+    path: /secret/sfx
+    auth:
+      token: abc123
 extensions:
   k8s_observer:
     auth_type: serviceAccount
@@ -27,7 +32,7 @@ receivers:
   smartagent/processlist:
     type: processlist
   smartagent/signalfx-forwarder:
-    listenAddress: "0.0.0.0:9080"
+    listenAddress: ${vault/0:port}
     type: signalfx-forwarder
   smartagent/vsphere:
     type: vsphere

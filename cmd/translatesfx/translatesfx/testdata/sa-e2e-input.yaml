@@ -12,6 +12,10 @@ configSources:
   etcd2:
     endpoints:
       - http://127.0.0.1:2379
+  vault:
+    vaultAddr: http://127.0.0.1:8200
+    vaultToken: abc123
+
 globalDimensions:
   aaa: 42
   bbb: 111
@@ -26,7 +30,7 @@ monitors:
   - type: collectd/redis
     discoveryRule: container_image =~ "redis" && port == 6379
   - type: signalfx-forwarder
-    listenAddress: 0.0.0.0:9080
+    listenAddress: {"#from": "vault:/secret/sfx[port]"}
   - type: processlist
   - type: vsphere
     host: 1.2.3.4

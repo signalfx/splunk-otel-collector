@@ -65,7 +65,7 @@ func TestRender_ConfigSource(t *testing.T) {
 		"#from": "testdata/token",
 	}, "")
 	require.NoError(t, err)
-	v, err := d.render(false)
+	v, err := d.render(false, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "${include:testdata/token}", v.(string))
 }
@@ -76,7 +76,7 @@ func TestRender_FileExpansion_Simple(t *testing.T) {
 		"default": "foo", // specify a default to force file expansion
 	}, "")
 	require.NoError(t, err)
-	v, err := d.render(false)
+	v, err := d.render(false, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "abc123", v.(string))
 }
@@ -87,7 +87,7 @@ func TestRender_FileExpansion_Map(t *testing.T) {
 		"default": "foo", // specify a default to force file expansion
 	}, "")
 	require.NoError(t, err)
-	v, err := d.render(false)
+	v, err := d.render(false, nil)
 	require.NoError(t, err)
 	assert.Equal(t, map[interface{}]interface{}{
 		"foo": "bar",
@@ -100,7 +100,7 @@ func TestRender_FileExpansion_Wildcard(t *testing.T) {
 		"#from": "testdata/cfgs/map*.yaml", // asterisk forces file expansion
 	}, "")
 	require.NoError(t, err)
-	v, err := d.render(false)
+	v, err := d.render(false, nil)
 	require.NoError(t, err)
 	assert.NotNil(t, v)
 }
@@ -111,7 +111,7 @@ func TestRender_FileExpansion_MissingNonOptionalFile(t *testing.T) {
 		"default": "foo", // specify a default to force file expansion
 	}, "")
 	require.NoError(t, err)
-	rendered, err := d.render(false)
+	rendered, err := d.render(false, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "foo", rendered)
 }
@@ -121,9 +121,39 @@ func TestDirective_ZK(t *testing.T) {
 		"#from": "zk:/foo/bar",
 	}, "")
 	require.NoError(t, err)
-	rendered, err := d.render(false)
+	rendered, err := d.render(false, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "${zookeeper:/foo/bar}", rendered)
+}
+
+func TestDirective_Vault(t *testing.T) {
+	d, _, err := parseDirective(map[interface{}]interface{}{
+		"#from": "vault:/foo/bar[aaa]",
+	}, "")
+	require.NoError(t, err)
+	var vaultPaths []string
+	rendered, err := d.render(false, &vaultPaths)
+	require.NoError(t, err)
+	assert.Equal(t, "${vault/0:aaa}", rendered)
+	assert.Equal(t, []string{"/foo/bar"}, vaultPaths)
+
+	d, _, err = parseDirective(map[interface{}]interface{}{
+		"#from": "vault:/foo/bar[bbb]",
+	}, "")
+	require.NoError(t, err)
+	rendered, err = d.render(false, &vaultPaths)
+	require.NoError(t, err)
+	assert.Equal(t, "${vault/0:bbb}", rendered)
+	assert.Equal(t, []string{"/foo/bar"}, vaultPaths)
+
+	d, _, err = parseDirective(map[interface{}]interface{}{
+		"#from": "vault:/foo/baz[ccc]",
+	}, "")
+	require.NoError(t, err)
+	rendered, err = d.render(false, &vaultPaths)
+	require.NoError(t, err)
+	assert.Equal(t, "${vault/1:ccc}", rendered)
+	assert.Equal(t, []string{"/foo/bar", "/foo/baz"}, vaultPaths)
 }
 
 func TestDirectiveSource(t *testing.T) {
@@ -166,4 +196,11 @@ func TestHandleFileDirective(t *testing.T) {
 	expanded, err := d.handleFileType(false)
 	require.NoError(t, err)
 	assert.Equal(t, "${include:testdata/token}", expanded)
+}
+
+func TestParseVaultPath(t *testing.T) {
+	p := "secret/my-database[password]"
+	path, keys := parseVaultPath(p)
+	assert.Equal(t, "secret/my-database", path)
+	assert.Equal(t, "password", keys)
 }

@@ -2,19 +2,19 @@ resource_metrics:
   - instrumentation_library_metrics:
       - metrics:
           - name: gauge.jvm.threads.count
-            type: IntGauge
+            type: DoubleGauge
           - name: gauge.kafka.producer.byte-rate
             type: DoubleGauge
           - name: gauge.kafka.producer.compression-rate
-            type: IntGauge
+            type: DoubleGauge
           - name: gauge.kafka.producer.io-wait-time-ns-avg
             type: DoubleGauge
           - name: gauge.kafka.producer.outgoing-byte-rate
             type: DoubleGauge
           - name: gauge.kafka.producer.record-error-rate
-            type: IntGauge
+            type: DoubleGauge
           - name: gauge.kafka.producer.record-retry-rate
-            type: IntGauge
+            type: DoubleGauge
           - name: gauge.kafka.producer.record-send-rate
             type: DoubleGauge
           - name: gauge.kafka.producer.request-latency-avg
@@ -24,16 +24,16 @@ resource_metrics:
           - name: gauge.kafka.producer.response-rate
             type: DoubleGauge
           - name: gauge.loaded_classes
-            type: IntGauge
+            type: DoubleGauge
           - name: invocations
-            type: IntMonotonicCumulativeSum
+            type: DoubleNonmonotonicUnspecifiedSum
           - name: jmx_memory.committed
-            type: IntGauge
+            type: DoubleGauge
           - name: jmx_memory.init
-            type: IntGauge
+            type: DoubleGauge
           - name: jmx_memory.max
-            type: IntGauge
+            type: DoubleGauge
           - name: jmx_memory.used
-            type: IntGauge
+            type: DoubleGauge
           - name: total_time_in_ms.collection_time
-            type: IntMonotonicCumulativeSum
+            type: DoubleNonmonotonicUnspecifiedSum

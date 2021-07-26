@@ -2,18 +2,18 @@ resource_metrics:
   - instrumentation_library_metrics:
       - metrics:
           - name: connections.accepted
-            type: IntMonotonicCumulativeSum
+            type: DoubleNonmonotonicUnspecifiedSum
           - name: connections.failed
-            type: IntMonotonicCumulativeSum
+            type: DoubleNonmonotonicUnspecifiedSum
           - name: connections.handled
-            type: IntMonotonicCumulativeSum
+            type: DoubleNonmonotonicUnspecifiedSum
           - name: nginx_connections.active
-            type: IntGauge
+            type: DoubleGauge
           - name: nginx_connections.reading
-            type: IntGauge
+            type: DoubleGauge
           - name: nginx_connections.waiting
-            type: IntGauge
+            type: DoubleGauge
           - name: nginx_connections.writing
-            type: IntGauge
+            type: DoubleGauge
           - name: nginx_requests
-            type: IntMonotonicCumulativeSum
+            type: DoubleNonmonotonicUnspecifiedSum

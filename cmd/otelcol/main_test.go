@@ -113,6 +113,15 @@ func TestCheckRuntimeParams_LimitAndBallastEnvs(t *testing.T) {
 }
 
 func TestSetDefaultEnvVars(t *testing.T) {
+	testArgs := []string{"SPLUNK_API_URL", "SPLUNK_INGEST_URL", "SPLUNK_TRACE_URL", "SPLUNK_HEC_URL", "SPLUNK_HEC_TOKEN"}
+	for _, v := range testArgs {
+		setDefaultEnvVars()
+		_, ok := os.LookupEnv(v)
+		if ok {
+			t.Errorf("Expected %v unset given SPLUNK_ACCESS_TOKEN or SPLUNK_TOKEN is unset", v)
+		}
+	}
+
 	realm := "us1"
 	token := "1234"
 	valTest := "test"
@@ -121,22 +130,21 @@ func TestSetDefaultEnvVars(t *testing.T) {
 	os.Setenv("SPLUNK_REALM", realm)
 	os.Setenv("SPLUNK_ACCESS_TOKEN", token)
 	setDefaultEnvVars()
-	testArgs := [][]string{
+	testArgs2 := [][]string{
 		{"SPLUNK_API_URL", "https://api." + realm + ".signalfx.com"},
 		{"SPLUNK_INGEST_URL", "https://ingest." + realm + ".signalfx.com"},
 		{"SPLUNK_TRACE_URL", "https://ingest." + realm + ".signalfx.com/v2/trace"},
 		{"SPLUNK_HEC_URL", "https://ingest." + realm + ".signalfx.com/v1/log"},
 		{"SPLUNK_HEC_TOKEN", token},
 	}
-	for _, v := range testArgs {
+	for _, v := range testArgs2 {
 		val, _ := os.LookupEnv(v[0])
 		if val != v[1] {
 			t.Errorf("Expected %v got %v for %v", v[1], val, v[0])
 		}
 	}
 
-	testArgs2 := []string{"SPLUNK_API_URL", "SPLUNK_INGEST_URL", "SPLUNK_TRACE_URL", "SPLUNK_HEC_URL", "SPLUNK_HEC_TOKEN"}
-	for _, v := range testArgs2 {
+	for _, v := range testArgs {
 		os.Setenv(v, valTest)
 		setDefaultEnvVars()
 		val, _ := os.LookupEnv(v)
@@ -144,7 +152,8 @@ func TestSetDefaultEnvVars(t *testing.T) {
 			t.Errorf("Expected %v got %v for %v", valTest, val, v)
 		}
 	}
-	for _, v := range testArgs2 {
+
+	for _, v := range testArgs {
 		os.Setenv(v, valEmpty)
 		setDefaultEnvVars()
 		val, _ := os.LookupEnv(v)

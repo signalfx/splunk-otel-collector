@@ -1,0 +1,18 @@
+receivers:
+  smartagent/collectd_tomcat:
+    type: collectd/tomcat
+    host: localhost
+    port: 5000
+    intervalSeconds: 1
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/collectd_tomcat
+      exporters: [otlp]

@@ -34,16 +34,10 @@ func PDataToResourceMetrics(pdataMetrics ...pdata.Metrics) (ResourceMetrics, err
 				for k := 0; k < pdataILM.Metrics().Len(); k++ {
 					pdataMetric := pdataILM.Metrics().At(k)
 					switch pdataMetric.DataType() {
-					case pdata.MetricDataTypeIntGauge:
-						addIntGauge(&ilms, pdataMetric)
 					case pdata.MetricDataTypeGauge:
-						addDoubleGauge(&ilms, pdataMetric)
-					case pdata.MetricDataTypeIntSum:
-						addIntSum(&ilms, pdataMetric)
+						addGauge(&ilms, pdataMetric)
 					case pdata.MetricDataTypeSum:
-						addDoubleSum(&ilms, pdataMetric)
-					case pdata.MetricDataTypeIntHistogram:
-						panic(fmt.Sprintf("%s not yet supported", pdata.MetricDataTypeIntHistogram))
+						addSum(&ilms, pdataMetric)
 					case pdata.MetricDataTypeHistogram:
 						panic(fmt.Sprintf("%s not yet supported", pdata.MetricDataTypeHistogram))
 					case pdata.MetricDataTypeSummary:
@@ -60,32 +54,22 @@ func PDataToResourceMetrics(pdataMetrics ...pdata.Metrics) (ResourceMetrics, err
 	return resourceMetrics, nil
 }
 
-func addDoubleSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
-	doubleSum := metric.Sum()
-	var metricType MetricType
-	switch doubleSum.AggregationTemporality() {
-	case pdata.AggregationTemporalityCumulative:
-		if doubleSum.IsMonotonic() {
-			metricType = DoubleMonotonicCumulativeSum
-		} else {
-			metricType = DoubleNonmonotonicCumulativeSum
+func addSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
+	sum := metric.Sum()
+	doubleMetricType := doubleSumMetricType(sum)
+	intMetricType := intSumMetricType(sum)
+	for l := 0; l < sum.DataPoints().Len(); l++ {
+		dp := sum.DataPoints().At(l)
+		var val interface{}
+		var metricType MetricType
+		switch dp.Type() {
+		case pdata.MetricValueTypeInt:
+			val = dp.IntVal()
+			metricType = intMetricType
+		case pdata.MetricValueTypeDouble:
+			val = dp.DoubleVal()
+			metricType = doubleMetricType
 		}
-	case pdata.AggregationTemporalityDelta:
-		if doubleSum.IsMonotonic() {
-			metricType = DoubleMonotonicDeltaSum
-		} else {
-			metricType = DoubleNonmonotonicDeltaSum
-		}
-	case pdata.AggregationTemporalityUnspecified:
-		if doubleSum.IsMonotonic() {
-			metricType = DoubleMonotonicUnspecifiedSum
-		} else {
-			metricType = DoubleNonmonotonicUnspecifiedSum
-		}
-	}
-	for l := 0; l < doubleSum.DataPoints().Len(); l++ {
-		dp := doubleSum.DataPoints().At(l)
-		val := dp.Value()
 		labels := map[string]string{}
 		dp.LabelsMap().Range(func(k, v string) bool {
 			labels[k] = v
@@ -134,32 +118,20 @@ func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pda
 	resourceMetric.Resource.Attributes[name] = val
 }
 
-func addIntSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
-	intSum := metric.IntSum()
-	var metricType MetricType
-	switch intSum.AggregationTemporality() {
-	case pdata.AggregationTemporalityCumulative:
-		if intSum.IsMonotonic() {
-			metricType = IntMonotonicCumulativeSum
-		} else {
-			metricType = IntNonmonotonicCumulativeSum
+func addGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
+	doubleGauge := metric.Gauge()
+	for l := 0; l < doubleGauge.DataPoints().Len(); l++ {
+		dp := doubleGauge.DataPoints().At(l)
+		var val interface{}
+		var metricType MetricType
+		switch dp.Type() {
+		case pdata.MetricValueTypeInt:
+			val = dp.IntVal()
+			metricType = IntGauge
+		case pdata.MetricValueTypeDouble:
+			val = dp.DoubleVal()
+			metricType = DoubleGauge
 		}
-	case pdata.AggregationTemporalityDelta:
-		if intSum.IsMonotonic() {
-			metricType = IntMonotonicDeltaSum
-		} else {
-			metricType = IntNonmonotonicDeltaSum
-		}
-	case pdata.AggregationTemporalityUnspecified:
-		if intSum.IsMonotonic() {
-			metricType = IntMonotonicUnspecifiedSum
-		} else {
-			metricType = IntNonmonotonicUnspecifiedSum
-		}
-	}
-	for l := 0; l < intSum.DataPoints().Len(); l++ {
-		dp := intSum.DataPoints().At(l)
-		val := dp.Value()
 		labels := map[string]string{}
 		dp.LabelsMap().Range(func(k, v string) bool {
 			labels[k] = v
@@ -177,46 +149,50 @@ func addIntSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 	}
 }
 
-func addDoubleGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
-	doubleGauge := metric.Gauge()
-	for l := 0; l < doubleGauge.DataPoints().Len(); l++ {
-		dp := doubleGauge.DataPoints().At(l)
-		val := dp.Value()
-		labels := map[string]string{}
-		dp.LabelsMap().Range(func(k, v string) bool {
-			labels[k] = v
-			return true
-		})
-		metric := Metric{
-			Name:        metric.Name(),
-			Description: metric.Description(),
-			Unit:        metric.Unit(),
-			Labels:      &labels,
-			Type:        DoubleGauge,
-			Value:       val,
+func doubleSumMetricType(sum pdata.Sum) MetricType {
+	switch sum.AggregationTemporality() {
+	case pdata.AggregationTemporalityCumulative:
+		if sum.IsMonotonic() {
+			return DoubleMonotonicCumulativeSum
+		} else {
+			return DoubleNonmonotonicCumulativeSum
 		}
-		ilms.Metrics = append(ilms.Metrics, metric)
+	case pdata.AggregationTemporalityDelta:
+		if sum.IsMonotonic() {
+			return DoubleMonotonicDeltaSum
+		} else {
+			return DoubleNonmonotonicDeltaSum
+		}
+	case pdata.AggregationTemporalityUnspecified:
+		if sum.IsMonotonic() {
+			return DoubleMonotonicUnspecifiedSum
+		} else {
+			return DoubleNonmonotonicUnspecifiedSum
+		}
 	}
+	return "unknown"
 }
 
-func addIntGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
-	intGauge := metric.IntGauge()
-	for l := 0; l < intGauge.DataPoints().Len(); l++ {
-		dp := intGauge.DataPoints().At(l)
-		val := dp.Value()
-		labels := map[string]string{}
-		dp.LabelsMap().Range(func(k, v string) bool {
-			labels[k] = v
-			return true
-		})
-		metric := Metric{
-			Name:        metric.Name(),
-			Description: metric.Description(),
-			Unit:        metric.Unit(),
-			Labels:      &labels,
-			Type:        IntGauge,
-			Value:       val,
+func intSumMetricType(sum pdata.Sum) MetricType {
+	switch sum.AggregationTemporality() {
+	case pdata.AggregationTemporalityCumulative:
+		if sum.IsMonotonic() {
+			return IntMonotonicCumulativeSum
+		} else {
+			return IntNonmonotonicCumulativeSum
 		}
-		ilms.Metrics = append(ilms.Metrics, metric)
+	case pdata.AggregationTemporalityDelta:
+		if sum.IsMonotonic() {
+			return IntMonotonicDeltaSum
+		} else {
+			return IntNonmonotonicDeltaSum
+		}
+	case pdata.AggregationTemporalityUnspecified:
+		if sum.IsMonotonic() {
+			return IntMonotonicUnspecifiedSum
+		} else {
+			return IntNonmonotonicUnspecifiedSum
+		}
 	}
+	return "unknown"
 }

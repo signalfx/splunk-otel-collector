@@ -28,14 +28,14 @@ const (
 	metricsTransform  = "metricstransform"
 )
 
-func saInfoToOtelConfig(sa saCfgInfo) *otelCfg {
+func saInfoToOtelConfig(sa saCfgInfo, vaultPaths []string) *otelCfg {
 	otel := newOtelCfg()
 	translateExporters(sa, otel)
 	translateMonitors(sa, otel)
 	translateGlobalDims(sa, otel)
 	translateSAExtension(sa, otel)
 	translateObservers(sa, otel)
-	translateConfigSources(sa, otel)
+	translateConfigSources(sa, otel, vaultPaths)
 	return otel
 }
 
@@ -126,7 +126,7 @@ func translateObservers(sa saCfgInfo, otel *otelCfg) {
 	}
 }
 
-func translateConfigSources(sa saCfgInfo, otel *otelCfg) {
+func translateConfigSources(sa saCfgInfo, otel *otelCfg, vaultPaths []string) {
 	otel.ConfigSources = map[string]interface{}{
 		"include": nil,
 	}
@@ -136,6 +136,7 @@ func translateConfigSources(sa saCfgInfo, otel *otelCfg) {
 
 	translateZK(sa, otel)
 	translateEtcd(sa, otel)
+	translateVault(sa, otel, vaultPaths)
 }
 
 func translateZK(sa saCfgInfo, otel *otelCfg) {
@@ -179,6 +180,24 @@ func translateEtcd(sa saCfgInfo, otel *otelCfg) {
 		m["auth"] = auth
 	}
 	otel.ConfigSources["etcd2"] = m
+}
+
+func translateVault(sa saCfgInfo, otel *otelCfg, vaultPaths []string) {
+	if v, ok := sa.configSources["vault"]; ok {
+		vault, ok := v.(map[interface{}]interface{})
+		if !ok {
+			return
+		}
+		for i, vaultPath := range vaultPaths {
+			otel.ConfigSources[fmt.Sprintf("vault/%d", i)] = map[string]interface{}{
+				"endpoint": vault["vaultAddr"],
+				"path":     vaultPath,
+				"auth": map[string]interface{}{
+					"token": vault["vaultToken"],
+				},
+			}
+		}
+	}
 }
 
 func dimsToMetricsTransformProcessor(m map[interface{}]interface{}) map[string]interface{} {

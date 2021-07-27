@@ -1,0 +1,20 @@
+signalFxAccessToken: abc123
+ingestUrl: https://ingest.us1.signalfx.com
+apiUrl: https://api.us1.signalfx.com
+
+bundleDir: /usr/lib/signalfx-agent
+
+collectd:
+  configDir: /var/run/signalfx-agent
+
+configSources:
+  vault:
+    vaultAddr: http://127.0.0.1:8200
+    vaultToken: abc123
+
+monitors:
+  - type: collectd/redis
+    host: localhost
+    port: {"#from": "vault:/secret/redis[port]"}
+  - type: signalfx-forwarder
+    listenAddress: 0.0.0.0:9080

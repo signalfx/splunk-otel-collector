@@ -47,7 +47,7 @@ func TestSAToOtelConfig(t *testing.T) {
 		realm:       "us1",
 		accessToken: "s3cr3t",
 		monitors:    []interface{}{testvSphereMonitorCfg()},
-	})
+	}, nil)
 	require.Equal(t, expected, otelConfig.Receivers["smartagent/vsphere"])
 }
 
@@ -236,6 +236,15 @@ func TestInfoToOtelConfig_Etcd(t *testing.T) {
 	assert.Equal(t, "${etcd2:/redishost}", r["host"])
 }
 
+func TestInfoToOtelConfig_Vault(t *testing.T) {
+	oc := yamlToOtelConfig(t, "testdata/sa-vault.yaml")
+	v, ok := oc.ConfigSources["vault/0"]
+	require.True(t, ok)
+	vault, ok := v.(map[string]interface{})
+	require.True(t, ok)
+	assert.Equal(t, "http://127.0.0.1:8200", vault["endpoint"])
+}
+
 func testvSphereMonitorCfg() map[interface{}]interface{} {
 	return map[interface{}]interface{}{
 		"type":     "vsphere",
@@ -247,9 +256,9 @@ func testvSphereMonitorCfg() map[interface{}]interface{} {
 
 func yamlToOtelConfig(t *testing.T, filename string) *otelCfg {
 	cfg := fromYAML(t, filename)
-	expanded, err := expandSA(cfg, "")
+	expanded, vaultPaths, err := expandSA(cfg, "")
 	require.NoError(t, err)
 	info, err := saExpandedToCfgInfo(expanded)
 	require.NoError(t, err)
-	return saInfoToOtelConfig(info)
+	return saInfoToOtelConfig(info, vaultPaths)
 }

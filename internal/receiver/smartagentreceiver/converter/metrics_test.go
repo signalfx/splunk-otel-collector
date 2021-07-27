@@ -49,19 +49,14 @@ func pdataMetric() (pdata.Metrics, pdata.Metric) {
 	return out, m
 }
 
-func pdataMetrics(dataType pdata.MetricDataType, val interface{}, timeReceived time.Time) pdata.Metrics {
+func pdataMetrics(dataType pdata.MetricDataType, value interface{}, timeReceived time.Time) pdata.Metrics {
 	metrics, metric := pdataMetric()
 	metric.SetDataType(dataType)
 	metric.SetName("some metric")
 
-	var dps interface{}
+	var dps pdata.NumberDataPointSlice
 
 	switch dataType {
-	case pdata.MetricDataTypeIntGauge:
-		dps = metric.IntGauge().DataPoints()
-	case pdata.MetricDataTypeIntSum:
-		metric.IntSum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
-		dps = metric.IntSum().DataPoints()
 	case pdata.MetricDataTypeGauge:
 		dps = metric.Gauge().DataPoints()
 	case pdata.MetricDataTypeSum:
@@ -71,17 +66,18 @@ func pdataMetrics(dataType pdata.MetricDataType, val interface{}, timeReceived t
 
 	var labels pdata.StringMap
 
-	switch dataType {
-	case pdata.MetricDataTypeIntGauge, pdata.MetricDataTypeIntSum:
-		dp := dps.(pdata.IntDataPointSlice).AppendEmpty()
-		labels = dp.LabelsMap()
-		dp.SetTimestamp(pdata.Timestamp(timeReceived.UnixNano()))
-		dp.SetValue(int64(val.(int)))
-	case pdata.MetricDataTypeGauge, pdata.MetricDataTypeSum:
-		dp := dps.(pdata.NumberDataPointSlice).AppendEmpty()
-		labels = dp.LabelsMap()
-		dp.SetTimestamp(pdata.Timestamp(timeReceived.UnixNano()))
-		dp.SetValue(val.(float64))
+	dp := dps.AppendEmpty()
+	labels = dp.LabelsMap()
+	labels.Upsert("k0", "v0")
+	labels.Upsert("k1", "v1")
+	labels.Upsert("k2", "v2")
+	labels.Sort()
+	dp.SetTimestamp(pdata.Timestamp(timeReceived.UnixNano()))
+	switch val := value.(type) {
+	case int:
+		dp.SetIntVal(int64(val))
+	case float64:
+		dp.SetDoubleVal(val)
 	}
 
 	labels.InitFromMap(map[string]string{
@@ -104,7 +100,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 		{
 			name:            "IntGauge",
 			datapoints:      []*sfx.Datapoint{sfxDatapoint()},
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeIntGauge, 13, now),
+			expectedMetrics: pdataMetrics(pdata.MetricDataTypeGauge, 13, now),
 		},
 		{
 			name: "DoubleGauge",
@@ -124,8 +120,8 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				return []*sfx.Datapoint{pt}
 			}(),
 			expectedMetrics: func() pdata.Metrics {
-				m := pdataMetrics(pdata.MetricDataTypeIntSum, 13, now)
-				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).IntSum()
+				m := pdataMetrics(pdata.MetricDataTypeSum, 13, now)
+				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).Sum()
 				d.SetAggregationTemporality(pdata.AggregationTemporalityDelta)
 				d.SetIsMonotonic(true)
 				return m
@@ -155,8 +151,8 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				return []*sfx.Datapoint{pt}
 			}(),
 			expectedMetrics: func() pdata.Metrics {
-				m := pdataMetrics(pdata.MetricDataTypeIntSum, 13, now)
-				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).IntSum()
+				m := pdataMetrics(pdata.MetricDataTypeSum, 13, now)
+				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).Sum()
 				d.SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
 				d.SetIsMonotonic(true)
 				return m
@@ -186,8 +182,8 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				return []*sfx.Datapoint{pt}
 			}(),
 			expectedMetrics: func() pdata.Metrics {
-				md := pdataMetrics(pdata.MetricDataTypeIntGauge, 13, time.Unix(0, 0))
-				md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).IntGauge().DataPoints().At(0).SetTimestamp(0)
+				md := pdataMetrics(pdata.MetricDataTypeGauge, 13, time.Unix(0, 0))
+				md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).SetTimestamp(0)
 				return md
 			}(),
 		},
@@ -198,7 +194,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				pt.Timestamp = time.Time{}
 				return []*sfx.Datapoint{pt}
 			}(),
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeIntGauge, 13, now),
+			expectedMetrics: pdataMetrics(pdata.MetricDataTypeGauge, 13, now),
 			timeReceived:    now,
 		},
 		{
@@ -209,15 +205,15 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				return []*sfx.Datapoint{pt}
 			}(),
 			expectedMetrics: func() pdata.Metrics {
-				md := pdataMetrics(pdata.MetricDataTypeIntGauge, 13, now)
-				md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).IntGauge().DataPoints().At(0).LabelsMap().Update("k0", "")
+				md := pdataMetrics(pdata.MetricDataTypeGauge, 13, now)
+				md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).LabelsMap().Update("k0", "")
 				return md
 			}(),
 		},
 		{
 			name:            "nil_datapoints_ignored",
 			datapoints:      []*sfx.Datapoint{nil, sfxDatapoint(), nil},
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeIntGauge, 13, now),
+			expectedMetrics: pdataMetrics(pdata.MetricDataTypeGauge, 13, now),
 		},
 		{
 			name: "drops_invalid_datapoints",
@@ -234,10 +230,9 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				pt2 := sfxDatapoint()
 				pt2.MetricType = sfx.Counter + 100
 
-				return []*sfx.Datapoint{
-					pt0, pt1, sfxDatapoint(), pt2}
+				return []*sfx.Datapoint{pt0, pt1, sfxDatapoint(), pt2}
 			}(),
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeIntGauge, 13, now),
+			expectedMetrics: pdataMetrics(pdata.MetricDataTypeGauge, 13, now),
 		},
 	}
 
@@ -302,14 +297,6 @@ func sortLabels(t *testing.T, metrics pdata.Metrics) {
 			for k := 0; k < ilm.Metrics().Len(); k++ {
 				m := ilm.Metrics().At(k)
 				switch m.DataType() {
-				case pdata.MetricDataTypeIntGauge:
-					for l := 0; l < m.IntGauge().DataPoints().Len(); l++ {
-						m.IntGauge().DataPoints().At(l).LabelsMap().Sort()
-					}
-				case pdata.MetricDataTypeIntSum:
-					for l := 0; l < m.IntSum().DataPoints().Len(); l++ {
-						m.IntSum().DataPoints().At(l).LabelsMap().Sort()
-					}
 				case pdata.MetricDataTypeGauge:
 					for l := 0; l < m.Gauge().DataPoints().Len(); l++ {
 						m.Gauge().DataPoints().At(l).LabelsMap().Sort()

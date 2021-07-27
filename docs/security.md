@@ -41,7 +41,7 @@ is configured in.
 
 - `http(s)://0.0.0.0:13133/` Health endpoint useful for load balancer monitoring
 - `http(s)://0.0.0.0:[6831|6832|14250|14268]/api/traces` Jaeger [gRPC|Thrift HTTP] receiver
-- `http(s)://localhost:55555/debug/configz/[initial|effective]` in-memory configuration
+- `http(s)://localhost:55554/debug/configz/[initial|effective]` in-memory configuration
 - `http(s)://localhost:55679/debug/[tracez|pipelinez]` zPages monitoring
 - `http(s)://0.0.0.0:4317` OpenTelemetry gRPC receiver
 - `http(s)://0.0.0.0:6060` HTTP Forwarder used to receive Smart Agent `apiUrl` data

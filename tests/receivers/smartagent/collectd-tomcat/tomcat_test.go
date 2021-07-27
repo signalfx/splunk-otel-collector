@@ -27,7 +27,7 @@ var apache = []testutils.Container{
 	).WithExposedPorts("5000:5000").WithName("tomcat").WillWaitForPorts("5000"),
 }
 
-func TestCollectdApacheReceiverProvidesDefaultMetrics(t *testing.T) {
+func TestCollectdTomcatReceiverProvidesDefaultMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
 		t, "default.yaml", "default_metrics_config.yaml", apache,
 	)

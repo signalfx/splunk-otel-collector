@@ -2,15 +2,15 @@ resource_metrics:
   - instrumentation_library_metrics:
       - metrics:
           - name: counter.tomcat.GlobalRequestProcessor.bytesReceived
-            type: IntNonmonotonicCumulativeSum
+            type: IntMonotonicCumulativeSum
           - name: counter.tomcat.GlobalRequestProcessor.bytesSent
-            type: IntNonmonotonicCumulativeSum
+            type: IntMonotonicCumulativeSum
           - name: counter.tomcat.GlobalRequestProcessor.errorCount
-            type: IntNonmonotonicCumulativeSum
+            type: IntMonotonicCumulativeSum
           - name: counter.tomcat.GlobalRequestProcessor.processingTime
-            type: IntNonmonotonicCumulativeSum
+            type: IntMonotonicCumulativeSum
           - name: counter.tomcat.GlobalRequestProcessor.requestCount
-            type: IntNonmonotonicCumulativeSum
+            type: IntMonotonicCumulativeSum
           - name: gauge.tomcat.GlobalRequestProcessor.maxTime
             type: IntGauge
           - name: gauge.tomcat.ThreadPool.currentThreadsBusy

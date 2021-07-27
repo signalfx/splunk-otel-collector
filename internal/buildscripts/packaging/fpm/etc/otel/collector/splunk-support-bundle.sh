@@ -124,11 +124,11 @@ getConfig() {
     fi
     # Also need to get config in memory as dynamic config may modify stored config
     # It's possible user has disabled collecting in memory config
-    if timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/55555'; then
-        curl -s http://localhost:55555/debug/configz/initial >"$TMPDIR"/config/initial.yaml 2>&1
-        curl -s http://localhost:55555/debug/configz/effective >"$TMPDIR"/config/effective.yaml 2>&1
+    if timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/55554'; then
+        curl -s http://localhost:55554/debug/configz/initial >"$TMPDIR"/config/initial.yaml 2>&1
+        curl -s http://localhost:55554/debug/configz/effective >"$TMPDIR"/config/effective.yaml 2>&1
     else
-        echo "WARN: localhost:55555 unavailable so in memory configuration not collected"
+        echo "WARN: localhost:55554 unavailable so in memory configuration not collected"
     fi
 
 }

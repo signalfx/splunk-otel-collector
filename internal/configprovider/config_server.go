@@ -30,7 +30,7 @@ const (
 	configServerEnabledEnvVar = "SPLUNK_DEBUG_CONFIG_SERVER"
 	configServerPortEnvVar    = "SPLUNK_DEBUG_CONFIG_SERVER_PORT"
 
-	defaultConfigServerEndpoint = "localhost:55555"
+	defaultConfigServerEndpoint = "localhost:55554"
 )
 
 type configServer struct {

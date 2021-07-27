@@ -27,7 +27,7 @@ func TestExpandSA_Map(t *testing.T) {
 	var v interface{}
 	err := yaml.UnmarshalStrict([]byte(yml), &v)
 	require.NoError(t, err)
-	out, _, _ := expand(v, "", yamlPath{})
+	out, _, _ := expand(v, "", yamlPath{}, nil)
 	require.NoError(t, err)
 	expected := `myMap:
   baz: glarch
@@ -41,7 +41,7 @@ func TestExpandSA_List(t *testing.T) {
 	var v interface{}
 	err := yaml.UnmarshalStrict([]byte(yml), &v)
 	require.NoError(t, err)
-	out, _, _ := expand(v, "", yamlPath{})
+	out, _, _ := expand(v, "", yamlPath{}, nil)
 	expandedYaml, err := yaml.Marshal(out)
 	require.NoError(t, err)
 	expected := `myList:
@@ -60,7 +60,7 @@ func TestExpandSA_FlattenSlice(t *testing.T) {
 	var v interface{}
 	err := yaml.UnmarshalStrict([]byte(yml), &v)
 	require.NoError(t, err)
-	out, _, _ := expand(v, "", yamlPath{})
+	out, _, _ := expand(v, "", yamlPath{}, nil)
 	expandedYaml, err := yaml.Marshal(out)
 	require.NoError(t, err)
 	expected := `list:
@@ -81,7 +81,7 @@ func TestExpandSA_FlattenMap(t *testing.T) {
 	var v interface{}
 	err := yaml.UnmarshalStrict([]byte(yml), &v)
 	require.NoError(t, err)
-	expanded, _, _ := expand(v, "", yamlPath{})
+	expanded, _, _ := expand(v, "", yamlPath{}, nil)
 	require.NoError(t, err)
 	expected := map[interface{}]interface{}{
 		"map": map[interface{}]interface{}{
@@ -95,7 +95,7 @@ func TestExpandSA_FlattenMap(t *testing.T) {
 
 func TestExpandSA_Complex(t *testing.T) {
 	v := fromYAML(t, "testdata/sa-complex.yaml")
-	expanded, err := expandSA(v, "")
+	expanded, _, err := expandSA(v, "")
 	require.NoError(t, err)
 	assert.Equal(t, "https://api.us1.signalfx.com", expanded["apiUrl"])
 	monitors := expanded["monitors"].([]interface{})
@@ -115,7 +115,7 @@ func TestExpandSA_Complex(t *testing.T) {
 
 func TestMultiMonitors(t *testing.T) {
 	v := fromYAML(t, "testdata/sa-multimonitors.yaml")
-	expanded, err := expandSA(v, "")
+	expanded, _, err := expandSA(v, "")
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(expanded["monitors"].([]interface{})))
 }

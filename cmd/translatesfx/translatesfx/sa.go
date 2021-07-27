@@ -19,34 +19,35 @@ import (
 	"strings"
 )
 
-// expand takes an unmarshalled Smart Agent config struct and returns a config
+// expandSA takes an unmarshalled Smart Agent config struct and returns a config
 // with any SA #from directives translated into their Otel equivalent.
-func expandSA(orig interface{}, wd string) (map[interface{}]interface{}, error) {
+func expandSA(orig interface{}, wd string) (map[interface{}]interface{}, []string, error) {
+	var vaultPaths []string
 	expanded, _, err := expand(orig, wd, yamlPath{
 		// Prevent these three top-level SA config keys from getting translated into
 		// their configsource equivalent. We need monitors expanded/inlined so we can
 		// translate them, apiURL is used to get the realm, and globalDimensions is used
 		// to create a metricstransform processor.
 		forcePaths: []string{"/monitors", "/apiUrl", "/globalDimensions"},
-	})
-	return expanded.(map[interface{}]interface{}), err
+	}, &vaultPaths)
+	return expanded.(map[interface{}]interface{}), vaultPaths, err
 }
 
-func expand(in interface{}, wd string, yp yamlPath) (interface{}, bool, error) {
+func expand(in interface{}, wd string, yp yamlPath, vaultPaths *[]string) (interface{}, bool, error) {
 	switch t := in.(type) {
 	case []interface{}:
-		return expandSlice(t, wd, yp)
+		return expandSlice(t, wd, yp, vaultPaths)
 	case map[interface{}]interface{}:
-		return expandMap(t, wd, yp)
+		return expandMap(t, wd, yp, vaultPaths)
 	default:
 		return in, false, nil
 	}
 }
 
-func expandSlice(l []interface{}, wd string, yp yamlPath) (interface{}, bool, error) {
+func expandSlice(l []interface{}, wd string, yp yamlPath, vaultPaths *[]string) (interface{}, bool, error) {
 	var out []interface{}
 	for i, v := range l {
-		next, flatten, err := expand(v, wd, yp.index(i))
+		next, flatten, err := expand(v, wd, yp.index(i), vaultPaths)
 		if err != nil {
 			return nil, false, err
 		}
@@ -61,13 +62,13 @@ func expandSlice(l []interface{}, wd string, yp yamlPath) (interface{}, bool, er
 	return out, false, nil
 }
 
-func expandMap(m map[interface{}]interface{}, wd string, yp yamlPath) (interface{}, bool, error) {
+func expandMap(m map[interface{}]interface{}, wd string, yp yamlPath, vaultPaths *[]string) (interface{}, bool, error) {
 	d, isDirective, err := parseDirective(m, wd)
 	if err != nil {
 		return nil, false, err
 	}
 	if isDirective {
-		rendered, err := d.render(yp.forceExpand())
+		rendered, err := d.render(yp.forceExpand(), vaultPaths)
 		if err != nil {
 			return nil, false, err
 		}
@@ -75,7 +76,7 @@ func expandMap(m map[interface{}]interface{}, wd string, yp yamlPath) (interface
 	}
 	out := map[interface{}]interface{}{}
 	for k, v := range m {
-		expanded, flatten, _ := expand(v, wd, yp.key(k.(string)))
+		expanded, flatten, _ := expand(v, wd, yp.key(k.(string)), vaultPaths)
 		if flatten {
 			if flattened, ok := expanded.(map[interface{}]interface{}); ok {
 				for fk, fv := range flattened {

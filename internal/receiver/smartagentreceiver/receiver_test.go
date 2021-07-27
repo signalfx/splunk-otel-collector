@@ -53,7 +53,7 @@ var expectedCPUMetrics = map[string]pdata.MetricDataType{
 	"cpu.idle":                 pdata.MetricDataTypeSum,
 	"cpu.interrupt":            pdata.MetricDataTypeSum,
 	"cpu.nice":                 pdata.MetricDataTypeSum,
-	"cpu.num_processors":       pdata.MetricDataTypeIntGauge,
+	"cpu.num_processors":       pdata.MetricDataTypeGauge,
 	"cpu.softirq":              pdata.MetricDataTypeSum,
 	"cpu.steal":                pdata.MetricDataTypeSum,
 	"cpu.system":               pdata.MetricDataTypeSum,
@@ -120,15 +120,6 @@ func TestSmartAgentReceiver(t *testing.T) {
 						assert.Equal(t, expectedDataType, dataType)
 						var labels pdata.StringMap
 						switch dataType {
-						case pdata.MetricDataTypeIntGauge:
-							ig := metric.IntGauge()
-							for l := 0; l < ig.DataPoints().Len(); l++ {
-								igdp := ig.DataPoints().At(l)
-								labels = igdp.LabelsMap()
-								var val interface{} = igdp.Value()
-								_, ok := val.(int64)
-								assert.True(t, ok, "invalid value of MetricDataTypeIntGauge metric %s", name)
-							}
 						case pdata.MetricDataTypeGauge:
 							dg := metric.Gauge()
 							for l := 0; l < dg.DataPoints().Len(); l++ {

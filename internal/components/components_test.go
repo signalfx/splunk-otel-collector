@@ -33,7 +33,7 @@ func TestDefaultComponents(t *testing.T) {
 		"smartagent",
 		"zpages",
 		"memory_ballast",
-		"filestorage",
+		"file_storage",
 	}
 	expectedReceivers := []config.Type{
 		"carbon",

@@ -17,7 +17,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.30.1-0.20210727182931-b5e442c20695
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.30.1-0.20210727182931-b5e442c20695
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.30.1-0.20210727182931-b5e442c20695
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.30.1-0.20210727182931-b5e442c20695 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.30.1-0.20210727182931-b5e442c20695
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.30.1-0.20210727182931-b5e442c20695
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sprocessor v0.30.1-0.20210727182931-b5e442c20695
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.30.1-0.20210727182931-b5e442c20695

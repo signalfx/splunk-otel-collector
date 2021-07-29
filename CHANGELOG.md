@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+## v0.31.0
+
+This Splunk OpenTelemetry Connector release includes changes from the [opentelemetry-collector v0.31.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.31.0) and the [opentelemetry-collector-contrib v0.31.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.31.0) releases.
+
+## 🚀 New components 🚀
+
+- [`file_storage` extension](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/storage/filestorage)
+
+### 🛑 Breaking changes 🛑
+
+- Change default config server port to 55554 (#579)
+
+### 💡 Enhancements 💡
+
+- Add support for non-persisted journald in the default fluentd config (#516)
+- Add `SPLUNK_CONFIG_YAML` env var support for storing configuration YAML (#462)
+- Initial puppet support for windows (#524)
+- Update to use the `memory_ballast` extension instead of the `--mem-ballast-size-mib` flag (#567)
+- Add Heroku buildpack (#571)
+- Set required URL and TOKEN env vars for agent config (#572)
+
+### 🧰 Bug fixes 🧰
+
+- Remove SAPM receiver from default configuration (#517)
+- `zookeeper` config source: Remove config validation for zk endpoints (#533)
+- Fix memory limit calculation for deployments with 20Gi+ of total memory (#558)
+- Set path ownership on deb/rpm postinstall (#582)
+
 ## v0.29.0
 
 This Splunk OpenTelemetry Connector release includes changes from the [opentelemetry-collector v0.29.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.29.0) and the [opentelemetry-collector-contrib v0.29.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.29.0) releases.

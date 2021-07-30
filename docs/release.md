@@ -24,6 +24,10 @@
 
 1. If necessary, update the OpenTelemetry Core and Contrib dependency versions
    in [go.mod](../go.mod) and run `go mod tidy`.
+1. If necessary, update [smart-agent-release.txt](
+   ../internal/buildscripts/packaging/smart-agent-release.txt) for the latest
+   applicable [Smart Agent release](
+   https://github.com/signalfx/signalfx-agent/releases).
 1. Update [CHANGELOG.md](../CHANGELOG.md) with the changes for the release.
 1. Create a PR with the changes and ensure that the build and tests are
    successful.  Wait for the PR to be approved and merged, and ensure that the

@@ -78,90 +78,48 @@ workflows:
   version: 2
   build-and-test:
     jobs:
-      - windows-test:
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-      - setup-environment:
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - windows-test
+      - setup-environment
       - lint:
           requires:
             - setup-environment
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
       - cross-compile:
           requires:
             - setup-environment
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
       - docker-otelcol:
           requires:
             - cross-compile
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
       - test:
           requires:
             - setup-environment
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
       - coverage:
           requires:
             - setup-environment
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
       - build-package:
           name: deb-package
           package_type: deb
           requires:
             - cross-compile
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
       - build-package:
           name: rpm-package
           package_type: rpm
           requires:
             - cross-compile
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-      - installer-script-test:
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - installer-script-test
       - windows-msi:
           requires:
             - cross-compile
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
       - windows-msi-validation:
           requires:
             - windows-msi
           name: windows-msi-agent-test
           mode: agent
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
       - windows-msi-validation:
           requires:
             - windows-msi
           name: windows-msi-gateway-test
           mode: gateway
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-      - puppet-test:
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+      - puppet-test
 
 jobs:
   setup-environment:

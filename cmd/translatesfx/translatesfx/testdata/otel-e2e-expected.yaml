@@ -60,6 +60,12 @@ processors:
       - ecs
       - ec2
       - azure
+  filter:
+    metrics:
+      exclude:
+        match_type: expr
+        expressions:
+          - MetricName matches "^unwanted_metric_.*$"
 exporters:
   signalfx:
     access_token: "${include:token}"
@@ -82,8 +88,9 @@ service:
         - smartagent/signalfx-forwarder
         - smartagent/vsphere
       processors:
-        - resourcedetection
+        - filter
         - metricstransform
+        - resourcedetection
       exporters:
         - signalfx
     traces:

@@ -1,0 +1,32 @@
+---
+signalFxAccessToken: "abc123"
+signalFxRealm: us1
+
+intervalSeconds: 10
+
+logging:
+  level: info
+
+metricsToExclude:
+  # This filter causes only the 'free bytes' and 'readonly' filesystem
+  # metrics to be sent, excluding all other metrics that start with
+  # 'node_filesystem_'.
+  - metricNames:
+      - node_filesystem_*
+      - '!node_filesystem_free_bytes'
+      - '!node_filesystem_readonly'
+
+  # This filter causes all network metrics, *except* for those about eth0, to
+  # be dropped.
+  - metricName: node_network_*
+    dimensions:
+      interface: [ '*', '!eth0' ]
+
+  # This filter causes all datapoints that start with 'node_disk_' that have
+  # a 'device' dimension that starts with 'sr' to be dropped.
+  - metricName: node_disk_*
+    dimensions:
+      device: sr*
+
+monitors:
+  - type: cpu

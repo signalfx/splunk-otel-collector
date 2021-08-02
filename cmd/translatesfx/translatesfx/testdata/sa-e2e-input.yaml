@@ -26,6 +26,10 @@ collectd:
 observers:
   - type: k8s-api
 
+metricsToExclude:
+  - metricNames:
+      - unwanted_metric_*
+
 monitors:
   - type: collectd/redis
     discoveryRule: container_image =~ "redis" && port == 6379

@@ -21,13 +21,14 @@ import (
 )
 
 type saCfgInfo struct {
-	globalDims    map[interface{}]interface{}
-	saExtension   map[string]interface{}
-	configSources map[interface{}]interface{}
-	accessToken   string
-	realm         string
-	monitors      []interface{}
-	observers     []interface{}
+	globalDims       map[interface{}]interface{}
+	saExtension      map[string]interface{}
+	configSources    map[interface{}]interface{}
+	accessToken      string
+	realm            string
+	monitors         []interface{}
+	observers        []interface{}
+	metricsToExclude []interface{}
 }
 
 func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) (saCfgInfo, error) {
@@ -36,13 +37,14 @@ func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) (saCfgInfo, err
 		return saCfgInfo{}, err
 	}
 	return saCfgInfo{
-		accessToken:   saExpanded["signalFxAccessToken"].(string),
-		realm:         realm,
-		monitors:      saExpanded["monitors"].([]interface{}),
-		globalDims:    globalDims(saExpanded),
-		saExtension:   saExtension(saExpanded),
-		observers:     observers(saExpanded),
-		configSources: configSources(saExpanded),
+		accessToken:      saExpanded["signalFxAccessToken"].(string),
+		realm:            realm,
+		monitors:         saExpanded["monitors"].([]interface{}),
+		globalDims:       globalDims(saExpanded),
+		saExtension:      saExtension(saExpanded),
+		observers:        observers(saExpanded),
+		configSources:    configSources(saExpanded),
+		metricsToExclude: metricsToExclude(saExpanded),
 	}, nil
 }
 
@@ -130,4 +132,16 @@ func configSources(saExpanded map[interface{}]interface{}) map[interface{}]inter
 		return nil
 	}
 	return cs
+}
+
+func metricsToExclude(saExpanded map[interface{}]interface{}) []interface{} {
+	v, ok := saExpanded["metricsToExclude"]
+	if !ok {
+		return nil
+	}
+	l, ok := v.([]interface{})
+	if !ok {
+		return nil
+	}
+	return l
 }

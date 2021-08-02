@@ -15,9 +15,15 @@
 package translatesfx
 
 import (
+	"errors"
 	"strconv"
 	"testing"
 
+	"github.com/antonmedv/expr"
+	"github.com/antonmedv/expr/vm"
+	"github.com/signalfx/golib/v3/datapoint"
+	"github.com/signalfx/signalfx-agent/pkg/core/config"
+	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -245,6 +251,39 @@ func TestInfoToOtelConfig_Vault(t *testing.T) {
 	assert.Equal(t, "http://127.0.0.1:8200", vault["endpoint"])
 }
 
+func TestInfoToOtelConfig_MetricsToExclude_Simple(t *testing.T) {
+	cfg := yamlToOtelConfig(t, "testdata/sa-dp-to-exclude-simple.yaml")
+	fp := cfg.Processors["filter"]
+	require.NotNil(t, fp)
+	metrics := fp["metrics"].(map[string]interface{})
+	exclude := metrics["exclude"].(map[string]interface{})
+	assert.Equal(t, "expr", exclude["match_type"])
+	expressions := exclude["expressions"].([]string)
+	assert.Equal(t, []string{
+		`MetricName matches "^node_filesystem_.*$"`,
+	}, expressions)
+}
+
+func TestInfoToOtelConfig_MetricsToExclude(t *testing.T) {
+	cfg := yamlToOtelConfig(t, "testdata/sa-dp-to-exclude.yaml")
+	fp := cfg.Processors["filter"]
+	require.NotNil(t, fp)
+	metrics := fp["metrics"].(map[string]interface{})
+	exclude := metrics["exclude"].(map[string]interface{})
+	assert.Equal(t, "expr", exclude["match_type"])
+	expressions := exclude["expressions"].([]string)
+	assert.Equal(t, 3, len(expressions))
+	assert.Equal(t, `MetricName matches "^node_filesystem_.*$"`+
+		` and not (MetricName matches "^node_filesystem_free_bytes$")`+
+		` and not (MetricName matches "^node_filesystem_readonly$")`, expressions[0])
+	assert.Equal(
+		t,
+		`MetricName matches "^node_network_.*$" and (Label("interface") matches "^.*$" and not (Label("interface") matches "^eth0$"))`,
+		expressions[1],
+	)
+	assert.Equal(t, `MetricName matches "^node_disk_.*$" and (Label("device") matches "^sr.*$")`, expressions[2])
+}
+
 func testvSphereMonitorCfg() map[interface{}]interface{} {
 	return map[interface{}]interface{}{
 		"type":     "vsphere",
@@ -261,4 +300,291 @@ func yamlToOtelConfig(t *testing.T, filename string) *otelCfg {
 	info, err := saExpandedToCfgInfo(expanded)
 	require.NoError(t, err)
 	return saInfoToOtelConfig(info, vaultPaths)
+}
+
+func TestSAFiltersToExpr_Simple(t *testing.T) {
+	ex := saFiltersToExpr([]interface{}{
+		map[interface{}]interface{}{
+			"metricNames": []interface{}{
+				"aaa",
+			},
+		},
+	})
+	assert.Equal(t, []string{`MetricName matches "^aaa$"`}, ex)
+}
+
+func TestSAFiltersToExpr_MetricNamesAndDimensions(t *testing.T) {
+	ex := saFiltersToExpr([]interface{}{
+		map[interface{}]interface{}{
+			"metricNames": []interface{}{
+				"aaa",
+			},
+			"dimensions": map[interface{}]interface{}{
+				"foo": "bar",
+			},
+		},
+	})
+	expected := `MetricName matches "^aaa$" and (Label("foo") matches "^bar$")`
+	assert.Equal(t, expected, ex[0])
+}
+
+func TestFilterTranslation(t *testing.T) {
+	tests := []struct {
+		name                        string
+		metricFilters               []config.MetricFilter
+		matchingDPs, nonMatchingDPs []*datapoint.Datapoint
+	}{
+		{
+			name: "simple glob",
+			metricFilters: []config.MetricFilter{
+				{MetricName: "cpu.*"},
+			},
+			matchingDPs: []*datapoint.Datapoint{
+				{Metric: "cpu.utilization"},
+			},
+			nonMatchingDPs: []*datapoint.Datapoint{
+				{Metric: "foo"},
+			},
+		},
+		{
+			name: "glob with single override",
+			metricFilters: []config.MetricFilter{{
+				MetricNames: []string{
+					"cpu.*", "!cpu.utilization",
+				},
+			}},
+			matchingDPs: []*datapoint.Datapoint{
+				{Metric: "cpu.user"},
+			},
+			nonMatchingDPs: []*datapoint.Datapoint{
+				{Metric: "foo"},
+				{Metric: "cpu.utilization"},
+			},
+		},
+		{
+			name: "glob with two overrides",
+			metricFilters: []config.MetricFilter{{
+				MetricNames: []string{
+					"cpu.*", "!cpu.utilization", "!cpu.user",
+				},
+			}},
+			matchingDPs: []*datapoint.Datapoint{
+				{Metric: "cpu.sys"},
+			},
+			nonMatchingDPs: []*datapoint.Datapoint{
+				{Metric: "cpu.user"},
+				{Metric: "cpu.utilization"},
+			},
+		},
+		{
+			name: "multi filters",
+			metricFilters: []config.MetricFilter{{
+				MetricNames: []string{
+					"cpu.*", "disk.*",
+				},
+			}},
+			matchingDPs: []*datapoint.Datapoint{
+				{Metric: "cpu.sys"},
+				{Metric: "disk.reads"},
+			},
+		},
+		{
+			name: "dimension filter",
+			metricFilters: []config.MetricFilter{{
+				MetricNames: []string{"cpu.*"},
+				Dimensions: map[string]interface{}{
+					"host": "aaa",
+				},
+			}},
+			matchingDPs: []*datapoint.Datapoint{
+				{
+					Metric: "cpu.sys",
+					Dimensions: map[string]string{
+						"host": "aaa",
+					},
+				},
+			},
+			nonMatchingDPs: []*datapoint.Datapoint{
+				{
+					Metric: "cpu.sys",
+					Dimensions: map[string]string{
+						"host": "bbb",
+					},
+				},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			saFilterSet, err := newSAFilterSet(test.metricFilters)
+			require.NoError(t, err)
+
+			mapRepr := metricFiltersToMapRepresentation(test.metricFilters)
+			exprs := saFiltersToExpr(mapRepr)
+			var programs []*vm.Program
+			for _, ex := range exprs {
+				program, err := expr.Compile(ex)
+				require.NoError(t, err)
+				programs = append(programs, program)
+			}
+
+			for _, dp := range test.matchingDPs {
+				testFilter(t, assert.True, saFilterSet, dp, programs)
+			}
+			for _, dp := range test.nonMatchingDPs {
+				testFilter(t, assert.False, saFilterSet, dp, programs)
+			}
+		})
+	}
+}
+
+func metricFiltersToMapRepresentation(metricFilters []config.MetricFilter) []interface{} {
+	var out []interface{}
+	for _, filter := range metricFilters {
+		names := filter.MetricNames
+		if names == nil {
+			names = []string{filter.MetricName}
+		}
+		out = append(out, map[interface{}]interface{}{
+			"metricNames": func(strings []string) []interface{} {
+				var v []interface{}
+				for _, s := range strings {
+					v = append(v, s)
+				}
+				return v
+			}(names),
+			"dimensions": stringMapToInterfaceMap(filter.Dimensions),
+		})
+	}
+	return out
+}
+
+func TestMetricNamesToExpr(t *testing.T) {
+	assert.Equal(
+		t,
+		`MetricName matches "^aaaa$"`,
+		metricNamesToExpr([]interface{}{"aaaa"}),
+	)
+	assert.Equal(
+		t,
+		`MetricName matches "^aaaa$" or MetricName matches "^bbbb$"`,
+		metricNamesToExpr([]interface{}{"aaaa", "bbbb"}),
+	)
+}
+
+type assertionFunc func(t assert.TestingT, value bool, msgAndArgs ...interface{}) bool
+
+func testFilter(
+	t *testing.T,
+	f assertionFunc,
+	saFilterSet *dpfilters.FilterSet,
+	dp *datapoint.Datapoint,
+	programs []*vm.Program,
+) {
+	saMatched := saFilterSet.Matches(dp)
+	f(t, saMatched)
+
+	exprResult := testExpr(t, programs, dp)
+	f(t, exprResult)
+}
+
+func testExpr(t *testing.T, programs []*vm.Program, dp *datapoint.Datapoint) bool {
+	for _, program := range programs {
+		v, err := expr.Run(program, map[string]interface{}{
+			"MetricName": dp.Metric,
+			"Label": func(key string) string {
+				return dp.Dimensions[key]
+			},
+		})
+		require.NoError(t, err)
+		if v.(bool) {
+			return true
+		}
+	}
+	return false
+}
+
+// from SA codebase
+func newSAFilterSet(excludes []config.MetricFilter) (*dpfilters.FilterSet, error) {
+	var excludeSet []dpfilters.DatapointFilter
+	for _, f := range excludes {
+		if f.Negated {
+			return nil, errors.New("new filters can't be negated")
+		}
+		dimSet, err := f.Normalize()
+		if err != nil {
+			return nil, err
+		}
+
+		dpf, err := dpfilters.NewOverridable(f.MetricNames, dimSet)
+		if err != nil {
+			return nil, err
+		}
+
+		excludeSet = append(excludeSet, dpf)
+	}
+	return &dpfilters.FilterSet{
+		ExcludeFilters: excludeSet,
+	}, nil
+}
+
+func TestDimsToExpr_OneDim(t *testing.T) {
+	assert.Equal(
+		t,
+		`Label("interfaces") matches "^eth0$"`,
+		dimsToExpr(map[interface{}]interface{}{
+			"interfaces": []interface{}{"eth0"},
+		}),
+	)
+}
+
+func TestDimsToExpr_TwoDims(t *testing.T) {
+	ex := dimsToExpr(map[interface{}]interface{}{
+		"interfaces": []interface{}{"eth*", "!eth1"},
+	})
+	assert.Equal(
+		t,
+		`Label("interfaces") matches "^eth.*$" and not (Label("interfaces") matches "^eth1$")`,
+		ex,
+	)
+}
+
+func TestDimsToExpr_ThreeDims(t *testing.T) {
+	ex := dimsToExpr(map[interface{}]interface{}{
+		"interfaces": []interface{}{"eth*", "!eth1", "!eth2"},
+	})
+	assert.Equal(
+		t,
+		`Label("interfaces") matches "^eth.*$" and not (Label("interfaces") matches "^eth1$") and not (Label("interfaces") matches "^eth2$")`,
+		ex,
+	)
+}
+
+func TestSAFiltersToExpr_MetricNamesOnly(t *testing.T) {
+	ex := saFiltersToExpr([]interface{}{
+		map[interface{}]interface{}{
+			"metricNames": []interface{}{
+				"node_filesystem_*",
+				"!node_filesystem_free_bytes",
+				"!node_filesystem_readonly",
+			},
+		},
+	})
+	assert.Equal(t, []string{`MetricName matches "^node_filesystem_.*$" and not (MetricName matches "^node_filesystem_free_bytes$") and not (MetricName matches "^node_filesystem_readonly$")`}, ex)
+}
+
+func TestSAFiltersToExpr_MetricNameAndDims(t *testing.T) {
+	ex := saFiltersToExpr([]interface{}{
+		map[interface{}]interface{}{
+			"metricName": "node_network_*",
+			"dimensions": map[interface{}]interface{}{
+				"interface": []interface{}{"*", "!eth0"},
+			},
+		},
+	})
+	assert.Equal(
+		t,
+		`MetricName matches "^node_network_.*$" and (Label("interface") matches "^.*$" and not (Label("interface") matches "^eth0$"))`,
+		ex[0],
+	)
 }

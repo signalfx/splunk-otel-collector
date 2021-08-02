@@ -424,6 +424,7 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-xdr v0.0.0-20161123171359-e6a2ba005892/go.mod h1:CTDl0pzVzE5DEzZhPfvhY/9sPFMQIxaJ9VAMs9AagrE=
 github.com/denis-tingajkin/go-header v0.4.2/go.mod h1:eLRHAVXzE5atsKAnNRDB90WHCFFnBUn4RN0nRcs1LJA=
+github.com/denisenkom/go-mssqldb v0.0.0-20200428022330-06a60b6afbbc h1:VRRKCwnzqk8QCaRC4os14xoKDdbHqqlJtJA0oc1ZAjg=
 github.com/denisenkom/go-mssqldb v0.0.0-20200428022330-06a60b6afbbc/go.mod h1:xbL0rPBG9cCiLr28tMa8zpbdarY27NDyej4t/EjAShU=
 github.com/denisenkom/go-mssqldb v0.10.0 h1:QykgLZBorFE95+gO3u9esLd0BmbvpWp0/waNNZfHBM8=
 github.com/denisenkom/go-mssqldb v0.10.0/go.mod h1:xbL0rPBG9cCiLr28tMa8zpbdarY27NDyej4t/EjAShU=
@@ -1966,6 +1967,8 @@ github.com/signalfx/golib/v3 v3.0.0/go.mod h1:p+krygP/cDlWvCBEgdkQp3H16rbP4NW7YQ
 github.com/signalfx/golib/v3 v3.3.33 h1:eRUZr8wydlnNrmpHckharCzAGOe2tM7vYUbj0fPLYmg=
 github.com/signalfx/golib/v3 v3.3.33/go.mod h1:PB7OovVijH7OGhzMewarEcIZG3eG6akWMDucIb5Jnb4=
 github.com/signalfx/gomemcache v0.0.0-20180823214636-4f7ef64c72a9/go.mod h1:Ytb8KfCSyuwy/VILnROdgCvbQLA5ch0nkbG7lKT0BXw=
+github.com/signalfx/ingest-protocols v0.1.2 h1:AA3hui7XKbnmwsIz4nStwBFVEs23hIAhtQEMCFqZ5NQ=
+github.com/signalfx/ingest-protocols v0.1.2/go.mod h1:DCcHV20IlFlaG/B6E12v5nzWXMHlnggqH6I3cUmOhHs=
 github.com/signalfx/ingest-protocols v0.1.3 h1:DQOQPCxhFVV+9lv9cPlBjRufvL59afLX3R2BuPGJQQo=
 github.com/signalfx/ingest-protocols v0.1.3/go.mod h1:DRkLEiNXgz6GDZNHvQyIZIZazic936eMjQShpyiteVc=
 github.com/signalfx/ondiskencoding v0.0.0-20190715171447-33ec316a03f8/go.mod h1:QnApFvs6JyNrtyeE9dTCtAWYxDqUZv2KzFpuQm853FU=

@@ -27,7 +27,7 @@ import (
 )
 
 var (
-	levelsMap = map[logrus.Level]zapcore.Level{
+	logrusToZapLevel = map[logrus.Level]zapcore.Level{
 		logrus.FatalLevel: zapcore.FatalLevel,
 		logrus.PanicLevel: zapcore.PanicLevel,
 		logrus.ErrorLevel: zapcore.ErrorLevel,
@@ -36,6 +36,15 @@ var (
 		logrus.DebugLevel: zapcore.DebugLevel,
 		// No zap level equivalent to trace. Mapping trace to debug.
 		logrus.TraceLevel: zapcore.DebugLevel,
+	}
+
+	zapToLogrusLevel = map[zapcore.Level]logrus.Level{
+		zapcore.FatalLevel: logrus.FatalLevel,
+		zapcore.PanicLevel: logrus.PanicLevel,
+		zapcore.ErrorLevel: logrus.ErrorLevel,
+		zapcore.WarnLevel:  logrus.WarnLevel,
+		zapcore.InfoLevel:  logrus.InfoLevel,
+		zapcore.DebugLevel: logrus.DebugLevel,
 	}
 
 	zapLevels = []zapcore.Level{
@@ -161,6 +170,10 @@ func (l *logrusToZap) redirect(src logrusKey, dst *zap.Logger) {
 		l.loggerMap[src] = make([]*zap.Logger, 0)
 	}
 
+	if desiredLogrusLevel, ok := zapToLogrusLevel[getLevelFromCore(dst.Core())]; ok {
+		src.Logger.SetLevel(desiredLogrusLevel)
+	}
+
 	src.reportCaller()
 	src.addHookUnique(l)
 
@@ -229,7 +242,7 @@ func (l *logrusToZap) Fire(e *logrus.Entry) error {
 		logger = l.defaultLogger
 	}
 
-	if ce := logger.Check(levelsMap[e.Level], e.Message); ce != nil {
+	if ce := logger.Check(logrusToZapLevel[e.Level], e.Message); ce != nil {
 		ce.Time = e.Time
 		ce.Stack = ""
 		if e.Caller != nil {

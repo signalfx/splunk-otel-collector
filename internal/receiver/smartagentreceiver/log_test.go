@@ -47,7 +47,7 @@ func logAt(entry *logrus.Entry, level logrus.Level, msg string) {
 }
 
 func TestRedirectMonitorLogs(t *testing.T) {
-	for logrusLevel, zapLevel := range levelsMap {
+	for logrusLevel, zapLevel := range logrusToZapLevel {
 		//TODO: handle fatal and panic levels
 		if logrusLevel == logrus.FatalLevel || logrusLevel == logrus.PanicLevel {
 			continue
@@ -83,6 +83,14 @@ func TestRedirectMonitorLogs(t *testing.T) {
 		logToZap.redirect(monitor2LogrusKey, monitor2ZapLogger)
 		logToZap.redirect(monitor3LogrusKey, monitor3ZapLogger)
 
+		expectedLogrusLevel := logrusLevel
+		if logrusLevel == logrus.TraceLevel {
+			expectedLogrusLevel = logrus.DebugLevel
+		}
+		require.Equal(t, expectedLogrusLevel, monitor1LogrusKey.Level)
+		require.Equal(t, expectedLogrusLevel, monitor2LogrusKey.Level)
+		require.Equal(t, expectedLogrusLevel, monitor3LogrusKey.Level)
+
 		logMsg1 := "a log msg1"
 		logMsg2 := "a log msg2"
 		logMsg3 := "a log msg3"
@@ -111,7 +119,7 @@ func TestRedirectMonitorLogs(t *testing.T) {
 }
 
 func TestRedirectMonitorLogsWithNilLoggerMap(t *testing.T) {
-	for logrusLevel, zapLevel := range levelsMap {
+	for logrusLevel, zapLevel := range logrusToZapLevel {
 		//TODO: handle fatal and panic levels
 		if logrusLevel == logrus.FatalLevel || logrusLevel == logrus.PanicLevel {
 			continue
@@ -156,7 +164,7 @@ func TestRedirectMonitorLogsWithNilLoggerMap(t *testing.T) {
 }
 
 func TestRedirectSameMonitorManyInstancesLogs(t *testing.T) {
-	for logrusLevel, zapLevel := range levelsMap {
+	for logrusLevel, zapLevel := range logrusToZapLevel {
 		//TODO: handle fatal and panic levels
 		if logrusLevel == logrus.FatalLevel || logrusLevel == logrus.PanicLevel {
 			continue
@@ -209,7 +217,7 @@ func TestRedirectSameMonitorManyInstancesLogs(t *testing.T) {
 
 func TestLevelsMapShouldIncludeAllLogrusLevels(t *testing.T) {
 	for _, level := range logrus.AllLevels {
-		_, ok := levelsMap[level]
+		_, ok := logrusToZapLevel[level]
 		require.True(t, ok, fmt.Sprintf("Expected log level %s not found", level.String()))
 	}
 }

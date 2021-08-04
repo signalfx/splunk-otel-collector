@@ -26,6 +26,10 @@ If you prefer to install the collector without the [installer script
 ](./linux-installer.md), we provide Debian and RPM package repositories that
 you can make use of with the following commands (requires `root` privileges).
 
+**Note:** The [SignalFx Smart Agent and collectd bundle](
+https://github.com/signalfx/signalfx-agent/releases) is only supported and
+installed on x86_64/amd64 platforms.
+
 > IMPORTANT: `systemctl` is a requirement to run the collector as a service.
 > Otherwise, manually running the collector is required.
 

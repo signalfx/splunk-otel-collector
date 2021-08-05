@@ -28,7 +28,17 @@ observers:
 
 metricsToExclude:
   - metricNames:
-      - unwanted_metric_*
+      - node_filesystem_*
+      - '!node_filesystem_free_bytes'
+      - '!node_filesystem_readonly'
+
+  - metricName: node_network_*
+    dimensions:
+      interface: [ '*', '!eth0' ]
+
+  - metricName: node_disk_*
+    dimensions:
+      device: sr*
 
 monitors:
   - type: collectd/redis

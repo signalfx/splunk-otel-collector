@@ -65,7 +65,13 @@ processors:
       exclude:
         match_type: expr
         expressions:
-          - MetricName matches "^unwanted_metric_.*$"
+          - MetricName matches "^node_filesystem_.*$" and not (MetricName
+            matches "^node_filesystem_free_bytes$") and not (MetricName matches
+            "^node_filesystem_readonly$")
+          - MetricName matches "^node_network_.*$" and (Label("interface")
+            matches "^.*$" and not (Label("interface") matches "^eth0$"))
+          - MetricName matches "^node_disk_.*$" and (Label("device") matches
+            "^sr.*$")
 exporters:
   signalfx:
     access_token: "${include:token}"

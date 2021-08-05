@@ -588,3 +588,11 @@ func TestSAFiltersToExpr_MetricNameAndDims(t *testing.T) {
 		ex[0],
 	)
 }
+
+func TestOptionalForwarder(t *testing.T) {
+	cfg := yamlToOtelConfig(t, "testdata/sa-simple.yaml")
+	_, ok := cfg.Service.Pipelines["traces"]
+	assert.False(t, ok)
+	_, ok = cfg.Receivers["smartagent/signalfx-forwarder"]
+	assert.False(t, ok)
+}

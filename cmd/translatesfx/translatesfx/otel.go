@@ -63,11 +63,6 @@ func newOtelCfg() *otelCfg {
 					Processors: []string{resourceDetection},
 					Exporters:  []string{sfx},
 				},
-				"traces": {
-					Receivers:  []string{sfxFwder},
-					Processors: []string{resourceDetection},
-					Exporters:  []string{sfx},
-				},
 			},
 		},
 	}
@@ -213,6 +208,14 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) {
 			"watch_observers": []string{"k8s_observer"}, // TODO check observer type?
 		}
 		mp.appendReceiver(rc)
+	}
+
+	if _, ok := cfg.Receivers[sfxFwder]; ok {
+		cfg.Service.Pipelines["traces"] = &rpe{
+			Receivers:  []string{sfxFwder},
+			Processors: []string{resourceDetection},
+			Exporters:  []string{sfx},
+		}
 	}
 }
 

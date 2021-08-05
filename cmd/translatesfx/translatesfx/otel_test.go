@@ -76,23 +76,6 @@ func TestMonitorToReceiver_Rule(t *testing.T) {
 	require.True(t, ok)
 }
 
-func TestAPIURLToRealm(t *testing.T) {
-	us0, _ := apiURLToRealm(map[interface{}]interface{}{
-		"apiUrl": "https://api.signalfx.com",
-	})
-	assert.Equal(t, "us0", us0)
-
-	us1, _ := apiURLToRealm(map[interface{}]interface{}{
-		"apiUrl": "https://api.us1.signalfx.com",
-	})
-	assert.Equal(t, "us1", us1)
-
-	us2, _ := apiURLToRealm(map[interface{}]interface{}{
-		"signalFxRealm": "us2",
-	})
-	assert.Equal(t, "us2", us2)
-}
-
 func TestMTOperations(t *testing.T) {
 	ops := mtOperations(map[interface{}]interface{}{
 		"d": "3",
@@ -297,7 +280,7 @@ func yamlToOtelConfig(t *testing.T, filename string) *otelCfg {
 	cfg := fromYAML(t, filename)
 	expanded, vaultPaths, err := expandSA(cfg, "")
 	require.NoError(t, err)
-	info, err := saExpandedToCfgInfo(expanded)
+	info := saExpandedToCfgInfo(expanded)
 	require.NoError(t, err)
 	return saInfoToOtelConfig(info, vaultPaths)
 }
@@ -595,4 +578,11 @@ func TestOptionalForwarder(t *testing.T) {
 	assert.False(t, ok)
 	_, ok = cfg.Receivers["smartagent/signalfx-forwarder"]
 	assert.False(t, ok)
+}
+
+func TestSFxExporterUrls(t *testing.T) {
+	cfg := yamlToOtelConfig(t, "testdata/sa-collectd.yaml")
+	exporter := cfg.Exporters["signalfx"]
+	assert.Equal(t, "https://ingest.us1.signalfx.com", exporter["ingest_url"])
+	assert.Equal(t, "https://api.us1.signalfx.com", exporter["api_url"])
 }

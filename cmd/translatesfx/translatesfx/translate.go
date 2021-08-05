@@ -14,38 +14,40 @@
 
 package translatesfx
 
-import (
-	"fmt"
-	"net/url"
-	"strings"
-)
-
 type saCfgInfo struct {
+	accessToken      string
+	realm            string
+	ingestURL        string
+	APIURL           string
 	globalDims       map[interface{}]interface{}
 	saExtension      map[string]interface{}
 	configSources    map[interface{}]interface{}
-	accessToken      string
-	realm            string
 	monitors         []interface{}
 	observers        []interface{}
 	metricsToExclude []interface{}
 }
 
-func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) (saCfgInfo, error) {
-	realm, err := apiURLToRealm(saExpanded)
-	if err != nil {
-		return saCfgInfo{}, err
-	}
+func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) saCfgInfo {
 	return saCfgInfo{
-		accessToken:      saExpanded["signalFxAccessToken"].(string),
-		realm:            realm,
+		accessToken:      toString(saExpanded, "signalFxAccessToken"),
+		realm:            toString(saExpanded, "signalFxRealm"),
+		ingestURL:        toString(saExpanded, "ingestUrl"),
+		APIURL:           toString(saExpanded, "apiUrl"),
 		monitors:         saExpanded["monitors"].([]interface{}),
 		globalDims:       globalDims(saExpanded),
 		saExtension:      saExtension(saExpanded),
 		observers:        observers(saExpanded),
 		configSources:    configSources(saExpanded),
 		metricsToExclude: metricsToExclude(saExpanded),
-	}, nil
+	}
+}
+
+func toString(saExpanded map[interface{}]interface{}, name string) string {
+	v, ok := saExpanded[name]
+	if !ok {
+		return ""
+	}
+	return v.(string)
 }
 
 func observers(saExpanded map[interface{}]interface{}) []interface{} {
@@ -58,36 +60,6 @@ func observers(saExpanded map[interface{}]interface{}) []interface{} {
 		return nil
 	}
 	return obs
-}
-
-func apiURLToRealm(saExpanded map[interface{}]interface{}) (string, error) {
-	if v, ok := saExpanded["signalFxRealm"]; ok {
-		if realm, ok := v.(string); ok {
-			return realm, nil
-		}
-		return "", fmt.Errorf("unexpected signalFxRealm type: %v", v)
-	}
-	v, ok := saExpanded["apiUrl"]
-	if !ok {
-		return "", fmt.Errorf("unable to get realm from SA config %v", saExpanded)
-	}
-	apiURL, ok := v.(string)
-	if !ok {
-		return "", fmt.Errorf("unexpected apiURL type: %v", v)
-	}
-	u, err := url.Parse(apiURL)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse apiURL %v: %v", apiURL, err)
-	}
-
-	host := strings.ToLower(u.Host)
-	if host == "api.signalfx.com" {
-		return "us0", nil
-	}
-
-	parts := strings.Split(u.Host, ".")
-	realm := parts[1]
-	return realm, nil
 }
 
 func globalDims(saExpanded map[interface{}]interface{}) map[interface{}]interface{} {

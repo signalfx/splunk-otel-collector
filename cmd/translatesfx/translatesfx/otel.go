@@ -183,7 +183,7 @@ func globToRegexpStr(s string) (string, bool) {
 }
 
 func translateExporters(sa saCfgInfo, cfg *otelCfg) {
-	cfg.Exporters = sfxExporter(sa.accessToken, sa.realm)
+	cfg.Exporters = sfxExporter(sa)
 }
 
 func translateMonitors(sa saCfgInfo, cfg *otelCfg) {
@@ -341,12 +341,21 @@ func receiverList(receivers map[string]map[string]interface{}) []string {
 	return keys
 }
 
-func sfxExporter(accessToken, realm string) map[string]map[string]interface{} {
+func sfxExporter(sa saCfgInfo) map[string]map[string]interface{} {
+	cfg := map[string]interface{}{
+		"access_token": sa.accessToken,
+	}
+	if sa.realm != "" {
+		cfg["realm"] = sa.realm
+	}
+	if sa.ingestURL != "" {
+		cfg["ingest_url"] = sa.ingestURL
+	}
+	if sa.APIURL != "" {
+		cfg["api_url"] = sa.APIURL
+	}
 	return map[string]map[string]interface{}{
-		"signalfx": {
-			"access_token": accessToken,
-			"realm":        realm,
-		},
+		"signalfx": cfg,
 	}
 }
 

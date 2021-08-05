@@ -36,6 +36,7 @@ func saInfoToOtelConfig(sa saCfgInfo, vaultPaths []string) *otelCfg {
 	translateSAExtension(sa, otel)
 	translateObservers(sa, otel)
 	translateConfigSources(sa, otel, vaultPaths)
+	translateFilters(sa, otel)
 	return otel
 }
 
@@ -70,6 +71,120 @@ func newOtelCfg() *otelCfg {
 			},
 		},
 	}
+}
+
+func translateFilters(sa saCfgInfo, otel *otelCfg) {
+	if sa.metricsToExclude == nil {
+		return
+	}
+	procName := "filter"
+	otel.Processors[procName] = map[string]interface{}{
+		"metrics": map[string]interface{}{
+			"exclude": map[string]interface{}{
+				"match_type":  "expr",
+				"expressions": saFiltersToExpr(sa.metricsToExclude),
+			},
+		},
+	}
+	otel.Service.Pipelines["metrics"].appendProcessor(procName)
+}
+
+func saFiltersToExpr(excludes []interface{}) []string {
+	var out []string
+	for _, excludeV := range excludes {
+		exclude, ok := excludeV.(map[interface{}]interface{})
+		if !ok {
+			return nil
+		}
+		var names []interface{}
+		namesV, ok := exclude["metricNames"]
+		if !ok {
+			if nameV, metricNameOK := exclude["metricName"]; metricNameOK {
+				names = []interface{}{nameV}
+			} else {
+				return nil
+			}
+		} else {
+			names = namesV.([]interface{})
+		}
+		line := metricNamesToExpr(names)
+
+		dimsV, ok := exclude["dimensions"]
+		var dims map[interface{}]interface{}
+		if ok && dimsV != nil {
+			dims = dimsV.(map[interface{}]interface{})
+		}
+		dimExpr := dimsToExpr(dims)
+		if dimExpr != "" {
+			if line != "" {
+				line += " and "
+			}
+			line += "(" + dimExpr + ")"
+		}
+
+		out = append(out, line)
+	}
+	return out
+}
+
+func metricNamesToExpr(names []interface{}) string {
+	out := ""
+	for _, nameV := range names {
+		name := nameV.(string)
+		rex, negated := globToRegexpStr(name)
+		stmt := fmt.Sprintf("MetricName matches %q", rex)
+		out += wrapStatement(stmt, out == "", negated)
+	}
+	return out
+}
+
+func dimsToExpr(dimSets map[interface{}]interface{}) string {
+	if dimSets == nil {
+		return ""
+	}
+	out := ""
+	for dimsKey, ds := range dimSets {
+		var dimSet []interface{}
+		switch t := ds.(type) {
+		case string:
+			dimSet = []interface{}{t}
+		case []interface{}:
+			dimSet = t
+		}
+
+		for _, dim := range dimSet {
+			rex, negated := globToRegexpStr(dim.(string))
+			stmt := fmt.Sprintf("Label(%q) matches %q", dimsKey, rex)
+			out += wrapStatement(stmt, out == "", negated)
+		}
+	}
+	return out
+}
+
+func wrapStatement(stmt string, empty, negated bool) string {
+	if negated {
+		stmt = "not (" + stmt + ")"
+		if empty {
+			return stmt
+		}
+		return " and " + stmt
+	}
+	if !empty {
+		return " or " + stmt
+	}
+	return stmt
+}
+
+func globToRegexpStr(s string) (string, bool) {
+	negated := false
+	if strings.HasPrefix(s, "!") {
+		s = s[1:]
+		negated = true
+	}
+	s = strings.ReplaceAll(s, ".", `\.`)
+	s = strings.ReplaceAll(s, "*", ".*")
+	s = strings.ReplaceAll(s, "?", ".{1}")
+	return "^" + s + "$", negated
 }
 
 func translateExporters(sa saCfgInfo, cfg *otelCfg) {
@@ -248,6 +363,14 @@ func interfaceMapToStringMap(in map[interface{}]interface{}) map[string]interfac
 	return out
 }
 
+func stringMapToInterfaceMap(in map[string]interface{}) map[interface{}]interface{} {
+	out := map[interface{}]interface{}{}
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
+}
+
 func saMonitorToRCReceiver(monitor map[string]interface{}) map[string]map[string]interface{} {
 	key := "smartagent/" + monitor["type"].(string)
 	rcr := discoveryRuleToRCRule(monitor["discoveryRule"].(string))
@@ -353,4 +476,9 @@ type rpe struct {
 func (r *rpe) appendReceiver(name string) {
 	r.Receivers = append(r.Receivers, name)
 	sort.Strings(r.Receivers)
+}
+
+func (r *rpe) appendProcessor(name string) {
+	r.Processors = append(r.Processors, name)
+	sort.Strings(r.Processors)
 }

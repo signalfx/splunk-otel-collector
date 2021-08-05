@@ -3,6 +3,7 @@ module github.com/signalfx/splunk-otel-collector
 go 1.16
 
 require (
+	github.com/antonmedv/expr v1.8.9
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.1.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.1
 	github.com/fsnotify/fsnotify v1.4.9

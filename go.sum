@@ -1628,6 +1628,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarde
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.31.0/go.mod h1:aosKo+Za/Hilg9doFn0RCkdudX9cl3Avg9FlH47w1E4=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.31.0 h1:/wDygfCD3PwbARU+FDbuzu3UKvfUQp4hQpzKUCi0v6I=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.31.0/go.mod h1:MPt8Ufjzlq1RbW2GP713ORw8N/xvdHiZtD9FH50+Q5M=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.31.0 h1:SBN2efGY7DlzhZyen5IfWDman4WW3L8Xuw5zx1JjE04=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.31.0/go.mod h1:34YyZIF2DEjEhAOgw9CJBkDgT2mP7mjgN+gHM/UL82g=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.31.0 h1:9ZegFsLN6I2kDxMuHgDjKFU1CXAlGlssQ4ImrF+0t7c=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.31.0/go.mod h1:Bcmnnr5FSrO6k5cwqN2tnpy6IgCkTMv4t0GdIYRUWBI=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.31.0 h1:CWlLRwyTFwH5WHDvcFnV/vKyUnPX5ONqgvgtQojDC94=
@@ -2283,8 +2285,9 @@ go.uber.org/multierr v1.1.0/go.mod h1:wR5kodmAFQ0UK8QlbwjlSNy0Z68gJhDJUG5sjR94q/
 go.uber.org/multierr v1.1.1-0.20180122172545-ddea229ff1df/go.mod h1:wR5kodmAFQ0UK8QlbwjlSNy0Z68gJhDJUG5sjR94q/0=
 go.uber.org/multierr v1.3.0/go.mod h1:VgVr7evmIr6uPjLBxg28wmKNXyqE9akIJ5XnfpiKl+4=
 go.uber.org/multierr v1.5.0/go.mod h1:FeouvMocqHpRaaGuG9EjoKcStLC43Zu/fmqdUMPcKYU=
-go.uber.org/multierr v1.6.0 h1:y6IPFStTAIT5Ytl7/XYmHvzXQ7S3g/IeZW9hyZ5thw4=
 go.uber.org/multierr v1.6.0/go.mod h1:cdWPpRnG4AhwMwsgIHip0KRBQjJy5kYEpYjJxpXp9iU=
+go.uber.org/multierr v1.7.0 h1:zaiO/rmgFjbmCXdSYJWQcdvOCsthmdaHfr3Gm2Kx4Ec=
+go.uber.org/multierr v1.7.0/go.mod h1:7EAYxJLBy9rStEaz58O2t4Uvip6FSURkq8/ppBp95ak=
 go.uber.org/tools v0.0.0-20190618225709-2cfd321de3ee/go.mod h1:vJERXedbb3MVM5f9Ejo0C68/HhF8uaILCdgjnY+goOA=
 go.uber.org/zap v1.9.1/go.mod h1:vwi/ZaCAaUcBkycHslxD9B2zi4UTXhF60s6SWpuDF0Q=
 go.uber.org/zap v1.9.2-0.20190215012540-d2a364dac1d9/go.mod h1:vwi/ZaCAaUcBkycHslxD9B2zi4UTXhF60s6SWpuDF0Q=

@@ -16,6 +16,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.31.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.31.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.31.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.31.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.31.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.31.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.31.0

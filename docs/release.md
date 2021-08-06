@@ -9,8 +9,8 @@
    to set it up.
 1. You must have access to the `o11y-gdi/splunk-otel-collector-releaser` gitlab
    repo and CI/CD pipeline.
-1. You must have an AWS access key that has permissions to push to the SignalFx
-   S3 bucket, i.e. `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+1. You must have prod access and the `splunkcloud_account_power` role in `us0`
+   to push to the SignalFx S3 bucket.
 1. Install Python 3, [pip](https://pip.pypa.io/en/stable/installing/),
    and [virtualenv](https://virtualenv.pypa.io/en/latest/) on your workstation.
 1. Install the required dependencies with pip in virtualenv on your workstation:
@@ -52,11 +52,12 @@
    [CHANGELOG.md](../CHANGELOG.md).
 1. Download the MSI (`splunk-otel-collector-<VERSION>-amd64.msi`) from the
    Github Release to your workstation.
+1. Request prod access via slack and the `splunkcloud_account_power` role with
+   `okta-aws-setup us0`.
 1. Run the following script in virtualenv to push the signed MSI and installer
    scripts to S3 (replace `PATH_TO_MSI` with the path to the signed MSI file
-   downloaded from the previous step, and `AWS_ACCESS_KEY_ID` and
-   `AWS_SECRET_ACCESS_KEY` with your personal AWS access key).
+   downloaded from the previous step).
    ```
    $ source venv/bin/activate  # if not already in virtualenv
-   $ ./internal/buildscripts/packaging/release/sign_release.py --stage=release --path=PATH_TO_MSI --installers --no-sign-msi --aws-key-id=AWS_ACCESS_KEY_ID --aws-key=AWS_SECRET_ACCESS_KEY
+   $ ./internal/buildscripts/packaging/release/sign_release.py --stage=release --path=PATH_TO_MSI --installers --no-sign-msi
    ```

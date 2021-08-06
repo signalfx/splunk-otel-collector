@@ -61,10 +61,7 @@ func translateConfig(fname, wd string) string {
 	if err != nil {
 		log.Fatalf("error expanding Smart Agent config: %v", err)
 	}
-	saInfo, err := saExpandedToCfgInfo(saExpanded)
-	if err != nil {
-		log.Fatalf("error expanding config: %v", err)
-	}
+	saInfo := saExpandedToCfgInfo(saExpanded)
 	oc := saInfoToOtelConfig(saInfo, vaultPaths)
 
 	bytes, err := yaml.Marshal(oc)

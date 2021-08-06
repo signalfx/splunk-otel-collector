@@ -25,7 +25,8 @@ import (
 
 func TestSAExpandedToCfgInfo(t *testing.T) {
 	cfg := yamlToCfgInfo(t, "testdata/sa-complex.yaml")
-	assert.Equal(t, "us1", cfg.realm)
+	assert.Equal(t, "https://ingest.us1.signalfx.com", cfg.ingestURL)
+	assert.Equal(t, "https://api.us1.signalfx.com", cfg.APIURL)
 	assert.Equal(t, "${include:testdata/token}", cfg.accessToken)
 	assert.Equal(t, 3, len(cfg.monitors))
 	assert.Equal(t, 2, len(cfg.globalDims))
@@ -53,9 +54,7 @@ func yamlToCfgInfo(t *testing.T, filename string) saCfgInfo {
 	v := fromYAML(t, filename)
 	expanded, _, err := expandSA(v, "")
 	require.NoError(t, err)
-	cfg, err := saExpandedToCfgInfo(expanded)
-	require.NoError(t, err)
-	return cfg
+	return saExpandedToCfgInfo(expanded)
 }
 
 func fromYAML(t *testing.T, filename string) interface{} {

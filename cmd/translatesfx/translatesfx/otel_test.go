@@ -180,6 +180,8 @@ func TestInfoToOtelConfig_ProcessList(t *testing.T) {
 		Processors: []string{"resourcedetection"},
 		Exporters:  []string{"signalfx"},
 	}, pl)
+	_, ok := oc.Service.Pipelines["metrics"]
+	assert.False(t, ok)
 }
 
 func TestInfoToOtelConfig_Observers(t *testing.T) {
@@ -585,4 +587,10 @@ func TestSFxExporterUrls(t *testing.T) {
 	exporter := cfg.Exporters["signalfx"]
 	assert.Equal(t, "https://ingest.us1.signalfx.com", exporter["ingest_url"])
 	assert.Equal(t, "https://api.us1.signalfx.com", exporter["api_url"])
+}
+
+func TestNoProcessList(t *testing.T) {
+	cfg := yamlToOtelConfig(t, "testdata/sa-simple.yaml")
+	_, ok := cfg.Service.Pipelines["logs"]
+	assert.False(t, ok)
 }

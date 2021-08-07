@@ -53,17 +53,7 @@ func newOtelCfg() *otelCfg {
 		},
 		Extensions: map[string]map[string]interface{}{},
 		Service: service{
-			Pipelines: map[string]*rpe{
-				"metrics": {
-					Processors: []string{resourceDetection},
-					Exporters:  []string{sfx},
-				},
-				"logs": {
-					Receivers:  []string{processlist},
-					Processors: []string{resourceDetection},
-					Exporters:  []string{sfx},
-				},
-			},
+			Pipelines: map[string]*rpe{},
 		},
 	}
 }
@@ -199,20 +189,38 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) {
 			target[k] = v
 		}
 	}
-	mp := cfg.Service.Pipelines["metrics"]
-	mp.Receivers = receiverList(cfg.Receivers)
+
+	receivers := receiverList(cfg.Receivers)
+
 	if len(rcReceivers) > 0 {
 		const rc = "receiver_creator"
 		cfg.Receivers[rc] = map[string]interface{}{
 			"receivers":       rcReceivers,
 			"watch_observers": []string{"k8s_observer"}, // TODO check observer type?
 		}
-		mp.appendReceiver(rc)
+		receivers = append(receivers, rc)
+		sort.Strings(receivers)
+	}
+
+	if receivers != nil {
+		cfg.Service.Pipelines["metrics"] = &rpe{
+			Receivers:  receivers,
+			Processors: []string{resourceDetection},
+			Exporters:  []string{sfx},
+		}
 	}
 
 	if _, ok := cfg.Receivers[sfxFwder]; ok {
 		cfg.Service.Pipelines["traces"] = &rpe{
 			Receivers:  []string{sfxFwder},
+			Processors: []string{resourceDetection},
+			Exporters:  []string{sfx},
+		}
+	}
+
+	if _, ok := cfg.Receivers[processlist]; ok {
+		cfg.Service.Pipelines["logs"] = &rpe{
+			Receivers:  []string{processlist},
 			Processors: []string{resourceDetection},
 			Exporters:  []string{sfx},
 		}

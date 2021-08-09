@@ -65,7 +65,7 @@ def main():
 
     # Release installer scripts to S3
     if args.installers and not args.no_push:
-        release_installers_to_s3(args.aws_key_id, args.aws_key, force=args.force)
+        release_installers_to_s3(force=args.force)
 
 
 if __name__ == "__main__":

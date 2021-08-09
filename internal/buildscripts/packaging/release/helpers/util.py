@@ -408,8 +408,8 @@ def s3_file_exists(s3_client, path):
     return False
 
 
-def invalidate_cloudfront(paths, aws_key_id, aws_key):
-    session = boto3.Session(aws_access_key_id=aws_key_id, aws_secret_access_key=aws_key)
+def invalidate_cloudfront(paths):
+    session = boto3.Session()
     cloudfront = session.client("cloudfront")
     print(f"Invalidating cloudfront for {paths} ...")
     resp = cloudfront.create_invalidation(
@@ -423,8 +423,8 @@ def invalidate_cloudfront(paths, aws_key_id, aws_key):
     assert resp.get("ResponseMetadata", {}).get("HTTPStatusCode") == 201, "Failed to submit invalidation request!"
 
 
-def upload_file_to_s3(local_path, s3_path, aws_key_id, aws_key, force=False):
-    session = boto3.Session(aws_access_key_id=aws_key_id, aws_secret_access_key=aws_key)
+def upload_file_to_s3(local_path, s3_path, force=False):
+    session = boto3.Session()
     s3_client = session.client("s3")
     if not force and s3_file_exists(s3_client, s3_path):
         resp = input(f"{S3_BUCKET}/{s3_path} already exists.\nOverwrite [y/N]: ")
@@ -503,7 +503,7 @@ def release_msi_to_s3(asset, args, **signing_args):
 
     if not args.no_push:
         s3_path = f"{S3_MSI_BASE_DIR}/{args.stage}/{asset.name}"
-        upload_file_to_s3(msi_path, s3_path, args.aws_key_id, args.aws_key, force=args.force)
+        upload_file_to_s3(msi_path, s3_path, force=args.force)
         with tempfile.TemporaryDirectory() as tmpdir:
             latest_txt = os.path.join(tmpdir, "latest.txt")
             match = re.match(f"^{PACKAGE_NAME}-(\d+\.\d+\.\d+(\.\d+)?)-amd64.msi$", asset.name)
@@ -513,8 +513,8 @@ def release_msi_to_s3(asset, args, **signing_args):
                 fd.write(msi_version)
             s3_latest_path = f"{S3_MSI_BASE_DIR}/{args.stage}/latest.txt"
             print(f"Updating {S3_BUCKET}/{s3_latest_path} for version '{msi_version}' ...")
-            upload_file_to_s3(latest_txt, s3_latest_path, args.aws_key_id, args.aws_key, force=True)
-            invalidate_cloudfront([s3_path, s3_latest_path], args.aws_key_id, args.aws_key)
+            upload_file_to_s3(latest_txt, s3_latest_path, force=True)
+            invalidate_cloudfront([s3_path, s3_latest_path])
 
 
 def get_github_release(repo_name, tag=None, token=None):
@@ -555,7 +555,7 @@ def download_github_assets(github_release, args):
     return assets, checksums_asset
 
 
-def release_installers_to_s3(aws_key_id, aws_key, force=False):
+def release_installers_to_s3(force=False):
     if not force:
         resp = input("Releasing installer scripts to S3:\nContinue [y/N]: ")
         if resp.lower() not in ("y", "yes"):
@@ -563,6 +563,6 @@ def release_installers_to_s3(aws_key_id, aws_key, force=False):
 
     for s3_path, local_path in INSTALLER_SCRIPTS.items():
         assert os.path.isfile(local_path), f"{local_path} not found!"
-        upload_file_to_s3(str(local_path), s3_path, aws_key_id, aws_key, force=force)
+        upload_file_to_s3(str(local_path), s3_path, force=force)
 
-    invalidate_cloudfront(INSTALLER_SCRIPTS.keys(), aws_key_id, aws_key)
+    invalidate_cloudfront(INSTALLER_SCRIPTS.keys())

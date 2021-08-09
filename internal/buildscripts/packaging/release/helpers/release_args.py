@@ -100,37 +100,6 @@ def check_artifactory_args(args):
     assert args.artifactory_token, f"Artifactory token not set for {ARTIFACTORY_URL}"
 
 
-def add_aws_args(parser):
-    aws_args = parser.add_argument_group("AWS Access Key")
-    aws_args.add_argument(
-        "--aws-key-id",
-        type=str,
-        default=os.environ.get("AWS_ACCESS_KEY_ID"),
-        metavar="AWS_ACCESS_KEY_ID",
-        required=False,
-        help=f"""
-            AWS Access Key ID for s3://{S3_BUCKET}.
-            Required if the AWS_ACCESS_KEY_ID env var is not set'.
-        """,
-    )
-    aws_args.add_argument(
-        "--aws-key",
-        type=str,
-        default=os.environ.get("AWS_SECRET_ACCESS_KEY"),
-        metavar="AWS_SECRET_ACCESS_KEY",
-        required=False,
-        help=f"""
-            AWS Secret Access Key for s3://{S3_BUCKET}.
-            Required if the AWS_SECRET_ACCESS_KEY env var is not set'.
-        """,
-    )
-
-
-def check_aws_args(args):
-    assert args.aws_key_id, "AWS Access Key ID not set"
-    assert args.aws_key, "AWS Secret Access Key not set"
-
-
 def get_asset(path):
     assert os.path.isfile(path), f"{path} not found!"
     asset = Asset(path=path)
@@ -214,7 +183,6 @@ def get_args_and_asset():
 
     add_artifactory_args(parser)
     add_signing_args(parser)
-    add_aws_args(parser)
 
     args = parser.parse_args()
 
@@ -227,10 +195,7 @@ def get_args_and_asset():
     if asset and not (asset.component == "msi" and args.no_sign_msi):
         check_signing_args(args)
 
-    if not args.no_push:
-        if args.installers or asset.component == "msi":
-            check_aws_args(args)
-        elif asset.component in ("deb", "rpm"):
-            check_artifactory_args(args)
+    if not args.no_push and asset and asset.component in ("deb", "rpm"):
+        check_artifactory_args(args)
 
     return args, asset

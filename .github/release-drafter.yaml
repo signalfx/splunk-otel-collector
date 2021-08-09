@@ -14,3 +14,9 @@ template: |
   ## Changes
 
   $CHANGES
+
+  ## [Docker image](https://quay.io/repository/signalfx/splunk-otel-collector)
+  This release is available as a Docker image:
+    
+  `quay.io/signalfx/splunk-otel-collector:$NEXT_MINOR_VERSION`
+  

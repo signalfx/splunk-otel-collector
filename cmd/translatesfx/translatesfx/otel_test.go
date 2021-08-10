@@ -619,5 +619,6 @@ func TestIsRegexFilter(t *testing.T) {
 	assert.False(t, isRegexFilter("fooby"))
 	assert.False(t, isRegexFilter("/fooby"))
 	assert.False(t, isRegexFilter("fooby/"))
+	assert.False(t, isRegexFilter("/"))
 	assert.True(t, isRegexFilter("/fooby/"))
 }

@@ -173,7 +173,7 @@ func saToRegexpStr(s string) (string, bool) {
 }
 
 func isRegexFilter(s string) bool {
-	return s[0] == '/' && s[len(s)-1] == '/'
+	return len(s) > 1 && s[0] == '/' && s[len(s)-1] == '/'
 }
 
 func globToRegex(s string) string {

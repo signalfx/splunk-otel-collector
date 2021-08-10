@@ -26,6 +26,7 @@ const (
 	resourceDetection = "resourcedetection"
 	sfx               = "signalfx"
 	metricsTransform  = "metricstransform"
+	filterProc        = "filter"
 )
 
 func saInfoToOtelConfig(sa saCfgInfo, vaultPaths []string) *otelCfg {
@@ -62,8 +63,7 @@ func translateFilters(sa saCfgInfo, otel *otelCfg) {
 	if sa.metricsToExclude == nil {
 		return
 	}
-	procName := "filter"
-	otel.Processors[procName] = map[string]interface{}{
+	otel.Processors[filterProc] = map[string]interface{}{
 		"metrics": map[string]interface{}{
 			"exclude": map[string]interface{}{
 				"match_type":  "expr",
@@ -71,7 +71,7 @@ func translateFilters(sa saCfgInfo, otel *otelCfg) {
 			},
 		},
 	}
-	otel.Service.Pipelines["metrics"].appendProcessor(procName)
+	otel.Service.Pipelines["metrics"].appendProcessor(filterProc)
 }
 
 func saFiltersToExpr(excludes []interface{}) []string {
@@ -116,7 +116,7 @@ func metricNamesToExpr(names []interface{}) string {
 	out := ""
 	for _, nameV := range names {
 		name := nameV.(string)
-		rex, negated := globToRegexpStr(name)
+		rex, negated := saToRegexpStr(name)
 		stmt := fmt.Sprintf("MetricName matches %q", rex)
 		out += wrapStatement(stmt, out == "", negated)
 	}
@@ -138,7 +138,7 @@ func dimsToExpr(dimSets map[interface{}]interface{}) string {
 		}
 
 		for _, dim := range dimSet {
-			rex, negated := globToRegexpStr(dim.(string))
+			rex, negated := saToRegexpStr(dim.(string))
 			stmt := fmt.Sprintf("Label(%q) matches %q", dimsKey, rex)
 			out += wrapStatement(stmt, out == "", negated)
 		}
@@ -160,16 +160,27 @@ func wrapStatement(stmt string, empty, negated bool) string {
 	return stmt
 }
 
-func globToRegexpStr(s string) (string, bool) {
+func saToRegexpStr(s string) (string, bool) {
 	negated := false
 	if strings.HasPrefix(s, "!") {
 		s = s[1:]
 		negated = true
 	}
+	if isRegexFilter(s) {
+		return s[1 : len(s)-1], negated
+	}
+	return globToRegex(s), negated
+}
+
+func isRegexFilter(s string) bool {
+	return len(s) > 1 && s[0] == '/' && s[len(s)-1] == '/'
+}
+
+func globToRegex(s string) string {
 	s = strings.ReplaceAll(s, ".", `\.`)
 	s = strings.ReplaceAll(s, "*", ".*")
 	s = strings.ReplaceAll(s, "?", ".{1}")
-	return "^" + s + "$", negated
+	return "^" + s + "$"
 }
 
 func translateExporters(sa saCfgInfo, cfg *otelCfg) {

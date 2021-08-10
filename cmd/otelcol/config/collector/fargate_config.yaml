@@ -118,7 +118,7 @@ service:
 #        - resource/add_environment
       exporters: [sapm, signalfx]
     metrics:
-      receivers: [hostmetrics, signalfx, smartagent/signalfx-forwarder, smartagent/ecs-metadata, prometheus/internal]
+      receivers: [signalfx, smartagent/signalfx-forwarder, smartagent/ecs-metadata, prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
 #    logs:

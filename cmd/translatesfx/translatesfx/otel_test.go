@@ -237,7 +237,7 @@ func TestInfoToOtelConfig_Vault(t *testing.T) {
 }
 
 func TestInfoToOtelConfig_MetricsToExclude_Simple(t *testing.T) {
-	cfg := yamlToOtelConfig(t, "testdata/sa-dp-to-exclude-simple.yaml")
+	cfg := yamlToOtelConfig(t, "testdata/sa-metrics-to-exclude-simple.yaml")
 	fp := cfg.Processors["filter"]
 	require.NotNil(t, fp)
 	metrics := fp["metrics"].(map[string]interface{})
@@ -250,7 +250,7 @@ func TestInfoToOtelConfig_MetricsToExclude_Simple(t *testing.T) {
 }
 
 func TestInfoToOtelConfig_MetricsToExclude(t *testing.T) {
-	cfg := yamlToOtelConfig(t, "testdata/sa-dp-to-exclude.yaml")
+	cfg := yamlToOtelConfig(t, "testdata/sa-metrics-to-exclude.yaml")
 	fp := cfg.Processors["filter"]
 	require.NotNil(t, fp)
 	metrics := fp["metrics"].(map[string]interface{})
@@ -267,6 +267,12 @@ func TestInfoToOtelConfig_MetricsToExclude(t *testing.T) {
 		expressions[1],
 	)
 	assert.Equal(t, `MetricName matches "^node_disk_.*$" and (Label("device") matches "^sr.*$")`, expressions[2])
+}
+
+func TestInfoToOtelConfig_MetricsToExclude_Regex(t *testing.T) {
+	cfg := yamlToOtelConfig(t, "testdata/sa-metrics-to-exclude-regex.yaml")
+	expression := cfg.Processors["filter"]["metrics"].(map[string]interface{})["exclude"].(map[string]interface{})["expressions"].([]string)[0]
+	assert.Equal(t, `MetricName matches "vsphere\\.cpu_\\w*_percent"`, expression)
 }
 
 func testvSphereMonitorCfg() map[interface{}]interface{} {
@@ -593,4 +599,26 @@ func TestNoProcessList(t *testing.T) {
 	cfg := yamlToOtelConfig(t, "testdata/sa-simple.yaml")
 	_, ok := cfg.Service.Pipelines["logs"]
 	assert.False(t, ok)
+}
+
+func TestSAToRegexpStr(t *testing.T) {
+	regexStr, b := saToRegexpStr("foo")
+	assert.False(t, b)
+	assert.Equal(t, "^foo$", regexStr)
+
+	regexStr, b = saToRegexpStr("bar_*")
+	assert.False(t, b)
+	assert.Equal(t, "^bar_.*$", regexStr)
+
+	regexStr, b = saToRegexpStr("/baz_.*/")
+	assert.False(t, b)
+	assert.Equal(t, "baz_.*", regexStr)
+}
+
+func TestIsRegexFilter(t *testing.T) {
+	assert.False(t, isRegexFilter("fooby"))
+	assert.False(t, isRegexFilter("/fooby"))
+	assert.False(t, isRegexFilter("fooby/"))
+	assert.False(t, isRegexFilter("/"))
+	assert.True(t, isRegexFilter("/fooby/"))
 }

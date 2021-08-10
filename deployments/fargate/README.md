@@ -32,7 +32,7 @@ JSON.
     },
     {
       "name": "ECS_METADATA_EXCLUDED_IMAGES",
-      "value": ["quay.io/signalfx/splunk-otel-collector"]
+      "value": "[\"quay.io/signalfx/splunk-otel-collector\"]"
     }
   ],
   "image": "quay.io/signalfx/splunk-otel-collector:0.32.0",
@@ -53,10 +53,10 @@ In summary, the default Collector container definition does the following:
 - Sets the default configuration file path using environment variable `SPLUNK_CONFIG`.
 - Excludes `ecs-metadata` metrics from the Collector image using environment variable `ECS_METADATA_EXCLUDED_IMAGES`.
 
-Assign a list of metrics you want excluded to environment variable `METRICS_TO_EXCLUDE`.
-You can set the memory limit for the memory limiter processor using environment variable
-`SPLUNK_MEMORY_LIMIT_MIB`. The default memory limit is 512 MiB. For more information about
-the memory limiter processor, see
+Assign a stringified array of metrics you want excluded to environment variable
+`METRICS_TO_EXCLUDE`. You can set the memory limit for the memory limiter processor using
+environment variable `SPLUNK_MEMORY_LIMIT_MIB`. The default memory limit is 512 MiB. For
+more information about the memory limiter processor, see
 [here](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md)
 
 ## Custom Configuration

@@ -2,4 +2,4 @@ module app
 
 go 1.14
 
-require go.uber.org/zap v1.18.1
+require go.uber.org/zap v1.19.0

@@ -41,8 +41,8 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.31.0
 	github.com/openzipkin/zipkin-go v0.2.5
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
-	github.com/signalfx/golib/v3 v3.3.33
-	github.com/signalfx/signalfx-agent v1.0.1-0.20210617144543-be16994eef6b
+	github.com/signalfx/golib/v3 v3.3.36
+	github.com/signalfx/signalfx-agent v1.0.1-0.20210810132027-665c019ace62
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.3.1
 	github.com/stretchr/testify v1.7.0

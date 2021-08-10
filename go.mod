@@ -12,6 +12,7 @@ require (
 	github.com/hashicorp/vault v1.7.0
 	github.com/hashicorp/vault-plugin-auth-gcp v0.9.0
 	github.com/hashicorp/vault/api v1.1.0
+	github.com/hashicorp/vault/sdk v0.2.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.31.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.31.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.31.0

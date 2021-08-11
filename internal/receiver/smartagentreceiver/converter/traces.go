@@ -16,20 +16,58 @@ package converter
 
 import (
 	"encoding/json"
+	"net"
 
 	zipkinmodel "github.com/openzipkin/zipkin-go/model"
 	"github.com/signalfx/golib/v3/trace"
+	sfxConstants "github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/translator/trace/zipkinv2"
 	"go.uber.org/zap"
 )
 
+const resourceClientIPAttrName = "ip"
+
 var zipkinv2Translator = zipkinv2.ToTranslator{ParseStringTags: false}
 
 func sfxSpansToPDataTraces(spans []*trace.Span, logger *zap.Logger) (pdata.Traces, error) {
-	// SFx trace is effectively zipkin, so more convenient to convert to it and then rely
-	// on existing zipkin receiver translator
-	return zipkinv2Translator.ToTraces(sfxToZipkinSpans(spans, logger))
+	// we batch sfx spans by the client IP that reported the spans to collector. Each
+	// batch gets translated separately to ensure that spans from sources with different
+	// IPs don't get bundled together under the same resource.
+	batches := map[string][]*trace.Span{}
+	for _, span := range spans {
+		if span == nil {
+			continue
+		}
+		var sourceIP string
+		if val, ok := span.Meta[sfxConstants.DataSourceIPKey]; ok {
+			if ip, ok := val.(net.IP); ok {
+				sourceIP = ip.String()
+			}
+		}
+		batches[sourceIP] = append(batches[sourceIP], span)
+	}
+
+	var lastErr error
+	traces := pdata.NewTraces()
+	rss := traces.ResourceSpans()
+	for ip, s := range batches {
+		// SFx trace is effectively zipkin, so more convenient to convert to it and then rely
+		// on existing zipkin receiver translator
+		translated, err := zipkinv2Translator.ToTraces(sfxToZipkinSpans(s, logger))
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		trss := translated.ResourceSpans()
+		if ip != "" {
+			for i := 0; i < trss.Len(); i++ {
+				trss.At(i).Resource().Attributes().UpsertString(resourceClientIPAttrName, ip)
+			}
+		}
+		translated.ResourceSpans().MoveAndAppendTo(rss)
+	}
+	return traces, lastErr
 }
 
 func sfxToZipkinSpans(spans []*trace.Span, logger *zap.Logger) []*zipkinmodel.SpanModel {

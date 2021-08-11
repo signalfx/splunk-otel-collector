@@ -17,11 +17,14 @@ package converter
 import (
 	"encoding/hex"
 	"fmt"
+	"net"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/signalfx/golib/v3/trace"
+	sfxConstants "github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/model/pdata"
@@ -44,12 +47,14 @@ var (
 	linkLocalIPv6            = "fe80::1"
 )
 
+type sfxToPDataTestCase struct {
+	sfxSpans       func(_ *testing.T) []*trace.Span
+	expectedTraces func(_ *testing.T) pdata.Traces
+	name           string
+}
+
 func TestSFxSpansToPDataTraces(t *testing.T) {
-	tests := []struct {
-		sfxSpans       func(_ *testing.T) []*trace.Span
-		expectedTraces func(_ *testing.T) pdata.Traces
-		name           string
-	}{
+	tests := []sfxToPDataTestCase{
 		{func(t *testing.T) []*trace.Span {
 			localEndpoint := trace.Endpoint{
 				ServiceName: &serviceName,
@@ -81,6 +86,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					&twoInt64: "another annotation",
 				},
 				&localEndpoint, &remoteEndpoint,
+				"127.0.0.1",
 			)
 			return []*trace.Span{&span}
 		},
@@ -107,6 +113,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 						1000: "some annotation",
 						2000: "another annotation",
 					},
+					"127.0.0.1",
 				)
 				return traces
 			},
@@ -128,7 +135,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 				map[*int64]string{
 					&oneInt64: "some annotation",
 				},
-				nil, nil,
+				nil, nil, "",
 			)
 			return []*trace.Span{&span}
 		},
@@ -148,6 +155,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					map[uint64]string{
 						1000: "some annotation",
 					},
+					"",
 				)
 				return traces
 			},
@@ -184,6 +192,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					&twoInt64: "another annotation",
 				},
 				&localEndpoint, &remoteEndpoint,
+				"127.0.0.1",
 			)
 			return []*trace.Span{&span}
 		},
@@ -210,12 +219,14 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 						1000: "some annotation",
 						2000: "another annotation",
 					},
+					"127.0.0.1",
 				)
 				return traces
 			},
 			"ipv6 endpoints span",
 		},
 	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
 			obs, logs := observer.New(zap.DebugLevel)
@@ -236,6 +247,84 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 			assert.Zero(tt, logs.Len())
 		})
 	}
+}
+
+func TestSFxSpansWithDataSourceIPToPDataTraces(t *testing.T) {
+	// translate a batch of two spans with different source IPs
+	// and make sure they are batched separate under different resources.
+	sfxSpans := []trace.Span{
+		newSFxSpan(
+			t,
+			"op",
+			"server",
+			"0123456789abcdef0123456789abcdef",
+			"0123456789abcdef",
+			"123456789abcdef0",
+			&oneInt64, &twoInt64,
+			&tru, &tru,
+			map[string]string{
+				"some tag":    "some tag value",
+				"another tag": "another tag value",
+			},
+			map[*int64]string{
+				&oneInt64: "some annotation",
+				&twoInt64: "another annotation",
+			},
+			nil, nil,
+			"127.0.0.1",
+		),
+		newSFxSpan(
+			t,
+			"op",
+			"server",
+			"0123456789abcdef0123456789abcdef",
+			"0123456789abcdef",
+			"123456789abcdef0",
+			&oneInt64, &twoInt64,
+			&tru, &tru,
+			map[string]string{
+				"some tag":    "some tag value",
+				"another tag": "another tag value",
+			},
+			map[*int64]string{
+				&oneInt64: "some annotation",
+				&twoInt64: "another annotation",
+			},
+			nil, nil,
+			"127.0.0.2",
+		),
+	}
+	sfxPtrSpans := []*trace.Span{
+		&sfxSpans[0], &sfxSpans[1],
+	}
+
+	logger := zap.NewNop()
+	pdataTraces, err := sfxSpansToPDataTraces(sfxPtrSpans, logger)
+	assert.NoError(t, err)
+	assert.Equal(t, pdataTraces.ResourceSpans().Len(), 2)
+
+	resources := make([]pdata.Resource, pdataTraces.ResourceSpans().Len())
+	for i := 0; i < pdataTraces.ResourceSpans().Len(); i++ {
+		resources[i] = pdataTraces.ResourceSpans().At(i).Resource()
+	}
+
+	// sort resources by ip
+	sort.Slice(resources, func(i, j int) bool {
+		if ip1, ok := resources[i].Attributes().Get("ip"); ok {
+			if ip2, ok := resources[j].Attributes().Get("ip"); ok {
+				return ip1.StringVal() < ip2.StringVal()
+			}
+		}
+		return false
+	})
+
+	ip, exists := resources[0].Attributes().Get("ip")
+	assert.True(t, exists)
+	assert.Equal(t, ip, pdata.NewAttributeValueString("127.0.0.1"))
+
+	ip, exists = resources[1].Attributes().Get("ip")
+	assert.True(t, exists)
+	assert.Equal(t, ip, pdata.NewAttributeValueString("127.0.0.2"))
 }
 
 func TestNilSFxSpanConversion(t *testing.T) {
@@ -276,9 +365,8 @@ func TestInvalidSFxToPDataConversion(t *testing.T) {
 	logger := zap.New(obs)
 
 	traces, err := sfxSpansToPDataTraces([]*trace.Span{&invalidAsPData}, logger)
-	// error is returned but core conversion persists
 	assert.EqualError(t, err, "invalid length for ID")
-	assert.Equal(t, 1, traces.ResourceSpans().Len())
+	assert.Equal(t, 0, traces.ResourceSpans().Len())
 	require.Equal(t, 0, logs.Len())
 }
 
@@ -359,6 +447,7 @@ func newSFxSpan(
 	debug, shared *bool, // These appear to have no adoption in Collector's zipkin translator
 	tags map[string]string, annotations map[*int64]string,
 	localEndpoint, remoteEndpoint *trace.Endpoint,
+	dataSourceIP string,
 ) trace.Span {
 	spanKind := strings.ToUpper(kind)
 	pID := &parentID
@@ -374,6 +463,12 @@ func newSFxSpan(
 		Shared:         shared,
 		LocalEndpoint:  localEndpoint,
 		RemoteEndpoint: remoteEndpoint,
+	}
+	if dataSourceIP != "" {
+		if span.Meta == nil {
+			span.Meta = map[interface{}]interface{}{}
+		}
+		span.Meta[sfxConstants.DataSourceIPKey] = net.ParseIP(dataSourceIP)
 	}
 
 	if len(tags) > 0 {
@@ -400,11 +495,15 @@ func newPDataSpan(
 	kind pdata.SpanKind,
 	startTime, endTime uint64,
 	attributes map[string]interface{}, events map[uint64]string,
+	dataSourceIP string,
 ) pdata.Traces {
 	td := pdata.NewTraces()
 	rs := td.ResourceSpans().AppendEmpty()
 	if serviceName != "" {
 		rs.Resource().Attributes().InsertString("service.name", serviceName)
+	}
+	if dataSourceIP != "" {
+		rs.Resource().Attributes().InsertString("ip", dataSourceIP)
 	}
 	span := rs.InstrumentationLibrarySpans().AppendEmpty().Spans().AppendEmpty()
 

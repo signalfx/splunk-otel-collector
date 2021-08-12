@@ -29,7 +29,6 @@ metricsToExclude:
   - metricNames:
       - node_filesystem_*
       - '!node_filesystem_free_bytes'
-      - '!node_filesystem_readonly'
 
   - metricName: node_network_*
     dimensions:
@@ -38,6 +37,10 @@ metricsToExclude:
   - metricName: node_disk_*
     dimensions:
       device: sr*
+
+metricsToInclude:
+  - metricNames:
+      - node_filesystem_readonly
 
 monitors:
   - type: collectd/redis

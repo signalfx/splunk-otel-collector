@@ -25,6 +25,7 @@ type saCfgInfo struct {
 	monitors         []interface{}
 	observers        []interface{}
 	metricsToExclude []interface{}
+	metricsToInclude []interface{}
 }
 
 func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) saCfgInfo {
@@ -39,6 +40,7 @@ func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) saCfgInfo {
 		observers:        observers(saExpanded),
 		configSources:    configSources(saExpanded),
 		metricsToExclude: metricsToExclude(saExpanded),
+		metricsToInclude: metricsToInclude(saExpanded),
 	}
 }
 
@@ -107,7 +109,15 @@ func configSources(saExpanded map[interface{}]interface{}) map[interface{}]inter
 }
 
 func metricsToExclude(saExpanded map[interface{}]interface{}) []interface{} {
-	v, ok := saExpanded["metricsToExclude"]
+	return toSlice(saExpanded, "metricsToExclude")
+}
+
+func metricsToInclude(saExpanded map[interface{}]interface{}) []interface{} {
+	return toSlice(saExpanded, "metricsToInclude")
+}
+
+func toSlice(saExpanded map[interface{}]interface{}, key string) []interface{} {
+	v, ok := saExpanded[key]
 	if !ok {
 		return nil
 	}

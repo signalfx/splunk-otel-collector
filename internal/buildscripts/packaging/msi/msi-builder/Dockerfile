@@ -4,6 +4,7 @@
 FROM quay.io/signalfx/wix-dev:latest
 
 USER root
+RUN sed -i s'|stable|buster|' /etc/apt/sources.list
 RUN apt-get update -y
 RUN apt-get install -y curl unzip
 

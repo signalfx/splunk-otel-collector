@@ -64,24 +64,40 @@ func translateFilters(sa saCfgInfo, otel *otelCfg) {
 		return
 	}
 
+	metricsFilter := map[string]interface{}{}
 	otel.Processors[filterProc] = map[string]interface{}{
-		"metrics": map[string]interface{}{
-			"exclude": map[string]interface{}{
-				"match_type":  "expr",
-				"expressions": saExcludesToExpr(sa.metricsToExclude, sa.metricsToInclude),
-			},
-		},
+		"metrics": metricsFilter,
 	}
+
+	excludeExpressions := saExcludesToExpr(sa.metricsToExclude, sa.metricsToInclude, false)
+	if excludeExpressions != nil {
+		metricsFilter["exclude"] = map[string]interface{}{
+			"match_type":  "expr",
+			"expressions": excludeExpressions,
+		}
+	}
+
+	excludeExpressionsNegated := saExcludesToExpr(sa.metricsToExclude, sa.metricsToInclude, true)
+	if excludeExpressionsNegated != nil {
+		metricsFilter["include"] = map[string]interface{}{
+			"match_type":  "expr",
+			"expressions": excludeExpressionsNegated,
+		}
+	}
+
 	otel.Service.Pipelines["metrics"].appendProcessor(filterProc)
 }
 
-func saExcludesToExpr(excludes []interface{}, includes []interface{}) []string {
-	includesExpr := saIncludesToExpr(includes)
+func saExcludesToExpr(excludes []interface{}, overrides []interface{}, expectedNegation bool) []string {
+	overridesExpr := saIncludesToExpr(overrides)
 	var out []string
 	for _, v := range excludes {
-		line := filterToExpr(v.(map[interface{}]interface{}), false)
-		if includesExpr != "" {
-			line += " and (" + includesExpr + ")"
+		line := filterToExpr(v.(map[interface{}]interface{}), false, expectedNegation)
+		if line == "" {
+			continue
+		}
+		if overridesExpr != "" {
+			line += " and (" + overridesExpr + ")"
 		}
 		out = append(out, line)
 	}
@@ -91,7 +107,10 @@ func saExcludesToExpr(excludes []interface{}, includes []interface{}) []string {
 func saIncludesToExpr(includes []interface{}) string {
 	out := ""
 	for _, includeV := range includes {
-		line := filterToExpr(includeV.(map[interface{}]interface{}), true)
+		line := filterToExpr(includeV.(map[interface{}]interface{}), true, false)
+		if line == "" {
+			continue
+		}
 		if out != "" {
 			out += " and "
 		}
@@ -100,18 +119,24 @@ func saIncludesToExpr(includes []interface{}) string {
 	return out
 }
 
-func filterToExpr(pattern map[interface{}]interface{}, flipNegation bool) string {
+func filterToExpr(filter map[interface{}]interface{}, flipNegation, expectedNegation bool) string {
+	effectiveNegated := false
+	if negatedV, ok := filter["negated"]; ok {
+		effectiveNegated = negatedV.(bool)
+	}
+
+	if effectiveNegated != expectedNegation {
+		return ""
+	}
+
 	var names []interface{}
-	namesV, ok := pattern["metricNames"]
-	if !ok {
-		if nameV, metricNameOK := pattern["metricName"]; metricNameOK {
-			names = []interface{}{nameV}
-		}
-	} else {
+	if namesV, ok := filter["metricNames"]; ok {
 		names = namesV.([]interface{})
+	} else if nameV, metricNameOK := filter["metricName"]; metricNameOK {
+		names = []interface{}{nameV}
 	}
 	line := metricNamesToExpr(names, flipNegation)
-	dimsV, ok := pattern["dimensions"]
+	dimsV, ok := filter["dimensions"]
 	var dims map[interface{}]interface{}
 	if ok && dimsV != nil {
 		dims = dimsV.(map[interface{}]interface{})

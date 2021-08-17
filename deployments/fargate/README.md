@@ -44,7 +44,7 @@ In the above container definition the Collector is configured to use the default
 configuration file `/etc/otel/collector/fargate_config.yaml`. The Collector image Dockerfile
 is available [here](../../cmd/otelcol/Dockerfile) and the contents of the default
 configuration file can be seen [here](../../cmd/otelcol/config/collector/fargate_config.yaml).
-Note that receivers `hostmetrics` and `smartagent/ecs-metadata` are specified by default.
+Note that the receiver `smartagent/ecs-metadata` is enabled by default.
 
 In summary, the default Collector container definition does the following:
 - Specifies the Collector image.

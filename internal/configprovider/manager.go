@@ -172,7 +172,7 @@ type Manager struct {
 	// is being closed.
 	closeCh chan struct{}
 	// watchers keeps track of all WatchForUpdate functions for retrieved values.
-	watchers []configsource.Watchable
+	watchers []func() error
 	// watchersWG is used to ensure that Close waits for all WatchForUpdate calls
 	// to complete.
 	watchersWG sync.WaitGroup
@@ -237,14 +237,13 @@ func (m *Manager) WatchForUpdate() error {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 
-	for i := range m.watchers {
-		watcher := m.watchers[i]
+	for _, watcher := range m.watchers {
 		m.watchersWG.Add(1)
-
+		watcherFn := watcher
 		go func() {
 			defer m.watchersWG.Done()
 
-			err := watcher.WatchForUpdate()
+			err := watcherFn()
 			switch {
 			case errors.Is(err, configsource.ErrSessionClosed):
 				// The Session from which this watcher was retrieved is being closed.
@@ -368,9 +367,8 @@ func (m *Manager) expandConfigSource(ctx context.Context, cfgSrc configsource.Co
 		return nil, fmt.Errorf("config source %q failed to retrieve value: %w", cfgSrcName, err)
 	}
 
-	if watcher, okWatcher := retrieved.(configsource.Watchable); okWatcher {
-		m.watchers = append(m.watchers, watcher)
-	}
+	m.watchers = append(m.watchers, retrieved.WatchForUpdate)
+
 	return retrieved.Value(), nil
 }
 

@@ -25,7 +25,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var _ config.Unmarshallable = (*Config)(nil)
+var _ config.CustomUnmarshable = (*Config)(nil)
 
 type Config struct {
 	config.ExtensionSettings `mapstructure:",squash"`

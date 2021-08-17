@@ -60,7 +60,7 @@ func (is *includeSession) Retrieve(_ context.Context, selector string, params in
 	}
 
 	if !is.WatchFiles {
-		return configprovider.NewRetrieved(buf.Bytes(), configprovider.WatcherNotSupported), nil
+		return configprovider.NewRetrieved(buf.Bytes(), func() error {return nil}), nil
 	}
 
 	watchForUpdateFn, err := is.watchFile(selector)
@@ -91,10 +91,10 @@ func newSession(config Config) *includeSession {
 }
 
 func (is *includeSession) watchFile(file string) (func() error, error) {
-	watchForUpdateFn := configprovider.WatcherNotSupported
+	var watchForUpdateFn func() error
 	if _, watched := is.watchedFiles[file]; watched {
 		// This file is already watched another watch function is not needed.
-		return watchForUpdateFn, nil
+		return func() error {return nil}, nil
 	}
 
 	if is.watcher == nil {

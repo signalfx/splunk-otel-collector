@@ -19,6 +19,11 @@ import (
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 )
 
+// WatcherNotSupported is the a watcher function that always returns ErrWatcherNotSupported.
+func WatcherNotSupported() error {
+	return configsource.ErrWatcherNotSupported
+}
+
 type retrieved struct {
 	value            interface{}
 	watchForUpdateFn func() error

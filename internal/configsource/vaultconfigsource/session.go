@@ -56,7 +56,10 @@ type vaultSession struct {
 var _ configsource.Session = (*vaultSession)(nil)
 
 func (v *vaultSession) Retrieve(_ context.Context, selector string, _ interface{}) (configsource.Retrieved, error) {
-	var watchForUpdateFn func() error
+	// By default assume that watcher is not supported. The exception will be the first
+	// value read from the vault secret.
+	watchForUpdateFn := watcherNotSupported
+
 	if v.secret == nil {
 		if err := v.readSecret(); err != nil {
 			return nil, err
@@ -207,23 +210,20 @@ func (v *vaultSession) buildPollingWatcher() (func() error, error) {
 	// added to the secret.
 	mdValue := v.secret.Data["metadata"]
 	if mdValue == nil || !strings.Contains(v.path, "/data/") {
-		msg := "Missing metadata to create polling watcher for vault config source"
-		v.logger.Warn(msg, zap.String("path", v.path))
-		return  func() error {return errors.New(msg)}, nil
+		v.logger.Warn("Missing metadata to create polling watcher for vault config source", zap.String("path", v.path))
+		return watcherNotSupported, nil
 	}
 
 	mdMap, ok := mdValue.(map[string]interface{})
 	if !ok {
-		msg := "Metadata not in the expected format to create polling watcher for vault config source"
-		v.logger.Warn(msg, zap.String("path", v.path))
-		return func() error {return errors.New(msg)}, nil
+		v.logger.Warn("Metadata not in the expected format to create polling watcher for vault config source", zap.String("path", v.path))
+		return watcherNotSupported, nil
 	}
 
 	originalVersion := v.extractVersionMetadata(mdMap, "created_time", "version")
 	if originalVersion == nil {
-		msg := "Failed to extract version metadata to create to create polling watcher for vault config source"
-		v.logger.Warn(msg, zap.String("path", v.path))
-		return func() error {return errors.New(msg)}, nil
+		v.logger.Warn("Failed to extract version metadata to create to create polling watcher for vault config source", zap.String("path", v.path))
+		return watcherNotSupported, nil
 	}
 
 	watcherFn := func() error {
@@ -315,4 +315,8 @@ func traverseToKey(data map[string]interface{}, key string) interface{} {
 			return nil
 		}
 	}
+}
+
+func watcherNotSupported() error {
+	return configsource.ErrWatcherNotSupported
 }

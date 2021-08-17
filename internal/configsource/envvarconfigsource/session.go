@@ -60,7 +60,7 @@ func (e *envVarSession) Retrieve(_ context.Context, selector string, params inte
 	value, ok := os.LookupEnv(selector)
 	if ok {
 		// Environment variable found, everything is done.
-		return configprovider.NewRetrieved(value, func() error {return nil}), nil
+		return configprovider.NewRetrieved(value, configprovider.WatcherNotSupported), nil
 	}
 
 	defaultValue, ok := e.defaults[selector]
@@ -70,7 +70,7 @@ func (e *envVarSession) Retrieve(_ context.Context, selector string, params inte
 		}
 	}
 
-	return configprovider.NewRetrieved(defaultValue, func() error {return nil}), nil
+	return configprovider.NewRetrieved(defaultValue, configprovider.WatcherNotSupported), nil
 }
 
 func (e *envVarSession) RetrieveEnd(context.Context) error {

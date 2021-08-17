@@ -245,6 +245,10 @@ func (m *Manager) WatchForUpdate() error {
 
 			err := watcherFn()
 			switch {
+			case errors.Is(err, configsource.ErrWatcherNotSupported):
+				// The watcher for the retrieved value is not supported, nothing to
+				// do, just exit from the goroutine.
+				return
 			case errors.Is(err, configsource.ErrSessionClosed):
 				// The Session from which this watcher was retrieved is being closed.
 				// There is no error to report, just exit from the goroutine.

@@ -54,7 +54,8 @@ func TestSessionRetrieve(t *testing.T) {
 			retrieved, err := session.Retrieve(context.Background(), c.key, nil)
 			if c.expect != nil {
 				assert.NoError(t, err)
-				assert.NotNil(t, retrieved.WatchForUpdate)
+				_, okWatcher := retrieved.(configsource.Watchable)
+				assert.True(t, okWatcher)
 				return
 			}
 			assert.Error(t, err)
@@ -89,7 +90,8 @@ func TestWatcher(t *testing.T) {
 			retrieved, err := session.Retrieve(context.Background(), "k1", nil)
 			assert.NoError(t, err)
 			assert.NotNil(t, retrieved.Value)
-			assert.NotNil(t, retrieved.WatchForUpdate)
+			retrievedWatcher, okWatcher := retrieved.(configsource.Watchable)
+			assert.True(t, okWatcher)
 			assert.Contains(t, conn.watches, "k1")
 
 			watcher := conn.watches["k1"]
@@ -108,7 +110,7 @@ func TestWatcher(t *testing.T) {
 				}
 			}()
 
-			err = retrieved.WatchForUpdate()
+			err = retrievedWatcher.WatchForUpdate()
 			switch {
 			case c.close:
 				assert.ErrorIs(t, err, configsource.ErrSessionClosed)

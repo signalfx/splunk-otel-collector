@@ -32,7 +32,7 @@ import (
 
 const defaultIntervalSeconds = 10
 
-var _ config.CustomUnmarshable = (*Config)(nil)
+var _ config.Unmarshallable = (*Config)(nil)
 
 var errDimensionClientValue = fmt.Errorf("dimensionClients must be an array of compatible exporter names")
 

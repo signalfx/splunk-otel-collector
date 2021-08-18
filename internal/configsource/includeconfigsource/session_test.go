@@ -107,7 +107,8 @@ func TestIncludeConfigSource_DeleteFile(t *testing.T) {
 	require.NotNil(t, r)
 	assert.Equal(t, []byte("42"), r.Value())
 
-	assert.Equal(t, configsource.ErrWatcherNotSupported, r.WatchForUpdate())
+	_, ok := r.(configsource.Watchable)
+	assert.False(t, ok)
 }
 
 func TestIncludeConfigSource_DeleteFileError(t *testing.T) {

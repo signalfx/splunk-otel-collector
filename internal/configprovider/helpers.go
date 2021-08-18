@@ -19,21 +19,14 @@ import (
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 )
 
-// WatcherNotSupported is the a watcher function that always returns ErrWatcherNotSupported.
-func WatcherNotSupported() error {
-	return configsource.ErrWatcherNotSupported
-}
-
 type retrieved struct {
-	value            interface{}
-	watchForUpdateFn func() error
+	value interface{}
 }
 
 // NewRetrieved is a helper that implements the Retrieved interface.
-func NewRetrieved(value interface{}, watchForUpdateFn func() error) configsource.Retrieved {
+func NewRetrieved(value interface{}) configsource.Retrieved {
 	return &retrieved{
 		value,
-		watchForUpdateFn,
 	}
 }
 
@@ -43,6 +36,28 @@ func (r *retrieved) Value() interface{} {
 	return r.value
 }
 
-func (r *retrieved) WatchForUpdate() error {
+type watchableRetrieved struct {
+	retrieved
+	watchForUpdateFn func() error
+}
+
+// NewWatchableRetrieved is a helper that implements the Watchable interface.
+func NewWatchableRetrieved(value interface{}, watchForUpdateFn func() error) configsource.Retrieved {
+	return &watchableRetrieved{
+		retrieved: retrieved{
+			value: value,
+		},
+		watchForUpdateFn: watchForUpdateFn,
+	}
+}
+
+var _ configsource.Watchable = (*watchableRetrieved)(nil)
+var _ configsource.Retrieved = (*watchableRetrieved)(nil)
+
+func (r *watchableRetrieved) Value() interface{} {
+	return r.retrieved.value
+}
+
+func (r *watchableRetrieved) WatchForUpdate() error {
 	return r.watchForUpdateFn()
 }

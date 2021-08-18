@@ -103,7 +103,8 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, r)
 			assert.Equal(t, tt.expected, r.Value())
-			assert.Equal(t, configsource.ErrWatcherNotSupported, r.WatchForUpdate())
+			_, ok := r.(configsource.Watchable)
+			assert.False(t, ok)
 		})
 	}
 }

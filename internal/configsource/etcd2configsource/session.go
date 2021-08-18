@@ -55,7 +55,7 @@ func (s *etcd2Session) Retrieve(ctx context.Context, selector string, _ interfac
 	watchCtx, cancel := context.WithCancel(context.Background())
 	s.closeFuncs = append(s.closeFuncs, cancel)
 
-	return configprovider.NewRetrieved(resp.Node.Value, s.newWatcher(watchCtx, selector, resp.Node.ModifiedIndex)), nil
+	return configprovider.NewWatchableRetrieved(resp.Node.Value, s.newWatcher(watchCtx, selector, resp.Node.ModifiedIndex)), nil
 }
 
 func (s *etcd2Session) RetrieveEnd(context.Context) error {

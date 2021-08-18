@@ -2,9 +2,19 @@
 
 ## Unreleased
 
+## v0.32.0
+
+This Splunk OpenTelemetry Connector release includes changes from the [opentelemetry-collector v0.32.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.32.0) and the [opentelemetry-collector-contrib v0.32.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.32.0) releases.
+
 ### 💡 Enhancements 💡
 
-- smartagent/signalfx-forwarder now works with `k8s_tagger` processor. (#590)
+- `smartagent` receiver: `signalfx-forwarder` now works with `k8s_tagger` processor. (#590)
+- Add [Fargate](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/fargate/README.md) deployment support
+- Update bundled Smart Agent to [v5.11.3](https://github.com/signalfx/signalfx-agent/releases/tag/v5.11.3)
+
+### 🧰 Bug fixes 🧰
+
+- `smartagent` receiver: Set redirected logrus logger level (#593)
 
 ## v0.31.0
 

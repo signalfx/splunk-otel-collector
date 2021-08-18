@@ -93,11 +93,14 @@ func TestVaultSessionForKV(t *testing.T) {
 
 	require.NoError(t, s.RetrieveEnd(context.Background()))
 
+	watcher, ok := retrieved.(configsource.Watchable)
+	require.True(t, ok)
+
 	var watcherErr error
 	doneCh := make(chan struct{})
 	go func() {
 		defer close(doneCh)
-		watcherErr = retrieved.WatchForUpdate()
+		watcherErr = watcher.WatchForUpdate()
 	}()
 
 	require.NoError(t, s.Close(context.Background()))
@@ -142,15 +145,19 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 	// RetrieveEnd
 	require.NoError(t, s.RetrieveEnd(context.Background()))
 
+	watcherK0, ok := retrievedK0.(configsource.Watchable)
+	require.True(t, ok)
+
 	// Only the first retrieved key provides a working watcher.
-	require.Equal(t, configsource.ErrWatcherNotSupported, retrievedK1.WatchForUpdate())
+	_, ok = retrievedK1.(configsource.Watchable)
+	require.False(t, ok)
 
 	var watcherErr error
 	var doneCh chan struct{}
 	doneCh = make(chan struct{})
 	go func() {
 		defer close(doneCh)
-		watcherErr = retrievedK0.WatchForUpdate()
+		watcherErr = watcherK0.WatchForUpdate()
 	}()
 
 	requireCmdRun(t, updateKVStore)
@@ -172,11 +179,14 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "v1.1", retrievedUpdatedK1.Value().(string))
 
+	watcherUpdatedK1, ok := retrievedUpdatedK1.(configsource.Watchable)
+	require.True(t, ok)
+
 	// Wait for close.
 	doneCh = make(chan struct{})
 	go func() {
 		defer close(doneCh)
-		watcherErr = retrievedUpdatedK1.WatchForUpdate()
+		watcherErr = watcherUpdatedK1.WatchForUpdate()
 	}()
 
 	require.NoError(t, s.Close(context.Background()))
@@ -223,10 +233,14 @@ func TestVaultRenewableSecret(t *testing.T) {
 	// RetrieveEnd
 	require.NoError(t, s.RetrieveEnd(context.Background()))
 
-	// Only the first retrieved key provides a working watcher.
-	require.Equal(t, configsource.ErrWatcherNotSupported, retrievedPwd.WatchForUpdate())
+	watcherUser, ok := retrievedUser.(configsource.Watchable)
+	require.True(t, ok)
 
-	watcherErr := retrievedUser.WatchForUpdate()
+	// Only the first retrieved key provides a working watcher.
+	_, ok = retrievedPwd.(configsource.Watchable)
+	require.False(t, ok)
+
+	watcherErr := watcherUser.WatchForUpdate()
 	require.ErrorIs(t, watcherErr, configsource.ErrValueUpdated)
 
 	// Close current session.
@@ -247,11 +261,14 @@ func TestVaultRenewableSecret(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, retrievedPwd.Value(), retrievedUpdatedPwd.Value())
 
+	watcherUpdatedPwd, ok := retrievedUpdatedPwd.(configsource.Watchable)
+	require.True(t, ok)
+
 	// Wait for close.
 	doneCh := make(chan struct{})
 	go func() {
 		defer close(doneCh)
-		watcherErr = retrievedUpdatedUser.WatchForUpdate()
+		watcherErr = watcherUpdatedPwd.WatchForUpdate()
 	}()
 
 	runtime.Gosched()
@@ -293,12 +310,15 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 	// RetrieveEnd
 	require.NoError(t, s.RetrieveEnd(context.Background()))
 
+	watcher, ok := retrievedValue.(configsource.Watchable)
+	require.True(t, ok)
+
 	var watcherErr error
 	var doneCh chan struct{}
 	doneCh = make(chan struct{})
 	go func() {
 		defer close(doneCh)
-		watcherErr = retrievedValue.WatchForUpdate()
+		watcherErr = watcher.WatchForUpdate()
 	}()
 
 	// Wait for update.
@@ -318,11 +338,14 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "s3cr3t", retrievedValue.Value().(string))
 
+	watcher, ok = retrievedValue.(configsource.Watchable)
+	require.True(t, ok)
+
 	// Wait for close.
 	doneCh = make(chan struct{})
 	go func() {
 		defer close(doneCh)
-		watcherErr = retrievedValue.WatchForUpdate()
+		watcherErr = watcher.WatchForUpdate()
 	}()
 
 	require.NoError(t, s.Close(context.Background()))
@@ -363,16 +386,8 @@ func TestVaultV1NonWatchableSecret(t *testing.T) {
 	// RetrieveEnd
 	require.NoError(t, s.RetrieveEnd(context.Background()))
 
-	var watcherErr error
-	doneCh := make(chan struct{})
-	go func() {
-		defer close(doneCh)
-		watcherErr = retrievedValue.WatchForUpdate()
-	}()
-
-	// Wait for update.
-	<-doneCh
-	require.ErrorIs(t, watcherErr, configsource.ErrWatcherNotSupported)
+	_, ok := retrievedValue.(configsource.Watchable)
+	require.False(t, ok)
 
 	// Close current session.
 	require.NoError(t, s.Close(context.Background()))

@@ -6,13 +6,12 @@ require (
 	github.com/docker/docker v20.10.8+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/google/uuid v1.3.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.30.0
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.2
 	github.com/signalfx/signalfx-go v1.8.0
 	github.com/stretchr/testify v1.7.0
 	github.com/testcontainers/testcontainers-go v0.11.1
-	go.opentelemetry.io/collector v0.31.0
-	go.opentelemetry.io/collector/model v0.31.0
+	go.opentelemetry.io/collector v0.32.0
+	go.opentelemetry.io/collector/model v0.32.0
 	go.uber.org/zap v1.19.0
 	gopkg.in/yaml.v2 v2.4.0
 )

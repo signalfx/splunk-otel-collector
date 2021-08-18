@@ -1,0 +1,46 @@
+FROM mcr.microsoft.com/windows/servercore:1809
+
+# Setting PowerShell as a default executor. 
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+WORKDIR "C:\\Program Files\Splunk\OpenTelemetry Collector"
+
+# Copy the pre-built local binary
+COPY otelcol.exe ./
+
+# Copy the local config
+COPY config/collector/gateway_config.yaml ./cmd/otelcol/config/collector/gateway_config.yaml
+COPY config/collector/otlp_config_linux.yaml ./cmd/otelcol/config/collector/otlp_config_linux.yaml
+COPY config/collector/agent_config.yaml ./cmd/otelcol/config/collector/agent_config.yaml
+COPY config/collector/fargate_config.yaml ./cmd/otelcol/config/collector/fargate_config.yaml
+
+WORKDIR "C:\ProgramData\Splunk\OpenTelemetry Collector"
+COPY config/collector/gateway_config.yaml ./
+COPY config/collector/otlp_config_linux.yaml ./
+COPY config/collector/agent_config.yaml ./
+COPY config/collector/fargate_config.yaml ./
+
+WORKDIR "C:\\Program Files\Splunk\OpenTelemetry Collector"
+ARG SMART_AGENT_RELEASE
+
+# Download and extract the smart agent bundle
+RUN Invoke-WebRequest -Uri "https://dl.signalfx.com/windows/release/zip/SignalFxAgent-$env:SMART_AGENT_RELEASE-win64.zip" -Outfile "SignalFxAgent-win64.zip"
+RUN Add-Type -AssemblyName System.IO.Compression.FileSystem ;\
+    [System.IO.Compression.ZipFile]::ExtractToDirectory('SignalFxAgent-win64.zip', '.')
+RUN Rename-Item -Path "SignalFxAgent" -NewName "agent-bundle"
+
+# Delete unnecessary files.
+RUN Remove-Item "SignalFxAgent-win64.zip" -force
+RUN Remove-Item "agent-bundle\bin" -force -Recurse
+RUN Remove-Item "agent-bundle\etc" -force -Recurse
+RUN Get-ChildItem -include __pycache__ -recurse -force | Remove-Item -force -Recurse
+
+# Setting environment variables
+ENV SPLUNK_BUNDLE_DIR="C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle"
+ENV SPLUNK_CONFIG="C:\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml"
+# Category ENV_VAR: Forcing interactive mode instead of running as a service. 
+# Reference - https://github.com/signalfx/splunk-otel-collector/pull/254
+ENV NO_WINDOWS_SERVICE="1"
+
+ENTRYPOINT [ "otelcol.exe" ]
+EXPOSE 13133 14250 14268 4317 6060 8888 9411 9443 9080

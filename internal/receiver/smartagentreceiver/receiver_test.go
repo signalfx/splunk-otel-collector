@@ -125,18 +125,16 @@ func TestSmartAgentReceiver(t *testing.T) {
 							for l := 0; l < dg.DataPoints().Len(); l++ {
 								dgdp := dg.DataPoints().At(l)
 								labels = dgdp.LabelsMap()
-								var val interface{} = dgdp.Value()
-								_, ok := val.(float64)
-								assert.True(t, ok, "invalid value of MetricDataTypeGauge metric %s", name)
+								var val = dgdp.DoubleVal()
+								assert.NotEqual(t, val, 0, "invalid value of MetricDataTypeGauge metric %s", name)
 							}
 						case pdata.MetricDataTypeSum:
 							ds := metric.Sum()
 							for l := 0; l < ds.DataPoints().Len(); l++ {
 								dsdp := ds.DataPoints().At(l)
 								labels = dsdp.LabelsMap()
-								var val interface{} = dsdp.Value()
-								_, ok := val.(float64)
-								assert.True(t, ok, "invalid value of MetricDataTypeSum metric %s", name)
+								var val float64 = dsdp.DoubleVal()
+								assert.NotEqual(t, val, 0, "invalid value of MetricDataTypeSum metric %s", name)
 							}
 						default:
 							t.Errorf("unexpected type %#v for metric %s", metric.DataType(), name)

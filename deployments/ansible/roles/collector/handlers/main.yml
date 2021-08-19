@@ -20,3 +20,15 @@
     name: splunk-otel-collector
     state: restarted
   listen: "restart splunk-otel-collector"
+
+- name: Restart Splunk OpenTelemetry Collector for windows
+  ansible.windows.win_service:
+    name: splunk-otel-collector
+    state: restarted
+  listen: "restart windows splunk-otel-collector"
+
+- name: Restart Splunk td-agent for windows
+  ansible.windows.win_service:
+    name: fluentdwinsvc
+    state: restarted
+  listen: "restart windows fluentdwinsvc"

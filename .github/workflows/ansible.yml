@@ -9,6 +9,8 @@ on:
   push:
     paths:
       - 'deployments/ansible/**'
+    tags-ignore:
+      - '*'
 
 permissions:
   contents: write

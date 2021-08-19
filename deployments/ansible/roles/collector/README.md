@@ -4,6 +4,16 @@ Ansible role that installs Splunk OpenTelemetry Connector configured to
 collect metrics, traces and logs from Linux machines and send data to [Splunk 
 Observability Cloud](https://www.splunk.com/en_us/observability.html). 
 
+## Windows
+Currently, the following Windows versions are supported:
+Ansible requires PowerShell 3.0 or newer and atleast .NET4.0 to be installed on Windows host.
+A WinRM listner should be created and activeted. 
+For setting up Windows Host Refer:[Ansible Docs](https://docs.ansible.com/ansible/latest/user_guide/windows_setup.html).
+
+- Windows Server 2012 64-bit
+- Windows Server 2016 64-bit
+- Windows Server 2019 64-bit
+
 ## Prerequisites
 
 - [Splunk Access Token](https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html#admin-org-tokens)
@@ -22,6 +32,8 @@ how to use the role in a playbook with minimal required configuration:
 ```yaml
 - name: Install Splunk OpenTelemetry Connector
   hosts: all
+  #For Windows "become: yes" will raise error.
+  #"The Powershell family is incompatible with the sudo become plugin" Remove "become: yes" tag to run on Windows
   become: yes
   tasks:
     - name: "Include splunk_otel_collector"
@@ -63,20 +75,25 @@ how to use the role in a playbook with minimal required configuration:
   config, e.g. `./custom_collector_config.yaml`. (**default:** `""` meaning 
   that nothing will be copied and existing `splunk_otel_collector_config` will be used)
 
-- `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
+- `collector_path_win`: Default path of Splunk-otel-collector in windows 
+  (**default:** `C:\\Program Files\Splunk\OpenTelemetry Collector\`)
+
+- `splunk_bundle_dir` & : The path to the [Smart Agent bundle directory](
   https://github.com/signalfx/splunk-otel-collector/blob/main/internal/extension/smartagentextension/README.md).
   The default path is provided by the collector package. If the specified path
   is changed from the default value, the path should be an existing directory
   on the node. The `SPLUNK_BUNDLE_DIR` environment variable will be set to
   this value for the collector service.  (**default:**
-  `/usr/lib/splunk-otel-collector/agent-bundle`)
+  `/usr/lib/splunk-otel-collector/agent-bundle` For Windows `${collector_path_win}\agent-bundle`)
 
-- `splunk_collectd_dir`: The path to the collectd config directory for the
+- `splunk_collectd_dir` & `splunk_collectd_dir_win`: The path to the collectd config directory for the
   Smart Agent bundle. The default path is provided by the collector package.
   If the specified path is changed from the default value, the path should be
   an existing directory on the node. The `SPLUNK_COLLECTD_DIR` environment
-  variable will be set to this value for the collector service.  (**default:**
-  `/usr/lib/splunk-otel-collector/agent-bundle`)
+  variable will be set to this value for the collector service. 
+  (**default:** `/usr/lib/splunk-otel-collector/agent-bundle`
+  For Windows `${splunk_bundle_dir_win}\run\collectd`)
+
 
 - `splunk_service_user` and `splunk_service_group` (Linux only): Set the user/group
   ownership for the collector service. The user/group will be created if they
@@ -110,3 +127,26 @@ how to use the role in a playbook with minimal required configuration:
   remote hosts. Can be used to submit a custom fluentd config,
   e.g. `./custom_fluentd_config.conf`. (**default:** `""` meaning 
   that nothing will be copied and existing `splunk_fluentd_config` will be used)
+
+- `collector_config_source_win`: Source path to the collector config YAML file. This file will 
+  be copied to the $collector_config_dest path on the node. See the source attribute of the file 
+  resource for supported value types. The default source file is provided by the collector package.
+  (**default:** `C:\\Program Files\Splunk\OpenTelemetry Collector\agent_config.yaml`)
+
+- `collector_config_dest_win`: Destination path of the collector config file on the node. 
+  The SPLUNK_CONFIG environment variable will be set with this value for the collector service.
+  (**default:** `C:\\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`)
+
+- `win_fluentd_config_source`: Source path to the fluentd config file. 
+  (**default:** `${collector_path_win}\\fluentd\\td-agent.conf`)
+  
+- `win_fluentd_config_dest`: On Windows, the path will always be set to default
+  (**default:** `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf`)
+
+- `win_td-agent_version`: Version of td-agent (fluentd package) that will be 
+  installed in Windows distro (`4.1.1`)
+
+- `win_otel_version`: Version of splunk-otel-collector that will be installed in
+  Windows distri(`0.31.0`) 
+
+ 

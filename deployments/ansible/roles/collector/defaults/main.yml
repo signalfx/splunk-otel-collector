@@ -65,7 +65,7 @@ package_stage: release
 # Splunk-otel-collector Windows MSI version
 win_otel_version: 0.31.0
 # FluentD Windows Version
-win_td-agent_version: 4.1.1
+win_td_agent_version: 4.1.1
 
 # Path to set ENV in Windows
 registry_key: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment

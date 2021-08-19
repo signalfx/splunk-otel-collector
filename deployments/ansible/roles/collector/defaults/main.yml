@@ -37,9 +37,9 @@ splunk_collectd_dir: /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
 
 # default vars For Windows family
 
-splunk_api_url: https://api.${splunk_realm}.signalfx.com
+splunk_api_url: https://api.us0.signalfx.com
 
-splunk_ingest_url:  https://ingest.${splunk_realm}.signalfx.com
+splunk_ingest_url:  https://ingest.us0.signalfx.com
 
 splunk_trace_url: ${splunk_ingest_url}/v2/trace
 

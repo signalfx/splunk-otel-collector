@@ -23,13 +23,6 @@
   ansible.builtin.import_tasks: otel_win_reg.yml
   when: ansible_os_family == "Windows"
 
-- name: Push custom config for Splunk OTel Collector, if provided
-  ansible.builtin.copy:
-    src: "{{collector_config_source_win}}"
-    dest: "{{collector_config_dest_win}}"
-  when: collector_config_dest_win != ''
-  notify: "restart windows splunk-otel-collector"
-
 - name: Install Splunk OpenTelemetry Collector with yum package manager
   ansible.builtin.import_tasks: win_fluent_install.yml
   when: install_fluentd

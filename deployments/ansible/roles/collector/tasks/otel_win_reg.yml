@@ -1,0 +1,110 @@
+---
+
+- name: Create registry path for collector
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: SPLUNK_ACCESS_TOKEN
+    data: "{{splunk_access_token}}"
+    type: string
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: SPLUNK_REALM
+    data: "{{splunk_realm}}"
+    type: string
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: SPLUNK_CONFIG
+    data: "{{collector_config_dest_win}}"
+    type: string
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: SPLUNK_API_URL
+    data: "{{splunk_api_url}}"
+    type: string
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: SPLUNK_BALLAST_SIZE_MIB
+    data: "{{splunk_ballast_size_mib}}"
+    type: string
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: SPLUNK_BUNDLE_DIR
+    data: "{{splunk_bundle_dir_win}}"
+    type: string
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: SPLUNK_COLLECTD_DIR
+    data: "{{splunk_collectd_dir_win}}"
+    type: string
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: SPLUNK_HEC_TOKEN
+    data: "{{splunk_hec_token}}"
+    type: string
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: SPLUNK_HEC_URL
+    data: "{{splunk_hec_url}}"
+    type: string
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: SPLUNK_INGEST_URL
+    data: "{{splunk_ingest_url}}"
+    type: string
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: SPLUNK_MEMORY_TOTAL_MIB
+    data: "{{splunk_memory_total_mib}}"
+    type: string
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: SPLUNK_TRACE_URL
+    data: "{{splunk_trace_url}}"
+    type: string
+    
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: ExePath
+    data: "{{collector_path_win}}"
+    type: string

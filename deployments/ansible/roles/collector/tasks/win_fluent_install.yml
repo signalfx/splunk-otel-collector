@@ -1,0 +1,33 @@
+---
+
+# Download and Install FluentD for Windows
+
+- name: Download Fluentd for windows
+  ansible.windows.win_get_url:
+    url: "{{td_agent_base_url}}/4/windows/{{win_fluentd_msi}}"
+    dest: C:\Users\td-agent-{{win_td_agent_version}}-x64.msi
+
+# Check for existing fluentd Installation
+
+- name: Check if splunk-otel-collector service is installed
+  ansible.windows.win_service:
+    name: fluentdwinsvc
+  register: service_info
+
+# Uninstall existing fluentd service
+
+- name: Delete previous splunk-otel-collector service if exist
+  ansible.windows.win_service:
+    name: fluentdwinsvc
+    state: absent
+  when: service_info.exists
+
+- name: install Fluentd for windows
+  ansible.windows.win_package:
+    path: C:\Users\td-agent-{{win_td_agent_version}}-x64.msi
+    state: present
+
+- name: Create directory structure
+  ansible.windows.win_file:
+    path: "{{collector_path_win}}\\fluentd\\conf.d"
+    state: directory

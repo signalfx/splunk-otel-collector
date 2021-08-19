@@ -53,11 +53,11 @@ splunk_collectd_dir_win: ${splunk_bundle_dir_win}\run\collectd
 
 collector_config_source_win:  ${collector_path_win}\agent_config.yaml
 
-collector_config_dest_win: C:\\PeogramData\Splunk\OpenTelemetry Collector\agent_config.yaml
+collector_config_dest_win: C:\PeogramData\Splunk\OpenTelemetry Collector\agent_config.yaml
 
-collector_path_win: C:\\Program Files\Splunk\OpenTelemetry Collector
+collector_path_win: C:\Program Files\Splunk\OpenTelemetry Collector
 
-win_fluentd_config_source: ${collector_path_win}\\fluentd\\td-agent.conf
+win_fluentd_config_source: ${collector_path_win}\fluentd\td-agent.conf
 # On Windows, the path will always be set to %SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf
 win_fluentd_config_dest: ""
 

@@ -34,38 +34,3 @@ splunk_fluentd_config_source: ""
 
 agent_bundle_dir: /usr/lib/splunk-otel-collector/agent-bundle
 splunk_collectd_dir: /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
-
-# default vars For Windows family
-
-splunk_api_url: https://api.${splunk_realm}.signalfx.com
-
-splunk_ingest_url:  https://ingest.${splunk_realm}.signalfx.com
-
-splunk_trace_url: ${splunk_ingest_url}/v2/trace
-
-splunk_hec_url: ${splunk_ingest_url}/v1/log
-
-splunk_hec_token: $splunk_access_token
-
-splunk_bundle_dir_win: ${collector_path_win}\agent-bundle
-
-splunk_collectd_dir_win: ${splunk_bundle_dir_win}\run\collectd
-
-collector_config_source_win:  ${collector_path_win}\agent_config.yaml
-
-collector_config_dest_win: C:\\PeogramData\Splunk\OpenTelemetry Collector\agent_config.yaml
-
-collector_path_win: C:\\Program Files\Splunk\OpenTelemetry Collector
-
-win_fluentd_config_source: ${collector_path_win}\\fluentd\\td-agent.conf
-# On Windows, the path will always be set to %SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf
-win_fluentd_config_dest: ""
-
-package_stage: release
-# Splunk-otel-collector Windows MSI version
-win_otel_version: 0.31.0
-# FluentD Windows Version
-win_td-agent_version: 4.1.1
-
-# Path to set ENV in Windows
-registry_key: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment

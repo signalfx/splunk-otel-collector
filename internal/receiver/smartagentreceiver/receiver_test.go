@@ -118,13 +118,13 @@ func TestSmartAgentReceiver(t *testing.T) {
 						expectedDataType := expectedCPUMetrics[name]
 						require.NotEqual(t, pdata.MetricDataTypeNone, expectedDataType, "received unexpected none type for %s", name)
 						assert.Equal(t, expectedDataType, dataType)
-						var labels pdata.StringMap
+						var attributes pdata.AttributeMap
 						switch dataType {
 						case pdata.MetricDataTypeGauge:
 							dg := metric.Gauge()
 							for l := 0; l < dg.DataPoints().Len(); l++ {
 								dgdp := dg.DataPoints().At(l)
-								labels = dgdp.LabelsMap()
+								attributes = dgdp.Attributes()
 								var val = dgdp.DoubleVal()
 								assert.NotEqual(t, val, 0, "invalid value of MetricDataTypeGauge metric %s", name)
 							}
@@ -132,7 +132,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 							ds := metric.Sum()
 							for l := 0; l < ds.DataPoints().Len(); l++ {
 								dsdp := ds.DataPoints().At(l)
-								labels = dsdp.LabelsMap()
+								attributes = dsdp.Attributes()
 								var val float64 = dsdp.DoubleVal()
 								assert.NotEqual(t, val, 0, "invalid value of MetricDataTypeSum metric %s", name)
 							}
@@ -140,13 +140,13 @@ func TestSmartAgentReceiver(t *testing.T) {
 							t.Errorf("unexpected type %#v for metric %s", metric.DataType(), name)
 						}
 
-						labelVal, ok := labels.Get("required_dimension")
+						labelVal, ok := attributes.Get("required_dimension")
 						require.True(t, ok)
-						assert.Equal(t, "required_value", labelVal)
+						assert.Equal(t, "required_value", labelVal.StringVal())
 
 						// mark metric as having been seen
-						cpuNum, _ := labels.Get("cpu")
-						seenName := fmt.Sprintf("%s%s", name, cpuNum)
+						cpuNum, _ := attributes.Get("cpu")
+						seenName := fmt.Sprintf("%s%s", name, cpuNum.StringVal())
 						assert.False(t, seenTotalMetric[seenName], "unexpectedly repeated metric: %v", seenName)
 						seenTotalMetric[seenName] = true
 					}

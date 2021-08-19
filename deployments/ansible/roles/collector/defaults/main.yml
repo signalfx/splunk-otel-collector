@@ -53,7 +53,7 @@ splunk_collectd_dir_win: ${splunk_bundle_dir_win}\run\collectd
 
 collector_config_source_win:  ${collector_path_win}\agent_config.yaml
 
-collector_config_dest_win: C:\PeogramData\Splunk\OpenTelemetry Collector\agent_config.yaml
+collector_config_dest_win: C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml
 
 collector_path_win: C:\Program Files\Splunk\OpenTelemetry Collector
 

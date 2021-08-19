@@ -2016,8 +2016,8 @@ github.com/signalfx/ondiskencoding v0.0.0-20191121154813-762ffb677f8e/go.mod h1:
 github.com/signalfx/sapm-proto v0.4.0/go.mod h1:x3gtwJ1GRejtkghB4nYpwixh2zqJrLbPU959ZNhM0Fk=
 github.com/signalfx/sapm-proto v0.7.0 h1:u6MErnxMDK5WQgOfPEMcS7gti5DQJKppAmAml8jJYbo=
 github.com/signalfx/sapm-proto v0.7.0/go.mod h1:y4b+wJlBKH7AzdastAgdWHrfMBB/QYN+u+20SEA94C4=
-github.com/signalfx/signalfx-agent v1.0.1-0.20210810132027-665c019ace62 h1:2Vc6j/YzbXXOW0CYNuFQv+7/AMEBUkH5Qg20AjVZWw8=
-github.com/signalfx/signalfx-agent v1.0.1-0.20210810132027-665c019ace62/go.mod h1:mJHG5nm+ufOuQeuw52JQI80geZ+0Xf2mZfQw5qBgysQ=
+github.com/signalfx/signalfx-agent v1.0.1-0.20210819163550-0e368098128d h1:sH7+SxWV86e2Iq0GkikikIYv3qcAJ5DAJDlDW84PPEE=
+github.com/signalfx/signalfx-agent v1.0.1-0.20210819163550-0e368098128d/go.mod h1:/Y14GCUCP5bHmQze9pFN/O2CFgI/TrUCJ+fvwzBBhB0=
 github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210617144543-be16994eef6b h1:MnsPJpWGJTTPaw4x+QieKWSSHY1D6R9iXbUqdER+Hnw=
 github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210617144543-be16994eef6b/go.mod h1:kIpt0GcJgz1TchUlROxluJIm6upRXt8diVqaf/Zf2o0=
 github.com/signalfx/signalfx-go v1.6.38-0.20200518153434-ceee8d2570d5 h1:+tu30Q5SkbYMBmI3sgDJTB9M1/Ga8z0V0LGDVY1D99g=
@@ -2131,7 +2131,7 @@ github.com/tencentcloud/tencentcloud-sdk-go v3.0.83+incompatible/go.mod h1:0PfYo
 github.com/tencentcloud/tencentcloud-sdk-go v3.0.171+incompatible h1:K3fcS92NS8cRntIdu8Uqy2ZSePvX73nNhOkKuPGJLXQ=
 github.com/tencentcloud/tencentcloud-sdk-go v3.0.171+incompatible/go.mod h1:0PfYow01SHPMhKY31xa+EFz2RStxIqj6JFAJS+IkCi4=
 github.com/tetafro/godot v1.4.4/go.mod h1:FVDd4JuKliW3UgjswZfJfHq4vAx0bD/Jd5brJjGeaz4=
-github.com/tidwall/gjson v1.6.5/go.mod h1:zeFuBCIqD4sN/gmqBzZ4j7Jd6UcA2Fc56x7QFsv+8fI=
+github.com/tidwall/gjson v1.6.6/go.mod h1:zeFuBCIqD4sN/gmqBzZ4j7Jd6UcA2Fc56x7QFsv+8fI=
 github.com/tidwall/gjson v1.8.1 h1:8j5EE9Hrh3l9Od1OIEDAb7IpezNA20UdRngNAj5N0WU=
 github.com/tidwall/gjson v1.8.1/go.mod h1:5/xDoumyyDNerp2U36lyolv46b3uF/9Bu6OfyQ9GImk=
 github.com/tidwall/match v1.0.3 h1:FQUVvBImDutD8wJLN6c5eMzWtjgONK9MwIBCOrUJKeE=

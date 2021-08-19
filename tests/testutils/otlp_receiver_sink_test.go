@@ -27,6 +27,7 @@ import (
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -110,7 +111,7 @@ func otlpExporter(t *testing.T) component.MetricsExporter {
 		}}
 	otlpExporterFactory := otlpexporter.NewFactory()
 	ctx := context.Background()
-	createParams := component.ExporterCreateSettings{Logger: zap.NewNop()}
+	createParams := component.ExporterCreateSettings{Logger: zap.NewNop(), TracerProvider: trace.NewNoopTracerProvider()}
 	exporter, err := otlpExporterFactory.CreateMetricsExporter(ctx, createParams, &exporterCfg)
 	require.NoError(t, err)
 	require.NotNil(t, exporter)

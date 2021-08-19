@@ -5,7 +5,7 @@
 - name: Download Fluentd for windows
   ansible.windows.win_get_url:
     url: "{{td_agent_base_url}}/4/windows/{{win_fluentd_msi}}"
-    dest: C:\Users\td-agent-{{win_td_agent_version}}-x64.msi
+    dest: C:\Users\Temp\td-agent-{{win_td_agent_version}}-x64.msi
 
 # Check for existing fluentd Installation
 
@@ -24,7 +24,7 @@
 
 - name: install Fluentd for windows
   ansible.windows.win_package:
-    path: C:\Users\td-agent-{{win_td_agent_version}}-x64.msi
+    path: C:\Users\Temp\td-agent-{{win_td_agent_version}}-x64.msi
     state: present
 
 - name: Create directory structure

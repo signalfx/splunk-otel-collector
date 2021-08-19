@@ -4,7 +4,7 @@
 - name: Get splunk-otel-collctor for windows
   ansible.windows.win_get_url:
     url: "{{windows_base_url}}/splunk-otel-collector/msi/{{package_stage}}/{{win_otel_msi}}"
-    dest: C:\Users\{{win_otel_msi}}
+    dest: C:\Users\Temp\{{win_otel_msi}}
   register: msi_package_download
 
 # Check for existing splunk-otel-collector Installation
@@ -22,5 +22,5 @@
 
 - name: install splunk-otel-collector-msi
   ansible.windows.win_package:
-    path:  C:\Users\{{win_otel_msi}}
+    path:  C:\Users\Temp\{{win_otel_msi}}
     state: present

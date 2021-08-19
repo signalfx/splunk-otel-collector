@@ -1,41 +1,27 @@
 ---
 
-# splunk-otel-collector and FluentD Windows installation using msi.
+- name: Define acceptable distros For splunk-otel-collector
+  set_fact:
+    debian_distro: ['Debian', 'Ubuntu']
+    rhel_distro: ['CentOS', 'RedHat', 'Red Hat Enterprise Linux', 'Amazon']
+    windows_distro: ['Windows']
+    cacheable: true
 
-- name: Set Windows packages sources
-  ansible.builtin.set_fact:
-    windows_base_url: https://dl.signalfx.com
-    win_otel_msi: splunk-otel-collector-{{win_otel_version}}-amd64.msi
-    td_agent_base_url: http://packages.treasuredata.com.s3.amazonaws.com
-    win_fluentd_msi: td-agent-{{win_td_agent_version}}-x64.msi
+- name: Make sure access token is provided
+  ansible.builtin.assert:
+    that: "'{{ splunk_access_token }}'"
+    fail_msg: splunk_access_token variable must be provided
 
-# creating Temp dir for downloading MSI packages
-- name: Create directory structure
-  ansible.windows.win_file:
-    path: C:\Users\Temp
-    state: directory
+- name: Make sure host OS is supported
+  ansible.builtin.assert:
+    that: ansible_os_family in ["Debian", "RedHat", "Windows"]
+    fail_msg: "{{ ansible_os_family }} OS family currently is not supported"
 
-- name: Install Splunk OpenTelemetry Collector with msi package manager for Windows
-  ansible.builtin.import_tasks: otel_win_install.yml
-  when: ansible_os_family == "Windows"
+- name: Linux deployment
+  ansible.builtin.import_tasks: linux_install.yml
+  when: not ansible_os_family in windows_distro
 
-- name: Set Windows Registry values
-  ansible.builtin.import_tasks: otel_win_reg.yml
-  when: ansible_os_family == "Windows"
-
-- name: Push custom config for Splunk OTel Collector, if provided
-  ansible.builtin.copy:
-    src: "{{collector_config_source_win}}"
-    dest: "{{collector_config_dest_win}}"
-  when: splunk_otel_collector_config_source != ''
-  notify: "restart windows splunk-otel-collector"
-
-- name: Install Splunk OpenTelemetry Collector with yum package manager
-  ansible.builtin.import_tasks: win_fluent_install.yml
-  when: install_fluentd
-
-# Removing Temp directory
-- name: Remove directory structure
-  ansible.windows.win_file:
-    path: C:\Users\Temp
-    state: absent
+# Windows Deplyment using MSI 
+- name: Windows deployment
+  ansible.builtin.import_tasks: win_install.yml
+  when: ansible_os_family in windows_distro

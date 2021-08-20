@@ -16,13 +16,13 @@
 
 # Uninstall existing fluentd service
 
-- name: Delete previous splunk-otel-collector service if exist
+- name: Delete previous fluentd service if exist
   ansible.windows.win_service:
     name: fluentdwinsvc
     state: absent
   when: service_info.exists
 
-- name: install Fluentd for windows
+- name: Install Fluentd for windows
   ansible.windows.win_package:
     path: C:\Users\Temp\td-agent-{{win_td_agent_version}}-x64.msi
     state: present

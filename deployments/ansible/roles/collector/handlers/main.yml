@@ -27,7 +27,7 @@
     state: restarted
   listen: "restart windows splunk-otel-collector"
 
-- name: Restart Splunk td-agent for windows
+- name: Restart td-agent for windows
   ansible.windows.win_service:
     name: fluentdwinsvc
     state: restarted

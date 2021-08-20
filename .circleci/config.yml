@@ -89,6 +89,9 @@ workflows:
       - docker-otelcol:
           requires:
             - cross-compile
+      - windows-docker-otelcol:
+          requires:
+            - cross-compile
       - test:
           requires:
             - setup-environment
@@ -216,6 +219,38 @@ jobs:
           command: |
             mkdir -p dist
             docker save -o dist/image.tar otelcol:latest
+      - persist_to_workspace:
+          root: ~/
+          paths: project/dist
+
+  windows-docker-otelcol:
+    executor:
+      name: win/default
+      shell: powershell.exe
+    steps:
+      - attach_to_workspace
+      - run:
+          name: Build docker image
+          command: |
+            Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
+            docker build -t otelcol-windows --build-arg SMART_AGENT_RELEASE=$((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v")) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+            Remove-Item .\cmd\otelcol\otelcol.exe
+      - run:
+          name: Run docker image
+          command: |
+            docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
+            Start-Sleep 10
+            $DockerOutput=$(docker ps --filter=status=running --filter=name=otelcol -q)
+            if ( $DockerOutput -eq $null )
+            {
+              docker logs otelcol
+              exit 1
+            }
+      - run:
+          name: Save docker image
+          command: |
+            New-Item -ItemType Directory -Force -Path dist
+            docker save -o dist\windows-image.tar otelcol-windows:latest
       - persist_to_workspace:
           root: ~/
           paths: project/dist

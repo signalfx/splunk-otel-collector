@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector
 
-go 1.16
+go 1.17
 
 require (
 	cloud.google.com/go/kms v0.1.0 // indirect

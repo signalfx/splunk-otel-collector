@@ -12,6 +12,7 @@ Observability Cloud](https://www.splunk.com/en_us/observability.html).
 Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux
+- RedHat
 - Debian: buster, stretch
 - Ubuntu: 16.04, 18.04, 20.04
 

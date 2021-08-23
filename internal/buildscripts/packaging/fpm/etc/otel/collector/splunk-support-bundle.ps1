@@ -23,12 +23,12 @@ $ErrorActionPreference= 'silentlycontinue'
 
 function usage {
     "This is help for this program. It does nothing. Hope that helps."
-    write-host "USAGE: [-help] [-d directory] [-t directory]"
-    write-host "  -d      directory where Splunk OpenTelemetry Connector configuration is located"
-    write-host "          (if not specified, defaults to C:\Program Files\Splunk\OpenTelemetry Collector)"
-    write-host "  -t      Unique temporary directory for support bundle contents"
-    write-host "          (if not specified, defaults to C:\Program Files\Splunk\OpenTelemetry Collector)"
-    write-host "  -help   display help"
+    Write-Output "USAGE: [-help] [-d directory] [-t directory]"
+    Write-Output "  -d      directory where Splunk OpenTelemetry Connector configuration is located"
+    Write-Output "          (if not specified, defaults to C:\Program Files\Splunk\OpenTelemetry Collector)"
+    Write-Output "  -t      Unique temporary directory for support bundle contents"
+    Write-Output "          (if not specified, defaults to C:\Program Files\Splunk\OpenTelemetry Collector)"
+    Write-Output "  -help   display help"
     exit 1
 }
 
@@ -68,17 +68,18 @@ for ( $i = 0; $i -lt $args.count; $i++ ) {
 #  - RETURN: 0 if successful, non-zero on error.
 #######################################
 function createTempDir {
-    write-host "INFO: Creating temporary directory..."
+    Write-Output "INFO: Creating temporary directory..."
     if (Test-Path -Path $TMPDIR) {
-        write-host "ERROR: TMPDIR ($TMPDIR) exists. Exiting."
+        Write-Output "ERROR: TMPDIR ($TMPDIR) exists. Exiting."
         exit 1
     } else {
         New-Item -Path $TMPDIR -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/logs -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/metrics -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/zpages -ItemType Directory | Out-Null
-	# We can not create directory using special characters like : , ? 
-	# So we have encoded it and then created new directory.
+        # We can not create directory using special characters like : , ? 
+        # So we have encoded it and then created new directory.
+        Add-Type -AssemblyName System.Web
         $global:DIRECTORY = [System.Web.HTTPUtility]::UrlEncode("localhost:55679")
         New-Item -Path $TMPDIR/zpages/$global:DIRECTORY -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/zpages/$global:DIRECTORY/debug -ItemType Directory | Out-Null
@@ -94,22 +95,22 @@ function createTempDir {
 #  - RETURN: 0 if successful, non-zero on error.
 #######################################
 function getConfig {
-    write-host "INFO: Getting configuration..."
-# If directory does not exist the support bundle is useless so exit
+    Write-Output "INFO: Getting configuration..."
+    # If directory does not exist the support bundle is useless so exit
     if (-NOT (Test-Path -Path $CONFDIR)) {
-        write-host "ERROR: Could not find directory ($CONFDIR)."
+        Write-Output "ERROR: Could not find directory ($CONFDIR)."
         usage
     } else {
         Copy-Item -Path "$CONFDIR" -Destination "$TMPDIR/config" -Recurse
     }
-# Also need to get config in memory as dynamic config may modify stored config
-# It's possible user has disabled collecting in memory config
+    # Also need to get config in memory as dynamic config may modify stored config
+    # It's possible user has disabled collecting in memory config
     $connection = New-Object System.Net.Sockets.TcpClient("localhost", 55554)
     if ($connection.Connected) {
-        cmd.exe /c "curl -s http://localhost:55554/debug/configz/initial > $TMPDIR/config/initial.yaml 2>&1"
-        cmd.exe /c "curl -s http://localhost:55554/debug/configz/effective > $TMPDIR/config/effective.yaml 2>&1"
+        (Invoke-WebRequest -Uri "http://localhost:55554/debug/configz/initial").Content > $TMPDIR/config/initial.yaml 2>&1
+        (Invoke-WebRequest -Uri "http://localhost:55554/debug/configz/effective").Content > $TMPDIR/config/effective.yaml 2>&1
     } else { 
-        Write-Host "WARN: localhost:55554 unavailable so in memory configuration not collected"
+        Write-Output "WARN: localhost:55554 unavailable so in memory configuration not collected"
     }
 }
 
@@ -121,9 +122,15 @@ function getConfig {
 #  - RETURN: 0
 #######################################
 function getStatus {
-    Write-Host "INFO: Getting status..."
+    Write-Output "INFO: Getting status..."
     Get-Service splunk-otel-collector > $TMPDIR/logs/splunk-otel-collector.txt 2>&1
     Get-Service fluentdwinsvc > $TMPDIR/logs/td-agent.txt 2>&1
+    if (-NOT (Get-Content -Path "$TMPDIR/logs/splunk-otel-collector.txt")) {
+        Set-Content -Path "$TMPDIR/logs/splunk-otel-collector.txt" -Value "Service splunk-otel-collector not exist.."
+    }
+    if (-NOT (Get-Content -Path "$TMPDIR/logs/td-agent.txt")) {
+        Set-Content -Path "$TMPDIR/logs/td-agent.txt" -Value "Service td-agent not exist.."
+    }
 }
 
 #######################################
@@ -134,14 +141,20 @@ function getStatus {
 #  - RETURN: 0
 #######################################
 function getLogs {
-    Write-Host "INFO: Getting logs..."
+    Write-Output "INFO: Getting logs..."
     Get-EventLog -LogName Application -Source "splunk-otel-collector" > $TMPDIR/logs/splunk-otel-collector.log 2>&1
-    Get-EventLog -LogName Application -Source "td-agent" > $TMPDIR/logs/splunk-otel-collector.log 2>&1
+    Get-EventLog -LogName Application -Source "td-agent" > $TMPDIR/logs/td-agent.log 2>&1
     $LOGDIR="/var/log/td-agent"
     if (Test-Path -Path $LOGDIR) {
         Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/logs/td-agent/" -Recurse
     } else {
-        Write-Host "WARN: Permission denied to directory ($LOGDIR)."
+        Write-Output "WARN: Permission denied to directory ($LOGDIR)."
+    }
+    if (-NOT (Get-Content -Path "$TMPDIR/logs/splunk-otel-collector.log")) {
+        Set-Content -Path "$TMPDIR/logs/splunk-otel-collector.log" -Value "Event splunk-otel-collector not exist.."
+    }
+    if (-NOT (Get-Content -Path "$TMPDIR/logs/td-agent.log")) {
+        Set-Content -Path "$TMPDIR/logs/td-agent.log" -Value "Event td-agent not exist.."
     }
 }
 
@@ -153,12 +166,12 @@ function getLogs {
 #  - RETURN: 0
 #######################################
 function getMetrics {
-    Write-Host "INFO: Getting metric information..."
+    Write-Output "INFO: Getting metric information..."
     $connection = New-Object System.Net.Sockets.TcpClient("localhost", 8888)
     if ($connection.Connected) {
-        cmd.exe /c "curl -s http://localhost:8888/metrics > $TMPDIR/metrics/collector-metrics.txt 2>&1"
+        (Invoke-WebRequest -Uri "http://localhost:8888/metrics").Content > $TMPDIR/metrics/collector-metrics.txt 2>&1
     } else { 
-        Write-Host "WARN: localhost:8888/metrics unavailable so metrics not collected"
+        Write-Output "WARN: localhost:8888/metrics unavailable so metrics not collected"
     }
 }
 
@@ -170,19 +183,18 @@ function getMetrics {
 #  - RETURN: 0
 #######################################
 function getZpages {
-    Write-Host "INFO: Getting zpages information..."
+    Write-Output "INFO: Getting zpages information..."
     $connection = New-Object System.Net.Sockets.TcpClient("localhost", 55679)
     if ($connection.Connected) {
-        cmd.exe /c "curl -s http://localhost:55679/debug/tracez > $TMPDIR/zpages/tracez.html 2>&1"
+        (Invoke-WebRequest -Uri "http://localhost:55679/debug/tracez").Content > $TMPDIR/zpages/tracez.html 2>&1
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $packages = Invoke-WebRequest -Uri "http://localhost:55679/debug/tracez" -UseBasicParsing
         foreach ($package in $packages.links.href) {
             $ENCODED_PACKAGE_NAME = [System.Web.HTTPUtility]::UrlEncode("$package")
-            cmd.exe /c "curl -s `"http://localhost:55679/debug/$package`" > $TMPDIR/zpages/$global:DIRECTORY/debug/$ENCODED_PACKAGE_NAME 2>&1"
+            (Invoke-WebRequest -Uri "http://localhost:55679/debug/$package").Content > $TMPDIR/zpages/$global:DIRECTORY/debug/$ENCODED_PACKAGE_NAME 2>&1
         }
     } else { 
-
-        Write-Host "WARN: localhost:55679 unavailable so zpages not collected"
+        Write-Output "WARN: localhost:55679 unavailable so zpages not collected"
     }
 
         
@@ -196,21 +208,20 @@ function getZpages {
 #  - RETURN: 0
 #######################################
 function getHostInfo {
-    Write-Host "INFO: Getting host information..."
+    Write-Output "INFO: Getting host information..."
     for ( $i = 0; $i -lt 3; $i++ ) {
         Get-Process -Name 'otelcol' >> $TMPDIR/metrics/top.txt 2>&1 
         Get-Process -Name 'fluentd' >> $TMPDIR/metrics/top.txt 2>&1 
         Start-Sleep -s 2
     }
     if (-NOT (Get-Process -Name 'otelcol')) {
-        Write-Host "WARN: Unable to find otelcol PIDs"
-        Write-Host "      top will not be collected for otelcol";
+        Write-Output "WARN: Unable to find otelcol PIDs"
+        Write-Output "      top will not be collected for otelcol";
     }
     if (-NOT (Get-Process -Name 'fluentd')) {
-        Write-Host "WARN: Unable to find fluentd PIDs"
-        Write-Host "      top will not be collected for fluentd";
+        Write-Output "WARN: Unable to find fluentd PIDs"
+        Write-Output "      top will not be collected for fluentd";
     }
-    
     Get-PSDrive > $TMPDIR/metrics/df.txt 2>&1
     
     Get-CIMInstance Win32_OperatingSystem | Select TotalVisibleMemorySize,FreePhysicalMemory,TotalVirtualMemorySize,FreeVirtualMemory > $TMPDIR/metrics/free.txt 2>&1
@@ -224,29 +235,26 @@ function getHostInfo {
 #  - RETURN: 0 if successful, non-zero on error
 #######################################
 function tarResults {
-    Write-Host "INFO: Creating tarball..."
+    Write-Output "INFO: Creating tarball..."
     $TAR_NAME = Split-Path $TMPDIR -leaf
-    tar -cf "$TAR_NAME.tar.gz" $TMPDIR 2>&1
+    Add-Type -assembly "system.io.compression.filesystem"
+    [io.compression.zipfile]::CreateFromDirectory($TMPDIR, "$TAR_NAME.tar.gz")
     if (Test-Path -Path "./$TAR_NAME.tar.gz") {
-        Write-Host "INFO: Support bundle available at: ./$TAR_NAME.tar.gz"
-        Write-Host "      Please attach this to your support case"
+        Write-Output "INFO: Support bundle available at: ./$TAR_NAME.tar.gz"
+        Write-Output "      Please attach this to your support case"
         exit 0
     } else {
-        Write-Host "ERROR: Support bundle was not properly created."
-        Write-Host "       See $TMPDIR/stdout.log for more information."
+        Write-Output "ERROR: Support bundle was not properly created."
+        Write-Output "        See $TMPDIR/stdout.log for more information."
         exit 1
     }
 }
 
-createTempDir
-getConfig
-getStatus
-getLogs
-getMetrics
-tarResults
-getHostInfo
-
-# Attempt to generate a support bundle
-# Capture all output
-createTempDir
-main 2>&1 | tee -a "$TMPDIR"/stdout.log
+$(createTempDir) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
+$(getConfig) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
+$(getStatus) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
+$(getLogs) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
+$(getMetrics) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
+$(getZpages) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
+$(getHostInfo) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
+$(tarResults) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append

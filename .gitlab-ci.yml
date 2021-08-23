@@ -2,14 +2,48 @@ default:
   image: 'docker.repo.splunkdev.net/ci-cd/ci-container:debian-buster'
 
 stages:
+  - sast-oss-scan
   - build
   - sign
   - package
   - release
   - github-release
 
+include:
+  # https://cd.splunkdev.com/prodsec/scp-scanning/gitlab-checkmarx
+  - project: 'prodsec/scp-scanning/gitlab-checkmarx'
+    ref: latest
+    file: '/templates/.sast_scan.yml'
+  # https://cd.splunkdev.com/prodsec/whitesource
+  - project: 'prodsec/whitesource'
+    ref: latest
+    file: '/templates/.whitesource.yml'
+
+semgrep:
+  stage: sast-oss-scan
+  extends: .sast_scan
+  variables:
+    SAST_SCANNER: "Semgrep"
+    SEMGREP_EXCLUDE: "examples,internal/buildscripts,tests,*_test.go"
+    alert_mode: "policy"
+  after_script:
+    - echo "Check results at $CI_PIPELINE_URL/security"
+  only:
+    - main
+
+whitesource:
+  extends: .whitesource
+  stage: sast-oss-scan
+  variables:
+    ws_user_key: ${WHITESOURCE_USER_KEY}
+    product_id: ${WHITESOURCE_ID}
+    config: go-modules
+    config_overlay: $CI_PROJECT_DIR/.whitesource.conf
+  only:
+    - main
+
 .go-cache:
-  image: 'docker.repo.splunkdev.net/ci-cd/ci-container:golang-1.16'
+  image: 'docker.repo.splunkdev.net/ci-cd/ci-container:golang-1.17-pre'
   variables:
     GOPATH: "$CI_PROJECT_DIR/.go"
   before_script:

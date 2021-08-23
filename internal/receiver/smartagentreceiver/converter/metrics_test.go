@@ -64,14 +64,14 @@ func pdataMetrics(dataType pdata.MetricDataType, value interface{}, timeReceived
 		dps = metric.Sum().DataPoints()
 	}
 
-	var labels pdata.StringMap
+	var attributes pdata.AttributeMap
 
 	dp := dps.AppendEmpty()
-	labels = dp.LabelsMap()
-	labels.Upsert("k0", "v0")
-	labels.Upsert("k1", "v1")
-	labels.Upsert("k2", "v2")
-	labels.Sort()
+	attributes = dp.Attributes()
+	attributes.Upsert("k0", pdata.NewAttributeValueString("v0"))
+	attributes.Upsert("k1", pdata.NewAttributeValueString("v1"))
+	attributes.Upsert("k2", pdata.NewAttributeValueString("v2"))
+	attributes.Sort()
 	dp.SetTimestamp(pdata.Timestamp(timeReceived.UnixNano()))
 	switch val := value.(type) {
 	case int:
@@ -80,12 +80,13 @@ func pdataMetrics(dataType pdata.MetricDataType, value interface{}, timeReceived
 		dp.SetDoubleVal(val)
 	}
 
-	labels.InitFromMap(map[string]string{
-		"k0": "v0",
-		"k1": "v1",
-		"k2": "v2",
+	attributes.Clear()
+	attributes.InitFromMap(map[string]pdata.AttributeValue{
+		"k0": pdata.NewAttributeValueString("v0"),
+		"k1": pdata.NewAttributeValueString("v1"),
+		"k2": pdata.NewAttributeValueString("v2"),
 	})
-	labels.Sort()
+	attributes.Sort()
 
 	return metrics
 }
@@ -206,7 +207,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			}(),
 			expectedMetrics: func() pdata.Metrics {
 				md := pdataMetrics(pdata.MetricDataTypeGauge, 13, now)
-				md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).LabelsMap().Update("k0", "")
+				md.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).Attributes().Update("k0", pdata.NewAttributeValueString(""))
 				return md
 			}(),
 		},
@@ -299,11 +300,11 @@ func sortLabels(t *testing.T, metrics pdata.Metrics) {
 				switch m.DataType() {
 				case pdata.MetricDataTypeGauge:
 					for l := 0; l < m.Gauge().DataPoints().Len(); l++ {
-						m.Gauge().DataPoints().At(l).LabelsMap().Sort()
+						m.Gauge().DataPoints().At(l).Attributes().Sort()
 					}
 				case pdata.MetricDataTypeSum:
 					for l := 0; l < m.Sum().DataPoints().Len(); l++ {
-						m.Sum().DataPoints().At(l).LabelsMap().Sort()
+						m.Sum().DataPoints().At(l).Attributes().Sort()
 					}
 				default:
 					t.Errorf("unexpected datatype: %v", m.DataType())

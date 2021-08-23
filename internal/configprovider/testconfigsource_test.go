@@ -65,17 +65,17 @@ func (t *testConfigSource) Retrieve(ctx context.Context, selector string, params
 		return nil, fmt.Errorf("no value for selector %q", selector)
 	}
 
-	watchForUpdateFn := func() error {
-		return configsource.ErrWatcherNotSupported
-	}
-
 	if entry.WatchForUpdateFn != nil {
-		watchForUpdateFn = entry.WatchForUpdateFn
+		return &watchableRetrieved{
+			retrieved: retrieved{
+				value: entry.Value,
+			},
+			watchForUpdateFn: entry.WatchForUpdateFn,
+		}, nil
 	}
 
 	return &retrieved{
-		value:            entry.Value,
-		watchForUpdateFn: watchForUpdateFn,
+		value: entry.Value,
 	}, nil
 }
 

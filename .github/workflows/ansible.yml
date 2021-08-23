@@ -28,8 +28,6 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - name: github.ref
-        run: echo ${{ github.ref }}
       - name: Check out the codebase.
         uses: actions/checkout@v2
 

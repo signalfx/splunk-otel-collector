@@ -15,7 +15,6 @@ To install the Ansible collection from Ansible Galaxy:
 ansible-galaxy collection install signalfx.splunk_otel_collector
 ```
 
-
 ## Usage
 
 To use Splunk OpenTelemetry Connector Role, simply include the 

@@ -97,5 +97,23 @@ $ docker build -t otelcol --build-arg SMART_AGENT_RELEASE=5.11.2 -f .\cmd\otelco
 Deploy the latest Docker image.
 
 ```bash
-$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 4317:4317 -p 6060:6060 -p 8888:8888 -p 9080:9080 -p 9411:9411 -p 9943:9943 --name=otelcol otelcol:latest
+$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0  `
+	-p 13133:13133 -p 14250:14250 -p 14268:14268 -p 4317:4317 -p 6060:6060  `
+	-p 8888:8888 -p 9080:9080 -p 9411:9411 -p 9943:9943 --name=otelcol quay.io/signalfx/splunk-otel-collector-windows:latest
 ```
+### Custom Configuration
+
+When we want to make changes in to the default configuration YAML file, for that create a
+custom configuration YAML file. Then after we can use `SPLUNK_CONFIG` environment variable  or
+command line argument `--config` to provide the path to this file.
+
+For example in Docker:
+
+```bash
+$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 `
+	-e SPLUNK_CONFIG=c:\splunk_config\gateway_config.yaml -p 13133:13133  `
+	-p 14250:14250 -p 14268:14268 -p 4317:4317 -p 6060:6060 -p 8888:8888 -p 9080:9080 `
+	-p 9411:9411 -p 9943:9943 -v ${PWD}\splunk_config:c:\splunk_config:RO `
+	--name otelcol quay.io/signalfx/splunk-otel-collector-windows:latest
+```
+> For mounting configuration files on a windows container, we have to specify a directory name in which the configuration file is present. because just like Linux containers we can not mount files to containers.

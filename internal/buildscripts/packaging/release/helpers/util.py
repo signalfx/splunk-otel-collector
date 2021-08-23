@@ -146,7 +146,7 @@ def submit_signing_request(src, sign_type, token):
     headers = {"Accept": "application/json", "Authorization": f"Bearer {token}"}
     data = {"artifact_url": src, "sign_type": sign_type, "project_key": "otel-collector"}
 
-    resp = requests.post(CHAPERONE_API_URL + "/sign/submit", headers=headers, data=data)
+    resp = requests.post(CHAPERONE_API_URL + "/SIGN/submit", headers=headers, data=data)
 
     assert resp.status_code == 200, f"signing request failed:\n{resp.reason}"
     assert "item_key" in resp.json().keys(), f"'item_key' not found in response:\n{resp.text}"

@@ -11,6 +11,9 @@ on:
       - 'deployments/ansible/**'
     tags-ignore:
       - '*'
+  pull_request:
+    paths:
+      - 'deployments/ansible/**'
 
 permissions:
   contents: write

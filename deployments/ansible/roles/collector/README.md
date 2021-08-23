@@ -132,26 +132,26 @@ how to use the role in a playbook with minimal required configuration:
   The default path is provided by the collector package.
   If the specified pathis changed from the default value, the path should 
   be an existing directory on the node. The `SPLUNK_BUNDLE_DIR` environment variable will be set to
-  this value for the collector service.  (**default:** `C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle`)
+  this value for the collector service.  (**default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle`)
 
 - `splunk_collectd_dir_win`: The path to the collectd config directory for the
   Smart Agent bundle. The default path is provided by the collector package.
   If the specified path is changed from the default value, the path should be
   an existing directory on the node. The `SPLUNK_COLLECTD_DIR` environment
   variable will be set to this value for the collector service.
-  (**default:** `C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd`)
+  (**default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd`)
 
 - `collector_config_source_win`: Source path to the collector config YAML file.
   This file will be copied to the $collector_config_dest_win path on the node.
   The default source file is provided by the collector package.
-  (**default:** `C:\Program Files\Splunk\OpenTelemetry Collector\agent_config.yaml`)
+  (**default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent_config.yaml`)
 
 - `collector_config_dest_win`: Destination path of the collector config file on the node. 
   The SPLUNK_CONFIG environment variable will be set with this value for the collector service.
-  (**default:** `C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`)
+  (**default:** `%ProgramData%\Splunk\OpenTelemetry Collector\agent_config.yaml`)
 
 - `win_fluentd_config_source`: Source path to the fluentd config file. 
-  (**default:** `${collector_path_win}\\fluentd\\td-agent.conf`)
+  (**default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\fluentd\td-agent.conf`)
   
 - `win_fluentd_config_dest`: On Windows, the path will always be set to default.
   (**default:** `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf`)

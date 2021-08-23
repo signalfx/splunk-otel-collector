@@ -43,7 +43,7 @@ whitesource:
     - main
 
 .go-cache:
-  image: 'docker.repo.splunkdev.net/ci-cd/ci-container:golang-1.16'
+  image: 'docker.repo.splunkdev.net/ci-cd/ci-container:golang-1.17-pre'
   variables:
     GOPATH: "$CI_PROJECT_DIR/.go"
   before_script:

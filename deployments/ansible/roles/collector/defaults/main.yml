@@ -47,17 +47,17 @@ splunk_hec_url: "{{splunk_ingest_url}}/v1/log"
 
 splunk_hec_token: ""
 
-splunk_bundle_dir_win: C:/ProgramFiles%/Splunk/OpenTelemetry Collector/agent-bundle
+splunk_bundle_dir_win: "{{ ansible_env.ProgramFiles }}/Splunk/OpenTelemetry Collector/agent-bundle"
 
 splunk_collectd_dir_win: "{{splunk_bundle_dir_win}}/run/collectd"
 
-collector_config_source_win:  "%ProgramFiles%/Splunk/OpenTelemetry Collector/agent_config.yaml"
+collector_config_source_win:  "{{ ansible_env.ProgramFiles }}/Splunk/OpenTelemetry Collector/agent_config.yaml"
 
-collector_config_dest_win: C:/ProgramData/Splunk/OpenTelemetry Collector/agent_config.yaml
+collector_config_dest_win: "{{ ansible_env.ProgramData }}/Splunk/OpenTelemetry Collector/agent_config.yaml"
 
-win_fluentd_config_source: "%ProgramFiles%/Splunk/OpenTelemetry Collector/fluentd/td-agent.conf"
+win_fluentd_config_source: "%{{ ansible_env.ProgramFiles }}/Splunk/OpenTelemetry Collector/fluentd/td-agent.conf"
 
-win_fluentd_config_dest: "%SystemDrive%/opt/td-agent/etc/td-agent/td-agent.conf"
+win_fluentd_config_dest: "{{ ansible_env.SystemDrive }}/opt/td-agent/etc/td-agent/td-agent.conf"
 
 package_stage: release
 

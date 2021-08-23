@@ -45,7 +45,7 @@ splunk_trace_url: "{{splunk_ingest_url}}/v2/trace"
 
 splunk_hec_url: "{{splunk_ingest_url}}/v1/log"
 
-splunk_hec_token: ""
+splunk_hec_token: "{{splunk_access_token}}"
 
 splunk_bundle_dir_win: "{{ ansible_env.ProgramFiles }}/Splunk/OpenTelemetry Collector/agent-bundle"
 

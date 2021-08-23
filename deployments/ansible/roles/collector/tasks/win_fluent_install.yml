@@ -3,7 +3,7 @@
 
 - name: Set fluentd package sources for Windows
   ansible.builtin.set_fact:
-    td_agent_base_url: http://packages.treasuredata.com.s3.amazonaws.com
+    td_agent_base_url: https://packages.treasuredata.com
     win_fluentd_msi: td-agent-{{win_td_agent_version}}-x64.msi
 
 # Download  fluentd for Windows
@@ -11,7 +11,7 @@
 - name: Download fluentd for windows
   ansible.windows.win_get_url:
     url: "{{td_agent_base_url}}/4/windows/{{win_fluentd_msi}}"
-    dest: %TEMP%
+    dest: "%TEMP%"
   register: fluentd_msi
 
 # Check for existing fluentd Installation

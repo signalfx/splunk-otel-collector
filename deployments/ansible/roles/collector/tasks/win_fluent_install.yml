@@ -1,15 +1,22 @@
 ---
+# Set fluentd package sources for Windows
 
-# Download and Install FluentD for Windows
+- name: Set fluentd package sources for Windows
+  ansible.builtin.set_fact:
+    td_agent_base_url: http://packages.treasuredata.com.s3.amazonaws.com
+    win_fluentd_msi: td-agent-{{win_td_agent_version}}-x64.msi
 
-- name: Download Fluentd for windows
+# Download  fluentd for Windows
+
+- name: Download fluentd for windows
   ansible.windows.win_get_url:
     url: "{{td_agent_base_url}}/4/windows/{{win_fluentd_msi}}"
-    dest: C:\Users\Temp\td-agent-{{win_td_agent_version}}-x64.msi
+    dest: %TEMP%
+  register: fluentd_msi
 
 # Check for existing fluentd Installation
 
-- name: Check if splunk-otel-collector service is installed
+- name: Check if fluentd service is installed
   ansible.windows.win_service:
     name: fluentdwinsvc
   register: service_info
@@ -22,12 +29,19 @@
     state: absent
   when: service_info.exists
 
-- name: Install Fluentd for windows
+# Install fluentd on Windows
+
+- name: Install Fluentd on Windows
   ansible.windows.win_package:
-    path: C:\Users\Temp\td-agent-{{win_td_agent_version}}-x64.msi
+    path: "{{fluentd_msi.dest}}"
     state: present
 
-- name: Create directory structure
-  ansible.windows.win_file:
-    path: "{{collector_path_win}}\\fluentd\\conf.d"
-    state: directory
+# Push Custom conguration file for fluentd
+
+- name: Push Custom Config file for fluentd, if provided
+  ansible.windows.win_copy:
+    src: "{{win_fluentd_config_source}}"
+    dest: "{{win_fluentd_config_dest}}"
+    remote_src: yes
+  when: win_fluentd_config_source != ""
+  notify: "restart windows fluentdwinsvc"

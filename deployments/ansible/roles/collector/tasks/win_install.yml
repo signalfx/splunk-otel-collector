@@ -2,33 +2,23 @@
 
 # splunk-otel-collector and FluentD Windows installation using msi.
 
-- name: Set Windows packages sources
-  ansible.builtin.set_fact:
-    windows_base_url: https://dl.signalfx.com
-    win_otel_msi: splunk-otel-collector-{{win_otel_version}}-amd64.msi
-    td_agent_base_url: http://packages.treasuredata.com.s3.amazonaws.com
-    win_fluentd_msi: td-agent-{{win_td_agent_version}}-x64.msi
-
-# creating Temp dir for downloading MSI packages
-- name: Create directory structure
-  ansible.windows.win_file:
-    path: C:\Users\Temp
-    state: directory
+# Install splunk-otel-collector on Windows
 
 - name: Install Splunk OpenTelemetry Collector with msi package manager for Windows
   ansible.builtin.import_tasks: otel_win_install.yml
   when: ansible_os_family == "Windows"
 
+# Set ENVIRONMENT Variables on Windows
+
 - name: Set Windows Registry values
   ansible.builtin.import_tasks: otel_win_reg.yml
   when: ansible_os_family == "Windows"
+
+# Install fluentd on Windows
 
 - name: Install Splunk OpenTelemetry Collector with yum package manager
   ansible.builtin.import_tasks: win_fluent_install.yml
   when: install_fluentd
 
-# Removing Temp directory
-- name: Remove directory structure
-  ansible.windows.win_file:
-    path: C:\Users\Temp
-    state: absent
+
+

@@ -25,14 +25,6 @@
   ansible.windows.win_regedit:
     path: "{{registry_key}}"
     state: present
-    name: SPLUNK_CONFIG
-    data: "{{collector_config_dest_win}}"
-    type: string
-
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
     name: SPLUNK_API_URL
     data: "{{splunk_api_url}}"
     type: string
@@ -101,10 +93,4 @@
     data: "{{splunk_trace_url}}"
     type: string
     
-- name: Set registry values
-  ansible.windows.win_regedit:
-    path: "{{registry_key}}"
-    state: present
-    name: ExePath
-    data: "{{collector_path_win}}"
-    type: string
+

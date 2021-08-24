@@ -2,6 +2,10 @@
 
 # splunk-otel-collector and FluentD Windows installation using msi.
 
+- name: Include Windows vars file
+  include_vars:
+    file: windows_vars.yml
+
 # Install splunk-otel-collector on Windows
 
 - name: Install Splunk OpenTelemetry Collector with msi package manager for Windows

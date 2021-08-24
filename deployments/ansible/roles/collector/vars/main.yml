@@ -1,0 +1,36 @@
+---
+# defaults file for splunk-otel-collector role vars
+
+# splunk_access_token is REQUIRED variable
+splunk_access_token: ""
+
+splunk_realm: us0
+
+splunk_otel_collector_version: latest
+
+# Set this variable to /etc/otel/collector/gateway_config.yaml in order to
+# deploy splunk-otel-collector in gateway mode
+splunk_otel_collector_config: /etc/otel/collector/agent_config.yaml
+# Set splunk_otel_collector_config_source to copy a custom config from
+# a local path to splunk_otel_collector_config on remote hosts
+splunk_otel_collector_config_source: ""
+
+splunk_service_user: splunk-otel-collector
+splunk_service_group: splunk-otel-collector
+
+splunk_memory_total_mib: 512
+# 1/3 of memory_mib by default
+splunk_ballast_size_mib: ""
+
+install_fluentd: true
+
+# Explicitly set version of td-agent,
+# By default: 3.3.0 for Debian jessie, 3.7.1 for Debian stretch,
+# and 4.1.1 for other distros.
+td_agent_version: ""
+
+splunk_fluentd_config: /etc/otel/collector/fluentd/fluent.conf
+splunk_fluentd_config_source: ""
+
+agent_bundle_dir: /usr/lib/splunk-otel-collector/agent-bundle
+splunk_collectd_dir: /usr/lib/splunk-otel-collector/agent-bundle/run/collectd

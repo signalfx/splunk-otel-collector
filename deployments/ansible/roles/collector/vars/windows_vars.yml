@@ -1,0 +1,39 @@
+---
+# default vars For Windows family
+
+splunk_api_url: https://api.{{splunk_realm}}.signalfx.com
+
+splunk_ingest_url:  https://ingest.{{splunk_realm}}.signalfx.com
+
+splunk_trace_url: "{{splunk_ingest_url}}/v2/trace"
+
+splunk_hec_url: "{{splunk_ingest_url}}/v1/log"
+
+splunk_hec_token: "{{splunk_access_token}}"
+
+splunk_bundle_dir_win: "{{ ansible_env.ProgramFiles }}/Splunk/OpenTelemetry Collector/agent-bundle"
+
+splunk_collectd_dir_win: "{{splunk_bundle_dir_win}}/run/collectd"
+
+collector_config_source_win:  "{{ ansible_env.ProgramFiles }}/Splunk/OpenTelemetry Collector/agent_config.yaml"
+
+collector_config_dest_win: "{{ ansible_env.ProgramData }}/Splunk/OpenTelemetry Collector/agent_config.yaml"
+
+win_fluentd_config_source: "%{{ ansible_env.ProgramFiles }}/Splunk/OpenTelemetry Collector/fluentd/td-agent.conf"
+
+win_fluentd_config_dest: "{{ ansible_env.SystemDrive }}/opt/td-agent/etc/td-agent/td-agent.conf"
+
+package_stage: release
+
+windows_base_url: https://dl.signalfx.com
+
+win_otel_msi: splunk-otel-collector-{{win_otel_version}}-amd64.msi
+
+# Splunk-otel-collector Windows MSI version
+win_otel_version: latest
+
+# FluentD Windows Version
+win_td_agent_version: 4.1.1
+
+# Path to set ENV in Windows
+registry_key: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment

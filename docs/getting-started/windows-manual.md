@@ -94,7 +94,7 @@ $ cd splunk-otel-collector
 $ docker build -t otelcol --build-arg SMART_AGENT_RELEASE=5.11.2 -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
 ```
 
-Deploy the latest Docker image.
+Deploy the latest Docker image:
 
 ```bash
 $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0  `

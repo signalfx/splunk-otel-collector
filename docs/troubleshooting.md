@@ -46,7 +46,7 @@ In addition, it is important to gather support information including:
 Support bundle scripts are provided to make it easier to collect information:
 
 - Linux (if installer script was used): `/etc/otel/collector/splunk-support-bundle.sh`
-- Windows (if installer script was used): `C:\Program Files\Splunk\OpenTelemetry Collector\splunk-support-bundle.ps1`
+- Windows (if MSI installer was used): `C:\Program Files\Splunk\OpenTelemetry Collector\splunk-support-bundle.ps1`
 
 ## Error Messages and Reasons
 

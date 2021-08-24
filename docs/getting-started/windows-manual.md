@@ -107,7 +107,7 @@ When we want to make changes in to the default configuration YAML file, for that
 custom configuration YAML file. Then after we can use `SPLUNK_CONFIG` environment variable  or
 command line argument `--config` to provide the path to this file.
 
-For example in Docker:
+Example with `SPLUNK_CONFIG`:
 
 ```bash
 $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 `

@@ -126,6 +126,12 @@ how to use the role in a playbook with minimal required configuration:
 - `splunk_fluentd_config`: Path to the fluentd config file on the remote host.
   (**default:** `/etc/otel/collector/fluentd/fluent.conf`)
 
+- `splunk_fluentd_config_source`: Source path to a fluentd config file on your 
+  control host that will be uploaded and set in place of `splunk_fluentd_config` on
+  remote hosts. Can be used to submit a custom fluentd config,
+  e.g. `./custom_fluentd_config.conf`. (**default:** `""` meaning 
+  that nothing will be copied and existing `splunk_fluentd_config` will be used)
+
 ## Windows Specific Role Variables
 
 - `splunk_bundle_dir_win`: The path to the [Smart Agent bundle directory](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/extension/smartagentextension/README.md).

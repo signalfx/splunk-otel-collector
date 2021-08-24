@@ -19,7 +19,7 @@ $CONFDIR="C:\Program Files\Splunk\OpenTelemetry Collector" # Default configurati
 $DIRECTORY= # Either passed as CLI parameter or later set to CONFDIR
 $TMPDIR="C:\Program Files\Splunk\splunk-support-bundle-$([int64](New-TimeSpan -Start (Get-Date "01/01/1970") -End (Get-Date)).TotalSeconds)" # Unique temporary directory for support bundle contents
 
-$ErrorActionPreference= 'silentlycontinue'
+$ErrorActionPreference= 'stop'
 
 function usage {
     "This is help for this program. It does nothing. Hope that helps."
@@ -123,13 +123,15 @@ function getConfig {
 #######################################
 function getStatus {
     Write-Output "INFO: Getting status..."
-    Get-Service splunk-otel-collector > $TMPDIR/logs/splunk-otel-collector.txt 2>&1
-    Get-Service fluentdwinsvc > $TMPDIR/logs/td-agent.txt 2>&1
+    Get-Service splunk-otel-collector -ErrorAction SilentlyContinue > $TMPDIR/logs/splunk-otel-collector.txt 2>&1
+    Get-Service fluentdwinsvc -ErrorAction SilentlyContinue > $TMPDIR/logs/td-agent.txt 2>&1
     if (-NOT (Get-Content -Path "$TMPDIR/logs/splunk-otel-collector.txt")) {
         Set-Content -Path "$TMPDIR/logs/splunk-otel-collector.txt" -Value "Service splunk-otel-collector not exist.."
+        Write-Output "WARN: Service splunk-otel-collector not exist.."
     }
     if (-NOT (Get-Content -Path "$TMPDIR/logs/td-agent.txt")) {
         Set-Content -Path "$TMPDIR/logs/td-agent.txt" -Value "Service td-agent not exist.."
+        Write-Output "WARN: Service td-agent not exist.."
     }
 }
 
@@ -142,8 +144,8 @@ function getStatus {
 #######################################
 function getLogs {
     Write-Output "INFO: Getting logs..."
-    Get-EventLog -LogName Application -Source "splunk-otel-collector" > $TMPDIR/logs/splunk-otel-collector.log 2>&1
-    Get-EventLog -LogName Application -Source "td-agent" > $TMPDIR/logs/td-agent.log 2>&1
+    Get-EventLog -LogName Application -Source "splunk-otel-collector" -ErrorAction SilentlyContinue > $TMPDIR/logs/splunk-otel-collector.log 2>&1
+    Get-EventLog -LogName Application -Source "td-agent" -ErrorAction SilentlyContinue > $TMPDIR/logs/td-agent.log 2>&1
     $LOGDIR="/var/log/td-agent"
     if (Test-Path -Path $LOGDIR) {
         Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/logs/td-agent/" -Recurse
@@ -152,9 +154,11 @@ function getLogs {
     }
     if (-NOT (Get-Content -Path "$TMPDIR/logs/splunk-otel-collector.log")) {
         Set-Content -Path "$TMPDIR/logs/splunk-otel-collector.log" -Value "Event splunk-otel-collector not exist.."
+        Write-Output "WARN: Event splunk-otel-collector not exist.."
     }
     if (-NOT (Get-Content -Path "$TMPDIR/logs/td-agent.log")) {
         Set-Content -Path "$TMPDIR/logs/td-agent.log" -Value "Event td-agent not exist.."
+        Write-Output "WARN: Event td-agent not exist.."
     }
 }
 
@@ -210,15 +214,15 @@ function getZpages {
 function getHostInfo {
     Write-Output "INFO: Getting host information..."
     for ( $i = 0; $i -lt 3; $i++ ) {
-        Get-Process -Name 'otelcol' >> $TMPDIR/metrics/top.txt 2>&1 
-        Get-Process -Name 'fluentd' >> $TMPDIR/metrics/top.txt 2>&1 
+        Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue >> $TMPDIR/metrics/top.txt 2>&1 
+        Get-Process -Name 'fluentd' -ErrorAction SilentlyContinue >> $TMPDIR/metrics/top.txt 2>&1 
         Start-Sleep -s 2
     }
-    if (-NOT (Get-Process -Name 'otelcol')) {
+    if (-NOT (Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue)) {
         Write-Output "WARN: Unable to find otelcol PIDs"
         Write-Output "      top will not be collected for otelcol";
     }
-    if (-NOT (Get-Process -Name 'fluentd')) {
+    if (-NOT (Get-Process -Name 'fluentd' -ErrorAction SilentlyContinue)) {
         Write-Output "WARN: Unable to find fluentd PIDs"
         Write-Output "      top will not be collected for fluentd";
     }
@@ -242,10 +246,9 @@ function tarResults {
     if (Test-Path -Path "./$TAR_NAME.tar.gz") {
         Write-Output "INFO: Support bundle available at: ./$TAR_NAME.tar.gz"
         Write-Output "      Please attach this to your support case"
-        exit 0
     } else {
-        Write-Output "ERROR: Support bundle was not properly created."
-        Write-Output "        See $TMPDIR/stdout.log for more information."
+        Write-Host "ERROR: Support bundle was not properly created."
+        Write-Host "        See $TMPDIR/stdout.log for more information."
         exit 1
     }
 }

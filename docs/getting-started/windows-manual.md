@@ -87,25 +87,17 @@ The collector logs and errors can be viewed in the Windows Event Viewer.
 
 ### Docker
 
-Create build of otel collector on local system.
-```bash
-$ git clone https://github.com/signalfx/splunk-otel-collector.git
-$ cd splunk-otel-collector
-$ docker build -t otelcol --build-arg SMART_AGENT_RELEASE=5.11.2 -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
-```
-
 Deploy the latest Docker image:
 
 ```bash
 $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0  `
 	-p 13133:13133 -p 14250:14250 -p 14268:14268 -p 4317:4317 -p 6060:6060  `
-	-p 8888:8888 -p 9080:9080 -p 9411:9411 -p 9943:9943 --name=otelcol quay.io/signalfx/splunk-otel-collector-windows:latest
+	-p 8888:8888 -p 9080:9080 -p 9411:9411 -p 9943:9943 `
+	--name=otelcol quay.io/signalfx/splunk-otel-collector-windows:latest
 ```
 ### Custom Configuration
 
-When we want to make changes in to the default configuration YAML file, for that create a
-custom configuration YAML file. Then after we can use `SPLUNK_CONFIG` environment variable  or
-command line argument `--config` to provide the path to this file.
+If using a custom configuration file, you will need to mount the directory containing the file and either use the `SPLUNK_CONFIG=<path>` environment variable or the `--config=<path>` command line argument (replace `<path>` with the path to the custom file within the container).
 
 Example with `SPLUNK_CONFIG`:
 
@@ -116,4 +108,16 @@ $ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 `
 	-p 9411:9411 -p 9943:9943 -v ${PWD}\splunk_config:c:\splunk_config:RO `
 	--name otelcol quay.io/signalfx/splunk-otel-collector-windows:latest
 ```
+
+Example with `--config`:
+
+```bash
+$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 `
+    -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 4317:4317 -p 6060:6060 `
+    -p 8888:8888 -p 9080:9080 -p 9411:9411 -p 9943:9943 `
+    -v ${PWD}\splunk_config:c:\splunk_config:RO `
+    --name otelcol quay.io/signalfx/splunk-otel-collector-windows:latest `
+    --config c:\splunk_config\gateway_config.yaml 
+```
+
 > For mounting configuration files on a windows container, we have to specify a directory name in which the configuration file is present. because just like Linux containers we can not mount files to containers.

@@ -4,12 +4,11 @@ default:
 stages:
   - sast-oss-scan
   - build
-  - test
   - sign
   - package
+  - cve-scan
   - release
   - github-release
-  - notify
 
 include:
   # https://cd.splunkdev.com/prodsec/scp-scanning/gitlab-checkmarx
@@ -354,26 +353,27 @@ puppet-release:
       - deployments/puppet/pkg/*.tar.gz
 
 cve-scan:
-  image: ubuntu:20.04
-  stage: test
+  extends: .go-cache
+  stage: cve-scan
   only:
     - main
     - schedules
-      - cron 0 8 * * *
+  before_script:
+    - mkdir -p ~/.docker/cli-plugins
+    - curl https://github.com/docker/scan-cli-plugin/releases/latest/download/docker-scan_linux_amd64 -L -s -S -o ~/.docker/cli-plugins/docker-scan
+    - chmod +x ~/.docker/cli-plugins/docker-scan
   script:
-    - make docker-otelcol
-    - mkdir -p ~/.docker/cli-plugins && \
-      curl https://github.com/docker/scan-cli-plugin/releases/latest/download/docker-scan_linux_amd64 -L -s -S -o ~/.docker/cli-plugins/docker-scan && \
-      chmod +x ~/.docker/cli-plugins/docker-scan
-    - yes | docker scan --login --token ${SNYK_AUTH_TOKEN}
-    - docker scan otelcol
-
-notify-cve-scan-failure:
-  stage: notify
-  when:
-    on-failure: cve-scan
-  script:
-    - echo "Send Slack Messages"
     - |
-      curl -X POST ${SLACK_WEBHOOK_URL} -H 'Content-Type: application/json' \
-        --data '{\"blocks\": [{"type": "section","text": {"type": "mrkdwn","text": "*@here Gitlab Job #${CI_JOB_ID}*"}},{"type": "section","text": {"type": "mrkdwn","text": "*:ghost: Vulnerability scan failed on splunk-otel-collector*"},\"accessory\": {\"type\": \"button\",\"text\": {\"type\": \"plain_text\",\"text\": \"More Info\",\"emoji\": true},\"style\": \"danger\",\"url\": \"${CI_JOB_URL}",\"action_id\": \"button-action\"}}]}'
+      if [ -f dist/otelcol.tar ]; then
+        docker load -i dist/otelcol.tar
+      else
+        make docker-otelcol
+      fi
+    - docker scan --accept-license --login --token ${SNYK_AUTH_TOKEN}
+    - docker scan otelcol
+  after_script:
+    - |
+      if [ "$CI_JOB_STATUS" != "success" ]; then
+        curl -X POST ${SLACK_WEBHOOK_URL} -H 'Content-Type: application/json' \
+          --data "{\"blocks\": [{\"type\": \"section\",\"text\": {\"type\": \"mrkdwn\",\"text\": \"*@here Gitlab Job #${CI_JOB_ID}*\"}},{\"type\": \"section\",\"text\": {\"type\": \"mrkdwn\",\"text\": \"*:ghost: Vulnerability scan failed on splunk-otel-collector*\"},\"accessory\": {\"type\": \"button\",\"text\": {\"type\": \"plain_text\",\"text\": \"More Info\",\"emoji\": true},\"style\": \"danger\",\"url\": \"${CI_JOB_URL}\",\"action_id\": \"button-action\"}}]}"
+      fi

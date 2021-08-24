@@ -14,7 +14,7 @@ Currently, the following Linux distributions and versions are supported:
 
 ## Windows
 Currently, the following Windows versions are supported:
-Ansible requires PowerShell 3.0 or newer and atleast .NET4.0 to be installed on Windows host.
+- Ansible requires PowerShell 3.0 or newer and at least .NET 4.0 to be installed on Windows host.
 A WinRM listner should be created and activated. 
 For setting up Windows Host Refer : [Ansible Docs](https://docs.ansible.com/ansible/latest/user_guide/windows_setup.html)
 

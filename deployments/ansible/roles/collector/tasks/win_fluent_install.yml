@@ -1,13 +1,11 @@
 ---
 # Set fluentd package sources for Windows
-
 - name: Set fluentd package sources for Windows
   ansible.builtin.set_fact:
     td_agent_base_url: https://packages.treasuredata.com
     win_fluentd_msi: td-agent-{{win_td_agent_version}}-x64.msi
 
 # Download  fluentd for Windows
-
 - name: Download fluentd for windows
   ansible.windows.win_get_url:
     url: "{{td_agent_base_url}}/4/windows/{{win_fluentd_msi}}"
@@ -15,14 +13,12 @@
   register: fluentd_msi
 
 # Check for existing fluentd Installation
-
 - name: Check if fluentd service is installed
   ansible.windows.win_service:
     name: fluentdwinsvc
   register: service_info
 
 # Uninstall existing fluentd service
-
 - name: Delete previous fluentd service if exist
   ansible.windows.win_service:
     name: fluentdwinsvc
@@ -30,14 +26,12 @@
   when: service_info.exists
 
 # Install fluentd on Windows
-
 - name: Install Fluentd on Windows
   ansible.windows.win_package:
     path: "{{fluentd_msi.dest}}"
     state: present
 
 # Push Custom conguration file for fluentd
-
 - name: Push Custom Config file for fluentd, if provided
   ansible.windows.win_copy:
     src: "{{win_fluentd_config_source}}"

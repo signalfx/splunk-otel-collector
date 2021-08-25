@@ -1,5 +1,4 @@
 ---
-
 - name: Create registry path for collector
   ansible.windows.win_regedit:
     path: "{{registry_key}}"
@@ -100,5 +99,3 @@
     name: SPLUNK_TRACE_URL
     data: "{{splunk_trace_url}}"
     type: string
-    
-

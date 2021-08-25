@@ -11,30 +11,25 @@
   slurp:
     src: "{{latest.dest}}"
   register: version
-
 - name: decode remote file content for latest version
+
   set_fact:
     win_otel_version: "{{version.content | b64decode }}"
   when: win_otel_collector == "latest"
 
-
 # Download msi package manager for Windows 
-
 - name: Get splunk-otel-collctor for windows
   ansible.windows.win_get_url:
     url: "{{windows_base_url}}/splunk-otel-collector/msi/{{package_stage}}/{{win_otel_msi}}"
     dest: "%TEMP%"
   register: otel_msi_package
-
 # Check for existing splunk-otel-collector Installation
-
 - name: Check if splunk-otel-collector service is installed
   ansible.windows.win_service:
     name: splunk-otel-collector
   register: service_info
 
 # Uninstall existing splunk-otel-collector service
-
 - name: Delete previous splunk-otel-collector service if exist
   ansible.windows.win_service:
     name: splunk-otel-collector
@@ -42,14 +37,12 @@
   when: service_info.exists
 
 # Install latest version of Splunk-otel-collector on Windows
-
 - name: Install splunk-otel-collector-msi
   ansible.windows.win_package:
     path:  "{{otel_msi_package.dest}}"
     state: present
 
 # Push Custom Configuration file for splunk-otel-collector on Windows.
-
 - name: Push Custom Config file for splunk-otel-collector, If provided
   ansible.windows.win_copy:
     src: "{{collector_config_source_win}}"
@@ -57,4 +50,3 @@
     remote_src: yes
   when: collector_config_source_win != ""
   notify: "restart windows splunk-otel-collector"
-

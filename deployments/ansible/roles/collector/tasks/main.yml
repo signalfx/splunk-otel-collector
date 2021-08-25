@@ -1,5 +1,4 @@
 ---
-
 - name: Define acceptable distros For splunk-otel-collector
   set_fact:
     debian_distro: ['Debian', 'Ubuntu']

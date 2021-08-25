@@ -120,7 +120,7 @@ This distribution is supported on and packaged for a variety of platforms includ
   - [Installer script (recommended)](./docs/getting-started/windows-installer.md)
   - Configuration management
     - [Puppet](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)
-  - [Manual](./docs/getting-started/windows-manual.md) including MSI with GUI and Powershell
+  - [Manual](./docs/getting-started/windows-manual.md) including MSI with GUI and Powershell, and Docker
 
 You can consult additional use cases in the [examples](./examples) directory.
 

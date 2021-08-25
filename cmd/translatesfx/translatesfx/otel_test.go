@@ -15,7 +15,6 @@
 package translatesfx
 
 import (
-	"errors"
 	"strconv"
 	"testing"
 
@@ -293,19 +292,19 @@ func yamlToOtelConfig(t *testing.T, filename string) *otelCfg {
 	return saInfoToOtelConfig(info, vaultPaths)
 }
 
-func TestSAFiltersToExpr_Simple(t *testing.T) {
-	ex := saFiltersToExpr([]interface{}{
+func TestSAExcludesToExpr_Simple(t *testing.T) {
+	ex := saExcludesToExpr([]interface{}{
 		map[interface{}]interface{}{
 			"metricNames": []interface{}{
 				"aaa",
 			},
 		},
-	})
+	}, nil, false)
 	assert.Equal(t, []string{`MetricName matches "^aaa$"`}, ex)
 }
 
-func TestSAFiltersToExpr_MetricNamesAndDimensions(t *testing.T) {
-	ex := saFiltersToExpr([]interface{}{
+func TestSAExcludesToExpr_MetricNamesAndDimensions(t *testing.T) {
+	ex := saExcludesToExpr([]interface{}{
 		map[interface{}]interface{}{
 			"metricNames": []interface{}{
 				"aaa",
@@ -314,80 +313,80 @@ func TestSAFiltersToExpr_MetricNamesAndDimensions(t *testing.T) {
 				"foo": "bar",
 			},
 		},
-	})
+	}, nil, false)
 	expected := `MetricName matches "^aaa$" and (Label("foo") matches "^bar$")`
 	assert.Equal(t, expected, ex[0])
 }
 
 func TestFilterTranslation(t *testing.T) {
 	tests := []struct {
-		name                        string
-		metricFilters               []config.MetricFilter
-		matchingDPs, nonMatchingDPs []*datapoint.Datapoint
+		name                     string
+		excludeFilters           []config.MetricFilter
+		overrideFilters          []config.MetricFilter
+		excludedDPs, includedDPs []*datapoint.Datapoint
 	}{
 		{
 			name: "simple glob",
-			metricFilters: []config.MetricFilter{
+			excludeFilters: []config.MetricFilter{
 				{MetricName: "cpu.*"},
 			},
-			matchingDPs: []*datapoint.Datapoint{
+			excludedDPs: []*datapoint.Datapoint{
 				{Metric: "cpu.utilization"},
 			},
-			nonMatchingDPs: []*datapoint.Datapoint{
+			includedDPs: []*datapoint.Datapoint{
 				{Metric: "foo"},
 			},
 		},
 		{
 			name: "glob with single override",
-			metricFilters: []config.MetricFilter{{
+			excludeFilters: []config.MetricFilter{{
 				MetricNames: []string{
 					"cpu.*", "!cpu.utilization",
 				},
 			}},
-			matchingDPs: []*datapoint.Datapoint{
+			excludedDPs: []*datapoint.Datapoint{
 				{Metric: "cpu.user"},
 			},
-			nonMatchingDPs: []*datapoint.Datapoint{
-				{Metric: "foo"},
+			includedDPs: []*datapoint.Datapoint{
 				{Metric: "cpu.utilization"},
 			},
 		},
 		{
 			name: "glob with two overrides",
-			metricFilters: []config.MetricFilter{{
+			excludeFilters: []config.MetricFilter{{
 				MetricNames: []string{
 					"cpu.*", "!cpu.utilization", "!cpu.user",
 				},
 			}},
-			matchingDPs: []*datapoint.Datapoint{
+			excludedDPs: []*datapoint.Datapoint{
 				{Metric: "cpu.sys"},
 			},
-			nonMatchingDPs: []*datapoint.Datapoint{
+			includedDPs: []*datapoint.Datapoint{
 				{Metric: "cpu.user"},
 				{Metric: "cpu.utilization"},
 			},
 		},
 		{
 			name: "multi filters",
-			metricFilters: []config.MetricFilter{{
+			excludeFilters: []config.MetricFilter{{
 				MetricNames: []string{
 					"cpu.*", "disk.*",
 				},
 			}},
-			matchingDPs: []*datapoint.Datapoint{
+			excludedDPs: []*datapoint.Datapoint{
 				{Metric: "cpu.sys"},
 				{Metric: "disk.reads"},
 			},
 		},
 		{
 			name: "dimension filter",
-			metricFilters: []config.MetricFilter{{
+			excludeFilters: []config.MetricFilter{{
 				MetricNames: []string{"cpu.*"},
 				Dimensions: map[string]interface{}{
 					"host": "aaa",
 				},
 			}},
-			matchingDPs: []*datapoint.Datapoint{
+			excludedDPs: []*datapoint.Datapoint{
 				{
 					Metric: "cpu.sys",
 					Dimensions: map[string]string{
@@ -395,7 +394,7 @@ func TestFilterTranslation(t *testing.T) {
 					},
 				},
 			},
-			nonMatchingDPs: []*datapoint.Datapoint{
+			includedDPs: []*datapoint.Datapoint{
 				{
 					Metric: "cpu.sys",
 					Dimensions: map[string]string{
@@ -404,34 +403,115 @@ func TestFilterTranslation(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "conflicting static include/exclude",
+			excludeFilters: []config.MetricFilter{
+				{MetricName: "cpu.utilization"},
+			},
+			overrideFilters: []config.MetricFilter{
+				{MetricName: "cpu.utilization"},
+			},
+			includedDPs: []*datapoint.Datapoint{
+				{Metric: "cpu.utilization"},
+				{Metric: "cpu.idle"},
+			},
+		},
+		{
+			name: "glob exclude with include override",
+			excludeFilters: []config.MetricFilter{
+				{MetricName: "cpu.*"},
+			},
+			overrideFilters: []config.MetricFilter{
+				{MetricName: "cpu.utilization"},
+			},
+			includedDPs: []*datapoint.Datapoint{
+				{Metric: "cpu.utilization"},
+			},
+			excludedDPs: []*datapoint.Datapoint{
+				{Metric: "cpu.idle"},
+			},
+		},
+		{
+			name: "glob exclude with glob includes",
+			excludeFilters: []config.MetricFilter{
+				{MetricName: "foo.*"},
+				{MetricName: "bar.*"},
+			},
+			overrideFilters: []config.MetricFilter{
+				{MetricName: "foo.aaa.*"},
+				{MetricName: "foo.bbb.*"},
+			},
+			includedDPs: []*datapoint.Datapoint{
+				{Metric: "foo.aaa.xyz"},
+				{Metric: "foo.bbb.xyz"},
+			},
+			excludedDPs: []*datapoint.Datapoint{
+				{Metric: "foo.xyz"},
+			},
+		},
+		{
+			name: "simple negation",
+			excludeFilters: []config.MetricFilter{
+				{MetricName: "foo", Negated: true},
+			},
+			includedDPs: []*datapoint.Datapoint{
+				{Metric: "foo"},
+			},
+			excludedDPs: []*datapoint.Datapoint{
+				{Metric: "bar"},
+			},
+		},
+		{
+			name: "complex negation",
+			excludeFilters: []config.MetricFilter{
+				{MetricName: "foo.aaa"},
+				{MetricName: "foo.*", Negated: true},
+			},
+			includedDPs: []*datapoint.Datapoint{
+				{Metric: "foo.xyz"},
+			},
+			excludedDPs: []*datapoint.Datapoint{
+				{Metric: "foo.aaa"},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			saFilterSet, err := newSAFilterSet(test.metricFilters)
+			saFilterSet, err := makeOldFilterSet(test.excludeFilters, test.overrideFilters)
 			require.NoError(t, err)
 
-			mapRepr := metricFiltersToMapRepresentation(test.metricFilters)
-			exprs := saFiltersToExpr(mapRepr)
-			var programs []*vm.Program
-			for _, ex := range exprs {
-				program, err := expr.Compile(ex)
+			excludeMap := metricFiltersToMapRepresentation(test.excludeFilters)
+			overrideMap := metricFiltersToMapRepresentation(test.overrideFilters)
+
+			excludeExprs := saExcludesToExpr(excludeMap, overrideMap, false)
+			var excludePrograms []*vm.Program
+			for _, ex := range excludeExprs {
+				excludeProgram, err := expr.Compile(ex)
 				require.NoError(t, err)
-				programs = append(programs, program)
+				excludePrograms = append(excludePrograms, excludeProgram)
 			}
 
-			for _, dp := range test.matchingDPs {
-				testFilter(t, assert.True, saFilterSet, dp, programs)
+			includeExprs := saExcludesToExpr(excludeMap, overrideMap, true)
+			var includePrograms []*vm.Program
+			for _, ex := range includeExprs {
+				includeProgram, err := expr.Compile(ex)
+				require.NoError(t, err)
+				includePrograms = append(includePrograms, includeProgram)
 			}
-			for _, dp := range test.nonMatchingDPs {
-				testFilter(t, assert.False, saFilterSet, dp, programs)
+
+			for _, dp := range test.excludedDPs {
+				testFilter(t, assert.True, saFilterSet, dp, excludePrograms, includePrograms)
+			}
+			for _, dp := range test.includedDPs {
+				testFilter(t, assert.False, saFilterSet, dp, excludePrograms, includePrograms)
 			}
 		})
 	}
 }
 
-func metricFiltersToMapRepresentation(metricFilters []config.MetricFilter) []interface{} {
+func metricFiltersToMapRepresentation(excludes []config.MetricFilter) []interface{} {
 	var out []interface{}
-	for _, filter := range metricFilters {
+	for _, filter := range excludes {
 		names := filter.MetricNames
 		if names == nil {
 			names = []string{filter.MetricName}
@@ -445,6 +525,7 @@ func metricFiltersToMapRepresentation(metricFilters []config.MetricFilter) []int
 				return v
 			}(names),
 			"dimensions": stringMapToInterfaceMap(filter.Dimensions),
+			"negated":    filter.Negated,
 		})
 	}
 	return out
@@ -454,12 +535,12 @@ func TestMetricNamesToExpr(t *testing.T) {
 	assert.Equal(
 		t,
 		`MetricName matches "^aaaa$"`,
-		metricNamesToExpr([]interface{}{"aaaa"}),
+		metricNamesToExpr([]interface{}{"aaaa"}, false),
 	)
 	assert.Equal(
 		t,
 		`MetricName matches "^aaaa$" or MetricName matches "^bbbb$"`,
-		metricNamesToExpr([]interface{}{"aaaa", "bbbb"}),
+		metricNamesToExpr([]interface{}{"aaaa", "bbbb"}, false),
 	)
 }
 
@@ -470,18 +551,31 @@ func testFilter(
 	f assertionFunc,
 	saFilterSet *dpfilters.FilterSet,
 	dp *datapoint.Datapoint,
-	programs []*vm.Program,
+	excludePrograms, includePrograms []*vm.Program,
 ) {
 	saMatched := saFilterSet.Matches(dp)
-	f(t, saMatched)
+	f(t, saMatched, "sa matched")
 
-	exprResult := testExpr(t, programs, dp)
-	f(t, exprResult)
+	exprResult := testExpr(t, excludePrograms, includePrograms, dp)
+	f(t, exprResult, "expr matched")
 }
 
-func testExpr(t *testing.T, programs []*vm.Program, dp *datapoint.Datapoint) bool {
-	for _, program := range programs {
-		v, err := expr.Run(program, map[string]interface{}{
+func testExpr(t *testing.T, excludePrograms []*vm.Program, includePrograms []*vm.Program, dp *datapoint.Datapoint) bool {
+	for _, includeProgram := range includePrograms {
+		v, err := expr.Run(includeProgram, map[string]interface{}{
+			"MetricName": dp.Metric,
+			"Label": func(key string) string {
+				return dp.Dimensions[key]
+			},
+		})
+		require.NoError(t, err)
+		if !v.(bool) {
+			return true
+		}
+	}
+
+	for _, excludeProgram := range excludePrograms {
+		v, err := expr.Run(excludeProgram, map[string]interface{}{
 			"MetricName": dp.Metric,
 			"Label": func(key string) string {
 				return dp.Dimensions[key]
@@ -496,26 +590,45 @@ func testExpr(t *testing.T, programs []*vm.Program, dp *datapoint.Datapoint) boo
 }
 
 // from SA codebase
-func newSAFilterSet(excludes []config.MetricFilter) (*dpfilters.FilterSet, error) {
-	var excludeSet []dpfilters.DatapointFilter
-	for _, f := range excludes {
-		if f.Negated {
-			return nil, errors.New("new filters can't be negated")
-		}
-		dimSet, err := f.Normalize()
-		if err != nil {
-			return nil, err
-		}
+func makeOldFilterSet(excludes []config.MetricFilter, includes []config.MetricFilter) (*dpfilters.FilterSet, error) {
+	excludeSet := make([]dpfilters.DatapointFilter, 0)
+	includeSet := make([]dpfilters.DatapointFilter, 0)
+	mtes := make([]config.MetricFilter, 0, len(excludes))
+	mtis := make([]config.MetricFilter, 0, len(includes))
 
-		dpf, err := dpfilters.NewOverridable(f.MetricNames, dimSet)
-		if err != nil {
-			return nil, err
-		}
-
-		excludeSet = append(excludeSet, dpf)
+	for _, mte := range excludes {
+		mtes = config.AddOrMerge(mtes, mte)
 	}
+
+	for _, mti := range includes {
+		mtis = config.AddOrMerge(mtis, mti)
+	}
+
+	for _, mte := range mtes {
+		f, err := mte.MakeFilter()
+		if err != nil {
+			return nil, err
+		}
+		excludeSet = append(excludeSet, f)
+	}
+
+	for _, mti := range mtis {
+		dimSet, err := mti.Normalize()
+		if err != nil {
+			return nil, err
+		}
+
+		f, err := dpfilters.New(mti.MonitorType, mti.MetricNames, dimSet, mti.Negated)
+		if err != nil {
+			return nil, err
+		}
+
+		includeSet = append(includeSet, f)
+	}
+
 	return &dpfilters.FilterSet{
 		ExcludeFilters: excludeSet,
+		IncludeFilters: includeSet,
 	}, nil
 }
 
@@ -551,8 +664,8 @@ func TestDimsToExpr_ThreeDims(t *testing.T) {
 	)
 }
 
-func TestSAFiltersToExpr_MetricNamesOnly(t *testing.T) {
-	ex := saFiltersToExpr([]interface{}{
+func TestSAExcludesToExpr_MetricNamesOnly(t *testing.T) {
+	ex := saExcludesToExpr([]interface{}{
 		map[interface{}]interface{}{
 			"metricNames": []interface{}{
 				"node_filesystem_*",
@@ -560,19 +673,19 @@ func TestSAFiltersToExpr_MetricNamesOnly(t *testing.T) {
 				"!node_filesystem_readonly",
 			},
 		},
-	})
+	}, nil, false)
 	assert.Equal(t, []string{`MetricName matches "^node_filesystem_.*$" and not (MetricName matches "^node_filesystem_free_bytes$") and not (MetricName matches "^node_filesystem_readonly$")`}, ex)
 }
 
-func TestSAFiltersToExpr_MetricNameAndDims(t *testing.T) {
-	ex := saFiltersToExpr([]interface{}{
+func TestSAExcludesToExpr_MetricNameAndDims(t *testing.T) {
+	ex := saExcludesToExpr([]interface{}{
 		map[interface{}]interface{}{
 			"metricName": "node_network_*",
 			"dimensions": map[interface{}]interface{}{
 				"interface": []interface{}{"*", "!eth0"},
 			},
 		},
-	})
+	}, nil, false)
 	assert.Equal(
 		t,
 		`MetricName matches "^node_network_.*$" and (Label("interface") matches "^.*$" and not (Label("interface") matches "^eth0$"))`,
@@ -621,4 +734,13 @@ func TestIsRegexFilter(t *testing.T) {
 	assert.False(t, isRegexFilter("fooby/"))
 	assert.False(t, isRegexFilter("/"))
 	assert.True(t, isRegexFilter("/fooby/"))
+}
+
+func TestSAIncludesToExpr(t *testing.T) {
+	expression := saIncludesToExpr([]interface{}{
+		map[interface{}]interface{}{
+			"metricName": "foo",
+		},
+	})
+	assert.Equal(t, `not (MetricName matches "^foo$")`, expression)
 }

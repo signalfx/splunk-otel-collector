@@ -60,64 +60,106 @@ func newOtelCfg() *otelCfg {
 }
 
 func translateFilters(sa saCfgInfo, otel *otelCfg) {
-	if sa.metricsToExclude == nil {
+	if sa.metricsToExclude == nil && sa.metricsToInclude == nil {
 		return
 	}
+
+	metricsFilter := map[string]interface{}{}
 	otel.Processors[filterProc] = map[string]interface{}{
-		"metrics": map[string]interface{}{
-			"exclude": map[string]interface{}{
-				"match_type":  "expr",
-				"expressions": saFiltersToExpr(sa.metricsToExclude),
-			},
-		},
+		"metrics": metricsFilter,
 	}
+
+	excludeExpressions := saExcludesToExpr(sa.metricsToExclude, sa.metricsToInclude, false)
+	if excludeExpressions != nil {
+		metricsFilter["exclude"] = map[string]interface{}{
+			"match_type":  "expr",
+			"expressions": excludeExpressions,
+		}
+	}
+
+	excludeExpressionsNegated := saExcludesToExpr(sa.metricsToExclude, sa.metricsToInclude, true)
+	if excludeExpressionsNegated != nil {
+		metricsFilter["include"] = map[string]interface{}{
+			"match_type":  "expr",
+			"expressions": excludeExpressionsNegated,
+		}
+	}
+
 	otel.Service.Pipelines["metrics"].appendProcessor(filterProc)
 }
 
-func saFiltersToExpr(excludes []interface{}) []string {
+func saExcludesToExpr(excludes []interface{}, overrides []interface{}, expectedNegation bool) []string {
+	overridesExpr := saIncludesToExpr(overrides)
 	var out []string
-	for _, excludeV := range excludes {
-		exclude, ok := excludeV.(map[interface{}]interface{})
-		if !ok {
-			return nil
+	for _, v := range excludes {
+		line := filterToExpr(v.(map[interface{}]interface{}), false, expectedNegation)
+		if line == "" {
+			continue
 		}
-		var names []interface{}
-		namesV, ok := exclude["metricNames"]
-		if !ok {
-			if nameV, metricNameOK := exclude["metricName"]; metricNameOK {
-				names = []interface{}{nameV}
-			} else {
-				return nil
-			}
-		} else {
-			names = namesV.([]interface{})
+		if overridesExpr != "" {
+			line += " and (" + overridesExpr + ")"
 		}
-		line := metricNamesToExpr(names)
-
-		dimsV, ok := exclude["dimensions"]
-		var dims map[interface{}]interface{}
-		if ok && dimsV != nil {
-			dims = dimsV.(map[interface{}]interface{})
-		}
-		dimExpr := dimsToExpr(dims)
-		if dimExpr != "" {
-			if line != "" {
-				line += " and "
-			}
-			line += "(" + dimExpr + ")"
-		}
-
 		out = append(out, line)
 	}
 	return out
 }
 
-func metricNamesToExpr(names []interface{}) string {
+func saIncludesToExpr(includes []interface{}) string {
+	out := ""
+	for _, includeV := range includes {
+		line := filterToExpr(includeV.(map[interface{}]interface{}), true, false)
+		if line == "" {
+			continue
+		}
+		if out != "" {
+			out += " and "
+		}
+		out += line
+	}
+	return out
+}
+
+func filterToExpr(filter map[interface{}]interface{}, flipNegation, expectedNegation bool) string {
+	effectiveNegated := false
+	if negatedV, ok := filter["negated"]; ok {
+		effectiveNegated = negatedV.(bool)
+	}
+
+	if effectiveNegated != expectedNegation {
+		return ""
+	}
+
+	var names []interface{}
+	if namesV, ok := filter["metricNames"]; ok {
+		names = namesV.([]interface{})
+	} else if nameV, metricNameOK := filter["metricName"]; metricNameOK {
+		names = []interface{}{nameV}
+	}
+	line := metricNamesToExpr(names, flipNegation)
+	dimsV, ok := filter["dimensions"]
+	var dims map[interface{}]interface{}
+	if ok && dimsV != nil {
+		dims = dimsV.(map[interface{}]interface{})
+	}
+	dimExpr := dimsToExpr(dims)
+	if dimExpr != "" {
+		if line != "" {
+			line += " and "
+		}
+		line += "(" + dimExpr + ")"
+	}
+	return line
+}
+
+func metricNamesToExpr(names []interface{}, flipNegation bool) string {
 	out := ""
 	for _, nameV := range names {
 		name := nameV.(string)
 		rex, negated := saToRegexpStr(name)
 		stmt := fmt.Sprintf("MetricName matches %q", rex)
+		if flipNegation {
+			negated = !negated
+		}
 		out += wrapStatement(stmt, out == "", negated)
 	}
 	return out

@@ -6,7 +6,7 @@ orbs:
 executors:
   golang:
     docker:
-      - image: cimg/go:1.16
+      - image: cimg/go:1.17
 
 commands:
   attach_to_workspace:
@@ -195,7 +195,7 @@ jobs:
 
   docker-otelcol:
     docker:
-      - image: cimg/go:1.16
+      - image: cimg/go:1.17
     steps:
       - attach_to_workspace
       - setup_remote_docker
@@ -232,7 +232,7 @@ jobs:
       - run:
           name: Upgrade golang
           command: |
-            choco upgrade golang --version=1.16
+            choco upgrade golang --version=1.17
             refreshenv
             go env -w CGO_ENABLED=0
             go install github.com/ory/go-acc@v0.2.6

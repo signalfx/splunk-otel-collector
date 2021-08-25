@@ -58,7 +58,7 @@ var _ configsource.Session = (*vaultSession)(nil)
 func (v *vaultSession) Retrieve(_ context.Context, selector string, _ interface{}) (configsource.Retrieved, error) {
 	// By default assume that watcher is not supported. The exception will be the first
 	// value read from the vault secret.
-	watchForUpdateFn := watcherNotSupported
+	var watchForUpdateFn func() error
 
 	if v.secret == nil {
 		if err := v.readSecret(); err != nil {
@@ -79,7 +79,10 @@ func (v *vaultSession) Retrieve(_ context.Context, selector string, _ interface{
 		return nil, &errBadSelector{fmt.Errorf("no value at path %q for key %q", v.path, selector)}
 	}
 
-	return configprovider.NewRetrieved(value, watchForUpdateFn), nil
+	if watchForUpdateFn == nil {
+		return configprovider.NewRetrieved(value), nil
+	}
+	return configprovider.NewWatchableRetrieved(value, watchForUpdateFn), nil
 }
 
 func (v *vaultSession) RetrieveEnd(context.Context) error {
@@ -211,19 +214,19 @@ func (v *vaultSession) buildPollingWatcher() (func() error, error) {
 	mdValue := v.secret.Data["metadata"]
 	if mdValue == nil || !strings.Contains(v.path, "/data/") {
 		v.logger.Warn("Missing metadata to create polling watcher for vault config source", zap.String("path", v.path))
-		return watcherNotSupported, nil
+		return nil, nil
 	}
 
 	mdMap, ok := mdValue.(map[string]interface{})
 	if !ok {
 		v.logger.Warn("Metadata not in the expected format to create polling watcher for vault config source", zap.String("path", v.path))
-		return watcherNotSupported, nil
+		return nil, nil
 	}
 
 	originalVersion := v.extractVersionMetadata(mdMap, "created_time", "version")
 	if originalVersion == nil {
 		v.logger.Warn("Failed to extract version metadata to create to create polling watcher for vault config source", zap.String("path", v.path))
-		return watcherNotSupported, nil
+		return nil, nil
 	}
 
 	watcherFn := func() error {
@@ -315,8 +318,4 @@ func traverseToKey(data map[string]interface{}, key string) interface{} {
 			return nil
 		}
 	}
-}
-
-func watcherNotSupported() error {
-	return configsource.ErrWatcherNotSupported
 }

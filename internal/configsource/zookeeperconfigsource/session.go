@@ -53,7 +53,7 @@ func (s *zkSession) Retrieve(ctx context.Context, selector string, _ interface{}
 		return nil, err
 	}
 
-	return configprovider.NewRetrieved(value, newWatcher(watchCh, s.closeCh)), nil
+	return configprovider.NewWatchableRetrieved(value, newWatcher(watchCh, s.closeCh)), nil
 }
 
 func (s *zkSession) RetrieveEnd(context.Context) error {

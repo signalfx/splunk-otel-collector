@@ -112,9 +112,9 @@ func fillNumberDatapoint(value sfx.Value, timestamp time.Time, dimensions map[st
 	case sfx.FloatValue:
 		dp.SetDoubleVal(val.Float())
 	}
-	labels := dp.LabelsMap()
-	labels.EnsureCapacity(len(dimensions))
+	attributes := dp.Attributes()
+	attributes.EnsureCapacity(len(dimensions))
 	for k, v := range dimensions {
-		labels.Insert(k, v)
+		attributes.Insert(k, pdata.NewAttributeValueString(v))
 	}
 }

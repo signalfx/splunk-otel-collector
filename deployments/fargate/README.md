@@ -7,7 +7,7 @@ Unless stated otherwise, the
 [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector)
 (Collector) is deployed as a **sidecar** (additional container) to ECS tasks.
 
-Requires Connector release v0.32.0 or newer which corresponds to image tag 0.32.0 and newer.
+Requires Connector release v0.33.0 or newer which corresponds to image tag 0.33.0 and newer.
 See image repository [here](https://quay.io/repository/signalfx/splunk-otel-collector?tab=tags).
 
 ## Getting Started
@@ -35,7 +35,7 @@ JSON.
       "value": "[\"quay.io/signalfx/splunk-otel-collector\"]"
     }
   ],
-  "image": "quay.io/signalfx/splunk-otel-collector:0.32.0",
+  "image": "quay.io/signalfx/splunk-otel-collector:0.33.0",
   "essential": true,
   "name": "splunk_otel_collector"
 }
@@ -44,7 +44,7 @@ In the above container definition the Collector is configured to use the default
 configuration file `/etc/otel/collector/fargate_config.yaml`. The Collector image Dockerfile
 is available [here](../../cmd/otelcol/Dockerfile) and the contents of the default
 configuration file can be seen [here](../../cmd/otelcol/config/collector/fargate_config.yaml).
-Note that receivers `hostmetrics` and `smartagent/ecs-metadata` are specified by default.
+Note that the receiver `smartagent/ecs-metadata` is enabled by default.
 
 In summary, the default Collector container definition does the following:
 - Specifies the Collector image.
@@ -63,7 +63,7 @@ more information about the memory limiter processor, see
 The example below shows an excerpt of the container definition JSON for the Collector 
 configured to use custom configuration file `/path/to/custom/config/file`. 
 `/path/to/custom/config/file` is a placeholder value for the actual custom configuration
-file path and `0.32.0` is the latest image tag at present. The custom configuration file
+file path and `0.33.0` is the latest image tag at present. The custom configuration file
 should be present in a volume attached to the task.
 ```json
 {
@@ -73,7 +73,7 @@ should be present in a volume attached to the task.
       "value": "/path/to/custom/config/file"
     }
   ],
-  "image": "quay.io/signalfx/splunk-otel-collector:0.32.0",
+  "image": "quay.io/signalfx/splunk-otel-collector:0.33.0",
   "essential": true,
   "name": "splunk_otel_collector"
 }
@@ -170,7 +170,7 @@ For example, you can store the custom configuration above in a parameter called
 Collector container definition assign the parameter to environment variable 
 `SPLUNK_CONFIG_YAML` using `valueFrom`. The example below shows an excerpt of the container
 definition JSON for the Collector. `MY_SPLUNK_ACCESS_TOKEN` and `MY_SPLUNK_REALM` are 
-placeholder values and image tag `0.32.0` is the latest at present.
+placeholder values and image tag `0.33.0` is the latest at present.
 
 ```json
 {
@@ -190,7 +190,7 @@ placeholder values and image tag `0.32.0` is the latest at present.
       "name": "SPLUNK_CONFIG_YAML"
     }
   ],
-  "image": "quay.io/signalfx/splunk-otel-collector:0.32.0",
+  "image": "quay.io/signalfx/splunk-otel-collector:0.33.0",
   "essential": true,
   "name": "splunk_otel_collector"
 }

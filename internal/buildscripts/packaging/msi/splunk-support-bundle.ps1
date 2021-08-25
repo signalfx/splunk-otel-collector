@@ -17,7 +17,7 @@
 #######################################
 $CONFDIR="${env:PROGRAMDATA}\Splunk\OpenTelemetry Collector" # Default configuration directory
 $DIRECTORY= # Either passed as CLI parameter or later set to CONFDIR
-$TMPDIR="${env:PROGRAMFILES}\Splunk\splunk-support-bundle-$([int64](New-TimeSpan -Start (Get-Date "01/01/1970") -End (Get-Date)).TotalSeconds)" # Unique temporary directory for support bundle contents
+$TMPDIR="${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector\splunk-support-bundle-$([int64](New-TimeSpan -Start (Get-Date "01/01/1970") -End (Get-Date)).TotalSeconds)" # Unique temporary directory for support bundle contents
 
 $ErrorActionPreference= 'stop'
 
@@ -147,6 +147,12 @@ function getLogs {
     Get-EventLog -LogName Application -Source "splunk-otel-collector" -ErrorAction SilentlyContinue > $TMPDIR/logs/splunk-otel-collector.log 2>&1
     Get-EventLog -LogName Application -Source "td-agent" -ErrorAction SilentlyContinue > $TMPDIR/logs/td-agent.log 2>&1
     $LOGDIR="${env:SYSTEMDRIVE}\var\log\td-agent"
+    if (Test-Path -Path $LOGDIR) {
+        Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/logs/td-agent/" -Recurse
+    } else {
+        Write-Output "WARN: Permission denied to directory ($LOGDIR)."
+    }
+    $LOGDIR="${env:SYSTEMDRIVE}\opt\td-agent"
     if (Test-Path -Path $LOGDIR) {
         Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/logs/td-agent/" -Recurse
     } else {

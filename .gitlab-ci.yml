@@ -31,6 +31,7 @@ semgrep:
     - echo "Check results at $CI_PIPELINE_URL/security"
   only:
     - main
+    - schedules
 
 whitesource:
   extends: .whitesource
@@ -42,6 +43,7 @@ whitesource:
     config_overlay: $CI_PROJECT_DIR/.whitesource.conf
   only:
     - main
+    - schedules
 
 .go-cache:
   image: 'docker.repo.splunkdev.net/ci-cd/ci-container:golang-1.17-pre'
@@ -63,6 +65,8 @@ compile:
     variables:
       - $CI_COMMIT_BRANCH == "main"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
   stage: build
   parallel:
     matrix:
@@ -90,6 +94,8 @@ compile:
     variables:
       - $CI_COMMIT_BRANCH == "main"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
   retry: 2
   script:
     - |
@@ -143,6 +149,8 @@ build-image:
     variables:
       - $CI_COMMIT_BRANCH == "main"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
   stage: package
   retry: 2
   script:
@@ -159,6 +167,8 @@ build-image:
     variables:
       - $CI_COMMIT_BRANCH == "main"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
   stage: package
   parallel:
     matrix:
@@ -189,6 +199,8 @@ build-msi:
     variables:
       - $CI_COMMIT_BRANCH == "main"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
   stage: package
   before_script:
     # build the MSI with the signed exe
@@ -220,6 +232,8 @@ push-dev-image:
   extends: .push-docker-image
   only:
     - main
+  except:
+    - schedules
   variables:
     IMAGE_NAME: splunk-otel-collector-dev
     IMAGE_TAG: "$CI_COMMIT_SHA"
@@ -231,6 +245,7 @@ push-image:
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   except:
     - branches
+    - schedules
   variables:
     IMAGE_NAME: splunk-otel-collector
     IMAGE_TAG: "$CI_COMMIT_TAG"
@@ -290,6 +305,8 @@ github-release:
   only:
     variables:
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
   stage: github-release
   script:
     - mkdir -p dist/assets
@@ -308,6 +325,7 @@ github-release:
     - /^ansible-v[0-9]+\.[0-9]+\.[0-9]+.*/
   except:
     - branches
+    - schedules
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   cache:
@@ -341,6 +359,8 @@ puppet-release:
   only:
     variables:
       - $CI_COMMIT_TAG =~ /^puppet-v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
   before_script:
     - gem install bundler
     - cd deployments/puppet

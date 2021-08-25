@@ -44,7 +44,7 @@ require (
 	github.com/openzipkin/zipkin-go v0.2.5
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.36
-	github.com/signalfx/signalfx-agent v1.0.1-0.20210819163550-0e368098128d
+	github.com/signalfx/signalfx-agent v1.0.1-0.20210825181409-f66c88d96525
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.4.1
 	github.com/stretchr/testify v1.7.0

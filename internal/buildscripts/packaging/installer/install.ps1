@@ -110,18 +110,38 @@ $arch = "amd64"
 $format = "msi"
 $service_name = "splunk-otel-collector"
 $signalfx_dl = "https://dl.signalfx.com"
-$installation_path = "\Program Files"
-$program_data_path = "\ProgramData\Splunk\OpenTelemetry Collector"
+try {
+    Resolve-Path $env:PROGRAMFILES
+    $installation_path = "${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector"
+} catch {
+    $installation_path = "\Program Files\Splunk\OpenTelemetry Collector"
+}
+try {
+    Resolve-Path $env:PROGRAMDATA
+    $program_data_path = "${env:PROGRAMDATA}\Splunk\OpenTelemetry Collector"
+} catch {
+    $program_data_path = "\ProgramData\Splunk\OpenTelemetry Collector"
+}
 $old_config_path = "$program_data_path\config.yaml"
 $agent_config_path = "$program_data_path\agent_config.yaml"
 $gateway_config_path = "$program_data_path\gateway_config.yaml"
 $config_path = ""
-$tempdir = "\tmp\Splunk\OpenTelemetry Collector"
+try {
+    Resolve-Path $env:TEMP
+    $tempdir = "${env:TEMP}\Splunk\OpenTelemetry Collector"
+} catch {
+    $tempdir = "\tmp\Splunk\OpenTelemetry Collector"
+}
 $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
-$fluentd_msi_name = "td-agent-4.0.1-x64.msi"
+$fluentd_msi_name = "td-agent-4.1.0-x64.msi"
 $fluentd_dl_url = "https://packages.treasuredata.com/4/windows/$fluentd_msi_name"
-$fluentd_base_dir = "\opt\td-agent"
+try {
+    Resolve-Path $env:SYSTEMDRIVE
+    $fluentd_base_dir = "${env:SYSTEMDRIVE}\opt\td-agent"
+} catch {
+    $fluentd_base_dir = "\opt\td-agent"
+}
 $fluentd_config_dir = "$fluentd_base_dir\etc\td-agent"
 $fluentd_config_path = "$fluentd_config_dir\td-agent.conf"
 $fluentd_service_name = "fluentdwinsvc"
@@ -365,7 +385,7 @@ if ($hec_token -eq "") {
 }
 
 if ($bundle_dir -eq "") {
-    $bundle_dir = "C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle"
+    $bundle_dir = "$installation_path\agent-bundle"
 }
 
 if ("$env:VERIFY_ACCESS_TOKEN" -ne "false") {
@@ -408,20 +428,20 @@ echo "- Done"
 
 # copy the default configs to $program_data_path
 mkdir "$program_data_path" -ErrorAction Ignore
-if (!(Test-Path -Path "$agent_config_path") -And (Test-Path -Path "$installation_path\Splunk\OpenTelemetry Collector\agent_config.yaml")) {
+if (!(Test-Path -Path "$agent_config_path") -And (Test-Path -Path "$installation_path\agent_config.yaml")) {
     echo "$agent_config_path not found"
     echo "Copying default agent_config.yaml to $agent_config_path"
-    Copy-Item "$installation_path\Splunk\OpenTelemetry Collector\agent_config.yaml" "$agent_config_path"
+    Copy-Item "$installation_path\agent_config.yaml" "$agent_config_path"
 }
-if (!(Test-Path -Path "$gateway_config_path") -And (Test-Path -Path "$installation_path\Splunk\OpenTelemetry Collector\gateway_config.yaml")) {
+if (!(Test-Path -Path "$gateway_config_path") -And (Test-Path -Path "$installation_path\gateway_config.yaml")) {
     echo "$gateway_config_path not found"
     echo "Copying default gateway_config.yaml to $gateway_config_path"
-    Copy-Item "$installation_path\Splunk\OpenTelemetry Collector\gateway_config.yaml" "$gateway_config_path"
+    Copy-Item "$installation_path\gateway_config.yaml" "$gateway_config_path"
 }
-if (!(Test-Path -Path "$old_config_path") -And (Test-Path -Path "$installation_path\Splunk\OpenTelemetry Collector\config.yaml")) {
+if (!(Test-Path -Path "$old_config_path") -And (Test-Path -Path "$installation_path\config.yaml")) {
     echo "$old_config_path not found"
     echo "Copying default config.yaml to $old_config_path"
-    Copy-Item "$installation_path\Splunk\OpenTelemetry Collector\config.yaml" "$old_config_path"
+    Copy-Item "$installation_path\config.yaml" "$old_config_path"
 }
 
 if (($mode -Eq "agent") -And (Test-Path -Path "$agent_config_path")) {
@@ -454,8 +474,8 @@ start_service -name "$service_name" -config_path "$config_path"
 echo "- Started"
 
 if ($with_fluentd) {
-    $default_fluentd_config = "$installation_path\Splunk\OpenTelemetry Collector\fluentd\td-agent.conf"
-    $default_confd_dir = "$installation_path\Splunk\OpenTelemetry Collector\fluentd\conf.d"
+    $default_fluentd_config = "$installation_path\fluentd\td-agent.conf"
+    $default_confd_dir = "$installation_path\fluentd\conf.d"
 
     # copy the default fluentd config to $fluentd_config_path if it does not already exist
     if (!(Test-Path -Path "$fluentd_config_path") -And (Test-Path -Path "$default_fluentd_config")) {
@@ -503,7 +523,8 @@ Make sure that your system's time is relatively accurate or else datapoints may 
 The collector's main configuration file is located at $config_path,
 and the environment variables are stored in the $regkey registry key.
 
-If the $config_path or any of the SPLUNK_* environment variables in $regkey are modified,
+If the $config_path configuration file or any of the
+SPLUNK_* environment variables in the $regkey registry key are modified,
 the collector service must be restarted to apply the changes by restarting the system or running the
 following PowerShell commands:
   PS> Stop-Service $service_name

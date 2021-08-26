@@ -1,0 +1,87 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: procstat.cpu_time
+            type: IntGauge
+          - name: procstat.cpu_usage
+            type: DoubleGauge
+          - name: procstat.involuntary_context_switches
+            type: IntGauge
+          - name: procstat.memory_data
+            type: IntGauge
+          - name: procstat.memory_locked
+            type: IntGauge
+          - name: procstat.memory_rss
+            type: IntGauge
+          - name: procstat.memory_stack
+            type: IntGauge
+          - name: procstat.memory_swap
+            type: IntGauge
+          - name: procstat.memory_vms
+            type: IntGauge
+          - name: procstat.memory_usage
+            type: DoubleGauge
+          - name: procstat.nice_priority
+            type: IntGauge
+          - name: procstat.num_fds
+            type: IntGauge
+          - name: procstat.num_threads
+            type: IntGauge
+          - name: procstat.read_bytes
+            type: IntGauge
+          - name: procstat.read_count
+            type: IntGauge
+          - name: procstat.realtime_priority
+            type: IntGauge
+          - name: procstat.rlimit_cpu_time_hard
+            type: IntGauge
+          - name: procstat.rlimit_cpu_time_soft
+            type: IntGauge
+          - name: procstat.rlimit_file_locks_hard
+            type: IntGauge
+          - name: procstat.rlimit_file_locks_soft
+            type: IntGauge
+          - name: procstat.rlimit_memory_data_hard
+            type: IntGauge
+          - name: procstat.rlimit_memory_data_soft
+            type: IntGauge
+          - name: procstat.rlimit_memory_locked_hard
+            type: IntGauge
+          - name: procstat.rlimit_memory_locked_soft
+            type: IntGauge
+          - name: procstat.rlimit_memory_rss_hard
+            type: IntGauge
+          - name: procstat.rlimit_memory_rss_soft
+            type: IntGauge
+          - name: procstat.rlimit_memory_stack_hard
+            type: IntGauge
+          - name: procstat.rlimit_memory_stack_soft
+            type: IntGauge
+          - name: procstat.rlimit_memory_vms_hard
+            type: IntGauge
+          - name: procstat.rlimit_memory_vms_soft
+            type: IntGauge
+          - name: procstat.rlimit_nice_priority_hard
+            type: IntGauge
+          - name: procstat.rlimit_nice_priority_soft
+            type: IntGauge
+          - name: procstat.rlimit_num_fds_hard
+            type: IntGauge
+          - name: procstat.rlimit_num_fds_soft
+            type: IntGauge
+          - name: procstat.rlimit_realtime_priority_hard
+            type: IntGauge
+          - name: procstat.rlimit_realtime_priority_soft
+            type: IntGauge
+          - name: procstat.rlimit_signals_pending_hard
+            type: IntGauge
+          - name: procstat.rlimit_signals_pending_soft
+            type: IntGauge
+          - name: procstat.signals_pending
+            type: IntGauge
+          - name: procstat.write_bytes
+            type: IntGauge
+          - name: procstat.write_count
+            type: IntGauge
+          - name: procstat_lookup.pid_count
+            type: IntGauge

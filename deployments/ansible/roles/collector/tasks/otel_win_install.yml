@@ -2,27 +2,28 @@
 # Fetching the latest version of splunk-otel-collector
 - name: Get splunk-otel-collector latest version
   ansible.windows.win_get_url:
-    url: "{{windows_base_url}}/splunk-otel-collector/msi/{{package_stage}}/latest.txt"
+    url: "{{win_base_url}}/splunk-otel-collector/msi/{{package_stage}}/latest.txt"
     dest: "%TEMP%"
   register: latest
-  when: win_otel_collector == "latest"
+  when: splunk_otel_collector_version == "latest"
 
 - name: get content of remote file
   slurp:
     src: "{{latest.dest}}"
   register: version
+
 - name: decode remote file content for latest version
-
   set_fact:
-    win_otel_version: "{{version.content | b64decode }}"
-  when: win_otel_collector == "latest"
+    splunk_otel_collector_version: "{{version.content | b64decode }}"
+  when: splunk_otel_collector_version == "latest"
 
-# Download msi package manager for Windows 
+# Download msi package manager for Windows
 - name: Get splunk-otel-collctor for windows
   ansible.windows.win_get_url:
-    url: "{{windows_base_url}}/splunk-otel-collector/msi/{{package_stage}}/{{win_otel_msi}}"
+    url: "{{win_base_url}}/splunk-otel-collector/msi/{{package_stage}}/{{msi_name}}"
     dest: "%TEMP%"
   register: otel_msi_package
+
 # Check for existing splunk-otel-collector Installation
 - name: Check if splunk-otel-collector service is installed
   ansible.windows.win_service:
@@ -39,14 +40,14 @@
 # Install latest version of Splunk-otel-collector on Windows
 - name: Install splunk-otel-collector-msi
   ansible.windows.win_package:
-    path:  "{{otel_msi_package.dest}}"
+    path: "{{otel_msi_package.dest}}"
     state: present
 
 # Push Custom Configuration file for splunk-otel-collector on Windows.
 - name: Push Custom Config file for splunk-otel-collector, If provided
   ansible.windows.win_copy:
-    src: "{{collector_config_source_win}}"
-    dest: "{{collector_config_dest_win}}"
+    src: "{{splunk_otel_collector_config_source}}"
+    dest: "{{splunk_otel_collector_config}}"
     remote_src: yes
-  when: collector_config_source_win != ""
+  when: splunk_otel_collector_config_source != ""
   notify: "restart windows splunk-otel-collector"

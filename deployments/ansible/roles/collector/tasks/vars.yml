@@ -1,0 +1,34 @@
+---
+- name: set vars for linux
+  set_fact:
+    # Set this variable to /etc/otel/collector/gateway_config.yaml in order to
+    # deploy splunk-otel-collector in gateway mode
+    splunk_otel_collector_config: /etc/otel/collector/agent_config.yaml
+    # Set splunk_otel_collector_config_source to copy a custom config from
+    # a local path to splunk_otel_collector_config on remote hosts
+    splunk_otel_collector_config_source: ""
+    splunk_fluentd_config: /etc/otel/collector/fluentd/fluent.conf
+    splunk_fluentd_config_source: ""
+    agent_bundle_dir: /usr/lib/splunk-otel-collector/agent-bundle
+    splunk_collectd_dir: /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
+  when: not ansible_os_family in windows_distro
+
+# Set Vars for Windows OS deployments.
+- name: set vars for windows
+  set_fact:
+    splunk_api_url: https://api.{{splunk_realm}}.signalfx.com
+    splunk_ingest_url: https://ingest.{{splunk_realm}}.signalfx.com
+    splunk_trace_url: https://ingest.{{splunk_realm}}.signalfx.com/v2/trace
+    splunk_hec_url: https://ingest.{{splunk_realm}}.signalfx.com/v1/log
+    splunk_hec_token: "{{splunk_access_token}}"
+    splunk_bundle_dir: "{{ansible_env.ProgramFiles}}/Splunk/OpenTelemetry Collector/agent-bundle"
+    splunk_collectd_dir: "${splunk_bundle_dir}/run/collectd"
+    # In Windows to deploy splunk-otel-collector in gateway mode replace agent_config.yaml with gateway_config.yaml in
+    # 'splunk_otel_collector_config' 'splunk_otel_collector_config_source' this will copy gateway_config from source.
+    splunk_otel_collector_config_source: "{{ansible_env.ProgramFiles}}/Splunk/OpenTelemetry Collector/agent_config.yaml"
+    splunk_otel_collector_config: "{{ansible_env.ProgramData}}/Splunk/OpenTelemetry Collector/agent_config.yaml"
+    splunk_fluentd_config: "{{ansible_env.ProgramFiles}}/Splunk/OpenTelemetry Collector/fluentd/td-agent.conf"
+    splunk_fluentd_config_source: "{{ansible_env.SystemDrive}}/opt/td-agent/etc/td-agent/td-agent.conf"
+    registry_key: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+    td_agent_version: 4.1.1
+  when: ansible_os_family in windows_distro

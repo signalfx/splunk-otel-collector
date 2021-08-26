@@ -25,7 +25,7 @@
     path: "{{registry_key}}"
     state: present
     name: SPLUNK_CONFIG
-    data: "{{collector_config_dest_win}}"
+    data: "{{splunk_otel_collector_config}}"
     type: string
 
 - name: Set registry values
@@ -49,7 +49,7 @@
     path: "{{registry_key}}"
     state: present
     name: SPLUNK_BUNDLE_DIR
-    data: "{{splunk_bundle_dir_win}}"
+    data: "{{splunk_bundle_dir}}"
     type: string
 
 - name: Set registry values
@@ -57,7 +57,7 @@
     path: "{{registry_key}}"
     state: present
     name: SPLUNK_COLLECTD_DIR
-    data: "{{splunk_collectd_dir_win}}"
+    data: "{{splunk_collectd_dir}}"
     type: string
 
 - name: Set registry values

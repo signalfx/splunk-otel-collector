@@ -1,6 +1,6 @@
 ---
 # defaults file for splunk-otel-collector role vars
-
+# Note: To modify vars based upon ansible_os_family  change the values of vars in tasks/vars.yml
 # splunk_access_token is REQUIRED variable
 splunk_access_token: ""
 
@@ -8,9 +8,9 @@ splunk_realm: us0
 
 splunk_otel_collector_version: latest
 
-# Set this variable to /etc/otel/collector/gateway_config.yaml in order to
+# Set this variable to PATH/gateway_config.yaml in order to
 # deploy splunk-otel-collector in gateway mode
-splunk_otel_collector_config: /etc/otel/collector/agent_config.yaml
+splunk_otel_collector_config: ""
 # Set splunk_otel_collector_config_source to copy a custom config from
 # a local path to splunk_otel_collector_config on remote hosts
 splunk_otel_collector_config_source: ""
@@ -29,8 +29,13 @@ install_fluentd: true
 # and 4.1.1 for other distros.
 td_agent_version: ""
 
-splunk_fluentd_config: /etc/otel/collector/fluentd/fluent.conf
+splunk_fluentd_config: ""
 splunk_fluentd_config_source: ""
 
-agent_bundle_dir: /usr/lib/splunk-otel-collector/agent-bundle
-splunk_collectd_dir: /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
+agent_bundle_dir: ""
+splunk_collectd_dir: ""
+
+package_stage: release
+
+msi_name: splunk-otel-collector-{{splunk_otel_collector_version}}-amd64.msi
+win_base_url: https://dl.signalfx.com

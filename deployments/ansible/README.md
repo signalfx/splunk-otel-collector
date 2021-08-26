@@ -42,9 +42,7 @@ Note that this role requires root access.
 ```yaml
 - name: Install Splunk OpenTelemetry Connector
   hosts: all
-  # For Windows "become: yes" will raise error.
-  # "The Powershell family is incompatible with the sudo become plugin" Remove "become: yes" tag to run on Windows
-  become: yes
+  become_user: root
   tasks:
     - name: "Include splunk_otel_collector"
       include_role:

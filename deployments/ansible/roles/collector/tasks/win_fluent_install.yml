@@ -3,7 +3,7 @@
 - name: Set fluentd package sources for Windows
   ansible.builtin.set_fact:
     td_agent_base_url: https://packages.treasuredata.com
-    win_fluentd_msi: td-agent-{{win_td_agent_version}}-x64.msi
+    win_fluentd_msi: td-agent-{{td_agent_version}}-x64.msi
 
 # Download  fluentd for Windows
 - name: Download fluentd for windows
@@ -34,8 +34,8 @@
 # Push Custom conguration file for fluentd
 - name: Push Custom Config file for fluentd, if provided
   ansible.windows.win_copy:
-    src: "{{win_fluentd_config_source}}"
-    dest: "{{win_fluentd_config_dest}}"
+    src: "{{splunk_fluentd_config_source}}"
+    dest: "{{splunk_fluentd_config}}"
     remote_src: yes
-  when: win_fluentd_config_source != ""
+  when: fluentd_config_source != ""
   notify: "restart windows fluentdwinsvc"

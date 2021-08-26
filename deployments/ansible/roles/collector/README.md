@@ -40,9 +40,7 @@ how to use the role in a playbook with minimal required configuration:
 ```yaml
 - name: Install Splunk OpenTelemetry Connector
   hosts: all
-  # For Windows "become: yes" will raise error.
-  # "The Powershell family is incompatible with the sudo become plugin" Remove "become: yes" tag to run on Windows
-  become: yes
+  become_user: root
   tasks:
     - name: "Include splunk_otel_collector"
       include_role:
@@ -132,40 +130,41 @@ how to use the role in a playbook with minimal required configuration:
   e.g. `./custom_fluentd_config.conf`. (**default:** `""` meaning 
   that nothing will be copied and existing `splunk_fluentd_config` will be used)
 
-## Windows Specific Role Variables
+## Windows Role Variables
 
-- `splunk_bundle_dir_win`: The path to the [Smart Agent bundle directory](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/extension/smartagentextension/README.md).
-  The default path is provided by the collector package.
-  If the specified pathis changed from the default value, the path should 
-  be an existing directory on the node. The `SPLUNK_BUNDLE_DIR` environment variable will be set to
-  this value for the collector service.  (**default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle`)
+- `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
+  https://github.com/signalfx/splunk-otel-collector/blob/main/internal/extension/smartagentextension/README.md).
+  The default path is provided by the collector package.If the specified path
+  is changed from the default value, the path should be an existing directory 
+  on the node. The `SPLUNK_BUNDLE_DIR` environment variable will be set to
+  this value for the collector service.  (**default:** 
+  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle`)
 
-- `splunk_collectd_dir_win`: The path to the collectd config directory for the
+- `splunk_collectd_dir`: The path to the collectd config directory for the
   Smart Agent bundle. The default path is provided by the collector package.
   If the specified path is changed from the default value, the path should be
   an existing directory on the node. The `SPLUNK_COLLECTD_DIR` environment
-  variable will be set to this value for the collector service.
-  (**default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd`)
+  variable will be set to this value for the collector service.(**default:** 
+  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd`)
 
-- `collector_config_source_win`: Source path to the collector config YAML file.
-  This file will be copied to the $collector_config_dest_win path on the node.
+- `splunk_otel_collector_config_source`: Source path to the collector config YAML file.
+  This file will be copied to the $splunk_otel_collector_config path on the node.
   The default source file is provided by the collector package.
   (**default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent_config.yaml`)
 
-- `collector_config_dest_win`: Destination path of the collector config file on the node. 
+- `splunk_otel_collector_config`: Destination path of the collector config file on the node. 
   The SPLUNK_CONFIG environment variable will be set with this value for the collector service.
   (**default:** `%ProgramData%\Splunk\OpenTelemetry Collector\agent_config.yaml`)
 
-- `win_fluentd_config_source`: Source path to the fluentd config file. 
+- `splunk_fluentd_config_source`: Source path to the fluentd config file. 
+  This file will be copied to the $splunk_fluentd_config path on the node.
   (**default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\fluentd\td-agent.conf`)
   
-- `win_fluentd_config_dest`: On Windows, the path will always be set to default.
+- `splunk_fluentd_config`: On Windows, the path will always be set to default.
   (**default:** `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf`)
 
-- `win_td_agent_version`: Version of td-agent (fluentd package) that will be 
+- `td_agent_version`: Version of td-agent (fluentd package) that will be 
   installed in Windows distro (`4.1.1`)
 
-- `win_otel_version`: Version of splunk-otel-collector that will be installed in
-  Windows distro. (**default:** `latest`)
 
  

@@ -16,11 +16,14 @@
     that: ansible_os_family in ["Debian", "RedHat", "Windows"]
     fail_msg: "{{ ansible_os_family }} OS family currently is not supported"
 
+- name: Set Vars based on ansible_os_family
+  ansible.builtin.import_tasks: vars.yml
+
 - name: Linux deployment
   ansible.builtin.import_tasks: linux_install.yml
   when: not ansible_os_family in windows_distro
 
-# Windows Deplyment using MSI 
+# Windows Deplyment using MSI
 - name: Windows deployment
   ansible.builtin.import_tasks: win_install.yml
   when: ansible_os_family in windows_distro

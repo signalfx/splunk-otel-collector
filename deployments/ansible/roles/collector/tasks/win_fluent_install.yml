@@ -37,5 +37,5 @@
     src: "{{splunk_fluentd_config_source}}"
     dest: "{{splunk_fluentd_config}}"
     remote_src: yes
-  when: fluentd_config_source != ""
+  when: splunk_fluentd_config_source != ""
   notify: "restart windows fluentdwinsvc"

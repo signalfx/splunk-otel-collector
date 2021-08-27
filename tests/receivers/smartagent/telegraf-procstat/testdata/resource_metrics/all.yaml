@@ -1,0 +1,367 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+        - name: procstat.cpu_time
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.cpu_time_guest
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: DoubleGauge
+        - name: procstat.cpu_time_guest_nice
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: DoubleGauge
+        - name: procstat.cpu_time_idle
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: DoubleGauge
+        - name: procstat.cpu_time_iowait
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: DoubleGauge
+        - name: procstat.cpu_time_irq
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: DoubleGauge
+        - name: procstat.cpu_time_nice
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: DoubleGauge
+        - name: procstat.cpu_time_steal
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: DoubleGauge
+        - name: procstat.cpu_time_system
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: DoubleGauge
+        - name: procstat.cpu_time_user
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: DoubleGauge
+        - name: procstat.cpu_usage
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: DoubleGauge
+        - name: procstat.involuntary_context_switches
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.memory_data
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.memory_locked
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.memory_rss
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.memory_stack
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.memory_swap
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.memory_usage
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: DoubleGauge
+        - name: procstat.memory_vms
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.nice_priority
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.num_fds
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.num_threads
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.pid
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.read_bytes
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.read_count
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.realtime_priority
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_cpu_time_hard
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_cpu_time_soft
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_file_locks_hard
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_file_locks_soft
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_memory_data_hard
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_memory_data_soft
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_memory_locked_hard
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_memory_locked_soft
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_memory_rss_hard
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_memory_rss_soft
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_memory_stack_hard
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_memory_stack_soft
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_memory_vms_hard
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_memory_vms_soft
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_nice_priority_hard
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_nice_priority_soft
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_num_fds_hard
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_num_fds_soft
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_realtime_priority_hard
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_realtime_priority_soft
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_signals_pending_hard
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.rlimit_signals_pending_soft
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.signals_pending
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.voluntary_context_switches
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.write_bytes
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge
+        - name: procstat.write_count
+          labels:
+            exe: otelcol
+            plugin: telegraf-procstat
+            process_name: otelcol
+            telegraf_type: untyped
+          type: IntGauge

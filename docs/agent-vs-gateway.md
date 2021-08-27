@@ -15,7 +15,7 @@ Configuration changes from the default that may be desirable include:
   see
   [security.md](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/security.md)
 - Configuring processors such as the [attributes
-  processor](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/attributesprocessor)
+  processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/attributesprocessor)
 - Exporting to gateway
 
 ## Agent

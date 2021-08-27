@@ -61,7 +61,7 @@ jobs:
           - ubuntu1604
           - ubuntu1804
           - ubuntu2004
-
+          - windows
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2

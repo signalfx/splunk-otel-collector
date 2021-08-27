@@ -108,7 +108,7 @@ exporters:
 #    sourcetype: "otel"
 
 service:
-  extensions: [health_check, http_forwarder, zpages]
+  extensions: [health_check, http_forwarder, zpages, memory_ballast]
   pipelines:
     traces:
       receivers: [jaeger, otlp, zipkin, smartagent/signalfx-forwarder]

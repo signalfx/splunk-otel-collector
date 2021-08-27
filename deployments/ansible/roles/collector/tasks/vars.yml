@@ -81,4 +81,5 @@
         "{{ansible_env.SystemDrive}}/opt/td-agent/etc/td-agent/td-agent.conf"
       {%- endif -%}
     td_agent_version: 4.1.1
+    registry_key: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
   when: ansible_os_family in windows_distro

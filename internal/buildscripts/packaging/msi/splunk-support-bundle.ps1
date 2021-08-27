@@ -103,6 +103,13 @@ function getConfig {
     } else {
         Copy-Item -Path "$CONFDIR" -Destination "$TMPDIR/config" -Recurse
     }
+    $LOGDIR="${env:SYSTEMDRIVE}\opt\td-agent\etc\td-agent"
+    if (-NOT (Test-Path -Path $LOGDIR)) {
+        Write-Output "ERROR: Could not find directory ($LOGDIR)."
+        usage
+    } else {
+        Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/config" -Recurse
+    }
     # Also need to get config in memory as dynamic config may modify stored config
     # It's possible user has disabled collecting in memory config
     $connection = New-Object System.Net.Sockets.TcpClient("localhost", 55554)
@@ -152,7 +159,7 @@ function getLogs {
     } else {
         Write-Output "WARN: Permission denied to directory ($LOGDIR)."
     }
-    $LOGDIR="${env:SYSTEMDRIVE}\opt\td-agent"
+    $LOGDIR="${env:SYSTEMDRIVE}\opt\td-agent\*.log"
     if (Test-Path -Path $LOGDIR) {
         Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/logs/td-agent/" -Recurse
     } else {
@@ -221,16 +228,16 @@ function getHostInfo {
     Write-Output "INFO: Getting host information..."
     for ( $i = 0; $i -lt 3; $i++ ) {
         Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue >> $TMPDIR/metrics/top.txt 2>&1 
-        Get-Process -Name 'fluentd' -ErrorAction SilentlyContinue >> $TMPDIR/metrics/top.txt 2>&1 
+        Get-Process -Name 'ruby' -ErrorAction SilentlyContinue >> $TMPDIR/metrics/top.txt 2>&1 
         Start-Sleep -s 2
     }
     if (-NOT (Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue)) {
         Write-Output "WARN: Unable to find otelcol PIDs"
-        Write-Output "      top will not be collected for otelcol";
+        Write-Output "      Get-Process will not be collected for otelcol";
     }
-    if (-NOT (Get-Process -Name 'fluentd' -ErrorAction SilentlyContinue)) {
-        Write-Output "WARN: Unable to find fluentd PIDs"
-        Write-Output "      top will not be collected for fluentd";
+    if (-NOT (Get-Process -Name 'ruby' -ErrorAction SilentlyContinue)) {
+        Write-Output "WARN: Unable to find fluentd (ruby) PIDs"
+        Write-Output "      Get-Process will not be collected for fluentd (ruby)";
     }
     Get-PSDrive > $TMPDIR/metrics/df.txt 2>&1
     

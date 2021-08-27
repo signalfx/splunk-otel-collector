@@ -115,7 +115,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ## 🚀 New components 🚀
 
 - [filelog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver) receiver (#289)
-- [probabilisticsampler](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/probabilisticsamplerprocessor) processor (#300)
+- [probabilisticsampler](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/probabilisticsamplerprocessor) processor (#300)
 
 ### 💡 Enhancements 💡
 

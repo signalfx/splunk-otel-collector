@@ -162,6 +162,8 @@ jobs:
       - persist_to_workspace:
           root: ~/
           paths: project/bin
+      - store_artifacts:
+          path: bin
 
   test:
     executor: golang
@@ -218,10 +220,43 @@ jobs:
           name: Save docker image
           command: |
             mkdir -p dist
-            docker save -o dist/image.tar otelcol:latest
-      - persist_to_workspace:
-          root: ~/
-          paths: project/dist
+            docker save -o dist/otelcol.tar otelcol:latest
+      - store_artifacts:
+          path: dist/otelcol.tar
+
+  windows-docker-otelcol:
+    executor:
+      name: win/default
+      shell: powershell.exe
+    steps:
+      - attach_to_workspace
+      - run:
+          name: Build docker image
+          command: |
+            $ErrorActionPreference = 'Stop'
+            Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
+            docker build -t otelcol-windows --build-arg SMART_AGENT_RELEASE=$((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v")) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+            Remove-Item .\cmd\otelcol\otelcol.exe
+      - run:
+          name: Run docker image
+          command: |
+            $ErrorActionPreference = 'Stop'
+            docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
+            Start-Sleep 10
+            $DockerOutput=$(docker ps --filter=status=running --filter=name=otelcol -q)
+            if ( $DockerOutput -eq $null )
+            {
+              docker logs otelcol
+              exit 1
+            }
+      - run:
+          name: Save docker image
+          command: |
+            $ErrorActionPreference = 'Stop'
+            New-Item -ItemType Directory -Force -Path dist
+            docker save -o dist\otelcol-windows.tar otelcol-windows:latest
+      - store_artifacts:
+          path: dist/otelcol-windows.tar
 
   windows-docker-otelcol:
     executor:
@@ -269,6 +304,7 @@ jobs:
       - run:
           name: Upgrade golang
           command: |
+            $ErrorActionPreference = 'Stop'
             choco upgrade golang --version=1.17
             refreshenv
             go env -w CGO_ENABLED=0
@@ -277,7 +313,9 @@ jobs:
 #            (New-Object System.Net.WebClient).DownloadFile("https://codecov.io/bash", "C:\Users\circleci\project\codecov.sh")
       - run:
           name: Unit tests with coverage
-          command: go-acc ./...
+          command: |
+            $ErrorActionPreference = 'Stop'
+            go-acc ./...
 #      - run:
 #          name: Upload coverage
 #          command: bash codecov.sh -f coverage.txt
@@ -309,9 +347,6 @@ jobs:
               --html=~/testresults/results.html\
               --self-contained-html \
               internal/buildscripts/packaging/tests/package_test.py
-      - persist_to_workspace:
-          root: ~/
-          paths: project/dist/*.<< parameters.package_type >>
       - store_artifacts:
           path: dist
       - save_pytest_results
@@ -380,6 +415,7 @@ jobs:
       - run:
           name: Installation test
           command: |
+            $ErrorActionPreference = 'Stop'
             Set-PSDebug -Trace 1
             $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
             $env:VERIFY_ACCESS_TOKEN = "false"

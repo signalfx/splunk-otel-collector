@@ -12,14 +12,14 @@
       {%- endif -%}
     # Set splunk_otel_collector_config_source to copy a custom config from
     # a local path to splunk_otel_collector_config on remote hosts
-    splunk_otel_collector_config_source: ""
+    splunk_otel_collector_config_source: "{{ splunk_otel_collector_config_source }}"
     splunk_fluentd_config: |
       {%- if splunk_fluentd_config -%}
         {{ splunk_fluentd_config }}
       {%- else -%}
         /etc/otel/collector/fluentd/fluent.conf
       {%- endif -%}
-    splunk_fluentd_config_source: ""
+    splunk_fluentd_config_source: "{{ splunk_fluentd_config_source }}"
     agent_bundle_dir: |
       {%- if agent_bundle_dir -%}
         {{ agent_bundle_dir }}
@@ -37,11 +37,6 @@
 # Set Vars for Windows deployments.
 - name: set vars for windows
   set_fact:
-    splunk_api_url: https://api.{{splunk_realm}}.signalfx.com
-    splunk_ingest_url: https://ingest.{{splunk_realm}}.signalfx.com
-    splunk_trace_url: https://ingest.{{splunk_realm}}.signalfx.com/v2/trace
-    splunk_hec_url: https://ingest.{{splunk_realm}}.signalfx.com/v1/log
-    splunk_hec_token: "{{splunk_access_token}}"
     splunk_bundle_dir: |
       {%- if agent_bundle_dir -%}
         {{ agent_bundle_dir }}

@@ -33,7 +33,7 @@
     path: "{{registry_key}}"
     state: present
     name: SPLUNK_API_URL
-    data: "{{splunk_api_url}}"
+    data: https://api.{{splunk_realm}}.signalfx.com
     type: string
 
 - name: Set registry values
@@ -65,7 +65,7 @@
     path: "{{registry_key}}"
     state: present
     name: SPLUNK_HEC_TOKEN
-    data: "{{splunk_hec_token}}"
+    data: "{{splunk_access_token}}"
     type: string
 
 - name: Set registry values
@@ -73,7 +73,7 @@
     path: "{{registry_key}}"
     state: present
     name: SPLUNK_HEC_URL
-    data: "{{splunk_hec_url}}"
+    data: https://ingest.{{splunk_realm}}.signalfx.com/v1/log
     type: string
 
 - name: Set registry values
@@ -81,7 +81,7 @@
     path: "{{registry_key}}"
     state: present
     name: SPLUNK_INGEST_URL
-    data: "{{splunk_ingest_url}}"
+    data: https://ingest.{{splunk_realm}}.signalfx.com
     type: string
 
 - name: Set registry values
@@ -97,5 +97,5 @@
     path: "{{registry_key}}"
     state: present
     name: SPLUNK_TRACE_URL
-    data: "{{splunk_trace_url}}"
+    data: https://ingest.{{splunk_realm}}.signalfx.com/v2/trace
     type: string

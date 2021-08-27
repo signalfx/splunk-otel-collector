@@ -8,7 +8,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.30.0
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.2
-	github.com/signalfx/signalfx-go v1.8.0
+	github.com/signalfx/signalfx-go v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/testcontainers/testcontainers-go v0.11.1
 	go.opentelemetry.io/collector v0.33.0

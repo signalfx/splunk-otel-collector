@@ -75,6 +75,7 @@ function createTempDir {
     } else {
         New-Item -Path $TMPDIR -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/logs -ItemType Directory | Out-Null
+        New-Item -Path $TMPDIR/logs/td-agent -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/metrics -ItemType Directory | Out-Null
         New-Item -Path $TMPDIR/zpages -ItemType Directory | Out-Null
         # We can not create directory using special characters like : , ? 
@@ -104,11 +105,11 @@ function getConfig {
         Copy-Item -Path "$CONFDIR" -Destination "$TMPDIR/config" -Recurse
     }
     $FLUENTD_CONFDIR="${env:SYSTEMDRIVE}\opt\td-agent\etc\td-agent"
-    if (-NOT (Test-Path -Path $LOGDIR)) {
-        Write-Output "ERROR: Could not find directory ($LOGDIR)."
+    if (-NOT (Test-Path -Path $FLUENTD_CONFDIR)) {
+        Write-Output "ERROR: Could not find directory ($FLUENTD_CONFDIR)."
         usage
     } else {
-        Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/config" -Recurse
+        Copy-Item -Path "$FLUENTD_CONFDIR" -Destination "$TMPDIR/config" -Recurse
     }
     # Also need to get config in memory as dynamic config may modify stored config
     # It's possible user has disabled collecting in memory config

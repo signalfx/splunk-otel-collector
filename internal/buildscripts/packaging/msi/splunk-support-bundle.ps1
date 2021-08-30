@@ -103,7 +103,7 @@ function getConfig {
     } else {
         Copy-Item -Path "$CONFDIR" -Destination "$TMPDIR/config" -Recurse
     }
-    $LOGDIR="${env:SYSTEMDRIVE}\opt\td-agent\etc\td-agent"
+    $FLUENTD_CONFDIR="${env:SYSTEMDRIVE}\opt\td-agent\etc\td-agent"
     if (-NOT (Test-Path -Path $LOGDIR)) {
         Write-Output "ERROR: Could not find directory ($LOGDIR)."
         usage
@@ -133,12 +133,12 @@ function getStatus {
     Get-Service splunk-otel-collector -ErrorAction SilentlyContinue > $TMPDIR/logs/splunk-otel-collector.txt 2>&1
     Get-Service fluentdwinsvc -ErrorAction SilentlyContinue > $TMPDIR/logs/td-agent.txt 2>&1
     if (-NOT (Get-Content -Path "$TMPDIR/logs/splunk-otel-collector.txt")) {
-        Set-Content -Path "$TMPDIR/logs/splunk-otel-collector.txt" -Value "Service splunk-otel-collector not exist.."
-        Write-Output "WARN: Service splunk-otel-collector not exist.."
+        Set-Content -Path "$TMPDIR/logs/splunk-otel-collector.txt" -Value "Service splunk-otel-collector not exist."
+        Write-Output "WARN: Service splunk-otel-collector not exist."
     }
     if (-NOT (Get-Content -Path "$TMPDIR/logs/td-agent.txt")) {
-        Set-Content -Path "$TMPDIR/logs/td-agent.txt" -Value "Service td-agent not exist.."
-        Write-Output "WARN: Service td-agent not exist.."
+        Set-Content -Path "$TMPDIR/logs/td-agent.txt" -Value "Service td-agent not exist."
+        Write-Output "WARN: Service td-agent not exist."
     }
 }
 
@@ -157,21 +157,21 @@ function getLogs {
     if (Test-Path -Path $LOGDIR) {
         Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/logs/td-agent/" -Recurse
     } else {
-        Write-Output "WARN: Permission denied to directory ($LOGDIR)."
+        Write-Output "WARN: $LOGDIR not found."
     }
     $LOGDIR="${env:SYSTEMDRIVE}\opt\td-agent\*.log"
     if (Test-Path -Path $LOGDIR) {
         Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/logs/td-agent/" -Recurse
     } else {
-        Write-Output "WARN: Permission denied to directory ($LOGDIR)."
+        Write-Output "WARN: $LOGDIR not found."
     }
     if (-NOT (Get-Content -Path "$TMPDIR/logs/splunk-otel-collector.log")) {
-        Set-Content -Path "$TMPDIR/logs/splunk-otel-collector.log" -Value "Event splunk-otel-collector not exist.."
-        Write-Output "WARN: Event splunk-otel-collector not exist.."
+        Set-Content -Path "$TMPDIR/logs/splunk-otel-collector.log" -Value "Event splunk-otel-collector not exist."
+        Write-Output "WARN: Event splunk-otel-collector not exist."
     }
     if (-NOT (Get-Content -Path "$TMPDIR/logs/td-agent.log")) {
-        Set-Content -Path "$TMPDIR/logs/td-agent.log" -Value "Event td-agent not exist.."
-        Write-Output "WARN: Event td-agent not exist.."
+        Set-Content -Path "$TMPDIR/logs/td-agent.log" -Value "Event td-agent not exist."
+        Write-Output "WARN: Event td-agent not exist."
     }
 }
 
@@ -228,14 +228,14 @@ function getHostInfo {
     Write-Output "INFO: Getting host information..."
     for ( $i = 0; $i -lt 3; $i++ ) {
         Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue >> $TMPDIR/metrics/top.txt 2>&1 
-        Get-Process -Name 'ruby' -ErrorAction SilentlyContinue >> $TMPDIR/metrics/top.txt 2>&1 
+        Get-Process -Name 'ruby' | Where-Object {$_.Path -eq "${env:SYSTEMDRIVE}\opt\td-agent\bin\ruby.exe"} -ErrorAction SilentlyContinue >> $TMPDIR/metrics/top.txt 2>&1 
         Start-Sleep -s 2
     }
     if (-NOT (Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue)) {
         Write-Output "WARN: Unable to find otelcol PIDs"
         Write-Output "      Get-Process will not be collected for otelcol";
     }
-    if (-NOT (Get-Process -Name 'ruby' -ErrorAction SilentlyContinue)) {
+    if (-NOT (Get-Process -Name 'ruby' | Where-Object {$_.Path -eq "${env:SYSTEMDRIVE}\opt\td-agent\bin\ruby.exe"} -ErrorAction SilentlyContinue)) {
         Write-Output "WARN: Unable to find fluentd (ruby) PIDs"
         Write-Output "      Get-Process will not be collected for fluentd (ruby)";
     }

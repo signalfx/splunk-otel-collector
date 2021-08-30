@@ -386,6 +386,7 @@ jobs:
             $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
             $env:VERIFY_ACCESS_TOKEN = "false"
             .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -msi_path "$msi_path" -mode "<< parameters.mode >>"
+            Start-Sleep -s 30
             Set-Location -Path "\Program Files\Splunk\OpenTelemetry Collector"
             Test-Path -Path ".\splunk-support-bundle.ps1"
             Start-Process ".\otelcol.exe" -WindowStyle Hidden
@@ -401,6 +402,7 @@ jobs:
             Test-Path -Path "\tmp\splunk-support-bundle\metrics\top.txt"
             Test-Path -Path "\tmp\splunk-support-bundle\zpages\tracez.html"
             if ( "<< parameters.mode >>" -eq "agent" ) {
+              Test-Path -Path "\tmp\splunk-support-bundle\config\td-agent\td-agent.conf"
               Test-Path -Path "\tmp\splunk-support-bundle\config\agent_config.yaml"
             }
             if ( "<< parameters.mode >>" -eq "gateway" ) {

@@ -5,12 +5,10 @@ name: Ansible
 # 2. Push a new "ansible-v<VERSION>" tag, if the version was updated
 #    in deployments/ansible/galaxy.yml.
 
-on: 
+on:
   push:
     paths:
-      - 'deployments/ansible/**'
-    tags-ignore:
-      - '*'
+      - 'deployments/ansible/galaxy.yml'
   pull_request:
     paths:
       - 'deployments/ansible/**'

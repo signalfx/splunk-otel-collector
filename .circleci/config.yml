@@ -391,7 +391,7 @@ jobs:
             Test-Path -Path ".\splunk-support-bundle.ps1"
             Start-Process ".\otelcol.exe" -WindowStyle Hidden
             powershell.exe -File "\Program Files\Splunk\OpenTelemetry Collector\splunk-support-bundle.ps1" -t \tmp\splunk-support-bundle
-            Test-Path -Path ".\splunk-support-bundle.tar.gz"
+            Test-Path -Path ".\splunk-support-bundle.zip"
             Test-Path -Path "\tmp\splunk-support-bundle\logs\splunk-otel-collector.log"
             Test-Path -Path "\tmp\splunk-support-bundle\logs\splunk-otel-collector.txt"
             Test-Path -Path "\tmp\splunk-support-bundle\logs\td-agent.log"

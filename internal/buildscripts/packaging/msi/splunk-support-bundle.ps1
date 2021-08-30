@@ -113,12 +113,17 @@ function getConfig {
     }
     # Also need to get config in memory as dynamic config may modify stored config
     # It's possible user has disabled collecting in memory config
-    $connection = New-Object System.Net.Sockets.TcpClient("localhost", 55554)
-    if ($connection.Connected) {
-        (Invoke-WebRequest -Uri "http://localhost:55554/debug/configz/initial").Content > $TMPDIR/config/initial.yaml 2>&1
-        (Invoke-WebRequest -Uri "http://localhost:55554/debug/configz/effective").Content > $TMPDIR/config/effective.yaml 2>&1
-    } else { 
-        Write-Output "WARN: localhost:55554 unavailable so in memory configuration not collected"
+    try {
+        $connection = New-Object System.Net.Sockets.TcpClient("localhost", 55554)
+        if ($connection.Connected) {
+            (Invoke-WebRequest -Uri "http://localhost:55554/debug/configz/initial").Content > $TMPDIR/config/initial.yaml 2>&1
+            (Invoke-WebRequest -Uri "http://localhost:55554/debug/configz/effective").Content > $TMPDIR/config/effective.yaml 2>&1
+        } else { 
+            Write-Output "WARN: localhost:55554 unavailable so in memory configuration not collected"
+        }
+    }
+    catch {
+        "ERROR: localhost:55554 could not be resolved."
     }
 }
 
@@ -185,11 +190,16 @@ function getLogs {
 #######################################
 function getMetrics {
     Write-Output "INFO: Getting metric information..."
-    $connection = New-Object System.Net.Sockets.TcpClient("localhost", 8888)
-    if ($connection.Connected) {
-        (Invoke-WebRequest -Uri "http://localhost:8888/metrics").Content > $TMPDIR/metrics/collector-metrics.txt 2>&1
-    } else { 
-        Write-Output "WARN: localhost:8888/metrics unavailable so metrics not collected"
+    try {
+        $connection = New-Object System.Net.Sockets.TcpClient("localhost", 8888)
+        if ($connection.Connected) {
+            (Invoke-WebRequest -Uri "http://localhost:8888/metrics").Content > $TMPDIR/metrics/collector-metrics.txt 2>&1
+        } else { 
+            Write-Output "WARN: localhost:8888/metrics unavailable so metrics not collected"
+        }
+    }
+    catch {
+        "ERROR: localhost:8888 could not be resolved."
     }
 }
 
@@ -202,20 +212,23 @@ function getMetrics {
 #######################################
 function getZpages {
     Write-Output "INFO: Getting zpages information..."
-    $connection = New-Object System.Net.Sockets.TcpClient("localhost", 55679)
-    if ($connection.Connected) {
-        (Invoke-WebRequest -Uri "http://localhost:55679/debug/tracez").Content > $TMPDIR/zpages/tracez.html 2>&1
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $packages = Invoke-WebRequest -Uri "http://localhost:55679/debug/tracez" -UseBasicParsing
-        foreach ($package in $packages.links.href) {
-            $ENCODED_PACKAGE_NAME = [System.Web.HTTPUtility]::UrlEncode("$package")
-            (Invoke-WebRequest -Uri "http://localhost:55679/debug/$package").Content > $TMPDIR/zpages/$global:DIRECTORY/debug/$ENCODED_PACKAGE_NAME 2>&1
-        }
-    } else { 
-        Write-Output "WARN: localhost:55679 unavailable so zpages not collected"
+    try {
+        $connection = New-Object System.Net.Sockets.TcpClient("localhost", 55679)
+        if ($connection.Connected) {
+            (Invoke-WebRequest -Uri "http://localhost:55679/debug/tracez").Content > $TMPDIR/zpages/tracez.html 2>&1
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            $packages = Invoke-WebRequest -Uri "http://localhost:55679/debug/tracez" -UseBasicParsing
+            foreach ($package in $packages.links.href) {
+                $ENCODED_PACKAGE_NAME = [System.Web.HTTPUtility]::UrlEncode("$package")
+                (Invoke-WebRequest -Uri "http://localhost:55679/debug/$package").Content > $TMPDIR/zpages/$global:DIRECTORY/debug/$ENCODED_PACKAGE_NAME 2>&1
+            }
+        } else { 
+            Write-Output "WARN: localhost:55679 unavailable so zpages not collected"
+        }    
     }
-
-        
+    catch {
+        "ERROR: localhost:55679 could not be resolved."
+    }  
 }
 
 #######################################
@@ -252,17 +265,17 @@ function getHostInfo {
 #  - OUTPUTS: None
 #  - RETURN: 0 if successful, non-zero on error
 #######################################
-function tarResults {
-    Write-Output "INFO: Creating tarball..."
-    $TAR_NAME = Split-Path $TMPDIR -leaf
+function zipResults {
+    Write-Output "INFO: Creating support bundle..."
+    $ZIP_NAME = Split-Path $TMPDIR -leaf
     Add-Type -assembly "system.io.compression.filesystem"
-    [io.compression.zipfile]::CreateFromDirectory($TMPDIR, "$TAR_NAME.tar.gz")
-    if (Test-Path -Path "./$TAR_NAME.tar.gz") {
-        Write-Output "INFO: Support bundle available at: ./$TAR_NAME.tar.gz"
+    [io.compression.zipfile]::CreateFromDirectory($TMPDIR, "${PWD}\${ZIP_NAME}.zip")
+    if (Test-Path -Path "${PWD}\${ZIP_NAME}.zip") {
+        Write-Output "INFO: Support bundle available at: ${PWD}\${ZIP_NAME}.zip"
         Write-Output "      Please attach this to your support case"
     } else {
         Write-Host "ERROR: Support bundle was not properly created."
-        Write-Host "        See $TMPDIR/stdout.log for more information."
+        Write-Host "       See $TMPDIR/stdout.log for more information."
         exit 1
     }
 }
@@ -274,4 +287,4 @@ $(getLogs) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getMetrics) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getZpages) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
 $(getHostInfo) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
-$(tarResults) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append
+$(zipResults) 2>&1 | Tee-Object -FilePath "$TMPDIR/stdout.log" -Append

@@ -1,13 +1,13 @@
-FROM alpine:3.14.1 as certs
+FROM alpine:3.14.2 as certs
 RUN apk --update add ca-certificates
 
-FROM alpine:3.14.1 AS otelcol
+FROM alpine:3.14.2 AS otelcol
 COPY otelcol /
 # Note that this shouldn't be necessary, but in some cases the file seems to be
 # copied with the execute bit lost (see #1317)
 RUN chmod 755 /otelcol
 
-FROM alpine:3.14.1 AS smartagent
+FROM alpine:3.14.2 AS smartagent
 ARG SMART_AGENT_RELEASE
 RUN mkdir -p /usr/lib/splunk-otel-collector && \
     SMART_AGENT=signalfx-agent-${SMART_AGENT_RELEASE#v}.tar.gz && \

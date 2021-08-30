@@ -1,6 +1,12 @@
 ---
 # Install Splunk OpenTelemetry Collector from yum repository
 
+- name: Install setcap via yum package manager
+  ansible.builtin.yum:
+    name: "libcap"
+    state: present
+    update_cache: yes
+
 - name: Add Splunk OpenTelemetry Collector repo to yum source list
   ansible.builtin.yum_repository:
     name: splunk-otel-collector

@@ -14,6 +14,7 @@ Currently, the following Linux distributions and versions are supported:
 - Amazon Linux: 2
 - CentOS / Red Hat / Oracle: 7, 8
 - Debian: 8, 9, 10
+- SUSE: 12, 15 (**Note:** Only for collector versions v0.34.0 or higher.  Log collection with Fluentd not currently supported.)
 - Ubuntu: 16.04, 18.04, 20.04
 
 ## Getting Started
@@ -24,7 +25,7 @@ Run the below command on your host. Replace these variables:
 - `SPLUNK_ACCESS_TOKEN`: Access token to authenticate requests
 
 ```sh
-curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
+$ curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
 sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
 ```
 
@@ -49,7 +50,7 @@ configure the memory allocation.
 > to the Collector then you must increase this setting.
 
 ```sh
-curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
+$ curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
 sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --memory SPLUNK_MEMORY_TOTAL_MIB \
     -- SPLUNK_ACCESS_TOKEN
 ```
@@ -67,7 +68,7 @@ modified as needed. Possible configuration options can be found in the
 After modification, the Collector service needs to be restarted:
 
 ```sh
-sudo systemctl restart splunk-otel-collector
+$ sudo systemctl restart splunk-otel-collector
 ```
 
 ### Fluentd Configuration
@@ -123,7 +124,7 @@ from `/var/log/journal`.
 After any configuration modification, the td-agent service needs to be restarted:
 
 ```sh
-sudo systemctl restart td-agent
+$ sudo systemctl restart td-agent
 ```
 
 **Note:** If the `td-agent` package is upgraded after initial installation, [Linux

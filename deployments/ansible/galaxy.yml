@@ -18,6 +18,7 @@ tags:
   - gateway
   - logs
   - metrics
+  - o11y
   - observability
   - opentelemetry
   - otel

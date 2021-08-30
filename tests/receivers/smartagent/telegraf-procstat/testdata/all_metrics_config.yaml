@@ -1,0 +1,16 @@
+receivers:
+  smartagent/telegraf_procstat:
+    type: telegraf/procstat
+    exe: "otelcol"
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/telegraf_procstat
+      exporters: [otlp]

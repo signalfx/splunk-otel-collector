@@ -2028,8 +2028,8 @@ github.com/signalfx/signalfx-go v1.6.38-0.20200518153434-ceee8d2570d5 h1:+tu30Q5
 github.com/signalfx/signalfx-go v1.6.38-0.20200518153434-ceee8d2570d5/go.mod h1:CeCGXKT2wqqky0Nz8eV0NH/CpMPE7tzYUcV8eQS1U1s=
 github.com/signalfx/signalfx-go-tracing v1.2.0/go.mod h1:JoTkkhSBe42ns9/AsvtqX7lLiiS6YwE0Q7J0DZFzt00=
 github.com/signalfx/tdigest v0.0.0-20191031204725-c860c3ff6902/go.mod h1:fbvuJM3o+bwr36+TVjokMUGd4muJVHiCshTmKZ/6eNU=
-github.com/signalfx/telegraf v0.10.2-0.20201211214327-200738592ced h1:MohZA3RBgCI/6tqCPCZ1/gNSIO3mOaVrdUHrRDM0ypI=
-github.com/signalfx/telegraf v0.10.2-0.20201211214327-200738592ced/go.mod h1:1gnMOcwGO3lAxfoMq28M8gjooF2MqVwquPVEvgZ1its=
+github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87 h1:ayeUHxiUjcxzuEzjWVkXJxf42UYNw8UKmYmIQu9mAqo=
+github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87/go.mod h1:1gnMOcwGO3lAxfoMq28M8gjooF2MqVwquPVEvgZ1its=
 github.com/signalfx/thrift v0.0.0-20181211001559-3838fa316492/go.mod h1:Xv29nl9fxdk0hmeqcUHgAZZwvYrOhduNW+9qk4H+6K0=
 github.com/signalfx/xdgbasedir v0.0.0-20160106035722-cd6a71c07e4e/go.mod h1:RnQhO4a62x0VHvh8eSMsqgTgYRso2hfat7ioM8rD1jc=
 github.com/sirupsen/logrus v1.0.4-0.20170822132746-89742aefa4b2/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=

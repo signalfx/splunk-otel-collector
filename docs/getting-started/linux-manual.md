@@ -43,6 +43,8 @@ apt-get install -y splunk-otel-collector
 ```
 - RPM:
 ```sh
+yum install -y libcap  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the collector
+
 cat <<EOH > /etc/yum.repos.d/splunk-otel-collector.repo
 [splunk-otel-collector]
 name=Splunk OpenTelemetry Collector Repository

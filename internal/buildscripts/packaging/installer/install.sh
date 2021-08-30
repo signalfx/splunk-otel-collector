@@ -258,7 +258,7 @@ EOH
 
 install_yum_package() {
   local package_name="$1"
-  local version="$2"
+  local version="${2:-}"
 
   if [ "$version" = "latest" ]; then
     version=""
@@ -420,6 +420,7 @@ install() {
         echo "The distribution version could not be determined" >&2
         exit 1
       fi
+      install_yum_package "libcap"
       install_collector_yum_repo "$stage"
       install_yum_package "splunk-otel-collector" "$collector_version"
       if [ -n "$td_agent_version" ]; then

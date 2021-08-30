@@ -86,13 +86,17 @@ class splunk_otel_collector (
       if $facts['service_provider'] != 'systemd' {
         fail('Only systemd is currently supported')
       }
+      package { 'libcap':
+        ensure => 'installed',
+      }
       class { 'splunk_otel_collector::collector_yum_repo':
         repo_url    => $yum_repo_url,
         yum_gpg_key => $yum_gpg_key,
         manage_repo => $manage_repo,
       }
       -> package { $collector_package_name:
-        ensure => $collector_version,
+        ensure  => $collector_version,
+        require => Package['libcap'],
       }
     }
     'windows': {

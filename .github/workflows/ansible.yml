@@ -9,6 +9,8 @@ on:
   push:
     paths:
       - 'deployments/ansible/galaxy.yml'
+    branches:
+      - main
   pull_request:
     paths:
       - 'deployments/ansible/**'

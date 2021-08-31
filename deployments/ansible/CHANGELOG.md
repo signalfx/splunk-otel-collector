@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## ansible-v0.1.3
+
+- Add meta/runtime.yml (#690)
+
+## ansible-v0.1.2
+
+- Install libcap on RHEL platforms (#678)
+
 ## ansible-v0.1.1
 
 ### 🧰 Bug fixes 🧰

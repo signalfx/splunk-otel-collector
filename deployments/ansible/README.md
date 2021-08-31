@@ -18,13 +18,14 @@ Currently, the following Linux distributions and versions are supported:
 
 ## Windows
 Currently, the following Windows versions are supported:
-Ansible requires PowerShell 3.0 or newer and atleast .NET4.0 to be installed on Windows host.
-A WinRM listner should be created and activeted. 
-For setting up Windows Host Refer:[Ansible Docs](https://docs.ansible.com/ansible/latest/user_guide/windows_setup.html).
 
 - Windows Server 2012 64-bit
 - Windows Server 2016 64-bit
 - Windows Server 2019 64-bit
+
+Ansible requires PowerShell 3.0 or newer and atleast .NET4.0 to be installed on Windows host.
+A WinRM listener should be created and activeted. 
+For setting up Windows Host refer [Ansible Docs](https://docs.ansible.com/ansible/latest/user_guide/windows_setup.html).
 
 ## Installation
 
@@ -42,7 +43,9 @@ Note that this role requires root access.
 ```yaml
 - name: Install Splunk OpenTelemetry Connector
   hosts: all
-  become_user: root
+  become: yes
+  # For Windows "become: yes" will raise error.
+  # "The Powershell family is incompatible with the sudo become plugin" Use "become_user: root" tag to run on Windows
   tasks:
     - name: "Include splunk_otel_collector"
       include_role:

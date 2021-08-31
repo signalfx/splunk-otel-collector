@@ -1,25 +1,19 @@
 ---
-# Set Vars for Linux deployments.
-- name: set vars for linux
+# Set default vars for Linux deployments.
+- name: set default vars for Linux
   set_fact:
-    # Set this variable to /etc/otel/collector/gateway_config.yaml in order to
-    # deploy splunk-otel-collector in gateway mode
     splunk_otel_collector_config: |-
       {%- if splunk_otel_collector_config -%}
         {{ splunk_otel_collector_config }}
       {%- else -%}
         /etc/otel/collector/agent_config.yaml
       {%- endif -%}
-    # Set splunk_otel_collector_config_source to copy a custom config from
-    # a local path to splunk_otel_collector_config on remote hosts
-    splunk_otel_collector_config_source: "{{ splunk_otel_collector_config_source }}"
     splunk_fluentd_config: |-
       {%- if splunk_fluentd_config -%}
         {{ splunk_fluentd_config }}
       {%- else -%}
         /etc/otel/collector/fluentd/fluent.conf
       {%- endif -%}
-    splunk_fluentd_config_source: "{{ splunk_fluentd_config_source }}"
     agent_bundle_dir: |-
       {%- if agent_bundle_dir -%}
         {{ agent_bundle_dir }}
@@ -32,10 +26,10 @@
       {%- else -%}
         /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
       {%- endif -%}
-  when: not ansible_os_family in windows_distro
+  when: ansible_os_family != "Windows"
 
 # Set Vars for Windows deployments.
-- name: set vars for windows
+- name: set default vars for Windows
   set_fact:
     splunk_bundle_dir: |-
       {%- if agent_bundle_dir -%}
@@ -49,14 +43,6 @@
       {%- else -%}
         {{ansible_env.ProgramFiles}}/Splunk/OpenTelemetry Collector/agent-bundle/run/collectd
       {%- endif -%}
-    # In Windows to deploy splunk-otel-collector in gateway mode replace agent_config.yaml with gateway_config.yaml in
-    # 'splunk_otel_collector_config' 'splunk_otel_collector_config_source' this will copy gateway_config from source.
-    splunk_otel_collector_config_source: |-
-      {%- if splunk_otel_collector_config_source -%}
-        {{ splunk_otel_collector_config_source }}
-      {%- else -%}
-         {{ansible_env.ProgramFiles}}/Splunk/OpenTelemetry Collector/agent_config.yaml
-      {%- endif -%}
     splunk_otel_collector_config: |-
       {%- if splunk_otel_collector_config -%}
         {{ splunk_otel_collector_config }}
@@ -69,12 +55,6 @@
       {%- else -%}
         {{ansible_env.ProgramFiles}}/Splunk/OpenTelemetry Collector/fluentd/td-agent.conf
       {%- endif -%}
-    splunk_fluentd_config_source: |-
-      {%- if splunk_fluentd_config -%}
-        {{ splunk_fluentd_config }}
-      {%- else -%}
-        {{ansible_env.SystemDrive}}/opt/td-agent/etc/td-agent/td-agent.conf
-      {%- endif -%}
     td_agent_version: |-
       {%- if td_agent_version -%}
         {{ td_agent_version }}
@@ -82,4 +62,6 @@
         4.1.1
       {%- endif -%}
     registry_key: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-  when: ansible_os_family in windows_distro
+    package_stage: release
+    win_base_url: https://dl.signalfx.com
+  when: ansible_os_family == "Windows"

@@ -1,4 +1,5 @@
 ---
+
 # Fetching the latest version of splunk-otel-collector
 - name: Get splunk-otel-collector latest version
   ansible.windows.win_get_url:
@@ -11,6 +12,7 @@
   slurp:
     src: "{{latest.dest}}"
   register: version
+  when: splunk_otel_collector_version == "latest"
 
 - name: decode remote file content for latest version
   set_fact:
@@ -48,6 +50,5 @@
   ansible.windows.win_copy:
     src: "{{splunk_otel_collector_config_source}}"
     dest: "{{splunk_otel_collector_config}}"
-    remote_src: yes
   when: splunk_otel_collector_config_source != ""
   notify: "restart windows splunk-otel-collector"

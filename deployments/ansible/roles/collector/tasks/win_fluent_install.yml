@@ -36,6 +36,5 @@
   ansible.windows.win_copy:
     src: "{{splunk_fluentd_config_source}}"
     dest: "{{splunk_fluentd_config}}"
-    remote_src: yes
   when: splunk_fluentd_config_source != ""
   notify: "restart windows fluentdwinsvc"

@@ -8,9 +8,11 @@ splunk_realm: us0
 
 splunk_otel_collector_version: latest
 
-# Set this variable to PATH/gateway_config.yaml in order to
-# deploy splunk-otel-collector in gateway mode
+# Set this variable to /etc/otel/collector/gateway_config.yaml on linux,
+# "{{ansible_env.ProgramFiles}}/Splunk/OpenTelemetry Collector/gateway_config.yaml" on Windows
+# in order to deploy splunk-otel-collector in gateway mode.
 splunk_otel_collector_config: ""
+
 # Set splunk_otel_collector_config_source to copy a custom config from
 # a local path to splunk_otel_collector_config on remote hosts
 splunk_otel_collector_config_source: ""
@@ -29,13 +31,18 @@ install_fluentd: true
 # and 4.1.1 for other distros.
 td_agent_version: ""
 
+# Default path /etc/otel/collector/fluentd/fluent.conf on Linux.
+# Default path %ProgramFiles%/Splunk/OpenTelemetry Collector/fluentd/td-agent.conf" on Windows.
 splunk_fluentd_config: ""
 splunk_fluentd_config_source: ""
 
+# Default path /usr/lib/splunk-otel-collector/agent-bundle on Linux.
+# Default path %ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle on Windows.
 agent_bundle_dir: ""
+
+# Default path /usr/lib/splunk-otel-collector/agent-bundle/run/collectd on Linux.
+# Default path %ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd on Windows.
 splunk_collectd_dir: ""
 
-package_stage: release
-
+# msi package name on Windows.
 msi_name: splunk-otel-collector-{{splunk_otel_collector_version}}-amd64.msi
-win_base_url: https://dl.signalfx.com

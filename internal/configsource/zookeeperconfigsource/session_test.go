@@ -24,6 +24,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 func sPtr(s string) *string {
@@ -31,12 +33,11 @@ func sPtr(s string) *string {
 }
 
 func TestSessionRetrieve(t *testing.T) {
-	logger := zap.NewNop()
 	conn := newMockConnection(map[string]string{
 		"k1":       "v1",
 		"d1/d2/k1": "v5",
 	})
-	session := newSession(logger, newMockConnectFunc(conn))
+	session := newZkConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, newMockConnectFunc(conn))
 
 	testsCases := []struct {
 		expect *string
@@ -67,8 +68,6 @@ func TestSessionRetrieve(t *testing.T) {
 }
 
 func TestWatcher(t *testing.T) {
-	logger := zap.NewNop()
-
 	testsCases := []struct {
 		name   string
 		result string
@@ -84,7 +83,7 @@ func TestWatcher(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			conn := newMockConnection(map[string]string{"k1": "v1"})
 			connect := newMockConnectFunc(conn)
-			session := newSession(logger, connect)
+			session := newZkConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, connect)
 
 			assert.NotContains(t, conn.watches, "k1")
 			retrieved, err := session.Retrieve(context.Background(), "k1", nil)

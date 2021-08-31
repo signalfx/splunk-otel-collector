@@ -29,24 +29,38 @@ import (
 
 const maxBackoffTime = time.Second * 60
 
-// etcd2Session implements the configsource.Session interface.
-type etcd2Session struct {
+// etcd2ConfigSource implements the configsource.Session interface.
+type etcd2ConfigSource struct {
 	logger     *zap.Logger
 	kapi       client.KeysAPI
 	closeFuncs []func()
 }
 
-var _ configsource.Session = (*etcd2Session)(nil)
+func newConfigSource(params configprovider.CreateParams, cfg *Config) (configsource.ConfigSource, error) {
+	var username, password string
+	if cfg.Authentication != nil {
+		username = cfg.Authentication.Username
+		password = cfg.Authentication.Password
+	}
+	etcdClient, err := client.New(client.Config{
+		Endpoints: cfg.Endpoints,
+		Username:  username,
+		Password:  password,
+	})
+	if err != nil {
+		return nil, err
+	}
 
-func newSession(logger *zap.Logger, kapi client.KeysAPI) *etcd2Session {
-	return &etcd2Session{
-		logger:     logger,
+	kapi := client.NewKeysAPI(etcdClient)
+
+	return &etcd2ConfigSource{
+		logger:     params.Logger,
 		kapi:       kapi,
 		closeFuncs: []func(){},
-	}
+	}, nil
 }
 
-func (s *etcd2Session) Retrieve(ctx context.Context, selector string, _ interface{}) (configsource.Retrieved, error) {
+func (s *etcd2ConfigSource) Retrieve(ctx context.Context, selector string, _ interface{}) (configsource.Retrieved, error) {
 	resp, err := s.kapi.Get(ctx, selector, nil)
 	if err != nil {
 		return nil, err
@@ -58,11 +72,11 @@ func (s *etcd2Session) Retrieve(ctx context.Context, selector string, _ interfac
 	return configprovider.NewWatchableRetrieved(resp.Node.Value, s.newWatcher(watchCtx, selector, resp.Node.ModifiedIndex)), nil
 }
 
-func (s *etcd2Session) RetrieveEnd(context.Context) error {
+func (s *etcd2ConfigSource) RetrieveEnd(context.Context) error {
 	return nil
 }
 
-func (s *etcd2Session) Close(context.Context) error {
+func (s *etcd2ConfigSource) Close(context.Context) error {
 	for _, cancel := range s.closeFuncs {
 		cancel()
 	}
@@ -70,7 +84,7 @@ func (s *etcd2Session) Close(context.Context) error {
 	return nil
 }
 
-func (s *etcd2Session) newWatcher(ctx context.Context, selector string, index uint64) func() error {
+func (s *etcd2ConfigSource) newWatcher(ctx context.Context, selector string, index uint64) func() error {
 	return func() error {
 		watcher := s.kapi.Watcher(selector, &client.WatcherOptions{AfterIndex: index})
 

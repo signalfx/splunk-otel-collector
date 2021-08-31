@@ -26,6 +26,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
+
+	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 func TestIncludeConfigSource_Session(t *testing.T) {
@@ -56,7 +58,8 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := newSession(Config{})
+			s, err := newConfigSource(configprovider.CreateParams{}, &Config{})
+			require.NoError(t, err)
 			require.NotNil(t, s)
 
 			ctx := context.Background()
@@ -81,7 +84,8 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 }
 
 func TestIncludeConfigSource_DeleteFile(t *testing.T) {
-	s := newSession(Config{DeleteFiles: true})
+	s, err := newConfigSource(configprovider.CreateParams{}, &Config{DeleteFiles: true})
+	require.NoError(t, err)
 	require.NotNil(t, s)
 
 	ctx := context.Background()
@@ -118,7 +122,8 @@ func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
 		t.Skip("Windows only test")
 	}
 
-	s := newSession(Config{DeleteFiles: true})
+	s, err := newConfigSource(configprovider.CreateParams{}, &Config{DeleteFiles: true})
+	require.NoError(t, err)
 	require.NotNil(t, s)
 
 	ctx := context.Background()

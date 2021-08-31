@@ -16,7 +16,6 @@ package zookeeperconfigsource
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"go.opentelemetry.io/collector/config"
@@ -51,17 +50,7 @@ func (v *zkFactory) CreateDefaultConfig() configprovider.ConfigSettings {
 }
 
 func (v *zkFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.ConfigSettings) (configsource.ConfigSource, error) {
-	zkCfg := cfg.(*Config)
-
-	if len(zkCfg.Endpoints) == 0 {
-		return nil, &errMissingEndpoint{errors.New("cannot connect to zk without any endpoints")}
-	}
-
-	return &zookeeperconfigsource{
-		logger:    params.Logger,
-		endpoints: zkCfg.Endpoints,
-		timeout:   zkCfg.Timeout,
-	}, nil
+	return newConfigSource(params, cfg.(*Config))
 }
 
 // NewFactory returns a new zookeekeper config source factory

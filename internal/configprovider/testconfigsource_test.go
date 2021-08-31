@@ -26,7 +26,6 @@ import (
 type testConfigSource struct {
 	ValueMap map[string]valueEntry
 
-	ErrOnNewSession  error
 	ErrOnRetrieve    error
 	ErrOnRetrieveEnd error
 	ErrOnClose       error
@@ -39,15 +38,7 @@ type valueEntry struct {
 	WatchForUpdateFn func() error
 }
 
-var _ (configsource.ConfigSource) = (*testConfigSource)(nil)
-var _ (configsource.Session) = (*testConfigSource)(nil)
-
-func (t *testConfigSource) NewSession(context.Context) (configsource.Session, error) {
-	if t.ErrOnNewSession != nil {
-		return nil, t.ErrOnNewSession
-	}
-	return t, nil
-}
+var _ configsource.ConfigSource = (*testConfigSource)(nil)
 
 func (t *testConfigSource) Retrieve(ctx context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
 	if t.OnRetrieve != nil {

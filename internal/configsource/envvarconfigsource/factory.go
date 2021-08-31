@@ -42,7 +42,7 @@ func (e *envVarFactory) CreateDefaultConfig() configprovider.ConfigSettings {
 }
 
 func (e *envVarFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.ConfigSettings) (configsource.ConfigSource, error) {
-	return newConfigSource(params.Logger, cfg.(*Config)), nil
+	return newConfigSource(params, cfg.(*Config)), nil
 }
 
 // NewFactory creates a factory for Vault ConfigSource objects.

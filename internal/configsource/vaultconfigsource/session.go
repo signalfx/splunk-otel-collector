@@ -40,8 +40,8 @@ type (
 	errBadSelector   struct{ error }
 )
 
-// vaultSession implements the configsource.Session interface.
-type vaultSession struct {
+// vaultConfigSource implements the configsource.Session interface.
+type vaultConfigSource struct {
 	logger *zap.Logger
 	client *api.Client
 	secret *api.Secret
@@ -53,9 +53,37 @@ type vaultSession struct {
 	pollInterval time.Duration
 }
 
-var _ configsource.Session = (*vaultSession)(nil)
+func newConfigSource(params configprovider.CreateParams, cfg *Config) (configsource.ConfigSource, error) {
+	// Client doesn't connect on creation and can't be closed. Keeping the same instance
+	// for all sessions is ok.
+	client, err := api.NewClient(&api.Config{
+		Address: cfg.Endpoint,
+	})
+	if err != nil {
+		return nil, err
+	}
 
-func (v *vaultSession) Retrieve(_ context.Context, selector string, _ interface{}) (configsource.Retrieved, error) {
+	token, err := getClientToken(client, *cfg.Authentication)
+	if err != nil {
+		return nil, err
+	}
+
+	client.SetToken(token)
+
+	if cfg.PollInterval <= 0 {
+		return nil, errInvalidPollInterval
+	}
+
+	return &vaultConfigSource{
+		logger:       params.Logger,
+		client:       client,
+		path:         cfg.Path,
+		pollInterval: cfg.PollInterval,
+		doneCh:       make(chan struct{}),
+	}, nil
+}
+
+func (v *vaultConfigSource) Retrieve(_ context.Context, selector string, _ interface{}) (configsource.Retrieved, error) {
 	// By default assume that watcher is not supported. The exception will be the first
 	// value read from the vault secret.
 	var watchForUpdateFn func() error
@@ -85,34 +113,20 @@ func (v *vaultSession) Retrieve(_ context.Context, selector string, _ interface{
 	return configprovider.NewWatchableRetrieved(value, watchForUpdateFn), nil
 }
 
-func (v *vaultSession) RetrieveEnd(context.Context) error {
+func (v *vaultConfigSource) RetrieveEnd(context.Context) error {
 	return nil
 }
 
-func (v *vaultSession) Close(context.Context) error {
+func (v *vaultConfigSource) Close(context.Context) error {
 	close(v.doneCh)
 
 	// Vault doesn't have a close for its client, close is completed.
 	return nil
 }
 
-func newSession(client *api.Client, path string, logger *zap.Logger, pollInterval time.Duration) (*vaultSession, error) {
-	if pollInterval <= 0 {
-		return nil, errInvalidPollInterval
-	}
-
-	return &vaultSession{
-		logger:       logger,
-		client:       client,
-		path:         path,
-		pollInterval: pollInterval,
-		doneCh:       make(chan struct{}),
-	}, nil
-}
-
-// readSecret reads the secret from the vaultSession path and if successful
-// it stores the secret on the vaultSession secret field.
-func (v *vaultSession) readSecret() error {
+// readSecret reads the secret from the vaultConfigSource path and if successful
+// it stores the secret on the vaultConfigSource secret field.
+func (v *vaultConfigSource) readSecret() error {
 	secret, err := v.client.Logical().Read(v.path)
 	if err != nil {
 		return &errClientRead{err}
@@ -132,7 +146,7 @@ func (v *vaultSession) readSecret() error {
 	return nil
 }
 
-func (v *vaultSession) buildWatcherFn() (func() error, error) {
+func (v *vaultConfigSource) buildWatcherFn() (func() error, error) {
 	switch {
 	case v.secret.Renewable:
 		// Dynamic secret supporting renewal.
@@ -146,7 +160,7 @@ func (v *vaultSession) buildWatcherFn() (func() error, error) {
 	}
 }
 
-func (v *vaultSession) buildLifetimeWatcher() (func() error, error) {
+func (v *vaultConfigSource) buildLifetimeWatcher() (func() error, error) {
 	vaultWatcher, err := v.client.NewLifetimeWatcher(&api.RenewerInput{
 		Secret: v.secret,
 	})
@@ -181,7 +195,7 @@ func (v *vaultSession) buildLifetimeWatcher() (func() error, error) {
 // by Vault and triggers the re-fetch of the secret when half of the TTl
 // has passed. In principle, this could be changed to actually check if the
 // values of the secret were actually changed or not.
-func (v *vaultSession) buildV1LeaseWatcher() (func() error, error) {
+func (v *vaultConfigSource) buildV1LeaseWatcher() (func() error, error) {
 	watcherFn := func() error {
 		// The lease duration is a hint of time to re-fetch the values.
 		// The SmartAgent waits for half ot the lease duration.
@@ -203,7 +217,7 @@ func (v *vaultSession) buildV1LeaseWatcher() (func() error, error) {
 // the v.secret metadata. In principle this could be done for the actual value of
 // the retrieved keys. However, checking for metadata keeps this in sync with the
 // SignalFx SmartAgent behavior.
-func (v *vaultSession) buildPollingWatcher() (func() error, error) {
+func (v *vaultConfigSource) buildPollingWatcher() (func() error, error) {
 	// Use the same requirements as SignalFx Smart Agent to build a polling watcher for the secret:
 	//
 	// This secret is not renewable or on a lease.  If it has a
@@ -275,7 +289,7 @@ type versionMetadata struct {
 	Version   int64
 }
 
-func (v *vaultSession) extractVersionMetadata(metadataMap map[string]interface{}, timestampKey, versionKey string) *versionMetadata {
+func (v *vaultConfigSource) extractVersionMetadata(metadataMap map[string]interface{}, timestampKey, versionKey string) *versionMetadata {
 	timestamp, ok := metadataMap[timestampKey].(string)
 	if !ok {
 		v.logger.Warn("Missing or unexpected type for timestamp on the metadata map", zap.String("key", timestampKey))
@@ -318,4 +332,16 @@ func traverseToKey(data map[string]interface{}, key string) interface{} {
 			return nil
 		}
 	}
+}
+
+func getClientToken(client *api.Client, auth Authentication) (string, error) {
+	switch {
+	case auth.Token != nil:
+		return *auth.Token, nil
+	case auth.IAMAuthentication != nil:
+		return auth.IAMAuthentication.Token(client)
+	case auth.GCPAuthentication != nil:
+		return auth.GCPAuthentication.Token(client)
+	}
+	return "", &errEmptyAuth{errors.New("auth cannot be empty, exactly one method must be used")}
 }

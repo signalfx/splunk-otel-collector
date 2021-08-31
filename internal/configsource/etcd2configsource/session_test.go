@@ -38,7 +38,7 @@ func TestSessionRetrieve(t *testing.T) {
 		},
 	}
 
-	session := &etcd2Session{logger: logger, kapi: kapi}
+	session := &etcd2ConfigSource{logger: logger, kapi: kapi}
 	testsCases := []struct {
 		params interface{}
 		expect *string
@@ -87,7 +87,7 @@ func TestWatcher(t *testing.T) {
 			watcher := newMockWatcher()
 			kapi.activeWatcher = watcher
 
-			session := &etcd2Session{logger: logger, kapi: kapi}
+			session := &etcd2ConfigSource{logger: logger, kapi: kapi}
 			retrieved, err := session.Retrieve(context.Background(), "k1", nil)
 			assert.NoError(t, err)
 			assert.NotNil(t, retrieved.Value)

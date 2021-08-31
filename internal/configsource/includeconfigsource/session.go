@@ -18,6 +18,7 @@ package includeconfigsource
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"text/template"
@@ -33,16 +34,25 @@ type (
 	errFailedToDeleteFile struct{ error }
 )
 
-// includeSession implements the configsource.Session interface.
-type includeSession struct {
+// includeConfigSource implements the configsource.Session interface.
+type includeConfigSource struct {
+	*Config
 	watcher      *fsnotify.Watcher
 	watchedFiles map[string]struct{}
-	Config
 }
 
-var _ configsource.Session = (*includeSession)(nil)
+func newConfigSource(_ configprovider.CreateParams, config *Config) (configsource.ConfigSource, error) {
+	if config.DeleteFiles && config.WatchFiles {
+		return nil, errors.New(`cannot be configured with "delete_files" and "watch_files" at the same time`)
+	}
 
-func (is *includeSession) Retrieve(_ context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
+	return &includeConfigSource{
+		Config:       config,
+		watchedFiles: make(map[string]struct{}),
+	}, nil
+}
+
+func (is *includeConfigSource) Retrieve(_ context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
 	tmpl, err := template.ParseFiles(selector)
 	if err != nil {
 		return nil, err
@@ -74,11 +84,11 @@ func (is *includeSession) Retrieve(_ context.Context, selector string, params in
 	return configprovider.NewWatchableRetrieved(buf.Bytes(), watchForUpdateFn), nil
 }
 
-func (is *includeSession) RetrieveEnd(context.Context) error {
+func (is *includeConfigSource) RetrieveEnd(context.Context) error {
 	return nil
 }
 
-func (is *includeSession) Close(context.Context) error {
+func (is *includeConfigSource) Close(context.Context) error {
 	if is.watcher != nil {
 		return is.watcher.Close()
 	}
@@ -86,14 +96,7 @@ func (is *includeSession) Close(context.Context) error {
 	return nil
 }
 
-func newSession(config Config) *includeSession {
-	return &includeSession{
-		Config:       config,
-		watchedFiles: make(map[string]struct{}),
-	}
-}
-
-func (is *includeSession) watchFile(file string) (func() error, error) {
+func (is *includeConfigSource) watchFile(file string) (func() error, error) {
 	var watchForUpdateFn func() error
 	if _, watched := is.watchedFiles[file]; watched {
 		// This file is already watched another watch function is not needed.

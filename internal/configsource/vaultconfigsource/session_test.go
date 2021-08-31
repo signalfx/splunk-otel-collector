@@ -31,6 +31,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 const (
@@ -65,7 +67,6 @@ func TestVaultSessionForKV(t *testing.T) {
 	defer requireCmdRun(t, stopVault)
 	requireCmdRun(t, setupKVStore)
 
-	logger := zap.NewNop()
 	config := Config{
 		Endpoint: address,
 		Authentication: &Authentication{
@@ -75,11 +76,7 @@ func TestVaultSessionForKV(t *testing.T) {
 		PollInterval: 2 * time.Second,
 	}
 
-	cs, err := newConfigSource(logger, &config)
-	require.NoError(t, err)
-	require.NotNil(t, cs)
-
-	s, err := cs.NewSession(context.Background())
+	s, err := newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -114,7 +111,6 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 	defer requireCmdRun(t, stopVault)
 	requireCmdRun(t, setupKVStore)
 
-	logger := zap.NewNop()
 	config := Config{
 		Endpoint: address,
 		Authentication: &Authentication{
@@ -124,11 +120,7 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 		PollInterval: 2 * time.Second,
 	}
 
-	cs, err := newConfigSource(logger, &config)
-	require.NoError(t, err)
-	require.NotNil(t, cs)
-
-	s, err := cs.NewSession(context.Background())
+	s, err := newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -170,7 +162,7 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 	require.NoError(t, s.Close(context.Background()))
 
 	// Create a new session and repeat the process.
-	s, err = cs.NewSession(context.Background())
+	s, err = newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -204,7 +196,6 @@ func TestVaultRenewableSecret(t *testing.T) {
 	requireCmdRun(t, setupMongoVaultPlugin)
 	requireCmdRun(t, setupMongoSecret)
 
-	logger := zap.NewNop()
 	config := Config{
 		Endpoint: address,
 		Authentication: &Authentication{
@@ -214,11 +205,7 @@ func TestVaultRenewableSecret(t *testing.T) {
 		PollInterval: 2 * time.Second,
 	}
 
-	cs, err := newConfigSource(logger, &config)
-	require.NoError(t, err)
-	require.NotNil(t, cs)
-
-	s, err := cs.NewSession(context.Background())
+	s, err := newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -247,7 +234,7 @@ func TestVaultRenewableSecret(t *testing.T) {
 	require.NoError(t, s.Close(context.Background()))
 
 	// Create a new session and repeat the process.
-	s, err = cs.NewSession(context.Background())
+	s, err = newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -284,7 +271,6 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 	requireCmdRun(t, createKVVer1Store)
 	requireCmdRun(t, setupKVVer1Store)
 
-	logger := zap.NewNop()
 	config := Config{
 		Endpoint: address,
 		Authentication: &Authentication{
@@ -294,11 +280,7 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 		PollInterval: 2 * time.Second,
 	}
 
-	cs, err := newConfigSource(logger, &config)
-	require.NoError(t, err)
-	require.NotNil(t, cs)
-
-	s, err := cs.NewSession(context.Background())
+	s, err := newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -329,7 +311,7 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 	require.NoError(t, s.Close(context.Background()))
 
 	// Create a new session and repeat the process.
-	s, err = cs.NewSession(context.Background())
+	s, err = newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -360,7 +342,6 @@ func TestVaultV1NonWatchableSecret(t *testing.T) {
 	requireCmdRun(t, createKVVer1Store)
 	requireCmdRun(t, setupKVVer1NoTTL)
 
-	logger := zap.NewNop()
 	config := Config{
 		Endpoint: address,
 		Authentication: &Authentication{
@@ -370,11 +351,7 @@ func TestVaultV1NonWatchableSecret(t *testing.T) {
 		PollInterval: 2 * time.Second,
 	}
 
-	cs, err := newConfigSource(logger, &config)
-	require.NoError(t, err)
-	require.NotNil(t, cs)
-
-	s, err := cs.NewSession(context.Background())
+	s, err := newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -438,7 +415,6 @@ func TestVaultRetrieveErrors(t *testing.T) {
 				testToken = tt.token
 			}
 
-			logger := zap.NewNop()
 			config := Config{
 				Endpoint: address,
 				Authentication: &Authentication{
@@ -448,11 +424,7 @@ func TestVaultRetrieveErrors(t *testing.T) {
 				PollInterval: 2 * time.Second,
 			}
 
-			cfgSrc, err := newConfigSource(logger, &config)
-			require.NoError(t, err)
-			require.NotNil(t, cfgSrc)
-
-			s, err := cfgSrc.NewSession(ctx)
+			s, err := newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
 			require.NoError(t, err)
 			require.NotNil(t, s)
 
@@ -512,7 +484,7 @@ func Test_vaultSession_extractVersionMetadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := &vaultSession{
+			v := &vaultConfigSource{
 				logger: zap.NewNop(),
 			}
 

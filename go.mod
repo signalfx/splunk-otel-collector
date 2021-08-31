@@ -15,32 +15,32 @@ require (
 	github.com/hashicorp/vault-plugin-auth-gcp v0.9.0
 	github.com/hashicorp/vault/api v1.1.0
 	github.com/hashicorp/vault/sdk v0.2.1 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sprocessor v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.33.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sprocessor v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.33.1-0.20210820015633-907fde99999e
 	github.com/openzipkin/zipkin-go v0.2.5
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.36
@@ -49,8 +49,8 @@ require (
 	github.com/spf13/cast v1.4.1
 	github.com/stretchr/testify v1.7.0
 	go.etcd.io/etcd v0.5.0-alpha.5.0.20200425165423-262c93980547
-	go.opentelemetry.io/collector v0.33.0
-	go.opentelemetry.io/collector/model v0.33.0
+	go.opentelemetry.io/collector v0.33.1-0.20210820002854-d3000232f8f6
+	go.opentelemetry.io/collector/model v0.33.1-0.20210820002854-d3000232f8f6
 	go.uber.org/zap v1.19.0
 	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069
 	gopkg.in/yaml.v2 v2.4.0
@@ -78,7 +78,7 @@ require (
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a // indirect
 	github.com/Shopify/sarama v1.29.1 // indirect
 	github.com/Showmax/go-fqdn v1.0.0 // indirect
-	github.com/StackExchange/wmi v0.0.0-20210224194228-fe8f1750fd46 // indirect
+	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/alecthomas/units v0.0.0-20210208195552-ff826a37aa15 // indirect
 	github.com/apache/arrow/go/arrow v0.0.0-20200601151325-b2287a20f230 // indirect
 	github.com/apache/thrift v0.14.2 // indirect
@@ -339,19 +339,19 @@ require (
 )
 
 replace (
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter => github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter => github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer => github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage => github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/common => github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/interval => github.com/open-telemetry/opentelemetry-collector-contrib/internal/interval v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig => github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet => github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk => github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/stanza => github.com/open-telemetry/opentelemetry-collector-contrib/internal/stanza v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.33.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver => github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.33.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter => github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter => github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer => github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage => github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/common => github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/interval => github.com/open-telemetry/opentelemetry-collector-contrib/internal/interval v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig => github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet => github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk => github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/stanza => github.com/open-telemetry/opentelemetry-collector-contrib/internal/stanza v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.33.1-0.20210820015633-907fde99999e
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver => github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.33.1-0.20210820015633-907fde99999e
 )
 
 // each of these is required for the smartagentreceiver

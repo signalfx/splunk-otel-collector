@@ -24,9 +24,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/testutil"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
+
+	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestConfigServer_RequireEnvVar(t *testing.T) {
@@ -49,7 +50,7 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 }
 
 func TestConfigServer_EnvVar(t *testing.T) {
-	alternativePort := strconv.FormatUint(uint64(testutil.GetAvailablePort(t)), 10)
+	alternativePort := strconv.FormatUint(uint64(testutils.GetAvailablePort(t)), 10)
 	require.NoError(t, os.Setenv(configServerEnabledEnvVar, "true"))
 	t.Cleanup(func() {
 		assert.NoError(t, os.Unsetenv(configServerEnabledEnvVar))

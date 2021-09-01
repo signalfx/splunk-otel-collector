@@ -22,6 +22,7 @@ AGENT_CONFIG="/project/cmd/otelcol/config/collector/agent_config.yaml"
 GATEWAY_CONFIG="/project/cmd/otelcol/config/collector/gateway_config.yaml"
 FLUENTD_CONFIG="/project/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"
 FLUENTD_CONFD="/project/internal/buildscripts/packaging/msi/fluentd/conf.d"
+SUPPORT_BUNDLE_SCRIPT="/project/internal/buildscripts/packaging/msi/splunk-support-bundle.ps1"
 SMART_AGENT_RELEASE="latest"
 SPLUNK_ICON="/project/internal/buildscripts/packaging/msi/splunk.ico"
 OUTPUT_DIR="/project/dist"
@@ -45,6 +46,8 @@ OPTIONS:
                              Defaults to '$FLUENTD_CONFIG'.
     --fluentd-confd PATH:    Absolute path to the conf.d.
                              Defaults to '$FLUENTD_CONFD'.
+    --support-bundle PATH:   Absolute path to the support bundle script.
+                             Defaults to '$SUPPORT_BUNDLE_SCRIPT'.
     --smart-agent VERSION:   The released version of the Smart Agent bundle to include (will be downloaded).
                              Defaults to '$SMART_AGENT_RELEASE'.
     --splunk-icon PATH:      Absolute path to the splunk.ico.
@@ -61,6 +64,7 @@ parse_args_and_build() {
     local gateway_config="$GATEWAY_CONFIG"
     local fluentd_config="$FLUENTD_CONFIG"
     local fluentd_confd="$FLUENTD_CONFD"
+    local support_bundle="$SUPPORT_BUNDLE_SCRIPT"
     local smart_agent_release="$SMART_AGENT_RELEASE"
     local splunk_icon="$SPLUNK_ICON"
     local output="$OUTPUT_DIR"
@@ -86,6 +90,10 @@ parse_args_and_build() {
                 ;;
             --fluentd-confd)
                 fluentd_confd="$2"
+                shift 1
+                ;;
+            --support-bundle)
+                support_bundle="$2"
                 shift 1
                 ;;
             --smart-agent)
@@ -134,6 +142,7 @@ parse_args_and_build() {
     fi
 
     mkdir -p "${files_dir}/fluentd/conf.d"
+    cp "$support_bundle" "${files_dir}/splunk-support-bundle.ps1"
     cp "$agent_config" "${files_dir}/agent_config.yaml"
     cp "$gateway_config" "${files_dir}/gateway_config.yaml"
     cp "$fluentd_config" "${files_dir}/fluentd/td-agent.conf"

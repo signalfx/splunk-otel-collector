@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/collector/model/pdata"
-	tracetranslator "go.opentelemetry.io/collector/translator/trace"
 )
 
 // Returns a ResourceMetrics item generated from pdata.Metrics content.  At this time histograms and summaries
@@ -100,14 +99,14 @@ func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pda
 		val = value.DoubleVal()
 	case pdata.AttributeValueTypeMap:
 		// Coerce to map[string]interface{}
-		val = tracetranslator.AttributeMapToMap(value.MapVal())
+		val = pdata.AttributeMapToMap(value.MapVal())
 	case pdata.AttributeValueTypeArray:
 		// Coerce to []interface{}
 		// Required pdata helper is not exposed so we pass value as a map
 		// and use helper that calls it internally.
 		toTranslate := pdata.NewAttributeMap()
 		toTranslate.Insert(name, value)
-		translated := tracetranslator.AttributeMapToMap(toTranslate)
+		translated := pdata.AttributeMapToMap(toTranslate)
 		val = translated[name]
 	default:
 		val = nil

@@ -35,27 +35,57 @@ installed on x86_64/amd64 platforms.
 
 1. Set up the package repository and install the collector package:
 - Debian:
-```sh
-curl -sSL https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg > /etc/apt/trusted.gpg.d/splunk.gpg
-echo 'deb https://splunk.jfrog.io/splunk/otel-collector-deb release main' > /etc/apt/sources.list.d/splunk-otel-collector.list
-apt-get update
-apt-get install -y splunk-otel-collector
-```
-- RPM:
-```sh
-yum install -y libcap  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the collector
+  ```sh
+  $ curl -sSL https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg > /etc/apt/trusted.gpg.d/splunk.gpg
+  $ echo 'deb https://splunk.jfrog.io/splunk/otel-collector-deb release main' > /etc/apt/sources.list.d/splunk-otel-collector.list
+  $ apt-get update
+  $ apt-get install -y splunk-otel-collector
+  ```
+- RPM with `yum`:
+  ```sh
+  $ yum install -y libcap  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the collector
 
-cat <<EOH > /etc/yum.repos.d/splunk-otel-collector.repo
-[splunk-otel-collector]
-name=Splunk OpenTelemetry Collector Repository
-baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
-gpgcheck=1
-gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
-enabled=1
-EOH
+  $ cat <<EOH > /etc/yum.repos.d/splunk-otel-collector.repo
+  [splunk-otel-collector]
+  name=Splunk OpenTelemetry Collector Repository
+  baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
+  gpgcheck=1
+  gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
+  enabled=1
+  EOH
 
-yum install -y splunk-otel-collector
-```
+  $ yum install -y splunk-otel-collector
+  ```
+- RPM with `dnf`:
+  ```sh
+  $ dnf install -y libcap  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the collector
+
+  $ cat <<EOH > /etc/yum.repos.d/splunk-otel-collector.repo
+  [splunk-otel-collector]
+  name=Splunk OpenTelemetry Collector Repository
+  baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
+  gpgcheck=1
+  gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
+  enabled=1
+  EOH
+
+  $ dnf install -y splunk-otel-collector
+  ```
+- RPM with `zypper`:
+  ```sh
+  $ zypper install -y libcap-progs  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the collector
+
+  $ cat <<EOH > /etc/zypp/repos.d/splunk-otel-collector.repo
+  [splunk-otel-collector]
+  name=Splunk OpenTelemetry Collector Repository
+  baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
+  gpgcheck=1
+  gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
+  enabled=1
+  EOH
+
+  $ zypper install -y splunk-otel-collector
+  ```
 2. A default configuration file will be installed to
    `/etc/otel/collector/agent_config.yaml` if it does not already exist.
 3. The `/etc/otel/collector/splunk-otel-collector.conf` environment file is
@@ -65,8 +95,10 @@ yum install -y splunk-otel-collector
    required environment variables for the default config.  To utilize this
    sample file, set the variables as appropriate and save the file as
    `/etc/otel/collector/splunk-otel-collector.conf`.
-4. Start/Restart the service with
-   `sudo systemctl restart splunk-otel-collector.service`.
+4. Start/Restart the service with:
+   ```sh
+   $ sudo systemctl restart splunk-otel-collector.service
+   ```
 
 ### Other
 

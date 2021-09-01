@@ -20,8 +20,9 @@ import (
 	"os"
 	"path"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver/subprocess"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/tests/testutils/subprocess"
 )
 
 const binaryPathSuffix = "/bin/otelcol"

@@ -27,7 +27,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/testutil"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -53,7 +52,7 @@ func NewTestcase(t *testing.T) *Testcase {
 	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
 	tc.Logger = zap.New(logCore)
 
-	tc.OTLPEndpoint = testutil.GetAvailableLocalAddress(t)
+	tc.OTLPEndpoint = getAvailableLocalAddress(t)
 
 	var err error
 	tc.OTLPMetricsReceiverSink, err = NewOTLPMetricsReceiverSink().WithEndpoint(tc.OTLPEndpoint).WithLogger(tc.Logger).Build()

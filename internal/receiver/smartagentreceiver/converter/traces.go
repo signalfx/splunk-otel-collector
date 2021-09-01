@@ -18,11 +18,11 @@ import (
 	"encoding/json"
 	"net"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin/zipkinv2"
 	zipkinmodel "github.com/openzipkin/zipkin-go/model"
 	"github.com/signalfx/golib/v3/trace"
 	sfxConstants "github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/trace/zipkinv2"
 	"go.uber.org/zap"
 )
 

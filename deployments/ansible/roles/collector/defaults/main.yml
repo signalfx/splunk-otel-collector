@@ -36,4 +36,4 @@ agent_bundle_dir: /usr/lib/splunk-otel-collector/agent-bundle
 splunk_collectd_dir: /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
 
 # Configure otel collector service to use a proxy
-splunk_service_proxy: ""
+splunk_otel_collector_proxy: ""

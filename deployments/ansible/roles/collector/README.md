@@ -82,7 +82,7 @@ how to use the role in a playbook with minimal required configuration:
   ownership for the collector service. The user/group will be created if they
   do not exist. (**default:** `splunk-otel-collector`)
 
-- `splunk_service_proxy` (Linux only): Set the proxy address to be used by the
+- `splunk_otel_collector_proxy` (Linux only): Set the proxy address to be used by the
   collector service **if** not empty. It must be a full URL as for the linux
   `http_proxy` environment variable like `http://user:pass@10.0.0.42`. Notice
   this proxy is not used by ansible itself during deployment. (**default:** ``)

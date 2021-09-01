@@ -22,7 +22,7 @@
     src: collector-service-proxy.conf.j2
     dest: /etc/systemd/system/splunk-otel-collector.service.d/service-proxy.conf
   notify: "restart splunk-otel-collector"
-  when: splunk_service_proxy != ""
+  when: splunk_otel_collector_proxy != ""
 
 - name: Set up env file for Splunk OTel Collector service
   ansible.builtin.template:

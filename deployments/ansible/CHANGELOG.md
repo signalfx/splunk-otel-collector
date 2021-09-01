@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add proxy support for otel collector service runtime level (#699)
+
 ## ansible-v0.1.3
 
 - Add meta/runtime.yml (#690)

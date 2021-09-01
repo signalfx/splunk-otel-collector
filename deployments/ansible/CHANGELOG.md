@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Drop `apt_key` deprecated module in favor of existing `get_url` task (#698)
+
 ## ansible-v0.1.3
 
 - Add meta/runtime.yml (#690)

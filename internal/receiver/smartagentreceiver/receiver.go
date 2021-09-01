@@ -40,6 +40,7 @@ import (
 )
 
 const setOutputErrMsg = "unable to set Output field of monitor"
+const systemTypeKey = "system.type"
 
 type Receiver struct {
 	monitor             interface{}
@@ -174,6 +175,9 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 	for k, v := range r.config.monitorConfig.MonitorConfigCore().ExtraDimensions {
 		output.AddExtraDimension(k, v)
 	}
+
+	systemTypeVal := fmt.Sprintf("smartagent-%s", monitorType)
+	output.AddExtraDimension(systemTypeKey, systemTypeVal)
 
 	// Configure SmartAgentConfigProvider to gather any global config overrides and
 	// set required envs.

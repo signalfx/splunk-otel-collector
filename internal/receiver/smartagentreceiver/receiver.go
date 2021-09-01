@@ -176,8 +176,7 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 		output.AddExtraDimension(k, v)
 	}
 
-	systemTypeVal := fmt.Sprintf("smartagent-%s", monitorType)
-	output.AddExtraDimension(systemTypeKey, systemTypeVal)
+	output.AddExtraDimension(systemTypeKey, monitorType)
 
 	// Configure SmartAgentConfigProvider to gather any global config overrides and
 	// set required envs.

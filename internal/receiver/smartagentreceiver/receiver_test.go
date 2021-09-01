@@ -146,7 +146,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 
 						systemType, ok := attributes.Get("system.type")
 						require.True(t, ok)
-						assert.Equal(t, "smartagent-cpu", systemType.StringVal())
+						assert.Equal(t, "cpu", systemType.StringVal())
 
 						// mark metric as having been seen
 						cpuNum, _ := attributes.Get("cpu")

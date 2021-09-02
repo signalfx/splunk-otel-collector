@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v0.34.1
+
+### 💡 Enhancements 💡
+
+- Automatically add `system.type` dimension to all `smartagent` receiver datapoints (#702)
+- Include ECS EC2 config in docker images (#713)
+
 ## v0.34.0
 
 This Splunk OpenTelemetry Connector release includes changes from the [opentelemetry-collector v0.34.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.34.0) and the [opentelemetry-collector-contrib v0.34.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.34.0) releases.

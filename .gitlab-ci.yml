@@ -23,6 +23,7 @@ include:
 semgrep:
   stage: sast-oss-scan
   extends: .sast_scan
+  retry: 2
   variables:
     SAST_SCANNER: "Semgrep"
     SEMGREP_EXCLUDE: "examples,internal/buildscripts,tests,*_test.go"
@@ -36,6 +37,7 @@ semgrep:
 whitesource:
   extends: .whitesource
   stage: sast-oss-scan
+  retry: 2
   variables:
     ws_user_key: ${WHITESOURCE_USER_KEY}
     product_id: ${WHITESOURCE_ID}
@@ -375,6 +377,7 @@ puppet-release:
 cve-scan:
   extends: .go-cache
   stage: cve-scan
+  retry: 2
   only:
     - main
     - schedules

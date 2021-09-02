@@ -93,6 +93,33 @@ installed on x86_64/amd64 platforms.
 1. See the [Collector Debian/RPM Post-Install
    Configuration](#collector-debianrpm-post-install-configuration) section.
 1. If log collection is required, see the [Fluentd](#fluentd) section.
+1. To upgrade the Collector, run the following commands:
+   - Debian:
+     ```sh
+     sudo apt-get update
+     sudo apt-get install --only-upgrade splunk-otel-collector
+     ```
+     **Note:** If the default configuration files in `/etc/otel/collector` have
+     been modified after initial installation, you may be prompted to keep the
+     existing files or overwrite the files from the new Collector package.
+   - RPM:
+     - `yum`
+       ```sh
+       sudo yum upgrade splunk-otel-collector
+       ```
+     - `dnf`:
+       ```sh
+       sudo dnf upgrade splunk-otel-collector
+       ```
+     - `zypper`
+       ```sh
+       sudo zypper refresh
+       sudo zypper update splunk-otel-collector
+       ```
+     **Note:** If the default configuration files in `/etc/otel/collector` have
+     been modified after initial installation, the existing files will be
+     preserved and the files from the new Collector package may be installed
+     with a `.rpmnew` extension.
 
 #### Collector Debian/RPM Packages
 
@@ -138,6 +165,26 @@ installed on x86_64/amd64 platforms.
 1. See the [Collector Debian/RPM Post-Install
    Configuration](#collector-debianrpm-post-install-configuration) section.
 1. If log collection is required, see the [Fluentd](#fluentd) section.
+1. To upgrade the Collector package, download the appropriate Debian or RPM
+   package for the target system from [Github Releases](
+   https://github.com/signalfx/splunk-otel-collector/releases) and run the
+   following commands (replace `<path to splunk-otel-collector deb/rpm>` with
+   the local path to the downloaded Collector package):
+   - Debian:
+     ```sh
+     sudo dpkg -i <path to splunk-otel-collector deb>
+     ```
+     **Note:** If the default configuration files in `/etc/otel/collector` have
+     been modified after initial installation, you may be prompted to keep the
+     existing files or overwrite the files from the new Collector package.
+   - RPM
+     ```sh
+     sudo rpm -Uvh <path to splunk-otel-collector rpm>
+     ```
+     **Note:** If the default configuration files in `/etc/otel/collector` have
+     been modified after initial installation, the existing files will be
+     preserved and the files from the new Collector package may be installed
+     with a `.rpmnew` extension.
 
 #### Collector Debian/RPM Post-Install Configuration
 

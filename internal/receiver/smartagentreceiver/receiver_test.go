@@ -144,6 +144,10 @@ func TestSmartAgentReceiver(t *testing.T) {
 						require.True(t, ok)
 						assert.Equal(t, "required_value", labelVal.StringVal())
 
+						systemType, ok := attributes.Get("system.type")
+						require.True(t, ok)
+						assert.Equal(t, "cpu", systemType.StringVal())
+
 						// mark metric as having been seen
 						cpuNum, _ := attributes.Get("cpu")
 						seenName := fmt.Sprintf("%s%s", name, cpuNum.StringVal())
@@ -160,6 +164,11 @@ func TestSmartAgentReceiver(t *testing.T) {
 	assert.Greater(t, len(metrics), 0)
 	err = receiver.Shutdown(context.Background())
 	assert.NoError(t, err)
+}
+
+func TestStripMonitorTypePrefix(t *testing.T) {
+	assert.Equal(t, "nginx", stripMonitorTypePrefix("collectd/nginx"))
+	assert.Equal(t, "cpu", stripMonitorTypePrefix("cpu"))
 }
 
 func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {

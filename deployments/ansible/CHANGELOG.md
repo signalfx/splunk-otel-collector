@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## ansible-v0.2.0
+
 - Add proxy support for otel collector service runtime level (#699)
 - Drop `apt_key` deprecated module in favor of existing `get_url` task (#698)
 

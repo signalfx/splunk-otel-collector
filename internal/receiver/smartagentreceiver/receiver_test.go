@@ -166,6 +166,11 @@ func TestSmartAgentReceiver(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestStripMonitorTypePrefix(t *testing.T) {
+	assert.Equal(t, "nginx", stripMonitorTypePrefix("collectd/nginx"))
+	assert.Equal(t, "cpu", stripMonitorTypePrefix("cpu"))
+}
+
 func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("invalid", "cpu", -123)

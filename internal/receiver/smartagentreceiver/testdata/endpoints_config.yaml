@@ -1,6 +1,6 @@
 receivers:
   smartagent/haproxy:
-    endpoint: haproxyhost:2345
+    endpoint: "[fe80::20c:29ff:fe59:9446]:2345"
     type: haproxy
     intervalSeconds: 123
     username: SomeUser
@@ -11,7 +11,7 @@ receivers:
     port: 6379
     intervalSeconds: 234
   smartagent/hadoop:
-    endpoint: hadoophost:12345
+    endpoint: "[::]:12345"
     type: collectd/hadoop
     host: localhost
     port: 8088

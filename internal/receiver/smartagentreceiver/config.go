@@ -16,9 +16,9 @@ package smartagentreceiver
 
 import (
 	"fmt"
+	"net"
 	"reflect"
 	"strconv"
-	"strings"
 
 	"github.com/signalfx/defaults"
 	_ "github.com/signalfx/signalfx-agent/pkg/core" // required to invoke monitor registration via init() calls
@@ -148,12 +148,14 @@ func setHostAndPortViaEndpoint(endpoint string, monitorConfig interface{}) error
 		return nil
 	}
 
-	var host string
 	var port uint16
-	splat := strings.Split(endpoint, ":")
-	host = splat[0]
-	if len(splat) == 2 {
-		portStr := splat[1]
+	host, portStr, err := net.SplitHostPort(endpoint)
+	if err != nil {
+		// best effort
+		host = endpoint
+	}
+
+	if portStr != "" {
 		port64, err := strconv.ParseUint(portStr, 10, 16)
 		if err != nil {
 			return fmt.Errorf("cannot determine port via Endpoint: %w", err)

@@ -88,6 +88,13 @@ how to use the role in a playbook with minimal required configuration:
   ownership for the collector service. The user/group will be created if they
   do not exist. (**default:** `splunk-otel-collector`)
 
+- `splunk_otel_collector_proxy_http` and `splunk_otel_collector_proxy_https`
+  (Linux only): Set the proxy address, respectively for `http_proxy` and
+  `https_proxy` environment variables, to be used by the collector service
+  **if** at least one of them is not empty. It must be a full URL like
+  `http://user:pass@10.0.0.42`. Notice this proxy is not used by ansible
+  itself during deployment. (**default:** ``)
+
 - `splunk_memory_total_mib`: Amount of memory in MiB allocated to the Splunk OTel 
   Collector. (**default:** `512`)
 

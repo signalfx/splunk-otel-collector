@@ -42,7 +42,7 @@ func (f *includeFactory) CreateDefaultConfig() configprovider.ConfigSettings {
 }
 
 func (f *includeFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.ConfigSettings) (configsource.ConfigSource, error) {
-	return newConfigSource(params.Logger, cfg.(*Config))
+	return newConfigSource(params, cfg.(*Config))
 }
 
 // NewFactory creates a factory for include ConfigSource objects.

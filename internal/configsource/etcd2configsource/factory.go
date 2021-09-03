@@ -65,7 +65,7 @@ func (v *etcd2Factory) CreateConfigSource(_ context.Context, params configprovid
 		}
 	}
 
-	return newConfigSource(params.Logger, etcd2Cfg)
+	return newConfigSource(params, etcd2Cfg)
 }
 
 // NewFactory creates a new etcd2Factory instance

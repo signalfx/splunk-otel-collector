@@ -162,9 +162,6 @@ type Manager struct {
 	// configSources is map from ConfigSource names (as defined in the configuration)
 	// and the respective instances.
 	configSources map[string]configsource.ConfigSource
-	// sessions track all the Session objects used to retrieve values to be injected
-	// into the configuration.
-	sessions map[string]configsource.Session
 	// watchingCh is used to notify users of the Manager that the WatchForUpdate function
 	// is ready and waiting for notifications.
 	watchingCh chan struct{}
@@ -286,8 +283,8 @@ func (m *Manager) WaitForWatcher() {
 // in the configuration. It should be called
 func (m *Manager) Close(ctx context.Context) error {
 	var errs []error
-	for _, session := range m.sessions {
-		if err := session.Close(ctx); err != nil {
+	for _, cfgSrc := range m.configSources {
+		if err := cfgSrc.Close(ctx); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -301,15 +298,14 @@ func (m *Manager) Close(ctx context.Context) error {
 func newManager(configSources map[string]configsource.ConfigSource) *Manager {
 	return &Manager{
 		configSources: configSources,
-		sessions:      make(map[string]configsource.Session),
 		watchingCh:    make(chan struct{}),
 		closeCh:       make(chan struct{}),
 	}
 }
 func (m *Manager) retrieveEndAllSessions(ctx context.Context) []error {
 	var errs []error
-	for _, session := range m.sessions {
-		if err := session.RetrieveEnd(ctx); err != nil {
+	for _, cfgSrc := range m.configSources {
+		if err := cfgSrc.RetrieveEnd(ctx); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -353,16 +349,7 @@ func (m *Manager) expandConfigSource(ctx context.Context, cfgSrc configsource.Co
 		return nil, err
 	}
 
-	session, ok := m.sessions[cfgSrcName]
-	if !ok {
-		session, err = cfgSrc.NewSession(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create session for config source %q: %w", cfgSrcName, err)
-		}
-		m.sessions[cfgSrcName] = session
-	}
-
-	retrieved, err := session.Retrieve(ctx, selector, params)
+	retrieved, err := cfgSrc.Retrieve(ctx, selector, params)
 	if err != nil {
 		return nil, fmt.Errorf("config source %q failed to retrieve value: %w", cfgSrcName, err)
 	}

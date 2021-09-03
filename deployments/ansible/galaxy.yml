@@ -2,7 +2,7 @@
 namespace: signalfx
 name: splunk_otel_collector
 description: Ansible collection for Splunk OpenTelemetry Connector
-version: 0.1.1
+version: 0.2.0
 readme: README.md
 authors:
   - Splunk Inc.
@@ -18,6 +18,7 @@ tags:
   - gateway
   - logs
   - metrics
+  - o11y
   - observability
   - opentelemetry
   - otel

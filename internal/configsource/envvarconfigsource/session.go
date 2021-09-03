@@ -41,14 +41,23 @@ type retrieveParams struct {
 	Optional bool `mapstructure:"optional"`
 }
 
-// envVarSession implements the configsource.Session interface.
-type envVarSession struct {
+// envVarConfigSource implements the configsource.Session interface.
+type envVarConfigSource struct {
 	defaults map[string]interface{}
 }
 
-var _ configsource.Session = (*envVarSession)(nil)
+func newConfigSource(_ configprovider.CreateParams, cfg *Config) configsource.ConfigSource {
+	defaults := make(map[string]interface{})
+	if cfg.Defaults != nil {
+		defaults = cfg.Defaults
+	}
 
-func (e *envVarSession) Retrieve(_ context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
+	return &envVarConfigSource{
+		defaults: defaults,
+	}
+}
+
+func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
 	actualParams := retrieveParams{}
 	if params != nil {
 		paramsParser := configparser.NewParserFromStringMap(cast.ToStringMap(params))
@@ -73,16 +82,10 @@ func (e *envVarSession) Retrieve(_ context.Context, selector string, params inte
 	return configprovider.NewRetrieved(defaultValue), nil
 }
 
-func (e *envVarSession) RetrieveEnd(context.Context) error {
+func (e *envVarConfigSource) RetrieveEnd(context.Context) error {
 	return nil
 }
 
-func (e *envVarSession) Close(context.Context) error {
+func (e *envVarConfigSource) Close(context.Context) error {
 	return nil
-}
-
-func newSession(defaults map[string]interface{}) *envVarSession {
-	return &envVarSession{
-		defaults: defaults,
-	}
 }

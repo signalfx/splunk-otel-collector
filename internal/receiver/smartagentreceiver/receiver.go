@@ -22,6 +22,7 @@ import (
 	"reflect"
 	"regexp"
 	"runtime"
+	"strings"
 	"sync"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
@@ -40,6 +41,7 @@ import (
 )
 
 const setOutputErrMsg = "unable to set Output field of monitor"
+const systemTypeKey = "system.type"
 
 type Receiver struct {
 	monitor             interface{}
@@ -175,6 +177,8 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 		output.AddExtraDimension(k, v)
 	}
 
+	output.AddExtraDimension(systemTypeKey, stripMonitorTypePrefix(monitorType))
+
 	// Configure SmartAgentConfigProvider to gather any global config overrides and
 	// set required envs.
 	configureEnvironmentOnce.Do(func() {
@@ -190,6 +194,14 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 	}
 
 	return monitor, err
+}
+
+func stripMonitorTypePrefix(s string) string {
+	idx := strings.Index(s, "/")
+	if idx == -1 {
+		return s
+	}
+	return s[idx+1:]
 }
 
 func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[config.ComponentID]component.Extension) {

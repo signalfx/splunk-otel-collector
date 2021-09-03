@@ -17,7 +17,9 @@ package zookeeperconfigsource
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/go-zookeeper/zk"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
@@ -26,24 +28,30 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
-// zkSession implements the configsource.Session interface.
-type zkSession struct {
+// zkConfigSource implements the configsource.Session interface.
+type zkConfigSource struct {
 	logger  *zap.Logger
 	connect connectFunc
 	closeCh chan struct{}
 }
 
-var _ configsource.Session = (*zkSession)(nil)
+func newConfigSource(params configprovider.CreateParams, cfg *Config) (configsource.ConfigSource, error) {
+	if len(cfg.Endpoints) == 0 {
+		return nil, &errMissingEndpoint{errors.New("cannot connect to zk without any endpoints")}
+	}
 
-func newSession(logger *zap.Logger, connect connectFunc) *zkSession {
-	return &zkSession{
-		logger:  logger,
+	return newZkConfigSource(params, newConnectFunc(cfg.Endpoints, cfg.Timeout)), nil
+}
+
+func newZkConfigSource(params configprovider.CreateParams, connect connectFunc) *zkConfigSource {
+	return &zkConfigSource{
+		logger:  params.Logger,
 		connect: connect,
 		closeCh: make(chan struct{}),
 	}
 }
 
-func (s *zkSession) Retrieve(ctx context.Context, selector string, _ interface{}) (configsource.Retrieved, error) {
+func (s *zkConfigSource) Retrieve(ctx context.Context, selector string, _ interface{}) (configsource.Retrieved, error) {
 	conn, err := s.connect(ctx)
 	if err != nil {
 		return nil, err
@@ -56,11 +64,11 @@ func (s *zkSession) Retrieve(ctx context.Context, selector string, _ interface{}
 	return configprovider.NewWatchableRetrieved(value, newWatcher(watchCh, s.closeCh)), nil
 }
 
-func (s *zkSession) RetrieveEnd(context.Context) error {
+func (s *zkConfigSource) RetrieveEnd(context.Context) error {
 	return nil
 }
 
-func (s *zkSession) Close(context.Context) error {
+func (s *zkConfigSource) Close(context.Context) error {
 	close(s.closeCh)
 	return nil
 }
@@ -82,5 +90,23 @@ func newWatcher(watchCh <-chan zk.Event, closeCh <-chan struct{}) func() error {
 			}
 			return fmt.Errorf("zookeeper watcher stopped")
 		}
+	}
+}
+
+// newConnectFunc returns a new function that can be used to establish and return a connection
+// to a zookeeper cluster. Every function returned by newConnectFunc will return the same
+// underlying connection until it is lost.
+func newConnectFunc(endpoints []string, timeout time.Duration) connectFunc {
+	var conn *zk.Conn
+	return func(ctx context.Context) (zkConnection, error) {
+		if conn != nil && conn.State() != zk.StateDisconnected {
+			return conn, nil
+		}
+
+		conn, _, err := zk.Connect(endpoints, timeout, zk.WithLogInfo(false))
+		if err != nil {
+			return nil, err
+		}
+		return conn, nil
 	}
 }

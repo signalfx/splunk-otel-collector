@@ -7,7 +7,7 @@ The
 [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector)
 (Collector) should to be run as a Daemon service in an EC2 ECS cluster.
 
-Requires Connector release v0.34.0 or newer which corresponds to image tag 0.34.0 and newer.
+Requires Connector release v0.34.1 or newer which corresponds to image tag 0.34.1 and newer.
 See image repository [here](https://quay.io/repository/signalfx/splunk-otel-collector?tab=tags).
 
 ## Getting Started

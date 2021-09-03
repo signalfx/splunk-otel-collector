@@ -24,7 +24,7 @@ how to use the role in a playbook with minimal required configuration:
   hosts: all
   become: yes
   # For Windows "become: yes" will raise error.
-  # "The Powershell family is incompatible with the sudo become plugin" Use "become_user: root" tag to run on Windows
+  # "The Powershell family is incompatible with the sudo become plugin". Remove "become: yes" tag to run on Windows
   tasks:
     - name: "Include splunk_otel_collector"
       include_role:
@@ -63,7 +63,7 @@ how to use the role in a playbook with minimal required configuration:
 - `splunk_otel_collector_config_source`: Source path to a Splunk OTel Collector config YAML 
   file on your control host that will be uploaded and set in place of
   `splunk_otel_collector_config` in remote hosts. Can be used to submit a custom collector 
-  config, e.g. `./custom_collector_config.yaml`. (**default:** `""` on Linux, **default:** `""` on Windows) 
+  config, e.g. `./custom_collector_config.yaml`. (**default:** `""`) 
   meaning that nothing will be copied and existing `splunk_otel_collector_config` will be used)
   
 - `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
@@ -115,5 +115,5 @@ how to use the role in a playbook with minimal required configuration:
 - `splunk_fluentd_config_source`: Source path to a fluentd config file on your 
   control host that will be uploaded and set in place of `splunk_fluentd_config` on
   remote hosts. Can be used to submit a custom fluentd config,
-  e.g. `./custom_fluentd_config.conf`. (**default:** `""` on Linux, **default:** `""` on Windows)
+  e.g. `./custom_fluentd_config.conf`. (**default:** `""`)
   meaning that nothing will be copied and existing `splunk_fluentd_config` will be used)

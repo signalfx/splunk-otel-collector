@@ -26,19 +26,6 @@
     dest: "%TEMP%"
   register: otel_msi_package
 
-# Check for existing splunk-otel-collector Installation
-- name: Check if splunk-otel-collector service is installed
-  ansible.windows.win_service:
-    name: splunk-otel-collector
-  register: service_info
-
-# Uninstall existing splunk-otel-collector service
-- name: Delete previous splunk-otel-collector service if exist
-  ansible.windows.win_service:
-    name: splunk-otel-collector
-    state: absent
-  when: service_info.exists
-
 # Install latest version of Splunk-otel-collector on Windows
 - name: Install splunk-otel-collector-msi
   ansible.windows.win_package:

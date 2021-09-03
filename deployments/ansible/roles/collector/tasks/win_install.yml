@@ -12,7 +12,7 @@
 
 # Install fluentd on Windows
 - name: Install Splunk OpenTelemetry Collector with yum package manager
-  ansible.builtin.import_tasks: win_fluent_install.yml
+  ansible.builtin.import_tasks: win_fluentd_install.yml
   when:
     - install_fluentd
     - ansible_os_family == "Windows"

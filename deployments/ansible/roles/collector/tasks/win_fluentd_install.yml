@@ -12,19 +12,6 @@
     dest: "%TEMP%"
   register: fluentd_msi
 
-# Check for existing fluentd Installation
-- name: Check if fluentd service is installed
-  ansible.windows.win_service:
-    name: fluentdwinsvc
-  register: service_info
-
-# Uninstall existing fluentd service
-- name: Delete previous fluentd service if exist
-  ansible.windows.win_service:
-    name: fluentdwinsvc
-    state: absent
-  when: service_info.exists
-
 # Install fluentd on Windows
 - name: Install Fluentd on Windows
   ansible.windows.win_package:

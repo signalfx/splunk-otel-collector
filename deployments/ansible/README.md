@@ -45,7 +45,7 @@ Note that this role requires root access.
   hosts: all
   become: yes
   # For Windows "become: yes" will raise error.
-  # "The Powershell family is incompatible with the sudo become plugin" Use "become_user: root" tag to run on Windows
+  # "The Powershell family is incompatible with the sudo become plugin". Remove "become: yes" tag to run on Windows
   tasks:
     - name: "Include splunk_otel_collector"
       include_role:

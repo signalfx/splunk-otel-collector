@@ -43,13 +43,13 @@ def get_package(distro, name, path):
         return None
 
 
-def get_rpm_command(container):
+def get_libcap_command(container):
     if container.exec_run("command -v yum").exit_code == 0:
-        return "yum"
+        return "yum install -y libcap"
     elif container.exec_run("command -v dnf").exit_code == 0:
-        return "dnf"
+        return "dnf install -y libcap"
     else:
-        return "zypper"
+        return "zypper install -y libcap-progs"
 
 
 @pytest.mark.parametrize(
@@ -76,11 +76,7 @@ def test_collector_package_install(distro):
     with run_distro_container(distro) as container:
         # install setcap dependency
         if distro in RPM_DISTROS:
-            rpm_cmd = get_rpm_command(container)
-            if rpm_cmd == "zypper":
-                run_container_cmd(container, f"{rpm_cmd} install -y libcap-progs")
-            else:
-                run_container_cmd(container, f"{rpm_cmd} install -y libcap")
+            run_container_cmd(container, get_libcap_command(container))
         else:
             run_container_cmd(container, "apt-get update")
             run_container_cmd(container, "apt-get install -y libcap2-bin")

@@ -123,16 +123,10 @@ def test_installer_mode(distro, version, mode):
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
             if "opensuse" not in distro:
-                # the td-agent service should only be running when installing
-                # collector packages that have our custom fluent config
-                if container.exec_run("test -f /etc/otel/collector/fluentd/fluent.conf").exit_code == 0:
-                    assert container.exec_run("systemctl status td-agent").exit_code == 0
-                else:
-                    assert container.exec_run("systemctl status td-agent").exit_code != 0
+                assert container.exec_run("systemctl status td-agent").exit_code == 0
 
             # test support bundle script
-            if container.exec_run("test -f /etc/otel/collector/splunk-support-bundle.sh").exit_code == 0:
-                verify_support_bundle(container)
+            verify_support_bundle(container)
 
             run_container_cmd(container, "sh -x /test/install.sh --uninstall")
 
@@ -177,12 +171,7 @@ def test_installer_ballast(distro, version):
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
             if "opensuse" not in distro:
-                # the td-agent service should only be running when installing
-                # collector packages that have our custom fluent config
-                if container.exec_run("test -f /etc/otel/collector/fluentd/fluent.conf").exit_code == 0:
-                    assert container.exec_run("systemctl status td-agent").exit_code == 0
-                else:
-                    assert container.exec_run("systemctl status td-agent").exit_code != 0
+                assert container.exec_run("systemctl status td-agent").exit_code == 0
 
             run_container_cmd(container, "sh -x /test/install.sh --uninstall")
 
@@ -229,12 +218,7 @@ def test_installer_service_owner(distro, version):
             assert wait_for(lambda: service_is_running(container, service_owner=service_owner))
 
             if "opensuse" not in distro:
-                # the td-agent service should only be running when installing
-                # collector packages that have our custom fluent config
-                if container.exec_run("test -f /etc/otel/collector/fluentd/fluent.conf").exit_code == 0:
-                    assert container.exec_run("systemctl status td-agent").exit_code == 0
-                else:
-                    assert container.exec_run("systemctl status td-agent").exit_code != 0
+                assert container.exec_run("systemctl status td-agent").exit_code == 0
 
         finally:
             if "opensuse" not in distro:

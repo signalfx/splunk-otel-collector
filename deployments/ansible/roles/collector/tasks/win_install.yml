@@ -1,18 +1,13 @@
 ---
 
-# Install splunk-otel-collector on Windows
-- name: Install Splunk OpenTelemetry Collector with msi package manager for Windows
+- name: Install Splunk OpenTelemetry Collector with msi package manager
   ansible.builtin.import_tasks: otel_win_install.yml
   when: ansible_os_family == "Windows"
 
-# Set ENVIRONMENT Variables on Windows
 - name: Set Windows Registry values
   ansible.builtin.import_tasks: otel_win_reg.yml
   when: ansible_os_family == "Windows"
 
-# Install fluentd on Windows
-- name: Install Splunk OpenTelemetry Collector with yum package manager
+- name: Install Fluentd with msi package manager
   ansible.builtin.import_tasks: win_fluentd_install.yml
-  when:
-    - install_fluentd
-    - ansible_os_family == "Windows"
+  when: install_fluentd

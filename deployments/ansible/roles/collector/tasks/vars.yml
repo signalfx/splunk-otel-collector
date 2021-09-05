@@ -1,5 +1,4 @@
 ---
-# Set default vars for Linux deployments.
 - name: set default vars for Linux
   set_fact:
     splunk_otel_collector_config: |-
@@ -28,7 +27,6 @@
       {%- endif -%}
   when: ansible_os_family != "Windows"
 
-# Set Vars for Windows deployments.
 - name: set default vars for Windows
   set_fact:
     splunk_bundle_dir: |-

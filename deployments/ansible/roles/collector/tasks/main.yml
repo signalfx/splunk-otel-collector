@@ -17,7 +17,6 @@
   ansible.builtin.import_tasks: linux_install.yml
   when: ansible_os_family != "Windows"
 
-# Windows Deployment using MSI
 - name: Windows deployment
   ansible.builtin.import_tasks: win_install.yml
   when: ansible_os_family == "Windows"

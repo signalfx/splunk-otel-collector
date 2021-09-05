@@ -1,6 +1,5 @@
 ---
 
-# Fetching the latest version of splunk-otel-collector
 - name: Get splunk-otel-collector latest version
   ansible.windows.win_get_url:
     url: "{{win_base_url}}/splunk-otel-collector/msi/{{package_stage}}/latest.txt"
@@ -19,20 +18,18 @@
     splunk_otel_collector_version: "{{version.content | b64decode }}"
   when: splunk_otel_collector_version == "latest"
 
-# Download msi package manager for Windows
 - name: Get splunk-otel-collctor for windows
   ansible.windows.win_get_url:
-    url: "{{win_base_url}}/splunk-otel-collector/msi/{{package_stage}}/{{msi_name}}"
+    url: "{{win_base_url}}/splunk-otel-collector/msi/{{package_stage}}/splunk-otel-collector-\
+          {{splunk_otel_collector_version}}-amd64.msi"
     dest: "%TEMP%"
   register: otel_msi_package
 
-# Install latest version of Splunk-otel-collector on Windows
 - name: Install splunk-otel-collector-msi
   ansible.windows.win_package:
     path: "{{otel_msi_package.dest}}"
     state: present
 
-# Push Custom Configuration file for splunk-otel-collector on Windows.
 - name: Push Custom Config file for splunk-otel-collector, If provided
   ansible.windows.win_copy:
     src: "{{splunk_otel_collector_config_source}}"

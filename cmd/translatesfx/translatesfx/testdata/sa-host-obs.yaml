@@ -1,0 +1,13 @@
+signalFxAccessToken: abc123
+ingestUrl: https://ingest.us1.signalfx.com
+apiUrl: https://api.us1.signalfx.com
+
+logging:
+  level: debug
+
+observers:
+  - type: host
+
+monitors:
+  - type: etcd
+    discoveryRule: 'name == "etcd" && port == 2379'

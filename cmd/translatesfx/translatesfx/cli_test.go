@@ -24,7 +24,8 @@ import (
 )
 
 func TestTranslateConfig(t *testing.T) {
-	translated := translateConfig("testdata/sa-e2e-input.yaml", "")
+	translated, w := translateConfig("testdata/sa-e2e-input.yaml", "")
+	assert.Nil(t, w)
 	expected, err := os.ReadFile("testdata/otel-e2e-expected.yaml")
 	require.NoError(t, err)
 	var translatedV, expectedV interface{}

@@ -15,6 +15,7 @@
 package translatesfx
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -27,18 +28,21 @@ const (
 	sfx               = "signalfx"
 	metricsTransform  = "metricstransform"
 	filterProc        = "filter"
+	k8sObserver       = "k8s_observer"
+	hostObserver      = "host_observer"
 )
 
-func saInfoToOtelConfig(sa saCfgInfo, vaultPaths []string) *otelCfg {
-	otel := newOtelCfg()
+func saInfoToOtelConfig(sa saCfgInfo, vaultPaths []string) (otel *otelCfg, warnings []error) {
+	otel = newOtelCfg()
 	translateExporters(sa, otel)
-	translateMonitors(sa, otel)
+	w := translateMonitors(sa, otel)
+	warnings = append(warnings, w...)
 	translateGlobalDims(sa, otel)
 	translateSAExtension(sa, otel)
 	translateObservers(sa, otel)
 	translateConfigSources(sa, otel, vaultPaths)
 	translateFilters(sa, otel)
-	return otel
+	return otel, warnings
 }
 
 func newOtelCfg() *otelCfg {
@@ -229,11 +233,12 @@ func translateExporters(sa saCfgInfo, cfg *otelCfg) {
 	cfg.Exporters = sfxExporter(sa)
 }
 
-func translateMonitors(sa saCfgInfo, cfg *otelCfg) {
+func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 	rcReceivers := map[string]map[string]interface{}{}
 	for _, monV := range sa.monitors {
 		monitor := monV.(map[interface{}]interface{})
-		receiver, isRC := saMonitorToOtelReceiver(monitor)
+		receiver, w, isRC := saMonitorToOtelReceiver(monitor, sa.observers)
+		warnings = append(warnings, w...)
 		target := cfg.Receivers
 		if isRC {
 			target = rcReceivers
@@ -246,13 +251,21 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) {
 	receivers := receiverList(cfg.Receivers)
 
 	if len(rcReceivers) > 0 {
-		const rc = "receiver_creator"
-		cfg.Receivers[rc] = map[string]interface{}{
-			"receivers":       rcReceivers,
-			"watch_observers": []string{"k8s_observer"}, // TODO check observer type?
+		switch {
+		case sa.observers == nil:
+			warnings = append(warnings, errors.New("found Smart Agent discovery rule but no observers"))
+		case len(sa.observers) > 1:
+			warnings = append(warnings, errors.New("found Smart Agent discovery rule but multiple observers"))
+		default:
+			obs := saObserverTypeToOtel(sa.observers[0].(map[interface{}]interface{})["type"].(string))
+			const rc = "receiver_creator"
+			cfg.Receivers[rc] = map[string]interface{}{
+				"receivers":       rcReceivers,
+				"watch_observers": []string{obs},
+			}
+			receivers = append(receivers, rc)
+			sort.Strings(receivers)
 		}
-		receivers = append(receivers, rc)
-		sort.Strings(receivers)
 	}
 
 	if receivers != nil {
@@ -278,6 +291,8 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) {
 			Exporters:  []string{sfx},
 		}
 	}
+
+	return warnings
 }
 
 func translateGlobalDims(sa saCfgInfo, otel *otelCfg) {
@@ -300,7 +315,9 @@ func translateObservers(sa saCfgInfo, otel *otelCfg) {
 		m := saObserversToOtel(sa.observers)
 		if m != nil {
 			otel.addExtensions(m)
-			otel.Service.appendExtension("k8s_observer")
+			for k := range m {
+				otel.Service.appendExtension(k)
+			}
 		}
 	}
 }
@@ -420,12 +437,17 @@ func sfxExporter(sa saCfgInfo) map[string]map[string]interface{} {
 	}
 }
 
-func saMonitorToOtelReceiver(monitor map[interface{}]interface{}) (map[string]map[string]interface{}, bool) {
+func saMonitorToOtelReceiver(monitor map[interface{}]interface{}, observers []interface{}) (
+	out map[string]map[string]interface{},
+	warnings []error,
+	isReceiverCreator bool,
+) {
 	strm := interfaceMapToStringMap(monitor)
 	if _, ok := monitor["discoveryRule"]; ok {
-		return saMonitorToRCReceiver(strm), true
+		receiver, w := saMonitorToRCReceiver(strm, observers)
+		return receiver, w, true
 	}
-	return saMonitorToStandardReceiver(strm), false
+	return saMonitorToStandardReceiver(strm), nil, false
 }
 
 func interfaceMapToStringMap(in map[interface{}]interface{}) map[string]interface{} {
@@ -444,16 +466,22 @@ func stringMapToInterfaceMap(in map[string]interface{}) map[interface{}]interfac
 	return out
 }
 
-func saMonitorToRCReceiver(monitor map[string]interface{}) map[string]map[string]interface{} {
+func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface{}) (out map[string]map[string]interface{}, warnings []error) {
 	key := "smartagent/" + monitor["type"].(string)
-	rcr := discoveryRuleToRCRule(monitor["discoveryRule"].(string))
+	dr := monitor["discoveryRule"].(string)
+	rcr, err := discoveryRuleToRCRule(dr, observers)
+	if err != nil {
+		// fall back to original rule if unable to translate
+		rcr = dr
+		warnings = append(warnings, err)
+	}
 	delete(monitor, "discoveryRule")
 	return map[string]map[string]interface{}{
 		key: {
 			"rule":   rcr,
 			"config": monitor,
 		},
-	}
+	}, warnings
 }
 
 func saMonitorToStandardReceiver(monitor map[string]interface{}) map[string]map[string]interface{} {
@@ -463,6 +491,7 @@ func saMonitorToStandardReceiver(monitor map[string]interface{}) map[string]map[
 }
 
 func saObserversToOtel(observers []interface{}) map[string]interface{} {
+	out := map[string]interface{}{}
 	for _, v := range observers {
 		obs, ok := v.(map[interface{}]interface{})
 		if !ok {
@@ -476,25 +505,28 @@ func saObserversToOtel(observers []interface{}) map[string]interface{} {
 		if !ok {
 			return nil
 		}
-		if observerType == "k8s-api" {
-			return map[string]interface{}{
-				"k8s_observer": map[string]interface{}{
-					"auth_type": "serviceAccount",
-					"node":      "${K8S_NODE_NAME}",
-				},
+		otelObserverType := saObserverTypeToOtel(observerType)
+		switch otelObserverType {
+		case k8sObserver:
+			out[k8sObserver] = map[string]interface{}{
+				"auth_type": "serviceAccount",
+				"node":      "${K8S_NODE_NAME}",
 			}
+		case hostObserver:
+			out[hostObserver] = map[string]interface{}{}
 		}
 	}
-	return nil
+	return out
 }
 
-func discoveryRuleToRCRule(dr string) string {
-	out := strings.ReplaceAll(dr, "=~", "matches")
-	out = strings.ReplaceAll(out, "container_image", "pod.name")
-	if strings.Contains(out, "port") {
-		out = `type == "port" && ` + out
+func saObserverTypeToOtel(saType string) string {
+	switch saType {
+	case "k8s-api":
+		return k8sObserver
+	case "host":
+		return hostObserver
 	}
-	return out
+	return ""
 }
 
 func mtOperations(m map[interface{}]interface{}) (out []map[interface{}]interface{}) {

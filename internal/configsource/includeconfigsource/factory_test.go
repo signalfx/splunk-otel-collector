@@ -40,21 +40,26 @@ func TestIncludeConfigSourceFactory_CreateConfigSource(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name:     "default",
-			expected: &includeConfigSource{},
+			name: "default",
+			expected: &includeConfigSource{
+				Config:       &Config{},
+				watchedFiles: make(map[string]struct{}),
+			},
 		},
 		{
 			name:   "delete_files",
 			config: Config{DeleteFiles: true},
 			expected: &includeConfigSource{
-				Config{DeleteFiles: true},
+				Config:       &Config{DeleteFiles: true},
+				watchedFiles: make(map[string]struct{}),
 			},
 		},
 		{
 			name:   "watch_files",
 			config: Config{WatchFiles: true},
 			expected: &includeConfigSource{
-				Config{WatchFiles: true},
+				Config:       &Config{WatchFiles: true},
+				watchedFiles: make(map[string]struct{}),
 			},
 		},
 		{

@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## ansible-v0.2.0
+
+- Add proxy support for otel collector service runtime level (#699)
+- Drop `apt_key` deprecated module in favor of existing `get_url` task (#698)
+
+## ansible-v0.1.3
+
+- Add meta/runtime.yml (#690)
+
+## ansible-v0.1.2
+
+- Install libcap on RHEL platforms (#678)
+
 ## ansible-v0.1.1
 
 ### 🧰 Bug fixes 🧰

@@ -63,9 +63,9 @@ how to use the role in a playbook with minimal required configuration:
 - `splunk_otel_collector_config_source`: Source path to a Splunk OTel Collector config YAML 
   file on your control host that will be uploaded and set in place of
   `splunk_otel_collector_config` in remote hosts. Can be used to submit a custom collector 
-  config, e.g. `./custom_collector_config.yaml`. (**default:** `""` 
-  meaning that nothing will be copied and existing `splunk_otel_collector_config` will be used)
-  
+  config, e.g. `./custom_collector_config.yaml`. (**default:** `""` meaning 
+  that nothing will be copied and existing `splunk_otel_collector_config` will be used)
+
 - `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
   https://github.com/signalfx/splunk-otel-collector/blob/main/internal/extension/smartagentextension/README.md).
   The default path is provided by the collector package. If the specified path
@@ -80,9 +80,8 @@ how to use the role in a playbook with minimal required configuration:
   If the specified path is changed from the default value, the path should be
   an existing directory on the node. The `SPLUNK_COLLECTD_DIR` environment
   variable will be set to this value for the collector service.
-  (**default:** `/usr/lib/splunk-otel-collector/agent-bundle` on Linux, 
+  (**default:** `/usr/lib/splunk-otel-collector/agent-bundle` on Linux,
   **default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd` on Windows)
-
 
 - `splunk_service_user` and `splunk_service_group` (Linux only): Set the user/group
   ownership for the collector service. The user/group will be created if they
@@ -122,5 +121,5 @@ how to use the role in a playbook with minimal required configuration:
 - `splunk_fluentd_config_source`: Source path to a fluentd config file on your 
   control host that will be uploaded and set in place of `splunk_fluentd_config` on
   remote hosts. Can be used to submit a custom fluentd config,
-  e.g. `./custom_fluentd_config.conf`. (**default:** `""` 
-  meaning that nothing will be copied and existing `splunk_fluentd_config` will be used)
+  e.g. `./custom_fluentd_config.conf`. (**default:** `""` meaning 
+  that nothing will be copied and existing `splunk_fluentd_config` will be used)

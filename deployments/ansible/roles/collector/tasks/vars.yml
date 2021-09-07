@@ -33,25 +33,25 @@
       {%- if agent_bundle_dir -%}
         {{ agent_bundle_dir }}
       {%- else -%}
-        {{ansible_env.ProgramFiles}}/Splunk/OpenTelemetry Collector/agent-bundle
+        {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\agent-bundle
       {%- endif -%}
     splunk_collectd_dir: |-
       {%- if splunk_collectd_dir -%}
         {{ splunk_collectd_dir }}
       {%- else -%}
-        {{ansible_env.ProgramFiles}}/Splunk/OpenTelemetry Collector/agent-bundle/run/collectd
+        {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd
       {%- endif -%}
     splunk_otel_collector_config: |-
       {%- if splunk_otel_collector_config -%}
         {{ splunk_otel_collector_config }}
       {%- else -%}
-        {{ansible_env.ProgramData}}/Splunk/OpenTelemetry Collector/agent_config.yaml
+        {{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\agent_config.yaml
       {%- endif -%}
     splunk_fluentd_config: |-
       {%- if splunk_fluentd_config -%}
         {{ splunk_fluentd_config }}
       {%- else -%}
-        {{ansible_env.ProgramFiles}}/Splunk/OpenTelemetry Collector/fluentd/td-agent.conf
+        {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\td-agent.conf
       {%- endif -%}
     td_agent_version: |-
       {%- if td_agent_version -%}

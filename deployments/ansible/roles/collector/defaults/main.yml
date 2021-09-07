@@ -9,7 +9,7 @@ splunk_realm: us0
 splunk_otel_collector_version: latest
 
 # Set this variable to /etc/otel/collector/gateway_config.yaml on linux,
-# "{{ansible_env.ProgramFiles}}/Splunk/OpenTelemetry Collector/gateway_config.yaml" on Windows
+# "Program Files\Splunk\OpenTelemetry Collector\gateway_config.yaml" on Windows
 # in order to deploy splunk-otel-collector in gateway mode.
 splunk_otel_collector_config: ""
 
@@ -31,17 +31,17 @@ install_fluentd: true
 # and 4.1.1 for other distros.
 td_agent_version: ""
 
-# Default path /etc/otel/collector/fluentd/fluent.conf on Linux.
-# Default path %ProgramFiles%/Splunk/OpenTelemetry Collector/fluentd/td-agent.conf" on Windows.
+# Default path on Linux: "/etc/otel/collector/fluentd/fluent.conf".
+# Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\fluentd\td-agent.conf".
 splunk_fluentd_config: ""
 splunk_fluentd_config_source: ""
 
-# Default path /usr/lib/splunk-otel-collector/agent-bundle on Linux.
-# Default path %ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle on Windows.
+# Default path on Linux: "/usr/lib/splunk-otel-collector/agent-bundle".
+# Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle".
 agent_bundle_dir: ""
 
-# Default path /usr/lib/splunk-otel-collector/agent-bundle/run/collectd on Linux.
-# Default path %ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd on Windows.
+# Default path on Linux: "/usr/lib/splunk-otel-collector/agent-bundle/run/collectd".
+# Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd".
 splunk_collectd_dir: ""
 
 # Configure otel collector service to use a proxy

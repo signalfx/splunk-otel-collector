@@ -14,6 +14,7 @@
   ansible.windows.win_package:
     path: "{{fluentd_msi.dest}}"
     state: present
+  notify: "restart windows fluentdwinsvc"
 
 - name: Push Custom Config file for fluentd, if provided
   ansible.windows.win_copy:

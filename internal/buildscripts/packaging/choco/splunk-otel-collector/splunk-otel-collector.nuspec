@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>splunk-otel-collector</id>
+    <version>0.0.0</version>
+    <description>
+The splunk-otel-collector is a metric-based agent written in Go that is used to monitor infrastructure and application services from a variety of environments.
+
+The splunk-otel-collector looks for a configuration file at `\ProgramData\Splunk\OpenTelemetry Collector\otelcol.exe`.  If this file does not already exist during installation, a default config file will be copied into place by the installer.
+
+#### Package Parameters
+The following package parameters are available:
+
+ * `/SPLUNK_ACCESS_TOKEN` - The splunk access token (org token) used to send metric data to OTEL. If the parameter is specified, the token will be saved to the `\ProgramData\Splunk\OpenTelemetry Collector\token` file. If the parameter is not specified and `\ProgramData\Splunk\OpenTelemetry Collector\token` does not exist or is empty, the Agent service is not started after installation or upgrade. To start the service, add or update `\ProgramData\Splunk\OpenTelemetry Collector\token` with a valid token, and then either restart Windows or run the following PowerShell command: `&amp; "\ProgramData\Splunk\OpenTelemetry Collector\otelcol.exe"`
+ * `/SPLUNK_INGEST_URL:` - URL of the Splunk ingest  (e.g. `https://ingest.YOUR_SPLUNK_REALM.signalfx.com`). The URL will be saved to the `\ProgramData\Splunk\OpenTelemetry Collector\SPLUNK_INGEST_URL` file. If the parameter is not specified, the value found in `\ProgramData\Splunk\OpenTelemetry Collector\SPLUNK_INGEST_URL` (if it exists) will be used. Otherwise, defaults to `https://ingest.us0.signalfx.com`.
+ * `/PLUNK_API_URL` - URL of the API endpoint (e.g. `https://api.YOUR_SPLUNK_REALM.signalfx.com`). The URL will be saved to the `\ProgramData\Splunk\OpenTelemetry Collector\SPLUNK_API_URL` file. If the parameter is not specified, the value found in `\ProgramData\Splunk\OpenTelemetry Collector\SPLUNK_API_URL` (if it exists) will be used. Otherwise, defaults to `https://api.us0.signalfx.com`.
+ * `/install_dir` - Installation directory. Defaults to `\Program Files\Splunk\OpenTelemetry Collector`.
+ * `/SPLUNK_HEC_TOKEN` - Splunk HEC is HTTP Event Collecter token which will collect the metrics and logs of host system in to splunk.. If the parameter is specified, the token will be saved to the `\ProgramData\Splunk\OpenTelemetry Collector\hec-token` file.
+ * `/SPLUNK_HEC_URL` - URL of Splunk HEC (e.g. `https://ingest.$SPLUNK_REALM.signalfx.com/v1/log`). The URL will be saved to the `\ProgramData\Splunk\OpenTelemetry Collector\SPLUNK_HEC_URL` file.
+ * `/SPLUNK_TRACE_URL` - Trace url is end point where apllication traces will be collected. URL of Splunk TRACE (e.g. `https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace`). The URL will be saved to the `\ProgramData\Splunk\OpenTelemetry Collector\SPLUNK_TRACE_URL` file.
+ * `/SPLUNK_REALM` - The parameter will be saved to the `\ProgramData\Splunk\OpenTelemetry Collector\SPLUNK_REALM` file. If not specified default is ("us0").
+ * `/SPLUNK_BUNDLE_DIR` - The path to the Agent bundle directory. The default path is provided by the collector package. If the specified path is changed from the default value, the path should be an existing directory on the node. The SPLUNK_BUNDLE_DIR environment variable will be set to this value for the collector service.
+ 
+
+To pass parameters, use `--params "''"` (e.g. `choco install signalfx-agent [choco options] --params="'/access_token:YOUR_SPLUNK_ACCESS_TOKEN /SPLUNK_INGEST_URL:https://ingest.YOUR_SPLUNK_REALM.signalfx.com /SPLUNK_API_URL:https://api.YOUR_SPLUNK_REALM.signalfx.com /install_dir:YOUR_INSTALL_DIR /SPLUNK_HEC_TOKEN:YOUR_SPLUNK_HEC_TOKEN /SPLUNK_HEC_URL:https://ingest.YOUR_SPLUNK_REALM.signalfx.com/v1/log /SPLUNK_TRACE_URL:https://ingest.YOUR_SPLUNK_REALM.signalfx.com/v2/trace /SPLUNK_REALM:YOUR_SPLUNK_REALM /SPLUNK_BUNDLE_DIR:YOUR_DIR_FOR_AGENT_BUNDLE'"`).
+
+To have choco remember parameters on upgrade, be sure to set `choco feature enable -n=useRememberedArgumentsForUpgrades`.
+    </description>
+    <summary>splunk-otel-collector</summary>
+    <authors>SignalFx</authors>
+    <title>splunk-otel-collector</title>
+    <projectUrl>https://www.signalfx.com</projectUrl>
+    <iconUrl>https://cdn.signalfx.com/favicon.ico</iconUrl>
+    <licenseUrl>https://github.com/signalfx/splunk-otel-collector/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/signalfx/splunk-otel-collector</projectSourceUrl>
+    <packageSourceUrl>https://github.com/signalfx/splunk-otel-collector</packageSourceUrl>
+    <docsUrl>https://opentelemetry.io/docs/</docsUrl>
+    <tags>splunk-otel-collector</tags>
+    <releaseNotes>https://github.com/signalfx/splunk-otel-collector/releases</releaseNotes>
+    <dependencies>
+      <dependency id="chocolatey-core.extension" version="1.3.5.1" />
+    </dependencies>
+  </metadata>
+  <files>
+    <!-- this section controls what actually gets packaged into the Chocolatey package -->
+    <file src="tools\**" target="tools" />
+    <!--Building from Linux? You may need this instead: <file src="tools/**" target="tools" />-->
+  </files>
+</package>

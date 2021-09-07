@@ -3,6 +3,10 @@
 If you found a bug in the Ansible role, don't hesitate to submit an issue or a 
 pull request.
 
+Please make sure to add a line to the
+[Ansible Changelog](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/ansible/CHANGELOG.md)
+if your change affects behavior of the Ansible collection.
+
 ## Local development
 
 Testing and validation of this Ansible role is based on 

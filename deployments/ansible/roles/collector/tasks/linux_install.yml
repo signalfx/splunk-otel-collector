@@ -17,6 +17,13 @@
 - name: Set Splunk Otel Collector service owner
   ansible.builtin.import_tasks: collector_service_owner.yml
 
+- name: Set Splunk Otel Collector service proxy
+  ansible.builtin.template:
+    src: collector-service-proxy.conf.j2
+    dest: /etc/systemd/system/splunk-otel-collector.service.d/service-proxy.conf
+  notify: "restart splunk-otel-collector"
+  when: splunk_otel_collector_proxy_http != "" or splunk_otel_collector_proxy_https != ""
+
 - name: Set up env file for Splunk OTel Collector service
   ansible.builtin.template:
     src: splunk-otel-collector.conf.j2

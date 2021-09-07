@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+## v0.34.1
+
+### 💡 Enhancements 💡
+
+- Automatically add `system.type` dimension to all `smartagent` receiver datapoints (#702)
+- Include ECS EC2 config in docker images (#713)
+
+## v0.34.0
+
+This Splunk OpenTelemetry Connector release includes changes from the [opentelemetry-collector v0.34.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.34.0) and the [opentelemetry-collector-contrib v0.34.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.34.0) releases.
+
+### 💡 Enhancements 💡
+
+- Add [Amazon ECS EC2](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ecs/ec2) deployment support (#642)
+- Enable `memory_ballast` extension in Fargate config (#675)
+- Initial [support bundle PowerShell script](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/buildscripts/packaging/msi/splunk-support-bundle.ps1); included in the Windows MSI (#654)
+- Remove strict `libcap` dependency from the collector RPM (#676)
+  - Allows installation on Linux distros without the `libcap` package.
+  - If installing the collector RPM manually, `libcap` will now need to be installed separately as a prerequisite.  See [linux-manual.md](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/linux-manual.md#deb-and-rpm-packages) for details.
+
+### 🧰 Bug fixes 🧰
+
+- Use system env vars for default paths in the Windows installer script (#667)
+
 ## v0.33.1
 
 ### 💡 Enhancements 💡

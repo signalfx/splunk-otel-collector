@@ -82,7 +82,7 @@ func (v *vaultFactory) CreateConfigSource(_ context.Context, params configprovid
 		return nil, &errNonPositivePollInterval{errors.New("poll_interval must to be positive")}
 	}
 
-	return newConfigSource(params.Logger, vaultCfg)
+	return newConfigSource(params, vaultCfg)
 }
 
 // NewFactory creates a factory for Vault ConfigSource objects.

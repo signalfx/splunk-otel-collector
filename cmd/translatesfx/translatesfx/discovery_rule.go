@@ -103,6 +103,8 @@ func translateTree(node ast.Node) error {
 	return nil
 }
 
+// hasType checks a receiver creator rule tree for the required 'type == "foo"'.
+// The equivalent in SA (where it's not required) is 'target == "foo".
 func hasType(node ast.Node) bool {
 	switch n := node.(type) {
 	case *ast.BinaryNode:
@@ -117,6 +119,9 @@ func hasType(node ast.Node) bool {
 	return false
 }
 
+// guessType is for rules that don't have the required e.g. 'type == "foo"'. For
+// now, we can assume the type is hostport if there is a host observer present.
+// We may also be able guess "port" or "pod" as well -- this part is TBD.
 func guessType(observers []interface{}) (string, error) {
 	if observers == nil {
 		return "", errors.New("unable to guess type; no observers")

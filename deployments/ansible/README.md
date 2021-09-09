@@ -23,7 +23,7 @@ Currently, the following Windows versions are supported:
 - Windows Server 2016 64-bit
 - Windows Server 2019 64-bit
 
-Ansible requires PowerShell 3.0 or newer and atleast .NET4.0 to be installed on Windows host.
+Ansible requires PowerShell 3.0 or newer and at least .NET 4.0 to be installed on Windows host.
 A WinRM listener should be created and activeted. 
 For setting up Windows Host refer [Ansible Docs](https://docs.ansible.com/ansible/latest/user_guide/windows_setup.html).
 

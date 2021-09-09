@@ -25,7 +25,7 @@ Run the below command on your host. Replace these variables:
 - `SPLUNK_ACCESS_TOKEN`: Access token to authenticate requests
 
 ```sh
-$ curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
+curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
 sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
 ```
 
@@ -40,7 +40,7 @@ Additional configuration options supported by the script can be found by
 running the script with the `-h` flag.
 
 ```sh
-$ sh /tmp/splunk-otel-collector.sh -h
+sh /tmp/splunk-otel-collector.sh -h
 ```
 
 One additional parameter that may need to changed is `--memory` in order to
@@ -50,7 +50,7 @@ configure the memory allocation.
 > to the Collector then you must increase this setting.
 
 ```sh
-$ curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh;
+curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
 sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --memory SPLUNK_MEMORY_TOTAL_MIB \
     -- SPLUNK_ACCESS_TOKEN
 ```
@@ -68,7 +68,7 @@ modified as needed. Possible configuration options can be found in the
 After modification, the Collector service needs to be restarted:
 
 ```sh
-$ sudo systemctl restart splunk-otel-collector
+sudo systemctl restart splunk-otel-collector
 ```
 
 ### Fluentd Configuration
@@ -124,7 +124,7 @@ from `/var/log/journal`.
 After any configuration modification, the td-agent service needs to be restarted:
 
 ```sh
-$ sudo systemctl restart td-agent
+sudo systemctl restart td-agent
 ```
 
 **Note:** If the `td-agent` package is upgraded after initial installation, [Linux
@@ -133,29 +133,32 @@ to be set for the new version by performing the following steps (only
 applicable for `td-agent` versions 4.1 or newer):
 
 1. Check for the enabled capabilities:
-```sh
-$ sudo /opt/td-agent/bin/fluent-cap-ctl --get -f /opt/td-agent/bin/ruby
-Capabilities in '/opt/td-agent/bin/ruby',
-Effective:   dac_override, dac_read_search
-Inheritable: dac_override, dac_read_search
-Permitted:   dac_override, dac_read_search
-```
+  ```sh
+  sudo /opt/td-agent/bin/fluent-cap-ctl --get -f /opt/td-agent/bin/ruby
+  ```
+  The output should be:
+  ```sh
+  Capabilities in '/opt/td-agent/bin/ruby',
+  Effective:   dac_override, dac_read_search
+  Inheritable: dac_override, dac_read_search
+  Permitted:   dac_override, dac_read_search
+  ```
 
 2. If the output from the previous command does not include `dac_override` and
    `dac_read_search` as shown above, run the following commands:
-```sh
-$ sudo td-agent-gem install capng_c
-$ sudo /opt/td-agent/bin/fluent-cap-ctl --add "dac_override,dac_read_search" -f /opt/td-agent/bin/ruby
-$ sudo systemctl daemon-reload
-$ sudo systemctl restart td-agent
-```
+  ```sh
+  sudo td-agent-gem install capng_c
+  sudo /opt/td-agent/bin/fluent-cap-ctl --add "dac_override,dac_read_search" -f /opt/td-agent/bin/ruby
+  sudo systemctl daemon-reload
+  sudo systemctl restart td-agent
+  ```
 
 ### Uninstall
 
 If you wish to uninstall the collector and fluentd you can run:
 
 ```sh
-$ sudo sh /tmp/splunk-otel-collector.sh --uninstall
+sudo sh /tmp/splunk-otel-collector.sh --uninstall
 ```
 
 > Note that configuration files may be left on the filesystem.  On RPM-based

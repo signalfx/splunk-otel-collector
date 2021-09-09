@@ -39,8 +39,8 @@ func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) saCfgInfo {
 		saExtension:      saExtension(saExpanded),
 		observers:        observers(saExpanded),
 		configSources:    configSources(saExpanded),
-		metricsToExclude: metricsToExclude(saExpanded),
-		metricsToInclude: metricsToInclude(saExpanded),
+		metricsToExclude: saToMetricsToExclude(saExpanded),
+		metricsToInclude: saToMetricsToInclude(saExpanded),
 	}
 }
 
@@ -108,11 +108,11 @@ func configSources(saExpanded map[interface{}]interface{}) map[interface{}]inter
 	return cs
 }
 
-func metricsToExclude(saExpanded map[interface{}]interface{}) []interface{} {
+func saToMetricsToExclude(saExpanded map[interface{}]interface{}) []interface{} {
 	return toSlice(saExpanded, "metricsToExclude")
 }
 
-func metricsToInclude(saExpanded map[interface{}]interface{}) []interface{} {
+func saToMetricsToInclude(saExpanded map[interface{}]interface{}) []interface{} {
 	return toSlice(saExpanded, "metricsToInclude")
 }
 

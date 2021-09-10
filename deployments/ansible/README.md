@@ -13,7 +13,7 @@ Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2
 - CentOS / Red Hat / Oracle: 7, 8
-- Debian: buster, stretch
+- Debian: 9, 10
 - Ubuntu: 16.04, 18.04, 20.04
 
 ## Windows

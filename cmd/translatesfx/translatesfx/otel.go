@@ -23,6 +23,7 @@ import (
 
 const (
 	processlist       = "smartagent/processlist"
+	kubernetesEvents  = "smartagent/kubernetes-events"
 	sfxFwder          = "smartagent/signalfx-forwarder"
 	resourceDetection = "resourcedetection"
 	sfx               = "signalfx"
@@ -31,6 +32,12 @@ const (
 	k8sObserver       = "k8s_observer"
 	hostObserver      = "host_observer"
 )
+
+// monitors that should be converted to both metrics and traces
+var metricsAndTracesReceiverMonitorTypes = map[string]bool{sfxFwder: true}
+
+// monitors that should be converted to logs receivers only
+var exclusivelyLogsReceiverMonitorTypes = map[string]bool{processlist: true, kubernetesEvents: true}
 
 func saInfoToOtelConfig(sa saCfgInfo, vaultPaths []string) (otel *otelCfg, warnings []error) {
 	otel = newOtelCfg()
@@ -248,7 +255,7 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 		}
 	}
 
-	receivers := receiverList(cfg.Receivers)
+	metricsReceivers, tracesReceivers, logsReceivers := receiverLists(cfg.Receivers)
 
 	if len(rcReceivers) > 0 {
 		switch {
@@ -263,30 +270,30 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 				"receivers":       rcReceivers,
 				"watch_observers": []string{obs},
 			}
-			receivers = append(receivers, rc)
-			sort.Strings(receivers)
+			metricsReceivers = append(metricsReceivers, rc)
+			sort.Strings(metricsReceivers)
 		}
 	}
 
-	if receivers != nil {
+	if metricsReceivers != nil {
 		cfg.Service.Pipelines["metrics"] = &rpe{
-			Receivers:  receivers,
+			Receivers:  metricsReceivers,
 			Processors: []string{resourceDetection},
 			Exporters:  []string{sfx},
 		}
 	}
 
-	if _, ok := cfg.Receivers[sfxFwder]; ok {
+	if tracesReceivers != nil {
 		cfg.Service.Pipelines["traces"] = &rpe{
-			Receivers:  []string{sfxFwder},
+			Receivers:  tracesReceivers,
 			Processors: []string{resourceDetection},
 			Exporters:  []string{sfx},
 		}
 	}
 
-	if _, ok := cfg.Receivers[processlist]; ok {
+	if logsReceivers != nil {
 		cfg.Service.Pipelines["logs"] = &rpe{
-			Receivers:  []string{processlist},
+			Receivers:  logsReceivers,
 			Processors: []string{resourceDetection},
 			Exporters:  []string{sfx},
 		}
@@ -407,16 +414,23 @@ func dimsToMetricsTransformProcessor(m map[interface{}]interface{}) map[string]i
 	}
 }
 
-func receiverList(receivers map[string]map[string]interface{}) []string {
-	var keys []string
+func receiverLists(receivers map[string]map[string]interface{}) (metrics, traces, logs []string) {
 	for k := range receivers {
-		if k == processlist {
+		if _, ok := exclusivelyLogsReceiverMonitorTypes[k]; ok {
+			logs = append(logs, k)
 			continue
 		}
-		keys = append(keys, k)
+
+		if _, ok := metricsAndTracesReceiverMonitorTypes[k]; ok {
+			traces = append(traces, k)
+		}
+
+		metrics = append(metrics, k)
 	}
-	sort.Strings(keys)
-	return keys
+	sort.Strings(metrics)
+	sort.Strings(traces)
+	sort.Strings(logs)
+	return
 }
 
 func sfxExporter(sa saCfgInfo) map[string]map[string]interface{} {

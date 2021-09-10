@@ -8,9 +8,11 @@ splunk_realm: us0
 
 splunk_otel_collector_version: latest
 
-# Set this variable to /etc/otel/collector/gateway_config.yaml in order to
-# deploy splunk-otel-collector in gateway mode
-splunk_otel_collector_config: /etc/otel/collector/agent_config.yaml
+# Set this variable to /etc/otel/collector/gateway_config.yaml on linux,
+# "Program Files\Splunk\OpenTelemetry Collector\gateway_config.yaml" on Windows
+# in order to deploy splunk-otel-collector in gateway mode.
+splunk_otel_collector_config: ""
+
 # Set splunk_otel_collector_config_source to copy a custom config from
 # a local path to splunk_otel_collector_config on remote hosts
 splunk_otel_collector_config_source: ""
@@ -29,11 +31,18 @@ install_fluentd: true
 # and 4.1.1 for other distros.
 td_agent_version: ""
 
-splunk_fluentd_config: /etc/otel/collector/fluentd/fluent.conf
+# Default path on Linux: "/etc/otel/collector/fluentd/fluent.conf".
+# Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\fluentd\td-agent.conf".
+splunk_fluentd_config: ""
 splunk_fluentd_config_source: ""
 
-agent_bundle_dir: /usr/lib/splunk-otel-collector/agent-bundle
-splunk_collectd_dir: /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
+# Default path on Linux: "/usr/lib/splunk-otel-collector/agent-bundle".
+# Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle".
+agent_bundle_dir: ""
+
+# Default path on Linux: "/usr/lib/splunk-otel-collector/agent-bundle/run/collectd".
+# Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd".
+splunk_collectd_dir: ""
 
 # Configure otel collector service to use a proxy
 splunk_otel_collector_proxy_http: ""

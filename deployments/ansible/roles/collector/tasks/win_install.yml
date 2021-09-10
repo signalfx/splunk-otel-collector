@@ -1,0 +1,13 @@
+---
+
+- name: Install Splunk OpenTelemetry Collector with msi package manager
+  ansible.builtin.import_tasks: otel_win_install.yml
+  when: ansible_os_family == "Windows"
+
+- name: Set Windows Registry values
+  ansible.builtin.import_tasks: otel_win_reg.yml
+  when: ansible_os_family == "Windows"
+
+- name: Install Fluentd with msi package manager
+  ansible.builtin.import_tasks: win_fluentd_install.yml
+  when: install_fluentd

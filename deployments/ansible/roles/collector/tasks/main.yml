@@ -1,4 +1,5 @@
 ---
+
 - name: Make sure access token is provided
   ansible.builtin.assert:
     that: "'{{ splunk_access_token }}'"
@@ -6,8 +7,16 @@
 
 - name: Make sure host OS is supported
   ansible.builtin.assert:
-    that: ansible_os_family in ["Debian", "RedHat"]
+    that: ansible_os_family in ["Debian", "RedHat", "Windows"]
     fail_msg: "{{ ansible_os_family }} OS family currently is not supported"
+
+- name: Set Vars based on ansible_os_family
+  ansible.builtin.import_tasks: vars.yml
 
 - name: Linux deployment
   ansible.builtin.import_tasks: linux_install.yml
+  when: ansible_os_family != "Windows"
+
+- name: Windows deployment
+  ansible.builtin.import_tasks: win_install.yml
+  when: ansible_os_family == "Windows"

@@ -42,9 +42,11 @@
    repo settings in gitlab).  The CI/CD pipeline will then trigger
    automatically for the new tag.
 1. Ensure that the build and release jobs in gitlab for the tag are successful
-   (may take up to 30 minutes to complete).
+   (may take over 30 minutes to complete).
 1. Ensure that the `quay.io/signalfx/splunk-otel-collector:<VERSION>` image
    was built and pushed.
+1. Ensure that the `quay.io/signalfx/splunk-otel-collector-windows:<VERSION>`
+   image was built and pushed.
 1. Check [Github Releases](
    https://github.com/signalfx/splunk-otel-collector/releases/) and ensure that
    the release was created for the tag and all assets were uploaded.  Update

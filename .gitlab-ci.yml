@@ -146,7 +146,7 @@ sign-osx:
     paths:
       - dist/signed/otelcol_darwin_amd64
 
-build-image:
+build-linux-image:
   only:
     variables:
       - $CI_COMMIT_BRANCH == "main"
@@ -213,50 +213,87 @@ build-msi:
     paths:
       - dist/*.msi
 
-.push-docker-image:
-  stage: release
-  script:
-    - if [ "${CI_COMMIT_TAG:-}" = "$IMAGE_TAG" ]; then export IMAGE_TAG="${IMAGE_TAG#v}"; fi
-    - docker load -i dist/otelcol.tar
-    - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
-    - |
-      echo "Tagging and pushing quay.io/signalfx/${IMAGE_NAME}:${IMAGE_TAG}"
-      docker tag otelcol:latest quay.io/signalfx/${IMAGE_NAME}:${IMAGE_TAG}
-      docker push quay.io/signalfx/${IMAGE_NAME}:${IMAGE_TAG}
-    - |
-      if [[ "$IMAGE_NAME" = "splunk-otel-collector-dev" ]] || [[ "$IMAGE_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        echo "Tagging and pushing quay.io/signalfx/${IMAGE_NAME}:latest"
-        docker tag otelcol:latest quay.io/signalfx/${IMAGE_NAME}:latest
-        docker push quay.io/signalfx/${IMAGE_NAME}:latest
-      fi
-
-push-dev-image:
-  extends: .push-docker-image
-  only:
-    - main
-  except:
-    - schedules
-  variables:
-    IMAGE_NAME: splunk-otel-collector-dev
-    IMAGE_TAG: "$CI_COMMIT_SHA"
-
-push-image:
-  extends: .push-docker-image
+push-linux-image:
   only:
     variables:
+      - $CI_COMMIT_BRANCH == "main"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   except:
-    - branches
     - schedules
-  variables:
-    IMAGE_NAME: splunk-otel-collector
-    IMAGE_TAG: "$CI_COMMIT_TAG"
+  stage: release
+  dependencies:
+    - build-linux-image
+  retry: 2
+  before_script:
+    - docker load -i dist/otelcol.tar
+  script:
+    - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
+    - |
+      set -e
+      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
+        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector"
+        IMAGE_TAG=${CI_COMMIT_TAG#v}
+      else
+        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-dev"
+        IMAGE_TAG=$CI_COMMIT_SHA
+      fi
+      echo "Tagging and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
+      docker tag otelcol:latest ${IMAGE_NAME}:${IMAGE_TAG}
+      docker push ${IMAGE_NAME}:${IMAGE_TAG}
+      if [[ "$IMAGE_TAG" = "$CI_COMMIT_SHA" ]] || [[ "$IMAGE_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        # only push latest tag for main and stable releases
+        echo "Tagging and pushing ${IMAGE_NAME}:latest"
+        docker tag otelcol:latest ${IMAGE_NAME}:latest
+        docker push ${IMAGE_NAME}:latest
+      fi
+
+build-push-windows-image:
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  stage: release
+  dependencies:
+    - sign-exe
+  tags:
+    - windows
+  retry: 2
+  before_script:
+    - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
+  script:
+    - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
+    - |
+      $ErrorActionPreference = 'Stop'
+      if ($env:CI_COMMIT_TAG) {
+        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows"
+        $IMAGE_TAG = $env:CI_COMMIT_TAG.TrimStart("v")
+      } else {
+        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows-dev"
+        $IMAGE_TAG = $env:CI_COMMIT_SHA
+      }
+      $SMART_AGENT_RELEASE = $((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v"))
+      echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
+      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg SMART_AGENT_RELEASE=${SMART_AGENT_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+      echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
+      docker push ${IMAGE_NAME}:${IMAGE_TAG}
+      if ($IMAGE_TAG -eq $env:CI_COMMIT_SHA -or $IMAGE_TAG -match '^\d+\.\d+\.\d+$') {
+        # only push latest tag for main and stable releases
+        echo "Tagging and pushing ${IMAGE_NAME}:latest"
+        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+        docker push ${IMAGE_NAME}:latest
+      }
+  after_script:
+    - docker image prune --all --force
 
 release-debs:
   extends:
     - .sign-release-cache
     - .sign-release
   stage: release
+  dependencies:
+    - build-deb
   variables:
     PATHS: dist/*.deb
   after_script:
@@ -272,6 +309,8 @@ release-rpms:
     - .sign-release-cache
     - .sign-release
   stage: release
+  dependencies:
+    - build-rpm
   variables:
     PATHS: dist/*.rpm
   artifacts:
@@ -284,6 +323,8 @@ release-msi:
     - .sign-release-cache
     - .sign-release
   stage: release
+  dependencies:
+    - build-msi
   variables:
     PATHS: dist/*.msi
     OPTIONS: "--no-push"
@@ -310,6 +351,13 @@ github-release:
   except:
     - schedules
   stage: github-release
+  dependencies:
+    - compile
+    - sign-exe
+    - sign-osx
+    - release-debs
+    - release-rpms
+    - release-msi
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/

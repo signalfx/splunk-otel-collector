@@ -4,3 +4,4 @@ apiUrl: https://api.us1.signalfx.com
 
 monitors:
   - type: processlist
+  - type: kubernetes-events

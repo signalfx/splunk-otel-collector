@@ -31,6 +31,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.34.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.34.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.34.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor v0.34.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sprocessor v0.34.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.34.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.34.0

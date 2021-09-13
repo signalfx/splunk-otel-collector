@@ -1256,7 +1256,7 @@ github.com/hashicorp/serf v0.9.3/go.mod h1:UWDWwZeL5cuWDJdl0C6wrvrUwEqtQ4ZKBKKEN
 github.com/hashicorp/serf v0.9.4/go.mod h1:UWDWwZeL5cuWDJdl0C6wrvrUwEqtQ4ZKBKKENpqIUyk=
 github.com/hashicorp/serf v0.9.5 h1:EBWvyu9tcRszt3Bxp3KNssBMP1KuHWyO51lz9+786iM=
 github.com/hashicorp/serf v0.9.5/go.mod h1:UWDWwZeL5cuWDJdl0C6wrvrUwEqtQ4ZKBKKENpqIUyk=
-github.com/hashicorp/vault v1.6.5/go.mod h1:k10MJ7r0tUh69fGO+cnKuQ/FIE2sLWFcBEimmxt1jg0=
+github.com/hashicorp/vault v1.6.6/go.mod h1:kTjl/2yPsS5Db23ppGOe36F53su/HPqlcrrqjFbqfoo=
 github.com/hashicorp/vault v1.7.0 h1:7ALa1gIYN9ONhLlVUtTuWFM/vZpUpchbuAmSMoOt61I=
 github.com/hashicorp/vault v1.7.0/go.mod h1:l4Z0KEtPXWc0bsEJYy7TUP/M2d4xJoqAjDpJYRncbOs=
 github.com/hashicorp/vault-plugin-auth-alicloud v0.7.0/go.mod h1:lyfBMcULXKJfVu8dNo1w9bUikV5oem5HKmJoWwXupnY=
@@ -1271,7 +1271,7 @@ github.com/hashicorp/vault-plugin-auth-gcp v0.5.1/go.mod h1:eLj92eX8MPI4vY1jaazV
 github.com/hashicorp/vault-plugin-auth-gcp v0.8.1/go.mod h1:Z+mj9fAqzXfDNxLmMoSS8NheVK7ugLvD8sTHO1GXfCA=
 github.com/hashicorp/vault-plugin-auth-gcp v0.9.0 h1:57uJ2Vqo+M+W7pD8xEONKJ1BBGS8V4xpm7VU56A9RWA=
 github.com/hashicorp/vault-plugin-auth-gcp v0.9.0/go.mod h1:sHDguHmyGScoalGLEjuxvDCrMPVlw2c3f+ieeiHcv6w=
-github.com/hashicorp/vault-plugin-auth-jwt v0.8.1/go.mod h1:pyR4z5f2Vuz9TXucuN0rivUJTtSdlOtDdZ16IqBjZVo=
+github.com/hashicorp/vault-plugin-auth-jwt v0.8.2/go.mod h1:pyR4z5f2Vuz9TXucuN0rivUJTtSdlOtDdZ16IqBjZVo=
 github.com/hashicorp/vault-plugin-auth-jwt v0.9.2/go.mod h1:Gn6ELc1X5nmZ/pxoXf0nA4lG2gwuGnY6SNyW40tR/ws=
 github.com/hashicorp/vault-plugin-auth-kerberos v0.2.0/go.mod h1:IM/n7LY1rIM4MVzOfSH6cRmY/C2rGkrjGrEr0B/yO9c=
 github.com/hashicorp/vault-plugin-auth-kerberos v0.3.0/go.mod h1:h+7pLm4Z2EeKHOGPefX0bGzdUQCMBUlvM/BpSMNgTFw=
@@ -1332,7 +1332,7 @@ github.com/hashicorp/vault/sdk v0.1.14-0.20210106220500-0ddc32f2ab8a/go.mod h1:c
 github.com/hashicorp/vault/sdk v0.1.14-0.20210127185906-6b455835fa8c/go.mod h1:cAGI4nVnEfAyMeqt9oB+Mase8DNn3qA/LDNHURiwssY=
 github.com/hashicorp/vault/sdk v0.1.14-0.20210204230556-cf85a862b7c6/go.mod h1:cAGI4nVnEfAyMeqt9oB+Mase8DNn3qA/LDNHURiwssY=
 github.com/hashicorp/vault/sdk v0.1.14-0.20210322210658-b52b8b8c1264/go.mod h1:cAGI4nVnEfAyMeqt9oB+Mase8DNn3qA/LDNHURiwssY=
-github.com/hashicorp/vault/sdk v0.1.14-0.20210519002455-d4edf105be17/go.mod h1:cAGI4nVnEfAyMeqt9oB+Mase8DNn3qA/LDNHURiwssY=
+github.com/hashicorp/vault/sdk v0.1.14-0.20210824203509-535c9be10674/go.mod h1:wkWiAmZ0BQ35VCaDaeQarQjoHdR5p87YbFhwKWuyiww=
 github.com/hashicorp/vault/sdk v0.2.1 h1:S4O6Iv/dyKlE9AUTXGa7VOvZmsCvg36toPKgV4f2P4M=
 github.com/hashicorp/vault/sdk v0.2.1/go.mod h1:WfUiO1vYzfBkz1TmoE4ZGU7HD0T0Cl/rZwaxjBkgN4U=
 github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443 h1:O/pT5C1Q3mVXMyuqg7yuAWUg/jMZR1/0QTzTRdNR6Uw=
@@ -2263,10 +2263,10 @@ github.com/signalfx/ondiskencoding v0.0.0-20191121154813-762ffb677f8e/go.mod h1:
 github.com/signalfx/sapm-proto v0.4.0/go.mod h1:x3gtwJ1GRejtkghB4nYpwixh2zqJrLbPU959ZNhM0Fk=
 github.com/signalfx/sapm-proto v0.7.0 h1:u6MErnxMDK5WQgOfPEMcS7gti5DQJKppAmAml8jJYbo=
 github.com/signalfx/sapm-proto v0.7.0/go.mod h1:y4b+wJlBKH7AzdastAgdWHrfMBB/QYN+u+20SEA94C4=
-github.com/signalfx/signalfx-agent v1.0.1-0.20210825181409-f66c88d96525 h1:d7lX1xAgUtN54tc/2bY1M1+0hq9bk4mhInLcg+2pPhA=
-github.com/signalfx/signalfx-agent v1.0.1-0.20210825181409-f66c88d96525/go.mod h1:5yJIZS/lAPaCgtGooDcdvoOA/mqyvGjIo3FzFyblS5c=
-github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210617144543-be16994eef6b h1:MnsPJpWGJTTPaw4x+QieKWSSHY1D6R9iXbUqdER+Hnw=
-github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210617144543-be16994eef6b/go.mod h1:kIpt0GcJgz1TchUlROxluJIm6upRXt8diVqaf/Zf2o0=
+github.com/signalfx/signalfx-agent v1.0.1-0.20210910174007-1ea4fd63611c h1:UO8vHoBPXaALURN0WjCF4QzAT4mokRAmw5D4elHUeOM=
+github.com/signalfx/signalfx-agent v1.0.1-0.20210910174007-1ea4fd63611c/go.mod h1:c8qoZweGAtsBvrHYxDUk24g9y6F9eVMRnYjXEURbxeI=
+github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210910174007-1ea4fd63611c h1:qbmqJthA+5rAk9IM0VoiKHWjIwXTaVjybPUHJkLhLvk=
+github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210910174007-1ea4fd63611c/go.mod h1:ZJhOb3oEx7UYzSKMP79vHEUme5afnzZjqImSTnpOEaY=
 github.com/signalfx/signalfx-go v1.6.38-0.20200518153434-ceee8d2570d5/go.mod h1:CeCGXKT2wqqky0Nz8eV0NH/CpMPE7tzYUcV8eQS1U1s=
 github.com/signalfx/signalfx-go v1.8.1 h1:ObJF59/tsRcu8KSST8AfFVTca7po/GP2LoPcaGgcBUI=
 github.com/signalfx/signalfx-go v1.8.1/go.mod h1:EtCwkwvLv+wfjDQVAs1O37yVn3hp2xAKmXA6BFKkRT4=

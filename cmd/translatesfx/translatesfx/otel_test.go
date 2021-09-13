@@ -173,17 +173,25 @@ func TestInfoToOtelConfig_SFxForwarder(t *testing.T) {
 
 func TestInfoToOtelConfig_ProcessList(t *testing.T) {
 	oc, _ := yamlToOtelConfig(t, "testdata/sa-processlist.yaml")
-	receiverName := "smartagent/processlist"
-	rcvr := oc.Receivers[receiverName]
+	processListReceiverName := "smartagent/processlist"
+	rcvr := oc.Receivers[processListReceiverName]
 	assert.Equal(t, map[string]interface{}{
 		"type": "processlist",
 	}, rcvr)
+
+	kubernetesEventsReceiverName := "smartagent/kubernetes-events"
+	rcvr = oc.Receivers[kubernetesEventsReceiverName]
+	assert.Equal(t, map[string]interface{}{
+		"type": "kubernetes-events",
+	}, rcvr)
+
 	pl := oc.Service.Pipelines["logs"]
 	assert.Equal(t, &rpe{
-		Receivers:  []string{receiverName},
+		Receivers:  []string{kubernetesEventsReceiverName, processListReceiverName},
 		Processors: []string{"resourcedetection"},
 		Exporters:  []string{"signalfx"},
 	}, pl)
+
 	_, ok := oc.Service.Pipelines["metrics"]
 	assert.False(t, ok)
 }

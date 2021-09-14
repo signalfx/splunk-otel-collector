@@ -1,8 +1,8 @@
 # Installs the collector yum package repostitory for the given stage
-class splunk_otel_collector::collector_yum_repo ($repo_url, $yum_gpg_key, $manage_repo) {
+class splunk_otel_collector::collector_yum_repo ($repo_url, $yum_gpg_key, $manage_repo, $repo_path) {
 
   if $manage_repo {
-    file { '/etc/yum.repos.d/splunk-otel-collector.repo':
+    file { "${repo_path}/splunk-otel-collector.repo":
       content => @("EOH")
         [splunk-otel-collector]
         name=Splunk OpenTelemetry Collector
@@ -15,7 +15,7 @@ class splunk_otel_collector::collector_yum_repo ($repo_url, $yum_gpg_key, $manag
       mode    => '0644',
     }
   } else {
-    file { '/etc/yum.repos.d/splunk-otel-collector.repo':
+    file { "${repo_path}/splunk-otel-collector.repo":
       ensure => absent,
     }
   }

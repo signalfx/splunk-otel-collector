@@ -31,6 +31,8 @@ const (
 	filterProc        = "filter"
 	k8sObserver       = "k8s_observer"
 	hostObserver      = "host_observer"
+	metricsToExclude  = "metricsToExclude"
+	discoveryRule     = "discoveryRule"
 )
 
 // monitors that should be converted to both metrics and traces
@@ -457,7 +459,7 @@ func saMonitorToOtelReceiver(monitor map[interface{}]interface{}, observers []in
 	isReceiverCreator bool,
 ) {
 	strm := interfaceMapToStringMap(monitor)
-	if _, ok := monitor["discoveryRule"]; ok {
+	if _, ok := monitor[discoveryRule]; ok {
 		receiver, w := saMonitorToRCReceiver(strm, observers)
 		return receiver, w, true
 	}
@@ -482,14 +484,14 @@ func stringMapToInterfaceMap(in map[string]interface{}) map[interface{}]interfac
 
 func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface{}) (out map[string]map[string]interface{}, warnings []error) {
 	key := "smartagent/" + monitor["type"].(string)
-	dr := monitor["discoveryRule"].(string)
+	dr := monitor[discoveryRule].(string)
 	rcr, err := discoveryRuleToRCRule(dr, observers)
 	if err != nil {
 		// fall back to original rule if unable to translate
 		rcr = dr
 		warnings = append(warnings, err)
 	}
-	delete(monitor, "discoveryRule")
+	delete(monitor, discoveryRule)
 	return map[string]map[string]interface{}{
 		key: {
 			"rule":   rcr,
@@ -499,6 +501,10 @@ func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface
 }
 
 func saMonitorToStandardReceiver(monitor map[string]interface{}) map[string]map[string]interface{} {
+	if excludes, ok := monitor[metricsToExclude]; ok {
+		delete(monitor, metricsToExclude)
+		monitor["datapointsToExclude"] = excludes
+	}
 	return map[string]map[string]interface{}{
 		"smartagent/" + monitor["type"].(string): monitor,
 	}

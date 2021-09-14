@@ -66,6 +66,15 @@ func TestMonitorToReceiver(t *testing.T) {
 	assert.Equal(t, "vsphere", v["type"])
 }
 
+func testvSphereMonitorCfg() map[interface{}]interface{} {
+	return map[interface{}]interface{}{
+		"type":     "vsphere",
+		"host":     "localhost",
+		"username": "administrator",
+		"password": "abc123",
+	}
+}
+
 func TestMonitorToReceiver_Rule(t *testing.T) {
 	otel, w, isRC := saMonitorToOtelReceiver(map[interface{}]interface{}{
 		"type":          "redis",
@@ -282,13 +291,27 @@ func TestInfoToOtelConfig_MetricsToExclude_Regex(t *testing.T) {
 	assert.Equal(t, `MetricName matches "vsphere\\.cpu_\\w*_percent"`, expression)
 }
 
-func testvSphereMonitorCfg() map[interface{}]interface{} {
-	return map[interface{}]interface{}{
-		"type":     "vsphere",
-		"host":     "localhost",
-		"username": "administrator",
-		"password": "abc123",
-	}
+func TestInfoToOtelConfig_MetricsToExclude_Monitor(t *testing.T) {
+	// This metricsToExclude is attached to the monitor, not the agent, which is
+	// apparently an invalid configuration according to the docs, but it actually
+	// works and some customers are using it. If we just rename it to the supported
+	// datapointsToExclude, things work fine in the translated config.
+	cfg, _ := yamlToOtelConfig(t, "testdata/sa-metrics-to-exclude-monitor.yaml")
+
+	_, ok := cfg.Processors["filter"]
+	assert.False(t, ok)
+
+	saReceiver := cfg.Receivers["smartagent/cpu"]
+	_, ok = saReceiver["metricsToExclude"]
+	assert.False(t, ok)
+
+	ex, ok := saReceiver["datapointsToExclude"]
+	assert.True(t, ok)
+	assert.Equal(t, []interface{}{
+		map[interface{}]interface{}{
+			"metricNames": []interface{}{"foo*"},
+		},
+	}, ex)
 }
 
 func yamlToOtelConfig(t *testing.T, filename string) (out *otelCfg, warnings []error) {

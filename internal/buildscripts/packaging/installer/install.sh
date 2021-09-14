@@ -268,8 +268,10 @@ install_yum_package() {
 
   if command -v yum >/dev/null 2>&1; then
     yum install -y ${package_name}${version}
-  else
+  elif command -v dnf >/dev/null 2>&1; then
     dnf install -y ${package_name}${version}
+  else
+    zypper install -y ${package_name}${version}
   fi
 }
 
@@ -437,6 +439,13 @@ install() {
         systemctl stop td-agent
       fi
       ;;
+    sles|opensuse*)
+      rpm --import $yum_gpg_key_url
+      zypper -n --gpg-auto-import-keys refresh
+      install_yum_package "libcap-progs"
+      install_collector_yum_repo "$stage" "/etc/zypp/repos.d/"
+      install_yum_package "splunk-otel-collector" "$collector_version"
+      ;;
     *)
       echo "Your distro ($distro) is not supported or could not be determined" >&2
       exit 1
@@ -466,7 +475,7 @@ uninstall() {
         fi
       done
       ;;
-    amzn|centos|ol|rhel)
+    amzn|centos|ol|rhel|sles|opensuse*)
       for agent in otelcol td-agent; do
         if command -v $agent 2>&1 >/dev/null; then
           pkg="$agent"
@@ -477,8 +486,10 @@ uninstall() {
             systemctl stop $pkg || true
             if command -v yum >/dev/null 2>&1; then
               yum remove -y $pkg 2>&1
-            else
+            elif command -v dnf >/dev/null 2>&1; then
               dnf remove -y $pkg 2>&1
+            else
+              zypper remove -y $pkg
             fi
             echo "Successfully removed the $pkg package"
           else
@@ -665,6 +676,12 @@ parse_args_and_install() {
       uninstall
       exit 0
   fi
+
+  case "$distro" in
+    sles|opensuse*)
+      with_fluentd="false"
+      ;;
+  esac
 
   ensure_not_installed "$with_fluentd"
 

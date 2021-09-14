@@ -44,6 +44,49 @@ GATEWAY_CONFIG_PATH = "/etc/otel/collector/gateway_config.yaml"
 OLD_CONFIG_PATH = "/etc/otel/collector/splunk_config_linux.yaml"
 TOTAL_MEMORY = "256"
 BALLAST = "128"
+REALM = "test"
+
+
+def verify_env_file(container, mode="agent", ballast=None):
+    env_path = SPLUNK_ENV_PATH
+    if container.exec_run(f"test -f {OLD_SPLUNK_ENV_PATH}").exit_code == 0:
+        env_path = OLD_SPLUNK_ENV_PATH
+
+    config_path = AGENT_CONFIG_PATH if mode == "agent" else GATEWAY_CONFIG_PATH
+    if container.exec_run(f"test -f {OLD_CONFIG_PATH}").exit_code == 0:
+        config_path = OLD_CONFIG_PATH
+    elif mode == "gateway" and container.exec_run(f"test -f {GATEWAY_CONFIG_PATH}").exit_code != 0:
+        config_path = AGENT_CONFIG_PATH
+
+    run_container_cmd(container, f"grep '^SPLUNK_CONFIG={config_path}$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN=testing123$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_REALM={REALM}$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_API_URL=https://api.{REALM}.signalfx.com$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_INGEST_URL=https://ingest.{REALM}.signalfx.com$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_TRACE_URL=https://ingest.{REALM}.signalfx.com/v2/trace$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_HEC_URL=https://ingest.{REALM}.signalfx.com/v1/log$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_HEC_TOKEN=testing123$' {env_path}")
+
+    if ballast:
+        run_container_cmd(container, f"grep '^SPLUNK_BALLAST_SIZE_MIB={BALLAST}$' {env_path}")
+    else:
+        run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={TOTAL_MEMORY}$' {env_path}")
+
+
+def verify_support_bundle(container):
+    run_container_cmd(container, "/etc/otel/collector/splunk-support-bundle.sh -t /tmp/splunk-support-bundle")
+    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/config/agent_config.yaml")
+    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/splunk-otel-collector.log")
+    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/splunk-otel-collector.txt")
+    if container.exec_run("test -f /etc/otel/collector/fluentd/fluent.conf").exit_code == 0:
+        run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/td-agent.log")
+        run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/td-agent.txt")
+    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/collector-metrics.txt")
+    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/df.txt")
+    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/free.txt")
+    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/top.txt")
+    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/zpages/tracez.html")
+    run_container_cmd(container, "test -f /tmp/splunk-support-bundle.tar.gz")
 
 
 @pytest.mark.installer
@@ -55,7 +98,7 @@ BALLAST = "128"
 @pytest.mark.parametrize("version", VERSIONS)
 @pytest.mark.parametrize("mode", ["agent", "gateway"])
 def test_installer_mode(distro, version, mode):
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm us0 --memory {TOTAL_MEMORY} --mode {mode}"
+    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --mode {mode}"
 
     if version != "latest":
         install_cmd = f"{install_cmd} --collector-version {version.lstrip('v')}"
@@ -73,53 +116,25 @@ def test_installer_mode(distro, version, mode):
             run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
             time.sleep(5)
 
-            config_path = AGENT_CONFIG_PATH if mode == "agent" else GATEWAY_CONFIG_PATH
-            if container.exec_run(f"test -f {OLD_CONFIG_PATH}").exit_code == 0:
-                config_path = OLD_CONFIG_PATH
-            elif mode == "gateway" and container.exec_run(f"test -f {GATEWAY_CONFIG_PATH}").exit_code != 0:
-                config_path = AGENT_CONFIG_PATH
-
             # verify env file created with configured parameters
-            splunk_env_path = SPLUNK_ENV_PATH
-            if container.exec_run(f"test -f {OLD_SPLUNK_ENV_PATH}").exit_code == 0:
-                splunk_env_path = OLD_SPLUNK_ENV_PATH
-            run_container_cmd(container, f"grep '^SPLUNK_CONFIG={config_path}$' {splunk_env_path}")
-            run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN=testing123$' {splunk_env_path}")
-            run_container_cmd(container, f"grep '^SPLUNK_REALM=us0$' {splunk_env_path}")
-            run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={TOTAL_MEMORY}$' {splunk_env_path}")
+            verify_env_file(container, mode=mode)
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
-            # the td-agent service should only be running when installing
-            # collector packages that have our custom fluent config
-            if container.exec_run("test -f /etc/otel/collector/fluentd/fluent.conf").exit_code == 0:
+            if "opensuse" not in distro:
                 assert container.exec_run("systemctl status td-agent").exit_code == 0
-            else:
-                assert container.exec_run("systemctl status td-agent").exit_code != 0
 
             # test support bundle script
-            if container.exec_run("test -f /etc/otel/collector/splunk-support-bundle.sh").exit_code == 0:
-                run_container_cmd(container, "/etc/otel/collector/splunk-support-bundle.sh -t /tmp/splunk-support-bundle")
-                run_container_cmd(container, "test -f /tmp/splunk-support-bundle/config/agent_config.yaml")
-                run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/splunk-otel-collector.log")
-                run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/splunk-otel-collector.txt")
-                if container.exec_run("test -f /etc/otel/collector/fluentd/fluent.conf").exit_code == 0:
-                    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/td-agent.log")
-                    run_container_cmd(container, "test -f /tmp/splunk-support-bundle/logs/td-agent.txt")
-                run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/collector-metrics.txt")
-                run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/df.txt")
-                run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/free.txt")
-                run_container_cmd(container, "test -f /tmp/splunk-support-bundle/metrics/top.txt")
-                run_container_cmd(container, "test -f /tmp/splunk-support-bundle/zpages/tracez.html")
-                run_container_cmd(container, "test -f /tmp/splunk-support-bundle.tar.gz")
+            verify_support_bundle(container)
 
             run_container_cmd(container, "sh -x /test/install.sh --uninstall")
 
         finally:
-            run_container_cmd(container, "journalctl -u td-agent --no-pager")
-            if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
-                run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
+            if "opensuse" not in distro:
+                run_container_cmd(container, "journalctl -u td-agent --no-pager")
+                if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
+                    run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
 
 
@@ -131,7 +146,7 @@ def test_installer_mode(distro, version, mode):
     )
 @pytest.mark.parametrize("version", VERSIONS)
 def test_installer_ballast(distro, version):
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm us0 --ballast {BALLAST}"
+    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --ballast {BALLAST}"
 
     if version != "latest":
         install_cmd = f"{install_cmd} --collector-version {version.lstrip('v')}"
@@ -149,36 +164,22 @@ def test_installer_ballast(distro, version):
             run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
             time.sleep(5)
 
-            config_path = AGENT_CONFIG_PATH
-            if container.exec_run(f"test -f {OLD_CONFIG_PATH}").exit_code == 0:
-                config_path = OLD_CONFIG_PATH
-
-            splunk_env_path = SPLUNK_ENV_PATH
-            if container.exec_run(f"test -f {OLD_SPLUNK_ENV_PATH}").exit_code == 0:
-                splunk_env_path = OLD_SPLUNK_ENV_PATH
-
             # verify env file created with configured parameters
-            run_container_cmd(container, f"grep '^SPLUNK_CONFIG={config_path}$' {splunk_env_path}")
-            run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN=testing123$' {splunk_env_path}")
-            run_container_cmd(container, f"grep '^SPLUNK_REALM=us0$' {splunk_env_path}")
-            run_container_cmd(container, f"grep '^SPLUNK_BALLAST_SIZE_MIB={BALLAST}$' {splunk_env_path}")
+            verify_env_file(container, ballast=BALLAST)
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
-            # the td-agent service should only be running when installing
-            # collector packages that have our custom fluent config
-            if container.exec_run("test -f /etc/otel/collector/fluentd/fluent.conf").exit_code == 0:
+            if "opensuse" not in distro:
                 assert container.exec_run("systemctl status td-agent").exit_code == 0
-            else:
-                assert container.exec_run("systemctl status td-agent").exit_code != 0
 
             run_container_cmd(container, "sh -x /test/install.sh --uninstall")
 
         finally:
-            run_container_cmd(container, "journalctl -u td-agent --no-pager")
-            if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
-                run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
+            if "opensuse" not in distro:
+                run_container_cmd(container, "journalctl -u td-agent --no-pager")
+                if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
+                    run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
 
 
@@ -191,7 +192,7 @@ def test_installer_ballast(distro, version):
 @pytest.mark.parametrize("version", VERSIONS)
 def test_installer_service_owner(distro, version):
     service_owner = "test-user"
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm us0 --memory {TOTAL_MEMORY}"
+    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY}"
     install_cmd = f"{install_cmd} --service-user {service_owner} --service-group {service_owner}"
 
     if version != "latest":
@@ -210,32 +211,18 @@ def test_installer_service_owner(distro, version):
             run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
             time.sleep(5)
 
-            config_path = AGENT_CONFIG_PATH
-            if container.exec_run(f"test -f {OLD_CONFIG_PATH}").exit_code == 0:
-                config_path = OLD_CONFIG_PATH
-
-            splunk_env_path = SPLUNK_ENV_PATH
-            if container.exec_run(f"test -f {OLD_SPLUNK_ENV_PATH}").exit_code == 0:
-                splunk_env_path = OLD_SPLUNK_ENV_PATH
-
             # verify env file created with configured parameters
-            run_container_cmd(container, f"grep '^SPLUNK_CONFIG={config_path}$' {splunk_env_path}")
-            run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN=testing123$' {splunk_env_path}")
-            run_container_cmd(container, f"grep '^SPLUNK_REALM=us0$' {splunk_env_path}")
-            run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={TOTAL_MEMORY}$' {splunk_env_path}")
+            verify_env_file(container)
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=service_owner))
 
-            # the td-agent service should only be running when installing
-            # collector packages that have our custom fluent config
-            if container.exec_run("test -f /etc/otel/collector/fluentd/fluent.conf").exit_code == 0:
+            if "opensuse" not in distro:
                 assert container.exec_run("systemctl status td-agent").exit_code == 0
-            else:
-                assert container.exec_run("systemctl status td-agent").exit_code != 0
 
         finally:
-            run_container_cmd(container, "journalctl -u td-agent --no-pager")
+            if "opensuse" not in distro:
+                run_container_cmd(container, "journalctl -u td-agent --no-pager")
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
 
 
@@ -247,7 +234,7 @@ def test_installer_service_owner(distro, version):
     )
 @pytest.mark.parametrize("version", VERSIONS)
 def test_installer_without_fluentd(distro, version):
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm us0 --memory {TOTAL_MEMORY} --without-fluentd"
+    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --without-fluentd"
 
     if version != "latest":
         install_cmd = f"{install_cmd} --collector-version {version.lstrip('v')}"
@@ -265,19 +252,8 @@ def test_installer_without_fluentd(distro, version):
             run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
             time.sleep(5)
 
-            config_path = AGENT_CONFIG_PATH
-            if container.exec_run(f"test -f {OLD_CONFIG_PATH}").exit_code == 0:
-                config_path = OLD_CONFIG_PATH
-
-            splunk_env_path = SPLUNK_ENV_PATH
-            if container.exec_run(f"test -f {OLD_SPLUNK_ENV_PATH}").exit_code == 0:
-                splunk_env_path = OLD_SPLUNK_ENV_PATH
-
             # verify env file created with configured parameters
-            run_container_cmd(container, f"grep '^SPLUNK_CONFIG={config_path}$' {splunk_env_path}")
-            run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN=testing123$' {splunk_env_path}")
-            run_container_cmd(container, f"grep '^SPLUNK_REALM=us0$' {splunk_env_path}")
-            run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={TOTAL_MEMORY}$' {splunk_env_path}")
+            verify_env_file(container)
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))

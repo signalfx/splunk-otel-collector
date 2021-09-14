@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import glob
+import os
 import string
 import tempfile
 
@@ -81,7 +82,7 @@ def verify_env_file(container):
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
 @pytest.mark.parametrize("puppet_release", ["6", "7"])
-def test_puppet(distro, puppet_release):
+def test_puppet_with_fluentd(distro, puppet_release):
     if "jessie" in distro and puppet_release != "6":
         pytest.skip(f"Puppet release version {puppet_release} not supported on debian jessie")
 
@@ -93,17 +94,19 @@ def test_puppet(distro, puppet_release):
     buildargs = {"PUPPET_RELEASE": puppet_release}
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR, buildargs=buildargs) as container:
         try:
-            for collector_version in ["0.24.0", "latest"]:
+            for collector_version in ["0.34.0", "latest"]:
                 config = CONFIG.substitute(collector_version=collector_version, with_fluentd="true")
                 run_puppet_apply(container, config)
                 verify_env_file(container)
                 assert wait_for(lambda: service_is_running(container))
-                assert container.exec_run("systemctl status td-agent").exit_code == 0
+                if "opensuse" not in distro:
+                    assert container.exec_run("systemctl status td-agent").exit_code == 0
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
-            run_container_cmd(container, "journalctl -u td-agent --no-pager")
-            if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
-                run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
+            if "opensuse" not in distro:
+                run_container_cmd(container, "journalctl -u td-agent --no-pager")
+                if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
+                    run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
 
 
 @pytest.mark.installer

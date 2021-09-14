@@ -34,7 +34,7 @@ type Config struct {
 	saconfig.Config `mapstructure:"-,squash"`
 }
 
-func (cfg *Config) Unmarshal(componentParser *configparser.Parser) error {
+func (cfg *Config) Unmarshal(componentParser *configparser.ConfigMap) error {
 	allSettings := componentParser.ToStringMap()
 
 	configDirSet := false

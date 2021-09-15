@@ -82,7 +82,7 @@ func (otlp OTLPMetricsReceiverSink) Build() (*OTLPMetricsReceiverSink, error) {
 	otlpConfig.GRPC.NetAddr = confignet.NetAddr{Endpoint: otlp.Endpoint, Transport: "tcp"}
 	otlpConfig.HTTP = nil
 
-	params := component.ReceiverCreateSettings{}
+	params := component.ReceiverCreateSettings{TelemetrySettings: component.TelemetrySettings{Logger: otlp.Logger}}
 	receiver, err := otlpFactory.CreateMetricsReceiver(context.Background(), params, otlpConfig, otlp.sink)
 	if err != nil {
 		return nil, err

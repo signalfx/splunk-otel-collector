@@ -4,7 +4,7 @@
   become: yes
   vars:
     splunk_access_token: fake-token
-    splunk_otel_collector_version: 0.24.3
+    splunk_otel_collector_version: 0.34.0
     splunk_otel_collector_config: /etc/otel/collector/custom_config.yml
     splunk_otel_collector_config_source: ./custom_collector_config.yml
     splunk_service_user: custom-user

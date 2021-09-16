@@ -1,0 +1,8 @@
+[splunk-otel-collector]
+autorefresh = 0
+baseurl = {{ splunk_repo_base_url }}/otel-collector-rpm/release/$basearch/
+enabled = 1
+gpgcheck = 1
+gpgkey = {{ splunk_repo_base_url }}/otel-collector-rpm/splunk-B3CD4420.pub
+name = Splunk OpenTelemetry Collector Repository
+type = rpm-md

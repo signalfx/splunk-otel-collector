@@ -1,7 +1,7 @@
 ---
 - name: Verify scenario with the default configuration
   hosts: all
-  gather_facts: false
+  gather_facts: true
   tasks:
     - name: Import shared verification tasks
       ansible.builtin.import_tasks: ../shared/verify_tasks.yml

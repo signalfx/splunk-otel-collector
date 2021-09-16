@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add SUSE support (collector only) (#748)
+
 ## ansible-v0.2.0
 
 - Add proxy support for otel collector service runtime level (#699)

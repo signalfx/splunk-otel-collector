@@ -136,7 +136,7 @@ type mockParserProvider struct {
 
 var _ (parserprovider.ParserProvider) = (*mockParserProvider)(nil)
 
-func (mpp *mockParserProvider) Get() (*configparser.Parser, error) {
+func (mpp *mockParserProvider) Get() (*configparser.ConfigMap, error) {
 	if mpp.ErrOnGet {
 		return nil, &errOnParserProviderGet{errors.New("mockParserProvider.Get() forced test error")}
 	}
@@ -151,6 +151,6 @@ type fileParserProvider struct {
 
 var _ (parserprovider.ParserProvider) = (*fileParserProvider)(nil)
 
-func (fpp *fileParserProvider) Get() (*configparser.Parser, error) {
+func (fpp *fileParserProvider) Get() (*configparser.ConfigMap, error) {
 	return configparser.NewParserFromFile(fpp.FileName)
 }

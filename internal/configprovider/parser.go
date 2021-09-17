@@ -40,7 +40,7 @@ type (
 
 // Load reads the configuration for ConfigSource objects from the given parser and returns a map
 // from the full name of config sources to the respective ConfigSettings.
-func Load(ctx context.Context, v *configparser.Parser, factories Factories) (map[string]ConfigSettings, error) {
+func Load(ctx context.Context, v *configparser.ConfigMap, factories Factories) (map[string]ConfigSettings, error) {
 	processedParser, err := processParser(ctx, v)
 	if err != nil {
 		return nil, err
@@ -54,8 +54,8 @@ func Load(ctx context.Context, v *configparser.Parser, factories Factories) (map
 	return cfgSrcSettings, nil
 }
 
-// processParser prepares a configparser.Parser to be used to load config source settings.
-func processParser(ctx context.Context, v *configparser.Parser) (*configparser.Parser, error) {
+// processParser prepares a configparser.ConfigMap to be used to load config source settings.
+func processParser(ctx context.Context, v *configparser.ConfigMap) (*configparser.ConfigMap, error) {
 	// Use a manager to resolve environment variables with a syntax consistent with
 	// the config source usage.
 	manager := newManager(make(map[string]configsource.ConfigSource))

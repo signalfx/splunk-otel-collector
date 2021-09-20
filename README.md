@@ -50,7 +50,7 @@
 Splunk OpenTelemetry Connector is a distribution of the [OpenTelemetry
 Collector](https://github.com/open-telemetry/opentelemetry-collector). It
 provides a unified way to receive, process, and export metric, trace, and log
-data for [Splunk Observability Cloud](https://www.observability.splunk.com/):
+data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability.html):
 
 - [Splunk APM](https://www.splunk.com/en_us/software/splunk-apm.html) via the
   [`sapm`

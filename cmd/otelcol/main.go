@@ -79,21 +79,29 @@ func main() {
 		Version: version.Version,
 	}
 
-	parserProvider := configprovider.NewConfigSourceParserProvider(
-		newBaseParserProvider(),
-		zap.NewNop(), // The service logger is not available yet, setting it to NoP.
-		info,
-		configsources.Get()...,
-	)
+	ballastSizeMib, _ := strconv.Atoi(os.Getenv(ballastEnvVarName))
 	serviceParams := service.CollectorSettings{
 		BuildInfo:      info,
 		Factories:      factories,
-		ParserProvider: parserProvider,
+		ParserProvider: ballastParserProvider(info, ballastSizeMib),
 	}
 
 	if err := run(serviceParams); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func ballastParserProvider(info component.BuildInfo, ballastSizeMib int) parserprovider.ParserProvider {
+	cfgSourcePP := configprovider.NewConfigSourceParserProvider(
+		newBaseParserProvider(),
+		zap.NewNop(), // The service logger is not available yet, setting it to NoP.
+		info,
+		configsources.Get()...,
+	)
+	if ballastSizeMib == 0 {
+		return cfgSourcePP
+	}
+	return configprovider.BallastParserProvider(cfgSourcePP, ballastSizeMib)
 }
 
 // Check whether a string exists in an array of CLI arguments

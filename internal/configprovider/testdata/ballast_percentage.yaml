@@ -1,0 +1,22 @@
+extensions:
+  memory_ballast:
+    size_in_percentage: 20
+receivers:
+  hostmetrics:
+    collection_interval: 1s
+    scrapers:
+      cpu:
+exporters:
+  logging:
+    loglevel: info
+    sampling_initial: 2
+    sampling_thereafter: 500
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - hostmetrics
+      exporters:
+        - logging
+  extensions:
+    - memory_ballast

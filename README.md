@@ -114,7 +114,7 @@ This distribution is supported on and packaged for a variety of platforms includ
     - [Ansible](https://galaxy.ansible.com/signalfx/splunk_otel_collector)
     - [Puppet](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)
   - Platform as a Service
-    - [Heroku](deployments/heroku/README.md)
+    - [Heroku](https://github.com/signalfx/splunk-otel-collector-heroku#getting-started)
   - [Manual](./docs/getting-started/linux-manual.md) including DEB/RPM packages, Docker, and binary
 - Windows
   - [Installer script (recommended)](./docs/getting-started/windows-installer.md)

@@ -107,6 +107,7 @@ This distribution is supported on and packaged for a variety of platforms includ
 
 - Kubernetes
   - [Helm (recommended)](https://github.com/signalfx/splunk-otel-collector-chart)
+  - [Operator (in alpha)](https://github.com/signalfx/splunk-otel-collector-operator)
   - [YAML](https://github.com/signalfx/splunk-otel-collector-chart/tree/main/rendered)
 - Linux
   - [Installer script (recommended)](./docs/getting-started/linux-installer.md)
@@ -119,6 +120,7 @@ This distribution is supported on and packaged for a variety of platforms includ
 - Windows
   - [Installer script (recommended)](./docs/getting-started/windows-installer.md)
   - Configuration management
+    - [Ansible](https://galaxy.ansible.com/signalfx/splunk_otel_collector)
     - [Puppet](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)
   - [Manual](./docs/getting-started/windows-manual.md) including MSI with GUI and Powershell, and Docker
 

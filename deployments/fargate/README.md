@@ -57,7 +57,7 @@ Assign a stringified array of metrics you want excluded to environment variable
 `METRICS_TO_EXCLUDE`. You can set the memory limit for the memory limiter processor using
 environment variable `SPLUNK_MEMORY_LIMIT_MIB`. The default memory limit is 512 MiB. For
 more information about the memory limiter processor, see
-[here](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md)
+[here](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md)
 
 ## Custom Configuration
 The example below shows an excerpt of the container definition JSON for the Collector 

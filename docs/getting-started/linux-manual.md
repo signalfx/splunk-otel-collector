@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Install on Linux](https://docs.splunk.com/Observability/gdi/opentelemetry/install-linux.html). For instructions on how to contribute to the docs, see [CONTRIBUTE.md](../CONTRIBUTE.md).
+
 # Linux Manual
 
 The easiest and recommended way to get started is with the [Linux installer

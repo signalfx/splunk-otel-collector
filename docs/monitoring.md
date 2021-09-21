@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Use Splunk Distribution of OpenTelemetry Collector](https://docs.splunk.com/Observability/gdi/opentelemetry/resources.html). For instructions on how to contribute to the docs, see [CONTRIBUTE.md](../CONTRIBUTE.md).
+
 # Monitoring
 
 The default configuration automatically scrapes the Collector's own metrics and

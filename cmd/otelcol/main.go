@@ -79,11 +79,10 @@ func main() {
 		Version: version.Version,
 	}
 
-	ballastSizeMib, _ := strconv.Atoi(os.Getenv(ballastEnvVarName))
 	serviceParams := service.CollectorSettings{
 		BuildInfo:      info,
 		Factories:      factories,
-		ParserProvider: ballastParserProvider(info, ballastSizeMib),
+		ParserProvider: memLimitRemoverParserProvider(info),
 	}
 
 	if err := run(serviceParams); err != nil {
@@ -91,17 +90,17 @@ func main() {
 	}
 }
 
-func ballastParserProvider(info component.BuildInfo, ballastSizeMib int) parserprovider.ParserProvider {
+// memLimitRemoverParserProvider removes a ballast_size_mib key from a memory
+// limiter processor, if it exists. Support for this key will be (or has been)
+// removed and will cause the Collector to not start.
+func memLimitRemoverParserProvider(info component.BuildInfo) parserprovider.ParserProvider {
 	cfgSourcePP := configprovider.NewConfigSourceParserProvider(
 		newBaseParserProvider(),
 		zap.NewNop(), // The service logger is not available yet, setting it to NoP.
 		info,
 		configsources.Get()...,
 	)
-	if ballastSizeMib == 0 {
-		return cfgSourcePP
-	}
-	return configprovider.BallastParserProvider(cfgSourcePP, ballastSizeMib)
+	return configprovider.NewMemLimitRemoverParserProvider(cfgSourcePP)
 }
 
 // Check whether a string exists in an array of CLI arguments

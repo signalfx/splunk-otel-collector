@@ -6,6 +6,12 @@ receivers:
     collection_interval: 1s
     scrapers:
       cpu:
+processors:
+  memory_limiter/foo:
+    check_interval: 1s
+    limit_mib: 4000
+    spike_limit_mib: 800
+    ballast_size_mib: 64
 exporters:
   logging:
     loglevel: info
@@ -16,6 +22,8 @@ service:
     metrics:
       receivers:
         - hostmetrics
+      processors:
+        - memory_limiter/foo
       exporters:
         - logging
   extensions:

@@ -1,4 +1,4 @@
-> The official Splunk documentation for this page is [Determine your deployment mode](https://docs.splunk.com/Observability/gdi/opentelemetry/deployment-modes.html). For instructions on how to contribute to the docs, see [CONTRIBUTE.md](../CONTRIBUTE.md).
+> The official Splunk documentation for this page is [Determine your deployment mode](https://docs.splunk.com/Observability/gdi/opentelemetry/deployment-modes.html). For instructions on how to contribute to the docs, see [CONTRIBUTE.md](../CONTRIBUTING#documentation.md).
 
 # Agent versus Gateway
 

@@ -1,4 +1,4 @@
-> The official Splunk documentation for this page is [Trobleshoot issues when collecting data](https://docs.splunk.com/Observability/gdi/opentelemetry/troubleshooting.html). For instructions on how to contribute to the docs, see [CONTRIBUTE.md](../CONTRIBUTE.md).
+> The official Splunk documentation for this page is [Trobleshoot issues when collecting data](https://docs.splunk.com/Observability/gdi/opentelemetry/troubleshooting.html). For instructions on how to contribute to the docs, see [CONTRIBUTE.md](../CONTRIBUTING#documentation.md).
 
 # Troubleshooting
 

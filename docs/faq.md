@@ -1,4 +1,4 @@
-> The official Splunk documentation for this page is [](). For instructions on how to contribute to the docs, see [CONTRIBUTE.md](../CONTRIBUTE.md).
+> The official Splunk documentation for this page is [](). For instructions on how to contribute to the docs, see [CONTRIBUTE.md](../CONTRIBUTING#documentation.md).
 
 # FAQ
 

@@ -1,4 +1,4 @@
-> The official Splunk documentation for this page is [Install on Kubernetes](https://docs.splunk.com/Observability/gdi/opentelemetry/install-k8s.html). For instructions on how to contribute to the docs, see [CONTRIBUTE.md](../CONTRIBUTING#documentation.md).
+> The official Splunk documentation for this page is [Install on Kubernetes](https://docs.splunk.com/Observability/gdi/opentelemetry/install-k8s.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
 # Kubernetes YAML
 
 The easiest and recommended way to get started on Kubernetes is to leverage the

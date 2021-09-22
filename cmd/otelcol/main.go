@@ -61,7 +61,7 @@ func main() {
 	// TODO: Use same format as the collector
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	if !contains(os.Args[1:], "-h") && !contains(os.Args[1:], "--help") {
+	if !hasFlag("-h") && !hasFlag("--help") {
 		checkRuntimeParams()
 		setDefaultEnvVars()
 	}
@@ -80,22 +80,32 @@ func main() {
 		Version: version.Version,
 	}
 
-	cfgSourcePP := configprovider.NewConfigSourceParserProvider(
+	parserProvider := configprovider.NewConfigSourceParserProvider(
 		newBaseParserProvider(),
 		zap.NewNop(), // The service logger is not available yet, setting it to NoP.
 		info,
 		configsources.Get()...,
 	)
-	configConverterPP := configconverter.ParserProvider(cfgSourcePP, configconverter.RemoveBallastKey)
+	const noConvertConfigFlag = "--no-convert-config"
+	if hasFlag(noConvertConfigFlag) {
+		// the collector complains about this flag if we don't remove it
+		removeFlag(&os.Args, noConvertConfigFlag)
+	} else {
+		parserProvider = configconverter.ParserProvider(parserProvider, configconverter.RemoveBallastKey)
+	}
 	serviceParams := service.CollectorSettings{
 		BuildInfo:      info,
 		Factories:      factories,
-		ParserProvider: configConverterPP,
+		ParserProvider: parserProvider,
 	}
 
 	if err := run(serviceParams); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func hasFlag(flag string) bool {
+	return contains(os.Args[1:], flag)
 }
 
 // Check whether a string exists in an array of CLI arguments
@@ -111,6 +121,16 @@ func contains(arr []string, str string) bool {
 		}
 	}
 	return false
+}
+
+func removeFlag(flags *[]string, flag string) {
+	var out []string
+	for _, s := range *flags {
+		if s != flag {
+			out = append(out, s)
+		}
+	}
+	*flags = out
 }
 
 // Get the value of a key in an array

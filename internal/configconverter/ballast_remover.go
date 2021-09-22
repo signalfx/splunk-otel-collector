@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configprovider
+package configconverter
 
 import (
-	"fmt"
 	"log"
 	"regexp"
 
 	"go.opentelemetry.io/collector/config/configparser"
-	"go.opentelemetry.io/collector/service/parserprovider"
 )
 
 var ballastKeyRegexp *regexp.Regexp
@@ -30,36 +28,18 @@ func init() {
 	ballastKeyRegexp, _ = regexp.Compile(expr)
 }
 
-// memLimitBallastRemoverParserProvider implements ParserProvider, wraps a
-// ParserProvider, and removes any ballast_size_mib key from the memory_limiter
-// processor, if one exists, from the wrapped config. This is to ensure that the
-// Collector will still start when support for this key gets removed.
-type memLimitBallastRemoverParserProvider struct {
-	pp parserprovider.ParserProvider
-}
-
-var _ parserprovider.ParserProvider = (*memLimitBallastRemoverParserProvider)(nil)
-
-func NewMemLimitRemoverParserProvider(pp parserprovider.ParserProvider) parserprovider.ParserProvider {
-	return &memLimitBallastRemoverParserProvider{pp: pp}
-}
-
-func (mpp memLimitBallastRemoverParserProvider) Get() (*configparser.ConfigMap, error) {
-	cfgMap, err := mpp.pp.Get()
-	if err != nil {
-		return nil, fmt.Errorf("memLimitBallastRemoverParserProvider.Get(): %w", err)
-	}
+// RemoveBallastKey is a CfgMapFunc that removes a ballast_size_mib on a
+// memory_limiter processor config if it exists. This config key will go away at
+// some point (or already has) at which point its presence in a config will
+// prevent the Collector from starting.
+func RemoveBallastKey(cfgMap *configparser.ConfigMap) *configparser.ConfigMap {
 	out := configparser.NewParser()
 	for _, k := range cfgMap.AllKeys() {
-		if isMemLimitBallastKey(k) {
+		if ballastKeyRegexp.MatchString(k) {
 			log.Println("Deprecated memory_limiter processor `ballast_size_mib` key found. Removing from config.")
 		} else {
 			out.Set(k, cfgMap.Get(k))
 		}
 	}
-	return out, nil
-}
-
-func isMemLimitBallastKey(k string) bool {
-	return ballastKeyRegexp.MatchString(k)
+	return out
 }

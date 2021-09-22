@@ -12,20 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configprovider
+package configconverter
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/config/configparser"
 )
-
-func TestIsMemLimitBallastKey(t *testing.T) {
-	assert.False(t, isMemLimitBallastKey("processors::ballast_size_mib"))
-	assert.True(t, isMemLimitBallastKey("processors::memory_limiter::ballast_size_mib"))
-	assert.True(t, isMemLimitBallastKey("processors::memory_limiter/foo::ballast_size_mib"))
-}
 
 func TestMemLimitBallastRemoverPP(t *testing.T) {
 	tests := []struct {
@@ -46,8 +41,9 @@ func TestMemLimitBallastRemoverPP(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			pp := &memLimitBallastRemoverParserProvider{
-				&fileParserProvider{FileName: test.fname},
+			pp := &converterProvider{
+				wrapped:     &fileParserProvider{fileName: test.fname},
+				cfgMapFuncs: []CfgMapFunc{RemoveBallastKey},
 			}
 			cfgMap, err := pp.Get()
 			require.NoError(t, err)
@@ -55,4 +51,12 @@ func TestMemLimitBallastRemoverPP(t *testing.T) {
 			assert.False(t, b)
 		})
 	}
+}
+
+type fileParserProvider struct {
+	fileName string
+}
+
+func (fpp fileParserProvider) Get() (*configparser.ConfigMap, error) {
+	return configparser.NewParserFromFile(fpp.fileName)
 }

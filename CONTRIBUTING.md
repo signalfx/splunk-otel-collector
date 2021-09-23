@@ -30,6 +30,17 @@ When filing an issue, please do *NOT* include:
 - Internal identifiers such as JIRA tickets
 - Any sensitive information related to your environment, users, etc.
 
+## Documentation
+
+The Splunk Observability documentation is hosted on https://docs.splunk.com/Observability,
+which contains all the prescriptive guidance for Splunk Observability products. 
+Prescriptive guidance consists of step-by-step instructions, conceptual material,
+and decision support for customers. Reference documentation and development 
+documentation is hosted on this repository.
+
+You can send feedback about Splunk Observability docs by clicking the Feedback 
+button on any of our documentation pages.
+
 ## Contributing via Pull Requests
 
 Contributions via Pull Requests (PRs) are much appreciated. Before sending us a

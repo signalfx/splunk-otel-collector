@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Trobleshoot issues when collecting data](https://docs.splunk.com/Observability/gdi/opentelemetry/troubleshooting.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
+
 # Troubleshooting
 
 Start by reviewing the [OpenTelemetry Collector troubleshooting

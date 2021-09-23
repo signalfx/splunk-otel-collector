@@ -58,6 +58,7 @@ sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --license "$PKG_LICENSE" \
     --url "$PKG_URL" \
     --architecture "$ARCH" \
+    --rpm-rpmbuild-define "_build_id_links none" \
     --rpm-summary "$PKG_DESCRIPTION" \
     --rpm-use-file-permissions \
     --before-install "$PREINSTALL_PATH" \

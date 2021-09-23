@@ -1,5 +1,3 @@
-> The official Splunk documentation for this page is [](). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
-
 # FAQ
 
 - **What’s new in latest splunk-otel-collector release?** See the

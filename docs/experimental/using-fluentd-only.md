@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Install and configure Splunk Distribution of OpenTelemetry Collector](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
+
 # Sending logs directly from Fluentd to Splunk Log Observer  
 
 > WARNING: The following is not supported or tested today. Performance testing,

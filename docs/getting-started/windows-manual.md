@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Install on Windows](https://docs.splunk.com/Observability/gdi/opentelemetry/install-windows.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
+
 # Windows Manual
 
 The following deployment options are supported:

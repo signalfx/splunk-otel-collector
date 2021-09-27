@@ -76,6 +76,9 @@ exporters:
   signalfx:
     access_token: "${include:token}"
     realm: us1
+  sapm:
+    access_token: "${include:token}"
+    endpoint: https://ingest.us1.signalfx.com/v2/trace
 service:
   extensions:
     - k8s_observer
@@ -105,4 +108,4 @@ service:
       processors:
         - resourcedetection
       exporters:
-        - signalfx
+        - sapm

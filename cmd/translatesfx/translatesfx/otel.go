@@ -27,6 +27,7 @@ const (
 	sfxFwder          = "smartagent/signalfx-forwarder"
 	resourceDetection = "resourcedetection"
 	sfx               = "signalfx"
+	sapm              = "sapm"
 	metricsTransform  = "metricstransform"
 	filterProc        = "filter"
 	k8sObserver       = "k8s_observer"
@@ -289,8 +290,9 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 		cfg.Service.Pipelines["traces"] = &rpe{
 			Receivers:  tracesReceivers,
 			Processors: []string{resourceDetection},
-			Exporters:  []string{sfx},
+			Exporters:  []string{sapm},
 		}
+		cfg.Exporters[sapm] = sapmExporter(sa)
 	}
 
 	if logsReceivers != nil {
@@ -302,6 +304,23 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 	}
 
 	return warnings
+}
+
+func sapmExporter(sa saCfgInfo) map[string]interface{} {
+	return map[string]interface{}{
+		"access_token": sa.accessToken,
+		"endpoint":     sapmEndpoint(sa),
+	}
+}
+
+func sapmEndpoint(sa saCfgInfo) string {
+	if sa.ingestURL != "" {
+		return fmt.Sprintf("%s/v2/trace", sa.ingestURL)
+	}
+	if sa.realm != "" {
+		return fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", sa.realm)
+	}
+	return ""
 }
 
 func translateGlobalDims(sa saCfgInfo, otel *otelCfg) {

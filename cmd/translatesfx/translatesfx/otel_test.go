@@ -177,7 +177,7 @@ func TestInfoToOtelConfig_SFxForwarder(t *testing.T) {
 	tp := oc.Service.Pipelines["traces"]
 	assert.Equal(t, []string{receiverName}, tp.Receivers)
 	assert.Equal(t, []string{"resourcedetection"}, tp.Processors)
-	assert.Equal(t, []string{"signalfx"}, tp.Exporters)
+	assert.Equal(t, []string{"sapm"}, tp.Exporters)
 }
 
 func TestInfoToOtelConfig_ProcessList(t *testing.T) {
@@ -781,4 +781,15 @@ func TestHostObs(t *testing.T) {
 	rc := cfg.Receivers["receiver_creator"]
 	wo := rc["watch_observers"].([]string)
 	assert.Equal(t, "host_observer", wo[0])
+}
+
+func TestSapmEndpoint(t *testing.T) {
+	endpt := sapmEndpoint(saCfgInfo{
+		ingestURL: "https://ingest.lab0.signalfx.com",
+	})
+	assert.Equal(t, "https://ingest.lab0.signalfx.com/v2/trace", endpt)
+	endpt = sapmEndpoint(saCfgInfo{
+		realm: "lab0",
+	})
+	assert.Equal(t, "https://ingest.lab0.signalfx.com/v2/trace", endpt)
 }

@@ -122,7 +122,7 @@ func TestMultiMonitors(t *testing.T) {
 
 func TestYamlPath(t *testing.T) {
 	yp0 := yamlPath{
-		forcePaths: []string{"/foo"},
+		forceExpandPaths: []string{"/foo"},
 	}
 	yp1 := yp0.key("aaa")
 	assert.Equal(t, "/aaa", yp1.curr)

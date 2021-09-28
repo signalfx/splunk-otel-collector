@@ -1,0 +1,65 @@
+---
+- name: set default vars for Linux
+  set_fact:
+    splunk_otel_collector_config: |-
+      {%- if splunk_otel_collector_config -%}
+        {{ splunk_otel_collector_config }}
+      {%- else -%}
+        /etc/otel/collector/agent_config.yaml
+      {%- endif -%}
+    splunk_fluentd_config: |-
+      {%- if splunk_fluentd_config -%}
+        {{ splunk_fluentd_config }}
+      {%- else -%}
+        /etc/otel/collector/fluentd/fluent.conf
+      {%- endif -%}
+    agent_bundle_dir: |-
+      {%- if agent_bundle_dir -%}
+        {{ agent_bundle_dir }}
+      {%- else -%}
+        /usr/lib/splunk-otel-collector/agent-bundle
+      {%- endif -%}
+    splunk_collectd_dir: |-
+      {%- if splunk_collectd_dir -%}
+        {{ splunk_collectd_dir }}
+      {%- else -%}
+        /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
+      {%- endif -%}
+  when: ansible_os_family != "Windows"
+
+- name: set default vars for Windows
+  set_fact:
+    splunk_bundle_dir: |-
+      {%- if agent_bundle_dir -%}
+        {{ agent_bundle_dir }}
+      {%- else -%}
+        {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\agent-bundle
+      {%- endif -%}
+    splunk_collectd_dir: |-
+      {%- if splunk_collectd_dir -%}
+        {{ splunk_collectd_dir }}
+      {%- else -%}
+        {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd
+      {%- endif -%}
+    splunk_otel_collector_config: |-
+      {%- if splunk_otel_collector_config -%}
+        {{ splunk_otel_collector_config }}
+      {%- else -%}
+        {{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\agent_config.yaml
+      {%- endif -%}
+    splunk_fluentd_config: |-
+      {%- if splunk_fluentd_config -%}
+        {{ splunk_fluentd_config }}
+      {%- else -%}
+        {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\td-agent.conf
+      {%- endif -%}
+    td_agent_version: |-
+      {%- if td_agent_version -%}
+        {{ td_agent_version }}
+      {%- else -%}
+        4.1.1
+      {%- endif -%}
+    registry_key: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+    package_stage: release
+    win_base_url: https://dl.signalfx.com
+  when: ansible_os_family == "Windows"

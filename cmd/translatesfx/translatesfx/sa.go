@@ -28,7 +28,7 @@ func expandSA(orig interface{}, wd string) (map[interface{}]interface{}, []strin
 		// their configsource equivalent. We need monitors expanded/inlined so we can
 		// translate them, apiURL is used to get the realm, and globalDimensions is used
 		// to create a metricstransform processor.
-		forcePaths: []string{"/monitors", "/apiUrl", "/globalDimensions"},
+		forceExpandPaths: []string{"/monitors", "/apiUrl", "/globalDimensions"},
 	}, &vaultPaths)
 	return expanded.(map[interface{}]interface{}), vaultPaths, err
 }
@@ -90,11 +90,11 @@ func expandMap(m map[interface{}]interface{}, wd string, yp yamlPath, vaultPaths
 	return out, false, nil
 }
 
-// yamlPath keeps track of the current yaml path and uses forcePaths
+// yamlPath keeps track of the current yaml path and uses forceExpandPaths
 // to determine whether to force expand a part of the config.
 type yamlPath struct {
-	curr       string
-	forcePaths []string
+	curr             string
+	forceExpandPaths []string
 }
 
 func (p yamlPath) index(i int) yamlPath {
@@ -108,7 +108,7 @@ func (p yamlPath) key(k string) yamlPath {
 }
 
 func (p yamlPath) forceExpand() bool {
-	for _, forcePath := range p.forcePaths {
+	for _, forcePath := range p.forceExpandPaths {
 		// not bulletproof, but enough for our tiny usecase
 		if strings.HasPrefix(p.curr, forcePath) {
 			return true

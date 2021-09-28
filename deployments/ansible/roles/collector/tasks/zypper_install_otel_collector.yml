@@ -1,0 +1,28 @@
+---
+# Install Splunk OpenTelemetry Collector from zypper repository
+
+- name: Install setcap via zypper package manager
+  community.general.zypper:
+    name: "libcap-progs"
+    state: present
+    update_cache: yes
+
+- name: Import the Splunk GPG key
+  ansible.builtin.rpm_key:
+    state: present
+    key: "{{ splunk_repo_base_url }}/otel-collector-rpm/splunk-B3CD4420.pub"
+
+- name: Add Splunk OpenTelemetry Collector repo to zypper source list
+  ansible.builtin.template:
+    src: collector-zypper.repo.j2
+    dest: /etc/zypp/repos.d/splunk-otel-collector.repo
+
+- name: Install Splunk OpenTelemetry Collector via zypper package manager
+  community.general.zypper:
+    name: "splunk-otel-collector{% if splunk_otel_collector_version != 'latest' %}\
+      -{{ splunk_otel_collector_version }}{% endif %}"
+    state: "{% if splunk_otel_collector_version != 'latest' %}present{% else %}latest{% endif %}"
+    oldpackage: yes
+    update_cache: yes
+  notify:
+    - "restart splunk-otel-collector"

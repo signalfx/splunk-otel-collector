@@ -14,6 +14,10 @@
   ansible.builtin.import_tasks: yum_install_otel_collector.yml
   when: ansible_os_family == "RedHat"
 
+- name: Install Splunk OpenTelemetry Collector with zypper package manager
+  ansible.builtin.import_tasks: zypper_install_otel_collector.yml
+  when: ansible_os_family == "Suse"
+
 - name: Set Splunk Otel Collector service owner
   ansible.builtin.import_tasks: collector_service_owner.yml
 
@@ -45,4 +49,4 @@
 
 - name: Install FluentD
   ansible.builtin.import_tasks: linux_install_fluentd.yml
-  when: install_fluentd
+  when: install_fluentd and ansible_os_family != "Suse"

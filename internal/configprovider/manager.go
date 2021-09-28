@@ -178,7 +178,7 @@ type Manager struct {
 // NewManager creates a new instance of a Manager to be used to inject data from
 // ConfigSource objects into a configuration and watch for updates on the injected
 // data.
-func NewManager(parser *configparser.Parser, logger *zap.Logger, buildInfo component.BuildInfo, factories Factories) (*Manager, error) {
+func NewManager(parser *configparser.ConfigMap, logger *zap.Logger, buildInfo component.BuildInfo, factories Factories) (*Manager, error) {
 	configSourcesSettings, err := Load(context.Background(), parser, factories)
 	if err != nil {
 		return nil, err
@@ -196,10 +196,10 @@ func NewManager(parser *configparser.Parser, logger *zap.Logger, buildInfo compo
 	return newManager(cfgSources), nil
 }
 
-// Resolve inspects the given configparser.Parser and resolves all config sources referenced
-// in the configuration, returning a configparser.Parser fully resolved. This must be called only
+// Resolve inspects the given configparser.ConfigMap and resolves all config sources referenced
+// in the configuration, returning a configparser.ConfigMap fully resolved. This must be called only
 // once per lifetime of a Manager object.
-func (m *Manager) Resolve(ctx context.Context, parser *configparser.Parser) (*configparser.Parser, error) {
+func (m *Manager) Resolve(ctx context.Context, parser *configparser.ConfigMap) (*configparser.ConfigMap, error) {
 	res := configparser.NewParser()
 	allKeys := parser.AllKeys()
 	for _, k := range allKeys {
@@ -525,7 +525,7 @@ func parseCfgSrc(s string) (cfgSrcName, selector string, params interface{}, err
 		selector = strings.Trim(parts[0], " ")
 
 		if len(parts) > 1 && len(parts[1]) > 0 {
-			var p *configparser.Parser
+			var p *configparser.ConfigMap
 			if p, err = configparser.NewParserFromBuffer(bytes.NewReader([]byte(parts[1]))); err != nil {
 				return
 			}
@@ -586,7 +586,7 @@ func parseParamsAsURLQuery(s string) (interface{}, error) {
 }
 
 // expandEnvVars is used to expand environment variables with the same syntax used
-// by configparser.Parser.
+// by configparser.ConfigMap.
 func expandEnvVars(s string) string {
 	return os.Expand(s, func(str string) string {
 		// This allows escaping environment variable substitution via $$, e.g.

@@ -262,8 +262,6 @@ jobs:
     executor:
       name: win/default
       shell: powershell.exe
-    environment:
-      GOPATH=~/go
     steps:
       - checkout
       - restore_module_cache
@@ -271,6 +269,7 @@ jobs:
           name: Upgrade golang
           command: |
             $ErrorActionPreference = 'Stop'
+            $env:GOPATH = "${env:USERPROFILE}\go"
             choco upgrade golang --version=1.17
             refreshenv
             go env -w CGO_ENABLED=0
@@ -281,6 +280,8 @@ jobs:
           name: Unit tests with coverage
           command: |
             $ErrorActionPreference = 'Stop'
+            $env:GOPATH = "${env:USERPROFILE}\go"
+            $env:PATH = "$env:PATH;${env:GOPATH}\bin"
             go-acc ./...
 #      - run:
 #          name: Upload coverage

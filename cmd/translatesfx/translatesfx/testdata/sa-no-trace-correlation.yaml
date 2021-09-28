@@ -1,0 +1,31 @@
+---
+signalFxAccessToken: {"#from": "/etc/signalfx/token"}
+ingestUrl: {"#from": "/etc/signalfx/ingest_url", default: "https://ingest.signalfx.com"}
+apiUrl: {"#from": "/etc/signalfx/api_url", default: "https://api.signalfx.com"}
+traceEndpointUrl: {"#from": '/etc/signalfx/trace_endpoint_url', default: "https://ingest.signalfx.com/v2/trace"}
+
+intervalSeconds: 10
+
+logging:
+  level: info
+
+observers:
+  - type: host
+
+monitors:
+  - {"#from": "/etc/signalfx/monitors/*.yaml", flatten: true, optional: true}
+  - type: host-metadata
+  - type: processlist
+  - type: cpu
+  - type: filesystems
+  - type: disk-io
+  - type: net-io
+  - type: load
+  - type: memory
+  - type: vmem
+  - type: signalfx-forwarder
+    listenAddress: 0.0.0.0:9080
+
+writer:
+  traceExportFormat: sapm
+  sendTraceHostCorrelationMetrics: false

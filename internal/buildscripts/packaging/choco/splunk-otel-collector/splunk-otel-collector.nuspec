@@ -6,7 +6,7 @@
     <description>
 Splunk OpenTelemetry Connector is a distribution of the OpenTelemetry Collector. It provides a unified way to receive, process, and export metric, trace, and log data for Splunk Observability Cloud.
 
-The splunk-otel-collector looks for a configuration file at `\ProgramData\Splunk\OpenTelemetry Collector\otelcol.exe`.  If this file does not already exist during installation, a default config file will be copied into place by the installer.
+The splunk-otel-collector looks for a configuration file at `\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`.  If this file does not already exist during installation, a default config file will be copied into place by the installer.
 
 #### Package Parameters
 The following package parameters are available:

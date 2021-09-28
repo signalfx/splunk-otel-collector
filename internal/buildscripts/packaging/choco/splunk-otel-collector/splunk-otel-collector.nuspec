@@ -4,7 +4,7 @@
     <id>splunk-otel-collector</id>
     <version>0.0.0</version>
     <description>
-The splunk-otel-collector is a metric-based agent written in Go that is used to monitor infrastructure and application services from a variety of environments.
+Splunk OpenTelemetry Connector is a distribution of the OpenTelemetry Collector. It provides a unified way to receive, process, and export metric, trace, and log data for Splunk Observability Cloud.
 
 The splunk-otel-collector looks for a configuration file at `\ProgramData\Splunk\OpenTelemetry Collector\otelcol.exe`.  If this file does not already exist during installation, a default config file will be copied into place by the installer.
 

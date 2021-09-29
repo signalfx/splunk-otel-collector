@@ -21,16 +21,13 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/components/componenttest"
 )
 
 func TestExtensionLifecycle(t *testing.T) {
 	ctx := context.Background()
-	createParams := component.ExtensionCreateSettings{
-		Logger: zap.NewNop(),
-	}
+	createParams := component.ExtensionCreateSettings{}
 	cfg := &Config{
 		Config: config.Config{
 			BundleDir: "/bundle/",

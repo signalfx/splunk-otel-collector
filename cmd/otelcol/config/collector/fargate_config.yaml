@@ -74,7 +74,7 @@ processors:
     detectors: [ecs]
     override: false
   # Enables the filter processor with example settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/filterprocessor
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/filterprocessor
   # NOTE: These settings need to be change when using this processor
   filter/1:
     metrics:

@@ -71,7 +71,7 @@ func addSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 		}
 		labels := map[string]string{}
 		dp.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
-			labels[k] = pdata.AttributeValueToString(v)
+			labels[k] = v.AsString()
 			return true
 		})
 		metric := Metric{
@@ -133,7 +133,7 @@ func addGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 		}
 		labels := map[string]string{}
 		dp.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
-			labels[k] = pdata.AttributeValueToString(v)
+			labels[k] = v.AsString()
 			return true
 		})
 		metric := Metric{

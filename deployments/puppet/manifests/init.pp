@@ -93,10 +93,34 @@ class splunk_otel_collector (
         repo_url    => $yum_repo_url,
         yum_gpg_key => $yum_gpg_key,
         manage_repo => $manage_repo,
+        repo_path   => '/etc/yum.repos.d',
       }
       -> package { $collector_package_name:
         ensure  => $collector_version,
         require => Package['libcap'],
+      }
+    }
+    'suse': {
+      if $facts['service_provider'] != 'systemd' {
+        fail('Only systemd is currently supported')
+      }
+      package { 'libcap-progs':
+        ensure => 'installed',
+      }
+      # Workaround for older zypper versions that have issues importing gpg keys
+      exec { 'Import yum gpg key':
+        command => "rpm --import ${yum_gpg_key}",
+        path    => ['/bin', '/sbin', '/usr/bin', '/usr/sbin'],
+      }
+      -> class { 'splunk_otel_collector::collector_yum_repo':
+        repo_url    => $yum_repo_url,
+        yum_gpg_key => $yum_gpg_key,
+        manage_repo => $manage_repo,
+        repo_path   => '/etc/zypp/repos.d',
+      }
+      -> package { $collector_package_name:
+        ensure  => $collector_version,
+        require => Package['libcap-progs'],
       }
     }
     'windows': {
@@ -174,7 +198,7 @@ class splunk_otel_collector (
     }
   }
 
-  if $with_fluentd {
+  if $with_fluentd and $::osfamily != 'suse' {
     case $::osfamily {
       'debian': {
         package { ['build-essential', 'libcap-ng0', 'libcap-ng-dev', 'pkg-config']:

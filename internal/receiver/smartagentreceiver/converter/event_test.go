@@ -38,7 +38,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 			expectedLog: newExpectedLog(
 				"",
 				map[string]pdata.AttributeValue{
-					"com.splunk.signalfx.event_category": pdata.NewAttributeValueNull(),
+					"com.splunk.signalfx.event_category": pdata.NewAttributeValueEmpty(),
 				}, 0,
 			),
 		},

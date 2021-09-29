@@ -4,7 +4,7 @@ class splunk_otel_collector::params {
   $fluentd_version_jessie  = '3.3.0-1'
   $fluentd_version_stretch = '3.7.1-0'
 
-  if $::osfamily == 'redhat' or $::osfamily == 'debian' {
+  if $::osfamily == 'redhat' or $::osfamily == 'debian' or $::osfamily == 'suse' {
     $collector_version = 'latest'
     $collector_config_dir = '/etc/otel/collector'
     $fluentd_config_dir = "${collector_config_dir}/fluentd"

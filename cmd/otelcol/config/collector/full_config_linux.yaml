@@ -51,7 +51,7 @@ receivers:
   #  - thrift_binary (default endpoint = 0.0.0.0:6832/udp)
   #  - thrift_compact (default endpoint = 0.0.0.0:6831/udp)
   #  - thrift_http (default endpoint = 0.0.0.0:14268)
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/jaegerreceiver
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver
   jaeger:
     protocols:
       grpc:
@@ -65,7 +65,7 @@ receivers:
 
   # Enables the kafka receiver with default settings
   #  - brokers = localhost:9092
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/kafkareceiver
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkareceiver
   # NOTE: It is very likely additional configuration is required
   kafka:
     protocol_version: 2.0.0
@@ -85,7 +85,7 @@ receivers:
 
   # Enables the zipkin receiver with default settings
   #  - grpc (default endpoint = 0.0.0.0:9411)
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/zipkinreceiver
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/zipkinreceiver
   zipkin:
     endpoint: 0.0.0.0:9411
 
@@ -106,7 +106,7 @@ receivers:
     insecure_skip_verify: true
 
   # Enables the hostmetric receiver with default settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/hostmetricsreceiver
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver
   hostmetrics:
     collection_interval: 10s
     scrapers:
@@ -157,7 +157,7 @@ receivers:
   #############################################################################
 
   # Enables the fluentforward receiver with default settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/fluentforwardreceiver
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/fluentforwardreceiver
   fluentforward:
     endpoint: 0.0.0.0:8006
 
@@ -187,7 +187,7 @@ processors:
   k8s_tagger:
 
   # Enables the resouce processor with default settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/resourceprocessor
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourceprocessor
   # NOTE: These settings need to be change when using this processor
   resource:
     attributes:
@@ -227,7 +227,7 @@ processors:
   #############################################################################
 
   # Enables the attributes processor with default settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/attributesprocessor
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/attributesprocessor
   # NOTE: These settings need to be change when using this processor
   attributes:
     actions:
@@ -254,7 +254,7 @@ processors:
         value: "planet-earth"
 
   # Enables the span processor with example settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/spanprocessor
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanprocessor
   # NOTE: These settings need to be change when using this processor
   span/from_attributes:
     name:
@@ -280,7 +280,7 @@ processors:
   #############################################################################
 
   # Enables the filter processor with example settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/filterprocessor
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/filterprocessor
   # NOTE: These settings need to be change when using this processor
   filter/1:
     metrics:
@@ -299,7 +299,7 @@ processors:
           - hello/world
 
   # Enables the metrics transform processor with default settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/metricstransformprocessor
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor
   # NOTE: This processor settings need to be change when using this processor
   #transforms:
   #
@@ -390,7 +390,7 @@ exporters:
   #############################################################################
 
   # Enables the jaeger exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/jaegerexporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/jaegerexporter
   # NOTE: These settings should be updated to the proper destination
   jaeger:
     endpoint: jaeger-all-in-one:14250
@@ -420,7 +420,7 @@ exporters:
     endpoint: "https://ingest.${SPLUNK_REALM}.signalfx.com/v2/trace"
 
   # Enables the zipkin exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/zipkinexporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/zipkinexporter
   # NOTE: These settings should be updated to the proper destination
   zipkin:
     endpoint: "http://some.url:9411/api/v2/spans"
@@ -431,7 +431,7 @@ exporters:
   #############################################################################
 
   # Enables the prometheus exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/prometheusexporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusexporter
   # NOTE: These settings should be updated prior to use
   prometheus:
     endpoint: "1.2.3.4:1234"
@@ -442,7 +442,7 @@ exporters:
     send_timestamps: true
 
   # Enables the prometheus exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/prometheusexporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/prometheusexporter
   # NOTE: These settings should be updated to the proper destination
   prometheusremotewrite:
     endpoint: "http://some.url:9411/api/prom/push"
@@ -459,7 +459,7 @@ exporters:
   #############################################################################
 
   # Enables the file exporter
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/fileexporter
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/fileexporter
   file:
     path: ./filename.json
 
@@ -482,7 +482,7 @@ exporters:
 extensions:
 
   # Enables the fluentbit extension
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/fluentbitextension
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/fluentbitextension
   # NOTE: These settings should be updated prior to use
   fluentbit:
     executable_path: /usr/src/fluent-bit/build/bin/fluent-bit
@@ -496,7 +496,7 @@ extensions:
           parser apache
 
   # Enables the health check extension
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/healthcheckextension
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/healthcheckextension
   health_check:
     endpoint: 0.0.0.0:13133
 
@@ -520,7 +520,7 @@ extensions:
   k8s_observer:
 
   # Enables the pprof extension
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/pprofextension
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/pprofextension
   pprof:
     #endpoint: 0.0.0.0:1777
 

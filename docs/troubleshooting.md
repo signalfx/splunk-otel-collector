@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Trobleshoot issues when collecting data](https://docs.splunk.com/Observability/gdi/opentelemetry/troubleshooting.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
+
 # Troubleshooting
 
 Start by reviewing the [OpenTelemetry Collector troubleshooting
@@ -45,8 +47,9 @@ In addition, it is important to gather support information including:
 
 Support bundle scripts are provided to make it easier to collect information:
 
+- Kubernetes: [kubectl-splunk](https://github.com/signalfx/kubectl-splunk/blob/main/docs/kubectl-splunk_support.md)
 - Linux (if installer script was used): `/etc/otel/collector/splunk-support-bundle.sh`
-- Windows (if MSI installer was used): `C:\Program Files\Splunk\OpenTelemetry Collector\splunk-support-bundle.ps1`
+- Windows (if MSI installer was used v0.34.0+): `C:\Program Files\Splunk\OpenTelemetry Collector\splunk-support-bundle.ps1`
 
 ## Error Messages and Reasons
 

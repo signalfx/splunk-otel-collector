@@ -31,6 +31,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
+	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 	"github.com/signalfx/splunk-otel-collector/internal/configsources"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
@@ -60,14 +61,14 @@ func main() {
 	// TODO: Use same format as the collector
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	if !contains(os.Args[1:], "-h") && !contains(os.Args[1:], "--help") {
+	if !hasFlag("-h") && !hasFlag("--help") {
 		checkRuntimeParams()
 		setDefaultEnvVars()
 	}
 
 	// Allow dumping configuration locally by default
 	// Used by support bundle script
-	os.Setenv(configServerEnabledEnvVar, "true")
+	_ = os.Setenv(configServerEnabledEnvVar, "true")
 
 	factories, err := components.Get()
 	if err != nil {
@@ -85,6 +86,13 @@ func main() {
 		info,
 		configsources.Get()...,
 	)
+	const noConvertConfigFlag = "--no-convert-config"
+	if hasFlag(noConvertConfigFlag) {
+		// the collector complains about this flag if we don't remove it
+		removeFlag(&os.Args, noConvertConfigFlag)
+	} else {
+		parserProvider = configconverter.ParserProvider(parserProvider, configconverter.RemoveBallastKey)
+	}
 	serviceParams := service.CollectorSettings{
 		BuildInfo:      info,
 		Factories:      factories,
@@ -94,6 +102,10 @@ func main() {
 	if err := run(serviceParams); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func hasFlag(flag string) bool {
+	return contains(os.Args[1:], flag)
 }
 
 // Check whether a string exists in an array of CLI arguments
@@ -109,6 +121,16 @@ func contains(arr []string, str string) bool {
 		}
 	}
 	return false
+}
+
+func removeFlag(flags *[]string, flag string) {
+	var out []string
+	for _, s := range *flags {
+		if s != flag {
+			out = append(out, s)
+		}
+	}
+	*flags = out
 }
 
 // Get the value of a key in an array
@@ -256,7 +278,7 @@ func setMemoryBallast(memTotalSizeMiB int) int {
 		if os.Getenv(ballastEnvVarName) != "" {
 			log.Fatalf("Both %v and '--mem-ballast-size-mib' were specified, but only one is allowed", ballastEnvVarName)
 		}
-		os.Setenv(ballastEnvVarName, ballastSizeFlag)
+		_ = os.Setenv(ballastEnvVarName, ballastSizeFlag)
 	}
 
 	ballastSize := memTotalSizeMiB * defaultMemoryBallastPercentage / 100
@@ -268,7 +290,7 @@ func setMemoryBallast(memTotalSizeMiB int) int {
 		}
 	}
 
-	os.Setenv(ballastEnvVarName, strconv.Itoa(ballastSize))
+	_ = os.Setenv(ballastEnvVarName, strconv.Itoa(ballastSize))
 	log.Printf("Set ballast to %d MiB", ballastSize)
 	return ballastSize
 }
@@ -282,7 +304,7 @@ func setMemoryLimit(memTotalSizeMiB int) int {
 		memLimit = envVarAsInt(memLimitMiBEnvVarName)
 	}
 
-	os.Setenv(memLimitMiBEnvVarName, strconv.Itoa(memLimit))
+	_ = os.Setenv(memLimitMiBEnvVarName, strconv.Itoa(memLimit))
 	log.Printf("Set memory limit to %d MiB", memLimit)
 	return memLimit
 }
@@ -300,7 +322,7 @@ func setDefaultEnvVars() {
 		for _, v := range testArgs {
 			_, ok := os.LookupEnv(v[0])
 			if !ok {
-				os.Setenv(v[0], v[1])
+				_ = os.Setenv(v[0], v[1])
 			}
 		}
 	}
@@ -308,7 +330,7 @@ func setDefaultEnvVars() {
 	if tokenOk {
 		_, ok := os.LookupEnv("SPLUNK_HEC_TOKEN")
 		if !ok {
-			os.Setenv("SPLUNK_HEC_TOKEN", token)
+			_ = os.Setenv("SPLUNK_HEC_TOKEN", token)
 		}
 	}
 }

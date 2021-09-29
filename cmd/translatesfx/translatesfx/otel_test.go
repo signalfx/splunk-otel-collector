@@ -66,6 +66,15 @@ func TestMonitorToReceiver(t *testing.T) {
 	assert.Equal(t, "vsphere", v["type"])
 }
 
+func testvSphereMonitorCfg() map[interface{}]interface{} {
+	return map[interface{}]interface{}{
+		"type":     "vsphere",
+		"host":     "localhost",
+		"username": "administrator",
+		"password": "abc123",
+	}
+}
+
 func TestMonitorToReceiver_Rule(t *testing.T) {
 	otel, w, isRC := saMonitorToOtelReceiver(map[interface{}]interface{}{
 		"type":          "redis",
@@ -168,22 +177,30 @@ func TestInfoToOtelConfig_SFxForwarder(t *testing.T) {
 	tp := oc.Service.Pipelines["traces"]
 	assert.Equal(t, []string{receiverName}, tp.Receivers)
 	assert.Equal(t, []string{"resourcedetection"}, tp.Processors)
-	assert.Equal(t, []string{"signalfx"}, tp.Exporters)
+	assert.Equal(t, []string{"sapm"}, tp.Exporters)
 }
 
 func TestInfoToOtelConfig_ProcessList(t *testing.T) {
 	oc, _ := yamlToOtelConfig(t, "testdata/sa-processlist.yaml")
-	receiverName := "smartagent/processlist"
-	rcvr := oc.Receivers[receiverName]
+	processListReceiverName := "smartagent/processlist"
+	rcvr := oc.Receivers[processListReceiverName]
 	assert.Equal(t, map[string]interface{}{
 		"type": "processlist",
 	}, rcvr)
+
+	kubernetesEventsReceiverName := "smartagent/kubernetes-events"
+	rcvr = oc.Receivers[kubernetesEventsReceiverName]
+	assert.Equal(t, map[string]interface{}{
+		"type": "kubernetes-events",
+	}, rcvr)
+
 	pl := oc.Service.Pipelines["logs"]
 	assert.Equal(t, &rpe{
-		Receivers:  []string{receiverName},
+		Receivers:  []string{kubernetesEventsReceiverName, processListReceiverName},
 		Processors: []string{"resourcedetection"},
 		Exporters:  []string{"signalfx"},
 	}, pl)
+
 	_, ok := oc.Service.Pipelines["metrics"]
 	assert.False(t, ok)
 }
@@ -274,13 +291,27 @@ func TestInfoToOtelConfig_MetricsToExclude_Regex(t *testing.T) {
 	assert.Equal(t, `MetricName matches "vsphere\\.cpu_\\w*_percent"`, expression)
 }
 
-func testvSphereMonitorCfg() map[interface{}]interface{} {
-	return map[interface{}]interface{}{
-		"type":     "vsphere",
-		"host":     "localhost",
-		"username": "administrator",
-		"password": "abc123",
-	}
+func TestInfoToOtelConfig_MetricsToExclude_Monitor(t *testing.T) {
+	// This metricsToExclude is attached to the monitor, not the agent, which is
+	// apparently an invalid configuration according to the docs, but it actually
+	// works and some customers are using it. If we just rename it to the supported
+	// datapointsToExclude, things work fine in the translated config.
+	cfg, _ := yamlToOtelConfig(t, "testdata/sa-metrics-to-exclude-monitor.yaml")
+
+	_, ok := cfg.Processors["filter"]
+	assert.False(t, ok)
+
+	saReceiver := cfg.Receivers["smartagent/cpu"]
+	_, ok = saReceiver["metricsToExclude"]
+	assert.False(t, ok)
+
+	ex, ok := saReceiver["datapointsToExclude"]
+	assert.True(t, ok)
+	assert.Equal(t, []interface{}{
+		map[interface{}]interface{}{
+			"metricNames": []interface{}{"foo*"},
+		},
+	}, ex)
 }
 
 func yamlToOtelConfig(t *testing.T, filename string) (out *otelCfg, warnings []error) {
@@ -750,4 +781,15 @@ func TestHostObs(t *testing.T) {
 	rc := cfg.Receivers["receiver_creator"]
 	wo := rc["watch_observers"].([]string)
 	assert.Equal(t, "host_observer", wo[0])
+}
+
+func TestSapmEndpoint(t *testing.T) {
+	endpt := sapmEndpoint(saCfgInfo{
+		ingestURL: "https://ingest.lab0.signalfx.com",
+	})
+	assert.Equal(t, "https://ingest.lab0.signalfx.com/v2/trace", endpt)
+	endpt = sapmEndpoint(saCfgInfo{
+		realm: "lab0",
+	})
+	assert.Equal(t, "https://ingest.lab0.signalfx.com/v2/trace", endpt)
 }

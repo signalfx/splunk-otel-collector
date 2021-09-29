@@ -88,8 +88,6 @@ func TestVaultSessionForKV(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, retrievedMetadata.Value())
 
-	require.NoError(t, s.RetrieveEnd(context.Background()))
-
 	watcher, ok := retrieved.(configsource.Watchable)
 	require.True(t, ok)
 
@@ -133,9 +131,6 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 	retrievedK1, err := s.Retrieve(context.Background(), "data.k1", nil)
 	require.NoError(t, err)
 	require.Equal(t, "v1", retrievedK1.Value().(string))
-
-	// RetrieveEnd
-	require.NoError(t, s.RetrieveEnd(context.Background()))
 
 	watcherK0, ok := retrievedK0.(configsource.Watchable)
 	require.True(t, ok)
@@ -217,9 +212,6 @@ func TestVaultRenewableSecret(t *testing.T) {
 	retrievedPwd, err := s.Retrieve(context.Background(), "password", nil)
 	require.NoError(t, err)
 
-	// RetrieveEnd
-	require.NoError(t, s.RetrieveEnd(context.Background()))
-
 	watcherUser, ok := retrievedUser.(configsource.Watchable)
 	require.True(t, ok)
 
@@ -289,9 +281,6 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "s3cr3t", retrievedValue.Value().(string))
 
-	// RetrieveEnd
-	require.NoError(t, s.RetrieveEnd(context.Background()))
-
 	watcher, ok := retrievedValue.(configsource.Watchable)
 	require.True(t, ok)
 
@@ -360,9 +349,6 @@ func TestVaultV1NonWatchableSecret(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "s3cr3t", retrievedValue.Value().(string))
 
-	// RetrieveEnd
-	require.NoError(t, s.RetrieveEnd(context.Background()))
-
 	_, ok := retrievedValue.(configsource.Watchable)
 	require.False(t, ok)
 
@@ -430,9 +416,6 @@ func TestVaultRetrieveErrors(t *testing.T) {
 
 			defer func() {
 				assert.NoError(t, s.Close(ctx))
-			}()
-			defer func() {
-				assert.NoError(t, s.RetrieveEnd(ctx))
 			}()
 
 			r, err := s.Retrieve(ctx, tt.selector, nil)

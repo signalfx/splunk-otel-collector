@@ -29,7 +29,7 @@ func RemoveBallastKey(cfgMap *configparser.ConfigMap) *configparser.ConfigMap {
 	const expr = "processors::memory_limiter(/\\w+)?::ballast_size_mib"
 	ballastKeyRegexp, _ := regexp.Compile(expr)
 
-	out := configparser.NewParser()
+	out := configparser.NewConfigMap()
 	for _, k := range cfgMap.AllKeys() {
 		if ballastKeyRegexp.MatchString(k) {
 			log.Println("[WARNING] `ballast_size_mib` parameter in `memory_limiter` processor is " +

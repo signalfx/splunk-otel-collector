@@ -19,6 +19,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -354,7 +355,7 @@ func runInteractive(params service.CollectorSettings) error {
 		return fmt.Errorf("failed to construct the application: %w", err)
 	}
 
-	err = app.Run()
+	err = app.Run(context.Background())
 	if err != nil {
 		return fmt.Errorf("application run finished with error: %w", err)
 	}

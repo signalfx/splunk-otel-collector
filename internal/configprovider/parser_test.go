@@ -119,7 +119,7 @@ func TestConfigSourceParser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfgFile := path.Join("testdata", tt.file+".yaml")
-			v, err := configparser.NewParserFromFile(cfgFile)
+			v, err := configparser.NewConfigMapFromFile(cfgFile)
 			require.NoError(t, err)
 
 			for key, value := range tt.envvars {
@@ -143,13 +143,13 @@ type mockCfgSrcSettings struct {
 	Token    string `mapstructure:"token"`
 }
 
-var _ (ConfigSettings) = (*mockCfgSrcSettings)(nil)
+var _ ConfigSettings = (*mockCfgSrcSettings)(nil)
 
 type mockCfgSrcFactory struct {
 	ErrOnCreateConfigSource error
 }
 
-var _ (Factory) = (*mockCfgSrcFactory)(nil)
+var _ Factory = (*mockCfgSrcFactory)(nil)
 
 func (m *mockCfgSrcFactory) Type() config.Type {
 	return "tstcfgsrc"

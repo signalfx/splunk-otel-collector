@@ -240,14 +240,14 @@ func TestVaultRenewableSecret(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, retrievedPwd.Value(), retrievedUpdatedPwd.Value())
 
-	watcherUpdatedPwd, ok := retrievedUpdatedPwd.(configsource.Watchable)
+	watcherUpdatedUser, ok := retrievedUpdatedUser.(configsource.Watchable)
 	require.True(t, ok)
 
 	// Wait for close.
 	doneCh := make(chan struct{})
 	go func() {
 		defer close(doneCh)
-		watcherErr = watcherUpdatedPwd.WatchForUpdate()
+		watcherErr = watcherUpdatedUser.WatchForUpdate()
 	}()
 
 	runtime.Gosched()

@@ -86,13 +86,19 @@ func main() {
 		info,
 		configsources.Get()...,
 	)
+
 	const noConvertConfigFlag = "--no-convert-config"
 	if hasFlag(noConvertConfigFlag) {
 		// the collector complains about this flag if we don't remove it
 		removeFlag(&os.Args, noConvertConfigFlag)
 	} else {
-		parserProvider = configconverter.ParserProvider(parserProvider, configconverter.RemoveBallastKey)
+		parserProvider = configconverter.ParserProvider(
+			parserProvider,
+			configconverter.RemoveBallastKey,
+			configconverter.MoveOTLPInsecureKey,
+		)
 	}
+
 	serviceParams := service.CollectorSettings{
 		BuildInfo:      info,
 		Factories:      factories,

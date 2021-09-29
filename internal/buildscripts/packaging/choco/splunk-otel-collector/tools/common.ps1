@@ -7,6 +7,7 @@ $installation_path = "$drive" + "\Program Files\Splunk\OpenTelemetry Collector"
 $program_data_path = "$drive" + "\ProgramData\Splunk\OpenTelemetry Collector"
 $config_path = "$program_data_path\"
 
+$service_name = "splunk-otel-collector"
 # whether the service is running
 function service_running([string]$name) {
     return ((Get-CimInstance -ClassName win32_service -Filter "Name = '$name'" | Select Name, State).State -Eq "Running")
@@ -18,7 +19,7 @@ function service_installed([string]$name) {
 }
 
 # start the service if it's stopped
-function start_service([string]$name, [string]$config_path=$config_path) {
+function start_service([string]$name=$service_name, [string]$config_path=$config_path) {
     if (!(service_running -name "$name")) {
         if (Test-Path -Path $config_path) {
             try {
@@ -35,7 +36,7 @@ function start_service([string]$name, [string]$config_path=$config_path) {
             # wait for the service to start
             $startTime = Get-Date
             while (!(service_running -name "$name")) {
-                # timeout after 30 seconds
+                # timeout after 60 seconds
                 if ((New-TimeSpan -Start $startTime -End (Get-Date)).TotalSeconds -gt 60){
                     throw "The $name service is not running.  Something went wrong during the installation.  Please check the Windows Event Viewer and rerun the installer if necessary."
                 }
@@ -50,7 +51,7 @@ function start_service([string]$name, [string]$config_path=$config_path) {
 
 # stop the service if it's running
 function stop_service([string]$name) {
-    if ((service_running -name "$name")) {
+    if (service_running -name "$name") {
         try {
             Stop-Service -Name "$name"
         } catch {
@@ -63,9 +64,20 @@ function stop_service([string]$name) {
     }
 }
 
-# check registry for the agent msi package
-function msi_installed([string]$name="Splunk OpenTelemetry Collector") {
-    return (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where { $_.DisplayName -eq $name }) -ne $null
+# remove registry entries created by the splunk-otel-collector service
+function remove_otel_registry_entries() {
+    try {
+        if (Test-Path "HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\Application\splunk-otel-collector"){
+            Remove-Item "HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\Application\splunk-otel-collector"
+        }
+    } catch {
+        $err = $_.Exception.Message
+        $message = "
+        unable to remove registry entries at HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\Application\splunk-otel-collector
+        $err
+        "
+        throw "$message"
+    }
 }
 
 function update_registry([string]$path, [string]$name, [string]$value) {

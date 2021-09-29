@@ -109,6 +109,20 @@ if (!$install_dir) {
     write-host "Setting installation directory to $install_dir"
 }
 
+# remove orphaned service or when upgrading from bundle installation
+try {
+    stop_service
+} catch {
+    echo "$_"
+}
+
+# remove orphaned registry entries or when upgrading from bundle installation
+try {
+    remove_otel_registry_entries
+} catch {
+    echo "$_"
+}
+
 $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 update_registry -path "$regkey" -name "SPLUNK_ACCESS_TOKEN" -value "$SPLUNK_ACCESS_TOKEN"
 update_registry -path "$regkey" -name "SPLUNK_API_URL" -value "$SPLUNK_API_URL"
@@ -145,3 +159,7 @@ elseif ($MODE -eq "gateway"){
 }
 
 update_registry -path "$regkey" -name "SPLUNK_CONFIG" -value "$config_path"
+
+echo "Installing splunk-otel-collector service..."
+start_service -config_path "$config_path"
+echo "- Started"

@@ -2,8 +2,8 @@
 $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 
 $packageArgs = @{
-    packageName    = "splunk-otel-collector"
-    softwareName   = "Splunk OpenTelemetry Collector"
+    packageName    = $env:ChocolateyPackageName
+    softwareName   = $env:ChocolateyPackageTitle
     fileType       = 'MSI'
     silentArgs     = "/qn /norestart"
     validExitCodes = @(0)

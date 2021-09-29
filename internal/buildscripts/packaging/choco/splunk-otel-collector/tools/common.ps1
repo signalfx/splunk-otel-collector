@@ -5,28 +5,7 @@ try {
 }
 $installation_path = "$drive" + "\Program Files\Splunk\OpenTelemetry Collector"
 $program_data_path = "$drive" + "\ProgramData\Splunk\OpenTelemetry Collector"
-$config_path = "$program_data_path\agent_config.yaml"
-
-function get_value_from_file([string]$path) {
-    $value = ""
-    if (Test-Path -Path "$path") {
-        try {
-            $value = (Get-Content -Path "$path").Trim()
-        } catch {
-            $value = ""
-        }
-    }
-    return "$value"
-}
-
-# create directories in program data
-function create_program_data() {
-    if (!(Test-Path -Path "$program_data_path")) {
-        echo "Creating $program_data_path"
-        (mkdir "$program_data_path")
-    }
-}
-
+$config_path = "$program_data_path\"
 
 # whether the service is running
 function service_running([string]$name) {

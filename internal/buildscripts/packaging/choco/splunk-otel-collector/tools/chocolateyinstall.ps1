@@ -2,140 +2,128 @@
 $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 . $toolsDir\common.ps1
 
-
-$installation_path = "$drive" + "\Program Files\Splunk\OpenTelemetry Collector"
-$program_data_path = "$drive" + "\ProgramData\Splunk\OpenTelemetry Collector"
-$config_path = "$program_data_path\agent_config.yaml"
-
 echo "Checking configuration parameters ..."
 $pp = Get-PackageParameters
+
+$install_dir = $pp['install_dir']
+$MODE = $pp['MODE']
 
 $SPLUNK_ACCESS_TOKEN = $pp['SPLUNK_ACCESS_TOKEN']
 $SPLUNK_INGEST_URL = $pp['SPLUNK_INGEST_URL']
 $SPLUNK_API_URL = $pp['SPLUNK_API_URL']
-$install_dir = $pp['install_dir']
 $SPLUNK_HEC_TOKEN = $pp['SPLUNK_HEC_TOKEN']
 $SPLUNK_HEC_URL = $pp['SPLUNK_HEC_URL']
 $SPLUNK_TRACE_URL = $pp['SPLUNK_TRACE_URL']
 $SPLUNK_BUNDLE_DIR = $pp['SPLUNK_BUNDLE_DIR']
 $SPLUNK_REALM = $pp['SPLUNK_REALM']
+$SPLUNK_MEMORY_TOTAL_MIB = $pp['SPLUNK_MEMORY_TOTAL_MIB']
 
-
-# create config files
-create_program_data
-
-# get param values from config files if they exist
-if (!$SPLUNK_ACCESS_TOKEN) {
-    $SPLUNK_ACCESS_TOKEN = get_value_from_file -path "$program_data_path\token"
+# default values if parameters not passed
+try{
     if (!$SPLUNK_ACCESS_TOKEN) {
-        echo "The 'SPLUNK_ACCESS_TOKEN' parameter was not specified."
-        $SPLUNK_ACCESS_TOKEN = ""
-    } else {
-        echo "Using access token from $program_data_path\token"
+        $SPLUNK_ACCESS_TOKEN = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_ACCESS_TOKEN" -ErrorAction SilentlyContinue
     }
 }
-[System.IO.File]::WriteAllText("$program_data_path\token", "$SPLUNK_ACCESS_TOKEN", [System.Text.Encoding]::ASCII)
+catch{
+    $SPLUNK_ACCESS_TOKEN = "1234"
+    write-host "The SPLUNK_ACCESS_TOKEN parameter is not speacified. Using default configuration."
+}
 
-# get param values from config files if they exist
-if (!$SPLUNK_REALM) {
-    $SPLUNK_REALM = get_value_from_file -path "$program_data_path\realm"
+try {
     if (!$SPLUNK_REALM) {
-        echo "The 'SPLUNK_REALM' parameter was not specified."
-        $SPLUNK_REALM = "us0"
-    } else {
-        echo "Using a realm from $program_data_path\realm"
+        $SPLUNK_REALM = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_REALM" -ErrorAction SilentlyContinue
     }
 }
-[System.IO.File]::WriteAllText("$program_data_path\realm", "$SPLUNK_REALM", [System.Text.Encoding]::ASCII)
+catch {
+    $SPLUNK_REALM = "us0"
+    write-host "The SPLUNK_REALM parameter is not speacified. Using default configuration."
+}
 
-
-if (!$SPLUNK_INGEST_URL) {
-    $SPLUNK_INGEST_URL = get_value_from_file -path "$program_data_path\SPLUNK_INGEST_URL"
+try {
     if (!$SPLUNK_INGEST_URL) {
-        $SPLUNK_INGEST_URL = "https://ingest.$SPLUNK_REALM.signalfx.com"
-        echo "Setting ingest url to $SPLUNK_INGEST_URL"
-    } else {
-        echo "Using ingest url from $program_data_path\SPLUNK_INGEST_URL"
+        $SPLUNK_INGEST_URL =  Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_INGEST_URL" -ErrorAction SilentlyContinue
     }
 }
-[System.IO.File]::WriteAllText("$program_data_path\SPLUNK_INGEST_URL", "$SPLUNK_INGEST_URL", [System.Text.Encoding]::ASCII)
+catch {
+    $SPLUNK_INGEST_URL = "https://ingest.$SPLUNK_REALM.signalfx.com"
+    write-host "The SPLUNK_INGEST_URL parameter is not speacified. Using default configuration."
+}
 
-if (!$SPLUNK_API_URL) {
-    $SPLUNK_API_URL = get_value_from_file -path "$program_data_path\SPLUNK_API_URL"
+try {
     if (!$SPLUNK_API_URL) {
-        $SPLUNK_API_URL = "https://api.$SPLUNK_REALM.signalfx.com"
-        echo "Setting api url to $SPLUNK_API_URL"
-    } else {
-        echo "Using api url from $program_data_path\SPLUNK_API_URL"
+        $SPLUNK_API_URL = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_API_URL" -ErrorAction SilentlyContinue
     }
 }
-[System.IO.File]::WriteAllText("$program_data_path\SPLUNK_API_URL", "$SPLUNK_API_URL", [System.Text.Encoding]::ASCII)
+catch {
+    $SPLUNK_API_URL = "https://api.$SPLUNK_REALM.signalfx.com"
+    write-host "The SPLUNK_INGEST_URL parameter is not speacified. Using default configuration."
+}
+
+try {
+    if (!$SPLUNK_HEC_TOKEN) {
+        $SPLUNK_HEC_TOKEN = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_HEC_TOKEN" -ErrorAction SilentlyContinue
+    }
+}
+catch {
+    $SPLUNK_HEC_TOKEN = $SPLUNK_ACCESS_TOKEN
+    write-host "The SPLUNK_HEC_TOKEN parameter is not speacified. Using default configuration."
+}
+
+try {
+    if (!$SPLUNK_HEC_URL) {
+        $SPLUNK_HEC_URL = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_HEC_URL" -ErrorAction SilentlyContinue
+    }
+}
+catch {
+    $SPLUNK_HEC_URL = "https://ingest.$SPLUNK_REALM.signalfx.com/v1/log"
+    write-host "The SPLUNK_HEC_URL parameter is not speacified. Using default configuration."
+}
+
+try {
+    if (!$SPLUNK_TRACE_URL) {
+        $SPLUNK_TRACE_URL = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_TRACE_URL" -ErrorAction SilentlyContinue
+    }
+}
+catch {
+    $SPLUNK_TRACE_URL = "https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace"
+    write-host "The SPLUNK_TRACE_URL parameter is not speacified. Using default configuration."
+}
+
+try {
+    if (!$SPLUNK_MEMORY_TOTAL_MIB) {
+        $SPLUNK_MEMORY_TOTAL_MIB = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_MEMORY_TOTAL_MIB" -ErrorAction SilentlyContinue
+    }
+}
+catch {
+    $SPLUNK_MEMORY_TOTAL_MIB = "512"
+    write-host "The SPLUNK_MEMORY_TOTAL_MIB parameter is not speacified. Using default configuration."
+}
+
+if (!$SPLUNK_BUNDLE_DIR) {
+    $SPLUNK_BUNDLE_DIR = "$installation_path\agent-bundle"
+    write-host "The SPLUNK_BUNDLE_DIR parameter is not speacified. Using default configuration."
+}
 
 if (!$install_dir) {
     $install_dir = $installation_path
+    write-host "Setting installation directory to $install_dir"
 }
-echo "Setting installation directory to $install_dir"
-
-if (!$SPLUNK_HEC_TOKEN) {
-    $SPLUNK_HEC_TOKEN = get_value_from_file -path "$program_data_path\hec-token"
-    if (!$SPLUNK_HEC_TOKEN) {
-        echo "The 'SPLUNK_HEC_TOKEN' parameter was not specified."
-        $SPLUNK_HEC_TOKEN = ""
-    } else {
-        echo "Using hec token from $program_data_path\hec-token"
-    }
-}
-[System.IO.File]::WriteAllText("$program_data_path\hec-token", "$SPLUNK_HEC_TOKEN", [System.Text.Encoding]::ASCII)
-
-if (!$SPLUNK_HEC_URL) {
-    $SPLUNK_HEC_URL = get_value_from_file -path "$program_data_path\SPLUNK_HEC_URL"
-    if (!$SPLUNK_HEC_URL) {
-        $SPLUNK_HEC_URL = "https://ingest.$SPLUNK_REALM.signalfx.com/v1/log"
-        echo "Setting hec url to $SPLUNK_HEC_URL"
-    } else {
-        echo "Using hec url from $program_data_path\SPLUNK_HEC_URL"
-    }
-}
-[System.IO.File]::WriteAllText("$program_data_path\SPLUNK_HEC_URL", "$SPLUNK_HEC_URL", [System.Text.Encoding]::ASCII)
-
-if (!$SPLUNK_BUNDLE_DIR) {
-    $SPLUNK_BUNDLE_DIR = get_value_from_file -path "$program_data_path\SPLUNK_BUNDLE_DIR"
-    if (!$SPLUNK_BUNDLE_DIR) {
-        $SPLUNK_BUNDLE_DIR = "$installation_path\agent-bundle"
-        echo "Setting bundle dir to $SPLUNK_BUNDLE_DIR"
-    } else {
-        echo "Using bundle dir from $program_data_path\SPLUNK_BUNDLE_DIR"
-    }
-}
-[System.IO.File]::WriteAllText("$program_data_path\SPLUNK_HEC_URL", "$SPLUNK_HEC_URL", [System.Text.Encoding]::ASCII)
-
-if (!$SPLUNK_TRACE_URL) {
-    $SPLUNK_TRACE_URL = get_value_from_file -path "$program_data_path\SPLUNK_TRACE_URL"
-    if (!$SPLUNK_TRACE_URL) {
-        $SPLUNK_TRACE_URL = "https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace"
-        echo "Setting trace url to $SPLUNK_TRACE_URL"
-    } else {
-        echo "Using trace url from $program_data_path\SPLUNK_TRACE_URL"
-    }
-}
-[System.IO.File]::WriteAllText("$program_data_path\SPLUNK_TRACE_URL", "$SPLUNK_TRACE_URL", [System.Text.Encoding]::ASCII)
 
 $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 update_registry -path "$regkey" -name "SPLUNK_ACCESS_TOKEN" -value "$SPLUNK_ACCESS_TOKEN"
 update_registry -path "$regkey" -name "SPLUNK_API_URL" -value "$SPLUNK_API_URL"
 update_registry -path "$regkey" -name "SPLUNK_BUNDLE_DIR" -value "$SPLUNK_BUNDLE_DIR"
-update_registry -path "$regkey" -name "SPLUNK_CONFIG" -value "$config_path"
 update_registry -path "$regkey" -name "SPLUNK_HEC_TOKEN" -value "$SPLUNK_HEC_TOKEN"
 update_registry -path "$regkey" -name "SPLUNK_HEC_URL" -value "$SPLUNK_HEC_URL"
 update_registry -path "$regkey" -name "SPLUNK_INGEST_URL" -value "$SPLUNK_INGEST_URL"
-update_registry -path "$regkey" -name "SPLUNK_MEMORY_TOTAL_MIB" -value ""
+update_registry -path "$regkey" -name "SPLUNK_MEMORY_TOTAL_MIB" -value "$SPLUNK_MEMORY_TOTAL_MIB"
 update_registry -path "$regkey" -name "SPLUNK_REALM" -value "$SPLUNK_REALM"
 update_registry -path "$regkey" -name "SPLUNK_TRACE_URL" -value "$SPLUNK_TRACE_URL"
 
 $packageArgs = @{
     packageName    = $env:ChocolateyPackageName
     fileType       = 'msi'
-    file           = Get-Item "$toolsDir\*amd64.msi"  # replaced at build time
+    file           = Join-Path "$toolsDir" "MSI_NAME"  # replaced at build time
     softwareName   = $env:ChocolateyPackageTitle
     checksum64     = "MSI_HASH"  # replaced at build time
     checksumType64 = 'sha256'
@@ -145,12 +133,15 @@ $packageArgs = @{
 
 Install-ChocolateyInstallPackage @packageArgs
 
-if (!(Test-Path -Path "$config_path")) {
-    echo "$config_path not found"
-    echo "Copying default agent_config.yaml to $config_path"
-    Copy-Item "$install_dir\Splunk\OpenTelemetry Collector\agent_config.yaml" "$config_path"
+if ($MODE -eq "agent" -or !$MODE) {
+    write-host "Copying agent_config.yaml to config_path"
+    Copy-Item "$installation_path\agent_config.yaml" "$config_path"
+    $config_path = "$program_data_path\agent_config.yaml"
+}
+elseif ($MODE -eq "gateway"){
+    write-host "Copying gateway_config.yaml to config_path"
+    Copy-Item "$installation_path\gateway_config.yaml" "$config_path"
+    $config_path = "$program_data_path\gateway_config.yaml"
 }
 
-
-
-
+update_registry -path "$regkey" -name "SPLUNK_CONFIG" -value "$config_path"

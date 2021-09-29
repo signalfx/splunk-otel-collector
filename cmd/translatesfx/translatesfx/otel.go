@@ -287,10 +287,14 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 	}
 
 	if tracesReceivers != nil {
+		exporters := []string{sapm}
+		if sendTraceCorrelation(sa) {
+			exporters = append(exporters, sfx)
+		}
 		cfg.Service.Pipelines["traces"] = &rpe{
 			Receivers:  tracesReceivers,
 			Processors: []string{resourceDetection},
-			Exporters:  []string{sapm},
+			Exporters:  exporters,
 		}
 		cfg.Exporters[sapm] = sapmExporter(sa)
 	}
@@ -304,6 +308,15 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 	}
 
 	return warnings
+}
+
+func sendTraceCorrelation(sa saCfgInfo) bool {
+	if v, ok := sa.writer["sendTraceHostCorrelationMetrics"]; ok {
+		if correlation, ok := v.(bool); ok {
+			return correlation
+		}
+	}
+	return true
 }
 
 func sapmExporter(sa saCfgInfo) map[string]interface{} {

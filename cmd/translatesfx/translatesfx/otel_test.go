@@ -177,7 +177,7 @@ func TestInfoToOtelConfig_SFxForwarder(t *testing.T) {
 	tp := oc.Service.Pipelines["traces"]
 	assert.Equal(t, []string{receiverName}, tp.Receivers)
 	assert.Equal(t, []string{"resourcedetection"}, tp.Processors)
-	assert.Equal(t, []string{"sapm"}, tp.Exporters)
+	assert.Equal(t, []string{"sapm", "signalfx"}, tp.Exporters)
 }
 
 func TestInfoToOtelConfig_ProcessList(t *testing.T) {
@@ -792,4 +792,10 @@ func TestSapmEndpoint(t *testing.T) {
 		realm: "lab0",
 	})
 	assert.Equal(t, "https://ingest.lab0.signalfx.com/v2/trace", endpt)
+}
+
+func TestNoCorrelationMetrics(t *testing.T) {
+	cfg, _ := yamlToOtelConfig(t, "testdata/sa-no-trace-correlation.yaml")
+	ex := cfg.Service.Pipelines["traces"].Exporters
+	assert.Equal(t, []string{"sapm"}, ex)
 }

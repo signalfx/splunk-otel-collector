@@ -22,6 +22,7 @@ type saCfgInfo struct {
 	globalDims       map[interface{}]interface{}
 	saExtension      map[string]interface{}
 	configSources    map[interface{}]interface{}
+	writer           map[interface{}]interface{}
 	monitors         []interface{}
 	observers        []interface{}
 	metricsToExclude []interface{}
@@ -41,6 +42,7 @@ func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) saCfgInfo {
 		configSources:    configSources(saExpanded),
 		metricsToExclude: saToMetricsToExclude(saExpanded),
 		metricsToInclude: saToMetricsToInclude(saExpanded),
+		writer:           writer(saExpanded),
 	}
 }
 
@@ -126,4 +128,16 @@ func toSlice(saExpanded map[interface{}]interface{}, key string) []interface{} {
 		return nil
 	}
 	return l
+}
+
+func writer(saExpanded map[interface{}]interface{}) map[interface{}]interface{} {
+	v, ok := saExpanded["writer"]
+	if !ok {
+		return nil
+	}
+	wr, ok := v.(map[interface{}]interface{})
+	if !ok {
+		return nil
+	}
+	return wr
 }

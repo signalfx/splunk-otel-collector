@@ -109,3 +109,4 @@ service:
         - resourcedetection
       exporters:
         - sapm
+        - signalfx

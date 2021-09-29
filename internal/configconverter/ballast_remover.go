@@ -32,7 +32,9 @@ func RemoveBallastKey(cfgMap *configparser.ConfigMap) *configparser.ConfigMap {
 	out := configparser.NewParser()
 	for _, k := range cfgMap.AllKeys() {
 		if ballastKeyRegexp.MatchString(k) {
-			log.Println("Deprecated memory_limiter processor `ballast_size_mib` key found. Removing from config.")
+			log.Println("[WARNING] `ballast_size_mib` parameter in `memory_limiter` processor is " +
+				"deprecated. Please update the config according to the guideline: " +
+				"https://github.com/signalfx/splunk-otel-collector#from-0340-to-0350.")
 		} else {
 			out.Set(k, cfgMap.Get(k))
 		}

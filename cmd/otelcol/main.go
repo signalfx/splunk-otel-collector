@@ -19,7 +19,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"log"
 	"os"
@@ -349,14 +348,14 @@ func newBaseParserProvider() parserprovider.ParserProvider {
 	return parserprovider.Default()
 }
 
-func runInteractive(params service.CollectorSettings) error {
-	app, err := service.New(params)
+func runInteractive(settings service.CollectorSettings) error {
+	app, err := service.New(settings)
 	if err != nil {
 		return fmt.Errorf("failed to construct the application: %w", err)
 	}
 
-	err = app.Run(context.Background())
-	if err != nil {
+	cmd := service.NewCommand(app)
+	if err = cmd.Execute(); err != nil {
 		return fmt.Errorf("application run finished with error: %w", err)
 	}
 

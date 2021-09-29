@@ -2272,8 +2272,8 @@ github.com/signalfx/ondiskencoding v0.0.0-20191121154813-762ffb677f8e/go.mod h1:
 github.com/signalfx/sapm-proto v0.4.0/go.mod h1:x3gtwJ1GRejtkghB4nYpwixh2zqJrLbPU959ZNhM0Fk=
 github.com/signalfx/sapm-proto v0.7.0 h1:u6MErnxMDK5WQgOfPEMcS7gti5DQJKppAmAml8jJYbo=
 github.com/signalfx/sapm-proto v0.7.0/go.mod h1:y4b+wJlBKH7AzdastAgdWHrfMBB/QYN+u+20SEA94C4=
-github.com/signalfx/signalfx-agent v1.0.1-0.20210927213144-cc4a5464edb1 h1:+ODJ6CJdBegjQdiGgRu/4sCkULkyzeDGyqT0SrrwSy0=
-github.com/signalfx/signalfx-agent v1.0.1-0.20210927213144-cc4a5464edb1/go.mod h1:c8qoZweGAtsBvrHYxDUk24g9y6F9eVMRnYjXEURbxeI=
+github.com/signalfx/signalfx-agent v1.0.1-0.20210929175248-dc852ba0ffcd h1:Pb9VKpFeHEcWJttFrIPs07kAuMic42qP9JP7rKUQoxo=
+github.com/signalfx/signalfx-agent v1.0.1-0.20210929175248-dc852ba0ffcd/go.mod h1:c8qoZweGAtsBvrHYxDUk24g9y6F9eVMRnYjXEURbxeI=
 github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210910174007-1ea4fd63611c h1:qbmqJthA+5rAk9IM0VoiKHWjIwXTaVjybPUHJkLhLvk=
 github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20210910174007-1ea4fd63611c/go.mod h1:ZJhOb3oEx7UYzSKMP79vHEUme5afnzZjqImSTnpOEaY=
 github.com/signalfx/signalfx-go v1.6.38-0.20200518153434-ceee8d2570d5/go.mod h1:CeCGXKT2wqqky0Nz8eV0NH/CpMPE7tzYUcV8eQS1U1s=

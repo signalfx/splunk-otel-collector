@@ -23,14 +23,24 @@ import (
 
 const (
 	processlist       = "smartagent/processlist"
+	kubernetesEvents  = "smartagent/kubernetes-events"
 	sfxFwder          = "smartagent/signalfx-forwarder"
 	resourceDetection = "resourcedetection"
 	sfx               = "signalfx"
+	sapm              = "sapm"
 	metricsTransform  = "metricstransform"
 	filterProc        = "filter"
 	k8sObserver       = "k8s_observer"
 	hostObserver      = "host_observer"
+	metricsToExclude  = "metricsToExclude"
+	discoveryRule     = "discoveryRule"
 )
+
+// monitors that should be converted to both metrics and traces
+var metricsAndTracesReceiverMonitorTypes = map[string]bool{sfxFwder: true}
+
+// monitors that should be converted to logs receivers only
+var exclusivelyLogsReceiverMonitorTypes = map[string]bool{processlist: true, kubernetesEvents: true}
 
 func saInfoToOtelConfig(sa saCfgInfo, vaultPaths []string) (otel *otelCfg, warnings []error) {
 	otel = newOtelCfg()
@@ -248,7 +258,7 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 		}
 	}
 
-	receivers := receiverList(cfg.Receivers)
+	metricsReceivers, tracesReceivers, logsReceivers := receiverLists(cfg.Receivers)
 
 	if len(rcReceivers) > 0 {
 		switch {
@@ -263,36 +273,54 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 				"receivers":       rcReceivers,
 				"watch_observers": []string{obs},
 			}
-			receivers = append(receivers, rc)
-			sort.Strings(receivers)
+			metricsReceivers = append(metricsReceivers, rc)
+			sort.Strings(metricsReceivers)
 		}
 	}
 
-	if receivers != nil {
+	if metricsReceivers != nil {
 		cfg.Service.Pipelines["metrics"] = &rpe{
-			Receivers:  receivers,
+			Receivers:  metricsReceivers,
 			Processors: []string{resourceDetection},
 			Exporters:  []string{sfx},
 		}
 	}
 
-	if _, ok := cfg.Receivers[sfxFwder]; ok {
+	if tracesReceivers != nil {
 		cfg.Service.Pipelines["traces"] = &rpe{
-			Receivers:  []string{sfxFwder},
+			Receivers:  tracesReceivers,
 			Processors: []string{resourceDetection},
-			Exporters:  []string{sfx},
+			Exporters:  []string{sapm},
 		}
+		cfg.Exporters[sapm] = sapmExporter(sa)
 	}
 
-	if _, ok := cfg.Receivers[processlist]; ok {
+	if logsReceivers != nil {
 		cfg.Service.Pipelines["logs"] = &rpe{
-			Receivers:  []string{processlist},
+			Receivers:  logsReceivers,
 			Processors: []string{resourceDetection},
 			Exporters:  []string{sfx},
 		}
 	}
 
 	return warnings
+}
+
+func sapmExporter(sa saCfgInfo) map[string]interface{} {
+	return map[string]interface{}{
+		"access_token": sa.accessToken,
+		"endpoint":     sapmEndpoint(sa),
+	}
+}
+
+func sapmEndpoint(sa saCfgInfo) string {
+	if sa.ingestURL != "" {
+		return fmt.Sprintf("%s/v2/trace", sa.ingestURL)
+	}
+	if sa.realm != "" {
+		return fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", sa.realm)
+	}
+	return ""
 }
 
 func translateGlobalDims(sa saCfgInfo, otel *otelCfg) {
@@ -407,16 +435,23 @@ func dimsToMetricsTransformProcessor(m map[interface{}]interface{}) map[string]i
 	}
 }
 
-func receiverList(receivers map[string]map[string]interface{}) []string {
-	var keys []string
+func receiverLists(receivers map[string]map[string]interface{}) (metrics, traces, logs []string) {
 	for k := range receivers {
-		if k == processlist {
+		if _, ok := exclusivelyLogsReceiverMonitorTypes[k]; ok {
+			logs = append(logs, k)
 			continue
 		}
-		keys = append(keys, k)
+
+		if _, ok := metricsAndTracesReceiverMonitorTypes[k]; ok {
+			traces = append(traces, k)
+		}
+
+		metrics = append(metrics, k)
 	}
-	sort.Strings(keys)
-	return keys
+	sort.Strings(metrics)
+	sort.Strings(traces)
+	sort.Strings(logs)
+	return
 }
 
 func sfxExporter(sa saCfgInfo) map[string]map[string]interface{} {
@@ -443,7 +478,7 @@ func saMonitorToOtelReceiver(monitor map[interface{}]interface{}, observers []in
 	isReceiverCreator bool,
 ) {
 	strm := interfaceMapToStringMap(monitor)
-	if _, ok := monitor["discoveryRule"]; ok {
+	if _, ok := monitor[discoveryRule]; ok {
 		receiver, w := saMonitorToRCReceiver(strm, observers)
 		return receiver, w, true
 	}
@@ -468,14 +503,14 @@ func stringMapToInterfaceMap(in map[string]interface{}) map[interface{}]interfac
 
 func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface{}) (out map[string]map[string]interface{}, warnings []error) {
 	key := "smartagent/" + monitor["type"].(string)
-	dr := monitor["discoveryRule"].(string)
+	dr := monitor[discoveryRule].(string)
 	rcr, err := discoveryRuleToRCRule(dr, observers)
 	if err != nil {
 		// fall back to original rule if unable to translate
 		rcr = dr
 		warnings = append(warnings, err)
 	}
-	delete(monitor, "discoveryRule")
+	delete(monitor, discoveryRule)
 	return map[string]map[string]interface{}{
 		key: {
 			"rule":   rcr,
@@ -485,6 +520,10 @@ func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface
 }
 
 func saMonitorToStandardReceiver(monitor map[string]interface{}) map[string]map[string]interface{} {
+	if excludes, ok := monitor[metricsToExclude]; ok {
+		delete(monitor, metricsToExclude)
+		monitor["datapointsToExclude"] = excludes
+	}
 	return map[string]map[string]interface{}{
 		"smartagent/" + monitor["type"].(string): monitor,
 	}

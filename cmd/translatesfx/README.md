@@ -1,16 +1,32 @@
 # SignalFx Smart Agent Configuration Translation Tool (Experimental)
 
-This package provides a command-line tool to translate a SignalFx Smart Agent
-configuration file into an OpenTelemetry Collector configuration.
+This package provides a command-line tool, `translatesfx`, that translates a 
+SignalFx Smart Agent configuration file into a configuration that can be
+used by an OpenTelemetry Collector.
+
+## Caveats
+
+This tool has been used against several example configs and has been shown 
+in some cases to produce OpenTelemetry Collector configs that are fully 
+functional and comparable to the original Smart Agent config. However, 
+this tool is designed to produce only a reasonably accurate approximation of 
+the final, production Otel config that would replace a Smart Agent config. It is 
+not designed to, and cannot, produce a drop-in replacement Otel config for a
+Smart Agent one in all cases.
+
+This tool aims to remove a lot of the drudgery from migrating to Otel 
+from Smart Agent, but any config produced by this tool should be carefully 
+evaluated and tested before being put into production.
 
 ## Usage
 
-The `translatesfx` command requires one argument, the signalfx configuration
-file, and accepts a second argument, the working directory used by any #from
-directives. The `translatesfx` command uses the working directory to resolve any
-relative paths to files. If you omit the working directory argument, 
-`translatesfx` expands relative files paths using the current working
-directory.
+The `translatesfx` command requires one argument, a Smart Agent 
+configuration file, and accepts a second argument, the working directory 
+used by any Smart Agent `#from` directives. The `translatesfx` command uses 
+this working directory to resolve any relative paths to files referenced by 
+any `#from` directives. This working directory argument may be omitted, in 
+which case `translatesfx` expands relative file paths using the current 
+working directory.
 
 ```
 > translatesfx <sfx-file> [<file expansion working directory>]

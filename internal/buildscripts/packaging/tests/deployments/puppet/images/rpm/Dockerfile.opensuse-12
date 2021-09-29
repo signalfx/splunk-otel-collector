@@ -1,0 +1,33 @@
+# A opensuse12 image with systemd enabled.  Must be run with:
+# `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
+FROM opensuse/leap:42
+
+ENV container docker
+
+RUN zypper -n install -l curl procps dbus-1 systemd-sysvinit tar wget
+
+RUN rpm --import https://yum.puppet.com/RPM-GPG-KEY-puppet-20250406
+
+ARG PUPPET_RELEASE="6"
+RUN rpm -Uvh https://yum.puppet.com/puppet${PUPPET_RELEASE}-release-sles-12.noarch.rpm && \
+    zypper --gpg-auto-import-keys -n refresh && \
+    zypper install -y puppet-agent
+
+RUN (cd /usr/lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
+    "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
+    rm -f /usr/lib/systemd/system/multi-user.target.wants/*;\
+    rm -f /usr/lib/systemd/system/local-fs.target.wants/*; \
+    rm -f /usr/lib/systemd/system/sockets.target.wants/*udev*; \
+    rm -f /usr/lib/systemd/system/sockets.target.wants/*initctl*; \
+    rm -f /usr/lib/systemd/system/basic.target.wants/*;\
+    rm -f /usr/lib/systemd/system/anaconda.target.wants/*;
+
+VOLUME [ "/sys/fs/cgroup" ]
+
+ENV PATH=/opt/puppetlabs/bin:$PATH
+
+RUN puppet module install puppetlabs-stdlib --version 4.24.0
+
+COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/splunk_otel_collector
+
+CMD ["/sbin/init"]

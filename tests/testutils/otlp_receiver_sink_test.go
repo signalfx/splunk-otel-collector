@@ -111,7 +111,7 @@ func otlpExporter(t *testing.T) component.MetricsExporter {
 		}}
 	otlpExporterFactory := otlpexporter.NewFactory()
 	ctx := context.Background()
-	createParams := component.ExporterCreateSettings{Logger: zap.NewNop(), TracerProvider: trace.NewNoopTracerProvider()}
+	createParams := component.ExporterCreateSettings{TelemetrySettings: component.TelemetrySettings{Logger: zap.NewNop(), TracerProvider: trace.NewNoopTracerProvider()}}
 	exporter, err := otlpExporterFactory.CreateMetricsExporter(ctx, createParams, &exporterCfg)
 	require.NoError(t, err)
 	require.NotNil(t, exporter)

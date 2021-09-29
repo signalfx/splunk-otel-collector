@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Use Splunk Distribution of OpenTelemetry Collector](https://docs.splunk.com/Observability/gdi/opentelemetry/resources.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
+
 # Components
 
 The distribution offers support for the following components.
@@ -42,4 +44,3 @@ new release. In addition, any of these components may be removed prior to the
 | [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkareceiver)                       |            |                                                                                                     |            |
 | [kafkametrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkametricsreceiver) |            |                                                                                                     |            |
 | [statsd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/statsdreceiver)             |            |                                                                                                     |            |
-

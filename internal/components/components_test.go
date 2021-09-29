@@ -64,6 +64,7 @@ func TestDefaultComponents(t *testing.T) {
 		"attributes",
 		"batch",
 		"filter",
+		"groupbyattrs",
 		"k8s_tagger",
 		"memory_limiter",
 		"metricstransform",

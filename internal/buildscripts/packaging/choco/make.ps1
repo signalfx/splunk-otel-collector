@@ -44,7 +44,6 @@ function build_choco(
     }
 
     $msi_hash = (Get-FileHash "$MSIFile" -Algorithm SHA256 | select -ExpandProperty Hash)
-    if ($lastexitcode -gt 0){ throw }
 
     if (Test-Path -Path "$BuildDir\choco") {
         Remove-Item -Recurse -Force "$BuildDir\choco"

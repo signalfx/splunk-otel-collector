@@ -20,12 +20,12 @@ The following package parameters are available:
  * `/SPLUNK_HEC_URL` - URL of Splunk HEC (e.g. `https://ingest.$SPLUNK_REALM.signalfx.com/v1/log`). Default value is `https://ingest.us0.signalfx.com/v1/log`
  * `/SPLUNK_TRACE_URL` - Trace url is end point where apllication traces will be collected. URL of Splunk TRACE (e.g. `https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace`). Default value is `https://ingest.us0.signalfx.com/v2/trace`
  * `/SPLUNK_BUNDLE_DIR` - The path to the Agent bundle directory. The default path is provided by the collector package. If the specified path is changed from the default value, the path should be an existing directory on the node. The SPLUNK_BUNDLE_DIR environment variable will be set to this value for the collector service.
- 
+ * `/MODE` - The mode option is used for setting config_path to `\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml` or `\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml` in OpenTelemetry Collector. Possible values are `agent` and `gateway`. Default value is `agent`.
 
-To pass parameters, use `--params "''"` (e.g. `choco install signalfx-agent [choco options] --params="'/SPLUNK_ACCESS_TOKEN:YOUR_SPLUNK_ACCESS_TOKEN /SPLUNK_INGEST_URL:https://ingest.YOUR_SPLUNK_REALM.signalfx.com /SPLUNK_API_URL:https://api.YOUR_SPLUNK_REALM.signalfx.com /install_dir:YOUR_INSTALL_DIR /SPLUNK_HEC_TOKEN:YOUR_SPLUNK_HEC_TOKEN /SPLUNK_HEC_URL:https://ingest.YOUR_SPLUNK_REALM.signalfx.com/v1/log /SPLUNK_TRACE_URL:https://ingest.YOUR_SPLUNK_REALM.signalfx.com/v2/trace /SPLUNK_REALM:YOUR_SPLUNK_REALM /SPLUNK_BUNDLE_DIR:YOUR_DIR_FOR_AGENT_BUNDLE'"`).
+To pass parameters, use `--params "''"` (e.g. `choco install splunk-otel-collector [choco options] --params="'/SPLUNK_ACCESS_TOKEN:YOUR_SPLUNK_ACCESS_TOKEN /SPLUNK_INGEST_URL:https://ingest.YOUR_SPLUNK_REALM.signalfx.com /SPLUNK_API_URL:https://api.YOUR_SPLUNK_REALM.signalfx.com /install_dir:YOUR_INSTALL_DIR /SPLUNK_HEC_TOKEN:YOUR_SPLUNK_HEC_TOKEN /SPLUNK_HEC_URL:https://ingest.YOUR_SPLUNK_REALM.signalfx.com/v1/log /SPLUNK_TRACE_URL:https://ingest.YOUR_SPLUNK_REALM.signalfx.com/v2/trace /SPLUNK_REALM:YOUR_SPLUNK_REALM /SPLUNK_BUNDLE_DIR:YOUR_DIR_FOR_AGENT_BUNDLE /$MODE:YOUR_MODE_FOR_INSTALLATION'"`).
 
 If the parameter is specified, the keys/values will be created/updated to the system environment registry - `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`. 
-If the parameter is not specified, the values will ve fetch from the system environment registry, and if the system environment registry does not have a key/value in that case Default values will be used.
+If the parameter is not specified, the values will be fetch from the system environment registry, and if the system environment registry does not have a key/value in that case Default values will be used.
 
 To have choco remember parameters on upgrade, be sure to set `choco feature enable -n=useRememberedArgumentsForUpgrades`.
     </description>

@@ -150,7 +150,7 @@ $packageArgs = @{
 Install-ChocolateyInstallPackage @packageArgs
 
 if ($MODE -eq "agent" -or !$MODE) {
-    write-host "Copying agent_config.yaml to config_path"
+    write-host "Copying agent_config.yaml to $config_path"
     Copy-Item "$installation_path\agent_config.yaml" "$config_path"
     $config_path = "$program_data_path\agent_config.yaml"
 }

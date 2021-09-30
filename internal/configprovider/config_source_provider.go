@@ -52,8 +52,8 @@ func NewConfigSourceParserProvider(pp parserprovider.ParserProvider, logger *zap
 // Get returns a config.Parser that wraps the parserprovider.Default() with a parser
 // that can load and inject data from config sources. If there are no config sources
 // in the configuration the returned parser behaves like the parserprovider.Default().
-func (c *configSourceParserProvider) Get() (*configparser.ConfigMap, error) {
-	defaultParser, err := c.pp.Get()
+func (c *configSourceParserProvider) Get(ctx context.Context) (*configparser.ConfigMap, error) {
+	defaultParser, err := c.pp.Get(ctx)
 	if err != nil {
 		return nil, err
 	}

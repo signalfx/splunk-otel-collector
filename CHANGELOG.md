@@ -10,6 +10,7 @@ This Splunk OpenTelemetry Connector release includes changes from the [opentelem
 
 - Handle backwards compatibility of internal ballast removal (#759)
 - Update bundled Smart Agent to [v5.14.0](https://github.com/signalfx/signalfx-agent/releases/tag/v5.14.0)
+- Automatically relocate removed OTLP exporter "insecure" field (#783)
 
 ### 🧰 Bug fixes 🧰
 

@@ -363,7 +363,8 @@ github-release:
     - cp bin/otelcol_linux_* dist/assets/
     - cp dist/signed/* dist/assets/
     - pushd dist/assets && shasum -a 256 * > checksums.txt && popd
-    - ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector --replace "$CI_COMMIT_TAG" dist/assets/
+    - changes="$( ./internal/buildscripts/packaging/release/extract-changelog.sh "$CI_COMMIT_TAG" )"
+    - ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$CI_COMMIT_TAG" -b "$changes" --replace "$CI_COMMIT_TAG" dist/assets/
   artifacts:
     when: always
     paths:

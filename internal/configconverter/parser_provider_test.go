@@ -15,6 +15,7 @@
 package configconverter
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,7 +46,7 @@ func TestMemLimitBallastRemoverPP(t *testing.T) {
 				wrapped:     &fileParserProvider{fileName: test.fname},
 				cfgMapFuncs: []CfgMapFunc{RemoveBallastKey},
 			}
-			cfgMap, err := pp.Get()
+			cfgMap, err := pp.Get(context.Background())
 			require.NoError(t, err)
 			b := cfgMap.IsSet(test.key)
 			assert.False(t, b)
@@ -57,6 +58,10 @@ type fileParserProvider struct {
 	fileName string
 }
 
-func (fpp fileParserProvider) Get() (*configparser.ConfigMap, error) {
-	return configparser.NewParserFromFile(fpp.fileName)
+func (fpp fileParserProvider) Get(context.Context) (*configparser.ConfigMap, error) {
+	return configparser.NewConfigMapFromFile(fpp.fileName)
+}
+
+func (fpp fileParserProvider) Close(context.Context) error {
+	return nil
 }

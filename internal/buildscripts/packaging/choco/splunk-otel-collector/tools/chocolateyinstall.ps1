@@ -18,15 +18,19 @@ $SPLUNK_BUNDLE_DIR = $pp['SPLUNK_BUNDLE_DIR']
 $SPLUNK_REALM = $pp['SPLUNK_REALM']
 $SPLUNK_MEMORY_TOTAL_MIB = $pp['SPLUNK_MEMORY_TOTAL_MIB']
 
+$regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+
 # default values if parameters not passed
 try{
     if (!$SPLUNK_ACCESS_TOKEN) {
         $SPLUNK_ACCESS_TOKEN = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_ACCESS_TOKEN" -ErrorAction SilentlyContinue
     }
+    else{
+        update_registry -path "$regkey" -name "SPLUNK_ACCESS_TOKEN" -value "$SPLUNK_ACCESS_TOKEN"
+    }
 }
 catch{
-    $SPLUNK_ACCESS_TOKEN = "1234"
-    write-host "The SPLUNK_ACCESS_TOKEN parameter is not speacified. Using default configuration."
+    write-host "The SPLUNK_ACCESS_TOKEN parameter is not speacified."
 }
 
 try {
@@ -123,8 +127,6 @@ try {
     echo "$_"
 }
 
-$regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
-update_registry -path "$regkey" -name "SPLUNK_ACCESS_TOKEN" -value "$SPLUNK_ACCESS_TOKEN"
 update_registry -path "$regkey" -name "SPLUNK_API_URL" -value "$SPLUNK_API_URL"
 update_registry -path "$regkey" -name "SPLUNK_BUNDLE_DIR" -value "$SPLUNK_BUNDLE_DIR"
 update_registry -path "$regkey" -name "SPLUNK_HEC_TOKEN" -value "$SPLUNK_HEC_TOKEN"
@@ -160,6 +162,14 @@ elseif ($MODE -eq "gateway"){
 
 update_registry -path "$regkey" -name "SPLUNK_CONFIG" -value "$config_path"
 
-echo "Installing splunk-otel-collector service..."
-start_service -config_path "$config_path"
-echo "- Started"
+if (!$SPLUNK_ACCESS_TOKEN) {
+    echo ""
+    echo "*NOTICE*: SPLUNK_ACCESS_TOKEN environment variable needs to specify with a valid value. After specifying it to start the splunk-otel-collector service rebooting the system or run the following command in a PowerShell terminal:"
+    echo " Start-Service -Name `"splunk-otel-collector`""
+    echo ""
+} else {
+    echo "Starting splunk-otel-collector service..."
+    start_service -config_path "$config_path"
+    wait_for_service -timeout 60
+    echo "- Started"
+}

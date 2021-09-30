@@ -10,7 +10,7 @@ $config_path = "$program_data_path\"
 $service_name = "splunk-otel-collector"
 # whether the service is running
 function service_running([string]$name) {
-    return ((Get-CimInstance -ClassName win32_service -Filter "Name = '$name'" | Select Name, State).State -Eq "Running")
+    return ((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")
 }
 
 # whether the service is installed
@@ -83,6 +83,18 @@ function remove_otel_registry_entries() {
 function update_registry([string]$path, [string]$name, [string]$value) {
     echo "Updating $path for $name..."
     Set-ItemProperty -path "$path" -name "$name" -value "$value"
+}
+
+# wait for the service to start
+function wait_for_service([string]$name=$service_name, [int]$timeout=60) {
+    $startTime = Get-Date
+    while (!(service_running -name "$name")){
+        if ((New-TimeSpan -Start $startTime -End (Get-Date)).TotalSeconds -gt $timeout){
+            throw "Service is not running.  Something went wrong durring the installation.  Please rerun the installer"
+        }
+        # give windows a second to synchronize service status
+        Start-Sleep -Seconds 1
+    }
 }
 
 $ErrorActionPreference = 'Stop'; # stop on all errors

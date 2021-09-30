@@ -31,7 +31,7 @@ import (
 
 func TestIncludeConfigSourceLoadConfig(t *testing.T) {
 	fileName := path.Join("testdata", "config.yaml")
-	v, err := configparser.NewParserFromFile(fileName)
+	v, err := configparser.NewConfigMapFromFile(fileName)
 	require.NoError(t, err)
 
 	factories := map[config.Type]configprovider.Factory{

@@ -15,6 +15,7 @@
 package configconverter
 
 import (
+	"context"
 	"fmt"
 
 	"go.opentelemetry.io/collector/config/configparser"
@@ -37,8 +38,8 @@ func ParserProvider(wrapped parserprovider.ParserProvider, funcs ...CfgMapFunc) 
 	return &converterProvider{wrapped: wrapped, cfgMapFuncs: funcs}
 }
 
-func (p converterProvider) Get() (*configparser.ConfigMap, error) {
-	cfgMap, err := p.wrapped.Get()
+func (p converterProvider) Get(ctx context.Context) (*configparser.ConfigMap, error) {
+	cfgMap, err := p.wrapped.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("converterProvider.Get(): %w", err)
 	}
@@ -47,9 +48,13 @@ func (p converterProvider) Get() (*configparser.ConfigMap, error) {
 		cfgMap = cfgMapFunc(cfgMap)
 	}
 
-	out := configparser.NewParser()
+	out := configparser.NewConfigMap()
 	for _, k := range cfgMap.AllKeys() {
 		out.Set(k, cfgMap.Get(k))
 	}
 	return out, nil
+}
+
+func (p converterProvider) Close(context.Context) error {
+	return nil
 }

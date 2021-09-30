@@ -63,7 +63,7 @@ func processParser(ctx context.Context, v *configparser.ConfigMap) (*configparse
 		_ = manager.Close(ctx)
 	}()
 
-	processedParser := configparser.NewParser()
+	processedParser := configparser.NewConfigMap()
 	for _, key := range v.AllKeys() {
 		if !strings.HasPrefix(key, configSourcesKey) {
 			// In Load we only care about config sources, ignore everything else.
@@ -86,7 +86,7 @@ func loadSettings(css map[string]interface{}, factories Factories) (map[string]C
 
 	// Iterate over extensions and create a config for each.
 	for key, value := range css {
-		settingsParser := configparser.NewParserFromStringMap(cast.ToStringMap(value))
+		settingsParser := configparser.NewConfigMapFromStringMap(cast.ToStringMap(value))
 
 		// Decode the key into type and fullName components.
 		componentID, err := config.NewIDFromString(key)

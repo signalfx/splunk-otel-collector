@@ -64,7 +64,6 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 
 			ctx := context.Background()
 			defer func() {
-				assert.NoError(t, s.RetrieveEnd(ctx))
 				assert.NoError(t, s.Close(ctx))
 			}()
 
@@ -90,7 +89,6 @@ func TestIncludeConfigSource_DeleteFile(t *testing.T) {
 
 	ctx := context.Background()
 	defer func() {
-		assert.NoError(t, s.RetrieveEnd(ctx))
 		assert.NoError(t, s.Close(ctx))
 	}()
 
@@ -128,7 +126,6 @@ func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
 
 	ctx := context.Background()
 	defer func() {
-		assert.NoError(t, s.RetrieveEnd(ctx))
 		assert.NoError(t, s.Close(ctx))
 	}()
 

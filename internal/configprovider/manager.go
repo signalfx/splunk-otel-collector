@@ -200,7 +200,7 @@ func NewManager(parser *configparser.ConfigMap, logger *zap.Logger, buildInfo co
 // in the configuration, returning a configparser.ConfigMap fully resolved. This must be called only
 // once per lifetime of a Manager object.
 func (m *Manager) Resolve(ctx context.Context, parser *configparser.ConfigMap) (*configparser.ConfigMap, error) {
-	res := configparser.NewParser()
+	res := configparser.NewConfigMap()
 	allKeys := parser.AllKeys()
 	for _, k := range allKeys {
 		if strings.HasPrefix(k, configSourcesKey) {
@@ -210,15 +210,9 @@ func (m *Manager) Resolve(ctx context.Context, parser *configparser.ConfigMap) (
 
 		value, err := m.expandStringValues(ctx, parser.Get(k))
 		if err != nil {
-			// Call RetrieveEnd for all sessions used so far but don't record any errors.
-			_ = m.retrieveEndAllSessions(ctx)
 			return nil, err
 		}
 		res.Set(k, value)
-	}
-
-	if errs := m.retrieveEndAllSessions(ctx); len(errs) > 0 {
-		return nil, consumererror.Combine(errs)
 	}
 
 	return res, nil
@@ -301,15 +295,6 @@ func newManager(configSources map[string]configsource.ConfigSource) *Manager {
 		watchingCh:    make(chan struct{}),
 		closeCh:       make(chan struct{}),
 	}
-}
-func (m *Manager) retrieveEndAllSessions(ctx context.Context) []error {
-	var errs []error
-	for _, cfgSrc := range m.configSources {
-		if err := cfgSrc.RetrieveEnd(ctx); err != nil {
-			errs = append(errs, err)
-		}
-	}
-	return errs
 }
 
 func (m *Manager) expandStringValues(ctx context.Context, value interface{}) (interface{}, error) {
@@ -526,7 +511,7 @@ func parseCfgSrc(s string) (cfgSrcName, selector string, params interface{}, err
 
 		if len(parts) > 1 && len(parts[1]) > 0 {
 			var p *configparser.ConfigMap
-			if p, err = configparser.NewParserFromBuffer(bytes.NewReader([]byte(parts[1]))); err != nil {
+			if p, err = configparser.NewConfigMapFromBuffer(bytes.NewReader([]byte(parts[1]))); err != nil {
 				return
 			}
 			params = p.ToStringMap()

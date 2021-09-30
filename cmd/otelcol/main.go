@@ -86,13 +86,19 @@ func main() {
 		info,
 		configsources.Get()...,
 	)
+
 	const noConvertConfigFlag = "--no-convert-config"
 	if hasFlag(noConvertConfigFlag) {
 		// the collector complains about this flag if we don't remove it
 		removeFlag(&os.Args, noConvertConfigFlag)
 	} else {
-		parserProvider = configconverter.ParserProvider(parserProvider, configconverter.RemoveBallastKey)
+		parserProvider = configconverter.ParserProvider(
+			parserProvider,
+			configconverter.RemoveBallastKey,
+			configconverter.MoveOTLPInsecureKey,
+		)
 	}
+
 	serviceParams := service.CollectorSettings{
 		BuildInfo:      info,
 		Factories:      factories,
@@ -348,14 +354,14 @@ func newBaseParserProvider() parserprovider.ParserProvider {
 	return parserprovider.Default()
 }
 
-func runInteractive(params service.CollectorSettings) error {
-	app, err := service.New(params)
+func runInteractive(settings service.CollectorSettings) error {
+	app, err := service.New(settings)
 	if err != nil {
 		return fmt.Errorf("failed to construct the application: %w", err)
 	}
 
-	err = app.Run()
-	if err != nil {
+	cmd := service.NewCommand(app)
+	if err = cmd.Execute(); err != nil {
 		return fmt.Errorf("application run finished with error: %w", err)
 	}
 

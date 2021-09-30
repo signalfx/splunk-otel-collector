@@ -29,7 +29,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configcheck"
 	"go.opentelemetry.io/collector/config/configtest"
 )
 
@@ -53,7 +52,7 @@ func TestLoadConfig(t *testing.T) {
 
 	emptyConfig := cfg.Extensions[config.NewIDWithName(typeStr, "default_settings")]
 	require.NotNil(t, emptyConfig)
-	require.NoError(t, configcheck.ValidateConfig(emptyConfig))
+	require.NoError(t, configtest.CheckConfigStruct(emptyConfig))
 	require.Equal(t, func() *Config {
 		cfg := defaultConfig()
 		cfg.ExtensionSettings.SetIDName("default_settings")
@@ -62,7 +61,7 @@ func TestLoadConfig(t *testing.T) {
 
 	allSettingsConfig := cfg.Extensions[config.NewIDWithName(typeStr, "all_settings")]
 	require.NotNil(t, allSettingsConfig)
-	require.NoError(t, configcheck.ValidateConfig(allSettingsConfig))
+	require.NoError(t, configtest.CheckConfigStruct(allSettingsConfig))
 	require.Equal(t, func() *Config {
 		cfg := defaultConfig()
 		cfg.ExtensionSettings.SetIDName("all_settings")
@@ -89,7 +88,7 @@ func TestLoadConfig(t *testing.T) {
 
 	partialSettingsConfig := cfg.Extensions[config.NewIDWithName(typeStr, "partial_settings")]
 	require.NotNil(t, partialSettingsConfig)
-	require.NoError(t, configcheck.ValidateConfig(partialSettingsConfig))
+	require.NoError(t, configtest.CheckConfigStruct(partialSettingsConfig))
 	require.Equal(t, func() *Config {
 		cfg := defaultConfig()
 		cfg.ExtensionSettings.SetIDName("partial_settings")

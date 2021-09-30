@@ -484,6 +484,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 			TelegrafParser: &parser.Config{
 				DataFormat: "influx",
 			},
+			Timeout: timeutil.Duration(5 * time.Second),
 		},
 	}, telegrafExecCfg)
 	require.NoError(t, telegrafExecCfg.validate())

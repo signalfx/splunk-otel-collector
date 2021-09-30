@@ -9,7 +9,8 @@ receivers:
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
-    insecure: true
+    tls:
+      insecure: true
 
   logging:
 

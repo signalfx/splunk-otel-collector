@@ -439,7 +439,6 @@ jobs:
             if ($msi_file_name -match '(\d+\.)(\d+\.)+(\d*)') { $version = $matches[0] }
             .\internal\buildscripts\packaging\choco\make.ps1 build_choco -Version $version
             Test-Path -Path ".\dist\splunk-otel-collector.$version.nupkg"
-            Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'"
             choco install splunk-otel-collector -s=".\dist\splunk-otel-collector.$version.nupkg" --params="'/MODE:<< parameters.mode >>'" -y
             if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { throw "Failed to install splunk-otel-collector using chocolatey." }
 

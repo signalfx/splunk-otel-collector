@@ -156,6 +156,48 @@ In addition, the following components can be configured:
   - Information about migrating from the SignalFx Smart Agent can be found
     [here](docs/signalfx-smart-agent-migration.md)
 
+## Upgrade guidelines
+
+The following changes need to be done to configuration files for Splunk OTel Collector for specific
+version upgrades. We provide automated scripts included in the bundle that cover backward
+compatibility on the fly, but configuration files will not be overridden, so you need to update them
+manually before the backward compatibility is dropped. For every configuration update use
+[the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
+as a reference.
+
+### From 0.35.0 to 0.36.0
+
+- Configuration parameter "`exporters` -> `otlp` -> `insecure`" is moved to
+  "`exporters` -> `otlp` -> `tls` -> `insecure`".
+  
+  More details: https://github.com/open-telemetry/opentelemetry-collector/pull/4063/.
+  
+  Configuration part for `otlp` exporter should look like this:
+
+  ```yaml
+  exporters:
+    otlp:
+      endpoint: "${SPLUNK_GATEWAY_URL}:4317"
+      tls:
+        insecure: true
+  ```
+
+### From 0.34.0 to 0.35.0
+
+- `ballast_size_mib` parameter moved from `memory_limiter` processor to `memory_ballast` extension
+  as `size_mib`.
+  
+  More details: https://github.com/signalfx/splunk-otel-collector/pull/567.
+
+  Remove `ballast_size_mib` parameter from `memory_limiter` and make sure that it's added to
+  `memory_ballast` extension as `size_mib` parameter instead:
+
+  ```yaml
+  extensions:
+    memory_ballast:
+      size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
+  ```
+
 ### Using Upstream OpenTelemetry Collector
 
 It is possible to use the upstream OpenTelemetry Collector instead of this

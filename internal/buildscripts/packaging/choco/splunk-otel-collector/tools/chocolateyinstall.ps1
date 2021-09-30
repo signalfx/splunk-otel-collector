@@ -150,6 +150,7 @@ $packageArgs = @{
 Install-ChocolateyInstallPackage @packageArgs
 
 if ($MODE -eq "agent" -or !$MODE) {
+<<<<<<< HEAD
     if (-NOT (Test-Path -Path "$config_path\agent_config.yaml")) {
         write-host "Copying agent_config.yaml to config_path"
         Copy-Item "$installation_path\agent_config.yaml" "$config_path"
@@ -162,6 +163,16 @@ elseif ($MODE -eq "gateway"){
         Copy-Item "$installation_path\gateway_config.yaml" "$config_path"
         $config_path = "$program_data_path\gateway_config.yaml"
     }
+=======
+    write-host "Copying agent_config.yaml to $config_path"
+    Copy-Item "$installation_path\agent_config.yaml" "$config_path"
+    $config_path = "$program_data_path\agent_config.yaml"
+}
+elseif ($MODE -eq "gateway"){
+    write-host "Copying gateway_config.yaml to $config_path"
+    Copy-Item "$installation_path\gateway_config.yaml" "$config_path"
+    $config_path = "$program_data_path\gateway_config.yaml"
+>>>>>>> 6854bbfa1719b5865f3290ce9c511eab471ba1e5
 }
 
 update_registry -path "$regkey" -name "SPLUNK_CONFIG" -value "$config_path"

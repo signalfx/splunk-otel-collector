@@ -6,6 +6,21 @@
 
 - Add Chocolately package support. (#724)
 
+## v0.36.0
+
+This Splunk OpenTelemetry Connector release includes changes from the [opentelemetry-collector v0.36.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.36.0) and the [opentelemetry-collector-contrib v0.36.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.36.0) releases.
+
+### 💡 Enhancements 💡
+
+- Handle backwards compatibility of internal ballast removal (#759)
+- Update bundled Smart Agent to [v5.14.1](https://github.com/signalfx/signalfx-agent/releases/tag/v5.14.1)
+- Automatically relocate removed OTLP exporter "insecure" field (#783)
+
+### 🧰 Bug fixes 🧰
+
+- Move Heroku buildpack to [https://github.com/signalfx/splunk-otel-collector-heroku](https://github.com/signalfx/splunk-otel-collector-heroku) (#755)
+- Fix rpm installation conflicts with the Smart Agent rpm (#773)
+
 ## v0.35.0
 
 This Splunk OpenTelemetry Connector release includes changes from the [opentelemetry-collector v0.35.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.35.0) and the [opentelemetry-collector-contrib v0.35.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.35.0) releases.

@@ -142,7 +142,8 @@ exporters:
   # Send to gateway
   otlp:
     endpoint: "${SPLUNK_GATEWAY_URL}:4317"
-    insecure: true
+    tls:
+      insecure: true
   # Debug
   logging:
     loglevel: debug

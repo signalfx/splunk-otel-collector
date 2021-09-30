@@ -26,6 +26,7 @@ func MoveOTLPInsecureKey(in *configparser.ConfigMap) *configparser.ConfigMap {
 	const expr = "exporters::otlp(/\\w+)?::insecure"
 	insecureRE, _ := regexp.Compile(expr)
 	out := configparser.NewConfigMap()
+	var deprecatedOTLPConfigFound bool
 	for _, k := range in.AllKeys() {
 		v := in.Get(k)
 		match := insecureRE.FindStringSubmatch(k)
@@ -35,7 +36,13 @@ func MoveOTLPInsecureKey(in *configparser.ConfigMap) *configparser.ConfigMap {
 			tlsKey := fmt.Sprintf("exporters::otlp%s::tls::insecure", match[1])
 			log.Printf("Unsupported key found: %s. Moving to %s\n", k, tlsKey)
 			out.Set(tlsKey, v)
+			deprecatedOTLPConfigFound = true
 		}
+	}
+	if deprecatedOTLPConfigFound {
+		log.Println("[WARNING] `exporters` -> `otlp` -> `insecure` parameter is " +
+			"deprecated. Please update the config according to the guideline: " +
+			"https://github.com/signalfx/splunk-otel-collector#from-0350-to-0360.")
 	}
 	return out
 }

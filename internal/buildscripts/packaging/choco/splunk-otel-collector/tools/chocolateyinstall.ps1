@@ -2,7 +2,7 @@
 $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 . $toolsDir\common.ps1
 
-echo "Checking configuration parameters ..."
+write-host "Checking configuration parameters ..."
 $pp = Get-PackageParameters
 
 $install_dir = $pp['install_dir']
@@ -117,14 +117,14 @@ if (!$install_dir) {
 try {
     stop_service
 } catch {
-    echo "$_"
+    write-host "$_"
 }
 
 # remove orphaned registry entries or when upgrading from bundle installation
 try {
     remove_otel_registry_entries
 } catch {
-    echo "$_"
+    write-host "$_"
 }
 
 update_registry -path "$regkey" -name "SPLUNK_API_URL" -value "$SPLUNK_API_URL"
@@ -153,27 +153,27 @@ if ($MODE -eq "agent" -or !$MODE) {
     if (-NOT (Test-Path -Path "$config_path\agent_config.yaml")) {
         write-host "Copying agent_config.yaml to config_path"
         Copy-Item "$installation_path\agent_config.yaml" "$config_path"
-        $config_path = "$program_data_path\agent_config.yaml"
     }
+    $config_path = "$program_data_path\agent_config.yaml"
 }
 elseif ($MODE -eq "gateway"){
     if (-NOT (Test-Path -Path "$config_path\gateway_config.yaml")) {
         write-host "Copying gateway_config.yaml to config_path"
         Copy-Item "$installation_path\gateway_config.yaml" "$config_path"
-        $config_path = "$program_data_path\gateway_config.yaml"
     }
+    $config_path = "$program_data_path\gateway_config.yaml"
 }
 
 update_registry -path "$regkey" -name "SPLUNK_CONFIG" -value "$config_path"
 
 if (!$SPLUNK_ACCESS_TOKEN) {
-    echo ""
-    echo "*NOTICE*: SPLUNK_ACCESS_TOKEN environment variable needs to specify with a valid value. After specifying it to start the splunk-otel-collector service rebooting the system or run the following command in a PowerShell terminal:"
-    echo " Start-Service -Name `"splunk-otel-collector`""
-    echo ""
+    write-host ""
+    write-host "*NOTICE*: SPLUNK_ACCESS_TOKEN environment variable needs to specify with a valid value. After specifying it to start the splunk-otel-collector service rebooting the system or run the following command in a PowerShell terminal:"
+    write-host " Start-Service -Name `"splunk-otel-collector`""
+    write-host ""
 } else {
-    echo "Starting splunk-otel-collector service..."
+    write-host "Starting splunk-otel-collector service..."
     start_service -config_path "$config_path"
     wait_for_service -timeout 60
-    echo "- Started"
+    write-host "- Started"
 }

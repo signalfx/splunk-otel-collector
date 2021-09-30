@@ -93,7 +93,7 @@ The collector logs and errors can be viewed in the Windows Event Viewer.
 #### Package Parameters
 The following package parameters are available:
 
-- `/SPLUNK_ACCESS_TOKEN`: The splunk access token (org token) used to send metric data to OTEL. If not specified default is to `1234`
+- `/SPLUNK_ACCESS_TOKEN`: The Splunk access token (org token) used to send metric data to Splunk Observability Suite.
 - `/SPLUNK_REALM`: The parameter will be saved to the `\ProgramData\Splunk\OpenTelemetry Collector\SPLUNK_REALM` file. If not specified default is ("us0").
 - `/SPLUNK_INGEST_URL:`: URL of the Splunk ingest  (e.g. `https://ingest.YOUR_SPLUNK_REALM.signalfx.com`). Default value is `https://ingest.us0.signalfx.com`.
 - `/SPLUNK_API_URL`: URL of the API endpoint (e.g. `https://api.YOUR_SPLUNK_REALM.signalfx.com`). Default value is `https://api.us0.signalfx.com`.

@@ -1,5 +1,5 @@
-$installation_path = "$drive" + "\Program Files\Splunk\OpenTelemetry Collector"
-$program_data_path = "$drive" + "\ProgramData\Splunk\OpenTelemetry Collector"
+$installation_path = "${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector"
+$program_data_path = "${env:PROGRAMDATA}\Splunk\OpenTelemetry Collector"
 $config_path = "$program_data_path\"
 
 $service_name = "splunk-otel-collector"

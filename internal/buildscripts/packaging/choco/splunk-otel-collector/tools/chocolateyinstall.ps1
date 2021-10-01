@@ -30,7 +30,7 @@ try{
     }
 }
 catch{
-    write-host "The SPLUNK_ACCESS_TOKEN parameter is not speacified."
+    write-host "The SPLUNK_ACCESS_TOKEN parameter is not specified."
 }
 
 try {

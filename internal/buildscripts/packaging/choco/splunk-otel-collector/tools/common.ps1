@@ -76,7 +76,7 @@ function remove_otel_registry_entries() {
 }
 
 function update_registry([string]$path, [string]$name, [string]$value) {
-    echo "Updating $path for $name..."
+    write-host "Updating $path for $name..."
     Set-ItemProperty -path "$path" -name "$name" -value "$value"
 }
 

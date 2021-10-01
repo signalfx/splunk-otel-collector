@@ -17,6 +17,10 @@ $SPLUNK_BUNDLE_DIR = $pp['SPLUNK_BUNDLE_DIR']
 $SPLUNK_REALM = $pp['SPLUNK_REALM']
 $SPLUNK_MEMORY_TOTAL_MIB = $pp['SPLUNK_MEMORY_TOTAL_MIB']
 
+if ($MODE -and ($MODE -ne "agent") -and ($MODE -ne "gateway")) {
+    throw "Invalid value of MODE option is specified. Collector service can only run in agent or gateway mode."
+}
+
 $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
 # default values if parameters not passed
@@ -102,7 +106,12 @@ catch {
     write-host "The SPLUNK_MEMORY_TOTAL_MIB parameter is not specified. Using default configuration."
 }
 
-if (!$SPLUNK_BUNDLE_DIR) {
+try {
+    if (!$SPLUNK_BUNDLE_DIR) {
+        $SPLUNK_BUNDLE_DIR = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_BUNDLE_DIR" -ErrorAction SilentlyContinue
+    }
+}
+catch {
     $SPLUNK_BUNDLE_DIR = "$installation_path\agent-bundle"
     write-host "The SPLUNK_BUNDLE_DIR parameter is not specified. Using default configuration."
 }
@@ -144,28 +153,28 @@ $packageArgs = @{
 Install-ChocolateyInstallPackage @packageArgs
 
 if ($MODE -eq "agent" -or !$MODE) {
-    if (-NOT (Test-Path -Path "$config_path\agent_config.yaml")) {
-        write-host "Copying agent_config.yaml to config_path"
+    $config_path = "$program_data_path\agent_config.yaml"
+    if (-NOT (Test-Path -Path "$config_path")) {
+        write-host "Copying agent_config.yaml to $config_path"
         Copy-Item "$installation_path\agent_config.yaml" "$config_path"
     }
-    $config_path = "$program_data_path\agent_config.yaml"
 }
 elseif ($MODE -eq "gateway"){
-    if (-NOT (Test-Path -Path "$config_path\gateway_config.yaml")) {
-        write-host "Copying gateway_config.yaml to config_path"
+    $config_path = "$program_data_path\gateway_config.yaml"
+    if (-NOT (Test-Path -Path "$config_path")) {
+        write-host "Copying gateway_config.yaml to $config_path"
         Copy-Item "$installation_path\gateway_config.yaml" "$config_path"
     }
-    $config_path = "$program_data_path\gateway_config.yaml"
 }
 
 update_registry -path "$regkey" -name "SPLUNK_CONFIG" -value "$config_path"
 
 if (!$SPLUNK_ACCESS_TOKEN) {
     write-host ""
-    write-host "*NOTICE*: SPLUNK_ACCESS_TOKEN not detected. This is required for the default configuration to reach Splunk Observability Suite and can be specified via
-    write-host "Set-ItemProperty -path `"HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`" -name `"SPLUNK_ACCESS_TOKEN`" -value `"ACTUAL_ACCESS_TOKEN`"
+    write-host "*NOTICE*: SPLUNK_ACCESS_TOKEN not detected. This is required for the default configuration to reach Splunk Observability Suite and can be specified via"
+    write-host "Set-ItemProperty -path `"HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`" -name `"SPLUNK_ACCESS_TOKEN`" -value `"ACTUAL_ACCESS_TOKEN`""
     write-host "before starting the splunk-otel-collector service:"
-    write-host " Start-Service -Name `"splunk-otel-collector`""
+    write-host "Start-Service -Name `"splunk-otel-collector`""
     write-host ""
 } else {
     write-host "Starting splunk-otel-collector service..."

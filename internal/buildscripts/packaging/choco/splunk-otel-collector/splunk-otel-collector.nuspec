@@ -30,7 +30,7 @@ If the parameter is not specified, the values will be fetch from the system envi
 To have choco remember parameters on upgrade, be sure to set `choco feature enable -n=useRememberedArgumentsForUpgrades`.
     </description>
     <summary>splunk-otel-collector</summary>
-    <authors>SignalFx</authors>
+    <authors>Splunk</authors>
     <title>splunk-otel-collector</title>
     <projectUrl>https://github.com/signalfx/splunk-otel-collector</projectUrl>
     <iconUrl>https://cdn.signalfx.com/favicon.ico</iconUrl>

@@ -5,7 +5,6 @@ $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 write-host "Checking configuration parameters ..."
 $pp = Get-PackageParameters
 
-$install_dir = $pp['install_dir']
 $MODE = $pp['MODE']
 
 $SPLUNK_ACCESS_TOKEN = $pp['SPLUNK_ACCESS_TOKEN']
@@ -40,7 +39,7 @@ try {
 }
 catch {
     $SPLUNK_REALM = "us0"
-    write-host "The SPLUNK_REALM parameter is not speacified. Using default configuration."
+    write-host "The SPLUNK_REALM parameter is not specified. Using default configuration."
 }
 
 try {
@@ -50,7 +49,7 @@ try {
 }
 catch {
     $SPLUNK_INGEST_URL = "https://ingest.$SPLUNK_REALM.signalfx.com"
-    write-host "The SPLUNK_INGEST_URL parameter is not speacified. Using default configuration."
+    write-host "The SPLUNK_INGEST_URL parameter is not specified. Using default configuration."
 }
 
 try {
@@ -60,7 +59,7 @@ try {
 }
 catch {
     $SPLUNK_API_URL = "https://api.$SPLUNK_REALM.signalfx.com"
-    write-host "The SPLUNK_INGEST_URL parameter is not speacified. Using default configuration."
+    write-host "The SPLUNK_INGEST_URL parameter is not specified. Using default configuration."
 }
 
 try {
@@ -70,7 +69,7 @@ try {
 }
 catch {
     $SPLUNK_HEC_TOKEN = $SPLUNK_ACCESS_TOKEN
-    write-host "The SPLUNK_HEC_TOKEN parameter is not speacified. Using default configuration."
+    write-host "The SPLUNK_HEC_TOKEN parameter is not specified. Using default configuration."
 }
 
 try {
@@ -80,7 +79,7 @@ try {
 }
 catch {
     $SPLUNK_HEC_URL = "https://ingest.$SPLUNK_REALM.signalfx.com/v1/log"
-    write-host "The SPLUNK_HEC_URL parameter is not speacified. Using default configuration."
+    write-host "The SPLUNK_HEC_URL parameter is not specified. Using default configuration."
 }
 
 try {
@@ -90,7 +89,7 @@ try {
 }
 catch {
     $SPLUNK_TRACE_URL = "https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace"
-    write-host "The SPLUNK_TRACE_URL parameter is not speacified. Using default configuration."
+    write-host "The SPLUNK_TRACE_URL parameter is not specified. Using default configuration."
 }
 
 try {
@@ -100,17 +99,12 @@ try {
 }
 catch {
     $SPLUNK_MEMORY_TOTAL_MIB = "512"
-    write-host "The SPLUNK_MEMORY_TOTAL_MIB parameter is not speacified. Using default configuration."
+    write-host "The SPLUNK_MEMORY_TOTAL_MIB parameter is not specified. Using default configuration."
 }
 
 if (!$SPLUNK_BUNDLE_DIR) {
     $SPLUNK_BUNDLE_DIR = "$installation_path\agent-bundle"
-    write-host "The SPLUNK_BUNDLE_DIR parameter is not speacified. Using default configuration."
-}
-
-if (!$install_dir) {
-    $install_dir = $installation_path
-    write-host "Setting installation directory to $install_dir"
+    write-host "The SPLUNK_BUNDLE_DIR parameter is not specified. Using default configuration."
 }
 
 # remove orphaned service or when upgrading from bundle installation
@@ -143,7 +137,7 @@ $packageArgs = @{
     softwareName   = $env:ChocolateyPackageTitle
     checksum64     = "MSI_HASH"  # replaced at build time
     checksumType64 = 'sha256'
-    silentArgs     = "/qn /norestart /l*v `"$($env:TEMP)\$($packageName).$($env:chocolateyPackageVersion).MsiInstall.log`" INSTALLDIR=`"$($install_dir)`""
+    silentArgs     = "/qn /norestart /l*v `"$($env:TEMP)\$($packageName).$($env:chocolateyPackageVersion).MsiInstall.log`" INSTALLDIR=`"$($installation_path)`""
     validExitCodes = @(0)
 }
 

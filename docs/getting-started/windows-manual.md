@@ -95,9 +95,8 @@ The following package parameters are available:
 
 - `/SPLUNK_ACCESS_TOKEN`: The Splunk access token (org token) used to send metric data to Splunk Observability Suite.
 - `/SPLUNK_REALM`: The parameter will be saved to the `\ProgramData\Splunk\OpenTelemetry Collector\SPLUNK_REALM` file. If not specified default is ("us0").
-- `/SPLUNK_INGEST_URL:`: URL of the Splunk ingest  (e.g. `https://ingest.YOUR_SPLUNK_REALM.signalfx.com`). Default value is `https://ingest.us0.signalfx.com`.
-- `/SPLUNK_API_URL`: URL of the API endpoint (e.g. `https://api.YOUR_SPLUNK_REALM.signalfx.com`). Default value is `https://api.us0.signalfx.com`.
-- `/install_dir`: Installation directory. Defaults to `\Program Files\Splunk\OpenTelemetry Collector`.
+- `/SPLUNK_INGEST_URL:`: URL of the Splunk ingest  (e.g. `https://ingest.SPLUNK_REALM.signalfx.com`). Default value is `https://ingest.us0.signalfx.com`.
+- `/SPLUNK_API_URL`: URL of the API endpoint (e.g. `https://api.SPLUNK_REALM.signalfx.com`). Default value is `https://api.us0.signalfx.com`.
 - `/SPLUNK_HEC_TOKEN`: Splunk HEC is HTTP Event Collecter token which will collect the metrics and logs of host system in to splunk. Default value is same as `SPLUNK_ACCESS_TOKEN`
 - `/SPLUNK_HEC_URL`: URL of Splunk HEC (e.g. `https://ingest.$SPLUNK_REALM.signalfx.com/v1/log`). Default value is `https://ingest.us0.signalfx.com/v1/log`
 - `/SPLUNK_TRACE_URL`: Trace url is end point where apllication traces will be collected. URL of Splunk TRACE (e.g. `https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace`). Default value is `https://ingest.us0.signalfx.com/v2/trace`
@@ -106,7 +105,7 @@ The following package parameters are available:
 
 To pass parameters, use `--params "''"` :
 ```sh
-PS> choco install splunk-otel-collector [choco options] --params="'/SPLUNK_ACCESS_TOKEN:YOUR_SPLUNK_ACCESS_TOKEN /SPLUNK_INGEST_URL:https://ingest.YOUR_SPLUNK_REALM.signalfx.com /SPLUNK_API_URL:https://api.YOUR_SPLUNK_REALM.signalfx.com /install_dir:YOUR_INSTALL_DIR /SPLUNK_HEC_TOKEN:YOUR_SPLUNK_HEC_TOKEN /SPLUNK_HEC_URL:https://ingest.YOUR_SPLUNK_REALM.signalfx.com/v1/log /SPLUNK_TRACE_URL:https://ingest.YOUR_SPLUNK_REALM.signalfx.com/v2/trace /SPLUNK_REALM:YOUR_SPLUNK_REALM /SPLUNK_BUNDLE_DIR:YOUR_DIR_FOR_AGENT_BUNDLE /$MODE:YOUR_MODE_FOR_INSTALLATION'".
+PS> choco install splunk-otel-collector --params="'/SPLUNK_ACCESS_TOKEN:YOUR_SPLUNK_ACCESS_TOKEN /SPLUNK_REALM:YOUR_SPLUNK_REALM'".
 ```
 
 If the parameter is specified, the keys/values will be created/updated to the system environment registry - `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`. 

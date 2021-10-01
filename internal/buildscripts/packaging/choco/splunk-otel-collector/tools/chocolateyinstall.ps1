@@ -168,7 +168,9 @@ update_registry -path "$regkey" -name "SPLUNK_CONFIG" -value "$config_path"
 
 if (!$SPLUNK_ACCESS_TOKEN) {
     write-host ""
-    write-host "*NOTICE*: SPLUNK_ACCESS_TOKEN environment variable needs to specify with a valid value. After specifying it to start the splunk-otel-collector service rebooting the system or run the following command in a PowerShell terminal:"
+    write-host "*NOTICE*: SPLUNK_ACCESS_TOKEN not detected. This is required for the default configuration to reach Splunk Observability Suite and can be specified via
+    write-host "Set-ItemProperty -path `"HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`" -name `"SPLUNK_ACCESS_TOKEN`" -value `"ACTUAL_ACCESS_TOKEN`"
+    write-host "before starting the splunk-otel-collector service:"
     write-host " Start-Service -Name `"splunk-otel-collector`""
     write-host ""
 } else {

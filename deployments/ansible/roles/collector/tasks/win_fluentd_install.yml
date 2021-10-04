@@ -22,7 +22,6 @@
     dest: "{{splunk_fluentd_config}}"
   when: splunk_fluentd_config_source != ""
   notify: "restart windows fluentdwinsvc"
-<<<<<<< HEAD
 
 - name: Copy fluentd default config
   ansible.windows.win_copy:
@@ -49,5 +48,3 @@
     dest: "{{splunk_fluentd_config}}"
   when: splunk_fluentd_config_source != ""
   notify: "restart windows fluentdwinsvc"
-=======
->>>>>>> b1c308ccfb8bfc84972face1ec3cebdcb74d3108

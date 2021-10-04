@@ -7,11 +7,7 @@
 
 - name: Make sure host OS is supported
   ansible.builtin.assert:
-<<<<<<< HEAD
-    that: ansible_os_family in ["Debian", "RedHat", "Windows"]
-=======
     that: ansible_os_family in ["Debian", "RedHat", "Windows", "Suse"]
->>>>>>> b1c308ccfb8bfc84972face1ec3cebdcb74d3108
     fail_msg: "{{ ansible_os_family }} OS family currently is not supported"
 
 - name: Set Vars based on ansible_os_family

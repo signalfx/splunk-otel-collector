@@ -71,7 +71,7 @@ func addSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 		}
 		labels := map[string]string{}
 		dp.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
-			labels[k] = pdata.AttributeValueToString(v)
+			labels[k] = v.AsString()
 			return true
 		})
 		metric := Metric{
@@ -98,15 +98,14 @@ func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pda
 	case pdata.AttributeValueTypeDouble:
 		val = value.DoubleVal()
 	case pdata.AttributeValueTypeMap:
-		// Coerce to map[string]interface{}
-		val = pdata.AttributeMapToMap(value.MapVal())
+		val = value.MapVal().AsRaw()
 	case pdata.AttributeValueTypeArray:
 		// Coerce to []interface{}
 		// Required pdata helper is not exposed so we pass value as a map
 		// and use helper that calls it internally.
 		toTranslate := pdata.NewAttributeMap()
 		toTranslate.Insert(name, value)
-		translated := pdata.AttributeMapToMap(toTranslate)
+		translated := toTranslate.AsRaw()
 		val = translated[name]
 	default:
 		val = nil
@@ -133,7 +132,7 @@ func addGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 		}
 		labels := map[string]string{}
 		dp.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
-			labels[k] = pdata.AttributeValueToString(v)
+			labels[k] = v.AsString()
 			return true
 		})
 		metric := Metric{

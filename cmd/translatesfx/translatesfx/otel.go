@@ -15,6 +15,7 @@
 package translatesfx
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -22,23 +23,36 @@ import (
 
 const (
 	processlist       = "smartagent/processlist"
+	kubernetesEvents  = "smartagent/kubernetes-events"
 	sfxFwder          = "smartagent/signalfx-forwarder"
 	resourceDetection = "resourcedetection"
 	sfx               = "signalfx"
+	sapm              = "sapm"
 	metricsTransform  = "metricstransform"
 	filterProc        = "filter"
+	k8sObserver       = "k8s_observer"
+	hostObserver      = "host_observer"
+	metricsToExclude  = "metricsToExclude"
+	discoveryRule     = "discoveryRule"
 )
 
-func saInfoToOtelConfig(sa saCfgInfo, vaultPaths []string) *otelCfg {
-	otel := newOtelCfg()
+// monitors that should be converted to both metrics and traces
+var metricsAndTracesReceiverMonitorTypes = map[string]bool{sfxFwder: true}
+
+// monitors that should be converted to logs receivers only
+var exclusivelyLogsReceiverMonitorTypes = map[string]bool{processlist: true, kubernetesEvents: true}
+
+func saInfoToOtelConfig(sa saCfgInfo, vaultPaths []string) (otel *otelCfg, warnings []error) {
+	otel = newOtelCfg()
 	translateExporters(sa, otel)
-	translateMonitors(sa, otel)
+	w := translateMonitors(sa, otel)
+	warnings = append(warnings, w...)
 	translateGlobalDims(sa, otel)
 	translateSAExtension(sa, otel)
 	translateObservers(sa, otel)
 	translateConfigSources(sa, otel, vaultPaths)
 	translateFilters(sa, otel)
-	return otel
+	return otel, warnings
 }
 
 func newOtelCfg() *otelCfg {
@@ -229,11 +243,12 @@ func translateExporters(sa saCfgInfo, cfg *otelCfg) {
 	cfg.Exporters = sfxExporter(sa)
 }
 
-func translateMonitors(sa saCfgInfo, cfg *otelCfg) {
+func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 	rcReceivers := map[string]map[string]interface{}{}
 	for _, monV := range sa.monitors {
 		monitor := monV.(map[interface{}]interface{})
-		receiver, isRC := saMonitorToOtelReceiver(monitor)
+		receiver, w, isRC := saMonitorToOtelReceiver(monitor, sa.observers)
+		warnings = append(warnings, w...)
 		target := cfg.Receivers
 		if isRC {
 			target = rcReceivers
@@ -243,41 +258,82 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) {
 		}
 	}
 
-	receivers := receiverList(cfg.Receivers)
+	metricsReceivers, tracesReceivers, logsReceivers := receiverLists(cfg.Receivers)
 
 	if len(rcReceivers) > 0 {
-		const rc = "receiver_creator"
-		cfg.Receivers[rc] = map[string]interface{}{
-			"receivers":       rcReceivers,
-			"watch_observers": []string{"k8s_observer"}, // TODO check observer type?
+		switch {
+		case sa.observers == nil:
+			warnings = append(warnings, errors.New("found Smart Agent discovery rule but no observers"))
+		case len(sa.observers) > 1:
+			warnings = append(warnings, errors.New("found Smart Agent discovery rule but multiple observers"))
+		default:
+			obs := saObserverTypeToOtel(sa.observers[0].(map[interface{}]interface{})["type"].(string))
+			const rc = "receiver_creator"
+			cfg.Receivers[rc] = map[string]interface{}{
+				"receivers":       rcReceivers,
+				"watch_observers": []string{obs},
+			}
+			metricsReceivers = append(metricsReceivers, rc)
+			sort.Strings(metricsReceivers)
 		}
-		receivers = append(receivers, rc)
-		sort.Strings(receivers)
 	}
 
-	if receivers != nil {
+	if metricsReceivers != nil {
 		cfg.Service.Pipelines["metrics"] = &rpe{
-			Receivers:  receivers,
+			Receivers:  metricsReceivers,
 			Processors: []string{resourceDetection},
 			Exporters:  []string{sfx},
 		}
 	}
 
-	if _, ok := cfg.Receivers[sfxFwder]; ok {
+	if tracesReceivers != nil {
+		exporters := []string{sapm}
+		if sendTraceCorrelation(sa) {
+			exporters = append(exporters, sfx)
+		}
 		cfg.Service.Pipelines["traces"] = &rpe{
-			Receivers:  []string{sfxFwder},
+			Receivers:  tracesReceivers,
+			Processors: []string{resourceDetection},
+			Exporters:  exporters,
+		}
+		cfg.Exporters[sapm] = sapmExporter(sa)
+	}
+
+	if logsReceivers != nil {
+		cfg.Service.Pipelines["logs"] = &rpe{
+			Receivers:  logsReceivers,
 			Processors: []string{resourceDetection},
 			Exporters:  []string{sfx},
 		}
 	}
 
-	if _, ok := cfg.Receivers[processlist]; ok {
-		cfg.Service.Pipelines["logs"] = &rpe{
-			Receivers:  []string{processlist},
-			Processors: []string{resourceDetection},
-			Exporters:  []string{sfx},
+	return warnings
+}
+
+func sendTraceCorrelation(sa saCfgInfo) bool {
+	if v, ok := sa.writer["sendTraceHostCorrelationMetrics"]; ok {
+		if correlation, ok := v.(bool); ok {
+			return correlation
 		}
 	}
+	return true
+}
+
+func sapmExporter(sa saCfgInfo) map[string]interface{} {
+	return map[string]interface{}{
+		"access_token": sa.accessToken,
+		"endpoint":     sapmEndpoint(sa),
+	}
+}
+
+func sapmEndpoint(sa saCfgInfo) string {
+	if sa.ingestURL != "" {
+		return fmt.Sprintf("%s/v2/trace", sa.ingestURL)
+	}
+	if sa.realm != "" {
+		return fmt.Sprintf("https://ingest.%s.signalfx.com/v2/trace", sa.realm)
+	}
+	return ""
 }
 
 func translateGlobalDims(sa saCfgInfo, otel *otelCfg) {
@@ -300,7 +356,9 @@ func translateObservers(sa saCfgInfo, otel *otelCfg) {
 		m := saObserversToOtel(sa.observers)
 		if m != nil {
 			otel.addExtensions(m)
-			otel.Service.appendExtension("k8s_observer")
+			for k := range m {
+				otel.Service.appendExtension(k)
+			}
 		}
 	}
 }
@@ -390,16 +448,23 @@ func dimsToMetricsTransformProcessor(m map[interface{}]interface{}) map[string]i
 	}
 }
 
-func receiverList(receivers map[string]map[string]interface{}) []string {
-	var keys []string
+func receiverLists(receivers map[string]map[string]interface{}) (metrics, traces, logs []string) {
 	for k := range receivers {
-		if k == processlist {
+		if _, ok := exclusivelyLogsReceiverMonitorTypes[k]; ok {
+			logs = append(logs, k)
 			continue
 		}
-		keys = append(keys, k)
+
+		if _, ok := metricsAndTracesReceiverMonitorTypes[k]; ok {
+			traces = append(traces, k)
+		}
+
+		metrics = append(metrics, k)
 	}
-	sort.Strings(keys)
-	return keys
+	sort.Strings(metrics)
+	sort.Strings(traces)
+	sort.Strings(logs)
+	return
 }
 
 func sfxExporter(sa saCfgInfo) map[string]map[string]interface{} {
@@ -420,12 +485,17 @@ func sfxExporter(sa saCfgInfo) map[string]map[string]interface{} {
 	}
 }
 
-func saMonitorToOtelReceiver(monitor map[interface{}]interface{}) (map[string]map[string]interface{}, bool) {
+func saMonitorToOtelReceiver(monitor map[interface{}]interface{}, observers []interface{}) (
+	out map[string]map[string]interface{},
+	warnings []error,
+	isReceiverCreator bool,
+) {
 	strm := interfaceMapToStringMap(monitor)
-	if _, ok := monitor["discoveryRule"]; ok {
-		return saMonitorToRCReceiver(strm), true
+	if _, ok := monitor[discoveryRule]; ok {
+		receiver, w := saMonitorToRCReceiver(strm, observers)
+		return receiver, w, true
 	}
-	return saMonitorToStandardReceiver(strm), false
+	return saMonitorToStandardReceiver(strm), nil, false
 }
 
 func interfaceMapToStringMap(in map[interface{}]interface{}) map[string]interface{} {
@@ -444,25 +514,36 @@ func stringMapToInterfaceMap(in map[string]interface{}) map[interface{}]interfac
 	return out
 }
 
-func saMonitorToRCReceiver(monitor map[string]interface{}) map[string]map[string]interface{} {
+func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface{}) (out map[string]map[string]interface{}, warnings []error) {
 	key := "smartagent/" + monitor["type"].(string)
-	rcr := discoveryRuleToRCRule(monitor["discoveryRule"].(string))
-	delete(monitor, "discoveryRule")
+	dr := monitor[discoveryRule].(string)
+	rcr, err := discoveryRuleToRCRule(dr, observers)
+	if err != nil {
+		// fall back to original rule if unable to translate
+		rcr = dr
+		warnings = append(warnings, err)
+	}
+	delete(monitor, discoveryRule)
 	return map[string]map[string]interface{}{
 		key: {
 			"rule":   rcr,
 			"config": monitor,
 		},
-	}
+	}, warnings
 }
 
 func saMonitorToStandardReceiver(monitor map[string]interface{}) map[string]map[string]interface{} {
+	if excludes, ok := monitor[metricsToExclude]; ok {
+		delete(monitor, metricsToExclude)
+		monitor["datapointsToExclude"] = excludes
+	}
 	return map[string]map[string]interface{}{
 		"smartagent/" + monitor["type"].(string): monitor,
 	}
 }
 
 func saObserversToOtel(observers []interface{}) map[string]interface{} {
+	out := map[string]interface{}{}
 	for _, v := range observers {
 		obs, ok := v.(map[interface{}]interface{})
 		if !ok {
@@ -476,25 +557,28 @@ func saObserversToOtel(observers []interface{}) map[string]interface{} {
 		if !ok {
 			return nil
 		}
-		if observerType == "k8s-api" {
-			return map[string]interface{}{
-				"k8s_observer": map[string]interface{}{
-					"auth_type": "serviceAccount",
-					"node":      "${K8S_NODE_NAME}",
-				},
+		otelObserverType := saObserverTypeToOtel(observerType)
+		switch otelObserverType {
+		case k8sObserver:
+			out[k8sObserver] = map[string]interface{}{
+				"auth_type": "serviceAccount",
+				"node":      "${K8S_NODE_NAME}",
 			}
+		case hostObserver:
+			out[hostObserver] = map[string]interface{}{}
 		}
 	}
-	return nil
+	return out
 }
 
-func discoveryRuleToRCRule(dr string) string {
-	out := strings.ReplaceAll(dr, "=~", "matches")
-	out = strings.ReplaceAll(out, "container_image", "pod.name")
-	if strings.Contains(out, "port") {
-		out = `type == "port" && ` + out
+func saObserverTypeToOtel(saType string) string {
+	switch saType {
+	case "k8s-api":
+		return k8sObserver
+	case "host":
+		return hostObserver
 	}
-	return out
+	return ""
 }
 
 func mtOperations(m map[interface{}]interface{}) (out []map[interface{}]interface{}) {

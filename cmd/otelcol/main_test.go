@@ -311,3 +311,13 @@ service:
 		})
 	}
 }
+
+func TestRemoveFlag(t *testing.T) {
+	args := []string{"--aaa", "--bbb", "--ccc"}
+	removeFlag(&args, "--bbb")
+	assert.Equal(t, []string{"--aaa", "--ccc"}, args)
+	removeFlag(&args, "--ccc")
+	assert.Equal(t, []string{"--aaa"}, args)
+	removeFlag(&args, "--aaa")
+	assert.Nil(t, args)
+}

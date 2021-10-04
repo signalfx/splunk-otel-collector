@@ -178,7 +178,7 @@ type Manager struct {
 // NewManager creates a new instance of a Manager to be used to inject data from
 // ConfigSource objects into a configuration and watch for updates on the injected
 // data.
-func NewManager(parser *configparser.Parser, logger *zap.Logger, buildInfo component.BuildInfo, factories Factories) (*Manager, error) {
+func NewManager(parser *configparser.ConfigMap, logger *zap.Logger, buildInfo component.BuildInfo, factories Factories) (*Manager, error) {
 	configSourcesSettings, err := Load(context.Background(), parser, factories)
 	if err != nil {
 		return nil, err
@@ -196,11 +196,11 @@ func NewManager(parser *configparser.Parser, logger *zap.Logger, buildInfo compo
 	return newManager(cfgSources), nil
 }
 
-// Resolve inspects the given configparser.Parser and resolves all config sources referenced
-// in the configuration, returning a configparser.Parser fully resolved. This must be called only
+// Resolve inspects the given configparser.ConfigMap and resolves all config sources referenced
+// in the configuration, returning a configparser.ConfigMap fully resolved. This must be called only
 // once per lifetime of a Manager object.
-func (m *Manager) Resolve(ctx context.Context, parser *configparser.Parser) (*configparser.Parser, error) {
-	res := configparser.NewParser()
+func (m *Manager) Resolve(ctx context.Context, parser *configparser.ConfigMap) (*configparser.ConfigMap, error) {
+	res := configparser.NewConfigMap()
 	allKeys := parser.AllKeys()
 	for _, k := range allKeys {
 		if strings.HasPrefix(k, configSourcesKey) {
@@ -210,15 +210,9 @@ func (m *Manager) Resolve(ctx context.Context, parser *configparser.Parser) (*co
 
 		value, err := m.expandStringValues(ctx, parser.Get(k))
 		if err != nil {
-			// Call RetrieveEnd for all sessions used so far but don't record any errors.
-			_ = m.retrieveEndAllSessions(ctx)
 			return nil, err
 		}
 		res.Set(k, value)
-	}
-
-	if errs := m.retrieveEndAllSessions(ctx); len(errs) > 0 {
-		return nil, consumererror.Combine(errs)
 	}
 
 	return res, nil
@@ -301,15 +295,6 @@ func newManager(configSources map[string]configsource.ConfigSource) *Manager {
 		watchingCh:    make(chan struct{}),
 		closeCh:       make(chan struct{}),
 	}
-}
-func (m *Manager) retrieveEndAllSessions(ctx context.Context) []error {
-	var errs []error
-	for _, cfgSrc := range m.configSources {
-		if err := cfgSrc.RetrieveEnd(ctx); err != nil {
-			errs = append(errs, err)
-		}
-	}
-	return errs
 }
 
 func (m *Manager) expandStringValues(ctx context.Context, value interface{}) (interface{}, error) {
@@ -525,8 +510,8 @@ func parseCfgSrc(s string) (cfgSrcName, selector string, params interface{}, err
 		selector = strings.Trim(parts[0], " ")
 
 		if len(parts) > 1 && len(parts[1]) > 0 {
-			var p *configparser.Parser
-			if p, err = configparser.NewParserFromBuffer(bytes.NewReader([]byte(parts[1]))); err != nil {
+			var p *configparser.ConfigMap
+			if p, err = configparser.NewConfigMapFromBuffer(bytes.NewReader([]byte(parts[1]))); err != nil {
 				return
 			}
 			params = p.ToStringMap()
@@ -586,7 +571,7 @@ func parseParamsAsURLQuery(s string) (interface{}, error) {
 }
 
 // expandEnvVars is used to expand environment variables with the same syntax used
-// by configparser.Parser.
+// by configparser.ConfigMap.
 func expandEnvVars(s string) string {
 	return os.Expand(s, func(str string) string {
 		// This allows escaping environment variable substitution via $$, e.g.

@@ -14,6 +14,10 @@ Currently, the following Linux distributions and versions are supported:
 - Amazon Linux: 2
 - CentOS / Red Hat / Oracle: 7, 8
 - Debian: 9, 10
+<<<<<<< HEAD
+=======
+- SUSE: 12, 15 (**Note:** Only for collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
+>>>>>>> b1c308ccfb8bfc84972face1ec3cebdcb74d3108
 - Ubuntu: 16.04, 18.04, 20.04
 
 ## Windows

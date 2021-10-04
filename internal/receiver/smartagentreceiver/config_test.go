@@ -255,14 +255,14 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	haproxyCfg := cfg.Receivers[config.NewIDWithName(typeStr, "haproxy")].(*Config)
 	require.Equal(t, &Config{
 		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "haproxy")),
-		Endpoint:         "haproxyhost:2345",
+		Endpoint:         "[fe80::20c:29ff:fe59:9446]:2345",
 		monitorConfig: &haproxy.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "haproxy",
 				IntervalSeconds:     123,
 				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
-			Host:      "haproxyhost",
+			Host:      "fe80::20c:29ff:fe59:9446",
 			Port:      2345,
 			Username:  "SomeUser",
 			Password:  "secret",
@@ -292,7 +292,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	hadoopCfg := cfg.Receivers[config.NewIDWithName(typeStr, "hadoop")].(*Config)
 	require.Equal(t, &Config{
 		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, "hadoop")),
-		Endpoint:         "hadoophost:12345",
+		Endpoint:         "[::]:12345",
 		monitorConfig: &hadoop.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/hadoop",
@@ -484,6 +484,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 			TelegrafParser: &parser.Config{
 				DataFormat: "influx",
 			},
+			Timeout: timeutil.Duration(5 * time.Second),
 		},
 	}, telegrafExecCfg)
 	require.NoError(t, telegrafExecCfg.validate())

@@ -50,7 +50,7 @@
 Splunk OpenTelemetry Connector is a distribution of the [OpenTelemetry
 Collector](https://github.com/open-telemetry/opentelemetry-collector). It
 provides a unified way to receive, process, and export metric, trace, and log
-data for [Splunk Observability Cloud](https://www.observability.splunk.com/):
+data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability.html):
 
 - [Splunk APM](https://www.splunk.com/en_us/software/splunk-apm.html) via the
   [`sapm`
@@ -107,6 +107,7 @@ This distribution is supported on and packaged for a variety of platforms includ
 
 - Kubernetes
   - [Helm (recommended)](https://github.com/signalfx/splunk-otel-collector-chart)
+  - [Operator (in alpha)](https://github.com/signalfx/splunk-otel-collector-operator)
   - [YAML](https://github.com/signalfx/splunk-otel-collector-chart/tree/main/rendered)
 - Linux
   - [Installer script (recommended)](./docs/getting-started/linux-installer.md)
@@ -114,11 +115,12 @@ This distribution is supported on and packaged for a variety of platforms includ
     - [Ansible](https://galaxy.ansible.com/signalfx/splunk_otel_collector)
     - [Puppet](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)
   - Platform as a Service
-    - [Heroku](deployments/heroku/README.md)
+    - [Heroku](https://github.com/signalfx/splunk-otel-collector-heroku#getting-started)
   - [Manual](./docs/getting-started/linux-manual.md) including DEB/RPM packages, Docker, and binary
 - Windows
   - [Installer script (recommended)](./docs/getting-started/windows-installer.md)
   - Configuration management
+    - [Ansible](https://galaxy.ansible.com/signalfx/splunk_otel_collector)
     - [Puppet](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)
   - [Manual](./docs/getting-started/windows-manual.md) including MSI with GUI and Powershell, and Docker
 
@@ -131,7 +133,7 @@ A variety of default configuration files are provided:
 - [OpenTelemetry
   Collector](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/otelcol/config/collector)
   see `full_config_linux.yaml` for a commented configuration with links to full
-  documentation. `agent_config_linux.yaml` is the recommended starting
+  documentation. `agent_config.yaml` is the recommended starting
   configuration for most environments.
 - [Fluentd](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd)
   applicable to Helm or installer script installations only. See the `*.conf`
@@ -153,6 +155,48 @@ In addition, the following components can be configured:
     offering the complete set of Smart Agent monitors
   - Information about migrating from the SignalFx Smart Agent can be found
     [here](docs/signalfx-smart-agent-migration.md)
+
+## Upgrade guidelines
+
+The following changes need to be done to configuration files for Splunk OTel Collector for specific
+version upgrades. We provide automated scripts included in the bundle that cover backward
+compatibility on the fly, but configuration files will not be overridden, so you need to update them
+manually before the backward compatibility is dropped. For every configuration update use
+[the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
+as a reference.
+
+### From 0.35.0 to 0.36.0
+
+- Configuration parameter "`exporters` -> `otlp` -> `insecure`" is moved to
+  "`exporters` -> `otlp` -> `tls` -> `insecure`".
+  
+  More details: https://github.com/open-telemetry/opentelemetry-collector/pull/4063/.
+  
+  Configuration part for `otlp` exporter should look like this:
+
+  ```yaml
+  exporters:
+    otlp:
+      endpoint: "${SPLUNK_GATEWAY_URL}:4317"
+      tls:
+        insecure: true
+  ```
+
+### From 0.34.0 to 0.35.0
+
+- `ballast_size_mib` parameter moved from `memory_limiter` processor to `memory_ballast` extension
+  as `size_mib`.
+  
+  More details: https://github.com/signalfx/splunk-otel-collector/pull/567.
+
+  Remove `ballast_size_mib` parameter from `memory_limiter` and make sure that it's added to
+  `memory_ballast` extension as `size_mib` parameter instead:
+
+  ```yaml
+  extensions:
+    memory_ballast:
+      size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
+  ```
 
 ### Using Upstream OpenTelemetry Collector
 

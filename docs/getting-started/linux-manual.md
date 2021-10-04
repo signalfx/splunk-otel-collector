@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Install on Linux](https://docs.splunk.com/Observability/gdi/opentelemetry/install-linux.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
+
 # Linux Manual
 
 The easiest and recommended way to get started is with the [Linux installer
@@ -35,27 +37,57 @@ installed on x86_64/amd64 platforms.
 
 1. Set up the package repository and install the collector package:
 - Debian:
-```sh
-curl -sSL https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg > /etc/apt/trusted.gpg.d/splunk.gpg
-echo 'deb https://splunk.jfrog.io/splunk/otel-collector-deb release main' > /etc/apt/sources.list.d/splunk-otel-collector.list
-apt-get update
-apt-get install -y splunk-otel-collector
-```
-- RPM:
-```sh
-yum install -y libcap  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the collector
+  ```sh
+  curl -sSL https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg > /etc/apt/trusted.gpg.d/splunk.gpg
+  echo 'deb https://splunk.jfrog.io/splunk/otel-collector-deb release main' > /etc/apt/sources.list.d/splunk-otel-collector.list
+  apt-get update
+  apt-get install -y splunk-otel-collector
+  ```
+- RPM with `yum`:
+  ```sh
+  yum install -y libcap  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the collector
 
-cat <<EOH > /etc/yum.repos.d/splunk-otel-collector.repo
-[splunk-otel-collector]
-name=Splunk OpenTelemetry Collector Repository
-baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
-gpgcheck=1
-gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
-enabled=1
-EOH
+  cat <<EOH > /etc/yum.repos.d/splunk-otel-collector.repo
+  [splunk-otel-collector]
+  name=Splunk OpenTelemetry Collector Repository
+  baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
+  gpgcheck=1
+  gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
+  enabled=1
+  EOH
 
-yum install -y splunk-otel-collector
-```
+  yum install -y splunk-otel-collector
+  ```
+- RPM with `dnf`:
+  ```sh
+  dnf install -y libcap  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the collector
+
+  cat <<EOH > /etc/yum.repos.d/splunk-otel-collector.repo
+  [splunk-otel-collector]
+  name=Splunk OpenTelemetry Collector Repository
+  baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
+  gpgcheck=1
+  gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
+  enabled=1
+  EOH
+
+  dnf install -y splunk-otel-collector
+  ```
+- RPM with `zypper`:
+  ```sh
+  zypper install -y libcap-progs  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the collector
+
+  cat <<EOH > /etc/zypp/repos.d/splunk-otel-collector.repo
+  [splunk-otel-collector]
+  name=Splunk OpenTelemetry Collector Repository
+  baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
+  gpgcheck=1
+  gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
+  enabled=1
+  EOH
+
+  zypper install -y splunk-otel-collector
+  ```
 2. A default configuration file will be installed to
    `/etc/otel/collector/agent_config.yaml` if it does not already exist.
 3. The `/etc/otel/collector/splunk-otel-collector.conf` environment file is
@@ -65,8 +97,10 @@ yum install -y splunk-otel-collector
    required environment variables for the default config.  To utilize this
    sample file, set the variables as appropriate and save the file as
    `/etc/otel/collector/splunk-otel-collector.conf`.
-4. Start/Restart the service with
-   `sudo systemctl restart splunk-otel-collector.service`.
+4. Start/Restart the service with:
+   ```sh
+   sudo systemctl restart splunk-otel-collector.service
+   ```
 
 ### Other
 
@@ -95,7 +129,7 @@ Optional environment variables
 Deploy the latest Docker image.
 
 ```bash
-$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
+docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
     -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 4317:4317 -p 6060:6060 \
     -p 8888:8888 -p 9080:9080 -p 9411:9411 -p 9943:9943 \
     --name otelcol quay.io/signalfx/splunk-otel-collector:latest
@@ -114,11 +148,11 @@ A docker-compose example is also available [here](../../examples/docker-compose)
 Run as a binary on the local system:
 
 ```bash
-$ git clone https://github.com/signalfx/splunk-otel-collector.git
-$ cd splunk-otel-collector
-$ make install-tools
-$ make otelcol
-$ SPLUNK_ACCESS_TOKEN=12345 SPLUNK_REALM=us0 ./bin/otelcol
+git clone https://github.com/signalfx/splunk-otel-collector.git
+cd splunk-otel-collector
+make install-tools
+make otelcol
+SPLUNK_ACCESS_TOKEN=12345 SPLUNK_REALM=us0 ./bin/otelcol
 ```
 
 ## Advanced Configuration
@@ -133,11 +167,11 @@ specified.
 For example in Docker:
 
 ```bash
-$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
+docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
     -p 13133:13133 -p 14250:14250 -p 14268:14268 -p 4317:4317 -p 6060:6060 \
     -p 8888:8888 -p 9080:9080 -p 9411:9411 -p 9943:9943 \
     --name otelcol quay.io/signalfx/splunk-otel-collector:latest \
-        --log-level=DEBUG
+    --log-level=DEBUG
 ```
 
 > Use `--help` to see all available CLI arguments.
@@ -164,7 +198,7 @@ configuration from the parameter.
 For example in Docker:
 
 ```bash
-$ docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
+docker run --rm -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=us0 \
     -e SPLUNK_CONFIG=/etc/collector.yaml -p 13133:13133 -p 14250:14250 \
     -p 14268:14268 -p 4317:4317 -p 6060:6060 -p 8888:8888 \
     -p 9080:9080 -p 9411:9411 -p 9943:9943 \
@@ -185,7 +219,7 @@ as an example.
 
 The following example shows the `SPLUNK_CONFIG_YAML` environment variable:
 ```bash
-$ CONFIG_YAML=$(cat <<-END
+CONFIG_YAML=$(cat <<-END
 receivers:
    hostmetrics:
       collection_interval: 1s
@@ -202,7 +236,7 @@ service:
 END
 )
 
-$ docker run --rm \
+docker run --rm \
     -e SPLUNK_CONFIG_YAML=${CONFIG_YAML} \
     --name otelcol quay.io/signalfx/splunk-otel-collector:latest
 ```

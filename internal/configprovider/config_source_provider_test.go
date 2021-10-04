@@ -102,7 +102,7 @@ func TestConfigSourceParserProvider(t *testing.T) {
 				cspp.pp = &mockParserProvider{}
 			}
 
-			cp, err := pp.Get()
+			cp, err := pp.Get(context.Background())
 			if tt.wantErr == nil {
 				require.NoError(t, err)
 				require.NotNil(t, cp)
@@ -121,7 +121,7 @@ func TestConfigSourceParserProvider(t *testing.T) {
 			}()
 			cspp.csm.WaitForWatcher()
 
-			closeErr := pp.(parserprovider.Closeable).Close(context.Background())
+			closeErr := pp.Close(context.Background())
 			assert.NoError(t, closeErr)
 
 			wg.Wait()
@@ -134,13 +134,17 @@ type mockParserProvider struct {
 	ErrOnGet bool
 }
 
-var _ (parserprovider.ParserProvider) = (*mockParserProvider)(nil)
+var _ parserprovider.ParserProvider = (*mockParserProvider)(nil)
 
-func (mpp *mockParserProvider) Get() (*configparser.Parser, error) {
+func (mpp *mockParserProvider) Get(context.Context) (*configparser.ConfigMap, error) {
 	if mpp.ErrOnGet {
 		return nil, &errOnParserProviderGet{errors.New("mockParserProvider.Get() forced test error")}
 	}
-	return configparser.NewParser(), nil
+	return configparser.NewConfigMap(), nil
+}
+
+func (mpp *mockParserProvider) Close(context.Context) error {
+	return nil
 }
 
 type errOnParserProviderGet struct{ error }
@@ -149,8 +153,12 @@ type fileParserProvider struct {
 	FileName string
 }
 
-var _ (parserprovider.ParserProvider) = (*fileParserProvider)(nil)
+var _ parserprovider.ParserProvider = (*fileParserProvider)(nil)
 
-func (fpp *fileParserProvider) Get() (*configparser.Parser, error) {
-	return configparser.NewParserFromFile(fpp.FileName)
+func (fpp *fileParserProvider) Get(context.Context) (*configparser.ConfigMap, error) {
+	return configparser.NewConfigMapFromFile(fpp.FileName)
+}
+
+func (fpp *fileParserProvider) Close(context.Context) error {
+	return nil
 }

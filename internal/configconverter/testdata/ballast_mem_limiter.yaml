@@ -1,0 +1,30 @@
+extensions:
+  memory_ballast:
+    size_mib: 64
+receivers:
+  hostmetrics:
+    collection_interval: 1s
+    scrapers:
+      cpu:
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 4000
+    spike_limit_mib: 800
+    ballast_size_mib: 64
+exporters:
+  logging:
+    loglevel: info
+    sampling_initial: 2
+    sampling_thereafter: 500
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - hostmetrics
+      processors:
+        - memory_limiter
+      exporters:
+        - logging
+  extensions:
+    - memory_ballast

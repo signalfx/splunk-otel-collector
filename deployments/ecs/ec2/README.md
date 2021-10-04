@@ -7,7 +7,7 @@ The
 [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector)
 (Collector) should to be run as a Daemon service in an EC2 ECS cluster.
 
-Requires Connector release v0.34.0 or newer which corresponds to image tag 0.34.0 and newer.
+Requires Connector release v0.34.1 or newer which corresponds to image tag 0.34.1 and newer.
 See image repository [here](https://quay.io/repository/signalfx/splunk-otel-collector?tab=tags).
 
 ## Getting Started
@@ -46,7 +46,7 @@ Assign a stringified array of metrics you want excluded to environment variable
 `METRICS_TO_EXCLUDE`. You can set the memory limit for the memory limiter processor using
 environment variable `SPLUNK_MEMORY_LIMIT_MIB`. The default memory limit is 512 MiB. For
 more information about the memory limiter processor, see
-[here](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md)
+[here](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md)
 
 ### Launch the Collector
 The Collector is designed to be run as a Daemon service in an EC2 ECS cluster.

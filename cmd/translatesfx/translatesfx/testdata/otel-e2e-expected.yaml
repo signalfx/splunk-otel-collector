@@ -26,7 +26,7 @@ receivers:
       smartagent/collectd/redis:
         config:
           type: collectd/redis
-        rule: type == "port" && pod.name matches "redis" && port == 6379
+        rule: type == "hostport" && process_name matches "redis" && port == 6379
     watch_observers:
       - k8s_observer
   smartagent/processlist:
@@ -76,6 +76,9 @@ exporters:
   signalfx:
     access_token: "${include:token}"
     realm: us1
+  sapm:
+    access_token: "${include:token}"
+    endpoint: https://ingest.us1.signalfx.com/v2/trace
 service:
   extensions:
     - k8s_observer
@@ -105,4 +108,5 @@ service:
       processors:
         - resourcedetection
       exporters:
+        - sapm
         - signalfx

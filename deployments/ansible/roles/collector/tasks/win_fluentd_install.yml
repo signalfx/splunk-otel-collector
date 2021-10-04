@@ -22,3 +22,29 @@
     dest: "{{splunk_fluentd_config}}"
   when: splunk_fluentd_config_source != ""
   notify: "restart windows fluentdwinsvc"
+
+- name: Copy fluentd default config
+  ansible.windows.win_copy:
+    src: "{{splunk_fluentd_config}}"
+    dest: "{{ansible_env.SystemDrive}}/opt/td-agent/etc/td-agent/td-agent.conf"
+    remote_src: yes
+  notify: "restart windows fluentdwinsvc"
+
+- name: Create directory structure
+  ansible.windows.win_file:
+    path: "{{ansible_env.SystemDrive}}/opt/td-agent/etc/td-agent/conf.d"
+    state: directory
+
+- name: Copy the default fluentd source configs
+  ansible.windows.win_copy:
+    src: "{{ansible_env.ProgramFiles}}/Splunk/OpenTelemetry Collector/fluentd/conf.d/"
+    dest: "{{ansible_env.SystemDrive}}/opt/td-agent/etc/td-agent/conf.d"
+    remote_src: yes
+  notify: "restart windows fluentdwinsvc"
+
+- name: Push Custom Config file for fluentd, if provided
+  ansible.windows.win_copy:
+    src: "{{splunk_fluentd_config_source}}"
+    dest: "{{splunk_fluentd_config}}"
+  when: splunk_fluentd_config_source != ""
+  notify: "restart windows fluentdwinsvc"

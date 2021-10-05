@@ -24,6 +24,8 @@ configured depends on the installation method leveraged.
 
 ### DEB and RPM Packages
 
+#### Collector
+
 If you prefer to install the collector without the [installer script
 ](./linux-installer.md), we provide Debian and RPM package repositories that
 you can make use of with the following commands (requires `root` privileges).
@@ -101,6 +103,58 @@ installed on x86_64/amd64 platforms.
    ```sh
    sudo systemctl restart splunk-otel-collector.service
    ```
+
+#### Fluentd
+
+If log collection is required, perform the following steps to install Fluentd
+and forward collected log events to the Collector (requires `root` privileges):
+
+1. Install, configure, and start the Collector as described in the previous
+   section.  The Collector's default configuration file
+   (`/etc/otel/collector/agent_config.yaml`) listens for log events on
+   `127.0.0.1:8006` and sends them to the Splunk Observability Cloud.
+1. Check [https://docs.fluentd.org/installation](
+   https://docs.fluentd.org/installation) to install the `td-agent` package
+   appropriate for the Linux distribution/version of the target system.
+1. If necessary, check [https://docs.fluentd.org/deployment/linux-capability](
+   https://docs.fluentd.org/deployment/linux-capability) to install the
+   `capng_c` plugin and dependencies for enabling Linux capabilities, e.g.
+   `cap_dac_read_search` and/or `cap_dac_override`.  Requires `td-agent`
+   version 4.1 or newer.
+1. If necessary, check
+   [https://github.com/fluent-plugin-systemd/fluent-plugin-systemd](
+   https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) to install
+   the `fluent-plugin-systemd` plugin to collect log events from the systemd
+   journal.
+1. Configure Fluentd to collect log events and forward them to the Collector:
+   - Option 1: Update the default config file at `/etc/td-agent/td-agent.conf`
+     provided by the Fluentd package to collect the desired log events and
+     [forward](https://docs.fluentd.org/output/forward) them to
+     `127.0.0.1:8006`.
+   - Option 2: The installed Collector package provides a custom Fluentd config
+     file (`/etc/otel/collector/fluentd/fluent.conf`) to collect log events
+     from many popular services (`/etc/otel/collector/fluentd/conf.d/*.conf`)
+     and forwards them to `127.0.0.1:8006`. To utilize these files, copy the
+     `/etc/otel/collector/fluentd/splunk-otel-collector.conf` systemd
+     environment file to
+     `/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf` in
+     order to override the default config file path for the Fluentd service.
+1. Ensure that the `td-agent` service user/group has permissions to access to
+   the config file(s) from the previous step.
+1. Apply the changes by running the following command to restart the Fluentd
+   service:
+   ```sh
+   systemctl restart td-agent
+   ```
+   **Note**: The `td-agent` service must be restarted in order for any changes
+   made to the Fluentd config files to take effect.
+1. The Fluentd logs and errors can be viewed in the systemd journal:
+   ```sh
+   journalctl -u td-agent
+   ```
+1. See [https://docs.fluentd.org/configuration](
+   https://docs.fluentd.org/configuration) for general Fluentd configuration
+   details.
 
 ### Other
 

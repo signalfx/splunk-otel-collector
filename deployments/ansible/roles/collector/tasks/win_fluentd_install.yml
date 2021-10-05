@@ -4,6 +4,52 @@
     td_agent_base_url: https://packages.treasuredata.com
     win_fluentd_msi: td-agent-{{td_agent_version}}-x64.msi
 
+- name: Check td-agent dir is present or not
+  ansible.windows.win_stat:
+    path: '{{ansible_env.SystemDrive}}\opt\td-agent\etc\td-agent\conf.d'
+  register: agentdir
+
+- name: Create td-agent directory if not exists
+  ansible.windows.win_file:
+    path: '{{ansible_env.SystemDrive}}\opt\td-agent\etc\td-agent'
+    state: directory
+  when: not agentdir.stat.exists
+
+- name: Check td-agent.conf is present or not
+  ansible.windows.win_stat:
+    path: '{{ansible_env.SystemDrive}}\opt\td-agent\etc\td-agent\td-agent.conf'
+  register: tdagentfile
+
+- name: Copy fluentd default config if exists
+  ansible.windows.win_copy:
+    src: "{{splunk_fluentd_config}}"
+    dest: '{{ansible_env.SystemDrive}}\opt\td-agent\etc\td-agent\td-agent.conf'
+    remote_src: yes
+  when: not tdagentfile.stat.exists
+
+- name: Check conf.d directory is present or not
+  ansible.windows.win_stat:
+    path: '{{ansible_env.SystemDrive}}\opt\td-agent\etc\td-agent\conf.d'
+  register: confdir
+
+- name: Create conf.d directory if not exists
+  ansible.windows.win_file:
+    path: '{{ansible_env.SystemDrive}}\opt\td-agent\etc\td-agent\conf.d'
+    state: directory
+  when: not confdir.stat.exists
+
+- name: Check default fluentd source configs are present or not
+  ansible.windows.win_find:
+    paths: '{{ansible_env.SystemDrive}}\opt\td-agent\etc\td-agent\conf.d'
+  register: sourceconfig
+
+- name: Copy the default fluentd source configs if not exists
+  ansible.windows.win_copy:
+    src: '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\conf.d\'
+    dest: '{{ansible_env.SystemDrive}}\opt\td-agent\etc\td-agent\conf.d\'
+    remote_src: yes
+  when: not sourceconfig.matched > 0
+
 - name: Download fluentd
   ansible.windows.win_get_url:
     url: "{{td_agent_base_url}}/4/windows/{{win_fluentd_msi}}"
@@ -21,23 +67,4 @@
     src: "{{splunk_fluentd_config_source}}"
     dest: "{{splunk_fluentd_config}}"
   when: splunk_fluentd_config_source != ""
-  notify: "restart windows fluentdwinsvc"
-
-- name: Copy fluentd default config
-  ansible.windows.win_copy:
-    src: "{{splunk_fluentd_config}}"
-    dest: '{{ansible_env.SystemDrive}}\opt\td-agent\etc\td-agent\td-agent.conf'
-    remote_src: yes
-  notify: "restart windows fluentdwinsvc"
-
-- name: Create directory structure
-  ansible.windows.win_file:
-    path: '{{ansible_env.SystemDrive}}\opt\td-agent\etc\td-agent\conf.d'
-    state: directory
-
-- name: Copy the default fluentd source configs
-  ansible.windows.win_copy:
-    src: '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\conf.d\'
-    dest: '{{ansible_env.SystemDrive}}\opt\td-agent\etc\td-agent\conf.d'
-    remote_src: yes
   notify: "restart windows fluentdwinsvc"

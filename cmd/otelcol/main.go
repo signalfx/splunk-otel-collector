@@ -61,7 +61,7 @@ func main() {
 	// TODO: Use same format as the collector
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	if !hasFlag("-h") && !hasFlag("--help") {
+	if !hasFlag("-h") && !hasFlag("--help") && !hasFlag("-v") && !hasFlag("--version") {
 		checkRuntimeParams()
 		setDefaultEnvVars()
 	}
@@ -188,7 +188,7 @@ func checkRuntimeParams() {
 }
 
 // Sets flag '--config' to specified env var SPLUNK_CONFIG, if the flag not specified.
-// Logs a message and returns if env var SPLUNK_CONFIG_YAML specified, and '--config' and SPLUNK_CONFIG no specified.
+// Logs a message and returns if env var SPLUNK_CONFIG_YAML specified, and '--config' and SPLUNK_CONFIG not specified.
 // Sets '--config' to default config file path if '--config', SPLUNK_CONFIG and SPLUNK_CONFIG_YAML not specified.
 func checkConfig() {
 	configPathFlagExists, configPathFlag := getKeyValue(os.Args[1:], "--config")

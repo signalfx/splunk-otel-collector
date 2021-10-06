@@ -33,4 +33,8 @@ fi
 if command -v systemctl >/dev/null 2>&1; then
     systemctl daemon-reload
     systemctl enable splunk-otel-collector.service
+    if [ -f /etc/otel/collector/splunk-otel-collector.conf ]; then
+        echo "Starting splunk-otel-collector service"
+        systemctl restart splunk-otel-collector.service
+    fi
 fi

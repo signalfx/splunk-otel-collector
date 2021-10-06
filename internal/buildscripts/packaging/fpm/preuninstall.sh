@@ -15,7 +15,9 @@
 # limitations under the License.
 
 if command -v systemctl >/dev/null 2>&1; then
-    echo "Stopping splunk-otel-collector service"
-    systemctl stop splunk-otel-collector.service
     systemctl disable splunk-otel-collector.service
+    if systemctl status splunk-otel-collector.service >/dev/null 2>&1; then
+        echo "Stopping splunk-otel-collector service"
+        systemctl stop splunk-otel-collector.service
+    fi
 fi

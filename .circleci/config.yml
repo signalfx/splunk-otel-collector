@@ -122,6 +122,16 @@ workflows:
             - windows-msi
           name: windows-msi-gateway-test
           mode: gateway
+      - windows-choco-validation:
+          requires:
+            - windows-msi
+          name: windows-choco-agent-test
+          mode: agent
+      - windows-choco-validation:
+          requires:
+            - windows-msi
+          name: windows-choco-gateway-test
+          mode: gateway
       - puppet-test
 
 jobs:
@@ -409,6 +419,38 @@ jobs:
             if ( "<< parameters.mode >>" -eq "gateway" ) {
               Test-Path -Path "\tmp\splunk-support-bundle\config\gateway_config.yaml"
             }
+
+  windows-choco-validation:
+    executor:
+      name: win/default
+      shell: powershell.exe
+    parameters:
+      mode:
+        type: enum
+        enum: ["agent", "gateway"]
+    steps:
+      - attach_to_workspace
+      - run:
+          name: Chocolatey test
+          command: |
+            $ErrorActionPreference = 'Stop'
+            Set-PSDebug -Trace 1
+            $msi_file_name = Resolve-Path .\dist\splunk-otel-collector*.msi | Split-Path -leaf
+            if ($msi_file_name -match '(\d+\.)(\d+\.)+(\d*)') { $version = $matches[0] }
+            write-host "Building choco package..."
+            .\internal\buildscripts\packaging\choco\make.ps1 build_choco -Version $version | Tee-Object -file .\dist\build_logs.log
+            Test-Path -Path ".\dist\splunk-otel-collector.$version.nupkg"
+            write-host "Installing choco package..."
+            choco install splunk-otel-collector -s=".\dist\splunk-otel-collector.$version.nupkg" --params="'/SPLUNK_ACCESS_TOKEN=12345 /MODE:<< parameters.mode >>'" -y | Tee-Object -file .\dist\installation_logs.log
+            if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { throw "Failed to install splunk-otel-collector using chocolatey." } else { write-host "splunk-otel-collector service is running." }
+            write-host "Reinstalling choco package..."
+            choco install splunk-otel-collector -s=".\dist\splunk-otel-collector.$version.nupkg" --params="'/MODE:<< parameters.mode >>'" --force -y | Tee-Object -file .\dist\reinstallation_logs.log
+            if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { throw "Failed to install splunk-otel-collector using chocolatey." } else { write-host "splunk-otel-collector service is running." }
+            write-host "Uninstalling choco package..."
+            choco uninstall -y splunk-otel-collector | Tee-Object -file .\dist\uninstallation_logs.log
+            if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { write-host "splsplunk-otel-collector has been successfully uninstalled and service is not running." } else { throw "Failed to uninstall splunk-otel-collector chocolatey package." }
+      - store_artifacts:
+          path: dist
 
   puppet-test:
     machine:

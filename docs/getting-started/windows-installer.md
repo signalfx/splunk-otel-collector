@@ -45,6 +45,22 @@ Replace the `SPLUNK_MEMORY_TOTAL_MIB` variable with the desired value.
 & {Set-ExecutionPolicy Bypass -Scope Process -Force; $script = ((New-Object System.Net.WebClient).DownloadString('https://dl.signalfx.com/splunk-otel-collector.ps1')); $params = @{access_token = "SPLUNK_ACCESS_TOKEN"; realm = "SPLUNK_REALM"; memory = "SPLUNK_MEMORY_TOTAL_MIB"}; Invoke-Command -ScriptBlock ([scriptblock]::Create(". {$script} $(&{$args} @params)"))}
 ```
 
+#### Custom MSI URLs
+
+By default, the Collector MSI is downloaded from `https://dl.signalfx.com` and
+the Fluentd MSI is downloaded from `https://packages.treasuredata.com`.  To
+specify custom URLs for these downloads, use the `collector_msi_url` and
+`fluentd_msi_url` options.
+
+Replace `COLLECTOR_MSI_URL` and `FLUENTD_MSI_URL` with the URLs to the
+desired MSI packages to install, e.g.
+`https://my.host/splunk-otel-collector-1.2.3-amd64.msi` and
+`https://my.host/td-agent-4.1.0-x64.msi`.
+
+```powershell
+& {Set-ExecutionPolicy Bypass -Scope Process -Force; $script = ((New-Object System.Net.WebClient).DownloadString('https://dl.signalfx.com/splunk-otel-collector.ps1')); $params = @{access_token = "SPLUNK_ACCESS_TOKEN"; realm = "SPLUNK_REALM"; collector_msi_url = "COLLECTOR_MSI_URL"; fluentd_msi_url = "FLUENTD_MSI_URL"}; Invoke-Command -ScriptBlock ([scriptblock]::Create(". {$script} $(&{$args} @params)"))}
+```
+
 ### Collector Configuration
 
 The Collector comes with a default configuration which can be found at

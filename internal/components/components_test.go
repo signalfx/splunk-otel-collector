@@ -81,6 +81,7 @@ func TestDefaultComponents(t *testing.T) {
 		"sapm",
 		"signalfx",
 		"splunk_hec",
+		"httpsink",
 	}
 
 	factories, err := Get()

@@ -57,6 +57,21 @@ sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --memory SPLUNK_MEMOR
     -- SPLUNK_ACCESS_TOKEN
 ```
 
+By default, apt/yum/zypper repo definition files will be created to download
+the Collector and Fluentd deb/rpm packages from
+[https://splunk.jfrog.io/splunk](https://splunk.jfrog.io/splunk) and
+[https://packages.treasuredata.com](https://packages.treasuredata.com),
+respectively.  To skip these steps and use pre-configured repos on the target
+system that provide the `splunk-otel-collector` and `td-agent` deb/rpm
+packages, specify the `--skip-collector-repo` and/or
+`--skip-fluentd-repo` options.  For example:
+
+```sh
+curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
+sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --skip-collector-repo --skip-fluentd-repo \
+    -- SPLUNK_ACCESS_TOKEN
+```
+
 ### Collector Configuration
 
 The Collector comes with a default configuration which can be found at

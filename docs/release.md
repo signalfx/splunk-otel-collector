@@ -29,6 +29,8 @@
    applicable [Smart Agent release](
    https://github.com/signalfx/signalfx-agent/releases).
 1. Update [CHANGELOG.md](../CHANGELOG.md) with the changes for the release.
+   In order for the Github release notes to be added correctly, ensure that the
+   new version has the `## <TAG>` heading.
 1. Create a PR with the changes and ensure that the build and tests are
    successful.  Wait for the PR to be approved and merged, and ensure that the
    `main` branch build and tests are successful.
@@ -49,9 +51,9 @@
    image was built and pushed.
 1. Check [Github Releases](
    https://github.com/signalfx/splunk-otel-collector/releases/) and ensure that
-   the release was created for the tag and all assets were uploaded.  Update
-   the release notes for the Github Release with the changes from
-   [CHANGELOG.md](../CHANGELOG.md).
+   the release was created for the tag, all assets were uploaded, and the
+   release notes match the changes for the version in [CHANGELOG.md](
+   ../CHANGELOG.md).
 1. Download the MSI (`splunk-otel-collector-<VERSION>-amd64.msi`) from the
    Github Release to your workstation.
 1. Request prod access via slack and the `splunkcloud_account_power` role with

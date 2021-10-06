@@ -80,6 +80,15 @@
     (OPTIONAL) The package stage to install from ['test', 'beta', 'release']. Defaults to 'release'.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -stage "test"
+.PARAMETER collector_msi_url
+    (OPTIONAL) Specify the URL to the Splunk OpenTelemetry Collector MSI package to install (default: "https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-<version>-amd64.msi")
+    If specified, the -collector_version and -stage parameters will be ignored.
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -collector_msi_url https://my.host/splunk-otel-collector-1.2.3-amd64.msi
+.PARAMETER fluentd_msi_url
+    (OPTIONAL) Specify the URL to the Fluentd MSI package to install (default: "https://packages.treasuredata.com/4/windows/td-agent-4.1.0-x64.msi")
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -fluentd_msi_url https://my.host/td-agent-4.1.0-x64.msi
 .PARAMETER msi_path
     (OPTIONAL) Specify a local path to a Splunk OpenTelemetry Collector MSI package to install instead of downloading the package.
     If specified, the -collector_version and -stage parameters will be ignored.
@@ -103,6 +112,8 @@ param (
     [string]$bundle_dir = "",
     [ValidateSet('test','beta','release')][string]$stage = "release",
     [string]$msi_path = "",
+    [string]$collector_msi_url = "",
+    [string]$fluentd_msi_url = "",
     [bool]$UNIT_TEST = $false
 )
 
@@ -402,7 +413,12 @@ if ("$env:VERIFY_ACCESS_TOKEN" -ne "false") {
 # set up a temporary directory
 $tempdir = create_temp_dir -tempdir $tempdir
 
-if ($msi_path -Eq "") {
+if ($collector_msi_url) {
+    $collector_msi_name = "splunk-otel-collector.msi"
+    echo "Downloading $collector_msi_url..."
+    download_file -url "$collector_msi_url" -outputDir "$tempdir" -fileName "$collector_msi_name"
+    $msi_path = (Join-Path "$tempdir" "$collector_msi_name")
+} elseif ($msi_path -Eq "") {
     # determine package version to fetch
     if ($collector_version -Eq "") {
         echo 'Determining latest release...'
@@ -497,6 +513,11 @@ if ($with_fluentd) {
                 Copy-Item "$path" "$fluentd_config_dir\conf.d\$name"
             }
         }
+    }
+
+    if ($fluentd_msi_url) {
+        $fluentd_dl_url = $fluentd_msi_url
+        $fluentd_msi_name = "td-agent.msi"
     }
 
     echo "Downloading $fluentd_dl_url..."

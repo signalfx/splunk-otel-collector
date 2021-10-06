@@ -38,7 +38,7 @@
   notify: "restart splunk-otel-collector"
 
 - name: Push custom config for Splunk OTel Collector, if provided
-  ansible.builtin.copy:
+  ansible.builtin.template:
     src: "{{ splunk_otel_collector_config_source }}"
     dest: "{{ splunk_otel_collector_config }}"
     owner: "{{ splunk_service_user }}"

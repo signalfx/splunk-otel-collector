@@ -91,16 +91,30 @@ installed on x86_64/amd64 platforms.
 2. A default configuration file will be installed to
    `/etc/otel/collector/agent_config.yaml` if it does not already exist.
 3. The `/etc/otel/collector/splunk-otel-collector.conf` environment file is
-   required to start the `splunk-otel-collector` systemd service.  A sample
-   environment file will be installed to
+   required to start the `splunk-otel-collector` systemd service (**Note**: The
+   service will automatically start if this file exists during
+   install/upgrade).  A sample environment file will be installed to
    `/etc/otel/collector/splunk-otel-collector.conf.example` that includes the
    required environment variables for the default config.  To utilize this
    sample file, set the variables as appropriate and save the file as
    `/etc/otel/collector/splunk-otel-collector.conf`.
 4. Start/Restart the service with:
    ```sh
-   sudo systemctl restart splunk-otel-collector.service
+   sudo systemctl restart splunk-otel-collector
    ```
+   **Note:** The service must be restarted for any changes to the config file
+   or environment file to take effect.
+
+Run the following command to check the `splunk-otel-collector` service status:
+```sh
+sudo systemctl status splunk-otel-collector
+```
+
+The `splunk-otel-collector` service logs and errors can be viewed in the
+systemd journal:
+```sh
+sudo journalctl -u splunk-otel-collector
+```
 
 ### Other
 

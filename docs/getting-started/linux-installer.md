@@ -31,6 +31,17 @@ curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-co
 sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
 ```
 
+Run the following command to check the `splunk-otel-collector` service status:
+```sh
+sudo systemctl status splunk-otel-collector
+```
+
+The `splunk-otel-collector` service logs and errors can be viewed in the
+systemd journal:
+```sh
+sudo journalctl -u splunk-otel-collector
+```
+
 You can view the [source](../../internal/buildscripts/packaging/installer/install.sh)
 for more details and available options.
 

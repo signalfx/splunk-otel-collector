@@ -246,6 +246,10 @@ push-linux-image:
         docker tag otelcol:latest ${IMAGE_NAME}:latest
         docker push ${IMAGE_NAME}:latest
       fi
+    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | tee dist/linux_digest.txt
+  artifacts:
+    paths:
+      - dist/linux_digest.txt
 
 build-push-windows-image:
   only:
@@ -284,8 +288,12 @@ build-push-windows-image:
         docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
         docker push ${IMAGE_NAME}:latest
       }
+    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_digest.txt
   after_script:
     - docker image prune --all --force
+  artifacts:
+    paths:
+      - dist/windows_digest.txt
 
 release-debs:
   extends:
@@ -358,12 +366,15 @@ github-release:
     - release-debs
     - release-rpms
     - release-msi
+    - push-linux-image
+    - build-push-windows-image
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
     - cp dist/signed/* dist/assets/
     - pushd dist/assets && shasum -a 256 * > checksums.txt && popd
-    - ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector --replace "$CI_COMMIT_TAG" dist/assets/
+    - release_notes="$( ./internal/buildscripts/packaging/release/gh-release-notes.sh "$CI_COMMIT_TAG" )"
+    - ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$CI_COMMIT_TAG" -b "$release_notes" --replace "$CI_COMMIT_TAG" dist/assets/
   artifacts:
     when: always
     paths:

@@ -394,7 +394,8 @@ exporters:
   # NOTE: These settings should be updated to the proper destination
   jaeger:
     endpoint: jaeger-all-in-one:14250
-    insecure: true
+    tls:
+      insecure: true
 
   # Enables the otlp grpc exporter
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter
@@ -424,7 +425,8 @@ exporters:
   # NOTE: These settings should be updated to the proper destination
   zipkin:
     endpoint: "http://some.url:9411/api/v2/spans"
-    insecure: true
+    tls:
+      insecure: true
 
   #############################################################################
   # Metrics

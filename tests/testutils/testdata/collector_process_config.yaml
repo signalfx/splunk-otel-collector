@@ -7,7 +7,8 @@ receivers:
 exporters:
   otlp:
     endpoint: localhost:23456
-    insecure: true
+    tls:
+      insecure: true
 
 service:
   pipelines:

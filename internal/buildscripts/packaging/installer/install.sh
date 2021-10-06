@@ -394,6 +394,8 @@ install() {
   local stage="$1"
   local collector_version="$2"
   local td_agent_version="$3"
+  local skip_collector_repo="$4"
+  local skip_fluentd_repo="$5"
 
   case "$distro" in
     ubuntu|debian)
@@ -403,14 +405,18 @@ install() {
       fi
       apt-get -y update
       apt-get -y install apt-transport-https gnupg
-      install_collector_apt_repo "$stage"
+      if [ "$skip_collector_repo" = "false" ]; then
+        install_collector_apt_repo "$stage"
+      fi
       apt-get -y update
       install_apt_package "splunk-otel-collector" "$collector_version"
       if [ -n "$td_agent_version" ]; then
         if [ "$distro_codename" != "stretch" ] && [ "$distro_codename" != "jessie" ]; then
           td_agent_version="${td_agent_version}-1"
         fi
-        install_td_agent_apt_repo "$td_agent_version"
+        if [ "$skip_fluentd_repo" = "false" ]; then
+          install_td_agent_apt_repo "$td_agent_version"
+        fi
         apt-get -y update
         install_apt_package "td-agent" "$td_agent_version"
         apt-get -y install build-essential libcap-ng0 libcap-ng-dev pkg-config
@@ -423,10 +429,14 @@ install() {
         exit 1
       fi
       install_yum_package "libcap"
-      install_collector_yum_repo "$stage"
+      if [ "$skip_collector_repo" = "false" ]; then
+        install_collector_yum_repo "$stage"
+      fi
       install_yum_package "splunk-otel-collector" "$collector_version"
       if [ -n "$td_agent_version" ]; then
-        install_td_agent_yum_repo "$td_agent_version"
+        if [ "$skip_fluentd_repo" = "false" ]; then
+          install_td_agent_yum_repo "$td_agent_version"
+        fi
         install_yum_package "td-agent" "$td_agent_version"
         if command -v yum >/dev/null 2>&1; then
           yum group install -y 'Development Tools'
@@ -440,10 +450,12 @@ install() {
       fi
       ;;
     sles|opensuse*)
-      rpm --import $yum_gpg_key_url
+      if [ "$skip_collector_repo" = "false" ]; then
+        rpm --import $yum_gpg_key_url
+        install_collector_yum_repo "$stage" "/etc/zypp/repos.d/"
+      fi
       zypper -n --gpg-auto-import-keys refresh
       install_yum_package "libcap-progs"
-      install_collector_yum_repo "$stage" "/etc/zypp/repos.d/"
       install_yum_package "splunk-otel-collector" "$collector_version"
       ;;
     *)
@@ -537,6 +549,14 @@ Options:
                                     The group will be created if it does not exist
   --service-user <user>             Set the user for the splunk-otel-collector service (default: "$default_service_user")
                                     The user will be created if it does not exist
+  --skip-collector-repo             By default, a apt/yum/zypper repo definition file will be created to download the
+                                    collector deb/rpm package from $repo_base.  Specify this option to skip this step
+                                    and use a pre-configured repo on the target system that provides the
+                                    'splunk-otel-collector' deb/rpm package.
+  --skip-fluentd-repo               By default, a apt/yum repo definition file will be created to download the fluentd
+                                    deb/rpm package from $td_agent_repo_base.  Specify this option to skip this step
+                                    and use a pre-configured repo on the target system that provides the
+                                    'td-agent' deb/rpm package.
   --test                            Use the test package repo instead of the primary
   --trace-url <url>                 Set the trace endpoint URL explicitly instead of the endpoint inferred from the specified realm
                                     (default: https://ingest.REALM.signalfx.com/v2/trace)
@@ -569,6 +589,8 @@ parse_args_and_install() {
   local mode="agent"
   local with_fluentd="true"
   local collector_config_path=
+  local skip_collector_repo="false"
+  local skip_fluentd_repo="false"
 
   while [ -n "${1-}" ]; do
     case $1 in
@@ -633,6 +655,12 @@ parse_args_and_install() {
       --service-user)
         service_user="$2"
         shift 1
+        ;;
+      --skip-collector-repo)
+        skip_collector_repo="true"
+        ;;
+      --skip-fluentd-repo)
+        skip_fluentd_repo="true"
         ;;
       --test)
         stage="test"
@@ -733,7 +761,7 @@ parse_args_and_install() {
     exit 1
   fi
 
-  install "$stage" "$collector_version" "$td_agent_version"
+  install "$stage" "$collector_version" "$td_agent_version" "$skip_collector_repo" "$skip_fluentd_repo"
 
   create_user_group "$service_user" "$service_group"
   configure_service_owner "$service_user" "$service_group"

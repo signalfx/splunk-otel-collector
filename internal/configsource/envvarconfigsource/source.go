@@ -60,7 +60,7 @@ func newConfigSource(_ configprovider.CreateParams, cfg *Config) configsource.Co
 func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
 	actualParams := retrieveParams{}
 	if params != nil {
-		paramsParser := configparser.NewParserFromStringMap(cast.ToStringMap(params))
+		paramsParser := configparser.NewConfigMapFromStringMap(cast.ToStringMap(params))
 		if err := paramsParser.UnmarshalExact(&actualParams); err != nil {
 			return nil, &errInvalidRetrieveParams{fmt.Errorf("failed to unmarshall retrieve params: %w", err)}
 		}

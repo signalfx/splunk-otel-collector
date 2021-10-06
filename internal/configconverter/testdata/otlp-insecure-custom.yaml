@@ -1,0 +1,18 @@
+receivers:
+  hostmetrics:
+    collection_interval: 1s
+    scrapers:
+      cpu:
+exporters:
+  otlp/foo:
+    endpoint: localhost:4317
+    insecure: true
+    tls:
+      insecure_skip_verify: true
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - hostmetrics
+      exporters:
+        - otlp/foo

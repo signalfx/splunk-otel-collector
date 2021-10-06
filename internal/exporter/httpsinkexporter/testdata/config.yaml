@@ -1,0 +1,17 @@
+receivers:
+  nop:
+
+processors:
+  nop:
+
+exporters:
+  httpsink:
+  httpsink/2:
+    endpoint: localhost:3333
+
+service:
+  pipelines:
+    traces:
+      receivers: [nop]
+      processors: [nop]
+      exporters: [httpsink]

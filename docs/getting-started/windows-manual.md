@@ -5,6 +5,7 @@
 The following deployment options are supported:
 
 - [MSI](#msi-installation)
+- [Chocolatey](#chocolatey-installation)
 - [Docker](#docker)
 
 ## Getting Started
@@ -86,6 +87,30 @@ Start-Service splunk-otel-collector
 ```
 
 The collector logs and errors can be viewed in the Windows Event Viewer.
+
+### Chocolatey installation
+
+#### Package Parameters
+The following package parameters are available:
+
+- `/SPLUNK_ACCESS_TOKEN`: The Splunk access token (org token) used to send metric data to Splunk Observability Suite.
+- `/SPLUNK_REALM`: The parameter will be saved to the `\ProgramData\Splunk\OpenTelemetry Collector\SPLUNK_REALM` file. If not specified default is ("us0").
+- `/SPLUNK_INGEST_URL:`: URL of the Splunk ingest  (e.g. `https://ingest.SPLUNK_REALM.signalfx.com`). Default value is `https://ingest.us0.signalfx.com`.
+- `/SPLUNK_API_URL`: URL of the API endpoint (e.g. `https://api.SPLUNK_REALM.signalfx.com`). Default value is `https://api.us0.signalfx.com`.
+- `/SPLUNK_HEC_TOKEN`: Splunk HEC is HTTP Event Collecter token which will collect the metrics and logs of host system in to splunk. Default value is same as `SPLUNK_ACCESS_TOKEN`
+- `/SPLUNK_HEC_URL`: URL of Splunk HEC (e.g. `https://ingest.$SPLUNK_REALM.signalfx.com/v1/log`). Default value is `https://ingest.us0.signalfx.com/v1/log`
+- `/SPLUNK_TRACE_URL`: Trace url is end point where apllication traces will be collected. URL of Splunk TRACE (e.g. `https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace`). Default value is `https://ingest.us0.signalfx.com/v2/trace`
+- `/SPLUNK_BUNDLE_DIR`: The path to the Agent bundle directory. The default path is provided by the collector package. If the specified path is changed from the default value, the path should be an existing directory on the node. The SPLUNK_BUNDLE_DIR environment variable will be set to this value for the collector service.
+- `/MODE`: The mode option is used for setting config_path to `\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml` or `\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml` in OpenTelemetry Collector. Possible values are `agent` and `gateway`. Default value is `agent`.
+
+To pass parameters, use `--params "''"` :
+```sh
+PS> choco install splunk-otel-collector --params="'/SPLUNK_ACCESS_TOKEN:YOUR_SPLUNK_ACCESS_TOKEN /SPLUNK_REALM:YOUR_SPLUNK_REALM'".
+```
+
+If the parameter is specified, the keys/values will be created/updated to the system environment registry - `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`. 
+
+If the parameter is not specified, the values will be fetch from the system environment registry, and if the system environment registry does not have a key/value in that case Default values will be used.
 
 ### Docker
 

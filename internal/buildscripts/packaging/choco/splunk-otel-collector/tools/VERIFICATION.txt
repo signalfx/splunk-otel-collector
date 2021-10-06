@@ -1,0 +1,12 @@
+﻿VERIFICATION
+Verification is intended to assist the Chocolatey moderators and community
+in verifying that this package's contents are trustworthy.
+ 
+This package is built and published by SignalFx, Inc.
+
+Company: https://www.signalfx.com/
+Repository: https://github.com/signalfx/splunk-otel-collector
+License: https://github.com/signalfx/splunk-otel-collector/blob/main/LICENSE
+
+MSI_NAME checksum:
+* SHA256: MSI_HASH

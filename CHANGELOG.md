@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add Chocolately package support. (#724)
+
 ## v0.36.0
 
 This Splunk OpenTelemetry Connector release includes changes from the [opentelemetry-collector v0.36.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.36.0) and the [opentelemetry-collector-contrib v0.36.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.36.0) releases.

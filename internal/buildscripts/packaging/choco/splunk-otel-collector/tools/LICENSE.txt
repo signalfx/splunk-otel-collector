@@ -1,0 +1,4 @@
+﻿From: https://raw.githubusercontent.com/signalfx/splunk-otel-collector/main/LICENSE
+
+LICENSE
+

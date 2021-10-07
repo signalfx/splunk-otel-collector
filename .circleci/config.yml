@@ -245,8 +245,10 @@ jobs:
           command: |
             $ErrorActionPreference = 'Stop'
             Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
+            Copy-Item .\bin\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
             docker build -t otelcol-windows --build-arg SMART_AGENT_RELEASE=$((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v")) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
             Remove-Item .\cmd\otelcol\otelcol.exe
+            Remove-Item .\cmd\otelcol\translatesfx.exe
       - run:
           name: Run docker image
           command: |

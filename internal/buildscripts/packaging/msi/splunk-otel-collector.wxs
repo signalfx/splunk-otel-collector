@@ -16,7 +16,8 @@
             <Directory Id="COMPANYDIR" Name="Splunk">
                <Directory Id="INSTALLDIR" Name="OpenTelemetry Collector">
                   <Component Id="ApplicationComponent" Guid="484fa99a-2efe-41cd-a047-98bc1fc71e04">
-                     <File Id="ExecutableFile" Name="otelcol.exe" KeyPath="yes" Source="$(var.Otelcol)"/>
+                     <File Id="OtelcolExecutableFile" Name="otelcol.exe" KeyPath="yes" Source="$(var.Otelcol)"/>
+                     <File Id="TranslatesfxExecutableFile" Name="translatesfx.exe" KeyPath="no" Source="$(var.Translatesfx)"/>
                      <!-- Install the collector service with the config file in ProgramData -->
                      <ServiceInstall
                         Id="Service"

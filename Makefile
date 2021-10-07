@@ -198,11 +198,13 @@ delete-tag:
 .PHONY: docker-otelcol
 docker-otelcol:
 ifneq ($(SKIP_COMPILE), true)
-	GOOS=linux $(MAKE) otelcol
+	$(MAKE) binaries-linux_amd64
 endif
 	cp ./bin/otelcol_linux_amd64 ./cmd/otelcol/otelcol
+	cp ./bin/translatesfx_linux_amd64 ./cmd/otelcol/translatesfx
 	docker build -t otelcol --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) ./cmd/otelcol/
 	rm ./cmd/otelcol/otelcol
+	rm ./cmd/otelcol/translatesfx
 
 .PHONY: binaries-all-sys
 binaries-all-sys: binaries-darwin_amd64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64

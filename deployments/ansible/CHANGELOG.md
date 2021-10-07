@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add SUSE support (collector only) (#748)
+- Use `template` instead of `copy` to manage the configuration file (#770)
 
 ## ansible-v0.2.0
 

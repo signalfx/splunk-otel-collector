@@ -2,13 +2,17 @@
 
 ## Unreleased
 
+## ansible-v0.3.0
+
 ### 🛑 Breaking changes 🛑
 
 - Rename `agent_bundle_dir` parameter to `splunk_bundle_dir` (#810)
 
 ### 💡 Enhancements 💡
 
+- Add Windows support (#646, #797)
 - Add SUSE support (collector only) (#748)
+- Use `template` instead of `copy` to manage the configuration file (#770)
 
 ## ansible-v0.2.0
 

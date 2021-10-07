@@ -4,7 +4,8 @@
 
 The following deployment options are supported:
 
-- [MSI](#msi-installation)
+- [Collector MSI](#collector-msi-installation)
+- [Fluentd MSI](#fluentd-msi-installation) for log collection
 - [Chocolatey](#chocolatey-installation)
 - [Docker](#docker)
 
@@ -15,7 +16,7 @@ configurations](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/
 which can be configured via environment variables. How these variables are
 configured depends on the installation method leveraged.
 
-### MSI Installation
+### Collector MSI Installation
 
 A Windows MSI package (64-bit only) is available to download at
 [https://github.com/signalfx/splunk-otel-collector/releases
@@ -30,11 +31,11 @@ A default config file will be copied to
 already exist.  This file is required to start the `splunk-otel-collector`
 service.
 
-### GUI
+#### GUI
 
 Double-click on the downloaded package and follow the wizard.
 
-### PowerShell
+#### PowerShell
 
 In a PowerShell terminal:
 
@@ -45,7 +46,7 @@ PS> Start-Process -Wait msiexec "/i PATH_TO_MSI /qn"
 Replace `PATH_TO_MSI` with the *full* path to the downloaded package, e.g.
 `C:\your\download\folder\splunk-otel-collector-0.4.0-amd64.msi`.
 
-### Configuration
+#### Configuration
 
 Before starting the `splunk-otel-collector` service, the following variables
 in the default config file need to be replaced by the appropriate values for
@@ -88,7 +89,49 @@ Start-Service splunk-otel-collector
 
 The collector logs and errors can be viewed in the Windows Event Viewer.
 
-### Chocolatey installation
+### Fluentd MSI Installation
+
+If log collection is required, perform the following steps to install Fluentd
+and forward collected log events to the Collector (requires `Administrator`
+privileges):
+
+1. Install, configure, and start the Collector as described in the previous
+   section.  The Collector's default configuration file
+   (`\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`) listens
+   for log events on `127.0.0.1:8006` and sends them to the Splunk
+   Observability Cloud.
+1. Check [https://docs.fluentd.org/installation/install-by-msi#td-agent-v4](
+   https://docs.fluentd.org/installation/install-by-msi#td-agent-v4) to install
+   the Fluentd MSI.  Requires version 4.0 or newer.
+1. Configure Fluentd to collect log events and forward them to the Collector:
+   - Option 1: Update the default config file provided by the Fluentd MSI at
+     `\opt\td-agent\etc\td-agent\td-agent.conf` to collect the desired log
+     events and [forward](https://docs.fluentd.org/output/forward) them to
+     `127.0.0.1:8006`.
+   - Option 2: The installed Collector package provides a custom Fluentd config
+     file
+     (`\Program Files\Splunk\OpenTelemetry Collector\fluentd\td-agent.conf`) to
+     collect log events from the Windows Event Log
+     (`\Program Files\Splunk\OpenTelemetry Collector\fluentd\conf.d\eventlog.conf`)
+     and forwards them to `127.0.0.1:8006`.  To utilize these files, backup any
+     files as necessary in the `\opt\td-agent\etc\td-agent\` directory, and
+     copy the contents from the
+     `\Program Files\Splunk\OpenTelemetry Collector\fluentd\` directory to the
+     `\opt\td-agent\etc\td-agent\` directory.
+1. Apply the changes by restarting the system or by running the following
+   Powershell commands to restart the Fluentd service:
+   ```sh
+   Stop-Service fluentdwinsvc
+   Start-Service fluentdwinsvc
+   ```
+   **Note**: The `fluentdwinsvc` service must be restarted in order for any
+   changes made to the Fluentd config files to take effect.
+1. The Fluentd logs and errors can be viewed in `\opt\td-agent\td-agent.log`.
+1. See [https://docs.fluentd.org/configuration](
+   https://docs.fluentd.org/configuration) for general Fluentd configuration
+   details.
+
+### Chocolatey Installation
 
 #### Package Parameters
 The following package parameters are available:

@@ -744,9 +744,8 @@ parse_args_and_install() {
   echo "Splunk OpenTelemetry Collector Version: ${collector_version}"
   if [ -n "$ballast" ]; then
     echo "Ballast Size in MIB: $ballast"
-  else
-    echo "Memory Size in MIB: $memory"
   fi
+  echo "Memory Size in MIB: $memory"
   echo "Realm: $realm"
   echo "Ingest Endpoint: $ingest_url"
   echo "API Endpoint: $api_url"
@@ -814,10 +813,9 @@ parse_args_and_install() {
   configure_env_file "SPLUNK_TRACE_URL" "$trace_url" "$collector_env_path"
   configure_env_file "SPLUNK_HEC_URL" "$hec_url" "$collector_env_path"
   configure_env_file "SPLUNK_HEC_TOKEN" "$hec_token" "$collector_env_path"
+  configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
   if [ -n "$ballast" ]; then
     configure_env_file "SPLUNK_BALLAST_SIZE_MIB" "$ballast" "$collector_env_path"
-  else
-    configure_env_file "SPLUNK_MEMORY_TOTAL_MIB" "$memory" "$collector_env_path"
   fi
   if [ -d "$collector_bundle_dir" ]; then
     configure_env_file "SPLUNK_BUNDLE_DIR" "$collector_bundle_dir" "$collector_env_path"

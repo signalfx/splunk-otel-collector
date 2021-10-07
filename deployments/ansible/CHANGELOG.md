@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- Rename `agent_bundle_dir` parameter to `splunk_bundle_dir` (#810)
+
+### 💡 Enhancements 💡
+
 - Add SUSE support (collector only) (#748)
 
 ## ansible-v0.2.0

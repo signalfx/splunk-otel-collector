@@ -34,7 +34,7 @@
 
 - name: Set Otel Collector agent bundle directory
   ansible.builtin.file:
-    path: "{{ agent_bundle_dir }}"
+    path: "{{ splunk_bundle_dir }}"
     state: directory
     owner: "{{ splunk_service_user }}"
     group: "{{ splunk_service_group }}"

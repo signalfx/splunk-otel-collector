@@ -38,7 +38,7 @@ splunk_fluentd_config_source: ""
 
 # Default path on Linux: "/usr/lib/splunk-otel-collector/agent-bundle".
 # Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle".
-agent_bundle_dir: ""
+splunk_bundle_dir: ""
 
 # Default path on Linux: "/usr/lib/splunk-otel-collector/agent-bundle/run/collectd".
 # Default path on Windows: "%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd".

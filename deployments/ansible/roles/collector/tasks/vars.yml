@@ -13,9 +13,9 @@
       {%- else -%}
         /etc/otel/collector/fluentd/fluent.conf
       {%- endif -%}
-    agent_bundle_dir: |-
-      {%- if agent_bundle_dir -%}
-        {{ agent_bundle_dir }}
+    splunk_bundle_dir: |-
+      {%- if splunk_bundle_dir -%}
+        {{ splunk_bundle_dir }}
       {%- else -%}
         /usr/lib/splunk-otel-collector/agent-bundle
       {%- endif -%}
@@ -30,8 +30,8 @@
 - name: set default vars for Windows
   set_fact:
     splunk_bundle_dir: |-
-      {%- if agent_bundle_dir -%}
-        {{ agent_bundle_dir }}
+      {%- if splunk_bundle_dir -%}
+        {{ splunk_bundle_dir }}
       {%- else -%}
         {{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\agent-bundle
       {%- endif -%}

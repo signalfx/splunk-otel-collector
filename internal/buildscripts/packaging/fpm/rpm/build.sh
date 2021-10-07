@@ -37,6 +37,7 @@ if [[ -z "$SMART_AGENT_RELEASE" ]]; then
 fi
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
+translatesfx_path="$REPO_DIR/bin/translatesfx_linux_${ARCH}"
 
 buildroot="$(mktemp -d)"
 
@@ -47,7 +48,7 @@ elif [[ "$ARCH" = "amd64" ]]; then
     download_smart_agent "$SMART_AGENT_RELEASE" "$buildroot"
 fi
 
-setup_files_and_permissions "$otelcol_path" "$buildroot"
+setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$buildroot"
 
 mkdir -p "$OUTPUT_DIR"
 

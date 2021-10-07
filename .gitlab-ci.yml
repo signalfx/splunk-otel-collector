@@ -162,6 +162,8 @@ build-linux-image:
   except:
     - schedules
   stage: package
+  dependencies:
+    - compile
   retry: 2
   script:
     - make docker-otelcol SKIP_COMPILE=true
@@ -180,6 +182,8 @@ build-linux-image:
   except:
     - schedules
   stage: package
+  dependencies:
+    - compile
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
@@ -212,9 +216,13 @@ build-msi:
   except:
     - schedules
   stage: package
+  dependencies:
+    - sign-exe
   before_script:
     # build the MSI with the signed exe
+    - mkdir -p bin
     - cp -f dist/signed/otelcol_windows_amd64.exe bin/otelcol_windows_amd64.exe
+    - cp -f dist/signed/translatesfx_windows_amd64.exe bin/translatesfx_windows_amd64.exe
   script:
     - make msi SKIP_COMPILE=true VERSION=${CI_COMMIT_TAG:-}
   artifacts:
@@ -274,6 +282,7 @@ build-push-windows-image:
   retry: 2
   before_script:
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
+    - Copy-Item .\dist\signed\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
   script:
     - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
     - |

@@ -214,6 +214,10 @@ func TestInfoToOtelConfig_Observers(t *testing.T) {
 		"node":      "${K8S_NODE_NAME}",
 	}, obs)
 	assert.Equal(t, []string{"k8s_observer"}, oc.Service.Extensions)
+	v := oc.Receivers["receiver_creator"]["receivers"]
+	m := v.(map[string]map[string]interface{})
+	rr := m["smartagent/collectd/redis"]
+	assert.Equal(t, `type == "port" && pod.name == "redis" && port == 6379`, rr["rule"])
 }
 
 func TestInfoToOtelConfig_ZK(t *testing.T) {

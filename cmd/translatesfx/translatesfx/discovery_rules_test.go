@@ -56,10 +56,10 @@ func TestDiscoveryRuleToRCRule_HasPort(t *testing.T) {
 	assert.True(t, output.(bool))
 }
 
-func TestDiscoveryRuleToRCRule_NoTranslation(t *testing.T) {
+func TestDiscoveryRuleToRCRule_NoObservers(t *testing.T) {
 	saRule := `host == "127.0.0.1"`
 	_, err := discoveryRuleToRCRule(saRule, nil)
-	require.EqualError(t, err, `no translation for identifier: "host"`)
+	require.EqualError(t, err, `discoveryRuleToRCRule failed: target not found: guessRuleType: no observers`)
 }
 
 func TestDiscoveryRuleToRCRule_CamelCase(t *testing.T) {
@@ -70,19 +70,39 @@ func TestDiscoveryRuleToRCRule_CamelCase(t *testing.T) {
 	assert.Equal(t, snake, camel)
 }
 
-func TestHasType(t *testing.T) {
-	tree, err := parser.Parse(`type == "hostport" && process_name == "redis-server"`)
+func TestDiscoveryRuleToRCRule_K8s(t *testing.T) {
+	otel, err := discoveryRuleToRCRule(`target == "pod" && kubernetes_pod_name == "redis" && kubernetes_namespace == "default" && kubernetes_pod_uid == "abc123"`, nil)
 	require.NoError(t, err)
-	assert.True(t, hasType(tree.Node))
-
-	tree, err = parser.Parse(`process_name == "redis-server"`)
-	require.NoError(t, err)
-	assert.False(t, hasType(tree.Node))
+	assert.Equal(t, `type == "port" && pod.name == "redis" && pod.namespace == "default" && pod.uid == "abc123"`, otel)
 }
 
 func TestGuessType(t *testing.T) {
-	typ, _ := guessType([]interface{}{map[interface{}]interface{}{
+	typ, _ := guessRuleType([]interface{}{map[interface{}]interface{}{
 		"type": "host",
 	}})
 	assert.Equal(t, "hostport", typ)
+}
+
+func TestUpdateTarget_HostPort(t *testing.T) {
+	const orig = `target == "hostport" && name == "redis"`
+	tree, err := parser.Parse(orig)
+	require.NoError(t, err)
+	_, found := updateTarget(tree.Node)
+	assert.True(t, found)
+	assert.Equal(t, orig, treeToString(tree.Node))
+}
+
+func TestUpdateTarget_Pod(t *testing.T) {
+	tree, err := parser.Parse(`name == "redis" && target == "pod"`)
+	require.NoError(t, err)
+	_, found := updateTarget(tree.Node)
+	assert.True(t, found)
+	assert.Equal(t, `name == "redis" && target == "port"`, treeToString(tree.Node))
+}
+
+func TestUpdateTarget_MissingTarget(t *testing.T) {
+	tree, err := parser.Parse(`name == "redis"`)
+	require.NoError(t, err)
+	_, found := updateTarget(tree.Node)
+	assert.False(t, found)
 }

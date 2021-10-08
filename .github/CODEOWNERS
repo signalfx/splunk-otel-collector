@@ -8,7 +8,7 @@
 #
 #####################################################
 
-*.md @signalfx/docs @signalfx/gdi-data-collection-approvers
-*.rst @signalfx/docs @signalfx/gdi-data-collection-approvers
-docs/ @signalfx/docs @signalfx/gdi-data-collection-approvers
-README* @signalfx/docs @signalfx/gdi-data-collection-approvers
+*.md @signalfx/gdi-docs @signalfx/gdi-data-collection-approvers
+*.rst @signalfx/gdi-docs @signalfx/gdi-data-collection-approvers
+docs/ @signalfx/gdi-docs @signalfx/gdi-data-collection-approvers
+README* @signalfx/gdi-docs @signalfx/gdi-data-collection-approvers

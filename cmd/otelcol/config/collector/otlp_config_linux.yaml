@@ -60,8 +60,9 @@ processors:
         #value: staging/production/...
         #key: deployment.environment
 
-  # detect if the collector is running on a cloud system.
-  # overrides resource attributes set by receivers
+  # Detect if the collector is running on a cloud system. Overrides resource attributes set by receivers.
+  # Detector order is important: the `system` detector goes last so it can't preclude cloud detectors from setting host/os info.
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#ordering
   resourcedetection/internal:
     detectors: [gce, ecs, ec2, azure, system]
     override: true

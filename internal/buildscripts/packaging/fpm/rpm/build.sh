@@ -37,6 +37,7 @@ if [[ -z "$SMART_AGENT_RELEASE" ]]; then
 fi
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
+translatesfx_path="$REPO_DIR/bin/translatesfx_linux_${ARCH}"
 
 buildroot="$(mktemp -d)"
 
@@ -47,7 +48,7 @@ elif [[ "$ARCH" = "amd64" ]]; then
     download_smart_agent "$SMART_AGENT_RELEASE" "$buildroot"
 fi
 
-setup_files_and_permissions "$otelcol_path" "$buildroot"
+setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$buildroot"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -62,7 +63,7 @@ sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --rpm-summary "$PKG_DESCRIPTION" \
     --rpm-use-file-permissions \
     --before-install "$PREINSTALL_PATH" \
-    --after-install "$POSTINSTALL_PATH" \
+    --rpm-posttrans "$POSTINSTALL_PATH" \
     --before-remove "$PREUNINSTALL_PATH" \
     --config-files "$AGENT_CONFIG_INSTALL_PATH" \
     --config-files "$GATEWAY_CONFIG_INSTALL_PATH" \

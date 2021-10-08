@@ -44,7 +44,7 @@ that will make the event submission requests.  It's recommended, and in the case
 to use a [Resource Detection
 processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md)
 to ensure that host identity and other useful information is made available as event dimensions.
-Receiver entries that should be added to logs pipelines include `nagios`, `processlist`, and potentially any
+Receiver entries that should be added to logs pipelines include `kubernetes-events`, `nagios`, `processlist`, and potentially any
 `telegraf/*` monitors like `telegraf/exec`.  An example of this is provided below.
 
 Example:

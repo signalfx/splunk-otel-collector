@@ -22,7 +22,7 @@ A Windows MSI package (64-bit only) is available to download at
 [https://github.com/signalfx/splunk-otel-collector/releases
 ](https://github.com/signalfx/splunk-otel-collector/releases).
 
-The collector will be installed to
+The Collector will be installed to
 `\Program Files\Splunk\OpenTelemetry Collector`, and the
 `splunk-otel-collector` service will be created but not started.
 
@@ -150,7 +150,8 @@ privileges):
    ```
    **Note**: The `fluentdwinsvc` service must be restarted in order for any
    changes made to the Fluentd config files to take effect.
-1. The Fluentd logs and errors can be viewed in `\opt\td-agent\td-agent.log`.
+1. The Fluentd service logs and errors can be viewed in
+   `\opt\td-agent\td-agent.log`.
 1. See [https://docs.fluentd.org/configuration](
    https://docs.fluentd.org/configuration) for general Fluentd configuration
    details.
@@ -167,7 +168,7 @@ The following package parameters are available:
 - `/SPLUNK_HEC_TOKEN`: Splunk HEC is HTTP Event Collecter token which will collect the metrics and logs of host system in to splunk. Default value is same as `SPLUNK_ACCESS_TOKEN`
 - `/SPLUNK_HEC_URL`: URL of Splunk HEC (e.g. `https://ingest.$SPLUNK_REALM.signalfx.com/v1/log`). Default value is `https://ingest.us0.signalfx.com/v1/log`
 - `/SPLUNK_TRACE_URL`: Trace url is end point where apllication traces will be collected. URL of Splunk TRACE (e.g. `https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace`). Default value is `https://ingest.us0.signalfx.com/v2/trace`
-- `/SPLUNK_BUNDLE_DIR`: The path to the Agent bundle directory. The default path is provided by the collector package. If the specified path is changed from the default value, the path should be an existing directory on the node. The SPLUNK_BUNDLE_DIR environment variable will be set to this value for the collector service.
+- `/SPLUNK_BUNDLE_DIR`: The path to the Agent bundle directory. The default path is provided by the Collector package. If the specified path is changed from the default value, the path should be an existing directory on the node. The SPLUNK_BUNDLE_DIR environment variable will be set to this value for the Collector service.
 - `/MODE`: The mode option is used for setting config_path to `\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml` or `\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml` in OpenTelemetry Collector. Possible values are `agent` and `gateway`. Default value is `agent`.
 
 To pass parameters, use `--params "''"` :

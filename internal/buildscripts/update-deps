@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
+REPO_DIR="$( cd "$SCRIPT_DIR"/../../ && pwd )"
+CUR_DIR="$PWD"
+
+OTEL_VERSION="${OTEL_VERSION:-main}"
+CORE_VERSION="${CORE_VERSION:-$OTEL_VERSION}"
+CONTRIB_VERSION="${CONTRIB_VERSION:-$OTEL_VERSION}"
+
+trap "cd $CUR_DIR" EXIT
+
+for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort ); do
+    pushd "$( dirname "$gomod" )" >/dev/null
+
+    OFS=$IFS
+    IFS=$'\n'
+
+    # update the replace directives to the new version
+    lines="$( grep 'github.com/open-telemetry/opentelemetry-collector-contrib/.* =>' "$gomod" )"
+    for line in $lines; do
+        pkg="$( echo "$line" | awk '{print $1}' )"
+        sed -i -e "s|\(${pkg} .*=> ${pkg}\) .*|\1 ${CONTRIB_VERSION}|" "$gomod"
+    done
+
+    if grep -q 'go.opentelemetry.io/collector ' "$gomod"; then
+        go get go.opentelemetry.io/collector@${CORE_VERSION}
+    fi
+
+    if grep -q 'go.opentelemetry.io/collector/model ' "$gomod"; then
+        go get go.opentelemetry.io/collector/model@${CORE_VERSION}
+    fi
+
+    set +o pipefail
+    lines="$( grep 'github.com/open-telemetry/opentelemetry-collector-contrib/' "$gomod" | grep -v '=>' | grep -v ' // indirect' | sort -u )"
+    set -o pipefail
+    for line in $lines; do
+        pkg="$( echo "$line" | awk '{print $1}' )"
+        go get ${pkg}@${CONTRIB_VERSION}
+    done
+
+    IFS=$OFS
+
+    go mod tidy
+
+    popd >/dev/null
+done

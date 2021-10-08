@@ -101,12 +101,12 @@ processors:
   # detect if the collector is running on a cloud system
   # important for creating unique cloud provider dimensions
   resourcedetection:
-    detectors: [system, gce, ecs, ec2, azure]
+    detectors: [gce, ecs, ec2, azure, system]
     override: false
 
   # Same as above but overrides resource attributes set by receivers
   resourcedetection/internal:
-    detectors: [system, gce, ecs, ec2, azure]
+    detectors: [gce, ecs, ec2, azure, system]
     override: true
 
   # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and 

@@ -212,7 +212,7 @@ processors:
   # detect if the collector is running on a cloud system.
   # overrides resource attributes set by receivers
   resourcedetection/internal:
-    detectors: [system, gce, ecs, ec2, azure]
+    detectors: [gce, ecs, ec2, azure, system]
     override: true
 
   # Enables the memory limiter processor with default settings

@@ -1,0 +1,65 @@
+name: Dependency Test
+on:
+  schedule:
+    - cron: '0 12 * * 1-5'
+
+jobs:
+  deps-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v2.1.4
+        with:
+          go-version: 1.17
+      - name: Setup Go Environment
+        run: |
+          echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+      - name: Cache Go
+        id: module-cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-go-modules
+        with:
+          path: |
+            /home/runner/go/pkg/mod
+          key: go-pkg-mod-${{ runner.os }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
+      - name: Update Core/Contrib Dependencies to main
+        shell: bash
+        run: |
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          echo "[$run_url]($run_url)" > deps-test.md
+          trap "echo '\`\`\`' >> deps-test.md" EXIT
+          echo "- Update Core/Contrib Dependencies to main" >> deps-test.md
+          echo "\`\`\`" >> deps-test.md
+          CORE_VERSION=main CONTRIB_VESION=main ./internal/buildscripts/update-deps 2>&1 | tee -a deps-test.md
+      - name: Compile
+        shell: bash
+        run: |
+          trap "echo '\`\`\`' >> deps-test.md" EXIT
+          echo "- Compile" >> deps-test.md
+          echo "\`\`\`" >> deps-test.md
+          make binaries-all-sys 2>&1 | tee -a deps-test.md
+      - name: Run Tests
+        shell: bash
+        run: |
+          trap "echo '\`\`\`' >> deps-test.md" EXIT
+          echo "- Run Tests" >> deps-test.md
+          echo "\`\`\`" >> deps-test.md
+          make test 2>&1 | tee -a deps-test.md
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: gomods
+          path: |
+            **/go.mod
+            !**/examples/**/go.mod
+      - name: Create Issue
+        uses: peter-evans/create-issue-from-file@v2
+        if: failure()
+        with:
+          title: Dependency Test Report
+          content-filepath: ./deps-test.md
+          labels: report, automated issue

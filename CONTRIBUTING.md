@@ -33,12 +33,12 @@ When filing an issue, please do *NOT* include:
 ## Documentation
 
 The Splunk Observability documentation is hosted on https://docs.splunk.com/Observability,
-which contains all the prescriptive guidance for Splunk Observability products. 
+which contains all the prescriptive guidance for Splunk Observability products.
 Prescriptive guidance consists of step-by-step instructions, conceptual material,
-and decision support for customers. Reference documentation and development 
+and decision support for customers. Reference documentation and development
 documentation is hosted on this repository.
 
-You can send feedback about Splunk Observability docs by clicking the Feedback 
+You can send feedback about Splunk Observability docs by clicking the Feedback
 button on any of our documentation pages.
 
 ## Contributing via Pull Requests
@@ -76,6 +76,30 @@ Looking at the existing issues is a great way to find something to contribute
 on. As our projects, by default, use the default GitHub issue labels
 (enhancement/bug/duplicate/help wanted/invalid/question/wontfix), looking at
 any 'help wanted' issues is a great place to start.
+
+## Local development
+
+The [Makefile](Makefile) has everything needed to get started. For example, to
+build the binary locally run:
+
+```bash
+make install-tools # only need to do this once
+make otelcol
+```
+
+Some people make be interested in adding and/or removing components. This can
+be accomplished by:
+
+1. Adding or removing components from the import in
+   [components.go](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/components/components.go#L18)
+2. Adding or removing components from [Get function in components.go](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/components/components.go#L75)
+3. Updating tests by adding or removing components from
+   [TestDefaultComponents](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/components/components_test.go#L26)
+4. Updating [components.md](components.md) (only required if submitting PR to repository)
+
+> :warn: Adding or removing components is not officially supported by Splunk as
+> it may change performance characteristics and/or system behavior. Support is
+> provided if issues experienced can be reproduced with official builds.
 
 ## Licensing
 

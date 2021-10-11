@@ -95,7 +95,7 @@ be accomplished by:
 2. Adding or removing components from [Get function in components.go](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/components/components.go#L75)
 3. Updating tests by adding or removing components from
    [TestDefaultComponents](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/components/components_test.go#L26)
-4. Updating [components.md](components.md) (only required if submitting PR to repository)
+4. Updating [components.md](docs/components.md) (only required if submitting PR to repository)
 
 > :warn: Adding or removing components is not officially supported by Splunk as
 > it may change performance characteristics and/or system behavior. Support is

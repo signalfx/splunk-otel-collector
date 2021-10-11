@@ -122,14 +122,14 @@ job "otel-gateway" {
       }
 
       env {
-        SPLUNK_ACCESS_TOKEN = "YOUR_SPLUNK_ACCESS_TOKEN"
-        SPLUNK_REALM = "YOUR_SPLUNK_REALM"
-        SPLUNK_MEMORY_TOTAL_MIB = 2048
+        SPLUNK_ACCESS_TOKEN = "<SPLUNK_ACCESS_TOKEN>"
+        SPLUNK_REALM = "<SPLUNK_REALM>"
+        SPLUNK_MEMORY_TOTAL_MIB = 500
       }
 
       resources {
         cpu    = 500
-        memory = 2048
+        memory = 500
       }
 
       template {

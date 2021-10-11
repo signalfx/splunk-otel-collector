@@ -1,15 +1,19 @@
-# Splunk OpenTelemetry Collector on HashiCorp Nomad
+# Splunk OpenTelemetry Collector for HashiCorp Nomad
 
-The Splunk OpenTelemetry Collector for HashiCorp Nomad is orchestrator deployment to create job which provides a unified way to receive, process and export metric, and trace data for [Splunk Observability Cloud](https://www.observability.splunk.com/).
+The Splunk OpenTelemetry Collector for HashiCorp Nomad is an orchestrator deployment to create a job which provides a unified way to receive, process and export metric, and trace data for [Splunk Observability Cloud](https://www.observability.splunk.com/).
 
-_These job files are provided as a reference only and are not designed for production use._
+**NOTE**: Job files are provided as a reference only and are not intended for production use._
 
 ## Deployment
 
-To run the job files you will need access to a Nomad cluster and, optionally, a
-Consul cluster as well. You can start a local dev agent for Nomad and Consul by
-downloading the [`nomad`](https://www.nomadproject.io/downloads) and
-[`consul`](https://www.consul.io/downloads) binary and running the following
+To run the job files you need:
+
+- Access to a Nomad cluster
+- (Optional) Access to a Consul cluster
+
+To start a local dev agent for Nomad and Consul, download the
+[`nomad`](https://www.nomadproject.io/downloads) binary file and
+[`consul`](https://www.consul.io/downloads) binary and run the following
 commands in two different terminals:
 
 ```shell-session
@@ -21,14 +25,14 @@ $ consul agent -dev
 ```
 ### Usage Guide
 
-To deploy the Splunk OpenTelemetry Collector job on the nomad cluster we need to set environment variable in nomad job configuration. 
+To deploy the Splunk OpenTelemetry Collector job on the Nomad cluster we need to set environment variable in Nomad job configuration. 
 
 ```yaml
 env {
-    SPLUNK_ACCESS_TOKEN = "YOUR_SPLUNK_ACCESS_TOKEN"
-    SPLUNK_REALM = "YOUR_SPLUNK_REALM"
+    SPLUNK_ACCESS_TOKEN = "<SPLUNK_ACCESS_TOKEN>"
+    SPLUNK_REALM = "<SPLUNK_REALM>"
     SPLUNK_MEMORY_TOTAL_MIB = 2048
-    // We can specify more environment variable to override default values.
+    // You can specify more environment variables to override default values.
 }
 ```
 
@@ -65,7 +69,7 @@ $ nomad run deployments/nomad/otel-agent.nomad
 ### Demo
 
 The demo job deploys the Splunk OpenTelemetry Collector as `agent` and `gateway`, `load
-generators`, to collect metrics and traces and export them using `SignalFx` exporter.
+generators`, to collect metrics and traces and export them using the `SignalFx` exporter.
 
 ```shell-session
 $ nomad run deployments/nomad/otel-demo.nomad

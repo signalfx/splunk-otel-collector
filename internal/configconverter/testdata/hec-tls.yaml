@@ -1,0 +1,49 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+
+exporters:
+  splunk_hec:
+    token: "00000000-0000-0000-0000-0000000000000"
+    endpoint: "https://splunk:8088/services/collector"
+    insecure_skip_verify: true
+    ca_file: "my-ca-file-1"
+    cert_file: "my-cert-file-1"
+    key_file: "my-key-file-1"
+  splunk_hec/allsettings:
+    token: "00000000-0000-0000-0000-0000000000000"
+    endpoint: "https://splunk:8088/services/collector"
+    source: "otel"
+    sourcetype: "otel"
+    index: "metrics"
+    insecure_skip_verify: true
+    ca_file: "my-ca-file-2"
+    cert_file: "my-cert-file-2"
+    key_file: "my-key-file-2"
+    timeout: 10s
+    sending_queue:
+      enabled: true
+      num_consumers: 2
+      queue_size: 10
+    retry_on_failure:
+      enabled: true
+      initial_interval: 10s
+      max_interval: 60s
+      max_elapsed_time: 10m
+    splunk_app_name: "OpenTelemetry-Collector Splunk Exporter"
+    splunk_app_version: "v0.0.1"
+    hec_metadata_to_otel_attrs:
+      source: "mysource"
+      sourcetype: "mysourcetype"
+      index: "myindex"
+      host: "myhost"
+    otel_to_hec_fields:
+      severity_text: "myseverityfield"
+      severity_number: "myseveritynumfield"
+      name: "mynamefield"
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      exporters: [splunk_hec, splunk_hec/allsettings]

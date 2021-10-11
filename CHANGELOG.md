@@ -6,6 +6,14 @@
 
 - Add Chocolately package support. (#724)
 
+## 🛑 Breaking changes 🛑
+
+- Reorder detectors in default configs, moving the `system` detector to the 
+  end of the list. Applying this change to a pre-existing config in an EC2
+  or Azure deployment will change both the `host.name` dimension and the 
+  resource ID dimension on some MTSes, possibly causing detectors to fire. 
+  (#822)
+
 ## v0.36.0
 
 This Splunk OpenTelemetry Connector release includes changes from the [opentelemetry-collector v0.36.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.36.0) and the [opentelemetry-collector-contrib v0.36.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.36.0) releases.

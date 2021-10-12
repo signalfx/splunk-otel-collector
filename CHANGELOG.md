@@ -2,17 +2,33 @@
 
 ## Unreleased
 
-### Added
-
 - Add Chocolately package support. (#724)
 
-## 🛑 Breaking changes 🛑
+## v0.36.1
+
+### 🚀 New components 🚀
+
+- [`httpsink` exporter](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/exporter/httpsinkexporter) to make span data available via a HTTP endpoint
+- Initial release of [`translatesfx`](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/translatesfx) to translate a SignalFx Smart Agent configuration file into a configuration that can be used by an OpenTelemetry Collector
+
+### 🛑 Breaking changes 🛑
 
 - Reorder detectors in default configs, moving the `system` detector to the 
   end of the list. Applying this change to a pre-existing config in an EC2
   or Azure deployment will change both the `host.name` dimension and the 
   resource ID dimension on some MTSes, possibly causing detectors to fire. 
   (#822)
+
+### 💡 Enhancements 💡
+
+- Add `--skip-collector-repo` and `--skip-fluentd-repo` options to the Linux installer script to skip apt/yum/zypper repo config (#801)
+- Add `collector_msi_url` and `fluentd_msi_url` options to the Windows installer script to allow custom URLs for downloading MSIs (#803)
+- Start collector service after deb/rpm install or upgrade if env file exists (#805)
+
+### 🧰 Bug fixes 🧰
+
+- Allow the version flag without environment variables (#800)
+- Fix Linux installer to set `SPLUNK_MEMORY_TOTAL_MIB` in the environment file if `--ballast` option is specified (#807)
 
 ## v0.36.0
 
@@ -33,7 +49,7 @@ This Splunk OpenTelemetry Connector release includes changes from the [opentelem
 
 This Splunk OpenTelemetry Connector release includes changes from the [opentelemetry-collector v0.35.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.35.0) and the [opentelemetry-collector-contrib v0.35.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.35.0) releases.
 
-## 🚀 New components 🚀
+### 🚀 New components 🚀
 
 - [`groupbyattrs` processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/groupbyattrsprocessor)
 
@@ -97,7 +113,7 @@ This Splunk OpenTelemetry Connector release includes changes from the [opentelem
 
 This Splunk OpenTelemetry Connector release includes changes from the [opentelemetry-collector v0.31.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.31.0) and the [opentelemetry-collector-contrib v0.31.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.31.0) releases.
 
-## 🚀 New components 🚀
+### 🚀 New components 🚀
 
 - [`file_storage` extension](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/storage/filestorage)
 
@@ -156,7 +172,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.26.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.26.0) and the [opentelemetry-collector-contrib v0.26.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.26.0) releases.
 
-## 🚀 New components 🚀
+### 🚀 New components 🚀
 
 - [kafkametrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkametricsreceiver) receiver
 
@@ -181,7 +197,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.25.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.25.0) and the [opentelemetry-collector-contrib v0.25.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.25.0) releases.
 
-## 🚀 New components 🚀
+### 🚀 New components 🚀
 
 - [filelog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver) receiver (#289)
 - [probabilisticsampler](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/probabilisticsamplerprocessor) processor (#300)

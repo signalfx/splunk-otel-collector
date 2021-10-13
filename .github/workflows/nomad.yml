@@ -138,9 +138,9 @@ jobs:
           sudo apt-get install net-tools;
           until nc -w 10 127.0.0.1 4646; do sleep 1; done
           sed -i 's/<SPLUNK_ACCESS_TOKEN>/12345/g' otel-agent.nomad
-          sed -i 's/<SPLUNK_REALM>/us0/g' otel-agent.nomad
+          sed -i 's/<SPLUNK_REALM>/test/g' otel-agent.nomad
           sed -i 's/<SPLUNK_ACCESS_TOKEN>/12345/g' otel-gateway.nomad
-          sed -i 's/<SPLUNK_REALM>/us0/g' otel-gateway.nomad
+          sed -i 's/<SPLUNK_REALM>/test/g' otel-gateway.nomad
           nomad run otel-gateway.nomad
           a=0
           while [ "$a" -lt 10 ];

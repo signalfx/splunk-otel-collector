@@ -1,0 +1,201 @@
+name: Nomad
+
+# The workflow triggered by any change in deployments/nomad/.
+# 1. Run nomad test.
+
+on:
+  pull_request:
+    paths:
+      - 'deployments/nomad/**'
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: 'deployments/nomad'
+
+jobs:
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Install Nomad and Consul.
+        run: |
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add - 
+          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update 
+          sudo apt-get install nomad
+          sudo apt-get install consul
+
+      - name: Start Nomad Service.
+        run: |
+          sudo touch /etc/systemd/system/nomad.service
+          sudo echo "
+          [Unit]
+          Description=Nomad
+          Documentation=https://www.nomadproject.io/docs/
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          ExecReload=/bin/kill -HUP $MAINPID
+          ExecStart=/usr/bin/nomad agent -dev
+          KillMode=process
+          KillSignal=SIGINT
+          LimitNOFILE=65536
+          LimitNPROC=infinity
+          Restart=on-failure
+          RestartSec=2
+
+          TasksMax=infinity
+          OOMScoreAdjust=-1000
+
+          [Install]
+          WantedBy=multi-user.target
+          " >> nomad.service
+          sudo mv nomad.service /etc/systemd/system/nomad.service
+          sudo systemctl enable nomad
+          sudo systemctl start nomad
+          sudo systemctl status nomad
+          a=0
+          while [ "$a" -lt 10 ];
+          do
+            if [ $(sudo systemctl is-active nomad.service) == "active" ];
+            then 
+              echo "Nomad service is running.";
+              break;
+            else 
+              sleep 10;
+            fi
+            a=`expr $a + 1`
+          done
+          if [ "$a" -eq 10 ];
+          then
+            echo "Fail to start Nomad service";
+            sudo systemctl disable nomad;
+            sudo systemctl stop nomad;
+            sudo rm /etc/systemd/system/nomad.service;
+            exit 1;
+          fi
+
+      - name: Start Consul Service.
+        run: |
+          sudo touch /etc/systemd/system/consul.service
+          sudo echo "
+          [Unit]
+          Description=Consul
+          Documentation=https://www.consul.io/docs
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          ExecReload=/bin/kill -HUP $MAINPID
+          ExecStart=/usr/bin/consul agent -dev
+          KillMode=process
+          KillSignal=SIGINT
+          LimitNOFILE=65536
+          LimitNPROC=infinity
+          Restart=on-failure
+          RestartSec=2
+
+          TasksMax=infinity
+          OOMScoreAdjust=-1000
+
+          [Install]
+          WantedBy=multi-user.target
+          " >> consul.service
+          sudo mv consul.service /etc/systemd/system/consul.service
+          sudo systemctl enable consul
+          sudo systemctl start consul
+          a=0
+          while [ "$a" -lt 10 ];
+          do
+            if [ $(sudo systemctl is-active consul.service) == "active" ];
+            then 
+              echo "Consul service is running.";
+              break;
+            else 
+              sleep 10;
+            fi
+            a=`expr $a + 1`
+          done
+          if [ "$a" -eq 10 ];
+          then
+            echo "Fail to start Consul service";
+            sudo systemctl disable consul;
+            sudo systemctl stop consul;
+            sudo rm /etc/systemd/system/consul.service;
+            exit 1;
+          fi
+
+      - name: Deploy nomad Jobs.
+        run: |
+          sudo apt-get install net-tools;
+          until nc -w 10 127.0.0.1 4646; do sleep 1; done
+          sed -i 's/<SPLUNK_ACCESS_TOKEN>/12345/g' otel-agent.nomad
+          sed -i 's/<SPLUNK_REALM>/test/g' otel-agent.nomad
+          sed -i 's/<SPLUNK_ACCESS_TOKEN>/12345/g' otel-gateway.nomad
+          sed -i 's/<SPLUNK_REALM>/test/g' otel-gateway.nomad
+          nomad run otel-gateway.nomad
+          a=0
+          while [ "$a" -lt 10 ];
+          do
+            if [ $(nomad job status otel-gateway | grep Healthy -A 1 | sed -n 2p | awk '{print $4}') == "1" ];
+            then 
+              echo "Job otel-gateway is running.";
+              break;
+            else 
+              echo "Job otel-gateway is not started yet."
+              sleep 30;
+            fi
+            a=`expr $a + 1`
+          done
+          nomad job stop -purge otel-gateway;
+          if [ "$a" -eq 10 ];
+          then
+            echo "Fail to run otel-gateway job.";
+            exit 1;
+          fi
+          nomad run otel-agent.nomad
+          a=0
+          while [ "$a" -lt 10 ];
+          do
+            if [ $(nomad job status otel-agent | grep Status -A 1 | tail -1 | awk '{print $6}') == "running" ];
+            then 
+              sleep 20
+              if [ $(nomad job status otel-agent | grep Status -A 1 | tail -1 | awk '{print $6}') == "running" ];
+              then
+                echo "Job otel-agent is running.";
+                break;
+              else
+                echo "Job otel-agent is not started yet."
+                sleep 30;
+              fi
+            else 
+              echo "Job otel-agent is not started yet."
+              sleep 30;
+            fi
+            a=`expr $a + 1`
+          done
+          nomad job stop -purge otel-agent;
+          if [ "$a" -eq 10 ];
+          then
+            echo "Fail to run otel-agent job.";
+            exit 1;
+          fi
+
+      - name: Stop Nomad and Consul Services.
+        run: |
+          sudo systemctl disable nomad
+          sudo systemctl stop nomad
+          sudo rm /etc/systemd/system/nomad.service
+          sudo apt-get remove nomad
+          sudo systemctl disable consul
+          sudo systemctl stop consul
+          sudo rm /etc/systemd/system/consul.service
+          sudo apt-get remove consul

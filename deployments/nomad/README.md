@@ -41,7 +41,52 @@ To use your own Splunk OpenTelemetry Collector configuration file, you can speci
 ```yaml
 template {
     data        = <<EOF
-// Splunk OpenTelemetry Collector configuration.
+// Find the below config example for setting up your own Splunk OpenTelemetry Collector configuration file.
+extensions:
+  health_check: null
+  zpages: null
+receivers:
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      cpu: null
+      disk: null
+      filesystem: null
+      load: null
+      memory: null
+      network: null
+      paging: null
+      processes: null
+processors:
+  batch: null
+  memory_limiter:
+    ballast_size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
+    check_interval: 2s
+    limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
+exporters:
+  signalfx:
+    access_token: ${SPLUNK_ACCESS_TOKEN}
+    api_url: https://api.${SPLUNK_REALM}.signalfx.com
+    correlation: null
+    ingest_url: https://ingest.${SPLUNK_REALM}.signalfx.com
+    sync_host_metadata: true
+  logging:
+    logLevel: debug
+service:
+  extensions:
+  - health_check
+  - zpages
+  pipelines:
+    metrics:
+      exporters:
+      - logging
+      - signalfx
+      processors:
+      - memory_limiter
+      - batch
+      receivers:
+      - hostmetrics
+      - signalfx
 EOF
     destination = "local/config/otel-agent-config.yaml"
 }
@@ -54,7 +99,9 @@ The Splunk OpenTelemetry Collector can run as a `gateway` by registering a
 [service](https://www.nomadproject.io/docs/schedulers#service) job.
 
 ```shell-session
-$ nomad run deployments/nomad/otel-gateway.nomad
+$ git clone https://github.com/signalfx/splunk-otel-collector.git
+$ cd splunk-otel-collector/deployments/nomad
+$ nomad run otel-gateway.nomad
 ```
 
 ### Agent
@@ -63,14 +110,7 @@ The Splunk OpenTelemetry Collector can run as an `agent` by registering a
 [system](https://www.nomadproject.io/docs/schedulers#system) job.
 
 ```shell-session
-$ nomad run deployments/nomad/otel-agent.nomad
-```
-
-### Demo
-
-The demo job deploys the Splunk OpenTelemetry Collector as `agent` and `gateway`, `load
-generators`, to collect metrics and traces and export them using the `SignalFx` exporter.
-
-```shell-session
-$ nomad run deployments/nomad/otel-demo.nomad
+$ git clone https://github.com/signalfx/splunk-otel-collector.git
+$ cd splunk-otel-collector/deployments/nomad
+$ nomad run otel-agent.nomad
 ```

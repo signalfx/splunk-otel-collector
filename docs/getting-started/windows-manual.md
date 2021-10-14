@@ -145,7 +145,7 @@ The following package parameters are available:
 - `/SPLUNK_TRACE_URL`: Trace url is end point where apllication traces will be collected. URL of Splunk TRACE (e.g. `https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace`). Default value is `https://ingest.us0.signalfx.com/v2/trace`
 - `/SPLUNK_BUNDLE_DIR`: The path to the Agent bundle directory. The default path is provided by the collector package. If the specified path is changed from the default value, the path should be an existing directory on the node. The SPLUNK_BUNDLE_DIR environment variable will be set to this value for the collector service.
 - `/MODE`: The mode option is used for setting config_path to `\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml` or `\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml` in OpenTelemetry Collector. Possible values are `agent` and `gateway`. Default value is `agent`.
-- `/WITH_FLUENTD`: Whether to install and configure fluentd to forward log events to the collector. Possible values are `true` and `false`. Default value is `true`. Fluentd MSI package will be downloaded from `https://packages.treasuredata.com`.
+- `/WITH_FLUENTD`: Whether to install and configure Fluentd to forward log events to the collector. Possible values are `true` and `false`. Default value is `true`. The Fluentd MSI package will be downloaded from `https://packages.treasuredata.com`.
 
 To pass parameters, use `--params "''"` :
 ```sh

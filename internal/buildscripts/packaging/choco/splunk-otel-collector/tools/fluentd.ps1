@@ -1,25 +1,31 @@
 [bool]$SkipFluend = $FALSE
 
+$fluentd_msi_name = "td-agent-4.1.1-x64.msi"
+$fluentd_dl_url = "https://packages.treasuredata.com/4/windows/$fluentd_msi_name"
+try {
+    Resolve-Path $env:SYSTEMDRIVE
+    $fluentd_base_dir = "${env:SYSTEMDRIVE}\opt\td-agent"
+} catch {
+    $fluentd_base_dir = "\opt\td-agent"
+}
+$fluentd_config_dir = "$fluentd_base_dir\etc\td-agent"
+$fluentd_config_path = "$fluentd_config_dir\td-agent.conf"
+$fluentd_service_name = "fluentdwinsvc"
+
+try {
+    Resolve-Path $env:TEMP
+    $tempdir = "${env:TEMP}\Fluentd"
+} catch {
+    $tempdir = "\tmp\Fluentd"
+}
+
+#Skipping installation of fluentd if already installed
+if ((service_installed -name "$fluentd_service_name") -OR (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
+    $SkipFluend = $TRUE
+    Write-Host "The $fluentd_service_name service is already installed. Skipping fluentd installation."
+}
+
 if (!$SkipFluend) {
-
-    $fluentd_msi_name = "td-agent-4.1.1-x64.msi"
-    $fluentd_dl_url = "https://packages.treasuredata.com/4/windows/$fluentd_msi_name"
-    try {
-        Resolve-Path $env:SYSTEMDRIVE
-        $fluentd_base_dir = "${env:SYSTEMDRIVE}\opt\td-agent"
-    } catch {
-        $fluentd_base_dir = "\opt\td-agent"
-    }
-    $fluentd_config_dir = "$fluentd_base_dir\etc\td-agent"
-    $fluentd_config_path = "$fluentd_config_dir\td-agent.conf"
-    $fluentd_service_name = "fluentdwinsvc"
-
-    try {
-        Resolve-Path $env:TEMP
-        $tempdir = "${env:TEMP}\Fluentd"
-    } catch {
-        $tempdir = "\tmp\Fluentd"
-    }
 
     # download a file to a given destination
     function download_file([string]$url, [string]$outputDir, [string]$fileName) {
@@ -34,12 +40,6 @@ if (!$SkipFluend) {
             "
             throw "$message"
         }
-    }
-
-    #Skipping installation of fluentd if already installed
-    if ((service_installed -name "$fluentd_service_name") -OR (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
-        $SkipFluend = $TRUE
-        Write-Host "The $fluentd_service_name service is already installed. Skipping fluentd installation."
     }
 
     # create the temp directory if it doesn't exist

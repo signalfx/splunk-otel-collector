@@ -29,6 +29,7 @@ SERVICE_USER="splunk-otel-collector"
 SERVICE_GROUP="splunk-otel-collector"
 
 OTELCOL_INSTALL_PATH="/usr/bin/otelcol"
+TRANSLATESFX_INSTALL_PATH="/usr/bin/translatesfx"
 AGENT_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/agent_config.yaml"
 AGENT_CONFIG_INSTALL_PATH="/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_REPO_PATH="$REPO_DIR/cmd/otelcol/config/collector/gateway_config.yaml"
@@ -100,7 +101,8 @@ download_smart_agent() {
 
 setup_files_and_permissions() {
     local otelcol="$1"
-    local buildroot="$2"
+    local translatesfx="$2"
+    local buildroot="$3"
 
     create_user_group
 
@@ -108,6 +110,11 @@ setup_files_and_permissions() {
     cp -f "$otelcol" "$buildroot/$OTELCOL_INSTALL_PATH"
     sudo chown root:root "$buildroot/$OTELCOL_INSTALL_PATH"
     sudo chmod 755 "$buildroot/$OTELCOL_INSTALL_PATH"
+
+    mkdir -p "$buildroot/$(dirname $TRANSLATESFX_INSTALL_PATH)"
+    cp -f "$translatesfx" "$buildroot/$TRANSLATESFX_INSTALL_PATH"
+    sudo chown root:root "$buildroot/$TRANSLATESFX_INSTALL_PATH"
+    sudo chmod 755 "$buildroot/$TRANSLATESFX_INSTALL_PATH"
 
     cp -r "$FPM_DIR/etc" "$buildroot/etc"
     cp -f "$AGENT_CONFIG_REPO_PATH" "$buildroot/$AGENT_CONFIG_INSTALL_PATH"

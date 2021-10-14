@@ -13,4 +13,4 @@ observers:
 monitors:
   - type: cpu
   - type: collectd/redis
-    discoveryRule: container_image =~ "redis" && port == 6379
+    discoveryRule: kubernetes_pod_name == "redis" && port == 6379

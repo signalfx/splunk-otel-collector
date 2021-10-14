@@ -18,6 +18,7 @@ set -euo pipefail
 
 WXS_PATH="/project/internal/buildscripts/packaging/msi/splunk-otel-collector.wxs"
 OTELCOL="/project/bin/otelcol_windows_amd64.exe"
+TRANSLATESFX="/project/bin/translatesfx_windows_amd64.exe"
 AGENT_CONFIG="/project/cmd/otelcol/config/collector/agent_config.yaml"
 GATEWAY_CONFIG="/project/cmd/otelcol/config/collector/gateway_config.yaml"
 FLUENTD_CONFIG="/project/internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf"
@@ -38,6 +39,8 @@ Description:
 OPTIONS:
     --otelcol PATH:          Absolute path to the otelcol exe.
                              Defaults to '$OTELCOL'.
+    --translatesfx PATH:     Absolute path to the translatesfx exe.
+                             Defaults to '$TRANSLATESFX'.
     --agent-config PATH:     Absolute path to the agent config.
                              Defaults to '$AGENT_CONFIG'.
     --gateway-config PATH:   Absolute path to the gateway config.
@@ -60,6 +63,7 @@ EOH
 
 parse_args_and_build() {
     local otelcol="$OTELCOL"
+    local translatesfx="$TRANSLATESFX"
     local agent_config="$AGENT_CONFIG"
     local gateway_config="$GATEWAY_CONFIG"
     local fluentd_config="$FLUENTD_CONFIG"
@@ -74,6 +78,10 @@ parse_args_and_build() {
         case $1 in
             --otelcol)
                 otelcol="$2"
+                shift 1
+                ;;
+            --translatesfx)
+                translatesfx="$2"
                 shift 1
                 ;;
             --agent-config)
@@ -162,7 +170,7 @@ parse_args_and_build() {
     candle -arch x64 -out "${configFilesWixObj//\//\\}" "${configFilesWsx//\//\\}"
 
     collectorWixObj="${build_dir}/splunk-otel-collector.wixobj"
-    candle -arch x64 -out "${collectorWixObj//\//\\}" -dVersion="$version" -dOtelcol="$otelcol" "${WXS_PATH//\//\\}"
+    candle -arch x64 -out "${collectorWixObj//\//\\}" -dVersion="$version" -dOtelcol="$otelcol" -dTranslatesfx="$translatesfx" "${WXS_PATH//\//\\}"
 
     msi="${build_dir}/${msi_name}"
     light -ext WixUtilExtension.dll -sval -out "${msi//\//\\}" -b "${files_dir//\//\\}" "${collectorWixObj//\//\\}" "${configFilesWixObj//\//\\}"

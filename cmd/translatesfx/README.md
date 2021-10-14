@@ -18,6 +18,12 @@ Instead, this tool aims to remove a lot of the bookkeeping from migrating to Ote
 from Smart Agent; any config produced by this tool should be carefully 
 evaluated and tested before being put into production.
 
+## Where to Get It
+
+`translatesfx` executables are available on the
+[releases page](https://github.com/signalfx/splunk-otel-collector/releases).
+and are contained in the rpm, msi, and deb packages (v0.36.1 and up).
+
 ## Usage
 
 The `translatesfx` command requires one argument, a Smart Agent 

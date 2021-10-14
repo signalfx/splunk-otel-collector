@@ -19,3 +19,10 @@ This example showcases how the collector can send data to a Splunk Enterprise de
 This example showcases how the agent works with Splunk Enterprise and an existing Prometheus deployment.
 
 [Read more...](./prometheus-federation)
+
+## [Nomad](./nomad)
+
+The demo job deploys the Splunk OpenTelemetry Collector as `agent` and `gateway`, `load
+generators`, to collect metrics and traces and export them using the `SignalFx` exporter.
+
+[Read more...](./nomad)

@@ -109,6 +109,7 @@ This distribution is supported on and packaged for a variety of platforms includ
   - [Helm (recommended)](https://github.com/signalfx/splunk-otel-collector-chart)
   - [Operator (in alpha)](https://github.com/signalfx/splunk-otel-collector-operator)
   - [YAML](https://github.com/signalfx/splunk-otel-collector-chart/tree/main/rendered)
+- [HashiCorp Nomad](./deployments/nomad)
 - Linux
   - [Installer script (recommended)](./docs/getting-started/linux-installer.md)
   - Configuration management

@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add Chocolately package support. (#724)
+- Add Hashicorp Nomad Support. (#819)
 
 ## v0.36.1
 

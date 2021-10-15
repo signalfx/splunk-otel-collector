@@ -1865,6 +1865,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter 
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.37.0/go.mod h1:OYm7ZPRzcCEdEcOyOlRzXK+2ZliZ8bFUlSk8B7nFU50=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.37.0 h1:VkVGzwj343f2RxqL27J1h8lvBGZ1V8j+bFCF+EsgFrE=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.37.0/go.mod h1:cMwvxgDiEcPVu4RkS1GAMe6bKz9pLNGa4qIAwrqAluw=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.37.1-0.20211015174013-886ce783105e h1:ixRKps+24qbEKiQMDrBnpAd8NGq6VjhRYMEtCXZ2J3k=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.37.1-0.20211015174013-886ce783105e/go.mod h1:cMwvxgDiEcPVu4RkS1GAMe6bKz9pLNGa4qIAwrqAluw=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.37.0 h1:WYVZtfOSgXAGE+H1x7Dt2QozopLooEVW5bwDSOc1huQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.37.0/go.mod h1:+LcuTeRxvpoOw/vNdkTTyt1pXzliWkpnixb1L6b2gtk=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.37.0 h1:/9rzygcXCwRdB4C5Lt8DXWIHWKqahpbYBLgMa0Vo/cA=

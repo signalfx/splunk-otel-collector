@@ -20,7 +20,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.37.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.37.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.37.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.37.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.37.1-0.20211015174013-886ce783105e
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.37.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.37.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.37.0
@@ -374,7 +374,7 @@ require (
 )
 
 replace (
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter => github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.37.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter => github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.37.1-0.20211015174013-886ce783105e
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter => github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.37.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer => github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.37.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage => github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.37.0

@@ -97,6 +97,7 @@ func main() {
 			configconverter.RemoveBallastKey,
 			configconverter.MoveOTLPInsecureKey,
 			configconverter.MoveHecTLS,
+			configconverter.RenameK8sTagger,
 		)
 	}
 

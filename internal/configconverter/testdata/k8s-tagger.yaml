@@ -1,0 +1,53 @@
+receivers:
+  hostmetrics:
+exporters:
+  otlp:
+processors:
+  k8s_tagger:
+    extract:
+      annotations:
+      - from: unnamed_tagger_from
+        key: unnamed_tagger_key
+        tag_name: unnamed_tagger_tag_name
+      - from: another_unnamed_tagger_from
+        key: another_unnamed_tagger_key
+        tag_name: another_unnamed_tagger_tag_name
+      labels:
+      - key: unnamed_tagger_label_key
+      metadata:
+      - unnamed.tagger.k8s.namespace.name
+      - unnamed.tagger.k8s.node.name
+      - unnamed.tagger.k8s.pod.name
+      - unnamed.tagger.k8s.pod.uid
+    pod_association:
+    - from: resource_attribute
+      name: unnamed.tagger.k8s.pod.uid
+  k8s_tagger/some_name:
+    extract:
+      annotations:
+        - from: named_tagger_from
+          key: named_tagger_key
+          tag_name: named_tagger_tag_name
+        - from: another_named_tagger_from
+          key: another_named_tagger_key
+          tag_name: another_named_tagger_tag_name
+      labels:
+        - key: named_tagger_label_key
+      metadata:
+        - named.tagger.k8s.namespace.name
+        - named.tagger.k8s.node.name
+        - named.tagger.k8s.pod.name
+        - named.tagger.k8s.pod.uid
+    pod_association:
+      - from: resource_attribute
+        name: named.tagger.k8s.pod.uid
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - hostmetrics
+      processors:
+        - k8s_tagger
+        - k8s_tagger/some_name
+      exporters:
+        - otlp

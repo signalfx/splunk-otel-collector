@@ -149,19 +149,19 @@ func addGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 
 func doubleSumMetricType(sum pdata.Sum) MetricType {
 	switch sum.AggregationTemporality() {
-	case pdata.AggregationTemporalityCumulative:
+	case pdata.MetricAggregationTemporalityCumulative:
 		if sum.IsMonotonic() {
 			return DoubleMonotonicCumulativeSum
 		} else {
 			return DoubleNonmonotonicCumulativeSum
 		}
-	case pdata.AggregationTemporalityDelta:
+	case pdata.MetricAggregationTemporalityDelta:
 		if sum.IsMonotonic() {
 			return DoubleMonotonicDeltaSum
 		} else {
 			return DoubleNonmonotonicDeltaSum
 		}
-	case pdata.AggregationTemporalityUnspecified:
+	case pdata.MetricAggregationTemporalityUnspecified:
 		if sum.IsMonotonic() {
 			return DoubleMonotonicUnspecifiedSum
 		} else {
@@ -173,19 +173,19 @@ func doubleSumMetricType(sum pdata.Sum) MetricType {
 
 func intSumMetricType(sum pdata.Sum) MetricType {
 	switch sum.AggregationTemporality() {
-	case pdata.AggregationTemporalityCumulative:
+	case pdata.MetricAggregationTemporalityCumulative:
 		if sum.IsMonotonic() {
 			return IntMonotonicCumulativeSum
 		} else {
 			return IntNonmonotonicCumulativeSum
 		}
-	case pdata.AggregationTemporalityDelta:
+	case pdata.MetricAggregationTemporalityDelta:
 		if sum.IsMonotonic() {
 			return IntMonotonicDeltaSum
 		} else {
 			return IntNonmonotonicDeltaSum
 		}
-	case pdata.AggregationTemporalityUnspecified:
+	case pdata.MetricAggregationTemporalityUnspecified:
 		if sum.IsMonotonic() {
 			return IntMonotonicUnspecifiedSum
 		} else {

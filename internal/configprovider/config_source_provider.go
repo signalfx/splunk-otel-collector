@@ -20,7 +20,7 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configparser"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service/parserprovider"
 	"go.uber.org/zap"
 )
@@ -31,15 +31,15 @@ type configSourceParserProvider struct {
 	logger       *zap.Logger
 	csm          *Manager
 	configServer *configServer
-	pp           parserprovider.ParserProvider
+	pp           parserprovider.MapProvider
 	buildInfo    component.BuildInfo
 	factories    []Factory
 }
 
 // NewConfigSourceParserProvider creates a ParserProvider that uses config sources.
-func NewConfigSourceParserProvider(pp parserprovider.ParserProvider, logger *zap.Logger, buildInfo component.BuildInfo, factories ...Factory) parserprovider.ParserProvider {
+func NewConfigSourceParserProvider(pp parserprovider.MapProvider, logger *zap.Logger, buildInfo component.BuildInfo, factories ...Factory) parserprovider.MapProvider {
 	if pp == nil {
-		pp = parserprovider.Default()
+		pp = parserprovider.NewDefaultMapProvider()
 	}
 	return &configSourceParserProvider{
 		pp:        pp,
@@ -52,7 +52,7 @@ func NewConfigSourceParserProvider(pp parserprovider.ParserProvider, logger *zap
 // Get returns a config.Parser that wraps the parserprovider.Default() with a parser
 // that can load and inject data from config sources. If there are no config sources
 // in the configuration the returned parser behaves like the parserprovider.Default().
-func (c *configSourceParserProvider) Get(ctx context.Context) (*configparser.ConfigMap, error) {
+func (c *configSourceParserProvider) Get(ctx context.Context) (*config.Map, error) {
 	defaultParser, err := c.pp.Get(ctx)
 	if err != nil {
 		return nil, err

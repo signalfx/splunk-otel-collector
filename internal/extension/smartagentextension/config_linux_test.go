@@ -43,7 +43,7 @@ func TestBundleDirDefault(t *testing.T) {
 
 	require.GreaterOrEqual(t, len(cfg.Extensions), 1)
 
-	allSettingsConfig := cfg.Extensions[config.NewIDWithName(typeStr, "default_settings")]
+	allSettingsConfig := cfg.Extensions[config.NewComponentIDWithName(typeStr, "default_settings")]
 	require.NotNil(t, allSettingsConfig)
 
 	ext, err := factory.CreateExtension(context.Background(), component.ExtensionCreateSettings{}, allSettingsConfig)

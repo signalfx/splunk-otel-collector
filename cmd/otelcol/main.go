@@ -101,9 +101,9 @@ func main() {
 	}
 
 	serviceParams := service.CollectorSettings{
-		BuildInfo:      info,
-		Factories:      factories,
-		ParserProvider: parserProvider,
+		BuildInfo:          info,
+		Factories:          factories,
+		ConfigMapProvider:  parserProvider,
 	}
 
 	if err := run(serviceParams); err != nil {
@@ -343,16 +343,16 @@ func setDefaultEnvVars() {
 }
 
 // Returns a ParserProvider that reads configuration YAML from an environment variable when applicable.
-func newBaseParserProvider() parserprovider.ParserProvider {
+func newBaseParserProvider() parserprovider.MapProvider {
 	_, configPathFlag := getKeyValue(os.Args[1:], "--config")
 	configPathVar := os.Getenv(configEnvVarName)
 	configYaml := os.Getenv(configYamlEnvVarName)
 
 	if configPathFlag == "" && configPathVar == "" && configYaml != "" {
-		return parserprovider.NewInMemory(bytes.NewBufferString(configYaml))
+		return parserprovider.NewInMemoryMapProvider(bytes.NewBufferString(configYaml))
 	}
 
-	return parserprovider.Default()
+	return parserprovider.NewDefaultMapProvider()
 }
 
 func runInteractive(settings service.CollectorSettings) error {

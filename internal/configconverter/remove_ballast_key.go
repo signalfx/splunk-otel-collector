@@ -18,18 +18,18 @@ import (
 	"log"
 	"regexp"
 
-	"go.opentelemetry.io/collector/config/configparser"
+	"go.opentelemetry.io/collector/config"
 )
 
 // RemoveBallastKey is a CfgMapFunc that removes a ballast_size_mib on a
 // memory_limiter processor config if it exists. This config key will go away at
 // some point (or already has) at which point its presence in a config will
 // prevent the Collector from starting.
-func RemoveBallastKey(cfgMap *configparser.ConfigMap) *configparser.ConfigMap {
+func RemoveBallastKey(cfgMap *config.Map) *config.Map {
 	const expr = "processors::memory_limiter(/\\w+)?::ballast_size_mib"
 	ballastKeyRegexp, _ := regexp.Compile(expr)
 
-	out := configparser.NewConfigMap()
+	out := config.NewMap()
 	for _, k := range cfgMap.AllKeys() {
 		if ballastKeyRegexp.MatchString(k) {
 			log.Println("[WARNING] `ballast_size_mib` parameter in `memory_limiter` processor is " +

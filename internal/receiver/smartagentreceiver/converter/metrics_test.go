@@ -60,7 +60,7 @@ func pdataMetrics(dataType pdata.MetricDataType, value interface{}, timeReceived
 	case pdata.MetricDataTypeGauge:
 		dps = metric.Gauge().DataPoints()
 	case pdata.MetricDataTypeSum:
-		metric.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+		metric.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
 		dps = metric.Sum().DataPoints()
 	}
 
@@ -123,7 +123,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			expectedMetrics: func() pdata.Metrics {
 				m := pdataMetrics(pdata.MetricDataTypeSum, 13, now)
 				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).Sum()
-				d.SetAggregationTemporality(pdata.AggregationTemporalityDelta)
+				d.SetAggregationTemporality(pdata.MetricAggregationTemporalityDelta)
 				d.SetIsMonotonic(true)
 				return m
 			}(),
@@ -139,7 +139,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			expectedMetrics: func() pdata.Metrics {
 				m := pdataMetrics(pdata.MetricDataTypeSum, 13.13, now)
 				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).Sum()
-				d.SetAggregationTemporality(pdata.AggregationTemporalityDelta)
+				d.SetAggregationTemporality(pdata.MetricAggregationTemporalityDelta)
 				d.SetIsMonotonic(true)
 				return m
 			}(),
@@ -154,7 +154,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			expectedMetrics: func() pdata.Metrics {
 				m := pdataMetrics(pdata.MetricDataTypeSum, 13, now)
 				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).Sum()
-				d.SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+				d.SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
 				d.SetIsMonotonic(true)
 				return m
 			}(),
@@ -170,7 +170,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			expectedMetrics: func() pdata.Metrics {
 				m := pdataMetrics(pdata.MetricDataTypeSum, 13.13, now)
 				d := m.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0).Metrics().At(0).Sum()
-				d.SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+				d.SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
 				d.SetIsMonotonic(true)
 				return m
 			}(),

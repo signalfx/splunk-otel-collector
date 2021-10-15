@@ -65,7 +65,7 @@ var expectedCPUMetrics = map[string]pdata.MetricDataType{
 
 func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
 	return Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewIDWithName(typeStr, nameVal)),
+		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, nameVal)),
 		monitorConfig: &cpu.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:            monitorType,
@@ -347,10 +347,10 @@ func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {
 	)
 	require.NoError(t, err)
 
-	partialSettingsConfig := cfg.Extensions[config.NewIDWithName(typeStr, "partial_settings")]
+	partialSettingsConfig := cfg.Extensions[config.NewComponentIDWithName(typeStr, "partial_settings")]
 	require.NotNil(t, partialSettingsConfig)
 
-	extraSettingsConfig := cfg.Extensions[config.NewIDWithName(typeStr, "extra")]
+	extraSettingsConfig := cfg.Extensions[config.NewComponentIDWithName(typeStr, "extra")]
 	require.NotNil(t, extraSettingsConfig)
 
 	one, ok := partialSettingsConfig.(*smartagentextension.Config)

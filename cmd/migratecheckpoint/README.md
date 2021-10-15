@@ -13,7 +13,7 @@ been using fluentd as a logging agent but wants to use OpenTelemetry Collector.
 
 Environment variables are used to configure it. These are currently available 
 variables and its default values.
-```bigquery
+```yaml
 - name: CONTAINER_LOG_PATH_FLUENTD
   value: "/var/log/splunk-fluentd-containers.log.pos"
 - name: CONTAINER_LOG_PATH_OTEL

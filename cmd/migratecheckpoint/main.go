@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -154,21 +155,21 @@ func main() {
 	// Check whether it has already Otel's checkpoints
 	_, err := os.Stat(containerLogPathOtel)
 	if !os.IsNotExist(err) {
-		// Otel checkpoint already present. no need to migrate.
+		log.Println("Otel checkpoint already present. no need to migrate.")
 		return
 	}
 
 	// Check whether there are fluentd's position file exist
 	_, err = os.Stat(containerLogPathFluentd)
 	if os.IsNotExist(err) {
-		// Fluentd position file does not exist. no need to migrate.
+		log.Println("Fluentd position file does not exist. no need to perform migration.")
 		return
 	}
 
 	// Container File Logs
 	lines, err := readLines(containerLogPathFluentd)
 	if err != nil {
-		fmt.Println("Error reading container fluentd's log path")
+		log.Println("Error reading container fluentd's log path")
 		panic(err)
 	}
 
@@ -177,7 +178,7 @@ func main() {
 
 	client, err := newClient(containerLogPathOtel, 100)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatalf("error creating a new DB client for container checkpoints: %v", err)
 	}
 
 	for _, line := range lines {
@@ -194,7 +195,7 @@ func main() {
 
 	err = client.Set("$.file_input.knownFiles", buf.Bytes())
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("error storing container checkpoints: %v", err)
 	}
 	client.Close()
 
@@ -223,11 +224,11 @@ func main() {
 				buf = syncLastPollFiles(readers)
 				client, err = newClient(customLogPathOtel+captured[1], 100)
 				if err != nil {
-					fmt.Println(err)
+					log.Printf("error creating a new DB client for host file checkpoints: %v", err)
 				}
 				err = client.Set("$.file_input.knownFiles", buf.Bytes())
 				if err != nil {
-					fmt.Println(err)
+					log.Printf("error storing host file checkpoints: %v", err)
 				}
 				client.Close()
 			}
@@ -235,7 +236,7 @@ func main() {
 	}
 
 	migrateJournaldPos()
-	fmt.Println("Checkpoint migration completed")
+	log.Println("Checkpoint migration completed")
 }
 
 func readLines(path string) ([]string, error) {
@@ -337,11 +338,11 @@ func migrateJournaldPos() {
 
 			client, err := newClient(journaldLogPathOtel+captured[1], 100)
 			if err != nil {
-				fmt.Println(err)
+				log.Printf("error creating a new DB client for journald checkpoints: %v", err)
 			}
 			err = client.Set("$.journald_input.lastReadCursor", []byte(cursor.Cursor))
 			if err != nil {
-				fmt.Println(err)
+				log.Printf("error storing journald checkpoints: %v", err)
 			}
 			client.Close()
 		}

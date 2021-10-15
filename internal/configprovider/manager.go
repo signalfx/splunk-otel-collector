@@ -28,7 +28,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
-	"go.opentelemetry.io/collector/consumer/consumererror"
+	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
@@ -286,7 +286,7 @@ func (m *Manager) Close(ctx context.Context) error {
 	close(m.closeCh)
 	m.watchersWG.Wait()
 
-	return consumererror.Combine(errs)
+	return multierr.Combine(errs...)
 }
 
 func newManager(configSources map[string]configsource.ConfigSource) *Manager {
@@ -493,7 +493,7 @@ func newErrUnknownConfigSource(cfgSrcName string) error {
 // parseCfgSrc extracts the reference to a config source from a string value.
 // The caller should check for error explicitly since it is possible for the
 // other values to have been partially set.
-func parseCfgSrc(s string) (cfgSrcName, selector string, params interface{}, err error) {
+func parseCfgSrc(s string) (cfgSrcName, selector string, paramsConfigMap *config.Map, err error) {
 	parts := strings.SplitN(s, string(configSourceNameDelimChar), 2)
 	if len(parts) != 2 {
 		err = fmt.Errorf("invalid config source syntax at %q, it must have at least the config source name and a selector", s)
@@ -510,11 +510,9 @@ func parseCfgSrc(s string) (cfgSrcName, selector string, params interface{}, err
 		selector = strings.Trim(parts[0], " ")
 
 		if len(parts) > 1 && len(parts[1]) > 0 {
-			var p *config.Map
-			if p, err = config.NewMapFromBuffer(bytes.NewReader([]byte(parts[1]))); err != nil {
+			if paramsConfigMap, err = config.NewMapFromBuffer(bytes.NewReader([]byte(parts[1]))); err != nil {
 				return
 			}
-			params = p.ToStringMap()
 		}
 
 	default:
@@ -525,7 +523,7 @@ func parseCfgSrc(s string) (cfgSrcName, selector string, params interface{}, err
 
 		if len(parts) == 2 {
 			paramsPart := parts[1]
-			params, err = parseParamsAsURLQuery(paramsPart)
+			paramsConfigMap, err = parseParamsAsURLQuery(paramsPart)
 			if err != nil {
 				err = fmt.Errorf("invalid parameters syntax at %q: %w", s, err)
 				return
@@ -533,10 +531,10 @@ func parseCfgSrc(s string) (cfgSrcName, selector string, params interface{}, err
 		}
 	}
 
-	return cfgSrcName, selector, params, err
+	return cfgSrcName, selector, paramsConfigMap, err
 }
 
-func parseParamsAsURLQuery(s string) (interface{}, error) {
+func parseParamsAsURLQuery(s string) (*config.Map, error) {
 	values, err := url.ParseQuery(s)
 	if err != nil {
 		return nil, err
@@ -567,7 +565,7 @@ func parseParamsAsURLQuery(s string) (interface{}, error) {
 			params[k] = elemSlice
 		}
 	}
-	return params, err
+	return config.NewMapFromStringMap(params), err
 }
 
 // expandEnvVars is used to expand environment variables with the same syntax used

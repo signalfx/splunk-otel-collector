@@ -101,9 +101,9 @@ func main() {
 	}
 
 	serviceParams := service.CollectorSettings{
-		BuildInfo:          info,
-		Factories:          factories,
-		ConfigMapProvider:  parserProvider,
+		BuildInfo:         info,
+		Factories:         factories,
+		ConfigMapProvider: parserProvider,
 	}
 
 	if err := run(serviceParams); err != nil {
@@ -344,25 +344,23 @@ func setDefaultEnvVars() {
 
 // Returns a ParserProvider that reads configuration YAML from an environment variable when applicable.
 func newBaseParserProvider() parserprovider.MapProvider {
-	_, configPathFlag := getKeyValue(os.Args[1:], "--config")
-	configPathVar := os.Getenv(configEnvVarName)
+	var configPath string
+	var ok bool
+	if ok, configPath = getKeyValue(os.Args[1:], "--config"); !ok {
+		configPath = os.Getenv(configEnvVarName)
+	}
 	configYaml := os.Getenv(configYamlEnvVarName)
 
-	if configPathFlag == "" && configPathVar == "" && configYaml != "" {
+	if configPath == "" && configYaml != "" {
 		return parserprovider.NewInMemoryMapProvider(bytes.NewBufferString(configYaml))
 	}
 
-	return parserprovider.NewDefaultMapProvider()
+	return parserprovider.NewDefaultMapProvider(configPath, nil)
 }
 
 func runInteractive(settings service.CollectorSettings) error {
-	app, err := service.New(settings)
-	if err != nil {
-		return fmt.Errorf("failed to construct the application: %w", err)
-	}
-
-	cmd := service.NewCommand(app)
-	if err = cmd.Execute(); err != nil {
+	cmd := service.NewCommand(settings)
+	if err := cmd.Execute(); err != nil {
 		return fmt.Errorf("application run finished with error: %w", err)
 	}
 

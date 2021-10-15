@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cast"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 
@@ -57,10 +56,10 @@ func newConfigSource(_ configprovider.CreateParams, cfg *Config) configsource.Co
 	}
 }
 
-func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
+func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, paramsConfigMap *config.Map) (configsource.Retrieved, error) {
 	actualParams := retrieveParams{}
-	if params != nil {
-		paramsParser := config.NewMapFromStringMap(cast.ToStringMap(params))
+	if paramsConfigMap != nil {
+		paramsParser := config.NewMapFromStringMap(paramsConfigMap.ToStringMap())
 		if err := paramsParser.UnmarshalExact(&actualParams); err != nil {
 			return nil, &errInvalidRetrieveParams{fmt.Errorf("failed to unmarshall retrieve params: %w", err)}
 		}

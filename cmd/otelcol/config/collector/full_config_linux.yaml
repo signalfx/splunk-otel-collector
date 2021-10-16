@@ -181,11 +181,6 @@ processors:
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor
   batch:
 
-  # Enables the batch processor with default settings
-  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sprocessor
-  # NOTE: It is very likely additional configuration is required
-  k8s_tagger:
-
   # Enables the resouce processor with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourceprocessor
   # NOTE: These settings need to be change when using this processor

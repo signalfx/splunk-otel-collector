@@ -445,12 +445,15 @@ jobs:
             write-host "Installing choco package..."
             choco install splunk-otel-collector -s=".\dist\splunk-otel-collector.$version.nupkg" --params="'/SPLUNK_ACCESS_TOKEN=12345 /MODE:<< parameters.mode >>'" -y | Tee-Object -file .\dist\installation_logs.log
             if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { throw "Failed to install splunk-otel-collector using chocolatey." } else { write-host "splunk-otel-collector service is running." }
+            if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) { throw "Failed to install fluentdwinsvc using chocolatey." } else { write-host "fluentdwinsvc service is running." }
             write-host "Reinstalling choco package..."
             choco install splunk-otel-collector -s=".\dist\splunk-otel-collector.$version.nupkg" --params="'/MODE:<< parameters.mode >>'" --force -y | Tee-Object -file .\dist\reinstallation_logs.log
             if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { throw "Failed to install splunk-otel-collector using chocolatey." } else { write-host "splunk-otel-collector service is running." }
+            if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) { throw "Failed to install fluentdwinsvc using chocolatey." } else { write-host "fluentdwinsvc service is running." }
             write-host "Uninstalling choco package..."
             choco uninstall -y splunk-otel-collector | Tee-Object -file .\dist\uninstallation_logs.log
-            if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { write-host "splsplunk-otel-collector has been successfully uninstalled and service is not running." } else { throw "Failed to uninstall splunk-otel-collector chocolatey package." }
+            if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { write-host "splunk-otel-collector has been successfully uninstalled and service is not running." } else { throw "Failed to uninstall splunk-otel-collector chocolatey package." }
+            if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) { write-host "fluentdwinsvc has been successfully uninstalled and service is not running." } else { throw "Failed to uninstall fluentdwinsvc chocolatey package." }
       - store_artifacts:
           path: dist
 

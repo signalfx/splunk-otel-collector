@@ -3,9 +3,10 @@ $program_data_path = "${env:PROGRAMDATA}\Splunk\OpenTelemetry Collector"
 $config_path = "$program_data_path\"
 
 $service_name = "splunk-otel-collector"
+
 # whether the service is running
 function service_running([string]$name) {
-    return ((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")
+    return ((Get-CimInstance -ClassName win32_service -Filter "Name = '$name'" | Select Name, State).State -Eq "Running")
 }
 
 # whether the service is installed
@@ -89,6 +90,21 @@ function wait_for_service([string]$name=$service_name, [int]$timeout=60) {
         }
         # give windows a second to synchronize service status
         Start-Sleep -Seconds 1
+    }
+}
+
+# check that we're not running with a restricted execution policy
+function check_policy() {
+    $executionPolicy  = (Get-ExecutionPolicy)
+    $executionRestricted = ($executionPolicy -eq "Restricted")
+    if ($executionRestricted) {
+        throw @"
+Your execution policy is $executionPolicy, this means you will not be able import or use any scripts including modules.
+To fix this change you execution policy to something like RemoteSigned.
+        PS> Set-ExecutionPolicy RemoteSigned
+For more information execute:
+        PS> Get-Help about_execution_policies
+"@
     }
 }
 

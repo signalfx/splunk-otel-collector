@@ -33,8 +33,14 @@ receivers:
             action: drop
   sapm:
     endpoint: 0.0.0.0:7276
+    # Whether to preserve incoming access token and use instead of exporter token
+    # default = false
+    #access_token_passthrough: true
   signalfx:
     endpoint: 0.0.0.0:9943
+    # Whether to preserve incoming access token and use instead of exporter token
+    # default = false
+    #access_token_passthrough: true
   smartagent/signalfx-forwarder:
     type: signalfx-forwarder
     listenAddress: 0.0.0.0:9080

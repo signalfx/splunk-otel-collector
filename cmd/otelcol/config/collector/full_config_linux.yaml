@@ -25,6 +25,8 @@ receivers:
   #  - grpc (default endpoint = 0.0.0.0:8088)
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/splunkhecreceiver
   splunk_hec:
+    # Whether to preserve incoming access token and use instead of exporter token
+    # default = false
     #access_token_passthrough: true
 
   #############################################################################
@@ -75,6 +77,8 @@ receivers:
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sapmreceiver
   sapm:
     endpoint: 0.0.0.0:7276
+    # Whether to preserve incoming access token and use instead of exporter token
+    # default = false
     #access_token_passthrough: true
 
   # Enables the Smart Agent's SignalFx Forwarder with default settings
@@ -150,6 +154,8 @@ receivers:
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/signalfxreceiver
   signalfx:
     endpoint: 0.0.0.0:9943
+    # Whether to preserve incoming access token and use instead of exporter token
+    # default = false
     #access_token_passthrough: true
 
   #############################################################################

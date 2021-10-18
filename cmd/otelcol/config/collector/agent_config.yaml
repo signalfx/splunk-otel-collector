@@ -86,6 +86,9 @@ receivers:
     listenAddress: 0.0.0.0:9080
   signalfx:
     endpoint: 0.0.0.0:9943
+    # Whether to preserve incoming access token and use instead of exporter token
+    # default = false
+    #access_token_passthrough: true
   zipkin:
     endpoint: 0.0.0.0:9411
 

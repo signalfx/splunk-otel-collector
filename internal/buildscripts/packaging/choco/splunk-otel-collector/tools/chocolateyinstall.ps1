@@ -5,6 +5,8 @@ $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 write-host "Checking configuration parameters ..."
 $pp = Get-PackageParameters
 
+[bool]$WITH_FLUENTD = $TRUE
+
 $MODE = $pp['MODE']
 
 $SPLUNK_ACCESS_TOKEN = $pp['SPLUNK_ACCESS_TOKEN']
@@ -19,6 +21,25 @@ $SPLUNK_MEMORY_TOTAL_MIB = $pp['SPLUNK_MEMORY_TOTAL_MIB']
 
 if ($MODE -and ($MODE -ne "agent") -and ($MODE -ne "gateway")) {
     throw "Invalid value of MODE option is specified. Collector service can only run in agent or gateway mode."
+}
+
+if ($pp['WITH_FLUENTD']) {
+    if (($pp['WITH_FLUENTD'] -eq "true") -or ($pp['WITH_FLUENTD'] -eq "false")){
+        try {
+            $WITH_FLUENTD = [System.Convert]::ToBoolean($pp['WITH_FLUENTD']) 
+        } catch [FormatException] {
+            $WITH_FLUENTD = $FALSE
+        }
+    }
+    else {
+        throw "Invalid value of WITH_FLUENTD option is specified. Possible values are true and false."
+    }
+}
+
+if ($WITH_FLUENTD) {
+    # check execution policy
+    Write-Host 'Checking execution policy'
+    check_policy
 }
 
 $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
@@ -181,4 +202,9 @@ if (!$SPLUNK_ACCESS_TOKEN) {
     start_service -config_path "$config_path"
     wait_for_service -timeout 60
     write-host "- Started"
+}
+
+# Install and configure fluentd to forward log events to the collector.
+if ($WITH_FLUENTD) {
+    . $toolsDir\fluentd.ps1
 }

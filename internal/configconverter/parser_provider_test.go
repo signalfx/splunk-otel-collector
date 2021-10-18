@@ -20,7 +20,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/configparser"
+	"go.opentelemetry.io/collector/config"
 )
 
 func TestMemLimitBallastRemoverPP(t *testing.T) {
@@ -58,8 +58,8 @@ type fileParserProvider struct {
 	fileName string
 }
 
-func (fpp fileParserProvider) Get(context.Context) (*configparser.ConfigMap, error) {
-	return configparser.NewConfigMapFromFile(fpp.fileName)
+func (fpp fileParserProvider) Get(context.Context) (*config.Map, error) {
+	return config.NewMapFromFile(fpp.fileName)
 }
 
 func (fpp fileParserProvider) Close(context.Context) error {

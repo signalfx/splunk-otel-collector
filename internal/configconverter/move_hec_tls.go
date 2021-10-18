@@ -19,13 +19,13 @@ import (
 	"log"
 	"regexp"
 
-	"go.opentelemetry.io/collector/config/configparser"
+	"go.opentelemetry.io/collector/config"
 )
 
-func MoveHecTLS(in *configparser.ConfigMap) *configparser.ConfigMap {
+func MoveHecTLS(in *config.Map) *config.Map {
 	const expression = "exporters::splunk_hec(/\\w+)?::(insecure_skip_verify|ca_file|cert_file|key_file)"
 	re, _ := regexp.Compile(expression)
-	out := configparser.NewConfigMap()
+	out := config.NewMap()
 	unsupportedKeyFound := false
 	for _, k := range in.AllKeys() {
 		v := in.Get(k)

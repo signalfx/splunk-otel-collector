@@ -27,5 +27,5 @@ func TestFactory(t *testing.T) {
 	require.EqualValues(t, typeStr, f.Type())
 
 	cfg := f.CreateDefaultConfig()
-	require.Equal(t, config.NewID(typeStr), cfg.ID())
+	require.Equal(t, config.NewComponentID(typeStr), cfg.ID())
 }

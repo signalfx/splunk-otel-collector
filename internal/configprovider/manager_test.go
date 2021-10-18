@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configparser"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
 )
@@ -64,10 +64,10 @@ func TestConfigSourceManager_NewManager(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			filename := path.Join("testdata", tt.file+".yaml")
-			parser, err := configparser.NewConfigMapFromFile(filename)
+			parser, err := config.NewMapFromFile(filename)
 			require.NoError(t, err)
 
-			manager, err := NewManager(parser, zap.NewNop(), component.DefaultBuildInfo(), tt.factories)
+			manager, err := NewManager(parser, zap.NewNop(), component.NewDefaultBuildInfo(), tt.factories)
 			require.IsType(t, tt.wantErr, err)
 			if tt.wantErr != nil {
 				require.Nil(t, manager)
@@ -102,7 +102,7 @@ func TestConfigSourceManager_Simple(t *testing.T) {
 		},
 	}
 
-	cp := configparser.NewConfigMapFromStringMap(originalCfg)
+	cp := config.NewMapFromStringMap(originalCfg)
 
 	res, err := manager.Resolve(ctx, cp)
 	require.NoError(t, err)
@@ -135,7 +135,7 @@ func TestConfigSourceManager_ResolveRemoveConfigSourceSection(t *testing.T) {
 		"tstcfgsrc": &testConfigSource{},
 	})
 
-	res, err := manager.Resolve(context.Background(), configparser.NewConfigMapFromStringMap(cfg))
+	res, err := manager.Resolve(context.Background(), config.NewMapFromStringMap(cfg))
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
@@ -175,7 +175,7 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			manager := newManager(tt.configSourceMap)
 
-			res, err := manager.Resolve(ctx, configparser.NewConfigMapFromStringMap(tt.config))
+			res, err := manager.Resolve(ctx, config.NewMapFromStringMap(tt.config))
 			require.Error(t, err)
 			require.Nil(t, res)
 			require.NoError(t, manager.Close(ctx))
@@ -211,11 +211,11 @@ map:
 	})
 
 	file := path.Join("testdata", "yaml_injection.yaml")
-	cp, err := configparser.NewConfigMapFromFile(file)
+	cp, err := config.NewMapFromFile(file)
 	require.NoError(t, err)
 
 	expectedFile := path.Join("testdata", "yaml_injection_expected.yaml")
-	expectedParser, err := configparser.NewConfigMapFromFile(expectedFile)
+	expectedParser, err := config.NewMapFromFile(expectedFile)
 	require.NoError(t, err)
 	expectedCfg := expectedParser.ToStringMap()
 
@@ -240,11 +240,11 @@ func TestConfigSourceManager_ArraysAndMaps(t *testing.T) {
 	})
 
 	file := path.Join("testdata", "arrays_and_maps.yaml")
-	cp, err := configparser.NewConfigMapFromFile(file)
+	cp, err := config.NewMapFromFile(file)
 	require.NoError(t, err)
 
 	expectedFile := path.Join("testdata", "arrays_and_maps_expected.yaml")
-	expectedParser, err := configparser.NewConfigMapFromFile(expectedFile)
+	expectedParser, err := config.NewMapFromFile(expectedFile)
 	require.NoError(t, err)
 
 	res, err := manager.Resolve(ctx, cp)
@@ -280,8 +280,12 @@ func TestConfigSourceManager_ParamsHandling(t *testing.T) {
 	}
 
 	// Set OnRetrieve to check if the parameters were parsed as expected.
-	tstCfgSrc.OnRetrieve = func(ctx context.Context, selector string, params interface{}) error {
-		assert.Equal(t, tstCfgSrc.ValueMap[selector].Value, params)
+	tstCfgSrc.OnRetrieve = func(ctx context.Context, selector string, paramsConfigMap *config.Map) error {
+		var val interface{}
+		if paramsConfigMap != nil {
+			val = paramsConfigMap.ToStringMap()
+		}
+		assert.Equal(t, tstCfgSrc.ValueMap[selector].Value, val)
 		return nil
 	}
 
@@ -290,11 +294,11 @@ func TestConfigSourceManager_ParamsHandling(t *testing.T) {
 	})
 
 	file := path.Join("testdata", "params_handling.yaml")
-	cp, err := configparser.NewConfigMapFromFile(file)
+	cp, err := config.NewMapFromFile(file)
 	require.NoError(t, err)
 
 	expectedFile := path.Join("testdata", "params_handling_expected.yaml")
-	expectedParser, err := configparser.NewConfigMapFromFile(expectedFile)
+	expectedParser, err := config.NewMapFromFile(expectedFile)
 	require.NoError(t, err)
 
 	res, err := manager.Resolve(ctx, cp)
@@ -326,7 +330,7 @@ func TestConfigSourceManager_WatchForUpdate(t *testing.T) {
 		},
 	}
 
-	cp := configparser.NewConfigMapFromStringMap(originalCfg)
+	cp := config.NewMapFromStringMap(originalCfg)
 	_, err := manager.Resolve(ctx, cp)
 	require.NoError(t, err)
 
@@ -380,7 +384,7 @@ func TestConfigSourceManager_MultipleWatchForUpdate(t *testing.T) {
 		},
 	}
 
-	cp := configparser.NewConfigMapFromStringMap(originalCfg)
+	cp := config.NewMapFromStringMap(originalCfg)
 	_, err := manager.Resolve(ctx, cp)
 	require.NoError(t, err)
 
@@ -417,9 +421,13 @@ func TestConfigSourceManager_EnvVarHandling(t *testing.T) {
 	}
 
 	// Intercept "params_key" and create an entry with the params themselves.
-	tstCfgSrc.OnRetrieve = func(ctx context.Context, selector string, params interface{}) error {
+	tstCfgSrc.OnRetrieve = func(ctx context.Context, selector string, paramsConfigMap *config.Map) error {
+		var val interface{}
+		if paramsConfigMap != nil {
+			val = paramsConfigMap.ToStringMap()
+		}
 		if selector == "params_key" {
-			tstCfgSrc.ValueMap[selector] = valueEntry{Value: params}
+			tstCfgSrc.ValueMap[selector] = valueEntry{Value: val}
 		}
 		return nil
 	}
@@ -429,11 +437,11 @@ func TestConfigSourceManager_EnvVarHandling(t *testing.T) {
 	})
 
 	file := path.Join("testdata", "envvar_cfgsrc_mix.yaml")
-	cp, err := configparser.NewConfigMapFromFile(file)
+	cp, err := config.NewMapFromFile(file)
 	require.NoError(t, err)
 
 	expectedFile := path.Join("testdata", "envvar_cfgsrc_mix_expected.yaml")
-	expectedParser, err := configparser.NewConfigMapFromFile(expectedFile)
+	expectedParser, err := config.NewMapFromFile(expectedFile)
 	require.NoError(t, err)
 
 	res, err := manager.Resolve(ctx, cp)
@@ -656,7 +664,7 @@ func Test_parseCfgSrc(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfgSrcName, selector, params, err := parseCfgSrc(tt.str)
+			cfgSrcName, selector, paramsConfigMap, err := parseCfgSrc(tt.str)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return
@@ -665,7 +673,11 @@ func Test_parseCfgSrc(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, tt.cfgSrcName, cfgSrcName)
 			assert.Equal(t, tt.selector, selector)
-			assert.Equal(t, tt.params, params)
+			var val interface{}
+			if paramsConfigMap != nil {
+				val = paramsConfigMap.ToStringMap()
+			}
+			assert.Equal(t, tt.params, val)
 		})
 	}
 }

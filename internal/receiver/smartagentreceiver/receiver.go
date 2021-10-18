@@ -50,6 +50,7 @@ type Receiver struct {
 	nextTracesConsumer  consumer.Traces
 	logger              *zap.Logger
 	config              *Config
+	params              component.ReceiverCreateSettings
 	sync.Mutex
 }
 
@@ -64,9 +65,10 @@ var (
 	nonWordCharacters        = regexp.MustCompile(`[^\w]+`)
 )
 
-func NewReceiver(logger *zap.Logger, config Config) *Receiver {
+func NewReceiver(params component.ReceiverCreateSettings, config Config) *Receiver {
 	return &Receiver{
-		logger: logger,
+		logger: params.Logger,
+		params: params,
 		config: &config,
 	}
 }
@@ -159,7 +161,7 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 	}
 
 	output := NewOutput(
-		*r.config, monitorFiltering, r.nextMetricsConsumer, r.nextLogsConsumer, r.nextTracesConsumer, host, r.logger,
+		*r.config, monitorFiltering, r.nextMetricsConsumer, r.nextLogsConsumer, r.nextTracesConsumer, host, r.params,
 	)
 	set, err := SetStructFieldWithExplicitType(
 		monitor, "Output", output,

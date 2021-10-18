@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configparser"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/service/parserprovider"
 	"go.uber.org/zap"
@@ -34,7 +34,7 @@ import (
 
 func TestConfigSourceParserProvider(t *testing.T) {
 	tests := []struct {
-		parserProvider parserprovider.ParserProvider
+		parserProvider parserprovider.MapProvider
 		wantErr        error
 		name           string
 		factories      []Factory
@@ -88,9 +88,9 @@ func TestConfigSourceParserProvider(t *testing.T) {
 			}
 
 			pp := NewConfigSourceParserProvider(
-				parserprovider.Default(),
+				parserprovider.NewInMemoryMapProvider(nil),
 				zap.NewNop(),
-				component.DefaultBuildInfo(),
+				component.NewDefaultBuildInfo(),
 				factories...,
 			)
 			require.NotNil(t, pp)
@@ -134,13 +134,13 @@ type mockParserProvider struct {
 	ErrOnGet bool
 }
 
-var _ parserprovider.ParserProvider = (*mockParserProvider)(nil)
+var _ parserprovider.MapProvider = (*mockParserProvider)(nil)
 
-func (mpp *mockParserProvider) Get(context.Context) (*configparser.ConfigMap, error) {
+func (mpp *mockParserProvider) Get(context.Context) (*config.Map, error) {
 	if mpp.ErrOnGet {
 		return nil, &errOnParserProviderGet{errors.New("mockParserProvider.Get() forced test error")}
 	}
-	return configparser.NewConfigMap(), nil
+	return config.NewMap(), nil
 }
 
 func (mpp *mockParserProvider) Close(context.Context) error {
@@ -153,10 +153,10 @@ type fileParserProvider struct {
 	FileName string
 }
 
-var _ parserprovider.ParserProvider = (*fileParserProvider)(nil)
+var _ parserprovider.MapProvider = (*fileParserProvider)(nil)
 
-func (fpp *fileParserProvider) Get(context.Context) (*configparser.ConfigMap, error) {
-	return configparser.NewConfigMapFromFile(fpp.FileName)
+func (fpp *fileParserProvider) Get(context.Context) (*config.Map, error) {
+	return config.NewMapFromFile(fpp.FileName)
 }
 
 func (fpp *fileParserProvider) Close(context.Context) error {

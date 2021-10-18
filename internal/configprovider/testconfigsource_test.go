@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 )
 
@@ -30,7 +31,7 @@ type testConfigSource struct {
 	ErrOnRetrieveEnd error
 	ErrOnClose       error
 
-	OnRetrieve func(ctx context.Context, selector string, params interface{}) error
+	OnRetrieve func(ctx context.Context, selector string, paramsConfigMap *config.Map) error
 }
 
 type valueEntry struct {
@@ -40,9 +41,9 @@ type valueEntry struct {
 
 var _ configsource.ConfigSource = (*testConfigSource)(nil)
 
-func (t *testConfigSource) Retrieve(ctx context.Context, selector string, params interface{}) (configsource.Retrieved, error) {
+func (t *testConfigSource) Retrieve(ctx context.Context, selector string, paramsConfigMap *config.Map) (configsource.Retrieved, error) {
 	if t.OnRetrieve != nil {
-		if err := t.OnRetrieve(ctx, selector, params); err != nil {
+		if err := t.OnRetrieve(ctx, selector, paramsConfigMap); err != nil {
 			return nil, err
 		}
 	}

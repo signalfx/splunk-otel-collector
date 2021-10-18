@@ -16,7 +16,7 @@ Currently, the following Linux distributions and versions are supported:
 - Amazon Linux: 2
 - CentOS / Red Hat / Oracle: 7, 8
 - Debian: 8, 9, 10
-- SUSE: 12, 15 (**Note:** Only for collector versions v0.34.0 or higher.  Log collection with Fluentd not currently supported.)
+- SUSE: 12, 15 (**Note:** Only for Collector versions v0.34.0 or higher.  Log collection with Fluentd not currently supported.)
 - Ubuntu: 16.04, 18.04, 20.04
 
 ## Getting Started
@@ -99,21 +99,28 @@ After modification, the Collector service needs to be restarted:
 sudo systemctl restart splunk-otel-collector
 ```
 
+The `splunk-otel-collector` service logs and errors can be viewed in the
+systemd journal:
+
+```sh
+sudo journalctl -u splunk-otel-collector
+```
+
 ### Fluentd Configuration
 
-By default, the fluentd service will be installed and configured to forward log
-events with the `@SPLUNK` label to the collector (see below for how to add
-custom fluentd log sources), and the collector will send these events to the
+By default, the Fluentd service will be installed and configured to forward log
+events with the `@SPLUNK` label to the Collector (see below for how to add
+custom Fluentd log sources), and the Collector will send these events to the
 HEC ingest endpoint determined by the `--realm SPLUNK_REALM` option, e.g.
 `https://ingest.SPLUNK_REALM.signalfx.com/v1/log`.
 
-The following fluentd plugins will also be installed:
+The following Fluentd plugins will also be installed:
 
 - [capng_c](https://github.com/fluent-plugins-nursery/capng_c) for enabling [Linux capabilities](https://docs.fluentd.org/deployment/linux-capability)
 - [fluent-plugin-systemd](https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) for systemd journal log collection
 
 Additionally, the following dependencies will be installed as prerequisites for
-the fluentd plugins:
+the Fluentd plugins:
 
 - Debian-based systems:
   - `build-essential`
@@ -128,32 +135,43 @@ the fluentd plugins:
   - `pkgconfig`
 
 > If log collection is not required, run the installer script with the
-> `--without-fluentd` option to skip installation of fluentd and the
+> `--without-fluentd` option to skip installation of Fluentd and the
 > plugins/dependencies listed above.
 
-To configure the collector to send log events to a custom HEC endpoint URL, you
+To configure the Collector to send log events to a custom HEC endpoint URL, you
 can specify the following parameters for the installer script:
 
 - `--hec-url URL`
 - `--hec-token TOKEN`
 
-The main fluentd configuration file will be installed to
-`/etc/otel/collector/fluentd/fluent.conf`. Custom fluentd source config files
+The main Fluentd configuration file will be installed to
+`/etc/otel/collector/fluentd/fluent.conf`. Custom Fluentd source config files
 can be added to the `/etc/otel/collector/fluentd/conf.d` directory after 
 installation. Please note:
 
-- All files in this directory ending `.conf` extension will automatically be
- included by Fluentd.
-- The "td-agent" user must have permissions to access the config files and the
-  paths defined within.
-- By default, Fluentd will be configured to collect systemd journal log events
-from `/var/log/journal`.
-
-After any configuration modification, the td-agent service needs to be restarted:
-
-```sh
-sudo systemctl restart td-agent
-```
+- By default, Fluentd will be configured to collect log events from many
+  popular services, like the systemd journal.  Check the `.conf` files in this
+  directory for the default configuration of the included sources.  **Note:**
+  The paths defined within these sources may need to be updated for the system
+  or service.
+- Any new source added to this directory should have a `.conf` extension and
+  have the `@SPLUNK` label to automatically forward log events to the
+  Collector.
+- All files with a `.conf` extension in this directory will automatically be
+  included when the Fluentd service starts/restarts.
+- The Fluentd service runs as the `td-agent` user/group.  If adding/modifying
+  any configuration file, ensure that the `td-agent` user/group has permissions
+  to access the configuration file and the path(s) defined within.
+- After any configuration modification, the Fluentd service needs to be
+  restarted:
+  ```sh
+  sudo systemctl restart td-agent
+  ```
+- The Fluentd service logs and errors can be viewed in
+  `/var/log/td-agent/td-agent.log`.
+- See [https://docs.fluentd.org/configuration](
+  https://docs.fluentd.org/configuration) for general Fluentd configuration
+  details.
 
 **Note:** If the `td-agent` package is upgraded after initial installation, [Linux
 capabilities](https://docs.fluentd.org/deployment/linux-capability) may need
@@ -183,7 +201,7 @@ applicable for `td-agent` versions 4.1 or newer):
 
 ### Uninstall
 
-If you wish to uninstall the collector and fluentd you can run:
+If you wish to uninstall the Collector and Fluentd you can run:
 
 ```sh
 sudo sh /tmp/splunk-otel-collector.sh --uninstall

@@ -25,7 +25,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
+	collectorConfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
 	"go.uber.org/zap"
@@ -50,7 +50,7 @@ type Output struct {
 	reporter             *obsreport.Receiver
 	translator           converter.Translator
 	monitorFiltering     *monitorFiltering
-	receiverID           config.ComponentID
+	receiverID           collectorConfig.ComponentID
 	nextDimensionClients []metadata.MetadataExporter
 }
 
@@ -60,25 +60,27 @@ var _ types.FilteringOutput = (*Output)(nil)
 func NewOutput(
 	config Config, filtering *monitorFiltering, nextMetricsConsumer consumer.Metrics,
 	nextLogsConsumer consumer.Logs, nextTracesConsumer consumer.Traces, host component.Host,
-	logger *zap.Logger,
+	params component.ReceiverCreateSettings,
 ) *Output {
 	return &Output{
 		receiverID:           config.ID(),
 		nextMetricsConsumer:  nextMetricsConsumer,
 		nextLogsConsumer:     nextLogsConsumer,
 		nextTracesConsumer:   nextTracesConsumer,
-		nextDimensionClients: getMetadataExporters(config, host, nextMetricsConsumer, logger),
-		logger:               logger,
-		translator:           converter.NewTranslator(logger),
+		nextDimensionClients: getMetadataExporters(config, host, nextMetricsConsumer, params.Logger),
+		logger:               params.Logger,
+		translator:           converter.NewTranslator(params.Logger),
 		extraDimensions:      map[string]string{},
 		extraSpanTags:        map[string]string{},
 		defaultSpanTags:      map[string]string{},
 		monitorFiltering:     filtering,
 		reporter: obsreport.NewReceiver(obsreport.ReceiverSettings{
-			ReceiverID: config.ID(),
-			Transport:  internalTransport,
+			ReceiverID:             config.ID(),
+			Transport:              internalTransport,
+			ReceiverCreateSettings: params,
 		}),
 	}
+
 }
 
 // getMetadataExporters walks through obtained Config.MetadataClients and returns all matching registered MetadataExporters,
@@ -91,7 +93,7 @@ func getMetadataExporters(
 	exporters, noClientsSpecified := getDimensionClientsFromMetricsExporters(cfg.DimensionClients, host, nextMetricsConsumer, logger)
 
 	if len(exporters) == 0 && noClientsSpecified {
-		sfxExporter := getLoneSFxExporter(host, config.MetricsDataType)
+		sfxExporter := getLoneSFxExporter(host, collectorConfig.MetricsDataType)
 		if sfxExporter != nil {
 			if sfx, ok := sfxExporter.(metadata.MetadataExporter); ok {
 				exporters = append(exporters, sfx)
@@ -121,7 +123,7 @@ func getDimensionClientsFromMetricsExporters(
 		return
 	}
 
-	if builtExporters, ok := host.GetExporters()[config.MetricsDataType]; ok {
+	if builtExporters, ok := host.GetExporters()[collectorConfig.MetricsDataType]; ok {
 		for _, client := range specifiedClients {
 			var found bool
 			for exporterConfig, exporter := range builtExporters {
@@ -143,7 +145,7 @@ func getDimensionClientsFromMetricsExporters(
 	return
 }
 
-func getLoneSFxExporter(host component.Host, exporterType config.DataType) component.Exporter {
+func getLoneSFxExporter(host component.Host, exporterType collectorConfig.DataType) component.Exporter {
 	var sfxExporter component.Exporter
 	if builtExporters, ok := host.GetExporters()[exporterType]; ok {
 		for exporterConfig, exporter := range builtExporters {

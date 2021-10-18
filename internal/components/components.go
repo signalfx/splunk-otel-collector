@@ -31,7 +31,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor"
@@ -57,7 +57,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
@@ -66,6 +65,7 @@ import (
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.uber.org/multierr"
 
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/httpsinkexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
@@ -137,7 +137,7 @@ func Get() (component.Factories, error) {
 		batchprocessor.NewFactory(),
 		filterprocessor.NewFactory(),
 		groupbyattrsprocessor.NewFactory(),
-		k8sprocessor.NewFactory(),
+		k8sattributesprocessor.NewFactory(),
 		memorylimiterprocessor.NewFactory(),
 		metricstransformprocessor.NewFactory(),
 		probabilisticsamplerprocessor.NewFactory(),
@@ -156,5 +156,5 @@ func Get() (component.Factories, error) {
 		Exporters:  exporters,
 	}
 
-	return factories, consumererror.Combine(errs)
+	return factories, multierr.Combine(errs...)
 }

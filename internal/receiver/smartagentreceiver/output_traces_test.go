@@ -30,7 +30,7 @@ import (
 func TestSendSpansWithoutNextTracesConsumer(t *testing.T) {
 	output := NewOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		nil, componenttest.NewNopHost(), zap.NewNop(),
+		nil, componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
 
 	output.SendSpans(&trace.Span{TraceID: "12345678", ID: "23456789"}) // doesn't panic
@@ -39,7 +39,7 @@ func TestSendSpansWithoutNextTracesConsumer(t *testing.T) {
 func TestExtraSpanTags(t *testing.T) {
 	output := NewOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
 	assert.Empty(t, output.extraSpanTags)
 
@@ -64,7 +64,7 @@ func TestExtraSpanTags(t *testing.T) {
 func TestDefaultSpanTags(t *testing.T) {
 	output := NewOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), zap.NewNop(),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
 	assert.Empty(t, output.defaultSpanTags)
 
@@ -90,7 +90,7 @@ func TestSendSpansWithDefaultAndExtraSpanTags(t *testing.T) {
 	tracesSink := consumertest.TracesSink{}
 	output := NewOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		&tracesSink, componenttest.NewNopHost(), zap.NewNop(),
+		&tracesSink, componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
 	output.AddExtraSpanTag("will_be_overridden", "added extra value (want)")
 	output.AddDefaultSpanTag("wont_be_overridden", "added default value")
@@ -173,15 +173,17 @@ func TestSendSpansWithDefaultAndExtraSpanTags(t *testing.T) {
 }
 
 func TestSendSpansWithConsumerError(t *testing.T) {
-
 	obs, logs := observer.New(zap.DebugLevel)
 	logger := zap.New(obs)
+
+	rcs := newReceiverCreateSettings()
+	rcs.Logger = logger
 
 	err := fmt.Errorf("desired error")
 	tracesConsumer := consumertest.NewErr(err)
 	output := NewOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		tracesConsumer, componenttest.NewNopHost(), logger,
+		tracesConsumer, componenttest.NewNopHost(), rcs,
 	)
 
 	output.SendSpans(&trace.Span{TraceID: "12345678", ID: "23456789"})

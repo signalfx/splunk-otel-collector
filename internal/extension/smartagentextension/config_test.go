@@ -50,7 +50,7 @@ func TestLoadConfig(t *testing.T) {
 
 	require.Equal(t, len(cfg.Extensions), 3)
 
-	emptyConfig := cfg.Extensions[config.NewIDWithName(typeStr, "default_settings")]
+	emptyConfig := cfg.Extensions[config.NewComponentIDWithName(typeStr, "default_settings")]
 	require.NotNil(t, emptyConfig)
 	require.NoError(t, configtest.CheckConfigStruct(emptyConfig))
 	require.Equal(t, func() *Config {
@@ -59,7 +59,7 @@ func TestLoadConfig(t *testing.T) {
 		return &cfg
 	}(), emptyConfig)
 
-	allSettingsConfig := cfg.Extensions[config.NewIDWithName(typeStr, "all_settings")]
+	allSettingsConfig := cfg.Extensions[config.NewComponentIDWithName(typeStr, "all_settings")]
 	require.NotNil(t, allSettingsConfig)
 	require.NoError(t, configtest.CheckConfigStruct(allSettingsConfig))
 	require.Equal(t, func() *Config {
@@ -86,7 +86,7 @@ func TestLoadConfig(t *testing.T) {
 		return &cfg
 	}(), allSettingsConfig)
 
-	partialSettingsConfig := cfg.Extensions[config.NewIDWithName(typeStr, "partial_settings")]
+	partialSettingsConfig := cfg.Extensions[config.NewComponentIDWithName(typeStr, "partial_settings")]
 	require.NotNil(t, partialSettingsConfig)
 	require.NoError(t, configtest.CheckConfigStruct(partialSettingsConfig))
 	require.Equal(t, func() *Config {
@@ -118,7 +118,7 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 
 	require.GreaterOrEqual(t, len(cfg.Extensions), 1)
 
-	allSettingsConfig := cfg.Extensions[config.NewIDWithName(typeStr, "all_settings")]
+	allSettingsConfig := cfg.Extensions[config.NewComponentIDWithName(typeStr, "all_settings")]
 	require.NotNil(t, allSettingsConfig)
 
 	ext, err := factory.CreateExtension(context.Background(), component.ExtensionCreateSettings{}, allSettingsConfig)
@@ -163,7 +163,7 @@ func TestLoadInvalidConfig(t *testing.T) {
 
 func defaultConfig() Config {
 	return Config{
-		ExtensionSettings: config.NewExtensionSettings(config.NewID(typeStr)),
+		ExtensionSettings: config.NewExtensionSettings(config.NewComponentID(typeStr)),
 		Config: saconfig.Config{
 			BundleDir:              bundleDir,
 			SignalFxRealm:          "us0",

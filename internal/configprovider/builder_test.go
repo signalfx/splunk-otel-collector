@@ -31,7 +31,7 @@ func TestConfigSourceBuild(t *testing.T) {
 	ctx := context.Background()
 	params := CreateParams{
 		Logger:    zap.NewNop(),
-		BuildInfo: component.DefaultBuildInfo(),
+		BuildInfo: component.NewDefaultBuildInfo(),
 	}
 
 	testFactories := Factories{

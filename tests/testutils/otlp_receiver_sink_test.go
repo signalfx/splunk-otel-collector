@@ -102,7 +102,7 @@ func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
 
 func otlpExporter(t *testing.T) component.MetricsExporter {
 	exporterCfg := otlpexporter.Config{
-		ExporterSettings: config.NewExporterSettings(config.NewIDWithName("otlp", "otlp")),
+		ExporterSettings: config.NewExporterSettings(config.NewComponentIDWithName("otlp", "otlp")),
 		GRPCClientSettings: configgrpc.GRPCClientSettings{
 			Endpoint: "localhost:4317",
 			TLSSetting: configtls.TLSClientSetting{

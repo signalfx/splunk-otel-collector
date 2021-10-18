@@ -23,7 +23,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configparser"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -31,7 +30,7 @@ import (
 
 func TestZookeeperLoadConfig(t *testing.T) {
 	fileName := path.Join("testdata", "config.yaml")
-	v, err := configparser.NewConfigMapFromFile(fileName)
+	v, err := config.NewMapFromFile(fileName)
 	require.NoError(t, err)
 
 	factories := map[config.Type]configprovider.Factory{

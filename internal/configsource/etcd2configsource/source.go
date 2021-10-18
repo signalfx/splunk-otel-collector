@@ -21,6 +21,7 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	"go.etcd.io/etcd/client"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
 
@@ -60,7 +61,7 @@ func newConfigSource(params configprovider.CreateParams, cfg *Config) (configsou
 	}, nil
 }
 
-func (s *etcd2ConfigSource) Retrieve(ctx context.Context, selector string, _ interface{}) (configsource.Retrieved, error) {
+func (s *etcd2ConfigSource) Retrieve(ctx context.Context, selector string, paramsConfigMap *config.Map) (configsource.Retrieved, error) {
 	resp, err := s.kapi.Get(ctx, selector, nil)
 	if err != nil {
 		return nil, err

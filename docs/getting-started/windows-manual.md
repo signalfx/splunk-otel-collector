@@ -87,7 +87,31 @@ Stop-Service splunk-otel-collector
 Start-Service splunk-otel-collector
 ```
 
-The collector logs and errors can be viewed in the Windows Event Viewer.
+#### Service Logging
+
+The Collector logs and errors can be viewed in the Windows Event Viewer when run as a service. The service logs are
+displayed in `Event Viewer` > `Windows Logs` > `Application` and are visible by source "collector".
+
+The Collector will have a log level of info by default.  To change this in versions 0.36.0 and later
+you can add a "logs" entry in the [service telemetry definition](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/troubleshooting.md#logs) in the currently used config before restarting the service:
+
+```yaml
+service:
+  telemetry:
+    logs:
+      level: debug
+```
+
+For older versions of the Collector you can alter the service `ImagePath` before restarting:
+
+```sh
+PS> Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -name "ImagePath" -value "C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe --log-level debug"
+PS> Restart-Service splunk-otel-collector
+
+# Reverting after observing logs:
+PS> Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -name "ImagePath" -value "C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe"
+PS> Restart-Service splunk-otel-collector
+```
 
 ### Fluentd MSI Installation
 

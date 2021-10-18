@@ -96,6 +96,7 @@ func main() {
 			parserProvider,
 			configconverter.RemoveBallastKey,
 			configconverter.MoveOTLPInsecureKey,
+			configconverter.MoveHecTLS,
 		)
 	}
 

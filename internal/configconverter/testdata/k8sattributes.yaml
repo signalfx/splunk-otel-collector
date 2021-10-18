@@ -51,3 +51,11 @@ service:
         - k8sattributes/some_name
       exporters:
         - otlp
+    metrics/some_name:
+      receivers:
+        - hostmetrics
+      processors:
+        - k8sattributes
+        - k8sattributes/some_name
+      exporters:
+        - otlp

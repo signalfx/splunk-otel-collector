@@ -31,6 +31,8 @@ for more details and available options.
 
 ## Advanced Configuration
 
+For general advanced configuration and usage see the [manual installation documentation](./windows-manual.md). Advanced installer script usage is detailed in this section.
+
 ### Additional Script Options
 
 One additional parameter that may need to changed is `-memory` in order to

@@ -22,7 +22,6 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
-	"go.uber.org/zap"
 )
 
 const (
@@ -36,7 +35,7 @@ var (
 	receiverStore     = map[*Config]*Receiver{}
 )
 
-func getOrCreateReceiver(cfg config.Receiver, logger *zap.Logger) (*Receiver, error) {
+func getOrCreateReceiver(cfg config.Receiver, params component.ReceiverCreateSettings) (*Receiver, error) {
 	receiverStoreLock.Lock()
 	defer receiverStoreLock.Unlock()
 	receiverConfig := cfg.(*Config)
@@ -48,7 +47,7 @@ func getOrCreateReceiver(cfg config.Receiver, logger *zap.Logger) (*Receiver, er
 
 	receiver, ok := receiverStore[receiverConfig]
 	if !ok {
-		receiver = NewReceiver(logger, *receiverConfig)
+		receiver = NewReceiver(params, *receiverConfig)
 		receiverStore[receiverConfig] = receiver
 	}
 
@@ -67,7 +66,7 @@ func NewFactory() component.ReceiverFactory {
 
 func CreateDefaultConfig() config.Receiver {
 	return &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewID(typeStr)),
+		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
 	}
 }
 
@@ -77,7 +76,7 @@ func createMetricsReceiver(
 	cfg config.Receiver,
 	metricsConsumer consumer.Metrics,
 ) (component.MetricsReceiver, error) {
-	receiver, err := getOrCreateReceiver(cfg, params.Logger)
+	receiver, err := getOrCreateReceiver(cfg, params)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +91,7 @@ func createLogsReceiver(
 	cfg config.Receiver,
 	logsConsumer consumer.Logs,
 ) (component.LogsReceiver, error) {
-	receiver, err := getOrCreateReceiver(cfg, params.Logger)
+	receiver, err := getOrCreateReceiver(cfg, params)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +106,7 @@ func createTracesReceiver(
 	cfg config.Receiver,
 	tracesConsumer consumer.Traces,
 ) (component.TracesReceiver, error) {
-	receiver, err := getOrCreateReceiver(cfg, params.Logger)
+	receiver, err := getOrCreateReceiver(cfg, params)
 	if err != nil {
 		return nil, err
 	}

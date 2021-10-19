@@ -24,19 +24,19 @@ resource_metrics:
           - name: counter.cassandra.Storage.TotalHintsInProgress.Count
             type: IntMonotonicCumulativeSum
           - name: gauge.cassandra.ClientRequest.RangeSlice.Latency.99thPercentile
-            type: IntGauge
+            type: DoubleGauge
           - name: gauge.cassandra.ClientRequest.Read.Latency.50thPercentile
-            type: IntGauge
+            type: DoubleGauge
           - name: gauge.cassandra.ClientRequest.Read.Latency.99thPercentile
-            type: IntGauge
+            type: DoubleGauge
           - name: gauge.cassandra.ClientRequest.Read.Latency.Max
-            type: IntGauge
+            type: DoubleGauge
           - name: gauge.cassandra.ClientRequest.Write.Latency.50thPercentile
-            type: IntGauge
+            type: DoubleGauge
           - name: gauge.cassandra.ClientRequest.Write.Latency.99thPercentile
-            type: IntGauge
+            type: DoubleGauge
           - name: gauge.cassandra.ClientRequest.Write.Latency.Max
-            type: IntGauge
+            type: DoubleGauge
           - name: gauge.cassandra.Compaction.PendingTasks.Value
             type: IntGauge
           - name: gauge.jvm.threads.count

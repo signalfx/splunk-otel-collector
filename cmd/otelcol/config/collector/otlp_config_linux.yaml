@@ -33,8 +33,14 @@ receivers:
             action: drop
   sapm:
     endpoint: 0.0.0.0:7276
+    # Whether to preserve incoming access token and use instead of exporter token
+    # default = false
+    #access_token_passthrough: true
   signalfx:
     endpoint: 0.0.0.0:9943
+    # Whether to preserve incoming access token and use instead of exporter token
+    # default = false
+    #access_token_passthrough: true
   smartagent/signalfx-forwarder:
     type: signalfx-forwarder
     listenAddress: 0.0.0.0:9080
@@ -60,10 +66,11 @@ processors:
         #value: staging/production/...
         #key: deployment.environment
 
-  # detect if the collector is running on a cloud system.
-  # overrides resource attributes set by receivers
+  # Detect if the collector is running on a cloud system. Overrides resource attributes set by receivers.
+  # Detector order is important: the `system` detector goes last so it can't preclude cloud detectors from setting host/os info.
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#ordering
   resourcedetection/internal:
-    detectors: [system, gce, ecs, ec2, azure]
+    detectors: [gce, ecs, ec2, azure, system]
     override: true
 
 exporters:

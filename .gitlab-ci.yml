@@ -76,9 +76,11 @@ compile:
   script: make $TARGET
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
+    - if [ -e bin/translatesfx ]; then rm -f bin/translatesfx; fi  # remove the symlink
   artifacts:
     paths:
-      - bin/
+      - bin/otelcol_*
+      - bin/translatesfx_*
 
 .sign-release-cache:
   image: 'docker.repo.splunkdev.net/ci-cd/ci-container:python-3.9'
@@ -121,30 +123,36 @@ sign-exe:
     - .sign-release-cache
     - .sign-release
   stage: sign
+  parallel:
+    matrix:
+      - TARGET: [otelcol, translatesfx]
   variables:
-    PATHS: bin/otelcol_windows_amd64.exe
-    OPTIONS: "--no-push"
+    PATHS: bin/${TARGET}_windows_amd64.exe
+    OPTIONS: "--no-push --timeout=1200"
   after_script:
     - mkdir -p dist/signed
-    - mv bin/signed/otelcol_windows_amd64.exe dist/signed/
+    - mv bin/signed/${TARGET}_windows_amd64.exe dist/signed/
   artifacts:
     paths:
-      - dist/signed/otelcol_windows_amd64.exe
+      - dist/signed/${TARGET}_windows_amd64.exe
 
 sign-osx:
   extends:
     - .sign-release-cache
     - .sign-release
   stage: sign
+  parallel:
+    matrix:
+      - TARGET: [otelcol, translatesfx]
   variables:
-    PATHS: bin/otelcol_darwin_amd64
+    PATHS: bin/${TARGET}_darwin_amd64
     OPTIONS: "--no-push"
   after_script:
     - mkdir -p dist/signed
-    - mv bin/signed/otelcol_darwin_amd64 dist/signed/
+    - mv bin/signed/${TARGET}_darwin_amd64 dist/signed/
   artifacts:
     paths:
-      - dist/signed/otelcol_darwin_amd64
+      - dist/signed/${TARGET}_darwin_amd64
 
 build-linux-image:
   only:
@@ -154,6 +162,8 @@ build-linux-image:
   except:
     - schedules
   stage: package
+  dependencies:
+    - compile
   retry: 2
   script:
     - make docker-otelcol SKIP_COMPILE=true
@@ -172,6 +182,8 @@ build-linux-image:
   except:
     - schedules
   stage: package
+  dependencies:
+    - compile
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
@@ -204,9 +216,13 @@ build-msi:
   except:
     - schedules
   stage: package
+  dependencies:
+    - sign-exe
   before_script:
     # build the MSI with the signed exe
+    - mkdir -p bin
     - cp -f dist/signed/otelcol_windows_amd64.exe bin/otelcol_windows_amd64.exe
+    - cp -f dist/signed/translatesfx_windows_amd64.exe bin/translatesfx_windows_amd64.exe
   script:
     - make msi SKIP_COMPILE=true VERSION=${CI_COMMIT_TAG:-}
   artifacts:
@@ -266,6 +282,7 @@ build-push-windows-image:
   retry: 2
   before_script:
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
+    - Copy-Item .\dist\signed\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
   script:
     - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
     - |
@@ -335,7 +352,7 @@ release-msi:
     - build-msi
   variables:
     PATHS: dist/*.msi
-    OPTIONS: "--no-push"
+    OPTIONS: "--no-push --timeout=1200"
   artifacts:
     paths:
       - dist/signed/*.msi
@@ -371,6 +388,7 @@ github-release:
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
+    - cp bin/translatesfx_linux_* dist/assets/
     - cp dist/signed/* dist/assets/
     - pushd dist/assets && shasum -a 256 * > checksums.txt && popd
     - release_notes="$( ./internal/buildscripts/packaging/release/gh-release-notes.sh "$CI_COMMIT_TAG" )"

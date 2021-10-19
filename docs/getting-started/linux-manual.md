@@ -24,7 +24,9 @@ configured depends on the installation method leveraged.
 
 ### DEB and RPM Packages
 
-If you prefer to install the collector without the [installer script
+#### Collector Package Repositories
+
+If you prefer to install the Collector without the [installer script
 ](./linux-installer.md), we provide Debian and RPM package repositories that
 you can make use of with the following commands (requires `root` privileges).
 
@@ -32,75 +34,190 @@ you can make use of with the following commands (requires `root` privileges).
 https://github.com/signalfx/signalfx-agent/releases) is only supported and
 installed on x86_64/amd64 platforms.
 
-> IMPORTANT: `systemctl` is a requirement to run the collector as a service.
-> Otherwise, manually running the collector is required.
+> IMPORTANT: `systemctl` is a requirement to run the Collector as a service.
+> Otherwise, manually running the Collector is required.
 
-1. Set up the package repository and install the collector package:
-- Debian:
-  ```sh
-  curl -sSL https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg > /etc/apt/trusted.gpg.d/splunk.gpg
-  echo 'deb https://splunk.jfrog.io/splunk/otel-collector-deb release main' > /etc/apt/sources.list.d/splunk-otel-collector.list
-  apt-get update
-  apt-get install -y splunk-otel-collector
-  ```
-- RPM with `yum`:
-  ```sh
-  yum install -y libcap  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the collector
+1. Set up the package repository and install the Collector package:
+    - Debian:
+        ```sh
+        curl -sSL https://splunk.jfrog.io/splunk/otel-collector-deb/splunk-B3CD4420.gpg > /etc/apt/trusted.gpg.d/splunk.gpg
+        echo 'deb https://splunk.jfrog.io/splunk/otel-collector-deb release main' > /etc/apt/sources.list.d/splunk-otel-collector.list
+        apt-get update
+        apt-get install -y splunk-otel-collector
+        ```
+    - RPM with `yum`:
+        ```sh
+        yum install -y libcap  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the Collector
 
-  cat <<EOH > /etc/yum.repos.d/splunk-otel-collector.repo
-  [splunk-otel-collector]
-  name=Splunk OpenTelemetry Collector Repository
-  baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
-  gpgcheck=1
-  gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
-  enabled=1
-  EOH
+        cat <<EOH > /etc/yum.repos.d/splunk-otel-collector.repo
+        [splunk-otel-collector]
+        name=Splunk OpenTelemetry Collector Repository
+        baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
+        gpgcheck=1
+        gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
+        enabled=1
+        EOH
 
-  yum install -y splunk-otel-collector
-  ```
-- RPM with `dnf`:
-  ```sh
-  dnf install -y libcap  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the collector
+        yum install -y splunk-otel-collector
+        ```
+    - RPM with `dnf`:
+        ```sh
+        dnf install -y libcap  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the Collector
 
-  cat <<EOH > /etc/yum.repos.d/splunk-otel-collector.repo
-  [splunk-otel-collector]
-  name=Splunk OpenTelemetry Collector Repository
-  baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
-  gpgcheck=1
-  gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
-  enabled=1
-  EOH
+        cat <<EOH > /etc/yum.repos.d/splunk-otel-collector.repo
+        [splunk-otel-collector]
+        name=Splunk OpenTelemetry Collector Repository
+        baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
+        gpgcheck=1
+        gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
+        enabled=1
+        EOH
 
-  dnf install -y splunk-otel-collector
-  ```
-- RPM with `zypper`:
-  ```sh
-  zypper install -y libcap-progs  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the collector
+        dnf install -y splunk-otel-collector
+        ```
+    - RPM with `zypper`:
+        ```sh
+        zypper install -y libcap-progs  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the Collector
 
-  cat <<EOH > /etc/zypp/repos.d/splunk-otel-collector.repo
-  [splunk-otel-collector]
-  name=Splunk OpenTelemetry Collector Repository
-  baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
-  gpgcheck=1
-  gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
-  enabled=1
-  EOH
+        cat <<EOH > /etc/zypp/repos.d/splunk-otel-collector.repo
+        [splunk-otel-collector]
+        name=Splunk OpenTelemetry Collector Repository
+        baseurl=https://splunk.jfrog.io/splunk/otel-collector-rpm/release/\$basearch
+        gpgcheck=1
+        gpgkey=https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
+        enabled=1
+        EOH
 
-  zypper install -y splunk-otel-collector
-  ```
-2. A default configuration file will be installed to
+        zypper install -y splunk-otel-collector
+        ```
+1. See the [Collector Debian/RPM Post-Install
+   Configuration](#collector-debianrpm-post-install-configuration) section.
+1. If log collection is required, see the [Fluentd](#fluentd) section.
+
+#### Collector Debian/RPM Packages
+
+If you prefer to install the Collector without the [installer script
+](./linux-installer.md) or the Debian/RPM Repositories in the previous section,
+you can download the individual Debian or RPM package from [Github Releases](
+https://github.com/signalfx/splunk-otel-collector/releases) and install it with
+the following commands (requires `root` privileges).
+
+**Note:** The [SignalFx Smart Agent and collectd bundle](
+https://github.com/signalfx/signalfx-agent/releases) is only supported and
+installed on x86_64/amd64 platforms.
+
+> IMPORTANT: `systemctl` is a requirement to run the Collector as a service.
+> Otherwise, manually running the Collector is required.
+
+1. Download the appropriate Debian or RPM package for the target system from
+   [Github Releases](
+   https://github.com/signalfx/splunk-otel-collector/releases).
+1. Run the following commands to install the `setcap` dependency and the
+   Collector package (replace `<path to splunk-otel-collector deb/rpm>` with
+   the local path to the downloaded Collector package):
+    - Debian:
+        ```sh
+        apt-get update && apt-get install -y libcap2-bin  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the Collector
+        dpkg -i <path to splunk-otel-collector deb>
+        ```
+    - RPM with `yum`:
+        ```sh
+        yum install -y libcap  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the Collector
+        rpm -ivh <path to splunk-otel-collector rpm>
+        ```
+    - RPM with `dnf`:
+        ```sh
+        dnf install -y libcap  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the Collector
+        rpm -ivh <path to splunk-otel-collector rpm>
+        ```
+    - RPM with `zypper`:
+        ```sh
+        zypper install -y libcap-progs  # Required for enabling cap_dac_read_search and cap_sys_ptrace capabilities on the Collector
+        rpm -ivh <path to splunk-otel-collector rpm>
+        ```
+1. See the [Collector Debian/RPM Post-Install
+   Configuration](#collector-debianrpm-post-install-configuration) section.
+1. If log collection is required, see the [Fluentd](#fluentd) section.
+
+#### Collector Debian/RPM Post-Install Configuration
+
+1. A default configuration file will be installed to
    `/etc/otel/collector/agent_config.yaml` if it does not already exist.
-3. The `/etc/otel/collector/splunk-otel-collector.conf` environment file is
-   required to start the `splunk-otel-collector` systemd service.  A sample
-   environment file will be installed to
+1. The `/etc/otel/collector/splunk-otel-collector.conf` environment file is
+   required to start the `splunk-otel-collector` systemd service (**Note**: The
+   service will automatically start if this file exists during
+   install/upgrade).  A sample environment file will be installed to
    `/etc/otel/collector/splunk-otel-collector.conf.example` that includes the
    required environment variables for the default config.  To utilize this
    sample file, set the variables as appropriate and save the file as
    `/etc/otel/collector/splunk-otel-collector.conf`.
-4. Start/Restart the service with:
+1. Start/Restart the service with:
    ```sh
-   sudo systemctl restart splunk-otel-collector.service
+   sudo systemctl restart splunk-otel-collector
    ```
+   **Note:** The service must be restarted for any changes to the config file
+   or environment file to take effect.
+
+1. Run the following command to check the `splunk-otel-collector` service
+   status:
+   ```sh
+   sudo systemctl status splunk-otel-collector
+   ```
+1. The `splunk-otel-collector` service logs and errors can be viewed in the
+   systemd journal:
+   ```sh
+   sudo journalctl -u splunk-otel-collector
+   ```
+
+#### Fluentd
+
+If log collection is required, perform the following steps to install Fluentd
+and forward collected log events to the Collector (requires `root` privileges):
+
+1. Install, configure, and start the Collector as described in the previous
+   section.  The Collector's default configuration file
+   (`/etc/otel/collector/agent_config.yaml`) listens for log events on
+   `127.0.0.1:8006` and sends them to the Splunk Observability Cloud.
+1. Check [https://docs.fluentd.org/installation](
+   https://docs.fluentd.org/installation) to install the `td-agent` package
+   appropriate for the Linux distribution/version of the target system.
+1. If necessary, check [https://docs.fluentd.org/deployment/linux-capability](
+   https://docs.fluentd.org/deployment/linux-capability) to install the
+   `capng_c` plugin and dependencies for enabling Linux capabilities, e.g.
+   `cap_dac_read_search` and/or `cap_dac_override`.  Requires `td-agent`
+   version 4.1 or newer.
+1. If necessary, check
+   [https://github.com/fluent-plugin-systemd/fluent-plugin-systemd](
+   https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) to install
+   the `fluent-plugin-systemd` plugin to collect log events from the systemd
+   journal.
+1. Configure Fluentd to collect log events and forward them to the Collector:
+   - Option 1: Update the default config file at `/etc/td-agent/td-agent.conf`
+     provided by the Fluentd package to collect the desired log events and
+     [forward](https://docs.fluentd.org/output/forward) them to
+     `127.0.0.1:8006`.
+   - Option 2: The installed Collector package provides a custom Fluentd config
+     file (`/etc/otel/collector/fluentd/fluent.conf`) to collect log events
+     from many popular services (`/etc/otel/collector/fluentd/conf.d/*.conf`)
+     and forwards them to `127.0.0.1:8006`. To utilize these files, copy the
+     `/etc/otel/collector/fluentd/splunk-otel-collector.conf` systemd
+     environment file to
+     `/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf` in
+     order to override the default config file path for the Fluentd service.
+1. Ensure that the `td-agent` service user/group has permissions to access to
+   the config file(s) from the previous step.
+1. Apply the changes by running the following command to restart the Fluentd
+   service:
+   ```sh
+   systemctl restart td-agent
+   ```
+   **Note**: The `td-agent` service must be restarted in order for any changes
+   made to the Fluentd config files to take effect.
+1. The Fluentd service logs and errors can be viewed in
+   `/var/log/td-agent/td-agent.log`.
+1. See [https://docs.fluentd.org/configuration](
+   https://docs.fluentd.org/configuration) for general Fluentd configuration
+   details.
 
 ### Other
 

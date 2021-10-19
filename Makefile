@@ -183,6 +183,12 @@ translatesfx:
 	GO111MODULE=on CGO_ENABLED=0 go build -o ./bin/translatesfx_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/translatesfx
 	ln -sf translatesfx_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/translatesfx
 
+.PHONY: migratecheckpoint
+migratecheckpoint:
+	go generate ./...
+	GO111MODULE=on CGO_ENABLED=0 go build -o ./bin/migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION) $(BUILD_INFO) ./cmd/migratecheckpoint
+	ln -sf migratecheckpoint_$(GOOS)_$(GOARCH)$(EXTENSION) ./bin/migratecheckpoint
+
 .PHONY: add-tag
 add-tag:
 	@[ "${TAG}" ] || ( echo ">> env var TAG is not set"; exit 1 )
@@ -198,11 +204,15 @@ delete-tag:
 .PHONY: docker-otelcol
 docker-otelcol:
 ifneq ($(SKIP_COMPILE), true)
-	GOOS=linux $(MAKE) otelcol
+	$(MAKE) binaries-linux_amd64
 endif
 	cp ./bin/otelcol_linux_amd64 ./cmd/otelcol/otelcol
+	cp ./bin/translatesfx_linux_amd64 ./cmd/otelcol/translatesfx
+	cp ./bin/migratecheckpoint_linux_amd64 ./cmd/otelcol/migratecheckpoint
 	docker build -t otelcol --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) ./cmd/otelcol/
 	rm ./cmd/otelcol/otelcol
+	rm ./cmd/otelcol/translatesfx
+	rm ./cmd/otelcol/migratecheckpoint
 
 .PHONY: binaries-all-sys
 binaries-all-sys: binaries-darwin_amd64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64
@@ -211,21 +221,25 @@ binaries-all-sys: binaries-darwin_amd64 binaries-linux_amd64 binaries-linux_arm6
 binaries-darwin_amd64:
 	GOOS=darwin  GOARCH=amd64 $(MAKE) otelcol
 	GOOS=darwin  GOARCH=amd64 $(MAKE) translatesfx
+	GOOS=darwin  GOARCH=amd64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_amd64
 binaries-linux_amd64:
 	GOOS=linux   GOARCH=amd64 $(MAKE) otelcol
 	GOOS=linux   GOARCH=amd64 $(MAKE) translatesfx
+	GOOS=linux  GOARCH=amd64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-linux_arm64
 binaries-linux_arm64:
 	GOOS=linux   GOARCH=arm64 $(MAKE) otelcol
 	GOOS=linux   GOARCH=arm64 $(MAKE) translatesfx
+	GOOS=linux  GOARCH=amd64 $(MAKE) migratecheckpoint
 
 .PHONY: binaries-windows_amd64
 binaries-windows_amd64:
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) translatesfx
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) migratecheckpoint
 
 .PHONY: deb-rpm-package
 %-package: ARCH ?= amd64

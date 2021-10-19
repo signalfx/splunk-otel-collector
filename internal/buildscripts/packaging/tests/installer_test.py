@@ -43,7 +43,7 @@ AGENT_CONFIG_PATH = "/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_PATH = "/etc/otel/collector/gateway_config.yaml"
 OLD_CONFIG_PATH = "/etc/otel/collector/splunk_config_linux.yaml"
 TOTAL_MEMORY = "256"
-BALLAST = "128"
+BALLAST = "64"
 REALM = "test"
 
 
@@ -66,11 +66,10 @@ def verify_env_file(container, mode="agent", ballast=None):
     run_container_cmd(container, f"grep '^SPLUNK_TRACE_URL=https://ingest.{REALM}.signalfx.com/v2/trace$' {env_path}")
     run_container_cmd(container, f"grep '^SPLUNK_HEC_URL=https://ingest.{REALM}.signalfx.com/v1/log$' {env_path}")
     run_container_cmd(container, f"grep '^SPLUNK_HEC_TOKEN=testing123$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={TOTAL_MEMORY}$' {env_path}")
 
     if ballast:
         run_container_cmd(container, f"grep '^SPLUNK_BALLAST_SIZE_MIB={BALLAST}$' {env_path}")
-    else:
-        run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={TOTAL_MEMORY}$' {env_path}")
 
 
 def verify_support_bundle(container):
@@ -146,7 +145,7 @@ def test_installer_mode(distro, version, mode):
     )
 @pytest.mark.parametrize("version", VERSIONS)
 def test_installer_ballast(distro, version):
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --ballast {BALLAST}"
+    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --ballast {BALLAST}"
 
     if version != "latest":
         install_cmd = f"{install_cmd} --collector-version {version.lstrip('v')}"

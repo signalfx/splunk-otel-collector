@@ -13,9 +13,11 @@ See image repository [here](https://quay.io/repository/signalfx/splunk-otel-coll
 ## Getting Started
 ### Create Task Definition
 Take the task definition JSON for the Collector [here](./splunk-otel-collector.json), replace
-`MY_SPLUNK_ACCESS_TOKEN` and `MY_SPLUNK_REALM` with valid values. Update the image tag to
-the newest version. Use the JSON to create a task definition of **EC2 launch type** following
+`MY_SPLUNK_ACCESS_TOKEN` and `MY_SPLUNK_REALM` with valid values.
+We recommend pinning the [image version](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/ecs/ec2/splunk-otel-collector.json#L56) to a specific version instead of latest to avoid upgrade issues. Use the JSON to create a task definition of **EC2 launch type** following
 the instructions [here](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-task-definition.html).
+The supplied task definition is a minimal definition. More options for configuration may be found in the
+[AWS task definition parameters](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html) documentation.
 
 The Collector is configured to use the default configuration file `/etc/otel/collector/ecs_ec2_config.yaml`.
 The Collector image Dockerfile is available [here](../../../cmd/otelcol/Dockerfile) and the contents of the default

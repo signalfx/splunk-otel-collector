@@ -76,7 +76,7 @@ class Asset(object):
             ext = os.path.splitext(self.name)[-1].strip(".")
             if ext and ext in EXTENSIONS:
                 return ext.lower()
-            elif self.name.startswith("otelcol_darwin_"):
+            elif "darwin" in self.name:
                 return "osx"
         return None
 

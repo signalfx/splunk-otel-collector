@@ -96,13 +96,15 @@ func main() {
 			parserProvider,
 			configconverter.RemoveBallastKey,
 			configconverter.MoveOTLPInsecureKey,
+			configconverter.MoveHecTLS,
+			configconverter.RenameK8sTagger,
 		)
 	}
 
 	serviceParams := service.CollectorSettings{
-		BuildInfo:      info,
-		Factories:      factories,
-		ParserProvider: parserProvider,
+		BuildInfo:         info,
+		Factories:         factories,
+		ConfigMapProvider: parserProvider,
 	}
 
 	if err := run(serviceParams); err != nil {
@@ -342,26 +344,24 @@ func setDefaultEnvVars() {
 }
 
 // Returns a ParserProvider that reads configuration YAML from an environment variable when applicable.
-func newBaseParserProvider() parserprovider.ParserProvider {
-	_, configPathFlag := getKeyValue(os.Args[1:], "--config")
-	configPathVar := os.Getenv(configEnvVarName)
+func newBaseParserProvider() parserprovider.MapProvider {
+	var configPath string
+	var ok bool
+	if ok, configPath = getKeyValue(os.Args[1:], "--config"); !ok {
+		configPath = os.Getenv(configEnvVarName)
+	}
 	configYaml := os.Getenv(configYamlEnvVarName)
 
-	if configPathFlag == "" && configPathVar == "" && configYaml != "" {
-		return parserprovider.NewInMemory(bytes.NewBufferString(configYaml))
+	if configPath == "" && configYaml != "" {
+		return parserprovider.NewInMemoryMapProvider(bytes.NewBufferString(configYaml))
 	}
 
-	return parserprovider.Default()
+	return parserprovider.NewDefaultMapProvider(configPath, nil)
 }
 
 func runInteractive(settings service.CollectorSettings) error {
-	app, err := service.New(settings)
-	if err != nil {
-		return fmt.Errorf("failed to construct the application: %w", err)
-	}
-
-	cmd := service.NewCommand(app)
-	if err = cmd.Execute(); err != nil {
+	cmd := service.NewCommand(settings)
+	if err := cmd.Execute(); err != nil {
 		return fmt.Errorf("application run finished with error: %w", err)
 	}
 

@@ -31,6 +31,8 @@ for more details and available options.
 
 ## Advanced Configuration
 
+For general advanced configuration and usage see the [manual installation documentation](./windows-manual.md). Advanced installer script usage is detailed in this section.
+
 ### Additional Script Options
 
 One additional parameter that may need to changed is `-memory` in order to
@@ -43,6 +45,22 @@ Replace the `SPLUNK_MEMORY_TOTAL_MIB` variable with the desired value.
 
 ```powershell
 & {Set-ExecutionPolicy Bypass -Scope Process -Force; $script = ((New-Object System.Net.WebClient).DownloadString('https://dl.signalfx.com/splunk-otel-collector.ps1')); $params = @{access_token = "SPLUNK_ACCESS_TOKEN"; realm = "SPLUNK_REALM"; memory = "SPLUNK_MEMORY_TOTAL_MIB"}; Invoke-Command -ScriptBlock ([scriptblock]::Create(". {$script} $(&{$args} @params)"))}
+```
+
+#### Custom MSI URLs
+
+By default, the Collector MSI is downloaded from `https://dl.signalfx.com` and
+the Fluentd MSI is downloaded from `https://packages.treasuredata.com`.  To
+specify custom URLs for these downloads, use the `collector_msi_url` and
+`fluentd_msi_url` options.
+
+Replace `COLLECTOR_MSI_URL` and `FLUENTD_MSI_URL` with the URLs to the
+desired MSI packages to install, e.g.
+`https://my.host/splunk-otel-collector-1.2.3-amd64.msi` and
+`https://my.host/td-agent-4.1.0-x64.msi`.
+
+```powershell
+& {Set-ExecutionPolicy Bypass -Scope Process -Force; $script = ((New-Object System.Net.WebClient).DownloadString('https://dl.signalfx.com/splunk-otel-collector.ps1')); $params = @{access_token = "SPLUNK_ACCESS_TOKEN"; realm = "SPLUNK_REALM"; collector_msi_url = "COLLECTOR_MSI_URL"; fluentd_msi_url = "FLUENTD_MSI_URL"}; Invoke-Command -ScriptBlock ([scriptblock]::Create(". {$script} $(&{$args} @params)"))}
 ```
 
 ### Collector Configuration
@@ -63,11 +81,11 @@ key and passed to the Collector service:
 - `SPLUNK_ACCESS_TOKEN`: The Splunk access token to authenticate requests
 - `SPLUNK_API_URL`: The Splunk API URL, e.g. `https://api.us0.signalfx.com`
 - `SPLUNK_BUNDLE_DIR`: The location of your Smart Agent bundle for monitor functionality, e.g. `C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle`
-- `SPLUNK_CONFIG`: The path to the collector config file, e.g. `C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`
+- `SPLUNK_CONFIG`: The path to the Collector config file, e.g. `C:\ProgramData\Splunk\OpenTelemetry Collector\agent_config.yaml`
 - `SPLUNK_HEC_TOKEN`: The Splunk HEC authentication token
 - `SPLUNK_HEC_URL`: The Splunk HEC endpoint URL, e.g. `https://ingest.us0.signalfx.com/v1/log`
 - `SPLUNK_INGEST_URL`: The Splunk ingest URL, e.g. `https://ingest.us0.signalfx.com`
-- `SPLUNK_MEMORY_TOTAL_MIB`: Total memory in MiB allocated to the collector, e.g. `512`
+- `SPLUNK_MEMORY_TOTAL_MIB`: Total memory in MiB allocated to the Collector, e.g. `512`
 - `SPLUNK_REALM`: The Splunk realm to send the data to, e.g. `us0`
 - `SPLUNK_TRACE_URL`: The Splunk trace endpoint URL, e.g. `https://ingest.us0.signalfx.com/v2/trace`
 
@@ -89,33 +107,39 @@ Start-Service splunk-otel-collector
 
 ### Fluentd Configuration
 
-By default, the fluentd service will be installed and configured to forward log
-events with the `@SPLUNK` label to the collector (see below for how to add
-custom fluentd log sources), and the collector will send these events to the
+By default, the Fluentd service will be installed and configured to forward log
+events with the `@SPLUNK` label to the Collector (see below for how to add
+custom Fluentd log sources), and the Collector will send these events to the
 HEC ingest endpoint determined by the `-realm SPLUNK_REALM` option, e.g.
 `https://ingest.SPLUNK_REALM.signalfx.com/v1/log`.
 
-To configure the collector to send log events to a custom HEC endpoint URL, you
+To configure the Collector to send log events to a custom HEC endpoint URL, you
 can specify the following parameters for the installer script:
 
 - `-hec_url URL`
 - `-hec_token TOKEN`
 
-The main fluentd configuration file will be installed to
-`\opt\td-agent\etc\td-agent\td-agent.conf`. Custom fluentd source config files
+The main Fluentd configuration file will be installed to
+`\opt\td-agent\etc\td-agent\td-agent.conf`. Custom Fluentd source config files
 can be added to the `\opt\td-agent\etc\td-agent\conf.d` directory after 
 installation. Please note:
 
-- All files in this directory ending `.conf` extension will automatically be
-  included by Fluentd.
 - By default, Fluentd will be configured to collect from the Windows Event Log.
   See `\opt\td-agent\etc\td-agent\conf.d\eventlog.conf` for the default
   configuration.
-
-After any configuration modification, apply the changes by restarting the
-system or running the following PowerShell commands:
-
-```powershell
-Stop-Service fluentdwinsvc
-Start-Service fluentdwinsvc
-```
+- Any new source added to this directory should have a `.conf` extension and
+  have the `@SPLUNK` label to automatically forward log events to the
+  Collector.
+- All files with a `.conf` extension in this directory will automatically be
+  included when the Fluentd service starts/restarts.
+- After any configuration modification, apply the changes by restarting the
+  system or running the following PowerShell commands:
+  ```powershell
+  Stop-Service fluentdwinsvc
+  Start-Service fluentdwinsvc
+  ```
+- The Fluentd service logs and errors can be viewed in
+  `\opt\td-agent\td-agent.log`.
+- See [https://docs.fluentd.org/configuration](
+  https://docs.fluentd.org/configuration) for general Fluentd configuration
+  details.

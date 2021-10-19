@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.opentelemetry.io/collector/config/configparser"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service/parserprovider"
 )
 
@@ -26,19 +26,19 @@ import (
 // convert ConfigMaps. The idea is for this type to conform to the open-closed
 // principle.
 type converterProvider struct {
-	wrapped     parserprovider.ParserProvider
+	wrapped     parserprovider.MapProvider
 	cfgMapFuncs []CfgMapFunc
 }
 
-type CfgMapFunc func(*configparser.ConfigMap) *configparser.ConfigMap
+type CfgMapFunc func(*config.Map) *config.Map
 
-var _ parserprovider.ParserProvider = (*converterProvider)(nil)
+var _ parserprovider.MapProvider = (*converterProvider)(nil)
 
-func ParserProvider(wrapped parserprovider.ParserProvider, funcs ...CfgMapFunc) parserprovider.ParserProvider {
+func ParserProvider(wrapped parserprovider.MapProvider, funcs ...CfgMapFunc) parserprovider.MapProvider {
 	return &converterProvider{wrapped: wrapped, cfgMapFuncs: funcs}
 }
 
-func (p converterProvider) Get(ctx context.Context) (*configparser.ConfigMap, error) {
+func (p converterProvider) Get(ctx context.Context) (*config.Map, error) {
 	cfgMap, err := p.wrapped.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("converterProvider.Get(): %w", err)
@@ -48,7 +48,7 @@ func (p converterProvider) Get(ctx context.Context) (*configparser.ConfigMap, er
 		cfgMap = cfgMapFunc(cfgMap)
 	}
 
-	out := configparser.NewConfigMap()
+	out := config.NewMap()
 	for _, k := range cfgMap.AllKeys() {
 		out.Set(k, cfgMap.Get(k))
 	}

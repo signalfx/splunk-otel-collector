@@ -86,6 +86,9 @@ receivers:
     listenAddress: 0.0.0.0:9080
   signalfx:
     endpoint: 0.0.0.0:9943
+    # Whether to preserve incoming access token and use instead of exporter token
+    # default = false
+    #access_token_passthrough: true
   zipkin:
     endpoint: 0.0.0.0:9411
 
@@ -98,15 +101,17 @@ processors:
   memory_limiter:
     check_interval: 2s
     limit_mib: ${SPLUNK_MEMORY_LIMIT_MIB}
-  # detect if the collector is running on a cloud system
-  # important for creating unique cloud provider dimensions
+
+  # Detect if the collector is running on a cloud system, which is important for creating unique cloud provider dimensions.
+  # Detector order is important: the `system` detector goes last so it can't preclude cloud detectors from setting host/os info.
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#ordering
   resourcedetection:
-    detectors: [system, gce, ecs, ec2, azure]
+    detectors: [gce, ecs, ec2, azure, system]
     override: false
 
   # Same as above but overrides resource attributes set by receivers
   resourcedetection/internal:
-    detectors: [system, gce, ecs, ec2, azure]
+    detectors: [gce, ecs, ec2, azure, system]
     override: true
 
   # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and 

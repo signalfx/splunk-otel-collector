@@ -77,10 +77,12 @@ compile:
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
     - if [ -e bin/translatesfx ]; then rm -f bin/translatesfx; fi  # remove the symlink
+    - if [ -e bin/migratecheckpoint ]; then rm -f bin/migratecheckpoint; fi  # remove the symlink
   artifacts:
     paths:
       - bin/otelcol_*
       - bin/translatesfx_*
+      - bin/migratecheckpoint_*
 
 .sign-release-cache:
   image: 'docker.repo.splunkdev.net/ci-cd/ci-container:python-3.9'
@@ -173,6 +175,26 @@ build-linux-image:
   artifacts:
     paths:
       - dist/otelcol.tar
+
+build-linux-image-arm64:
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  stage: package
+  dependencies:
+    - compile
+  retry: 2
+  script:
+    - make docker-otelcol-arm64 SKIP_COMPILE=true
+  after_script:
+    - mkdir -p dist
+    - docker save -o dist/otelcol-arm64.tar otelcol:arm64
+  artifacts:
+    paths:
+      - dist/otelcol-arm64.tar
 
 .build-deb-rpm:
   only:
@@ -267,7 +289,7 @@ push-linux-image:
     paths:
       - dist/linux_digest.txt
 
-build-push-windows-image:
+push-linux-image-arm64:
   only:
     variables:
       - $CI_COMMIT_BRANCH == "main"
@@ -277,6 +299,72 @@ build-push-windows-image:
   stage: release
   dependencies:
     - sign-exe
+    - build-linux-image-arm64
+  retry: 2
+  before_script:
+    - docker load -i dist/otelcol-arm64.tar
+  script:
+    - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
+    - |
+      set -e
+      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
+        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector"
+        IMAGE_TAG=${CI_COMMIT_TAG#v}-arm64
+      else
+        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-dev"
+        IMAGE_TAG=$CI_COMMIT_SHA-arm64
+      fi
+      echo "Tagging and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
+      docker tag otelcol:arm64 ${IMAGE_NAME}:${IMAGE_TAG}
+      docker push ${IMAGE_NAME}:${IMAGE_TAG}
+
+    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | tee dist/linux_arm64_digest.txt
+  artifacts:
+    paths:
+      - dist/linux_arm64_digest.txt
+
+push-linux-manifest:
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  stage: release
+  dependencies:
+    - build-linux-image-arm64
+    - build-linux-image
+  retry: 2
+  before_script:
+    - docker load -i dist/otelcol.tar
+  script:
+    - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
+    - |
+      set -e
+      if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
+        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector"
+        IMAGE_TAG=${CI_COMMIT_TAG#v}
+      else
+        IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-dev"
+        IMAGE_TAG=$CI_COMMIT_SHA
+      fi
+
+    - docker manifest create --amend ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}-arm64
+    - docker manifest annotate ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:${IMAGE_TAG}-arm64 --os linux --arch arm64
+    - docker manifest push ${IMAGE_NAME}:${IMAGE_TAG}
+    - docker manifest inspect ${IMAGE_NAME}:${IMAGE_TAG} | tee dist/manifest_digest.txt
+  artifacts:
+    paths:
+      - dist/manifest_digest.txt
+
+build-push-windows-image:
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  stage: release
   tags:
     - windows
   retry: 2

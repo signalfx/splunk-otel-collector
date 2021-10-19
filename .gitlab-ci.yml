@@ -77,10 +77,12 @@ compile:
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
     - if [ -e bin/translatesfx ]; then rm -f bin/translatesfx; fi  # remove the symlink
+    - if [ -e bin/migratecheckpoint ]; then rm -f bin/migratecheckpoint; fi  # remove the symlink
   artifacts:
     paths:
       - bin/otelcol_*
       - bin/translatesfx_*
+      - bin/migratecheckpoint_*
 
 .sign-release-cache:
   image: 'docker.repo.splunkdev.net/ci-cd/ci-container:python-3.9'

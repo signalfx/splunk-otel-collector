@@ -195,12 +195,21 @@ delete-tag:
 	@echo "Deleting tag ${TAG}"
 	@git tag -d ${TAG}
 
-.PHONY: docker-otelcol
+.PHONY: docker-otelcol-amd64
 docker-otelcol:
 ifneq ($(SKIP_COMPILE), true)
 	GOOS=linux $(MAKE) otelcol
 endif
 	cp ./bin/otelcol_linux_amd64 ./cmd/otelcol/otelcol
+	docker build -t otelcol --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) ./cmd/otelcol/
+	rm ./cmd/otelcol/otelcol
+
+.PHONY: docker-otelcol-arm64
+docker-otelcol-arm64:
+ifneq ($(SKIP_COMPILE), true)
+	GOOS=linux $(MAKE) otelcol
+endif
+	cp ./bin/otelcol_linux_arm64 ./cmd/otelcol/otelcol
 	docker build -t otelcol --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) ./cmd/otelcol/
 	rm ./cmd/otelcol/otelcol
 

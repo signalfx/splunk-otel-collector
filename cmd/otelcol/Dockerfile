@@ -4,10 +4,12 @@ RUN apk --update add ca-certificates
 FROM alpine:3.14.2 AS otelcol
 COPY otelcol /
 COPY translatesfx /
+COPY migratecheckpoint /
 # Note that this shouldn't be necessary, but in some cases the file seems to be
 # copied with the execute bit lost (see #1317)
 RUN chmod 755 /otelcol
 RUN chmod 755 /translatesfx
+RUN chmod 755 /migratecheckpoint
 
 FROM alpine:3.14.2 AS smartagent
 ARG SMART_AGENT_RELEASE
@@ -29,6 +31,7 @@ ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/bin
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=otelcol /otelcol /
 COPY --from=otelcol /translatesfx /
+COPY --from=otelcol /migratecheckpoint /
 # Maintaining interpreter location as required.
 COPY --from=smartagent /usr/lib/splunk-otel-collector/agent-bundle /usr/lib/splunk-otel-collector/agent-bundle
 COPY config/collector/gateway_config.yaml    /etc/otel/collector/gateway_config.yaml

@@ -2,7 +2,7 @@
 
 This package provides a command-line tool, `translatesfx`, that translates a 
 SignalFx Smart Agent configuration file into a configuration that can be
-used by a Splunk Otel Collector.
+used by a Splunk OTel Collector.
 
 ## Caveats
 
@@ -10,19 +10,20 @@ This tool has been used against several example configs and has been shown
 in some cases to produce OpenTelemetry Collector configs that are fully 
 functional and comparable to the original Smart Agent config. However, 
 this tool is designed to produce only a reasonably accurate approximation of 
-the final, production Otel config that would replace a Smart Agent config. It is 
-not designed to, and cannot, in all cases produce a drop-in replacement Otel
+the final, production OTel config that would replace a Smart Agent config. It is 
+not designed to, and cannot in all cases, produce a drop-in replacement OTel
 config for a Smart Agent one.
 
-Instead, this tool aims to remove a lot of the bookkeeping from migrating to Otel 
-from Smart Agent; any config produced by this tool should be carefully 
+Instead, this tool aims to automate most of the config changes required when migrating
+to OTel from Smart Agent; any config produced by this tool should be carefully 
 evaluated and tested before being put into production.
 
 ## Where to Get It
 
 `translatesfx` executables are available on the
-[releases page](https://github.com/signalfx/splunk-otel-collector/releases).
-and are contained in the rpm, msi, and deb packages (v0.36.1 and up).
+[releases page](https://github.com/signalfx/splunk-OTel-collector/releases).
+and are contained in the rpm, msi, and deb packages as well as the docker images
+(v0.36.1 and up).
 
 ## Usage
 
@@ -37,9 +38,9 @@ expands relative file paths using the current working directory.
 % translatesfx <sfx-file> [<file expansion working directory>]
 ```
 
-When `translatesfx` runs, it sends the translated Open Telemetry collector configuration
-yaml to stdout. To write the contents to disk, you could redirect this output
-to a new Otel configuration file:
+When `translatesfx` runs, it sends the translated Open Telemetry Collector configuration
+yaml to standard output. To write the contents to disk, you could redirect this output
+to a new OTel configuration file:
 
 ```
 % translatesfx sa-config.yaml > otel-config.yaml
@@ -49,19 +50,19 @@ to a new Otel configuration file:
 
 #### CLI Usage
 
-###### Using the current working directory to expand files:
+###### Using the current working directory to expand files
 
 ```
 % translatesfx path/to/sfx/config.yaml
 ```
 
-###### Using a custom working directory to expand files:
+###### Using a custom working directory to expand files
 
 ```
 % translatesfx path/to/sfx/config.yaml path/to/sfx
 ```
 
-#### Basic Example
+#### Basic example
 
 Given the following input
 ```yaml
@@ -131,11 +132,11 @@ service:
       - signalfx
 ```
 
-## Translatable Features
+## Translatable features
 
 #### Monitors
 
-Smart Agent monitors are translated into Otel receivers and placed into the
+Smart Agent monitors are translated into OTel receivers and placed into the
 appropriate pipelines.
 
 For example, the Smart Agent monitor:
@@ -148,7 +149,7 @@ monitors:
     password: abc123
 ```
 
-would be translated into an Otel receiver and placed into the `metrics` pipeline:
+would be translated into an OTel receiver and placed into the `metrics` pipeline:
 
 ```yaml
 receivers:
@@ -168,13 +169,13 @@ service:
 
 Smart Agent
 [remote configuration](https://docs.signalfx.com/en/latest/integrations/agent/remote-config.html)
-directives are translated into their corresponding Otel config sources.
+directives are translated into their corresponding OTel config sources.
 
 The types of config sources supported for translation are the following:
 
-###### Environment Variables
+###### Environment variables
 
-Smart Agent environment variable interpolation in the form of `${VARNAME}` works similarly in Otel,
+Smart Agent environment variable interpolation in the form of `${VARNAME}` works similarly in OTel,
 so these are simply retained as is.
 
 Also supported is the more advanced form:
@@ -189,16 +190,16 @@ which would be translated into:
 ${SIGNALFX_ACCESS_TOKEN}
 ```
 
-Note: support for default environment variable values is currently not suported but may be added in a future release.
+**Note:** Support for default environment variable values is not available, but may be added in a future release.
 
 Docs:
 [Smart Agent](https://docs.signalfx.com/en/latest/integrations/agent/remote-config.html#environment-variables)
 |
-[Otel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/envvarconfigsource)
+[OTel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/envvarconfigsource)
 
 ###### Include
 
-Smart Agent file include directives are translated into Otel include config-source directives.
+Smart Agent file include directives are translated into OTel include config-source directives.
 
 For example, the Smart Agent file include:
 
@@ -206,7 +207,7 @@ For example, the Smart Agent file include:
 signalFxAccessToken: {"#from": "/etc/signalfx/token"}
 ```
 
-would be translated into an Otel `include` config-source:
+would be translated into an OTel `include` config-source:
 
 ```yaml
 config_sources:
@@ -217,7 +218,7 @@ exporters:
 ```
 
 Additionally, globbed paths, `flatten`, and `default` values are supported but only at `translatesfx` tool run time.
-This is because Otel's config-source functionality generally doesn't support these features. As a result, a directive with these
+This is because OTel's config-source functionality generally doesn't support these features. As a result, a directive with these
 attributes will be attempted to be expanded/inlined when the tool is run if the referenced files are available. For this reason,
 it is also recommended that this tool be run in the same environment where the Smart Agent runs -- that way it can read
 any referenced files if it needs to.
@@ -227,11 +228,11 @@ Note: support for disabling inlining may be added in a future release.
 Docs:
 [Smart Agent](https://docs.signalfx.com/en/latest/integrations/agent/remote-config.html)
 |
-[Otel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/includeconfigsource)
+[OTel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/includeconfigsource)
 
 ###### Zookeeper
 
-Smart Agent Zookeeper remote configs are translated into Otel zookeeper config-source directives.
+Smart Agent Zookeeper remote configs are translated into OTel zookeeper config-source directives.
 
 For example, the Smart Agent zookeeper config source:
 
@@ -248,7 +249,7 @@ monitors:
     auth: {"#from": "zookeeper:/redis/password"}
 ```
 
-would be translated into an Otel config source:
+would be translated into an OTel config source:
 
 ```yaml
 config_sources:
@@ -267,11 +268,11 @@ receivers:
 Docs:
 [Smart Agent](https://docs.signalfx.com/en/latest/integrations/agent/config-schema.html#zookeeper)
 |
-[Otel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/zookeeperconfigsource)
+[OTel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/zookeeperconfigsource)
 
 ###### Etcd2
 
-Smart Agent etcd2 config-source directives are translated into their Otel equivalent.
+Smart Agent etcd2 config-source directives are translated into their OTel equivalent.
 
 For example, the following Smart Agent config-source:
 
@@ -289,7 +290,7 @@ monitors:
     auth: {"#from": "etcd2:/redispassword"}
 ```
 
-would be translated into an Otel config-source:
+would be translated into an OTel config-source:
 
 ```yaml
 config_sources:
@@ -311,7 +312,7 @@ receivers:
 Docs:
 [Smart Agent](https://docs.signalfx.com/en/latest/integrations/agent/config-schema.html#etcd2)
 |
-[Otel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/etcd2configsource)
+[OTel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/etcd2configsource)
 
 ###### Vault
 
@@ -329,7 +330,7 @@ monitors:
     auth: {"#from": "vault:/secret/redis[password]"}
 ```
 
-would be translated into an Otel equivalent:
+would be translated into an OTel equivalent:
 
 ```yaml
 config_sources:
@@ -349,11 +350,11 @@ receivers:
 Docs:
 [Smart Agent](https://docs.signalfx.com/en/latest/integrations/agent/config-schema.html#vault)
 |
-[Otel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/vaultconfigsource)
+[OTel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/vaultconfigsource)
 
 #### Global Dimensions
 
-Smart Agent `globalDimensions` are translated into an Otel metrics transform processor placed into the generated metrics pipeline.
+Smart Agent `globalDimensions` are translated into an OTel metrics transform processor placed into the generated metrics pipeline.
 
 For example, the following Smart Agent global dimensions:
 
@@ -363,7 +364,7 @@ globalDimensions:
   bbb: 111
 ```
 
-would be translated into the following Otel metrics transform processor placed into the generated metrics pipeline:
+would be translated into the following OTel metrics transform processor placed into the generated metrics pipeline:
 
 ```yaml
 processors:
@@ -433,9 +434,9 @@ processors:
 Smart Agent `discoveryRule`s work with `observers` to dynamically configure
 and start monitors. 
 
-The corresponding functionality in Otel is handled by `receiver_creator` and `watch_observers`.
-The translation tool translates observers and discovery rules to a receiver creator with Otel rules and watch observers,
-replacing Smart Agent identifiers and operators found in discovery rules with corresponding Otel ones.
+The corresponding functionality in OTel is handled by `receiver_creator` and `watch_observers`.
+The translation tool translates observers and discovery rules to a receiver creator with OTel rules and watch observers,
+replacing Smart Agent identifiers and operators found in discovery rules with corresponding OTel ones.
 
 For example, the Smart Agent observer and discovery rule:
 
@@ -447,7 +448,7 @@ monitors:
     discoveryRule: kubernetes_pod_name == "redis" && port == 6379
 ```
 
-would be translated into an Otel observer, rule, and receiver creator:
+would be translated into an OTel observer, rule, and receiver creator:
 
 ```yaml
 extensions:
@@ -467,6 +468,6 @@ receivers:
 
 #### Special Cases
 
-* If a `processlist` monitor is found in the SA config, a corresponding receiver placed into a `logs` pipeline in the Otel config 
+* If a `processlist` monitor is found in the SA config, a corresponding receiver placed into a `logs` pipeline in the OTel config 
 * If a `signalfx-forwarder` monitor is found in the SA config, a corresponding receiver is placed into a `traces` pipeline, containing both a `sapm` and a `signalfx` exporter
 * All pipelines get a `resourcedetection` processor containing the default list of cloud detectors

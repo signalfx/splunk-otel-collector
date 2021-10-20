@@ -31,6 +31,7 @@ RUN Remove-Item "SignalFxAgent-win64.zip" -force
 RUN Remove-Item "agent-bundle\bin" -force -Recurse
 RUN Remove-Item "agent-bundle\etc" -force -Recurse
 RUN Get-ChildItem -include __pycache__ -recurse -force | Remove-Item -force -Recurse
+RUN Get-ChildItem -recurse -path agent-bundle\* -include *.key,*.pem | Remove-Item -force
 
 # Setting environment variables
 ENV SPLUNK_BUNDLE_DIR="C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle"

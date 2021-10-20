@@ -40,7 +40,7 @@ Double-click on the downloaded package and follow the wizard.
 In a PowerShell terminal:
 
 ```sh
-PS> Start-Process -Wait msiexec "/i PATH_TO_MSI /qn"
+Start-Process -Wait msiexec "/i PATH_TO_MSI /qn"
 ```
 
 Replace `PATH_TO_MSI` with the *full* path to the downloaded package, e.g.
@@ -65,7 +65,7 @@ After updating all variables in the config file, start the
 following command in a PowerShell terminal:
 
 ```sh
-PS> Start-Service splunk-otel-collector
+Start-Service splunk-otel-collector
 ```
 
 To modify the default path to the configuration file for the
@@ -77,6 +77,30 @@ full path to the new configuration file):
 
 ```powershell
 Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_CONFIG" -value "PATH"
+```
+
+To add or remove command line options for the `splunk-otel-collector` service,
+run `regedit` and modify the `ImagePath` value in the
+`HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector` registry key,
+or run the following PowerShell command (replace `OPTIONS` with the desired
+command line options):
+
+```powershell
+Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -name "ImagePath" -value "C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe OPTIONS"
+```
+
+For example, to change the default exposed metrics address of the Collector to
+`0.0.0.0:9090`, run the following PowerShell command:
+
+```powershell
+Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -name "ImagePath" -value "C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe --metrics-addr 0.0.0.0:9090"
+```
+
+To see all available command line options, run the following PowerShell
+command:
+
+```powershell
+& 'C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe' --help
 ```
 
 After modifying the configuration file or registry key, apply the changes by
@@ -105,12 +129,12 @@ service:
 For older versions of the Collector you can alter the service `ImagePath` before restarting:
 
 ```sh
-PS> Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -name "ImagePath" -value "C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe --log-level debug"
-PS> Restart-Service splunk-otel-collector
+Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -name "ImagePath" -value "C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe --log-level debug"
+Restart-Service splunk-otel-collector
 
 # Reverting after observing logs:
-PS> Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -name "ImagePath" -value "C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe"
-PS> Restart-Service splunk-otel-collector
+Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -name "ImagePath" -value "C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe"
+Restart-Service splunk-otel-collector
 ```
 
 ### Fluentd MSI Installation
@@ -174,7 +198,7 @@ The following package parameters are available:
 
 To pass parameters, use `--params "''"` :
 ```sh
-PS> choco install splunk-otel-collector --params="'/SPLUNK_ACCESS_TOKEN:YOUR_SPLUNK_ACCESS_TOKEN /SPLUNK_REALM:YOUR_SPLUNK_REALM'".
+choco install splunk-otel-collector --params="'/SPLUNK_ACCESS_TOKEN:YOUR_SPLUNK_ACCESS_TOKEN /SPLUNK_REALM:YOUR_SPLUNK_REALM'".
 ```
 
 If the parameter is specified, the keys/values will be created/updated to the system environment registry - `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`. 

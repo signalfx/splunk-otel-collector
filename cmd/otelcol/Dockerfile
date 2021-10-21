@@ -10,6 +10,7 @@ COPY migratecheckpoint /
 RUN chmod 755 /otelcol
 RUN chmod 755 /translatesfx
 RUN chmod 755 /migratecheckpoint
+RUN echo "splunk-otel-collector:x:999:999::/:" > /etc_passwd
 
 FROM alpine:3.14.2 AS smartagent
 ARG SMART_AGENT_RELEASE
@@ -30,15 +31,17 @@ ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
 ENV SPLUNK_COLLECTD_DIR=${SPLUNK_BUNDLE_DIR}/run/collectd
 ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/bin
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=otelcol /etc_passwd /etc/passwd
 COPY --from=otelcol /otelcol /
 COPY --from=otelcol /translatesfx /
 COPY --from=otelcol /migratecheckpoint /
 # Maintaining interpreter location as required.
-COPY --from=smartagent /usr/lib/splunk-otel-collector/agent-bundle /usr/lib/splunk-otel-collector/agent-bundle
+COPY --from=smartagent --chown=999 /usr/lib/splunk-otel-collector/agent-bundle /usr/lib/splunk-otel-collector/agent-bundle
 COPY config/collector/gateway_config.yaml    /etc/otel/collector/gateway_config.yaml
 COPY config/collector/otlp_config_linux.yaml /etc/otel/collector/otlp_config_linux.yaml
 COPY config/collector/agent_config.yaml      /etc/otel/collector/agent_config.yaml
 COPY config/collector/fargate_config.yaml    /etc/otel/collector/fargate_config.yaml
 COPY config/collector/ecs_ec2_config.yaml    /etc/otel/collector/ecs_ec2_config.yaml
+USER splunk-otel-collector
 ENTRYPOINT ["/otelcol"]
 EXPOSE 13133 14250 14268 4317 6060 8888 9411 9443 9080

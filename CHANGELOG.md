@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Add Chocolately package support. (#724)
+- Initial release of multi-arch manifest for amd64 and arm64 linux docker images (#866)
+  - **Note:** The Smart Agent and Collectd bundle is only included with the amd64 image
 
 ## v0.37.1
 

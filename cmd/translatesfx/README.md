@@ -38,7 +38,7 @@ expands relative file paths using the current working directory.
 % translatesfx <sfx-file> [<file expansion working directory>]
 ```
 
-When `translatesfx` runs, it sends the translated Open Telemetry Collector configuration
+When `translatesfx` runs, it sends the translated OpenTelemetry Collector configuration
 yaml to standard output. To write the contents to disk, you could redirect this output
 to a new OTel configuration file:
 
@@ -168,7 +168,7 @@ service:
 #### Config Sources
 
 Smart Agent
-[remote configuration](https://docs.signalfx.com/en/latest/integrations/agent/remote-config.html)
+[remote configuration](https://github.com/signalfx/signalfx-agent/blob/main/docs/remote-config.md)
 directives are translated into their corresponding OTel config sources.
 
 The types of config sources supported for translation are the following:
@@ -193,7 +193,7 @@ ${SIGNALFX_ACCESS_TOKEN}
 **Note:** Support for default environment variable values is not available, but may be added in a future release.
 
 Docs:
-[Smart Agent](https://docs.signalfx.com/en/latest/integrations/agent/remote-config.html#environment-variables)
+[Smart Agent](https://github.com/signalfx/signalfx-agent/blob/main/docs/remote-config.md#environment-variables)
 |
 [OTel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/envvarconfigsource)
 
@@ -226,7 +226,7 @@ any referenced files if it needs to.
 Note: support for disabling inlining may be added in a future release.
 
 Docs:
-[Smart Agent](https://docs.signalfx.com/en/latest/integrations/agent/remote-config.html)
+[Smart Agent](https://github.com/signalfx/signalfx-agent/blob/main/docs/remote-config.md)
 |
 [OTel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/includeconfigsource)
 
@@ -266,7 +266,7 @@ receivers:
 ```
 
 Docs:
-[Smart Agent](https://docs.signalfx.com/en/latest/integrations/agent/config-schema.html#zookeeper)
+[Smart Agent](https://github.com/signalfx/signalfx-agent/blob/main/docs/config-schema.md#zookeeper)
 |
 [OTel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/zookeeperconfigsource)
 
@@ -310,7 +310,7 @@ receivers:
 ```
 
 Docs:
-[Smart Agent](https://docs.signalfx.com/en/latest/integrations/agent/config-schema.html#etcd2)
+[Smart Agent](https://github.com/signalfx/signalfx-agent/blob/main/docs/config-schema.md#etcd2)
 |
 [OTel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/etcd2configsource)
 
@@ -348,7 +348,7 @@ receivers:
 ```
 
 Docs:
-[Smart Agent](https://docs.signalfx.com/en/latest/integrations/agent/config-schema.html#vault)
+[Smart Agent](https://github.com/signalfx/signalfx-agent/blob/main/docs/config-schema.md#vault)
 |
 [OTel](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/vaultconfigsource)
 

@@ -16,6 +16,7 @@ package testutils
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"path"
 	"sort"
@@ -306,7 +307,7 @@ var _ testcontainers.LogConsumer = (*logConsumer)(nil)
 
 func TestTestcontainersContainerMethods(t *testing.T) {
 	alpine := NewContainer().WithImage("alpine").WithCmd(
-		"sh", "-c", "echo rdy > /tmp/something & tail -f /tmp/something",
+		"sh", "-c", "echo rdy > /tmp/something && tail -f /tmp/something",
 	).WithExposedPorts("12345:12345").WithName("my-alpine").WithNetworks(
 		"bridge", "network_a", "network_b",
 	).WillWaitForLogs("rdy").Build()
@@ -321,7 +322,15 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 	}()
 
 	err := alpine.Start(context.Background())
-	require.NoError(t, err)
+	log := ""
+	if err != nil {
+		if logs, e := alpine.Logs(context.Background()); logs != nil && e == nil {
+			buf := new(strings.Builder)
+			io.Copy(buf, logs)
+			log = buf.String()
+		}
+	}
+	require.NoError(t, err, fmt.Sprintf("failed to start container: %q", log))
 
 	assert.NotEmpty(t, alpine.GetContainerID())
 

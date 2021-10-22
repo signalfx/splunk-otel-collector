@@ -6,7 +6,7 @@ orbs:
 executors:
   golang:
     docker:
-      - image: cimg/go:1.17
+      - image: cimg/go:1.17.2
 
 commands:
   attach_to_workspace:
@@ -282,7 +282,7 @@ jobs:
           command: |
             $ErrorActionPreference = 'Stop'
             $env:GOPATH = "${env:USERPROFILE}\go"
-            choco upgrade golang --version=1.17
+            choco upgrade golang --version=1.17.2
             refreshenv
             go env -w CGO_ENABLED=0
             go install github.com/ory/go-acc@v0.2.6

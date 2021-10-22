@@ -23,6 +23,7 @@ RUN mkdir -p /usr/lib/splunk-otel-collector && \
     rm -f /usr/lib/splunk-otel-collector/agent-bundle/bin/signalfx-agent \
           /usr/lib/splunk-otel-collector/agent-bundle/bin/agent-status \
           $SMART_AGENT
+RUN find /usr/lib/splunk-otel-collector/agent-bundle -name "*.key" -delete -or -name "*.pem" -delete
 
 FROM scratch
 ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle

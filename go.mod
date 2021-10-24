@@ -401,3 +401,9 @@ replace (
 	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required for smartagentreceiver to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
 	google.golang.org/grpc => google.golang.org/grpc v1.29.1 // required for smartagentreceiver's go.etcd.io/etcd dep
 )
+
+// downgrade github.com/shirou/gopsutil until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/5879 is resolved
+replace (
+	github.com/shirou/gopsutil => github.com/shirou/gopsutil v3.21.8+incompatible
+	github.com/shirou/gopsutil/v3 => github.com/shirou/gopsutil/v3 v3.21.8
+)

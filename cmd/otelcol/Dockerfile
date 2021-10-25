@@ -6,17 +6,24 @@ COPY otelcol /
 COPY translatesfx /
 COPY migratecheckpoint /
 # Note that this shouldn't be necessary, but in some cases the file seems to be
-# copied with the execute bit lost (see #1317)
+# copied with the execute bit lost (see https://github.com/open-telemetry/opentelemetry-collector/issues/1317)
 RUN chmod 755 /otelcol
 RUN chmod 755 /translatesfx
 RUN chmod 755 /migratecheckpoint
+RUN echo "splunk-otel-collector:x:999:999::/:" > /etc_passwd
+# create base dirs since we cannot chown in scratch image except via COPY
+RUN mkdir -p /otel/collector /splunk-otel-collector
 
 FROM alpine:3.14.2 AS smartagent
 ARG SMART_AGENT_RELEASE
-RUN mkdir -p /usr/lib/splunk-otel-collector && \
-    SMART_AGENT=signalfx-agent-${SMART_AGENT_RELEASE#v}.tar.gz && \
+
+COPY --from=otelcol /etc_passwd /etc_passwd
+RUN cat /etc_passwd >> /etc/passwd
+COPY --from=otelcol --chown=999 /splunk-otel-collector /usr/lib/splunk-otel-collector
+USER splunk-otel-collector
+RUN SMART_AGENT=signalfx-agent-${SMART_AGENT_RELEASE#v}.tar.gz && \
     URL=https://github.com/signalfx/signalfx-agent/releases/download/${SMART_AGENT_RELEASE}/$SMART_AGENT && \
-    wget "$URL" && tar -xzf $SMART_AGENT && mv signalfx-agent /usr/lib/splunk-otel-collector/agent-bundle && \
+    cd /usr/lib/splunk-otel-collector && wget "$URL" && tar -xzf $SMART_AGENT && mv signalfx-agent agent-bundle && \
     # Absolute path of interpreter in smart agent dir is set in dependent binaries
     # requiring the interpreter location not to change.
     /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle && \
@@ -30,15 +37,19 @@ ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
 ENV SPLUNK_COLLECTD_DIR=${SPLUNK_BUNDLE_DIR}/run/collectd
 ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/bin
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=otelcol /otelcol /
-COPY --from=otelcol /translatesfx /
-COPY --from=otelcol /migratecheckpoint /
-# Maintaining interpreter location as required.
-COPY --from=smartagent /usr/lib/splunk-otel-collector/agent-bundle /usr/lib/splunk-otel-collector/agent-bundle
-COPY config/collector/gateway_config.yaml    /etc/otel/collector/gateway_config.yaml
-COPY config/collector/otlp_config_linux.yaml /etc/otel/collector/otlp_config_linux.yaml
-COPY config/collector/agent_config.yaml      /etc/otel/collector/agent_config.yaml
-COPY config/collector/fargate_config.yaml    /etc/otel/collector/fargate_config.yaml
-COPY config/collector/ecs_ec2_config.yaml    /etc/otel/collector/ecs_ec2_config.yaml
+COPY --from=otelcol /etc_passwd /etc/passwd
+COPY --from=otelcol --chown=999 /otelcol /
+COPY --from=otelcol --chown=999 /translatesfx /
+COPY --from=otelcol --chown=999 /migratecheckpoint /
+COPY --from=otelcol --chown=999 /otel /etc/otel
+COPY --from=otelcol --chown=999 /otel/collector /etc/otel/collector
+COPY --from=smartagent --chown=999 /usr/lib/splunk-otel-collector /usr/lib/splunk-otel-collector
+
+COPY --chown=999 config/collector/gateway_config.yaml /etc/otel/collector/gateway_config.yaml
+COPY --chown=999 config/collector/otlp_config_linux.yaml /etc/otel/collector/otlp_config_linux.yaml
+COPY --chown=999 config/collector/agent_config.yaml /etc/otel/collector/agent_config.yaml
+COPY --chown=999 config/collector/fargate_config.yaml /etc/otel/collector/fargate_config.yaml
+COPY --chown=999 config/collector/ecs_ec2_config.yaml /etc/otel/collector/ecs_ec2_config.yaml
+USER splunk-otel-collector
 ENTRYPOINT ["/otelcol"]
-EXPOSE 13133 14250 14268 4317 6060 8888 9411 9443 9080
+EXPOSE 13133 14250 14268 4317 4318 6060 8888 9411 9443 9080

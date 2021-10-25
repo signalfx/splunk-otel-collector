@@ -8,6 +8,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.cpu_time_guest
             labels:
@@ -16,6 +17,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: DoubleGauge
           - name: procstat.cpu_time_guest_nice
             labels:
@@ -24,6 +26,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: DoubleGauge
           - name: procstat.cpu_time_idle
             labels:
@@ -32,6 +35,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: DoubleGauge
           - name: procstat.cpu_time_iowait
             labels:
@@ -40,6 +44,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: DoubleGauge
           - name: procstat.cpu_time_irq
             labels:
@@ -48,6 +53,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: DoubleGauge
           - name: procstat.cpu_time_nice
             labels:
@@ -56,6 +62,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: DoubleGauge
           - name: procstat.cpu_time_steal
             labels:
@@ -64,6 +71,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: DoubleGauge
           - name: procstat.cpu_time_system
             labels:
@@ -72,6 +80,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: DoubleGauge
           - name: procstat.cpu_time_user
             labels:
@@ -80,6 +89,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: DoubleGauge
           - name: procstat.cpu_usage
             labels:
@@ -88,6 +98,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: DoubleGauge
           - name: procstat.involuntary_context_switches
             labels:
@@ -96,6 +107,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.memory_data
             labels:
@@ -104,6 +116,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.memory_locked
             labels:
@@ -112,6 +125,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.memory_rss
             labels:
@@ -120,6 +134,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.memory_stack
             labels:
@@ -128,6 +143,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.memory_swap
             labels:
@@ -136,6 +152,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.memory_usage
             labels:
@@ -144,6 +161,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: DoubleGauge
           - name: procstat.memory_vms
             labels:
@@ -152,6 +170,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.nice_priority
             labels:
@@ -160,6 +179,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.num_fds
             labels:
@@ -168,6 +188,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.num_threads
             labels:
@@ -176,6 +197,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.pid
             labels:
@@ -184,6 +206,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.read_bytes
             labels:
@@ -192,6 +215,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.read_count
             labels:
@@ -200,6 +224,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.realtime_priority
             labels:
@@ -208,6 +233,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_cpu_time_hard
             labels:
@@ -216,6 +242,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_cpu_time_soft
             labels:
@@ -224,6 +251,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_file_locks_hard
             labels:
@@ -232,6 +260,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_file_locks_soft
             labels:
@@ -240,6 +269,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_memory_data_hard
             labels:
@@ -248,6 +278,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_memory_data_soft
             labels:
@@ -256,6 +287,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_memory_locked_hard
             labels:
@@ -264,6 +296,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_memory_locked_soft
             labels:
@@ -272,6 +305,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_memory_rss_hard
             labels:
@@ -280,6 +314,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_memory_rss_soft
             labels:
@@ -288,6 +323,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_memory_stack_hard
             labels:
@@ -296,6 +332,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_memory_stack_soft
             labels:
@@ -304,6 +341,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_memory_vms_hard
             labels:
@@ -312,6 +350,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_memory_vms_soft
             labels:
@@ -320,6 +359,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_nice_priority_hard
             labels:
@@ -328,6 +368,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_nice_priority_soft
             labels:
@@ -336,6 +377,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_num_fds_hard
             labels:
@@ -344,6 +386,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_num_fds_soft
             labels:
@@ -352,6 +395,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_realtime_priority_hard
             labels:
@@ -360,6 +404,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_realtime_priority_soft
             labels:
@@ -368,6 +413,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_signals_pending_hard
             labels:
@@ -376,6 +422,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.rlimit_signals_pending_soft
             labels:
@@ -384,6 +431,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.signals_pending
             labels:
@@ -392,6 +440,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.voluntary_context_switches
             labels:
@@ -400,6 +449,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.write_bytes
             labels:
@@ -408,6 +458,7 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge
           - name: procstat.write_count
             labels:
@@ -416,4 +467,5 @@ resource_metrics:
               plugin: telegraf-procstat
               process_name: otelcol
               telegraf_type: untyped
+              user: splunk-otel-collector
             type: IntGauge

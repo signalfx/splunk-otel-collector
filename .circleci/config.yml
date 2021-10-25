@@ -213,7 +213,8 @@ jobs:
       - image: cimg/go:1.17
     steps:
       - attach_to_workspace
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 19.03.13
       - run:
           name: Build docker image
           command: make docker-otelcol SKIP_COMPILE=true

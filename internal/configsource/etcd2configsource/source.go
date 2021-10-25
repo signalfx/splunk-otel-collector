@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	"go.etcd.io/etcd/client"
+	"go.etcd.io/etcd/client/v2"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"

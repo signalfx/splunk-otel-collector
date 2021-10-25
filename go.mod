@@ -403,3 +403,9 @@ replace (
 	// cvss scan requires this to be >= 3.3.23
 	go.etcd.io/etcd => go.etcd.io/etcd v3.3.27+incompatible
 )
+
+// downgrade github.com/shirou/gopsutil until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/5879 is resolved
+replace (
+	github.com/shirou/gopsutil => github.com/shirou/gopsutil v3.21.8+incompatible
+	github.com/shirou/gopsutil/v3 => github.com/shirou/gopsutil/v3 v3.21.8
+)

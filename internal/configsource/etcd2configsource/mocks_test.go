@@ -19,7 +19,7 @@ import (
 	"context"
 	"errors"
 
-	"go.etcd.io/etcd/client"
+	"go.etcd.io/etcd/client/v2"
 )
 
 type MockWatcher struct {

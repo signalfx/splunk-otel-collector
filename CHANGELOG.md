@@ -15,7 +15,7 @@
 - Upgrade `github.com/jackc/pgproto3/v2` to v2.1.1
 - Upgrade `go.etcd.io/etcd` to `go.etcd.io/etcd/client/v2` for CVE-2020-15114
 - Remove test certs from the smart agent bundle (#861)
-- Run the `otelcol` container process as non-root user (#864)
+- Run the `otelcol` container process as non-root user in provided docker image (#864)
 
 ### 🧰 Bug fixes 🧰
 

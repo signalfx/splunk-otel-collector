@@ -4,6 +4,23 @@
 
 - Add Chocolately package support. (#724)
 
+## v0.37.1
+
+### 💡 Enhancements 💡
+
+- Initial release of [`migratecheckpoint`](https://github.com/signalfx/splunk-otel-collector/tree/main/cmd/migratecheckpoint) to migrate Fluentd's position file to Otel checkpoints
+- Upgrade golang to v1.17.2 for CVE-2021-38297
+- Upgrade `github.com/hashicorp/consul/api` to v1.11.0 for CVE-2021-37219
+- Upgrade `github.com/hashicorp/vault` to v1.7.2 for CVE-2021-27400, CVE-2021-29653, and CVE-2021-32923
+- Upgrade `github.com/jackc/pgproto3/v2` to v2.1.1
+- Upgrade `go.etcd.io/etcd` to `go.etcd.io/etcd/client/v2` for CVE-2020-15114
+- Remove test certs from the smart agent bundle (#861)
+- Run the `otelcol` container process as non-root user (#864)
+
+### 🧰 Bug fixes 🧰
+
+- Temporarily downgrade `gopsutil` dep to avoid errors in k8s deployment (#877)
+
 ## v0.37.0
 
 This Splunk OpenTelemetry Connector release includes changes from the [opentelemetry-collector v0.37.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.37.0) and the [opentelemetry-collector-contrib v0.37.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.37.1) releases. Due to go modules dep issues, the Collector Contrib release 0.37.0 has been retracted in favor of 0.37.1.

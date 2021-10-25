@@ -46,6 +46,50 @@ whitesource:
   only:
     - main
     - schedules
+  # allow_failure: false
+  cache:
+    key: "whitesource-go1.17.2"
+    paths:
+      - /usr/local/go
+      - /go/pkg/mod
+  before_script:
+    - mkdir -p /lib64
+    - ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
+    - |
+      set -e
+      if [ ! -d /usr/local/go ]; then
+        pushd /usr/local
+        wget https://golang.org/dl/go1.17.2.linux-amd64.tar.gz
+        tar xzf go1.17.2.linux-amd64.tar.gz
+        popd
+      fi
+    - export GOROOT=/usr/local/go
+    - export GOPATH=/go
+    - export PATH=${GOROOT}/bin:$PATH
+  script:
+    - bash /whitesource/templates/template-gitlab.sh
+    - |
+      # Check the report and fail if high vulns or rejected components were found
+      set -e
+      report="whitesource-results/json-artifacts/report_metadata.json"
+      if [ -f "$report" ]; then
+        high_vulns="$( jq '."Total High Vulns"' $report )"
+        if [ "$high_vulns" = "null" ]; then
+          echo "Failed to get 'Total High Vulns' from $report"
+          exit 1
+        fi
+        rejected="$( jq '."Total Components Rejected"' $report )"
+        if [ "$rejected" = "null" ]; then
+          echo "Failed to get 'Total Components Rejected' from $report"
+          exit 1
+        fi
+        if [ "$high_vulns" -gt 0 ] || [ "$rejected" -gt 0 ]; then
+          exit 1
+        fi
+      else
+        echo "$report not found"
+        exit 1
+      fi
 
 .go-cache:
   image: 'docker-hub.repo.splunkdev.net/golang:1.17.2'

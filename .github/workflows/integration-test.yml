@@ -26,6 +26,9 @@ jobs:
             /home/runner/.cache/go-build
           key: v1-go-pkg-mod-${{ runner.os }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
       - run: make docker-otelcol
-      - env:
+        env:
+          DOCKER_BUILDKIT: '1'
+      - run: make integration-test
+        env:
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
-        run: make integration-test
+

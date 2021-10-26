@@ -20,6 +20,7 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
 )
@@ -45,10 +46,10 @@ type Factory interface {
 	// The object returned by this method needs to pass the checks implemented by
 	// 'configcheck.ValidateConfig'. It is recommended to have such check in the
 	// tests of any implementation of the Factory interface.
-	CreateDefaultConfig() ConfigSettings
+	CreateDefaultConfig() expcfg.Source
 
 	// CreateConfigSource creates a configuration source based on the given config.
-	CreateConfigSource(ctx context.Context, params CreateParams, cfg ConfigSettings) (configsource.ConfigSource, error)
+	CreateConfigSource(ctx context.Context, params CreateParams, cfg expcfg.Source) (configsource.ConfigSource, error)
 }
 
 // Factories maps the type of a ConfigSource to the respective factory object.

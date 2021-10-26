@@ -85,17 +85,16 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 				defaults = make(map[string]interface{})
 			}
 
-			s := &envVarConfigSource{
+			source := &envVarConfigSource{
 				defaults: defaults,
 			}
 
 			ctx := context.Background()
 			defer func() {
-				assert.NoError(t, s.RetrieveEnd(ctx))
-				assert.NoError(t, s.Close(ctx))
+				assert.NoError(t, source.Close(ctx))
 			}()
 
-			r, err := s.Retrieve(ctx, tt.selector, config.NewMapFromStringMap(tt.params))
+			r, err := source.Retrieve(ctx, tt.selector, config.NewMapFromStringMap(tt.params))
 			if tt.wantErr != nil {
 				assert.Nil(t, r)
 				require.IsType(t, tt.wantErr, err)

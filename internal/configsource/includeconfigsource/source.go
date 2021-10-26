@@ -85,10 +85,6 @@ func (is *includeConfigSource) Retrieve(_ context.Context, selector string, para
 	return configprovider.NewWatchableRetrieved(buf.Bytes(), watchForUpdateFn), nil
 }
 
-func (is *includeConfigSource) RetrieveEnd(context.Context) error {
-	return nil
-}
-
 func (is *includeConfigSource) Close(context.Context) error {
 	if is.watcher != nil {
 		return is.watcher.Close()

@@ -114,10 +114,6 @@ func (v *vaultConfigSource) Retrieve(_ context.Context, selector string, _ *conf
 	return configprovider.NewWatchableRetrieved(value, watchForUpdateFn), nil
 }
 
-func (v *vaultConfigSource) RetrieveEnd(context.Context) error {
-	return nil
-}
-
 func (v *vaultConfigSource) Close(context.Context) error {
 	close(v.doneCh)
 

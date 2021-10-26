@@ -31,10 +31,7 @@ type IAMAuthentication struct {
 	AWSSecurityToken *string `mapstructure:"aws_security_token"`
 	// HeaderValue for the x-vault-aws-iam-server-id header in requests.
 	HeaderValue *string `mapstructure:"header_value"`
-	// Mount is the path where the AWS credential method is mounted. This is usually provided
-	// via the -path flag in the "vault login" command, but it can be specified
-	// here as well. If specified here, it takes precedence over the value for
-	// -path. The default value is "aws".
+	// Mount is the path where the AWS credential method is mounted. The default value is "aws".
 	Mount *string `mapstructure:"mount"`
 	// Role is the name of the Vault role to request a token against.
 	Role *string `mapstructure:"role"`

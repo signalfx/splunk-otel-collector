@@ -31,8 +31,8 @@ To have choco remember parameters on upgrade, be sure to set `choco feature enab
     </description>
     <summary>splunk-otel-collector</summary>
     <authors>SignalFx</authors>
-    <title>splunk-otel-collector</title>
-    <projectUrl>https://github.com/signalfx/splunk-otel-collector</projectUrl>
+    <title>Splunk OpenTelemetry Connector</title>
+    <projectUrl>https://www.splunk.com/en_us/observability.html</projectUrl>
     <iconUrl>https://cdn.signalfx.com/favicon.ico</iconUrl>
     <licenseUrl>https://github.com/signalfx/splunk-otel-collector/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>

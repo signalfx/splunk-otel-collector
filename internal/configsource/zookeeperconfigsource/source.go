@@ -65,10 +65,6 @@ func (s *zkConfigSource) Retrieve(ctx context.Context, selector string, _ *confi
 	return configprovider.NewWatchableRetrieved(value, newWatcher(watchCh, s.closeCh)), nil
 }
 
-func (s *zkConfigSource) RetrieveEnd(context.Context) error {
-	return nil
-}
-
 func (s *zkConfigSource) Close(context.Context) error {
 	close(s.closeCh)
 	return nil

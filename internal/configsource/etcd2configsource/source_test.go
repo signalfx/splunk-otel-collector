@@ -38,7 +38,7 @@ func TestSessionRetrieve(t *testing.T) {
 		},
 	}
 
-	session := &etcd2ConfigSource{logger: logger, kapi: kapi}
+	source := &etcd2ConfigSource{logger: logger, kapi: kapi}
 	testsCases := []struct {
 		params interface{}
 		expect *string
@@ -52,7 +52,7 @@ func TestSessionRetrieve(t *testing.T) {
 
 	for _, c := range testsCases {
 		t.Run(c.name, func(t *testing.T) {
-			retrieved, err := session.Retrieve(context.Background(), c.key, nil)
+			retrieved, err := source.Retrieve(context.Background(), c.key, nil)
 			if c.expect != nil {
 				assert.NoError(t, err)
 				_, okWatcher := retrieved.(configsource.Watchable)
@@ -61,8 +61,7 @@ func TestSessionRetrieve(t *testing.T) {
 			}
 			assert.Error(t, err)
 			assert.Nil(t, retrieved)
-			assert.NoError(t, session.RetrieveEnd(context.Background()))
-			assert.NoError(t, session.Close(context.Background()))
+			assert.NoError(t, source.Close(context.Background()))
 		})
 	}
 }
@@ -78,7 +77,7 @@ func TestWatcher(t *testing.T) {
 		close  bool
 	}{
 		{name: "updated", close: false, result: "v", err: nil},
-		{name: "session-closed", close: true, result: "", err: nil},
+		{name: "source-closed", close: true, result: "", err: nil},
 		{name: "client-error", close: false, result: "", err: errors.New("client error")},
 	}
 
@@ -87,8 +86,8 @@ func TestWatcher(t *testing.T) {
 			watcher := newMockWatcher()
 			kapi.activeWatcher = watcher
 
-			session := &etcd2ConfigSource{logger: logger, kapi: kapi}
-			retrieved, err := session.Retrieve(context.Background(), "k1", nil)
+			source := &etcd2ConfigSource{logger: logger, kapi: kapi}
+			retrieved, err := source.Retrieve(context.Background(), "k1", nil)
 			assert.NoError(t, err)
 			assert.NotNil(t, retrieved.Value)
 			retrievedWatcher, okWatcher := retrieved.(configsource.Watchable)
@@ -98,7 +97,7 @@ func TestWatcher(t *testing.T) {
 			go func() {
 				switch {
 				case c.close:
-					session.Close(context.Background())
+					source.Close(context.Background())
 				case c.err != nil:
 					watcher.errors <- c.err
 				case c.result != "":

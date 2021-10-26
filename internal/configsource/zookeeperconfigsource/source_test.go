@@ -37,7 +37,7 @@ func TestSessionRetrieve(t *testing.T) {
 		"k1":       "v1",
 		"d1/d2/k1": "v5",
 	})
-	session := newZkConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, newMockConnectFunc(conn))
+	source := newZkConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, newMockConnectFunc(conn))
 
 	testsCases := []struct {
 		expect *string
@@ -52,7 +52,7 @@ func TestSessionRetrieve(t *testing.T) {
 
 	for _, c := range testsCases {
 		t.Run(c.name, func(t *testing.T) {
-			retrieved, err := session.Retrieve(context.Background(), c.key, nil)
+			retrieved, err := source.Retrieve(context.Background(), c.key, nil)
 			if c.expect != nil {
 				assert.NoError(t, err)
 				_, okWatcher := retrieved.(configsource.Watchable)
@@ -61,8 +61,7 @@ func TestSessionRetrieve(t *testing.T) {
 			}
 			assert.Error(t, err)
 			assert.Nil(t, retrieved)
-			assert.NoError(t, session.RetrieveEnd(context.Background()))
-			assert.NoError(t, session.Close(context.Background()))
+			assert.NoError(t, source.Close(context.Background()))
 		})
 	}
 }
@@ -75,7 +74,7 @@ func TestWatcher(t *testing.T) {
 		err    bool
 	}{
 		{name: "updated", close: false, result: "v", err: false},
-		{name: "session-closed", close: true, result: "", err: false},
+		{name: "source-closed", close: true, result: "", err: false},
 		{name: "client-error", close: false, result: "", err: true},
 	}
 
@@ -83,10 +82,10 @@ func TestWatcher(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			conn := newMockConnection(map[string]string{"k1": "v1"})
 			connect := newMockConnectFunc(conn)
-			session := newZkConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, connect)
+			source := newZkConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, connect)
 
 			assert.NotContains(t, conn.watches, "k1")
-			retrieved, err := session.Retrieve(context.Background(), "k1", nil)
+			retrieved, err := source.Retrieve(context.Background(), "k1", nil)
 			assert.NoError(t, err)
 			assert.NotNil(t, retrieved.Value)
 			retrievedWatcher, okWatcher := retrieved.(configsource.Watchable)
@@ -97,7 +96,7 @@ func TestWatcher(t *testing.T) {
 			go func() {
 				switch {
 				case c.close:
-					session.Close(context.Background())
+					source.Close(context.Background())
 				case c.result != "":
 					watcher <- zk.Event{
 						Type: zk.EventNodeDataChanged,

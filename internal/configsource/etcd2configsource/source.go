@@ -61,7 +61,7 @@ func newConfigSource(params configprovider.CreateParams, cfg *Config) (configsou
 	}, nil
 }
 
-func (s *etcd2ConfigSource) Retrieve(ctx context.Context, selector string, paramsConfigMap *config.Map) (configsource.Retrieved, error) {
+func (s *etcd2ConfigSource) Retrieve(ctx context.Context, selector string, _ *config.Map) (configsource.Retrieved, error) {
 	resp, err := s.kapi.Get(ctx, selector, nil)
 	if err != nil {
 		return nil, err
@@ -71,10 +71,6 @@ func (s *etcd2ConfigSource) Retrieve(ctx context.Context, selector string, param
 	s.closeFuncs = append(s.closeFuncs, cancel)
 
 	return configprovider.NewWatchableRetrieved(resp.Node.Value, s.newWatcher(watchCtx, selector, resp.Node.ModifiedIndex)), nil
-}
-
-func (s *etcd2ConfigSource) RetrieveEnd(context.Context) error {
-	return nil
 }
 
 func (s *etcd2ConfigSource) Close(context.Context) error {

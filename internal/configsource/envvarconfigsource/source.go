@@ -81,10 +81,6 @@ func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, params
 	return configprovider.NewRetrieved(defaultValue), nil
 }
 
-func (e *envVarConfigSource) RetrieveEnd(context.Context) error {
-	return nil
-}
-
 func (e *envVarConfigSource) Close(context.Context) error {
 	return nil
 }

@@ -24,6 +24,11 @@ import (
 // Config defines zookeeperconfigsource configuration
 type Config struct {
 	*configprovider.Settings
-	Endpoints []string      `mapstructure:"endpoints"`
-	Timeout   time.Duration `mapstructure:"timeout"`
+	// Endpoints is an array of Zookeeper server addresses. Thr ConfigSource will try to connect
+	// to these endpoints to access Zookeeper clusters.
+	Endpoints []string `mapstructure:"endpoints"`
+	// Timeout sets the amount of time for which a session is considered valid after losing
+	// connection to a server. Within the session timeout it's possible to reestablish a connection
+	// to a different server and keep the same session.
+	Timeout time.Duration `mapstructure:"timeout"`
 }

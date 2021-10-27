@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 
+	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
 )
@@ -30,14 +31,14 @@ type (
 )
 
 // Build builds the ConfigSource objects according to the given ConfigSettings.
-func Build(ctx context.Context, configSourcesSettings map[string]ConfigSettings, params CreateParams, factories Factories) (map[string]configsource.ConfigSource, error) {
+func Build(ctx context.Context, configSourcesSettings map[string]expcfg.Source, params CreateParams, factories Factories) (map[string]configsource.ConfigSource, error) {
 	cfgSources := make(map[string]configsource.ConfigSource, len(configSourcesSettings))
 	for fullName, cfgSrcSettings := range configSourcesSettings {
 		// If we have the setting we also have the factory.
-		factory, ok := factories[cfgSrcSettings.Type()]
+		factory, ok := factories[cfgSrcSettings.ID().Type()]
 		if !ok {
 			return nil, &errUnknownType{
-				fmt.Errorf("unknown %s config source type for %s", cfgSrcSettings.Type(), fullName),
+				fmt.Errorf("unknown %s config source type for %s", cfgSrcSettings.ID().Type(), fullName),
 			}
 		}
 

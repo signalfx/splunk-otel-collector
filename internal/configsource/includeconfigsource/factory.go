@@ -19,6 +19,7 @@ import (
 	"context"
 
 	"go.opentelemetry.io/collector/config"
+	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -35,13 +36,13 @@ func (f *includeFactory) Type() config.Type {
 	return typeStr
 }
 
-func (f *includeFactory) CreateDefaultConfig() configprovider.ConfigSettings {
+func (f *includeFactory) CreateDefaultConfig() expcfg.Source {
 	return &Config{
-		Settings: configprovider.NewSettings(typeStr),
+		SourceSettings: expcfg.NewSourceSettings(config.NewComponentID(typeStr)),
 	}
 }
 
-func (f *includeFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.ConfigSettings) (configsource.ConfigSource, error) {
+func (f *includeFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg expcfg.Source) (configsource.ConfigSource, error) {
 	return newConfigSource(params, cfg.(*Config))
 }
 

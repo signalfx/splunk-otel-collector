@@ -18,12 +18,12 @@ package vaultconfigsource
 import (
 	"time"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 )
 
 // Config holds the configuration for the creation of Vault config source objects.
 type Config struct {
-	*configprovider.Settings
+	expcfg.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
 	// Authentication defines the authentication method to be used.
 	Authentication *Authentication `mapstructure:"auth"`
 	// Endpoint is the address of the Vault server, typically it is set via the
@@ -48,4 +48,8 @@ type Authentication struct {
 	// GCPAuthentication holds the authentication options for GCP. The options
 	// are the same as the vault CLI tool, see https://github.com/hashicorp/vault-plugin-auth-gcp/blob/e1f6784b379d277038ca0661606aa8d23791e392/plugin/cli.go#L120.
 	GCPAuthentication *GCPAuthentication `mapstructure:"gcp"`
+}
+
+func (*Config) Validate() error {
+	return nil
 }

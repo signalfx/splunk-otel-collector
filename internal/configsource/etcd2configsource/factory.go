@@ -21,6 +21,7 @@ import (
 	"net/url"
 
 	"go.opentelemetry.io/collector/config"
+	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -45,14 +46,14 @@ func (v *etcd2Factory) Type() config.Type {
 	return typeStr
 }
 
-func (v *etcd2Factory) CreateDefaultConfig() configprovider.ConfigSettings {
+func (v *etcd2Factory) CreateDefaultConfig() expcfg.Source {
 	return &Config{
-		Settings:  configprovider.NewSettings(typeStr),
-		Endpoints: []string{defaultEndpoints},
+		SourceSettings: expcfg.NewSourceSettings(config.NewComponentID(typeStr)),
+		Endpoints:      []string{defaultEndpoints},
 	}
 }
 
-func (v *etcd2Factory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.ConfigSettings) (configsource.ConfigSource, error) {
+func (v *etcd2Factory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg expcfg.Source) (configsource.ConfigSource, error) {
 	etcd2Cfg := cfg.(*Config)
 
 	if len(etcd2Cfg.Endpoints) == 0 {

@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/config"
+	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -52,14 +53,14 @@ func (v *vaultFactory) Type() config.Type {
 	return typeStr
 }
 
-func (v *vaultFactory) CreateDefaultConfig() configprovider.ConfigSettings {
+func (v *vaultFactory) CreateDefaultConfig() expcfg.Source {
 	return &Config{
-		Settings:     configprovider.NewSettings(typeStr),
-		PollInterval: defaultPollInterval,
+		SourceSettings: expcfg.NewSourceSettings(config.NewComponentID(typeStr)),
+		PollInterval:   defaultPollInterval,
 	}
 }
 
-func (v *vaultFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.ConfigSettings) (configsource.ConfigSource, error) {
+func (v *vaultFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg expcfg.Source) (configsource.ConfigSource, error) {
 	vaultCfg := cfg.(*Config)
 
 	if vaultCfg.Endpoint == "" {

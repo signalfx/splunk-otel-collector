@@ -16,13 +16,12 @@
 package includeconfigsource
 
 import (
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 )
 
 // Config holds the configuration for the creation of include config source objects.
 type Config struct {
-	*configprovider.Settings
-
+	expcfg.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
 	// DeleteFiles is used to instruct the config source to delete the
 	// files after its content is read. The default value is 'false'.
 	// Set it to 'true' to force the deletion of the file as soon
@@ -32,4 +31,8 @@ type Config struct {
 	// be watched for updates or not. The default value is 'false'.
 	// Set it to 'true' to watch the referenced files for changes.
 	WatchFiles bool `mapstructure:"watch_files"`
+}
+
+func (*Config) Validate() error {
+	return nil
 }

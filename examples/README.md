@@ -26,3 +26,9 @@ The demo job deploys the Splunk OpenTelemetry Collector as `agent` and `gateway`
 generators`, to collect metrics and traces and export them using the `SignalFx` exporter.
 
 [Read more...](./nomad)
+
+## [Splunk HEC traces](./splunk-hec-traces)
+
+This example showcases how the collector can send traces to a Splunk Enterprise deployment from a program emitting traces.
+
+[Read more...](./splunk-hec-traces)

@@ -78,7 +78,6 @@ workflows:
   version: 2
   build-and-test:
     jobs:
-      - windows-test
       - setup-environment
       - lint:
           requires:
@@ -108,7 +107,6 @@ workflows:
           package_type: rpm
           requires:
             - cross-compile
-      - installer-script-test
       - windows-msi:
           requires:
             - cross-compile
@@ -132,7 +130,6 @@ workflows:
             - windows-msi
           name: windows-choco-gateway-test
           mode: gateway
-      - puppet-test
 
 jobs:
   setup-environment:
@@ -271,36 +268,6 @@ jobs:
       - store_artifacts:
           path: dist/otelcol-windows.tar
 
-  windows-test:
-    executor:
-      name: win/default
-      shell: powershell.exe
-    steps:
-      - checkout
-      - restore_module_cache
-      - run:
-          name: Upgrade golang
-          command: |
-            $ErrorActionPreference = 'Stop'
-            $env:GOPATH = "${env:USERPROFILE}\go"
-            choco upgrade golang --version=1.17.2
-            refreshenv
-            go env -w CGO_ENABLED=0
-            go install github.com/ory/go-acc@v0.2.6
-# DISABLE CODECOV UNTIL THE SCRIPT IS AUDITED AND WE ARE CERTAIN IT IS OK TO TO EXECUTE IT.
-#            (New-Object System.Net.WebClient).DownloadFile("https://codecov.io/bash", "C:\Users\circleci\project\codecov.sh")
-      - run:
-          name: Unit tests with coverage
-          command: |
-            $ErrorActionPreference = 'Stop'
-            $env:GOPATH = "${env:USERPROFILE}\go"
-            $env:PATH = "$env:PATH;${env:GOPATH}\bin"
-            go-acc ./...
-#      - run:
-#          name: Upload coverage
-#          command: bash codecov.sh -f coverage.txt
-      - save_module_cache
-
   build-package:
     machine:
       image: ubuntu-1604:202007-01
@@ -329,39 +296,6 @@ jobs:
               internal/buildscripts/packaging/tests/package_test.py
       - store_artifacts:
           path: dist
-      - save_pytest_results
-
-  installer-script-test:
-    machine:
-      image: ubuntu-1604:202007-01
-      docker_layer_caching: true
-    parallelism: 2
-    steps:
-      - checkout
-      - run:
-          name: Check for relevant changes
-          command: |
-            # Only run installer tests for main branch, tags, or if the branch has relevant changes
-            if [[ "$CIRCLE_BRANCH" != "main" ]] && [[ -z "${CIRCLE_TAG:-}" ]] && ! .circleci/scripts/changes-include internal/buildscripts/packaging/installer internal/buildscripts/packaging/tests; then
-              echo "SKIP_TESTS=yes" >> $BASH_ENV
-            fi
-      - install_pytest
-      - run:
-          name: Test installer script
-          no_output_timeout: 30m
-          command: |
-            [[ "$SKIP_TESTS" = "yes" ]] && exit 0
-            mkdir -p ~/testresults
-            if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
-              PACKAGE_TYPE=deb
-            else
-              PACKAGE_TYPE=rpm
-            fi
-            pytest -n2 --verbose -m $PACKAGE_TYPE \
-              --junitxml=~/testresults/results.xml \
-              --html=~/testresults/results.html \
-              --self-contained-html \
-              internal/buildscripts/packaging/tests/installer_test.py
       - save_pytest_results
 
   windows-msi:
@@ -457,50 +391,3 @@ jobs:
             if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) { write-host "fluentdwinsvc has been successfully uninstalled and service is not running." } else { throw "Failed to uninstall fluentdwinsvc chocolatey package." }
       - store_artifacts:
           path: dist
-
-  puppet-test:
-    machine:
-      image: ubuntu-1604:202007-01
-      docker_layer_caching: true
-    parallelism: 2
-    steps:
-      - checkout
-      - run:
-          name: Lint
-          command: |
-            # Only run lint for main branch, tags, or if the branch has relevant changes
-            if [[ "$CIRCLE_BRANCH" = "main" ]] || [[ -n "${CIRCLE_TAG:-}" ]] || .circleci/scripts/changes-include deployments/puppet; then
-              make -C deployments/puppet lint
-            fi
-      - run:
-          name: Rake spec
-          command: |
-            # Only run rake-spec for main branch, tags, or if the branch has relevant changes
-            if [[ "$CIRCLE_BRANCH" = "main" ]] || [[ -n "${CIRCLE_TAG:-}" ]] || .circleci/scripts/changes-include deployments/puppet; then
-              make -C deployments/puppet rake-spec
-            fi
-      - run:
-          name: Check for relevant changes
-          command: |
-            # Only run puppet tests for main branch, tags, or if the branch has relevant changes
-            if [[ "$CIRCLE_BRANCH" != "main" ]] && [[ -z "${CIRCLE_TAG:-}" ]] && ! .circleci/scripts/changes-include deployments/puppet internal/buildscripts/packaging/tests; then
-              echo "SKIP_TESTS=yes" >> $BASH_ENV
-            fi
-      - install_pytest
-      - run:
-          name: Test puppet module
-          no_output_timeout: 30m
-          command: |
-            [[ "$SKIP_TESTS" = "yes" ]] && exit 0
-            mkdir -p ~/testresults
-            if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
-              PACKAGE_TYPE=deb
-            else
-              PACKAGE_TYPE=rpm
-            fi
-            pytest -n2 --verbose -m $PACKAGE_TYPE \
-              --junitxml=~/testresults/results.xml \
-              --html=~/testresults/results.html \
-              --self-contained-html \
-              internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
-      - save_pytest_results

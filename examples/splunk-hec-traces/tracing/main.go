@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"go.opentelemetry.io/otel/attribute"
 	"log"
 	"math/rand"
 	"os"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"

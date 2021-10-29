@@ -34,7 +34,7 @@ import (
 
 func TestConfigSourceParserProvider(t *testing.T) {
 	tests := []struct {
-		parserProvider parserprovider.MapProvider
+		parserProvider config.MapProvider
 		wantErr        error
 		name           string
 		factories      []Factory
@@ -95,7 +95,7 @@ func TestConfigSourceParserProvider(t *testing.T) {
 			)
 			require.NotNil(t, pp)
 
-			// Do not use the parserprovider.Default() to simplify the test setup.
+			// Do not use the config.Default() to simplify the test setup.
 			cspp := pp.(*configSourceParserProvider)
 			cspp.pp = tt.parserProvider
 			if cspp.pp == nil {
@@ -117,7 +117,7 @@ func TestConfigSourceParserProvider(t *testing.T) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				watchForUpdatedError = pp.(parserprovider.Watchable).WatchForUpdate()
+				watchForUpdatedError = pp.(config.WatchableMapProvider).WatchForUpdate()
 			}()
 			cspp.csm.WaitForWatcher()
 
@@ -134,7 +134,7 @@ type mockParserProvider struct {
 	ErrOnGet bool
 }
 
-var _ parserprovider.MapProvider = (*mockParserProvider)(nil)
+var _ config.MapProvider = (*mockParserProvider)(nil)
 
 func (mpp *mockParserProvider) Get(context.Context) (*config.Map, error) {
 	if mpp.ErrOnGet {
@@ -153,7 +153,7 @@ type fileParserProvider struct {
 	FileName string
 }
 
-var _ parserprovider.MapProvider = (*fileParserProvider)(nil)
+var _ config.MapProvider = (*fileParserProvider)(nil)
 
 func (fpp *fileParserProvider) Get(context.Context) (*config.Map, error) {
 	return config.NewMapFromFile(fpp.FileName)

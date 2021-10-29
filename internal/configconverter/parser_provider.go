@@ -19,22 +19,21 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/service/parserprovider"
 )
 
 // converterProvider wraps a ParserProvider and accepts a list of functions that
 // convert ConfigMaps. The idea is for this type to conform to the open-closed
 // principle.
 type converterProvider struct {
-	wrapped     parserprovider.MapProvider
+	wrapped     config.MapProvider
 	cfgMapFuncs []CfgMapFunc
 }
 
 type CfgMapFunc func(*config.Map) *config.Map
 
-var _ parserprovider.MapProvider = (*converterProvider)(nil)
+var _ config.MapProvider = (*converterProvider)(nil)
 
-func ParserProvider(wrapped parserprovider.MapProvider, funcs ...CfgMapFunc) parserprovider.MapProvider {
+func ParserProvider(wrapped config.MapProvider, funcs ...CfgMapFunc) config.MapProvider {
 	return &converterProvider{wrapped: wrapped, cfgMapFuncs: funcs}
 }
 

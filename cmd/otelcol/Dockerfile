@@ -32,6 +32,10 @@ RUN SMART_AGENT=signalfx-agent-${SMART_AGENT_RELEASE#v}.tar.gz && \
           $SMART_AGENT
 RUN find /usr/lib/splunk-otel-collector/agent-bundle -name "*.key" -delete -or -name "*.pem" -delete
 
+FROM debian:10.11 as journal
+RUN apt update
+RUN apt install -y systemd
+
 FROM scratch
 ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
 ENV SPLUNK_COLLECTD_DIR=${SPLUNK_BUNDLE_DIR}/run/collectd
@@ -50,6 +54,39 @@ COPY --chown=999 config/collector/otlp_config_linux.yaml /etc/otel/collector/otl
 COPY --chown=999 config/collector/agent_config.yaml /etc/otel/collector/agent_config.yaml
 COPY --chown=999 config/collector/fargate_config.yaml /etc/otel/collector/fargate_config.yaml
 COPY --chown=999 config/collector/ecs_ec2_config.yaml /etc/otel/collector/ecs_ec2_config.yaml
+
+COPY --from=journal /lib/x86_64-linux-gnu/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6
+COPY --from=journal /lib/systemd/libsystemd-shared-241.so /lib/systemd/libsystemd-shared-241.so
+COPY --from=journal /lib64/ld-linux-x86-64.so.2 /lib64/ld-linux-x86-64.so.2
+COPY --from=journal /lib/x86_64-linux-gnu/librt.so.1 /lib/x86_64-linux-gnu/librt.so.1
+COPY --from=journal /lib/x86_64-linux-gnu/libcap.so.2 /lib/x86_64-linux-gnu/libcap.so.2
+COPY --from=journal /usr/lib/x86_64-linux-gnu/libacl.so.1 /usr/lib/x86_64-linux-gnu/libacl.so.1
+COPY --from=journal /lib/x86_64-linux-gnu/libcryptsetup.so.12 /lib/x86_64-linux-gnu/libcryptsetup.so.12
+COPY --from=journal /lib/x86_64-linux-gnu/libgcrypt.so.20 /lib/x86_64-linux-gnu/libgcrypt.so.20
+COPY --from=journal /usr/lib/x86_64-linux-gnu/libip4tc.so.0 /usr/lib/x86_64-linux-gnu/libip4tc.so.0
+COPY --from=journal /usr/lib/x86_64-linux-gnu/libkmod.so.2 /usr/lib/x86_64-linux-gnu/libkmod.so.2
+COPY --from=journal /lib/x86_64-linux-gnu/libmount.so.1 /lib/x86_64-linux-gnu/libmount.so.1
+COPY --from=journal /usr/lib/x86_64-linux-gnu/libseccomp.so.2 /usr/lib/x86_64-linux-gnu/libseccomp.so.2
+COPY --from=journal /lib/x86_64-linux-gnu/libselinux.so.1 /lib/x86_64-linux-gnu/libselinux.so.1
+COPY --from=journal /lib/x86_64-linux-gnu/libidn.so.11 /lib/x86_64-linux-gnu/libidn.so.11
+COPY --from=journal /lib/x86_64-linux-gnu/liblzma.so.5 /lib/x86_64-linux-gnu/liblzma.so.5
+COPY --from=journal /usr/lib/x86_64-linux-gnu/liblz4.so.1 /usr/lib/x86_64-linux-gnu/liblz4.so.1
+COPY --from=journal /lib/x86_64-linux-gnu/libblkid.so.1 /lib/x86_64-linux-gnu/libblkid.so.1
+COPY --from=journal /lib/x86_64-linux-gnu/libpthread.so.0 /lib/x86_64-linux-gnu/libpthread.so.0
+COPY --from=journal /usr/lib/x86_64-linux-gnu/libattr.so.1 /usr/lib/x86_64-linux-gnu/libattr.so.1
+COPY --from=journal /lib/x86_64-linux-gnu/libuuid.so.1 /lib/x86_64-linux-gnu/libuuid.so.1
+COPY --from=journal /lib/x86_64-linux-gnu/libdevmapper.so.1.02.1 /lib/x86_64-linux-gnu/libdevmapper.so.1.02.1
+COPY --from=journal /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/libssl.so.1.1
+COPY --from=journal /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1
+COPY --from=journal /usr/lib/x86_64-linux-gnu/libargon2.so.1 /usr/lib/x86_64-linux-gnu/libargon2.so.1
+COPY --from=journal /lib/x86_64-linux-gnu/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so.2
+COPY --from=journal /usr/lib/x86_64-linux-gnu/libjson-c.so.3 /usr/lib/x86_64-linux-gnu/libjson-c.so.3
+COPY --from=journal /lib/x86_64-linux-gnu/libgpg-error.so.0 /lib/x86_64-linux-gnu/libgpg-error.so.0
+COPY --from=journal /lib/x86_64-linux-gnu/libpcre.so.3 /lib/x86_64-linux-gnu/libpcre.so.3
+COPY --from=journal /lib/x86_64-linux-gnu/libudev.so.1 /lib/x86_64-linux-gnu/libudev.so.1
+COPY --from=journal /lib/x86_64-linux-gnu/libm.so.6 /lib/x86_64-linux-gnu/libm.so.6
+COPY --from=journal /bin/journalctl /bin/journalctl
+
 USER splunk-otel-collector
 ENTRYPOINT ["/otelcol"]
 EXPOSE 13133 14250 14268 4317 4318 6060 8888 9411 9443 9080

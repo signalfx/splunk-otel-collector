@@ -7,14 +7,14 @@ The example runs as a Docker Compose deployment. The collector can be configured
 Splunk Enterprise is configured to receive data from the Splunk OpenTelemetry Connector using the HTTP Event Collector. To learn more about HEC, see [Configure the Splunk HTTP Event Collector](https://dev.splunk.com/enterprise/docs/dataapps/httpeventcollector/) for use with additional technologies.
 
 To deploy the example:
-1. Check out the [Splunk OpenTelemetry Connector repository](https://github.com/signalfx/splunk-otel-collector)
-2. Open a terminal
-3. Type: the following commands:
+1. Check out the [Splunk OpenTelemetry Connector repository](https://github.com/signalfx/splunk-otel-collector).
+2. Open a terminal.
+3. Type the following commands:
 ```bash
 $> cd examples/splunk-hec-traces
 $> docker-compose up --build
 ```
-You can stop the example by pressing Ctrl+C.
+You can stop the example by pressing Ctrl + C.
 
 Splunk Enterprise becomes available on port 18000. Log in to [http://localhost:18000](http://localhost:18000) with the user name `admin` and password `changeme`.
 

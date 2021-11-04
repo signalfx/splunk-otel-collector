@@ -8,6 +8,17 @@ executors:
     docker:
       - image: cimg/go:1.17.2
 
+  docker-amd64:
+    machine:
+      image: ubuntu-2004:202101-01
+      docker_layer_caching: true
+
+  docker-arm64:
+    machine:
+      image: ubuntu-2004:202101-01
+      docker_layer_caching: true
+    resource_class: arm.medium
+
 commands:
   attach_to_workspace:
     steps:
@@ -89,7 +100,16 @@ workflows:
       - docker-otelcol:
           requires:
             - cross-compile
-      - windows-docker-otelcol:
+          name: docker-otelcol-amd64
+          os: docker-amd64
+          arch: amd64
+      - docker-otelcol:
+          requires:
+            - cross-compile
+          name: docker-otelcol-arm64
+          os: docker-arm64
+          arch: arm64
+      - docker-otelcol-windows:
           requires:
             - cross-compile
       - test:
@@ -209,19 +229,25 @@ jobs:
 #          command: bash <(curl -s https://codecov.io/bash)
 
   docker-otelcol:
-    docker:
-      - image: cimg/go:1.17
+    parameters:
+      os:
+        type: executor
+      arch:
+        type: string
+    executor: << parameters.os >>
+    environment:
+      ARCH: << parameters.arch >>
     steps:
       - attach_to_workspace
-      - setup_remote_docker:
-          version: 19.03.13
       - run:
           name: Build docker image
-          command: make docker-otelcol SKIP_COMPILE=true
+          command: make docker-otelcol SKIP_COMPILE=true ARCH=${ARCH}
       - run:
           name: Run docker image
           command: |
-            docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:latest
+            # ensure that the arch in the image manifest is correct
+            [ "$( docker inspect --format='{{.Architecture}}' otelcol:${ARCH} )" = "$ARCH" ] || exit 1
+            docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${ARCH}
             sleep 10
             if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
               docker logs otelcol
@@ -231,11 +257,11 @@ jobs:
           name: Save docker image
           command: |
             mkdir -p dist
-            docker save -o dist/otelcol.tar otelcol:latest
+            docker save -o dist/otelcol-${ARCH}.tar otelcol:${ARCH}
       - store_artifacts:
-          path: dist/otelcol.tar
+          path: dist/otelcol-*.tar
 
-  windows-docker-otelcol:
+  docker-otelcol-windows:
     executor:
       name: win/default
       shell: powershell.exe

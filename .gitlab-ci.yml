@@ -210,15 +210,20 @@ build-linux-image:
   stage: package
   dependencies:
     - compile
+  parallel:
+    matrix:
+      - ARCH: [amd64, arm64]
   retry: 2
   script:
-    - make docker-otelcol SKIP_COMPILE=true
+    - make docker-otelcol ARCH=${ARCH} SKIP_COMPILE=true
+    - arch=$( docker inspect --format='{{.Architecture}}' otelcol:${ARCH} )
+    - if [[ "$arch" != "$ARCH" ]]; then exit 1; fi
   after_script:
     - mkdir -p dist
-    - docker save -o dist/otelcol.tar otelcol:latest
+    - docker save -o dist/otelcol-${ARCH}.tar otelcol:${ARCH}
   artifacts:
     paths:
-      - dist/otelcol.tar
+      - dist/otelcol-*.tar
 
 .build-deb-rpm:
   only:
@@ -287,31 +292,55 @@ push-linux-image:
     - build-linux-image
   retry: 2
   before_script:
-    - docker load -i dist/otelcol.tar
+    - docker load -i dist/otelcol-amd64.tar
+    - docker load -i dist/otelcol-arm64.tar
   script:
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
     - |
+      # Set env vars
       set -e
       if [[ -n "${CI_COMMIT_TAG:-}" ]]; then
         IMAGE_NAME="quay.io/signalfx/splunk-otel-collector"
-        IMAGE_TAG=${CI_COMMIT_TAG#v}
+        MANIFEST_TAG=${CI_COMMIT_TAG#v}
       else
         IMAGE_NAME="quay.io/signalfx/splunk-otel-collector-dev"
-        IMAGE_TAG=$CI_COMMIT_SHA
+        MANIFEST_TAG=$CI_COMMIT_SHA
       fi
-      echo "Tagging and pushing ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker tag otelcol:latest ${IMAGE_NAME}:${IMAGE_TAG}
-      docker push ${IMAGE_NAME}:${IMAGE_TAG}
-      if [[ "$IMAGE_TAG" = "$CI_COMMIT_SHA" ]] || [[ "$IMAGE_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        # only push latest tag for main and stable releases
-        echo "Tagging and pushing ${IMAGE_NAME}:latest"
-        docker tag otelcol:latest ${IMAGE_NAME}:latest
-        docker push ${IMAGE_NAME}:latest
+    - |
+      # Tag and push images
+      set -e
+      for arch in "amd64" "arm64"; do
+        ARCH_TAG="${MANIFEST_TAG}-${arch}"
+        echo "Tagging and pushing ${IMAGE_NAME}:${ARCH_TAG}"
+        docker tag otelcol:${arch} ${IMAGE_NAME}:${ARCH_TAG}
+        docker push ${IMAGE_NAME}:${ARCH_TAG}
+        if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          # only push latest tag for main and stable releases
+          LATEST_TAG="latest-${arch}"
+          echo "Tagging and pushing ${IMAGE_NAME}:${LATEST_TAG}"
+          docker tag ${IMAGE_NAME}:${ARCH_TAG} ${IMAGE_NAME}:${LATEST_TAG}
+          docker push ${IMAGE_NAME}:${LATEST_TAG}
+        fi
+      done
+    - |
+      # Create and push image manifests
+      set -e
+      echo "Creating and pushing ${IMAGE_NAME}:${MANIFEST_TAG} manifest"
+      docker manifest create ${IMAGE_NAME}:${MANIFEST_TAG} --amend ${IMAGE_NAME}:${MANIFEST_TAG}-amd64 --amend ${IMAGE_NAME}:${MANIFEST_TAG}-arm64
+      docker manifest push ${IMAGE_NAME}:${MANIFEST_TAG}
+      if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        # only push latest manifest tag for main and stable releases
+        echo "Creating and pushing ${IMAGE_NAME}:latest manifest"
+        docker manifest create ${IMAGE_NAME}:latest --amend ${IMAGE_NAME}:latest-amd64 --amend ${IMAGE_NAME}:latest-arm64
+        docker manifest push ${IMAGE_NAME}:latest
       fi
-    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | tee dist/linux_digest.txt
+    - docker pull ${IMAGE_NAME}:${MANIFEST_TAG}
+    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${MANIFEST_TAG} | tee dist/linux_digest.txt
+    - docker manifest inspect ${IMAGE_NAME}:${MANIFEST_TAG} | tee dist/manifest_digest.txt
   artifacts:
     paths:
       - dist/linux_digest.txt
+      - dist/manifest_digest.txt
 
 build-push-windows-image:
   only:
@@ -345,7 +374,7 @@ build-push-windows-image:
       docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg SMART_AGENT_RELEASE=${SMART_AGENT_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
       docker push ${IMAGE_NAME}:${IMAGE_TAG}
-      if ($IMAGE_TAG -eq $env:CI_COMMIT_SHA -or $IMAGE_TAG -match '^\d+\.\d+\.\d+$') {
+      if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
         # only push latest tag for main and stable releases
         echo "Tagging and pushing ${IMAGE_NAME}:latest"
         docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
@@ -506,14 +535,16 @@ cve-scan:
     - schedules
   before_script:
     - apt-get update
-    - apt-get install -y docker.io
-    - mkdir -p ~/.docker/cli-plugins
-    - curl https://github.com/docker/scan-cli-plugin/releases/latest/download/docker-scan_linux_amd64 -L -s -S -o ~/.docker/cli-plugins/docker-scan
-    - chmod +x ~/.docker/cli-plugins/docker-scan
+    - apt-get install -y ca-certificates curl gnupg lsb-release
+    - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    - echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    - apt-get update
+    - apt-get install -y docker-ce-cli docker-scan-plugin
   script:
     - |
-      if [ -f dist/otelcol.tar ]; then
-        docker load -i dist/otelcol.tar
+      if [ -f dist/otelcol-amd64.tar ]; then
+        docker load -i dist/otelcol-amd64.tar
+        docker tag otelcol:amd64 otelcol:latest
       else
         make docker-otelcol
       fi

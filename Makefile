@@ -44,6 +44,7 @@ BUILD_INFO=-ldflags "${BUILD_X1}"
 
 SMART_AGENT_RELEASE=$(shell cat internal/buildscripts/packaging/smart-agent-release.txt)
 SKIP_COMPILE=false
+ARCH=amd64
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -204,12 +205,13 @@ delete-tag:
 .PHONY: docker-otelcol
 docker-otelcol:
 ifneq ($(SKIP_COMPILE), true)
-	$(MAKE) binaries-linux_amd64
+	$(MAKE) binaries-linux_$(ARCH)
 endif
-	cp ./bin/otelcol_linux_amd64 ./cmd/otelcol/otelcol
-	cp ./bin/translatesfx_linux_amd64 ./cmd/otelcol/translatesfx
-	cp ./bin/migratecheckpoint_linux_amd64 ./cmd/otelcol/migratecheckpoint
-	docker build -t otelcol --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) ./cmd/otelcol/
+	cp ./bin/otelcol_linux_$(ARCH) ./cmd/otelcol/otelcol
+	cp ./bin/translatesfx_linux_$(ARCH) ./cmd/otelcol/translatesfx
+	cp ./bin/migratecheckpoint_linux_$(ARCH) ./cmd/otelcol/migratecheckpoint
+	docker buildx build --platform linux/$(ARCH) -o type=image,name=otelcol:$(ARCH),push=false --build-arg ARCH=$(ARCH) --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) ./cmd/otelcol/
+	docker tag otelcol:$(ARCH) otelcol:latest
 	rm ./cmd/otelcol/otelcol
 	rm ./cmd/otelcol/translatesfx
 	rm ./cmd/otelcol/migratecheckpoint
@@ -242,7 +244,6 @@ binaries-windows_amd64:
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) migratecheckpoint
 
 .PHONY: deb-rpm-package
-%-package: ARCH ?= amd64
 %-package:
 ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-linux_$(ARCH)

@@ -16,20 +16,25 @@ RUN mkdir -p /otel/collector /splunk-otel-collector
 
 FROM alpine:3.14.2 AS smartagent
 ARG SMART_AGENT_RELEASE
+ARG ARCH="amd64"
 
 COPY --from=otelcol /etc_passwd /etc_passwd
 RUN cat /etc_passwd >> /etc/passwd
 COPY --from=otelcol --chown=999 /splunk-otel-collector /usr/lib/splunk-otel-collector
 USER splunk-otel-collector
-RUN SMART_AGENT=signalfx-agent-${SMART_AGENT_RELEASE#v}.tar.gz && \
-    URL=https://github.com/signalfx/signalfx-agent/releases/download/${SMART_AGENT_RELEASE}/$SMART_AGENT && \
-    cd /usr/lib/splunk-otel-collector && wget "$URL" && tar -xzf $SMART_AGENT && mv signalfx-agent agent-bundle && \
-    # Absolute path of interpreter in smart agent dir is set in dependent binaries
-    # requiring the interpreter location not to change.
-    /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle && \
-    rm -f /usr/lib/splunk-otel-collector/agent-bundle/bin/signalfx-agent \
-          /usr/lib/splunk-otel-collector/agent-bundle/bin/agent-status \
-          $SMART_AGENT
+RUN if [ "$ARCH" = "amd64" ]; then \
+        SMART_AGENT=signalfx-agent-${SMART_AGENT_RELEASE#v}.tar.gz && \
+        URL=https://github.com/signalfx/signalfx-agent/releases/download/${SMART_AGENT_RELEASE}/$SMART_AGENT && \
+        cd /usr/lib/splunk-otel-collector && wget "$URL" && tar -xzf $SMART_AGENT && mv signalfx-agent agent-bundle && \
+        # Absolute path of interpreter in smart agent dir is set in dependent binaries
+        # requiring the interpreter location not to change.
+        /usr/lib/splunk-otel-collector/agent-bundle/bin/patch-interpreter /usr/lib/splunk-otel-collector/agent-bundle && \
+        rm -f /usr/lib/splunk-otel-collector/agent-bundle/bin/signalfx-agent \
+            /usr/lib/splunk-otel-collector/agent-bundle/bin/agent-status \
+            $SMART_AGENT; \
+    else \
+        mkdir -p /usr/lib/splunk-otel-collector/agent-bundle; \
+    fi
 RUN find /usr/lib/splunk-otel-collector/agent-bundle -name "*.key" -delete -or -name "*.pem" -delete
 
 FROM scratch

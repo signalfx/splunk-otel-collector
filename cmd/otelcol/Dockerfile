@@ -55,6 +55,7 @@ COPY --chown=999 config/collector/agent_config.yaml /etc/otel/collector/agent_co
 COPY --chown=999 config/collector/fargate_config.yaml /etc/otel/collector/fargate_config.yaml
 COPY --chown=999 config/collector/ecs_ec2_config.yaml /etc/otel/collector/ecs_ec2_config.yaml
 
+# Below files are required by journald receiver which are referenced from https://altlinux.pkgs.org/sisyphus/classic-x86_64/systemd-utils-249.5-alt2.x86_64.rpm.html
 COPY --from=journal /lib/x86_64-linux-gnu/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6
 COPY --from=journal /lib/systemd/libsystemd-shared-241.so /lib/systemd/libsystemd-shared-241.so
 COPY --from=journal /lib64/ld-linux-x86-64.so.2 /lib64/ld-linux-x86-64.so.2

@@ -35,7 +35,7 @@ RUN if [ "$ARCH" = "amd64" ]; then \
     else \
         mkdir -p /usr/lib/splunk-otel-collector/agent-bundle; \
     fi
-RUN find /usr/lib/splunk-otel-collector/agent-bundle -name "*.key" -delete -or -name "*.pem" -delete
+RUN find /usr/lib/splunk-otel-collector/agent-bundle -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 
 FROM scratch
 ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle

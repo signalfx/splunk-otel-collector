@@ -38,8 +38,15 @@ RUN if [ "$ARCH" = "amd64" ]; then \
 RUN find /usr/lib/splunk-otel-collector/agent-bundle -name "*.key" -delete -or -name "*.pem" -delete
 
 FROM debian:10.11 as journal
+ARG ARCH
 RUN apt update
 RUN apt install -y systemd
+# emptyfile is used as a work-around for copying journald libs for multi-arch
+RUN touch /emptyfile
+RUN mkdir -p /lib/aarch64-linux-gnu/ /lib/x86_64-linux-gnu/
+RUN mkdir -p /usr/lib/aarch64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
+RUN mkdir -p /lib64
+
 
 FROM scratch
 ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
@@ -61,37 +68,16 @@ COPY --chown=999 config/collector/fargate_config.yaml /etc/otel/collector/fargat
 COPY --chown=999 config/collector/ecs_ec2_config.yaml /etc/otel/collector/ecs_ec2_config.yaml
 
 # Below files are required by journald receiver which are referenced from https://altlinux.pkgs.org/sisyphus/classic-x86_64/systemd-utils-249.5-alt2.x86_64.rpm.html
-COPY --from=journal /lib/x86_64-linux-gnu/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6
-COPY --from=journal /lib/systemd/libsystemd-shared-241.so /lib/systemd/libsystemd-shared-241.so
-COPY --from=journal /lib64/ld-linux-x86-64.so.2 /lib64/ld-linux-x86-64.so.2
-COPY --from=journal /lib/x86_64-linux-gnu/librt.so.1 /lib/x86_64-linux-gnu/librt.so.1
-COPY --from=journal /lib/x86_64-linux-gnu/libcap.so.2 /lib/x86_64-linux-gnu/libcap.so.2
-COPY --from=journal /usr/lib/x86_64-linux-gnu/libacl.so.1 /usr/lib/x86_64-linux-gnu/libacl.so.1
-COPY --from=journal /lib/x86_64-linux-gnu/libcryptsetup.so.12 /lib/x86_64-linux-gnu/libcryptsetup.so.12
-COPY --from=journal /lib/x86_64-linux-gnu/libgcrypt.so.20 /lib/x86_64-linux-gnu/libgcrypt.so.20
-COPY --from=journal /usr/lib/x86_64-linux-gnu/libip4tc.so.0 /usr/lib/x86_64-linux-gnu/libip4tc.so.0
-COPY --from=journal /usr/lib/x86_64-linux-gnu/libkmod.so.2 /usr/lib/x86_64-linux-gnu/libkmod.so.2
-COPY --from=journal /lib/x86_64-linux-gnu/libmount.so.1 /lib/x86_64-linux-gnu/libmount.so.1
-COPY --from=journal /usr/lib/x86_64-linux-gnu/libseccomp.so.2 /usr/lib/x86_64-linux-gnu/libseccomp.so.2
-COPY --from=journal /lib/x86_64-linux-gnu/libselinux.so.1 /lib/x86_64-linux-gnu/libselinux.so.1
-COPY --from=journal /lib/x86_64-linux-gnu/libidn.so.11 /lib/x86_64-linux-gnu/libidn.so.11
-COPY --from=journal /lib/x86_64-linux-gnu/liblzma.so.5 /lib/x86_64-linux-gnu/liblzma.so.5
-COPY --from=journal /usr/lib/x86_64-linux-gnu/liblz4.so.1 /usr/lib/x86_64-linux-gnu/liblz4.so.1
-COPY --from=journal /lib/x86_64-linux-gnu/libblkid.so.1 /lib/x86_64-linux-gnu/libblkid.so.1
-COPY --from=journal /lib/x86_64-linux-gnu/libpthread.so.0 /lib/x86_64-linux-gnu/libpthread.so.0
-COPY --from=journal /usr/lib/x86_64-linux-gnu/libattr.so.1 /usr/lib/x86_64-linux-gnu/libattr.so.1
-COPY --from=journal /lib/x86_64-linux-gnu/libuuid.so.1 /lib/x86_64-linux-gnu/libuuid.so.1
-COPY --from=journal /lib/x86_64-linux-gnu/libdevmapper.so.1.02.1 /lib/x86_64-linux-gnu/libdevmapper.so.1.02.1
-COPY --from=journal /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/libssl.so.1.1
-COPY --from=journal /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1
-COPY --from=journal /usr/lib/x86_64-linux-gnu/libargon2.so.1 /usr/lib/x86_64-linux-gnu/libargon2.so.1
-COPY --from=journal /lib/x86_64-linux-gnu/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so.2
-COPY --from=journal /usr/lib/x86_64-linux-gnu/libjson-c.so.3 /usr/lib/x86_64-linux-gnu/libjson-c.so.3
-COPY --from=journal /lib/x86_64-linux-gnu/libgpg-error.so.0 /lib/x86_64-linux-gnu/libgpg-error.so.0
-COPY --from=journal /lib/x86_64-linux-gnu/libpcre.so.3 /lib/x86_64-linux-gnu/libpcre.so.3
-COPY --from=journal /lib/x86_64-linux-gnu/libudev.so.1 /lib/x86_64-linux-gnu/libudev.so.1
-COPY --from=journal /lib/x86_64-linux-gnu/libm.so.6 /lib/x86_64-linux-gnu/libm.so.6
+COPY --from=journal /emptyfile /lib/systemd/libsystemd-shared-241.so* /lib/systemd/
 COPY --from=journal /bin/journalctl /bin/journalctl
+# Journald libs for ARCH=amd64
+COPY --from=journal /emptyfile  /lib/x86_64-linux-gnu/libm.so.6* /lib/x86_64-linux-gnu/libudev.so.1* /lib/x86_64-linux-gnu/libpcre.so.3* /lib/x86_64-linux-gnu/libgpg-error.so.0* /lib/x86_64-linux-gnu/libdl.so.2* /lib/x86_64-linux-gnu/libdevmapper.so.1.02.1* /lib/x86_64-linux-gnu/libuuid.so.1* /lib/x86_64-linux-gnu/libpthread.so.0* /lib/x86_64-linux-gnu/libblkid.so.1* /lib/x86_64-linux-gnu/liblzma.so.5* /lib/x86_64-linux-gnu/libidn.so.11* /lib/x86_64-linux-gnu/libselinux.so.1* /lib/x86_64-linux-gnu/libmount.so.1* /lib/x86_64-linux-gnu/libgcrypt.so.20* /lib/x86_64-linux-gnu/libcryptsetup.so.12* /lib/x86_64-linux-gnu/libc.so.6* /lib/x86_64-linux-gnu/librt.so.1* /lib/x86_64-linux-gnu/libcap.so.2* /lib/x86_64-linux-gnu/libcryptsetup.so.12* /lib/x86_64-linux-gnu/
+COPY --from=journal /emptyfile /usr/lib/x86_64-linux-gnu/libjson-c.so.3* /usr/lib/x86_64-linux-gnu/libargon2.so.1* /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1* /usr/lib/x86_64-linux-gnu/libssl.so.1.1* /usr/lib/x86_64-linux-gnu/libattr.so.1* /usr/lib/x86_64-linux-gnu/liblz4.so.1* /usr/lib/x86_64-linux-gnu/libseccomp.so.2* /usr/lib/x86_64-linux-gnu/libkmod.so.2* /usr/lib/x86_64-linux-gnu/libip4tc.so.0* /usr/lib/x86_64-linux-gnu/libacl.so.1* /usr/lib/x86_64-linux-gnu/
+COPY --from=journal /emptyfile /lib64/ld-linux-x86-64.so.2* /lib64/
+# Journald libs for ARCH=arm64
+COPY --from=journal /emptyfile  /lib/aarch64-linux-gnu/libm.so.6* /lib/aarch64-linux-gnu/libudev.so.1* /lib/aarch64-linux-gnu/libpcre.so.3* /lib/aarch64-linux-gnu/libgpg-error.so.0* /lib/aarch64-linux-gnu/libdl.so.2* /lib/aarch64-linux-gnu/libdevmapper.so.1.02.1* /lib/aarch64-linux-gnu/libuuid.so.1* /lib/aarch64-linux-gnu/libpthread.so.0* /lib/aarch64-linux-gnu/libblkid.so.1* /lib/aarch64-linux-gnu/liblzma.so.5* /lib/aarch64-linux-gnu/libidn.so.11* /lib/aarch64-linux-gnu/libselinux.so.1* /lib/aarch64-linux-gnu/libmount.so.1* /lib/aarch64-linux-gnu/libgcrypt.so.20* /lib/aarch64-linux-gnu/libcryptsetup.so.12* /lib/aarch64-linux-gnu/libc.so.6* /lib/aarch64-linux-gnu/librt.so.1* /lib/aarch64-linux-gnu/libcap.so.2* /lib/aarch64-linux-gnu/libcryptsetup.so.12* /lib/aarch64-linux-gnu/
+COPY --from=journal /emptyfile /usr/lib/aarch64-linux-gnu/libjson-c.so.3* /usr/lib/aarch64-linux-gnu/libargon2.so.1* /usr/lib/aarch64-linux-gnu/libcrypto.so.1.1* /usr/lib/aarch64-linux-gnu/libssl.so.1.1* /usr/lib/aarch64-linux-gnu/libattr.so.1* /usr/lib/aarch64-linux-gnu/liblz4.so.1* /usr/lib/aarch64-linux-gnu/libseccomp.so.2* /usr/lib/aarch64-linux-gnu/libkmod.so.2* /usr/lib/aarch64-linux-gnu/libip4tc.so.0* /usr/lib/aarch64-linux-gnu/libacl.so.1* /usr/lib/aarch64-linux-gnu/
+COPY --from=journal /emptyfile /lib/ld-linux-aarch64.so.1* /lib/
 
 USER splunk-otel-collector
 ENTRYPOINT ["/otelcol"]

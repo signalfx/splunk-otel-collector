@@ -94,7 +94,7 @@ download_smart_agent() {
     mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
     tar -xzf "$buildroot/signalfx-agent.tar.gz" -C "$buildroot/$BUNDLE_BASE_DIR"
     mv "$buildroot/$BUNDLE_BASE_DIR/signalfx-agent" "$buildroot/$AGENT_BUNDLE_INSTALL_DIR"
-    find "$buildroot/$AGENT_BUNDLE_INSTALL_DIR" -name "*.key" -delete -or -name "*.pem" -delete
+    find "$buildroot/$AGENT_BUNDLE_INSTALL_DIR" -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
     rm -f "$buildroot/$AGENT_BUNDLE_INSTALL_DIR/bin/signalfx-agent"
     rm -f "$buildroot/$AGENT_BUNDLE_INSTALL_DIR/bin/agent-status"
     rm -f "$buildroot/signalfx-agent.tar.gz"

@@ -354,7 +354,7 @@ func newBaseParserProvider() config.MapProvider {
 	configYaml := os.Getenv(configYamlEnvVarName)
 
 	if configPath == "" && configYaml != "" {
-		return parserprovider.NewInMemoryMapProvider(bytes.NewBufferString(configYaml))
+		return parserprovider.NewExpandMapProvider(parserprovider.NewInMemoryMapProvider(bytes.NewBufferString(configYaml)))
 	}
 
 	return parserprovider.NewDefaultMapProvider(configPath, nil)

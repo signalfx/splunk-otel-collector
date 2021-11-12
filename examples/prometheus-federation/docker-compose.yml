@@ -37,7 +37,7 @@ services:
   otelcollector:
     image: quay.io/signalfx/splunk-otel-collector:0.29.0
     container_name: otelcollector
-    command: ["--config=/etc/otel-collector-config.yml", "--log-level=DEBUG"]
+    command: ["--config=/etc/otel-collector-config.yml", "--set=service.telemetry.logs.level=debug"]
     volumes:
       - ./otel-collector-config.yml:/etc/otel-collector-config.yml
     depends_on:

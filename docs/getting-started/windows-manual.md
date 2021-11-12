@@ -129,7 +129,7 @@ service:
 For older versions of the Collector you can alter the service `ImagePath` before restarting:
 
 ```sh
-Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -name "ImagePath" -value "C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe --log-level debug"
+Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\splunk-otel-collector" -name "ImagePath" -value "C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe --set=service.telemetry.logs.level=debug"
 Restart-Service splunk-otel-collector
 
 # Reverting after observing logs:

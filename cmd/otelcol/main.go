@@ -19,7 +19,9 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strconv"
@@ -111,6 +113,31 @@ func main() {
 	if err := run(serviceParams); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// required to support --set functionality no longer directly parsed by the core config loader.
+// taken from https://github.com/open-telemetry/opentelemetry-collector/blob/48a2e01652fa679c89259866210473fc0d42ca95/service/flags.go#L39
+type stringArrayValue struct {
+	values []string
+}
+
+func (s *stringArrayValue) Set(val string) error {
+	s.values = append(s.values, val)
+	return nil
+}
+
+func (s *stringArrayValue) String() string {
+	return "[" + strings.Join(s.values, ",") + "]"
+}
+
+func getSetProperties() []string {
+	properties := &stringArrayValue{}
+	flagSet := flag.NewFlagSet("", flag.ContinueOnError)
+	flagSet.SetOutput(io.Discard)
+	flagSet.Var(properties, "set", "")
+	// we are only interested in the --set option so ignore errors
+	_ = flagSet.Parse(os.Args[1:])
+	return properties.values
 }
 
 func hasFlag(flag string) bool {
@@ -357,7 +384,7 @@ func newBaseParserProvider() config.MapProvider {
 		return parserprovider.NewExpandMapProvider(parserprovider.NewInMemoryMapProvider(bytes.NewBufferString(configYaml)))
 	}
 
-	return parserprovider.NewDefaultMapProvider(configPath, nil)
+	return parserprovider.NewDefaultMapProvider(configPath, getSetProperties())
 }
 
 func runInteractive(settings service.CollectorSettings) error {

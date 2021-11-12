@@ -1,4 +1,4 @@
-> The official Splunk documentation for this page is [Trobleshoot issues when collecting data](https://docs.splunk.com/Observability/gdi/opentelemetry/troubleshooting.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
+> The official Splunk documentation for this page is [Troubleshoot issues when collecting data](https://docs.splunk.com/Observability/gdi/opentelemetry/troubleshooting.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
 
 # Troubleshooting
 
@@ -26,7 +26,6 @@ End-to-end architecture information is helpful including:
 - What format was the data sent in?
 - How is the next hop configured?
 - Where is the data configured to go from here?
-- What format was the data sent in?
 - Any dns/firewall/networking/proxy information to be aware of?
 
 In addition, it is important to gather support information including:

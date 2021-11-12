@@ -122,6 +122,6 @@ service:
       processors: [memory_limiter, batch, resourcedetection/internal]
       exporters: [signalfx]
     logs:
-      receivers: [signalfx]
+      receivers: [otlp, signalfx]
       processors: [memory_limiter, batch]
       exporters: [signalfx]

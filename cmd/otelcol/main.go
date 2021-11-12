@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service"
 	"go.opentelemetry.io/collector/service/parserprovider"
 	"go.uber.org/zap"
@@ -344,7 +345,7 @@ func setDefaultEnvVars() {
 }
 
 // Returns a ParserProvider that reads configuration YAML from an environment variable when applicable.
-func newBaseParserProvider() parserprovider.MapProvider {
+func newBaseParserProvider() config.MapProvider {
 	var configPath string
 	var ok bool
 	if ok, configPath = getKeyValue(os.Args[1:], "--config"); !ok {
@@ -353,7 +354,7 @@ func newBaseParserProvider() parserprovider.MapProvider {
 	configYaml := os.Getenv(configYamlEnvVarName)
 
 	if configPath == "" && configYaml != "" {
-		return parserprovider.NewInMemoryMapProvider(bytes.NewBufferString(configYaml))
+		return parserprovider.NewExpandMapProvider(parserprovider.NewInMemoryMapProvider(bytes.NewBufferString(configYaml)))
 	}
 
 	return parserprovider.NewDefaultMapProvider(configPath, nil)

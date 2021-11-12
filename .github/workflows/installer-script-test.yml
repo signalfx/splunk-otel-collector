@@ -3,7 +3,7 @@ name: installer-script-test
 on: 
   push:
     paths:
-      - '.github/workflows/**'
+      - '.github/workflows/installer-script-test.yml'
       - 'internal/buildscripts/packaging/installer/**'
       - 'internal/buildscripts/packaging/tests/**'
   pull_request:

@@ -91,9 +91,6 @@ workflows:
     jobs:
       - windows-test
       - setup-environment
-      - lint:
-          requires:
-            - setup-environment
       - cross-compile:
           requires:
             - setup-environment
@@ -112,12 +109,6 @@ workflows:
       - docker-otelcol-windows:
           requires:
             - cross-compile
-      - test:
-          requires:
-            - setup-environment
-      - coverage:
-          requires:
-            - setup-environment
       - build-package:
           name: deb-package
           package_type: deb
@@ -173,14 +164,6 @@ jobs:
           root: ~/
           paths: go/bin
 
-  lint:
-    executor: golang
-    steps:
-      - attach_to_workspace
-      - run:
-          name: Lint
-          command: make -j4 checklicense impi lint misspell
-
   cross-compile:
     executor: golang
     parallelism: 4
@@ -194,39 +177,6 @@ jobs:
           paths: project/bin
       - store_artifacts:
           path: bin
-
-  test:
-    executor: golang
-    environment:
-      TEST_RESULTS: unit-test-results/junit/results.xml
-    steps:
-      - attach_to_workspace
-      - run:
-          name: Unit tests
-          command: |
-            mkdir -p unit-test-results/junit
-            trap "go-junit-report  -set-exit-code < unit-test-results/go-unit-tests.out > unit-test-results/junit/results.xml" EXIT
-            make test | tee unit-test-results/go-unit-tests.out
-      - store_artifacts:
-          path: unit-test-results
-      - store_test_results:
-          path: unit-test-results/junit
-      - save_module_cache
-
-  coverage:
-    executor: golang
-    steps:
-      - attach_to_workspace
-      - run:
-          name: Install packages.
-          command: sudo apt update && sudo apt-get install bzr time
-      - run:
-          name: Coverage tests
-          command: make test-with-cover
-# DISABLE CODECOV UNTIL THE SCRIPT IS AUDITED AND WE ARE CERTAIN IT IS OK TO TO EXECUTE IT.
-#      - run:
-#          name: Code coverage
-#          command: bash <(curl -s https://codecov.io/bash)
 
   docker-otelcol:
     parameters:

@@ -3,6 +3,13 @@
 ## Unreleased
 
 - Add Chocolately package support. (#724)
+
+## v0.38.1
+
+### 🧰 Bug fixes 🧰
+
+- Fix evaluating env variables in ecs ec2 configs (#930)
+- Correct certifi CA bundle removal from Smart Agent bundle (#933)
 - Fix evaluating env variables in fargate config (#935)
 
 ## v0.38.0

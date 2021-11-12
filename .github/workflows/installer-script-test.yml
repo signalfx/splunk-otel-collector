@@ -2,9 +2,8 @@ name: installer-script-test
 
 on: 
   push:
-    tags:
-      - '*'
     paths:
+      - '.github/workflows/**'
       - 'internal/buildscripts/packaging/installer/**'
       - 'internal/buildscripts/packaging/tests/**'
   pull_request:
@@ -16,8 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  installer-script-test:
-    name: installer-script-test
+  linux-installer-script-test:
+    name: linux-installer-script-test
     runs-on: ubuntu-latest
     strategy:
       matrix:

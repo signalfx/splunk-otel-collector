@@ -4,7 +4,7 @@ name: puppet-test
 on: 
   push:
     paths:
-      - '.github/workflows/**'
+      - '.github/workflows/puppet-test.yml'
       - 'deployments/puppet/**'
       - 'internal/buildscripts/packaging/tests/**'
   pull_request:

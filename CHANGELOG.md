@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add Chocolately package support. (#724)
+- Fix evaluating env variables in fargate config (#935)
 
 ## v0.38.0
 

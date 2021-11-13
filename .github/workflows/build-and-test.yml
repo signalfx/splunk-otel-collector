@@ -34,21 +34,18 @@ jobs:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
+            ~/go/bin
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Installing dependency
         run: |
           make install-tools
       
-      - name: Zip artifact for deployment
-        run: zip golang_pkg.zip ~/go/pkg/mod ~/go/bin -qr
-
       - name: Updating workspace
         uses: actions/upload-artifact@v2
         with:
           name: workspace
           path: |
-            golang_pkg.zip
             .
   
   lint:
@@ -66,13 +63,15 @@ jobs:
         with:
           name: workspace
 
-      - name: Unzip artifact
-        run: |
-          unzip -q golang_pkg.zip -d .
-          rm -rf ~/go/bin && mkdir -p ~/go/pkg/mod && mkdir -p ~/go/bin
-          mv ./home/runner/go/bin ~/go && mv ./home/runner/go/pkg/mod ~/go/pkg
-          rm -rf golang_pkg.zip ./home
-      
+      - name: Caching dependency
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            ~/go/bin
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
       - name: Lint
         run: |
           make -j4 checklicense impi lint misspell
@@ -92,13 +91,15 @@ jobs:
         with:
           name: workspace
 
-      - name: Unzip workspace
-        run: |
-          unzip -q golang_pkg.zip -d .
-          rm -rf ~/go/bin && mkdir -p ~/go/pkg/mod && mkdir -p ~/go/bin
-          mv ./home/runner/go/bin ~/go && mv ./home/runner/go/pkg/mod ~/go/pkg
-          rm -rf golang_pkg.zip ./home
-      
+      - name: Caching dependency
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            ~/go/bin
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
       - name: Unit tests
         run: |
           mkdir -p unit-test-results/junit
@@ -126,12 +127,14 @@ jobs:
         with:
           name: workspace
 
-      - name: Unzip workspace
-        run: |
-          unzip -q golang_pkg.zip -d .
-          rm -rf ~/go/bin && mkdir -p ~/go/pkg/mod && mkdir -p ~/go/bin
-          mv ./home/runner/go/bin ~/go && mv ./home/runner/go/pkg/mod ~/go/pkg
-          rm -rf golang_pkg.zip ./home
+      - name: Caching dependency
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            ~/go/bin
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
       
       - name: Coverage tests
         run: |
@@ -140,3 +143,4 @@ jobs:
       # - name: Code coverage
       #   run: |
       #     bash <(curl -s https://codecov.io/bash)
+

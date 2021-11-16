@@ -1,0 +1,42 @@
+name: windows-test
+
+on: [push, pull_request]
+
+concurrency:
+  group: windows-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-test:
+    name: windows-test
+    runs-on: windows-latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Caching dependency
+        uses: actions/cache@v2
+        with:
+          path: |
+            %LocalAppData%\go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.2
+
+      - name: Install golang dependency
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:GOPATH = "${env:USERPROFILE}\go"
+          go env -w CGO_ENABLED=0
+          go install github.com/ory/go-acc@v0.2.6
+
+      - name: Unit tests with coverage
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:GOPATH = "${env:USERPROFILE}\go"
+          $env:PATH = "$env:PATH;${env:GOPATH}\bin"
+          go-acc ./...

@@ -26,15 +26,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configmapprovider"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
-	"go.opentelemetry.io/collector/service/parserprovider"
 	"go.uber.org/zap"
 )
 
 func TestConfigSourceParserProvider(t *testing.T) {
 	tests := []struct {
-		parserProvider config.MapProvider
+		parserProvider configmapprovider.Provider
 		wantErr        error
 		name           string
 		factories      []Factory
@@ -88,7 +87,7 @@ func TestConfigSourceParserProvider(t *testing.T) {
 			}
 
 			pp := NewConfigSourceParserProvider(
-				parserprovider.NewInMemoryMapProvider(nil),
+				configmapprovider.NewInMemory(nil),
 				zap.NewNop(),
 				component.NewDefaultBuildInfo(),
 				factories...,

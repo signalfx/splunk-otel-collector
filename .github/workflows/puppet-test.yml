@@ -1,0 +1,81 @@
+name: puppet-test
+
+# Only run tests for main branch or if the PR has relevant changes
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '.github/workflows/puppet-test.yml'
+      - 'deployments/puppet/**'
+      - 'internal/buildscripts/packaging/tests/**'
+
+concurrency:
+  group: puppet-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  puppet-test:
+    name: puppet-test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        PACKAGE_TYPE: [ "deb", "rpm" ]
+    env:
+      PYTHON_VERSION: 3.8.5
+      PIP_VERSION: 20.2.4
+      REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
+      RESULT_PATH: "~/testresults"
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Lint
+        run: |
+          make -C deployments/puppet lint
+
+      - name: Rake spec
+        run: |
+          make -C deployments/puppet rake-spec
+
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }} 
+      
+      - name: Caching dependency
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+          key: v1-pytest-${{ env.PYTHON_VERSION }}-${{ hashFiles(env.REQUIREMENTS_PATH) }}
+
+      - name: Install pytest
+        run: |
+          if which pip; then
+              pip install --upgrade 'pip==${{ env.PIP_VERSION }}'
+          else
+              curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+              python get-pip.py 'pip==${{ env.PIP_VERSION }}'
+          fi
+          pip install -r "${{ env.REQUIREMENTS_PATH }}"
+
+      - name: Test installer script
+        timeout-minutes: 45
+        run: |
+          mkdir -p ${{ env.RESULT_PATH }}
+          echo ${{ matrix.PACKAGE_TYPE }}
+          pytest -n2 --verbose -m ${{ matrix.PACKAGE_TYPE }} \
+            --junitxml=${{ env.RESULT_PATH }}/results.xml \
+            --html=${{ env.RESULT_PATH }}/results.html \
+            --self-contained-html \
+            internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
+      
+      - name: Uploading artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: puppet-test-${{ matrix.PACKAGE_TYPE }}-result
+          path: ${{ env.RESULT_PATH }}

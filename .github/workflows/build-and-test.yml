@@ -1,6 +1,5 @@
 name: build-and-test
 
-on: [push, pull_request]
 on:
   push:
     branches:

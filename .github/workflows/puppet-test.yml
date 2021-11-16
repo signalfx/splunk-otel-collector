@@ -1,15 +1,15 @@
 name: puppet-test
 
-# Only run installer tests, Rake spec, lint for main branch, tags, or if the branch has relevant changes
+# Only run tests for main branch or if the PR has relevant changes
 on: 
   push:
+    branches:
+      - main
+  pull_request:
     paths:
       - '.github/workflows/puppet-test.yml'
       - 'deployments/puppet/**'
       - 'internal/buildscripts/packaging/tests/**'
-  pull_request:
-    branches:
-      - 'main'
 
 concurrency:
   group: puppet-test-${{ github.event.pull_request.number || github.ref }}

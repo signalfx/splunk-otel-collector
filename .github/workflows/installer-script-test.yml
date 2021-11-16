@@ -1,14 +1,15 @@
 name: installer-script-test
 
+# Only run tests for main branch or if the PR has relevant changes
 on: 
   push:
+    branches:
+      - main
+  pull_request:
     paths:
       - '.github/workflows/installer-script-test.yml'
       - 'internal/buildscripts/packaging/installer/**'
       - 'internal/buildscripts/packaging/tests/**'
-  pull_request:
-    branches:
-      - 'main'
 
 concurrency:
   group: installer-script-test-${{ github.event.pull_request.number || github.ref }}

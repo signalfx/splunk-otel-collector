@@ -118,16 +118,6 @@ workflows:
       - coverage:
           requires:
             - setup-environment
-      - build-package:
-          name: deb-package
-          package_type: deb
-          requires:
-            - cross-compile
-      - build-package:
-          name: rpm-package
-          package_type: rpm
-          requires:
-            - cross-compile
       - installer-script-test
       - windows-msi:
           requires:
@@ -326,36 +316,6 @@ jobs:
 #          name: Upload coverage
 #          command: bash codecov.sh -f coverage.txt
       - save_module_cache
-
-  build-package:
-    machine:
-      image: ubuntu-1604:202007-01
-      docker_layer_caching: true
-    parameters:
-      package_type:
-        type: enum
-        enum: ["deb", "rpm"]
-    steps:
-      - attach_to_workspace
-      - run:
-          name: Build << parameters.package_type >> amd64 package
-          command: make << parameters.package_type>>-package SKIP_COMPILE=true VERSION="${CIRCLE_TAG:-}" ARCH="amd64"
-      - run:
-          name: Build << parameters.package_type >> arm64 package
-          command: make << parameters.package_type>>-package SKIP_COMPILE=true VERSION="${CIRCLE_TAG:-}" ARCH="arm64"
-      - install_pytest
-      - run:
-          name: Test << parameters.package_type >> package installation
-          command: |
-            mkdir -p ~/testresults
-            pytest -n2 --verbose -m << parameters.package_type >> \
-              --junitxml=~/testresults/results.xml\
-              --html=~/testresults/results.html\
-              --self-contained-html \
-              internal/buildscripts/packaging/tests/package_test.py
-      - store_artifacts:
-          path: dist
-      - save_pytest_results
 
   installer-script-test:
     machine:

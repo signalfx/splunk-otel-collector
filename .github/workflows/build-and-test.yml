@@ -1,0 +1,172 @@
+name: build-and-test
+
+on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: build-and-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: 3.8.5
+  PIP_VERSION: 20.2.4
+  REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
+  RESULT_PATH: "~/testresults"
+  GO_VERSION: 1.17.2
+
+jobs:
+  setup-environment:
+    name: setup-environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Caching dependency
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            ~/go/bin
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
+      - name: Installing dependency
+        run: |
+          make install-tools
+
+  cross-compile:
+    name: cross-compile
+    runs-on: ubuntu-latest
+    needs: [setup-environment]
+    strategy:
+      matrix:
+        SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64" ]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Caching dependency
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            ~/go/bin
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
+      - name: Build Collector
+        run: |
+          make ${{ matrix.SYS_BINARIES }}
+      
+      - name: Updating binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.SYS_BINARIES }}
+          path: |
+            ./bin/*
+  
+  build-package:
+    name: build-package
+    runs-on: ubuntu-latest
+    needs: [cross-compile]
+    strategy:
+      matrix:
+        SYS_PACKAGE: [ "deb", "rpm" ]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Caching dependency
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            ~/go/bin
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
+      - name: Downloading binaries-linux_amd64
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries-linux_amd64
+          path: ./bin
+
+      - name: Downloading binaries-linux_arm64
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries-linux_arm64
+          path: ./bin
+
+      - name: Build ${{ matrix.SYS_PACKAGE }} amd64 package
+        run: |
+          gitRef=(${GITHUB_REF//// })
+          if [[ "${gitRef[1]}" = "tags" ]] ;
+          then
+            echo "TAG_NAME=${gitRef[2]}" >> $GITHUB_ENV
+          else
+            echo "TAG_NAME=" >> $GITHUB_ENV
+          fi
+          make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true VERSION="${TAG_NAME:-}" ARCH="amd64"
+      
+      - name: Build ${{ matrix.SYS_PACKAGE }} arm64 package
+        run: |
+          make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true VERSION="${TAG_NAME:-}" ARCH="arm64"
+      
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Caching dependency
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+          key: v1-pytest-${{ env.PYTHON_VERSION }}-${{ hashFiles(env.REQUIREMENTS_PATH) }}
+
+      - name: Install pytest
+        run: |
+          if which pip; then
+              pip install --upgrade 'pip==${{ env.PIP_VERSION }}'
+          else
+              curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+              python get-pip.py 'pip==${{ env.PIP_VERSION }}'
+          fi
+          pip install -r "${{ env.REQUIREMENTS_PATH }}"
+      
+      - name: Test ${{ matrix.SYS_PACKAGE }} package installation
+        timeout-minutes: 30
+        run: |
+          mkdir -p ${{ env.RESULT_PATH }}
+          pytest -n2 --verbose -m ${{ matrix.SYS_PACKAGE }} \
+            --junitxml=${{ env.RESULT_PATH }}/results.xml \
+            --html=${{ env.RESULT_PATH }}/results.html \
+            --self-contained-html \
+            internal/buildscripts/packaging/tests/package_test.py
+      
+      - name: Uploading ${{ matrix.SYS_PACKAGE }} package artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.SYS_PACKAGE }}-package
+          path: ./dist
+
+      - name: Uploading test result artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.SYS_PACKAGE }}-package-installation-test-result
+          path: ${{ env.RESULT_PATH }}

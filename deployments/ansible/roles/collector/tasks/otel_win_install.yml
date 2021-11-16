@@ -31,6 +31,29 @@
     state: present
   notify: "restart windows splunk-otel-collector"
 
+- name: Read the default config
+  slurp:
+    path: "{{splunk_otel_collector_config}}"
+  register: defaultconfig
+  when: splunk_config_override != ''
+
+- name: Extract the default config
+  set_fact:
+    updated_config: "{{ defaultconfig['content'] | b64decode | from_yaml }}"
+  when: splunk_config_override != ''
+
+- name: Update the default config
+  set_fact:
+    updated_config: "{{ updated_config | combine(splunk_config_override, recursive=True, list_merge='append_rp') }}"
+  when: splunk_config_override != ''
+
+- name: Copy the updated config
+  win_copy:
+    content: '{{ updated_config | to_nice_yaml }}'
+    dest: "{{splunk_otel_collector_config}}"
+  when: splunk_config_override != ''
+  notify: "restart windows splunk-otel-collector"
+
 - name: Push Custom Config file for splunk-otel-collector, If provided
   ansible.windows.win_copy:
     src: "{{splunk_otel_collector_config_source}}"

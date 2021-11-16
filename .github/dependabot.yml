@@ -46,3 +46,7 @@ updates:
     directory: "/internal/buildscripts/packaging/msi/msi-builder"
     schedule:
       interval: "daily"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"

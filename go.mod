@@ -61,8 +61,8 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.38.0
 	github.com/openzipkin/zipkin-go v0.3.0
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
-	github.com/signalfx/golib/v3 v3.3.41
-	github.com/signalfx/signalfx-agent v1.0.1-0.20211105162150-511f93c75a69
+	github.com/signalfx/golib/v3 v3.3.42
+	github.com/signalfx/signalfx-agent v1.0.1-0.20211117175608-8f6e561bf8b0
 	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.4.1
@@ -296,7 +296,7 @@ require (
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
 	github.com/signalfx/ingest-protocols v0.1.3 // indirect
 	github.com/signalfx/sapm-proto v0.7.2 // indirect
-	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20201202163743-65b4fa925fc8 // indirect
+	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20211117172757-84f64129e93d // indirect
 	github.com/signalfx/signalfx-go v1.8.1 // indirect
 	github.com/snowflakedb/gosnowflake v1.6.3 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
@@ -396,7 +396,7 @@ replace (
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v1.8.2-0.20210430082741-2a4b8e12bbf2
 
-	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20211105162150-511f93c75a69
+	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20211117172757-84f64129e93d
 	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required for smartagentreceiver to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
 
 	// cvss scan requires this to be >= 3.3.23

@@ -8,6 +8,7 @@ stages:
   - package
   - cve-scan
   - release
+  - choco-release
   - github-release
 
 include:
@@ -432,6 +433,39 @@ release-msi:
     paths:
       - dist/signed/*.msi
 
+choco-release:
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  stage: choco-release
+  dependencies:
+    - release-msi
+  tags:
+    - windows
+  script:
+    - |
+      $ErrorActionPreference = 'Stop'
+      Set-PSDebug -Trace 1
+      $msi_file_name = Resolve-Path .\dist\signed\splunk-otel-collector*.msi | Split-Path -leaf
+      if ($msi_file_name -match '(\d+\.\d+\.\d+)(\.\d+)?') {
+        $version = $matches[0]
+      } else {
+        throw "Failed to get version from $msi_file_name"
+      }
+      .\internal\buildscripts\packaging\choco\make.ps1 build_choco -Version $version -BuildDir .\dist\signed
+    - Test-Path .\dist\signed\splunk-otel-collector.${version}.nupkg
+    - |
+      # Only push the choco package for stable release tags
+      if ($env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
+        choco push -k $env:CHOCO_TOKEN .\dist\signed\splunk-otel-collector.${version}.nupkg
+      }
+  artifacts:
+    paths:
+      - dist/signed/*.nupkg
+
 # release installer scripts; disabled until we get a token for pushing to S3
 .release-installers:
   extends:
@@ -460,6 +494,7 @@ github-release:
     - release-msi
     - push-linux-image
     - build-push-windows-image
+    - choco-release
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/

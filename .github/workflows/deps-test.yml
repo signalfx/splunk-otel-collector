@@ -57,7 +57,7 @@ jobs:
             **/go.mod
             !**/examples/**/go.mod
       - name: Create Issue
-        uses: peter-evans/create-issue-from-file@v2
+        uses: peter-evans/create-issue-from-file@v3
         if: failure()
         with:
           title: Dependency Test Report

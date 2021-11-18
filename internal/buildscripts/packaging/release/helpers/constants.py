@@ -26,7 +26,7 @@ DEFAULT_ARTIFACTORY_USERNAME = "otel-collector"
 # Signing
 CHAPERONE_API_URL = "https://chaperone.re.splunkdev.com/api-service"
 DEFAULT_STAGING_USERNAME = "srv-otel-collector"
-DEFAULT_TIMEOUT = 600
+DEFAULT_TIMEOUT = 1200
 SIGN_TYPES = ("GPG", "RPM", "WIN", "OSX")
 SIGNED_ARTIFACTS_REPO_URL = "https://repo.splunk.com/artifactory/signed-artifacts"
 STAGING_URL = "https://repo.splunk.com/artifactory"

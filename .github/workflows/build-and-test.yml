@@ -128,6 +128,13 @@ jobs:
       - name: Coverage tests
         run: |
           make test-with-cover
+      
+      - name: Uploading artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage-results
+          path: ./coverage.html
+
       # DISABLE CODECOV UNTIL THE SCRIPT IS AUDITED AND WE ARE CERTAIN IT IS OK TO TO EXECUTE IT.
       # - name: Code coverage
       #   run: |

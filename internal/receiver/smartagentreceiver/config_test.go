@@ -155,7 +155,7 @@ func TestLoadInvalidConfigWithoutType(t *testing.T) {
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
-		"error reading receivers configuration for smartagent/withouttype: you must specify a \"type\" for a smartagent receiver")
+		`error reading receivers configuration for "smartagent/withouttype": you must specify a "type" for a smartagent receiver`)
 	require.Nil(t, cfg)
 }
 
@@ -170,7 +170,7 @@ func TestLoadInvalidConfigWithUnknownType(t *testing.T) {
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
-		"error reading receivers configuration for smartagent/unknowntype: no known monitor type \"notamonitor\"")
+		`error reading receivers configuration for "smartagent/unknowntype": no known monitor type "notamonitor"`)
 	require.Nil(t, cfg)
 }
 
@@ -185,7 +185,7 @@ func TestLoadInvalidConfigWithUnexpectedTag(t *testing.T) {
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
-		"error reading receivers configuration for smartagent/unexpectedtag: failed creating Smart Agent Monitor custom config: yaml: unmarshal errors:\n  line 2: field notASupportedTag not found in type redis.Config")
+		"error reading receivers configuration for \"smartagent/unexpectedtag\": failed creating Smart Agent Monitor custom config: yaml: unmarshal errors:\n  line 2: field notASupportedTag not found in type redis.Config")
 	require.Nil(t, cfg)
 }
 
@@ -338,7 +338,7 @@ func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
-		"error reading receivers configuration for smartagent/haproxy: cannot determine port via Endpoint: strconv.ParseUint: parsing \"notaport\": invalid syntax")
+		`error reading receivers configuration for "smartagent/haproxy": cannot determine port via Endpoint: strconv.ParseUint: parsing "notaport": invalid syntax`)
 	require.Nil(t, cfg)
 }
 
@@ -353,7 +353,7 @@ func TestLoadInvalidConfigWithUnsupportedEndpoint(t *testing.T) {
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
-		"error reading receivers configuration for smartagent/nagios: unable to set monitor Host field using Endpoint-derived value of localhost: no field Host of type string detected")
+		`error reading receivers configuration for "smartagent/nagios": unable to set monitor Host field using Endpoint-derived value of localhost: no field Host of type string detected`)
 	require.Nil(t, cfg)
 }
 
@@ -368,7 +368,7 @@ func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
-		"error reading receivers configuration for smartagent/haproxy: dimensionClients must be an array of compatible exporter names")
+		`error reading receivers configuration for "smartagent/haproxy": dimensionClients must be an array of compatible exporter names`)
 	require.Nil(t, cfg)
 }
 
@@ -383,7 +383,7 @@ func TestLoadInvalidConfigWithNonStringArrayDimensionClients(t *testing.T) {
 	)
 	require.Error(t, err)
 	require.EqualError(t, err,
-		"error reading receivers configuration for smartagent/haproxy: dimensionClients must be an array of compatible exporter names")
+		`error reading receivers configuration for "smartagent/haproxy": dimensionClients must be an array of compatible exporter names`)
 	require.Nil(t, cfg)
 }
 

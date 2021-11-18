@@ -371,7 +371,7 @@ func setDefaultEnvVars() {
 }
 
 // Returns a ParserProvider that reads configuration YAML from an environment variable when applicable.
-func newBaseParserProvider() config.MapProvider {
+func newBaseParserProvider() configmapprovider.Provider {
 	var configPath string
 	var ok bool
 	if ok, configPath = getKeyValue(os.Args[1:], "--config"); !ok {

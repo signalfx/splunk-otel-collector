@@ -169,7 +169,7 @@ jobs:
         run: |
           make ${{ matrix.SYS_BINARIES }}
       
-      - name: Updating binaries
+      - name: Uploading binaries
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.SYS_BINARIES }}

@@ -60,8 +60,11 @@ how to use the role in a playbook with minimal required configuration:
   mode. (**default:** `/etc/otel/collector/agent_config.yaml` on Linux, 
   **default:** `%ProgramData%\Splunk\OpenTelemetry Collector\agent_config.yaml` on Windows)
 
-- `splunk_config_override`: Splunk OTel Collector config can be overridden with this variable. Additional components added using this variable will be merged into the default config.
-  
+- `splunk_config_override`: Custom Splunk OTel Collector config that will be merged into the default config.
+
+- `splunk_config_override_list_merge`: This variable is used to configure `list_merge` argument for `splunk_config_override`. 
+  When the hashes to merge contain arrays/lists. (**default:** `replace` the possible values are replace, keep, append, prepend, append_rp or prepend_rp)
+
 - `splunk_otel_collector_config_source`: Source path to a Splunk OTel Collector config YAML 
   file on your control host that will be uploaded and set in place of
   `splunk_otel_collector_config` in remote hosts. Can be used to submit a custom collector 

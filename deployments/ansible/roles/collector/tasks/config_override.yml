@@ -1,0 +1,14 @@
+---
+- name: Read the default config
+  ansible.builtin.slurp:
+    path: "{{splunk_otel_collector_config}}"
+  register: defaultconfig
+
+- name: Extract the default config
+  ansible.builtin.set_fact:
+    updated_config: "{{ defaultconfig['content'] | b64decode | from_yaml }}"
+
+- name: Update the default config
+  ansible.builtin.set_fact:
+    updated_config: "{{ updated_config | combine(splunk_config_override, recursive=True, \
+                     list_merge=splunk_config_override_list_merge) }}"

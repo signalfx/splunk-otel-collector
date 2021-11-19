@@ -14,6 +14,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 🧰 Bug fixes 🧰
 
 - Fix token passthrough for splunkhec receiver/exporter ([#5435](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/5435))
+- Fix --set command line flag functionality (#939)
 
 ## v0.38.1
 

@@ -1888,8 +1888,9 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter 
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.39.0/go.mod h1:EM8MehSX9D0HJR22u7OhZp6lAlmRUY+ubK8i9qsI0T4=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.39.0 h1:A9ivuqIYDLnynzb1I+D75Cb8cAitmh8m3rQ/FMMVxD0=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.39.0/go.mod h1:22r2seTJiJLGLU1XmgzMPLissfrvo8xpwALX8ih+9FU=
-github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.39.0 h1:Unu7eSmJvPVrQ4NPX5wJTGu2Hd4Cg4cvS5dP0BS65aI=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.39.0/go.mod h1:c8XyeuLX3X0+vfJ3KP7oO591vpC7vsnAs4UpLWgPbAo=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.39.1-0.20211116164955-87408fd66556 h1:ssIkW7MxavNVrODLSUj10SEZpTI1Jefs9Rxi5bTW0Mw=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.39.1-0.20211116164955-87408fd66556/go.mod h1:TTqj0crZp/vlNL3WJ91gaxJvLlRLrbBeXhZDyt+3Pgw=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.39.0 h1:TLjJu+xofPyEEKBqFTSehoxxIFnvSQuHlFjmqmpxdTY=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.39.0/go.mod h1:UZzlVeGjwiFSl+qNehBf2y117rjr3VGY6eEVi4s8Awg=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.39.0 h1:Y6Ovp2drJVDq8vx1DzzrISuLgO8y5/krPje6Q7R65vk=
@@ -1982,8 +1983,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxrecei
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.39.0/go.mod h1:IvTcI3DDXzFQosurMqMS3X78GAUBUYFd6H3r+3EYhbE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.39.0 h1:WZW2ek8oufM8NIPHDjVTaSLH+kqMHutxhi9ZACuyVEU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.39.0/go.mod h1:rQx8BCaQu+nMNeQgWwyL27jC2pZtKVcDXyt4e6+QHKc=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.39.0 h1:y60ABKi6FTeVJ9q4MHpKpKO9jVh3PC0hWgoUWqgsEms=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.39.0/go.mod h1:kOSwgILpfYW3fDJ/UbkdUWsfAiMQYS1yPCRvELhIPhc=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.39.1-0.20211116164955-87408fd66556 h1:pEdDfDnhquhizN8/axh1JGaOx7p8oEZwozgfkHBoh7U=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.39.1-0.20211116164955-87408fd66556/go.mod h1:G4b4stdwh1B7/X/QKRd3EL805j32JBBev09e49QdLnE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.39.0 h1:87mwCfu/DltU6d+66Y8YicDLB32T2CEcUQjt28HCiF8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.39.0/go.mod h1:6OUPlTKNCIUlwB2AgtITEF8oVuG1hQ5fi/h6PCeiLS4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.39.0 h1:sYhzUZ7I0TyKyKL2lDUW6WNH7otk70hPLKVPA09kdNs=

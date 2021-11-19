@@ -584,7 +584,7 @@ func TestManager_expandString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := manager.expandString(ctx, tt.input)
+			got, err := manager.parseStringValue(ctx, tt.input)
 			require.IsType(t, tt.wantErr, err)
 			require.Equal(t, tt.want, got)
 		})
@@ -664,7 +664,7 @@ func Test_parseCfgSrc(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfgSrcName, selector, paramsConfigMap, err := parseCfgSrc(tt.str)
+			cfgSrcName, selector, paramsConfigMap, err := parseCfgSrcInvocation(tt.str)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return

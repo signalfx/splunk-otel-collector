@@ -34,17 +34,20 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configmapprovider"
 )
 
 func TestRenameK8sTaggerTestRenameK8sTagger(t *testing.T) {
 	pp := &converterProvider{
-		wrapped:     &fileParserProvider{fileName: "testdata/k8s-tagger.yaml"},
+		wrapped:     configmapprovider.NewFile("testdata/k8s-tagger.yaml"),
 		cfgMapFuncs: []CfgMapFunc{RenameK8sTagger},
 	}
 	expected, err := config.NewMapFromFile("testdata/k8sattributes.yaml")
 	require.NoError(t, err)
 
-	actual, err := pp.Get(context.Background())
+	r, err := pp.Retrieve(context.Background(), nil)
+	require.NoError(t, err)
+	actual, err := r.Get(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, expected.ToStringMap(), actual.ToStringMap())
 }

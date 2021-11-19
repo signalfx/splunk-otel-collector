@@ -35,10 +35,10 @@ type CreateParams struct {
 	BuildInfo component.BuildInfo
 }
 
-// Factory is a factory interface for configuration sources.
+// Factory is a factory interface for configuration sources.  Given it's not an accepted component and
+// because of the direct Factory usage restriction from https://github.com/open-telemetry/opentelemetry-collector/commit/9631ceabb7dc4ca5cc187bab26d8319783bcc562
+// it's not a proper Collector config.Factory.
 type Factory interface {
-	component.Factory
-
 	// CreateDefaultConfig creates the default configuration settings for the ConfigSource.
 	// This method can be called multiple times depending on the pipeline
 	// configuration and should not cause side-effects that prevent the creation
@@ -50,6 +50,9 @@ type Factory interface {
 
 	// CreateConfigSource creates a configuration source based on the given config.
 	CreateConfigSource(ctx context.Context, params CreateParams, cfg expcfg.Source) (configsource.ConfigSource, error)
+
+	// Type gets the type of the component created by this factory.
+	Type() config.Type
 }
 
 // Factories maps the type of a ConfigSource to the respective factory object.

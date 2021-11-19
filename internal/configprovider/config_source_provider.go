@@ -67,7 +67,7 @@ func (c *configSourceParserProvider) Shutdown(ctx context.Context) error {
 // that can load and inject data from config sources. If there are no config sources
 // in the configuration the returned parser behaves like the config.Default().
 func (c *configSourceParserProvider) Get(ctx context.Context) (*config.Map, error) {
-	defaultParser, err := c.retrieved.Get(ctx)
+	initialMap, err := c.retrieved.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -77,23 +77,23 @@ func (c *configSourceParserProvider) Get(ctx context.Context) (*config.Map, erro
 		return nil, err
 	}
 
-	csm, err := NewManager(defaultParser, c.logger, c.buildInfo, factories)
+	csm, err := NewManager(initialMap, c.logger, c.buildInfo, factories)
 	if err != nil {
 		return nil, err
 	}
 
-	parser, err := csm.Resolve(context.Background(), defaultParser)
+	effectiveMap, err := csm.Resolve(context.Background(), initialMap)
 	if err != nil {
 		return nil, err
 	}
 
-	c.configServer = newConfigServer(c.logger, defaultParser.ToStringMap(), parser.ToStringMap())
+	c.configServer = newConfigServer(c.logger, initialMap.ToStringMap(), effectiveMap.ToStringMap())
 	if err = c.configServer.start(); err != nil {
 		return nil, err
 	}
 
 	c.csm = csm
-	return parser, nil
+	return effectiveMap, nil
 }
 
 // WatchForUpdate is used to monitor for updates on configuration values that

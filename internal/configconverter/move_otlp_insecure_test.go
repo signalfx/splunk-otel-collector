@@ -34,23 +34,28 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/config/configmapprovider"
 )
 
 func TestConverterProvider_Noop(t *testing.T) {
 	pp := &converterProvider{
-		wrapped: &fileParserProvider{fileName: "testdata/otlp-insecure.yaml"},
+		wrapped: configmapprovider.NewFile("testdata/otlp-insecure.yaml"),
 	}
-	v, err := pp.Get(context.Background())
+	r, err := pp.Retrieve(context.Background(), nil)
+	require.NoError(t, err)
+	v, err := r.Get(context.Background())
 	require.NoError(t, err)
 	assert.True(t, v.IsSet("exporters::otlp::insecure"))
 }
 
 func TestMoveOTLPInsecureKey(t *testing.T) {
 	pp := &converterProvider{
-		wrapped:     &fileParserProvider{fileName: "testdata/otlp-insecure.yaml"},
+		wrapped:     configmapprovider.NewFile("testdata/otlp-insecure.yaml"),
 		cfgMapFuncs: []CfgMapFunc{MoveOTLPInsecureKey},
 	}
-	v, err := pp.Get(context.Background())
+	r, err := pp.Retrieve(context.Background(), nil)
+	require.NoError(t, err)
+	v, err := r.Get(context.Background())
 	require.NoError(t, err)
 	assert.False(t, v.IsSet("exporters::otlp::insecure"))
 	assert.Equal(t, true, v.Get("exporters::otlp::tls::insecure"))
@@ -58,10 +63,12 @@ func TestMoveOTLPInsecureKey(t *testing.T) {
 
 func TestMoveOTLPInsecureKey_Custom(t *testing.T) {
 	pp := &converterProvider{
-		wrapped:     &fileParserProvider{fileName: "testdata/otlp-insecure-custom.yaml"},
+		wrapped:     configmapprovider.NewFile("testdata/otlp-insecure-custom.yaml"),
 		cfgMapFuncs: []CfgMapFunc{MoveOTLPInsecureKey},
 	}
-	v, err := pp.Get(context.Background())
+	r, err := pp.Retrieve(context.Background(), nil)
+	require.NoError(t, err)
+	v, err := r.Get(context.Background())
 	require.NoError(t, err)
 	assert.False(t, v.IsSet("exporters::otlp/foo::insecure"))
 	assert.Equal(t, true, v.Get("exporters::otlp/foo::tls::insecure"))

@@ -21,22 +21,30 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configmapprovider"
+	"go.uber.org/multierr"
 	"go.uber.org/zap"
 )
 
 type errDuplicatedConfigSourceFactory struct{ error }
 
+var (
+	_ configmapprovider.Provider  = (*configSourceParserProvider)(nil)
+	_ configmapprovider.Retrieved = (*configSourceParserProvider)(nil)
+)
+
 type configSourceParserProvider struct {
 	logger       *zap.Logger
 	csm          *Manager
 	configServer *configServer
-	pp           config.MapProvider
+	pp           configmapprovider.Provider
+	retrieved    configmapprovider.Retrieved
 	buildInfo    component.BuildInfo
 	factories    []Factory
 }
 
 // NewConfigSourceParserProvider creates a ParserProvider that uses config sources.
-func NewConfigSourceParserProvider(pp config.MapProvider, logger *zap.Logger, buildInfo component.BuildInfo, factories ...Factory) config.MapProvider {
+func NewConfigSourceParserProvider(pp configmapprovider.Provider, logger *zap.Logger, buildInfo component.BuildInfo, factories ...Factory) configmapprovider.Provider {
 	return &configSourceParserProvider{
 		pp:        pp,
 		logger:    logger,
@@ -45,11 +53,21 @@ func NewConfigSourceParserProvider(pp config.MapProvider, logger *zap.Logger, bu
 	}
 }
 
+func (c *configSourceParserProvider) Retrieve(ctx context.Context, onChange func(*configmapprovider.ChangeEvent)) (configmapprovider.Retrieved, error) {
+	var err error
+	c.retrieved, err = c.pp.Retrieve(ctx, onChange)
+	return c, err
+}
+
+func (c *configSourceParserProvider) Shutdown(ctx context.Context) error {
+	return c.pp.Shutdown(ctx)
+}
+
 // Get returns a config.Parser that wraps the config.Default() with a parser
 // that can load and inject data from config sources. If there are no config sources
 // in the configuration the returned parser behaves like the config.Default().
 func (c *configSourceParserProvider) Get(ctx context.Context) (*config.Map, error) {
-	defaultParser, err := c.pp.Get(ctx)
+	initialMap, err := c.retrieved.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -59,23 +77,23 @@ func (c *configSourceParserProvider) Get(ctx context.Context) (*config.Map, erro
 		return nil, err
 	}
 
-	csm, err := NewManager(defaultParser, c.logger, c.buildInfo, factories)
+	csm, err := NewManager(initialMap, c.logger, c.buildInfo, factories)
 	if err != nil {
 		return nil, err
 	}
 
-	parser, err := csm.Resolve(context.Background(), defaultParser)
+	effectiveMap, err := csm.Resolve(context.Background(), initialMap)
 	if err != nil {
 		return nil, err
 	}
 
-	c.configServer = newConfigServer(c.logger, defaultParser.ToStringMap(), parser.ToStringMap())
+	c.configServer = newConfigServer(c.logger, initialMap.ToStringMap(), effectiveMap.ToStringMap())
 	if err = c.configServer.start(); err != nil {
 		return nil, err
 	}
 
 	c.csm = csm
-	return parser, nil
+	return effectiveMap, nil
 }
 
 // WatchForUpdate is used to monitor for updates on configuration values that
@@ -90,7 +108,7 @@ func (c *configSourceParserProvider) Close(ctx context.Context) error {
 	if c.configServer != nil {
 		_ = c.configServer.shutdown()
 	}
-	return c.csm.Close(ctx)
+	return multierr.Combine(c.csm.Close(ctx), c.retrieved.Close(ctx))
 }
 
 func makeFactoryMap(factories []Factory) (Factories, error) {

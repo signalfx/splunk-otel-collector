@@ -171,6 +171,7 @@ install-tools:
 	go install github.com/ory/go-acc@v0.2.6
 	go install github.com/pavius/impi/cmd/impi@v0.0.3
 	go install github.com/tcnksm/ghr@v0.14.0
+	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
 
 .PHONY: otelcol
 otelcol:

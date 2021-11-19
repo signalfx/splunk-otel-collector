@@ -19,26 +19,41 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configmapprovider"
 )
 
-// converterProvider wraps a ParserProvider and accepts a list of functions that
+// converterProvider wraps a configmapprovider.Provider and accepts a list of functions that
 // convert ConfigMaps. The idea is for this type to conform to the open-closed
 // principle.
 type converterProvider struct {
-	wrapped     config.MapProvider
+	wrapped     configmapprovider.Provider
+	retrieved   configmapprovider.Retrieved
 	cfgMapFuncs []CfgMapFunc
 }
 
 type CfgMapFunc func(*config.Map) *config.Map
 
-var _ config.MapProvider = (*converterProvider)(nil)
+var _ configmapprovider.Provider = (*converterProvider)(nil)
 
-func ParserProvider(wrapped config.MapProvider, funcs ...CfgMapFunc) config.MapProvider {
+func ParserProvider(wrapped configmapprovider.Provider, funcs ...CfgMapFunc) configmapprovider.Provider {
 	return &converterProvider{wrapped: wrapped, cfgMapFuncs: funcs}
 }
 
-func (p converterProvider) Get(ctx context.Context) (*config.Map, error) {
-	cfgMap, err := p.wrapped.Get(ctx)
+func (p converterProvider) Retrieve(ctx context.Context, onChange func(*configmapprovider.ChangeEvent)) (configmapprovider.Retrieved, error) {
+	var err error
+	p.retrieved, err = p.wrapped.Retrieve(ctx, onChange)
+	return &p, err
+}
+
+func (p converterProvider) Shutdown(context.Context) error {
+	return nil
+}
+
+func (p *converterProvider) Get(ctx context.Context) (*config.Map, error) {
+	if p.retrieved == nil {
+		return nil, fmt.Errorf("must Retrieve() before attempting Get()")
+	}
+	cfgMap, err := p.retrieved.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("converterProvider.Get(): %w", err)
 	}
@@ -54,6 +69,6 @@ func (p converterProvider) Get(ctx context.Context) (*config.Map, error) {
 	return out, nil
 }
 
-func (p converterProvider) Close(context.Context) error {
+func (p *converterProvider) Close(ctx context.Context) error {
 	return nil
 }

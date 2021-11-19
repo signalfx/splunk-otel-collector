@@ -70,7 +70,7 @@ func processParser(ctx context.Context, v *config.Map) (*config.Map, error) {
 			continue
 		}
 
-		value, err := manager.expandStringValues(ctx, v.Get(key))
+		value, err := manager.parseConfigValue(ctx, v.Get(key))
 		if err != nil {
 			return nil, err
 		}

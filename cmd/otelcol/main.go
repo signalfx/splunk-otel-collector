@@ -28,9 +28,8 @@ import (
 	"strings"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configmapprovider"
 	"go.opentelemetry.io/collector/service"
-	"go.opentelemetry.io/collector/service/parserprovider"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
@@ -372,7 +371,7 @@ func setDefaultEnvVars() {
 }
 
 // Returns a ParserProvider that reads configuration YAML from an environment variable when applicable.
-func newBaseParserProvider() config.MapProvider {
+func newBaseParserProvider() configmapprovider.Provider {
 	var configPath string
 	var ok bool
 	if ok, configPath = getKeyValue(os.Args[1:], "--config"); !ok {
@@ -381,10 +380,10 @@ func newBaseParserProvider() config.MapProvider {
 	configYaml := os.Getenv(configYamlEnvVarName)
 
 	if configPath == "" && configYaml != "" {
-		return parserprovider.NewExpandMapProvider(parserprovider.NewInMemoryMapProvider(bytes.NewBufferString(configYaml)))
+		return configmapprovider.NewExpand(configmapprovider.NewInMemory(bytes.NewBufferString(configYaml)))
 	}
 
-	return parserprovider.NewDefaultMapProvider(configPath, getSetProperties())
+	return configmapprovider.NewDefault(configPath, getSetProperties())
 }
 
 func runInteractive(settings service.CollectorSettings) error {

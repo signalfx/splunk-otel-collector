@@ -169,26 +169,25 @@ jobs:
         run: |
           make ${{ matrix.SYS_BINARIES }}
       
-      - name: Updating binaries
+      - name: Uploading binaries
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.SYS_BINARIES }}
           path: |
             ./bin/*
-
-  windows-msi:
-    name: windows-msi
+  
+  build-package:
+    name: build-package
     runs-on: ubuntu-latest
     needs: [cross-compile]
+    strategy:
+      matrix:
+        SYS_PACKAGE: [ "deb", "rpm" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2
-
-      - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v2
         with:
-          name: binaries-windows_amd64
-          path: ./bin
+            fetch-depth: 0
 
       - name: Caching dependency
         uses: actions/cache@v2
@@ -199,9 +198,20 @@ jobs:
             ~/go/bin
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
-      - name: Build MSI
+      - name: Downloading binaries-linux_amd64
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries-linux_amd64
+          path: ./bin
+
+      - name: Downloading binaries-linux_arm64
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries-linux_arm64
+          path: ./bin
+
+      - name: Build ${{ matrix.SYS_PACKAGE }} amd64 package
         run: |
-          mkdir -p dist
           gitRef=(${GITHUB_REF//// })
           if [[ "${gitRef[1]}" = "tags" ]] ;
           then
@@ -209,97 +219,52 @@ jobs:
           else
             echo "TAG_NAME=" >> $GITHUB_ENV
           fi
-          export VERSION_TAG="${TAG_NAME#v}"
-          make msi SKIP_COMPILE=true VERSION="${VERSION_TAG:-0.0.1.${{ github.run_number }}}"
+          make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true VERSION="${TAG_NAME:-}" ARCH="amd64"
       
-      - name: Uploading msi build artifacts
+      - name: Build ${{ matrix.SYS_PACKAGE }} arm64 package
+        run: |
+          make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true VERSION="${TAG_NAME:-}" ARCH="arm64"
+      
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Caching dependency
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+          key: v1-pytest-${{ env.PYTHON_VERSION }}-${{ hashFiles(env.REQUIREMENTS_PATH) }}
+
+      - name: Install pytest
+        run: |
+          if which pip; then
+              pip install --upgrade 'pip==${{ env.PIP_VERSION }}'
+          else
+              curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+              python get-pip.py 'pip==${{ env.PIP_VERSION }}'
+          fi
+          pip install -r "${{ env.REQUIREMENTS_PATH }}"
+      
+      - name: Test ${{ matrix.SYS_PACKAGE }} package installation
+        timeout-minutes: 30
+        run: |
+          mkdir -p ${{ env.RESULT_PATH }}
+          pytest -n2 --verbose -m ${{ matrix.SYS_PACKAGE }} \
+            --junitxml=${{ env.RESULT_PATH }}/results.xml \
+            --html=${{ env.RESULT_PATH }}/results.html \
+            --self-contained-html \
+            internal/buildscripts/packaging/tests/package_test.py
+      
+      - name: Uploading ${{ matrix.SYS_PACKAGE }} package artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: msi-build
-          path: ./dist/*.msi
-
-  windows-msi-validation:
-    name: windows-msi-validation
-    runs-on: windows-latest
-    needs: [windows-msi]
-    strategy:
-      matrix:
-        MODE: [ "agent", "gateway" ]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v2
-
-      - name: Downloading msi build
-        uses: actions/download-artifact@v2
-        with:
-          name: msi-build
+          name: ${{ matrix.SYS_PACKAGE }}-package
           path: ./dist
 
-      - name: Installation test
-        run: |
-          $ErrorActionPreference = 'Stop'
-          Set-PSDebug -Trace 1
-          $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
-          $env:VERIFY_ACCESS_TOKEN = "false"
-          .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -msi_path "$msi_path" -mode "${{ matrix.MODE }}"
-          Start-Sleep -s 30
-          Set-Location -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector"
-          Test-Path -Path ".\splunk-support-bundle.ps1"
-          Start-Process ".\otelcol.exe" -WindowStyle Hidden
-          powershell.exe -File "$env:ProgramFiles\Splunk\OpenTelemetry Collector\splunk-support-bundle.ps1" -t \tmp\splunk-support-bundle
-          Test-Path -Path ".\splunk-support-bundle.zip"
-          Test-Path -Path "\tmp\splunk-support-bundle\logs\splunk-otel-collector.log"
-          Test-Path -Path "\tmp\splunk-support-bundle\logs\splunk-otel-collector.txt"
-          Test-Path -Path "\tmp\splunk-support-bundle\logs\td-agent.log"
-          Test-Path -Path "\tmp\splunk-support-bundle\logs\td-agent.txt"
-          Test-Path -Path "\tmp\splunk-support-bundle\metrics\collector-metrics.txt"
-          Test-Path -Path "\tmp\splunk-support-bundle\metrics\df.txt"
-          Test-Path -Path "\tmp\splunk-support-bundle\metrics\free.txt"
-          Test-Path -Path "\tmp\splunk-support-bundle\metrics\top.txt"
-          Test-Path -Path "\tmp\splunk-support-bundle\zpages\tracez.html"
-          if ( "${{ matrix.MODE }}" -eq "agent" ) {
-            Test-Path -Path "\tmp\splunk-support-bundle\config\td-agent\td-agent.conf"
-            Test-Path -Path "\tmp\splunk-support-bundle\config\agent_config.yaml"
-          }
-          if ( "${{ matrix.MODE }}" -eq "gateway" ) {
-            Test-Path -Path "\tmp\splunk-support-bundle\config\gateway_config.yaml"
-          }
-
-  windows-choco-validation:
-    name: windows-choco-validation
-    runs-on: windows-latest
-    needs: [windows-msi]
-    strategy:
-      matrix:
-        MODE: [ "agent", "gateway" ]
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v2
-
-      - name: Downloading msi build
-        uses: actions/download-artifact@v2
+      - name: Uploading test result artifacts
+        uses: actions/upload-artifact@v2
         with:
-          name: msi-build
-          path: ./dist
-
-      - name: Chocolatey test
-        run: |
-          $ErrorActionPreference = 'Stop'
-          Set-PSDebug -Trace 1
-          $msi_file_name = Resolve-Path .\dist\splunk-otel-collector*.msi | Split-Path -leaf
-          if ($msi_file_name -match '(\d+\.)(\d+\.)+(\d*)') { $version = $matches[0] }
-          write-host "Building choco package..."
-          .\internal\buildscripts\packaging\choco\make.ps1 build_choco -Version $version | Tee-Object -file .\dist\build_logs.log
-          Test-Path -Path ".\dist\splunk-otel-collector.$version.nupkg"
-          write-host "Installing choco package..."
-          choco install splunk-otel-collector -s=".\dist\splunk-otel-collector.$version.nupkg" --params="'/SPLUNK_ACCESS_TOKEN=12345 /MODE:${{ matrix.MODE }}'" -y | Tee-Object -file .\dist\installation_logs.log
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { throw "Failed to install splunk-otel-collector using chocolatey." } else { write-host "splunk-otel-collector service is running." }
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) { throw "Failed to install fluentdwinsvc using chocolatey." } else { write-host "fluentdwinsvc service is running." }
-          write-host "Reinstalling choco package..."
-          choco install splunk-otel-collector -s=".\dist\splunk-otel-collector.$version.nupkg" --params="'/MODE:${{ matrix.MODE }}'" --force -y | Tee-Object -file .\dist\reinstallation_logs.log
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { throw "Failed to install splunk-otel-collector using chocolatey." } else { write-host "splunk-otel-collector service is running." }
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) { throw "Failed to install fluentdwinsvc using chocolatey." } else { write-host "fluentdwinsvc service is running." }
-          write-host "Uninstalling choco package..."
-          choco uninstall -y splunk-otel-collector | Tee-Object -file .\dist\uninstallation_logs.log
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { write-host "splunk-otel-collector has been successfully uninstalled and service is not running." } else { throw "Failed to uninstall splunk-otel-collector chocolatey package." }
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) { write-host "fluentdwinsvc has been successfully uninstalled and service is not running." } else { throw "Failed to uninstall fluentdwinsvc chocolatey package." }
+          name: ${{ matrix.SYS_PACKAGE }}-package-installation-test-result
+          path: ${{ env.RESULT_PATH }}

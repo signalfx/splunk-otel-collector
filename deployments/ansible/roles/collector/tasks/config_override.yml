@@ -1,7 +1,7 @@
 ---
 - name: Read the default config
   ansible.builtin.slurp:
-    path: "{{splunk_otel_collector_config}}"
+    path: "{{ splunk_otel_collector_config }}"
   register: defaultconfig
 
 - name: Extract the default config

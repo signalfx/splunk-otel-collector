@@ -35,10 +35,10 @@
   ansible.builtin.import_tasks: config_override.yml
   when: splunk_config_override != ''
 
-- name: Copy the updated config
+- name: Copy the custom config
   ansible.windows.win_copy:
     content: '{{ updated_config | to_nice_yaml (indent=2) }}'
-    dest: "{{splunk_otel_collector_config}}"
+    dest: "{{ splunk_otel_collector_config }}"
   when: splunk_config_override != ''
   notify: "restart windows splunk-otel-collector"
 

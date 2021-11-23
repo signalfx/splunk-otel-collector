@@ -8,7 +8,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/shirou/gopsutil v3.21.8+incompatible
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.2
-	github.com/signalfx/signalfx-go v1.8.1
+	github.com/signalfx/signalfx-go v1.8.3
 	github.com/stretchr/testify v1.7.0
 	github.com/testcontainers/testcontainers-go v0.11.1
 	go.opentelemetry.io/collector v0.39.0
@@ -58,7 +58,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rs/cors v1.8.0 // indirect
-	github.com/signalfx/golib/v3 v3.0.0 // indirect
+	github.com/signalfx/golib/v3 v3.3.37 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/cast v1.4.1 // indirect

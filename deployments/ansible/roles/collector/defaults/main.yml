@@ -17,6 +17,13 @@ splunk_otel_collector_config: ""
 # a local path to splunk_otel_collector_config on remote hosts
 splunk_otel_collector_config_source: ""
 
+# Set splunk_config_override for adding new components to the existing default config.
+splunk_config_override: ""
+
+# Set splunk_config_override_list_merge to modify the behavior of splunk_config_override,
+# when the hashes to merge contain arrays/lists.
+splunk_config_override_list_merge: replace
+
 splunk_service_user: splunk-otel-collector
 splunk_service_group: splunk-otel-collector
 

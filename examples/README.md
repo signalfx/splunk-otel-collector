@@ -32,3 +32,7 @@ generators`, to collect metrics and traces and export them using the `SignalFx` 
 This example showcases how the collector can send traces to a Splunk Enterprise deployment from a program emitting traces.
 
 [Read more...](./splunk-hec-traces)
+
+## [Filelog receiver with Splunk Enterprise](./otel-logs-splunk)
+
+This example showcases how the collector can follow a file and send its contents to Splunk Enterprise.

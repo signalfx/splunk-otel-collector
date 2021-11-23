@@ -210,4 +210,4 @@ processor for the standalone task since it would detect resources in the standal
 task itself as opposed to resources in the tasks containing the monitored applications.
 
 ### AWS Graviton2
-We support [Fargate Graviton2](https://aws.amazon.com/ec2/graviton/) with the arm64 collector docker image with the default Fargate configuration.
+We support [Fargate Graviton2](https://aws.amazon.com/ec2/graviton/) with the default Fargate configuration. Splunk OpenTelemetry Collector docker image can run on both amd64 and arm64 architectures.

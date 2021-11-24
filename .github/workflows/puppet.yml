@@ -37,13 +37,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
               const tagRef = "tags/puppet-v${{ steps.read-metadata-json.outputs.prop }}"
-              const existingRefs = await github.git.listMatchingRefs({
+              const existingRefs = await github.rest.git.listMatchingRefs({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 ref: tagRef
               })
               if (existingRefs.data.length === 0) {
-                await github.git.createRef({
+                await github.rest.git.createRef({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   ref: "refs/" + tagRef,

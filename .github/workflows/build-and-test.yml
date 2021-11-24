@@ -318,6 +318,7 @@ jobs:
           sleep 10
           if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
             docker logs otelcol
+            echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
             exit 1
           fi
       
@@ -364,6 +365,7 @@ jobs:
           if ( $DockerOutput -eq $null )
           {
             docker logs otelcol
+            echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
             exit 1
           }
       

@@ -71,6 +71,7 @@ func TestDefaultComponents(t *testing.T) {
 		"probabilistic_sampler",
 		"resource",
 		"resourcedetection",
+		"routing",
 		"span",
 	}
 	expectedExporters := []config.Type{

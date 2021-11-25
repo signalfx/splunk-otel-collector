@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## ansible-v0.4.0
+
+### 💡 Enhancements 💡
+
+- Add an option to provide a custom configuration that will be merged into the
+  default one using `splunk_config_override` var (#950)
+
 ## ansible-v0.3.0
 
 ### 🛑 Breaking changes 🛑

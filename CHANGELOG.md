@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added [routing processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/routingprocessor) component to the distribution [#982](https://github.com/signalfx/splunk-otel-collector/pull/982/)
+
 ## v0.39.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.39.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.39.0) and the [opentelemetry-collector-contrib v0.39.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.39.0) releases.

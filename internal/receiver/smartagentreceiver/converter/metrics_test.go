@@ -81,11 +81,11 @@ func pdataMetrics(dataType pdata.MetricDataType, value interface{}, timeReceived
 	}
 
 	attributes.Clear()
-	attributes.InitFromMap(map[string]pdata.AttributeValue{
+	pdata.NewAttributeMapFromMap(map[string]pdata.AttributeValue{
 		"k0": pdata.NewAttributeValueString("v0"),
 		"k1": pdata.NewAttributeValueString("v1"),
 		"k2": pdata.NewAttributeValueString("v2"),
-	})
+	}).CopyTo(attributes)
 	attributes.Sort()
 
 	return metrics

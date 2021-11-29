@@ -268,3 +268,168 @@ jobs:
         with:
           name: ${{ matrix.SYS_PACKAGE }}-package-installation-test-result
           path: ${{ env.RESULT_PATH }}
+
+  windows-msi:
+    name: windows-msi
+    runs-on: ubuntu-latest
+    needs: [cross-compile]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Downloading binaries-windows_amd64
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries-windows_amd64
+          path: ./bin
+
+      - name: Caching dependency
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            ~/go/bin
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
+      - name: Build MSI
+        run: |
+          mkdir -p dist
+          gitRef=(${GITHUB_REF//// })
+          if [[ "${gitRef[1]}" = "tags" ]] ;
+          then
+            echo "TAG_NAME=${gitRef[2]}" >> $GITHUB_ENV
+          else
+            echo "TAG_NAME=" >> $GITHUB_ENV
+          fi
+          export VERSION_TAG="${TAG_NAME#v}"
+          make msi SKIP_COMPILE=true VERSION="${VERSION_TAG:-0.0.1.${{ github.run_number }}}"
+      
+      - name: Uploading msi build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: msi-build
+          path: ./dist/*.msi
+
+  windows-msi-validation:
+    name: windows-msi-validation
+    runs-on: windows-latest
+    needs: [windows-msi]
+    strategy:
+      matrix:
+        MODE: [ "agent", "gateway" ]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Downloading msi build
+        uses: actions/download-artifact@v2
+        with:
+          name: msi-build
+          path: ./dist
+
+      - name: Installation test
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-PSDebug -Trace 1
+          $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
+          $env:VERIFY_ACCESS_TOKEN = "false"
+          .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -realm "test" -msi_path "$msi_path" -mode "${{ matrix.MODE }}"
+          $SPLUNK_CONFIG = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_CONFIG"
+          $SPLUNK_CONFIG_FILE = Split-Path $SPLUNK_CONFIG -leaf
+          if ( "$SPLUNK_CONFIG_FILE" -ne "${{ matrix.MODE }}_config.yaml" ) {
+            write-host "Environment variable SPLUNK_CONFIG is not properly set."
+            exit 1
+          }
+          Start-Sleep -s 30
+          Set-Location -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector"
+          Test-Path -Path ".\splunk-support-bundle.ps1"
+          Start-Process ".\otelcol.exe" -WindowStyle Hidden
+          powershell.exe -File "$env:ProgramFiles\Splunk\OpenTelemetry Collector\splunk-support-bundle.ps1" -t \tmp\splunk-support-bundle
+          Test-Path -Path ".\splunk-support-bundle.zip"
+          Test-Path -Path "\tmp\splunk-support-bundle\logs\splunk-otel-collector.log"
+          Test-Path -Path "\tmp\splunk-support-bundle\logs\splunk-otel-collector.txt"
+          Test-Path -Path "\tmp\splunk-support-bundle\logs\td-agent.log"
+          Test-Path -Path "\tmp\splunk-support-bundle\logs\td-agent.txt"
+          Test-Path -Path "\tmp\splunk-support-bundle\metrics\collector-metrics.txt"
+          Test-Path -Path "\tmp\splunk-support-bundle\metrics\df.txt"
+          Test-Path -Path "\tmp\splunk-support-bundle\metrics\free.txt"
+          Test-Path -Path "\tmp\splunk-support-bundle\metrics\top.txt"
+          Test-Path -Path "\tmp\splunk-support-bundle\zpages\tracez.html"
+          if ( "${{ matrix.MODE }}" -eq "agent" ) {
+            Test-Path -Path "\tmp\splunk-support-bundle\config\td-agent\td-agent.conf"
+            Test-Path -Path "\tmp\splunk-support-bundle\config\agent_config.yaml"
+          }
+          if ( "${{ matrix.MODE }}" -eq "gateway" ) {
+            Test-Path -Path "\tmp\splunk-support-bundle\config\gateway_config.yaml"
+          }
+
+  windows-choco:
+    name: windows-choco
+    runs-on: windows-latest
+    needs: [windows-msi]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Downloading msi build
+        uses: actions/download-artifact@v2
+        with:
+          name: msi-build
+          path: ./dist
+
+      - name: Build Chocolatey
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-PSDebug -Trace 1
+          $msi_file_name = Resolve-Path .\dist\splunk-otel-collector*.msi | Split-Path -leaf
+          if ($msi_file_name -match '(\d+\.)(\d+\.)+(\d*)') { $version = $matches[0] }
+          write-host "Building choco package..."
+          .\internal\buildscripts\packaging\choco\make.ps1 build_choco -Version $version | Tee-Object -file .\dist\build_logs.log
+          Test-Path -Path ".\dist\splunk-otel-collector.$version.nupkg"
+
+      - name: Uploading choco build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: choco-build
+          path: ./dist/*.nupkg
+
+  windows-choco-validation:
+    name: windows-choco-validation
+    runs-on: windows-latest
+    needs: [windows-choco]
+    strategy:
+      matrix:
+        MODE: [ "agent", "gateway" ]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Downloading choco build
+        uses: actions/download-artifact@v2
+        with:
+          name: choco-build
+          path: ./dist
+
+      - name: Chocolatey test
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-PSDebug -Trace 1
+          write-host "Installing choco package..."
+          choco install splunk-otel-collector -s=".\dist\splunk-otel-collector.$version.nupkg" --params="'/SPLUNK_ACCESS_TOKEN=12345 /SPLUNK_REALM=test /MODE:${{ matrix.MODE }}'" -y | Tee-Object -file .\dist\installation_logs.log
+          $SPLUNK_CONFIG = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_CONFIG"
+          $SPLUNK_CONFIG_FILE = Split-Path $SPLUNK_CONFIG -leaf
+          if ( "$SPLUNK_CONFIG_FILE" -ne "${{ matrix.MODE }}_config.yaml" ) {
+            write-host "Environment variable SPLUNK_CONFIG is not properly set."
+            exit 1
+          }
+          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { throw "Failed to install splunk-otel-collector using chocolatey." } else { write-host "splunk-otel-collector service is running." }
+          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) { throw "Failed to install fluentdwinsvc using chocolatey." } else { write-host "fluentdwinsvc service is running." }
+          write-host "Reinstalling choco package..."
+          choco install splunk-otel-collector -s=".\dist\splunk-otel-collector.$version.nupkg" --params="'/MODE:${{ matrix.MODE }}'" --force -y | Tee-Object -file .\dist\reinstallation_logs.log
+          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { throw "Failed to install splunk-otel-collector using chocolatey." } else { write-host "splunk-otel-collector service is running." }
+          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) { throw "Failed to install fluentdwinsvc using chocolatey." } else { write-host "fluentdwinsvc service is running." }
+          write-host "Uninstalling choco package..."
+          choco uninstall -y splunk-otel-collector | Tee-Object -file .\dist\uninstallation_logs.log
+          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { write-host "splunk-otel-collector has been successfully uninstalled and service is not running." } else { throw "Failed to uninstall splunk-otel-collector chocolatey package." }
+          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) { write-host "fluentdwinsvc has been successfully uninstalled and service is not running." } else { throw "Failed to uninstall fluentdwinsvc chocolatey package." }

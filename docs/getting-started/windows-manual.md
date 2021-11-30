@@ -216,6 +216,7 @@ To have choco remember parameters on upgrade, be sure to set `choco feature enab
  * If the `SPLUNK_ACCESS_TOKEN` parameter is not specified on initial installation, the Collector service will not be started. In order to start the Collector service, manually create/set the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_ACCESS_TOKEN` registry value to the Splunk access token and run the `Start-Service splunk-otel-collector` PowerShell command.
  * If the Collector configuration file or any of the `HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\SPLUNK_*` registry values are modified after installation, restart the Collector service by restarting the system or by running the `Restart-Service splunk-otel-collector` PowerShell command.
  * If the `WITH_FLUENTD` parameter is set to `true` and the `\opt\td-agent\etc\td-agent\td-agent.conf` Fluentd configuration file does not exist, this file will be created and customized to collect events from the Windows Event Log and forward the collected events to the Collector. If this file is modified after installation, restart the Fluentd service by restarting the system or by running the `Restart-Service fluentdwinsvc` PowerShell command.
+ * See [Collector Configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/windows-installer.md#collector-configuration) for additional configuration details.
 
 ### Docker
 

@@ -2,9 +2,38 @@
 
 ## Unreleased
 
-- Add Chocolately package support. (#724)
+## v0.39.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.39.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.39.0) and the [opentelemetry-collector-contrib v0.39.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.39.0) releases.
+
+### 💡 Enhancements 💡
+
+- Initial [Chocolatey package](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/windows-manual.md#chocolatey-installation) release
+- Update bundled Smart Agent to [v5.16.0](https://github.com/signalfx/signalfx-agent/releases/tag/v5.16.0)
+
+### 🧰 Bug fixes 🧰
+
+- Fix token passthrough for splunkhec receiver/exporter ([#5435](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/5435))
+- Fix --set command line flag functionality (#939)
+
+## v0.38.1
+
+### 🧰 Bug fixes 🧰
+
+- Fix evaluating env variables in ecs ec2 configs (#930)
+- Correct certifi CA bundle removal from Smart Agent bundle (#933)
+- Fix evaluating env variables in fargate config (#935)
+
+## v0.38.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.38.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.38.0) and the [opentelemetry-collector-contrib v0.38.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.38.0) releases.
+
+### 💡 Enhancements 💡
+
 - Initial release of multi-arch manifest for amd64 and arm64 linux docker images (#866)
   - **Note:** The Smart Agent and Collectd bundle is only included with the amd64 image
+- Enable otlp receiver in the gateway logs pipeline (#903)
+- Update bundled Smart Agent to [v5.15.0](https://github.com/signalfx/signalfx-agent/releases/tag/v5.15.0)
 
 ## v0.37.1
 

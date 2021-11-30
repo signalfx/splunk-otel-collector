@@ -1,0 +1,39 @@
+version: "3"
+services:
+  # Sample Go application producing traces.
+  tracing:
+    container_name: tracing
+    build:
+      context: tracing
+    restart: always
+    environment:
+      - "OTEL_LOG_LEVEL=debug"
+  # Splunk Enterprise server:
+  splunk:
+    image: splunk/splunk:latest
+    container_name: splunk
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_HEC_TOKEN=00000000-0000-0000-0000-0000000000000
+      - SPLUNK_PASSWORD=changeme
+    ports:
+      - 18000:8000
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./splunk.yml:/tmp/defaults/default.yml
+      - /opt/splunk/var
+      - /opt/splunk/etc
+      - ./spans_time_comparisons.xml:/opt/splunk/etc/apps/search/local/data/ui/views/spans_time_comparisons.xml
+  # OpenTelemetry Collector
+  otelcollector:
+    image: quay.io/signalfx/splunk-otel-collector:0.29.0
+    container_name: otelcollector
+    command: ["--config=/etc/otel-collector-config.yml", "--set=service.telemetry.logs.level=debug"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+    depends_on:
+      - splunk

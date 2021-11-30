@@ -99,7 +99,7 @@ jobs:
 
       - name: Read current version of the Ansible Collection
         id: read-galaxy-yaml
-        uses: cumulusds/get-yaml-paths-action@v0.1.0
+        uses: cumulusds/get-yaml-paths-action@v0.1.1
         with:
           file: deployments/ansible/galaxy.yml
           version: version
@@ -109,18 +109,18 @@ jobs:
         run: echo "Fail to read version from galaxy.yml" && exit 1
 
       - name: Push new release tag if it doesn't exist
-        uses: actions/github-script@v3
+        uses: actions/github-script@v5
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
               const tagRef = "tags/ansible-v${{ steps.read-galaxy-yaml.outputs.version }}"
-              const existingRefs = await github.git.listMatchingRefs({
+              const existingRefs = await github.rest.git.listMatchingRefs({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 ref: tagRef
               })
               if (existingRefs.data.length === 0) {
-                await github.git.createRef({
+                await github.rest.git.createRef({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   ref: "refs/" + tagRef,

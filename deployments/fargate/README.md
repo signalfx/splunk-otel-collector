@@ -1,5 +1,5 @@
 # AWS Fargate Deployment
-Familiarity with AWS Fargate (Fargate) is assumed. Consult the 
+Familiarity with AWS Fargate (Fargate) is assumed. Consult the
 [User Guide for AWS Fargate](https://docs.aws.amazon.com/AmazonECS/latest/userguide/what-is-fargate.html)
 for further reading.
 
@@ -60,8 +60,8 @@ more information about the memory limiter processor, see
 [here](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md)
 
 ## Custom Configuration
-The example below shows an excerpt of the container definition JSON for the Collector 
-configured to use custom configuration file `/path/to/custom/config/file`. 
+The example below shows an excerpt of the container definition JSON for the Collector
+configured to use custom configuration file `/path/to/custom/config/file`.
 `/path/to/custom/config/file` is a placeholder value for the actual custom configuration
 file path and `0.33.0` is the latest image tag at present. The custom configuration file
 should be present in a volume attached to the task.
@@ -91,7 +91,7 @@ Use extension
 (`ecs_observer`) in your custom configuration to discover metrics targets
 in running tasks, filtered by service names, task definitions and container labels.
 `ecs_observer` is currently limited to Prometheus targets and requires the read-only
-permissions below. You can add the permissions to the task role by adding them to a 
+permissions below. You can add the permissions to the task role by adding them to a
 customer-managed policy that is attached to the task role.
 ```text
 ecs:List*
@@ -167,9 +167,9 @@ used instead of `SPLUNK_CONFIG`.
 
 For example, you can store the custom configuration above in a parameter called
 `splunk-otel-collector-config` in **AWS Systems Manager Parameter Store**. Then in your
-Collector container definition assign the parameter to environment variable 
+Collector container definition assign the parameter to environment variable
 `SPLUNK_CONFIG_YAML` using `valueFrom`. The example below shows an excerpt of the container
-definition JSON for the Collector. `MY_SPLUNK_ACCESS_TOKEN` and `MY_SPLUNK_REALM` are 
+definition JSON for the Collector. `MY_SPLUNK_ACCESS_TOKEN` and `MY_SPLUNK_REALM` are
 placeholder values and image tag `0.33.0` is the latest at present.
 
 ```json
@@ -205,6 +205,9 @@ allows you to collect telemetry data by deploying the Collector in a task that i
 from tasks containing monitored applications. This is in contrast to the sidecar deployment
 where the Collector container, and the monitored application containers are in the same task.
 Do not configure the ECS
-[resourcedetection](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#resource-detection-processor) 
+[resourcedetection](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#resource-detection-processor)
 processor for the standalone task since it would detect resources in the standalone Collector
 task itself as opposed to resources in the tasks containing the monitored applications.
+
+### AWS Graviton2
+We support [AWS Graviton2](https://aws.amazon.com/ec2/graviton/) with the default Fargate configuration. Splunk OpenTelemetry Collector docker image can run on both amd64 and arm64 architectures.

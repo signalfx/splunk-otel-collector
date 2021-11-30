@@ -26,7 +26,6 @@ End-to-end architecture information is helpful including:
 - What format was the data sent in?
 - How is the next hop configured?
 - Where is the data configured to go from here?
-- What format was the data sent in?
 - Any dns/firewall/networking/proxy information to be aware of?
 
 In addition, it is important to gather support information including:

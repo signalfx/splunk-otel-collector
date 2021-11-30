@@ -37,7 +37,7 @@ RUN if [ "$ARCH" = "amd64" ]; then \
     fi
 RUN find /usr/lib/splunk-otel-collector/agent-bundle -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 
-FROM debian:10.11 as journal
+FROM debian:11.1 as journal
 RUN apt update
 RUN apt install -y systemd
 # emptyfile is used as a work-around for copying journald libs for multi-arch

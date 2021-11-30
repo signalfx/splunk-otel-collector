@@ -1974,6 +1974,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsre
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.40.0/go.mod h1:a7owhwOzXe+z0n9GeeKCqeXUelNkv+qHFCZeS8KtCDA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.40.0 h1:FCCakJsmE0pmdAng/MvaG//gQfVN0oUwMOSVUYezL90=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.40.0/go.mod h1:4MsOwtzQsRMWPeXxA2r9wFDDBZkD+zRn65GXcg6QRNg=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.40.0 h1:LCUfFI9mHoTqH4Ftn3eVaGwT0aKXvshopPmKP+xlpZM=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.40.0/go.mod h1:fxGTzaZROBZJ3SDqYnYTcjzpe3dDYOYIr+ovSEFPPuI=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.40.0 h1:UjP2USOXC31Xq4Q1V6HcQYuk2PqKD9z8biadvfePsBc=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.40.0/go.mod h1:XD2cY57mF9sqqG7QRwfGGX+P4q+r28yB6IWSxJ6/258=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.40.0 h1:ZYHc9uYWCrKXKYWV2BfvF9DKNg5rfdzcGTrkVEGQTP8=
@@ -2000,7 +2002,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.40.0/go.mod h1:FdARVYE2NVZHVYRfETaGFstTgGheNIJIvzNMMyzZXaY=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.40.0 h1:oQ+hXHYEDokuggT00/YoD77xGseH2UfkA+n/Z9B2Ugs=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.40.0/go.mod h1:BcABvzE8U4lB6mys1/gZlf7zEkX9C1Q82XB3tEgGdPU=
->>>>>>> upstream/main
 github.com/open-telemetry/opentelemetry-log-collection v0.22.0 h1:GrzrnzzuXZLkshHwOqHroKRpS99vWWd8U34g+TJyNFY=
 github.com/open-telemetry/opentelemetry-log-collection v0.22.0/go.mod h1:Dvdoz+3RMM6TC8fIZaKAAhhhZVwCf7FyMG05ufhh5Bw=
 github.com/opencontainers/go-digest v0.0.0-20170106003457-a6d0ee40d420/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=

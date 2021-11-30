@@ -51,6 +51,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.40.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.40.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.40.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbatlasreceiver v0.40.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.40.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.40.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.40.0
@@ -78,8 +79,6 @@ require (
 	golang.org/x/sys v0.0.0-20211020174200-9d6173849985
 	gopkg.in/yaml.v2 v2.4.0
 )
-
-require github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbatlasreceiver v0.40.0
 
 require (
 	cloud.google.com/go v0.97.0 // indirect

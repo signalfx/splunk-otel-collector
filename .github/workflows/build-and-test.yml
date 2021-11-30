@@ -486,17 +486,6 @@ jobs:
             echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
             exit 1
           fi
-      
-      - name: Save docker image
-        run: |
-          mkdir -p dist
-          docker save -o dist/otelcol.tar otelcol:latest
-      
-      - name: Uploading Linux docker image artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: linux-docker-image
-          path: ./dist/otelcol.tar
 
   docker-otelcol-windows:
     name: docker-otelcol-windows
@@ -533,15 +522,3 @@ jobs:
             echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
             exit 1
           }
-      
-      - name: Save docker image
-        run: |
-          $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Force -Path dist
-          docker save -o dist\otelcol-windows.tar otelcol-windows:latest
-      
-      - name: Uploading Windows docker image artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: windows-docker-image
-          path: ./dist/otelcol-windows.tar

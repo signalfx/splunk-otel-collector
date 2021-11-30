@@ -27,7 +27,7 @@ semgrep:
   retry: 2
   variables:
     SAST_SCANNER: "Semgrep"
-    SEMGREP_EXCLUDE: "examples,internal/buildscripts,tests,*_test.go"
+    SEMGREP_EXCLUDE: "examples,internal/buildscripts,tests,*_test.go,cmd/otelcol/Dockerfile.windows,deployments/ansible/molecule"
     alert_mode: "policy"
   after_script:
     - echo "Check results at $CI_PIPELINE_URL/security"

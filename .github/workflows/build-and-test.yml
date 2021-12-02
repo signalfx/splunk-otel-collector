@@ -516,8 +516,7 @@ jobs:
           docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
           Start-Sleep 10
           $DockerOutput=$(docker ps --filter=status=running --filter=name=otelcol -q)
-          if ( $DockerOutput -eq $null )
-          {
+          if ( $DockerOutput -eq $null ) {
             docker logs otelcol
             echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
             exit 1

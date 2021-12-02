@@ -14,8 +14,8 @@
   <a href="https://goreportcard.com/report/github.com/signalfx/splunk-otel-collector">
     <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/signalfx/splunk-otel-collector?style=for-the-badge">
   </a>
-  <a href="https://circleci.com/gh/signalfx/splunk-otel-collector">
-    <img alt="Build Status" src="https://img.shields.io/circleci/build/github/signalfx/splunk-otel-collector?style=for-the-badge">
+  <a href="https://github.com/signalfx/splunk-otel-collector/actions/workflows/build-and-test.yml?query=branch%3Amain">
+    <img alt="Build Status" src="https://img.shields.io/github/workflow/status/signalfx/splunk-otel-collector/build-and-test?style=for-the-badge">
   </a>
   <a href="https://codecov.io/gh/signalfx/splunk-otel-collector/branch/main/">
     <img alt="Codecov Status" src="https://img.shields.io/codecov/c/github/signalfx/splunk-otel-collector?style=for-the-badge">

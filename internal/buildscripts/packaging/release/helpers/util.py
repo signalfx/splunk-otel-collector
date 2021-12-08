@@ -46,6 +46,7 @@ from .constants import (
     SIGNED_ARTIFACTS_REPO_URL,
     SMART_AGENT_RELEASE_PATH,
     STAGING_REPO_URL,
+    STAGING_URL,
 )
 
 
@@ -318,13 +319,14 @@ def upload_package_to_artifactory(
     timeout=DEFAULT_TIMEOUT,
     **signing_args,
 ):
-    orig_md5 = get_md5_from_artifactory(metadata_api_url, user, token)
+    orig_md5 = None
+    if sign_metadata:
+        orig_md5 = get_md5_from_artifactory(metadata_api_url, user, token)
 
     upload_file_to_artifactory(path, dest_url, user, token)
 
-    wait_for_artifactory_metadata(metadata_api_url, orig_md5, user, token, timeout=timeout)
-
     if sign_metadata:
+        wait_for_artifactory_metadata(metadata_api_url, orig_md5, user, token, timeout=timeout)
         sign_artifactory_metadata(metadata_url, user, token, timeout=timeout, **signing_args)
 
 
@@ -345,6 +347,7 @@ def release_deb_to_artifactory(asset, args, **signing_args):
     deb_url = f"{ARTIFACTORY_DEB_REPO_URL}/pool/{args.stage}/{arch}/{asset.name}"
     dest_opts = f"deb.distribution={args.stage};deb.component=main;deb.architecture={arch}"
     dest_url = f"{deb_url};{dest_opts}"
+    staging_url = f"{STAGING_URL}/otel-collector-deb/pool/{args.stage}/{arch}/{asset.name};{dest_opts}"
 
     if not args.force and artifactory_file_exists(deb_url, user, token):
         resp = input(f"{deb_url} already exists.\nOverwrite? [y/N]: ")
@@ -363,6 +366,8 @@ def release_deb_to_artifactory(asset, args, **signing_args):
         **signing_args,
     )
 
+    upload_file_to_artifactory(asset.path, staging_url, args.staging_user, args.staging_token)
+
 
 def release_rpm_to_artifactory(asset, args, **signing_args):
     user = args.artifactory_user
@@ -375,6 +380,7 @@ def release_rpm_to_artifactory(asset, args, **signing_args):
     metadata_api_url = f"{ARTIFACTORY_API_URL}/storage/{ARTIFACTORY_RPM_REPO}/{args.stage}/{arch}/repodata/repomd.xml"
     metadata_url = f"{ARTIFACTORY_RPM_REPO_URL}/{args.stage}/{arch}/repodata/repomd.xml"
     dest_url = f"{ARTIFACTORY_RPM_REPO_URL}/{args.stage}/{arch}/{asset.name}"
+    staging_url = f"{STAGING_URL}/otel-collector-rpm/{args.stage}/{arch}/{asset.name}"
 
     if not args.no_push:
         if not args.force and artifactory_file_exists(dest_url, user, token):
@@ -398,6 +404,7 @@ def release_rpm_to_artifactory(asset, args, **signing_args):
             timeout=args.timeout,
             **signing_args,
         )
+        upload_file_to_artifactory(asset.signed_path, staging_url, args.staging_user, args.staging_token)
 
 
 def s3_file_exists(s3_client, path):

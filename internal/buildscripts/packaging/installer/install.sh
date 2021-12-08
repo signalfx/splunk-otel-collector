@@ -524,7 +524,7 @@ usage() {
   cat <<EOH >&2
 Usage: $0 [options] [access_token]
 
-Installs the Splunk OpenTelemetry Connector for Linux from the package repos.
+Installs the Splunk OpenTelemetry Collector for Linux from the package repos.
 If access_token is not provided, it will be prompted for on stdin.
 
 Options:
@@ -560,7 +560,7 @@ Options:
   --test                            Use the test package repo instead of the primary
   --trace-url <url>                 Set the trace endpoint URL explicitly instead of the endpoint inferred from the specified realm
                                     (default: https://ingest.REALM.signalfx.com/v2/trace)
-  --uninstall                       Removes the Splunk OpenTelemetry Connector for Linux
+  --uninstall                       Removes the Splunk OpenTelemetry Collector for Linux
   --with[out]-fluentd               Whether to install and configure fluentd to forward log events to the collector
                                     (default: --with-fluentd)
   --                                Use -- if access_token starts with -
@@ -852,7 +852,7 @@ parse_args_and_install() {
   fi
 
   cat <<EOH
-The Splunk OpenTelemetry Connector for Linux has been successfully installed.
+The Splunk OpenTelemetry Collector for Linux has been successfully installed.
 
 Make sure that your system's time is relatively accurate or else datapoints may not be accepted.
 

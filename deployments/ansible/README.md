@@ -1,10 +1,10 @@
-# Ansible Collection for Splunk OpenTelemetry Connector
+# Ansible Collection for Splunk OpenTelemetry Collector
 
 Ansible Collection `signalfx.splunk_otel_collector` contains just one [Ansible 
-role for Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible/roles/collector): 
+role for Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible/roles/collector): 
 `signalfx.splunk_otel_collector.collector`.
 
-The role installs Splunk OpenTelemetry Connector configured to
+The role installs Splunk OpenTelemetry Collector configured to
 collect metrics, traces and logs from Linux machines and send data to [Splunk 
 Observability Cloud](https://www.splunk.com/en_us/observability.html). 
 
@@ -37,12 +37,12 @@ ansible-galaxy collection install signalfx.splunk_otel_collector
 
 ## Usage
 
-To use Splunk OpenTelemetry Connector Role, simply include the 
+To use Splunk OpenTelemetry Collector Role, simply include the 
 `signalfx.splunk_otel_collector.collector` role invocation in your playbook. 
 Note that this role requires root access.
 
 ```yaml
-- name: Install Splunk OpenTelemetry Connector
+- name: Install Splunk OpenTelemetry Collector
   hosts: all
   become: yes
   # For Windows "become: yes" will raise error.
@@ -57,7 +57,7 @@ Note that this role requires root access.
 ```
 
 Full documentation on how to configure the role:
-[Splunk OpenTelemetry Connector Role](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible/roles/collector)
+[Splunk OpenTelemetry Collector Role](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/ansible/roles/collector)
 
 ## Contributing
 

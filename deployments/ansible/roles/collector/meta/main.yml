@@ -2,7 +2,7 @@
 galaxy_info:
   role_name: splunk_otel_connector
   author: Splunk
-  description: Ansible role to install and configure the Splunk OpenTelemetry Connector
+  description: Ansible role to install and configure the Splunk OpenTelemetry Collector
   company: Splunk
 
   issue_tracker_url: https://github.com/signalfx/splunk-otel-collector/issues

@@ -2,7 +2,7 @@
 # Kubernetes YAML
 
 The easiest and recommended way to get started on Kubernetes is to leverage the
-[Splunk Connector for
+[Splunk Collector for
 Kubernetes](https://github.com/signalfx/splunk-otel-collector-chart), which
 provides a configurable Helm chart. Alternatively, YAML files can be manually
 applied and maintained to get started.

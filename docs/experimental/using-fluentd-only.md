@@ -8,7 +8,7 @@
 
 Use-case: If you have an existing signalfx-agent collecting metrics and/or 
 traces and want to try Splunk Log Observer without migrating to Splunk 
-OpenTelemetry Connector, you can use fluentd to send logs directly to Splunk Log
+OpenTelemetry Collector, you can use fluentd to send logs directly to Splunk Log
 Observer. 
 
 ## New fluentd deployment on Linux

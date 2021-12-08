@@ -11,7 +11,7 @@ Universal or Heavy Forwarder already deployed wants to send some/all data
 from the forwarder to Splunk Log Observer.
 
 The only supported way to collect and send logs to Splunk Log Observer is via
-Splunk OpenTelemetry Connector using one of the [recommended
+Splunk OpenTelemetry Collector using one of the [recommended
 ways](../#getting-started). It is possible, but not supported, to configure a
 Splunk Forwarder to send data to Splunk OpenTelemetry Collector in the
 following ways:
@@ -31,8 +31,8 @@ Please note that there are differences between a Universal and Heavy Forwarder:
 
 The most common deployment models to test Splunk Forwarder integration are:
 
-- UF > TCP out > Fluentd (via Splunk OpenTelemetry Connector)
-- UF > S2S out > HF > TCP out > Fluentd (via Splunk OpenTelemetry Connector)
+- UF > TCP out > Fluentd (via Splunk OpenTelemetry Collector)
+- UF > S2S out > HF > TCP out > Fluentd (via Splunk OpenTelemetry Collector)
 
 ## Configuring Universal or Heavy Forwarder
 
@@ -46,7 +46,7 @@ sendCookedData = false
 ```
 
 > The `server` configuration above assume the UF/HF and Splunk OpenTelemetry
-> Connector are running on the same application. If they are separate, this
+> Collector are running on the same application. If they are separate, this
 > parameter will need to be updated.
 
 Please be advised that advanced configuration may be required to configure
@@ -56,7 +56,7 @@ information, see documentation including:
 - [Outputs.conf](https://docs.splunk.com/Documentation/Splunk/8.1.2/Admin/Outputsconf)
 - [Multiple pipelinesets](https://docs.splunk.com/Documentation/Forwarder/8.1.2/Forwarder/Configureaforwardertohandlemultiplepipelinesets)
 
-## Configuring Fluentd in Splunk OpenTelemetry Connector
+## Configuring Fluentd in Splunk OpenTelemetry Collector
 
 A new source will need to be added to the `conf.d/` directory that Fluentd
 monitors. For example, `tcp.conf` could be added with the following:

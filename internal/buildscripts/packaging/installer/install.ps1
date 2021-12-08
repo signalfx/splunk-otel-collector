@@ -539,7 +539,7 @@ if ($with_fluentd) {
 Remove-Item -Recurse -Force "$tempdir"
 
 $message = "
-The Splunk OpenTelemetry Connector for Windows has been successfully installed.
+The Splunk OpenTelemetry Collector for Windows has been successfully installed.
 Make sure that your system's time is relatively accurate or else datapoints may not be accepted.
 The collector's main configuration file is located at $config_path,
 and the environment variables are stored in the $regkey registry key.

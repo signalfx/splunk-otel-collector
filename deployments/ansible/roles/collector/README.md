@@ -1,6 +1,6 @@
-# Splunk OpenTelemetry Connector Ansible Role
+# Splunk OpenTelemetry Collector Ansible Role
 
-Ansible role that installs Splunk OpenTelemetry Connector configured to
+Ansible role that installs Splunk OpenTelemetry Collector configured to
 collect metrics, traces and logs from Linux machines and send data to [Splunk 
 Observability Cloud](https://www.splunk.com/en_us/observability.html). 
 
@@ -20,7 +20,7 @@ how to use the role in a playbook with minimal required configuration:
 
 
 ```yaml
-- name: Install Splunk OpenTelemetry Connector
+- name: Install Splunk OpenTelemetry Collector
   hosts: all
   become: yes
   # For Windows "become: yes" will raise error.

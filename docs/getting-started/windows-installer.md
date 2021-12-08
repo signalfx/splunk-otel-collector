@@ -5,7 +5,7 @@
 For Windows 64-bit environments, an installer script is available. The
 script deploys and configures:
 
-- Splunk OpenTelemetry Connector for Windows
+- Splunk OpenTelemetry Collector for Windows
 - [Fluentd (via the TD Agent)](https://www.fluentd.org/)
 
 Currently, the following Windows versions are supported and requires PowerShell

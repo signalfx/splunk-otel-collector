@@ -2,7 +2,7 @@
   "name": "signalfx-splunk_otel_collector",
   "version": "0.3.0",
   "author": "Splunk, Inc.",
-  "summary": "This module installs the Splunk OpenTelemetry Connector via distro packages and configures it.",
+  "summary": "This module installs the Splunk OpenTelemetry Collector via distro packages and configures it.",
   "license": "Apache-2.0",
   "source": "https://github.com/signalfx/splunk-otel-collector",
   "project_page": "https://github.com/signalfx/splunk-otel-collector",

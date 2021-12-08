@@ -19,6 +19,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 - Initial [Chocolatey package](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/windows-manual.md#chocolatey-installation) release
 - Update bundled Smart Agent to [v5.16.0](https://github.com/signalfx/signalfx-agent/releases/tag/v5.16.0)
+- Update OTLP HTTP receiver endpoint to use port 4318 in default configuration files (#1017)
 
 ### 🧰 Bug fixes 🧰
 

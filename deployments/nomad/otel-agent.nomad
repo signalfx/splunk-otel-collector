@@ -169,7 +169,7 @@ receivers:
       grpc:
         endpoint: 0.0.0.0:4317
       http:
-        endpoint: 0.0.0.0:55681
+        endpoint: 0.0.0.0:4318
   prometheus/agent:
     config:
       scrape_configs:

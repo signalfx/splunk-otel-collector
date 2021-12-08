@@ -35,14 +35,14 @@ receivers:
 
   # Enables the otlp receiver with default settings
   #  - grpc (default endpoint = 0.0.0.0:4317)
-  #  - http (default endpoint = 0.0.0.0:55681)
+  #  - http (default endpoint = 0.0.0.0:4318)
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver
   otlp:
     protocols:
       grpc:
         endpoint: 0.0.0.0:4317
       http:
-        endpoint: 0.0.0.0:55681
+        endpoint: 0.0.0.0:4318
 
   #############################################################################
   # Traces
@@ -410,7 +410,7 @@ exporters:
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter
   # NOTE: These settings should be updated to the proper destination
   otlphttp:
-    endpoint: otelcol2:55681
+    endpoint: otelcol2:4318
     compression: gzip
     headers:
       X-SF-TOKEN: "${SPLUNK_ACCESS_TOKEN}"

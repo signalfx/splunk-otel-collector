@@ -50,7 +50,7 @@ data:
           grpc:
             endpoint: 0.0.0.0:4317
           http:
-            endpoint: 0.0.0.0:55681
+            endpoint: 0.0.0.0:4318
       sapm:
         endpoint: 0.0.0.0:7276
       signalfx:
@@ -157,9 +157,11 @@ spec:
     protocol: UDP
   - name: thrift-http # Default endpoint for Jaeger Thrift receiver.
     port: 14268
-  - name: otlp # Default endpoint for OpenTelemetry gRPC receiver.
+  - name: otlp # Default endpoint for OTLP gRPC receiver.
     port: 4317
-  - name: otlp-http # Default endpoint for OpenTelemetry gRPC receiver.
+  - name: otlp-http # Default endpoint for OTLP HTTP receiver.
+    port: 4318
+  - name: otlp-http-old # Legacy endpoint for OTLP HTTP receiver.
     port: 55681
   - name: http-forwarder # Default endpoint for HTTP Forwarder extension.
     port: 6060

@@ -152,7 +152,7 @@ receivers:
       grpc:
         endpoint: 0.0.0.0:4317
       http:
-        endpoint: 0.0.0.0:55681
+        endpoint: 0.0.0.0:4318
   signalfx:
     access_token_passthrough: true
     endpoint: 0.0.0.0:9943

@@ -24,7 +24,7 @@ $ErrorActionPreference= 'stop'
 function usage {
     "This is help for this program. It does nothing. Hope that helps."
     Write-Output "USAGE: [-help] [-d directory] [-t directory]"
-    Write-Output "  -d      directory where Splunk OpenTelemetry Connector configuration is located"
+    Write-Output "  -d      directory where Splunk OpenTelemetry Collector configuration is located"
     Write-Output "          (if not specified, defaults to ${env:PROGRAMDATA}\Splunk\OpenTelemetry Collector)"
     Write-Output "  -t      Unique temporary directory for support bundle contents"
     Write-Output "          (if not specified, defaults to ${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector)"

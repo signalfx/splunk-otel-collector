@@ -32,13 +32,13 @@ vulnerability is detected for a dependency of this project then either:
 
 ## Exposed endpoints
 
-By default, the Splunk OpenTelemetry Connector exposes several endpoints.
+By default, the Splunk OpenTelemetry Collector exposes several endpoints.
 Endpoints will either be exposed:
 
 - Locally (`localhost`): Within the service
 - Publicly (`0.0.0.0`): On all network interfaces
 
-The endpoints exposed depends on which mode the Splunk OpenTelemetry Connector
+The endpoints exposed depends on which mode the Splunk OpenTelemetry Collector
 is configured in.
 
 - `http(s)://0.0.0.0:13133/` Health endpoint useful for load balancer monitoring

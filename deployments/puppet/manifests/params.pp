@@ -35,6 +35,6 @@ class splunk_otel_collector::params {
     $fluentd_config_source = "${collector_install_dir}\\fluentd\\td-agent.conf"
     $fluentd_config_dest = ''
   } else {
-    fail("Your OS (${::osfamily}) is not supported by the Splunk OpenTelemetry Connector")
+    fail("Your OS (${::osfamily}) is not supported by the Splunk OpenTelemetry Collector")
   }
 }

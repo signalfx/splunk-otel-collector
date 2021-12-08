@@ -132,7 +132,7 @@ class splunk_otel_collector (
       }
     }
     default: {
-      fail("Your OS (${::osfamily}) is not supported by the Splunk OpenTelemetry Connector")
+      fail("Your OS (${::osfamily}) is not supported by the Splunk OpenTelemetry Collector")
     }
   }
 
@@ -268,7 +268,7 @@ class splunk_otel_collector (
         }
       }
       default: {
-        fail("Your OS (${::osfamily}) is not supported by the Splunk OpenTelemetry Connector")
+        fail("Your OS (${::osfamily}) is not supported by the Splunk OpenTelemetry Collector")
       }
     }
 

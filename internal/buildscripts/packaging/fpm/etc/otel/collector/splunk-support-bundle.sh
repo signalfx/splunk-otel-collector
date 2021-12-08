@@ -23,7 +23,7 @@ TMPDIR="/tmp/splunk-support-bundle-$(date +%s)" # Unique temporary directory for
 
 usage() {
     echo "USAGE: $0 [-h] [-d directory]"
-    echo "  -d      directory where Splunk OpenTelemetry Connector configuration is located"
+    echo "  -d      directory where Splunk OpenTelemetry Collector configuration is located"
     echo "          (if not specified, defaults to /etc/otel/collector)"
     echo "  -h      display help"
     exit 1

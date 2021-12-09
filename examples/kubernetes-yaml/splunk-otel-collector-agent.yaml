@@ -50,7 +50,7 @@ data:
           grpc:
             endpoint: 0.0.0.0:4317
           http:
-            endpoint: 0.0.0.0:55681
+            endpoint: 0.0.0.0:4318
       sapm:
         endpoint: 0.0.0.0:7276
       signalfx:

@@ -4,10 +4,10 @@ Familiarity with AWS Fargate (Fargate) is assumed. Consult the
 for further reading.
 
 Unless stated otherwise, the
-[Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector)
+[Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector)
 (Collector) is deployed as a **sidecar** (additional container) to ECS tasks.
 
-Requires Connector release v0.33.0 or newer which corresponds to image tag 0.33.0 and newer.
+Requires Collector release v0.33.0 or newer which corresponds to image tag 0.33.0 and newer.
 See image repository [here](https://quay.io/repository/signalfx/splunk-otel-collector?tab=tags).
 
 ## Getting Started

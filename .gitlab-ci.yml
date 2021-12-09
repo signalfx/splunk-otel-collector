@@ -175,7 +175,7 @@ sign-exe:
       - TARGET: [otelcol, translatesfx]
   variables:
     PATHS: bin/${TARGET}_windows_amd64.exe
-    OPTIONS: "--no-push --timeout=1200"
+    OPTIONS: "--no-push"
   after_script:
     - mkdir -p dist/signed
     - mv bin/signed/${TARGET}_windows_amd64.exe dist/signed/
@@ -428,7 +428,7 @@ release-msi:
     - build-msi
   variables:
     PATHS: dist/*.msi
-    OPTIONS: "--no-push --timeout=1200"
+    OPTIONS: "--no-push"
   artifacts:
     paths:
       - dist/signed/*.msi

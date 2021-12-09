@@ -1,7 +1,7 @@
-# Splunk OpenTelemetry Connector Puppet Module
+# Splunk OpenTelemetry Collector Puppet Module
 
 This is a Puppet module that will install and configure the Splunk
-OpenTelemetry Connector.
+OpenTelemetry Collector.
 
 ## Linux
 

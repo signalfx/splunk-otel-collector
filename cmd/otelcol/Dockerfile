@@ -37,6 +37,12 @@ RUN if [ "$ARCH" = "amd64" ]; then \
     fi
 RUN find /usr/lib/splunk-otel-collector/agent-bundle -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 
+FROM debian:11.1 as journalctl
+RUN apt update
+RUN apt install -y systemd
+COPY collect-libs.sh /collect-libs.sh
+RUN /collect-libs.sh /opt/journalctl /bin/journalctl
+
 FROM scratch
 ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
 ENV SPLUNK_COLLECTD_DIR=${SPLUNK_BUNDLE_DIR}/run/collectd
@@ -50,11 +56,15 @@ COPY --from=otelcol --chown=999 /otel /etc/otel
 COPY --from=otelcol --chown=999 /otel/collector /etc/otel/collector
 COPY --from=smartagent --chown=999 /usr/lib/splunk-otel-collector /usr/lib/splunk-otel-collector
 
+COPY --from=journalctl --chown=999 /bin/journalctl /bin/journalctl
+COPY --from=journalctl --chown=999 /opt/journalctl /
+
 COPY --chown=999 config/collector/gateway_config.yaml /etc/otel/collector/gateway_config.yaml
 COPY --chown=999 config/collector/otlp_config_linux.yaml /etc/otel/collector/otlp_config_linux.yaml
 COPY --chown=999 config/collector/agent_config.yaml /etc/otel/collector/agent_config.yaml
 COPY --chown=999 config/collector/fargate_config.yaml /etc/otel/collector/fargate_config.yaml
 COPY --chown=999 config/collector/ecs_ec2_config.yaml /etc/otel/collector/ecs_ec2_config.yaml
+
 USER splunk-otel-collector
 ENTRYPOINT ["/otelcol"]
 EXPOSE 13133 14250 14268 4317 4318 6060 8888 9411 9443 9080

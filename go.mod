@@ -414,3 +414,6 @@ replace (
 	github.com/shirou/gopsutil => github.com/shirou/gopsutil v3.21.8+incompatible
 	github.com/shirou/gopsutil/v3 => github.com/shirou/gopsutil/v3 v3.21.8
 )
+
+// security updates
+replace github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.3

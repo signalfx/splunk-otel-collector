@@ -211,11 +211,13 @@ endif
 	cp ./bin/otelcol_linux_$(ARCH) ./cmd/otelcol/otelcol
 	cp ./bin/translatesfx_linux_$(ARCH) ./cmd/otelcol/translatesfx
 	cp ./bin/migratecheckpoint_linux_$(ARCH) ./cmd/otelcol/migratecheckpoint
+	cp ./internal/buildscripts/packaging/collect-libs.sh ./cmd/otelcol/collect-libs.sh
 	docker buildx build --platform linux/$(ARCH) -o type=image,name=otelcol:$(ARCH),push=false --build-arg ARCH=$(ARCH) --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) ./cmd/otelcol/
 	docker tag otelcol:$(ARCH) otelcol:latest
 	rm ./cmd/otelcol/otelcol
 	rm ./cmd/otelcol/translatesfx
 	rm ./cmd/otelcol/migratecheckpoint
+	rm ./cmd/otelcol/collect-libs.sh
 
 .PHONY: binaries-all-sys
 binaries-all-sys: binaries-darwin_amd64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64

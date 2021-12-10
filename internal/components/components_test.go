@@ -44,6 +44,7 @@ func TestDefaultComponents(t *testing.T) {
 		"fluentforward",
 		"hostmetrics",
 		"jaeger",
+		"journald",
 		"k8s_cluster",
 		"kafka",
 		"kafkametrics",

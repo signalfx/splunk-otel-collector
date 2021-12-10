@@ -486,6 +486,8 @@ jobs:
             echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
             exit 1
           fi
+          # ensure journalctl can run with the collected libraries
+          docker exec otelcol /bin/journalctl
 
   docker-otelcol-windows:
     name: docker-otelcol-windows

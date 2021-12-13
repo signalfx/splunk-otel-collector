@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## v0.41.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.41.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.41.0) and the [opentelemetry-collector-contrib v0.41.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.41.0) releases.
+
+### 🚀 New components 🚀
+
+- [`journald` receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/journaldreceiver) to parse journald events from systemd journal
+
+### 💡 Enhancements 💡
+
+- Update bundled Smart Agent to [v5.17.0](https://github.com/signalfx/signalfx-agent/releases/tag/v5.17.0)
+- Update OTLP HTTP receiver endpoint to use port 4318 in default configuration files (#1017)
+
 ## v0.40.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.40.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.40.0) and the [opentelemetry-collector-contrib v0.40.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.40.0) releases.
@@ -19,7 +32,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 - Initial [Chocolatey package](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/windows-manual.md#chocolatey-installation) release
 - Update bundled Smart Agent to [v5.16.0](https://github.com/signalfx/signalfx-agent/releases/tag/v5.16.0)
-- Update OTLP HTTP receiver endpoint to use port 4318 in default configuration files (#1017)
 
 ### 🧰 Bug fixes 🧰
 

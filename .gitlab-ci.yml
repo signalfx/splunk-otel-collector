@@ -584,7 +584,7 @@ cve-scan:
         make docker-otelcol
       fi
     - docker scan --accept-license --login --token ${SNYK_AUTH_TOKEN}
-    - docker scan otelcol
+    - docker scan --severity high otelcol
   after_script:
     - |
       if [ "$CI_JOB_STATUS" != "success" ]; then

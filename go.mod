@@ -64,7 +64,7 @@ require (
 	github.com/openzipkin/zipkin-go v0.3.0
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.43
-	github.com/signalfx/signalfx-agent v1.0.1-0.20211203204116-f8c7817ebc37
+	github.com/signalfx/signalfx-agent v1.0.1-0.20211213195011-1f5d60ecfbff
 	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.4.1
@@ -402,7 +402,7 @@ replace (
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v1.8.2-0.20210430082741-2a4b8e12bbf2
 
-	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20211203204116-f8c7817ebc37
+	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20211213195011-1f5d60ecfbff
 	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required for smartagentreceiver to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
 
 	// cvss scan requires this to be >= 3.3.23

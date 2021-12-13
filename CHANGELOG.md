@@ -12,7 +12,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 💡 Enhancements 💡
 
-- Update bundled Smart Agent to [v5.17.0](https://github.com/signalfx/signalfx-agent/releases/tag/v5.17.0)
+- Update bundled Smart Agent to [v5.17.1](https://github.com/signalfx/signalfx-agent/releases/tag/v5.17.1)
 - Update OTLP HTTP receiver endpoint to use port 4318 in default configuration files (#1017)
 
 ## v0.40.0

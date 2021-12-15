@@ -37,6 +37,12 @@ RUN if [ "$ARCH" = "amd64" ]; then \
     fi
 RUN find /usr/lib/splunk-otel-collector/agent-bundle -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 
+FROM alpine:3.14.3 AS jmx
+ARG JMX_LIB_VERSION
+RUN JMX_METRICS=opentelemetry-jmx-metrics-${JMX_LIB_VERSION}.jar && \
+URL=https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/${JMX_LIB_VERSION}/$JMX_METRICS && \
+cd /tmp && wget "$URL" && mv $JMX_METRICS opentelemetry-java-contrib-jmx-metrics.jar;
+
 FROM debian:11.2 as journalctl
 RUN apt update
 RUN apt install -y systemd
@@ -47,6 +53,7 @@ FROM scratch
 ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
 ENV SPLUNK_COLLECTD_DIR=${SPLUNK_BUNDLE_DIR}/run/collectd
 ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/bin
+ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/jre/bin
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=otelcol /etc_passwd /etc/passwd
 COPY --from=otelcol --chown=999 /otelcol /
@@ -55,6 +62,7 @@ COPY --from=otelcol --chown=999 /migratecheckpoint /
 COPY --from=otelcol --chown=999 /otel /etc/otel
 COPY --from=otelcol --chown=999 /otel/collector /etc/otel/collector
 COPY --from=smartagent --chown=999 /usr/lib/splunk-otel-collector /usr/lib/splunk-otel-collector
+COPY --from=jmx --chown=999 /tmp/opentelemetry-java-contrib-jmx-metrics.jar /opt/opentelemetry-java-contrib-jmx-metrics.jar
 
 COPY --from=journalctl --chown=999 /bin/journalctl /bin/journalctl
 COPY --from=journalctl --chown=999 /opt/journalctl /

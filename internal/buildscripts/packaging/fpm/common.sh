@@ -40,6 +40,7 @@ SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"
 FLUENTD_CONFIG_INSTALL_DIR="/etc/otel/collector/fluentd"
 
 SMART_AGENT_RELEASE_PATH="${FPM_DIR}/../smart-agent-release.txt"
+JMX_LIB_VERSION_PATH="${FPM_DIR}/../jmx-lib-version.txt"
 SMART_AGENT_RELEASE_URL="https://api.github.com/repos/signalfx/signalfx-agent/releases"
 BUNDLE_BASE_DIR="/usr/lib/splunk-otel-collector"
 AGENT_BUNDLE_INSTALL_DIR="$BUNDLE_BASE_DIR/agent-bundle"
@@ -98,6 +99,17 @@ download_smart_agent() {
     rm -f "$buildroot/$AGENT_BUNDLE_INSTALL_DIR/bin/signalfx-agent"
     rm -f "$buildroot/$AGENT_BUNDLE_INSTALL_DIR/bin/agent-status"
     rm -f "$buildroot/signalfx-agent.tar.gz"
+}
+
+download_and_jmx_jar() {
+    local version="$1"
+    local buildroot="$2"
+
+    JMX_LIB_RELEASE_DL_URL="https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/$version/opentelemetry-jmx-metrics-$version.jar"
+    mkdir -p "$buildroot/opt"
+
+    echo "Downloading ${JMX_LIB_RELEASE_DL_URL}"
+    curl -sL "$JMX_LIB_RELEASE_DL_URL" -o "$buildroot/opt/opentelemetry-java-contrib-jmx-metrics.jar"
 }
 
 setup_files_and_permissions() {

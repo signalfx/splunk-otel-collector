@@ -28,6 +28,9 @@
    ../internal/buildscripts/packaging/smart-agent-release.txt) for the latest
    applicable [Smart Agent release](
    https://github.com/signalfx/signalfx-agent/releases).
+1. If necessary, update [jmx-lib-version.txt](../internal/buildscripts/packaging/jmx-lib-version.txt) for the latest
+   applicable [JMX Metric Gatherer JAR release](
+   https://github.com/open-telemetry/opentelemetry-java-contrib/releases).
 1. Update [CHANGELOG.md](../CHANGELOG.md) with the changes for the release.
    In order for the Github release notes to be added correctly, ensure that the
    new version has the `## <TAG>` heading.

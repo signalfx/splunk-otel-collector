@@ -19,6 +19,7 @@ RUN cp /project/internal/buildscripts/packaging/msi/msi-builder/docker-entrypoin
 
 ENV OUTPUT_DIR=/project/dist
 ENV SMART_AGENT_RELEASE=latest
+ENV JMX_LIB_VERSION=1.7.0-alpha
 ENV VERSION=""
 
 WORKDIR /work

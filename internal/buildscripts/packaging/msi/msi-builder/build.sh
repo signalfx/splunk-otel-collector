@@ -27,6 +27,7 @@ SUPPORT_BUNDLE_SCRIPT="/project/internal/buildscripts/packaging/msi/splunk-suppo
 SMART_AGENT_RELEASE="latest"
 SPLUNK_ICON="/project/internal/buildscripts/packaging/msi/splunk.ico"
 OUTPUT_DIR="/project/dist"
+JMX_LIB_VERSION="1.7.0-alpha"
 
 usage() {
     cat <<EOH >&2
@@ -53,6 +54,8 @@ OPTIONS:
                              Defaults to '$SUPPORT_BUNDLE_SCRIPT'.
     --smart-agent VERSION:   The released version of the Smart Agent bundle to include (will be downloaded).
                              Defaults to '$SMART_AGENT_RELEASE'.
+    --jmx-lib VERSION:       The released version of the JMX Metric Gatherer JAR to include (will be downloaded).
+                             Defaults to '$JMX_LIB_VERSION'.
     --splunk-icon PATH:      Absolute path to the splunk.ico.
                              Defaults to '$SPLUNK_ICON'.
     --output DIR:            Directory to save the MSI.
@@ -70,6 +73,7 @@ parse_args_and_build() {
     local fluentd_confd="$FLUENTD_CONFD"
     local support_bundle="$SUPPORT_BUNDLE_SCRIPT"
     local smart_agent_release="$SMART_AGENT_RELEASE"
+    local jmx_lib_version="$JMX_LIB_VERSION"
     local splunk_icon="$SPLUNK_ICON"
     local output="$OUTPUT_DIR"
     local version=
@@ -106,6 +110,10 @@ parse_args_and_build() {
                 ;;
             --smart-agent)
                 smart_agent_release="$2"
+                shift 1
+                ;;
+            --jmx-lib)
+                jmx_lib_version="$2"
                 shift 1
                 ;;
             --splunk-icon)
@@ -158,6 +166,8 @@ parse_args_and_build() {
 
     download_and_extract_smart_agent "$smart_agent_release" "$build_dir" "$files_dir"
 
+    download_and_jmx_jar "$jmx_lib_version" "$build_dir" "$files_dir"
+
     # kludge to satisfy relative path in splunk-otel-collector.wxs
     mkdir -p /work/internal/buildscripts/packaging/msi
     cp "${splunk_icon}" "/work/internal/buildscripts/packaging/msi/splunk.ico"
@@ -180,6 +190,20 @@ parse_args_and_build() {
     { set +x; } 2>/dev/null
 
     echo "MSI saved to ${output}/${msi_name}"
+}
+
+download_and_jmx_jar() {
+    local version="$1"
+    local build_dir="$2"
+    local output_dir="$3"
+    JMX_LIB_RELEASE_DL_URL="https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/$version/opentelemetry-jmx-metrics-$version.jar"
+    echo "Downloading ${JMX_LIB_RELEASE_DL_URL}..."
+
+    curl -sL "$JMX_LIB_RELEASE_DL_URL" -o "${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"
+    mv "${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar" "$output_dir"
+
+    # Delete unnecessary files.
+    rm -f "${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"
 }
 
 download_and_extract_smart_agent() {

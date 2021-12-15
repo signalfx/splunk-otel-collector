@@ -26,8 +26,21 @@ RUN Add-Type -AssemblyName System.IO.Compression.FileSystem ;\
     [System.IO.Compression.ZipFile]::ExtractToDirectory('SignalFxAgent-win64.zip', '.')
 RUN Rename-Item -Path "SignalFxAgent" -NewName "agent-bundle"
 
+# Download JMX Metric Gatherer
+ARG JMX_LIB_VERSION
+RUN New-Item -Path "C:\\" -Name "opt" -ItemType "directory"
+RUN Invoke-WebRequest -Uri "https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/$env:JMX_LIB_VERSION/opentelemetry-jmx-metrics-$env:JMX_LIB_VERSION.jar" -Outfile "c:\opt\opentelemetry-java-contrib-jmx-metrics.jar"
+
+ARG JAVA_VERSION="11-openjdk-11.0.13.8-1"
+ARG JAVA_ZIP_VERSION="11-openjdk-jre-11.0.13.8-1"
+ARG JAVA_HOME="C:\java\java-${JAVA_ZIP_VERSION}.windows.ojdkbuild.x86_64\bin"
+RUN Invoke-WebRequest -Uri "https://github.com/ojdkbuild/ojdkbuild/releases/download/java-$env:JAVA_VERSION/java-$env:JAVA_ZIP_VERSION.windows.ojdkbuild.x86_64.zip" -OutFile "openjdk.zip" ; \
+    Expand-Archive "openjdk.zip" -DestinationPath "C:\java" ;
+RUN setx PATH "$env:JAVA_HOME;$env:PATH"
+
 # Delete unnecessary files.
 RUN Remove-Item "SignalFxAgent-win64.zip" -force
+RUN Remove-Item "openjdk.zip" -force
 RUN Remove-Item "agent-bundle\bin" -force -Recurse
 RUN Remove-Item "agent-bundle\etc" -force -Recurse
 RUN Get-ChildItem -include __pycache__ -recurse -force | Remove-Item -force -Recurse

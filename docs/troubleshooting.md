@@ -67,10 +67,13 @@ typically requires modifying either:
 - [Metrics
   address](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/troubleshooting.md#metrics)
   (if port `8888`)
+  - **Note**: When using a different metrics address, a change is likely also need to update the
+    [default agent config](https://github.com/signalfx/splunk-otel-collector/blob/v0.41.0/cmd/otelcol/config/collector/agent_config.yaml#L79)
+    to scrape the changed address.
 
 Note on Kubernetes, this requires updating the chart values for both
 configuration and [exposed
-ports](https://github.com/signalfx/splunk-otel-collector-chart/blob/main/helm-charts/splunk-otel-collector/values.yaml#L108).
+ports](https://github.com/signalfx/splunk-otel-collector-chart/blob/splunk-otel-collector-0.41.0/helm-charts/splunk-otel-collector/values.yaml#L211).
 
 ### pattern not matched
 

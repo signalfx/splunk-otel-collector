@@ -46,6 +46,7 @@ func TestDefaultComponents(t *testing.T) {
 		"hostmetrics",
 		"jaeger",
 		"journald",
+		"jmx",
 		"k8s_cluster",
 		"kafka",
 		"kafkametrics",

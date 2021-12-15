@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Add support for the jmx receiver
+- splunk-otel-collector is configured to download the jmx metrics receiver jar file from [this](https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/) release. Currently, 1.7.0-alpha is used as a default version.
 
 ### 🚀 New components 🚀
 

@@ -1,0 +1,19 @@
+receivers:
+  jmx:
+    endpoint: localhost:7199
+    target_system: jvm
+    jar_path: /opt/opentelemetry-java-contrib-jmx-metrics.jar
+    password: cassandra
+    username: cassandra
+    collection_interval: 1s
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [jmx]
+      exporters: [otlp]

@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/docker/docker/api/types"
 	dockerContainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
@@ -277,6 +278,13 @@ func (container *Container) Name(ctx context.Context) (string, error) {
 	return (*container.container).Name(ctx)
 }
 
+func (container *Container) State(ctx context.Context) (*types.ContainerState, error) {
+	if err := container.assertStarted("State"); err != nil {
+		return nil, err
+	}
+	return (*container.container).State(ctx)
+}
+
 func (container *Container) Networks(ctx context.Context) ([]string, error) {
 	if err := container.assertStarted("Networks"); err != nil {
 		return nil, err
@@ -310,6 +318,13 @@ func (container *Container) CopyFileToContainer(ctx context.Context, hostFilePat
 		return err
 	}
 	return (*container.container).CopyFileToContainer(ctx, hostFilePath, containerFilePath, fileMode)
+}
+
+func (container *Container) CopyFileFromContainer(ctx context.Context, filePath string) (io.ReadCloser, error) {
+	if err := container.assertStarted("CopyFileFromContainer"); err != nil {
+		return nil, err
+	}
+	return (*container.container).CopyFileFromContainer(ctx, filePath)
 }
 
 // Will create any networks that don't already exist on system.

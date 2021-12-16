@@ -27,14 +27,15 @@ RUN Add-Type -AssemblyName System.IO.Compression.FileSystem ;\
 RUN Rename-Item -Path "SignalFxAgent" -NewName "agent-bundle"
 
 # Download JMX Metric Gatherer
-ARG JMX_LIB_VERSION
+ARG JMX_METRIC_GATHERER_RELEASE
 RUN New-Item -Path "C:\\" -Name "opt" -ItemType "directory"
-RUN Invoke-WebRequest -Uri "https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/$env:JMX_LIB_VERSION/opentelemetry-jmx-metrics-$env:JMX_LIB_VERSION.jar" -Outfile "c:\opt\opentelemetry-java-contrib-jmx-metrics.jar"
+RUN Invoke-WebRequest -Uri "https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/$env:JMX_METRIC_GATHERER_RELEASE/opentelemetry-jmx-metrics-$env:JMX_METRIC_GATHERER_RELEASE.jar" -Outfile "c:\opt\opentelemetry-java-contrib-jmx-metrics.jar"
 
-ARG JAVA_VERSION="11-openjdk-11.0.13.8-1"
-ARG JAVA_ZIP_VERSION="11-openjdk-jre-11.0.13.8-1"
-ARG JAVA_HOME="C:\java\java-${JAVA_ZIP_VERSION}.windows.ojdkbuild.x86_64\bin"
-RUN Invoke-WebRequest -Uri "https://github.com/ojdkbuild/ojdkbuild/releases/download/java-$env:JAVA_VERSION/java-$env:JAVA_ZIP_VERSION.windows.ojdkbuild.x86_64.zip" -OutFile "openjdk.zip" ; \
+ARG JAVA_VERSION="11.0.13_8"
+ARG OPENJDK_BASE_URL="https://github.com/AdoptOpenJDK/openjdk11-upstream-binaries/releases/download"
+ARG JAVA_HOME="C:\java\openjdk-${JAVA_VERSION}\bin"
+RUN Set-Variable -Name "ENCODED_VER" -Value "\"$env:JAVA_VERSION\".replace(\"_\", \"%2B\")"; \
+    Invoke-WebRequest -Uri "$env:OPENJDK_BASE_URL/jdk-$ENCODED_VER/OpenJDK11U-jdk_x64_windows_$env:JAVA_VERSION.zip" -OutFile "openjdk.zip" ; \
     Expand-Archive "openjdk.zip" -DestinationPath "C:\java" ;
 RUN setx PATH "$env:JAVA_HOME;$env:PATH"
 

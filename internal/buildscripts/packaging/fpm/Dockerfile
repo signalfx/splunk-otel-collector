@@ -12,4 +12,4 @@ COPY install-deps.sh /install-deps.sh
 
 RUN /install-deps.sh
 
-CMD ./internal/buildscripts/packaging/fpm/$PACKAGE/build.sh "$VERSION" "$ARCH" "$OUTPUT_DIR" "$SMART_AGENT_RELEASE" "$JMX_LIB_VERSION"
+CMD ./internal/buildscripts/packaging/fpm/$PACKAGE/build.sh "$VERSION" "$ARCH" "$OUTPUT_DIR" "$SMART_AGENT_RELEASE" "$JMX_METRIC_GATHERER_RELEASE"

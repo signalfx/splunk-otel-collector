@@ -508,7 +508,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
           Copy-Item .\bin\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
-          docker build -t otelcol-windows --build-arg SMART_AGENT_RELEASE=$((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v")) --build-arg JMX_LIB_VERSION=$(Get-Content internal\buildscripts\packaging\jmx-lib-version.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          docker build -t otelcol-windows --build-arg SMART_AGENT_RELEASE=$((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v")) --build-arg JMX_METRIC_GATHERER_RELEASE=$(Get-Content internal\buildscripts\packaging\jmx-metric-gatherer-release.txt) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\translatesfx.exe
       

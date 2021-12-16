@@ -43,7 +43,7 @@ BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1}"
 
 SMART_AGENT_RELEASE=$(shell cat internal/buildscripts/packaging/smart-agent-release.txt)
-JMX_LIB_VERSION=$(shell cat internal/buildscripts/packaging/jmx-lib-version.txt)
+JMX_METRIC_GATHERER_RELEASE=$(shell cat internal/buildscripts/packaging/jmx-metric-gatherer-release.txt)
 SKIP_COMPILE=false
 ARCH=amd64
 
@@ -213,7 +213,7 @@ endif
 	cp ./bin/translatesfx_linux_$(ARCH) ./cmd/otelcol/translatesfx
 	cp ./bin/migratecheckpoint_linux_$(ARCH) ./cmd/otelcol/migratecheckpoint
 	cp ./internal/buildscripts/packaging/collect-libs.sh ./cmd/otelcol/collect-libs.sh
-	docker buildx build --platform linux/$(ARCH) -o type=image,name=otelcol:$(ARCH),push=false --build-arg ARCH=$(ARCH) --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) --build-arg JMX_LIB_VERSION=$(JMX_LIB_VERSION) ./cmd/otelcol/
+	docker buildx build --platform linux/$(ARCH) -o type=image,name=otelcol:$(ARCH),push=false --build-arg ARCH=$(ARCH) --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) --build-arg JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) ./cmd/otelcol/
 	docker tag otelcol:$(ARCH) otelcol:latest
 	rm ./cmd/otelcol/otelcol
 	rm ./cmd/otelcol/translatesfx
@@ -253,11 +253,11 @@ ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-linux_$(ARCH)
 endif
 	docker build -t otelcol-fpm internal/buildscripts/packaging/fpm
-	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) -e SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) -e JMX_LIB_VERSION=$(JMX_LIB_VERSION) otelcol-fpm
+	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) -e SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) -e JMX_METRIC_GATHERER_RELEASE=$(JMX_METRIC_GATHERER_RELEASE) otelcol-fpm
 
 .PHONY: msi
 msi:
 ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-windows_amd64
 endif
-	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(SMART_AGENT_RELEASE)" "$(JMX_LIB_VERSION)"
+	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(SMART_AGENT_RELEASE)" "$(JMX_METRIC_GATHERER_RELEASE)"

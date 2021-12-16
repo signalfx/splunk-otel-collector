@@ -38,10 +38,10 @@ RUN if [ "$ARCH" = "amd64" ]; then \
 RUN find /usr/lib/splunk-otel-collector/agent-bundle -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 
 FROM alpine:3.14.3 AS jmx
-ARG JMX_LIB_VERSION
-RUN JMX_METRICS=opentelemetry-jmx-metrics-${JMX_LIB_VERSION}.jar && \
-URL=https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/${JMX_LIB_VERSION}/$JMX_METRICS && \
-cd /tmp && wget "$URL" && mv $JMX_METRICS opentelemetry-java-contrib-jmx-metrics.jar;
+ARG JMX_METRIC_GATHERER_RELEASE
+RUN JMX_METRICS_JAR=opentelemetry-jmx-metrics-${JMX_METRIC_GATHERER_RELEASE}.jar && \
+URL=https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/${JMX_METRIC_GATHERER_RELEASE}/$JMX_METRICS_JAR && \
+cd /tmp && wget "$URL" && mv $JMX_METRICS_JAR opentelemetry-java-contrib-jmx-metrics.jar;
 
 FROM debian:11.2 as journalctl
 RUN apt update

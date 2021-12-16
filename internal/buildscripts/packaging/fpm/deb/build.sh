@@ -23,7 +23,7 @@ VERSION="${1:-}"
 ARCH="${2:-amd64}"
 OUTPUT_DIR="${3:-$REPO_DIR/dist}"
 SMART_AGENT_RELEASE="${4:-}"
-JMX_LIB_VERSION="${5:-}"
+JMX_METRIC_GATHERER_RELEASE="${5:-}"
 
 if [[ -z "$VERSION" ]]; then
     VERSION="$( get_version )"
@@ -34,8 +34,8 @@ if [[ -z "$SMART_AGENT_RELEASE" ]]; then
     SMART_AGENT_RELEASE="$(cat $SMART_AGENT_RELEASE_PATH)"
 fi
 
-if [[ -z "$JMX_LIB_VERSION" ]]; then
-    JMX_LIB_VERSION="$(cat $JMX_LIB_VERSION_PATH)"
+if [[ -z "$JMX_METRIC_GATHERER_RELEASE" ]]; then
+    JMX_METRIC_GATHERER_RELEASE="$(cat $JMX_METRIC_GATHERER_RELEASE_PATH)"
 fi
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
@@ -47,7 +47,7 @@ if [ "$ARCH" = "amd64" ]; then
     download_smart_agent "$SMART_AGENT_RELEASE" "$buildroot"
 fi
 
-download_and_jmx_jar "$JMX_LIB_VERSION" "$buildroot"
+download_jmx_metric_gatherer "$JMX_METRIC_GATHERER_RELEASE" "$buildroot"
 
 setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$buildroot"
 

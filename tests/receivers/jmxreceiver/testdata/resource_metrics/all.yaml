@@ -174,7 +174,6 @@ resource_metrics:
             unit: by
             labels:
               name: CMS Old Gen
-            type: IntGauge
           - name: jvm.memory.pool.used
             description: current memory pool usage
             unit: by

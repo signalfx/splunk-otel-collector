@@ -21,7 +21,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestJMXReceiverProvidesAllMetrics(t *testing.T) {
+func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 
 	containers := []testutils.Container{
 		testutils.NewContainer().WithContext(

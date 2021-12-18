@@ -12,6 +12,7 @@ support](mailto:signalfx-support@splunk.com). When opening a support request,
 it is important to include as much information about the issue as possible
 including:
 
+- Have you read the release notes https://github.com/signalfx/splunk-otel-collector/releases?
 - What did you try to do?
 - What happened?
 - What did you expect to happen?

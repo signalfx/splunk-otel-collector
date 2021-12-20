@@ -60,7 +60,7 @@ data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability
   can be used with a [custom
   configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/otlp_config_linux.yaml).
   More information available
-  [here](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html#nav-Install-and-configure-Splunk-Distribution-of-OpenTelemetry-Collector ).
+  [here](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html#nav-Install-and-configure-Splunk-Distribution-of-OpenTelemetry-Collector).
 - [Splunk Infrastructure
   Monitoring](https://docs.splunk.com/Observability/infrastructure/intro-to-infrastructure.html#nav-Introduction-to-Splunk-Infrastructure-Monitoring)
   via the [`signalfx`

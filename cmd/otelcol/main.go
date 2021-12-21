@@ -18,7 +18,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -30,12 +29,9 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configmapprovider"
 	"go.opentelemetry.io/collector/service"
-	"go.uber.org/zap"
 
+	"github.com/signalfx/splunk-otel-collector/internal/collectorconfig"
 	"github.com/signalfx/splunk-otel-collector/internal/components"
-	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
-	"github.com/signalfx/splunk-otel-collector/internal/configsources"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
 )
 
@@ -82,36 +78,43 @@ func main() {
 		Version: version.Version,
 	}
 
-	parserProvider := configprovider.NewConfigSourceParserProvider(
-		newBaseParserProvider(),
-		zap.NewNop(), // The service logger is not available yet, setting it to NoP.
-		info,
-		configsources.Get()...,
-	)
-
-	const noConvertConfigFlag = "--no-convert-config"
-	if hasFlag(noConvertConfigFlag) {
-		// the collector complains about this flag if we don't remove it
-		removeFlag(&os.Args, noConvertConfigFlag)
-	} else {
-		parserProvider = configconverter.ParserProvider(
-			parserProvider,
-			configconverter.RemoveBallastKey,
-			configconverter.MoveOTLPInsecureKey,
-			configconverter.MoveHecTLS,
-			configconverter.RenameK8sTagger,
-		)
-	}
-
 	serviceParams := service.CollectorSettings{
 		BuildInfo:         info,
 		Factories:         factories,
-		ConfigMapProvider: parserProvider,
+		ConfigMapProvider: newConfigMapProvider(info),
 	}
 
 	if err := run(serviceParams); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func newConfigMapProvider(info component.BuildInfo) configmapprovider.Provider {
+	return collectorconfig.NewConfigMapProvider(
+		info,
+		hasNoConvertFlag(),
+		getConfigPath(),
+		os.Getenv(configYamlEnvVarName),
+		getSetProperties(),
+	)
+}
+
+func hasNoConvertFlag() bool {
+	const noConvertConfigFlag = "--no-convert-config"
+	if hasFlag(noConvertConfigFlag) {
+		// the collector complains about this flag if we don't remove it
+		removeFlag(&os.Args, noConvertConfigFlag)
+		return true
+	}
+	return false
+}
+
+func getConfigPath() string {
+	ok, configPath := getKeyValue(os.Args[1:], "--config")
+	if !ok {
+		return os.Getenv(configEnvVarName)
+	}
+	return configPath
 }
 
 // required to support --set functionality no longer directly parsed by the core config loader.
@@ -368,22 +371,6 @@ func setDefaultEnvVars() {
 			_ = os.Setenv("SPLUNK_HEC_TOKEN", token)
 		}
 	}
-}
-
-// Returns a ParserProvider that reads configuration YAML from an environment variable when applicable.
-func newBaseParserProvider() configmapprovider.Provider {
-	var configPath string
-	var ok bool
-	if ok, configPath = getKeyValue(os.Args[1:], "--config"); !ok {
-		configPath = os.Getenv(configEnvVarName)
-	}
-	configYaml := os.Getenv(configYamlEnvVarName)
-
-	if configPath == "" && configYaml != "" {
-		return configmapprovider.NewExpand(configmapprovider.NewInMemory(bytes.NewBufferString(configYaml)))
-	}
-
-	return configmapprovider.NewDefault(configPath, getSetProperties())
 }
 
 func runInteractive(settings service.CollectorSettings) error {

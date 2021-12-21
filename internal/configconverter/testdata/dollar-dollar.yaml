@@ -1,0 +1,19 @@
+receivers:
+  hostmetrics:
+    collection_interval: 1s
+    scrapers:
+      cpu:
+  redis:
+    password: $$ecret
+    host: "ho$$tname:$${env:PORT}"
+exporters:
+  otlp:
+    endpoint: localhost:$${env:OTLP_PORT}
+    insecure: $OTLP_INSECURE
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - hostmetrics
+      exporters:
+        - otlp

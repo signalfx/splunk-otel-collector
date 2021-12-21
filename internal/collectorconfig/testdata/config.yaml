@@ -1,0 +1,4 @@
+config_sources:
+  env:
+config_source_env_key: ${env:CFG_SRC}
+legacy_env_key: $LEGACY

@@ -35,7 +35,7 @@ type CfgMapFunc func(*config.Map) *config.Map
 
 var _ configmapprovider.Provider = (*converterProvider)(nil)
 
-func ParserProvider(wrapped configmapprovider.Provider, funcs ...CfgMapFunc) configmapprovider.Provider {
+func Provider(wrapped configmapprovider.Provider, funcs ...CfgMapFunc) configmapprovider.Provider {
 	return &converterProvider{wrapped: wrapped, cfgMapFuncs: funcs}
 }
 

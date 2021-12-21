@@ -22,6 +22,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.41.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.41.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.41.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.41.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.41.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.41.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.41.0
@@ -262,6 +263,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/ecsutil v0.41.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.41.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.41.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/docker v0.41.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.41.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.41.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.41.0 // indirect

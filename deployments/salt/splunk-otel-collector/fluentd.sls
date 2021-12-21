@@ -1,15 +1,17 @@
 {% set splunk_fluentd_config = salt['pillar.get']('splunk-otel-collector:splunk_fluentd_config', '/etc/otel/collector/fluentd/fluent.conf') %}
 
-{% set fluentd_repo_base = salt['pillar.get']('splunk-otel-collector:fluentd_repo_base', 'http://packages.treasuredata.com') %}
+{% set fluentd_repo_base = salt['pillar.get']('splunk-otel-collector:fluentd_repo_base', 'https://packages.treasuredata.com') %}
 
-{%- if grains['oscodename'] == 'jessie' %}
-{% set td_agent_version = salt['pillar.get']('splunk-otel-collector:td_agent_version', '3.3.0-1') %}
+{% set td_agent_version = salt['pillar.get']('splunk-otel-collector:fluentd_repo_base') %}
+
+{% if td_agent_version  %}
+{{ td_agent_version }}
 {%- elif grains['oscodename'] == 'stretch' %}
-{% set td_agent_version = salt['pillar.get']('splunk-otel-collector:td_agent_version', '3.7.1-0') %}
+{% set td_agent_version = '3.7.1-0' %}
 {%- elif grains['os_family'] == 'Debian' %}
-{% set td_agent_version = salt['pillar.get']('splunk-otel-collector:td_agent_version', '4.1.1-1') %}
+{% set td_agent_version = '4.1.1-1' %}
 {%- else %}
-{% set td_agent_version = salt['pillar.get']('splunk-otel-collector:td_agent_version', '4.1.1') %}
+{% set td_agent_version = '4.1.1' %}
 {%- endif %}
 
 {% set td_agent_major_version = td_agent_version.split('.')[0] %}
@@ -33,19 +35,29 @@ Install FluentD Linux capability module dependencies:
 {%- endif %}
 
 {%- if grains['os_family'] == 'RedHat' %}
-Setup FluentD repository:
-  pkgrepo.managed:
-    - name: treasuredata
-    - humanname: TreasureData
-{%- if grains['os'] in ['RedHat', 'CentOS'] %}
-    - baseurl: {{ fluentd_repo_base }}/{{ td_agent_major_version }}/redhat/$basearch
-{%- elif grains['os'] == 'Amazon' %}
-    - baseurl: {{ fluentd_repo_base }}/{{ td_agent_major_version }}/amazon/2/$basearch
+
+{%- if grains['os'] == 'Amazon' %}
+{% set distro =  'amazon' %}
+{%- else %}
+{% set distro =  'redhat' %}
 {%- endif %}
-    - gpgkey: {{ fluentd_repo_base }}/GPG-KEY-td-agent
-    - gpgcheck: 1
+
+Import td-agent GPG Key:
   cmd.run:
     - name: rpm --import {{ fluentd_repo_base }}/GPG-KEY-td-agent
+
+Setup FluentD repository:
+  file.managed:
+    - name: /etc/yum.repos.d/td-agent.repo
+    - contents: |
+        [td-agent]
+        name = TreasureData Repository
+        baseurl = {{ fluentd_repo_base }}/{{ td_agent_major_version }}/{{ distro }}/$releasever/$basearch
+        gpgcheck = 1
+        gpgkey = {{ fluentd_repo_base }}/GPG-KEY-td-agent
+        enabled = 1
+    - makedirs: True
+    - mode: '0644'
 
 Install Developement Tools:
   pkg.group_installed:
@@ -56,7 +68,11 @@ Install FluentD Linux capability module dependencies:
     - pkgs:
       - libcap-ng
       - libcap-ng-devel
+{%- if grains['osmajorrelease'] == 8 %}
+      - pkgconf-pkg-config
+{%- else %}
       - pkgconfig
+{%- endif %}
     - require:
       - pkg: Install Developement Tools
 {%- endif %}
@@ -65,8 +81,6 @@ Install FluentD:
   pkg.installed:
     - name: td-agent
     - version: {{ td_agent_version }}
-    - require:
-      - pkgrepo: Setup FluentD repository
 
 /etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf:
   file.managed:

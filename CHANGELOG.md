@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- Initial salt module for linux (#1050)
+
 ## v0.41.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.41.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.41.0) and the [opentelemetry-collector-contrib v0.41.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.41.0) releases.

@@ -10,6 +10,10 @@
 
 {% set splunk_ingest_url = salt['pillar.get']('splunk-otel-collector:splunk_ingest_url', 'https://ingest.' + splunk_realm + '.signalfx.com') %}
 
+{% set splunk_trace_url = salt['pillar.get']('splunk-otel-collector:splunk_trace_url', splunk_ingest_url + '/v2/trace') %}
+
+{% set splunk_hec_url = salt['pillar.get']('splunk-otel-collector:splunk_hec_url', splunk_ingest_url + '/v1/log') %}
+
 {% set splunk_hec_token = salt['pillar.get']('splunk-otel-collector:splunk_hec_token', splunk_access_token) %}
 
 {% set splunk_otel_collector_config = salt['pillar.get']('splunk-otel-collector:splunk_otel_collector_config', '/etc/otel/collector/agent_config.yaml') %}
@@ -30,8 +34,8 @@
         SPLUNK_REALM={{ splunk_realm }}
         SPLUNK_API_URL={{ splunk_api_url }}
         SPLUNK_INGEST_URL={{ splunk_ingest_url }}
-        SPLUNK_TRACE_URL=${SPLUNK_INGEST_URL}/v2/trace
-        SPLUNK_HEC_URL=${SPLUNK_INGEST_URL}/v1/log
+        SPLUNK_TRACE_URL={{ splunk_trace_url }}
+        SPLUNK_HEC_URL={{ splunk_hec_url }}
         SPLUNK_HEC_TOKEN={{ splunk_hec_token }}
         SPLUNK_MEMORY_TOTAL_MIB={{ splunk_memory_total_mib }}
         SPLUNK_BALLAST_SIZE_MIB={{ splunk_ballast_size_mib }}
@@ -41,7 +45,6 @@
     - makedirs: True
     - user: {{ splunk_service_user }}
     - group: {{ splunk_service_group }}
-    - template: jinja
     - watch:
       - user: splunk_service_user
       - group: splunk_service_group

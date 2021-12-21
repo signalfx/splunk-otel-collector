@@ -17,3 +17,12 @@ test:
 	salt-lint -v /srv/salt/splunk-otel-collector/*.sls
 	salt-call --local state.show_sls splunk-otel-collector
 	salt-call --local pillar.items
+
+.PHONY: lint
+lint: dev-image
+	docker run \
+		--rm \
+		--name splunk-otel-collector-salt-dev \
+		splunk-otel-collector-salt-dev \
+		bash -c \
+		"salt-lint -v /srv/salt/splunk-otel-collector/*.sls; salt-call --local state.show_sls splunk-otel-collector; salt-call --local pillar.items;"

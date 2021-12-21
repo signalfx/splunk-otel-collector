@@ -38,3 +38,13 @@ services:
       - splunk
     ports:
       - 18088:8088
+  # OpenTelemetry Collector
+  otelcollector2:
+    image: quay.io/signalfx/splunk-otel-collector:0.29.0
+    container_name: otelcollector2
+    command: [ "--config=/etc/otel-collector-config.yml" ]
+    volumes:
+      - ./otel-collector-config2.yml:/etc/otel-collector-config.yml
+      - ./output:/output
+    depends_on:
+      - splunk

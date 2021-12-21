@@ -15,3 +15,9 @@ splunk:
             homePath: $SPLUNK_DB/logs2/db
             maxTotalDataSizeMB: 512000
             thawedPath: $SPLUNK_DB/logs2/thaweddb
+          logs_routing:
+            coldPath: $SPLUNK_DB/logs_routing/colddb
+            datatype: event
+            homePath: $SPLUNK_DB/logs_routing/db
+            maxTotalDataSizeMB: 512000
+            thawedPath: $SPLUNK_DB/logs_routing/thaweddb

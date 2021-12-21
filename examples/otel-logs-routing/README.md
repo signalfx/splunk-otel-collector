@@ -2,7 +2,11 @@
 
 This example showcases how the collector can collect data from files and route it to multiple destinations at once.
 
-For the purpose of demonstration, we made the collector feed data back to itself to show that it is possible to sequence multiple collectors and have them send data to each other.
+For the purpose of demonstration, we created two collectors.
+
+One collector collects data from a file, and sends it to Splunk with two different exporters, showing how it is possible to send to multiple Splunk instances with one collector.
+
+The collector also sends data to a second separate collector which is targeting Splunk with a different index.
 
 ![Data flow](flow.png)
 
@@ -18,3 +22,5 @@ $> docker-compose up
 Splunk will become available on port 18000. You can login on [http://localhost:18000](http://localhost:18000) with `admin` and `changeme`.
 
 Once logged in, visit the [search application](http://localhost:18000/en-US/app/search) to see the logs collected by Splunk.
+
+You will see that we used routing to send logs to three different indexes: `logs`, `logs2`, `logs_routing`.

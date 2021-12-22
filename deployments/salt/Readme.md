@@ -107,7 +107,7 @@ splunk-otel-collector:
   (**default:** `True`)
 
 - `td_agent_version`: Version of td-agent (fluentd package) that will be 
-  installed (**default:** `3.7.1-0` for Stretch, `4.1.1-1` for other Debian, and `4.1.1` for other distros`)
+  installed (**default:** `3.7.1-0` for Stretch, `4.1.1-1` for other Debian, and `4.1.1` for other distros)
 
 - `splunk_fluentd_config`: Path to the fluentd config file on the remote host.
   (**default:** `/etc/otel/collector/fluentd/fluent.conf`)

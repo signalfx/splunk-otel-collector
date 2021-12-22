@@ -35,7 +35,7 @@ splunk-otel-collector:
 
 ```
 
-## This  Salt Formula accepts the following attributes:
+## This Salt Formula accepts the following attributes:
 
 - `splunk_access_token` (**Required**): The Splunk access token to
   authenticate requests.

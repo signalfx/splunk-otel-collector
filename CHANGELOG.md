@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🚀 New components 🚀
+
+- [`docker_observer`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/dockerobserver) to detect and create container endpoints, to be used with the [`receiver_creator`](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/receivercreator).
+
 ### 💡 Enhancements 💡
 
 - Initial salt module for linux (#1050)

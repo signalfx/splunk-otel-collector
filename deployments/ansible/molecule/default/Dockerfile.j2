@@ -3,6 +3,8 @@ FROM geerlingguy/docker-{{ item.image }}-ansible:latest
 {% else %}
 {% if item.image == "opensuse12" %}
 FROM opensuse/leap:42
+RUN sed -i 's|download.opensuse.org|ftp5.gwdg.de/pub/opensuse/discontinued|' /etc/zypp/repos.d/*.repo
+RUN zypper -n clean && zypper -n refresh
 RUN zypper -n install -l ansible dbus-1 rpm-python sudo systemd-sysvinit
 {% else %}
 FROM opensuse/leap:15

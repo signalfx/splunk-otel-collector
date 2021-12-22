@@ -106,7 +106,7 @@ def test_salt_with_fluentd(distro):
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR) as container:
         try:
             for collector_version in ["0.34.0", "latest"]:
-                config = CONFIG.substitute(collector_version=collector_version, install_fluentd="True")
+                config = CONFIG.substitute(collector_version=collector_version, install_fluentd=True)
                 run_salt_apply(container, config)
                 verify_env_file(container)
                 assert wait_for(lambda: service_is_running(container))
@@ -133,7 +133,7 @@ def test_salt_without_fluentd(distro):
 
     with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR) as container:
         try:
-            config = CONFIG.substitute(collector_version="latest", install_fluentd="False")
+            config = CONFIG.substitute(collector_version="latest", install_fluentd=False)
             run_salt_apply(container, config)
             verify_env_file(container)
             assert wait_for(lambda: service_is_running(container))

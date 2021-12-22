@@ -1,6 +1,6 @@
 # Splunk OpenTelemetry Collector Salt Formula
 
-This Formula installs and configures Splunk OpenTelemetry Collector to
+This formula installs and configures Splunk OpenTelemetry Collector to
 collect metrics, traces and logs from Linux machines and send data to [Splunk 
 Observability Cloud](https://www.splunk.com/en_us/observability.html). 
 
@@ -10,7 +10,7 @@ Currently, the following Linux distributions and versions are supported:
 - Amazon Linux: 2
 - CentOS / Red Hat / Oracle: 7, 8
 - Debian: 9, 10
-- SUSE: 12, 15 (**Note:** Only for collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
+- SUSE: 12, 15 (**Note:** Only for collector versions v0.34.0 or higher. Log collection with fluentd not currently supported.)
 - Ubuntu: 16.04, 18.04, 20.04
 
 ## Prerequisites
@@ -45,7 +45,7 @@ splunk-otel-collector:
   Collector service. (**default:** `us0`)
 
 - `splunk_hec_token`: Set the Splunk HEC authentication token if different than
-  `splunk_access_token`. The `The SPLUNK_HEC_TOKEN` environment 
+  `splunk_access_token`. The `SPLUNK_HEC_TOKEN` environment 
   variable will be set with this value for the collector service. (**default:**
   `splunk_access_token`)
 

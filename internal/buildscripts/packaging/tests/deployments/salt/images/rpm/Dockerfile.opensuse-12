@@ -2,6 +2,8 @@ FROM opensuse/leap:42
 
 ENV container docker
 
+RUN sed -i 's|download.opensuse.org|ftp5.gwdg.de/pub/opensuse/discontinued|' /etc/zypp/repos.d/*.repo
+RUN zypper -n clean && zypper -n refresh
 RUN zypper -n install -l curl dbus-1 systemd-sysvinit tar wget python3-pip ca-certificates
 
 RUN zypper install -y salt salt-minion salt-master 

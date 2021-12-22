@@ -67,7 +67,7 @@ Add Splunk OpenTelemetry Collector repo to zypper source list:
         baseurl = {{ splunk_repo_base_url }}/otel-collector-rpm/{{ package_stage }}/$basearch/
         enabled = 1
         gpgcheck = 1
-        gpgkey = {{ splunk_repo_base_url }}/splunk/otel-collector-rpm/splunk-B3CD4420.pub
+        gpgkey = {{ splunk_repo_base_url }}/otel-collector-rpm/splunk-B3CD4420.pub
         name = Splunk OpenTelemetry Collector Repository
         type = rpm-md
     - makedirs: True

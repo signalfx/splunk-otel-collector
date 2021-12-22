@@ -96,11 +96,17 @@ Install capng_c fluentd plugin:
     - require:
       - pkg: Install FluentD Linux capability module dependencies
 
-Install fluent-plugin-systemd:
+Install FluentD systemd plugin:
   cmd.run:
     - name: td-agent-gem install fluent-plugin-systemd -v 1.0.1
     - require:
-      - pkg: Install FluentD systemd plugin
+      - pkg: Install FluentD Linux capability module dependencies
+
+Reload td-agent service:
+  cmd.run:
+    - name: systemctl daemon-reload
+    - onchanges:
+      - file: /etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf
 
 Start FluentD service:
   service.running:

@@ -100,7 +100,7 @@ Install fluent-plugin-systemd:
   cmd.run:
     - name: td-agent-gem install fluent-plugin-systemd -v 1.0.1
     - require:
-      - pkg: Install FluentD Linux capability module dependencies
+      - pkg: Install FluentD systemd plugin
 
 Start FluentD service:
   service.running:

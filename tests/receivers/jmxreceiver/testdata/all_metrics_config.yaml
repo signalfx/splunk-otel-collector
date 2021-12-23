@@ -6,6 +6,11 @@ receivers:
     password: cassandra
     username: cassandra
     collection_interval: 1s
+processors:
+  resource:
+    attributes:
+      - key: telemetry.sdk.version
+        action: delete
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -16,4 +21,5 @@ service:
   pipelines:
     metrics:
       receivers: [jmx]
+      processors: [resource]
       exporters: [otlp]

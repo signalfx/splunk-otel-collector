@@ -3,7 +3,6 @@ resource_metrics:
       service.name: unknown_service:java
       telemetry.sdk.language: java
       telemetry.sdk.name: opentelemetry
-      telemetry.sdk.version: 1.7.0
     instrumentation_library_metrics:
       - instrumentation_library:
           name: io.opentelemetry.contrib.jmxmetrics

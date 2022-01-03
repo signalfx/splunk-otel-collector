@@ -37,7 +37,7 @@ RUN if [ "$ARCH" = "amd64" ]; then \
     fi
 RUN find /usr/lib/splunk-otel-collector/agent-bundle -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 
-FROM debian:11.1 as journalctl
+FROM debian:11.2 as journalctl
 RUN apt update
 RUN apt install -y systemd
 COPY collect-libs.sh /collect-libs.sh

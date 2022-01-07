@@ -15,7 +15,7 @@ env:
   PIP_VERSION: 20.2.4
   REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
   RESULT_PATH: "~/testresults"
-  GO_VERSION: 1.17.2
+  GO_VERSION: 1.17.6
 
 jobs:
   setup-environment:

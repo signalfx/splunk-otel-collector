@@ -1822,8 +1822,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarde
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.41.0/go.mod h1:mZAeCRbmwVEuK1f1LDZTdi+RbHjBIjUbli4csu9jdEc=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.41.0 h1:8MrljIIJlH1UbbyeR26I3zLcFCTq1YzNM067RNn+Hgw=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.41.0/go.mod h1:fULIHnhf5twQSrokuBaGmzgr5EQsIi6+KcH82HcjZ9U=
-github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.41.0 h1:BdwmrO37BuWjQt569cgY6zF+cYl6CHHjPoBUCdK/zcg=
-github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.41.0/go.mod h1:o+YbLr/fKWPjstxfcE33DlTe3OnEPHiDZnolnyXvIOo=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.41.0 h1:Am1QYzUET2TQW3FK6cf71Ebc7hcOdWojg97zioSq/To=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.41.0/go.mod h1:HL+PQRzu0sXZmHsMBX/f3aDnGEgk00KDEj4K/kzmg+I=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.41.0 h1:MZEbMBw5HYPjuG9qqbSEmCix0et2MPETK0DnX9cT/eg=
@@ -1840,8 +1838,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.41.
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.41.0/go.mod h1:LqGFynCdFZlyBEnEiuJw6VK/ErAgsaIJjTpqmxeTkuc=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.41.0 h1:5UTs5KSdXBMJEQndt0HXn8xLV++pHBkPhmlbiQ67v9s=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.41.0/go.mod h1:p853VADd+4pfW9fPaCfEt4eD0PnHm7bVGriqjLF5rMk=
-github.com/open-telemetry/opentelemetry-collector-contrib/internal/docker v0.41.0 h1:PdYSTl51a+LzTvaKO1E8xbpQiCsa6/posv/ppwlpp6U=
-github.com/open-telemetry/opentelemetry-collector-contrib/internal/docker v0.41.0/go.mod h1:2aEJ5zZOu1B7ntD5tS2LII3H/PiiQNXfvjPN+qeZQ+A=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.41.0 h1:X2TOHfFm9cr1Q/rlaU+0f+fCMr7Vfl4jfrY/keoE2vQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.41.0/go.mod h1:/s7g3kFBhHAs4Qm07bm3oXqz0cjcmwpeaUlapTC+/6c=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.41.0 h1:Lst40Rc2fZ2AZsz81xqUPfTIz9TUVNLiAI58gfOr54U=

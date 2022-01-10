@@ -25,7 +25,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configtest"
+	"go.opentelemetry.io/collector/service/servicetest"
 )
 
 func TestBundleDirDefault(t *testing.T) {
@@ -34,7 +34,7 @@ func TestBundleDirDefault(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Extensions[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "config.yaml"), factories,
 	)
 

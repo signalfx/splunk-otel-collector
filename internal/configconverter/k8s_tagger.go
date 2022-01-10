@@ -24,7 +24,11 @@ import (
 )
 
 // RenameK8sTagger will replace k8s_tagger processor items with k8sattributes ones.
-func RenameK8sTagger(in *config.Map) *config.Map {
+func RenameK8sTagger(in *config.Map) error {
+	if in == nil {
+		return fmt.Errorf("cannot RenameK8sTagger on nil *config.Map")
+	}
+
 	tagger := "k8s_tagger(/\\w+:{0,2})?"
 	taggerRe, _ := regexp.Compile(tagger)
 	keyExpr := fmt.Sprintf("processors::%s(.+)?", tagger)
@@ -64,5 +68,6 @@ func RenameK8sTagger(in *config.Map) *config.Map {
 			out.Set(k, v)
 		}
 	}
-	return out
+	*in = *out
+	return nil
 }

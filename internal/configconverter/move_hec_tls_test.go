@@ -15,24 +15,20 @@
 package configconverter
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/configmapprovider"
+	"go.opentelemetry.io/collector/config/configtest"
 )
 
 func TestMoveHecTLS(t *testing.T) {
-	cp := &converterProvider{
-		wrapped:     configmapprovider.NewFile("testdata/hec-tls.yaml"),
-		cfgMapFuncs: []CfgMapFunc{MoveHecTLS},
-	}
-	r, err := cp.Retrieve(context.Background(), nil)
+	cfgMap, err := configtest.LoadConfigMap("testdata/hec-tls.yaml")
 	require.NoError(t, err)
+	require.NotNil(t, cfgMap)
 
-	cfgMap, err := r.Get(context.Background())
-	require.NoError(t, err)
+	MoveHecTLS(cfgMap)
+
 	assert.False(t, cfgMap.IsSet("exporters::splunk_hec::ca_file"))
 	assert.True(t, true, cfgMap.Get("exporters::splunk_hec::tls::insecure_skip_verify"))
 	assert.Equal(t, "my-ca-file-1", cfgMap.Get("exporters::splunk_hec::tls::ca_file"))

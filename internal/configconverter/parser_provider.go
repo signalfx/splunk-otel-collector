@@ -72,3 +72,41 @@ func (p *converterProvider) Get(ctx context.Context) (*config.Map, error) {
 func (p *converterProvider) Close(ctx context.Context) error {
 	return nil
 }
+
+func replaceArray(in []interface{}, f func(string) string) []interface{} {
+	var out []interface{}
+	for _, o := range in {
+		var replaced interface{}
+		switch v := o.(type) {
+		case string:
+			replaced = f(v)
+		case map[string]interface{}:
+			replaced = replaceMap(v, f)
+		case []interface{}:
+			replaced = replaceArray(v, f)
+		default:
+			replaced = o
+		}
+		out = append(out, replaced)
+	}
+	return out
+}
+
+func replaceMap(in map[string]interface{}, f func(string) string) map[string]interface{} {
+	out := map[string]interface{}{}
+	for k, o := range in {
+		var replaced interface{}
+		switch v := o.(type) {
+		case string:
+			replaced = f(v)
+		case map[string]interface{}:
+			replaced = replaceMap(v, f)
+		case []interface{}:
+			replaced = replaceArray(v, f)
+		default:
+			replaced = o
+		}
+		out[k] = replaced
+	}
+	return out
+}

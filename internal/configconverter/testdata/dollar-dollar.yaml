@@ -6,6 +6,16 @@ receivers:
   redis:
     password: $$ecret
     host: "ho$$tname:$${env:PORT}"
+processors:
+  metricstransform:
+    transforms:
+      - action: update
+        include: .*
+        match_type: regexp
+        operations:
+          - action: add_label
+            new_label: myvar
+            new_value: $${env:MYVAR}
 exporters:
   otlp:
     endpoint: localhost:$${env:OTLP_PORT}
@@ -15,5 +25,7 @@ service:
     metrics:
       receivers:
         - hostmetrics
+      processors:
+        - metricstransform
       exporters:
         - otlp

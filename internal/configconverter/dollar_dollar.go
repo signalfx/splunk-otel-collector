@@ -26,14 +26,21 @@ import (
 // in how the Collector expanded these variables.
 func ReplaceDollarDollar(m *config.Map) *config.Map {
 	re := dollarDollarRegex()
+	replace := func(s string) string {
+		return replaceDollarDollar(re, s)
+	}
 	for _, k := range m.AllKeys() {
-		v := m.Get(k)
-		if s, ok := v.(string); ok {
-			replaced := replaceDollarDollar(re, s)
-			if replaced != s {
-				log.Printf("[WARNING] the notation %q is no longer recommended. Please replace with %q.\n", v, replaced)
+		switch v := m.Get(k).(type) {
+		case string:
+			replaced := replace(v)
+			if replaced != v {
+				format := "[WARNING] the notation %q is no longer recommended. Please replace with %q.\n"
+				log.Printf(format, v, replaced)
 				m.Set(k, replaced)
 			}
+		case []interface{}:
+			replaced := replaceArray(v, replace)
+			m.Set(k, replaced)
 		}
 	}
 	return m

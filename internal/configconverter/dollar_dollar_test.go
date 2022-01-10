@@ -24,22 +24,29 @@ import (
 )
 
 func TestReplaceDollarDollar(t *testing.T) {
-	pp := &converterProvider{
+	p := &converterProvider{
 		wrapped:     configmapprovider.NewFile("testdata/dollar-dollar.yaml"),
 		cfgMapFuncs: []CfgMapFunc{ReplaceDollarDollar},
 	}
-	r, err := pp.Retrieve(context.Background(), nil)
+	r, err := p.Retrieve(context.Background(), nil)
 	require.NoError(t, err)
-	v, err := r.Get(context.Background())
+	cfgMap, err := r.Get(context.Background())
 	require.NoError(t, err)
-	endpt := v.Get("exporters::otlp::endpoint")
+	endpt := cfgMap.Get("exporters::otlp::endpoint")
 	assert.Equal(t, "localhost:${env:OTLP_PORT}", endpt)
-	insecure := v.Get("exporters::otlp::insecure")
+	insecure := cfgMap.Get("exporters::otlp::insecure")
 	assert.Equal(t, "$OTLP_INSECURE", insecure)
-	pwd := v.Get("receivers::redis::password")
+	pwd := cfgMap.Get("receivers::redis::password")
 	assert.Equal(t, "$$ecret", pwd)
-	host := v.Get("receivers::redis::host")
+	host := cfgMap.Get("receivers::redis::host")
 	assert.Equal(t, "ho$$tname:${env:PORT}", host)
+	v := cfgMap.Get("processors::metricstransform::transforms").([]interface{})[0]
+	transforms := v.(map[string]interface{})
+	operations := transforms["operations"].([]interface{})
+	op0 := operations[0].(map[string]interface{})
+	assert.Equal(t, "${env:MYVAR}", op0["new_value"])
+	op1 := operations[0].(map[string]interface{})
+	assert.Equal(t, "yyy${env:MYVAR}zzz", op1["new_value"])
 }
 
 func TestRegexReplace(t *testing.T) {

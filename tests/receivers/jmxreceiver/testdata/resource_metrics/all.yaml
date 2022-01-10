@@ -6,7 +6,6 @@ resource_metrics:
     instrumentation_library_metrics:
       - instrumentation_library:
           name: io.opentelemetry.contrib.jmxmetrics
-          version: 1.7.0
         metrics:
           - name: jvm.gc.collections.elapsed
             description: the approximate accumulated collection elapsed time in milliseconds

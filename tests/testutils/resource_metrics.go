@@ -200,7 +200,24 @@ func (instrumentationLibrary InstrumentationLibrary) Hash() string {
 // Determines the equivalence of two InstrumentationLibrary items.
 // TODO: ensure that Resource.Hash equivalence is valid given all possible Attribute values.
 func (instrumentationLibrary InstrumentationLibrary) Equals(toCompare InstrumentationLibrary) bool {
-	return instrumentationLibrary.Name == toCompare.Name && instrumentationLibrary.Version == toCompare.Version
+	return instrumentationLibrary.equals(toCompare, true)
+}
+
+// Confirms that all defined fields in receiver InstrumentationLibrary items are matched in toCompare, ignoring those not set with the
+// exception of items.  All receiver InstrumentationLibrary items must be equal with those of the candidate to match.
+func (instrumentationLibrary InstrumentationLibrary) RelaxedEquals(toCompare InstrumentationLibrary) bool {
+	return instrumentationLibrary.equals(toCompare, false)
+}
+
+// Determines if receiver InstrumentationLibrary items is equal to toCompare InstrumentationLibrary items, relaxed if not strict
+func (instrumentationLibrary InstrumentationLibrary) equals(toCompare InstrumentationLibrary, strict bool) bool {
+	if instrumentationLibrary.Name != toCompare.Name && (strict || toCompare.Name != "") {
+		return false
+	}
+	if instrumentationLibrary.Version != toCompare.Version && (strict || toCompare.Version != "") {
+		return false
+	}
+	return true
 }
 
 func (metric Metric) String() string {
@@ -360,7 +377,7 @@ func (received ResourceMetrics) ContainsAll(expected ResourceMetrics) (bool, err
 				for _, expectedILM := range expectedResourceMetric.ILMs {
 					instrumentationLibraryMatched := false
 					for _, ilm := range resourceMetric.ILMs {
-						if ilm.InstrumentationLibrary.Equals(expectedILM.InstrumentationLibrary) {
+						if ilm.InstrumentationLibrary.RelaxedEquals(expectedILM.InstrumentationLibrary) {
 							instrumentationLibraryMatched = true
 							for _, expectedMetric := range expectedILM.Metrics {
 								metricFound := false

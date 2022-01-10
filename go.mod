@@ -419,4 +419,7 @@ replace (
 )
 
 // security updates
-replace github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.3
+replace (
+	github.com/containerd/containerd => github.com/containerd/containerd v1.5.9
+	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.3
+)

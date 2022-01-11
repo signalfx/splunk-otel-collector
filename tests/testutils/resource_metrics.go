@@ -20,8 +20,6 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"sort"
-	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -148,33 +146,12 @@ func (resourceMetrics ResourceMetrics) Validate() error {
 	return nil
 }
 
-// Returns a new map of interface{} from a map of strings.
-func toInterfaceMap(stringMap map[string]string) map[string]interface{} {
-	interfaceMap := map[string]interface{}{}
-	for k, v := range stringMap {
-		interfaceMap[k] = v
-	}
-	return interfaceMap
-}
-
-// Provides a string generally capable of identifying a given map of interface{},
-// generated from its sorted, colon-separated content.  Used in determining item hashes.
-// Nested map use cases (e.g. deep Resource Attributes) require enhancement.
-func MapToString(toHash map[string]interface{}) string {
-	var keys []string
-	for k := range toHash {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	var toJoin []string
-	for _, k := range keys {
-		toJoin = append(toJoin, fmt.Sprintf("%s:%v", k, toHash[k]))
-	}
-	return strings.Join(toJoin, ":")
-}
-
 func (resource Resource) String() string {
-	return MapToString(resource.Attributes)
+	out, err := yaml.Marshal(resource.Attributes)
+	if err != nil {
+		panic(err)
+	}
+	return string(out)
 }
 
 // Provides an md5 hash determined by Resource content.
@@ -189,7 +166,11 @@ func (resource Resource) Equals(toCompare Resource) bool {
 }
 
 func (instrumentationLibrary InstrumentationLibrary) String() string {
-	return fmt.Sprintf("%s:%s", instrumentationLibrary.Name, instrumentationLibrary.Version)
+	out, err := yaml.Marshal(instrumentationLibrary)
+	if err != nil {
+		panic(err)
+	}
+	return string(out)
 }
 
 // Provides an md5 hash determined by InstrumentationLibrary fields.
@@ -204,15 +185,11 @@ func (instrumentationLibrary InstrumentationLibrary) Equals(toCompare Instrument
 }
 
 func (metric Metric) String() string {
-	var labels string
-	if metric.Labels != nil {
-		labels = MapToString(toInterfaceMap(*metric.Labels))
+	out, err := yaml.Marshal(metric)
+	if err != nil {
+		panic(err)
 	}
-	return fmt.Sprintf(
-		"%v:%v:%v:%v:%v:%v:%v",
-		metric.Name, metric.Description, metric.Unit,
-		metric.Description, labels, metric.Type, metric.Value,
-	)
+	return string(out)
 }
 
 // Provides an md5 hash determined by Metric content.

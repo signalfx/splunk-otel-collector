@@ -42,6 +42,7 @@ type Config struct {
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
 	Endpoint         string   `mapstructure:"endpoint"`
 	DimensionClients []string `mapstructure:"dimensionClients"`
+	acceptsEndpoints bool
 }
 
 func (cfg *Config) validate() error {
@@ -110,9 +111,16 @@ func (cfg *Config) Unmarshal(componentParser *config.Map) error {
 		return fmt.Errorf("failed setting Smart Agent Monitor config defaults: %w", err)
 	}
 
-	err = setHostAndPortViaEndpoint(cfg.Endpoint, monitorConfig)
+	cfg.acceptsEndpoints, err = monitorAcceptsEndpoints(monitorConfig)
 	if err != nil {
 		return err
+	}
+
+	if cfg.acceptsEndpoints {
+		err = setHostAndPortViaEndpoint(cfg.Endpoint, monitorConfig)
+		if err != nil {
+			return err
+		}
 	}
 
 	cfg.monitorConfig = monitorConfig.(saconfig.MonitorCustomConfig)
@@ -177,4 +185,14 @@ func setHostAndPortViaEndpoint(endpoint string, monitorConfig interface{}) error
 	}
 
 	return nil
+}
+
+// Monitors can only set the "Host" and "Port" fields if they accept endpoints,
+// which is defined as a struct tag for each monitor config.
+func monitorAcceptsEndpoints(monitorConfig interface{}) (bool, error) {
+	field, ok := reflect.TypeOf(monitorConfig).Elem().FieldByName("MonitorConfig")
+	if !ok {
+		return false, fmt.Errorf("could not reflect monitor config, top level MonitorConfig does not exist")
+	}
+	return field.Tag.Get("acceptsEndpoints") == strconv.FormatBool(true), nil
 }

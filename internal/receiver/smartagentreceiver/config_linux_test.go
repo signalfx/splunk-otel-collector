@@ -61,6 +61,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 			Port: 6379,
 			URL:  "http://{{.Host}}:{{.Port}}/mod_status?auto",
 		},
+		acceptsEndpoints: true,
 	}, apacheCfg)
 	require.NoError(t, apacheCfg.validate())
 
@@ -80,6 +81,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 			},
 			ClusterName: "somecluster",
 		},
+		acceptsEndpoints: true,
 	}, kafkaCfg)
 	require.NoError(t, kafkaCfg.validate())
 
@@ -95,6 +97,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 			Host: "localhost",
 			Port: 5309,
 		},
+		acceptsEndpoints: true,
 	}, memcachedCfg)
 	require.NoError(t, memcachedCfg.validate())
 
@@ -109,6 +112,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 			},
 			Path: "/status",
 		},
+		acceptsEndpoints: true,
 	}, phpCfg)
 	require.NoError(t, phpCfg.validate())
 }

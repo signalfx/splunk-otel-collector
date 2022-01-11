@@ -1,0 +1,28 @@
+name: salt-lint-test
+
+# Only run tests for main branch or if the PR has relevant changes
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '.github/workflows/salt-lint-test.yml'
+      - 'deployments/salt/**'
+      - 'internal/buildscripts/packaging/tests/**'
+
+concurrency:
+  group: salt-lint-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  salt-lint-test:
+    name: salt-lint-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Lint
+        run: |
+          make -C deployments/salt lint

@@ -1,0 +1,17 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: system.memory.usage
+            type: IntGauge
+            labels:
+              state: used
+              single-dollar: -suffix
+              double-dollar: an-envvar-value-suffix
+              triple-dollar: suffix
+              quadruple-dollar: ${env:AN_ENVVAR}-suffix
+              quintuple-dollar: $-suffix
+              sextuple-dollar: $an-envvar-value-suffix
+              septuple-dollar: $suffix
+              octuple-dollar: $${env:AN_ENVVAR}-suffix
+              nonuple-dollar: $$-suffix
+              decuple-dollar: $$an-envvar-value-suffix

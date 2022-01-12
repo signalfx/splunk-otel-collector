@@ -1,0 +1,93 @@
+receivers:
+  hostmetrics:
+    collection_interval: 2s
+    scrapers:
+      memory:
+processors:
+  filter:
+    metrics:
+      include:
+        match_type: strict
+        metric_names:
+          - system.memory.usage
+  metricstransform:
+    transforms:
+      - action: update
+        include: .*
+        match_type: regexp
+        operations:
+          - action: add_label
+            new_label: single-dollar-no-curly-braces
+            new_value: $AN_ENVVAR-suffix
+          - action: add_label
+            new_label: single-dollar-curly-braces
+            new_value: ${AN_ENVVAR}-suffix
+          - action: add_label
+            new_label: double-dollar-no-curly-braces
+            new_value: $$AN_ENVVAR-suffix
+          - action: add_label
+            new_label: double-dollar-curly-braces
+            new_value: $${AN_ENVVAR}-suffix
+          - action: add_label
+            new_label: triple-dollar-no-curly-braces
+            new_value: $$$AN_ENVVAR-suffix
+          - action: add_label
+            new_label: triple-dollar-curly-braces
+            new_value: $$${AN_ENVVAR}-suffix
+          - action: add_label
+            new_label: quadruple-dollar-no-curly-braces
+            new_value: $$$$AN_ENVVAR-suffix
+          - action: add_label
+            new_label: quadruple-dollar-curly-braces
+            new_value: $$$${AN_ENVVAR}-suffix
+          - action: add_label
+            new_label: quintuple-dollar-no-curly-braces
+            new_value: $$$$$AN_ENVVAR-suffix
+          - action: add_label
+            new_label: quintuple-dollar-curly-braces
+            new_value: $$$$${AN_ENVVAR}-suffix
+          - action: add_label
+            new_label: sextuple-dollar-no-curly-braces
+            new_value: $$$$$$AN_ENVVAR-suffix
+          - action: add_label
+            new_label: sextuple-dollar-curly-braces
+            new_value: $$$$$${AN_ENVVAR}-suffix
+          - action: add_label
+            new_label: septuple-dollar-no-curly-braces
+            new_value: $$$$$$$AN_ENVVAR-suffix
+          - action: add_label
+            new_label: septuple-dollar-curly-braces
+            new_value: $$$$$$${AN_ENVVAR}-suffix
+          - action: add_label
+            new_label: octuple-dollar-no-curly-braces
+            new_value: $$$$$$$$AN_ENVVAR-suffix
+          - action: add_label
+            new_label: octuple-dollar-curly-braces
+            new_value: $$$$$$$${AN_ENVVAR}-suffix
+          - action: add_label
+            new_label: nonuple-dollar-no-curly-braces
+            new_value: $$$$$$$$$AN_ENVVAR-suffix
+          - action: add_label
+            new_label: nonuple-dollar-curly-braces
+            new_value: $$$$$$$$${AN_ENVVAR}-suffix
+          - action: add_label
+            new_label: decuple-dollar-no-curly-braces
+            new_value: $$$$$$$$$$AN_ENVVAR-suffix
+          - action: add_label
+            new_label: decuple-dollar-curly-braces
+            new_value: $$$$$$$$$${AN_ENVVAR}-suffix
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - hostmetrics
+      processors:
+        - filter
+        - metricstransform
+      exporters:
+        - otlp

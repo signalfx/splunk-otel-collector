@@ -311,12 +311,12 @@ func TestHashFunctionConsistency(t *testing.T) {
 		"one": "1", "two": 2, "three": 3.000, "four": false, "five": nil,
 	}}
 	for i := 0; i < 100; i++ {
-		require.Equal(t, "1f16e8e05a479e68c4fa5950471169e4", resource.Hash())
+		require.Equal(t, "d3b92e5ff5847c43f397d5856f14c607", resource.Hash())
 	}
 
 	il := InstrumentationLibrary{Name: "some instrumentation library", Version: "some instrumentation version"}
 	for i := 0; i < 100; i++ {
-		require.Equal(t, "74ad4f0b1d06de1b45484cdbcfdd62db", il.Hash())
+		require.Equal(t, "aa00805240d9717e6db7a0d88cf5e2ba", il.Hash())
 	}
 
 	metric := Metric{
@@ -326,7 +326,7 @@ func TestHashFunctionConsistency(t *testing.T) {
 		}, Type: MetricType("some metric type"), Value: 123.456,
 	}
 	for i := 0; i < 100; i++ {
-		require.Equal(t, "a481752281903890feb2c149573e0eaa", metric.Hash())
+		require.Equal(t, "bc1b2f51347bc933ab9f51150db425c0", metric.Hash())
 	}
 }
 
@@ -429,7 +429,7 @@ func TestContainsAllNoBijection(t *testing.T) {
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(),
-		"Missing Metrics: [another_int_gauge:::::IntGauge:456 another_double_gauge:::::DoubleGauge:567.89]",
+		"Missing Metrics: [name: another_int_gauge\ntype: IntGauge\nvalue: 456\n name: another_double_gauge\ntype: DoubleGauge\nvalue: 567.89\n]",
 	)
 }
 
@@ -443,7 +443,7 @@ func TestContainsAllValueNeverReceived(t *testing.T) {
 	containsAll, err := received.ContainsAll(*expected)
 	require.False(t, containsAll)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Missing Metrics: [another_int_gauge:::::IntGauge:111]")
+	require.Contains(t, err.Error(), "Missing Metrics: [name: another_int_gauge\ntype: IntGauge\nvalue: 111\n]")
 }
 
 func TestContainsAllInstrumentationLibraryNeverReceived(t *testing.T) {
@@ -456,7 +456,7 @@ func TestContainsAllInstrumentationLibraryNeverReceived(t *testing.T) {
 	containsAll, err := received.ContainsAll(*expected)
 	require.False(t, containsAll)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Missing InstrumentationLibraries: [unmatched_instrumentation_library:]")
+	require.Contains(t, err.Error(), "Missing InstrumentationLibraries: [name: unmatched_instrumentation_library\n]")
 }
 
 func TestContainsAllResourceNeverReceived(t *testing.T) {
@@ -469,7 +469,7 @@ func TestContainsAllResourceNeverReceived(t *testing.T) {
 	containsAll, err := received.ContainsAll(*expected)
 	require.False(t, containsAll)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Missing resources: [not:matched]")
+	require.Contains(t, err.Error(), "Missing resources: [not: matched\n]")
 }
 
 func TestContainsAllWithMissingAndEmptyLabels(t *testing.T) {
@@ -492,5 +492,5 @@ func TestContainsAllWithMissingAndEmptyLabels(t *testing.T) {
 	containsAll, err = received.ContainsAll(*empty)
 	require.False(t, containsAll)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Missing Metrics: [another_int_gauge:::::IntGauge:111]")
+	require.Contains(t, err.Error(), "Missing Metrics: [name: another_int_gauge\nlabels: {}\ntype: IntGauge\nvalue: 111\n]")
 }

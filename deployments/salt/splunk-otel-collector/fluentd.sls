@@ -85,7 +85,7 @@ Install FluentD:
 /etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf:
   file.managed:
     - contents: |
-        [service]
+        [Service]
         Environment=FLUENT_CONF={{ splunk_fluentd_config }}
     - makedirs: True
     - mode: '0644'
@@ -107,9 +107,3 @@ Reload td-agent service:
     - name: systemctl daemon-reload
     - onchanges:
       - file: /etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf
-
-Start FluentD service:
-  service.running:
-    - name: td-agent
-    - require:
-      - pkg: Install FluentD

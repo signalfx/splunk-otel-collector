@@ -14,4 +14,15 @@ Push custom FluentD config, if provided:
     - user: td-agent
     - group: td-agent
 
+{% else %}
+
+Copy FluentD config:
+  file.copy:
+    - name: {{ splunk_fluentd_config }}
+    - source: /etc/otel/collector/fluentd/fluent.conf
+    - mode: '0644'
+    - makedirs: true
+    - user: td-agent
+    - group: td-agent
+
 {% endif %}

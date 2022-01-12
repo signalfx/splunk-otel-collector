@@ -28,6 +28,7 @@ include:
   - splunk-otel-collector.service
   - splunk-otel-collector.fluentd
   - splunk-otel-collector.fluentd_config
+  - splunk-otel-collector.fluentd_service
 {% endif %}
 
 {% endif %}

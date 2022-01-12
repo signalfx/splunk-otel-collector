@@ -14,7 +14,22 @@ Push custom config for Splunk Otel Collector, if provided:
     - source: {{ splunk_otel_collector_config_source }}
     - user: {{ splunk_service_user }}
     - group: {{ splunk_service_group }}
-    - mode: '0600'
+    - mode: '0644'
+    - makedirs: True
+    - template: jinja
+    - watch:
+      - user: splunk_service_user
+      - group: splunk_service_group
+
+{% else %}
+
+Copy default config for Splunk Otel Collector:
+  file.copy:
+    - name: {{ splunk_otel_collector_config }}
+    - source: /etc/otel/collector/agent_config.yaml
+    - user: {{ splunk_service_user }}
+    - group: {{ splunk_service_group }}
+    - mode: '0644'
     - makedirs: True
     - template: jinja
     - watch:

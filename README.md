@@ -52,7 +52,7 @@ Collector](https://github.com/open-telemetry/opentelemetry-collector). It
 provides a unified way to receive, process, and export metric, trace, and log
 data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability.html):
 
-- [Splunk APM](https://www.splunk.com/en_us/software/splunk-apm.html) via the
+- [Splunk APM](https://docs.splunk.com/Observability/apm/intro-to-apm.html#nav-Introduction-to-Splunk-APM) via the
   [`sapm`
   exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter).
   The [`otlphttp`
@@ -60,14 +60,14 @@ data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability
   can be used with a [custom
   configuration](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/otlp_config_linux.yaml).
   More information available
-  [here](https://docs.signalfx.com/en/latest/apm/apm-getting-started/apm-opentelemetry-collector.html).
+  [here](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html#nav-Install-and-configure-Splunk-Distribution-of-OpenTelemetry-Collector).
 - [Splunk Infrastructure
-  Monitoring](https://www.splunk.com/en_us/software/infrastructure-monitoring.html)
+  Monitoring](https://docs.splunk.com/Observability/infrastructure/intro-to-infrastructure.html#nav-Introduction-to-Splunk-Infrastructure-Monitoring)
   via the [`signalfx`
   exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter).
   More information available
-  [here](https://docs.signalfx.com/en/latest/otel/imm-otel-collector.html).
-- [Splunk Log Observer](https://www.splunk.com/en_us/form/splunk-log-observer.html) via
+  [here](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html#nav-Install-and-configure-Splunk-Distribution-of-OpenTelemetry-Collector).
+- [Splunk Log Observer](https://docs.splunk.com/Observability/logs/intro-to-logs.html#nav-Introduction-to-Splunk-Log-Observer) via
   the [`splunk_hec`
   exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
 

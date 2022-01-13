@@ -18,7 +18,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -29,6 +28,7 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configmapprovider"
+	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"go.opentelemetry.io/collector/service"
 	"go.uber.org/zap"
 
@@ -82,20 +82,21 @@ func main() {
 		Version: version.Version,
 	}
 
-	parserProvider := configprovider.NewConfigSourceParserProvider(
-		newBaseParserProvider(),
+	configMapProviderFromConfigSources := configprovider.NewConfigSourceConfigMapProvider(
+		baseConfigMapProviders(),
 		zap.NewNop(), // The service logger is not available yet, setting it to NoP.
 		info,
 		configsources.Get()...,
 	)
+
+	var configMapConverters []service.ConfigMapConverterFunc
 
 	const noConvertConfigFlag = "--no-convert-config"
 	if hasFlag(noConvertConfigFlag) {
 		// the collector complains about this flag if we don't remove it
 		removeFlag(&os.Args, noConvertConfigFlag)
 	} else {
-		parserProvider = configconverter.ParserProvider(
-			parserProvider,
+		configMapConverters = append(configMapConverters,
 			configconverter.RemoveBallastKey,
 			configconverter.MoveOTLPInsecureKey,
 			configconverter.MoveHecTLS,
@@ -103,10 +104,16 @@ func main() {
 		)
 	}
 
+	serviceConfigProvider := service.NewConfigProvider(
+		[]configmapprovider.Provider{configMapProviderFromConfigSources},
+		configMapConverters,
+		configunmarshaler.NewDefault(),
+	)
+
 	serviceParams := service.CollectorSettings{
-		BuildInfo:         info,
-		Factories:         factories,
-		ConfigMapProvider: parserProvider,
+		BuildInfo:      info,
+		Factories:      factories,
+		ConfigProvider: serviceConfigProvider,
 	}
 
 	if err := run(serviceParams); err != nil {
@@ -370,8 +377,8 @@ func setDefaultEnvVars() {
 	}
 }
 
-// Returns a ParserProvider that reads configuration YAML from an environment variable when applicable.
-func newBaseParserProvider() configmapprovider.Provider {
+// Returns a []configmapprovider.Provider for reading from yaml env var or config path and set properties
+func baseConfigMapProviders() []configmapprovider.Provider {
 	var configPath string
 	var ok bool
 	if ok, configPath = getKeyValue(os.Args[1:], "--config"); !ok {
@@ -380,10 +387,13 @@ func newBaseParserProvider() configmapprovider.Provider {
 	configYaml := os.Getenv(configYamlEnvVarName)
 
 	if configPath == "" && configYaml != "" {
-		return configmapprovider.NewExpand(configmapprovider.NewInMemory(bytes.NewBufferString(configYaml)))
+		return []configmapprovider.Provider{configmapprovider.NewEnv(configYamlEnvVarName)}
 	}
 
-	return configmapprovider.NewDefault(configPath, getSetProperties())
+	return []configmapprovider.Provider{
+		configmapprovider.NewFile(configPath),
+		configmapprovider.NewProperties(getSetProperties()),
+	}
 }
 
 func runInteractive(settings service.CollectorSettings) error {

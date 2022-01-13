@@ -22,7 +22,11 @@ import (
 	"go.opentelemetry.io/collector/config"
 )
 
-func MoveOTLPInsecureKey(in *config.Map) *config.Map {
+func MoveOTLPInsecureKey(in *config.Map) error {
+	if in == nil {
+		return fmt.Errorf("cannot MoveOTLPInsecureKey on nil *config.Map")
+	}
+
 	const expr = "exporters::otlp(/\\w+)?::insecure"
 	insecureRE, _ := regexp.Compile(expr)
 	out := config.NewMap()
@@ -44,5 +48,7 @@ func MoveOTLPInsecureKey(in *config.Map) *config.Map {
 			"deprecated. Please update the config according to the guideline: " +
 			"https://github.com/signalfx/splunk-otel-collector#from-0350-to-0360.")
 	}
-	return out
+
+	*in = *out
+	return nil
 }

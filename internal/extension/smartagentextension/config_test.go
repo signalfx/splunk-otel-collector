@@ -30,6 +30,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtest"
+	"go.opentelemetry.io/collector/service/servicetest"
 )
 
 var tru = true
@@ -41,7 +42,7 @@ func TestLoadConfig(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Extensions[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "config.yaml"), factories,
 	)
 
@@ -109,7 +110,7 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Extensions[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "config.yaml"), factories,
 	)
 
@@ -153,7 +154,7 @@ func TestLoadInvalidConfig(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Extensions[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "invalid_config.yaml"), factories,
 	)
 

@@ -58,3 +58,24 @@ func TestExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
 	expectedResourceMetrics := tc.ResourceMetrics("env_config_source_labels.yaml")
 	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
+
+func TestIncompatibleExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPMetricsReceiverSink()
+
+	tc.SkipIfNotContainer()
+
+	_, shutdown := tc.SplunkOtelCollectorWithEnv(
+		"env_config_source_labels.yaml",
+		map[string]string{
+			"SPLUNK_DOUBLE_DOLLAR_CONFIG_SOURCE_COMPATIBLE": "false",
+			"AN_ENVVAR": "an-envvar-value",
+		},
+	)
+
+	defer shutdown()
+
+	expectedResourceMetrics := tc.ResourceMetrics("incompat_env_config_source_labels.yaml")
+	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+}

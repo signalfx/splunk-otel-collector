@@ -22,7 +22,11 @@ import (
 	"go.opentelemetry.io/collector/config"
 )
 
-func MoveHecTLS(in *config.Map) *config.Map {
+func MoveHecTLS(in *config.Map) error {
+	if in == nil {
+		return fmt.Errorf("cannot MoveHecTLS on nil *config.Map")
+	}
+
 	const expression = "exporters::splunk_hec(/\\w+)?::(insecure_skip_verify|ca_file|cert_file|key_file)"
 	re, _ := regexp.Compile(expression)
 	out := config.NewMap()
@@ -46,5 +50,7 @@ func MoveHecTLS(in *config.Map) *config.Map {
 				"https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/5433",
 		)
 	}
-	return out
+
+	*in = *out
+	return nil
 }

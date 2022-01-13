@@ -7,21 +7,22 @@ resource_metrics:
               state: used
               single-dollar-no-curly-braces: an-envvar-value-suffix
               single-dollar-curly-braces: an-envvar-value-suffix
-              double-dollar-no-curly-braces: an-envvar-value-suffix
-              double-dollar-curly-braces: an-envvar-value-suffix
-              triple-dollar-no-curly-braces: -envvar-value-suffix
-              triple-dollar-curly-braces: -envvar-value-suffix
-              quadruple-dollar-no-curly-braces: $AN_ENVVAR-suffix
-              quadruple-dollar-curly-braces: ${AN_ENVVAR}-suffix
-              quintuple-dollar-no-curly-braces: $an-envvar-value-suffix
-              quintuple-dollar-curly-braces: $an-envvar-value-suffix
-              sextuple-dollar-no-curly-braces: $an-envvar-value-suffix
-              sextuple-dollar-curly-braces: $an-envvar-value-suffix
-              septuple-dollar-no-curly-braces: $-envvar-value-suffix
-              septuple-dollar-curly-braces: $-envvar-value-suffix
-              octuple-dollar-no-curly-braces: $$AN_ENVVAR-suffix
-              octuple-dollar-curly-braces: $${AN_ENVVAR}-suffix
-              nonuple-dollar-no-curly-braces: $$an-envvar-value-suffix
-              nonuple-dollar-curly-braces: $$an-envvar-value-suffix
-              decuple-dollar-no-curly-braces: $$an-envvar-value-suffix
-              decuple-dollar-curly-braces: $$an-envvar-value-suffix
+              double-dollar-no-curly-braces: $AN_ENVVAR-suffix
+              double-dollar-curly-braces: ${AN_ENVVAR}-suffix
+              triple-dollar-no-curly-braces: $an-envvar-value-suffix
+              triple-dollar-curly-braces: $an-envvar-value-suffix
+              quadruple-dollar-no-curly-braces: $$AN_ENVVAR-suffix
+              quadruple-dollar-curly-braces: $${AN_ENVVAR}-suffix
+              quintuple-dollar-no-curly-braces: $$an-envvar-value-suffix
+              quintuple-dollar-curly-braces: $$an-envvar-value-suffix
+              sextuple-dollar-no-curly-braces: $$$AN_ENVVAR-suffix
+              sextuple-dollar-curly-braces: $$${AN_ENVVAR}-suffix
+              septuple-dollar-no-curly-braces: $$$an-envvar-value-suffix
+              septuple-dollar-curly-braces: $$$an-envvar-value-suffix
+              octuple-dollar-no-curly-braces: $$$$AN_ENVVAR-suffix
+              octuple-dollar-curly-braces: $$$${AN_ENVVAR}-suffix
+              nonuple-dollar-no-curly-braces: $$$$an-envvar-value-suffix
+              nonuple-dollar-curly-braces: $$$$an-envvar-value-suffix
+              decuple-dollar-no-curly-braces: $$$$$AN_ENVVAR-suffix
+              decuple-dollar-curly-braces: $$$$${AN_ENVVAR}-suffix
+

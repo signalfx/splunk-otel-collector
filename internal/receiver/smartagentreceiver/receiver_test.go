@@ -34,9 +34,9 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configtest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/service/servicetest"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -354,7 +354,7 @@ func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {
 
 	factory := smartagentextension.NewFactory()
 	factories.Extensions[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "extension_config.yaml"), factories,
 	)
 	require.NoError(t, err)

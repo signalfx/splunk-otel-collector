@@ -39,7 +39,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configtest"
+	"go.opentelemetry.io/collector/service/servicetest"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -48,7 +48,7 @@ func TestLoadConfig(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "config.yaml"), factories,
 	)
 
@@ -150,7 +150,7 @@ func TestLoadInvalidConfigWithoutType(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "without_type.yaml"), factories,
 	)
 	require.Error(t, err)
@@ -165,7 +165,7 @@ func TestLoadInvalidConfigWithUnknownType(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "unknown_type.yaml"), factories,
 	)
 	require.Error(t, err)
@@ -180,7 +180,7 @@ func TestLoadInvalidConfigWithUnexpectedTag(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "unexpected_tag.yaml"), factories,
 	)
 	require.Error(t, err)
@@ -195,7 +195,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "invalid_config.yaml"), factories,
 	)
 
@@ -243,7 +243,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "endpoints_config.yaml"), factories,
 	)
 
@@ -333,7 +333,7 @@ func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "invalid_endpoint.yaml"), factories,
 	)
 	require.Error(t, err)
@@ -348,7 +348,7 @@ func TestLoadInvalidConfigWithUnsupportedEndpoint(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "unsupported_endpoint.yaml"), factories,
 	)
 	require.Error(t, err)
@@ -363,7 +363,7 @@ func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "invalid_nonarray_dimension_clients.yaml"), factories,
 	)
 	require.Error(t, err)
@@ -378,7 +378,7 @@ func TestLoadInvalidConfigWithNonStringArrayDimensionClients(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "invalid_float_dimension_clients.yaml"), factories,
 	)
 	require.Error(t, err)
@@ -393,7 +393,7 @@ func TestFilteringConfig(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "filtering_config.yaml"), factories,
 	)
 
@@ -428,7 +428,7 @@ func TestInvalidFilteringConfig(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "invalid_filtering_config.yaml"), factories,
 	)
 
@@ -461,7 +461,7 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	cfg, err := configtest.LoadConfig(
+	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "nested_monitor_config.yaml"), factories,
 	)
 

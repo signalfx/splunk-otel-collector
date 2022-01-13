@@ -15,6 +15,7 @@
 package configconverter
 
 import (
+	"fmt"
 	"log"
 	"regexp"
 
@@ -25,7 +26,11 @@ import (
 // memory_limiter processor config if it exists. This config key will go away at
 // some point (or already has) at which point its presence in a config will
 // prevent the Collector from starting.
-func RemoveBallastKey(cfgMap *config.Map) *config.Map {
+func RemoveBallastKey(cfgMap *config.Map) error {
+	if cfgMap == nil {
+		return fmt.Errorf("cannot RemoveBallastKey on nil *config.Map")
+	}
+
 	const expr = "processors::memory_limiter(/\\w+)?::ballast_size_mib"
 	ballastKeyRegexp, _ := regexp.Compile(expr)
 
@@ -39,5 +44,6 @@ func RemoveBallastKey(cfgMap *config.Map) *config.Map {
 			out.Set(k, cfgMap.Get(k))
 		}
 	}
-	return out
+	*cfgMap = *out
+	return nil
 }

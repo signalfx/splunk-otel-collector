@@ -29,25 +29,21 @@
 package configconverter
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/configmapprovider"
 	"go.opentelemetry.io/collector/config/configtest"
 )
 
 func TestRenameK8sTaggerTestRenameK8sTagger(t *testing.T) {
-	pp := &converterProvider{
-		wrapped:     configmapprovider.NewFile("testdata/k8s-tagger.yaml"),
-		cfgMapFuncs: []CfgMapFunc{RenameK8sTagger},
-	}
+	actual, err := configtest.LoadConfigMap("testdata/k8s-tagger.yaml")
+	require.NoError(t, err)
+	require.NotNil(t, actual)
+
 	expected, err := configtest.LoadConfigMap("testdata/k8sattributes.yaml")
 	require.NoError(t, err)
 
-	r, err := pp.Retrieve(context.Background(), nil)
-	require.NoError(t, err)
-	actual, err := r.Get(context.Background())
-	require.NoError(t, err)
+	RenameK8sTagger(actual)
+
 	require.Equal(t, expected.ToStringMap(), actual.ToStringMap())
 }

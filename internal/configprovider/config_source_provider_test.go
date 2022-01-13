@@ -32,7 +32,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func TestConfigSourceParserProvider(t *testing.T) {
+func TestConfigSourceConfigMapProvider(t *testing.T) {
 	tests := []struct {
 		parserProvider configmapprovider.Provider
 		wantErr        error
@@ -70,7 +70,7 @@ func TestConfigSourceParserProvider(t *testing.T) {
 		{
 			name:           "manager_resolve_error",
 			parserProvider: configmapprovider.NewFile(path.Join("testdata", "manager_resolve_error.yaml")),
-			wantErr:        fmt.Errorf("error not wrapped by specific error type: %w", configsource.ErrSessionClosed),
+			wantErr:        fmt.Errorf("error not wrappedProviders by specific error type: %w", configsource.ErrSessionClosed),
 		},
 	}
 
@@ -83,8 +83,8 @@ func TestConfigSourceParserProvider(t *testing.T) {
 				}
 			}
 
-			pp := NewConfigSourceParserProvider(
-				configmapprovider.NewInMemory(nil),
+			pp := NewConfigSourceConfigMapProvider(
+				[]configmapprovider.Provider{},
 				zap.NewNop(),
 				component.NewDefaultBuildInfo(),
 				factories...,
@@ -92,10 +92,11 @@ func TestConfigSourceParserProvider(t *testing.T) {
 			require.NotNil(t, pp)
 
 			// Do not use the config.Default() to simplify the test setup.
-			cspp := pp.(*configSourceParserProvider)
-			cspp.pp = tt.parserProvider
-			if cspp.pp == nil {
-				cspp.pp = &mockParserProvider{}
+			cspp := pp.(*configSourceConfigMapProvider)
+			if tt.parserProvider == nil {
+				cspp.wrappedProviders = []configmapprovider.Provider{&mockParserProvider{}}
+			} else {
+				cspp.wrappedProviders = []configmapprovider.Provider{tt.parserProvider}
 			}
 
 			r, err := pp.Retrieve(context.Background(), nil)
@@ -118,6 +119,7 @@ func TestConfigSourceParserProvider(t *testing.T) {
 				defer wg.Done()
 				watchForUpdatedError = cspp.WatchForUpdate()
 			}()
+			require.NotNil(t, cspp.csm)
 			cspp.csm.WaitForWatcher()
 
 			closeErr := cspp.Close(context.Background())
@@ -136,7 +138,7 @@ type mockParserProvider struct {
 var _ configmapprovider.Provider = (*mockParserProvider)(nil)
 
 func (mpp *mockParserProvider) Retrieve(ctx context.Context, onChange func(*configmapprovider.ChangeEvent)) (configmapprovider.Retrieved, error) {
-	return mpp, nil
+	return configmapprovider.NewRetrieved(mpp.Get)
 }
 
 func (mpp *mockParserProvider) Shutdown(ctx context.Context) error {

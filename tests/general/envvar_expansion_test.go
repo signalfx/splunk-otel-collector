@@ -15,9 +15,6 @@
 package tests
 
 import (
-	"os"
-	"path"
-	"strings"
 	"testing"
 	"time"
 
@@ -31,59 +28,32 @@ func TestExpandedDollarSignsViaStandardEnvVar(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPMetricsReceiverSink()
 
-	image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE")
-	if strings.TrimSpace(image) == "" {
-		t.Skipf("skipping container-only test")
-	}
+	tc.SkipIfNotContainer()
 
-	hostMetricsEnvVars := map[string]string{
-		"OTLP_ENDPOINT":  tc.OTLPEndpoint,
-		"SPLUNK_TEST_ID": tc.ID,
-		"AN_ENVVAR":      "an-envvar-value"}
+	_, shutdown := tc.SplunkOtelCollectorWithEnv(
+		"envvar_labels.yaml",
+		map[string]string{"AN_ENVVAR": "an-envvar-value"},
+	)
 
-	collector, err := testutils.NewCollectorContainer().
-		WithImage(image).
-		WithEnv(hostMetricsEnvVars).
-		WithConfigPath(path.Join(".", "testdata", "envvar_labels.yaml")).
-		WithLogger(tc.Logger).
-		Build()
-
-	require.NoError(t, err)
-	require.NotNil(t, collector)
-	require.NoError(t, collector.Start())
-	defer func() { require.NoError(t, collector.Shutdown()) }()
+	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("envvar_labels.yaml")
 	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
-
 
 func TestExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPMetricsReceiverSink()
 
-	image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE")
-	if strings.TrimSpace(image) == "" {
-		t.Skipf("skipping container-only test")
-	}
+	tc.SkipIfNotContainer()
 
-	hostMetricsEnvVars := map[string]string{
-		"OTLP_ENDPOINT":  tc.OTLPEndpoint,
-		"SPLUNK_TEST_ID": tc.ID,
-		"AN_ENVVAR":      "an-envvar-value"}
+	_, shutdown := tc.SplunkOtelCollectorWithEnv(
+		"env_config_source_labels.yaml",
+		map[string]string{"AN_ENVVAR": "an-envvar-value"},
+	)
 
-	collector, err := testutils.NewCollectorContainer().
-		WithImage(image).
-		WithEnv(hostMetricsEnvVars).
-		WithConfigPath(path.Join(".", "testdata", "env_config_source_labels.yaml")).
-		WithLogger(tc.Logger).
-		Build()
-
-	require.NoError(t, err)
-	require.NotNil(t, collector)
-	require.NoError(t, collector.Start())
-	defer func() { require.NoError(t, collector.Shutdown()) }()
+	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("env_config_source_labels.yaml")
 	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))

@@ -18,8 +18,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -42,12 +44,21 @@ const (
 	// typeAndNameSeparator is the separator that is used between type and name in type/name
 	// composite keys.
 	typeAndNameSeparator = '/'
+	// dollarDollarCompatEnvVar is a temporary env var to disable backward compatibility (true by default)
+	dollarDollarCompatEnvVar = "SPLUNK_DOUBLE_DOLLAR_CONFIG_SOURCE_COMPATIBLE"
 )
 
 // private error types to help with testability
 type (
 	errUnknownConfigSource struct{ error }
 )
+
+var ddBackwardCompatible = func() bool {
+	if v, err := strconv.ParseBool(strings.ToLower(os.Getenv(dollarDollarCompatEnvVar))); err == nil {
+		return v
+	}
+	return true
+}()
 
 // Manager is used to inject data from config sources into a configuration and also
 // to monitor for updates on the items injected into the configuration.  All methods
@@ -160,20 +171,11 @@ type (
 //
 // For an overview about the internals of the Manager refer to the package README.md.
 type Manager struct {
-	// configSources is map from ConfigSource names (as defined in the configuration)
-	// and the respective instances.
 	configSources map[string]configsource.ConfigSource
-	// watchingCh is used to notify users of the Manager that the WatchForUpdate function
-	// is ready and waiting for notifications.
-	watchingCh chan struct{}
-	// closeCh is used to notify the Manager WatchForUpdate function that the manager
-	// is being closed.
-	closeCh chan struct{}
-	// watchers keeps track of all WatchForUpdate functions for retrieved values.
-	watchers []configsource.Watchable
-	// watchersWG is used to ensure that Close waits for all WatchForUpdate calls
-	// to complete.
-	watchersWG sync.WaitGroup
+	watchingCh    chan struct{}
+	closeCh       chan struct{}
+	watchers      []configsource.Watchable
+	watchersWG    sync.WaitGroup
 }
 
 // NewManager creates a new instance of a Manager to be used to inject data from
@@ -376,37 +378,49 @@ func (m *Manager) parseStringValue(ctx context.Context, s string) (interface{}, 
 
 			switch {
 			case s[j+1] == expandPrefixChar:
-				// Escaping the prefix so $$ becomes a single $ without attempting
-				// to treat the string after it as a config source or env var.
-				expandableContent = string(expandPrefixChar)
-				w = 1 // consumed a single char
+				// temporary backward compatibility to support updated $${config_source:value} functionality
+				// in provided configs from 0.37.0 until 0.42.0
+				bwCompatibilityRequired := false
+
+				var expanded, sourceName string
+				var ww int
+				if ddBackwardCompatible && len(s[j+1:]) > 2 {
+					if s[j+2] == '{' {
+						if expanded, ww, sourceName = getBracketedExpandableContent(s, j+2); sourceName != "" {
+							bwCompatibilityRequired = true
+						}
+					} else {
+						if expanded, ww, sourceName = getBareExpandableContent(s, j+2); sourceName != "" {
+							if len(expanded) > (len(sourceName) + 1) {
+								if !strings.Contains(expanded[len(sourceName)+1:], "$") {
+									bwCompatibilityRequired = true
+								}
+							}
+						}
+					}
+				}
+
+				if bwCompatibilityRequired {
+					log.Printf(
+						`Deprecated config source directive %q has been replaced with %q. Please update your config as necessary as this will be removed in future release. To disable this replacement set the SPLUNK_DOUBLE_DOLLAR_CONFIG_SOURCE_COMPATIBLE environment variable to "false" before restarting the Collector.`,
+						s[j:j+2+ww], s[j+1:j+2+ww],
+					)
+					expandableContent = expanded
+					w = ww + 1
+					cfgSrcName = sourceName
+				} else {
+					// Escaping the prefix so $$ becomes a single $ without attempting
+					// to treat the string after it as a config source or env var.
+					expandableContent = string(expandPrefixChar)
+					w = 1 // consumed a single char
+				}
 
 			case s[j+1] == '{':
-				// Bracketed usage, consume everything until first '}' exactly as os.Expand.
-				expandableContent, w = scanToClosingBracket(s[j+1:])
-				expandableContent = strings.Trim(expandableContent, " ") // Allow for some spaces.
-				delimIndex := strings.Index(expandableContent, string(configSourceNameDelimChar))
-				if len(expandableContent) > 1 && delimIndex > -1 {
-					// Bracket expandableContent contains ':' treating it as a config source.
-					cfgSrcName = expandableContent[:delimIndex]
-				}
+				expandableContent, w, cfgSrcName = getBracketedExpandableContent(s, j+1)
 
 			default:
-				// Non-bracketed usage, ie.: found the prefix char, it can be either a config
-				// source or an environment variable.
-				var name string
-				name, w = getTokenName(s[j+1:])
-				expandableContent = name // Assume for now that it is an env var.
+				expandableContent, w, cfgSrcName = getBareExpandableContent(s, j+1)
 
-				// Peek next char after name, if it is a config source name delimiter treat the remaining of the
-				// string as a config source.
-				possibleDelimCharIndex := j + w + 1
-				if possibleDelimCharIndex < len(s) && s[possibleDelimCharIndex] == configSourceNameDelimChar {
-					// This is a config source, since it is not delimited it will consume until end of the string.
-					cfgSrcName = name
-					expandableContent = s[j+1:]
-					w = len(expandableContent) // Set consumed bytes to the length of expandableContent
-				}
 			}
 
 			// At this point expandableContent contains a string to be expanded, evaluate and expand it.
@@ -471,6 +485,37 @@ func (m *Manager) parseStringValue(ctx context.Context, s string) (interface{}, 
 
 	// Return whatever was accumulated on the buffer plus the remaining of the original string.
 	return string(buf) + s[i:], nil
+}
+
+func getBracketedExpandableContent(s string, i int) (expandableContent string, consumed int, cfgSrcName string) {
+	// Bracketed usage, consume everything until first '}' exactly as os.Expand.
+	expandableContent, consumed = scanToClosingBracket(s[i:])
+	expandableContent = strings.Trim(expandableContent, " ") // Allow for some spaces.
+	delimIndex := strings.Index(expandableContent, string(configSourceNameDelimChar))
+	if len(expandableContent) > 1 && delimIndex > -1 {
+		// Bracket expandableContent contains ':' treating it as a config source.
+		cfgSrcName = expandableContent[:delimIndex]
+	}
+	return
+}
+
+func getBareExpandableContent(s string, i int) (expandableContent string, consumed int, cfgSrcName string) {
+	// Non-bracketed usage, ie.: found the prefix char, it can be either a config
+	// source or an environment variable.
+	var name string
+	name, consumed = getTokenName(s[i:])
+	expandableContent = name // Assume for now that it is an env var.
+
+	// Peek next char after name, if it is a config source name delimiter treat the remaining of the
+	// string as a config source.
+	possibleDelimCharIndex := i + consumed
+	if possibleDelimCharIndex < len(s) && s[possibleDelimCharIndex] == configSourceNameDelimChar {
+		// This is a config source, since it is not delimited it will consume until end of the string.
+		cfgSrcName = name
+		expandableContent = s[i:]
+		consumed = len(expandableContent) // Set consumed bytes to the length of expandableContent
+	}
+	return
 }
 
 // retrieveConfigSourceData retrieves data from the specified config source and injects them into

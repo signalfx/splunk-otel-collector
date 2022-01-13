@@ -7,21 +7,21 @@ resource_metrics:
               state: used
               single-dollar: an-envvar-value-suffix
               single-dollar-no-curly-braces: prefix-an-envvar-value
-              double-dollar: an-envvar-value-suffix
-              double-dollar-no-curly-braces: prefix-an-envvar-value
+              double-dollar: ${env:AN_ENVVAR}-suffix
+              double-dollar-no-curly-braces: prefix-$env:AN_ENVVAR
               triple-dollar: $an-envvar-value-suffix
               triple-dollar-no-curly-braces: prefix-$an-envvar-value
-              quadruple-dollar: $an-envvar-value-suffix
-              quadruple-dollar-no-curly-braces: prefix-$an-envvar-value
+              quadruple-dollar: $${env:AN_ENVVAR}-suffix
+              quadruple-dollar-no-curly-braces: prefix-$$env:AN_ENVVAR
               quintuple-dollar: $$an-envvar-value-suffix
               quintuple-dollar-no-curly-braces: prefix-$$an-envvar-value
-              sextuple-dollar: $$an-envvar-value-suffix
-              sextuple-dollar-no-curly-braces: prefix-$$an-envvar-value
+              sextuple-dollar: $$${env:AN_ENVVAR}-suffix
+              sextuple-dollar-no-curly-braces: prefix-$$$env:AN_ENVVAR
               septuple-dollar: $$$an-envvar-value-suffix
               septuple-dollar-no-curly-braces: prefix-$$$an-envvar-value
-              octuple-dollar: $$$an-envvar-value-suffix
-              octuple-dollar-no-curly-braces: prefix-$$$an-envvar-value
+              octuple-dollar: $$$${env:AN_ENVVAR}-suffix
+              octuple-dollar-no-curly-braces: prefix-$$$$env:AN_ENVVAR
               nonuple-dollar: $$$$an-envvar-value-suffix
               nonuple-dollar-no-curly-braces: prefix-$$$$an-envvar-value
-              decuple-dollar: $$$$an-envvar-value-suffix
-              decuple-dollar-no-curly-braces: prefix-$$$$an-envvar-value
+              decuple-dollar: $$$$${env:AN_ENVVAR}-suffix
+              decuple-dollar-no-curly-braces: prefix-$$$$$env:AN_ENVVAR

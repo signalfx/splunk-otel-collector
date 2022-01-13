@@ -432,7 +432,6 @@ func TestConfigSourceManager_EnvVarHandling(t *testing.T) {
 		}
 		return nil
 	}
-
 	manager := newManager(map[string]configsource.ConfigSource{
 		"tstcfgsrc": &tstCfgSrc,
 	})
@@ -586,7 +585,12 @@ func TestManager_expandString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := manager.parseStringValue(ctx, tt.input)
-			require.IsType(t, tt.wantErr, err)
+			if tt.wantErr != nil {
+				require.Error(t, err)
+				require.IsType(t, tt.wantErr, err)
+			} else {
+				require.NoError(t, err)
+			}
 			require.Equal(t, tt.want, got)
 		})
 	}

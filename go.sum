@@ -70,9 +70,6 @@ code.cloudfoundry.org/go-diodes v0.0.0-20180905200951-72629b5276e3/go.mod h1:Jzi
 code.cloudfoundry.org/gofileutils v0.0.0-20170111115228-4d0c80011a0f/go.mod h1:sk5LnIjB/nIEU7yP5sDQExVm62wu0pBh3yrElngUisI=
 code.cloudfoundry.org/rfc5424 v0.0.0-20180905210152-236a6d29298a h1:8rqv2w8xEceNwckcF5ONeRt0qBHlh5bnNfFnYTrZbxs=
 code.cloudfoundry.org/rfc5424 v0.0.0-20180905210152-236a6d29298a/go.mod h1:tkZo8GtzBjySJ7USvxm4E36lNQw1D3xM6oKHGqdaAJ4=
-collectd.org v0.3.0/go.mod h1:A/8DzQBkF6abtvrT2j/AU/4tiBgJWYyh0y/oB/4MlWE=
-collectd.org v0.5.0 h1:y4uFSAuOmeVhG3GCRa3/oH+ysePfO/+eGJNfd0Qa3d8=
-collectd.org v0.5.0/go.mod h1:A/8DzQBkF6abtvrT2j/AU/4tiBgJWYyh0y/oB/4MlWE=
 contrib.go.opencensus.io/exporter/prometheus v0.3.0/go.mod h1:rpCPVQKhiyH8oomWgm34ZmgIdZa8OVYO5WAIygPbBBE=
 contrib.go.opencensus.io/exporter/prometheus v0.4.0 h1:0QfIkj9z/iVZgK31D9H9ohjjIDApI2GOPScCKwxedbs=
 contrib.go.opencensus.io/exporter/prometheus v0.4.0/go.mod h1:o7cosnyfuPVK0tB8q0QmaQNhGnptITnPQB+z1+qeFB0=
@@ -1235,7 +1232,7 @@ github.com/hashicorp/golang-lru v0.5.4 h1:YDjusn29QI/Das2iO9M0BHnIbxPeyuCHsjMW+l
 github.com/hashicorp/golang-lru v0.5.4/go.mod h1:iADmTwqILo4mZ8BN3D2Q6+9jd8WM5uGBxy+E8yxSoD4=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
 github.com/hashicorp/hcl v1.0.1-0.20201015184941-809e678c39ec/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
-github.com/hashicorp/hcl v1.0.1-vault h1:UiJeEzCWAYdVaJr8Xo4lBkTozlW1+1yxVUnpbS1xVEk=
+github.com/hashicorp/hcl v1.0.1-vault h1:/JhJsLUPC73zeqSbkZApgsofP4iB++zgDHS5t6ZL0Lc=
 github.com/hashicorp/hcl v1.0.1-vault/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
 github.com/hashicorp/logutils v1.0.0/go.mod h1:QIAnNjmIWmVIIkWDTG1z5v++HQmx9WQRO+LraFDTW64=
 github.com/hashicorp/mdns v1.0.0/go.mod h1:tL+uN++7HEJ6SQLQ2/p+z2pH24WQKWjBPkE0mNTz8vQ=
@@ -1905,6 +1902,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.42.0/go.mod h1:1JZnAqwx/J1pU1k+WQb6MQAeS4EhAE7cO1z0S2M6Vc0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.42.0 h1:17wPtFbFpOZ2QlMEqOFWGvVREbBVDL6KXuf+i8WCk7g=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.42.0/go.mod h1:IRND3RZuUVIOSxmePVx4cscto6D0ULNlxQDeLA/QTj8=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.42.0 h1:86Kz7E4k9eS545IcgxfFtx9WZ+NG52QL3An+7a1XgHQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver v0.42.0/go.mod h1:V/oYkSiZEzARapbxh9k2KVmFgwaolEEQiSSA7Pb/3Z8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.42.0 h1:NK9UxCieEj3IY3X8CEnfhQIHMo/gREx+SjRqQ/JyK/g=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.42.0/go.mod h1:+5Ia4r+xrA0pMrnmcCiMNyatKUY/TtjFL6pvllXeSko=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.42.0 h1:+6h6S2kr4cPiBwOB/brqX/SMgYIqIfGl6uleF3t8bX4=

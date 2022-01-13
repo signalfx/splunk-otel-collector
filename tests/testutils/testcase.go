@@ -44,8 +44,8 @@ type Testcase struct {
 	ID                      string
 }
 
-// Recommended constructor that will automatically configure an OTLPMetricsReceiverSink with available endpoint and
-// ObservedLogs.
+// NewTestcase is the recommended constructor that will automatically configure an OTLPMetricsReceiverSink
+// with available endpoint and ObservedLogs.
 func NewTestcase(t *testing.T) *Testcase {
 	tc := Testcase{T: t}
 	var logCore zapcore.Core
@@ -63,6 +63,17 @@ func NewTestcase(t *testing.T) *Testcase {
 	require.NoError(tc, err)
 	tc.ID = id.String()
 	return &tc
+}
+
+// SkipIfNotContainer will skip the test if SPLUNK_OTEL_COLLECTOR_IMAGE env var is empty, otherwise it will
+// return the configured image name
+func (t *Testcase) SkipIfNotContainer() string {
+	image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE")
+	if strings.TrimSpace(image) == "" {
+		t.Skipf("skipping container-only test (set SPLUNK_OTEL_COLLECTOR_IMAGE env var).")
+		return ""
+	}
+	return image
 }
 
 // Loads and validates a ResourceMetrics instance, assuming it's located in ./testdata/resource_metrics
@@ -96,8 +107,16 @@ func (t *Testcase) Containers(builders ...Container) (containers []*Container, s
 
 // SplunkOtelCollector builds and starts a collector container or process using the desired config filename
 // (assuming it's in the ./testdata directory) returning it and a validating shutdown function.
-func (t *Testcase) SplunkOtelCollector(configFilename string) (Collector, func()) {
-	var collector Collector
+func (t *Testcase) SplunkOtelCollector(configFilename string) (collector Collector, shutdown func()) {
+	return t.splunkOtelCollector(configFilename, nil)
+}
+
+// SplunkOtelCollectorWithEnv works as Testcase.SplunkOtelCollector but also passes an environment variable map
+func (t *Testcase) SplunkOtelCollectorWithEnv(configFilename string, env map[string]string) (collector Collector, shutdown func()) {
+	return t.splunkOtelCollector(configFilename, env)
+}
+
+func (t *Testcase) splunkOtelCollector(configFilename string, env map[string]string) (collector Collector, shutdown func()) {
 	if image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE"); strings.TrimSpace(image) != "" {
 		cc := NewCollectorContainer().WithImage(image)
 		collector = &cc
@@ -112,13 +131,19 @@ func (t *Testcase) SplunkOtelCollector(configFilename string) (Collector, func()
 		otlpEndpointForContainer = fmt.Sprintf("host.docker.internal:%s", port)
 	}
 
+	envVars := map[string]string{
+		"OTLP_ENDPOINT":  otlpEndpointForContainer,
+		"SPLUNK_TEST_ID": t.ID,
+	}
+
+	for k, v := range env {
+		envVars[k] = v
+	}
+
 	var err error
 	collector = collector.WithConfigPath(
 		path.Join(".", "testdata", configFilename),
-	).WithEnv(map[string]string{
-		"OTLP_ENDPOINT":  otlpEndpointForContainer,
-		"SPLUNK_TEST_ID": t.ID,
-	}).WithLogLevel("debug").WithLogger(t.Logger)
+	).WithEnv(envVars).WithLogLevel("debug").WithLogger(t.Logger)
 
 	splunkEnv := map[string]string{}
 	for _, s := range os.Environ() {

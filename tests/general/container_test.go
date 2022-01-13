@@ -16,7 +16,6 @@ package tests
 
 import (
 	"fmt"
-	"os"
 	"path"
 	"strings"
 	"testing"
@@ -30,10 +29,7 @@ import (
 )
 
 func TestDefaultContainerConfigRequiresEnvVars(t *testing.T) {
-	image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE")
-	if strings.TrimSpace(image) == "" {
-		t.Skipf("skipping container-only test")
-	}
+	image := (&testutils.Testcase{T: t}).SkipIfNotContainer()
 
 	tests := []struct {
 		name    string
@@ -74,10 +70,7 @@ func TestDefaultContainerConfigRequiresEnvVars(t *testing.T) {
 }
 
 func TestSpecifiedContainerConfigDefaultsToCmdLineArgIfEnvVarConflict(t *testing.T) {
-	image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE")
-	if strings.TrimSpace(image) == "" {
-		t.Skipf("skipping container-only test")
-	}
+	image := (&testutils.Testcase{T: t}).SkipIfNotContainer()
 
 	logCore, logs := observer.New(zap.DebugLevel)
 	logger := zap.New(logCore)
@@ -118,10 +111,7 @@ func TestSpecifiedContainerConfigDefaultsToCmdLineArgIfEnvVarConflict(t *testing
 }
 
 func TestConfigYamlEnvVarUsingLogs(t *testing.T) {
-	image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE")
-	if strings.TrimSpace(image) == "" {
-		t.Skipf("skipping container-only test")
-	}
+	image := (&testutils.Testcase{T: t}).SkipIfNotContainer()
 
 	logCore, logs := observer.New(zap.DebugLevel)
 	logger := zap.New(logCore)

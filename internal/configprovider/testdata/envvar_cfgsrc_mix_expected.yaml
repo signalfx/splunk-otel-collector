@@ -10,6 +10,10 @@ envvar_legacy_05: /test
 cfgsrc_suffix: prefix-42
 cfgsrc_middle: prefix-42-suffix
 cfgsrc_in_str: integer 42 injected as string
+cfgsrc_workaround_suffix: prefix-42
+cfgsrc_braces_workaround_suffix: prefix-42
+cfgsrc_braces_workaround_middle: prefix-42-suffix
+cfgsrc_braces_workaround_in_str: integer 42 injected as string
 cfgsrc_params0:
   p0: true
   p1: envvar_value

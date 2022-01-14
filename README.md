@@ -166,6 +166,13 @@ manually before the backward compatibility is dropped. For every configuration u
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
 
+### From 0.41.0 to 0.42.0
+
+- The Splunk OpenTelemetry Collector used to [evaluate user configuration 
+  twice](https://github.com/signalfx/splunk-otel-collector/issues/628) and this required escaping of 
+  each `$` symbol with `$$` to prevent unwanted environment variable expansion. The issue was fixed in 
+  0.42.0 version. Any occurrences of `$$` in your configuration should be replaced with `$`.
+
 ### From 0.35.0 to 0.36.0
 
 - Configuration parameter "`exporters` -> `otlp` -> `insecure`" is moved to

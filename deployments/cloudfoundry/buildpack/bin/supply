@@ -1,0 +1,68 @@
+#!/bin/bash
+
+set -euo pipefail
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+DEPS_DIR=$3
+IDX=$4
+
+BUILDPACK_DIR="$(readlink -f ${BASH_SOURCE%/*})"
+TARGET_DIR="$BUILD_DIR/.otelcollector"
+
+OTEL_CONFIG="${OTEL_CONFIG:-otelconfig.yaml}"
+# Version must be >=0.47.0, the first release included the enabled Cloud Foundry receiver
+OTEL_VERSION="${OTEL_VERSION:-0.47.0}"
+# Cloud Foundry only supports Linux stacks currently, but if that changes this variable can be modified
+# for the proper stack.
+OS="${OS:-linux_amd64}"
+
+echo "-----> Installing Otel Collector ${OTEL_VERSION}"
+echo "       BUILD_DIR: $BUILD_DIR"
+echo "       CACHE_DIR: $CACHE_DIR"
+echo "       DEPS_DIR: $DEPS_DIR"
+echo "       BUILDPACK_INDEX: $IDX"
+echo "       BUILDPACK_DIR: $BUILDPACK_DIR"
+echo "       TARGET_DIR: $TARGET_DIR"
+
+mkdir -p $TARGET_DIR
+
+# Copy over default OpenTelemetry configuration file for sidecar configuration use
+cp "$BUILDPACK_DIR/../$OTEL_CONFIG" "$TARGET_DIR/"
+
+# File name for given release version
+OTELCOL="${OTELCOL:-otelcontribcol_${OS}-v${OTEL_VERSION}}"
+OTELCOL_TAR="$OTELCOL.tar.gz"
+CACHED_OTELCOL_TAR="$CACHE_DIR/$OTELCOL_TAR"
+
+if [[ -f "$CACHED_OTELCOL_TAR" ]]; then
+  echo "-----> Using cached Otel Collector install: $CACHED_OTELCOL_TAR"
+  cp $CACHED_OTELCOL_TAR $TARGET_DIR
+else
+  OTELCOL_DOWNLOAD_URL="${OTELCOL_DOWNLOAD_URL:-https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v${OTEL_VERSION}/otelcol-contrib_${OTEL_VERSION}_${OS}.tar.gz}"
+  echo "-----> Downloading OpenTelemetry Collector v$OTEL_VERSION ($OTELCOL_DOWNLOAD_URL)"
+  wget -O "$TARGET_DIR/$OTELCOL_TAR" $OTELCOL_DOWNLOAD_URL > /dev/null 2>&1
+fi
+
+if [ $? -ne 0 ]; then
+    echo "Downloading OpenTelemetry Collector failed" | sed -e 's/^/           /'
+    echo "$OTEL_VERSION does not appear to be a valid version of the OpenTelemetry Collector. Find valid versions here: https://github.com/open-telemetry/opentelemetry-collector-releases/releases" | sed -e 's/^/           /'
+    exit 1;
+fi
+
+# Cache the Collector
+cp "$TARGET_DIR/$OTELCOL_TAR" $CACHE_DIR
+
+# Move Collector executable and config to dependencies directory to enable app access
+tar -xf "$TARGET_DIR/$OTELCOL_TAR" -C "$TARGET_DIR"
+mv "$TARGET_DIR/otelcol-contrib" "$TARGET_DIR/$OTELCOL"
+cp -f "$TARGET_DIR/$OTELCOL" "$TARGET_DIR/$OTEL_CONFIG" "$DEPS_DIR"
+chmod 755 "$DEPS_DIR/$OTELCOL"
+
+# Define Collector's default environment variables by adding bash script to .profile.d directory in root of app
+mkdir $DEPS_DIR/$IDX/profile.d
+echo "export RLP_GATEWAY_SHARD_ID=\"otelcol\"
+export RLP_GATEWAY_TLS_INSECURE=true
+export UAA_TLS_INSECURE=true" >> $DEPS_DIR/$IDX/profile.d/otel_config_env_vars.sh
+
+echo "-----> Successfully installed OpenTelemetry Collector v$OTEL_VERSION and set default environment variables"

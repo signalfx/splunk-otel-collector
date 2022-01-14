@@ -1,0 +1,31 @@
+receivers:
+  cloudfoundry:
+    rlp_gateway:
+      endpoint: ${RLP_GATEWAY_ENDPOINT}
+      shard_id: ${RLP_GATEWAY_SHARD_ID}
+      tls:
+        insecure_skip_verify: ${RLP_GATEWAY_TLS_INSECURE}
+    uaa:
+      endpoint: ${UAA_ENDPOINT}
+      username: ${UAA_USERNAME}
+      password: ${UAA_PASSWORD}
+      tls:
+        insecure_skip_verify: ${UAA_TLS_INSECURE}
+
+processors:
+  resourcedetection:
+    system:
+
+exporters:
+  signalfx:
+    access_token: ${SIGNALFX_ACCESS_TOKEN}
+    realm: ${SIGNALFX_REALM}
+    api_url: ${SIGNALFX_API_URL}
+    ingest_url: ${SIGNALFX_INGEST_URL}
+
+service:
+  pipelines:
+    metrics:
+      receivers: [cloudfoundry]
+      processors: [resourcedetection]
+      exporters: [signalfx]

@@ -1,0 +1,21 @@
+name 'splunk-otel-collector'
+maintainer 'Splunk, Inc.'
+maintainer_email 'signalfx-support@splunk.com'
+license 'Apache-2.0'
+description 'Installs/Configures the Splunk Otel Collector'
+version '0.1.0'
+chef_version '>= 16.0'
+
+supports 'amazon'
+supports 'centos'
+supports 'redhat'
+supports 'oracle'
+supports 'debian'
+supports 'suse'
+supports 'ubuntu'
+supports 'windows'
+
+gem 'rubyzip', '< 2.0.0'
+
+issues_url 'https://github.com/signalfx/splunk-otel-collector/issues'
+source_url 'https://github.com/signalfx/splunk-otel-collector'

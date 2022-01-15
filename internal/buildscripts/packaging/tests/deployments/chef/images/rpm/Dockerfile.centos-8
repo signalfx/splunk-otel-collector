@@ -1,0 +1,26 @@
+FROM centos:8
+
+ENV container docker
+
+RUN dnf install -y systemd procps initscripts
+
+ARG CHEF_INSTALLER_ARGS
+RUN curl -L https://omnitruck.chef.io/install.sh | bash -s -- $CHEF_INSTALLER_ARGS
+
+ENV container docker
+RUN rm -f /lib/systemd/system/multi-user.target.wants/* \
+    /etc/systemd/system/*.wants/* \
+    /lib/systemd/system/local-fs.target.wants/* \
+    /lib/systemd/system/sockets.target.wants/*udev* \
+    /lib/systemd/system/sockets.target.wants/*initctl* \
+    /lib/systemd/system/systemd-update-utmp*
+
+RUN systemctl set-default multi-user.target
+ENV init /lib/systemd/systemd
+
+COPY deployments/chef /chef-repo/cookbooks/splunk-otel-collector
+WORKDIR /chef-repo
+
+VOLUME [ "/sys/fs/cgroup" ]
+
+ENTRYPOINT ["/lib/systemd/systemd"]

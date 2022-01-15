@@ -1,0 +1,39 @@
+# Path to the config file for the collector.
+SPLUNK_CONFIG=<%= node['splunk-otel-collector']['collector_config_dest'] %>
+
+# Access token to authenticate requests.
+SPLUNK_ACCESS_TOKEN=<%= node['splunk-otel-collector']['splunk_access_token'] %>
+
+# Which realm to send the data to.
+SPLUNK_REALM=<%= node['splunk-otel-collector']['splunk_realm'] %>
+
+# Splunk api endpoint URL.
+SPLUNK_API_URL=<%= node['splunk-otel-collector']['splunk_api_url'] %>
+
+# Splunk ingest endpoint URL.
+SPLUNK_INGEST_URL=<%= node['splunk-otel-collector']['splunk_ingest_url'] %>
+
+# Splunk trace endpoint URL.
+SPLUNK_TRACE_URL=<%= node['splunk-otel-collector']['splunk_trace_url'] %>
+
+# Splunk HEC endpoint URL.
+SPLUNK_HEC_URL=<%= node['splunk-otel-collector']['splunk_hec_url'] %>
+
+# Splunk HEC token.
+SPLUNK_HEC_TOKEN=<%= node['splunk-otel-collector']['splunk_hec_token'] %>
+
+# Total memory in MIB to allocate to the collector.
+# Automatically configures the ballast and memory limit.
+# If `SPLUNK_BALLAST_SIZE_MIB` is also defined, it will override
+# the value calculated by `SPLUNK_MEMORY_TOTAL_MIB`.
+SPLUNK_MEMORY_TOTAL_MIB=<%= node['splunk-otel-collector']['splunk_memory_total_mib'] %>
+
+# How much memory to allocate to the ballast. This should be set to 1/3 to 1/2 of configured memory.
+# SPLUNK_BALLAST_SIZE_MIB=<%= node['splunk-otel-collector']['splunk_ballast_size_mib'] %>
+
+# The path to the Smart Agent bundle.
+SPLUNK_BUNDLE_DIR=<%= node['splunk-otel-collector']['splunk_bundle_dir'] %>
+
+# The path to the collectd config directory for the Smart Agent.
+# This directory must be read/writable by the collector process.
+SPLUNK_COLLECTD_DIR=<%= node['splunk-otel-collector']['splunk_collectd_dir'] %>

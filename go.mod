@@ -13,7 +13,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.9.2
 	github.com/hashicorp/vault-plugin-auth-gcp v0.11.3
-	github.com/hashicorp/vault/api v1.3.0
+	github.com/hashicorp/vault/api v1.3.1
 	github.com/jaegertracing/jaeger v1.30.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.42.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.42.0

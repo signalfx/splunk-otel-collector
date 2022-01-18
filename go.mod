@@ -24,6 +24,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.42.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.42.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.42.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver v0.42.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.42.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.42.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension v0.42.0

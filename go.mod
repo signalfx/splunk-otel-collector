@@ -429,3 +429,9 @@ replace (
 	github.com/containerd/containerd => github.com/containerd/containerd v1.5.9
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.3
 )
+
+// vault has invalid requirements https://github.com/hashicorp/vault/pull/13321
+replace (
+	github.com/hashicorp/vault/api/auth/approle => github.com/hashicorp/vault/api/auth/approle v0.1.2-0.20211223174530-3688d63348b3
+	github.com/hashicorp/vault/api/auth/userpass => github.com/hashicorp/vault/api/auth/userpass v0.1.1-0.20211223174530-3688d63348b3
+)

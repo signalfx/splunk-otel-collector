@@ -25,6 +25,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension"
@@ -80,6 +81,7 @@ func Get() (component.Factories, error) {
 	var errs []error
 	extensions, err := component.MakeExtensionFactoryMap(
 		ecsobserver.NewFactory(),
+		ecstaskobserver.NewFactory(),
 		dockerobserver.NewFactory(),
 		healthcheckextension.NewFactory(),
 		filestorage.NewFactory(),

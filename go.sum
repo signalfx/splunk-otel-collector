@@ -1959,6 +1959,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/doc
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.42.0/go.mod h1:jM422XDl8ySG8DrduyCw+fzTHipa1LH9jdBJATRFRb8=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.42.0 h1:7Q25aaXncp6nescix7X1emgG3ahB8dqIvIJ8Hg/xVks=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.42.0/go.mod h1:XlC9m2uPtabMcGrXgCqkxSHaDSg02M57AxkO8N1bwjc=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver v0.42.0 h1:x/JAMrJLJEySMiE9/JlbVXYYsh1Gt9df+7YBR4mnUGA=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver v0.42.0/go.mod h1:TN2bmXsKhzDGbgEIX9Iy2iBqHYHTJ0ryFlISZogBMEQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.42.0 h1:FNphjsS2if9zac71ZMy4ImFK0XvQBSOsiz5dT8z/hfk=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.42.0/go.mod h1:2EbKrav5kbXvOH7w4zUrGZ6ohKg02yYaDPAeeBzuW9k=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.42.0 h1:+xomlXMBBoTT3RA+b9sN6bHgJIw8xopnIIiHLc2VU0A=

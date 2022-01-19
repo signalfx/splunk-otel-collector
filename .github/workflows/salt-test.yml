@@ -1,4 +1,4 @@
-name: puppet-test
+name: salt-test
 
 # Only run tests for main branch or if the PR has relevant changes
 on: 
@@ -7,45 +7,48 @@ on:
       - main
   pull_request:
     paths:
-      - '.github/workflows/puppet-test.yml'
-      - 'deployments/puppet/**'
+      - '.github/workflows/salt-test.yml'
+      - 'deployments/salt/**'
       - 'internal/buildscripts/packaging/tests/**'
 
 concurrency:
-  group: puppet-test-${{ github.event.pull_request.number || github.ref }}
+  group: salt-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  PYTHON_VERSION: 3.8.5
+  PIP_VERSION: 20.2.4
+  REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
+  RESULT_PATH: "~/testresults"
+
 jobs:
-  puppet-test:
-    name: puppet-test
+  salt-lint-test:
+    name: salt-lint-test
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        PACKAGE_TYPE: [ "deb", "rpm" ]
-    env:
-      PYTHON_VERSION: 3.8.5
-      PIP_VERSION: 20.2.4
-      REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
-      RESULT_PATH: "~/testresults"
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
       - name: Lint
         run: |
-          make -C deployments/puppet lint
+          make -C deployments/salt lint
 
-      - name: Rake spec
-        run: |
-          make -C deployments/puppet rake-spec
+  salt-test:
+    name: salt-test
+    runs-on: ubuntu-latest
+    needs: [salt-lint-test]
+    strategy:
+      matrix:
+        PACKAGE_TYPE: [ "deb", "rpm" ]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
 
       - name: Setup python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ env.PYTHON_VERSION }} 
-      
+
       - name: Caching dependency
         uses: actions/cache@v2
         with:
@@ -63,19 +66,18 @@ jobs:
           fi
           pip install -r "${{ env.REQUIREMENTS_PATH }}"
 
-      - name: Test puppet deployment
+      - name: Test salt deployment
         timeout-minutes: 45
         run: |
           mkdir -p ${{ env.RESULT_PATH }}
-          echo ${{ matrix.PACKAGE_TYPE }}
           pytest -n2 --verbose -m ${{ matrix.PACKAGE_TYPE }} \
             --junitxml=${{ env.RESULT_PATH }}/results.xml \
             --html=${{ env.RESULT_PATH }}/results.html \
             --self-contained-html \
-            internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
-      
-      - name: Uploading artifacts
+            internal/buildscripts/packaging/tests/deployments/salt/salt_test.py
+
+      - name: Uploading test result
         uses: actions/upload-artifact@v2
         with:
-          name: puppet-test-${{ matrix.PACKAGE_TYPE }}-result
+          name: salt-test-${{ matrix.PACKAGE_TYPE }}-result
           path: ${{ env.RESULT_PATH }}

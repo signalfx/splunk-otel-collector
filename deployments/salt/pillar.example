@@ -1,0 +1,7 @@
+splunk-otel-collector:
+  splunk_access_token: 12345
+  splunk_realm: us0
+  splunk_repo_base_url: https://splunk.jfrog.io/splunk
+  splunk_otel_collector_config: '/etc/otel/collector/agent_config.yaml'
+  splunk_service_user: splunk-otel-collector
+  splunk_service_group: splunk-otel-collector

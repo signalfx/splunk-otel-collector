@@ -63,7 +63,7 @@ jobs:
           fi
           pip install -r "${{ env.REQUIREMENTS_PATH }}"
 
-      - name: Test installer script
+      - name: Test puppet deployment
         timeout-minutes: 45
         run: |
           mkdir -p ${{ env.RESULT_PATH }}

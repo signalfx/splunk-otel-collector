@@ -1,0 +1,29 @@
+FROM opensuse/leap:15
+
+ENV container docker
+
+RUN zypper -n install -l curl dbus-1 systemd-sysvinit tar wget python3-pip ca-certificates
+
+RUN zypper install -y salt salt-minion salt-master
+
+RUN (cd /usr/lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
+	"systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
+	rm -f /usr/lib/systemd/system/multi-user.target.wants/*;\
+	rm -f /usr/lib/systemd/system/local-fs.target.wants/*; \
+	rm -f /usr/lib/systemd/system/sockets.target.wants/*udev*; \
+	rm -f /usr/lib/systemd/system/sockets.target.wants/*initctl*; \
+	rm -f /usr/lib/systemd/system/basic.target.wants/*;
+
+ENV init /sbin/init
+
+COPY internal/buildscripts/packaging/tests/deployments/salt/minion /etc/salt/minion
+COPY deployments/salt/splunk-otel-collector /srv/salt/splunk-otel-collector
+COPY deployments/salt/templates /srv/salt/templates
+COPY internal/buildscripts/packaging/tests/deployments/salt/top.sls /srv/pillar/top.sls
+COPY internal/buildscripts/packaging/tests/deployments/salt/top.sls /srv/salt/top.sls
+
+WORKDIR /srv/salt/splunk-otel-collector
+
+VOLUME [ "/sys/fs/cgroup" ]
+
+CMD ["/sbin/init"]

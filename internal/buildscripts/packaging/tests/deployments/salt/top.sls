@@ -1,0 +1,3 @@
+base:
+  '*':
+    - splunk-otel-collector

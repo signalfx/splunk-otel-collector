@@ -30,6 +30,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/filesystems"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/haproxy"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/kubernetes/volumes"
+	"github.com/signalfx/signalfx-agent/pkg/monitors/nagios"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/prometheusexporter"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/common/parser"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/telegraf/monitors/exec"
@@ -74,6 +75,7 @@ func TestLoadConfig(t *testing.T) {
 			SSLVerify: true,
 			Timeout:   timeutil.Duration(5 * time.Second),
 		},
+		acceptsEndpoints: true,
 	}, haproxyCfg)
 	require.NoError(t, haproxyCfg.validate())
 
@@ -90,6 +92,7 @@ func TestLoadConfig(t *testing.T) {
 			Host: "localhost",
 			Port: 6379,
 		},
+		acceptsEndpoints: true,
 	}, redisCfg)
 	require.NoError(t, redisCfg.validate())
 
@@ -106,6 +109,7 @@ func TestLoadConfig(t *testing.T) {
 			Host:         "localhost",
 			Port:         8088,
 		},
+		acceptsEndpoints: true,
 	}, hadoopCfg)
 	require.NoError(t, hadoopCfg.validate())
 
@@ -125,6 +129,7 @@ func TestLoadConfig(t *testing.T) {
 			Port:       5309,
 			MetricPath: "/metrics",
 		},
+		acceptsEndpoints: true,
 	}, etcdCfg)
 	require.NoError(t, etcdCfg.validate())
 
@@ -140,6 +145,7 @@ func TestLoadConfig(t *testing.T) {
 			},
 			DNSLookup: &tr,
 		},
+		acceptsEndpoints: true,
 	}, ntpqCfg)
 	require.NoError(t, ntpqCfg.validate())
 }
@@ -213,6 +219,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 				DatapointsToExclude: []saconfig.MetricFilter{},
 			},
 		},
+		acceptsEndpoints: true,
 	}, negativeIntervalCfg)
 	err = negativeIntervalCfg.validate()
 	require.Error(t, err)
@@ -231,6 +238,7 @@ func TestLoadInvalidConfigs(t *testing.T) {
 			TelemetryHost: "0.0.0.0",
 			TelemetryPort: 8125,
 		},
+		acceptsEndpoints: true,
 	}, missingRequiredCfg)
 	err = missingRequiredCfg.validate()
 	require.Error(t, err)
@@ -270,6 +278,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 			SSLVerify: true,
 			Timeout:   timeutil.Duration(5 * time.Second),
 		},
+		acceptsEndpoints: true,
 	}, haproxyCfg)
 	require.NoError(t, haproxyCfg.validate())
 
@@ -286,6 +295,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 			Host: "redishost",
 			Port: 6379,
 		},
+		acceptsEndpoints: true,
 	}, redisCfg)
 	require.NoError(t, redisCfg.validate())
 
@@ -303,6 +313,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 			Host:         "localhost",
 			Port:         8088,
 		},
+		acceptsEndpoints: true,
 	}, hadoopCfg)
 	require.NoError(t, hadoopCfg.validate())
 
@@ -323,6 +334,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 			Port:       5555,
 			MetricPath: "/metrics",
 		},
+		acceptsEndpoints: true,
 	}, etcdCfg)
 	require.NoError(t, etcdCfg.validate())
 }
@@ -342,7 +354,9 @@ func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {
 	require.Nil(t, cfg)
 }
 
-func TestLoadInvalidConfigWithUnsupportedEndpoint(t *testing.T) {
+// Even though this smart-agent monitor does not accept endpoints,
+// we can create it without setting Host/Port fields.
+func TestLoadConfigWithUnsupportedEndpoint(t *testing.T) {
 	factories, err := componenttest.NopFactories()
 	assert.Nil(t, err)
 
@@ -351,10 +365,25 @@ func TestLoadInvalidConfigWithUnsupportedEndpoint(t *testing.T) {
 	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "unsupported_endpoint.yaml"), factories,
 	)
-	require.Error(t, err)
-	require.EqualError(t, err,
-		`error reading receivers configuration for "smartagent/nagios": unable to set monitor Host field using Endpoint-derived value of localhost: no field Host of type string detected`)
-	require.Nil(t, cfg)
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	nagiosCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "nagios")].(*Config)
+	require.Equal(t, &Config{
+		Endpoint:         "localhost:12345",
+		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "nagios")),
+		monitorConfig: &nagios.Config{
+			MonitorConfig: saconfig.MonitorConfig{
+				Type:                "nagios",
+				DatapointsToExclude: []saconfig.MetricFilter{},
+			},
+			Command: "some_command",
+			Service: "some_service",
+			Timeout: 9,
+		},
+		acceptsEndpoints: false,
+	}, nagiosCfg)
+	require.NoError(t, nagiosCfg.validate())
 }
 
 func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {

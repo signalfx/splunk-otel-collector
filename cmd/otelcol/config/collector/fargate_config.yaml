@@ -60,7 +60,7 @@ receivers:
     listenAddress: 0.0.0.0:9080
   smartagent/ecs-metadata:
     type: ecs-metadata
-    excludedImages: $${env:ECS_METADATA_EXCLUDED_IMAGES}
+    excludedImages: ${env:ECS_METADATA_EXCLUDED_IMAGES}
 
 processors:
   batch:
@@ -83,7 +83,7 @@ processors:
     metrics:
       exclude:
         match_type: regexp
-        metric_names: $${env:METRICS_TO_EXCLUDE}
+        metric_names: ${env:METRICS_TO_EXCLUDE}
   # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and
   # traces when it's not populated by instrumentation libraries.
   # If enabled, make sure to enable this processor in the pipeline below.

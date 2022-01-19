@@ -16,6 +16,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 🧰 Bug fixes 🧰
 
 - [`smartagent` receiver](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/smartagentreceiver) will now attempt to create _any_ monitor from a Receiver Creator instance, disregarding its provided `endpoint`. Previously would error out if a monitor did not accept endpoints ([#1107](https://github.com/signalfx/splunk-otel-collector/pull/1107))
+- Remove `$$`-escaped `env` config source usage in ECS configs ([#1139](https://github.com/signalfx/splunk-otel-collector/pull/1139)).
 
 ## v0.41.0
 

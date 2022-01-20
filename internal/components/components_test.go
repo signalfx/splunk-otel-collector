@@ -27,6 +27,7 @@ import (
 func TestDefaultComponents(t *testing.T) {
 	expectedExtensions := []config.Type{
 		"ecs_observer",
+		"ecs_task_observer",
 		"docker_observer",
 		"health_check",
 		"host_observer",

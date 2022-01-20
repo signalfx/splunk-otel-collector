@@ -1395,8 +1395,11 @@ github.com/hashicorp/vault/api v1.0.5-0.20200519221902-385fac77e20f/go.mod h1:eu
 github.com/hashicorp/vault/api v1.0.5-0.20200826195146-c03009a7e370/go.mod h1:R3Umvhlxi2TN7Ex2hzOowyeNb+SfbVWI973N+ctaFMk=
 github.com/hashicorp/vault/api v1.1.1/go.mod h1:29UXcn/1cLOPHQNMWA7bCz2By4PSd0VKPAydKXS5yN0=
 github.com/hashicorp/vault/api v1.2.0/go.mod h1:dAjw0T5shMnrfH7Q/Mst+LrcTKvStZBVs1PICEDpUqY=
-github.com/hashicorp/vault/api v1.3.0 h1:uDy39PLSvy6gtKyjOCRPizy2QdFiIYSWBR2pxCEzYL8=
 github.com/hashicorp/vault/api v1.3.0/go.mod h1:EabNQLI0VWbWoGlA+oBLC8PXmR9D60aUVgQGvangFWQ=
+github.com/hashicorp/vault/api v1.3.1 h1:pkDkcgTh47PRjY1NEFeofqR4W/HkNUi9qIakESO2aRM=
+github.com/hashicorp/vault/api v1.3.1/go.mod h1:QeJoWxMFt+MsuWcYhmwRLwKEXrjwAFFywzhptMsTIUw=
+github.com/hashicorp/vault/api/auth/approle v0.1.2-0.20211223174530-3688d63348b3/go.mod h1:MXmq0NA1yii35XYrQYxbvFE0c/P7SjM8iIi3eWfTy4A=
+github.com/hashicorp/vault/api/auth/userpass v0.1.1-0.20211223174530-3688d63348b3/go.mod h1:H/Y6cdoc4ZB+OkqnxzbQvJ1kTCigYuaLncKfv0/gptc=
 github.com/hashicorp/vault/sdk v0.1.8/go.mod h1:tHZfc6St71twLizWNHvnnbiGFo1aq0eD2jGPLtP8kAU=
 github.com/hashicorp/vault/sdk v0.1.13/go.mod h1:B+hVj7TpuQY1Y/GPbCpffmgd+tSEwvhkWnjtSYCaS2M=
 github.com/hashicorp/vault/sdk v0.1.14-0.20190730042320-0dc007d98cc8/go.mod h1:B+hVj7TpuQY1Y/GPbCpffmgd+tSEwvhkWnjtSYCaS2M=
@@ -1958,6 +1961,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/doc
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.42.0/go.mod h1:jM422XDl8ySG8DrduyCw+fzTHipa1LH9jdBJATRFRb8=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.42.0 h1:7Q25aaXncp6nescix7X1emgG3ahB8dqIvIJ8Hg/xVks=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.42.0/go.mod h1:XlC9m2uPtabMcGrXgCqkxSHaDSg02M57AxkO8N1bwjc=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver v0.42.0 h1:x/JAMrJLJEySMiE9/JlbVXYYsh1Gt9df+7YBR4mnUGA=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver v0.42.0/go.mod h1:TN2bmXsKhzDGbgEIX9Iy2iBqHYHTJ0ryFlISZogBMEQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.42.0 h1:FNphjsS2if9zac71ZMy4ImFK0XvQBSOsiz5dT8z/hfk=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.42.0/go.mod h1:2EbKrav5kbXvOH7w4zUrGZ6ohKg02yYaDPAeeBzuW9k=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.42.0 h1:+xomlXMBBoTT3RA+b9sN6bHgJIw8xopnIIiHLc2VU0A=

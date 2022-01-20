@@ -1,0 +1,29 @@
+FROM oraclelinux:7
+
+ENV container docker
+
+RUN yum install -y systemd procps initscripts python3-pip python3-devel gcc
+
+RUN rpm --import https://repo.saltproject.io/py3/redhat/7/x86_64/latest/SALTSTACK-GPG-KEY.pub
+RUN curl -fsSL https://repo.saltproject.io/py3/redhat/7/x86_64/latest.repo | tee /etc/yum.repos.d/salt.repo
+
+RUN yum install -y salt-minion
+
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
+    "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
+    rm -f /lib/systemd/system/multi-user.target.wants/*;\
+    rm -f /lib/systemd/system/local-fs.target.wants/*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+    rm -f /lib/systemd/system/basic.target.wants/*;\
+    rm -f /lib/systemd/system/anaconda.target.wants/*;
+
+COPY internal/buildscripts/packaging/tests/deployments/salt/minion /etc/salt/minion
+COPY deployments/salt/splunk-otel-collector /srv/salt/splunk-otel-collector
+COPY deployments/salt/templates /srv/salt/templates
+COPY internal/buildscripts/packaging/tests/deployments/salt/top.sls /srv/pillar/top.sls
+COPY internal/buildscripts/packaging/tests/deployments/salt/top.sls /srv/salt/top.sls
+
+VOLUME [ "/sys/fs/cgroup" ]
+
+CMD ["/usr/sbin/init"]

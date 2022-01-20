@@ -21,9 +21,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 💡 Enhancements 💡
 
 - Initial salt module for linux (#1050)
-
-### 💡 Enhancements 💡
-
 - Initial chef support for linux and windows (#1132)
 
 ## v0.41.0

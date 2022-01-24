@@ -2391,10 +2391,10 @@ github.com/signalfx/sapm-proto v0.4.0/go.mod h1:x3gtwJ1GRejtkghB4nYpwixh2zqJrLbP
 github.com/signalfx/sapm-proto v0.7.0/go.mod h1:y4b+wJlBKH7AzdastAgdWHrfMBB/QYN+u+20SEA94C4=
 github.com/signalfx/sapm-proto v0.7.2 h1:iM/y3gezQm1/j7JBS0gXhEJ8ROeneb6DY7n0OcnvLks=
 github.com/signalfx/sapm-proto v0.7.2/go.mod h1:HLufOh6Gd2altGxbeve+s6hh0EWCWoOM7MmuYuvs5PI=
-github.com/signalfx/signalfx-agent v1.0.1-0.20211213195011-1f5d60ecfbff h1:10PI5tCvsmzZOhge88N3JJ697+3iae/jbNFqelb/MpI=
-github.com/signalfx/signalfx-agent v1.0.1-0.20211213195011-1f5d60ecfbff/go.mod h1:6wvcjsekmk9/wTUnSY3y3SV8xPnWkQ2i4gvyehd0Dlc=
-github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20211213195011-1f5d60ecfbff h1:vlQhQx4tx3AKZE5eG2nMVoIl1C50aJVUd8vT1+s+UyU=
-github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20211213195011-1f5d60ecfbff/go.mod h1:ykse0N6Kzcy+eBFROdiye5MFMM1h2BiZR8s1lKdgJik=
+github.com/signalfx/signalfx-agent v1.0.1-0.20220124192246-00e4f3c7b0c0 h1:UfrrkXJD9t2b+kn0sPTV5dnN45RmjHG0DT4RX7ilKs8=
+github.com/signalfx/signalfx-agent v1.0.1-0.20220124192246-00e4f3c7b0c0/go.mod h1:6wvcjsekmk9/wTUnSY3y3SV8xPnWkQ2i4gvyehd0Dlc=
+github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220124192246-00e4f3c7b0c0 h1:eXqbvFw6HIaJP7+OULMNzlrJgPffLCQwv10+mDhB8UQ=
+github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220124192246-00e4f3c7b0c0/go.mod h1:ykse0N6Kzcy+eBFROdiye5MFMM1h2BiZR8s1lKdgJik=
 github.com/signalfx/signalfx-go v1.6.38-0.20200518153434-ceee8d2570d5/go.mod h1:CeCGXKT2wqqky0Nz8eV0NH/CpMPE7tzYUcV8eQS1U1s=
 github.com/signalfx/signalfx-go v1.8.1 h1:ObJF59/tsRcu8KSST8AfFVTca7po/GP2LoPcaGgcBUI=
 github.com/signalfx/signalfx-go v1.8.1/go.mod h1:EtCwkwvLv+wfjDQVAs1O37yVn3hp2xAKmXA6BFKkRT4=

@@ -47,12 +47,14 @@ if platform_family?('windows')
 
   default['splunk-otel-collector']['collector_config_source'] = 'file:///' + "#{collector_install_dir}\\agent_config.yaml"
   default['splunk-otel-collector']['collector_config_dest'] = "#{ENV['ProgramData']}\\Splunk\\OpenTelemetry Collector\\agent_config.yaml"
+  default['splunk-otel-collector']['collector_version_file'] = "#{collector_install_dir}\\collector_version.txt"
 
   default['splunk-otel-collector']['splunk_bundle_dir'] = "#{collector_install_dir}\\agent-bundle"
   default['splunk-otel-collector']['splunk_collectd_dir'] = "#{node['splunk-otel-collector']['splunk_bundle_dir']}\\run\\collectd"
 
   default['splunk-otel-collector']['fluentd_config_source'] = 'file:///' + "#{collector_install_dir}\\fluentd\\td-agent.conf"
   default['splunk-otel-collector']['fluentd_config_dest'] = "#{ENV['SystemDrive']}\\opt\\td-agent\\etc\\td-agent\\td-agent.conf"
+  default['splunk-otel-collector']['fluentd_version_file'] = "#{collector_install_dir}\\fluentd_version.txt"
 
 elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   default['splunk-otel-collector']['collector_version'] = 'latest'

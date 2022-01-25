@@ -9,6 +9,7 @@ td_agent_major_version = node['splunk-otel-collector']['fluentd_version'].split(
 remote_file "#{ENV['TEMP']}\\td-agent-#{node['splunk-otel-collector']['fluentd_version']}-x64.msi" do
   source "#{node['splunk-otel-collector']['fluentd_base_url']}/#{td_agent_major_version}/windows/td-agent-#{node['splunk-otel-collector']['fluentd_version']}-x64.msi"
   action :create
+  only_if { !::File.exist?(node['splunk-otel-collector']['fluentd_version_file']) || (::File.readlines(node['splunk-otel-collector']['fluentd_version_file']).first.strip != node['splunk-otel-collector']['fluentd_version']) }
 end
 
 windows_package 'fluentd' do
@@ -16,6 +17,11 @@ windows_package 'fluentd' do
   action :install
   notifies :restart, 'windows_service[td-agent]', :delayed
   notifies :restart, 'windows_service[splunk-otel-collector]', :delayed
+  only_if { !::File.exist?(node['splunk-otel-collector']['fluentd_version_file']) || (::File.readlines(node['splunk-otel-collector']['fluentd_version_file']).first.strip != node['splunk-otel-collector']['fluentd_version']) }
+end
+
+file node['splunk-otel-collector']['fluentd_version_file'] do
+  content node['splunk-otel-collector']['fluentd_version']
 end
 
 directory ::File.dirname(node['splunk-otel-collector']['fluentd_config_dest']) do

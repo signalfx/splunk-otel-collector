@@ -1,0 +1,39 @@
+name: auto-instrumentation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '.github/workflows/auto-instrumentation.yml'
+      - 'instrumentation/**'
+
+concurrency:
+  group: auto-instrumentation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  libsplunk:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ARCH: [ "amd64", "arm64" ]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        if: ${{ matrix.ARCH == 'arm64'}}
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: arm64
+
+      - name: Build libsplunk.so
+        run: make -C instrumentation dist ARCH=${{ matrix.ARCH }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: libsplunk-${{ matrix.ARCH }}
+          path: ./instrumentation/dist/libsplunk_${{ matrix.ARCH }}.so

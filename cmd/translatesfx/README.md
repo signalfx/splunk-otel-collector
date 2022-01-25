@@ -1,4 +1,4 @@
-# SignalFx Smart Agent Configuration Translation Tool (Alpha)
+# SignalFx Smart Agent Configuration Translation Tool
 
 This package provides a command-line tool, `translatesfx`, that translates a 
 SignalFx Smart Agent configuration file into a configuration that can be

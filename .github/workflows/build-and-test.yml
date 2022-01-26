@@ -318,6 +318,7 @@ jobs:
     strategy:
       matrix:
         MODE: [ "agent", "gateway" ]
+        WITH_FLUENTD: [ "true", "false" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2
@@ -334,7 +335,7 @@ jobs:
           Set-PSDebug -Trace 1
           $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           $env:VERIFY_ACCESS_TOKEN = "false"
-          .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -realm "test" -msi_path "$msi_path" -mode "${{ matrix.MODE }}"
+          .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -realm "test" -msi_path "$msi_path" -mode "${{ matrix.MODE }}" -with_fluentd $${{ matrix.WITH_FLUENTD }}
           $SPLUNK_CONFIG = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_CONFIG"
           $SPLUNK_CONFIG_FILE = Split-Path $SPLUNK_CONFIG -leaf
           if ( "$SPLUNK_CONFIG_FILE" -ne "${{ matrix.MODE }}_config.yaml" ) {
@@ -349,19 +350,16 @@ jobs:
           Test-Path -Path ".\splunk-support-bundle.zip"
           Test-Path -Path "\tmp\splunk-support-bundle\logs\splunk-otel-collector.log"
           Test-Path -Path "\tmp\splunk-support-bundle\logs\splunk-otel-collector.txt"
-          Test-Path -Path "\tmp\splunk-support-bundle\logs\td-agent.log"
-          Test-Path -Path "\tmp\splunk-support-bundle\logs\td-agent.txt"
           Test-Path -Path "\tmp\splunk-support-bundle\metrics\collector-metrics.txt"
           Test-Path -Path "\tmp\splunk-support-bundle\metrics\df.txt"
           Test-Path -Path "\tmp\splunk-support-bundle\metrics\free.txt"
           Test-Path -Path "\tmp\splunk-support-bundle\metrics\top.txt"
           Test-Path -Path "\tmp\splunk-support-bundle\zpages\tracez.html"
-          if ( "${{ matrix.MODE }}" -eq "agent" ) {
+          Test-Path -Path "\tmp\splunk-support-bundle\config\${{ matrix.MODE }}_config.yaml"
+          if ( "${{ matrix.WITH_FLUENTD }}" -eq "true" ) {
+            Test-Path -Path "\tmp\splunk-support-bundle\logs\td-agent.log"
+            Test-Path -Path "\tmp\splunk-support-bundle\logs\td-agent.txt"
             Test-Path -Path "\tmp\splunk-support-bundle\config\td-agent\td-agent.conf"
-            Test-Path -Path "\tmp\splunk-support-bundle\config\agent_config.yaml"
-          }
-          if ( "${{ matrix.MODE }}" -eq "gateway" ) {
-            Test-Path -Path "\tmp\splunk-support-bundle\config\gateway_config.yaml"
           }
 
   windows-choco:

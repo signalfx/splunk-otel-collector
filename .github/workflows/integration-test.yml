@@ -4,6 +4,16 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    paths:
+      - '.github/workflows/integration-test.yml'
+      - 'go.mod'
+      - 'go.sum'
+      - 'cmd/otelcol/**'
+      - 'internal/**'
+      - '!internal/buildscripts/*'
+      - '!internal/buildscripts/packaging/*/**'
+      - 'tests/**'
 
 jobs:
   docker-otelcol:

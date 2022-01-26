@@ -106,8 +106,7 @@ function getConfig {
     }
     $FLUENTD_CONFDIR="${env:SYSTEMDRIVE}\opt\td-agent\etc\td-agent"
     if (-NOT (Test-Path -Path $FLUENTD_CONFDIR)) {
-        Write-Output "ERROR: Could not find directory ($FLUENTD_CONFDIR)."
-        usage
+        Write-Output "WARN: Could not find directory ($FLUENTD_CONFDIR)."
     } else {
         Copy-Item -Path "$FLUENTD_CONFDIR" -Destination "$TMPDIR/config" -Recurse
     }
@@ -241,15 +240,15 @@ function getZpages {
 function getHostInfo {
     Write-Output "INFO: Getting host information..."
     for ( $i = 0; $i -lt 3; $i++ ) {
-        Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue >> $TMPDIR/metrics/top.txt 2>&1 
-        Get-Process -Name 'ruby' | Where-Object {$_.Path -eq "${env:SYSTEMDRIVE}\opt\td-agent\bin\ruby.exe"} -ErrorAction SilentlyContinue >> $TMPDIR/metrics/top.txt 2>&1 
+        Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue >> $TMPDIR/metrics/top.txt 2>&1
+        Get-Process -Name 'ruby' -ErrorAction SilentlyContinue | Where-Object {$_.Path -eq "${env:SYSTEMDRIVE}\opt\td-agent\bin\ruby.exe"} >> $TMPDIR/metrics/top.txt 2>&1
         Start-Sleep -s 2
     }
     if (-NOT (Get-Process -Name 'otelcol' -ErrorAction SilentlyContinue)) {
         Write-Output "WARN: Unable to find otelcol PIDs"
         Write-Output "      Get-Process will not be collected for otelcol";
     }
-    if (-NOT (Get-Process -Name 'ruby' | Where-Object {$_.Path -eq "${env:SYSTEMDRIVE}\opt\td-agent\bin\ruby.exe"} -ErrorAction SilentlyContinue)) {
+    if (-NOT (Get-Process -Name 'ruby' -ErrorAction SilentlyContinue | Where-Object {$_.Path -eq "${env:SYSTEMDRIVE}\opt\td-agent\bin\ruby.exe"})) {
         Write-Output "WARN: Unable to find fluentd (ruby) PIDs"
         Write-Output "      Get-Process will not be collected for fluentd (ruby)";
     }

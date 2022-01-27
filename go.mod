@@ -38,7 +38,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor v0.42.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.42.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.42.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.42.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.43.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.42.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor v0.42.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.42.0
@@ -73,12 +73,12 @@ require (
 	github.com/stretchr/testify v1.7.0
 	go.etcd.io/bbolt v1.3.6
 	go.etcd.io/etcd/client/v2 v2.305.1
-	go.opentelemetry.io/collector v0.42.0
-	go.opentelemetry.io/collector/model v0.42.0
+	go.opentelemetry.io/collector v0.43.1
+	go.opentelemetry.io/collector/model v0.43.1
 	go.opentelemetry.io/otel/trace v1.3.0
 	go.uber.org/multierr v1.7.0
 	go.uber.org/zap v1.20.0
-	golang.org/x/sys v0.0.0-20211210111614-af8b64212486
+	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -113,7 +113,7 @@ require (
 	github.com/apache/thrift v0.15.0 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/aws/aws-sdk-go v1.42.27 // indirect
+	github.com/aws/aws-sdk-go v1.42.40 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.9.2 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.4.3 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.4.0 // indirect
@@ -228,7 +228,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/karrick/godirwalk v1.10.3 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/klauspost/compress v1.13.6 // indirect
+	github.com/klauspost/compress v1.14.1 // indirect
 	github.com/knadh/koanf v1.4.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/leoluk/perflib_exporter v0.1.0 // indirect
@@ -258,16 +258,16 @@ require (
 	github.com/mongodb-forks/digest v1.0.3 // indirect
 	github.com/mongodb/go-client-mongodb-atlas v0.2.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/mostynb/go-grpc-compression v1.1.15 // indirect
+	github.com/mostynb/go-grpc-compression v1.1.16 // indirect
 	github.com/mwielbut/pointy v1.1.0 // indirect
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/observiq/ctimefmt v1.0.0 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.42.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/ecsutil v0.42.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/ecsutil v0.43.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.42.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.42.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.43.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/docker v0.42.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.42.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.42.0 // indirect
@@ -275,7 +275,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.42.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/stanza v0.42.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.42.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus v0.42.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus v0.43.0 // indirect
 	github.com/open-telemetry/opentelemetry-log-collection v0.24.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
@@ -365,7 +365,7 @@ require (
 	gonum.org/v1/gonum v0.9.3 // indirect
 	google.golang.org/api v0.63.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
+	google.golang.org/genproto v0.0.0-20220111164026-67b88f271998 // indirect
 	google.golang.org/grpc v1.43.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/fatih/set.v0 v0.1.0 // indirect

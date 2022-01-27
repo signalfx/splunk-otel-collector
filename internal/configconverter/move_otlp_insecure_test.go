@@ -29,6 +29,7 @@
 package configconverter
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -41,7 +42,7 @@ func TestMoveOTLPInsecureKey(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 
-	MoveOTLPInsecureKey(cfgMap)
+	MoveOTLPInsecureKey(context.Background(), cfgMap)
 
 	assert.False(t, cfgMap.IsSet("exporters::otlp::insecure"))
 	assert.Equal(t, true, cfgMap.Get("exporters::otlp::tls::insecure"))
@@ -52,7 +53,7 @@ func TestMoveOTLPInsecureKey_Custom(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 
-	MoveOTLPInsecureKey(cfgMap)
+	MoveOTLPInsecureKey(context.Background(), cfgMap)
 
 	assert.False(t, cfgMap.IsSet("exporters::otlp/foo::insecure"))
 	assert.Equal(t, true, cfgMap.Get("exporters::otlp/foo::tls::insecure"))

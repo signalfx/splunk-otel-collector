@@ -315,10 +315,11 @@ jobs:
 
   windows-msi-validation:
     name: windows-msi-validation
-    runs-on: windows-latest
+    runs-on: ${{ matrix.OS }}
     needs: [windows-msi]
     strategy:
       matrix:
+        OS: [ "windows-2019", "windows-2022" ]
         MODE: [ "agent", "gateway" ]
         WITH_FLUENTD: [ "true", "false" ]
     steps:
@@ -338,35 +339,13 @@ jobs:
           $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           $env:VERIFY_ACCESS_TOKEN = "false"
           .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -realm "test" -msi_path "$msi_path" -mode "${{ matrix.MODE }}" -with_fluentd $${{ matrix.WITH_FLUENTD }}
-          $SPLUNK_CONFIG = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_CONFIG"
-          $SPLUNK_CONFIG_FILE = Split-Path $SPLUNK_CONFIG -leaf
-          if ( "$SPLUNK_CONFIG_FILE" -ne "${{ matrix.MODE }}_config.yaml" ) {
-            write-host "Environment variable SPLUNK_CONFIG is not properly set."
-            exit 1
-          }
           Start-Sleep -s 30
-          Set-Location -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector"
-          Test-Path -Path ".\splunk-support-bundle.ps1"
-          Start-Process ".\otelcol.exe" -WindowStyle Hidden
-          powershell.exe -File "$env:ProgramFiles\Splunk\OpenTelemetry Collector\splunk-support-bundle.ps1" -t \tmp\splunk-support-bundle
-          Test-Path -Path ".\splunk-support-bundle.zip"
-          Test-Path -Path "\tmp\splunk-support-bundle\logs\splunk-otel-collector.log"
-          Test-Path -Path "\tmp\splunk-support-bundle\logs\splunk-otel-collector.txt"
-          Test-Path -Path "\tmp\splunk-support-bundle\metrics\collector-metrics.txt"
-          Test-Path -Path "\tmp\splunk-support-bundle\metrics\df.txt"
-          Test-Path -Path "\tmp\splunk-support-bundle\metrics\free.txt"
-          Test-Path -Path "\tmp\splunk-support-bundle\metrics\top.txt"
-          Test-Path -Path "\tmp\splunk-support-bundle\zpages\tracez.html"
-          Test-Path -Path "\tmp\splunk-support-bundle\config\${{ matrix.MODE }}_config.yaml"
-          if ( "${{ matrix.WITH_FLUENTD }}" -eq "true" ) {
-            Test-Path -Path "\tmp\splunk-support-bundle\logs\td-agent.log"
-            Test-Path -Path "\tmp\splunk-support-bundle\logs\td-agent.txt"
-            Test-Path -Path "\tmp\splunk-support-bundle\config\td-agent\td-agent.conf"
-          }
+          powershell.exe -File .github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
+          powershell.exe -File .github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
 
   windows-choco:
     name: windows-choco
-    runs-on: windows-latest
+    runs-on: windows-2019
     needs: [windows-msi]
     steps:
       - name: Check out the codebase.
@@ -396,11 +375,13 @@ jobs:
 
   windows-choco-validation:
     name: windows-choco-validation
-    runs-on: windows-latest
+    runs-on: ${{ matrix.OS }}
     needs: [windows-choco]
     strategy:
       matrix:
+        OS: [ "windows-2019", "windows-2022" ]
         MODE: [ "agent", "gateway" ]
+        WITH_FLUENTD: [ "true", "false" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2
@@ -415,24 +396,28 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           Set-PSDebug -Trace 1
-          write-host "Installing choco package..."
-          choco install splunk-otel-collector -s=".\dist\splunk-otel-collector.$version.nupkg" --params="'/SPLUNK_ACCESS_TOKEN=12345 /SPLUNK_REALM=test /MODE:${{ matrix.MODE }}'" -y | Tee-Object -file .\dist\installation_logs.log
-          $SPLUNK_CONFIG = Get-ItemPropertyValue -PATH "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -name "SPLUNK_CONFIG"
-          $SPLUNK_CONFIG_FILE = Split-Path $SPLUNK_CONFIG -leaf
-          if ( "$SPLUNK_CONFIG_FILE" -ne "${{ matrix.MODE }}_config.yaml" ) {
-            write-host "Environment variable SPLUNK_CONFIG is not properly set."
-            exit 1
-          }
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { throw "Failed to install splunk-otel-collector using chocolatey." } else { write-host "splunk-otel-collector service is running." }
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) { throw "Failed to install fluentdwinsvc using chocolatey." } else { write-host "fluentdwinsvc service is running." }
+          $choco_file_name = Resolve-Path .\dist\splunk-otel-collector*.nupkg
+          write-host "Installing $choco_file_name..."
+          choco install splunk-otel-collector -s="$choco_file_name" --params="'/SPLUNK_ACCESS_TOKEN=12345 /SPLUNK_REALM=test /MODE:${{ matrix.MODE }} /WITH_FLUENTD:${{ matrix.WITH_FLUENTD }}'" -y
+          Start-Sleep -s 30
+          powershell.exe -File .github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
+          powershell.exe -File .github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
           write-host "Reinstalling choco package..."
-          choco install splunk-otel-collector -s=".\dist\splunk-otel-collector.$version.nupkg" --params="'/MODE:${{ matrix.MODE }}'" --force -y | Tee-Object -file .\dist\reinstallation_logs.log
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { throw "Failed to install splunk-otel-collector using chocolatey." } else { write-host "splunk-otel-collector service is running." }
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) { throw "Failed to install fluentdwinsvc using chocolatey." } else { write-host "fluentdwinsvc service is running." }
+          choco install splunk-otel-collector -s="$choco_file_name" --params="'/MODE:${{ matrix.MODE }} /WITH_FLUENTD:${{ matrix.WITH_FLUENTD }}'" --force -y
+          Start-Sleep -s 30
+          powershell.exe -File .github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
           write-host "Uninstalling choco package..."
-          choco uninstall -y splunk-otel-collector | Tee-Object -file .\dist\uninstallation_logs.log
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) { write-host "splunk-otel-collector has been successfully uninstalled and service is not running." } else { throw "Failed to uninstall splunk-otel-collector chocolatey package." }
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) { write-host "fluentdwinsvc has been successfully uninstalled and service is not running." } else { throw "Failed to uninstall fluentdwinsvc chocolatey package." }
+          choco uninstall -y splunk-otel-collector
+          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) {
+            write-host "splunk-otel-collector has been successfully uninstalled and service is not running."
+          } else {
+            throw "Failed to uninstall splunk-otel-collector chocolatey package."
+          }
+          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) {
+            write-host "fluentdwinsvc has been successfully uninstalled and service is not running."
+          } else {
+            throw "Failed to uninstall fluentdwinsvc."
+          }
 
   docker-otelcol:
     name: docker-otelcol
@@ -491,7 +476,7 @@ jobs:
 
   docker-otelcol-windows:
     name: docker-otelcol-windows
-    runs-on: windows-latest
+    runs-on: windows-2019
     needs: [cross-compile]
     steps:
       - name: Check out the codebase.

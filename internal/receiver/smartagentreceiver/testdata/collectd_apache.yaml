@@ -1,0 +1,16 @@
+receivers:
+  smartagent/collectd/apache:
+    type: collectd/apache
+
+processors:
+  nop:
+
+exporters:
+  nop:
+
+service:
+  pipelines:
+    metrics:
+      receivers: [smartagent/collectd/apache]
+      processors: [nop]
+      exporters: [nop]

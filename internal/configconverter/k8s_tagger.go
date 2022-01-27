@@ -15,6 +15,7 @@
 package configconverter
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"reflect"
@@ -24,7 +25,7 @@ import (
 )
 
 // RenameK8sTagger will replace k8s_tagger processor items with k8sattributes ones.
-func RenameK8sTagger(in *config.Map) error {
+func RenameK8sTagger(_ context.Context, in *config.Map) error {
 	if in == nil {
 		return fmt.Errorf("cannot RenameK8sTagger on nil *config.Map")
 	}

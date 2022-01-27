@@ -15,6 +15,7 @@
 package configconverter
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -22,7 +23,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 )
 
-func MoveHecTLS(in *config.Map) error {
+func MoveHecTLS(_ context.Context, in *config.Map) error {
 	if in == nil {
 		return fmt.Errorf("cannot MoveHecTLS on nil *config.Map")
 	}

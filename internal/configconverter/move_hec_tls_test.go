@@ -15,6 +15,7 @@
 package configconverter
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,7 +28,7 @@ func TestMoveHecTLS(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 
-	MoveHecTLS(cfgMap)
+	MoveHecTLS(context.Background(), cfgMap)
 
 	assert.False(t, cfgMap.IsSet("exporters::splunk_hec::ca_file"))
 	assert.True(t, true, cfgMap.Get("exporters::splunk_hec::tls::insecure_skip_verify"))

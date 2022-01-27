@@ -35,6 +35,7 @@ import (
 func TestConfigSourceConfigMapProvider(t *testing.T) {
 	tests := []struct {
 		parserProvider configmapprovider.Provider
+		configLocation string
 		wantErr        error
 		name           string
 		factories      []Factory
@@ -64,12 +65,14 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 					ErrOnCreateConfigSource: errors.New("new_manager_builder_error forced error"),
 				},
 			},
-			parserProvider: configmapprovider.NewFile(path.Join("testdata", "basic_config.yaml")),
+			parserProvider: configmapprovider.NewFile(),
+			configLocation: "file:" + path.Join("testdata", "basic_config.yaml"),
 			wantErr:        &errConfigSourceCreation{},
 		},
 		{
 			name:           "manager_resolve_error",
-			parserProvider: configmapprovider.NewFile(path.Join("testdata", "manager_resolve_error.yaml")),
+			parserProvider: configmapprovider.NewFile(),
+			configLocation: "file:" + path.Join("testdata", "manager_resolve_error.yaml"),
 			wantErr:        fmt.Errorf("error not wrappedProviders by specific error type: %w", configsource.ErrSessionClosed),
 		},
 	}
@@ -84,7 +87,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 			}
 
 			pp := NewConfigSourceConfigMapProvider(
-				[]configmapprovider.Provider{},
+				&mockParserProvider{},
 				zap.NewNop(),
 				component.NewDefaultBuildInfo(),
 				factories...,
@@ -93,13 +96,11 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 
 			// Do not use the config.Default() to simplify the test setup.
 			cspp := pp.(*configSourceConfigMapProvider)
-			if tt.parserProvider == nil {
-				cspp.wrappedProviders = []configmapprovider.Provider{&mockParserProvider{}}
-			} else {
-				cspp.wrappedProviders = []configmapprovider.Provider{tt.parserProvider}
+			if tt.parserProvider != nil {
+				cspp.wrappedProvider = tt.parserProvider
 			}
 
-			r, err := pp.Retrieve(context.Background(), nil)
+			r, err := pp.Retrieve(context.Background(), tt.configLocation, nil)
 			require.NoError(t, err)
 
 			cp, err := r.Get(context.Background())
@@ -137,7 +138,7 @@ type mockParserProvider struct {
 
 var _ configmapprovider.Provider = (*mockParserProvider)(nil)
 
-func (mpp *mockParserProvider) Retrieve(ctx context.Context, onChange func(*configmapprovider.ChangeEvent)) (configmapprovider.Retrieved, error) {
+func (mpp *mockParserProvider) Retrieve(_ context.Context, _ string, _ configmapprovider.WatcherFunc) (configmapprovider.Retrieved, error) {
 	return configmapprovider.NewRetrieved(mpp.Get)
 }
 

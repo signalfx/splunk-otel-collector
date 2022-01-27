@@ -29,6 +29,7 @@
 package configconverter
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -43,7 +44,7 @@ func TestRenameK8sTaggerTestRenameK8sTagger(t *testing.T) {
 	expected, err := configtest.LoadConfigMap("testdata/k8sattributes.yaml")
 	require.NoError(t, err)
 
-	RenameK8sTagger(actual)
+	RenameK8sTagger(context.Background(), actual)
 
 	require.Equal(t, expected.ToStringMap(), actual.ToStringMap())
 }

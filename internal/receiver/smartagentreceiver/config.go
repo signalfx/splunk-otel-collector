@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"net"
 	"reflect"
+	"runtime"
 	"strconv"
 
 	"github.com/signalfx/defaults"
@@ -31,9 +32,20 @@ import (
 
 const defaultIntervalSeconds = 10
 
-var _ config.Unmarshallable = (*Config)(nil)
+var (
+	_ config.Unmarshallable = (*Config)(nil)
 
-var errDimensionClientValue = fmt.Errorf("dimensionClients must be an array of compatible exporter names")
+	errDimensionClientValue = fmt.Errorf("dimensionClients must be an array of compatible exporter names")
+	nonWindowsMonitors      = map[string]bool{
+		"collectd/activemq": true, "collectd/apache": true, "collectd/cassandra": true, "collectd/chrony": true,
+		"collectd/cpu": true, "collectd/cpufreq": true, "collectd/custom": true, "collectd/df": true, "collectd/disk": true,
+		"collectd/genericjmx": true, "collectd/hadoop": true, "collectd/kafka": true, "collectd/kafka_consumer": true,
+		"collectd/kafka_producer": true, "collectd/load": true, "collectd/memcached": true, "collectd/memory": true,
+		"collectd/mysql": true, "collectd/netinterface": true, "collectd/nginx": true, "collectd/php-fpm": true,
+		"collectd/postgresql": true, "collectd/processes": true, "collectd/protocols": true,
+		"collectd/signalfx-metadata": true, "collectd/statsd": true, "collectd/uptime": true, "collectd/vmem": true,
+	}
+)
 
 type Config struct {
 	monitorConfig           saconfig.MonitorCustomConfig
@@ -91,6 +103,9 @@ func (cfg *Config) Unmarshal(componentParser *config.Map) error {
 	// The values are always pointers to an actual custom config.
 	var customMonitorConfig saconfig.MonitorCustomConfig
 	if customMonitorConfig, ok = monitors.ConfigTemplates[monitorType]; !ok {
+		if unsupported := nonWindowsMonitors[monitorType]; runtime.GOOS == "windows" && unsupported {
+			return fmt.Errorf("smart agent monitor type %q is not supported on windows platforms", monitorType)
+		}
 		return fmt.Errorf("no known monitor type %q", monitorType)
 	}
 	monitorConfigType := reflect.TypeOf(customMonitorConfig).Elem()

@@ -6,9 +6,14 @@
 
 - Initial chef support for linux and windows (#1132)
 
+## v0.43.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.43.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.43.1) and the [opentelemetry-collector-contrib v0.43.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.43.0) releases.
+
 ### 🧰 Bug fixes 🧰
 
 - Provide informative unsupported monitor error on Windows for Smart Agent receiver [#1150](https://github.com/signalfx/splunk-otel-collector/pull/1150)
+- Fix Windows support bundle script if fluentd is not installed (#1162)
 
 ## v0.42.0
 

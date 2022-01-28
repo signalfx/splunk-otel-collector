@@ -33,79 +33,52 @@ var (
 )
 
 type configSourceConfigMapProvider struct {
-	logger            *zap.Logger
-	csm               *Manager
-	configServer      *configServer
-	wrappedProviders  []configmapprovider.Provider
-	wrappedRetrieveds []configmapprovider.Retrieved
-	retrieved         configmapprovider.Retrieved
-	buildInfo         component.BuildInfo
-	factories         []Factory
+	logger           *zap.Logger
+	csm              *Manager
+	configServer     *configServer
+	wrappedProvider  configmapprovider.Provider
+	wrappedRetrieved configmapprovider.Retrieved
+	retrieved        configmapprovider.Retrieved
+	buildInfo        component.BuildInfo
+	factories        []Factory
 }
 
 // NewConfigSourceConfigMapProvider creates a ParserProvider that uses config sources.
-func NewConfigSourceConfigMapProvider(wrapped []configmapprovider.Provider, logger *zap.Logger, buildInfo component.BuildInfo, factories ...Factory) configmapprovider.Provider {
+func NewConfigSourceConfigMapProvider(wrappedProvider configmapprovider.Provider, logger *zap.Logger,
+	buildInfo component.BuildInfo, factories ...Factory) configmapprovider.Provider {
 	return &configSourceConfigMapProvider{
-		wrappedProviders: wrapped,
-		logger:           logger,
-		factories:        factories,
-		buildInfo:        buildInfo,
+		wrappedProvider: wrappedProvider,
+		logger:          logger,
+		factories:       factories,
+		buildInfo:       buildInfo,
 	}
 }
 
-func (c *configSourceConfigMapProvider) Retrieve(ctx context.Context, onChange func(*configmapprovider.ChangeEvent)) (configmapprovider.Retrieved, error) {
-	for _, p := range c.wrappedProviders {
-		retr, err := p.Retrieve(ctx, onChange)
-		if err != nil {
-			return nil, err
-		}
-		c.wrappedRetrieveds = append(c.wrappedRetrieveds, retr)
+func (c *configSourceConfigMapProvider) Retrieve(ctx context.Context,
+	location string, onChange configmapprovider.WatcherFunc) (configmapprovider.Retrieved, error) {
+	wr, err := c.wrappedProvider.Retrieve(ctx, location, onChange)
+	if err != nil {
+		return nil, err
 	}
+	c.wrappedRetrieved = wr
 
-	var err error
-	c.retrieved, err = configmapprovider.NewRetrieved(
-		c.Get,
-		configmapprovider.WithClose(func(ctxF context.Context) error {
-			var e error
-			for _, ret := range c.wrappedRetrieveds {
-				e = multierr.Append(e, ret.Close(ctxF))
-			}
-			return e
-		}))
-
+	c.retrieved, err = configmapprovider.NewRetrieved(c.Get, configmapprovider.WithClose(c.wrappedRetrieved.Close))
 	return c.retrieved, err
 }
 
 func (c *configSourceConfigMapProvider) Shutdown(ctx context.Context) error {
-	return c.mergedShutdown(ctx)
-}
-
-// Taken from https://github.com/open-telemetry/opentelemetry-collector/blob/40a7d72f9d77c749d2d24056a1b66a7757bc07e3/service/config_provider.go#L196
-// Copyright The OpenTelemetry Authors
-func (c *configSourceConfigMapProvider) mergedShutdown(ctx context.Context) error {
-	var errs error
-	for _, p := range c.wrappedProviders {
-		errs = multierr.Append(errs, p.Shutdown(ctx))
-	}
-	return errs
+	return c.wrappedProvider.Shutdown(ctx)
 }
 
 // Get returns a config.Parser that wraps the config.Default() with a parser
 // that can load and inject data from config sources. If there are no config sources
 // in the configuration the returned parser behaves like the config.Default().
 func (c *configSourceConfigMapProvider) Get(ctx context.Context) (*config.Map, error) {
-	initialMap := config.NewMap()
-	for _, r := range c.wrappedRetrieveds {
-		cfgMap, err := r.Get(ctx)
-		if err != nil {
-			return nil, err
-		}
-		if err = initialMap.Merge(cfgMap); err != nil {
-			return nil, err
-		}
+	initialMap, err := c.wrappedRetrieved.Get(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	var err error
 	factories, err := makeFactoryMap(c.factories)
 	if err != nil {
 		return nil, err

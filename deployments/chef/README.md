@@ -92,12 +92,6 @@ and set attribute on the node's run_state. Below is example to configure attribu
 - `collector_config_source`: Source path to the collector config YAML file. This file will be copied to the `collector_config_dest` path on the node. See the [source attribute](https://docs.chef.io/resources/remote_file/) of the file resource for supported value types. The default source file is provided by the collector package. (**default:** `/etc/otel/collector/agent_config.yaml` on Linux, 
   **default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent_config.yaml` on Windows)
 
-- `collector_config_dest`: Destination path of the collector config file on the node. The `SPLUNK_CONFIG` environment variable will be set with this value for the collector service. (**default:** `/etc/otel/collector/agent_config.yaml` on Linux, 
-  **default:** `%ProgramData%\Splunk\OpenTelemetry Collector\agent_config.yaml` on Windows)
-
-- `collector_version_file`: (Windows only) File path to store currently installed version of Splunk 
-  OTel Collector. This file will be used to ensure idempotency on Windows deployment by not re-downloading and re-installing the collector MSI if the specified version is already installed. (**default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\collector_version.txt`)
-
 - `package_stage`: The package repository to use.  Can
 be `release` (default, for main releases), `beta` (for beta releases), or `test`
 (for unsigned test releases).
@@ -123,10 +117,6 @@ be `release` (default, for main releases), `beta` (for beta releases), or `test`
 - `fluentd_config_source`: Source path to the fluentd config file. This file will be copied to the `fluentd_config_dest` path on the node. See the [source attribute](https://docs.chef.io/resources/remote_file/) of the file resource for supported value types. The default source file is provided by the collector package. Only applicable if `with_fluentd` is set to true.
   (**default:** `/etc/otel/collector/fluentd/fluent.conf` on Linux, 
   **default:** `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf` on Windows)
-
-- `fluentd_config_dest`: Destination path to the fluentd config file on the node. Only applicable if $with_fluentd is set to true. Note: On Windows, the path will always be set to `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf`. (**default:** `/etc/otel/collector/fluentd/fluent.conf`)
-
-- `fluentd_version_file`: (Windows only) File path to store currently installed version of fluentd. This file will be used to ensure idempotency on Windows deployment by not re-downloading and re-installing the td-agent MSI if the specified version is already installed. (**default:** `%ProgramFiles%\Splunk\OpenTelemetry Collector\fluentd_version.txt`)
 
 - `node['splunk-otel-collector']['collector_config']`: Collector configuration object.  Everything
 underneath this object gets directly converted to YAML and becomes the collector

@@ -2,6 +2,9 @@ FROM centos:8
 
 ENV container docker
 
+RUN sed -i 's|\$releasever|8-stream|g' /etc/yum.repos.d/CentOS*.repo
+RUN yum install -y --allowerasing centos-stream-release
+
 RUN yum install -y systemd procps initscripts python3-pip python3-devel gcc
 
 RUN rpm --import https://repo.saltproject.io/py3/redhat/8/x86_64/latest/SALTSTACK-GPG-KEY.pub

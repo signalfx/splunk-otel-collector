@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"runtime"
 
 	"go.uber.org/zap"
 
@@ -152,6 +153,9 @@ func findCollectorPath() (string, error) {
 	}
 
 	binaryPath := binaryPathSuffix
+	if runtime.GOOS == "windows" {
+		binaryPath += ".exe"
+	}
 	var collectorPath string
 	for i := 0; true; i++ {
 		attemptedPath := path.Join(dir, binaryPath)

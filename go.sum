@@ -2121,6 +2121,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecrece
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.43.0/go.mod h1:9ddojvRvJH/sLFuZqmlu9MLzmUhV0QqWSLLYzvsy4JU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.43.0 h1:pNz8S70qMxhVhQUJp/+E1TRjhBq6Gk8uYLtonIabwok=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.43.0/go.mod h1:vOvZYAE1VJNrZQtV1sDuab9VXWSs1JOw6gvvtbXBecM=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.43.0 h1:fgKV3sYPXtb5sDRal1sFHkQguTpHWREMsKxY0g7Fk8M=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.43.0/go.mod h1:Vl44peylC7dd7RPBcIIuRx0E+MYvOPn36AcsmxSWbxU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.43.0 h1:iNYOnzEaWJGeT/In8OmC+u9V0wicJopy2d53zObdqg4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.43.0/go.mod h1:T7C1ZxyV12wh/J585mxa+FLsAzO3Q6YYbRUNftGgz+I=
 github.com/open-telemetry/opentelemetry-log-collection v0.24.0 h1:P+exKJJH6euCkYpcKrSIyTeikEn7Mg1NdJDoC6PFvVM=

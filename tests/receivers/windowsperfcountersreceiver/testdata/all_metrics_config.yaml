@@ -1,0 +1,130 @@
+receivers:
+  windowsperfcounters:
+    collection_interval: 1s
+    perfcounters:
+      - object: "LogicalDisk"
+        instances: "*"
+        counters:
+          - "% Free Space"
+      - object: "LogicalDisk"
+        instances: "*"
+        counters:
+          - "Free Megabytes"
+      - object: "LogicalDisk"
+        instances: "*"
+        counters:
+          - "Disk Reads/sec"
+      - object: "LogicalDisk"
+        instances: "*"
+        counters:
+          - "Disk Transfers/sec"
+      - object: "LogicalDisk"
+        instances: "*"
+        counters:
+          - "Disk Read Bytes/sec"
+      - object: "LogicalDisk"
+        instances: "*"
+        counters:
+          - "Disk Write Bytes/sec"
+      - object: "LogicalDisk"
+        instances: "*"
+        counters:
+          - "Disk Writes/sec"
+      - object: "Memory"
+        instances: "*"
+        counters:
+          - "Available Bytes"
+      - object: "Memory"
+        instances: "*"
+        counters:
+          - "Pages Input/sec"
+      - object: "Paging File"
+        instances: "*"
+        counters:
+          - "% Usage"
+      - object: "Paging File"
+        instances: "*"
+        counters:
+          - "% Usage Peak"
+      - object: "Processor"
+        instances: "*"
+        counters:
+          - "Interrupts/sec"
+      - object: "Processor"
+        instances: "*"
+        counters:
+          - "% Privileged Time"
+      - object: "Processor"
+        instances: "*"
+        counters:
+          - "% Processor Time"
+      - object: "Processor"
+        instances: "*"
+        counters:
+          - "% User Time"
+      - object: "System"
+        instances: "*"
+        counters:
+          - "Context Switches/sec"
+      - object: "System"
+        instances: "*"
+        counters:
+          - "Processor Queue Length"
+      - object: "System"
+        instances: "*"
+        counters:
+          - "System Calls/sec"
+      - object: "Network Interface"
+        instances: "*"
+        counters:
+          - "Bytes Received/sec"
+      - object: "Network Interface"
+        instances: "*"
+        counters:
+          - "Bytes Sent/sec"
+      - object: "Network Interface"
+        instances: "*"
+        counters:
+          - "Bytes Total/sec"
+      - object: "Network Interface"
+        instances: "*"
+        counters:
+          - "Current Bandwidth"
+      - object: "Network Interface"
+        instances: "*"
+        counters:
+          - "Packets Outbound Discarded"
+      - object: "Network Interface"
+        instances: "*"
+        counters:
+          - "Packets Outbound Errors"
+      - object: "Network Interface"
+        instances: "*"
+        counters:
+          - "Packets Received Discarded"
+      - object: "Network Interface"
+        instances: "*"
+        counters:
+          - "Packets Received Errors"
+      - object: "Network Interface"
+        instances: "*"
+        counters:
+          - "Packets Received/sec"
+      - object: "Network Interface"
+        instances: "*"
+        counters:
+          - "Packets Sent/sec" 
+
+exporters:
+  otlp:
+    endpoint: ${OTLP_ENDPOINT}
+    tls:
+      insecure: true
+  logging:
+    logLevel: debug
+
+service:
+  pipelines:
+    metrics:
+      receivers: [windowsperfcounters]
+      exporters: [otlp, logging]

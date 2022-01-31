@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"runtime"
 
 	dockerContainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
@@ -137,6 +138,12 @@ func (container Container) WillWaitForLogs(logStatements ...string) Container {
 
 func (container Container) Build() *Container {
 	networkMode := dockerContainer.NetworkMode("default")
+	// Since reaper container mounts the volume to /var/run/docker.sock which is not supported in Windows
+	// hence, to avoid creating reaper container, skipReaper is set to true for windows
+	skipReaper := false
+	if runtime.GOOS == "windows" {
+		skipReaper = true
+	}
 	if container.ContainerNetworkMode != "" {
 		networkMode = dockerContainer.NetworkMode(container.ContainerNetworkMode)
 	}
@@ -150,6 +157,7 @@ func (container Container) Build() *Container {
 		Networks:       container.ContainerNetworks,
 		NetworkMode:    networkMode,
 		WaitingFor:     wait.ForAll(container.WaitingFor...),
+		SkipReaper:     skipReaper,
 	}
 	return &container
 }
@@ -319,6 +327,11 @@ func (container Container) createNetworksIfNecessary(req testcontainers.GenericC
 	if err != nil {
 		return err
 	}
+	// As bridge network driver is not available in Windows, setting the network driver to nat
+	driver := "bridge"
+	if runtime.GOOS == "windows" {
+		driver = "nat"
+	}
 	for _, networkName := range container.ContainerNetworks {
 		query := testcontainers.NetworkRequest{
 			Name: networkName,
@@ -329,9 +342,10 @@ func (container Container) createNetworksIfNecessary(req testcontainers.GenericC
 		}
 		if networkResource.Name != networkName {
 			create := testcontainers.NetworkRequest{
-				Driver:     "bridge",
+				Driver:     driver,
 				Name:       networkName,
 				Attachable: true,
+				SkipReaper: req.ContainerRequest.SkipReaper,
 			}
 			_, err := provider.CreateNetwork(context.Background(), create)
 			if err != nil {

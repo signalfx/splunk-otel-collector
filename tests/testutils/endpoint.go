@@ -110,3 +110,22 @@ func createExclusionsList(exclusionsText string, t *testing.T) []portpair {
 	}
 	return exclusions
 }
+
+// getAvailableHostAddress finds an available local port and returns an endpoint
+// describing it. The port is available for opening when this function returns
+// provided that there is no race by some other code to grab the same port
+// immediately.
+// This method will return the Host address as Host local IP with free avaialable port e.g. 10.0.12.14:50113
+func getAvailableHostAddress(t *testing.T) string {
+	// Get host IP using udp dial connection
+	conn, err := net.Dial("udp", "8.8.8.8:0")
+	require.NoError(t, err, "Failed to get a local IP")
+	defer conn.Close()
+
+	//Get free available tcp port from host machine
+	ln, err := net.Listen("tcp", net.JoinHostPort(conn.LocalAddr().(*net.UDPAddr).IP.To4().String(), "0"))
+	require.NoError(t, err, "Failed to get a free local port")
+
+	defer ln.Close()
+	return ln.Addr().String()
+}

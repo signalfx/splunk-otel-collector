@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/testcontainers/testcontainers-go"
@@ -114,8 +115,13 @@ func (collector CollectorContainer) Build() (Collector, error) {
 	}
 	collector.Container = collector.Container.WithContextArchive(
 		collector.contextArchive,
-	).WithNetworkMode("host")
-
+	)
+	//As host network driver is not available in Windows, setting the network driver to nat
+	if runtime.GOOS == "windows" {
+		collector.Container = collector.Container.WithNetworkMode("nat").WithNetworks("reaper_default")
+	} else {
+		collector.Container = collector.Container.WithNetworkMode("host")
+	}
 	collector.Container = collector.Container.WithExposedPorts(collector.Ports...)
 
 	if collector.Fail {
@@ -178,11 +184,17 @@ func (collector *CollectorContainer) buildContextArchive() (io.Reader, error) {
 			return nil, err
 		}
 
-		dockerfile += "COPY config.yaml /etc/config.yaml\n"
-
 		// We need to tell the Collector to use the provided config
 		// but only if not already done so in the test
 		var configSetByArgs bool
+		var configPath string
+		if runtime.GOOS == "windows" {
+			configPath = "C:/ProgramData/Splunk/OpenTelemetry Collector/config.yaml"
+			dockerfile += "COPY [\"config.yaml\", \"C:/ProgramData/Splunk/OpenTelemetry Collector/config.yaml\"]\n"
+		} else {
+			configPath = "/etc/config.yaml"
+			dockerfile += "COPY config.yaml /etc/config.yaml\n"
+		}
 		for _, c := range collector.Args {
 			if strings.Contains(c, "--config") {
 				configSetByArgs = true
@@ -192,7 +204,7 @@ func (collector *CollectorContainer) buildContextArchive() (io.Reader, error) {
 		if !configSetByArgs && !configSetByEnvVar {
 			// only specify w/ args if none are used in the test
 			if len(collector.Args) == 0 {
-				collector.Args = append(collector.Args, "--config", "/etc/config.yaml")
+				collector.Args = append(collector.Args, "--config", configPath)
 			} else {
 				// fallback to env var
 				collector.Container.Env["SPLUNK_CONFIG"] = "/etc/config.yaml"

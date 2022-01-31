@@ -523,3 +523,30 @@ jobs:
             echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
             exit 1
           }
+
+  integration-test-windows:
+    name: integration-test-windows
+    runs-on: windows-latest
+    needs: [cross-compile]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Downloading binaries-windows_amd64
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries-windows_amd64
+          path: ./bin
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Windows integration test 
+        run: |
+          Copy-Item .\bin\otelcol_windows_amd64.exe .\bin\otelcol.exe
+          foreach($file in  $(Get-ChildItem -Path ./tests -Recurse -Filter "*_windows_test.go" | select directory -unique).Directory.FullName){
+            cd $file;
+            go test -p 2 -v -timeout 5m -count 1 ./...
+          }

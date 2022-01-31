@@ -52,7 +52,11 @@ func NewTestcase(t *testing.T) *Testcase {
 	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
 	tc.Logger = zap.New(logCore)
 
-	tc.OTLPEndpoint = getAvailableLocalAddress(t)
+	if runtime.GOOS == "windows" {
+		tc.OTLPEndpoint = getAvailableHostAddress(t)
+	} else {
+		tc.OTLPEndpoint = getAvailableLocalAddress(t)
+	}
 
 	var err error
 	tc.OTLPMetricsReceiverSink, err = NewOTLPMetricsReceiverSink().WithEndpoint(tc.OTLPEndpoint).WithLogger(tc.Logger).Build()

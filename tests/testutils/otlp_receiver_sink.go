@@ -17,6 +17,8 @@ package testutils
 import (
 	"context"
 	"fmt"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -80,6 +82,13 @@ func (otlp OTLPMetricsReceiverSink) Build() (*OTLPMetricsReceiverSink, error) {
 
 	otlpFactory := otlpreceiver.NewFactory()
 	otlpConfig := otlpFactory.CreateDefaultConfig().(*otlpreceiver.Config)
+
+	// For windows as host networking is not supported hence, actual host IP 127.0.0.1 would not be reachable from windows docker to host.
+	// To make it accesible, It needs to open port with 0.0.0.0 IP
+	if runtime.GOOS == "windows" {
+		port := strings.Split(otlp.Endpoint, ":")[1]
+		otlp.Endpoint = fmt.Sprintf("0.0.0.0:%s", port)
+	}
 	otlpConfig.GRPC.NetAddr = confignet.NetAddr{Endpoint: otlp.Endpoint, Transport: "tcp"}
 	otlpConfig.HTTP = nil
 
@@ -159,7 +168,6 @@ func (otlp *OTLPMetricsReceiverSink) AssertAllMetricsReceived(t *testing.T, expe
 		require.NoError(t, e)
 		require.NotNil(t, receivedResourceMetrics)
 		receivedMetrics = FlattenResourceMetrics(receivedMetrics, receivedResourceMetrics)
-
 		var containsAll bool
 		containsAll, err = receivedMetrics.ContainsAll(expectedResourceMetrics)
 		return containsAll

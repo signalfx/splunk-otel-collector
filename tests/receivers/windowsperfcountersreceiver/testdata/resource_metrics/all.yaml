@@ -1,0 +1,59 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: "\\LogicalDisk(*)\\% Free Space"
+            type: DoubleGauge
+          - name: "\\LogicalDisk(*)\\Free Megabytes"
+            type: DoubleGauge
+          - name: "\\LogicalDisk(*)\\Disk Reads/sec"
+            type: DoubleGauge
+          - name: "\\LogicalDisk(*)\\Disk Transfers/sec"
+            type: DoubleGauge
+          - name: "\\LogicalDisk(*)\\Disk Read Bytes/sec"
+            type: DoubleGauge
+          - name: "\\LogicalDisk(*)\\Disk Write Bytes/sec"
+            type: DoubleGauge
+          - name: "\\LogicalDisk(*)\\Disk Writes/sec"
+            type: DoubleGauge
+          - name: "\\Memory(*)\\Available Bytes"
+            type: DoubleGauge
+          - name: "\\Memory(*)\\Pages Input/sec"
+            type: DoubleGauge
+          - name: "\\Paging File(*)\\% Usage"
+            type: DoubleGauge
+          - name: "\\Paging File(*)\\% Usage Peak"
+            type: DoubleGauge
+          - name: "\\Processor(*)\\Interrupts/sec"
+            type: DoubleGauge
+          - name: "\\Processor(*)\\% Privileged Time"
+            type: DoubleGauge
+          - name: "\\Processor(*)\\% Processor Time"
+            type: DoubleGauge
+          - name: "\\Processor(*)\\% User Time"
+            type: DoubleGauge
+          - name: "\\System(*)\\Context Switches/sec"
+            type: DoubleGauge
+          - name: "\\System(*)\\Processor Queue Length"
+            type: DoubleGauge
+          - name: "\\System(*)\\System Calls/sec"
+            type: DoubleGauge
+          - name: "\\Network Interface(*)\\Bytes Received/sec"
+            type: DoubleGauge
+          - name: "\\Network Interface(*)\\Bytes Sent/sec"
+            type: DoubleGauge
+          - name: "\\Network Interface(*)\\Bytes Total/sec"
+            type: DoubleGauge
+          - name: "\\Network Interface(*)\\Current Bandwidth"
+            type: DoubleGauge
+          - name: "\\Network Interface(*)\\Packets Outbound Discarded"
+            type: DoubleGauge
+          - name: "\\Network Interface(*)\\Packets Outbound Errors"
+            type: DoubleGauge
+          - name: "\\Network Interface(*)\\Packets Received Discarded"
+            type: DoubleGauge
+          - name: "\\Network Interface(*)\\Packets Received Errors"
+            type: DoubleGauge
+          - name: "\\Network Interface(*)\\Packets Received/sec"
+            type: DoubleGauge
+          - name: "\\Network Interface(*)\\Packets Sent/sec"
+            type: DoubleGauge

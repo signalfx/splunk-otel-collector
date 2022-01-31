@@ -16,7 +16,7 @@ ALL_SRC := $(shell find . -name '*.go' \
 # ALL_PKGS is the list of all packages where ALL_SRC files reside.
 ALL_PKGS := $(shell go list $(sort $(dir $(ALL_SRC))))
 
-ALL_TESTS_DIRS := $(shell find tests -name '*_test.go' | xargs -L 1 dirname | uniq | sort -r)
+ALL_TESTS_DIRS := $(shell find tests -name '*_test.go' ! -name '*_windows_test.go' | xargs -L 1 dirname | uniq | sort -r)
 
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release

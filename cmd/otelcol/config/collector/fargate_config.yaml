@@ -127,10 +127,10 @@ service:
       exporters: [signalfx]
     logs:
       receivers: [otlp]
-#      processors:
-#        - memory_limiter
-#        - batch
-#        - resourcedetection
+      processors:
+        - memory_limiter
+        - batch
+        - resourcedetection
 #      #- resource/add_environment
       exporters: [splunk_hec]
 #      # Use instead when sending to gateway

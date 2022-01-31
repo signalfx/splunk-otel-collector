@@ -4,6 +4,8 @@ FROM centos:8
 
 ENV container docker
 
+RUN sed -i 's|\$releasever|8-stream|g' /etc/yum.repos.d/CentOS*.repo
+RUN dnf install -y --allowerasing centos-stream-release
 RUN dnf install -y curl procps initscripts systemd wget
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \

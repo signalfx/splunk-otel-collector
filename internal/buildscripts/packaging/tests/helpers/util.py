@@ -101,9 +101,7 @@ def copy_file_into_win_container(container, path, target_path):
         finally:
             tar.close()
     with open('temp.tar', 'rb') as fd:
-        container.stop()
         ok = container.put_archive(path=target_path, data=fd)
-        container.start()
         if not ok:
             raise Exception('Put file failed')
 

@@ -49,5 +49,5 @@ suites:
         - test/integration/default
     attributes:
       splunk-otel-collector:
-        splunk_access_token: test123
+        splunk_access_token: testing123
         splunk_realm: test

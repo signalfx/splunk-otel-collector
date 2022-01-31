@@ -1,0 +1,13 @@
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
+
+# Setting PowerShell as a default executor. 
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+RUN choco install -y -f chef-client
+
+COPY "deployments/chef" "C:\\chef\\cookbooks\\splunk-otel-collector"
+WORKDIR "C:\\chef\\cookbooks"
+
+ENTRYPOINT [ "powershell.exe", "while(1){Start-Sleep 1000;}" ]

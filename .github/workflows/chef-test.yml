@@ -84,3 +84,49 @@ jobs:
         with:
           name: chef-test-${{ matrix.PACKAGE_TYPE }}-result
           path: ${{ env.RESULT_PATH }}
+
+  chef-test-windows:
+    name: chef-test-windows
+    runs-on: ${{ matrix.PACKAGE_TYPE }}
+    needs: [chef-lint-spec-test]
+    strategy:
+      matrix:
+        PACKAGE_TYPE: [ "windows-2016", "windows-2019", "windows-2022" ]
+      fail-fast: false
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+      
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }} 
+      
+      - name: Caching dependency
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-v1-pytest-${{ env.PYTHON_VERSION }}-${{ hashFiles(env.REQUIREMENTS_PATH) }}
+
+      - name: Install pytest
+        run: |
+          pip install --upgrade 'pip==${{ env.PIP_VERSION }}'
+          pip install -r "${{ env.REQUIREMENTS_PATH }}"
+
+      - name: Test chef deployment
+        timeout-minutes: 45
+        run: |
+          New-Item -Path ${{ env.RESULT_PATH }} -ItemType Directory
+          $MARK = "${{ matrix.PACKAGE_TYPE }}".replace("-","_")
+          pytest -n1 --verbose -m $MARK `
+            --junitxml=${{ env.RESULT_PATH }}/results.xml `
+            --html=${{ env.RESULT_PATH }}/results.html `
+            --self-contained-html `
+            internal/buildscripts/packaging/tests/deployments/chef/chef_test.py
+
+      - name: Uploading test result
+        uses: actions/upload-artifact@v2
+        with:
+          name: chef-windows-test-result-${{ matrix.PACKAGE_TYPE }}
+          path: ${{ env.RESULT_PATH }}

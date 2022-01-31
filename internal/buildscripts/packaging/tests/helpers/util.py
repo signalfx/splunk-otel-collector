@@ -58,9 +58,14 @@ def run_distro_container(distro, dockerfile=None, path=TESTS_DIR, buildargs=None
         docker.errors.BuildError,
     )
 
-    container = client.containers.create(
-        image.id, detach=True, privileged=True, volumes={"/sys/fs/cgroup": {"bind": "/sys/fs/cgroup", "mode": "ro"}}
-    )
+    if (distro.find("windows") == -1):
+        container = client.containers.create(
+            image.id, detach=True, privileged=True, volumes={"/sys/fs/cgroup": {"bind": "/sys/fs/cgroup", "mode": "ro"}}
+        )
+    else:
+        container = client.containers.create(
+            image.id, detach=True
+        )
 
     try:
         container.start()
@@ -68,7 +73,9 @@ def run_distro_container(distro, dockerfile=None, path=TESTS_DIR, buildargs=None
         start_time = time.time()
         while True:
             container.reload()
-            if container.attrs["NetworkSettings"]["IPAddress"]:
+            if (distro.find("windows") == -1) and container.attrs["NetworkSettings"]["IPAddress"]:
+                break
+            elif container.attrs["NetworkSettings"]["Networks"]["nat"]["IPAddress"]:
                 break
             assert (time.time() - start_time) < timeout, "timed out waiting for container to start"
 
@@ -85,6 +92,20 @@ def run_container_cmd(container, cmd, env=None, exit_code=0):
         assert code == exit_code
     return code, output
 
+def copy_file_into_win_container(container, path, target_path):
+    os.chdir(os.path.dirname(path))
+    srcname = os.path.basename(path)
+    with tarfile.open("temp.tar", 'w') as tar:
+        try:
+            tar.add(srcname)
+        finally:
+            tar.close()
+    with open('temp.tar', 'rb') as fd:
+        container.stop()
+        ok = container.put_archive(path=target_path, data=fd)
+        container.start()
+        if not ok:
+            raise Exception('Put file failed')
 
 def copy_file_into_container(container, path, target_path, size=None):
     with open(path, "rb") as fd:
@@ -136,5 +157,10 @@ def ensure_always(test, timeout=DEFAULT_TIMEOUT, interval=1):
 
 def service_is_running(container, service_name=SERVICE_NAME, service_owner=SERVICE_OWNER, process=OTELCOL_BIN):
     cmd = f"sh -ec 'systemctl status {service_name} && pgrep -a -u {service_owner} -f {process}'"
+    code, _ = run_container_cmd(container, cmd, exit_code=None)
+    return code == 0
+
+def service_is_running_win(container, service_name=SERVICE_NAME):
+    cmd = f"powershell \"(Get-Service {service_name}).Status | FINDSTR 'Running'\""
     code, _ = run_container_cmd(container, cmd, exit_code=None)
     return code == 0

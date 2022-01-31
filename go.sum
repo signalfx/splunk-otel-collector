@@ -1370,8 +1370,8 @@ github.com/hashicorp/serf v0.9.5/go.mod h1:UWDWwZeL5cuWDJdl0C6wrvrUwEqtQ4ZKBKKEN
 github.com/hashicorp/serf v0.9.6 h1:uuEX1kLR6aoda1TBttmJQKDLZE1Ob7KN0NPdE7EtCDc=
 github.com/hashicorp/serf v0.9.6/go.mod h1:TXZNMjZQijwlDvp+r0b63xZ45H7JmCmgg4gpTwn9UV4=
 github.com/hashicorp/vault v1.7.6/go.mod h1:6NtoSVTBxVNRvmaR/B6UZsADOokVwp/g02pfJevoMGA=
-github.com/hashicorp/vault v1.9.2 h1:RFhHcAcsr2UDNCvWngXMfi2qC7SPRTnmgdGH9aUF/Ak=
-github.com/hashicorp/vault v1.9.2/go.mod h1:6QOrf0hR2LxPXDz/ptM4W0Mv/BYFzJoT9IAGPHXdhH4=
+github.com/hashicorp/vault v1.9.3 h1:dc3moxoDHuT1gMwKsyqo0STIV+6X+kJVcfQGRCv7UTg=
+github.com/hashicorp/vault v1.9.3/go.mod h1:ZpNj677mEvogkegL6lkTml3EkziuIP2/n68U9R/RKxw=
 github.com/hashicorp/vault-plugin-auth-alicloud v0.8.0/go.mod h1:lyfBMcULXKJfVu8dNo1w9bUikV5oem5HKmJoWwXupnY=
 github.com/hashicorp/vault-plugin-auth-alicloud v0.10.0/go.mod h1:GqQnzKRACjoUJCq8cHXJKPIMbFpIwxaLTwz8dyYghvM=
 github.com/hashicorp/vault-plugin-auth-azure v0.7.2/go.mod h1:B8T1Xfy4SDWnor9CABIPmGseyBCOsuxJTtloxnDevQM=
@@ -1385,11 +1385,11 @@ github.com/hashicorp/vault-plugin-auth-gcp v0.9.1/go.mod h1:Z+mj9fAqzXfDNxLmMoSS
 github.com/hashicorp/vault-plugin-auth-gcp v0.11.3 h1:kdfbpf4bLubMqeQZIAGVYAO7scqun6GYMqU4sGEadd0=
 github.com/hashicorp/vault-plugin-auth-gcp v0.11.3/go.mod h1:HJc8ih7gLNpBJYTwFlXJA3H48LKsP8mlVKYtPWfRkHs=
 github.com/hashicorp/vault-plugin-auth-jwt v0.9.5/go.mod h1:3KxfehLIM7zH19+O8jHJ/QJsLGRzSKRqjsesOJmBuoI=
-github.com/hashicorp/vault-plugin-auth-jwt v0.11.3/go.mod h1:jzjDdssus8sw8G6NOP7kNFMEeIvrjXvPHUR3pEn5+r0=
+github.com/hashicorp/vault-plugin-auth-jwt v0.11.4/go.mod h1:jzjDdssus8sw8G6NOP7kNFMEeIvrjXvPHUR3pEn5+r0=
 github.com/hashicorp/vault-plugin-auth-kerberos v0.3.0/go.mod h1:h+7pLm4Z2EeKHOGPefX0bGzdUQCMBUlvM/BpSMNgTFw=
 github.com/hashicorp/vault-plugin-auth-kerberos v0.5.0/go.mod h1:eqjae8tMBpAWgJNk1NjV/vtJYXQRZnYudUkBFowz3bY=
 github.com/hashicorp/vault-plugin-auth-kubernetes v0.9.0/go.mod h1:2c/k3nsoGPKV+zpAWCiajt4e66vncEq8Li/eKLqErAc=
-github.com/hashicorp/vault-plugin-auth-kubernetes v0.11.3/go.mod h1:HNcW9fnQIKw9g5qnxRQn6pHfGnSuVwBJAGb/v2/2dvw=
+github.com/hashicorp/vault-plugin-auth-kubernetes v0.11.4/go.mod h1:HNcW9fnQIKw9g5qnxRQn6pHfGnSuVwBJAGb/v2/2dvw=
 github.com/hashicorp/vault-plugin-auth-oci v0.7.0/go.mod h1:Cn5cjR279Y+snw8LTaiLTko3KGrbigRbsQPOd2D5xDw=
 github.com/hashicorp/vault-plugin-auth-oci v0.9.0/go.mod h1:Cn5cjR279Y+snw8LTaiLTko3KGrbigRbsQPOd2D5xDw=
 github.com/hashicorp/vault-plugin-database-couchbase v0.3.1/go.mod h1:Seivjno/BOtkqX41d/DDYtTg6zNoxIgNaUVZ3ObZYi4=
@@ -1408,7 +1408,7 @@ github.com/hashicorp/vault-plugin-secrets-alicloud v0.10.2/go.mod h1:F4KWrlCQZbh
 github.com/hashicorp/vault-plugin-secrets-azure v0.9.1/go.mod h1:4jCVjTG809NCQ8mrSnbBtX17gX1Iush+558BVO6MJeo=
 github.com/hashicorp/vault-plugin-secrets-azure v0.11.2/go.mod h1:Xw8CQPkyZSJRK9BXKBruf6kOO8rLyXEf40o19ClK9kY=
 github.com/hashicorp/vault-plugin-secrets-gcp v0.9.0/go.mod h1:psRQ/dm5XatoUKLDUeWrpP9icMJNtu/jmscUr37YGK4=
-github.com/hashicorp/vault-plugin-secrets-gcp v0.11.0/go.mod h1:ndpmRkIPHW5UYqv2nn2AJNVZsucJ8lY2bp5i5Ngvhuc=
+github.com/hashicorp/vault-plugin-secrets-gcp v0.11.1/go.mod h1:ndpmRkIPHW5UYqv2nn2AJNVZsucJ8lY2bp5i5Ngvhuc=
 github.com/hashicorp/vault-plugin-secrets-gcpkms v0.8.0/go.mod h1:hhwps56f2ATeC4Smgghrc5JH9dXR31b4ehSf1HblP5Q=
 github.com/hashicorp/vault-plugin-secrets-gcpkms v0.10.0/go.mod h1:6DPwGu8oGR1sZRpjwkcAnrQZWQuAJ/Ph+rQHfUo1Yf4=
 github.com/hashicorp/vault-plugin-secrets-kv v0.8.0/go.mod h1:B/Cybh5aVF7LNAMHwVBxY8t7r2eL0C6HVGgTyP4nKK4=
@@ -1451,8 +1451,8 @@ github.com/hashicorp/vault/sdk v0.1.14-0.20210204230556-cf85a862b7c6/go.mod h1:c
 github.com/hashicorp/vault/sdk v0.2.1-0.20211101201606-6453490da33b/go.mod h1:cAGI4nVnEfAyMeqt9oB+Mase8DNn3qA/LDNHURiwssY=
 github.com/hashicorp/vault/sdk v0.2.1/go.mod h1:WfUiO1vYzfBkz1TmoE4ZGU7HD0T0Cl/rZwaxjBkgN4U=
 github.com/hashicorp/vault/sdk v0.3.0/go.mod h1:aZ3fNuL5VNydQk8GcLJ2TV8YCRVvyaakYkhZRoVuhj0=
-github.com/hashicorp/vault/sdk v0.3.1-0.20211209192327-a0822e64eae0 h1:bFbj+/yH2Qs3GBbyR48Yde0nYA19FEn1A0jS5a0Jjbo=
-github.com/hashicorp/vault/sdk v0.3.1-0.20211209192327-a0822e64eae0/go.mod h1:aZ3fNuL5VNydQk8GcLJ2TV8YCRVvyaakYkhZRoVuhj0=
+github.com/hashicorp/vault/sdk v0.3.1-0.20220103172553-29ded54520a4 h1:N16go4abcIHDLfbZi8OeNFq8QT1hMrmj7c4MsAhU0xE=
+github.com/hashicorp/vault/sdk v0.3.1-0.20220103172553-29ded54520a4/go.mod h1:aZ3fNuL5VNydQk8GcLJ2TV8YCRVvyaakYkhZRoVuhj0=
 github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443 h1:O/pT5C1Q3mVXMyuqg7yuAWUg/jMZR1/0QTzTRdNR6Uw=
 github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443/go.mod h1:bEpDU35nTu0ey1EXjwNwPjI9xErAsoOCmcMb9GKvyxo=
 github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb/go.mod h1:+NfK9FKeTrX5uv1uIXGdwYDTeHna2qgaIlx54MXqjAM=

@@ -103,7 +103,7 @@ exporters:
     access_token: "${SPLUNK_ACCESS_TOKEN}"
     realm: "${SPLUNK_REALM}"
     correlation:
-  # Logs
+  # Logs + Profiling
   splunk_hec:
     token: "${SPLUNK_HEC_TOKEN}"
     endpoint: "${SPLUNK_HEC_URL}"
@@ -131,7 +131,7 @@ service:
         - memory_limiter
         - batch
         - resourcedetection
-#      #- resource/add_environment
+      #- resource/add_environment
       exporters: [splunk_hec]
-#      # Use instead when sending to gateway
-#      #exporters: [otlp]
+      # Use instead when sending to gateway
+      #exporters: [otlp]

@@ -39,3 +39,9 @@ __pycache__
 # Heroku
 deployments/heroku/test/.git
 deployments/heroku/test/node_modules
+
+# libsplunk
+/instrumentation/dist/
+/instrumentation/obj/
+/instrumentation/so/
+/instrumentation/tests

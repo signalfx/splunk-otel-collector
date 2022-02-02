@@ -2,6 +2,9 @@ FROM centos:8
 
 ENV container docker
 
+RUN sed -i 's|\$releasever|8-stream|g' /etc/yum.repos.d/CentOS*.repo
+RUN dnf install -y --allowerasing centos-stream-release
+
 RUN dnf install -y systemd procps initscripts
 
 ARG CHEF_INSTALLER_ARGS

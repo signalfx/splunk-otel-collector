@@ -1,0 +1,73 @@
+{
+  "jobs": [
+    {
+      "job_id": 179,
+      "settings": {
+        "name": "singletask",
+        "email_notifications": {
+          "no_alert_for_skipped_runs": false
+        },
+        "schedule": {
+          "quartz_cron_expression": "22 * * * * ?",
+          "timezone_id": "UTC",
+          "pause_status": "PAUSED"
+        },
+        "max_concurrent_runs": 1,
+        "tasks": [
+          {
+            "task_key": "singletask",
+            "notebook_task": {
+              "notebook_path": "/Users/user2@example.com/test"
+            },
+            "existing_cluster_id": "abc",
+            "timeout_seconds": 0
+          }
+        ],
+        "format": "MULTI_TASK"
+      },
+      "created_time": 1642452734511,
+      "creator_user_name": "user2@example.com"
+    },
+    {
+      "job_id": 248,
+      "settings": {
+        "name": "dash",
+        "email_notifications": {
+          "no_alert_for_skipped_runs": false
+        },
+        "timeout_seconds": 0,
+        "max_concurrent_runs": 1,
+        "tasks": [
+          {
+            "task_key": "dash",
+            "notebook_task": {
+              "notebook_path": "/Users/user2@example.com/Job Run dashboard"
+            },
+            "existing_cluster_id": "abc",
+            "timeout_seconds": 0,
+            "email_notifications": {},
+            "description": ""
+          },
+          {
+            "task_key": "user2test",
+            "depends_on": [
+              {
+                "task_key": "dash"
+              }
+            ],
+            "notebook_task": {
+              "notebook_path": "/Users/user2@example.com/test"
+            },
+            "existing_cluster_id": "abc",
+            "timeout_seconds": 0,
+            "email_notifications": {}
+          }
+        ],
+        "format": "MULTI_TASK"
+      },
+      "created_time": 1642487408982,
+      "creator_user_name": "user2@example.com"
+    }
+  ],
+  "has_more": true
+}

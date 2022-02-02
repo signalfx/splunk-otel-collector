@@ -1,0 +1,98 @@
+{
+  "jobs": [
+    {
+      "job_id": 7,
+      "settings": {
+        "name": "user2test",
+        "email_notifications": {
+          "on_failure": [
+            "user2@example.com"
+          ],
+          "no_alert_for_skipped_runs": true
+        },
+        "timeout_seconds": 0,
+        "schedule": {
+          "quartz_cron_expression": "57 * * * * ?",
+          "timezone_id": "America/New_York",
+          "pause_status": "PAUSED"
+        },
+        "max_concurrent_runs": 2,
+        "tasks": [
+          {
+            "task_key": "user2test",
+            "notebook_task": {
+              "notebook_path": "/Users/user2@example.com/user2test"
+            },
+            "existing_cluster_id": "abc",
+            "timeout_seconds": 0,
+            "email_notifications": {},
+            "description": ""
+          },
+          {
+            "task_key": "multi",
+            "depends_on": [
+              {
+                "task_key": "user2test"
+              }
+            ],
+            "spark_python_task": {
+              "python_file": "dbfs:/test.py"
+            },
+            "new_cluster": {
+              "cluster_name": "",
+              "spark_version": "9.1.x-example2.12",
+              "node_type_id": "Standard_DS3_v2",
+              "spark_env_vars": {
+                "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+              },
+              "enable_elastic_disk": true,
+              "CLOUD_attributes": {
+                "first_on_demand": 1,
+                "availability": "ON_DEMAND_CLOUD",
+                "spot_bid_max_price": -1
+              },
+              "num_workers": 8
+            },
+            "timeout_seconds": 0,
+            "email_notifications": {}
+          }
+        ],
+        "format": "MULTI_TASK"
+      },
+      "created_time": 1642024312604,
+      "creator_user_name": "user2@example.com"
+    },
+    {
+      "job_id": 102,
+      "settings": {
+        "name": "test",
+        "email_notifications": {
+          "on_success": [
+            "user2@example.com"
+          ],
+          "no_alert_for_skipped_runs": true
+        },
+        "schedule": {
+          "quartz_cron_expression": "46 * * * * ?",
+          "timezone_id": "America/New_York",
+          "pause_status": "UNPAUSED"
+        },
+        "max_concurrent_runs": 1,
+        "tasks": [
+          {
+            "task_key": "test",
+            "notebook_task": {
+              "notebook_path": "/Users/user2@example.com/test"
+            },
+            "existing_cluster_id": "abc",
+            "timeout_seconds": 0
+          }
+        ],
+        "format": "MULTI_TASK"
+      },
+      "created_time": 1642222452496,
+      "creator_user_name": "user2@example.com"
+    }
+  ],
+  "has_more": true
+}

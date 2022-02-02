@@ -1,0 +1,61 @@
+{
+  "jobs": [
+    {
+      "job_id": 250,
+      "settings": {
+        "name": "testFailure",
+        "email_notifications": {
+          "no_alert_for_skipped_runs": false
+        },
+        "schedule": {
+          "quartz_cron_expression": "35 * * * * ?",
+          "timezone_id": "UTC",
+          "pause_status": "UNPAUSED"
+        },
+        "max_concurrent_runs": 1,
+        "tasks": [
+          {
+            "task_key": "testFailure",
+            "notebook_task": {
+              "notebook_path": "/Users/user2@example.com/taskfail"
+            },
+            "existing_cluster_id": "abc",
+            "timeout_seconds": 0
+          }
+        ],
+        "format": "MULTI_TASK"
+      },
+      "created_time": 1642702521853,
+      "creator_user_name": "user2@example.com"
+    },
+    {
+      "job_id": 288,
+      "settings": {
+        "name": "user-task",
+        "email_notifications": {
+          "no_alert_for_skipped_runs": false
+        },
+        "schedule": {
+          "quartz_cron_expression": "57 * * * * ?",
+          "timezone_id": "UTC",
+          "pause_status": "UNPAUSED"
+        },
+        "max_concurrent_runs": 1,
+        "tasks": [
+          {
+            "task_key": "user-task",
+            "notebook_task": {
+              "notebook_path": "/Users/user@example.com/user-example-notebook"
+            },
+            "existing_cluster_id": "xyz",
+            "timeout_seconds": 0
+          }
+        ],
+        "format": "MULTI_TASK"
+      },
+      "created_time": 1642714310881,
+      "creator_user_name": "user@example.com"
+    }
+  ],
+  "has_more": false
+}

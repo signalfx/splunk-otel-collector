@@ -1,0 +1,15 @@
+receivers:
+  databricks:
+    instance_name: my-instance
+    base_url: https://my.databricks.instance
+    token: abc123
+    collection_interval: 10s
+exporters:
+  nop:
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - databricks
+      exporters:
+        - nop

@@ -74,6 +74,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/httpsinkexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/smartagentreceiver"
 )
 
@@ -100,9 +101,10 @@ func Get() (component.Factories, error) {
 	receivers, err := component.MakeReceiverFactoryMap(
 		carbonreceiver.NewFactory(),
 		collectdreceiver.NewFactory(),
-		hostmetricsreceiver.NewFactory(),
+		databricksreceiver.NewFactory(),
 		fluentforwardreceiver.NewFactory(),
 		filelogreceiver.NewFactory(),
+		hostmetricsreceiver.NewFactory(),
 		jaegerreceiver.NewFactory(),
 		journaldreceiver.NewFactory(),
 		k8sclusterreceiver.NewFactory(),

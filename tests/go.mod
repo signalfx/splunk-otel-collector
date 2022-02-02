@@ -11,7 +11,7 @@ require (
 	github.com/signalfx/signalfx-go v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/testcontainers/testcontainers-go v0.11.1
-	go.opentelemetry.io/collector v0.43.1
+	go.opentelemetry.io/collector v0.43.2
 	go.opentelemetry.io/collector/model v0.43.1
 	go.opentelemetry.io/otel/trace v1.3.0
 	go.uber.org/atomic v1.9.0

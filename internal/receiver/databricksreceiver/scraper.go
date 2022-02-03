@@ -21,6 +21,8 @@ import (
 	"go.opentelemetry.io/collector/model/pdata"
 )
 
+const instanceNameAttr = "databricks.instance.name"
+
 // scraper provides a scrape method to a scraper controller receiver. The scrape
 // method is the entry point into this receiver's functionality, running on a
 // timer, and building metrics from metrics providers.
@@ -35,7 +37,7 @@ func (s scraper) scrape(_ context.Context) (pdata.Metrics, error) {
 	rms := out.ResourceMetrics()
 	rm := rms.AppendEmpty()
 	rm.Resource().Attributes().Insert(
-		"instance_name",
+		instanceNameAttr,
 		pdata.NewAttributeValueString(s.instanceName),
 	)
 	ilms := rm.InstrumentationLibraryMetrics()

@@ -33,6 +33,6 @@ func TestMetricsProvider_Scrape(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 6, metrics.MetricCount())
 	attrs := metrics.ResourceMetrics().At(0).Resource().Attributes()
-	v, _ := attrs.Get("instance_name")
+	v, _ := attrs.Get("databricks.instance.name")
 	assert.Equal(t, "my-instance", v.StringVal())
 }

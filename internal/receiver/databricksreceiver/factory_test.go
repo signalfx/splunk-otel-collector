@@ -16,6 +16,7 @@ package databricksreceiver
 
 import (
 	"context"
+	"net/http"
 	"path"
 	"testing"
 	"time"
@@ -41,7 +42,7 @@ func TestFactory(t *testing.T) {
 
 func TestCreateReceiver(t *testing.T) {
 	ctx := context.Background()
-	f := createReceiverFunc(func(string, string) databricksAPI { return &testdataAPI{} })
+	f := createReceiverFunc(func(string, string, *http.Client) databricksAPI { return &testdataAPI{} })
 	receiver, err := f(
 		ctx,
 		component.ReceiverCreateSettings{
@@ -68,7 +69,7 @@ func TestParseConfig(t *testing.T) {
 	rcfg := cfg.Receivers[config.NewComponentID(typeStr)].(*Config)
 	assert.Equal(t, "my-instance", rcfg.InstanceName)
 	assert.Equal(t, "abc123", rcfg.Token)
-	assert.Equal(t, "https://my.databricks.instance", rcfg.BaseURL)
+	assert.Equal(t, "https://my.databricks.instance", rcfg.Endpoint)
 	duration, _ := time.ParseDuration("10s")
 	assert.Equal(t, duration, rcfg.CollectionInterval)
 }

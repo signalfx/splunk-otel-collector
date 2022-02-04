@@ -25,28 +25,43 @@ import (
 func TestRunMetricProvider(t *testing.T) {
 	p := newRunMetricsProvider(&fakeCompletedJobRunPaginator{})
 	jobPts := pdata.NewNumberDataPointSlice()
-	taskPts := pdata.NewNumberDataPointSlice()
-	err := p.addSingleJobRunMetrics(jobPts, taskPts, 42)
+	err := p.addSingleJobRunMetrics(jobPts, pdata.NewNumberDataPointSlice(), 42)
 	require.NoError(t, err)
-	jobPt := jobPts.At(0)
-	v, _ := jobPt.Attributes().Get("job_id")
-	assert.EqualValues(t, 42, v.IntVal())
-	assert.EqualValues(t, 15000, jobPt.IntVal())
+	assert.Equal(t, 0, jobPts.Len())
+
+	jobPts = pdata.NewNumberDataPointSlice()
+	err = p.addSingleJobRunMetrics(jobPts, pdata.NewNumberDataPointSlice(), 42)
+	require.NoError(t, err)
+	assert.Equal(t, 1, jobPts.Len())
+	pt := jobPts.At(0)
+	assert.EqualValues(t, 16000, pt.IntVal())
 }
 
 func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
-	mp := newRunMetricsProvider(newPaginator(&testdataAPI{}))
+	const ignored = 25
+	mp := newRunMetricsProvider(newPaginator(&testdataAPI{}, ignored))
 	ms := pdata.NewMetricSlice()
 	err := mp.addMultiJobRunMetrics(ms, []int{288})
 	require.NoError(t, err)
 	jobMetric := ms.At(0)
+	assert.Equal(t, 0, jobMetric.Gauge().DataPoints().Len())
+	taskMetric := ms.At(1)
+	assert.Equal(t, 0, taskMetric.Gauge().DataPoints().Len())
+
+	ms = pdata.NewMetricSlice()
+	err = mp.addMultiJobRunMetrics(ms, []int{288})
+	require.NoError(t, err)
+	jobMetric = ms.At(0)
+	assert.Equal(t, 1, jobMetric.Gauge().DataPoints().Len())
+	taskMetric = ms.At(1)
+	assert.Equal(t, 1, taskMetric.Gauge().DataPoints().Len())
+
 	jobPt := jobMetric.Gauge().DataPoints().At(0)
 	jobAttrs := jobPt.Attributes()
 	jobID, _ := jobAttrs.Get("job_id")
 	assert.EqualValues(t, 288, jobID.IntVal())
 	assert.EqualValues(t, 15000, jobPt.IntVal())
 
-	taskMetric := ms.At(1)
 	taskPt := taskMetric.Gauge().DataPoints().At(0)
 	taskAttrs := taskPt.Attributes()
 	jobID, _ = taskAttrs.Get("job_id")
@@ -71,7 +86,7 @@ type fakeCompletedJobRunPaginator struct {
 	i    int
 }
 
-func (a *fakeCompletedJobRunPaginator) jobsList() (out []job, err error) {
+func (a *fakeCompletedJobRunPaginator) jobs() (out []job, err error) {
 	return nil, nil
 }
 

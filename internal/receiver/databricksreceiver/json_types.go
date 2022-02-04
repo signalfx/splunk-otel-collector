@@ -15,7 +15,8 @@
 package databricksreceiver
 
 // This file contains structs into which responses from the databricks API are
-// unmarshalled. There are two top-level types: jobsList and jobRun.
+// unmarshalled. There are two top-level types: jobsList and jobRuns.
+// Reference: https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/jobs
 
 // jobsList is a top level type
 type jobsList struct {
@@ -86,26 +87,33 @@ type azureAttributes struct {
 	SpotBidMaxPrice float64 `json:"spot_bid_max_price"`
 }
 
-// jobRun is a top-level type
+// jobRuns is a top-level type
+type jobRuns struct {
+	Runs    []jobRun `json:"runs"`
+	HasMore bool     `json:"has_more"`
+}
+
 type jobRun struct {
-	State                state        `json:"state"`
 	Schedule             schedule     `json:"schedule"`
+	Message              string       `json:"message"`
 	Format               string       `json:"format"`
 	CreatorUserName      string       `json:"creator_user_name"`
 	RunType              string       `json:"run_type"`
 	RunPageURL           string       `json:"run_page_url"`
 	RunName              string       `json:"run_name"`
 	Trigger              string       `json:"trigger"`
+	ErrorCode            string       `json:"error_code"`
+	State                state        `json:"state"`
 	Tasks                []jobRunTask `json:"tasks"`
 	CleanupDuration      int          `json:"cleanup_duration"`
-	EndTime              int64        `json:"end_time"`
 	ExecutionDuration    int          `json:"execution_duration"`
-	SetupDuration        int          `json:"setup_duration"`
 	StartTime            int64        `json:"start_time"`
 	OriginalAttemptRunID int          `json:"original_attempt_run_id"`
 	NumberInJob          int          `json:"number_in_job"`
 	RunID                int          `json:"run_id"`
 	JobID                int          `json:"job_id"`
+	SetupDuration        int          `json:"setup_duration"`
+	EndTime              int64        `json:"end_time"`
 }
 
 type schedule struct {
@@ -144,9 +152,4 @@ type state struct {
 	StateMessage            string `json:"state_message"`
 	ResultState             string `json:"result_state,omitempty"`
 	UserCancelledOrTimedout bool   `json:"user_cancelled_or_timedout"`
-}
-
-type jobRuns struct {
-	Runs    []jobRun `json:"runs"`
-	HasMore bool     `json:"has_more"`
 }

@@ -1,7 +1,7 @@
 receivers:
   databricks:
     instance_name: user-instance
-    base_url: https://my.db.instance
+    endpoint: https://my.db.instance
     token: abc123
     collection_interval: 10s
 exporters:

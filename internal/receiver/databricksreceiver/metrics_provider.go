@@ -38,7 +38,7 @@ func newMetricsProvider(paginator paginator) metricsProvider {
 }
 
 func (p metricsProvider) addJobStatusMetrics(ms pdata.MetricSlice) ([]int, error) {
-	jobs, err := p.paginator.jobsList()
+	jobs, err := p.paginator.jobs()
 	if err != nil {
 		return nil, fmt.Errorf("metricsProvider.addJobStatusMetrics(): %w", err)
 	}

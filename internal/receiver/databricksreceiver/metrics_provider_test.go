@@ -23,7 +23,8 @@ import (
 )
 
 func TestMetricsProvider(t *testing.T) {
-	mp := newMetricsProvider(newPaginator(&testdataAPI{}))
+	const ignored = 25
+	mp := newMetricsProvider(newPaginator(&testdataAPI{}, ignored))
 	ms := pdata.NewMetricSlice()
 	_, err := mp.addJobStatusMetrics(ms)
 	require.NoError(t, err)

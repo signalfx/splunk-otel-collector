@@ -16,6 +16,7 @@ package databricksreceiver
 
 import (
 	"fmt"
+	"net/http"
 )
 
 const (
@@ -39,10 +40,11 @@ type apiClient struct {
 	authClient authClient
 }
 
-func newAPIClient(baseURL string, tok string) databricksAPI {
+func newAPIClient(endpoint string, tok string, httpClient *http.Client) databricksAPI {
 	return &apiClient{authClient{
-		baseURL: baseURL,
-		tok:     tok,
+		httpClient: httpClient,
+		endpoint:   endpoint,
+		tok:        tok,
 	}}
 }
 

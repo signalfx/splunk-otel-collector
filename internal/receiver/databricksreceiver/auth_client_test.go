@@ -20,17 +20,25 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/confighttp"
 )
 
 func TestAuthClient(t *testing.T) {
 	h := &fakeHandler{}
 	svr := httptest.NewServer(h)
 	defer svr.Close()
-	client := authClient{
-		baseURL: svr.URL,
-		tok:     "abc123",
+
+	s := confighttp.HTTPClientSettings{}
+	httpClient, err := s.ToClient(nil, component.TelemetrySettings{})
+	require.NoError(t, err)
+	ac := authClient{
+		httpClient: httpClient,
+		endpoint:   svr.URL,
+		tok:        "abc123",
 	}
-	_, _ = client.get("/foo")
+	_, _ = ac.get("/foo")
 	req := h.reqs[0]
 	assert.Equal(t, "GET", req.Method)
 	assert.Equal(t, "Bearer abc123", req.Header.Get("Authorization"))

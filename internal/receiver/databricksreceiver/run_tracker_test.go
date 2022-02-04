@@ -25,7 +25,7 @@ func TestRunTracker(t *testing.T) {
 	tracker := newRunTracker()
 	runs, _ := p.completedJobRuns(42, 0)
 	latest := tracker.extractNewRuns(runs)
-	assert.Equal(t, 1, len(latest))
+	assert.Equal(t, 0, len(latest))
 
 	runs, _ = p.completedJobRuns(42, 0)
 	latest = tracker.extractNewRuns(runs)

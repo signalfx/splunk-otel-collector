@@ -30,23 +30,24 @@ func (t *runTracker) extractNewRuns(runs []jobRun) []jobRun {
 	if runs == nil {
 		return nil
 	}
+	// runs are sorted with the latest at the top/left/zero position
 	latestRun := runs[0]
 	jobID := latestRun.JobID
 	prev := t.startTimesByJobID[jobID]
 	t.startTimesByJobID[jobID] = latestRun.StartTime
 	if prev == 0 {
-		// We return the latest run the first time through, regardless of when it
-		// happened. We may want to make this behavior configurable.
-		return []jobRun{latestRun}
+		// we assume that the latest run we receive at startup not current (it's older
+		// than our start time), so we discard it
+		return nil
 	}
-	return collectRecentRuns(runs, prev)
+	return collectNewRuns(runs, prev)
 }
 
 func (t *runTracker) getPrevStartTime(jobID int) int64 {
 	return t.startTimesByJobID[jobID]
 }
 
-func collectRecentRuns(runs []jobRun, prev int64) (out []jobRun) {
+func collectNewRuns(runs []jobRun, prev int64) (out []jobRun) {
 	for i := len(runs) - 1; i >= 0; i-- {
 		run := runs[i]
 		if run.StartTime <= prev {

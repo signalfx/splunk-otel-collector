@@ -17,10 +17,12 @@ package databricksreceiver
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
@@ -37,14 +39,16 @@ func NewFactory() component.ReceiverFactory {
 }
 
 type Config struct {
+	confighttp.HTTPClientSettings           `mapstructure:",squash"`
 	InstanceName                            string `mapstructure:"instance_name"`
-	BaseURL                                 string `mapstructure:"base_url"`
 	Token                                   string
 	scraperhelper.ScraperControllerSettings `mapstructure:",squash"`
+	MaxResults                              int `mapstructure:"max_results"`
 }
 
 func createDefaultConfig() config.Receiver {
 	return &Config{
+		MaxResults: 25,
 		ScraperControllerSettings: scraperhelper.ScraperControllerSettings{
 			ReceiverSettings:   config.NewReceiverSettings(config.NewComponentID(typeStr)),
 			CollectionInterval: time.Second * 30,
@@ -52,7 +56,7 @@ func createDefaultConfig() config.Receiver {
 	}
 }
 
-func createReceiverFunc(createAPIClient func(baseURL string, tok string) databricksAPI) func(
+func createReceiverFunc(createAPIClient func(baseURL string, tok string, httpClient *http.Client) databricksAPI) func(
 	_ context.Context,
 	settings component.ReceiverCreateSettings,
 	cfg config.Receiver,
@@ -65,7 +69,11 @@ func createReceiverFunc(createAPIClient func(baseURL string, tok string) databri
 		consumer consumer.Metrics,
 	) (component.MetricsReceiver, error) {
 		dbcfg := cfg.(*Config)
-		p := newPaginator(createAPIClient(dbcfg.BaseURL, dbcfg.Token))
+		httpClient, err := dbcfg.ToClient(nil, settings.TelemetrySettings)
+		if err != nil {
+			return nil, fmt.Errorf("%s: createReceiverFunc closure: %w", typeStr, err)
+		}
+		p := newPaginator(createAPIClient(dbcfg.Endpoint, dbcfg.Token, httpClient), dbcfg.MaxResults)
 		s := scraper{
 			instanceName: dbcfg.InstanceName,
 			rmp:          newRunMetricsProvider(p),
@@ -73,7 +81,7 @@ func createReceiverFunc(createAPIClient func(baseURL string, tok string) databri
 		}
 		scrpr, err := scraperhelper.NewScraper(typeStr, s.scrape)
 		if err != nil {
-			return nil, fmt.Errorf("%s: createMetricsReceiver(): %w", typeStr, err)
+			return nil, fmt.Errorf("%s: createReceiverFunc closure: %w", typeStr, err)
 		}
 		return scraperhelper.NewScraperControllerReceiver(
 			&dbcfg.ScraperControllerSettings,

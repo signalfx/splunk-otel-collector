@@ -22,8 +22,9 @@ import (
 )
 
 func TestPaginator(t *testing.T) {
-	p := newPaginator(&testdataAPI{})
-	jobs, err := p.jobsList()
+	const ignored = 25
+	p := newPaginator(&testdataAPI{}, ignored)
+	jobs, err := p.jobs()
 	require.NoError(t, err)
 	assert.Equal(t, 6, len(jobs))
 	active, err := p.activeJobRuns()
@@ -31,18 +32,19 @@ func TestPaginator(t *testing.T) {
 	assert.Equal(t, 2, len(active))
 	completed, err := p.completedJobRuns(288, -1)
 	require.NoError(t, err)
-	assert.Equal(t, 99, len(completed))
+	assert.Equal(t, 98, len(completed))
 }
 
 func TestPaginator_CompletedRuns(t *testing.T) {
-	p := newPaginator(&testdataAPI{})
+	const ignored = 25
+	p := newPaginator(&testdataAPI{}, ignored)
 
-	// 1642777677522 is from completed-job-runs-0.json
+	// 1642777677522 is from completed-job-runs-0-0.json
 	runs, err := p.completedJobRuns(288, 1642777677522)
 	require.NoError(t, err)
-	assert.Equal(t, 31, len(runs))
+	assert.Equal(t, 30, len(runs))
 
-	// 1642775877669 is from completed-job-runs-1.json
+	// 1642775877669 is from completed-job-runs-1-1.json
 	runs, err = p.completedJobRuns(288, 1642775877669)
 	require.NoError(t, err)
 	assert.Equal(t, 67, len(runs))

@@ -23,7 +23,8 @@ import (
 )
 
 func TestMetricsProvider_Scrape(t *testing.T) {
-	p := newPaginator(&testdataAPI{})
+	const ignored = 25
+	p := newPaginator(&testdataAPI{}, ignored)
 	scrpr := scraper{
 		instanceName: "my-instance",
 		jmp:          newMetricsProvider(p),

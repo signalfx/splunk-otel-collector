@@ -29,7 +29,7 @@ func TestUnmarshaller(t *testing.T) {
 	activeRuns, err := u.activeJobRuns(25, 0)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(activeRuns.Runs))
-	completedRuns, err := u.completedJobRuns(0, 25, 0)
+	completedRuns, err := u.completedJobRuns(288, 25, 0)
 	require.NoError(t, err)
 	assert.Equal(t, "SUCCESS", completedRuns.Runs[0].State.ResultState)
 }

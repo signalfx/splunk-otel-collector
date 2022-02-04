@@ -18,7 +18,7 @@ import "fmt"
 
 // paginator is extracted from apiPaginator for swapping out in unit tests
 type paginator interface {
-	jobsList() (out []job, err error)
+	jobs() (out []job, err error)
 	activeJobRuns() (out []jobRun, err error)
 	completedJobRuns(jobID int, time int64) (out []jobRun, err error)
 }
@@ -30,19 +30,19 @@ type apiPaginator struct {
 	limit        int
 }
 
-func newPaginator(api databricksAPI) apiPaginator {
+func newPaginator(api databricksAPI, limit int) apiPaginator {
 	return apiPaginator{
 		unmarshaller: unmarshaller{api: api},
-		limit:        25, // max is 25
+		limit:        limit,
 	}
 }
 
-func (p apiPaginator) jobsList() (out []job, err error) {
+func (p apiPaginator) jobs() (out []job, err error) {
 	hasMore := true
 	for i := 0; hasMore; i++ {
 		resp, err := p.unmarshaller.jobsList(p.limit, p.limit*i)
 		if err != nil {
-			return nil, fmt.Errorf("apiPaginator.jobsList(): %w", err)
+			return nil, fmt.Errorf("apiPaginator.jobs(): %w", err)
 		}
 		out = append(out, resp.Jobs...)
 		hasMore = resp.HasMore

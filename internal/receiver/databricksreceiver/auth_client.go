@@ -15,6 +15,7 @@
 package databricksreceiver
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -23,17 +24,47 @@ import (
 // authClient sends requests with a bearer token to the given URL and returns a
 // byte array
 type authClient struct {
-	baseURL string
-	tok     string
+	httpClient *http.Client
+	endpoint   string
+	tok        string
 }
 
-func (c authClient) get(path string) (out []byte, err error) {
-	req, err := http.NewRequest("GET", c.baseURL+path, nil)
-	req.Header.Add("Authorization", "Bearer "+c.tok)
-	resp, err := http.DefaultClient.Do(req)
+type errorResponse struct {
+	ErrorCode string `json:"error_code"`
+	Message   string `json:"message"`
+}
+
+func (c authClient) get(path string) ([]byte, error) {
+	const method = "authClient.get()"
+	req, err := http.NewRequest("GET", c.endpoint+path, nil)
 	if err != nil {
-		return nil, fmt.Errorf("authClient.get(): %w", err)
+		return nil, fmt.Errorf("%s: %w", method, err)
 	}
-	defer func() { err = resp.Body.Close() }()
-	return io.ReadAll(resp.Body)
+	req.Header.Add("Authorization", "Bearer "+c.tok)
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", method, err)
+	}
+
+	// read the response regardless of status code
+	defer func() { _ = resp.Body.Close() }()
+	out, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%s: status code: %d: %w", method, resp.StatusCode, err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		er := errorResponse{}
+		_ = json.Unmarshal(out, &er)
+		return nil, fmt.Errorf(
+			"%s: status code: %d: %s: error code: %s message: %s",
+			method,
+			resp.StatusCode,
+			http.StatusText(resp.StatusCode),
+			er.ErrorCode,
+			er.Message,
+		)
+	}
+
+	return out, err
 }

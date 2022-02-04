@@ -16,6 +16,7 @@ package databricksreceiver
 
 import (
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
@@ -28,8 +29,9 @@ func TestAPIClient(t *testing.T) {
 	svr := httptest.NewServer(h)
 	defer svr.Close()
 	c := apiClient{authClient{
-		baseURL: svr.URL,
-		tok:     "abc123",
+		httpClient: http.DefaultClient,
+		endpoint:   svr.URL,
+		tok:        "abc123",
 	}}
 	_, _ = c.jobsList(2, 3)
 	path := "/api/2.1/jobs/list?expand_tasks=true&limit=2&offset=3"
@@ -44,6 +46,7 @@ func TestAPIClient(t *testing.T) {
 
 // testdataAPI implements databricksAPI but is backed by json files in testdata.
 type testdataAPI struct {
+	i int
 }
 
 func (*testdataAPI) jobsList(limit int, offset int) ([]byte, error) {
@@ -54,6 +57,13 @@ func (*testdataAPI) activeJobRuns(limit int, offset int) ([]byte, error) {
 	return os.ReadFile(fmt.Sprintf("testdata/active-job-runs-%d.json", offset/limit))
 }
 
-func (*testdataAPI) completedJobRuns(jobID int, limit int, offset int) ([]byte, error) {
-	return os.ReadFile(fmt.Sprintf("testdata/completed-job-runs-%d.json", offset/limit))
+func (a *testdataAPI) completedJobRuns(jobID int, limit int, offset int) ([]byte, error) {
+	if jobID != 288 {
+		return []byte("{}"), nil
+	}
+	if offset == 0 {
+		a.i++
+	}
+	file, err := os.ReadFile(fmt.Sprintf("testdata/completed-job-runs-%d-%d.json", a.i-1, offset/limit))
+	return file, err
 }

@@ -47,12 +47,13 @@ type Config struct {
 }
 
 func createDefaultConfig() config.Receiver {
+	scs := scraperhelper.DefaultScraperControllerSettings(typeStr)
+	// we set the default collection interval to 30 seconds which is half of the
+	// lowest job frequency of 1 minute
+	scs.CollectionInterval = time.Second * 30
 	return &Config{
-		MaxResults: 25,
-		ScraperControllerSettings: scraperhelper.ScraperControllerSettings{
-			ReceiverSettings:   config.NewReceiverSettings(config.NewComponentID(typeStr)),
-			CollectionInterval: time.Second * 30,
-		},
+		MaxResults:                25,
+		ScraperControllerSettings: scs,
 	}
 }
 

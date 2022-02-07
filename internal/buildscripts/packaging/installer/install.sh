@@ -88,7 +88,7 @@ default_realm="us0"
 default_memory_size="512"
 
 default_collector_version="latest"
-default_td_agent_version="4.1.0"
+default_td_agent_version="4.3.0"
 default_td_agent_version_jessie="3.3.0-1"
 default_td_agent_version_stretch="3.7.1-0"
 

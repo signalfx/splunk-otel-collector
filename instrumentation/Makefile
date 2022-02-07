@@ -33,5 +33,14 @@ test: tests
 dist:
 	@mkdir -p dist
 	docker buildx build --platform linux/$(ARCH) -o type=image,name=libsplunk-builder:$(ARCH),push=false .
-	docker run --platform linux/$(ARCH) --rm -v $(CURDIR)/dist:/libsplunk/so libsplunk-builder:$(ARCH) make tests all
+	docker run --platform linux/$(ARCH) --rm -v $(CURDIR)/dist:/libsplunk/so libsplunk-builder:$(ARCH) make test all
 	cp $(CURDIR)/dist/libsplunk.so $(CURDIR)/dist/libsplunk_$(ARCH).so
+
+.PHONY: deb-rpm-package
+%-package:
+ifneq ($(SKIP_COMPILE), true)
+	$(MAKE) dist
+endif
+	@mkdir -p dist
+	docker build -t instrumentation-fpm packaging/fpm
+	docker run --rm -v $(CURDIR):/instrumentation -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) instrumentation-fpm

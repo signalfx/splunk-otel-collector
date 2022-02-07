@@ -24,7 +24,7 @@ import (
 
 func TestMetricsProvider(t *testing.T) {
 	const ignored = 25
-	mp := newMetricsProvider(newPaginator(&testdataAPI{}, ignored))
+	mp := newMetricsProvider(newDatabricksClient(&testdataClient{}, ignored))
 	ms := pdata.NewMetricSlice()
 	_, err := mp.addJobStatusMetrics(ms)
 	require.NoError(t, err)
@@ -41,7 +41,7 @@ func TestMetricsProvider(t *testing.T) {
 	assert.EqualValues(t, 0, pts.At(0).IntVal())
 
 	taskStatusMetric := ms.At(2)
-	assert.Equal(t, "databricks.task.schedule.status", taskStatusMetric.Name())
+	assert.Equal(t, "databricks.tasks.schedule.status", taskStatusMetric.Name())
 	assert.Equal(t, 8, taskStatusMetric.Gauge().DataPoints().Len())
 
 	ms = pdata.NewMetricSlice()

@@ -23,7 +23,7 @@ import (
 )
 
 func TestRunMetricProvider(t *testing.T) {
-	p := newRunMetricsProvider(&fakeCompletedJobRunPaginator{})
+	p := newRunMetricsProvider(&fakeCompletedJobRunClient{})
 	jobPts := pdata.NewNumberDataPointSlice()
 	err := p.addSingleJobRunMetrics(jobPts, pdata.NewNumberDataPointSlice(), 42)
 	require.NoError(t, err)
@@ -39,7 +39,7 @@ func TestRunMetricProvider(t *testing.T) {
 
 func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	const ignored = 25
-	mp := newRunMetricsProvider(newPaginator(&testdataAPI{}, ignored))
+	mp := newRunMetricsProvider(newDatabricksClient(&testdataClient{}, ignored))
 	ms := pdata.NewMetricSlice()
 	err := mp.addMultiJobRunMetrics(ms, []int{288})
 	require.NoError(t, err)
@@ -71,8 +71,8 @@ func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	assert.EqualValues(t, 15000, taskPt.IntVal())
 }
 
-func TestFakePaginator(t *testing.T) {
-	p := &fakeCompletedJobRunPaginator{}
+func TestFakeCompletedJobRunClient(t *testing.T) {
+	p := &fakeCompletedJobRunClient{}
 	runs, _ := p.completedJobRuns(42, 0)
 	assert.Equal(t, 1, len(runs))
 	runs, _ = p.completedJobRuns(42, 0)
@@ -81,29 +81,29 @@ func TestFakePaginator(t *testing.T) {
 	assert.True(t, runs[0].ExecutionDuration > runs[1].ExecutionDuration)
 }
 
-type fakeCompletedJobRunPaginator struct {
+type fakeCompletedJobRunClient struct {
 	runs []jobRun
 	i    int
 }
 
-func (a *fakeCompletedJobRunPaginator) jobs() (out []job, err error) {
+func (c *fakeCompletedJobRunClient) jobs() (out []job, err error) {
 	return nil, nil
 }
 
-func (a *fakeCompletedJobRunPaginator) activeJobRuns() (out []jobRun, err error) {
+func (c *fakeCompletedJobRunClient) activeJobRuns() (out []jobRun, err error) {
 	return nil, nil
 }
 
-func (a *fakeCompletedJobRunPaginator) completedJobRuns(jobID int, _ int64) ([]jobRun, error) {
-	a.addCompletedRun(jobID)
-	return a.runs, nil
+func (c *fakeCompletedJobRunClient) completedJobRuns(jobID int, _ int64) ([]jobRun, error) {
+	c.addCompletedRun(jobID)
+	return c.runs, nil
 }
 
-func (a *fakeCompletedJobRunPaginator) addCompletedRun(jobID int) {
-	a.runs = append([]jobRun{{
+func (c *fakeCompletedJobRunClient) addCompletedRun(jobID int) {
+	c.runs = append([]jobRun{{
 		JobID:             jobID,
-		StartTime:         1_600_000_000_000 + (1_000_000 * int64(a.i)),
-		ExecutionDuration: 15_000 + (1000 * a.i),
-	}}, a.runs...)
-	a.i++
+		StartTime:         1_600_000_000_000 + (1_000_000 * int64(c.i)),
+		ExecutionDuration: 15_000 + (1000 * c.i),
+	}}, c.runs...)
+	c.i++
 }

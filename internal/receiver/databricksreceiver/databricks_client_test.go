@@ -21,31 +21,31 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPaginator(t *testing.T) {
+func TestDatabricksClient(t *testing.T) {
 	const ignored = 25
-	p := newPaginator(&testdataAPI{}, ignored)
-	jobs, err := p.jobs()
+	c := newDatabricksClient(&testdataClient{}, ignored)
+	jobs, err := c.jobs()
 	require.NoError(t, err)
 	assert.Equal(t, 6, len(jobs))
-	active, err := p.activeJobRuns()
+	active, err := c.activeJobRuns()
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(active))
-	completed, err := p.completedJobRuns(288, -1)
+	completed, err := c.completedJobRuns(288, -1)
 	require.NoError(t, err)
 	assert.Equal(t, 98, len(completed))
 }
 
-func TestPaginator_CompletedRuns(t *testing.T) {
+func TestDatabricksClient_CompletedRuns(t *testing.T) {
 	const ignored = 25
-	p := newPaginator(&testdataAPI{}, ignored)
+	c := newDatabricksClient(&testdataClient{}, ignored)
 
 	// 1642777677522 is from completed-job-runs-0-0.json
-	runs, err := p.completedJobRuns(288, 1642777677522)
+	runs, err := c.completedJobRuns(288, 1642777677522)
 	require.NoError(t, err)
 	assert.Equal(t, 30, len(runs))
 
 	// 1642775877669 is from completed-job-runs-1-1.json
-	runs, err = p.completedJobRuns(288, 1642775877669)
+	runs, err = c.completedJobRuns(288, 1642775877669)
 	require.NoError(t, err)
 	assert.Equal(t, 67, len(runs))
 }

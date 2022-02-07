@@ -29,6 +29,7 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/service/servicetest"
 	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 )
 
 func TestFactory(t *testing.T) {
@@ -42,7 +43,7 @@ func TestFactory(t *testing.T) {
 
 func TestCreateReceiver(t *testing.T) {
 	ctx := context.Background()
-	f := createReceiverFunc(func(string, string, *http.Client) databricksAPI { return &testdataAPI{} })
+	f := createReceiverFunc(func(string, string, *http.Client, *zap.Logger) apiClientInterface { return &testdataClient{} })
 	receiver, err := f(
 		ctx,
 		component.ReceiverCreateSettings{

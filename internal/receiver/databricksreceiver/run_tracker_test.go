@@ -21,13 +21,13 @@ import (
 )
 
 func TestRunTracker(t *testing.T) {
-	p := &fakeCompletedJobRunPaginator{}
+	c := &fakeCompletedJobRunClient{}
 	tracker := newRunTracker()
-	runs, _ := p.completedJobRuns(42, 0)
+	runs, _ := c.completedJobRuns(42, 0)
 	latest := tracker.extractNewRuns(runs)
 	assert.Equal(t, 0, len(latest))
 
-	runs, _ = p.completedJobRuns(42, 0)
+	runs, _ = c.completedJobRuns(42, 0)
 	latest = tracker.extractNewRuns(runs)
 	assert.Equal(t, 1, len(latest))
 
@@ -35,12 +35,12 @@ func TestRunTracker(t *testing.T) {
 	latest = tracker.extractNewRuns(runs)
 	assert.Nil(t, latest)
 
-	runs, _ = p.completedJobRuns(42, 0)
+	runs, _ = c.completedJobRuns(42, 0)
 	latest = tracker.extractNewRuns(runs)
 	assert.Equal(t, 1, len(latest))
 
-	p.addCompletedRun(42)
-	runs, _ = p.completedJobRuns(42, 0)
+	c.addCompletedRun(42)
+	runs, _ = c.completedJobRuns(42, 0)
 	latest = tracker.extractNewRuns(runs)
 	assert.Equal(t, 2, len(latest))
 }

@@ -24,21 +24,21 @@ const (
 	jobScheduleStatusMetric  = "databricks.jobs.schedule.status"
 	totalJobsMetric          = "databricks.jobs.total"
 	totalActiveJobsMetric    = "databricks.jobs.active.total"
-	taskScheduleStatusMetric = "databricks.task.schedule.status"
+	taskScheduleStatusMetric = "databricks.tasks.schedule.status"
 )
 
-// metricsProvider wraps a paginator and provides metrics for databricks
+// metricsProvider wraps a databricksClientInterface and provides metrics for databricks
 // endpoints.
 type metricsProvider struct {
-	paginator paginator
+	dbClient databricksClientInterface
 }
 
-func newMetricsProvider(paginator paginator) metricsProvider {
-	return metricsProvider{paginator: paginator}
+func newMetricsProvider(dbClient databricksClientInterface) metricsProvider {
+	return metricsProvider{dbClient: dbClient}
 }
 
 func (p metricsProvider) addJobStatusMetrics(ms pdata.MetricSlice) ([]int, error) {
-	jobs, err := p.paginator.jobs()
+	jobs, err := p.dbClient.jobs()
 	if err != nil {
 		return nil, fmt.Errorf("metricsProvider.addJobStatusMetrics(): %w", err)
 	}
@@ -68,7 +68,7 @@ func (p metricsProvider) addJobStatusMetrics(ms pdata.MetricSlice) ([]int, error
 }
 
 func (p metricsProvider) addNumActiveRunsMetric(ms pdata.MetricSlice) error {
-	runs, err := p.paginator.activeJobRuns()
+	runs, err := p.dbClient.activeJobRuns()
 	if err != nil {
 		return fmt.Errorf("metricsProvider.addNumActiveJobsMetric(): %w", err)
 	}

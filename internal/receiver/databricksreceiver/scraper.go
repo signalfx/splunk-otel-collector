@@ -28,7 +28,7 @@ const instanceNameAttr = "databricks.instance.name"
 // timer, and building metrics from metrics providers.
 type scraper struct {
 	rmp          runMetricsProvider
-	jmp          metricsProvider
+	mp           metricsProvider
 	instanceName string
 }
 
@@ -47,12 +47,12 @@ func (s scraper) scrape(_ context.Context) (pdata.Metrics, error) {
 	const errfmt = "scraper.scrape(): %w"
 	var err error
 
-	jobIDs, err := s.jmp.addJobStatusMetrics(ms)
+	jobIDs, err := s.mp.addJobStatusMetrics(ms)
 	if err != nil {
 		return out, fmt.Errorf(errfmt, err)
 	}
 
-	err = s.jmp.addNumActiveRunsMetric(ms)
+	err = s.mp.addNumActiveRunsMetric(ms)
 	if err != nil {
 		return out, fmt.Errorf(errfmt, err)
 	}

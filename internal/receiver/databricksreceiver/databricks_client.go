@@ -16,33 +16,33 @@ package databricksreceiver
 
 import "fmt"
 
-// paginator is extracted from apiPaginator for swapping out in unit tests
-type paginator interface {
+// databricksClientInterface is extracted from databricksClient for swapping out in unit tests
+type databricksClientInterface interface {
 	jobs() (out []job, err error)
 	activeJobRuns() (out []jobRun, err error)
 	completedJobRuns(jobID int, time int64) (out []jobRun, err error)
 }
 
-// apiPaginator handles pagination (responses specify hasMore=true/false) and
+// databricksClient handles pagination (responses specify hasMore=true/false) and
 // combines the returned objects into one array.
-type apiPaginator struct {
+type databricksClient struct {
 	unmarshaller unmarshaller
 	limit        int
 }
 
-func newPaginator(api databricksAPI, limit int) apiPaginator {
-	return apiPaginator{
+func newDatabricksClient(api apiClientInterface, limit int) databricksClient {
+	return databricksClient{
 		unmarshaller: unmarshaller{api: api},
 		limit:        limit,
 	}
 }
 
-func (p apiPaginator) jobs() (out []job, err error) {
+func (c databricksClient) jobs() (out []job, err error) {
 	hasMore := true
 	for i := 0; hasMore; i++ {
-		resp, err := p.unmarshaller.jobsList(p.limit, p.limit*i)
+		resp, err := c.unmarshaller.jobsList(c.limit, c.limit*i)
 		if err != nil {
-			return nil, fmt.Errorf("apiPaginator.jobs(): %w", err)
+			return nil, fmt.Errorf("databricksClient.jobs(): %w", err)
 		}
 		out = append(out, resp.Jobs...)
 		hasMore = resp.HasMore
@@ -50,12 +50,12 @@ func (p apiPaginator) jobs() (out []job, err error) {
 	return out, nil
 }
 
-func (p apiPaginator) activeJobRuns() (out []jobRun, err error) {
+func (c databricksClient) activeJobRuns() (out []jobRun, err error) {
 	hasMore := true
 	for i := 0; hasMore; i++ {
-		resp, err := p.unmarshaller.activeJobRuns(p.limit, p.limit*i)
+		resp, err := c.unmarshaller.activeJobRuns(c.limit, c.limit*i)
 		if err != nil {
-			return nil, fmt.Errorf("apiPaginator.activeJobRuns(): %w", err)
+			return nil, fmt.Errorf("databricksClient.activeJobRuns(): %w", err)
 		}
 		out = append(out, resp.Runs...)
 		hasMore = resp.HasMore
@@ -63,12 +63,12 @@ func (p apiPaginator) activeJobRuns() (out []jobRun, err error) {
 	return out, nil
 }
 
-func (p apiPaginator) completedJobRuns(jobID int, prevStartTime int64) (out []jobRun, err error) {
+func (c databricksClient) completedJobRuns(jobID int, prevStartTime int64) (out []jobRun, err error) {
 	hasMore := true
 	for i := 0; hasMore; i++ {
-		resp, err := p.unmarshaller.completedJobRuns(jobID, p.limit, p.limit*i)
+		resp, err := c.unmarshaller.completedJobRuns(jobID, c.limit, c.limit*i)
 		if err != nil {
-			return nil, fmt.Errorf("apiPaginator.completedJobRuns(): %w", err)
+			return nil, fmt.Errorf("databricksClient.completedJobRuns(): %w", err)
 		}
 		out = append(out, resp.Runs...)
 		if prevStartTime == 0 || resp.Runs == nil || resp.Runs[len(resp.Runs)-1].StartTime < prevStartTime {

@@ -24,11 +24,11 @@ import (
 
 func TestMetricsProvider_Scrape(t *testing.T) {
 	const ignored = 25
-	p := newPaginator(&testdataAPI{}, ignored)
+	c := newDatabricksClient(&testdataClient{}, ignored)
 	scrpr := scraper{
 		instanceName: "my-instance",
-		jmp:          newMetricsProvider(p),
-		rmp:          newRunMetricsProvider(p),
+		mp:           newMetricsProvider(c),
+		rmp:          newRunMetricsProvider(c),
 	}
 	metrics, err := scrpr.scrape(context.Background())
 	require.NoError(t, err)

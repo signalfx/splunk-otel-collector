@@ -28,14 +28,14 @@ const (
 // runMetricsProvider provides metrics for job and task runs. It uses a
 // runTracker to extract just the new runs returned from the API.
 type runMetricsProvider struct {
-	tracker   *runTracker
-	paginator paginator
+	tracker  *runTracker
+	dbClient databricksClientInterface
 }
 
-func newRunMetricsProvider(paginator paginator) runMetricsProvider {
+func newRunMetricsProvider(dbClient databricksClientInterface) runMetricsProvider {
 	return runMetricsProvider{
-		tracker:   newRunTracker(),
-		paginator: paginator,
+		tracker:  newRunTracker(),
+		dbClient: dbClient,
 	}
 }
 
@@ -65,7 +65,7 @@ func (p runMetricsProvider) addSingleJobRunMetrics(
 	jobID int,
 ) error {
 	startTime := p.tracker.getPrevStartTime(jobID)
-	runs, err := p.paginator.completedJobRuns(jobID, startTime)
+	runs, err := p.dbClient.completedJobRuns(jobID, startTime)
 	if err != nil {
 		return fmt.Errorf("runMetricsProvider.addSingleJobRunMetrics(): %w", err)
 	}

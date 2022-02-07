@@ -17,6 +17,8 @@ package databricksreceiver
 import (
 	"fmt"
 	"net/http"
+
+	"go.uber.org/zap"
 )
 
 const (
@@ -25,37 +27,47 @@ const (
 	completedJobRunsPath = "/api/2.1/jobs/runs/list?completed_only=true&expand_tasks=true&job_id=%d&limit=%d&offset=%d"
 )
 
-// databricksAPI is an interface representing the databricks web-based API. It's
-// populated with the parts of the databricks API that we use.
-type databricksAPI interface {
+// apiClientInterface is extracted from apiClient so that it can be swapped for
+// testing.
+type apiClientInterface interface {
 	jobsList(limit int, offset int) ([]byte, error)
 	activeJobRuns(limit int, offset int) ([]byte, error)
 	completedJobRuns(id int, limit int, offset int) ([]byte, error)
 }
 
 // apiClient wraps an authClient, encapsulates calls to the databricks API, and
-// implements databricksAPI. Its methods return byte arrays to be unmarshalled
+// implements apiClientInterface. Its methods return byte arrays to be unmarshalled
 // by the caller.
 type apiClient struct {
+	logger     *zap.Logger
 	authClient authClient
 }
 
-func newAPIClient(endpoint string, tok string, httpClient *http.Client) databricksAPI {
-	return &apiClient{authClient{
-		httpClient: httpClient,
-		endpoint:   endpoint,
-		tok:        tok,
-	}}
+func newAPIClient(endpoint string, tok string, httpClient *http.Client, logger *zap.Logger) apiClientInterface {
+	return &apiClient{
+		authClient: authClient{
+			httpClient: httpClient,
+			endpoint:   endpoint,
+			tok:        tok,
+		},
+		logger: logger,
+	}
 }
 
 func (c apiClient) jobsList(limit int, offset int) (out []byte, err error) {
-	return c.authClient.get(fmt.Sprintf(jobsListPath, limit, offset))
+	path := fmt.Sprintf(jobsListPath, limit, offset)
+	c.logger.Debug("apiClient.jobsList", zap.String("path", path))
+	return c.authClient.get(path)
 }
 
 func (c apiClient) activeJobRuns(limit int, offset int) ([]byte, error) {
-	return c.authClient.get(fmt.Sprintf(activeJobRunsPath, limit, offset))
+	path := fmt.Sprintf(activeJobRunsPath, limit, offset)
+	c.logger.Debug("apiClient.activeJobRuns", zap.String("path", path))
+	return c.authClient.get(path)
 }
 
 func (c apiClient) completedJobRuns(jobID int, limit int, offset int) ([]byte, error) {
-	return c.authClient.get(fmt.Sprintf(completedJobRunsPath, jobID, limit, offset))
+	path := fmt.Sprintf(completedJobRunsPath, jobID, limit, offset)
+	c.logger.Debug("apiClient.completedJobRuns", zap.String("path", path))
+	return c.authClient.get(path)
 }

@@ -22,17 +22,21 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 func TestAPIClient(t *testing.T) {
 	h := &fakeHandler{}
 	svr := httptest.NewServer(h)
 	defer svr.Close()
-	c := apiClient{authClient{
-		httpClient: http.DefaultClient,
-		endpoint:   svr.URL,
-		tok:        "abc123",
-	}}
+	c := apiClient{
+		authClient: authClient{
+			httpClient: http.DefaultClient,
+			endpoint:   svr.URL,
+			tok:        "abc123",
+		},
+		logger: zap.NewNop(),
+	}
 	_, _ = c.jobsList(2, 3)
 	path := "/api/2.1/jobs/list?expand_tasks=true&limit=2&offset=3"
 	assert.Equal(t, path, h.reqs[0].RequestURI)
@@ -44,26 +48,26 @@ func TestAPIClient(t *testing.T) {
 	assert.Equal(t, path, h.reqs[2].RequestURI)
 }
 
-// testdataAPI implements databricksAPI but is backed by json files in testdata.
-type testdataAPI struct {
+// testdataClient implements apiClientInterface but is backed by json files in testdata.
+type testdataClient struct {
 	i int
 }
 
-func (*testdataAPI) jobsList(limit int, offset int) ([]byte, error) {
+func (*testdataClient) jobsList(limit int, offset int) ([]byte, error) {
 	return os.ReadFile(fmt.Sprintf("testdata/jobs-list-%d.json", offset/limit))
 }
 
-func (*testdataAPI) activeJobRuns(limit int, offset int) ([]byte, error) {
+func (*testdataClient) activeJobRuns(limit int, offset int) ([]byte, error) {
 	return os.ReadFile(fmt.Sprintf("testdata/active-job-runs-%d.json", offset/limit))
 }
 
-func (a *testdataAPI) completedJobRuns(jobID int, limit int, offset int) ([]byte, error) {
+func (c *testdataClient) completedJobRuns(jobID int, limit int, offset int) ([]byte, error) {
 	if jobID != 288 {
 		return []byte("{}"), nil
 	}
 	if offset == 0 {
-		a.i++
+		c.i++
 	}
-	file, err := os.ReadFile(fmt.Sprintf("testdata/completed-job-runs-%d-%d.json", a.i-1, offset/limit))
+	file, err := os.ReadFile(fmt.Sprintf("testdata/completed-job-runs-%d-%d.json", c.i-1, offset/limit))
 	return file, err
 }

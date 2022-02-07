@@ -19,11 +19,11 @@ import (
 	"fmt"
 )
 
-// unmarshaller wraps a databricksAPI implementation and unmarshals json byte
+// unmarshaller wraps a apiClientInterface implementation and unmarshals json byte
 // arrays to the types defined in json_types.go. Its methods signatures mirror
 // those of the api.
 type unmarshaller struct {
-	api databricksAPI
+	api apiClientInterface
 }
 
 func (u unmarshaller) jobsList(limit int, offset int) (jobsList, error) {

@@ -26,6 +26,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
+	"go.uber.org/zap"
 )
 
 const typeStr = "databricks"
@@ -52,12 +53,12 @@ func createDefaultConfig() config.Receiver {
 	// lowest job frequency of 1 minute
 	scs.CollectionInterval = time.Second * 30
 	return &Config{
-		MaxResults:                25,
+		MaxResults:                25, // 25 is the max the API supports
 		ScraperControllerSettings: scs,
 	}
 }
 
-func createReceiverFunc(createAPIClient func(baseURL string, tok string, httpClient *http.Client) databricksAPI) func(
+func createReceiverFunc(createAPIClient func(baseURL string, tok string, httpClient *http.Client, logger *zap.Logger) apiClientInterface) func(
 	_ context.Context,
 	settings component.ReceiverCreateSettings,
 	cfg config.Receiver,
@@ -74,11 +75,11 @@ func createReceiverFunc(createAPIClient func(baseURL string, tok string, httpCli
 		if err != nil {
 			return nil, fmt.Errorf("%s: createReceiverFunc closure: %w", typeStr, err)
 		}
-		p := newPaginator(createAPIClient(dbcfg.Endpoint, dbcfg.Token, httpClient), dbcfg.MaxResults)
+		c := newDatabricksClient(createAPIClient(dbcfg.Endpoint, dbcfg.Token, httpClient, settings.Logger), dbcfg.MaxResults)
 		s := scraper{
 			instanceName: dbcfg.InstanceName,
-			rmp:          newRunMetricsProvider(p),
-			jmp:          newMetricsProvider(p),
+			rmp:          newRunMetricsProvider(c),
+			mp:           newMetricsProvider(c),
 		}
 		scrpr, err := scraperhelper.NewScraper(typeStr, s.scrape)
 		if err != nil {

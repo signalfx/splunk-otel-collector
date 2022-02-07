@@ -22,7 +22,7 @@ import (
 )
 
 func TestUnmarshaller(t *testing.T) {
-	u := unmarshaller{&testdataAPI{}}
+	u := unmarshaller{&testdataClient{}}
 	list, err := u.jobsList(25, 0)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(list.Jobs))

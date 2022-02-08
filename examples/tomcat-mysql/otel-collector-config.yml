@@ -6,7 +6,7 @@ receivers:
       # 08-Feb-2022 00:29:42.924 INFO
       - type: regex_parser
         regex: '^(?P<timestamp_field>\d{2}-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d{3})'
-        preserve_to: body
+        preserve_to: $$body
         timestamp:
           parse_from: timestamp_field
           layout_type: strptime
@@ -18,7 +18,7 @@ receivers:
       # 172.18.0.1 - - [08/Feb/2022:01:27:46 +0000] "GET /sample/ HTTP/1.1" 304 -
       - type: regex_parser
         regex: '^.*\[(?P<timestamp_field>.*)\].*'
-        preserve_to: body
+        preserve_to: $$body
         timestamp:
           parse_from: timestamp_field
           layout_type: strptime
@@ -30,7 +30,7 @@ receivers:
       # 2022-02-08T01:08:24.758298Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
       - type: regex_parser
         regex: '^(?P<timestamp_field>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}).*$'
-        preserve_to: body
+        preserve_to: $$body
         timestamp:
           parse_from: timestamp_field
           layout_type: strptime

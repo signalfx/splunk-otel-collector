@@ -1,6 +1,6 @@
 [bool]$SkipFluend = $FALSE
 
-$fluentd_msi_name = "td-agent-4.1.1-x64.msi"
+$fluentd_msi_name = "td-agent-4.3.0-x64.msi"
 $fluentd_dl_url = "https://packages.treasuredata.com/4/windows/$fluentd_msi_name"
 try {
     Resolve-Path $env:SYSTEMDRIVE

@@ -100,7 +100,7 @@ func main() {
 		)
 	}
 
-	serviceConfigProvider := service.NewConfigProvider(
+	serviceConfigProvider := service.MustNewConfigProvider(
 		[]string{configLocation()},
 		map[string]configmapprovider.Provider{
 			"env": configprovider.NewConfigSourceConfigMapProvider(

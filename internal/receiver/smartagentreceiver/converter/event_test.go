@@ -128,7 +128,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 
 func newExpectedLog(eventType string, properties map[string]pdata.AttributeValue, timestamp uint64) pdata.Logs {
 	ld := pdata.NewLogs()
-	lr := ld.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().Logs().AppendEmpty()
+	lr := ld.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().LogRecords().AppendEmpty()
 	lr.SetName(eventType)
 	lr.SetTimestamp(pdata.Timestamp(timestamp))
 
@@ -141,8 +141,8 @@ func newExpectedLog(eventType string, properties map[string]pdata.AttributeValue
 }
 
 func assertLogsEqual(t *testing.T, expected, received pdata.Logs) {
-	expectedLog := expected.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).Logs().At(0)
-	receivedLog := received.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).Logs().At(0)
+	expectedLog := expected.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).LogRecords().At(0)
+	receivedLog := received.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).LogRecords().At(0)
 
 	assert.Equal(t, expectedLog.Name(), receivedLog.Name())
 	assert.Equal(t, expectedLog.Timestamp(), receivedLog.Timestamp())

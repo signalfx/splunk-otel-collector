@@ -1,0 +1,47 @@
+services:
+  mysql:
+    image: "mysql:8.0.28"
+    container_name: mysql
+    environment:
+      - "MYSQL_ROOT_PASSWORD=root"
+    volumes:
+      - ./logs/:/var/log/mysql/
+      - ./mysql_logging.cnf:/etc/mysql/conf.d/mysql_logging.cnf
+  tomcat:
+    image: "tomcat:8-jdk8-corretto"
+    container_name: tomcat
+    volumes:
+      - ./logs/:/usr/local/tomcat/logs
+      - ./sample.war:/usr/local/tomcat/webapps/sample.war
+    ports:
+      - "8080:8080"
+  # Splunk Enterprise server:
+  splunk:
+    image: splunk/splunk:latest
+    container_name: splunk
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_HEC_TOKEN=00000000-0000-0000-0000-0000000000000
+      - SPLUNK_PASSWORD=changeme
+    ports:
+      - 18000:8000
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:8000' ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./splunk.yml:/tmp/defaults/default.yml
+      - /opt/splunk/var
+      - /opt/splunk/etc
+  # OpenTelemetry Collector
+  otelcollector:
+    image: quay.io/signalfx/splunk-otel-collector:0.41.0
+    container_name: otelcollector
+    command: [ "--config=/etc/otel-collector-config.yml" ]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+      - ./logs:/logs
+      - ./checkpoint:/checkpoint
+    depends_on:
+      - splunk

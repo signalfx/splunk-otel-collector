@@ -1,6 +1,6 @@
 # Tomcat and MySQL example
 
-This example shows how the OpenTelemetry Collector can collect data from Apache Tomcat and MySQL, and send it to both Splunk Enterprise and Splunk APM.
+This example shows how the OpenTelemetry Collector can collect data from Apache Tomcat and MySQL, and send it to Splunk Enterprise.
 
 ## Set up
 

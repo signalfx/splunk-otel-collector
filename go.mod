@@ -14,7 +14,7 @@ require (
 	github.com/hashicorp/vault v1.9.3
 	github.com/hashicorp/vault-plugin-auth-gcp v0.11.3
 	github.com/hashicorp/vault/api v1.3.1
-	github.com/jaegertracing/jaeger v1.30.0
+	github.com/jaegertracing/jaeger v1.31.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.44.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.44.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.44.0

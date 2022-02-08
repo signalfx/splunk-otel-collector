@@ -109,7 +109,7 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) pdata.Logs {
 
 func newLogs() (pdata.Logs, pdata.LogRecord) {
 	ld := pdata.NewLogs()
-	lr := ld.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().Logs().AppendEmpty()
+	lr := ld.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().LogRecords().AppendEmpty()
 
 	return ld, lr
 }

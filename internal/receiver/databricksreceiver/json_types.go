@@ -49,11 +49,15 @@ type emailNotifications struct {
 
 type jobTask struct {
 	EmailNotifications struct{}     `json:"email_notifications,omitempty"`
-	TaskKey            string       `json:"task_key"`
-	NotebookTask       notebookTask `json:"notebook_task,omitempty"`
-	ExistingClusterID  string       `json:"existing_cluster_id,omitempty"`
+	PythonWheelTask    interface{}  `json:"python_wheel_task,omitempty"`
+	PipelineTask       interface{}  `json:"pipeline_task,omitempty"`
+	SparkPythonTask    interface{}  `json:"spark_python_task,omitempty"`
+	SparkJarTask       interface{}  `json:"spark_jar_task,omitempty"`
+	NotebookTask       interface{}  `json:"notebook_task,omitempty"`
+	SparkSubmitTask    interface{}  `json:"spark_submit_task,omitempty"`
 	Description        string       `json:"description,omitempty"`
-	SparkPythonTask    pythonTask   `json:"spark_python_task,omitempty"`
+	ExistingClusterID  string       `json:"existing_cluster_id,omitempty"`
+	TaskKey            string       `json:"task_key"`
 	DependsOn          []dependency `json:"depends_on,omitempty"`
 	NewCluster         newCluster   `json:"new_cluster,omitempty"`
 	TimeoutSeconds     int          `json:"timeout_seconds"`
@@ -61,10 +65,6 @@ type jobTask struct {
 
 type dependency struct {
 	TaskKey string `json:"task_key"`
-}
-
-type pythonTask struct {
-	PythonFile string `json:"python_file"`
 }
 
 type newCluster struct {

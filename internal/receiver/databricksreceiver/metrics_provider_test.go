@@ -42,7 +42,22 @@ func TestMetricsProvider(t *testing.T) {
 
 	taskStatusMetric := ms.At(2)
 	assert.Equal(t, "databricks.tasks.schedule.status", taskStatusMetric.Name())
-	assert.Equal(t, 8, taskStatusMetric.Gauge().DataPoints().Len())
+	taskPts := taskStatusMetric.Gauge().DataPoints()
+	assert.Equal(t, 8, taskPts.Len())
+
+	task0Pt := taskPts.At(0)
+	taskAttrs := task0Pt.Attributes()
+	jobIDAttr, _ := taskAttrs.Get("job_id")
+	assert.EqualValues(t, 7, jobIDAttr.IntVal())
+	taskIDAttr, _ := taskAttrs.Get("task_id")
+	assert.EqualValues(t, "user2test", taskIDAttr.StringVal())
+
+	assertTaskTypeEquals(t, taskPts, 0, "NotebookTask")
+	assertTaskTypeEquals(t, taskPts, 1, "SparkPythonTask")
+	assertTaskTypeEquals(t, taskPts, 2, "SparkJarTask")
+	assertTaskTypeEquals(t, taskPts, 3, "PipelineTask")
+	assertTaskTypeEquals(t, taskPts, 4, "PythonWheelTask")
+	assertTaskTypeEquals(t, taskPts, 5, "SparkSubmitTask")
 
 	ms = pdata.NewMetricSlice()
 	err = mp.addNumActiveRunsMetric(ms)
@@ -50,4 +65,9 @@ func TestMetricsProvider(t *testing.T) {
 	activeRunsMetric := ms.At(0)
 	assert.Equal(t, "databricks.jobs.active.total", activeRunsMetric.Name())
 	assert.Equal(t, 1, activeRunsMetric.Gauge().DataPoints().Len())
+}
+
+func assertTaskTypeEquals(t *testing.T, taskPts pdata.NumberDataPointSlice, idx int, expected string) {
+	tskType, _ := taskPts.At(idx).Attributes().Get("task_type")
+	assert.EqualValues(t, expected, tskType.StringVal())
 }

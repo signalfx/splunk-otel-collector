@@ -81,8 +81,8 @@
         "tasks": [
           {
             "task_key": "test",
-            "notebook_task": {
-              "notebook_path": "/Users/user2@example.com/test"
+            "spark_jar_task": {
+              "foo": "bar"
             },
             "existing_cluster_id": "abc",
             "timeout_seconds": 0

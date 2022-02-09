@@ -62,9 +62,28 @@ func (p metricsProvider) addJobStatusMetrics(ms pdata.MetricSlice) ([]int, error
 			taskAttrs := taskPt.Attributes()
 			taskAttrs.Insert("job_id", jobIDAttr)
 			taskAttrs.Insert("task_id", pdata.NewAttributeValueString(task.TaskKey))
+			taskAttrs.Insert("task_type", pdata.NewAttributeValueString(taskType(task)))
 		}
 	}
 	return jobIDs, nil
+}
+
+func taskType(task jobTask) string {
+	switch {
+	case task.NotebookTask != nil:
+		return "NotebookTask"
+	case task.SparkJarTask != nil:
+		return "SparkJarTask"
+	case task.SparkPythonTask != nil:
+		return "SparkPythonTask"
+	case task.PipelineTask != nil:
+		return "PipelineTask"
+	case task.PythonWheelTask != nil:
+		return "PythonWheelTask"
+	case task.SparkSubmitTask != nil:
+		return "SparkSubmitTask"
+	}
+	return ""
 }
 
 func (p metricsProvider) addNumActiveRunsMetric(ms pdata.MetricSlice) error {

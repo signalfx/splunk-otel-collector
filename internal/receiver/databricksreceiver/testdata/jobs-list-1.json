@@ -16,8 +16,8 @@
         "tasks": [
           {
             "task_key": "singletask",
-            "notebook_task": {
-              "notebook_path": "/Users/user2@example.com/test"
+            "pipeline_task": {
+              "foo": "bar"
             },
             "existing_cluster_id": "abc",
             "timeout_seconds": 0
@@ -40,8 +40,8 @@
         "tasks": [
           {
             "task_key": "dash",
-            "notebook_task": {
-              "notebook_path": "/Users/user2@example.com/Job Run dashboard"
+            "python_wheel_task": {
+              "foo": "bar"
             },
             "existing_cluster_id": "abc",
             "timeout_seconds": 0,
@@ -55,8 +55,8 @@
                 "task_key": "dash"
               }
             ],
-            "notebook_task": {
-              "notebook_path": "/Users/user2@example.com/test"
+            "spark_submit_task": {
+              "foo": "bar"
             },
             "existing_cluster_id": "abc",
             "timeout_seconds": 0,

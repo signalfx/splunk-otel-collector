@@ -8,6 +8,7 @@ authors:
   - Splunk Inc.
 dependencies:
   community.general: "*"
+  ansible.windows: "*"
 license:
   - Apache-2.0
 tags:

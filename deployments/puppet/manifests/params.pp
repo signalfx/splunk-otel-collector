@@ -1,6 +1,6 @@
 # Class for default param values based on OS
 class splunk_otel_collector::params {
-  $fluentd_version_default = '4.1.0'
+  $fluentd_version_default = '4.3.0'
   $fluentd_version_jessie  = '3.3.0-1'
   $fluentd_version_stretch = '3.7.1-0'
 

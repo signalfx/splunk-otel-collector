@@ -283,7 +283,7 @@ func TestSetDataTypeWithInvalidDatapoints(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
-			_, err := setDataTypeAndPoints(test.datapoint, pdata.NewMetricSlice(), time.Now())
+			err := setDataTypeAndPoints(test.datapoint, pdata.NewMetricSlice(), time.Now())
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), test.expectedError)
 		})

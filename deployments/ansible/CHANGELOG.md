@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## ansible-v0.5.0
+
+### 💡 Enhancements 💡
+
+- Bump default td-agent version to 4.3.0 (#1218)
+
+### 🧰 Bug fixes 🧰
+
+- Add `ansible.windows` as a galaxy dependency (#1229)
+
 ## ansible-v0.4.0
 
 ### 💡 Enhancements 💡

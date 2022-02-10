@@ -43,16 +43,12 @@ func sfxDatapointsToPDataMetrics(datapoints []*sfx.Datapoint, timeReceived time.
 			continue
 		}
 
-		m, err := setDataTypeAndPoints(datapoint, metrics, timeReceived)
-		if err != nil {
+		if err := setDataTypeAndPoints(datapoint, metrics, timeReceived); err != nil {
 			numDropped++
 			logger.Debug("SignalFx datapoint type conversion error",
 				zap.Error(err),
 				zap.String("metric", datapoint.String()))
-			continue
 		}
-
-		m.SetName(datapoint.Metric)
 	}
 
 	if numDropped > 0 {
@@ -62,17 +58,17 @@ func sfxDatapointsToPDataMetrics(datapoints []*sfx.Datapoint, timeReceived time.
 	return md
 }
 
-func setDataTypeAndPoints(datapoint *sfx.Datapoint, ms pdata.MetricSlice, timeReceived time.Time) (pdata.Metric, error) {
+func setDataTypeAndPoints(datapoint *sfx.Datapoint, ms pdata.MetricSlice, timeReceived time.Time) error {
 	var m pdata.Metric
 	sfxMetricType := datapoint.MetricType
 	if sfxMetricType == sfx.Timestamp {
-		return m, errUnsupportedMetricTypeTimestamp
+		return errUnsupportedMetricTypeTimestamp
 	}
 	switch datapoint.Value.(type) {
 	case sfx.IntValue, sfx.FloatValue:
 		break
 	default:
-		return m, fmt.Errorf("unsupported value type %T: %v", datapoint.Value, datapoint.Value)
+		return fmt.Errorf("unsupported value type %T: %v", datapoint.Value, datapoint.Value)
 	}
 
 	switch sfxMetricType {
@@ -93,10 +89,11 @@ func setDataTypeAndPoints(datapoint *sfx.Datapoint, ms pdata.MetricSlice, timeRe
 		m.Sum().SetIsMonotonic(true)
 		fillNumberDatapoint(datapoint.Value, datapoint.Timestamp, datapoint.Dimensions, m.Sum().DataPoints(), timeReceived)
 	default:
-		return m, fmt.Errorf("unsupported metric type %T: %v", sfxMetricType, sfxMetricType)
+		return fmt.Errorf("unsupported metric type %T: %v", sfxMetricType, sfxMetricType)
 	}
 
-	return m, nil
+	m.SetName(datapoint.Metric)
+	return nil
 }
 
 func fillNumberDatapoint(value sfx.Value, timestamp time.Time, dimensions map[string]string, dps pdata.NumberDataPointSlice, timeReceived time.Time) {
@@ -115,6 +112,6 @@ func fillNumberDatapoint(value sfx.Value, timestamp time.Time, dimensions map[st
 	attributes := dp.Attributes()
 	attributes.EnsureCapacity(len(dimensions))
 	for k, v := range dimensions {
-		attributes.Insert(k, pdata.NewAttributeValueString(v))
+		attributes.InsertString(k, v)
 	}
 }

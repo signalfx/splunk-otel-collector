@@ -42,6 +42,7 @@ func TestDefaultComponents(t *testing.T) {
 	expectedReceivers := []config.Type{
 		"carbon",
 		"collectd",
+		"databricks",
 		"filelog",
 		"fluentforward",
 		"hostmetrics",

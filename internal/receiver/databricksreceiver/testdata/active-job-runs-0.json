@@ -1,0 +1,59 @@
+{
+  "runs": [
+    {
+      "job_id": 288,
+      "run_id": 317357,
+      "number_in_job": 317357,
+      "original_attempt_run_id": 317357,
+      "state": {
+        "life_cycle_state": "RUNNING",
+        "state_message": "In run",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642778337189,
+      "setup_duration": 1000,
+      "execution_duration": 0,
+      "cleanup_duration": 0,
+      "end_time": 0,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/317357",
+      "run_type": "JOB_RUN",
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 102,
+      "run_id": 317283,
+      "number_in_job": 317283,
+      "original_attempt_run_id": 317283,
+      "state": {
+        "life_cycle_state": "RUNNING",
+        "state_message": "In run",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "46 * * * * ?",
+        "timezone_id": "America/New_York",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642778326730,
+      "setup_duration": 3000,
+      "execution_duration": 0,
+      "cleanup_duration": 0,
+      "end_time": 0,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user2@example.com",
+      "run_name": "test",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/102/run/317283",
+      "run_type": "JOB_RUN",
+      "format": "MULTI_TASK"
+    }
+  ],
+  "has_more": false
+}

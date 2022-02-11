@@ -1,0 +1,3 @@
+[mysqld]
+log-error   = "/var/log/mysql/mysql_error.log"
+general_log  = "on"

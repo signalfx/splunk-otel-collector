@@ -1,0 +1,100 @@
+receivers:
+  filelog/tomcat:
+    include: [ /logs/catalina.*, /logs/localhost*.log, /logs/manager*, /logs/host-manager* ]
+    start_at: beginning
+    operators:
+      # 08-Feb-2022 00:29:42.924 INFO
+      - type: regex_parser
+        regex: '^(?P<timestamp_field>\d{2}-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d{3})'
+        preserve_to: $$body
+        timestamp:
+          parse_from: timestamp_field
+          layout_type: strptime
+          layout: '%d-%b-%Y %H:%M:%S.%f'
+  filelog/accesslogs:
+    include: [ /logs/*access_log*.txt ]
+    start_at: beginning
+    operators:
+      # 172.18.0.1 - - [08/Feb/2022:01:27:46 +0000] "GET /sample/ HTTP/1.1" 304 -
+      - type: regex_parser
+        regex: '^.*\[(?P<timestamp_field>.*)\].*'
+        preserve_to: $$body
+        timestamp:
+          parse_from: timestamp_field
+          layout_type: strptime
+          layout: '%d/%b/%Y:%H:%M:%S %z'
+  filelog/mysql:
+    include: [ /logs/mysql_error.log ]
+    start_at: beginning
+    operators:
+      # 2022-02-08T01:08:24.758298Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+      - type: regex_parser
+        regex: '^(?P<timestamp_field>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}).*$'
+        preserve_to: $$body
+        timestamp:
+          parse_from: timestamp_field
+          layout_type: strptime
+          layout: '%Y-%m-%dT%H:%M:%S.%f'
+
+exporters:
+  splunk_hec/logs:
+    # Splunk HTTP Event Collector token.
+    token: "00000000-0000-0000-0000-0000000000000"
+    # URL to a Splunk instance to send data to.
+    endpoint: "https://splunk:8088/services/collector"
+    # Splunk index, optional name of the Splunk index targeted.
+    index: "logs"
+    # Maximum HTTP connections to use simultaneously when sending data. Defaults to 100.
+    max_connections: 20
+    # Whether to disable gzip compression over HTTP. Defaults to false.
+    disable_compression: false
+    # HTTP timeout when sending data. Defaults to 10s.
+    timeout: 10s
+    # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
+    # For this demo, we use a self-signed certificate on the Splunk docker instance, so this flag is set to true.
+    tls:
+      insecure_skip_verify: true
+
+processors:
+  batch:
+  attributes/mysql:
+    actions:
+      - action: insert
+        key: com.splunk.source
+        value: mysql
+  attributes/tomcat:
+    actions:
+      - action: insert
+        key: com.splunk.source
+        value: tomcat
+  attributes/accesslogs:
+    actions:
+      - action: insert
+        key: com.splunk.source
+        value: accesslogs
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  pprof:
+    endpoint: :1888
+  zpages:
+    endpoint: :55679
+  file_storage:
+    directory: /checkpoint/
+
+service:
+  extensions: [ pprof, zpages, health_check, file_storage ]
+  pipelines:
+    logs/tomcat:
+      receivers: [ filelog/tomcat ]
+      processors: [ batch, attributes/tomcat ]
+      exporters: [ splunk_hec/logs ]
+    logs/accesslogs:
+      receivers: [ filelog/accesslogs ]
+      processors: [ batch, attributes/accesslogs ]
+      exporters: [ splunk_hec/logs ]
+    logs/mysql:
+      receivers: [ filelog/mysql ]
+      processors: [ batch,attributes/mysql ]
+      exporters: [ splunk_hec/logs ]

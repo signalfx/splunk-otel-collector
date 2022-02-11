@@ -29,6 +29,7 @@ JAVA_AGENT_RELEASE="$(cat $JAVA_AGENT_RELEASE_PATH)"
 if [[ -z "$VERSION" ]]; then
     VERSION="$( get_version )"
 fi
+VERSION="${VERSION#v}"
 
 download_java_agent "$JAVA_AGENT_RELEASE" "$JAVA_AGENT_PATH"
 

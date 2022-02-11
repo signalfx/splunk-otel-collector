@@ -130,6 +130,58 @@ compile:
       - bin/translatesfx_*
       - bin/migratecheckpoint_*
 
+libsplunk:
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  stage: build
+  retry: 2
+  parallel:
+    matrix:
+      - ARCH: ["amd64", "arm64"]
+  script:
+    - make -C instrumentation dist ARCH=${ARCH}
+  artifacts:
+    paths:
+      - instrumentation/dist/libsplunk_*.so
+
+.instrumentation-deb-rpm:
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  stage: package
+  dependencies:
+    - libsplunk
+  parallel:
+    matrix:
+      - ARCH: [amd64, arm64]
+  before_script:
+    - ./instrumentation/packaging/fpm/install-deps.sh
+  script:
+    - ./instrumentation/packaging/fpm/${PKG_TYPE}/build.sh "${CI_COMMIT_TAG:-}" "$ARCH" "./dist"
+
+instrumentation-deb:
+  extends: .instrumentation-deb-rpm
+  variables:
+    PKG_TYPE: deb
+  artifacts:
+    paths:
+      - dist/*.deb
+
+instrumentation-rpm:
+  extends: .instrumentation-deb-rpm
+  variables:
+    PKG_TYPE: rpm
+  artifacts:
+    paths:
+      - dist/*.rpm
+
 .sign-release-cache:
   image: '${DOCKER_CICD_REPO}/ci-container:python-3.9'
   variables:
@@ -399,6 +451,7 @@ release-debs:
   resource_group: artifactory-deb
   dependencies:
     - build-deb
+    - instrumentation-deb
   variables:
     PATHS: dist/*.deb
   after_script:
@@ -417,6 +470,7 @@ release-rpms:
   resource_group: artifactory-rpm
   dependencies:
     - build-rpm
+    - instrumentation-rpm
   variables:
     PATHS: dist/*.rpm
   artifacts:
@@ -492,6 +546,7 @@ github-release:
   stage: github-release
   dependencies:
     - compile
+    - libsplunk
     - sign-exe
     - sign-osx
     - release-debs
@@ -504,6 +559,7 @@ github-release:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
     - cp bin/translatesfx_linux_* dist/assets/
+    - cp instrumentation/dist/libsplunk_*.so dist/assets/
     - cp dist/signed/* dist/assets/
     - pushd dist/assets && shasum -a 256 * > checksums.txt && popd
     - release_notes="$( ./internal/buildscripts/packaging/release/gh-release-notes.sh "$CI_COMMIT_TAG" )"

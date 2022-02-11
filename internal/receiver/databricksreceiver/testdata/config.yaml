@@ -1,0 +1,16 @@
+receivers:
+  databricks:
+    instance_name: my-instance
+    endpoint: https://my.databricks.instance
+    token: abc123
+    collection_interval: 10s
+    max_results: 25
+exporters:
+  nop:
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - databricks
+      exporters:
+        - nop

@@ -1,0 +1,1985 @@
+{
+  "runs": [
+    {
+      "job_id": 288,
+      "run_id": 310937,
+      "number_in_job": 310937,
+      "original_attempt_run_id": 310937,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775877669,
+      "setup_duration": 1000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642775894502,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310937",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 310937,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310937",
+          "start_time": 1642775877669,
+          "setup_duration": 1000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642775894502,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 310810,
+      "number_in_job": 310810,
+      "original_attempt_run_id": 310810,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775817119,
+      "setup_duration": 1000,
+      "execution_duration": 16000,
+      "cleanup_duration": 0,
+      "end_time": 1642775834353,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310810",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 310810,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310810",
+          "start_time": 1642775817119,
+          "setup_duration": 1000,
+          "execution_duration": 16000,
+          "cleanup_duration": 0,
+          "end_time": 1642775834353,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 310709,
+      "number_in_job": 310709,
+      "original_attempt_run_id": 310709,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775757551,
+      "setup_duration": 2000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642775774986,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310709",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 310709,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310709",
+          "start_time": 1642775757551,
+          "setup_duration": 2000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642775774986,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 310539,
+      "number_in_job": 310539,
+      "original_attempt_run_id": 310539,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775697422,
+      "setup_duration": 4000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642775717020,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310539",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 310539,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310539",
+          "start_time": 1642775697422,
+          "setup_duration": 4000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642775717020,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 310364,
+      "number_in_job": 310364,
+      "original_attempt_run_id": 310364,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775637610,
+      "setup_duration": 2000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642775655060,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310364",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 310364,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310364",
+          "start_time": 1642775637610,
+          "setup_duration": 2000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642775655060,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 310248,
+      "number_in_job": 310248,
+      "original_attempt_run_id": 310248,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775577716,
+      "setup_duration": 3000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642775596711,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310248",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 310248,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310248",
+          "start_time": 1642775577716,
+          "setup_duration": 3000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642775596711,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 310202,
+      "number_in_job": 310202,
+      "original_attempt_run_id": 310202,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775517333,
+      "setup_duration": 3000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642775535745,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310202",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 310202,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310202",
+          "start_time": 1642775517333,
+          "setup_duration": 3000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642775535745,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 310095,
+      "number_in_job": 310095,
+      "original_attempt_run_id": 310095,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775457408,
+      "setup_duration": 2000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642775475201,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310095",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 310095,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/310095",
+          "start_time": 1642775457408,
+          "setup_duration": 2000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642775475201,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 309903,
+      "number_in_job": 309903,
+      "original_attempt_run_id": 309903,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775397500,
+      "setup_duration": 2000,
+      "execution_duration": 16000,
+      "cleanup_duration": 0,
+      "end_time": 1642775415901,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/309903",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 309903,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/309903",
+          "start_time": 1642775397500,
+          "setup_duration": 2000,
+          "execution_duration": 16000,
+          "cleanup_duration": 0,
+          "end_time": 1642775415901,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 309750,
+      "number_in_job": 309750,
+      "original_attempt_run_id": 309750,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775337676,
+      "setup_duration": 3000,
+      "execution_duration": 16000,
+      "cleanup_duration": 0,
+      "end_time": 1642775356772,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/309750",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 309750,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/309750",
+          "start_time": 1642775337676,
+          "setup_duration": 3000,
+          "execution_duration": 16000,
+          "cleanup_duration": 0,
+          "end_time": 1642775356772,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 309691,
+      "number_in_job": 309691,
+      "original_attempt_run_id": 309691,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775277281,
+      "setup_duration": 2000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642775294477,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/309691",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 309691,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/309691",
+          "start_time": 1642775277281,
+          "setup_duration": 2000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642775294477,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 309559,
+      "number_in_job": 309559,
+      "original_attempt_run_id": 309559,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775217357,
+      "setup_duration": 2000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642775235303,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/309559",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 309559,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/309559",
+          "start_time": 1642775217357,
+          "setup_duration": 2000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642775235303,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 309383,
+      "number_in_job": 309383,
+      "original_attempt_run_id": 309383,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775157559,
+      "setup_duration": 1000,
+      "execution_duration": 16000,
+      "cleanup_duration": 0,
+      "end_time": 1642775175025,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/309383",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 309383,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/309383",
+          "start_time": 1642775157559,
+          "setup_duration": 1000,
+          "execution_duration": 16000,
+          "cleanup_duration": 0,
+          "end_time": 1642775175025,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 309166,
+      "number_in_job": 309166,
+      "original_attempt_run_id": 309166,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775097372,
+      "setup_duration": 3000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642775115937,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/309166",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 309166,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/309166",
+          "start_time": 1642775097372,
+          "setup_duration": 3000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642775115937,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 308994,
+      "number_in_job": 308994,
+      "original_attempt_run_id": 308994,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642775037495,
+      "setup_duration": 1000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642775054466,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308994",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 308994,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308994",
+          "start_time": 1642775037495,
+          "setup_duration": 1000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642775054466,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 308790,
+      "number_in_job": 308790,
+      "original_attempt_run_id": 308790,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774977594,
+      "setup_duration": 1000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642774994450,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308790",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 308790,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308790",
+          "start_time": 1642774977594,
+          "setup_duration": 1000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642774994450,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 308638,
+      "number_in_job": 308638,
+      "original_attempt_run_id": 308638,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774917675,
+      "setup_duration": 2000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642774935503,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308638",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 308638,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308638",
+          "start_time": 1642774917675,
+          "setup_duration": 2000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642774935503,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 308435,
+      "number_in_job": 308435,
+      "original_attempt_run_id": 308435,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774857194,
+      "setup_duration": 4000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642774876362,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308435",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 308435,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308435",
+          "start_time": 1642774857194,
+          "setup_duration": 4000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642774876362,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 308304,
+      "number_in_job": 308304,
+      "original_attempt_run_id": 308304,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774797106,
+      "setup_duration": 1000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642774814109,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308304",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 308304,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308304",
+          "start_time": 1642774797106,
+          "setup_duration": 1000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642774814109,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 308184,
+      "number_in_job": 308184,
+      "original_attempt_run_id": 308184,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774737496,
+      "setup_duration": 2000,
+      "execution_duration": 16000,
+      "cleanup_duration": 0,
+      "end_time": 1642774755586,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308184",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 308184,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308184",
+          "start_time": 1642774737496,
+          "setup_duration": 2000,
+          "execution_duration": 16000,
+          "cleanup_duration": 0,
+          "end_time": 1642774755586,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 308081,
+      "number_in_job": 308081,
+      "original_attempt_run_id": 308081,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774677210,
+      "setup_duration": 3000,
+      "execution_duration": 16000,
+      "cleanup_duration": 0,
+      "end_time": 1642774696378,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308081",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 308081,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/308081",
+          "start_time": 1642774677210,
+          "setup_duration": 3000,
+          "execution_duration": 16000,
+          "cleanup_duration": 0,
+          "end_time": 1642774696378,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 307896,
+      "number_in_job": 307896,
+      "original_attempt_run_id": 307896,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774617409,
+      "setup_duration": 3000,
+      "execution_duration": 12000,
+      "cleanup_duration": 0,
+      "end_time": 1642774632752,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/307896",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 307896,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/307896",
+          "start_time": 1642774617409,
+          "setup_duration": 3000,
+          "execution_duration": 12000,
+          "cleanup_duration": 0,
+          "end_time": 1642774632752,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 307703,
+      "number_in_job": 307703,
+      "original_attempt_run_id": 307703,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774557245,
+      "setup_duration": 2000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642774575041,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/307703",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 307703,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/307703",
+          "start_time": 1642774557245,
+          "setup_duration": 2000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642774575041,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 307541,
+      "number_in_job": 307541,
+      "original_attempt_run_id": 307541,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774497427,
+      "setup_duration": 3000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642774515698,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/307541",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 307541,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/307541",
+          "start_time": 1642774497427,
+          "setup_duration": 3000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642774515698,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 307402,
+      "number_in_job": 307402,
+      "original_attempt_run_id": 307402,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774437356,
+      "setup_duration": 1000,
+      "execution_duration": 16000,
+      "cleanup_duration": 0,
+      "end_time": 1642774454654,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/307402",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 307402,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/307402",
+          "start_time": 1642774437356,
+          "setup_duration": 1000,
+          "execution_duration": 16000,
+          "cleanup_duration": 0,
+          "end_time": 1642774454654,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 307164,
+      "number_in_job": 307164,
+      "original_attempt_run_id": 307164,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774377316,
+      "setup_duration": 7000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642774399717,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/307164",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 307164,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/307164",
+          "start_time": 1642774377316,
+          "setup_duration": 7000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642774399717,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 306961,
+      "number_in_job": 306961,
+      "original_attempt_run_id": 306961,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774317456,
+      "setup_duration": 1000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642774334263,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/306961",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 306961,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/306961",
+          "start_time": 1642774317456,
+          "setup_duration": 1000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642774334263,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 306835,
+      "number_in_job": 306835,
+      "original_attempt_run_id": 306835,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774257344,
+      "setup_duration": 2000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642774275182,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/306835",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 306835,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/306835",
+          "start_time": 1642774257344,
+          "setup_duration": 2000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642774275182,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 306579,
+      "number_in_job": 306579,
+      "original_attempt_run_id": 306579,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774197222,
+      "setup_duration": 3000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642774216088,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/306579",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 306579,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/306579",
+          "start_time": 1642774197222,
+          "setup_duration": 3000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642774216088,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 306416,
+      "number_in_job": 306416,
+      "original_attempt_run_id": 306416,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774137484,
+      "setup_duration": 4000,
+      "execution_duration": 15000,
+      "cleanup_duration": 1000,
+      "end_time": 1642774157527,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/306416",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 306416,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/306416",
+          "start_time": 1642774137484,
+          "setup_duration": 4000,
+          "execution_duration": 15000,
+          "cleanup_duration": 1000,
+          "end_time": 1642774157527,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 306254,
+      "number_in_job": 306254,
+      "original_attempt_run_id": 306254,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774077655,
+      "setup_duration": 1000,
+      "execution_duration": 27000,
+      "cleanup_duration": 0,
+      "end_time": 1642774106458,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/306254",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 306254,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/306254",
+          "start_time": 1642774077655,
+          "setup_duration": 1000,
+          "execution_duration": 27000,
+          "cleanup_duration": 0,
+          "end_time": 1642774106458,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 306107,
+      "number_in_job": 306107,
+      "original_attempt_run_id": 306107,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642774017162,
+      "setup_duration": 4000,
+      "execution_duration": 16000,
+      "cleanup_duration": 0,
+      "end_time": 1642774037317,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/306107",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 306107,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/306107",
+          "start_time": 1642774017162,
+          "setup_duration": 4000,
+          "execution_duration": 16000,
+          "cleanup_duration": 0,
+          "end_time": 1642774037317,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 305825,
+      "number_in_job": 305825,
+      "original_attempt_run_id": 305825,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642773957360,
+      "setup_duration": 5000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642773978132,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/305825",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 305825,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/305825",
+          "start_time": 1642773957360,
+          "setup_duration": 5000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642773978132,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 305672,
+      "number_in_job": 305672,
+      "original_attempt_run_id": 305672,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642773897569,
+      "setup_duration": 7000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642773920309,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/305672",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 305672,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/305672",
+          "start_time": 1642773897569,
+          "setup_duration": 7000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642773920309,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 305488,
+      "number_in_job": 305488,
+      "original_attempt_run_id": 305488,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642773837406,
+      "setup_duration": 2000,
+      "execution_duration": 15000,
+      "cleanup_duration": 0,
+      "end_time": 1642773855110,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/305488",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 305488,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/305488",
+          "start_time": 1642773837406,
+          "setup_duration": 2000,
+          "execution_duration": 15000,
+          "cleanup_duration": 0,
+          "end_time": 1642773855110,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    },
+    {
+      "job_id": 288,
+      "run_id": 305421,
+      "number_in_job": 305421,
+      "original_attempt_run_id": 305421,
+      "state": {
+        "life_cycle_state": "TERMINATED",
+        "result_state": "SUCCESS",
+        "state_message": "",
+        "user_cancelled_or_timedout": false
+      },
+      "schedule": {
+        "quartz_cron_expression": "57 * * * * ?",
+        "timezone_id": "UTC",
+        "pause_status": "UNPAUSED"
+      },
+      "start_time": 1642773777539,
+      "setup_duration": 1000,
+      "execution_duration": 16000,
+      "cleanup_duration": 0,
+      "end_time": 1642773794875,
+      "trigger": "PERIODIC",
+      "creator_user_name": "user@example.com",
+      "run_name": "user-task",
+      "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/305421",
+      "run_type": "JOB_RUN",
+      "tasks": [
+        {
+          "run_id": 305421,
+          "task_key": "user-task",
+          "notebook_task": {
+            "notebook_path": "/Users/user@example.com/user-example-notebook"
+          },
+          "existing_cluster_id": "xyz",
+          "state": {
+            "life_cycle_state": "TERMINATED",
+            "result_state": "SUCCESS",
+            "state_message": "",
+            "user_cancelled_or_timedout": false
+          },
+          "run_page_url": "https://foo.databricks.net/?o=123456789#job/288/run/305421",
+          "start_time": 1642773777539,
+          "setup_duration": 1000,
+          "execution_duration": 16000,
+          "cleanup_duration": 0,
+          "end_time": 1642773794875,
+          "cluster_instance": {
+            "cluster_id": "xyz",
+            "spark_context_id": "12345"
+          },
+          "attempt_number": 0
+        }
+      ],
+      "format": "MULTI_TASK"
+    }
+  ],
+  "has_more": true
+}

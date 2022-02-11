@@ -106,6 +106,37 @@ systemd journal:
 sudo journalctl -u splunk-otel-collector
 ```
 
+### Collector Upgrade
+
+To upgrade the Collector, run the following commands on your system (requires
+`root` privileges):
+- Debian:
+  ```sh
+  sudo apt-get update
+  sudo apt-get --only-upgrade splunk-otel-collector
+  ```
+  **Note:** If the default configuration files in `/etc/otel/collector` have
+  been modified after initial installation, you may be prompted to keep the
+  existing files or overwrite the files from the new Collector package.
+- RPM:
+  - `yum`
+    ```sh
+    sudo yum upgrade splunk-otel-collector
+    ```
+  - `dnf`
+    ```sh
+    sudo dnf upgrade splunk-otel-collector
+    ```
+  - `zypper`
+    ```sh
+    sudo zypper refresh
+    sudo zypper update splunk-otel-collector
+    ```
+  **Note:** If the default configuration files in `/etc/otel/collector` have
+  been modified after initial installation, the existing files will be
+  preserved and the files from the new Collector package may be installed with
+  a `.rpmnew` extension.
+
 ### Fluentd Configuration
 
 By default, the Fluentd service will be installed and configured to forward log

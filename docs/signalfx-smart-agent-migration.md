@@ -67,7 +67,7 @@ Below is an equivalent, recommended Collector configuration.  Notice that the
 `signalfx-forwarder` monitor's associated `smartagent/signalfx-forwarder` receiver instance
 is part of both `metrics` and `traces` pipelines using the `signalfx` and `sapm` exporters,
 respectively. Also note the `processlist` monitor's associated `smartagent/processlist` receiver
-instance is part of `logs` pipeline using the `resourcedetection` processor and a `signalfx` exporter.
+instance is part of `logs` pipeline using the `resourcedetection` processor that sets the required `host.name` resource attribute and a required `signalfx` exporter.
 The additional metric monitors utilize the
 [Receiver Creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/receivercreator/README.md):
 

@@ -40,12 +40,12 @@ you can specify the empty array `[]` to disable.
 functionality](https://dev.splunk.com/observability/docs/datamodel/ingest#Send-custom-events) should also be made members of
 a `logs` pipeline that utilizes a [SignalFx
 exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/signalfxexporter/README.md)
-that will make the event submission requests.  It's recommended, and in the case of the Processlist monitor required,
+that will make the event submission requests. It's recommended, and in the case of the Processlist monitor required,
 to use a [Resource Detection
 processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md)
 to ensure that host identity and other useful information is made available as event dimensions.
 Receiver entries that should be added to logs pipelines include `kubernetes-events`, `nagios`, `processlist`, and potentially any
-`telegraf/*` monitors like `telegraf/exec`.  An example of this is provided below.
+`telegraf/*` monitors like `telegraf/exec`.  The `signalfx` exporter is required for sending events to SignalFx, the `splunk_hec` exporter does not support sending events. An example of this is provided below.
 
 Example:
 

@@ -19,7 +19,7 @@ metrics:
   databricks.jobs.total:
     enabled: true
     description: A snapshot of the total number of jobs registered in the Databricks instance taken at each scrape
-    unit: "{tot}"
+    unit: "{jobs}"
     gauge:
       value_type: int
   databricks.jobs.schedule.status:
@@ -43,7 +43,7 @@ metrics:
   databricks.jobs.active.total:
     enabled: true
     description: A snapshot of the number of active jobs taken at each scrape
-    unit: "{tot}"
+    unit: "{jobs}"
     gauge:
       value_type: int
   databricks.jobs.run.duration:

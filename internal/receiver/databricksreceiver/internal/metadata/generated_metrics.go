@@ -82,7 +82,7 @@ var Metrics = &metricStruct{
 		func(metric pdata.Metric) {
 			metric.SetName("databricks.jobs.active.total")
 			metric.SetDescription("A snapshot of the number of active jobs taken at each scrape")
-			metric.SetUnit("{tot}")
+			metric.SetUnit("{jobs}")
 			metric.SetDataType(pdata.MetricDataTypeGauge)
 		},
 	},
@@ -109,7 +109,7 @@ var Metrics = &metricStruct{
 		func(metric pdata.Metric) {
 			metric.SetName("databricks.jobs.total")
 			metric.SetDescription("A snapshot of the total number of jobs registered in the Databricks instance taken at each scrape")
-			metric.SetUnit("{tot}")
+			metric.SetUnit("{jobs}")
 			metric.SetDataType(pdata.MetricDataTypeGauge)
 		},
 	},

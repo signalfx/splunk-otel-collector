@@ -19,9 +19,9 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/collector/model/pdata"
-)
 
-const instanceNameAttr = "databricks.instance.name"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
+)
 
 // scraper provides a scrape method to a scraper controller receiver. The scrape
 // method is the entry point into this receiver's functionality, running on a
@@ -37,7 +37,7 @@ func (s scraper) scrape(_ context.Context) (pdata.Metrics, error) {
 	rms := out.ResourceMetrics()
 	rm := rms.AppendEmpty()
 	rm.Resource().Attributes().Insert(
-		instanceNameAttr,
+		metadata.A.DatabricksInstanceName,
 		pdata.NewAttributeValueString(s.instanceName),
 	)
 	ilms := rm.InstrumentationLibraryMetrics()

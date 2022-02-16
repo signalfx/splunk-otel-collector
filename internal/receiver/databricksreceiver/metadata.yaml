@@ -1,0 +1,64 @@
+name: databricksreceiver
+attributes:
+  databricks.instance.name:
+    description: The name of the Databricks instance as defined by the value of the "instance_name" field in the config
+  job_id:
+    description: The numeric ID of the Databricks job
+  task_id:
+    description: The name of the Databricks task
+  task_type:
+    description: The type of the Databricks task
+    enum:
+      - NotebookTask
+      - SparkJarTask
+      - SparkPythonTask
+      - PipelineTask
+      - PythonWheelTask
+      - SparkSubmitTask
+metrics:
+  databricks.jobs.total:
+    enabled: true
+    description: A snapshot of the total number of jobs registered in the Databricks instance taken at each scrape
+    unit: "{jobs}"
+    gauge:
+      value_type: int
+  databricks.jobs.schedule.status:
+    enabled: true
+    description: A snapshot of the pause/run status per job taken at each scrape
+    extended_documentation: 0=PAUSED, 1=UNPAUSED, 2=NOT_SCHEDULED
+    unit: "{status}"
+    gauge:
+      value_type: int
+    attributes:
+      [job_id]
+  databricks.tasks.schedule.status:
+    enabled: true
+    description: A snapshot of the pause/run status per task taken at each scrape
+    extended_documentation: 0=PAUSED, 1=UNPAUSED, 2=NOT_SCHEDULED
+    unit: "{status}"
+    gauge:
+      value_type: int
+    attributes:
+      [job_id, task_id, task_type]
+  databricks.jobs.active.total:
+    enabled: true
+    description: A snapshot of the number of active jobs taken at each scrape
+    unit: "{jobs}"
+    gauge:
+      value_type: int
+  databricks.jobs.run.duration:
+    enabled: true
+    description: The execution duration in milliseconds per completed job
+    unit: ms
+    gauge:
+      value_type: int
+    attributes:
+      [job_id]
+  databricks.tasks.run.duration:
+    enabled: true
+    description: The execution duration in milliseconds per completed task
+    unit: ms
+    gauge:
+      value_type: int
+    attributes:
+      [job_id, task_id]

@@ -18,13 +18,8 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/collector/model/pdata"
-)
 
-const (
-	jobScheduleStatusMetric  = "databricks.jobs.schedule.status"
-	totalJobsMetric          = "databricks.jobs.total"
-	totalActiveJobsMetric    = "databricks.jobs.active.total"
-	taskScheduleStatusMetric = "databricks.tasks.schedule.status"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
 
 // metricsProvider wraps a databricksClientInterface and provides metrics for databricks
@@ -43,10 +38,10 @@ func (p metricsProvider) addJobStatusMetrics(ms pdata.MetricSlice) ([]int, error
 		return nil, fmt.Errorf("metricsProvider.addJobStatusMetrics(): %w", err)
 	}
 
-	addJobCountMetric(ms, int64(len(jobs)))
+	initGauge(ms, metadata.M.DatabricksJobsTotal).AppendEmpty().SetIntVal(int64(len(jobs)))
 
-	jobPts := mkGauge(ms, jobScheduleStatusMetric)
-	taskPts := mkGauge(ms, taskScheduleStatusMetric)
+	jobPts := initGauge(ms, metadata.M.DatabricksJobsScheduleStatus)
+	taskPts := initGauge(ms, metadata.M.DatabricksTasksScheduleStatus)
 
 	var jobIDs []int
 	for _, j := range jobs {
@@ -55,14 +50,23 @@ func (p metricsProvider) addJobStatusMetrics(ms pdata.MetricSlice) ([]int, error
 		pauseStatus := pauseStatusToInt(j.Settings.Schedule.PauseStatus)
 		jobPt.SetIntVal(pauseStatus)
 		jobIDAttr := pdata.NewAttributeValueInt(int64(j.JobID))
-		jobPt.Attributes().Insert("job_id", jobIDAttr)
+		jobPt.Attributes().Insert(metadata.A.JobID, jobIDAttr)
 		for _, task := range j.Settings.Tasks {
 			taskPt := taskPts.AppendEmpty()
 			taskPt.SetIntVal(pauseStatus)
 			taskAttrs := taskPt.Attributes()
-			taskAttrs.Insert("job_id", jobIDAttr)
-			taskAttrs.Insert("task_id", pdata.NewAttributeValueString(task.TaskKey))
-			taskAttrs.Insert("task_type", pdata.NewAttributeValueString(taskType(task)))
+			taskAttrs.Insert(
+				metadata.A.JobID,
+				jobIDAttr,
+			)
+			taskAttrs.Insert(
+				metadata.A.TaskID,
+				pdata.NewAttributeValueString(task.TaskKey),
+			)
+			taskAttrs.Insert(
+				metadata.A.TaskType,
+				pdata.NewAttributeValueString(taskType(task)),
+			)
 		}
 	}
 	return jobIDs, nil
@@ -71,17 +75,17 @@ func (p metricsProvider) addJobStatusMetrics(ms pdata.MetricSlice) ([]int, error
 func taskType(task jobTask) string {
 	switch {
 	case task.NotebookTask != nil:
-		return "NotebookTask"
+		return metadata.AttributeTaskType.NotebookTask
 	case task.SparkJarTask != nil:
-		return "SparkJarTask"
+		return metadata.AttributeTaskType.SparkJarTask
 	case task.SparkPythonTask != nil:
-		return "SparkPythonTask"
+		return metadata.AttributeTaskType.SparkPythonTask
 	case task.PipelineTask != nil:
-		return "PipelineTask"
+		return metadata.AttributeTaskType.PipelineTask
 	case task.PythonWheelTask != nil:
-		return "PythonWheelTask"
+		return metadata.AttributeTaskType.PythonWheelTask
 	case task.SparkSubmitTask != nil:
-		return "SparkSubmitTask"
+		return metadata.AttributeTaskType.SparkSubmitTask
 	}
 	return ""
 }
@@ -91,8 +95,15 @@ func (p metricsProvider) addNumActiveRunsMetric(ms pdata.MetricSlice) error {
 	if err != nil {
 		return fmt.Errorf("metricsProvider.addNumActiveJobsMetric(): %w", err)
 	}
-	addActiveRunsMetric(ms, int64(len(runs)))
+	pts := initGauge(ms, metadata.M.DatabricksJobsActiveTotal)
+	pts.AppendEmpty().SetIntVal(int64(len(runs)))
 	return nil
+}
+
+func initGauge(ms pdata.MetricSlice, mi metadata.MetricIntf) pdata.NumberDataPointSlice {
+	m := ms.AppendEmpty()
+	mi.Init(m)
+	return m.Gauge().DataPoints()
 }
 
 func pauseStatusToInt(ps string) int64 {
@@ -105,19 +116,4 @@ func pauseStatusToInt(ps string) int64 {
 		// jobs that aren't scheduled end up here
 		return 2
 	}
-}
-
-func addJobCountMetric(ms pdata.MetricSlice, val int64) {
-	mkGauge(ms, totalJobsMetric).AppendEmpty().SetIntVal(val)
-}
-
-func addActiveRunsMetric(ms pdata.MetricSlice, val int64) {
-	mkGauge(ms, totalActiveJobsMetric).AppendEmpty().SetIntVal(val)
-}
-
-func mkGauge(ms pdata.MetricSlice, name string) pdata.NumberDataPointSlice {
-	m := ms.AppendEmpty()
-	m.SetName(name)
-	m.SetDataType(pdata.MetricDataTypeGauge)
-	return m.Gauge().DataPoints()
 }

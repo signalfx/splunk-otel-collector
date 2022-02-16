@@ -66,7 +66,7 @@ func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	taskAttrs := taskPt.Attributes()
 	jobID, _ = taskAttrs.Get("job_id")
 	assert.EqualValues(t, 288, jobID.IntVal())
-	taskKey, _ := taskAttrs.Get("task_key")
+	taskKey, _ := taskAttrs.Get("task_id")
 	assert.Equal(t, "user-task", taskKey.StringVal())
 	assert.EqualValues(t, 15000, taskPt.IntVal())
 }

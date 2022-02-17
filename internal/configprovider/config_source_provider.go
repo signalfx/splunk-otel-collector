@@ -58,7 +58,7 @@ func (c *configSourceConfigMapProvider) Retrieve(ctx context.Context,
 	location string, onChange configmapprovider.WatcherFunc) (configmapprovider.Retrieved, error) {
 	wr, err := c.wrappedProvider.Retrieve(ctx, location, onChange)
 	if err != nil {
-		return nil, err
+		return configmapprovider.Retrieved{}, err
 	}
 	c.wrappedRetrieved = wr
 

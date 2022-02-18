@@ -101,15 +101,12 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 			}
 
 			r, err := pp.Retrieve(context.Background(), tt.configLocation, nil)
-			require.NoError(t, err)
-
-			cp, err := r.Get(context.Background())
 			if tt.wantErr == nil {
 				require.NoError(t, err)
-				require.NotNil(t, cp)
+				require.NotNil(t, r.Map)
 			} else {
 				assert.IsType(t, tt.wantErr, err)
-				assert.Nil(t, cp)
+				assert.Nil(t, r.Map)
 				return
 			}
 

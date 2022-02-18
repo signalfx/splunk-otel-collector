@@ -39,7 +39,7 @@ type httpSinkExporter struct {
 }
 
 func (e *httpSinkExporter) ConsumeTraces(_ context.Context, td pdata.Traces) error {
-	batches, err := jaegertranslator.InternalTracesToJaegerProto(td)
+	batches, err := jaegertranslator.ProtoFromTraces(td)
 	if err != nil {
 		return err
 	}

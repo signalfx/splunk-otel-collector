@@ -33,7 +33,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.45.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.45.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.45.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.45.0
@@ -275,7 +275,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.45.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/ecsutil v0.45.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.45.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.45.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.45.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/docker v0.45.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.45.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.45.0 // indirect

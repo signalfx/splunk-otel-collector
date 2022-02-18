@@ -7,6 +7,8 @@
 
 #define NUM_TESTS 9
 
+static char *const test_config = "testdata/splunk.conf";
+
 int main(void) {
     run_tests();
     puts("PASS");
@@ -99,12 +101,12 @@ void test_auto_instrument_splunk_env_var_zero(logger l) {
 
 void test_read_config(logger l) {
     struct config cfg = {.java_agent_jar = NULL, .service_name = NULL};
-    load_config(l, &cfg, "config.example.txt");
+    load_config(l, &cfg, test_config);
     char *logs[256];
     int n = get_logs(l, logs);
     char *funcname = "test_read_config";
     require_equal_ints(funcname, 1, n);
-    require_equal_strings(funcname, "reading config file: config.example.txt", logs[0]);
+    require_equal_strings(funcname, "reading config file: testdata/splunk.conf", logs[0]);
     require_equal_strings(funcname, "my.service", cfg.service_name);
     require_equal_strings(funcname, "/foo/bar/baz.jar", cfg.java_agent_jar);
     free_config(&cfg);

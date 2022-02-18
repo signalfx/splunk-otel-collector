@@ -5,11 +5,7 @@
 #include "logger.h"
 #include "config.h"
 
-static char *const conf_file = "/usr/lib/splunk-instrumentation/splunk.conf";
-
-static char *const default_jar_path = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar";
-
-static char *const default_service_name = "default.service";
+static char *const conf_file = "/usr/lib/splunk-instrumentation/auto-instr.conf";
 
 static char *const disable_env_var_name = "DISABLE_SPLUNK_AUTOINSTRUMENTATION";
 

@@ -42,6 +42,10 @@ void auto_instrument(logger log, has_access_func_t has_access, const char *progr
 
     struct config cfg = {.java_agent_jar = NULL, .service_name = NULL};
     load_config_func(log, &cfg, conf_file);
+    if (cfg.java_agent_jar == NULL || cfg.service_name == NULL) {
+        log_warning(log, "java_agent_jar and service_name are not both set, quitting");
+        return;
+    }
 
     if (!has_access(cfg.java_agent_jar)) {
         log_info(log, "agent jar not found or no read access, quitting");

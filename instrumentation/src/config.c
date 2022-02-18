@@ -17,18 +17,11 @@ void split_on_eq(char *string, struct kv *pair);
 
 void load_config(logger log, struct config *cfg, char *file_name) {
     read_config_file(log, cfg, file_name);
-    char log_line[MAX_LOG_LINE_LEN];
     if (cfg->service_name == NULL) {
-        strcpy(log_line, "service_name not found in config, using default: ");
-        strncat(log_line, default_service_name, MAX_LOG_LINE_LEN - strlen(log_line) - 1);
-        log_debug(log, log_line);
-        cfg->service_name = strdup(default_service_name);
+        log_debug(log, "service_name not found in config");
     }
     if (cfg->java_agent_jar == NULL) {
-        strcpy(log_line, "java_agent_jar not found in config, using default: ");
-        strncat(log_line, default_jar_path, MAX_LOG_LINE_LEN - strlen(log_line) - 1);
-        log_debug(log, log_line);
-        cfg->java_agent_jar = strdup(default_jar_path);
+        log_debug(log, "java_agent_jar not found in config");
     }
 }
 

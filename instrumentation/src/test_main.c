@@ -5,9 +5,9 @@
 #include "config.h"
 #include "test_main.h"
 
-#define NUM_TESTS 9
+#define NUM_TESTS 10
 
-static char *const test_config = "testdata/splunk.conf";
+static char *const test_config_path = "config/auto-instr.conf";
 
 int main(void) {
     run_tests();
@@ -24,6 +24,7 @@ void run_tests() {
             test_auto_instrument_splunk_env_var_false,
             test_auto_instrument_splunk_env_var_false_caps,
             test_auto_instrument_splunk_env_var_zero,
+            test_auto_instrument_splunk_missing_file,
             test_read_config,
             test_read_config_missing_file
     };
@@ -33,8 +34,9 @@ void run_tests() {
 }
 
 void run_test(test_func_t f) {
-    unsetenv(JAVA_TOOL_OPTIONS);
-    unsetenv(disable_env_var_name);
+    unsetenv("JAVA_TOOL_OPTIONS");
+    unsetenv("OTEL_RESOURCE_ATTRIBUTES");
+    unsetenv("DISABLE_SPLUNK_AUTOINSTRUMENTATION");
     logger l = new_logger();
     f(l);
     free_logger(l);
@@ -54,7 +56,7 @@ void test_auto_instrument_success(logger l) {
 
 void test_auto_instrument_not_java(logger l) {
     auto_instrument(l, access_check_true, "foo", fake_load_config);
-    char *env = getenv(JAVA_TOOL_OPTIONS);
+    char *env = getenv(java_tool_options_var_name);
     if (env) {
         fail();
     }
@@ -65,9 +67,9 @@ void test_auto_instrument_not_java(logger l) {
 
 void test_auto_instrument_no_access(logger l) {
     auto_instrument(l, access_check_false, "java", fake_load_config);
-    char *env = getenv(JAVA_TOOL_OPTIONS);
+    char *env = getenv(java_tool_options_var_name);
     if (env) {
-        exit(EXIT_FAILURE);
+        fail();
     }
     char *logs[256];
     char *funcname = "test_auto_instrument_no_access";
@@ -78,37 +80,48 @@ void test_auto_instrument_no_access(logger l) {
 void test_auto_instrument_splunk_env_var_true(logger l) {
     setenv(disable_env_var_name, "true", 0);
     auto_instrument(l, access_check_true, "java", fake_load_config);
-    require_unset_env("test_auto_instrument_splunk_env_var_true", JAVA_TOOL_OPTIONS);
+    require_unset_env("test_auto_instrument_splunk_env_var_true", "JAVA_TOOL_OPTIONS");
 }
 
 void test_auto_instrument_splunk_env_var_false(logger l) {
     setenv(disable_env_var_name, "false", 0);
     auto_instrument(l, access_check_true, "java", fake_load_config);
-    require_env("test_auto_instrument_splunk_env_var_false", JAVA_TOOL_OPTIONS, "-javaagent:/foo/asdf.jar");
+    require_env("test_auto_instrument_splunk_env_var_false", "JAVA_TOOL_OPTIONS", "-javaagent:/foo/asdf.jar");
+}
+
+void test_auto_instrument_splunk_missing_file(logger l) {
+    auto_instrument(l, access_check_true, "java", nop_load_config);
+    char *logs[256];
+    int n = get_logs(l, logs);
+    char *funcname = "test_auto_instrument_splunk_missing_file";
+    require_equal_ints(funcname, 1, n);
+    require_equal_strings(funcname, "java_agent_jar and service_name are not both set, quitting", logs[0]);
+    require_unset_env(funcname, "JAVA_TOOL_OPTIONS");
+    require_unset_env(funcname, "OTEL_RESOURCE_ATTRIBUTES");
 }
 
 void test_auto_instrument_splunk_env_var_false_caps(logger l) {
     setenv(disable_env_var_name, "FALSE", 0);
     auto_instrument(l, access_check_true, "java", fake_load_config);
-    require_env("test_auto_instrument_splunk_env_var_false_caps", JAVA_TOOL_OPTIONS, "-javaagent:/foo/asdf.jar");
+    require_env("test_auto_instrument_splunk_env_var_false_caps", "JAVA_TOOL_OPTIONS", "-javaagent:/foo/asdf.jar");
 }
 
 void test_auto_instrument_splunk_env_var_zero(logger l) {
     setenv(disable_env_var_name, "0", 0);
     auto_instrument(l, access_check_true, "java", fake_load_config);
-    require_env("test_auto_instrument_splunk_env_var_zero", JAVA_TOOL_OPTIONS, "-javaagent:/foo/asdf.jar");
+    require_env("test_auto_instrument_splunk_env_var_zero", "JAVA_TOOL_OPTIONS", "-javaagent:/foo/asdf.jar");
 }
 
 void test_read_config(logger l) {
     struct config cfg = {.java_agent_jar = NULL, .service_name = NULL};
-    load_config(l, &cfg, test_config);
+    load_config(l, &cfg, test_config_path);
     char *logs[256];
     int n = get_logs(l, logs);
     char *funcname = "test_read_config";
     require_equal_ints(funcname, 1, n);
-    require_equal_strings(funcname, "reading config file: testdata/splunk.conf", logs[0]);
-    require_equal_strings(funcname, "my.service", cfg.service_name);
-    require_equal_strings(funcname, "/foo/bar/baz.jar", cfg.java_agent_jar);
+    require_equal_strings(funcname, "reading config file: config/auto-instr.conf", logs[0]);
+    require_equal_strings(funcname, "default.service", cfg.service_name);
+    require_equal_strings(funcname, "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar", cfg.java_agent_jar);
     free_config(&cfg);
 }
 
@@ -120,10 +133,10 @@ void test_read_config_missing_file(logger l) {
     char *funcname = "test_read_config_missing_file";
     require_equal_ints(funcname, 3, n);
     require_equal_strings(funcname, "file not found: foo.txt", logs[0]);
-    require_equal_strings(funcname, "service_name not found in config, using default: default.service", logs[1]);
-    require_equal_strings(funcname, "java_agent_jar not found in config, using default: /usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar", logs[2]);
-    require_equal_strings(funcname, "default.service", cfg.service_name);
-    require_equal_strings(funcname, "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar", cfg.java_agent_jar);
+    require_equal_strings(funcname, "service_name not found in config", logs[1]);
+    require_equal_strings(funcname, "java_agent_jar not found in config", logs[2]);
+    require_equal_strings(funcname, NULL, cfg.service_name);
+    require_equal_strings(funcname, NULL, cfg.java_agent_jar);
     free_config(&cfg);
 }
 
@@ -131,6 +144,8 @@ void fake_load_config(logger log, struct config *cfg, char *path) {
     cfg->java_agent_jar = strdup("/foo/asdf.jar");
     cfg->service_name = strdup("my.service");
 }
+
+void nop_load_config(logger log, struct config *cfg, char *path) {}
 
 bool access_check_true(const char *s) {
     return true;
@@ -165,7 +180,7 @@ void require_env(char *funcname, char *env_var, char *expected) {
 void require_unset_env(char *funcname, char *env_var) {
     char *env = getenv(env_var);
     if (env) {
-        printf("%s: require_unset_env: %s: expected unset got [%s]", funcname, env_var, env);
+        printf("%s: require_unset_env: %s: expected unset got [%s]\n", funcname, env_var, env);
         fail();
     }
 }

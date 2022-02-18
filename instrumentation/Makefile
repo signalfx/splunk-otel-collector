@@ -1,4 +1,5 @@
 ARCH=amd64
+INSTALL_DIR=/usr/lib/splunk-instrumentation
 
 .PHONY: all
 all: so/libsplunk.so
@@ -47,3 +48,11 @@ endif
 	@mkdir -p dist
 	docker build -t instrumentation-fpm packaging/fpm
 	docker run --rm -v $(CURDIR):/instrumentation -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) instrumentation-fpm
+
+.PHONY: install
+install: all
+	mkdir -p $(INSTALL_DIR)
+	cp config/auto-instr.conf $(INSTALL_DIR)
+	cp splunk-otel-javaagent.jar $(INSTALL_DIR)
+	cp so/libsplunk.so $(INSTALL_DIR)
+	echo $(INSTALL_DIR)/libsplunk.so > /etc/ld.so.preload

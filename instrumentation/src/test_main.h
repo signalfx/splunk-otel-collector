@@ -5,11 +5,13 @@
 #include "logger.h"
 #include "config.h"
 
-static char *const JAVA_TOOL_OPTIONS = "JAVA_TOOL_OPTIONS";
+static char *const java_tool_options_var_name = "JAVA_TOOL_OPTIONS";
 
 typedef void (test_func_t)(logger);
 
 void fake_load_config(logger log, struct config *cfg, char *path);
+
+void nop_load_config(logger log, struct config *cfg, char *path);
 
 void fail();
 
@@ -34,6 +36,8 @@ void test_auto_instrument_splunk_env_var_false(logger l);
 void test_auto_instrument_splunk_env_var_false_caps(logger l);
 
 void test_auto_instrument_splunk_env_var_zero(logger l);
+
+void test_auto_instrument_splunk_missing_file(logger l);
 
 void test_read_config(logger l);
 

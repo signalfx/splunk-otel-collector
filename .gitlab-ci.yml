@@ -99,7 +99,10 @@ whitesource:
     - make install-tools
     - export PATH=$GOPATH/bin:$PATH
   cache:
-    key: "go-cache"
+    key:
+      files:
+        - go.mod
+        - go.sum
     paths:
       - .go/pkg/mod
       - .go/bin
@@ -132,7 +135,9 @@ compile:
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   cache:
-    key: "sign-release-pip-cache"
+    key:
+      files:
+        - internal/buildscripts/packaging/release/requirements.txt
     paths:
       - .cache/pip
   before_script:

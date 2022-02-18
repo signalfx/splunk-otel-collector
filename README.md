@@ -72,7 +72,7 @@ data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability
   exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
 
 While it is recommended to use [Splunk
-Forwarders](https://www.splunk.com/en_us/products/splunk-enterprise/features/forwarders.html)
+Forwarders](https://docs.splunk.com/Documentation/Splunk/latest/Data/Usingforwardingagents)
 to send data to [Splunk
 Cloud](https://www.splunk.com/en_us/software/splunk-cloud.html) or [Splunk
 Enterprise](https://www.splunk.com/en_us/software/splunk-enterprise.html),

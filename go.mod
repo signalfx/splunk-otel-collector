@@ -16,7 +16,7 @@ require (
 	github.com/hashicorp/vault/api v1.3.1
 	github.com/jaegertracing/jaeger v1.31.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.45.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.45.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.45.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.45.0
@@ -30,7 +30,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.45.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.45.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.45.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.45.0
@@ -50,7 +50,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.45.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.45.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.45.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbatlasreceiver v0.45.0
@@ -275,7 +275,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.45.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/ecsutil v0.45.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.45.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.45.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.45.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/docker v0.45.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.45.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.45.0 // indirect

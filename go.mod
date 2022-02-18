@@ -48,7 +48,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.40.0 // ignore-update-deps
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.45.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.45.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.45.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.45.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.45.0
@@ -281,7 +281,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.45.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.45.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.45.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/stanza v0.45.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/stanza v0.45.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.45.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus v0.45.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/signalfx v0.45.0 // indirect

@@ -54,15 +54,32 @@ func NewConfigSourceConfigMapProvider(wrappedProvider configmapprovider.Provider
 	}
 }
 
-func (c *configSourceConfigMapProvider) Retrieve(ctx context.Context,
-	location string, onChange configmapprovider.WatcherFunc) (configmapprovider.Retrieved, error) {
+func (c *configSourceConfigMapProvider) Retrieve(
+	ctx context.Context,
+	location string,
+	onChange configmapprovider.WatcherFunc,
+) (configmapprovider.Retrieved, error) {
 	wr, err := c.wrappedProvider.Retrieve(ctx, location, onChange)
 	if err != nil {
-		return nil, err
+		return configmapprovider.Retrieved{}, err
 	}
 	c.wrappedRetrieved = wr
 
-	c.retrieved, err = configmapprovider.NewRetrieved(c.Get, configmapprovider.WithClose(c.wrappedRetrieved.Close))
+	cfg, err := c.Get(ctx)
+	if err != nil {
+		return configmapprovider.Retrieved{}, err
+	}
+
+	closeFunc := c.wrappedRetrieved.CloseFunc
+	if closeFunc == nil {
+		closeFunc = func(context.Context) error { return nil }
+	}
+
+	c.retrieved = configmapprovider.Retrieved{
+		Map:       cfg,
+		CloseFunc: closeFunc,
+	}
+
 	return c.retrieved, err
 }
 
@@ -73,28 +90,23 @@ func (c *configSourceConfigMapProvider) Shutdown(ctx context.Context) error {
 // Get returns a config.Parser that wraps the config.Default() with a parser
 // that can load and inject data from config sources. If there are no config sources
 // in the configuration the returned parser behaves like the config.Default().
-func (c *configSourceConfigMapProvider) Get(ctx context.Context) (*config.Map, error) {
-	initialMap, err := c.wrappedRetrieved.Get(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *configSourceConfigMapProvider) Get(context.Context) (*config.Map, error) {
 	factories, err := makeFactoryMap(c.factories)
 	if err != nil {
 		return nil, err
 	}
 
-	csm, err := NewManager(initialMap, c.logger, c.buildInfo, factories)
+	csm, err := NewManager(c.wrappedRetrieved.Map, c.logger, c.buildInfo, factories)
 	if err != nil {
 		return nil, err
 	}
 
-	effectiveMap, err := csm.Resolve(context.Background(), initialMap)
+	effectiveMap, err := csm.Resolve(context.Background(), c.wrappedRetrieved.Map)
 	if err != nil {
 		return nil, err
 	}
 
-	c.configServer = newConfigServer(c.logger, initialMap.ToStringMap(), effectiveMap.ToStringMap())
+	c.configServer = newConfigServer(c.logger, c.wrappedRetrieved.Map.ToStringMap(), effectiveMap.ToStringMap())
 	if err = c.configServer.start(); err != nil {
 		return nil, err
 	}
@@ -115,7 +127,7 @@ func (c *configSourceConfigMapProvider) Close(ctx context.Context) error {
 	if c.configServer != nil {
 		_ = c.configServer.shutdown()
 	}
-	return multierr.Combine(c.csm.Close(ctx), c.retrieved.Close(ctx))
+	return multierr.Combine(c.csm.Close(ctx), c.retrieved.CloseFunc(ctx))
 }
 
 func makeFactoryMap(factories []Factory) (Factories, error) {

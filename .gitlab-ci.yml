@@ -1,5 +1,5 @@
 default:
-  image: 'docker.repo.splunkdev.net/ci-cd/ci-container:debian-buster'
+  image: '${DOCKER_CICD_REPO}/ci-container:debian-buster'
 
 stages:
   - sast-oss-scan
@@ -12,11 +12,9 @@ stages:
   - github-release
 
 include:
-  # https://cd.splunkdev.com/prodsec/scp-scanning/gitlab-checkmarx
   - project: 'prodsec/scp-scanning/gitlab-checkmarx'
     ref: latest
     file: '/templates/.sast_scan.yml'
-  # https://cd.splunkdev.com/prodsec/whitesource
   - project: 'prodsec/whitesource'
     ref: latest
     file: '/templates/.whitesource.yml'
@@ -93,7 +91,7 @@ whitesource:
       fi
 
 .go-cache:
-  image: 'docker-hub.repo.splunkdev.net/golang:1.17.6'
+  image: '${DOCKER_HUB_REPO}/golang:1.17.6'
   variables:
     GOPATH: "$CI_PROJECT_DIR/.go"
   before_script:
@@ -130,7 +128,7 @@ compile:
       - bin/migratecheckpoint_*
 
 .sign-release-cache:
-  image: 'docker.repo.splunkdev.net/ci-cd/ci-container:python-3.9'
+  image: '${DOCKER_CICD_REPO}/ci-container:python-3.9'
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   cache:
@@ -543,7 +541,7 @@ ansible-release:
     - ansible-galaxy collection publish ./dist/signalfx-splunk_otel_collector-${COLLECTION_VERSION}.tar.gz --token=${ANSIBLE_GALAXY_TOKEN} 
 
 puppet-release:
-  image: 'docker-hub.repo.splunkdev.net/ruby:2.6-buster'
+  image: '${DOCKER_HUB_REPO}/ruby:2.6-buster'
   stage: release
   only:
     variables:

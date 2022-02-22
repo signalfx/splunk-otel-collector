@@ -74,7 +74,7 @@ data for [Splunk Observability Cloud](https://www.splunk.com/en_us/observability
 While it is recommended to use [Splunk
 Forwarders](https://docs.splunk.com/Documentation/Splunk/latest/Data/Usingforwardingagents)
 to send data to [Splunk
-Cloud](https://www.splunk.com/en_us/software/splunk-cloud.html) or [Splunk
+Cloud](https://www.splunk.com/en_us/software/splunk-cloud-platform.html) or [Splunk
 Enterprise](https://www.splunk.com/en_us/software/splunk-enterprise.html),
 Splunk OpenTelemetry Collector can be configured to send data to them via the
 [`splunk_hec`

@@ -3,8 +3,20 @@ SPLUNK_ACCESS_TOKEN={{ splunk_access_token }}
 SPLUNK_REALM={{ splunk_realm }}
 SPLUNK_API_URL={{ splunk_api_url | default("https://api." + splunk_realm + ".signalfx.com") }}
 SPLUNK_INGEST_URL={{ splunk_ingest_url | default("https://ingest." + splunk_realm + ".signalfx.com") }}
-SPLUNK_TRACE_URL=${SPLUNK_INGEST_URL}/v2/trace
-SPLUNK_HEC_URL=${SPLUNK_INGEST_URL}/v1/log
+{% if splunk_trace_url is defined and splunk_trace_url %}
+SPLUNK_TRACE_URL={{ splunk_trace_url }}
+{% elif splunk_ingest_url is defined and splunk_ingest_url %}
+SPLUNK_TRACE_URL={{ splunk_ingest_url + "/v2/trace" }}
+{% else %}
+SPLUNK_TRACE_URL={{ "https://ingest." + splunk_realm + ".signalfx.com/v2/trace" }}
+{% endif %}
+{% if splunk_hec_url is defined and splunk_hec_url %}
+SPLUNK_HEC_URL={{ splunk_hec_url }}
+{% elif splunk_ingest_url is defined and splunk_ingest_url %}
+SPLUNK_HEC_URL={{ splunk_ingest_url + "/v1/log" }}
+{% else %}
+SPLUNK_HEC_URL={{ "https://ingest." + splunk_realm + ".signalfx.com/v1/log" }}
+{% endif %}
 SPLUNK_HEC_TOKEN={{ splunk_access_token }}
 SPLUNK_MEMORY_TOTAL_MIB={{ splunk_memory_total_mib }}
 SPLUNK_BALLAST_SIZE_MIB={{ splunk_ballast_size_mib }}

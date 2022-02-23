@@ -129,6 +129,50 @@ Stop-Service splunk-otel-collector
 Start-Service splunk-otel-collector
 ```
 
+### Command Line Operation
+
+After successful installation with the installer script, the Collector is
+automatically started as a Windows service.  However, if you need to start the
+Collector manually via the command line, run the following PowerShell commands
+as `Administrator`:
+
+1. Stop the Collector service to avoid conflicts:
+   ```powershell
+   Stop-Service splunk-otel-collector
+   ```
+1. Check the available command line options:
+   ```powershell
+   & 'C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe' --help
+   ```
+1. Environment variables are automatically defined within the Windows registry
+   by the installer script based on the specified and default installation
+   parameter values. These environment variables are utilized by the Collector
+   and configuration files. To check these environment variables, run:
+   ```powershell
+   dir env: | Select-Object -Property Name,Value | Where-object -Property Name -Like "SPLUNK_*"
+   ```
+   To temporarily change any of these environment variables within the current
+   PowerShell session, run the following command for the desired variable and
+   value.  For example, the `SPLUNK_CONFIG` environment variable can
+   be changed to a new configuration file path with:
+   ```powershell
+   $env:SPLUNK_CONFIG = "C:\my\custom\config.yaml"
+   ```
+   To permanently change these environment variables in the Windows registry,
+   see [Collector Configuration](#collector-configuration) and restart the
+   system for the changes to take effect.
+1. Start the Collector:
+   - With the configuration file defined by the `SPLUNK_CONFIG` environment
+     variable:
+     ```powershell
+     & 'C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe'
+     ```
+   - With a custom configuration file via command line:
+     ```powershell
+     & 'C:\Program Files\Splunk\OpenTelemetry Collector\otelcol.exe' --config 'C:\my\custom\config.yaml'
+     ```
+1. Press `Ctrl-C` to stop the Collector.
+
 ### Fluentd Configuration
 
 By default, the Fluentd service will be installed and configured to forward log

@@ -52,6 +52,16 @@ how to use the role in a playbook with minimal required configuration:
   The `SPLUNK_API_URL` environment variable will be set with this value for the
   collector service. (**default:** `https://api.{{ splunk_realm }}.signalfx.com`)
 
+- `splunk_trace_url`: The Splunk trace endpoint URL, e.g.
+  `https://ingest.us0.signalfx.com/v2/trace`. The `SPLUNK_TRACE_URL` environment
+  variable will be set with this value for the collector service. (**default:**
+  `{{ splunk_ingest_url }}/v2/trace`)
+
+- `splunk_hec_url`: The Splunk HEC endpoint URL, e.g.
+  `https://ingest.us0.signalfx.com/v1/log`. The `SPLUNK_HEC_URL` environment
+  variable will be set with this value for the collector service. (**default:**
+  `{{ splunk_ingest_url }}/v1/log`)
+
 - `splunk_otel_collector_version`: Version of the collector package to install, e.g.
   `0.25.0`. (**default:** `latest`)
 

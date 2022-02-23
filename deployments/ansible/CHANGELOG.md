@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## ansible-v0.6.0
+
+### 🧰 Bug fixes 🧰
+
+- Fix `SPLUNK_TRACE_URL` and `SPLUNK_HEC_URL` env vars (#1290)
+
 ## ansible-v0.5.0
 
 ### 💡 Enhancements 💡

@@ -47,7 +47,7 @@ whitesource:
     - schedules
   # allow_failure: false
   cache:
-    key: "whitesource-go1.17.6"
+    key: "whitesource-go1.17.7"
     paths:
       - /usr/local/go
       - /go/pkg/mod
@@ -58,8 +58,8 @@ whitesource:
       set -e
       if [ ! -d /usr/local/go ]; then
         pushd /usr/local
-        wget https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
-        tar xzf go1.17.6.linux-amd64.tar.gz
+        wget https://golang.org/dl/go1.17.7.linux-amd64.tar.gz
+        tar xzf go1.17.7.linux-amd64.tar.gz
         popd
       fi
     - export GOROOT=/usr/local/go
@@ -91,7 +91,7 @@ whitesource:
       fi
 
 .go-cache:
-  image: '${DOCKER_HUB_REPO}/golang:1.17.6'
+  image: '${DOCKER_HUB_REPO}/golang:1.17.7'
   variables:
     GOPATH: "$CI_PROJECT_DIR/.go"
   before_script:

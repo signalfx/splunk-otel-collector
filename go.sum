@@ -1390,8 +1390,9 @@ github.com/hashicorp/vault-plugin-auth-cf v0.8.0/go.mod h1:exPUMj8yNohKM7yRiHa7O
 github.com/hashicorp/vault-plugin-auth-cf v0.10.0/go.mod h1:4HM4amMEcCyoLZNNjyz5AYILIlhMLTErxrinM3Vopy4=
 github.com/hashicorp/vault-plugin-auth-gcp v0.5.1/go.mod h1:eLj92eX8MPI4vY1jaazVLF2sVbSAJ3LRHLRhF/pUmlI=
 github.com/hashicorp/vault-plugin-auth-gcp v0.9.1/go.mod h1:Z+mj9fAqzXfDNxLmMoSS8NheVK7ugLvD8sTHO1GXfCA=
-github.com/hashicorp/vault-plugin-auth-gcp v0.11.3 h1:kdfbpf4bLubMqeQZIAGVYAO7scqun6GYMqU4sGEadd0=
 github.com/hashicorp/vault-plugin-auth-gcp v0.11.3/go.mod h1:HJc8ih7gLNpBJYTwFlXJA3H48LKsP8mlVKYtPWfRkHs=
+github.com/hashicorp/vault-plugin-auth-gcp v0.12.0 h1:XM7RLDvyRhIexo8wX6SwyhBZKCiOORhy4FyEEpoOzpY=
+github.com/hashicorp/vault-plugin-auth-gcp v0.12.0/go.mod h1:vj7QisqR+tTcJnerA9ASplL+67gqEUKnZHmrnVtCO2w=
 github.com/hashicorp/vault-plugin-auth-jwt v0.9.5/go.mod h1:3KxfehLIM7zH19+O8jHJ/QJsLGRzSKRqjsesOJmBuoI=
 github.com/hashicorp/vault-plugin-auth-jwt v0.11.4/go.mod h1:jzjDdssus8sw8G6NOP7kNFMEeIvrjXvPHUR3pEn5+r0=
 github.com/hashicorp/vault-plugin-auth-kerberos v0.3.0/go.mod h1:h+7pLm4Z2EeKHOGPefX0bGzdUQCMBUlvM/BpSMNgTFw=
@@ -3084,6 +3085,7 @@ golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914/go.mod h1:KelEdhl1UZF7XfJ
 golang.org/x/oauth2 v0.0.0-20210805134026-6f1e6394065a/go.mod h1:KelEdhl1UZF7XfJ4dDtk6s++YSgaE7mD/BuKKDLBl4A=
 golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f/go.mod h1:KelEdhl1UZF7XfJ4dDtk6s++YSgaE7mD/BuKKDLBl4A=
 golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1/go.mod h1:KelEdhl1UZF7XfJ4dDtk6s++YSgaE7mD/BuKKDLBl4A=
+golang.org/x/oauth2 v0.0.0-20211028175245-ba495a64dcb5/go.mod h1:KelEdhl1UZF7XfJ4dDtk6s++YSgaE7mD/BuKKDLBl4A=
 golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 h1:RerP+noqYHUQ8CMRcPlC2nvTa4dcBIjegkuWdcUDuqg=
 golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8/go.mod h1:KelEdhl1UZF7XfJ4dDtk6s++YSgaE7mD/BuKKDLBl4A=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
@@ -3471,6 +3473,7 @@ google.golang.org/api v0.55.0/go.mod h1:38yMfeP1kfjsl8isn0tliTjIb1rJXcQi4UXlbqiv
 google.golang.org/api v0.56.0/go.mod h1:38yMfeP1kfjsl8isn0tliTjIb1rJXcQi4UXlbqivdVE=
 google.golang.org/api v0.57.0/go.mod h1:dVPlbZyBo2/OjBpmvNdpn2GRm6rPy75jyU7bmhdrMgI=
 google.golang.org/api v0.59.0/go.mod h1:sT2boj7M9YJxZzgeZqXogmhfmRWDtPzT31xkieUbuZU=
+google.golang.org/api v0.60.0/go.mod h1:d7rl65NZAkEQ90JFzqBjcRq1TVeG5ZoGV3sSpEnnVb4=
 google.golang.org/api v0.61.0/go.mod h1:xQRti5UdCmoCEqFxcz93fTl338AVqDgyaDRuOZ3hg9I=
 google.golang.org/api v0.62.0/go.mod h1:dKmwPCydfsad4qCH08MSdgWjfHOyfpd4VtDGgRFdavw=
 google.golang.org/api v0.63.0/go.mod h1:gs4ij2ffTRXwuzzgJl/56BdwJaA194ijkfn++9tDuPo=

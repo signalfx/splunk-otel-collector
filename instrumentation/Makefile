@@ -13,17 +13,20 @@ obj:
 clean:
 	rm -f tests so/* obj/*
 
-obj/logger.o: obj src/logger.c
+obj/logger.o: obj src/logger.c src/logger.h
 	gcc -c -Wall -Werror -fpic -o obj/logger.o src/logger.c
 
-obj/splunk.o: obj src/splunk.c
+obj/config.o: obj src/config.c src/config.h
+	gcc -c -Wall -Werror -fpic -o obj/config.o src/config.c
+
+obj/splunk.o: obj src/splunk.c src/splunk.h
 	gcc -c -Wall -Werror -fpic -o obj/splunk.o src/splunk.c
 
-so/libsplunk.so: obj so obj/splunk.o obj/logger.o
-	gcc -shared -o so/libsplunk.so obj/splunk.o obj/logger.o
+so/libsplunk.so: obj so obj/splunk.o obj/logger.o obj/config.o
+	gcc -shared -o so/libsplunk.so obj/splunk.o obj/logger.o obj/config.o
 
-tests: src/splunk.c src/test_main.c
-	gcc -o tests src/test_main.c src/logger_test.c src/splunk.c
+tests: src/test_main.h src/test_main.c src/logger.h src/logger_test.c obj/config.o obj/splunk.o
+	gcc -o tests src/test_main.c src/logger_test.c obj/config.o obj/splunk.o
 
 .PHONY: test
 test: tests

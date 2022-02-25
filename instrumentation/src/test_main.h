@@ -3,10 +3,13 @@
 
 #include <stdbool.h>
 #include "logger.h"
+#include "config.h"
 
 static char *const JAVA_TOOL_OPTIONS = "JAVA_TOOL_OPTIONS";
 
 typedef void (test_func_t)(logger);
+
+void fake_load_config(logger log, struct config *cfg, char *path);
 
 void fail();
 
@@ -32,12 +35,16 @@ void test_auto_instrument_splunk_env_var_false_caps(logger l);
 
 void test_auto_instrument_splunk_env_var_zero(logger l);
 
-void require_equal_ints(int expected, int actual);
+void test_read_config(logger l);
 
-void require_equal_strings(char *expected, char *actual);
+void test_read_config_missing_file(logger l);
 
-void require_env(char *env_var, char *expected);
+void require_equal_ints(char *funcname, int expected, int actual);
 
-void require_unset_env(char *env_var);
+void require_equal_strings(char *funcname, char *expected, char *actual);
+
+void require_env(char *funcname, char *env_var, char *expected);
+
+void require_unset_env(char *funcname, char *env_var);
 
 #endif //SPLUNK_INSTRUMENTATION_TEST_MAIN_H

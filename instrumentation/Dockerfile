@@ -6,4 +6,5 @@ RUN apt-get update && \
 WORKDIR /libsplunk
 
 COPY src /libsplunk/src
+COPY testdata/splunk.conf /libsplunk/testdata/splunk.conf
 COPY Makefile /libsplunk/Makefile

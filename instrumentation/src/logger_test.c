@@ -1,9 +1,10 @@
 #include <stdlib.h>
+#include <string.h>
 #include "logger.h"
 
 struct logger_impl {
     int i;
-    char *logs[TEST_LOGS_MAX_LEN];
+    char *logs[MAX_LOG_LINE_LEN];
 };
 
 logger new_logger() {
@@ -14,15 +15,26 @@ logger new_logger() {
     return ref;
 }
 
+void save_log(logger l, char *s) {
+    l->logs[l->i++] = strdup(s);
+}
+
 void log_info(logger l, char *s) {
-    l->logs[l->i++] = s;
+    save_log(l, s);
 }
 
 void log_debug(logger l, char *s) {
-    l->logs[l->i++] = s;
+    save_log(l, s);
+}
+
+void log_warning(logger l, char *s) {
+    save_log(l, s);
 }
 
 void free_logger(logger l) {
+    for (int i = 0; i < l->i; ++i) {
+        free(l->logs[i]);
+    }
     free(l);
 }
 

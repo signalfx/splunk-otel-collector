@@ -20,6 +20,10 @@ void log_info(logger l, char *s) {
     syslog(LOG_INFO, prefix, s);
 }
 
+void log_warning(logger l, char *s) {
+    syslog(LOG_WARNING, prefix, s);
+}
+
 void free_logger(logger l) {
     free(l);
 }

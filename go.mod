@@ -76,7 +76,7 @@ require (
 	go.opentelemetry.io/collector v0.45.0
 	go.opentelemetry.io/collector/model v0.45.0
 	go.opentelemetry.io/otel/trace v1.4.0
-	go.uber.org/multierr v1.7.0
+	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.21.0
 	golang.org/x/sys v0.0.0-20220204135822-1c1b9b1eba6a
 	gopkg.in/yaml.v2 v2.4.0

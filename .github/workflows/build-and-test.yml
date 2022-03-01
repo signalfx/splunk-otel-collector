@@ -228,7 +228,7 @@ jobs:
           make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true VERSION="${TAG_NAME:-}" ARCH="arm64"
       
       - name: Setup python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 

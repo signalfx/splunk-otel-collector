@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 🧰 Bug fixes 🧰
+
+- As a bug fix for hosts number miscalculation in Splunk Observability Cloud, Splunk OpenTelemetry Collector running in 
+  agent mode now is configured to override `host.name` attribute of all signals sent from instrumentation libraries by 
+  default (#1307)
+
 ## v0.45.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.45.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.45.0) and the [opentelemetry-collector-contrib v0.45.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.45.1) releases.

@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Lint
         run: |
@@ -42,7 +42,7 @@ jobs:
         PACKAGE_TYPE: [ "deb", "rpm" ]
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup python
         uses: actions/setup-python@v3

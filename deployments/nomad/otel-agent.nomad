@@ -195,7 +195,7 @@ processors:
     detectors:
     - system
     - env
-    override: false
+    override: true
     timeout: 10s
 exporters:
   sapm:

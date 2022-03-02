@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python 3.
         uses: actions/setup-python@v3
@@ -66,7 +66,7 @@ jobs:
 
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python 3.
         uses: actions/setup-python@v3
@@ -95,7 +95,7 @@ jobs:
     if: github.ref == 'refs/heads/main' 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Read current version of the Ansible Collection
         id: read-galaxy-yaml

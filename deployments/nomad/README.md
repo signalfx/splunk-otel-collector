@@ -106,7 +106,7 @@ $ nomad run otel-gateway.nomad
 
 ### Agent
 
-The Splunk OpenTelemetry Collector can run as an `agent` by registering a
+The Splunk OpenTelemetry Collector can run as an `agent` by registering
 [system](https://www.nomadproject.io/docs/schedulers#system) job.
 
 ```shell-session

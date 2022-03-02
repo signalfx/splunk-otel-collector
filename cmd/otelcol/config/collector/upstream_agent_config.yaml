@@ -99,13 +99,10 @@ processors:
 
   # Detect if the collector is running on a cloud system, which is important for creating unique cloud provider dimensions.
   # Detector order is important: the `system` detector goes last so it can't preclude cloud detectors from setting host/os info.
+  # Resource detection processor is configured to override all host and cloud attributes because instrumentation
+  # libraries can send wrong values from container environments.
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#ordering
   resourcedetection:
-    detectors: [gce, ecs, ec2, azure, system]
-    override: false
-
-  # Same as above but overrides resource attributes set by receivers
-  resourcedetection/internal:
     detectors: [gce, ecs, ec2, azure, system]
     override: true
 
@@ -171,7 +168,7 @@ service:
     # Required for Splunk APM and/or Infrastructure Monitoring
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, resourcedetection/internal]
+      processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
       #exporters: [otlp]

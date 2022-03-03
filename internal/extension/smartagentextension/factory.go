@@ -24,7 +24,6 @@ import (
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/extension/extensionhelper"
 )
 
 const (
@@ -33,7 +32,7 @@ const (
 )
 
 func NewFactory() component.ExtensionFactory {
-	return extensionhelper.NewFactory(
+	return component.NewExtensionFactory(
 		typeStr,
 		createDefaultConfig,
 		createExtension,

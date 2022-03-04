@@ -133,7 +133,7 @@ require (
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e // indirect
 	github.com/cncf/xds/go v0.0.0-20211130200136-a8f946100490 // indirect
 	github.com/containerd/cgroups v1.0.1 // indirect
-	github.com/containerd/containerd v1.5.9 // indirect
+	github.com/containerd/containerd v1.5.10 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -437,7 +437,7 @@ replace (
 
 // security updates
 replace (
-	github.com/containerd/containerd => github.com/containerd/containerd v1.5.9
+	github.com/containerd/containerd => github.com/containerd/containerd v1.5.10
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.3
 )
 

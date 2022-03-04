@@ -24,7 +24,6 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
 	"go.uber.org/zap"
 )
@@ -32,10 +31,10 @@ import (
 const typeStr = "databricks"
 
 func NewFactory() component.ReceiverFactory {
-	return receiverhelper.NewFactory(
+	return component.NewReceiverFactory(
 		typeStr,
 		createDefaultConfig,
-		receiverhelper.WithMetrics(createReceiverFunc(newAPIClient)),
+		component.WithMetricsReceiver(createReceiverFunc(newAPIClient)),
 	)
 }
 
@@ -48,7 +47,7 @@ type Config struct {
 }
 
 func createDefaultConfig() config.Receiver {
-	scs := scraperhelper.DefaultScraperControllerSettings(typeStr)
+	scs := scraperhelper.NewDefaultScraperControllerSettings(typeStr)
 	// we set the default collection interval to 30 seconds which is half of the
 	// lowest job frequency of 1 minute
 	scs.CollectionInterval = time.Second * 30

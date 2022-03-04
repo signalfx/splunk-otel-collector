@@ -135,8 +135,9 @@ type mockParserProvider struct {
 
 var _ configmapprovider.Provider = (*mockParserProvider)(nil)
 
-func (mpp *mockParserProvider) Retrieve(_ context.Context, _ string, _ configmapprovider.WatcherFunc) (configmapprovider.Retrieved, error) {
-	return configmapprovider.NewRetrieved(mpp.Get)
+func (mpp *mockParserProvider) Retrieve(ctx context.Context, _ string, _ configmapprovider.WatcherFunc) (configmapprovider.Retrieved, error) {
+	m, err := mpp.Get(ctx)
+	return configmapprovider.Retrieved{Map: m}, err
 }
 
 func (mpp *mockParserProvider) Shutdown(ctx context.Context) error {

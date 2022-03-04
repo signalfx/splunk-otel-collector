@@ -21,7 +21,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/receiver/receiverhelper"
 )
 
 const (
@@ -55,12 +54,12 @@ func getOrCreateReceiver(cfg config.Receiver, params component.ReceiverCreateSet
 }
 
 func NewFactory() component.ReceiverFactory {
-	return receiverhelper.NewFactory(
+	return component.NewReceiverFactory(
 		typeStr,
 		CreateDefaultConfig,
-		receiverhelper.WithMetrics(createMetricsReceiver),
-		receiverhelper.WithLogs(createLogsReceiver),
-		receiverhelper.WithTraces(createTracesReceiver),
+		component.WithMetricsReceiver(createMetricsReceiver),
+		component.WithLogsReceiver(createLogsReceiver),
+		component.WithTracesReceiver(createTracesReceiver),
 	)
 }
 

@@ -14,7 +14,7 @@ require (
 	github.com/hashicorp/vault v1.9.3
 	github.com/hashicorp/vault-plugin-auth-gcp v0.11.3
 	github.com/hashicorp/vault/api v1.3.1
-	github.com/jaegertracing/jaeger v1.31.0
+	github.com/jaegertracing/jaeger v1.32.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.46.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.46.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.46.0
@@ -345,8 +345,8 @@ require (
 	github.com/vjeantet/grok v1.0.0 // indirect
 	github.com/vmware/govmomi v0.23.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
-	github.com/xdg-go/scram v1.1.0 // indirect
-	github.com/xdg-go/stringprep v1.0.2 // indirect
+	github.com/xdg-go/scram v1.1.1 // indirect
+	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.2 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.2 // indirect

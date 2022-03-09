@@ -46,7 +46,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.46.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.46.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.46.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.40.0 // ignore-update-deps
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.46.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.46.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.46.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.46.0
@@ -241,6 +241,7 @@ require (
 	github.com/leoluk/perflib_exporter v0.1.0 // indirect
 	github.com/lib/pq v1.10.3 // indirect
 	github.com/linode/linodego v1.2.1 // indirect
+	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
@@ -301,6 +302,7 @@ require (
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/prometheus/client_golang v1.12.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
@@ -348,6 +350,7 @@ require (
 	github.com/xdg-go/scram v1.1.0 // indirect
 	github.com/xdg-go/stringprep v1.0.2 // indirect
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect
+	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.2 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.2 // indirect
 	go.mongodb.org/atlas v0.15.0 // indirect
@@ -426,13 +429,6 @@ replace (
 
 	// cvss scan requires this to be >= 3.3.23
 	go.etcd.io/etcd => go.etcd.io/etcd v3.3.27+incompatible
-)
-
-// downgrade github.com/shirou/gopsutil until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/5879 is resolved
-replace (
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver => github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.40.0 // ignore-update-deps
-	github.com/shirou/gopsutil => github.com/shirou/gopsutil v3.21.8+incompatible
-	github.com/shirou/gopsutil/v3 => github.com/shirou/gopsutil/v3 v3.21.8
 )
 
 // security updates

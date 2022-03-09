@@ -1,0 +1,86 @@
+receivers:
+    filelog:
+      include: [ /output/file*.log ]
+      operators:
+        - type: regex_parser
+          regex: '(?P<logindex>log\d?)'
+          preserve_to: "$$body.original"
+        - type: restructure
+          ops:
+            - add:
+                field: $$attributes["logindex"]
+                value_expr: $$body.logindex
+            - add:
+                field: $$body
+                value_expr: $$body.original
+
+exporters:
+    splunk_hec/logs:
+        # Splunk HTTP Event Collector token.
+        token: "00000000-0000-0000-0000-0000000000000"
+        # URL to a Splunk instance to send data to.
+        endpoint: "https://splunk:8088/services/collector"
+        # Optional Splunk source: https://docs.splunk.com/Splexicon:Source
+        source: "output"
+        # Maximum HTTP connections to use simultaneously when sending data. Defaults to 100.
+        max_connections: 20
+        # Whether to disable gzip compression over HTTP. Defaults to false.
+        disable_compression: false
+        # HTTP timeout when sending data. Defaults to 10s.
+        timeout: 10s
+        # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
+        # For this demo, we use a self-signed certificate on the Splunk docker instance, so this flag is set to true.
+        insecure_skip_verify: true
+    logging:
+      loglevel: debug
+processors:
+    batch:
+    attributes/log:
+      include:
+        match_type: strict
+        attributes:
+          - { key: logindex, value: 'log' }
+      actions:
+        - key: com.splunk.index
+          action: upsert
+          value: "log"
+        - key: logindex
+          action: delete
+    attributes/log2:
+      include:
+        match_type: strict
+        attributes:
+          - { key: logindex, value: 'log2' }
+      actions:
+        - key: com.splunk.index
+          action: upsert
+          value: "logs2"
+        - key: logindex
+          action: delete
+    attributes/log3:
+      include:
+        match_type: strict
+        attributes:
+          - { key: logindex, value: 'log3' }
+      actions:
+        - key: com.splunk.index
+          action: upsert
+          value: "logs3"
+        - key: logindex
+          action: delete
+
+extensions:
+    health_check:
+      endpoint: 0.0.0.0:13133
+    pprof:
+      endpoint: :1888
+    zpages:
+      endpoint: :55679
+
+service:
+    extensions: [pprof, zpages, health_check]
+    pipelines:
+      logs:
+        receivers: [filelog]
+        processors: [batch, attributes/log, attributes/log2, attributes/log3]
+        exporters: [splunk_hec/logs, logging]

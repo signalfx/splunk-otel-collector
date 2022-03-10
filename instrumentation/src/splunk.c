@@ -30,7 +30,8 @@ bool is_disable_env_set();
 void set_service_name(logger log, char *service_name);
 
 // The entry point for all executables prior to their execution. If the executable is named "java", we
-// set JAVA_TOOL_OPTIONS to the path of the java agent jar.
+// set the env vars JAVA_TOOL_OPTIONS to the path of the java agent jar and OTEL_SERVICE_NAME to the
+// service name based on the arguments to the java command.
 void __attribute__((constructor)) splunk_instrumentation_enter() {
     logger l = new_logger();
     cmdline_reader cr = new_cmdline_reader();
@@ -125,7 +126,7 @@ void set_java_tool_options(logger log, struct config *cfg) {
 }
 
 bool is_disable_env_set() {
-    char *env = getenv(disable_env_var_name);
+    char *env = getenv(disable_env_var);
     return env && !streq("false", env) && !streq("FALSE", env) && !streq("0", env);
 }
 

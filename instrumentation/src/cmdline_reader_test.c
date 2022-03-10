@@ -13,7 +13,7 @@ cmdline_reader new_cmdline_reader() {
     // It appears that just having the
     // void __attribute__((constructor)) splunk_instrumentation_enter()
     // function in the executable causes it to run during tests, so we
-    // create a thing here.
+    // create a cmdline_reader here.
     return new_test_cmdline_reader("", 0);
 }
 

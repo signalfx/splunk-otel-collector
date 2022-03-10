@@ -45,7 +45,7 @@ void format_arg(char *str) {
     }
 }
 
-// note: individual `arg` strings are on the heap
+// individual `arg` strings are on the heap
 void generate_servicename_from_args(char *service_name, char **args, int num_args) {
     for (int i = 0; i < num_args; ++i) {
         char *arg = args[i];
@@ -101,7 +101,7 @@ bool is_unique_path_element(char *path_element) {
     return true;
 }
 
-// removes a .xyz suffix/extension from a string if it's long enough
+// removes a .jar suffix/extension from a string if it's long enough
 void truncate_extension(char *str) {
     unsigned long len = strlen(str);
     if (len <= 4) {

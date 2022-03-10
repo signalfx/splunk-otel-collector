@@ -46,9 +46,9 @@ void run_tests() {
 }
 
 void run_test(test_func_t run_test) {
-    unsetenv("JAVA_TOOL_OPTIONS");
-    unsetenv("OTEL_SERVICE_NAME");
-    unsetenv("DISABLE_SPLUNK_AUTOINSTRUMENTATION");
+    unsetenv(java_tool_options_var);
+    unsetenv(otel_service_name_var);
+    unsetenv(disable_env_var);
     logger l = new_logger();
     run_test(l);
     free_logger(l);
@@ -110,7 +110,7 @@ void test_auto_instrument_no_access(logger l) {
 }
 
 void test_auto_instrument_splunk_env_var_true(logger l) {
-    setenv(disable_env_var_name, "true", 0);
+    setenv(disable_env_var, "true", 0);
     cmdline_reader cr = new_default_test_cmdline_reader();
     auto_instrument(l, access_check_true, "java", fake_load_config, cr);
     require_unset_env("test_auto_instrument_splunk_env_var_true", "JAVA_TOOL_OPTIONS");
@@ -118,7 +118,7 @@ void test_auto_instrument_splunk_env_var_true(logger l) {
 }
 
 void test_auto_instrument_splunk_env_var_false(logger l) {
-    setenv(disable_env_var_name, "false", 0);
+    setenv(disable_env_var, "false", 0);
     cmdline_reader cr = new_default_test_cmdline_reader();
     auto_instrument(l, access_check_true, "java", fake_load_config, cr);
     require_env("test_auto_instrument_splunk_env_var_false", "JAVA_TOOL_OPTIONS", "-javaagent:/foo/asdf.jar");
@@ -126,7 +126,7 @@ void test_auto_instrument_splunk_env_var_false(logger l) {
 }
 
 void test_auto_instrument_splunk_env_var_false_caps(logger l) {
-    setenv(disable_env_var_name, "FALSE", 0);
+    setenv(disable_env_var, "FALSE", 0);
     cmdline_reader cr = new_default_test_cmdline_reader();
     auto_instrument(l, access_check_true, "java", fake_load_config, cr);
     require_env("test_auto_instrument_splunk_env_var_false_caps", "JAVA_TOOL_OPTIONS", "-javaagent:/foo/asdf.jar");
@@ -134,7 +134,7 @@ void test_auto_instrument_splunk_env_var_false_caps(logger l) {
 }
 
 void test_auto_instrument_splunk_env_var_zero(logger l) {
-    setenv(disable_env_var_name, "0", 0);
+    setenv(disable_env_var, "0", 0);
     cmdline_reader cr = new_default_test_cmdline_reader();
     auto_instrument(l, access_check_true, "java", fake_load_config, cr);
     require_env("test_auto_instrument_splunk_env_var_zero", "JAVA_TOOL_OPTIONS", "-javaagent:/foo/asdf.jar");

@@ -6,7 +6,7 @@
 #include "cmdline_reader.h"
 #include <stdbool.h>
 
-static char *const disable_env_var_name = "DISABLE_SPLUNK_AUTOINSTRUMENTATION";
+static char *const disable_env_var = "DISABLE_SPLUNK_AUTOINSTRUMENTATION";
 static char *const java_tool_options_var = "JAVA_TOOL_OPTIONS";
 static char *const otel_service_name_var = "OTEL_SERVICE_NAME";
 

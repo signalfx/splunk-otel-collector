@@ -569,6 +569,47 @@ EOH
   exit 0
 }
 
+distro_is_supported() {
+  case "$distro" in
+    ubuntu)
+      case "$distro_codename" in
+        bionic|focal|xenial)
+          return 0
+          ;;
+      esac
+      ;;
+    debian)
+      case "$distro_codename" in
+        buster|jessie|stretch)
+          return 0
+          ;;
+      esac
+      ;;
+    amzn)
+      case "$distro_version" in
+        2)
+          return 0
+          ;;
+      esac
+      ;;
+    sles|opensuse*)
+      case "$distro_version" in
+        12*|15*|42*)
+          return 0
+          ;;
+      esac
+      ;;
+    centos|ol|rhel)
+      case "$distro_version" in
+        7*|8*)
+          return 0
+          ;;
+      esac
+      ;;
+  esac
+  return 1
+}
+
 parse_args_and_install() {
   local access_token=
   local api_url=
@@ -703,6 +744,35 @@ parse_args_and_install() {
   if [ "$uninstall" = true ]; then
       uninstall
       exit 0
+  fi
+
+  case "$distro" in
+    debian|ubuntu)
+      if [ -z "$distro_codename" ]; then
+        echo "Your Linux distribution codename could not be determined from /etc/os-release." >&2
+        exit 1
+      fi
+      ;;
+    *)
+      if [ -z "$distro" ]; then
+        echo "Your Linux distribution could not be determined from /etc/os-release." >&2
+        exit 1
+      fi
+      if [ -z "$distro_version" ]; then
+        echo "Your Linux distribution version could not be determined from /etc/os-release." >&2
+        exit 1
+      fi
+      ;;
+  esac
+
+  if ! distro_is_supported; then
+    echo "Your Linux distribution/version is not supported." >&2
+    exit 1
+  fi
+
+  if ! command -v systemctl >/dev/null 2>&1; then
+    echo "The systemctl command is required but was not found." >&2
+    exit 1
   fi
 
   case "$distro" in

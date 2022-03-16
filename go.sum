@@ -2469,7 +2469,6 @@ github.com/signalfx/golib v2.4.1+incompatible/go.mod h1:nWYefOwlUKWm/SpN/LgVSBny
 github.com/signalfx/golib/v3 v3.0.0/go.mod h1:p+krygP/cDlWvCBEgdkQp3H16rbP4NW7YQa81TDMRe8=
 github.com/signalfx/golib/v3 v3.3.13/go.mod h1:LKKCrEw4rU8ZL/8dVwX5i1+kqm4utB7uaHQpRx587rs=
 github.com/signalfx/golib/v3 v3.3.33/go.mod h1:PB7OovVijH7OGhzMewarEcIZG3eG6akWMDucIb5Jnb4=
-github.com/signalfx/golib/v3 v3.3.43/go.mod h1:LR8eTSda7NzynOqe0ibvV63OuqorWcHDtRCY22zTpKg=
 github.com/signalfx/golib/v3 v3.3.44 h1:h9ZGN7gjeAL2VdVN8VDnXg1tcw93S1dL3ZkIGMyvfrk=
 github.com/signalfx/golib/v3 v3.3.44/go.mod h1:LR8eTSda7NzynOqe0ibvV63OuqorWcHDtRCY22zTpKg=
 github.com/signalfx/gomemcache v0.0.0-20180823214636-4f7ef64c72a9/go.mod h1:Ytb8KfCSyuwy/VILnROdgCvbQLA5ch0nkbG7lKT0BXw=
@@ -2482,10 +2481,10 @@ github.com/signalfx/sapm-proto v0.7.0/go.mod h1:y4b+wJlBKH7AzdastAgdWHrfMBB/QYN+
 github.com/signalfx/sapm-proto v0.7.2/go.mod h1:HLufOh6Gd2altGxbeve+s6hh0EWCWoOM7MmuYuvs5PI=
 github.com/signalfx/sapm-proto v0.9.0 h1:x4EfhzOZtBGyt2x8gc/C23Id9B+3lf1zE59VUWLKbpQ=
 github.com/signalfx/sapm-proto v0.9.0/go.mod h1:OmhyyGyhBzoKQn6G2wM1vpEsGKGo0lym/kj0G41KqZk=
-github.com/signalfx/signalfx-agent v1.0.1-0.20220215161630-3f86e8dbc9e3 h1:RyAhvsgmWWpRShnFeOOQSIpah0i6KHEpPyZy6tzfErQ=
-github.com/signalfx/signalfx-agent v1.0.1-0.20220215161630-3f86e8dbc9e3/go.mod h1:6tlnJURyXweD8eEVCJpwoLcEiZoy3ct1bOEeYtepMUM=
-github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220215161630-3f86e8dbc9e3 h1:Rs9sDaru7oePXYgOfn6u/xsALVuSG8/Tm5tysWhQFEI=
-github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220215161630-3f86e8dbc9e3/go.mod h1:ykse0N6Kzcy+eBFROdiye5MFMM1h2BiZR8s1lKdgJik=
+github.com/signalfx/signalfx-agent v1.0.1-0.20220316145231-66d5e5bfbbe3 h1:uRGlYQOwVN6OAOpSDqZsCByHB0JPMoKp0njxjpSNbsA=
+github.com/signalfx/signalfx-agent v1.0.1-0.20220316145231-66d5e5bfbbe3/go.mod h1:Tol43a7FEsJCjN+UYN6Ii8VcQzpPD/CWB5QeXkWkqG8=
+github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220316145231-66d5e5bfbbe3 h1:EGGv81lQm/zbeirrqnfhqnpa2hbc6RL7LV1Z/yS/BsE=
+github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220316145231-66d5e5bfbbe3/go.mod h1:KtK7NG1CU7cDUZ460MN5e169Zb/O8q7Sg7iQ4x7xSI4=
 github.com/signalfx/signalfx-go v1.6.38-0.20200518153434-ceee8d2570d5/go.mod h1:CeCGXKT2wqqky0Nz8eV0NH/CpMPE7tzYUcV8eQS1U1s=
 github.com/signalfx/signalfx-go v1.8.1 h1:ObJF59/tsRcu8KSST8AfFVTca7po/GP2LoPcaGgcBUI=
 github.com/signalfx/signalfx-go v1.8.1/go.mod h1:EtCwkwvLv+wfjDQVAs1O37yVn3hp2xAKmXA6BFKkRT4=

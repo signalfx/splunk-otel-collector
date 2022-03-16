@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v0.46.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.46.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.46.0) and the [opentelemetry-collector-contrib v0.46.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.46.0) releases.
+
+### 💡 Enhancements 💡
+
+- Upgrade `hostmetrics` receiver dependency (#1341)
+- Update Linux installer script to fail immediately if running on an unsupported Linux distribution (#1351)
+- Update bundled Smart Agent to [v5.19.1](https://github.com/signalfx/signalfx-agent/releases/tag/v5.19.1)
+
 ### 🧰 Bug fixes 🧰
 
 - As a bug fix for hosts number miscalculation in Splunk Observability Cloud, Splunk OpenTelemetry Collector running in 

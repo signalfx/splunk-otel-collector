@@ -61,7 +61,7 @@ func addSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 		dp := sum.DataPoints().At(l)
 		var val interface{}
 		var metricType MetricType
-		switch dp.Type() {
+		switch dp.ValueType() {
 		case pdata.MetricValueTypeInt:
 			val = dp.IntVal()
 			metricType = intMetricType
@@ -122,7 +122,7 @@ func addGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 		dp := doubleGauge.DataPoints().At(l)
 		var val interface{}
 		var metricType MetricType
-		switch dp.Type() {
+		switch dp.ValueType() {
 		case pdata.MetricValueTypeInt:
 			val = dp.IntVal()
 			metricType = IntGauge

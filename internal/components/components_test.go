@@ -63,6 +63,7 @@ func TestDefaultComponents(t *testing.T) {
 		"smartagent",
 		"splunk_hec",
 		"statsd",
+		"tcplog",
 		"zipkin",
 	}
 	expectedProcessors := []config.Type{

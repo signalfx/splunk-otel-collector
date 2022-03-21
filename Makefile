@@ -37,8 +37,8 @@ LINT=golangci-lint
 MISSPELL=misspell -error
 MISSPELL_CORRECTION=misspell -w
 
-BUILD_INFO_IMPORT_PATH=go.opentelemetry.io/collector/internal/version
-BUILD_INFO_IMPORT_PATH_CORE=github.com/open-telemetry/opentelemetry-collector/internal/version
+BUILD_INFO_IMPORT_PATH=github.com/signalfx/splunk-otel-collector/internal/version
+BUILD_INFO_IMPORT_PATH_CORE=go.opentelemetry.io/collector/internal/version
 VERSION=$(shell git describe --match "v[0-9]*" HEAD)
 BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)

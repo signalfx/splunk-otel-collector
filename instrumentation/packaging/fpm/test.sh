@@ -36,6 +36,10 @@ if ! grep -q "$LIBSPLUNK_INSTALL_PATH" /etc/ld.so.preload; then
     echo "$LIBSPLUNK_INSTALL_PATH not found in /etc/ld.so.preload" >&2
     exit 1
 fi
+if [ ! -f "$CONFIG_INSTALL_PATH" ]; then
+    echo "$CONFIG_INSTALL_PATH not found!" >&2
+    exit 1
+fi
 
 ldd "$LIBSPLUNK_INSTALL_PATH"
 
@@ -48,6 +52,10 @@ if [ ! -f /etc/ld.so.preload ]; then
 fi
 if ! grep -q "$LIBSPLUNK_INSTALL_PATH" /etc/ld.so.preload; then
     echo "$LIBSPLUNK_INSTALL_PATH not found in /etc/ld.so.preload" >&2
+    exit 1
+fi
+if [ ! -f "$CONFIG_INSTALL_PATH" ]; then
+    echo "$CONFIG_INSTALL_PATH not found!" >&2
     exit 1
 fi
 

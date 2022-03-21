@@ -8,11 +8,11 @@ struct logger_impl {
 };
 
 logger new_logger() {
-    logger ref = malloc(sizeof *ref);
-    if (ref) {
-        ref->i = 0;
+    logger l = malloc(sizeof *l);
+    if (l) {
+        l->i = 0;
     }
-    return ref;
+    return l;
 }
 
 void save_log(logger l, char *s) {

@@ -1,7 +1,13 @@
 name: Dependency Test
 on:
+  pull_request:
+    paths:
+      - .github/workflows/deps-test.yml
   schedule:
     - cron: '0 12 * * 1-5'
+
+env:
+  OTEL_VERSION: latest
 
 jobs:
   deps-test:
@@ -9,6 +15,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Setup Go
         uses: actions/setup-go@v2.1.4
         with:
@@ -26,39 +34,50 @@ jobs:
           path: |
             /home/runner/go/pkg/mod
           key: go-pkg-mod-${{ runner.os }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
-      - name: Update Core/Contrib Dependencies to main
+      - name: Update Core/Contrib Dependencies to ${{ env.OTEL_VERSION }}
+        id: update-deps
         shell: bash
+        run: |
+          OTEL_VERSION=${{ env.OTEL_VERSION }} ./internal/buildscripts/update-deps 2>&1 | tee -a /tmp/output.txt
+          if git diff --exit-code; then
+            echo "::set-output name=has_changes::false"
+          else
+            echo "::set-output name=has_changes::true"
+          fi
+      - name: Compile
+        shell: bash
+        if: success() && (steps.update-deps.outputs.has_changes == 'true')
+        run: make binaries-all-sys 2>&1 | tee -a output.txt
+      - name: Run Unit Tests
+        shell: bash
+        if: success() && (steps.update-deps.outputs.has_changes == 'true')
+        run: make test 2>&1 | tee -a /tmp/output.txt
+      - name: Build Image
+        shell: bash
+        if: success() && (steps.update-deps.outputs.has_changes == 'true')
+        env:
+          DOCKER_BUILDKIT: '1'
+          SKIP_COMPILE: "true"
+        run: make docker-otelcol 2>&1 | tee -a /tmp/output.txt
+      - name: Run Integration Tests
+        shell: bash
+        if: success() && (steps.update-deps.outputs.has_changes == 'true')
+        env:
+          SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
+        run: make integration-test 2>&1 | tee -a output.txt
+      - name: Generate Report
+        if: failure() && (steps.update-deps.outputs.has_changes == 'true')
         run: |
           run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           echo "[$run_url]($run_url)" > deps-test.md
-          trap "echo '\`\`\`' >> deps-test.md" EXIT
-          echo "- Update Core/Contrib Dependencies to main" >> deps-test.md
-          echo "\`\`\`" >> deps-test.md
-          CORE_VERSION=main CONTRIB_VESION=main ./internal/buildscripts/update-deps 2>&1 | tee -a deps-test.md
-      - name: Compile
-        shell: bash
-        run: |
-          trap "echo '\`\`\`' >> deps-test.md" EXIT
-          echo "- Compile" >> deps-test.md
-          echo "\`\`\`" >> deps-test.md
-          make binaries-all-sys 2>&1 | tee -a deps-test.md
-      - name: Run Tests
-        shell: bash
-        run: |
-          trap "echo '\`\`\`' >> deps-test.md" EXIT
-          echo "- Run Tests" >> deps-test.md
-          echo "\`\`\`" >> deps-test.md
-          make test 2>&1 | tee -a deps-test.md
-      - uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: gomods
-          path: |
-            **/go.mod
-            !**/examples/**/go.mod
+          if [ -f /tmp/output.txt ]; then
+            echo "\`\`\`" >> deps-test.md
+            tail -n50 /tmp/output.txt >> deps-test.md
+            echo "\`\`\`" >> deps-test.md
+          fi
       - name: Create Issue
         uses: peter-evans/create-issue-from-file@v3
-        if: failure()
+        if: failure() && (steps.update-deps.outputs.has_changes == 'true')
         with:
           title: Dependency Test Report
           content-filepath: ./deps-test.md

@@ -69,6 +69,7 @@ jobs:
 
       - name: Lint
         run: |
+          make install-tools
           make -j4 checklicense impi lint misspell
   
   test:

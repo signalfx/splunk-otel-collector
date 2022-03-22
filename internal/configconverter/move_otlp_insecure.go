@@ -29,7 +29,7 @@ func MoveOTLPInsecureKey(_ context.Context, in *config.Map) error {
 	}
 
 	const expr = "exporters::otlp(/\\w+)?::insecure"
-	insecureRE, _ := regexp.Compile(expr)
+	insecureRE := regexp.MustCompile(expr)
 	out := config.NewMap()
 	var deprecatedOTLPConfigFound bool
 	for _, k := range in.AllKeys() {

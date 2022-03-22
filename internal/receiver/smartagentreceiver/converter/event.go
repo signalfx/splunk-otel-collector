@@ -27,14 +27,14 @@ const (
 	SFxEventCategoryKey = "com.splunk.signalfx.event_category"
 	// SFxEventPropertiesKey key for splunk event properties.
 	SFxEventPropertiesKey = "com.splunk.signalfx.event_properties"
+	// SFxEventType key for splunk event type
+	SFxEventType = "com.splunk.signalfx.event_type"
 )
 
 // eventToLog converts a SFx event to a pdata.Logs entry suitable for consumption by LogConsumer.
 // based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/5de076e9773bdb7617b544a57fa0a4b848cec92c/receiver/signalfxreceiver/signalfxv2_event_to_logdata.go#L27
 func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) pdata.Logs {
 	logs, lr := newLogs()
-
-	lr.SetName(event.EventType)
 
 	var unixNano int64
 	if !event.Timestamp.IsZero() {
@@ -43,7 +43,7 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) pdata.Logs {
 	lr.SetTimestamp(pdata.Timestamp(unixNano))
 
 	// size for event category and dimension attributes
-	attrsCapacity := 1 + len(event.Dimensions)
+	attrsCapacity := 2 + len(event.Dimensions)
 	if len(event.Properties) > 0 {
 		attrsCapacity++
 	}
@@ -56,6 +56,10 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) pdata.Logs {
 		attrs.InsertNull(SFxEventCategoryKey)
 	} else {
 		attrs.InsertInt(SFxEventCategoryKey, int64(event.Category))
+	}
+
+	if event.EventType != "" {
+		attrs.InsertString(SFxEventType, event.EventType)
 	}
 
 	for k, v := range event.Dimensions {

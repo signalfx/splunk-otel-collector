@@ -238,8 +238,10 @@ func TestSendEvent(t *testing.T) {
 	require.Equal(t, 1, len(received))
 	log := received[0]
 	logRecord := log.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).LogRecords().At(0)
-	assert.Equal(t, "my_event", logRecord.Name())
 	attributes := logRecord.Attributes()
+	eventType, ok := attributes.Get("com.splunk.signalfx.event_type")
+	require.True(t, ok)
+	assert.Equal(t, "my_event", eventType.StringVal())
 	eventProperties, ok := attributes.Get("com.splunk.signalfx.event_properties")
 	require.True(t, ok)
 	val, ok := eventProperties.MapVal().Get("property")

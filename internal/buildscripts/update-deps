@@ -41,7 +41,7 @@ for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort );
 
     IFS=$OFS
 
-    go mod tidy -go=1.16 && go mod tidy -go=1.17
+    go mod tidy -go=1.16 && go mod tidy -go=1.17  && go mod tidy -go=1.18
 
     popd >/dev/null
 done

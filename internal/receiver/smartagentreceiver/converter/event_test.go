@@ -35,12 +35,9 @@ func TestEventToPDataLogs(tt *testing.T) {
 		{
 			name:  "event zero value",
 			event: event.Event{},
-			expectedLog: newExpectedLog(
-				"",
-				map[string]pdata.AttributeValue{
-					"com.splunk.signalfx.event_category": pdata.NewAttributeValueEmpty(),
-				}, 0,
-			),
+			expectedLog: newExpectedLog(map[string]pdata.AttributeValue{
+				"com.splunk.signalfx.event_category": pdata.NewAttributeValueEmpty(),
+			}, 0),
 		},
 		{
 			name: "complete event",
@@ -63,31 +60,29 @@ func TestEventToPDataLogs(tt *testing.T) {
 				},
 				Timestamp: time.Unix(1, 1),
 			},
-			expectedLog: newExpectedLog(
-				"some_event_type",
-				func() map[string]pdata.AttributeValue {
-					attrs := map[string]pdata.AttributeValue{
-						"com.splunk.signalfx.event_category": pdata.NewAttributeValueInt(1),
-						"dimension_name":                     pdata.NewAttributeValueString("dimension_value"),
-					}
-					properties := pdata.NewAttributeValueMap()
-					pdata.NewAttributeMapFromMap(
-						map[string]pdata.AttributeValue{
-							"bool_property_name":    pdata.NewAttributeValueBool(true),
-							"string_property_name":  pdata.NewAttributeValueString("some value"),
-							"int_property_name":     pdata.NewAttributeValueInt(12345),
-							"int8_property_name":    pdata.NewAttributeValueInt(127),
-							"int16_property_name":   pdata.NewAttributeValueInt(23456),
-							"int32_property_name":   pdata.NewAttributeValueInt(34567),
-							"int64_property_name":   pdata.NewAttributeValueInt(45678),
-							"float32_property_name": pdata.NewAttributeValueDouble(12345.678),
-							"float64_property_name": pdata.NewAttributeValueDouble(23456.789),
-						},
-					).CopyTo(properties.MapVal())
-					attrs["com.splunk.signalfx.event_properties"] = properties
-					return attrs
-				}(), 1000000001,
-			),
+			expectedLog: newExpectedLog(func() map[string]pdata.AttributeValue {
+				attrs := map[string]pdata.AttributeValue{
+					"com.splunk.signalfx.event_category": pdata.NewAttributeValueInt(1),
+					"com.splunk.signalfx.event_type":     pdata.NewAttributeValueString("some_event_type"),
+					"dimension_name":                     pdata.NewAttributeValueString("dimension_value"),
+				}
+				properties := pdata.NewAttributeValueMap()
+				pdata.NewAttributeMapFromMap(
+					map[string]pdata.AttributeValue{
+						"bool_property_name":    pdata.NewAttributeValueBool(true),
+						"string_property_name":  pdata.NewAttributeValueString("some value"),
+						"int_property_name":     pdata.NewAttributeValueInt(12345),
+						"int8_property_name":    pdata.NewAttributeValueInt(127),
+						"int16_property_name":   pdata.NewAttributeValueInt(23456),
+						"int32_property_name":   pdata.NewAttributeValueInt(34567),
+						"int64_property_name":   pdata.NewAttributeValueInt(45678),
+						"float32_property_name": pdata.NewAttributeValueDouble(12345.678),
+						"float64_property_name": pdata.NewAttributeValueDouble(23456.789),
+					},
+				).CopyTo(properties.MapVal())
+				attrs["com.splunk.signalfx.event_properties"] = properties
+				return attrs
+			}(), 1000000001),
 		},
 		{
 			name: "unsupported properties",
@@ -100,23 +95,21 @@ func TestEventToPDataLogs(tt *testing.T) {
 					"uint_property":   uint(12345),
 				},
 			},
-			expectedLog: newExpectedLog(
-				"some_event_type",
-				func() map[string]pdata.AttributeValue {
-					attrs := map[string]pdata.AttributeValue{
-						"com.splunk.signalfx.event_category": pdata.NewAttributeValueInt(10000000),
-					}
-					properties := pdata.NewAttributeValueMap()
-					pdata.NewAttributeMapFromMap(
-						map[string]pdata.AttributeValue{
-							"struct_property": pdata.NewAttributeValueString("{something}"),
-							"uint_property":   pdata.NewAttributeValueString("12345"),
-						},
-					).CopyTo(properties.MapVal())
-					attrs["com.splunk.signalfx.event_properties"] = properties
-					return attrs
-				}(), 0,
-			),
+			expectedLog: newExpectedLog(func() map[string]pdata.AttributeValue {
+				attrs := map[string]pdata.AttributeValue{
+					"com.splunk.signalfx.event_category": pdata.NewAttributeValueInt(10000000),
+					"com.splunk.signalfx.event_type":     pdata.NewAttributeValueString("some_event_type"),
+				}
+				properties := pdata.NewAttributeValueMap()
+				pdata.NewAttributeMapFromMap(
+					map[string]pdata.AttributeValue{
+						"struct_property": pdata.NewAttributeValueString("{something}"),
+						"uint_property":   pdata.NewAttributeValueString("12345"),
+					},
+				).CopyTo(properties.MapVal())
+				attrs["com.splunk.signalfx.event_properties"] = properties
+				return attrs
+			}(), 0),
 		},
 	} {
 		tt.Run(test.name, func(t *testing.T) {
@@ -126,10 +119,9 @@ func TestEventToPDataLogs(tt *testing.T) {
 	}
 }
 
-func newExpectedLog(eventType string, properties map[string]pdata.AttributeValue, timestamp uint64) pdata.Logs {
+func newExpectedLog(properties map[string]pdata.AttributeValue, timestamp uint64) pdata.Logs {
 	ld := pdata.NewLogs()
 	lr := ld.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().LogRecords().AppendEmpty()
-	lr.SetName(eventType)
 	lr.SetTimestamp(pdata.Timestamp(timestamp))
 
 	attrs := lr.Attributes()
@@ -144,7 +136,6 @@ func assertLogsEqual(t *testing.T, expected, received pdata.Logs) {
 	expectedLog := expected.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).LogRecords().At(0)
 	receivedLog := received.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).LogRecords().At(0)
 
-	assert.Equal(t, expectedLog.Name(), receivedLog.Name())
 	assert.Equal(t, expectedLog.Timestamp(), receivedLog.Timestamp())
 
 	assertAttributeMapContainsAll(t, expectedLog.Attributes(), receivedLog.Attributes())

@@ -31,12 +31,12 @@ func RenameK8sTagger(_ context.Context, in *config.Map) error {
 	}
 
 	tagger := "k8s_tagger(/\\w+:{0,2})?"
-	taggerRe, _ := regexp.Compile(tagger)
+	taggerRe := regexp.MustCompile(tagger)
 	keyExpr := fmt.Sprintf("processors::%s(.+)?", tagger)
-	k8sTaggerKeyRe, _ := regexp.Compile(keyExpr)
+	k8sTaggerKeyRe := regexp.MustCompile(keyExpr)
 
 	const serviceExpr = "service(.+)processors"
-	serviceEntryRe, _ := regexp.Compile(serviceExpr)
+	serviceEntryRe := regexp.MustCompile(serviceExpr)
 
 	found := false
 	out := config.NewMap()

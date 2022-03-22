@@ -33,7 +33,7 @@ func RemoveBallastKey(_ context.Context, cfgMap *config.Map) error {
 	}
 
 	const expr = "processors::memory_limiter(/\\w+)?::ballast_size_mib"
-	ballastKeyRegexp, _ := regexp.Compile(expr)
+	ballastKeyRegexp := regexp.MustCompile(expr)
 
 	out := config.NewMap()
 	for _, k := range cfgMap.AllKeys() {

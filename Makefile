@@ -167,7 +167,7 @@ impi:
 .PHONY: install-tools
 install-tools:
 	go install github.com/client9/misspell/cmd/misspell@v0.3.4
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.41.1
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.45.0
 	go install github.com/google/addlicense@v0.0.0-20200906110928-a0294312aa76
 	go install github.com/jstemmer/go-junit-report@v0.9.1
 	go install github.com/ory/go-acc@v0.2.6

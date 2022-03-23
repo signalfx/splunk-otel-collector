@@ -49,7 +49,6 @@ void run_test(test_func_t run_test) {
     unsetenv(java_tool_options_var);
     unsetenv(otel_service_name_var);
     unsetenv(resource_attributes_var);
-    unsetenv(exporter_otlp_endpoint_var);
     unsetenv(disable_env_var);
     logger l = new_logger();
     run_test(l);
@@ -62,11 +61,10 @@ void test_auto_instrument_svc_name_in_config(logger l) {
     char *logs[256];
     int n = get_logs(l, logs);
     char *funcname = "test_auto_instrument_svc_name_in_config";
-    require_equal_ints(funcname, 4, n);
+    require_equal_ints(funcname, 3, n);
     require_equal_strings(funcname, "setting JAVA_TOOL_OPTIONS='-javaagent:/foo/asdf.jar'", logs[0]);
     require_equal_strings(funcname, "setting OTEL_SERVICE_NAME='my.service'", logs[1]);
-    require_equal_strings(funcname, "setting OTEL_EXPORTER_OTLP_ENDPOINT='http://foo-host:1234'", logs[2]);
-    require_equal_strings(funcname, "setting OTEL_RESOURCE_ATTRIBUTES='myattr=myval'", logs[3]);
+    require_equal_strings(funcname, "setting OTEL_RESOURCE_ATTRIBUTES='myattr=myval'", logs[2]);
     require_env(funcname, "-javaagent:/foo/asdf.jar", java_tool_options_var);
     require_env(funcname, "my.service", otel_service_name_var);
     cmdline_reader_close(cr);
@@ -151,7 +149,6 @@ void test_read_config(logger l) {
     require_equal_strings(funcname, "default.service", cfg.service_name);
     require_equal_strings(funcname, "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar", cfg.java_agent_jar);
     require_equal_strings(funcname, "deployment.environment=test", cfg.resource_attributes);
-    require_equal_strings(funcname, "http://localhost:4317", cfg.exporter_otlp_endpoint);
     free_config(&cfg);
 }
 
@@ -161,12 +158,11 @@ void test_read_config_missing_file(logger l) {
     char *logs[256];
     int n = get_logs(l, logs);
     char *funcname = "test_read_config_missing_file";
-    require_equal_ints(funcname, 5, n);
+    require_equal_ints(funcname, 4, n);
     require_equal_strings(funcname, "file not found: foo.txt", logs[0]);
     require_equal_strings(funcname, "service_name not found in config", logs[1]);
     require_equal_strings(funcname, "java_agent_jar not found in config", logs[2]);
     require_equal_strings(funcname, "resource_attributes not found in config", logs[3]);
-    require_equal_strings(funcname, "exporter_otlp_endpoint not found in config", logs[4]);
     require_equal_strings(funcname, NULL, cfg.service_name);
     require_equal_strings(funcname, NULL, cfg.java_agent_jar);
     free_config(&cfg);
@@ -279,7 +275,6 @@ void test_env_var_already_set(logger l) {
     char *funcname = "test_env_var_already_set";
     require_env(funcname, "asdf", java_tool_options_var);
     require_env(funcname, "myattr=myval", resource_attributes_var);
-    require_env(funcname, "http://foo-host:1234", exporter_otlp_endpoint_var);
     cmdline_reader_close(cr);
 }
 
@@ -289,7 +284,6 @@ void fake_load_config(logger log, struct config *cfg, char *path) {
     cfg->java_agent_jar = strdup("/foo/asdf.jar");
     cfg->service_name = strdup("my.service");
     cfg->resource_attributes = strdup("myattr=myval");
-    cfg->exporter_otlp_endpoint = strdup("http://foo-host:1234");
 }
 
 void fake_load_config_no_svcname(logger log, struct config *cfg, char *path) {

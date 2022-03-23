@@ -26,9 +26,6 @@ void load_config(logger log, struct config *cfg, char *file_name) {
     if (cfg->resource_attributes == NULL) {
         log_debug(log, "resource_attributes not found in config");
     }
-    if (cfg->exporter_otlp_endpoint == NULL) {
-        log_debug(log, "exporter_otlp_endpoint not found in config");
-    }
 }
 
 void read_config_file(logger log, struct config *cfg, char *file_name) {
@@ -61,8 +58,6 @@ void read_lines(struct config *cfg, FILE *fp) {
             cfg->service_name = strdup(pair.v);
         } else if (streq(pair.k, "resource_attributes")) {
             cfg->resource_attributes = strdup(pair.v);
-        } else if (streq(pair.k, "exporter_otlp_endpoint")) {
-            cfg->exporter_otlp_endpoint = strdup(pair.v);
         }
     }
 }

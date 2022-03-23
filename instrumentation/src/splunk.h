@@ -9,7 +9,6 @@
 static char *const disable_env_var = "DISABLE_SPLUNK_AUTOINSTRUMENTATION";
 static char *const java_tool_options_var = "JAVA_TOOL_OPTIONS";
 static char *const otel_service_name_var = "OTEL_SERVICE_NAME";
-static char *const exporter_otlp_endpoint_var = "OTEL_EXPORTER_OTLP_ENDPOINT";
 static char *const resource_attributes_var = "OTEL_RESOURCE_ATTRIBUTES";
 
 typedef bool (*has_access_func_t)(const char *);

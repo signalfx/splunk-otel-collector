@@ -9,7 +9,6 @@ struct config {
     char *java_agent_jar;
     char *service_name;
     char *resource_attributes;
-    char *exporter_otlp_endpoint;
 };
 
 void load_config(logger log, struct config *cfg, char *file_name);

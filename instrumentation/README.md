@@ -21,7 +21,7 @@ Once instrumented, Java executables send traces to a locally running
 ### Environment Variables
 
 The way the .so causes a Java executable to be instrumented is by setting the environment variables, JAVA_TOOL_OPTIONS
-and OTEL_SERVICE_NAME, and optionally, OTEL_EXPORTER_OTLP_ENDPOINT and OTEL_RESOURCE_ATTRIBUTES.
+and OTEL_SERVICE_NAME, and optionally, OTEL_RESOURCE_ATTRIBUTES.
 
 #### JAVA_TOOL_OPTIONS
 
@@ -39,12 +39,6 @@ arguments of the Java executable (can be overridden via the config).
 This variable is set directly from the `service_name` attribute in the config.
 
 _Meta: link to docs about how service name is used and why it's required._
-
-#### OTEL_EXPORTER_OTLP_ENDPOINT
-
-This environment variable tells the auto-instrumentation jar where to send traces. Defaults to `http://localhost:4317`.
-
-This variable is set directly from the optional `exporter_otlp_endpoint` attribute in the config.
 
 #### OTEL_RESOURCE_ATTRIBUTES
 
@@ -121,10 +115,6 @@ This is an optional override for the service name that would otherwise be genera
 startup. By default, this line is commented out, but can be uncommented to override the generated name. If this
 parameter is set, all instrumented Java applications on this host will have the specified service name (via the
 OTEL_SERVICE_NAME environment variable).
-
-#### exporter_otlp_endpoint (optional)
-
-Tells the auto-instrumentation jar where to send traces. Defaults to `http://localhost:4317`.
 
 ### resource_attributes (optional but highly recommended)
 

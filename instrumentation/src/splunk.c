@@ -79,7 +79,6 @@ void auto_instrument(
         set_service_name_from_config(log, &cfg);
     }
 
-    set_env_var_from_attr(log, "exporter_otlp_endpoint", exporter_otlp_endpoint_var, cfg.exporter_otlp_endpoint);
     set_env_var_from_attr(log, "resource_attributes", resource_attributes_var, cfg.resource_attributes);
 
     free_config(&cfg);

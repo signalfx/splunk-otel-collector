@@ -76,7 +76,7 @@ jobs:
             echo "\`\`\`" >> deps-test.md
           fi
       - name: Create Issue
-        uses: peter-evans/create-issue-from-file@v3
+        uses: peter-evans/create-issue-from-file@v4
         if: failure() && (steps.update-deps.outputs.has_changes == 'true')
         with:
           title: Dependency Test Report

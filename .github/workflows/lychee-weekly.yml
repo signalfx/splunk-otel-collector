@@ -11,7 +11,7 @@ jobs:
         with:
           args: --accept 200,429 --exclude "my.host" --exclude "file://*" --exclude "api.*.signalfx.com" --exclude "ingest.*.signalfx.com" --exclude "splunk.jfrog.io.*basearch" --exclude "localhost:*" --exclude "127.*:*" -v -n './*.md' './**/*.md'
       - name: Create Issue From File
-        uses: peter-evans/create-issue-from-file@v3
+        uses: peter-evans/create-issue-from-file@v4
         with:
           title: Link Checker Report
           content-filepath: ./lychee/out.md

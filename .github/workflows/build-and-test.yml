@@ -5,8 +5,16 @@ on:
     branches:
       - main
   pull_request:
-    paths-ignore:
-      - '**/*.md'
+    paths:
+      - '.github/workflows/build-and-test.yml'
+      - '.github/workflows/scripts/**'
+      - 'cmd/**'
+      - 'internal/**'
+      - 'tests/**'
+      - 'Makefile'
+      - 'go.mod'
+      - 'go.sum'
+      - '!**.md'
 
 concurrency:
   group: build-and-test-${{ github.event.pull_request.number || github.ref }}

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Remove `signalfx` exporter from traces pipeline in default gateway config (#1393)
+
 ## v0.47.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.47.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.47.0) and the [opentelemetry-collector-contrib v0.47.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.47.0) releases.

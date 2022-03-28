@@ -31,17 +31,17 @@ mkdir -p $TARGET_DIR
 cp "$BUILDPACK_DIR/../$OTEL_CONFIG" "$TARGET_DIR/"
 
 # File name for given release version
-OTELCOL="${OTELCOL:-otelcontribcol_${OS}-v${OTEL_VERSION}}"
-OTELCOL_TAR="$OTELCOL.tar.gz"
-CACHED_OTELCOL_TAR="$CACHE_DIR/$OTELCOL_TAR"
+OTEL_BINARY="${OTEL_BINARY:-otelcontribcol_${OS}-v${OTEL_VERSION}}"
+OTEL_BINARY_TAR="$OTEL_BINARY.tar.gz"
+CACHED_OTEL_BINARY_TAR="$CACHE_DIR/$OTEL_BINARY_TAR"
 
-if [[ -f "$CACHED_OTELCOL_TAR" ]]; then
-  echo "-----> Using cached Otel Collector install: $CACHED_OTELCOL_TAR"
-  cp $CACHED_OTELCOL_TAR $TARGET_DIR
+if [[ -f "$CACHED_OTEL_BINARY_TAR" ]]; then
+  echo "-----> Using cached Otel Collector install: $CACHED_OTEL_BINARY_TAR"
+  cp $CACHED_OTEL_BINARY_TAR $TARGET_DIR
 else
-  OTELCOL_DOWNLOAD_URL="${OTELCOL_DOWNLOAD_URL:-https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v${OTEL_VERSION}/otelcol-contrib_${OTEL_VERSION}_${OS}.tar.gz}"
-  echo "-----> Downloading OpenTelemetry Collector v$OTEL_VERSION ($OTELCOL_DOWNLOAD_URL)"
-  wget -O "$TARGET_DIR/$OTELCOL_TAR" $OTELCOL_DOWNLOAD_URL > /dev/null 2>&1
+  OTEL_BINARY_DOWNLOAD_URL="${OTEL_BINARY_DOWNLOAD_URL:-https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v${OTEL_VERSION}/otelcol-contrib_${OTEL_VERSION}_${OS}.tar.gz}"
+  echo "-----> Downloading OpenTelemetry Collector v$OTEL_VERSION ($OTEL_BINARY_DOWNLOAD_URL)"
+  wget -nv -O "$TARGET_DIR/$OTEL_BINARY_TAR" $OTEL_BINARY_DOWNLOAD_URL
 fi
 
 if [ $? -ne 0 ]; then
@@ -51,18 +51,18 @@ if [ $? -ne 0 ]; then
 fi
 
 # Cache the Collector
-cp "$TARGET_DIR/$OTELCOL_TAR" $CACHE_DIR
+cp "$TARGET_DIR/$OTEL_BINARY_TAR" $CACHE_DIR
 
 # Move Collector executable and config to dependencies directory to enable app access
-tar -xf "$TARGET_DIR/$OTELCOL_TAR" -C "$TARGET_DIR"
-mv "$TARGET_DIR/otelcol-contrib" "$TARGET_DIR/$OTELCOL"
-cp -f "$TARGET_DIR/$OTELCOL" "$TARGET_DIR/$OTEL_CONFIG" "$DEPS_DIR"
-chmod 755 "$DEPS_DIR/$OTELCOL"
+tar -xf "$TARGET_DIR/$OTEL_BINARY_TAR" -C "$TARGET_DIR"
+mv "$TARGET_DIR/otelcol-contrib" "$TARGET_DIR/$OTEL_BINARY"
+cp -f "$TARGET_DIR/$OTEL_BINARY" "$TARGET_DIR/$OTEL_CONFIG" "$DEPS_DIR"
+chmod 755 "$DEPS_DIR/$OTEL_BINARY"
 
 # Define Collector's default environment variables by adding bash script to .profile.d directory in root of app
 mkdir $DEPS_DIR/$IDX/profile.d
 echo "export RLP_GATEWAY_SHARD_ID=\"otelcol\"
-export RLP_GATEWAY_TLS_INSECURE=true
-export UAA_TLS_INSECURE=true" >> $DEPS_DIR/$IDX/profile.d/otel_config_env_vars.sh
+export RLP_GATEWAY_TLS_INSECURE=false
+export UAA_TLS_INSECURE=false" >> $DEPS_DIR/$IDX/profile.d/otel_config_env_vars.sh
 
 echo "-----> Successfully installed OpenTelemetry Collector v$OTEL_VERSION and set default environment variables"

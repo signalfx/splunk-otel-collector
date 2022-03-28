@@ -18,10 +18,10 @@ processors:
 
 exporters:
   signalfx:
-    access_token: ${SIGNALFX_ACCESS_TOKEN}
-    realm: ${SIGNALFX_REALM}
-    api_url: ${SIGNALFX_API_URL}
-    ingest_url: ${SIGNALFX_INGEST_URL}
+    access_token: ${SPLUNK_ACCESS_TOKEN}
+    realm: ${SPLUNK_REALM}
+    api_url: ${SPLUNK_API_URL}
+    ingest_url: ${SPLUNK_INGEST_URL}
 
 service:
   pipelines:

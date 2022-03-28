@@ -1,8 +1,7 @@
-# OpenTelemetry Pivotal Cloud Foundry (PCF) Buildpack
+# OpenTelemetry Collector Pivotal Cloud Foundry (PCF) Buildpack
 
 A [Cloud Foundry buildpack](https://docs.pivotal.io/application-service/2-11/buildpacks/) to install
-the OpenTelemetry Collector for use with PCF apps.  This will probably work for generic Cloud Foundry
-apps as well, but it is only tested and supported on Pivotal Platform.
+the OpenTelemetry Collector for use with PCF apps.
 
 The buildpack's default functionality, as described in this document, is to deploy the OpenTelemetry Collector
 as a sidecar for the given app that's being deployed. The Collector is able to observe the app as a nozzle through
@@ -19,6 +18,8 @@ apps and deployments that emit metrics and logs to the Loggregator Firehose as l
 $ cf create-buildpack otel_collector_buildpack . 99 --enable
 ```
 
+Note: `wget` is used to download the OpenTelemetry Collector.
+
 ### Using PCF Buildpack With an Application
 This section covers basic cf CLI (Cloud Foundry Command Line Interface) commands to use the buildpack. 
 ```sh
@@ -26,7 +27,7 @@ This section covers basic cf CLI (Cloud Foundry Command Line Interface) commands
 $ cf set-env <app-name> OTEL_CONFIG <config_file_name>
 $ cf set-env <app-name> OTELCOL <desired_collector_executable_name>
 
-$ cd <my-application-direcory>/
+$ cd <my-application-directory>/
 
 # How to run an application without a manifest.yml file:
 # Note: This will provide the Collector for the app, but the Collector will not be running.
@@ -62,7 +63,7 @@ Required:
     e.g. `https://uaa.sys.<TAS environment name>.cf-app.com`
 - `UAA_USERNAME` - Name of the UAA user.
 - `UAA_PASSWORD` - Password for the UAA user.
-- `SIGNALFX_ACCESS_TOKEN` - Your SignalFx organization access token.
+- `SPLUNK_ACCESS_TOKEN` - Your Splunk organization access token.
 
 Optional:
 - `OS` - Operating system that Cloud Foundry is running. Must match format of Otel Collector executable name.
@@ -70,20 +71,19 @@ Optional:
 - `OTEL_CONFIG` - Local name of OpenTelemetry config file. Default: `otelconfig.yaml`
 - `OTEL_VERSION` - Executable version of OpenTelemetry Collector (contrib) to use. The buildpack depends on features present in version
     0.47.0+. Default: `0.47.0`
-- `OTELCOL` - OpenTelemetry Collector executable file name. Default: `otelcontribcol_$OS-v$OTEL_VERSION`
+- `OTEL_BINARY` - OpenTelemetry Collector executable file name. Default: `otelcontribcol_$OS-v$OTEL_VERSION`
 - `OTELCOLLECTOR_DOWNLOAD_URL` - URL to download the OpenTelemetry Collector from.
-
 - `RLP_GATEWAY_SHARD_ID` - Metrics are load balanced between receivers that use the same shard ID.
    Only use if multiple receivers must receive all metrics instead of
    balancing metrics between them. Default: `otelcol`
-- `RLP_GATEWAY_TLS_INSECURE` - Whether to skip TLS verify for the RLP gateway endpoint. Default: `true`
-- `UAA_TLS_INSECURE` - Whether to skip TLS verify for the UAA endpoint. Default: `true`
-- `SIGNALFX_INGEST_URL` - The ingest base URL for SignalFx. If specified, SIGNALFX_API_URL is also required.
-   This option takes precedence over SIGNALFX_REALM.
-- `SIGNALFX_API_URL` - The API server base URL for SignalFx. If specified, SIGNALFX_INGEST_URL is also required.
-   This option take precedence over SIGNALFX_REALM.
-- `SIGNALFX_REALM` - The SignalFx realm in which your organization resides. Used to derive SIGNALFX_INGEST_URL and
-   SIGNALFX_API_URL.
+- `RLP_GATEWAY_TLS_INSECURE` - Whether to skip TLS verify for the RLP gateway endpoint. Default: `false`
+- `UAA_TLS_INSECURE` - Whether to skip TLS verify for the UAA endpoint. Default: `false`
+- `SPLUNK_INGEST_URL` - The ingest base URL for Splunk. If specified, SPLUNK_API_URL is also required.
+   This option takes precedence over SPLUNK_REALM.
+- `SPLUNK_API_URL` - The API server base URL for Splunk. If specified, SPLUNK_INGEST_URL is also required.
+   This option take precedence over SPLUNK_REALM.
+- `SPLUNK_REALM` - The Splunk realm in which your organization resides. Used to derive SPLUNK_INGEST_URL and
+   SPLUNK_API_URL.
 
 ## Sidecar Configuration
 
@@ -111,8 +111,8 @@ applications:
       UAA_ENDPOINT: "https://uaa.sys.<TAS environment name>.cf-app.com"
       UAA_USERNAME: "..."
       UAA_PASSWORD: "..."
-      SIGNALFX_ACCESS_TOKEN: "..."
-      SIGNALFX_REALM: "..."
+      SPLUNK_ACCESS_TOKEN: "..."
+      SPLUNK_REALM: "..."
     sidecars:
       - name: otel-collector
         process_types:
@@ -144,7 +144,15 @@ $ cf push
 
 * Another possibility is the sidecar was not allocated memory. The `memory` option
 is required for a sidecar process for it to run. Once memory allocation has been added to the sidecar,
-re-run the above command to apply the manifest and push the application again.
+re-run the above command to apply the manifest and push the application again. Example YAML that will
+fail:
+```yaml
+sidecars:
+  - name: otel-collector
+    process_types:
+      - web
+    command: "$HOME/../deps/otelcontribcol_${OS:-linux_amd64}-v${OTEL_VERSION:-0.47.0} --config=$HOME/../deps/${OTEL_CONFIG:-otelconfig.yaml}"
+```
 
 ### Useful CF CLI debugging commands
 ```sh

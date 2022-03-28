@@ -1,8 +1,4 @@
 #!/bin/sh
 
-if [ -n "$DISABLE_OTEL_COLLECTOR" ]; then
-	exit 1
-fi
-
 echo "OpenTelemetry Collector"
 exit 0

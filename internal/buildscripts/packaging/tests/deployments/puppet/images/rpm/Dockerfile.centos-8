@@ -4,7 +4,7 @@ ENV container docker
 
 RUN sed -i 's|\$releasever|8-stream|g' /etc/yum.repos.d/CentOS*.repo
 RUN dnf install -y --allowerasing centos-stream-release
-
+RUN dnf update -y --nobest
 RUN dnf install -y systemd procps initscripts
 
 ARG PUPPET_RELEASE="6"

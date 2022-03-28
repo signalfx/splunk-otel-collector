@@ -8,8 +8,7 @@
 #include <stdio.h>
 
 #define ENV_VAR_LEN 512
-#define MAX_SERVICE_NAME_LEN 256
-#define MAX_JAR_PATH_LEN 256
+#define MAX_CONFIG_ATTR_LEN 256
 
 #define JAVA_TOOL_OPTIONS_PREFIX "-javaagent:";
 
@@ -27,7 +26,9 @@ void set_service_name_from_config(logger log, struct config *cfg);
 
 bool is_disable_env_set();
 
-void set_service_name(logger log, char *service_name);
+void set_env_var(logger log, const char *var_name, const char *value);
+
+void set_env_var_from_attr(logger log, const char *attr_name, const char *env_var_name, const char *value);
 
 // The entry point for all executables prior to their execution. If the executable is named "java", we
 // set the env vars JAVA_TOOL_OPTIONS to the path of the java agent jar and OTEL_SERVICE_NAME to the
@@ -78,44 +79,58 @@ void auto_instrument(
         set_service_name_from_config(log, &cfg);
     }
 
+    set_env_var_from_attr(log, "resource_attributes", resource_attributes_var, cfg.resource_attributes);
+
     free_config(&cfg);
 }
 
 void set_service_name_from_cmdline(logger log, cmdline_reader cr) {
     char *args[256];
     int n = get_cmdline_args(args, 256, cr);
-    char service_name[MAX_SERVICE_NAME_LEN] = "";
+    char service_name[MAX_CONFIG_ATTR_LEN] = "";
     generate_servicename_from_args(service_name, args, n);
-    set_service_name(log, service_name);
+    set_env_var(log, otel_service_name_var, service_name);
     free_cmdline_args(args, n);
 }
 
 void set_service_name_from_config(logger log, struct config *cfg) {
     char log_line[MAX_LOG_LINE_LEN] = "";
     size_t service_name_len = strlen(cfg->service_name);
-    if (service_name_len > MAX_SERVICE_NAME_LEN) {
-        sprintf(log_line, "service_name too long: got %zu chars, max %d chars", service_name_len, MAX_SERVICE_NAME_LEN);
+    if (service_name_len > MAX_CONFIG_ATTR_LEN) {
+        sprintf(log_line, "service_name too long: got %zu chars, max %d chars", service_name_len, MAX_CONFIG_ATTR_LEN);
         log_warning(log, log_line);
         return;
     }
-    set_service_name(log, cfg->service_name);
+    set_env_var(log, otel_service_name_var, cfg->service_name);
 }
 
-void set_service_name(logger log, char *service_name) {
-    char otel_service_name[ENV_VAR_LEN] = "";
-    strcat(otel_service_name, service_name);
+void set_env_var_from_attr(logger log, const char *attr_name, const char *env_var_name, const char *value) {
+    if (value == NULL) {
+        return;
+    }
+    size_t len = strlen(value);
+    if (len > MAX_CONFIG_ATTR_LEN) {
+        char log_line[MAX_LOG_LINE_LEN] = "";
+        sprintf(log_line, "%s too long: got %zu chars, max %d chars", attr_name, len, MAX_CONFIG_ATTR_LEN);
+        log_warning(log, log_line);
+        return;
+    }
+    set_env_var(log, env_var_name, value);
+}
+
+void set_env_var(logger log, const char *var_name, const char *value) {
     char log_line[MAX_LOG_LINE_LEN] = "";
-    sprintf(log_line, "setting OTEL_SERVICE_NAME='%s'", otel_service_name);
+    sprintf(log_line, "setting %s='%s'", var_name, value);
     log_debug(log, log_line);
-    setenv(otel_service_name_var, otel_service_name, 0);
+    setenv(var_name, value, 0);
 }
 
 void set_java_tool_options(logger log, struct config *cfg) {
     char java_tool_options[ENV_VAR_LEN] = JAVA_TOOL_OPTIONS_PREFIX;
     char log_line[MAX_LOG_LINE_LEN] = "";
     size_t jar_path_len = strlen(cfg->java_agent_jar);
-    if (jar_path_len > MAX_JAR_PATH_LEN) {
-        sprintf(log_line, "jar_path too long: got %zu chars, max %d chars", jar_path_len, MAX_JAR_PATH_LEN);
+    if (jar_path_len > MAX_CONFIG_ATTR_LEN) {
+        sprintf(log_line, "jar_path too long: got %zu chars, max %d chars", jar_path_len, MAX_CONFIG_ATTR_LEN);
         log_warning(log, log_line);
         return;
     }

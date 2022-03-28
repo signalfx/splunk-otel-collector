@@ -23,6 +23,9 @@ void load_config(logger log, struct config *cfg, char *file_name) {
     if (cfg->java_agent_jar == NULL) {
         log_debug(log, "java_agent_jar not found in config");
     }
+    if (cfg->resource_attributes == NULL) {
+        log_debug(log, "resource_attributes not found in config");
+    }
 }
 
 void read_config_file(logger log, struct config *cfg, char *file_name) {
@@ -53,6 +56,8 @@ void read_lines(struct config *cfg, FILE *fp) {
             cfg->java_agent_jar = strdup(pair.v);
         } else if (streq(pair.k, "service_name")) {
             cfg->service_name = strdup(pair.v);
+        } else if (streq(pair.k, "resource_attributes")) {
+            cfg->resource_attributes = strdup(pair.v);
         }
     }
 }

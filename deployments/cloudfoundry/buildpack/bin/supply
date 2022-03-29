@@ -32,30 +32,21 @@ cp "$BUILDPACK_DIR/../$OTEL_CONFIG" "$TARGET_DIR/"
 
 # File name for given release version
 OTEL_BINARY="${OTEL_BINARY:-otelcontribcol_${OS}-v${OTEL_VERSION}}"
-OTEL_BINARY_TAR="$OTEL_BINARY.tar.gz"
-CACHED_OTEL_BINARY_TAR="$CACHE_DIR/$OTEL_BINARY_TAR"
+CACHED_OTEL_BINARY="$CACHE_DIR/$OTEL_BINARY"
 
-if [[ -f "$CACHED_OTEL_BINARY_TAR" ]]; then
-  echo "-----> Using cached Otel Collector install: $CACHED_OTEL_BINARY_TAR"
-  cp $CACHED_OTEL_BINARY_TAR $TARGET_DIR
+if [[ -f "$CACHED_OTEL_BINARY" ]]; then
+  echo "-----> Using cached Otel Collector install: $CACHED_OTEL_BINARY"
+  cp $CACHED_OTEL_BINARY $TARGET_DIR
 else
-  OTEL_BINARY_DOWNLOAD_URL="${OTEL_BINARY_DOWNLOAD_URL:-https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v${OTEL_VERSION}/otelcol-contrib_${OTEL_VERSION}_${OS}.tar.gz}"
+  OTEL_BINARY_DOWNLOAD_URL="${OTEL_BINARY_DOWNLOAD_URL:-https://github.com/signalfx/splunk-otel-collector/releases/download/v${OTEL_VERSION}/otelcol_${OS}}"
   echo "-----> Downloading OpenTelemetry Collector v$OTEL_VERSION ($OTEL_BINARY_DOWNLOAD_URL)"
-  wget -nv -O "$TARGET_DIR/$OTEL_BINARY_TAR" $OTEL_BINARY_DOWNLOAD_URL
-fi
-
-if [ $? -ne 0 ]; then
-    echo "Downloading OpenTelemetry Collector failed" | sed -e 's/^/           /'
-    echo "$OTEL_VERSION does not appear to be a valid version of the OpenTelemetry Collector. Find valid versions here: https://github.com/open-telemetry/opentelemetry-collector-releases/releases" | sed -e 's/^/           /'
-    exit 1;
+  wget -nv -O "$TARGET_DIR/$OTEL_BINARY" $OTEL_BINARY_DOWNLOAD_URL
 fi
 
 # Cache the Collector
-cp "$TARGET_DIR/$OTEL_BINARY_TAR" $CACHE_DIR
+cp "$TARGET_DIR/$OTEL_BINARY" $CACHE_DIR
 
 # Move Collector executable and config to dependencies directory to enable app access
-tar -xf "$TARGET_DIR/$OTEL_BINARY_TAR" -C "$TARGET_DIR"
-mv "$TARGET_DIR/otelcol-contrib" "$TARGET_DIR/$OTEL_BINARY"
 cp -f "$TARGET_DIR/$OTEL_BINARY" "$TARGET_DIR/$OTEL_CONFIG" "$DEPS_DIR"
 chmod 755 "$DEPS_DIR/$OTEL_BINARY"
 

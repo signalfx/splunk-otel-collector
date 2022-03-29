@@ -64,6 +64,11 @@ Required:
 - `UAA_USERNAME` - Name of the UAA user.
 - `UAA_PASSWORD` - Password for the UAA user.
 - `SPLUNK_ACCESS_TOKEN` - Your Splunk organization access token.
+- The Splunk Observability Suite requires an endpoint, so one of the two options below must be specified:
+    1) - `SPLUNK_INGEST_URL` - The ingest base URL for Splunk. This option takes precedence over SPLUNK_REALM.
+       - `SPLUNK_API_URL` - The API server base URL for Splunk. This option takes precedence over SPLUNK_REALM.
+    2) - `SPLUNK_REALM` - The Splunk realm in which your organization resides. Used to derive SPLUNK_INGEST_URL
+       and SPLUNK_API_URL.
 
 Optional:
 - `OS` - Operating system that Cloud Foundry is running. Must match format of Otel Collector executable name.
@@ -72,18 +77,12 @@ Optional:
 - `OTEL_VERSION` - Executable version of OpenTelemetry Collector (contrib) to use. The buildpack depends on features present in version
     0.47.0+. Default: `0.47.0`
 - `OTEL_BINARY` - OpenTelemetry Collector executable file name. Default: `otelcontribcol_$OS-v$OTEL_VERSION`
-- `OTELCOLLECTOR_DOWNLOAD_URL` - URL to download the OpenTelemetry Collector from.
+- `OTEL_BINARY_DOWNLOAD_URL` - URL to download the OpenTelemetry Collector from.
 - `RLP_GATEWAY_SHARD_ID` - Metrics are load balanced between receivers that use the same shard ID.
    Only use if multiple receivers must receive all metrics instead of
    balancing metrics between them. Default: `otelcol`
 - `RLP_GATEWAY_TLS_INSECURE` - Whether to skip TLS verify for the RLP gateway endpoint. Default: `false`
 - `UAA_TLS_INSECURE` - Whether to skip TLS verify for the UAA endpoint. Default: `false`
-- `SPLUNK_INGEST_URL` - The ingest base URL for Splunk. If specified, SPLUNK_API_URL is also required.
-   This option takes precedence over SPLUNK_REALM.
-- `SPLUNK_API_URL` - The API server base URL for Splunk. If specified, SPLUNK_INGEST_URL is also required.
-   This option take precedence over SPLUNK_REALM.
-- `SPLUNK_REALM` - The Splunk realm in which your organization resides. Used to derive SPLUNK_INGEST_URL and
-   SPLUNK_API_URL.
 
 ## Sidecar Configuration
 

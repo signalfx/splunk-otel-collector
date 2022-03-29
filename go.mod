@@ -43,6 +43,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor v0.47.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.47.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.47.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.47.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.47.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.47.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.47.0
@@ -86,9 +87,9 @@ require (
 require (
 	cloud.google.com/go/compute v1.5.0 // indirect
 	cloud.google.com/go/iam v0.1.1 // indirect
-	code.cloudfoundry.org/go-diodes v0.0.0-20180905200951-72629b5276e3 // indirect
+	code.cloudfoundry.org/go-diodes v0.0.0-20211115184647-b584dd5df32c // indirect
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible // indirect
-	code.cloudfoundry.org/rfc5424 v0.0.0-20180905210152-236a6d29298a // indirect
+	code.cloudfoundry.org/rfc5424 v0.0.0-20201103192249-000122071b78 // indirect
 	collectd.org v0.5.0 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0 // indirect
 	github.com/Azure/azure-pipeline-go v0.2.3 // indirect

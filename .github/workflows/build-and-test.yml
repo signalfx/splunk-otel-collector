@@ -104,6 +104,7 @@ jobs:
 
       - name: Unit tests
         run: |
+          make install-tools
           mkdir -p unit-test-results/junit
           trap "go-junit-report  -set-exit-code < unit-test-results/go-unit-tests.out > unit-test-results/junit/results.xml" EXIT
           make test | tee unit-test-results/go-unit-tests.out
@@ -138,6 +139,7 @@ jobs:
       
       - name: Coverage tests
         run: |
+          make install-tools
           make test-with-cover
       
       - name: Uploading artifacts

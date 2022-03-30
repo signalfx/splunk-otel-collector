@@ -396,6 +396,7 @@ release-debs:
     - .sign-release-cache
     - .sign-release
   stage: release
+  resource_group: artifactory-deb
   dependencies:
     - build-deb
   variables:
@@ -413,6 +414,7 @@ release-rpms:
     - .sign-release-cache
     - .sign-release
   stage: release
+  resource_group: artifactory-rpm
   dependencies:
     - build-rpm
   variables:

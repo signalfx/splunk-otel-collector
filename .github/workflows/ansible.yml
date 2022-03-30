@@ -80,6 +80,7 @@ jobs:
           molecule==3.3.0 
           molecule-docker==0.2.4 
           docker==5.0.0
+          ansible-lint==5.4.0
 
       - name: Run Molecule tests.
         run: molecule --base-config ./molecule/config/docker.yml test --all

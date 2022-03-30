@@ -2,7 +2,12 @@
 
 ## Unreleased
 
+## v0.47.1
+
+### 🧰 Bug fixes 🧰
+
 - Remove `signalfx` exporter from traces pipeline in default gateway config (#1393)
+- Update `github.com/open-telemetry/opentelemetry-log-collection` to [v0.27.1](https://github.com/open-telemetry/opentelemetry-log-collection/releases/tag/v0.27.1) to fix logging pipeline issues after upgrading to Go 1.18 (#1418)
 
 ## v0.47.0
 

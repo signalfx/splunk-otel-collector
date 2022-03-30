@@ -378,7 +378,7 @@ require (
 	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65 // indirect
 	golang.org/x/tools v0.1.9 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	gonum.org/v1/gonum v0.9.3 // indirect
+	gonum.org/v1/gonum v0.11.0 // indirect
 	google.golang.org/api v0.72.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220310185008-1973136f34c6 // indirect
@@ -447,3 +447,6 @@ replace (
 
 // https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/8081
 replace github.com/googleapis/gnostic v0.5.6 => github.com/googleapis/gnostic v0.5.5
+
+// https://github.com/open-telemetry/opentelemetry-log-collection/pull/437
+replace github.com/open-telemetry/opentelemetry-log-collection => github.com/open-telemetry/opentelemetry-log-collection v0.27.1

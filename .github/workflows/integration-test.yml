@@ -15,6 +15,10 @@ on:
       - '!internal/buildscripts/packaging/*/**'
       - 'tests/**'
 
+concurrency:
+  group: integration-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   docker-otelcol:
     name: docker-otelcol

@@ -333,12 +333,6 @@ func (mmc *mockMetadataClient) ConsumeMetadata(updates []*metadata.MetadataUpdat
 
 func (mmc *mockMetadataClient) ConsumeLogs(ctx context.Context, logs pdata.Logs) error {
 	mmc.receivedLogs = append(mmc.receivedLogs, logs)
-
-	logRecord := logs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
-	if logRecord.Name() == "error" {
-		logRecord.SetName("has_errored")
-		return fmt.Errorf("some error")
-	}
 	return nil
 }
 

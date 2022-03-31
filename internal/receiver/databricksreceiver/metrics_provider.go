@@ -49,7 +49,7 @@ func (p metricsProvider) addJobStatusMetrics(ms pdata.MetricSlice) ([]int, error
 		jobPt := jobPts.AppendEmpty()
 		pauseStatus := pauseStatusToInt(j.Settings.Schedule.PauseStatus)
 		jobPt.SetIntVal(pauseStatus)
-		jobIDAttr := pdata.NewAttributeValueInt(int64(j.JobID))
+		jobIDAttr := pdata.NewValueInt(int64(j.JobID))
 		jobPt.Attributes().Insert(metadata.A.JobID, jobIDAttr)
 		for _, task := range j.Settings.Tasks {
 			taskPt := taskPts.AppendEmpty()
@@ -61,11 +61,11 @@ func (p metricsProvider) addJobStatusMetrics(ms pdata.MetricSlice) ([]int, error
 			)
 			taskAttrs.Insert(
 				metadata.A.TaskID,
-				pdata.NewAttributeValueString(task.TaskKey),
+				pdata.NewValueString(task.TaskKey),
 			)
 			taskAttrs.Insert(
 				metadata.A.TaskType,
-				pdata.NewAttributeValueString(taskType(task)),
+				pdata.NewValueString(taskType(task)),
 			)
 		}
 	}

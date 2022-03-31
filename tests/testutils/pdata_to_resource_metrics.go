@@ -17,14 +17,14 @@ func PDataToResourceMetrics(pdataMetrics ...pdata.Metrics) (ResourceMetrics, err
 			rm := ResourceMetric{}
 			pdataRM := pdataRMs.At(i)
 			pdataRM.Resource().Attributes().Range(
-				func(k string, v pdata.AttributeValue) bool {
+				func(k string, v pdata.Value) bool {
 					addResourceAttribute(&rm, k, v)
 					return true
 				},
 			)
-			pdataILMs := pdataRM.InstrumentationLibraryMetrics()
+			pdataILMs := pdataRM.ScopeMetrics()
 			for j := 0; j < pdataILMs.Len(); j++ {
-				ilms := InstrumentationLibraryMetrics{Metrics: []Metric{}}
+				ilms := ScopeMetrics{Metrics: []Metric{}}
 				pdataILM := pdataILMs.At(j)
 				ilms.InstrumentationLibrary = InstrumentationLibrary{
 					Name:    pdataILM.InstrumentationLibrary().Name(),
@@ -53,7 +53,7 @@ func PDataToResourceMetrics(pdataMetrics ...pdata.Metrics) (ResourceMetrics, err
 	return resourceMetrics, nil
 }
 
-func addSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
+func addSum(ilms *ScopeMetrics, metric pdata.Metric) {
 	sum := metric.Sum()
 	doubleMetricType := doubleSumMetricType(sum)
 	intMetricType := intSumMetricType(sum)
@@ -70,7 +70,7 @@ func addSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 			metricType = doubleMetricType
 		}
 		labels := map[string]string{}
-		dp.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+		dp.Attributes().Range(func(k string, v pdata.Value) bool {
 			labels[k] = v.AsString()
 			return true
 		})
@@ -86,7 +86,7 @@ func addSum(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 	}
 }
 
-func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pdata.AttributeValue) {
+func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pdata.Value) {
 	var val interface{}
 	switch value.Type() {
 	case pdata.AttributeValueTypeString:
@@ -95,9 +95,9 @@ func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pda
 		val = value.BoolVal()
 	case pdata.AttributeValueTypeInt:
 		val = value.IntVal()
-	case pdata.AttributeValueTypeDouble:
+	case pdata.ValueTypeDouble:
 		val = value.DoubleVal()
-	case pdata.AttributeValueTypeMap:
+	case pdata.ValueTypeMap:
 		val = value.MapVal().AsRaw()
 	case pdata.AttributeValueTypeArray:
 		// Coerce to []interface{}
@@ -116,7 +116,7 @@ func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pda
 	resourceMetric.Resource.Attributes[name] = val
 }
 
-func addGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
+func addGauge(ilms *ScopeMetrics, metric pdata.Metric) {
 	doubleGauge := metric.Gauge()
 	for l := 0; l < doubleGauge.DataPoints().Len(); l++ {
 		dp := doubleGauge.DataPoints().At(l)
@@ -131,7 +131,7 @@ func addGauge(ilms *InstrumentationLibraryMetrics, metric pdata.Metric) {
 			metricType = DoubleGauge
 		}
 		labels := map[string]string{}
-		dp.Attributes().Range(func(k string, v pdata.AttributeValue) bool {
+		dp.Attributes().Range(func(k string, v pdata.Value) bool {
 			labels[k] = v.AsString()
 			return true
 		})

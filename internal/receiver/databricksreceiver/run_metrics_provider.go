@@ -66,14 +66,14 @@ func (p runMetricsProvider) addSingleJobRunMetrics(
 		}
 		jobPt := jobPts.AppendEmpty()
 		jobPt.SetIntVal(int64(run.ExecutionDuration))
-		jobIDAttr := pdata.NewAttributeValueInt(int64(jobID))
+		jobIDAttr := pdata.NewValueInt(int64(jobID))
 		jobPt.Attributes().Insert(metadata.Attributes.JobID, jobIDAttr)
 		for _, task := range run.Tasks {
 			taskPt := taskPts.AppendEmpty()
 			taskPt.SetIntVal(int64(task.ExecutionDuration))
 			taskAttrs := taskPt.Attributes()
 			taskAttrs.Insert(metadata.Attributes.JobID, jobIDAttr)
-			taskAttrs.Insert(metadata.Attributes.TaskID, pdata.NewAttributeValueString(task.TaskKey))
+			taskAttrs.Insert(metadata.Attributes.TaskID, pdata.NewValueString(task.TaskKey))
 		}
 	}
 	return nil

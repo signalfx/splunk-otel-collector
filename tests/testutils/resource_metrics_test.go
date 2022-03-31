@@ -343,22 +343,22 @@ func TestFlattenResourceMetricsByResourceIdentity(t *testing.T) {
 	require.Equal(t, expectedResourceMetrics, FlattenResourceMetrics(resourceMetrics))
 }
 
-func TestFlattenResourceMetricsByInstrumentationLibraryMetricsIdentity(t *testing.T) {
+func TestFlattenResourceMetricsByScopeMetricsIdentity(t *testing.T) {
 	resource := Resource{Attributes: map[string]interface{}{"attribute_three": true, "attribute_four": 23456}}
-	ilm := InstrumentationLibraryMetrics{InstrumentationLibrary: InstrumentationLibrary{
+	ilm := ScopeMetrics{InstrumentationLibrary: InstrumentationLibrary{
 		Name: "an instrumentation library", Version: "an instrumentation library version",
 	}, Metrics: []Metric{}}
 	resourceMetrics := ResourceMetrics{
 		ResourceMetrics: []ResourceMetric{
-			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{}},
-			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm}},
-			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm, ilm}},
-			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm, ilm, ilm}},
+			{Resource: resource, ILMs: []ScopeMetrics{}},
+			{Resource: resource, ILMs: []ScopeMetrics{ilm}},
+			{Resource: resource, ILMs: []ScopeMetrics{ilm, ilm}},
+			{Resource: resource, ILMs: []ScopeMetrics{ilm, ilm, ilm}},
 		},
 	}
 	expectedResourceMetrics := ResourceMetrics{
 		ResourceMetrics: []ResourceMetric{
-			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm}},
+			{Resource: resource, ILMs: []ScopeMetrics{ilm}},
 		},
 	}
 	require.Equal(t, expectedResourceMetrics, FlattenResourceMetrics(resourceMetrics))
@@ -371,22 +371,22 @@ func TestFlattenResourceMetricsByMetricsIdentity(t *testing.T) {
 		{Name: "another metric", Unit: "another unit", Description: "another description", Value: 234},
 		{Name: "yet anothert metric", Unit: "yet anothe unit", Description: "yet anothet description", Value: 345},
 	}
-	ilm := InstrumentationLibraryMetrics{Metrics: metrics}
-	ilmRepeated := InstrumentationLibraryMetrics{Metrics: append(metrics, metrics...)}
-	ilmRepeatedTwice := InstrumentationLibraryMetrics{Metrics: append(metrics, append(metrics, metrics...)...)}
-	ilmWithoutMetrics := InstrumentationLibraryMetrics{}
+	ilm := ScopeMetrics{Metrics: metrics}
+	ilmRepeated := ScopeMetrics{Metrics: append(metrics, metrics...)}
+	ilmRepeatedTwice := ScopeMetrics{Metrics: append(metrics, append(metrics, metrics...)...)}
+	ilmWithoutMetrics := ScopeMetrics{}
 	resourceMetrics := ResourceMetrics{
 		ResourceMetrics: []ResourceMetric{
-			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{}},
-			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm}},
-			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilmRepeated}},
-			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilmRepeatedTwice}},
-			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilmWithoutMetrics}},
+			{Resource: resource, ILMs: []ScopeMetrics{}},
+			{Resource: resource, ILMs: []ScopeMetrics{ilm}},
+			{Resource: resource, ILMs: []ScopeMetrics{ilmRepeated}},
+			{Resource: resource, ILMs: []ScopeMetrics{ilmRepeatedTwice}},
+			{Resource: resource, ILMs: []ScopeMetrics{ilmWithoutMetrics}},
 		},
 	}
 	expectedResourceMetrics := ResourceMetrics{
 		ResourceMetrics: []ResourceMetric{
-			{Resource: resource, ILMs: []InstrumentationLibraryMetrics{ilm}},
+			{Resource: resource, ILMs: []ScopeMetrics{ilm}},
 		},
 	}
 	require.Equal(t, expectedResourceMetrics, FlattenResourceMetrics(resourceMetrics))

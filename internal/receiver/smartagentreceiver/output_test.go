@@ -237,7 +237,7 @@ func TestSendEvent(t *testing.T) {
 	received := mmc.receivedLogs
 	require.Equal(t, 1, len(received))
 	log := received[0]
-	logRecord := log.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).LogRecords().At(0)
+	logRecord := log.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 	attributes := logRecord.Attributes()
 	eventType, ok := attributes.Get("com.splunk.signalfx.event_type")
 	require.True(t, ok)
@@ -334,7 +334,7 @@ func (mmc *mockMetadataClient) ConsumeMetadata(updates []*metadata.MetadataUpdat
 func (mmc *mockMetadataClient) ConsumeLogs(ctx context.Context, logs pdata.Logs) error {
 	mmc.receivedLogs = append(mmc.receivedLogs, logs)
 
-	logRecord := logs.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).LogRecords().At(0)
+	logRecord := logs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 	if logRecord.Name() == "error" {
 		logRecord.SetName("has_errored")
 		return fmt.Errorf("some error")

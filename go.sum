@@ -67,10 +67,12 @@ cloud.google.com/go/storage v1.6.0/go.mod h1:N7U0C8pVQ/+NIKOBQyamJIeKQKkZ+mxpohl
 cloud.google.com/go/storage v1.8.0/go.mod h1:Wv1Oy7z6Yz3DshWRJFhqM/UCfaWIRTdp0RXyy7KQOVs=
 cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9ullr3+Kg0=
 code.cloudfoundry.org/bytefmt v0.0.0-20190710193110-1eb035ffe2b6/go.mod h1:wN/zk7mhREp/oviagqUXY3EwuHhWyOvAdsn5Y4CzOrc=
-code.cloudfoundry.org/go-diodes v0.0.0-20180905200951-72629b5276e3 h1:oHsfl5AaineZubAUOXg2Vxcdu/TzgN/Q+/65lN70LZk=
 code.cloudfoundry.org/go-diodes v0.0.0-20180905200951-72629b5276e3/go.mod h1:Jzi+ccHgo/V/PLQUaQ6hnZcC1c4BS790gx21LRRui4g=
-code.cloudfoundry.org/rfc5424 v0.0.0-20180905210152-236a6d29298a h1:8rqv2w8xEceNwckcF5ONeRt0qBHlh5bnNfFnYTrZbxs=
+code.cloudfoundry.org/go-diodes v0.0.0-20211115184647-b584dd5df32c h1:N2GMlHc/SJQk7BkaME/kDHaciVTy4NuRmxVJLhnqKK8=
+code.cloudfoundry.org/go-diodes v0.0.0-20211115184647-b584dd5df32c/go.mod h1:o7lq/SmHshDVxHdRJ/fMT3VPcoXyE1HcRXbG8QibO3k=
 code.cloudfoundry.org/rfc5424 v0.0.0-20180905210152-236a6d29298a/go.mod h1:tkZo8GtzBjySJ7USvxm4E36lNQw1D3xM6oKHGqdaAJ4=
+code.cloudfoundry.org/rfc5424 v0.0.0-20201103192249-000122071b78 h1:mrZQaZmuDIPhSp6b96b+CRKC2uH44ifa5cjDV2epKis=
+code.cloudfoundry.org/rfc5424 v0.0.0-20201103192249-000122071b78/go.mod h1:tkZo8GtzBjySJ7USvxm4E36lNQw1D3xM6oKHGqdaAJ4=
 collectd.org v0.3.0/go.mod h1:A/8DzQBkF6abtvrT2j/AU/4tiBgJWYyh0y/oB/4MlWE=
 collectd.org v0.5.0 h1:y4uFSAuOmeVhG3GCRa3/oH+ysePfO/+eGJNfd0Qa3d8=
 collectd.org v0.5.0/go.mod h1:A/8DzQBkF6abtvrT2j/AU/4tiBgJWYyh0y/oB/4MlWE=
@@ -1620,8 +1622,8 @@ github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1y
 github.com/onsi/gomega v1.10.3/go.mod h1:V9xEwhxec5O8UDM77eCW8vLymOMltsqPVYWrpDsH8xc=
 github.com/onsi/gomega v1.10.4/go.mod h1:g/HbgYopi++010VEqkFgJHKC09uJiW9UkXvMUuKHUCQ=
 github.com/onsi/gomega v1.13.0/go.mod h1:lRk9szgn8TxENtWd0Tp4c3wjlRfMTMH27I+3Je41yGY=
-github.com/onsi/gomega v1.16.0 h1:6gjqkI8iiRHMvdccRJM8rVKjCWk6ZIm6FTm3ddIe4/c=
 github.com/onsi/gomega v1.16.0/go.mod h1:HnhC7FXeEQY45zxNK3PPoIUhzk/80Xly9PcubAlGdZY=
+github.com/onsi/gomega v1.17.0 h1:9Luw4uT5HTjHTN8+aNcSThgH1vdXnmdJ8xIfZ4wyTRE=
 github.com/op/go-logging v0.0.0-20160315200505-970db520ece7/go.mod h1:HzydrMdWErDVzsI23lYNej1Htcns9BCg93Dk0bBINWk=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.47.0 h1:x4NbKwC9WmQ117uxRmB2spfFfJcW1yJbrwWCmQF5cAg=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.47.0/go.mod h1:VZ03P3DkxAsXFMwzPepRjiDlm6emdG1R/tdoOui+Po0=
@@ -1713,6 +1715,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocesso
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.47.0/go.mod h1:R5bWKcomtePzavm3rOx3vT427Sy8/CidT8mwedSK22A=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.47.0 h1:OB23LqxZEPC7kiyZQpCMV/2C/xEi0pKjacHm/zRddU0=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.47.0/go.mod h1:0sf/sy9vlTVmKBtYDgirEy1GR8AZLuxQXfFLxo0O7vs=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.47.0 h1:dT1Sv2ylM2ZXuX1JCw2UBZBSg1k+P8RKNGrPE4bk2u0=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.47.0/go.mod h1:066PbyTvblptZQzxOlBpHwsbcCfT0/VxraQUTo8Ga8U=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.47.0 h1:VodUya+TvVPt2DWEheIbA4EalusQ5WdH7IcH+Du8ixE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.47.0/go.mod h1:7dexTieeQWeSihs/WzuamSUrpfAu2B+4qQlw7GWHtD4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.47.0 h1:bellXC/tZEl4C6z4aC3AFR/KLvZDjqO7SiyluRHSm8w=

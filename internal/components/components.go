@@ -41,6 +41,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver"
@@ -101,6 +102,7 @@ func Get() (component.Factories, error) {
 
 	receivers, err := component.MakeReceiverFactoryMap(
 		carbonreceiver.NewFactory(),
+		cloudfoundryreceiver.NewFactory(),
 		collectdreceiver.NewFactory(),
 		databricksreceiver.NewFactory(),
 		fluentforwardreceiver.NewFactory(),

@@ -41,6 +41,7 @@ func TestDefaultComponents(t *testing.T) {
 	}
 	expectedReceivers := []config.Type{
 		"carbon",
+		"cloudfoundry",
 		"collectd",
 		"databricks",
 		"filelog",

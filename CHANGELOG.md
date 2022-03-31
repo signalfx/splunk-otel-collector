@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 🚀 New components 🚀
+
+- [`cloudfoundry` receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/cloudfoundryreceiver)
+  to receive metrics from Cloud Foundry deployments and services.
+
 ## v0.47.1
 
 ### 🧰 Bug fixes 🧰

@@ -320,11 +320,11 @@ func TestSFxSpansWithDataSourceIPToPDataTraces(t *testing.T) {
 
 	ip, exists := resources[0].Attributes().Get("ip")
 	assert.True(t, exists)
-	assert.Equal(t, ip, pdata.NewAttributeValueString("127.0.0.1"))
+	assert.Equal(t, ip, pdata.NewValueString("127.0.0.1"))
 
 	ip, exists = resources[1].Attributes().Get("ip")
 	assert.True(t, exists)
-	assert.Equal(t, ip, pdata.NewAttributeValueString("127.0.0.2"))
+	assert.Equal(t, ip, pdata.NewValueString("127.0.0.2"))
 }
 
 func TestNilSFxSpanConversion(t *testing.T) {
@@ -379,8 +379,8 @@ func assertSpansAreEqual(t *testing.T, expectedResourceSpans, resourceSpans pdat
 		expectedResource := expectedResourceSpan.Resource()
 		assert.Equal(t, expectedResource.Attributes(), resource.Attributes())
 
-		illSpansSlice := resourceSpan.InstrumentationLibrarySpans()
-		expectedIllSpansSlice := expectedResourceSpan.InstrumentationLibrarySpans()
+		illSpansSlice := resourceSpan.ScopeSpans()
+		expectedIllSpansSlice := expectedResourceSpan.ScopeSpans()
 		assert.Equal(t, expectedIllSpansSlice.Len(), illSpansSlice.Len())
 
 		for j := 0; j < illSpansSlice.Len(); j++ {
@@ -401,12 +401,12 @@ func assertSpansAreEqual(t *testing.T, expectedResourceSpans, resourceSpans pdat
 				assert.Equal(t, expectedSpan.Status(), span.Status())
 				assert.Equal(t, expectedSpan.Links(), span.Links())
 
-				updateMap := func(m map[string]interface{}) func(k string, v pdata.AttributeValue) bool {
-					return func(k string, v pdata.AttributeValue) bool {
+				updateMap := func(m map[string]interface{}) func(k string, v pdata.Value) bool {
+					return func(k string, v pdata.Value) bool {
 						switch v.Type() {
-						case pdata.AttributeValueTypeString:
+						case pdata.ValueTypeString:
 							m[k] = v.StringVal()
-						case pdata.AttributeValueTypeInt:
+						case pdata.ValueTypeInt:
 							m[k] = v.IntVal()
 						}
 						return true
@@ -505,7 +505,7 @@ func newPDataSpan(
 	if dataSourceIP != "" {
 		rs.Resource().Attributes().InsertString("ip", dataSourceIP)
 	}
-	span := rs.InstrumentationLibrarySpans().AppendEmpty().Spans().AppendEmpty()
+	span := rs.ScopeSpans().AppendEmpty().Spans().AppendEmpty()
 
 	span.SetName(name)
 

@@ -30,6 +30,8 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configmapprovider"
 	"go.opentelemetry.io/collector/config/configunmarshaler"
+	"go.opentelemetry.io/collector/config/mapprovider/envmapprovider"
+	"go.opentelemetry.io/collector/config/mapprovider/filemapprovider"
 	"go.opentelemetry.io/collector/service"
 	"go.uber.org/zap"
 
@@ -102,15 +104,15 @@ func main() {
 
 	serviceConfigProvider := service.MustNewConfigProvider(
 		[]string{configLocation()},
-		map[string]configmapprovider.Provider{
+		map[string]config.MapProvider{
 			"env": configprovider.NewConfigSourceConfigMapProvider(
-				configmapprovider.NewEnv(),
+				envmapprovider.New(),
 				zap.NewNop(), // The service logger is not available yet, setting it to NoP.
 				info,
 				configsources.Get()...,
 			),
 			"file": configprovider.NewConfigSourceConfigMapProvider(
-				configmapprovider.NewFile(),
+				filemapprovider.New(),
 				zap.NewNop(), // The service logger is not available yet, setting it to NoP.
 				info,
 				configsources.Get()...,

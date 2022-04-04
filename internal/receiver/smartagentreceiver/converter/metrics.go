@@ -32,7 +32,7 @@ var (
 // using timeReceived otherwise.
 func sfxDatapointsToPDataMetrics(datapoints []*sfx.Datapoint, timeReceived time.Time, logger *zap.Logger) pdata.Metrics {
 	md := pdata.NewMetrics()
-	ilm := md.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty()
+	ilm := md.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
 
 	metrics := ilm.Metrics()
 	metrics.EnsureCapacity(len(datapoints))

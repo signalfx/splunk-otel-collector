@@ -117,7 +117,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 			resourceMetrics := m.ResourceMetrics()
 			for i := 0; i < resourceMetrics.Len(); i++ {
 				resourceMetric := resourceMetrics.At(i)
-				instrumentationLibraryMetrics := resourceMetric.InstrumentationLibraryMetrics()
+				instrumentationLibraryMetrics := resourceMetric.ScopeMetrics()
 				for j := 0; j < instrumentationLibraryMetrics.Len(); j++ {
 					instrumentationLibraryMetric := instrumentationLibraryMetrics.At(j)
 					metrics := instrumentationLibraryMetric.Metrics()
@@ -128,7 +128,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 						expectedDataType := expectedCPUMetrics[name]
 						require.NotEqual(t, pdata.MetricDataTypeNone, expectedDataType, "received unexpected none type for %s", name)
 						assert.Equal(t, expectedDataType, dataType)
-						var attributes pdata.AttributeMap
+						var attributes pdata.Map
 						switch dataType {
 						case pdata.MetricDataTypeGauge:
 							dg := metric.Gauge()

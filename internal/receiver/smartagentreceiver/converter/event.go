@@ -67,7 +67,7 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) pdata.Logs {
 	}
 
 	if len(event.Properties) > 0 {
-		propMapVal := pdata.NewAttributeValueMap()
+		propMapVal := pdata.NewValueMap()
 		propMap := propMapVal.MapVal()
 		propMap.Clear()
 		propMap.EnsureCapacity(len(event.Properties))
@@ -113,7 +113,7 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) pdata.Logs {
 
 func newLogs() (pdata.Logs, pdata.LogRecord) {
 	ld := pdata.NewLogs()
-	lr := ld.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().LogRecords().AppendEmpty()
+	lr := ld.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty()
 
 	return ld, lr
 }

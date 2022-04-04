@@ -21,7 +21,6 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configmapprovider"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 )
@@ -29,23 +28,23 @@ import (
 type errDuplicatedConfigSourceFactory struct{ error }
 
 var (
-	_ configmapprovider.Provider = (*configSourceConfigMapProvider)(nil)
+	_ config.MapProvider = (*configSourceConfigMapProvider)(nil)
 )
 
 type configSourceConfigMapProvider struct {
 	logger           *zap.Logger
 	csm              *Manager
 	configServer     *configServer
-	wrappedProvider  configmapprovider.Provider
-	wrappedRetrieved configmapprovider.Retrieved
-	retrieved        configmapprovider.Retrieved
+	wrappedProvider  config.MapProvider
+	wrappedRetrieved config.Retrieved
+	retrieved        config.Retrieved
 	buildInfo        component.BuildInfo
 	factories        []Factory
 }
 
 // NewConfigSourceConfigMapProvider creates a ParserProvider that uses config sources.
-func NewConfigSourceConfigMapProvider(wrappedProvider configmapprovider.Provider, logger *zap.Logger,
-	buildInfo component.BuildInfo, factories ...Factory) configmapprovider.Provider {
+func NewConfigSourceConfigMapProvider(wrappedProvider config.MapProvider, logger *zap.Logger,
+	buildInfo component.BuildInfo, factories ...Factory) config.MapProvider {
 	return &configSourceConfigMapProvider{
 		wrappedProvider: wrappedProvider,
 		logger:          logger,
@@ -57,17 +56,17 @@ func NewConfigSourceConfigMapProvider(wrappedProvider configmapprovider.Provider
 func (c *configSourceConfigMapProvider) Retrieve(
 	ctx context.Context,
 	location string,
-	onChange configmapprovider.WatcherFunc,
-) (configmapprovider.Retrieved, error) {
+	onChange config.WatcherFunc,
+) (config.Retrieved, error) {
 	wr, err := c.wrappedProvider.Retrieve(ctx, location, onChange)
 	if err != nil {
-		return configmapprovider.Retrieved{}, err
+		return config.Retrieved{}, err
 	}
 	c.wrappedRetrieved = wr
 
 	cfg, err := c.Get(ctx)
 	if err != nil {
-		return configmapprovider.Retrieved{}, err
+		return config.Retrieved{}, err
 	}
 
 	closeFunc := c.wrappedRetrieved.CloseFunc
@@ -75,7 +74,7 @@ func (c *configSourceConfigMapProvider) Retrieve(
 		closeFunc = func(context.Context) error { return nil }
 	}
 
-	c.retrieved = configmapprovider.Retrieved{
+	c.retrieved = config.Retrieved{
 		Map:       cfg,
 		CloseFunc: closeFunc,
 	}

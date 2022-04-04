@@ -35,8 +35,8 @@ func TestEventToPDataLogs(tt *testing.T) {
 		{
 			name:  "event zero value",
 			event: event.Event{},
-			expectedLog: newExpectedLog(map[string]pdata.AttributeValue{
-				"com.splunk.signalfx.event_category": pdata.NewAttributeValueEmpty(),
+			expectedLog: newExpectedLog(map[string]pdata.Value{
+				"com.splunk.signalfx.event_category": pdata.NewValueEmpty(),
 			}, 0),
 		},
 		{
@@ -60,24 +60,24 @@ func TestEventToPDataLogs(tt *testing.T) {
 				},
 				Timestamp: time.Unix(1, 1),
 			},
-			expectedLog: newExpectedLog(func() map[string]pdata.AttributeValue {
-				attrs := map[string]pdata.AttributeValue{
-					"com.splunk.signalfx.event_category": pdata.NewAttributeValueInt(1),
-					"com.splunk.signalfx.event_type":     pdata.NewAttributeValueString("some_event_type"),
-					"dimension_name":                     pdata.NewAttributeValueString("dimension_value"),
+			expectedLog: newExpectedLog(func() map[string]pdata.Value {
+				attrs := map[string]pdata.Value{
+					"com.splunk.signalfx.event_category": pdata.NewValueInt(1),
+					"com.splunk.signalfx.event_type":     pdata.NewValueString("some_event_type"),
+					"dimension_name":                     pdata.NewValueString("dimension_value"),
 				}
-				properties := pdata.NewAttributeValueMap()
-				pdata.NewAttributeMapFromMap(
-					map[string]pdata.AttributeValue{
-						"bool_property_name":    pdata.NewAttributeValueBool(true),
-						"string_property_name":  pdata.NewAttributeValueString("some value"),
-						"int_property_name":     pdata.NewAttributeValueInt(12345),
-						"int8_property_name":    pdata.NewAttributeValueInt(127),
-						"int16_property_name":   pdata.NewAttributeValueInt(23456),
-						"int32_property_name":   pdata.NewAttributeValueInt(34567),
-						"int64_property_name":   pdata.NewAttributeValueInt(45678),
-						"float32_property_name": pdata.NewAttributeValueDouble(12345.678),
-						"float64_property_name": pdata.NewAttributeValueDouble(23456.789),
+				properties := pdata.NewValueMap()
+				pdata.NewMapFromRaw(
+					map[string]interface{}{
+						"bool_property_name":    true,
+						"string_property_name":  "some value",
+						"int_property_name":     12345,
+						"int8_property_name":    127,
+						"int16_property_name":   23456,
+						"int32_property_name":   34567,
+						"int64_property_name":   45678,
+						"float32_property_name": 12345.678,
+						"float64_property_name": 23456.789,
 					},
 				).CopyTo(properties.MapVal())
 				attrs["com.splunk.signalfx.event_properties"] = properties
@@ -95,16 +95,16 @@ func TestEventToPDataLogs(tt *testing.T) {
 					"uint_property":   uint(12345),
 				},
 			},
-			expectedLog: newExpectedLog(func() map[string]pdata.AttributeValue {
-				attrs := map[string]pdata.AttributeValue{
-					"com.splunk.signalfx.event_category": pdata.NewAttributeValueInt(10000000),
-					"com.splunk.signalfx.event_type":     pdata.NewAttributeValueString("some_event_type"),
+			expectedLog: newExpectedLog(func() map[string]pdata.Value {
+				attrs := map[string]pdata.Value{
+					"com.splunk.signalfx.event_category": pdata.NewValueInt(10000000),
+					"com.splunk.signalfx.event_type":     pdata.NewValueString("some_event_type"),
 				}
-				properties := pdata.NewAttributeValueMap()
-				pdata.NewAttributeMapFromMap(
-					map[string]pdata.AttributeValue{
-						"struct_property": pdata.NewAttributeValueString("{something}"),
-						"uint_property":   pdata.NewAttributeValueString("12345"),
+				properties := pdata.NewValueMap()
+				pdata.NewMapFromRaw(
+					map[string]interface{}{
+						"struct_property": "{something}",
+						"uint_property":   "12345",
 					},
 				).CopyTo(properties.MapVal())
 				attrs["com.splunk.signalfx.event_properties"] = properties
@@ -119,9 +119,9 @@ func TestEventToPDataLogs(tt *testing.T) {
 	}
 }
 
-func newExpectedLog(properties map[string]pdata.AttributeValue, timestamp uint64) pdata.Logs {
+func newExpectedLog(properties map[string]pdata.Value, timestamp uint64) pdata.Logs {
 	ld := pdata.NewLogs()
-	lr := ld.ResourceLogs().AppendEmpty().InstrumentationLibraryLogs().AppendEmpty().LogRecords().AppendEmpty()
+	lr := ld.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty()
 	lr.SetTimestamp(pdata.Timestamp(timestamp))
 
 	attrs := lr.Attributes()
@@ -133,8 +133,8 @@ func newExpectedLog(properties map[string]pdata.AttributeValue, timestamp uint64
 }
 
 func assertLogsEqual(t *testing.T, expected, received pdata.Logs) {
-	expectedLog := expected.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).LogRecords().At(0)
-	receivedLog := received.ResourceLogs().At(0).InstrumentationLibraryLogs().At(0).LogRecords().At(0)
+	expectedLog := expected.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
+	receivedLog := received.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 
 	assert.Equal(t, expectedLog.Timestamp(), receivedLog.Timestamp())
 
@@ -142,17 +142,17 @@ func assertLogsEqual(t *testing.T, expected, received pdata.Logs) {
 	assertAttributeMapContainsAll(t, receivedLog.Attributes(), expectedLog.Attributes())
 }
 
-func assertAttributeMapContainsAll(t *testing.T, first, second pdata.AttributeMap) {
-	first.Range(func(firstKey string, firstValue pdata.AttributeValue) bool {
+func assertAttributeMapContainsAll(t *testing.T, first, second pdata.Map) {
+	first.Range(func(firstKey string, firstValue pdata.Value) bool {
 		secondValue, ok := second.Get(firstKey)
 		require.True(t, ok, fmt.Sprintf("first attribute %s not in second", firstKey))
 		require.Equal(t, firstValue.Type(), secondValue.Type())
-		if secondValue.Type() == pdata.AttributeValueTypeMap {
+		if secondValue.Type() == pdata.ValueTypeMap {
 			assertAttributeMapContainsAll(t, firstValue.MapVal(), secondValue.MapVal())
 			return true
 		}
 
-		if secondValue.Type() == pdata.AttributeValueTypeDouble {
+		if secondValue.Type() == pdata.ValueTypeDouble {
 			// account for float32 -> float64 precision
 			assert.InDelta(t, firstValue.DoubleVal(), secondValue.DoubleVal(), .001)
 			return true

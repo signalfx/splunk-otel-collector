@@ -6,7 +6,7 @@ require (
 	github.com/docker/docker v20.10.8+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/google/uuid v1.3.0
-	github.com/shirou/gopsutil/v3 v3.22.2
+	github.com/shirou/gopsutil/v3 v3.22.3
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.2
 	github.com/signalfx/signalfx-go v1.8.1
 	github.com/stretchr/testify v1.7.1
@@ -65,8 +65,8 @@ require (
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
-	github.com/tklauser/go-sysconf v0.3.9 // indirect
-	github.com/tklauser/numcpus v0.3.0 // indirect
+	github.com/tklauser/go-sysconf v0.3.10 // indirect
+	github.com/tklauser/numcpus v0.4.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.31.0 // indirect
@@ -76,7 +76,7 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
-	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
+	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	google.golang.org/appengine v1.6.7 // indirect

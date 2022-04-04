@@ -73,7 +73,7 @@ type ResourceMetrics struct {
 
 // Top level metric type for a given Resource (set of attributes) and its associated ScopeMetrics.
 type ResourceMetric struct {
-	Resource Resource                        `yaml:",inline,omitempty"`
+	Resource Resource       `yaml:",inline,omitempty"`
 	ILMs     []ScopeMetrics `yaml:"instrumentation_library_metrics"`
 }
 

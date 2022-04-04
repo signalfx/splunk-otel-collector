@@ -20,7 +20,6 @@ import (
 )
 
 type MyErrorHandler struct {
-
 }
 
 func (m *MyErrorHandler) Handle(err error) {
@@ -62,7 +61,7 @@ func main() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
 	go func() {
 		select {
-			case <-c:
+		case <-c:
 			os.Exit(0)
 		}
 	}()

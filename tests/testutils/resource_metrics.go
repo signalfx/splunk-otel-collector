@@ -71,10 +71,10 @@ type ResourceMetrics struct {
 	ResourceMetrics []ResourceMetric `yaml:"resource_metrics"`
 }
 
-// Top level metric type for a given Resource (set of attributes) and its associated InstrumentationLibraryMetrics.
+// Top level metric type for a given Resource (set of attributes) and its associated ScopeMetrics.
 type ResourceMetric struct {
-	Resource Resource                        `yaml:",inline,omitempty"`
-	ILMs     []InstrumentationLibraryMetrics `yaml:"instrumentation_library_metrics"`
+	Resource Resource       `yaml:",inline,omitempty"`
+	ILMs     []ScopeMetrics `yaml:"instrumentation_library_metrics"`
 }
 
 // The top level item producing metrics, defined by its Attributes.
@@ -83,7 +83,7 @@ type Resource struct {
 }
 
 // The collection of metrics produced by a given InstrumentationLibrary
-type InstrumentationLibraryMetrics struct {
+type ScopeMetrics struct {
 	InstrumentationLibrary InstrumentationLibrary `yaml:"instrumentation_library,omitempty"`
 	Metrics                []Metric               `yaml:"metrics,omitempty"`
 }
@@ -244,7 +244,7 @@ func FlattenResourceMetrics(resourceMetrics ...ResourceMetrics) ResourceMetrics 
 	var resourceHashes []string
 	// maps of resource hashes to objects
 	resources := map[string]Resource{}
-	ilms := map[string][]InstrumentationLibraryMetrics{}
+	ilms := map[string][]ScopeMetrics{}
 
 	// flatten by Resource
 	for _, rms := range resourceMetrics {
@@ -305,7 +305,7 @@ func FlattenResourceMetrics(resourceMetrics ...ResourceMetrics) ResourceMetrics 
 				flattenedMetrics = []Metric{}
 			}
 
-			ilms := InstrumentationLibraryMetrics{
+			ilms := ScopeMetrics{
 				InstrumentationLibrary: il,
 				Metrics:                flattenedMetrics,
 			}

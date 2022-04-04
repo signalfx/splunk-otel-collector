@@ -27,14 +27,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configmapprovider"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
+	"go.opentelemetry.io/collector/config/mapprovider/filemapprovider"
 	"go.uber.org/zap"
 )
 
 func TestConfigSourceConfigMapProvider(t *testing.T) {
 	tests := []struct {
-		parserProvider configmapprovider.Provider
+		parserProvider config.MapProvider
 		configLocation string
 		wantErr        error
 		name           string
@@ -65,13 +65,13 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 					ErrOnCreateConfigSource: errors.New("new_manager_builder_error forced error"),
 				},
 			},
-			parserProvider: configmapprovider.NewFile(),
+			parserProvider: filemapprovider.New(),
 			configLocation: "file:" + path.Join("testdata", "basic_config.yaml"),
 			wantErr:        &errConfigSourceCreation{},
 		},
 		{
 			name:           "manager_resolve_error",
-			parserProvider: configmapprovider.NewFile(),
+			parserProvider: filemapprovider.New(),
 			configLocation: "file:" + path.Join("testdata", "manager_resolve_error.yaml"),
 			wantErr:        fmt.Errorf("error not wrappedProviders by specific error type: %w", configsource.ErrSessionClosed),
 		},
@@ -133,11 +133,11 @@ type mockParserProvider struct {
 	ErrOnGet bool
 }
 
-var _ configmapprovider.Provider = (*mockParserProvider)(nil)
+var _ config.MapProvider = (*mockParserProvider)(nil)
 
-func (mpp *mockParserProvider) Retrieve(ctx context.Context, _ string, _ configmapprovider.WatcherFunc) (configmapprovider.Retrieved, error) {
+func (mpp *mockParserProvider) Retrieve(ctx context.Context, _ string, _ config.WatcherFunc) (config.Retrieved, error) {
 	m, err := mpp.Get(ctx)
-	return configmapprovider.Retrieved{Map: m}, err
+	return config.Retrieved{Map: m}, err
 }
 
 func (mpp *mockParserProvider) Shutdown(ctx context.Context) error {

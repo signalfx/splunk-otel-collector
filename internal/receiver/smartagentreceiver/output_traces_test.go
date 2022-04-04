@@ -126,7 +126,7 @@ func TestSendSpansWithDefaultAndExtraSpanTags(t *testing.T) {
 	assert.Equal(t, 3, trace.SpanCount())
 	resourceSpans := trace.ResourceSpans()
 	require.Equal(t, 1, resourceSpans.Len())
-	illSpansSlice := resourceSpans.At(0).InstrumentationLibrarySpans()
+	illSpansSlice := resourceSpans.At(0).ScopeSpans()
 	require.Equal(t, 1, illSpansSlice.Len())
 	illSpans := illSpansSlice.At(0).Spans()
 	require.Equal(t, 3, illSpans.Len())

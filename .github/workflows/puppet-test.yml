@@ -9,7 +9,9 @@ on:
     paths:
       - '.github/workflows/puppet-test.yml'
       - 'deployments/puppet/**'
-      - 'internal/buildscripts/packaging/tests/**'
+      - 'internal/buildscripts/packaging/tests/deployments/puppet/**'
+      - 'internal/buildscripts/packaging/tests/helpers/**'
+      - 'internal/buildscripts/packaging/tests/requirements.txt'
 
 concurrency:
   group: puppet-test-${{ github.event.pull_request.number || github.ref }}

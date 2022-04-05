@@ -9,7 +9,9 @@ on:
     paths:
       - '.github/workflows/salt-test.yml'
       - 'deployments/salt/**'
-      - 'internal/buildscripts/packaging/tests/**'
+      - 'internal/buildscripts/packaging/tests/deployments/salt/**'
+      - 'internal/buildscripts/packaging/tests/helpers/**'
+      - 'internal/buildscripts/packaging/tests/requirements.txt'
 
 concurrency:
   group: salt-test-${{ github.event.pull_request.number || github.ref }}

@@ -26,12 +26,14 @@ PKG_URL="https://github.com/signalfx/splunk-otel-collector"
 
 LIBSPLUNK_INSTALL_PATH="/usr/lib/splunk-instrumentation/libsplunk.so"
 JAVA_AGENT_INSTALL_PATH="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
+CONFIG_INSTALL_PATH="/usr/lib/splunk-instrumentation/instrumentation.conf"
 
 JAVA_AGENT_RELEASE_PATH="${FPM_DIR}/../java-agent-release.txt"
 JAVA_AGENT_RELEASE_URL="https://api.github.com/repos/signalfx/splunk-otel-java/releases"
 
 POSTINSTALL_PATH="$FPM_DIR/postinstall.sh"
 PREUNINSTALL_PATH="$FPM_DIR/preuninstall.sh"
+CONFIG_PATH="$REPO_DIR/instrumentation/install/instrumentation.conf"
 
 get_version() {
     commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
@@ -87,4 +89,9 @@ setup_files_and_permissions() {
     cp -f "$java_agent" "$buildroot/$JAVA_AGENT_INSTALL_PATH"
     sudo chown root:root "$buildroot/$JAVA_AGENT_INSTALL_PATH"
     sudo chmod 755 "$buildroot/$JAVA_AGENT_INSTALL_PATH"
+
+    mkdir -p "$buildroot/$(dirname $CONFIG_INSTALL_PATH)"
+    cp -f "$CONFIG_PATH" "$buildroot/$CONFIG_INSTALL_PATH"
+    sudo chown root:root "$buildroot/$CONFIG_INSTALL_PATH"
+    sudo chmod 644 "$buildroot/$CONFIG_INSTALL_PATH"
 }

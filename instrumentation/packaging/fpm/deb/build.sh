@@ -29,6 +29,7 @@ JAVA_AGENT_RELEASE="$(cat $JAVA_AGENT_RELEASE_PATH)"
 if [[ -z "$VERSION" ]]; then
     VERSION="$( get_version )"
 fi
+VERSION="${VERSION#v}"
 
 download_java_agent "$JAVA_AGENT_RELEASE" "$JAVA_AGENT_PATH"
 
@@ -52,6 +53,7 @@ sudo fpm -s dir -t deb -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --deb-no-default-config-files \
     --depends sed \
     --depends grep \
+    --config-files "$CONFIG_INSTALL_PATH" \
     "$buildroot/"=/
 
 dpkg -c "${OUTPUT_DIR}/${PKG_NAME}_${VERSION}_${ARCH}.deb"

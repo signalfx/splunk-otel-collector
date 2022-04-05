@@ -2043,6 +2043,7 @@ github.com/signalfx/golib v2.3.1+incompatible/go.mod h1:nWYefOwlUKWm/SpN/LgVSBny
 github.com/signalfx/golib v2.4.1+incompatible/go.mod h1:nWYefOwlUKWm/SpN/LgVSBnyH1T9NpT1ANlmgRIi1Cs=
 github.com/signalfx/golib/v3 v3.0.0/go.mod h1:p+krygP/cDlWvCBEgdkQp3H16rbP4NW7YQa81TDMRe8=
 github.com/signalfx/golib/v3 v3.3.33/go.mod h1:PB7OovVijH7OGhzMewarEcIZG3eG6akWMDucIb5Jnb4=
+github.com/signalfx/golib/v3 v3.3.37/go.mod h1:zH70SVnrzVUqDmUFEwDk1HSwS71Pi2w3bSsNpnOtYuQ=
 github.com/signalfx/golib/v3 v3.3.44 h1:h9ZGN7gjeAL2VdVN8VDnXg1tcw93S1dL3ZkIGMyvfrk=
 github.com/signalfx/golib/v3 v3.3.44/go.mod h1:LR8eTSda7NzynOqe0ibvV63OuqorWcHDtRCY22zTpKg=
 github.com/signalfx/gomemcache v0.0.0-20180823214636-4f7ef64c72a9/go.mod h1:Ytb8KfCSyuwy/VILnROdgCvbQLA5ch0nkbG7lKT0BXw=
@@ -2059,8 +2060,8 @@ github.com/signalfx/signalfx-agent v1.0.1-0.20220316145231-66d5e5bfbbe3 h1:uRGlY
 github.com/signalfx/signalfx-agent v1.0.1-0.20220316145231-66d5e5bfbbe3/go.mod h1:Tol43a7FEsJCjN+UYN6Ii8VcQzpPD/CWB5QeXkWkqG8=
 github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220316145231-66d5e5bfbbe3 h1:EGGv81lQm/zbeirrqnfhqnpa2hbc6RL7LV1Z/yS/BsE=
 github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220316145231-66d5e5bfbbe3/go.mod h1:KtK7NG1CU7cDUZ460MN5e169Zb/O8q7Sg7iQ4x7xSI4=
-github.com/signalfx/signalfx-go v1.8.1 h1:ObJF59/tsRcu8KSST8AfFVTca7po/GP2LoPcaGgcBUI=
-github.com/signalfx/signalfx-go v1.8.1/go.mod h1:EtCwkwvLv+wfjDQVAs1O37yVn3hp2xAKmXA6BFKkRT4=
+github.com/signalfx/signalfx-go v1.17.0 h1:nxmO1uDwciLOMjL1dIy97ehS8H2UgWgsxLXbRzAgk+A=
+github.com/signalfx/signalfx-go v1.17.0/go.mod h1:YhPTMdQJDfphcRBdk+9acbbAw1gYY7z5BIHUWzLmGlA=
 github.com/signalfx/tdigest v0.0.0-20191031204725-c860c3ff6902/go.mod h1:fbvuJM3o+bwr36+TVjokMUGd4muJVHiCshTmKZ/6eNU=
 github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87 h1:ayeUHxiUjcxzuEzjWVkXJxf42UYNw8UKmYmIQu9mAqo=
 github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87/go.mod h1:1gnMOcwGO3lAxfoMq28M8gjooF2MqVwquPVEvgZ1its=

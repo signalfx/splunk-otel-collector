@@ -8,8 +8,11 @@ on:
   pull_request:
     paths:
       - '.github/workflows/installer-script-test.yml'
-      - 'internal/buildscripts/packaging/installer/**'
-      - 'internal/buildscripts/packaging/tests/**'
+      - 'internal/buildscripts/packaging/installer/install.sh'
+      - 'internal/buildscripts/packaging/tests/helpers/**'
+      - 'internal/buildscripts/packaging/tests/images/**'
+      - 'internal/buildscripts/packaging/tests/installer_test.py'
+      - 'internal/buildscripts/packaging/tests/requirements.txt'
 
 concurrency:
   group: installer-script-test-${{ github.event.pull_request.number || github.ref }}

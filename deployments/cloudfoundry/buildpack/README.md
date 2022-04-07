@@ -4,8 +4,10 @@ A [Cloud Foundry buildpack](https://docs.pivotal.io/application-service/2-11/bui
 the OpenTelemetry Collector for use with PCF apps.
 
 The buildpack's default functionality, as described in this document, is to deploy the OpenTelemetry Collector
-as a sidecar for the given app that's being deployed. The Collector is able to observe the app as a nozzle through
-the Loggregator Firehose. The Loggregator Firehose is one of the architectures Cloud Foundry
+as a sidecar for the given app that's being deployed. The Collector is able to observe the app as a 
+[nozzle](https://docs.pivotal.io/tiledev/2-10/nozzle.html#nozzle) to
+the [Loggregator Firehose](https://docs.cloudfoundry.org/loggregator/architecture.html).
+The Loggregator Firehose is one of the architectures Cloud Foundry
 uses to emit logs and metrics. This means that the OpenTelemetry Collector will be observing all
 apps and deployments that emit metrics and logs to the Loggregator Firehose as long as it's running.
 
@@ -75,9 +77,13 @@ Optional:
     Default: `linux_amd64`
 - `OTEL_CONFIG` - Local name of OpenTelemetry config file. Default: `otelconfig.yaml`
 - `OTEL_VERSION` - Executable version of OpenTelemetry Collector (contrib) to use. The buildpack depends on features present in version
-    0.47.0+. Default: `0.47.0`
+    v0.48.0+. Default: `latest`. Example valid value: `v0.48.0`.
+    Note that if left the default value, the latest version will be found and later variable references will be
+    to a valid version number, not simply the word "latest".
 - `OTEL_BINARY` - OpenTelemetry Collector executable file name. Default: `otelcontribcol_$OS-v$OTEL_VERSION`
-- `OTEL_BINARY_DOWNLOAD_URL` - URL to download the OpenTelemetry Collector from.
+- `OTEL_BINARY_DOWNLOAD_URL` - URL to download the OpenTelemetry Collector from. This takes precedence over other
+    version variables. Only the Splunk distribution is supported.
+    Default: `https://github.com/signalfx/splunk-otel-collector/releases/download/${OTEL_VERSION}/otelcol_${OS}`
 - `RLP_GATEWAY_SHARD_ID` - Metrics are load balanced between receivers that use the same shard ID.
    Only use if multiple receivers must receive all metrics instead of
    balancing metrics between them. Default: `otelcol`

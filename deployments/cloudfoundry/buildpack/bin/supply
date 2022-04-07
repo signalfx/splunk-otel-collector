@@ -11,11 +11,12 @@ BUILDPACK_DIR="$(readlink -f ${BASH_SOURCE%/*})"
 TARGET_DIR="$BUILD_DIR/.otelcollector"
 
 OTEL_CONFIG="${OTEL_CONFIG:-otelconfig.yaml}"
-# Version must be >=0.47.0, the first release included the enabled Cloud Foundry receiver
-OTEL_VERSION="${OTEL_VERSION:-0.47.0}"
+# Version must be >=0.48.0, the first release included the enabled Cloud Foundry receiver
+OTEL_VERSION="${OTEL_VERSION:-latest}"
 # Cloud Foundry only supports Linux stacks currently, but if that changes this variable can be modified
 # for the proper stack.
 OS="${OS:-linux_amd64}"
+OTEL_BASE_URL="https://github.com/signalfx/splunk-otel-collector/releases"
 
 echo "-----> Installing Otel Collector ${OTEL_VERSION}"
 echo "       BUILD_DIR: $BUILD_DIR"
@@ -30,16 +31,25 @@ mkdir -p $TARGET_DIR
 # Copy over default OpenTelemetry configuration file for sidecar configuration use
 cp "$BUILDPACK_DIR/../$OTEL_CONFIG" "$TARGET_DIR/"
 
+# Get proper version number if we're getting latest release
+if [ $OTEL_VERSION = "latest" ] && [ -z "${OTEL_BINARY_DOWNLOAD_URL:-}" ]; then
+        OTEL_VERSION=$( wget -qO- --header="Accept: application/json" "$OTEL_BASE_URL/latest" | jq -r '.tag_name' )
+        if [ -z "$OTEL_VERSION" ]; then
+            echo "Failed to get tag_name for latest release from $OTEL_BASE_URL/latest" >&2
+            exit 1
+        fi
+    fi
+
 # File name for given release version
-OTEL_BINARY="${OTEL_BINARY:-otelcontribcol_${OS}-v${OTEL_VERSION}}"
+OTEL_BINARY="${OTEL_BINARY:-otelcontribcol_${OS}-${OTEL_VERSION}}"
 CACHED_OTEL_BINARY="$CACHE_DIR/$OTEL_BINARY"
 
 if [[ -f "$CACHED_OTEL_BINARY" ]]; then
   echo "-----> Using cached Otel Collector install: $CACHED_OTEL_BINARY"
   cp $CACHED_OTEL_BINARY $TARGET_DIR
 else
-  OTEL_BINARY_DOWNLOAD_URL="${OTEL_BINARY_DOWNLOAD_URL:-https://github.com/signalfx/splunk-otel-collector/releases/download/v${OTEL_VERSION}/otelcol_${OS}}"
-  echo "-----> Downloading OpenTelemetry Collector v$OTEL_VERSION ($OTEL_BINARY_DOWNLOAD_URL)"
+  OTEL_BINARY_DOWNLOAD_URL="${OTEL_BINARY_DOWNLOAD_URL:-${OTEL_BASE_URL}/download/${OTEL_VERSION}/otelcol_${OS}}"
+  echo "-----> Downloading OpenTelemetry Collector $OTEL_VERSION ($OTEL_BINARY_DOWNLOAD_URL)"
   wget -nv -O "$TARGET_DIR/$OTEL_BINARY" $OTEL_BINARY_DOWNLOAD_URL
 fi
 
@@ -54,6 +64,7 @@ chmod 755 "$DEPS_DIR/$OTEL_BINARY"
 mkdir $DEPS_DIR/$IDX/profile.d
 echo "export RLP_GATEWAY_SHARD_ID=\"otelcol\"
 export RLP_GATEWAY_TLS_INSECURE=false
-export UAA_TLS_INSECURE=false" >> $DEPS_DIR/$IDX/profile.d/otel_config_env_vars.sh
+export UAA_TLS_INSECURE=false
+export OTEL_VERSION=$OTEL_VERSION" >> $DEPS_DIR/$IDX/profile.d/otel_config_env_vars.sh
 
-echo "-----> Successfully installed OpenTelemetry Collector v$OTEL_VERSION and set default environment variables"
+echo "-----> Successfully installed OpenTelemetry Collector $OTEL_VERSION and set default environment variables"

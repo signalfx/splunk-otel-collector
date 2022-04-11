@@ -243,13 +243,13 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Downloading binaries-linux_amd64
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: binaries-linux_amd64
           path: ./bin
 
       - name: Downloading binaries-linux_arm64
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: binaries-linux_arm64
           path: ./bin
@@ -322,7 +322,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: binaries-windows_amd64
           path: ./bin
@@ -369,7 +369,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: msi-build
           path: ./dist
@@ -394,7 +394,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Downloading msi build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: msi-build
           path: ./dist
@@ -429,7 +429,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Downloading choco build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: choco-build
           path: ./dist
@@ -493,7 +493,7 @@ jobs:
           platforms: arm64
 
       - name: Downloading binaries-linux_${{ matrix.ARCH }}
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
@@ -525,7 +525,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Downloading binaries-windows_amd64
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: binaries-windows_amd64
           path: ./bin

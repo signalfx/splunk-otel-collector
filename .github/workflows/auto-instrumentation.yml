@@ -53,7 +53,7 @@ jobs:
           fetch-depth: 0
 
       - name: Downloading libsplunk-${{ matrix.ARCH }}
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: libsplunk-${{ matrix.ARCH }}
           path: ./instrumentation/dist
@@ -91,7 +91,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Downloading splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-deb
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-deb
           path: ./instrumentation/dist
@@ -118,7 +118,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Downloading splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-rpm
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-rpm
           path: ./instrumentation/dist

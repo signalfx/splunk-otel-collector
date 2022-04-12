@@ -141,7 +141,7 @@ jobs:
           make test | tee unit-test-results/go-unit-tests.out
       
       - name: Uploading artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: unit-test-results
           path: ./unit-test-results
@@ -174,7 +174,7 @@ jobs:
           make test-with-cover
       
       - name: Uploading artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-results
           path: ./coverage.html
@@ -214,7 +214,7 @@ jobs:
           make ${{ matrix.SYS_BINARIES }}
       
       - name: Uploading binaries
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.SYS_BINARIES }}
           path: |
@@ -302,13 +302,13 @@ jobs:
             internal/buildscripts/packaging/tests/package_test.py
       
       - name: Uploading ${{ matrix.SYS_PACKAGE }} package artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.SYS_PACKAGE }}-package
           path: ./dist
 
       - name: Uploading test result artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.SYS_PACKAGE }}-package-installation-test-result
           path: ${{ env.RESULT_PATH }}
@@ -350,7 +350,7 @@ jobs:
           make msi SKIP_COMPILE=true VERSION="${VERSION_TAG:-0.0.1.${{ github.run_number }}}"
       
       - name: Uploading msi build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: msi-build
           path: ./dist/*.msi
@@ -410,7 +410,7 @@ jobs:
           Test-Path -Path ".\dist\splunk-otel-collector.$version.nupkg"
 
       - name: Uploading choco build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: choco-build
           path: ./dist/*.nupkg

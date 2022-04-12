@@ -33,7 +33,7 @@ jobs:
         run: make -C instrumentation dist ARCH=${{ matrix.ARCH }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: libsplunk-${{ matrix.ARCH }}
           path: ./instrumentation/dist/libsplunk_${{ matrix.ARCH }}.so
@@ -70,7 +70,7 @@ jobs:
           make -C instrumentation ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true VERSION="${TAG_NAME:-}" ARCH="${{ matrix.ARCH }}"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ matrix.SYS_PACKAGE }}
           path: ./instrumentation/dist/splunk-otel-auto-instrumentation*.${{ matrix.SYS_PACKAGE }}

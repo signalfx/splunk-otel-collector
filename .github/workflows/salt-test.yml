@@ -79,7 +79,7 @@ jobs:
             internal/buildscripts/packaging/tests/deployments/salt/salt_test.py
 
       - name: Uploading test result
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: salt-test-${{ matrix.PACKAGE_TYPE }}-result
           path: ${{ env.RESULT_PATH }}

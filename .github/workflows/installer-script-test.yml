@@ -68,7 +68,7 @@ jobs:
             internal/buildscripts/packaging/tests/installer_test.py
       
       - name: Uploading artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: installer-script-test-${{ matrix.PACKAGE_TYPE }}-result
           path: ${{ env.RESULT_PATH }}

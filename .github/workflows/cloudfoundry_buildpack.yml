@@ -27,18 +27,18 @@ jobs:
       - name: Setup script's input argument directories
         shell: bash
         run: |
-          sudo touch ./build_dir
-          sudo touch ./cache_dir
-          sudo touch ./deps_dir
+          sudo mkdir /tmp/cf_build_dir
+          sudo mkdir /tmp/cf_cache_dir
+          sudo mkdir /tmp/cf_deps_dir
 
       - name: Run buildpack supply script
         shell: bash
         run: |
-          sudo ./bin/supply ./build_dir ./cache_dir ./deps_dir 0
+          sudo ./bin/supply /tmp/cf_build_dir /tmp/cf_cache_dir /tmp/cf_deps_dir 0
 
       - name: Delete created files
         shell: bash
         run: |
-          sudo rm -rf ./build_dir
-          sudo rm -rf ./cache_dir
-          sudo rm -rf ./deps_dir
+          sudo rm -rf /tmp/cf_build_dir
+          sudo rm -rf /tmp/cf_cache_dir
+          sudo rm -rf /tmp/deps_dir

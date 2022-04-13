@@ -38,10 +38,10 @@ if [ $OTEL_VERSION = "latest" ] && [ -z "${OTEL_BINARY_DOWNLOAD_URL:-}" ]; then
             echo "Failed to get tag_name for latest release from $OTEL_BASE_URL/latest" >&2
             exit 1
         fi
-    fi
+fi
 
 # File name for given release version
-OTEL_BINARY="${OTEL_BINARY:-otelcontribcol_${OS}-${OTEL_VERSION}}"
+OTEL_BINARY="${OTEL_BINARY:-otelcol_${OS}-${OTEL_VERSION}}"
 CACHED_OTEL_BINARY="$CACHE_DIR/$OTEL_BINARY"
 
 if [[ -f "$CACHED_OTEL_BINARY" ]]; then
@@ -57,14 +57,52 @@ fi
 cp "$TARGET_DIR/$OTEL_BINARY" $CACHE_DIR
 
 # Move Collector executable and config to dependencies directory to enable app access
-cp -f "$TARGET_DIR/$OTEL_BINARY" "$TARGET_DIR/$OTEL_CONFIG" "$DEPS_DIR"
-chmod 755 "$DEPS_DIR/$OTEL_BINARY"
+chmod 755 "$TARGET_DIR/$OTEL_BINARY" "$TARGET_DIR/$OTEL_CONFIG"
 
-# Define Collector's default environment variables by adding bash script to .profile.d directory in root of app
-mkdir $DEPS_DIR/$IDX/profile.d
+# Define Collector's default environment variables by adding bash script to profile.d directory in root of app
+mkdir -p $DEPS_DIR/$IDX/profile.d
 echo "export RLP_GATEWAY_SHARD_ID=\"otelcol\"
 export RLP_GATEWAY_TLS_INSECURE=false
 export UAA_TLS_INSECURE=false
 export OTEL_VERSION=$OTEL_VERSION" >> $DEPS_DIR/$IDX/profile.d/otel_config_env_vars.sh
 
 echo "-----> Successfully installed OpenTelemetry Collector $OTEL_VERSION and set default environment variables"
+
+# Need to run SignalFx patch interpreter for the SignalFx receiver to work properly.
+# Get proper version number if we're getting latest release
+SMART_AGENT_VERSION="${SMART_AGENT_VERSION:-latest}"
+SMART_AGENT_BASE_URL="https://github.com/signalfx/signalfx-agent/releases"
+
+if [ $SMART_AGENT_VERSION = "latest" ]; then
+        SMART_AGENT_VERSION=$( wget -qO- --header="Accept: application/json" "${SMART_AGENT_BASE_URL}/latest" | jq -r '.tag_name' )
+        if [ -z "$SMART_AGENT_VERSION" ]; then
+            echo "Failed to get tag_name for latest release from $SMART_AGENT_BASE_URL/latest" >&2
+            exit 1
+        fi
+fi
+
+SMART_AGENT=signalfx-agent-${SMART_AGENT_VERSION#v}.tar.gz
+SMART_AGENT_DOWNLOAD_URL=$SMART_AGENT_BASE_URL/download/${SMART_AGENT_VERSION}/$SMART_AGENT
+SA_TARGET_DIR="$BUILD_DIR/.signalfx"
+mkdir -p $SA_TARGET_DIR
+
+echo "-----> Downloading SignalFx Smart Agent $SMART_AGENT_VERSION ($SMART_AGENT_DOWNLOAD_URL)"
+wget -nv -O "$SA_TARGET_DIR/$SMART_AGENT" $SMART_AGENT_DOWNLOAD_URL
+tar -xf "$SA_TARGET_DIR/$SMART_AGENT" -C "$SA_TARGET_DIR"
+mv "${SA_TARGET_DIR}/signalfx-agent" "${SA_TARGET_DIR}/agent-bundle"
+
+# Absolute path of interpreter in smart agent dir is set in dependent binaries
+# requiring the interpreter location not to change.
+SPLUNK_BUNDLE_DIR="/home/vcap/app/.signalfx/agent-bundle"
+SPLUNK_COLLECTD_DIR="${SPLUNK_BUNDLE_DIR}/run/collectd"
+
+${SA_TARGET_DIR}/agent-bundle/bin/patch-interpreter ${SPLUNK_BUNDLE_DIR}
+rm -f $SPLUNK_BUNDLE_DIR/bin/signalfx-agent \
+            $SPLUNK_BUNDLE_DIR/bin/agent-status \
+            $SA_TARGET_DIR/$SMART_AGENT;
+
+echo "export SPLUNK_BUNDLE_DIR=${SPLUNK_BUNDLE_DIR}
+export SPLUNK_COLLECTD_DIR=${SPLUNK_COLLECTD_DIR}
+export PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/bin" >> $DEPS_DIR/$IDX/profile.d/signalfx_agent_env_vars.sh
+
+echo "-----> Successfully installed SignalFx patch interpreter"

@@ -1,14 +1,14 @@
-# OpenTelemetry Collector Pivotal Cloud Foundry (PCF) Buildpack
+# Splunk OpenTelemetry Collector Pivotal Cloud Foundry (PCF) Buildpack
 
 A [Cloud Foundry buildpack](https://docs.pivotal.io/application-service/2-11/buildpacks/) to install
-the OpenTelemetry Collector for use with PCF apps.
+the Splunk OpenTelemetry Collector for use with PCF apps.
 
 The buildpack's default functionality, as described in this document, is to deploy the OpenTelemetry Collector
 as a sidecar for the given app that's being deployed. The Collector is able to observe the app as a 
 [nozzle](https://docs.pivotal.io/tiledev/2-10/nozzle.html#nozzle) to
 the [Loggregator Firehose](https://docs.cloudfoundry.org/loggregator/architecture.html).
 The Loggregator Firehose is one of the architectures Cloud Foundry
-uses to emit logs and metrics. This means that the OpenTelemetry Collector will be observing all
+uses to emit logs and metrics. This means that the Splunk OpenTelemetry Collector will be observing all
 apps and deployments that emit metrics and logs to the Loggregator Firehose as long as it's running.
 
 ## Installation
@@ -16,11 +16,11 @@ apps and deployments that emit metrics and logs to the Loggregator Firehose as l
 - Change to this directory.
 - Run the following command:
 ```sh
-# Add buildpack for OpenTelemetry Collector
+# Add buildpack for Splunk OpenTelemetry Collector
 $ cf create-buildpack otel_collector_buildpack . 99 --enable
 ```
 
-Note: `wget` is used to download the OpenTelemetry Collector.
+Note: `wget` is used to download the Splunk OpenTelemetry Collector.
 
 ### Using PCF Buildpack With an Application
 This section covers basic cf CLI (Cloud Foundry Command Line Interface) commands to use the buildpack. 
@@ -44,12 +44,12 @@ $ cf push <app-name> -b otel_collector_buildpack -b <main_buildpack> -f manifest
 
 Note: This buildpack requires another buildpack to be supplied after it, it is not allowed to
 be the last one for an app. Also, the manifest.yml file will need to provide the
-command to run the OpenTelemetry Collector as a sidecar for the application.
+command to run the Splunk OpenTelemetry Collector as a sidecar for the application.
 
 ## Configuration
 
 The following only applies if you are using the `otelconfig.yaml` config
-provided by the buildpack.  If you provide a custom configuration file for the OpenTelemetry Collector 
+provided by the buildpack.  If you provide a custom configuration file for the Splunk OpenTelemetry Collector
 in your application (and refer to it in the sidecar configuration), these might not
 work unless you have preserved the references to the environment variables in the config file.
 For proper functionality, the `OTEL_CONFIG` environment variable must point to
@@ -75,13 +75,13 @@ Required:
 Optional:
 - `OS` - Operating system that Cloud Foundry is running. Must match format of Otel Collector executable name.
     Default: `linux_amd64`
-- `OTEL_CONFIG` - Local name of OpenTelemetry config file. Default: `otelconfig.yaml`
-- `OTEL_VERSION` - Executable version of OpenTelemetry Collector (contrib) to use. The buildpack depends on features present in version
+- `OTEL_CONFIG` - Local name of Splunk OpenTelemetry config file. Default: `otelconfig.yaml`
+- `OTEL_VERSION` - Executable version of Splunk OpenTelemetry Collector to use. The buildpack depends on features present in version
     v0.48.0+. Default: `latest`. Example valid value: `v0.48.0`.
     Note that if left the default value, the latest version will be found and later variable references will be
     to a valid version number, not simply the word "latest".
-- `OTEL_BINARY` - OpenTelemetry Collector executable file name. Default: `otelcontribcol_$OS-v$OTEL_VERSION`
-- `OTEL_BINARY_DOWNLOAD_URL` - URL to download the OpenTelemetry Collector from. This takes precedence over other
+- `OTEL_BINARY` - Splunk OpenTelemetry Collector executable file name. Default: `otelcol_$OS-v$OTEL_VERSION`
+- `OTEL_BINARY_DOWNLOAD_URL` - URL to download the Splunk OpenTelemetry Collector from. This takes precedence over other
     version variables. Only the Splunk distribution is supported.
     Default: `https://github.com/signalfx/splunk-otel-collector/releases/download/${OTEL_VERSION}/otelcol_${OS}`
 - `RLP_GATEWAY_SHARD_ID` - Metrics are load balanced between receivers that use the same shard ID.
@@ -122,7 +122,7 @@ applications:
       - name: otel-collector
         process_types:
           - web
-        command: "$HOME/../deps/otelcontribcol_${OS:-linux_amd64}-v${OTEL_VERSION:-0.47.0} --config=$HOME/../deps/${OTEL_CONFIG:-otelconfig.yaml}"
+        command: "$HOME/.otelcollector/otelcol_${OS:-linux_amd64}-v${OTEL_VERSION:-0.48.0} --config=$HOME/.otelcollector/${OTEL_CONFIG:-otelconfig.yaml}"
         memory: 100MB
 ```
 If using a `manifest.yaml` file, you may push your app simply with the following command:
@@ -133,11 +133,12 @@ $ cf push
 # If you are using cf CLI v6
 $ cf v3-push <app-name>
 ```
-This will deploy the app with the proper buildpacks, and the OpenTelemetry Collector running in the sidecar configuration.
+This will deploy the app with the proper buildpacks, and the Splunk OpenTelemetry Collector running in the
+sidecar configuration.
 
 ## Troubleshooting
 
-* If the app is running but the OpenTelemetry Collector is not, it may be that the sidecar configuration is not
+* If the app is running but the Splunk OpenTelemetry Collector is not, it may be that the sidecar configuration is not
 being picked up properly from the manifest file. Try running the following commands:
 
 ```sh
@@ -156,7 +157,7 @@ sidecars:
   - name: otel-collector
     process_types:
       - web
-    command: "$HOME/../deps/otelcontribcol_${OS:-linux_amd64}-v${OTEL_VERSION:-0.47.0} --config=$HOME/../deps/${OTEL_CONFIG:-otelconfig.yaml}"
+    command: "$HOME/.otelcollector/otelcol_${OS:-linux_amd64}-v${OTEL_VERSION:-0.48.0} --config=$HOME/.otelcollector/${OTEL_CONFIG:-otelconfig.yaml}"
 ```
 
 ### Useful CF CLI debugging commands

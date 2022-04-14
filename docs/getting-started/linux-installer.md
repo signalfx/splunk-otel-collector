@@ -8,6 +8,11 @@ script deploys and configures:
 - Splunk OpenTelemetry Collector for Linux
 - [SignalFx Smart Agent and collectd bundle](https://github.com/signalfx/signalfx-agent/releases) (**x86_64/amd64 platforms only**)
 - [Fluentd (via the TD Agent)](https://www.fluentd.org/)
+  - Optional, **enabled** by default
+  - See the [Fluentd Configuration](#fluentd-configuration) section for more details or how to disable installation
+- [Splunk OpenTelemetry Auto Instrumentation for Java](https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#linux-java-auto-instrumentation)
+  - Optional, **disabled** by default
+  - See the [Auto Instrumentation](#auto-instrumentation) section for how to enable installation and more details
 
 > IMPORTANT: systemd is required to use this script.
 
@@ -21,7 +26,16 @@ Currently, the following Linux distributions and versions are supported:
 
 ## Getting Started
 
-Run the below command on your host. Replace these variables:
+Download the latest release of the installer script and view all available
+options by running the script with the `-h` flag.
+
+```sh
+curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
+sh /tmp/splunk-otel-collector.sh -h
+```
+
+Run the below command on your host to begin installation with the default
+options.  Replace these variables:
 
 - `SPLUNK_REALM`: Which realm to send the data to (for example: `us0`)
 - `SPLUNK_ACCESS_TOKEN`: Access token to authenticate requests
@@ -31,7 +45,8 @@ curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-co
 sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
 ```
 
-Run the following command to check the `splunk-otel-collector` service status:
+After successful installation, run the following command to check the
+`splunk-otel-collector` service status:
 ```sh
 sudo systemctl status splunk-otel-collector
 ```
@@ -53,6 +68,7 @@ Additional configuration options supported by the script can be found by
 running the script with the `-h` flag.
 
 ```sh
+curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
 sh /tmp/splunk-otel-collector.sh -h
 ```
 
@@ -139,6 +155,10 @@ To upgrade the Collector, run the following commands on your system (requires
 
 ### Fluentd Configuration
 
+> If log collection is not required, run the installer script with the
+> `--without-fluentd` option to skip installation of Fluentd and the
+> plugins/dependencies listed below.
+
 By default, the Fluentd service will be installed and configured to forward log
 events with the `@SPLUNK` label to the Collector (see below for how to add
 custom Fluentd log sources), and the Collector will send these events to the
@@ -164,10 +184,6 @@ the Fluentd plugins:
   - `libcap-ng`
   - `libcap-ng-devel`
   - `pkgconfig`
-
-> If log collection is not required, run the installer script with the
-> `--without-fluentd` option to skip installation of Fluentd and the
-> plugins/dependencies listed above.
 
 To configure the Collector to send log events to a custom HEC endpoint URL, you
 can specify the following parameters for the installer script:
@@ -230,11 +246,81 @@ applicable for `td-agent` versions 4.1 or newer):
   sudo systemctl restart td-agent
   ```
 
+### Auto Instrumentation
+
+#### Installation
+
+To install the Collector and the Splunk OpenTelemetry Auto Instrumentation for
+Java packages, run the installer script with the `--with-instrumentation`
+option:
+```sh
+curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
+sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
+```
+
+To automatically define the optional `deployment.environment` resource
+attribute at installation time, run the installer script with the
+`--deployment-environment VALUE` option (replace `VALUE` with the desired
+attribute value, e.g. `prod`):
+```sh
+curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
+sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --deployment-environment VALUE --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
+```
+
+**Note:** After successful installation, the Java application(s) on the host need to be
+manually started/restarted.
+
+#### Post-Install Configuration
+
+- The `/etc/ld.so.preload` file will be automatically updated with the path to
+  the installed instrumentation library, i.e.
+  `/usr/lib/splunk-instrumentation/libsplunk.so`.  If necessary, custom library
+  paths can be manually added to this file.
+- The `/usr/lib/splunk-instrumentation/instrumentation.conf` file can be
+  manually configured for resource attributes and other options.  If the
+  `--deployment-environment VALUE` installer script option was specified,
+  the `deployment.environment=VALUE` resource attribute will be automatically
+  added to this file.
+
+See [Linux Java Auto Instrumentation](https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#linux-java-auto-instrumentation)
+for more details.
+
+**Note:** After any configuration changes, the Java application(s) on the host
+need to be manually started/restarted.
+
+#### Upgrade
+
+To upgrade the Instrumentation package, run the following commands on your
+system (requires `root` privileges):
+- Debian:
+  ```sh
+  sudo apt-get update
+  sudo apt-get --only-upgrade splunk-otel-auto-instrumentation
+  ```
+  **Note:** You may be prompted to keep or overwrite the configuration file at
+  `/usr/lib/splunk-instrumentation/instrumentation.conf`.
+- RPM:
+  - `yum`
+    ```sh
+    sudo yum upgrade splunk-otel-auto-instrumentation
+    ```
+  - `dnf`
+    ```sh
+    sudo dnf upgrade splunk-otel-auto-instrumentation
+    ```
+  - `zypper`
+    ```sh
+    sudo zypper refresh
+    sudo zypper update splunk-otel-auto-instrumentation
+    ```
+
 ### Uninstall
 
-If you wish to uninstall the Collector and Fluentd you can run:
+If you wish to uninstall the Collector, Fluentd, and Instrumentation packages,
+you can run:
 
 ```sh
+curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
 sudo sh /tmp/splunk-otel-collector.sh --uninstall
 ```
 

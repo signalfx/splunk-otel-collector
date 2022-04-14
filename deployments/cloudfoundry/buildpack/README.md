@@ -20,7 +20,10 @@ apps and deployments that emit metrics and logs to the Loggregator Firehose as l
 $ cf create-buildpack otel_collector_buildpack . 99 --enable
 ```
 
-Note: `wget` is used to download the Splunk OpenTelemetry Collector.
+### Dependencies in Cloud Foundry Environment
+
+- `wget`
+- `jq`
 
 ### Using PCF Buildpack With an Application
 This section covers basic cf CLI (Cloud Foundry Command Line Interface) commands to use the buildpack. 
@@ -74,7 +77,8 @@ Required:
 
 Optional:
 - `OS` - Operating system that Cloud Foundry is running. Must match format of Otel Collector executable name.
-    Default: `linux_amd64`
+    Default: `linux_amd64`. This is the only officially supported OS, so any changes to this variable should
+    be done at the user's own risk.
 - `OTEL_CONFIG` - Local name of Splunk OpenTelemetry config file. Default: `otelconfig.yaml`
 - `OTEL_VERSION` - Executable version of Splunk OpenTelemetry Collector to use. The buildpack depends on features present in version
     v0.48.0+. Default: `latest`. Example valid value: `v0.48.0`.
@@ -89,6 +93,10 @@ Optional:
    balancing metrics between them. Default: `otelcol`
 - `RLP_GATEWAY_TLS_INSECURE` - Whether to skip TLS verify for the RLP gateway endpoint. Default: `false`
 - `UAA_TLS_INSECURE` - Whether to skip TLS verify for the UAA endpoint. Default: `false`
+- `SMART_AGENT_VERSION` - Version of the Smart Agent that should be downloaded. This is a dependency of
+    the collector's `signalfx` receiver. Default: `latest`. Example valid value: `v5.19.1`.
+    Note that if left the default value, the latest version will be found and later variable references will be
+    to a valid version number, not simply the word "latest".
 
 ## Sidecar Configuration
 

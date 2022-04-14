@@ -1,4 +1,4 @@
-# OpenTelemetry Collector Pivotal Cloud Foundry (PCF) Integrations
+# Splunk OpenTelemetry Collector Pivotal Cloud Foundry (PCF) Integrations
 
 ### Cloud Foundry Buildpack
 

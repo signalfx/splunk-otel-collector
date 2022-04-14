@@ -19,7 +19,8 @@ import (
 	"time"
 
 	sfx "github.com/signalfx/golib/v3/datapoint"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
 )
 
@@ -30,8 +31,8 @@ var (
 // Based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.15.0/receiver/signalfxreceiver/signalfxv2_to_metricdata.go
 // toMetrics() will respect the timestamp of any datapoint that isn't the zero value for time.Time,
 // using timeReceived otherwise.
-func sfxDatapointsToPDataMetrics(datapoints []*sfx.Datapoint, timeReceived time.Time, logger *zap.Logger) pdata.Metrics {
-	md := pdata.NewMetrics()
+func sfxDatapointsToPDataMetrics(datapoints []*sfx.Datapoint, timeReceived time.Time, logger *zap.Logger) pmetric.Metrics {
+	md := pmetric.NewMetrics()
 	ilm := md.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
 
 	metrics := ilm.Metrics()
@@ -58,8 +59,8 @@ func sfxDatapointsToPDataMetrics(datapoints []*sfx.Datapoint, timeReceived time.
 	return md
 }
 
-func setDataTypeAndPoints(datapoint *sfx.Datapoint, ms pdata.MetricSlice, timeReceived time.Time) error {
-	var m pdata.Metric
+func setDataTypeAndPoints(datapoint *sfx.Datapoint, ms pmetric.MetricSlice, timeReceived time.Time) error {
+	var m pmetric.Metric
 	sfxMetricType := datapoint.MetricType
 	if sfxMetricType == sfx.Timestamp {
 		return errUnsupportedMetricTypeTimestamp
@@ -74,18 +75,18 @@ func setDataTypeAndPoints(datapoint *sfx.Datapoint, ms pdata.MetricSlice, timeRe
 	switch sfxMetricType {
 	case sfx.Gauge, sfx.Enum, sfx.Rate:
 		m = ms.AppendEmpty()
-		m.SetDataType(pdata.MetricDataTypeGauge)
+		m.SetDataType(pmetric.MetricDataTypeGauge)
 		fillNumberDatapoint(datapoint.Value, datapoint.Timestamp, datapoint.Dimensions, m.Gauge().DataPoints(), timeReceived)
 	case sfx.Count:
 		m = ms.AppendEmpty()
-		m.SetDataType(pdata.MetricDataTypeSum)
-		m.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityDelta)
+		m.SetDataType(pmetric.MetricDataTypeSum)
+		m.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityDelta)
 		m.Sum().SetIsMonotonic(true)
 		fillNumberDatapoint(datapoint.Value, datapoint.Timestamp, datapoint.Dimensions, m.Sum().DataPoints(), timeReceived)
 	case sfx.Counter:
 		m = ms.AppendEmpty()
-		m.SetDataType(pdata.MetricDataTypeSum)
-		m.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
+		m.SetDataType(pmetric.MetricDataTypeSum)
+		m.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 		m.Sum().SetIsMonotonic(true)
 		fillNumberDatapoint(datapoint.Value, datapoint.Timestamp, datapoint.Dimensions, m.Sum().DataPoints(), timeReceived)
 	default:
@@ -96,13 +97,13 @@ func setDataTypeAndPoints(datapoint *sfx.Datapoint, ms pdata.MetricSlice, timeRe
 	return nil
 }
 
-func fillNumberDatapoint(value sfx.Value, timestamp time.Time, dimensions map[string]string, dps pdata.NumberDataPointSlice, timeReceived time.Time) {
+func fillNumberDatapoint(value sfx.Value, timestamp time.Time, dimensions map[string]string, dps pmetric.NumberDataPointSlice, timeReceived time.Time) {
 	if timestamp.IsZero() {
 		timestamp = timeReceived
 	}
 
 	dp := dps.AppendEmpty()
-	dp.SetTimestamp(pdata.Timestamp(uint64(timestamp.UnixNano())))
+	dp.SetTimestamp(pcommon.Timestamp(uint64(timestamp.UnixNano())))
 	switch val := value.(type) {
 	case sfx.IntValue:
 		dp.SetIntVal(val.Int())

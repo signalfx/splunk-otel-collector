@@ -19,18 +19,18 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 func TestRunMetricProvider(t *testing.T) {
 	p := newRunMetricsProvider(&fakeCompletedJobRunClient{})
-	jobPts := pdata.NewNumberDataPointSlice()
-	err := p.addSingleJobRunMetrics(jobPts, pdata.NewNumberDataPointSlice(), 42)
+	jobPts := pmetric.NewNumberDataPointSlice()
+	err := p.addSingleJobRunMetrics(jobPts, pmetric.NewNumberDataPointSlice(), 42)
 	require.NoError(t, err)
 	assert.Equal(t, 0, jobPts.Len())
 
-	jobPts = pdata.NewNumberDataPointSlice()
-	err = p.addSingleJobRunMetrics(jobPts, pdata.NewNumberDataPointSlice(), 42)
+	jobPts = pmetric.NewNumberDataPointSlice()
+	err = p.addSingleJobRunMetrics(jobPts, pmetric.NewNumberDataPointSlice(), 42)
 	require.NoError(t, err)
 	assert.Equal(t, 1, jobPts.Len())
 	pt := jobPts.At(0)
@@ -40,7 +40,7 @@ func TestRunMetricProvider(t *testing.T) {
 func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	const ignored = 25
 	mp := newRunMetricsProvider(newDatabricksClient(&testdataClient{}, ignored))
-	ms := pdata.NewMetricSlice()
+	ms := pmetric.NewMetricSlice()
 	err := mp.addMultiJobRunMetrics(ms, []int{288})
 	require.NoError(t, err)
 	jobMetric := ms.At(0)
@@ -48,7 +48,7 @@ func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	taskMetric := ms.At(1)
 	assert.Equal(t, 0, taskMetric.Gauge().DataPoints().Len())
 
-	ms = pdata.NewMetricSlice()
+	ms = pmetric.NewMetricSlice()
 	err = mp.addMultiJobRunMetrics(ms, []int{288})
 	require.NoError(t, err)
 	jobMetric = ms.At(0)

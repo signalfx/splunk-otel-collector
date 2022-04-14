@@ -34,7 +34,8 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
 )
 
@@ -302,7 +303,7 @@ func fakeMonitorFiltering() *monitorFiltering {
 type mockMetadataClient struct {
 	id                      config.ComponentID
 	receivedMetadataUpdates []*metadata.MetadataUpdate
-	receivedLogs            []pdata.Logs
+	receivedLogs            []plog.Logs
 }
 
 func (mmc *mockMetadataClient) Capabilities() consumer.Capabilities {
@@ -317,7 +318,7 @@ func (mmc *mockMetadataClient) Shutdown(_ context.Context) error {
 	panic("implement me")
 }
 
-func (mmc *mockMetadataClient) ConsumeMetrics(_ context.Context, _ pdata.Metrics) error {
+func (mmc *mockMetadataClient) ConsumeMetrics(_ context.Context, _ pmetric.Metrics) error {
 	panic("implement me")
 }
 
@@ -331,7 +332,7 @@ func (mmc *mockMetadataClient) ConsumeMetadata(updates []*metadata.MetadataUpdat
 	return nil
 }
 
-func (mmc *mockMetadataClient) ConsumeLogs(ctx context.Context, logs pdata.Logs) error {
+func (mmc *mockMetadataClient) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 	mmc.receivedLogs = append(mmc.receivedLogs, logs)
 	return nil
 }
@@ -340,7 +341,7 @@ type notAReceiver struct{ component.Component }
 
 type mockMetricsReceiver struct{ component.Component }
 
-func (mr *mockMetricsReceiver) ConsumeMetrics(context.Context, pdata.Metrics) error { return nil }
+func (mr *mockMetricsReceiver) ConsumeMetrics(context.Context, pmetric.Metrics) error { return nil }
 
 type nopHost struct{}
 

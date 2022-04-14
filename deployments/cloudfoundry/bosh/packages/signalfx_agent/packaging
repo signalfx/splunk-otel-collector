@@ -1,0 +1,11 @@
+set -e -x
+
+tar xzf signalfx_agent/signalfx-agent.tar.gz
+
+cp -r signalfx-agent/* ${BOSH_INSTALL_TARGET}/
+
+pushd $BOSH_INSTALL_TARGET
+
+bin/patch-interpreter $(pwd)
+
+popd

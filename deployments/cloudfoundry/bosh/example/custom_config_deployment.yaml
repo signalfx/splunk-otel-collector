@@ -1,0 +1,57 @@
+---
+name: splunk-otel-collector
+
+releases:
+  - name: splunk-otel-collector
+    version: latest
+
+stemcells:
+  - alias: default
+    os: ubuntu-bionic
+    version: latest
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
+
+instance_groups:
+  - name: splunk-otel-collector
+    instances: 1
+    azs: [z1, z2]
+    jobs:
+      - name: splunk-otel-collector
+        release: bosh
+        properties:
+          otel:
+            config_yaml: |
+              receivers:
+                cloudfoundry:
+                  rlp_gateway:
+                    endpoint: "https://log-stream.sys.<TAS environment name>.cf-app.com"
+                  uaa:
+                    endpoint: "https://uaa.sys.<TAS environment name>.cf-app.com"
+                    username: "..."
+                    password: "..."
+
+              exporters:
+                signalfx:
+                  access_token: "..."
+                  realm: "..."
+
+              processors:
+                resourcedetection:
+                  detectors: [ system ]
+
+              service:
+                pipelines:
+                  metrics:
+                    receivers: [ cloudfoundry ]
+                    processors: [ resourcedetection ]
+                    exporters: [ signalfx ]
+
+    vm_type: default
+    stemcell: default
+    networks:
+      - name: default

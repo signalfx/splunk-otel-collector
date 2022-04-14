@@ -1,0 +1,7 @@
+---
+name: splunk_otel_collector
+
+dependencies: []
+
+files:
+- splunk_otel_collector/splunk_otel_collector # From https://github.com/signalfx/splunk-otel-collector/releases/latest

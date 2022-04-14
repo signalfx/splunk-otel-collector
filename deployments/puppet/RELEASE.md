@@ -3,7 +3,7 @@
 ## Prerequisites
 
 1. You must be able to sign git commits/tags. Follow [this guide](
-   https://docs.github.com/en/github/authenticating-to-github/signing-commits)
+   https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
    to set it up.
 1. You must have access to the `o11y-gdi/splunk-otel-collector-releaser` gitlab
    repo and CI/CD pipeline.

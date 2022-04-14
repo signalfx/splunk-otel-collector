@@ -67,8 +67,8 @@ To send us a pull request, please:
    stay involved in the conversation.
 
 GitHub provides additional documentation on [forking a
-repository](https://help.github.com/articles/fork-a-repo/) and [creating a pull
-request](https://help.github.com/articles/creating-a-pull-request/).
+repository](https://docs.github.com/en/get-started/quickstart/fork-a-repo) and
+[creating a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request).
 
 ## Finding contributions to work on
 

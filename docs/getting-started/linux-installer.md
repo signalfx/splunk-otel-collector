@@ -272,10 +272,10 @@ manually started/restarted.
 
 #### Post-Install Configuration
 
-- The `/etc/ld.so.preload` file will be automatically updated with the path to
-  the installed instrumentation library, i.e.
-  `/usr/lib/splunk-instrumentation/libsplunk.so`.  If necessary, custom library
-  paths can be manually added to this file.
+- The `/etc/ld.so.preload` file will be automatically updated with the default
+  path to the installed instrumentation library
+  (`/usr/lib/splunk-instrumentation/libsplunk.so`).  If necessary, custom
+  library paths can be manually added to this file.
 - The `/usr/lib/splunk-instrumentation/instrumentation.conf` file can be
   manually configured for resource attributes and other options.  If the
   `--deployment-environment VALUE` installer script option was specified,

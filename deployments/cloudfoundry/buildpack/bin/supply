@@ -18,6 +18,15 @@ OTEL_VERSION="${OTEL_VERSION:-latest}"
 OS="${OS:-linux_amd64}"
 OTEL_BASE_URL="https://github.com/signalfx/splunk-otel-collector/releases"
 
+# Get proper version number if we're getting latest release
+if [ $OTEL_VERSION = "latest" ] && [ -z "${OTEL_BINARY_DOWNLOAD_URL:-}" ]; then
+        OTEL_VERSION=$( wget -qO- --header="Accept: application/json" "$OTEL_BASE_URL/latest" | jq -r '.tag_name' )
+        if [ -z "$OTEL_VERSION" ]; then
+            echo "Failed to get tag_name for latest release from $OTEL_BASE_URL/latest" >&2
+            exit 1
+        fi
+fi
+
 echo "-----> Installing Otel Collector ${OTEL_VERSION}"
 echo "       BUILD_DIR: $BUILD_DIR"
 echo "       CACHE_DIR: $CACHE_DIR"
@@ -30,15 +39,6 @@ mkdir -p $TARGET_DIR
 
 # Copy over default OpenTelemetry configuration file for sidecar configuration use
 cp "$BUILDPACK_DIR/../$OTEL_CONFIG" "$TARGET_DIR/"
-
-# Get proper version number if we're getting latest release
-if [ $OTEL_VERSION = "latest" ] && [ -z "${OTEL_BINARY_DOWNLOAD_URL:-}" ]; then
-        OTEL_VERSION=$( wget -qO- --header="Accept: application/json" "$OTEL_BASE_URL/latest" | jq -r '.tag_name' )
-        if [ -z "$OTEL_VERSION" ]; then
-            echo "Failed to get tag_name for latest release from $OTEL_BASE_URL/latest" >&2
-            exit 1
-        fi
-fi
 
 # File name for given release version
 OTEL_BINARY="${OTEL_BINARY:-otelcol_${OS}-${OTEL_VERSION}}"
@@ -67,6 +67,11 @@ export UAA_TLS_INSECURE=false
 export OTEL_VERSION=$OTEL_VERSION" >> $DEPS_DIR/$IDX/profile.d/otel_config_env_vars.sh
 
 echo "-----> Successfully installed OpenTelemetry Collector $OTEL_VERSION and set default environment variables"
+
+if [ $OS != linux_amd64 ]; then
+  echo "-----> OS doesn't support Smart Agent dependencies, signalfx receiver won't be supported."
+  exit 0
+fi
 
 # Need to run SignalFx patch interpreter for the SignalFx receiver to work properly.
 # Get proper version number if we're getting latest release

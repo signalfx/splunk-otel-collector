@@ -268,7 +268,7 @@ sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --deployment-enviro
 ```
 
 **Note:** After successful installation, the Java application(s) on the host need to be
-manually started/restarted.
+manually started/restarted for auto instrumentation to take effect.
 
 #### Post-Install Configuration
 
@@ -286,7 +286,7 @@ See [Linux Java Auto Instrumentation](https://github.com/signalfx/splunk-otel-co
 for more details.
 
 **Note:** After any configuration changes, the Java application(s) on the host
-need to be manually started/restarted.
+need to be manually started/restarted to source the updated values.
 
 #### Upgrade
 

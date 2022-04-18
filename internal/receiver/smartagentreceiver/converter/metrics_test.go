@@ -21,7 +21,8 @@ import (
 	sfx "github.com/signalfx/golib/v3/datapoint"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
 )
 
@@ -43,36 +44,36 @@ func sfxDatapoint() *sfx.Datapoint {
 	}
 }
 
-func pdataMetric() (pdata.Metrics, pdata.Metric) {
-	out := pdata.NewMetrics()
+func pdataMetric() (pmetric.Metrics, pmetric.Metric) {
+	out := pmetric.NewMetrics()
 	m := out.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()
 	return out, m
 }
 
-func pdataMetrics(dataType pdata.MetricDataType, value interface{}, timeReceived time.Time) pdata.Metrics {
+func pdataMetrics(dataType pmetric.MetricDataType, value interface{}, timeReceived time.Time) pmetric.Metrics {
 	metrics, metric := pdataMetric()
 	metric.SetDataType(dataType)
 	metric.SetName("some metric")
 
-	var dps pdata.NumberDataPointSlice
+	var dps pmetric.NumberDataPointSlice
 
 	switch dataType {
-	case pdata.MetricDataTypeGauge:
+	case pmetric.MetricDataTypeGauge:
 		dps = metric.Gauge().DataPoints()
-	case pdata.MetricDataTypeSum:
-		metric.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
+	case pmetric.MetricDataTypeSum:
+		metric.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 		dps = metric.Sum().DataPoints()
 	}
 
-	var attributes pdata.Map
+	var attributes pcommon.Map
 
 	dp := dps.AppendEmpty()
 	attributes = dp.Attributes()
-	attributes.Upsert("k0", pdata.NewValueString("v0"))
-	attributes.Upsert("k1", pdata.NewValueString("v1"))
-	attributes.Upsert("k2", pdata.NewValueString("v2"))
+	attributes.Upsert("k0", pcommon.NewValueString("v0"))
+	attributes.Upsert("k1", pcommon.NewValueString("v1"))
+	attributes.Upsert("k2", pcommon.NewValueString("v2"))
 	attributes.Sort()
-	dp.SetTimestamp(pdata.Timestamp(timeReceived.UnixNano()))
+	dp.SetTimestamp(pcommon.Timestamp(timeReceived.UnixNano()))
 	switch val := value.(type) {
 	case int:
 		dp.SetIntVal(int64(val))
@@ -81,7 +82,7 @@ func pdataMetrics(dataType pdata.MetricDataType, value interface{}, timeReceived
 	}
 
 	attributes.Clear()
-	pdata.NewMapFromRaw(map[string]interface{}{
+	pcommon.NewMapFromRaw(map[string]interface{}{
 		"k0": "v0",
 		"k1": "v1",
 		"k2": "v2",
@@ -94,14 +95,14 @@ func pdataMetrics(dataType pdata.MetricDataType, value interface{}, timeReceived
 func TestDatapointsToPDataMetrics(t *testing.T) {
 	tests := []struct {
 		timeReceived    time.Time
-		expectedMetrics pdata.Metrics
+		expectedMetrics pmetric.Metrics
 		name            string
 		datapoints      []*sfx.Datapoint
 	}{
 		{
 			name:            "IntGauge",
 			datapoints:      []*sfx.Datapoint{sfxDatapoint()},
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeGauge, 13, now),
+			expectedMetrics: pdataMetrics(pmetric.MetricDataTypeGauge, 13, now),
 		},
 		{
 			name: "DoubleGauge",
@@ -111,7 +112,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				pt.Value = sfx.NewFloatValue(13.13)
 				return []*sfx.Datapoint{pt}
 			}(),
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeGauge, 13.13, now),
+			expectedMetrics: pdataMetrics(pmetric.MetricDataTypeGauge, 13.13, now),
 		},
 		{
 			name: "IntCount",
@@ -120,10 +121,10 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				pt.MetricType = sfx.Count
 				return []*sfx.Datapoint{pt}
 			}(),
-			expectedMetrics: func() pdata.Metrics {
-				m := pdataMetrics(pdata.MetricDataTypeSum, 13, now)
+			expectedMetrics: func() pmetric.Metrics {
+				m := pdataMetrics(pmetric.MetricDataTypeSum, 13, now)
 				d := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Sum()
-				d.SetAggregationTemporality(pdata.MetricAggregationTemporalityDelta)
+				d.SetAggregationTemporality(pmetric.MetricAggregationTemporalityDelta)
 				d.SetIsMonotonic(true)
 				return m
 			}(),
@@ -136,10 +137,10 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				pt.Value = sfx.NewFloatValue(13.13)
 				return []*sfx.Datapoint{pt}
 			}(),
-			expectedMetrics: func() pdata.Metrics {
-				m := pdataMetrics(pdata.MetricDataTypeSum, 13.13, now)
+			expectedMetrics: func() pmetric.Metrics {
+				m := pdataMetrics(pmetric.MetricDataTypeSum, 13.13, now)
 				d := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Sum()
-				d.SetAggregationTemporality(pdata.MetricAggregationTemporalityDelta)
+				d.SetAggregationTemporality(pmetric.MetricAggregationTemporalityDelta)
 				d.SetIsMonotonic(true)
 				return m
 			}(),
@@ -151,10 +152,10 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				pt.MetricType = sfx.Counter
 				return []*sfx.Datapoint{pt}
 			}(),
-			expectedMetrics: func() pdata.Metrics {
-				m := pdataMetrics(pdata.MetricDataTypeSum, 13, now)
+			expectedMetrics: func() pmetric.Metrics {
+				m := pdataMetrics(pmetric.MetricDataTypeSum, 13, now)
 				d := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Sum()
-				d.SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
+				d.SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 				d.SetIsMonotonic(true)
 				return m
 			}(),
@@ -167,10 +168,10 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				pt.Value = sfx.NewFloatValue(13.13)
 				return []*sfx.Datapoint{pt}
 			}(),
-			expectedMetrics: func() pdata.Metrics {
-				m := pdataMetrics(pdata.MetricDataTypeSum, 13.13, now)
+			expectedMetrics: func() pmetric.Metrics {
+				m := pdataMetrics(pmetric.MetricDataTypeSum, 13.13, now)
 				d := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Sum()
-				d.SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
+				d.SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 				d.SetIsMonotonic(true)
 				return m
 			}(),
@@ -182,8 +183,8 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				pt.Timestamp = time.Unix(0, 0)
 				return []*sfx.Datapoint{pt}
 			}(),
-			expectedMetrics: func() pdata.Metrics {
-				md := pdataMetrics(pdata.MetricDataTypeGauge, 13, time.Unix(0, 0))
+			expectedMetrics: func() pmetric.Metrics {
+				md := pdataMetrics(pmetric.MetricDataTypeGauge, 13, time.Unix(0, 0))
 				md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).SetTimestamp(0)
 				return md
 			}(),
@@ -195,7 +196,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				pt.Timestamp = time.Time{}
 				return []*sfx.Datapoint{pt}
 			}(),
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeGauge, 13, now),
+			expectedMetrics: pdataMetrics(pmetric.MetricDataTypeGauge, 13, now),
 			timeReceived:    now,
 		},
 		{
@@ -205,16 +206,16 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 				pt.Dimensions["k0"] = ""
 				return []*sfx.Datapoint{pt}
 			}(),
-			expectedMetrics: func() pdata.Metrics {
-				md := pdataMetrics(pdata.MetricDataTypeGauge, 13, now)
-				md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).Attributes().Update("k0", pdata.NewValueString(""))
+			expectedMetrics: func() pmetric.Metrics {
+				md := pdataMetrics(pmetric.MetricDataTypeGauge, 13, now)
+				md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).Attributes().Update("k0", pcommon.NewValueString(""))
 				return md
 			}(),
 		},
 		{
 			name:            "nil_datapoints_ignored",
 			datapoints:      []*sfx.Datapoint{nil, sfxDatapoint(), nil},
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeGauge, 13, now),
+			expectedMetrics: pdataMetrics(pmetric.MetricDataTypeGauge, 13, now),
 		},
 		{
 			name: "drops_invalid_datapoints",
@@ -233,7 +234,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 
 				return []*sfx.Datapoint{pt0, pt1, sfxDatapoint(), pt2}
 			}(),
-			expectedMetrics: pdataMetrics(pdata.MetricDataTypeGauge, 13, now),
+			expectedMetrics: pdataMetrics(pmetric.MetricDataTypeGauge, 13, now),
 		},
 	}
 
@@ -283,14 +284,14 @@ func TestSetDataTypeWithInvalidDatapoints(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
-			err := setDataTypeAndPoints(test.datapoint, pdata.NewMetricSlice(), time.Now())
+			err := setDataTypeAndPoints(test.datapoint, pmetric.NewMetricSlice(), time.Now())
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), test.expectedError)
 		})
 	}
 }
 
-func sortLabels(t *testing.T, metrics pdata.Metrics) {
+func sortLabels(t *testing.T, metrics pmetric.Metrics) {
 	for i := 0; i < metrics.ResourceMetrics().Len(); i++ {
 		rm := metrics.ResourceMetrics().At(i)
 		for j := 0; j < rm.ScopeMetrics().Len(); j++ {
@@ -298,11 +299,11 @@ func sortLabels(t *testing.T, metrics pdata.Metrics) {
 			for k := 0; k < ilm.Metrics().Len(); k++ {
 				m := ilm.Metrics().At(k)
 				switch m.DataType() {
-				case pdata.MetricDataTypeGauge:
+				case pmetric.MetricDataTypeGauge:
 					for l := 0; l < m.Gauge().DataPoints().Len(); l++ {
 						m.Gauge().DataPoints().At(l).Attributes().Sort()
 					}
-				case pdata.MetricDataTypeSum:
+				case pmetric.MetricDataTypeSum:
 					for l := 0; l < m.Sum().DataPoints().Len(); l++ {
 						m.Sum().DataPoints().At(l).Attributes().Sort()
 					}

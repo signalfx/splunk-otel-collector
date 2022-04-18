@@ -22,21 +22,22 @@ import (
 	"github.com/signalfx/golib/v3/event"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
 )
 
 func TestEventToPDataLogs(tt *testing.T) {
 	for _, test := range []struct {
 		event       event.Event
-		expectedLog pdata.Logs
+		expectedLog plog.Logs
 		name        string
 	}{
 		{
 			name:  "event zero value",
 			event: event.Event{},
-			expectedLog: newExpectedLog(map[string]pdata.Value{
-				"com.splunk.signalfx.event_category": pdata.NewValueEmpty(),
+			expectedLog: newExpectedLog(map[string]pcommon.Value{
+				"com.splunk.signalfx.event_category": pcommon.NewValueEmpty(),
 			}, 0),
 		},
 		{
@@ -60,14 +61,14 @@ func TestEventToPDataLogs(tt *testing.T) {
 				},
 				Timestamp: time.Unix(1, 1),
 			},
-			expectedLog: newExpectedLog(func() map[string]pdata.Value {
-				attrs := map[string]pdata.Value{
-					"com.splunk.signalfx.event_category": pdata.NewValueInt(1),
-					"com.splunk.signalfx.event_type":     pdata.NewValueString("some_event_type"),
-					"dimension_name":                     pdata.NewValueString("dimension_value"),
+			expectedLog: newExpectedLog(func() map[string]pcommon.Value {
+				attrs := map[string]pcommon.Value{
+					"com.splunk.signalfx.event_category": pcommon.NewValueInt(1),
+					"com.splunk.signalfx.event_type":     pcommon.NewValueString("some_event_type"),
+					"dimension_name":                     pcommon.NewValueString("dimension_value"),
 				}
-				properties := pdata.NewValueMap()
-				pdata.NewMapFromRaw(
+				properties := pcommon.NewValueMap()
+				pcommon.NewMapFromRaw(
 					map[string]interface{}{
 						"bool_property_name":    true,
 						"string_property_name":  "some value",
@@ -95,13 +96,13 @@ func TestEventToPDataLogs(tt *testing.T) {
 					"uint_property":   uint(12345),
 				},
 			},
-			expectedLog: newExpectedLog(func() map[string]pdata.Value {
-				attrs := map[string]pdata.Value{
-					"com.splunk.signalfx.event_category": pdata.NewValueInt(10000000),
-					"com.splunk.signalfx.event_type":     pdata.NewValueString("some_event_type"),
+			expectedLog: newExpectedLog(func() map[string]pcommon.Value {
+				attrs := map[string]pcommon.Value{
+					"com.splunk.signalfx.event_category": pcommon.NewValueInt(10000000),
+					"com.splunk.signalfx.event_type":     pcommon.NewValueString("some_event_type"),
 				}
-				properties := pdata.NewValueMap()
-				pdata.NewMapFromRaw(
+				properties := pcommon.NewValueMap()
+				pcommon.NewMapFromRaw(
 					map[string]interface{}{
 						"struct_property": "{something}",
 						"uint_property":   "12345",
@@ -119,10 +120,10 @@ func TestEventToPDataLogs(tt *testing.T) {
 	}
 }
 
-func newExpectedLog(properties map[string]pdata.Value, timestamp uint64) pdata.Logs {
-	ld := pdata.NewLogs()
+func newExpectedLog(properties map[string]pcommon.Value, timestamp uint64) plog.Logs {
+	ld := plog.NewLogs()
 	lr := ld.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty()
-	lr.SetTimestamp(pdata.Timestamp(timestamp))
+	lr.SetTimestamp(pcommon.Timestamp(timestamp))
 
 	attrs := lr.Attributes()
 	for k, v := range properties {
@@ -132,7 +133,7 @@ func newExpectedLog(properties map[string]pdata.Value, timestamp uint64) pdata.L
 	return ld
 }
 
-func assertLogsEqual(t *testing.T, expected, received pdata.Logs) {
+func assertLogsEqual(t *testing.T, expected, received plog.Logs) {
 	expectedLog := expected.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 	receivedLog := received.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 
@@ -142,17 +143,17 @@ func assertLogsEqual(t *testing.T, expected, received pdata.Logs) {
 	assertAttributeMapContainsAll(t, receivedLog.Attributes(), expectedLog.Attributes())
 }
 
-func assertAttributeMapContainsAll(t *testing.T, first, second pdata.Map) {
-	first.Range(func(firstKey string, firstValue pdata.Value) bool {
+func assertAttributeMapContainsAll(t *testing.T, first, second pcommon.Map) {
+	first.Range(func(firstKey string, firstValue pcommon.Value) bool {
 		secondValue, ok := second.Get(firstKey)
 		require.True(t, ok, fmt.Sprintf("first attribute %s not in second", firstKey))
 		require.Equal(t, firstValue.Type(), secondValue.Type())
-		if secondValue.Type() == pdata.ValueTypeMap {
+		if secondValue.Type() == pcommon.ValueTypeMap {
 			assertAttributeMapContainsAll(t, firstValue.MapVal(), secondValue.MapVal())
 			return true
 		}
 
-		if secondValue.Type() == pdata.ValueTypeDouble {
+		if secondValue.Type() == pcommon.ValueTypeDouble {
 			// account for float32 -> float64 precision
 			assert.InDelta(t, firstValue.DoubleVal(), secondValue.DoubleVal(), .001)
 			return true

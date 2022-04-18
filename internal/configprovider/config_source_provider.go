@@ -82,6 +82,10 @@ func (c *configSourceConfigMapProvider) Retrieve(
 	return c.retrieved, err
 }
 
+func (c *configSourceConfigMapProvider) Scheme() string {
+	return c.wrappedProvider.Scheme()
+}
+
 func (c *configSourceConfigMapProvider) Shutdown(ctx context.Context) error {
 	return c.wrappedProvider.Shutdown(ctx)
 }

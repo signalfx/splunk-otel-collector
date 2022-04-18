@@ -207,7 +207,7 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 
 	metrics, err := output.translator.ToMetrics(datapoints)
 	if err != nil {
-		output.logger.Error("error converting SFx datapoints to pdata.Traces", zap.Error(err))
+		output.logger.Error("error converting SFx datapoints to ptrace.Traces", zap.Error(err))
 	}
 
 	numPoints := metrics.DataPointCount()
@@ -222,7 +222,7 @@ func (output *Output) SendEvent(event *event.Event) {
 
 	logs, err := output.translator.ToLogs(event)
 	if err != nil {
-		output.logger.Error("error converting SFx events to pdata.Traces", zap.Error(err))
+		output.logger.Error("error converting SFx events to ptrace.Traces", zap.Error(err))
 	}
 
 	err = output.nextLogsConsumer.ConsumeLogs(context.Background(), logs)
@@ -253,7 +253,7 @@ func (output *Output) SendSpans(spans ...*trace.Span) {
 
 	traces, err := output.translator.ToTraces(spans)
 	if err != nil {
-		output.logger.Error("error converting SFx spans to pdata.Traces", zap.Error(err))
+		output.logger.Error("error converting SFx spans to ptrace.Traces", zap.Error(err))
 	}
 
 	err = output.nextTracesConsumer.ConsumeTraces(context.Background(), traces)

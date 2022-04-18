@@ -407,6 +407,13 @@ update_instrumentation_config() {
   local deployment_environment="$1"
 
   if [ -f "$instrumentation_config_path" ]; then
+    if grep -q -E "^resource_attributes=.*deployment\.environment=${deployment_environment}(,|$)" "$instrumentation_config_path"; then
+      echo "The 'deployment.environment=${deployment_environment}' resource attribute already exists in ${instrumentation_config_path}"
+      return 0
+    fi
+    ts="$(date '+%Y%m%d-%H%M%S')"
+    echo "Backing up $instrumentation_config_path as ${instrumentation_config_path}.bak.${ts}"
+    cp "$instrumentation_config_path" "${instrumentation_config_path}.bak.${ts}"
     echo "Adding 'deployment.environment=${deployment_environment}' resource attribute to $instrumentation_config_path"
     if grep -q '^resource_attributes=' "$instrumentation_config_path"; then
       # traverse through existing resource attributes to add/update deployment.environment
@@ -424,11 +431,7 @@ update_instrumentation_config() {
       if [ "$deployment_environment_found" != "true" ]; then
         attributes="${attributes},deployment.environment=${deployment_environment}"
       fi
-      attributes=$(echo "$attributes" | sed 's|^,||')
-      ts="$(date '+%Y%m%d-%H%M%S')"
-      echo "Saving $instrumentation_config_path as ${instrumentation_config_path}.bak.${ts}"
-      cp "$instrumentation_config_path" "${instrumentation_config_path}.bak.${ts}"
-      sed -i "s|^resource_attributes=.*|resource_attributes=${attributes}|" "$instrumentation_config_path"
+      sed -i "s|^resource_attributes=.*|resource_attributes=${attributes#,}|" "$instrumentation_config_path"
     else
       # "resource_attributes=" line not found, simply append the line to the config file
       echo "resource_attributes=deployment.environment=${deployment_environment}" >> "$instrumentation_config_path"

@@ -44,6 +44,9 @@ installed on x86_64/amd64 platforms.
         echo 'deb https://splunk.jfrog.io/splunk/otel-collector-deb release main' > /etc/apt/sources.list.d/splunk-otel-collector.list
         apt-get update
         apt-get install -y splunk-otel-collector
+
+        # Optional: install Splunk OpenTelemetry Auto Instrumentation
+        apt-get install -y splunk-otel-auto-instrumentation
         ```
     - RPM with `yum`:
         ```sh
@@ -59,6 +62,9 @@ installed on x86_64/amd64 platforms.
         EOH
 
         yum install -y splunk-otel-collector
+
+        # Optional: install Splunk OpenTelemetry Auto Instrumentation
+        yum install -y splunk-otel-auto-instrumentation
         ```
     - RPM with `dnf`:
         ```sh
@@ -74,6 +80,9 @@ installed on x86_64/amd64 platforms.
         EOH
 
         dnf install -y splunk-otel-collector
+
+        # Optional: install Splunk OpenTelemetry Auto Instrumentation
+        dnf install -y splunk-otel-auto-instrumentation
         ```
     - RPM with `zypper`:
         ```sh
@@ -89,43 +98,72 @@ installed on x86_64/amd64 platforms.
         EOH
 
         zypper install -y splunk-otel-collector
+
+        # Optional: install Splunk OpenTelemetry Auto Instrumentation
+        zypper install -y splunk-otel-auto-instrumentation
         ```
 1. See the [Collector Debian/RPM Post-Install
    Configuration](#collector-debianrpm-post-install-configuration) section.
+1. If the optional Auto Instrumentation package was installed,
+   see the [Auto Instrumentation Post-Install
+   Configuration](#auto-instrumentation-post-install-configuration) section.
 1. If log collection is required, see the [Fluentd](#fluentd) section.
 1. To upgrade the Collector, run the following commands:
+    - Debian:
+      ```sh
+      sudo apt-get update
+      sudo apt-get install --only-upgrade splunk-otel-collector
+      ```
+      **Note:** If the default configuration files in `/etc/otel/collector` have
+      been modified after initial installation, you may be prompted to keep the
+      existing files or overwrite the files from the new Collector package.
+    - RPM:
+        - `yum`
+          ```sh
+          sudo yum upgrade splunk-otel-collector
+          ```
+        - `dnf`:
+          ```sh
+          sudo dnf upgrade splunk-otel-collector
+          ```
+        - `zypper`
+          ```sh
+          sudo zypper refresh
+          sudo zypper update splunk-otel-collector
+          ```
+      **Note:** If the default configuration files in `/etc/otel/collector` have
+      been modified after initial installation, the existing files will be
+      preserved and the files from the new Collector package may be installed
+      with a `.rpmnew` extension.
+1. To upgrade the Auto Instrumentation package, run the following commands:
    - Debian:
      ```sh
      sudo apt-get update
-     sudo apt-get install --only-upgrade splunk-otel-collector
+     sudo apt-get install --only-upgrade splunk-otel-auto-instrumentation
      ```
-     **Note:** If the default configuration files in `/etc/otel/collector` have
-     been modified after initial installation, you may be prompted to keep the
-     existing files or overwrite the files from the new Collector package.
+     **Note:** You may be prompted to keep or overwrite the configuration file at
+     `/usr/lib/splunk-instrumentation/instrumentation.conf`.
    - RPM:
      - `yum`
        ```sh
-       sudo yum upgrade splunk-otel-collector
+       sudo yum upgrade splunk-otel-auto-instrumentation
        ```
      - `dnf`:
        ```sh
-       sudo dnf upgrade splunk-otel-collector
+       sudo dnf upgrade splunk-otel-auto-instrumentation
        ```
      - `zypper`
        ```sh
        sudo zypper refresh
-       sudo zypper update splunk-otel-collector
+       sudo zypper update splunk-otel-instrumentation
        ```
-     **Note:** If the default configuration files in `/etc/otel/collector` have
-     been modified after initial installation, the existing files will be
-     preserved and the files from the new Collector package may be installed
-     with a `.rpmnew` extension.
 
 #### Collector Debian/RPM Packages
 
 If you prefer to install the Collector without the [installer script
-](./linux-installer.md) or the Debian/RPM Repositories in the previous section,
-you can download the individual Debian or RPM package from [Github Releases](
+](./linux-installer.md) or the [Debian/RPM Repositories
+](#collector-debianrpm-packages) in the previous section, you can download the
+individual Debian or RPM package from [Github Releases](
 https://github.com/signalfx/splunk-otel-collector/releases) and install it with
 the following commands (requires `root` privileges).
 
@@ -136,8 +174,8 @@ installed on x86_64/amd64 platforms.
 > IMPORTANT: `systemctl` is a requirement to run the Collector as a service.
 > Otherwise, manually running the Collector is required.
 
-1. Download the appropriate Debian or RPM package for the target system from
-   [Github Releases](
+1. Download the appropriate `splunk-otel-collector` Debian or RPM package for
+   the target system from [Github Releases](
    https://github.com/signalfx/splunk-otel-collector/releases).
 1. Run the following commands to install the `setcap` dependency and the
    Collector package (replace `<path to splunk-otel-collector deb/rpm>` with
@@ -165,8 +203,9 @@ installed on x86_64/amd64 platforms.
 1. See the [Collector Debian/RPM Post-Install
    Configuration](#collector-debianrpm-post-install-configuration) section.
 1. If log collection is required, see the [Fluentd](#fluentd) section.
-1. To upgrade the Collector package, download the appropriate Debian or RPM
-   package for the target system from [Github Releases](
+1. To upgrade the Collector package, download the appropriate
+   `splunk-otel-collector` Debian or RPM package for the target system from
+   [Github Releases](
    https://github.com/signalfx/splunk-otel-collector/releases) and run the
    following commands (replace `<path to splunk-otel-collector deb/rpm>` with
    the local path to the downloaded Collector package):
@@ -215,6 +254,68 @@ installed on x86_64/amd64 platforms.
    ```sh
    sudo journalctl -u splunk-otel-collector
    ```
+
+#### Auto Instrumentation Debian/RPM Packages
+
+If you prefer to install the Auto Instrumentation package without the
+[installer script](./linux-installer.md) or the [Debian/RPM Repositories
+](#collector-debianrpm-packages) in the previous section, you can download the
+individual Debian or RPM package from [Github Releases](
+https://github.com/signalfx/splunk-otel-collector/releases)
+and install it with the following commands (requires `root` privileges).
+
+1. Download the appropriate `splunk-otel-auto-instrumentation` Debian or RPM
+   package for the target system from [Github Releases](
+   https://github.com/signalfx/splunk-otel-collector/releases).
+1. Run the following commands to install the Auto Instrumentation package
+   (replace `<path to splunk-otel-auto-instrumentation deb/rpm>` with
+   the local path to the downloaded Auto Instrumentation package):
+    - Debian:
+        ```sh
+        dpkg -i <path to splunk-otel-auto-instrumentation deb>
+        ```
+    - RPM:
+        ```sh
+        rpm -ivh <path to splunk-otel-auto-instrumentation rpm>
+        ```
+1. See the [Auto Instrumentation Debian/RPM Post-Install
+   Configuration](#auto-instrumentation-post-install-configuration) section.
+1. To upgrade the Auto Instrumentation package, download the appropriate
+   `splunk-auto-auto-instrumentation` Debian or RPM
+   package for the target system from [Github Releases](
+   https://github.com/signalfx/splunk-otel-collector/releases) and run the
+   following commands (replace `<path to splunk-otel-auto-instrumentation
+   deb/rpm>` with the local path to the downloaded Auto Instrumentation
+   package):
+    - Debian:
+      ```sh
+      sudo dpkg -i <path to splunk-otel-auto-instrumentation deb>
+      ```
+      **Note:** You may be prompted to keep or overwrite the configuration file at
+      `/usr/lib/splunk-instrumentation/instrumentation.conf`.
+    - RPM
+      ```sh
+      sudo rpm -Uvh <path to splunk-otel-auto-instrumentation rpm>
+      ```
+
+#### Auto Instrumentation Post-Install Configuration
+
+- The `/etc/ld.so.preload` file will be automatically updated with the default
+  path to the installed instrumentation library
+  (`/usr/lib/splunk-instrumentation/libsplunk.so`).  If necessary, custom
+  library paths can be manually added to this file.
+- The `/usr/lib/splunk-instrumentation/instrumentation.conf` file can be
+  manually configured for resource attributes and other options.  If the
+  `--deployment-environment VALUE` installer script option was specified,
+  the `deployment.environment=VALUE` resource attribute will be automatically
+  added to this file.
+
+See [Linux Java Auto Instrumentation](https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#linux-java-auto-instrumentation)
+for more details.
+
+**Note:** After installation/upgrade or any configuration changes, the Java
+application(s) on the host need to be manually started/restarted for auto
+instrumentation to take effect or to source the updated values.
 
 #### Fluentd
 

@@ -110,4 +110,4 @@ echo "export SPLUNK_BUNDLE_DIR=${SPLUNK_BUNDLE_DIR}
 export SPLUNK_COLLECTD_DIR=${SPLUNK_COLLECTD_DIR}
 export PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/bin" >> $DEPS_DIR/$IDX/profile.d/signalfx_agent_env_vars.sh
 
-echo "-----> Successfully installed SignalFx patch interpreter"
+echo "-----> Successfully installed SignalFx Smart Agent bundle"

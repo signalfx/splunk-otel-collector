@@ -27,7 +27,8 @@ import (
 	sfxConstants "github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
 )
@@ -49,7 +50,7 @@ var (
 
 type sfxToPDataTestCase struct {
 	sfxSpans       func(_ *testing.T) []*trace.Span
-	expectedTraces func(_ *testing.T) pdata.Traces
+	expectedTraces func(_ *testing.T) ptrace.Traces
 	name           string
 }
 
@@ -90,7 +91,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 			)
 			return []*trace.Span{&span}
 		},
-			func(t *testing.T) pdata.Traces {
+			func(t *testing.T) ptrace.Traces {
 				traces := newPDataSpan(
 					t,
 					serviceName,
@@ -98,7 +99,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					"0123456789abcdef0123456789abcdef",
 					"0123456789abcdef",
 					"123456789abcdef0",
-					pdata.SpanKindServer,
+					ptrace.SpanKindServer,
 					1000, 3000,
 					map[string]interface{}{
 						"some tag":      "some tag value",
@@ -139,7 +140,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 			)
 			return []*trace.Span{&span}
 		},
-			func(t *testing.T) pdata.Traces {
+			func(t *testing.T) ptrace.Traces {
 				traces := newPDataSpan(
 					t,
 					"",
@@ -147,7 +148,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					"0",
 					"1",
 					"0",
-					pdata.SpanKindClient,
+					ptrace.SpanKindClient,
 					1000, 3000,
 					map[string]interface{}{
 						"some tag": "some tag value",
@@ -196,7 +197,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 			)
 			return []*trace.Span{&span}
 		},
-			func(t *testing.T) pdata.Traces {
+			func(t *testing.T) ptrace.Traces {
 				traces := newPDataSpan(
 					t,
 					serviceName,
@@ -204,7 +205,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					"0123456789abcdef",
 					"12345678",
 					"23456789",
-					pdata.SpanKindConsumer,
+					ptrace.SpanKindConsumer,
 					1000, 3000,
 					map[string]interface{}{
 						"some tag":      "some tag value",
@@ -303,7 +304,7 @@ func TestSFxSpansWithDataSourceIPToPDataTraces(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, pdataTraces.ResourceSpans().Len(), 2)
 
-	resources := make([]pdata.Resource, pdataTraces.ResourceSpans().Len())
+	resources := make([]pcommon.Resource, pdataTraces.ResourceSpans().Len())
 	for i := 0; i < pdataTraces.ResourceSpans().Len(); i++ {
 		resources[i] = pdataTraces.ResourceSpans().At(i).Resource()
 	}
@@ -320,11 +321,11 @@ func TestSFxSpansWithDataSourceIPToPDataTraces(t *testing.T) {
 
 	ip, exists := resources[0].Attributes().Get("ip")
 	assert.True(t, exists)
-	assert.Equal(t, ip, pdata.NewValueString("127.0.0.1"))
+	assert.Equal(t, ip, pcommon.NewValueString("127.0.0.1"))
 
 	ip, exists = resources[1].Attributes().Get("ip")
 	assert.True(t, exists)
-	assert.Equal(t, ip, pdata.NewValueString("127.0.0.2"))
+	assert.Equal(t, ip, pcommon.NewValueString("127.0.0.2"))
 }
 
 func TestNilSFxSpanConversion(t *testing.T) {
@@ -370,7 +371,7 @@ func TestInvalidSFxToPDataConversion(t *testing.T) {
 	require.Equal(t, 0, logs.Len())
 }
 
-func assertSpansAreEqual(t *testing.T, expectedResourceSpans, resourceSpans pdata.ResourceSpansSlice) {
+func assertSpansAreEqual(t *testing.T, expectedResourceSpans, resourceSpans ptrace.ResourceSpansSlice) {
 	for i := 0; i < resourceSpans.Len(); i++ {
 		resourceSpan := resourceSpans.At(i)
 		expectedResourceSpan := expectedResourceSpans.At(i)
@@ -401,12 +402,12 @@ func assertSpansAreEqual(t *testing.T, expectedResourceSpans, resourceSpans pdat
 				assert.Equal(t, expectedSpan.Status(), span.Status())
 				assert.Equal(t, expectedSpan.Links(), span.Links())
 
-				updateMap := func(m map[string]interface{}) func(k string, v pdata.Value) bool {
-					return func(k string, v pdata.Value) bool {
+				updateMap := func(m map[string]interface{}) func(k string, v pcommon.Value) bool {
+					return func(k string, v pcommon.Value) bool {
 						switch v.Type() {
-						case pdata.ValueTypeString:
+						case pcommon.ValueTypeString:
 							m[k] = v.StringVal()
-						case pdata.ValueTypeInt:
+						case pcommon.ValueTypeInt:
 							m[k] = v.IntVal()
 						}
 						return true
@@ -492,12 +493,12 @@ func newSFxSpan(
 func newPDataSpan(
 	t *testing.T,
 	serviceName, name, traceID, spanID, parentID string,
-	kind pdata.SpanKind,
+	kind ptrace.SpanKind,
 	startTime, endTime uint64,
 	attributes map[string]interface{}, events map[uint64]string,
 	dataSourceIP string,
-) pdata.Traces {
-	td := pdata.NewTraces()
+) ptrace.Traces {
+	td := ptrace.NewTraces()
 	rs := td.ResourceSpans().AppendEmpty()
 	if serviceName != "" {
 		rs.Resource().Attributes().InsertString("service.name", serviceName)
@@ -524,13 +525,13 @@ func newPDataSpan(
 	pID := [8]byte{}
 	copy(pID[:], decodedParentID)
 
-	span.SetTraceID(pdata.NewTraceID(tID))
-	span.SetSpanID(pdata.NewSpanID(sID))
-	span.SetParentSpanID(pdata.NewSpanID(pID))
+	span.SetTraceID(pcommon.NewTraceID(tID))
+	span.SetSpanID(pcommon.NewSpanID(sID))
+	span.SetParentSpanID(pcommon.NewSpanID(pID))
 
 	span.SetKind(kind)
-	span.SetStartTimestamp(pdata.Timestamp(startTime))
-	span.SetEndTimestamp(pdata.Timestamp(endTime))
+	span.SetStartTimestamp(pcommon.Timestamp(startTime))
+	span.SetEndTimestamp(pcommon.Timestamp(endTime))
 	attrs := span.Attributes()
 	attrs.Clear()
 	attrs.EnsureCapacity(len(attributes))
@@ -549,7 +550,7 @@ func newPDataSpan(
 	spanEvents.EnsureCapacity(len(events))
 	for ts, v := range events {
 		spanEvent := spanEvents.AppendEmpty()
-		spanEvent.SetTimestamp(pdata.Timestamp(ts))
+		spanEvent.SetTimestamp(pcommon.Timestamp(ts))
 		spanEvent.SetName(v)
 	}
 

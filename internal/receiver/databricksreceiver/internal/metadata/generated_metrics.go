@@ -4,7 +4,7 @@ package metadata
 
 import (
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 // Type is the component type name.
@@ -13,14 +13,14 @@ const Type config.Type = "databricksreceiver"
 // MetricIntf is an interface to generically interact with generated metric.
 type MetricIntf interface {
 	Name() string
-	New() pdata.Metric
-	Init(metric pdata.Metric)
+	New() pmetric.Metric
+	Init(metric pmetric.Metric)
 }
 
 // Intentionally not exposing this so that it is opaque and can change freely.
 type metricImpl struct {
 	name     string
-	initFunc func(pdata.Metric)
+	initFunc func(pmetric.Metric)
 }
 
 // Name returns the metric name.
@@ -29,14 +29,14 @@ func (m *metricImpl) Name() string {
 }
 
 // New creates a metric object preinitialized.
-func (m *metricImpl) New() pdata.Metric {
-	metric := pdata.NewMetric()
+func (m *metricImpl) New() pmetric.Metric {
+	metric := pmetric.NewMetric()
 	m.Init(metric)
 	return metric
 }
 
 // Init initializes the provided metric object.
-func (m *metricImpl) Init(metric pdata.Metric) {
+func (m *metricImpl) Init(metric pmetric.Metric) {
 	m.initFunc(metric)
 }
 
@@ -79,56 +79,56 @@ func (m *metricStruct) ByName(n string) MetricIntf {
 var Metrics = &metricStruct{
 	&metricImpl{
 		"databricks.jobs.active.total",
-		func(metric pdata.Metric) {
+		func(metric pmetric.Metric) {
 			metric.SetName("databricks.jobs.active.total")
 			metric.SetDescription("A snapshot of the number of active jobs taken at each scrape")
 			metric.SetUnit("{jobs}")
-			metric.SetDataType(pdata.MetricDataTypeGauge)
+			metric.SetDataType(pmetric.MetricDataTypeGauge)
 		},
 	},
 	&metricImpl{
 		"databricks.jobs.run.duration",
-		func(metric pdata.Metric) {
+		func(metric pmetric.Metric) {
 			metric.SetName("databricks.jobs.run.duration")
 			metric.SetDescription("The execution duration in milliseconds per completed job")
 			metric.SetUnit("ms")
-			metric.SetDataType(pdata.MetricDataTypeGauge)
+			metric.SetDataType(pmetric.MetricDataTypeGauge)
 		},
 	},
 	&metricImpl{
 		"databricks.jobs.schedule.status",
-		func(metric pdata.Metric) {
+		func(metric pmetric.Metric) {
 			metric.SetName("databricks.jobs.schedule.status")
 			metric.SetDescription("A snapshot of the pause/run status per job taken at each scrape")
 			metric.SetUnit("{status}")
-			metric.SetDataType(pdata.MetricDataTypeGauge)
+			metric.SetDataType(pmetric.MetricDataTypeGauge)
 		},
 	},
 	&metricImpl{
 		"databricks.jobs.total",
-		func(metric pdata.Metric) {
+		func(metric pmetric.Metric) {
 			metric.SetName("databricks.jobs.total")
 			metric.SetDescription("A snapshot of the total number of jobs registered in the Databricks instance taken at each scrape")
 			metric.SetUnit("{jobs}")
-			metric.SetDataType(pdata.MetricDataTypeGauge)
+			metric.SetDataType(pmetric.MetricDataTypeGauge)
 		},
 	},
 	&metricImpl{
 		"databricks.tasks.run.duration",
-		func(metric pdata.Metric) {
+		func(metric pmetric.Metric) {
 			metric.SetName("databricks.tasks.run.duration")
 			metric.SetDescription("The execution duration in milliseconds per completed task")
 			metric.SetUnit("ms")
-			metric.SetDataType(pdata.MetricDataTypeGauge)
+			metric.SetDataType(pmetric.MetricDataTypeGauge)
 		},
 	},
 	&metricImpl{
 		"databricks.tasks.schedule.status",
-		func(metric pdata.Metric) {
+		func(metric pmetric.Metric) {
 			metric.SetName("databricks.tasks.schedule.status")
 			metric.SetDescription("A snapshot of the pause/run status per task taken at each scrape")
 			metric.SetUnit("{status}")
-			metric.SetDataType(pdata.MetricDataTypeGauge)
+			metric.SetDataType(pmetric.MetricDataTypeGauge)
 		},
 	},
 }

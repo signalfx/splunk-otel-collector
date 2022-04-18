@@ -18,7 +18,8 @@ import (
 	"fmt"
 
 	"github.com/signalfx/golib/v3/event"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
 )
 
@@ -31,16 +32,16 @@ const (
 	SFxEventType = "com.splunk.signalfx.event_type"
 )
 
-// eventToLog converts a SFx event to a pdata.Logs entry suitable for consumption by LogConsumer.
+// eventToLog converts a SFx event to a plog.Logs entry suitable for consumption by LogConsumer.
 // based on https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/5de076e9773bdb7617b544a57fa0a4b848cec92c/receiver/signalfxreceiver/signalfxv2_event_to_logdata.go#L27
-func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) pdata.Logs {
+func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) plog.Logs {
 	logs, lr := newLogs()
 
 	var unixNano int64
 	if !event.Timestamp.IsZero() {
 		unixNano = event.Timestamp.UnixNano()
 	}
-	lr.SetTimestamp(pdata.Timestamp(unixNano))
+	lr.SetTimestamp(pcommon.Timestamp(unixNano))
 
 	// size for event category and dimension attributes
 	attrsCapacity := 2 + len(event.Dimensions)
@@ -67,7 +68,7 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) pdata.Logs {
 	}
 
 	if len(event.Properties) > 0 {
-		propMapVal := pdata.NewValueMap()
+		propMapVal := pcommon.NewValueMap()
 		propMap := propMapVal.MapVal()
 		propMap.Clear()
 		propMap.EnsureCapacity(len(event.Properties))
@@ -111,8 +112,8 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) pdata.Logs {
 	return logs
 }
 
-func newLogs() (pdata.Logs, pdata.LogRecord) {
-	ld := pdata.NewLogs()
+func newLogs() (plog.Logs, plog.LogRecord) {
+	ld := plog.NewLogs()
 	lr := ld.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty()
 
 	return ld, lr

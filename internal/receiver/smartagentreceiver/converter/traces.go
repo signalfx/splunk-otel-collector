@@ -22,7 +22,7 @@ import (
 	zipkinmodel "github.com/openzipkin/zipkin-go/model"
 	"github.com/signalfx/golib/v3/trace"
 	sfxConstants "github.com/signalfx/signalfx-agent/pkg/core/common/constants"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.uber.org/zap"
 )
 
@@ -30,7 +30,7 @@ const resourceClientIPAttrName = "ip"
 
 var zipkinv2Translator = zipkinv2.ToTranslator{ParseStringTags: false}
 
-func sfxSpansToPDataTraces(spans []*trace.Span, logger *zap.Logger) (pdata.Traces, error) {
+func sfxSpansToPDataTraces(spans []*trace.Span, logger *zap.Logger) (ptrace.Traces, error) {
 	// we batch sfx spans by the client IP that reported the spans to collector. Each
 	// batch gets translated separately to ensure that spans from sources with different
 	// IPs don't get bundled together under the same resource.
@@ -49,7 +49,7 @@ func sfxSpansToPDataTraces(spans []*trace.Span, logger *zap.Logger) (pdata.Trace
 	}
 
 	var lastErr error
-	traces := pdata.NewTraces()
+	traces := ptrace.NewTraces()
 	rss := traces.ResourceSpans()
 	for ip, s := range batches {
 		// SFx trace is effectively zipkin, so more convenient to convert to it and then rely

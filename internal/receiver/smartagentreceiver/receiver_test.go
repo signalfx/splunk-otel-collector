@@ -35,7 +35,8 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/service/servicetest"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -59,18 +60,18 @@ func newReceiverCreateSettings() component.ReceiverCreateSettings {
 	}
 }
 
-var expectedCPUMetrics = map[string]pdata.MetricDataType{
-	"cpu.idle":                 pdata.MetricDataTypeSum,
-	"cpu.interrupt":            pdata.MetricDataTypeSum,
-	"cpu.nice":                 pdata.MetricDataTypeSum,
-	"cpu.num_processors":       pdata.MetricDataTypeGauge,
-	"cpu.softirq":              pdata.MetricDataTypeSum,
-	"cpu.steal":                pdata.MetricDataTypeSum,
-	"cpu.system":               pdata.MetricDataTypeSum,
-	"cpu.user":                 pdata.MetricDataTypeSum,
-	"cpu.utilization":          pdata.MetricDataTypeGauge,
-	"cpu.utilization_per_core": pdata.MetricDataTypeGauge,
-	"cpu.wait":                 pdata.MetricDataTypeSum,
+var expectedCPUMetrics = map[string]pmetric.MetricDataType{
+	"cpu.idle":                 pmetric.MetricDataTypeSum,
+	"cpu.interrupt":            pmetric.MetricDataTypeSum,
+	"cpu.nice":                 pmetric.MetricDataTypeSum,
+	"cpu.num_processors":       pmetric.MetricDataTypeGauge,
+	"cpu.softirq":              pmetric.MetricDataTypeSum,
+	"cpu.steal":                pmetric.MetricDataTypeSum,
+	"cpu.system":               pmetric.MetricDataTypeSum,
+	"cpu.user":                 pmetric.MetricDataTypeSum,
+	"cpu.utilization":          pmetric.MetricDataTypeGauge,
+	"cpu.utilization_per_core": pmetric.MetricDataTypeGauge,
+	"cpu.wait":                 pmetric.MetricDataTypeSum,
 }
 
 func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
@@ -126,11 +127,11 @@ func TestSmartAgentReceiver(t *testing.T) {
 						name := metric.Name()
 						dataType := metric.DataType()
 						expectedDataType := expectedCPUMetrics[name]
-						require.NotEqual(t, pdata.MetricDataTypeNone, expectedDataType, "received unexpected none type for %s", name)
+						require.NotEqual(t, pmetric.MetricDataTypeNone, expectedDataType, "received unexpected none type for %s", name)
 						assert.Equal(t, expectedDataType, dataType)
-						var attributes pdata.Map
+						var attributes pcommon.Map
 						switch dataType {
-						case pdata.MetricDataTypeGauge:
+						case pmetric.MetricDataTypeGauge:
 							dg := metric.Gauge()
 							for l := 0; l < dg.DataPoints().Len(); l++ {
 								dgdp := dg.DataPoints().At(l)
@@ -138,7 +139,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 								var val = dgdp.DoubleVal()
 								assert.NotEqual(t, val, 0, "invalid value of MetricDataTypeGauge metric %s", name)
 							}
-						case pdata.MetricDataTypeSum:
+						case pmetric.MetricDataTypeSum:
 							ds := metric.Sum()
 							for l := 0; l < ds.DataPoints().Len(); l++ {
 								dsdp := ds.DataPoints().At(l)

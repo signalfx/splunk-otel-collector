@@ -17,7 +17,8 @@ package databricksreceiver
 import (
 	"fmt"
 
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
@@ -36,7 +37,7 @@ func newRunMetricsProvider(dbClient databricksClientInterface) runMetricsProvide
 	}
 }
 
-func (p runMetricsProvider) addMultiJobRunMetrics(ms pdata.MetricSlice, jobIDs []int) error {
+func (p runMetricsProvider) addMultiJobRunMetrics(ms pmetric.MetricSlice, jobIDs []int) error {
 	jobPts := initGauge(ms, metadata.M.DatabricksJobsRunDuration)
 	taskPts := initGauge(ms, metadata.M.DatabricksTasksRunDuration)
 	for _, jobID := range jobIDs {
@@ -49,8 +50,8 @@ func (p runMetricsProvider) addMultiJobRunMetrics(ms pdata.MetricSlice, jobIDs [
 }
 
 func (p runMetricsProvider) addSingleJobRunMetrics(
-	jobPts pdata.NumberDataPointSlice,
-	taskPts pdata.NumberDataPointSlice,
+	jobPts pmetric.NumberDataPointSlice,
+	taskPts pmetric.NumberDataPointSlice,
 	jobID int,
 ) error {
 	startTime := p.tracker.getPrevStartTime(jobID)
@@ -66,14 +67,14 @@ func (p runMetricsProvider) addSingleJobRunMetrics(
 		}
 		jobPt := jobPts.AppendEmpty()
 		jobPt.SetIntVal(int64(run.ExecutionDuration))
-		jobIDAttr := pdata.NewValueInt(int64(jobID))
+		jobIDAttr := pcommon.NewValueInt(int64(jobID))
 		jobPt.Attributes().Insert(metadata.Attributes.JobID, jobIDAttr)
 		for _, task := range run.Tasks {
 			taskPt := taskPts.AppendEmpty()
 			taskPt.SetIntVal(int64(task.ExecutionDuration))
 			taskAttrs := taskPt.Attributes()
 			taskAttrs.Insert(metadata.Attributes.JobID, jobIDAttr)
-			taskAttrs.Insert(metadata.Attributes.TaskID, pdata.NewValueString(task.TaskKey))
+			taskAttrs.Insert(metadata.Attributes.TaskID, pcommon.NewValueString(task.TaskKey))
 		}
 	}
 	return nil

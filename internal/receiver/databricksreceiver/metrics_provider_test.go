@@ -19,13 +19,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 func TestMetricsProvider(t *testing.T) {
 	const ignored = 25
 	mp := newMetricsProvider(newDatabricksClient(&testdataClient{}, ignored))
-	ms := pdata.NewMetricSlice()
+	ms := pmetric.NewMetricSlice()
 	_, err := mp.addJobStatusMetrics(ms)
 	require.NoError(t, err)
 	assert.Equal(t, ms.Len(), 3)
@@ -59,7 +59,7 @@ func TestMetricsProvider(t *testing.T) {
 	assertTaskTypeEquals(t, taskPts, 4, "PythonWheelTask")
 	assertTaskTypeEquals(t, taskPts, 5, "SparkSubmitTask")
 
-	ms = pdata.NewMetricSlice()
+	ms = pmetric.NewMetricSlice()
 	err = mp.addNumActiveRunsMetric(ms)
 	require.NoError(t, err)
 	activeRunsMetric := ms.At(0)
@@ -67,7 +67,7 @@ func TestMetricsProvider(t *testing.T) {
 	assert.Equal(t, 1, activeRunsMetric.Gauge().DataPoints().Len())
 }
 
-func assertTaskTypeEquals(t *testing.T, taskPts pdata.NumberDataPointSlice, idx int, expected string) {
+func assertTaskTypeEquals(t *testing.T, taskPts pmetric.NumberDataPointSlice, idx int, expected string) {
 	tskType, _ := taskPts.At(idx).Attributes().Get("task_type")
 	assert.EqualValues(t, expected, tskType.StringVal())
 }

@@ -18,7 +18,8 @@ import (
 	"context"
 	"fmt"
 
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
@@ -32,13 +33,13 @@ type scraper struct {
 	instanceName string
 }
 
-func (s scraper) scrape(_ context.Context) (pdata.Metrics, error) {
-	out := pdata.NewMetrics()
+func (s scraper) scrape(_ context.Context) (pmetric.Metrics, error) {
+	out := pmetric.NewMetrics()
 	rms := out.ResourceMetrics()
 	rm := rms.AppendEmpty()
 	rm.Resource().Attributes().Insert(
 		metadata.A.DatabricksInstanceName,
-		pdata.NewValueString(s.instanceName),
+		pcommon.NewValueString(s.instanceName),
 	)
 	ilms := rm.ScopeMetrics()
 	ilm := ilms.AppendEmpty()

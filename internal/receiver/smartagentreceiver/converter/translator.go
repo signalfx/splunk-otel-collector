@@ -20,7 +20,9 @@ import (
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
 	"github.com/signalfx/golib/v3/trace"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.uber.org/zap"
 )
 
@@ -32,14 +34,14 @@ func NewTranslator(logger *zap.Logger) Translator {
 	return Translator{logger: logger}
 }
 
-func (c Translator) ToMetrics(datapoints []*datapoint.Datapoint) (pdata.Metrics, error) {
+func (c Translator) ToMetrics(datapoints []*datapoint.Datapoint) (pmetric.Metrics, error) {
 	return sfxDatapointsToPDataMetrics(datapoints, time.Now(), c.logger), nil
 }
 
-func (c Translator) ToLogs(event *event.Event) (pdata.Logs, error) {
+func (c Translator) ToLogs(event *event.Event) (plog.Logs, error) {
 	return sfxEventToPDataLogs(event, c.logger), nil
 }
 
-func (c Translator) ToTraces(spans []*trace.Span) (pdata.Traces, error) {
+func (c Translator) ToTraces(spans []*trace.Span) (ptrace.Traces, error) {
 	return sfxSpansToPDataTraces(spans, c.logger)
 }

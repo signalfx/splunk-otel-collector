@@ -26,7 +26,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -113,7 +113,7 @@ func (otlp *OTLPMetricsReceiverSink) Shutdown() error {
 	}
 	return (*otlp.receiver).Shutdown(context.Background())
 }
-func (otlp *OTLPMetricsReceiverSink) AllMetrics() []pdata.Metrics {
+func (otlp *OTLPMetricsReceiverSink) AllMetrics() []pmetric.Metrics {
 	if err := otlp.assertBuilt("AllMetrics"); err != nil {
 		return nil
 	}

@@ -144,6 +144,10 @@ func (mpp *mockParserProvider) Shutdown(ctx context.Context) error {
 	return nil
 }
 
+func (mpp *mockParserProvider) Scheme() string {
+	return ""
+}
+
 func (mpp *mockParserProvider) Get(context.Context) (*config.Map, error) {
 	if mpp.ErrOnGet {
 		return nil, &errOnParserProviderGet{errors.New("mockParserProvider.Get() forced test error")}

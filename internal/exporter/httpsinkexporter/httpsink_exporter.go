@@ -24,7 +24,7 @@ import (
 	"github.com/jaegertracing/jaeger/model"
 	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
 var marshaler = &jsonpb.Marshaler{}
@@ -38,7 +38,7 @@ type httpSinkExporter struct {
 	mu      sync.Mutex
 }
 
-func (e *httpSinkExporter) ConsumeTraces(_ context.Context, td pdata.Traces) error {
+func (e *httpSinkExporter) ConsumeTraces(_ context.Context, td ptrace.Traces) error {
 	batches, err := jaegertranslator.ProtoFromTraces(td)
 	if err != nil {
 		return err

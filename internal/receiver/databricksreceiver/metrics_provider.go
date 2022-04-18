@@ -17,7 +17,8 @@ package databricksreceiver
 import (
 	"fmt"
 
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
@@ -32,7 +33,7 @@ func newMetricsProvider(dbClient databricksClientInterface) metricsProvider {
 	return metricsProvider{dbClient: dbClient}
 }
 
-func (p metricsProvider) addJobStatusMetrics(ms pdata.MetricSlice) ([]int, error) {
+func (p metricsProvider) addJobStatusMetrics(ms pmetric.MetricSlice) ([]int, error) {
 	jobs, err := p.dbClient.jobs()
 	if err != nil {
 		return nil, fmt.Errorf("metricsProvider.addJobStatusMetrics(): %w", err)
@@ -49,7 +50,7 @@ func (p metricsProvider) addJobStatusMetrics(ms pdata.MetricSlice) ([]int, error
 		jobPt := jobPts.AppendEmpty()
 		pauseStatus := pauseStatusToInt(j.Settings.Schedule.PauseStatus)
 		jobPt.SetIntVal(pauseStatus)
-		jobIDAttr := pdata.NewValueInt(int64(j.JobID))
+		jobIDAttr := pcommon.NewValueInt(int64(j.JobID))
 		jobPt.Attributes().Insert(metadata.A.JobID, jobIDAttr)
 		for _, task := range j.Settings.Tasks {
 			taskPt := taskPts.AppendEmpty()
@@ -61,11 +62,11 @@ func (p metricsProvider) addJobStatusMetrics(ms pdata.MetricSlice) ([]int, error
 			)
 			taskAttrs.Insert(
 				metadata.A.TaskID,
-				pdata.NewValueString(task.TaskKey),
+				pcommon.NewValueString(task.TaskKey),
 			)
 			taskAttrs.Insert(
 				metadata.A.TaskType,
-				pdata.NewValueString(taskType(task)),
+				pcommon.NewValueString(taskType(task)),
 			)
 		}
 	}
@@ -90,7 +91,7 @@ func taskType(task jobTask) string {
 	return ""
 }
 
-func (p metricsProvider) addNumActiveRunsMetric(ms pdata.MetricSlice) error {
+func (p metricsProvider) addNumActiveRunsMetric(ms pmetric.MetricSlice) error {
 	runs, err := p.dbClient.activeJobRuns()
 	if err != nil {
 		return fmt.Errorf("metricsProvider.addNumActiveJobsMetric(): %w", err)
@@ -100,7 +101,7 @@ func (p metricsProvider) addNumActiveRunsMetric(ms pdata.MetricSlice) error {
 	return nil
 }
 
-func initGauge(ms pdata.MetricSlice, mi metadata.MetricIntf) pdata.NumberDataPointSlice {
+func initGauge(ms pmetric.MetricSlice, mi metadata.MetricIntf) pmetric.NumberDataPointSlice {
 	m := ms.AppendEmpty()
 	mi.Init(m)
 	return m.Gauge().DataPoints()

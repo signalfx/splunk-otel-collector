@@ -28,8 +28,8 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configmapprovider"
 	"go.opentelemetry.io/collector/config/configunmarshaler"
+	"go.opentelemetry.io/collector/config/mapconverter/overwritepropertiesmapconverter"
 	"go.opentelemetry.io/collector/config/mapprovider/envmapprovider"
 	"go.opentelemetry.io/collector/config/mapprovider/filemapprovider"
 	"go.opentelemetry.io/collector/service"
@@ -86,7 +86,7 @@ func main() {
 	}
 
 	configMapConverters := []config.MapConverterFunc{
-		configmapprovider.NewOverwritePropertiesConverter(getSetProperties()),
+		overwritepropertiesmapconverter.New(getSetProperties()),
 	}
 
 	const noConvertConfigFlag = "--no-convert-config"
@@ -102,25 +102,31 @@ func main() {
 		)
 	}
 
-	serviceConfigProvider := service.MustNewConfigProvider(
-		[]string{configLocation()},
-		map[string]config.MapProvider{
-			"env": configprovider.NewConfigSourceConfigMapProvider(
-				envmapprovider.New(),
-				zap.NewNop(), // The service logger is not available yet, setting it to NoP.
-				info,
-				configsources.Get()...,
-			),
-			"file": configprovider.NewConfigSourceConfigMapProvider(
-				filemapprovider.New(),
-				zap.NewNop(), // The service logger is not available yet, setting it to NoP.
-				info,
-				configsources.Get()...,
-			),
-		},
-		configMapConverters,
-		configunmarshaler.NewDefault(),
-	)
+	emp := envmapprovider.New()
+	fmp := filemapprovider.New()
+	serviceConfigProvider, err := service.NewConfigProvider(
+		service.ConfigProviderSettings{
+			Locations: []string{configLocation()},
+			MapProviders: map[string]config.MapProvider{
+				emp.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
+					emp,
+					zap.NewNop(), // The service logger is not available yet, setting it to NoP.
+					info,
+					configsources.Get()...,
+				),
+				fmp.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
+					fmp,
+					zap.NewNop(), // The service logger is not available yet, setting it to NoP.
+					info,
+					configsources.Get()...,
+				),
+			},
+			MapConverters: configMapConverters,
+			Unmarshaler:   configunmarshaler.NewDefault(),
+		})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	serviceParams := service.CollectorSettings{
 		BuildInfo:      info,

@@ -305,17 +305,18 @@ and install it with the following commands (requires `root` privileges).
   (`/usr/lib/splunk-instrumentation/libsplunk.so`).  If necessary, custom
   library paths can be manually added to this file.
 - The `/usr/lib/splunk-instrumentation/instrumentation.conf` file can be
-  manually configured for resource attributes and other options.  If the
-  `--deployment-environment VALUE` installer script option was specified,
-  the `deployment.environment=VALUE` resource attribute will be automatically
-  added to this file.
+  manually configured for resource attributes and other parameters.  By
+  default, this file will contain the `java_agent_jar` parameter set to the
+  path of the installed [Java instrumentation agent](
+  https://github.com/signalfx/splunk-otel-java)
+  (`/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`).
 
 See [Linux Java Auto Instrumentation](https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#linux-java-auto-instrumentation)
 for more details.
 
 **Note:** After installation/upgrade or any configuration changes, the Java
-application(s) on the host need to be manually started/restarted for auto
-instrumentation to take effect or to source the updated values.
+application(s) on the host need to be manually started/restarted for Auto
+Instrumentation to take effect or to source the updated values.
 
 #### Fluentd
 

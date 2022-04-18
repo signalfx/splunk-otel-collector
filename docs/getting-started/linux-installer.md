@@ -9,10 +9,10 @@ script deploys and configures:
 - [SignalFx Smart Agent and collectd bundle](https://github.com/signalfx/signalfx-agent/releases) (**x86_64/amd64 platforms only**)
 - [Fluentd (via the TD Agent)](https://www.fluentd.org/)
   - Optional, **enabled** by default
-  - See the [Fluentd Configuration](#fluentd-configuration) section for more details or how to disable installation
+  - See the [Fluentd Configuration](#fluentd-configuration) section for additional information, including how to skip installation.
 - [Splunk OpenTelemetry Auto Instrumentation for Java](https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#linux-java-auto-instrumentation)
   - Optional, **disabled** by default
-  - See the [Auto Instrumentation](#auto-instrumentation) section for how to enable installation and more details
+  - See the [Auto Instrumentation](#auto-instrumentation) section for additional information, including how to enable installation.
 
 > IMPORTANT: systemd is required to use this script.
 
@@ -34,7 +34,7 @@ curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-co
 sh /tmp/splunk-otel-collector.sh -h
 ```
 
-Run the below command on your host to begin installation with the default
+Run the following command on your host to begin installation with the default
 options.  Replace these variables:
 
 - `SPLUNK_REALM`: Which realm to send the data to (for example: `us0`)
@@ -261,14 +261,14 @@ sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --realm SPLUNK_REAL
 To automatically define the optional `deployment.environment` resource
 attribute at installation time, run the installer script with the
 `--deployment-environment VALUE` option (replace `VALUE` with the desired
-attribute value, e.g. `prod`):
+attribute value, for example, `prod`):
 ```sh
 curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
 sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --deployment-environment VALUE --realm SPLUNK_REALM -- SPLUNK_ACCESS_TOKEN
 ```
 
-**Note:** After successful installation, the Java application(s) on the host need to be
-manually started/restarted for auto instrumentation to take effect.
+**Note:** After successful installation, the Java application(s) on the host
+need to be manually started/restarted for Auto Instrumentation to take effect.
 
 #### Post-Install Configuration
 
@@ -277,7 +277,11 @@ manually started/restarted for auto instrumentation to take effect.
   (`/usr/lib/splunk-instrumentation/libsplunk.so`).  If necessary, custom
   library paths can be manually added to this file.
 - The `/usr/lib/splunk-instrumentation/instrumentation.conf` file can be
-  manually configured for resource attributes and other options.  If the
+  manually configured for resource attributes and other parameters.  By
+  default, this file will contain the `java_agent_jar` parameter set to the
+  path of the installed [Java instrumentation agent](
+  https://github.com/signalfx/splunk-otel-java)
+  (`/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`).  If the
   `--deployment-environment VALUE` installer script option was specified,
   the `deployment.environment=VALUE` resource attribute will be automatically
   added to this file.
@@ -290,7 +294,7 @@ need to be manually started/restarted to source the updated values.
 
 #### Upgrade
 
-To upgrade the Instrumentation package, run the following commands on your
+To upgrade the Auto Instrumentation package, run the following commands on your
 system (requires `root` privileges):
 - Debian:
   ```sh
@@ -314,10 +318,14 @@ system (requires `root` privileges):
     sudo zypper update splunk-otel-auto-instrumentation
     ```
 
+**Note:** After successful upgrade, the Java application(s) on the host need to
+be manually started/restarted for the upgraded Auto Instrumentation to take
+effect.
+
 ### Uninstall
 
-If you wish to uninstall the Collector, Fluentd, and Instrumentation packages,
-you can run:
+If you wish to uninstall the Collector, Fluentd, and Auto Instrumentation
+packages, you can run:
 
 ```sh
 curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \

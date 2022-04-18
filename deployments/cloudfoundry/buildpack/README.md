@@ -90,7 +90,7 @@ Optional:
     Default: `https://github.com/signalfx/splunk-otel-collector/releases/download/${OTEL_VERSION}/otelcol_${OS}`
 - `RLP_GATEWAY_SHARD_ID` - Metrics are load balanced between receivers that use the same shard ID.
    Only use if multiple receivers must receive all metrics instead of
-   balancing metrics between them. Default: `otelcol`
+   balancing metrics between them. Default: `opentelemetry`
 - `RLP_GATEWAY_TLS_INSECURE` - Whether to skip TLS verify for the RLP gateway endpoint. Default: `false`
 - `UAA_TLS_INSECURE` - Whether to skip TLS verify for the UAA endpoint. Default: `false`
 - `SMART_AGENT_VERSION` - Version of the Smart Agent that should be downloaded. This is a dependency of

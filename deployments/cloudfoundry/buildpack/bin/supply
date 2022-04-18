@@ -61,7 +61,7 @@ chmod 755 "$TARGET_DIR/$OTEL_BINARY" "$TARGET_DIR/$OTEL_CONFIG"
 
 # Define Collector's default environment variables by adding bash script to profile.d directory in root of app
 mkdir -p $DEPS_DIR/$IDX/profile.d
-echo "export RLP_GATEWAY_SHARD_ID=\"otelcol\"
+echo "export RLP_GATEWAY_SHARD_ID=\"opentelemetry\"
 export RLP_GATEWAY_TLS_INSECURE=false
 export UAA_TLS_INSECURE=false
 export OTEL_VERSION=$OTEL_VERSION" >> $DEPS_DIR/$IDX/profile.d/otel_config_env_vars.sh

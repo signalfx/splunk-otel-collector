@@ -1,0 +1,44 @@
+name: Cloud Foundry Buildpack
+
+# The workflow triggered by any change in deployments/cloudfoundry/buildpack/.
+# 1. Run buildpack test.
+
+on:
+  pull_request:
+    paths:
+      - 'deployments/cloudfoundry/buildpack/**'
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: 'deployments/cloudfoundry/buildpack'
+
+jobs:
+
+  test:
+    name: Test buildpack supplies required dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - name: Setup script's input argument directories
+        shell: bash
+        run: |
+          sudo mkdir /tmp/cf_build_dir
+          sudo mkdir /tmp/cf_cache_dir
+          sudo mkdir /tmp/cf_deps_dir
+
+      - name: Run buildpack supply script
+        shell: bash
+        run: |
+          sudo ./bin/supply /tmp/cf_build_dir /tmp/cf_cache_dir /tmp/cf_deps_dir 0
+
+      - name: Delete created files
+        shell: bash
+        run: |
+          sudo rm -rf /tmp/cf_build_dir
+          sudo rm -rf /tmp/cf_cache_dir
+          sudo rm -rf /tmp/deps_dir

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo "OpenTelemetry Collector"
+exit 0

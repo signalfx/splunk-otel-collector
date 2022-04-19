@@ -78,6 +78,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/smartagentreceiver"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/sqlreceiver"
 )
 
 func Get() (component.Factories, error) {
@@ -124,6 +125,7 @@ func Get() (component.Factories, error) {
 		simpleprometheusreceiver.NewFactory(),
 		smartagentreceiver.NewFactory(),
 		splunkhecreceiver.NewFactory(),
+		sqlreceiver.NewFactory(),
 		statsdreceiver.NewFactory(),
 		tcplogreceiver.NewFactory(),
 		zipkinreceiver.NewFactory(),

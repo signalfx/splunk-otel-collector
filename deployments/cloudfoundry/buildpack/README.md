@@ -120,8 +120,8 @@ applications:
     memory: 256M
     random-route: true
     env:
-      RLP_GATEWAY_ENDPOINT: "https://log-stream.sys.<TAS environment name>.cf-app.com"
-      UAA_ENDPOINT: "https://uaa.sys.<TAS environment name>.cf-app.com"
+      RLP_GATEWAY_ENDPOINT: "https://log-stream.sys.TAS_ENVIRONMENT_NAME.cf-app.com"
+      UAA_ENDPOINT: "https://uaa.sys.TAS_ENVIRONMENT_NAME.cf-app.com"
       UAA_USERNAME: "..."
       UAA_PASSWORD: "..."
       SPLUNK_ACCESS_TOKEN: "..."

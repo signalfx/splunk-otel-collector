@@ -45,7 +45,7 @@ installed on x86_64/amd64 platforms.
         apt-get update
         apt-get install -y splunk-otel-collector
 
-        # Optional: install Splunk OpenTelemetry Auto Instrumentation
+        # Optional: install Splunk OpenTelemetry Auto Instrumentation for Java
         apt-get install -y splunk-otel-auto-instrumentation
         ```
     - RPM with `yum`:
@@ -63,7 +63,7 @@ installed on x86_64/amd64 platforms.
 
         yum install -y splunk-otel-collector
 
-        # Optional: install Splunk OpenTelemetry Auto Instrumentation
+        # Optional: install Splunk OpenTelemetry Auto Instrumentation for Java
         yum install -y splunk-otel-auto-instrumentation
         ```
     - RPM with `dnf`:
@@ -81,7 +81,7 @@ installed on x86_64/amd64 platforms.
 
         dnf install -y splunk-otel-collector
 
-        # Optional: install Splunk OpenTelemetry Auto Instrumentation
+        # Optional: install Splunk OpenTelemetry Auto Instrumentation for Java
         dnf install -y splunk-otel-auto-instrumentation
         ```
     - RPM with `zypper`:
@@ -99,13 +99,13 @@ installed on x86_64/amd64 platforms.
 
         zypper install -y splunk-otel-collector
 
-        # Optional: install Splunk OpenTelemetry Auto Instrumentation
+        # Optional: install Splunk OpenTelemetry Auto Instrumentation for Java
         zypper install -y splunk-otel-auto-instrumentation
         ```
 1. See the [Collector Debian/RPM Post-Install
    Configuration](#collector-debianrpm-post-install-configuration) section.
-1. If the optional Auto Instrumentation package was installed,
-   see the [Auto Instrumentation Post-Install
+1. If the optional Splunk OpenTelemetry Auto Instrumentation for Java package
+   was installed, see the [Auto Instrumentation Post-Install
    Configuration](#auto-instrumentation-post-install-configuration) section.
 1. If log collection is required, see the [Fluentd](#fluentd) section.
 1. To upgrade the Collector, run the following commands:
@@ -141,8 +141,10 @@ installed on x86_64/amd64 platforms.
      sudo apt-get update
      sudo apt-get install --only-upgrade splunk-otel-auto-instrumentation
      ```
-     **Note:** You may be prompted to keep or overwrite the configuration file at
-     `/usr/lib/splunk-instrumentation/instrumentation.conf`.
+     **Note:** You may be prompted to keep or overwrite the configuration file
+     at `/usr/lib/splunk-instrumentation/instrumentation.conf`.  Choosing to
+     overwrite will revert this file to the default file provided by the new
+     package.
    - RPM:
      - `yum`
        ```sh
@@ -291,8 +293,10 @@ and install it with the following commands (requires `root` privileges).
       ```sh
       sudo dpkg -i <path to splunk-otel-auto-instrumentation deb>
       ```
-      **Note:** You may be prompted to keep or overwrite the configuration file at
-      `/usr/lib/splunk-instrumentation/instrumentation.conf`.
+      **Note:** You may be prompted to keep or overwrite the configuration file
+      at `/usr/lib/splunk-instrumentation/instrumentation.conf`.  Choosing to
+      overwrite will revert this file to the default file provided by the new
+      package.
     - RPM
       ```sh
       sudo rpm -Uvh <path to splunk-otel-auto-instrumentation rpm>
@@ -300,14 +304,14 @@ and install it with the following commands (requires `root` privileges).
 
 #### Auto Instrumentation Post-Install Configuration
 
-- The `/etc/ld.so.preload` file will be automatically updated with the default
-  path to the installed instrumentation library
+- The `/etc/ld.so.preload` file will be automatically created/updated with the
+  default path to the installed instrumentation library
   (`/usr/lib/splunk-instrumentation/libsplunk.so`).  If necessary, custom
   library paths can be manually added to this file.
-- The `/usr/lib/splunk-instrumentation/instrumentation.conf` file can be
-  manually configured for resource attributes and other parameters.  By
+- The `/usr/lib/splunk-instrumentation/instrumentation.conf` configuration file
+  can be manually configured for resource attributes and other parameters.  By
   default, this file will contain the `java_agent_jar` parameter set to the
-  path of the installed [Java instrumentation agent](
+  path of the installed [Java Instrumentation Agent](
   https://github.com/signalfx/splunk-otel-java)
   (`/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`).
 
@@ -315,8 +319,9 @@ See [Linux Java Auto Instrumentation](https://github.com/signalfx/splunk-otel-co
 for more details.
 
 **Note:** After installation/upgrade or any configuration changes, the Java
-application(s) on the host need to be manually started/restarted for Auto
-Instrumentation to take effect or to source the updated values.
+application(s) on the host need to be manually started/restarted for automatic
+instrumentation to take effect and/or to source the updated values in the
+configuration file.
 
 #### Fluentd
 

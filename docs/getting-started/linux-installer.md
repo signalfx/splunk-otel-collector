@@ -268,18 +268,19 @@ sudo sh /tmp/splunk-otel-collector.sh --with-instrumentation --deployment-enviro
 ```
 
 **Note:** After successful installation, the Java application(s) on the host
-need to be manually started/restarted for Auto Instrumentation to take effect.
+need to be manually started/restarted for automatic instrumentation to take
+effect.
 
 #### Post-Install Configuration
 
-- The `/etc/ld.so.preload` file will be automatically updated with the default
-  path to the installed instrumentation library
+- The `/etc/ld.so.preload` file will be automatically created/updated with the
+  default path to the installed instrumentation library
   (`/usr/lib/splunk-instrumentation/libsplunk.so`).  If necessary, custom
   library paths can be manually added to this file.
-- The `/usr/lib/splunk-instrumentation/instrumentation.conf` file can be
-  manually configured for resource attributes and other parameters.  By
+- The `/usr/lib/splunk-instrumentation/instrumentation.conf` configuration file
+  can be manually configured for resource attributes and other parameters.  By
   default, this file will contain the `java_agent_jar` parameter set to the
-  path of the installed [Java instrumentation agent](
+  path of the installed [Java Instrumentation Agent](
   https://github.com/signalfx/splunk-otel-java)
   (`/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`).  If the
   `--deployment-environment VALUE` installer script option was specified,
@@ -290,7 +291,8 @@ See [Linux Java Auto Instrumentation](https://github.com/signalfx/splunk-otel-co
 for more details.
 
 **Note:** After any configuration changes, the Java application(s) on the host
-need to be manually started/restarted to source the updated values.
+need to be manually started/restarted to source the updated values from the
+configuration file.
 
 #### Upgrade
 
@@ -302,7 +304,9 @@ system (requires `root` privileges):
   sudo apt-get --only-upgrade splunk-otel-auto-instrumentation
   ```
   **Note:** You may be prompted to keep or overwrite the configuration file at
-  `/usr/lib/splunk-instrumentation/instrumentation.conf`.
+  `/usr/lib/splunk-instrumentation/instrumentation.conf`.  Choosing to
+  overwrite will revert this file to the default file provided by the new
+  package.
 - RPM:
   - `yum`
     ```sh
@@ -319,8 +323,7 @@ system (requires `root` privileges):
     ```
 
 **Note:** After successful upgrade, the Java application(s) on the host need to
-be manually started/restarted for the upgraded Auto Instrumentation to take
-effect.
+be manually started/restarted in order for the changes to take effect.
 
 ### Uninstall
 

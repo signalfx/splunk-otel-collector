@@ -63,9 +63,9 @@ include them in the `manifest.yml` file, as shown in the [included example](#sid
 
 Required:
 - `RLP_GATEWAY_ENDPOINT` - The URL of the RLP gateway that acts as the proxy for the firehose,
-    e.g. `https://log-stream.sys.(TAS environment name).cf-app.com`
+    e.g. `https://log-stream.sys.TAS_ENVIRONMENT_NAME.cf-app.com`
 - `UAA_ENDPOINT` - The URL of UAA provider,
-    e.g. `https://uaa.sys.(TAS environment name).cf-app.com`
+    e.g. `https://uaa.sys.TAS_ENVIRONMENT_NAME.cf-app.com`
 - `UAA_USERNAME` - Name of the UAA user.
 - `UAA_PASSWORD` - Password for the UAA user.
 - `SPLUNK_ACCESS_TOKEN` - Your Splunk organization access token.

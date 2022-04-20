@@ -25,6 +25,7 @@ jobs:
     strategy:
       matrix:
         PACKAGE_TYPE: [ "deb", "rpm" ]
+        INSTRUMENTATION: [ "true", "false" ]
     env:
       PYTHON_VERSION: 3.8.5
       PIP_VERSION: 20.2.4
@@ -60,8 +61,12 @@ jobs:
         timeout-minutes: 45
         run: |
           mkdir -p ${{ env.RESULT_PATH }}
-          echo ${{ matrix.PACKAGE_TYPE }}
-          pytest -n2 --verbose -m ${{ matrix.PACKAGE_TYPE }} \
+          if [ "${{ matrix.INSTRUMENTATION }}" = "true" ]; then
+            markers="${{ matrix.PACKAGE_TYPE }} and instrumentation"
+          else
+            markers="${{ matrix.PACKAGE_TYPE }} and not instrumentation"
+          fi
+          pytest -n2 --verbose -m "$markers" \
             --junitxml=${{ env.RESULT_PATH }}/results.xml \
             --html=${{ env.RESULT_PATH }}/results.html \
             --self-contained-html \
@@ -70,5 +75,5 @@ jobs:
       - name: Uploading artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: installer-script-test-${{ matrix.PACKAGE_TYPE }}-result
+          name: linux-installer-script-test-${{ matrix.PACKAGE_TYPE }}-${{ matrix.INSTRUMENTATION }}-result
           path: ${{ env.RESULT_PATH }}

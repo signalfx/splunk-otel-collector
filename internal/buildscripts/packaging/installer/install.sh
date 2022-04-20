@@ -101,6 +101,12 @@ elif [ "$distro_codename" = "jessie" ]; then
   default_td_agent_version="$default_td_agent_version_jessie"
 fi
 
+default_instrumentation_version="latest"
+default_deployment_environment=""
+instrumentation_config_path="/usr/lib/splunk-instrumentation/instrumentation.conf"
+instrumentation_so_path="/usr/lib/splunk-instrumentation/libsplunk.so"
+instrumentation_jar_path="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
+
 repo_for_stage() {
   local repo_url=$1
   local stage=$2
@@ -277,6 +283,7 @@ install_yum_package() {
 
 ensure_not_installed() {
   local with_fluentd="$1"
+  local with_instrumentation="$2"
   local agents="otelcol"
 
   if [ "$with_fluentd" = "true" ]; then
@@ -290,6 +297,12 @@ ensure_not_installed() {
       exit 1
     fi
   done
+
+  if [ "$with_instrumentation" = "true" ] && [ -f "$instrumentation_so_path" ]; then
+    echo "$instrumentation_so_path already exists which implies that the instrumentation library has already been installed." >&2
+    echo "Please uninstall the instrumentation library and re-run this script" >&2
+    exit 1
+  fi
 }
 
 configure_env_file() {
@@ -390,12 +403,52 @@ configure_fluentd() {
   fi
 }
 
+update_instrumentation_config() {
+  local deployment_environment="$1"
+
+  if [ -f "$instrumentation_config_path" ]; then
+    if grep -q -E "^resource_attributes=.*deployment\.environment=${deployment_environment}(,|$)" "$instrumentation_config_path"; then
+      echo "The 'deployment.environment=${deployment_environment}' resource attribute already exists in ${instrumentation_config_path}"
+      return 0
+    fi
+    ts="$(date '+%Y%m%d-%H%M%S')"
+    echo "Backing up $instrumentation_config_path as ${instrumentation_config_path}.bak.${ts}"
+    cp "$instrumentation_config_path" "${instrumentation_config_path}.bak.${ts}"
+    echo "Adding 'deployment.environment=${deployment_environment}' resource attribute to $instrumentation_config_path"
+    if grep -q '^resource_attributes=' "$instrumentation_config_path"; then
+      # traverse through existing resource attributes to add/update deployment.environment
+      deployment_environment_found="false"
+      attributes=""
+      for i in $(grep '^resource_attributes=' "$instrumentation_config_path" | sed 's|^resource_attributes=||' | sed 's|,| |g'); do
+        key="$(echo "$i" | cut -d= -f1)"
+        value="$(echo "$i" | cut -d= -f2)"
+        if [ "$key" = "deployment.environment" ]; then
+          deployment_environment_found="true"
+          value="$deployment_environment"
+        fi
+        attributes="${attributes},${key}=${value}"
+      done
+      if [ "$deployment_environment_found" != "true" ]; then
+        attributes="${attributes},deployment.environment=${deployment_environment}"
+      fi
+      sed -i "s|^resource_attributes=.*|resource_attributes=${attributes#,}|" "$instrumentation_config_path"
+    else
+      # "resource_attributes=" line not found, simply append the line to the config file
+      echo "resource_attributes=deployment.environment=${deployment_environment}" >> "$instrumentation_config_path"
+    fi
+  else
+    echo "$instrumentation_config_path not found!" >&2
+    exit 1
+  fi
+}
+
 install() {
   local stage="$1"
   local collector_version="$2"
   local td_agent_version="$3"
   local skip_collector_repo="$4"
   local skip_fluentd_repo="$5"
+  local instrumentation_version="$6"
 
   case "$distro" in
     ubuntu|debian)
@@ -421,6 +474,9 @@ install() {
         install_apt_package "td-agent" "$td_agent_version"
         apt-get -y install build-essential libcap-ng0 libcap-ng-dev pkg-config
         systemctl stop td-agent
+      fi
+      if [ -n "$instrumentation_version" ]; then
+        install_apt_package "splunk-otel-auto-instrumentation" "$instrumentation_version"
       fi
       ;;
     amzn|centos|ol|rhel)
@@ -448,6 +504,9 @@ install() {
         done
         systemctl stop td-agent
       fi
+      if [ -n "$instrumentation_version" ]; then
+        install_yum_package "splunk-otel-auto-instrumentation" "$instrumentation_version"
+      fi
       ;;
     sles|opensuse*)
       if [ "$skip_collector_repo" = "false" ]; then
@@ -457,6 +516,9 @@ install() {
       zypper -n --gpg-auto-import-keys refresh
       install_yum_package "libcap-progs"
       install_yum_package "splunk-otel-collector" "$collector_version"
+      if [ -n "$instrumentation_version" ]; then
+        install_yum_package "splunk-otel-auto-instrumentation" "$instrumentation_version"
+      fi
       ;;
     *)
       echo "Your distro ($distro) is not supported or could not be determined" >&2
@@ -466,16 +528,20 @@ install() {
 }
 
 uninstall() {
-  case "$distro" in
-    ubuntu|debian)
-      for agent in otelcol td-agent; do
-        if command -v $agent 2>&1 >/dev/null; then
-          pkg="$agent"
-          if [ "$agent" = "otelcol" ]; then
-            pkg="splunk-otel-collector"
-          fi
-          if dpkg -s $pkg 2>&1 >/dev/null; then
-            systemctl stop $pkg || true
+  for agent in otelcol td-agent $instrumentation_so_path; do
+    if command -v $agent >/dev/null 2>&1; then
+      pkg="$agent"
+      if [ "$agent" = "otelcol" ]; then
+        pkg="splunk-otel-collector"
+      elif [ "$agent" = "$instrumentation_so_path" ]; then
+        pkg="splunk-otel-auto-instrumentation"
+      fi
+      case "$distro" in
+        ubuntu|debian)
+          if dpkg -s $pkg >/dev/null 2>&1; then
+            if [ "$pkg" != "splunk-otel-auto-instrumentation" ]; then
+              systemctl stop $pkg || true
+            fi
             apt-get purge -y $pkg 2>&1
             echo "Successfully removed the $pkg package"
           else
@@ -484,18 +550,12 @@ uninstall() {
             echo "$agent_path needs to be manually removed/uninstalled" >&2
             exit 1
           fi
-        fi
-      done
-      ;;
-    amzn|centos|ol|rhel|sles|opensuse*)
-      for agent in otelcol td-agent; do
-        if command -v $agent 2>&1 >/dev/null; then
-          pkg="$agent"
-          if [ "$agent" = "otelcol" ]; then
-            pkg="splunk-otel-collector"
-          fi
-          if rpm -q $pkg 2>&1 >/dev/null; then
-            systemctl stop $pkg || true
+          ;;
+        amzn|centos|ol|rhel|sles|opensuse*)
+          if rpm -q $pkg >/dev/null 2>&1; then
+            if [ "$pkg" != "splunk-otel-auto-instrumentation" ]; then
+              systemctl stop $pkg || true
+            fi
             if command -v yum >/dev/null 2>&1; then
               yum remove -y $pkg 2>&1
             elif command -v dnf >/dev/null 2>&1; then
@@ -510,14 +570,14 @@ uninstall() {
             echo "$agent_path needs to be manually removed/uninstalled" >&2
             exit 1
           fi
-        fi
-      done
-      ;;
-    *)
-      echo "Your distro ($distro) is not supported or could not be determined" >&2
-      exit 1
-      ;;
-  esac
+          ;;
+        *)
+          echo "Your distro ($distro) is not supported or could not be determined" >&2
+          exit 1
+          ;;
+      esac
+    fi
+  done
 }
 
 usage() {
@@ -563,6 +623,12 @@ Options:
   --uninstall                       Removes the Splunk OpenTelemetry Collector for Linux
   --with[out]-fluentd               Whether to install and configure fluentd to forward log events to the collector
                                     (default: --with-fluentd)
+  --with[out]-instrumentation       Whether to install and configure the splunk-otel-auto-instrumentation package
+                                    (default: --without-instrumentation)
+  --deployment-environment <value>  Set the 'deployment.environment' resource attribute to the specified value.
+                                    Only applicable if the '--with-instrumentation' option is also specified.
+                                    (default: empty)
+  --instrumentation-version         The splunk-otel-auto-instrumentation package version to install (default: $default_instrumentation_version)
   --                                Use -- if access_token starts with -
 
 EOH
@@ -632,6 +698,9 @@ parse_args_and_install() {
   local collector_config_path=
   local skip_collector_repo="false"
   local skip_fluentd_repo="false"
+  local with_instrumentation="false"
+  local instrumentation_version="$default_instrumentation_version"
+  local deployment_environment="$default_deployment_environment"
 
   while [ -n "${1-}" ]; do
     case $1 in
@@ -719,6 +788,20 @@ parse_args_and_install() {
       --without-fluentd)
         with_fluentd="false"
         ;;
+      --with-instrumentation)
+        with_instrumentation="true"
+        ;;
+      --without-instrumentation)
+        with_instrumentation="false"
+        ;;
+      --instrumentation-version)
+        instrumentation_version="$2"
+        shift 1
+        ;;
+      --deployment-environment)
+        deployment_environment="$2"
+        shift 1
+        ;;
       --)
         access_token="$2"
         shift 1
@@ -781,7 +864,7 @@ parse_args_and_install() {
       ;;
   esac
 
-  ensure_not_installed "$with_fluentd"
+  ensure_not_installed "$with_fluentd" "$with_instrumentation"
 
   if [ -z "$access_token" ]; then
     access_token=$(request_access_token)
@@ -807,6 +890,11 @@ parse_args_and_install() {
     td_agent_version=""
   fi
 
+  if [ "$with_instrumentation" != "true" ]; then
+    instrumentation_version=""
+    deployment_environment=""
+  fi
+
   if [ -z "$trace_url" ]; then
     trace_url="${ingest_url}/v2/trace"
   fi
@@ -824,13 +912,23 @@ parse_args_and_install() {
   if [ "$with_fluentd" = "true" ]; then
     echo "TD Agent (Fluentd) Version: $td_agent_version"
   fi
+  if [ "$with_instrumentation" = "true" ]; then
+    echo "Splunk OpenTelemetry Auto Instrumentation Version: $instrumentation_version"
+    if [ -n "$deployment_environment" ]; then
+      echo "  Resource Attribute: deployment.environment=${deployment_environment}"
+    fi
+  fi
 
   if [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
     echo "Your access token could not be verified. This may be due to a network connectivity issue." >&2
     exit 1
   fi
 
-  install "$stage" "$collector_version" "$td_agent_version" "$skip_collector_repo" "$skip_fluentd_repo"
+  install "$stage" "$collector_version" "$td_agent_version" "$skip_collector_repo" "$skip_fluentd_repo" "$instrumentation_version"
+
+  if [ "$with_instrumentation" = "true" ] && [ -n "$deployment_environment" ]; then
+    update_instrumentation_config "$deployment_environment"
+  fi
 
   create_user_group "$service_user" "$service_group"
   configure_service_owner "$service_user" "$service_group"
@@ -960,6 +1058,16 @@ restarted to apply the changes by running the following command as root:
 EOH
   fi
 
+  if [ "$with_instrumentation" = "true" ]; then
+    cat <<EOH
+The Splunk OpenTelemetry Auto Instrumentation package has been installed.
+/etc/ld.so.preload has been configured for the instrumentation library at $instrumentation_so_path.
+The configuration file is located at $instrumentation_config_path.
+
+The Java application(s) on the host need to be manually started/restarted.
+
+EOH
+  fi
   exit 0
 }
 

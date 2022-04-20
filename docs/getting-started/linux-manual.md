@@ -165,9 +165,9 @@ installed on x86_64/amd64 platforms.
 If you prefer to install the Collector without the [installer script
 ](./linux-installer.md) or the [Debian/RPM Repositories
 ](#collector-debianrpm-packages) in the previous section, you can download the
-individual Debian or RPM package from [Github Releases](
-https://github.com/signalfx/splunk-otel-collector/releases) and install it with
-the following commands (requires `root` privileges).
+individual Debian or RPM package from the [GitHub Releases](
+https://github.com/signalfx/splunk-otel-collector/releases) page and install it
+with the following commands (requires `root` privileges).
 
 **Note:** The [SignalFx Smart Agent and collectd bundle](
 https://github.com/signalfx/signalfx-agent/releases) is only supported and
@@ -177,8 +177,8 @@ installed on x86_64/amd64 platforms.
 > Otherwise, manually running the Collector is required.
 
 1. Download the appropriate `splunk-otel-collector` Debian or RPM package for
-   the target system from [Github Releases](
-   https://github.com/signalfx/splunk-otel-collector/releases).
+   the target system from the [GitHub Releases](
+   https://github.com/signalfx/splunk-otel-collector/releases) page.
 1. Run the following commands to install the `setcap` dependency and the
    Collector package (replace `<path to splunk-otel-collector deb/rpm>` with
    the local path to the downloaded Collector package):
@@ -207,8 +207,8 @@ installed on x86_64/amd64 platforms.
 1. If log collection is required, see the [Fluentd](#fluentd) section.
 1. To upgrade the Collector package, download the appropriate
    `splunk-otel-collector` Debian or RPM package for the target system from
-   [Github Releases](
-   https://github.com/signalfx/splunk-otel-collector/releases) and run the
+   the [GitHub Releases](
+   https://github.com/signalfx/splunk-otel-collector/releases) page and run the
    following commands (replace `<path to splunk-otel-collector deb/rpm>` with
    the local path to the downloaded Collector package):
    - Debian:
@@ -262,13 +262,13 @@ installed on x86_64/amd64 platforms.
 If you prefer to install the Auto Instrumentation package without the
 [installer script](./linux-installer.md) or the [Debian/RPM Repositories
 ](#collector-debianrpm-packages) in the previous section, you can download the
-individual Debian or RPM package from [Github Releases](
-https://github.com/signalfx/splunk-otel-collector/releases)
+individual Debian or RPM package from the [GitHub Releases](
+https://github.com/signalfx/splunk-otel-collector/releases) page
 and install it with the following commands (requires `root` privileges).
 
 1. Download the appropriate `splunk-otel-auto-instrumentation` Debian or RPM
-   package for the target system from [Github Releases](
-   https://github.com/signalfx/splunk-otel-collector/releases).
+   package for the target system from the [GitHub Releases](
+   https://github.com/signalfx/splunk-otel-collector/releases) page.
 1. Run the following commands to install the Auto Instrumentation package
    (replace `<path to splunk-otel-auto-instrumentation deb/rpm>` with
    the local path to the downloaded Auto Instrumentation package):
@@ -284,8 +284,8 @@ and install it with the following commands (requires `root` privileges).
    Configuration](#auto-instrumentation-post-install-configuration) section.
 1. To upgrade the Auto Instrumentation package, download the appropriate
    `splunk-auto-auto-instrumentation` Debian or RPM
-   package for the target system from [Github Releases](
-   https://github.com/signalfx/splunk-otel-collector/releases) and run the
+   package for the target system from the [GitHub Releases](
+   https://github.com/signalfx/splunk-otel-collector/releases) page and run the
    following commands (replace `<path to splunk-otel-auto-instrumentation
    deb/rpm>` with the local path to the downloaded Auto Instrumentation
    package):

@@ -1,0 +1,55 @@
+---
+driver:
+  name: docker
+  chef_license: accept
+  privileged: false
+
+transport:
+  name: docker
+
+provisioner:
+  name: chef_infra
+  always_update_cookbooks: true
+  chef_license: accept
+  enforce_idempotency: true
+  multiple_converge: 2
+  install_strategy: skip
+
+platforms:
+  - name: windows-2019
+    driver:
+      dockerfile: test/windows/Dockerfile.windows-2019
+      build_context: true
+      platform: windows
+
+  - name: windows-2022
+    driver:
+      dockerfile: test/windows/Dockerfile.windows-2022
+      build_context: true
+      platform: windows
+
+suites:
+  - name: default
+    run_list:
+      - recipe[splunk_otel_collector]
+    attributes:
+      splunk-otel-collector:
+        splunk_access_token: testing123
+        splunk_realm: test
+    verifier:
+      name: shell
+      remote_exec: true
+      command: rspec -Idefault/serverspec --format documentation default/serverspec/default_spec.rb
+
+  - name: without_fluentd
+    run_list:
+      - recipe[splunk_otel_collector]
+    attributes:
+      splunk-otel-collector:
+        splunk_access_token: testing123
+        splunk_realm: test
+        with_fluentd: false
+    verifier:
+      name: shell
+      remote_exec: true
+      command: rspec -Idefault/serverspec --format documentation without_fluentd/serverspec/without_fluentd_spec.rb

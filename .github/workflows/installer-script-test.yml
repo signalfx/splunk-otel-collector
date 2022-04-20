@@ -27,8 +27,8 @@ jobs:
         PACKAGE_TYPE: [ "deb", "rpm" ]
         INSTRUMENTATION: [ "true", "false" ]
     env:
-      PYTHON_VERSION: 3.8.5
-      PIP_VERSION: 20.2.4
+      PYTHON_VERSION: '3.10'
+      PIP_VERSION: '22.0.4'
       REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
       RESULT_PATH: "~/testresults"
     steps:

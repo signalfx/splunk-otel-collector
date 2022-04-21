@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - .github/workflows/deps-test.yml
+      - internal/buildscripts/update-deps
   schedule:
     - cron: '0 12 * * 1-5'
 

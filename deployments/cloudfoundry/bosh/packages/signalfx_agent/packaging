@@ -6,6 +6,11 @@ cp -r signalfx-agent/* ${BOSH_INSTALL_TARGET}/
 
 pushd $BOSH_INSTALL_TARGET
 
-bin/patch-interpreter $(pwd)
+./bin/patch-interpreter $(pwd)
+
+rm -f ./bin/signalfx-agent \
+    ./bin/agent-status
 
 popd
+
+rm -f signalfx_agent/signalfx-agent.tar.gz

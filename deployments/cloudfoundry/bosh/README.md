@@ -1,4 +1,4 @@
-# OpenTelemetry Collector BOSH Release
+# Splunk OpenTelemetry Collector BOSH Release
 
 This directory contains a BOSH Release of the [Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector).
 The BOSH release can be used to deploy the collector so that it will act as a [Loggregator Firehose nozzle](https://docs.pivotal.io/tiledev/2-2/nozzle.html).
@@ -31,4 +31,4 @@ The `release` script requires:
 
 ## Development and Configuration
 
-Refer to the [Development Guide](./DEV_README.MD) for more information.
+Refer to the [Development Guide](./DEVELOPMENT.MD) for more information.

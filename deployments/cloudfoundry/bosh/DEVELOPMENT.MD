@@ -22,6 +22,7 @@
 ## Create Local BOSH Release
 
 ```shell
+$ # Check release script for more environment variables that can be set.
 $ export IS_DEV_RELEASE=1
 $ ./release
 ```

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Updated the Migrating from SignalFx Smart Agent to Splunk Distribution of OpenTelemetry Collector documentation (#TBD)
+
 ### 💡 Enhancements 💡
 
 - Upgrade to Go 1.18.1 (#1464)

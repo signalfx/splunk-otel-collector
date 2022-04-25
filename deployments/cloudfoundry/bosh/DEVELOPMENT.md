@@ -109,7 +109,7 @@ $ bosh vms
 # View logs for a given deployment. Downloads a TAR file from the deployment.
 $ bosh logs -d <deployment-name>
 
-# SSH into a deployment's VM. 
+# SSH into a deployment's VM.
 $ bosh ssh -d <deployment-name>
 ```
 If VM exists (even in failing state) but SSH fails, it's likely a routing error.

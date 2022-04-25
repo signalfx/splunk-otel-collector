@@ -31,4 +31,4 @@ The `release` script requires:
 
 ## Development and Configuration
 
-Refer to the [Development Guide](./DEVELOPMENT.MD) for more information.
+Refer to the [Development Guide](./DEVELOPMENT.md) for more information.

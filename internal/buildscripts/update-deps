@@ -22,8 +22,11 @@ for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort );
     lines="$( (grep 'github.com/open-telemetry/opentelemetry-collector-contrib/.* =>' "$gomod" | grep -v 'ignore-update-deps' | grep -v '^[[:space:]]*//') || true )"
     for line in $lines; do
         pkg="$( echo "$line" | awk '{print $1}' )"
-        sed -i -e "s|\(${pkg} .*=> ${pkg}\) .*|\1 ${CONTRIB_VERSION}|" "$gomod"
+        go mod edit -replace=${pkg}=${pkg}@${CONTRIB_VERSION}
+        go mod tidy
     done
+
+    IFS=$OFS
 
     if grep -q 'go.opentelemetry.io/collector ' "$gomod"; then
         go get go.opentelemetry.io/collector@${CORE_VERSION}
@@ -33,15 +36,7 @@ for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort );
         go get go.opentelemetry.io/collector/model@${CORE_VERSION}
     fi
 
-    lines="$( (grep 'github.com/open-telemetry/opentelemetry-collector-contrib/' "$gomod" | grep -v 'ignore-update-deps' | grep -v '^[[:space:]]*//' | grep -v '=>' | grep -v ' // indirect' | sort -u) || true )"
-    for line in $lines; do
-        pkg="$( echo "$line" | awk '{print $1}' )"
-        go get ${pkg}@${CONTRIB_VERSION}
-    done
-
-    IFS=$OFS
-
-    go mod tidy -go=1.16 && go mod tidy -go=1.17  && go mod tidy -go=1.18
+    go mod tidy
 
     popd >/dev/null
 done

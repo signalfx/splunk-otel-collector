@@ -1149,6 +1149,8 @@ github.com/imdario/mergo v0.3.12 h1:b6R2BslTbIEToALKP7LxUvijTsNI9TAe80pLWN2g/HU=
 github.com/imdario/mergo v0.3.12/go.mod h1:jmQim1M+e3UYxmgPu/WyfjB3N3VflVyUjjjwH0dnCYA=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
+github.com/influxdata/go-syslog/v3 v3.0.1-0.20210608084020-ac565dc76ba6 h1:s9ZL6ZhFF8y6ebnm1FLvobkzoIu5xwDQUcRPk/IEhpM=
+github.com/influxdata/go-syslog/v3 v3.0.1-0.20210608084020-ac565dc76ba6/go.mod h1:aXdIdfn2OcGnMhOTojXmwZqXKgC3MU5riiNvzwwG9OY=
 github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
 github.com/influxdata/influxdb1-client v0.0.0-20200827194710-b269163b24ab/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
 github.com/influxdata/tail v1.0.0 h1:RGikfjB/b5C/YP3p47YD48eE0WSsJyAVbBHNpoTHdX0=
@@ -1326,6 +1328,7 @@ github.com/kyoh86/exportloopref v0.1.8/go.mod h1:1tUcJeiioIs7VWe5gcOObrux3lb66+s
 github.com/leodido/go-urn v1.1.0/go.mod h1:+cyI34gQWZcE1eQU7NVgKkkzdXDQHr1dBMtdAPozLkw=
 github.com/leodido/go-urn v1.2.1 h1:BqpAaACuzVSgi/VLzGZIobT2z4v53pjosyNd9Yv6n/w=
 github.com/leodido/go-urn v1.2.1/go.mod h1:zt4jvISO2HfUBqxjfIshjdMTYS56ZS/qv49ictyFfxY=
+github.com/leodido/ragel-machinery v0.0.0-20181214104525-299bdde78165/go.mod h1:WZxr2/6a/Ar9bMDc2rN/LJrE/hF6bXE4LPyDSIxwAfg=
 github.com/leoluk/perflib_exporter v0.1.0 h1:fXe/mDaf9jR+Zk8FjFlcCSksACuIj2VNN4GyKHmQqtA=
 github.com/leoluk/perflib_exporter v0.1.0/go.mod h1:rpV0lYj7lemdTm31t7zpCqYqPnw7xs86f+BaaNBVYFM=
 github.com/lib/pq v1.0.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
@@ -1696,6 +1699,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecrece
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.49.0/go.mod h1:GFk7YH2CV7W7PnvdWTldaheUJiPw2TJ+TIFTZ/CNyzM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.49.0 h1:vXCVrsWRYg5vx8tWCKgeaJ2OBVmJldmHQTQjLXEttjE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.49.0/go.mod h1:uVg9LwZrxWvfOR91qp4NF7MH7gPGIyO5ElMj71Q1V/Q=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.49.0 h1:nqjdwK2hzZUgQVc71xZQjzeNjElvw3EO/CiJWulo2rU=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.49.0/go.mod h1:ic3SZ2ffSf8Pa2h8nA+UzTjyanPUsxhtm+7gSo15RXw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.49.0 h1:zZuQZg8ezaDJEf9FryMfLFyuGPgoMXLHFjnmxMcCtmE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.49.0/go.mod h1:tPB4tfZtnhuKMaBW1BNWI8N6DDsLV59HPkLYzSetjCk=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.49.0 h1:+jFampRtAOYesuq+BmWAkM1e/EhYBYCV8adPAij6Jwg=

@@ -64,6 +64,7 @@ func TestDefaultComponents(t *testing.T) {
 		"smartagent",
 		"splunk_hec",
 		"statsd",
+		"syslog",
 		"tcplog",
 		"zipkin",
 	}

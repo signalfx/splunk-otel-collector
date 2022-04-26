@@ -61,6 +61,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"go.opentelemetry.io/collector/component"
@@ -125,6 +126,7 @@ func Get() (component.Factories, error) {
 		smartagentreceiver.NewFactory(),
 		splunkhecreceiver.NewFactory(),
 		statsdreceiver.NewFactory(),
+		syslogreceiver.NewFactory(),
 		tcplogreceiver.NewFactory(),
 		zipkinreceiver.NewFactory(),
 	)

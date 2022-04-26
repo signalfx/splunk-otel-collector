@@ -1,0 +1,5 @@
+name: bosh
+blobstore:
+  provider: local
+  options:
+    blobstore_path: ../splunk_otel_collector

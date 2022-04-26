@@ -1,0 +1,87 @@
+---
+name: splunk-otel-collector
+
+templates:
+    ctl.erb: bin/ctl
+    otel-collector-config.yaml.erb: bin/config/otel-collector-config.yaml
+
+packages:
+- splunk_otel_collector
+- signalfx_agent
+
+properties:
+
+    otel.config_yaml:
+        description: |
+            A full collector config file for the OpenTelemetry Collector.
+            If not provided, the config file will be generated from the
+            options specified below.
+
+    # If either otel.receiver variable is declared, the other is also required.
+    otel.receiver.config_yaml:
+        description: |
+            Additional configuration information for the collector receivers. This will be used in addition
+            to the cloudfoundry receiver.
+    otel.receiver.names:
+        description: |
+            Names of the additional receivers being used. This will be used in the metrics pipeline in
+            the collector.
+
+    # If either otel.processor variable is declared, the other is also required.
+    otel.processor.config_yaml:
+        description: |
+            User specified and configured processors for the collector. This will be used in place of
+            automatically setup processors. Default is resourcedetection if no processor config is specified.
+    otel.processor.names:
+        description: |
+            User specified processor names. This will be used for the metrics pipeline in the collector
+            configuration.
+
+    # If either otel.exporter variable is declared, the other is also required.
+    otel.exporter.config_yaml:
+        description: |
+            User specified and configured exporters for the collector. This will be used in place of
+            automatically setup exporters. Default is splunk if no exporter config is specified.
+    otel.exporter.names:
+        description: |
+            User specified exporter names. This will be used for the metrics pipeline in the collector
+            configuration.
+
+    splunk.access_token:
+        description: "Your Splunk organization access token"
+
+    splunk.api_url:
+        description: "The API server base URL for Splunk -- this option takes precedence over splunk.realm"
+        required: false
+
+    splunk.ingest_url:
+        description: "The ingest base URL for Splunk -- this option takes precedence over splunk.realm"
+        required: false
+
+    splunk.realm:
+        description: "The Splunk realm in which your organization resides -- used to derive splunk.ingest_url and splunk.api_url if those are not provided"
+        required: false
+
+    cloudfoundry.rlp_gateway.endpoint:
+        description: "The URL of the RLP Gateway that acts as a proxy for the firehose"
+
+    cloudfoundry.rlp_gateway.tls.insecure_skip_verify:
+        description: "Whether to skip TLS verify for the RLP gateway endpoint"
+
+    cloudfoundry.rlp_gateway.shard_id:
+        description: |
+            Metrics are load balanced between receivers that use the same shard ID.
+            Only use if multiple receivers must receive all metrics instead of
+            balancing metrics between them.
+
+    cloudfoundry.uaa.endpoint:
+        description: "The URL of the UAA provider"
+
+    cloudfoundry.uaa.tls.insecure_skip_verify:
+        description: "Whether to skip TLS verify for the UAA endpoint"
+
+    cloudfoundry.uaa.username:
+        description: "Name of the UAA user (required grant types/authorities described above)"
+
+    cloudfoundry.uaa.password:
+        description: "Password of the UAA user"

@@ -1,0 +1,30 @@
+#!/bin/bash -e
+
+RUN_DIR=/var/vcap/sys/run/splunk-otel-collector
+LOG_DIR=/var/vcap/sys/log/splunk-otel-collector
+PIDFILE=${RUN_DIR}/pid
+
+case $1 in
+
+    start)
+        mkdir -p $RUN_DIR $LOG_DIR
+        chown -R vcap:vcap $RUN_DIR $LOG_DIR
+
+        echo $$ > $PIDFILE
+
+        exec /var/vcap/packages/splunk_otel_collector/splunk_otel_collector \
+            --config /var/vcap/jobs/splunk-otel-collector/bin/config/otel-collector-config.yaml \
+            >>  $LOG_DIR/splunk-otel-collector.stdout.log \
+            2>> $LOG_DIR/splunk-otel-collector.stderr.log
+        ;;
+
+    stop)
+        kill -9 `cat $PIDFILE`
+        rm -f $PIDFILE
+
+        ;;
+
+    *)
+        echo "Usage: splunk-otel-collector/bin/ctl {start|stop}" ;;
+
+esac

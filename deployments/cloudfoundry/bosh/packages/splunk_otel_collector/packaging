@@ -1,0 +1,9 @@
+set -e -x
+
+cp splunk_otel_collector/splunk_otel_collector ${BOSH_INSTALL_TARGET}/
+
+pushd $BOSH_INSTALL_TARGET
+
+chmod 755 splunk_otel_collector
+
+popd

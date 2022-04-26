@@ -1,0 +1,43 @@
+name: Cloud Foundry BOSH Release
+
+# The workflow triggered by any change in deployments/cloudfoundry/bosh/.
+# 1. Run buildpack test.
+
+on:
+  pull_request:
+    paths:
+      - 'deployments/cloudfoundry/bosh/**'
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: 'deployments/cloudfoundry/bosh'
+
+jobs:
+
+  test:
+    name: Test Bosh Release Creation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+      - name: Install BOSH CLI
+        shell: bash
+        run: |
+          brew install cloudfoundry/tap/bosh-cli
+          bosh -v
+      - name: Run release script
+        shell: bash
+        run: |
+          export UPLOAD_RELEASE=0
+          export IS_DEV_RELEASE=1
+          ./release
+          export IS_DEV_RELEASE=0
+          ./release
+          FILE=./latest-release.tgz
+          if [ ! -f "$FILE" ]; then
+            echo "$FILE does not exist."
+            exit 1
+          fi

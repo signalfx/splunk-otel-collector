@@ -1,0 +1,47 @@
+<% if p("otel.config_yaml", "").length > 0 %>
+<%= p("otel.config_yaml") %>
+<% else %>
+---
+receivers:
+  cloudfoundry:
+    rlp_gateway:
+      endpoint: <%= p('cloudfoundry.rlp_gateway.endpoint') %>
+      <% if_p('cloudfoundry.rlp_gateway.shard_id') do |shard_id| %>
+      shard_id: <%= shard_id %>
+      <% end %>
+      tls:
+         <% if_p('cloudfoundry.rlp_gateway.tls.insecure_skip_verify') do |insecure_skip_verify| %>
+         insecure_skip_verify: <%= insecure_skip_verify %>
+         <% end %>
+    uaa:
+      endpoint: <%= p('cloudfoundry.uaa.endpoint') %>
+      username: <%= p('cloudfoundry.uaa.username') %>
+      password: <%= p('cloudfoundry.uaa.password') %>
+      tls:
+        <% if_p('cloudfoundry.uaa.tls.insecure_skip_verify') do |insecure_skip_verify| %>
+        insecure_skip_verify: <%= insecure_skip_verify %>
+        <% end %>
+
+processors:
+  resourcedetection:
+
+exporters:
+  signalfx:
+    access_token: <%= p('splunk.access_token') %>
+    <% if_p('splunk.api_url') do |api_url| %>
+    api_url: <%= api_url %>
+    <% end %>
+    <% if_p('splunk.ingest_url') do |ingest_url| %>
+    ingest_url: <%= ingest_url %>
+    <% end %>
+    <% if_p('splunk.realm') do |realm| %>
+    realm: <%= realm %>
+    <% end %>
+
+service:
+  pipelines:
+    metrics:
+      receivers: [cloudfoundry]
+      processors: [resourcedetection]
+      exporters: [signalfx]
+<% end %>

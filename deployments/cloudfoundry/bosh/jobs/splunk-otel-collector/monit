@@ -1,0 +1,5 @@
+check process splunk-otel-collector
+  with pidfile /var/vcap/sys/run/splunk-otel-collector/pid
+  start program "/var/vcap/jobs/splunk-otel-collector/bin/ctl start"
+  stop program "/var/vcap/jobs/splunk-otel-collector/bin/ctl stop"
+  group vcap

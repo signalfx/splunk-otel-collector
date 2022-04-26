@@ -1,0 +1,85 @@
+#!/bin/bash
+
+set -euo pipefail
+set -x
+
+# This script is used to create a Bosh release of the Splunk distribution of the OpenTelemetry Collector.
+# This is intended to be run by the Pivotal Cloud Foundry (PCF) tile. The PCF tile should specify
+# proper variables as described below.
+
+# Variables:
+# - OTEL_VERSION: Version of the Splunk OpenTelemetry Collector to deploy as a part of this release.
+#   Default: "latest". Valid version must be >=0.48.0.
+
+# - SMART_AGENT_VERSION: Version of the Smart Agent to download. This is a dependency of the Splunk Collector
+#   signalfx receiver. Default: "latest".
+
+# - BOSH_RELEASE_VERSION: Version of the Bosh release being created. Defaults to 0 if not specified, so any release
+#   except the first should have a pre-set value.
+
+# - IS_DEV_RELEASE: Boolean (int), creates the release locally if true, allows this script to be used
+#   in development. Default: 0.
+
+# - UPLOAD_RELEASE: Boolean (int), uploads release to bosh director if true. This is mainly used by
+#   GitHub's workflow for testing. Default: 1.
+
+OTEL_VERSION=${OTEL_VERSION:-latest}
+BOSH_RELEASE_VERSION=${BOSH_RELEASE_VERSION:-0}
+IS_DEV_RELEASE=${IS_DEV_RELEASE:-0}
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+UPLOAD_RELEASE=${UPLOAD_RELEASE:-1}
+
+# OS should match CF environment
+OS="linux_amd64"
+OTEL_BINARY="splunk_otel_collector"
+OTEL_BASE_URL="https://github.com/signalfx/splunk-otel-collector/releases"
+
+if [ $OTEL_VERSION = "latest" ]; then
+        OTEL_VERSION=$( wget -qO- --header="Accept: application/json" "${OTEL_BASE_URL}/latest" | jq -r '.tag_name' )
+        if [ -z "$OTEL_VERSION" ]; then
+            echo "Failed to get tag_name for latest release from $OTEL_VERSION/latest" >&2
+            exit 1
+        fi
+fi
+
+OTEL_BINARY_DOWNLOAD_URL=${OTEL_BASE_URL}/download/${OTEL_VERSION}/otelcol_${OS}
+
+SMART_AGENT_VERSION="${SMART_AGENT_VERSION:-latest}"
+SMART_AGENT_BASE_URL="https://github.com/signalfx/signalfx-agent/releases"
+SMART_AGENT="signalfx_agent"
+SMART_AGENT_TAR="signalfx-agent.tar.gz"
+
+if [ $SMART_AGENT_VERSION = "latest" ]; then
+        SMART_AGENT_VERSION=$( wget -qO- --header="Accept: application/json" "${SMART_AGENT_BASE_URL}/latest" | jq -r '.tag_name' )
+        if [ -z "$SMART_AGENT_VERSION" ]; then
+            echo "Failed to get tag_name for latest release from $SMART_AGENT_BASE_URL/latest" >&2
+            exit 1
+        fi
+fi
+
+SMART_AGENT_VERSIONED_TAR=signalfx-agent-${SMART_AGENT_VERSION#v}.tar.gz
+SMART_AGENT_DOWNLOAD_URL=$SMART_AGENT_BASE_URL/download/${SMART_AGENT_VERSION}/$SMART_AGENT_VERSIONED_TAR
+
+# Download Splunk's distribution of the OpenTelemetry Collector and the SignalFx Agent locally
+wget -nv -O "$SCRIPT_DIR/$OTEL_BINARY" $OTEL_BINARY_DOWNLOAD_URL
+wget -nv -O "$SCRIPT_DIR/$SMART_AGENT_TAR" $SMART_AGENT_DOWNLOAD_URL
+
+bosh init-release
+# blobs are the way Bosh releases handle external dependencies.
+bosh add-blob ${SCRIPT_DIR}/${OTEL_BINARY} ${OTEL_BINARY}/${OTEL_BINARY}
+bosh add-blob ${SCRIPT_DIR}/${SMART_AGENT_TAR} ${SMART_AGENT}/${SMART_AGENT_TAR}
+
+if (( IS_DEV_RELEASE ))
+then
+  # Release name will be "bosh" in development, so the deployment.yaml file will need to reference this.
+  bosh create-release --force
+  if (( UPLOAD_RELEASE ))
+  then
+    bosh upload-release
+  fi
+else
+  # If we're doing an official release we want to delete dev releases, and create a tarball of the release
+  # to be used by the tile.
+  rm -rf $SCRIPT_DIR/.dev_builds $SCRIPT_DIR/dev_releases
+  bosh create-release --force  --version ${OTEL_VERSION}-${BOSH_RELEASE_VERSION} --tarball ./latest-release.tgz --name splunk-otel-collector
+fi

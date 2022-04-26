@@ -1,0 +1,7 @@
+---
+name: signalfx_agent
+
+dependencies: []
+
+files:
+ - signalfx_agent/signalfx-agent.tar.gz # From https://github.com/signalfx/signalfx-agent/releases

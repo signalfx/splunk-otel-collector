@@ -1,0 +1,6 @@
+signalfx_agent/signalfx-agent.tar.gz:
+  size: 194032255
+  sha: sha256:40ca24994f792d4b7c40f8640bea1fc420fbfe5eed918b4d63b4293e3b1e07dd
+splunk_otel_collector/splunk_otel_collector:
+  size: 163463346
+  sha: sha256:db0ddd022c2b8f4fa00d3d8f9764fcee4cc1de9fb2da32b1f7d536b677c89261

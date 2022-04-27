@@ -2,15 +2,21 @@
 
 ## Unreleased
 
-- Updated the Migrating from SignalFx Smart Agent to Splunk Distribution of OpenTelemetry Collector documentation (#TBD)
+## v0.49.0
 
-### 💡 Enhancements 💡
-
-- Upgrade to Go 1.18.1 (#1464)
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.49.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.49.0) and the [opentelemetry-collector-contrib v0.49.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.49.0) releases.
 
 ### 🚀 New components 🚀
 
 - [`syslog` receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/syslogreceiver) parses Syslogs from tcp/udp using the [opentelemetry-log-collection](https://github.com/open-telemetry/opentelemetry-log-collection) library
+
+### 💡 Enhancements 💡
+
+- Updated the [Migrating from SignalFx Smart Agent to Splunk Distribution of OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/signalfx-smart-agent-migration.md) documentation (#1489)
+- Upgrade to Go 1.18.1 (#1464)
+- Initial support for [Cloud Foundry Buildpack](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/cloudfoundry/buildpack) (#1404)
+- Initial support for [BOSH Release](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/cloudfoundry/bosh) (#1480)
+- Update bundled Smart Agent to [v5.20.0](https://github.com/signalfx/signalfx-agent/releases/tag/v5.20.0)
 
 ## v0.48.0
 

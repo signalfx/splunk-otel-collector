@@ -9,9 +9,12 @@ struct config {
     char *java_agent_jar;
     char *service_name;
     char *resource_attributes;
+    char *disable_telemetry;
 };
 
 void load_config(logger log, struct config *cfg, char *file_name);
+
+bool eq_true(char *v);
 
 void free_config(struct config *cfg);
 

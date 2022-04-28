@@ -80,11 +80,23 @@ void test_is_legal_java_package_element(logger l);
 
 void test_is_legal_module(logger l);
 
+void test_eq_true(logger l);
+
+void test_enable_telemetry(logger l);
+
+void test_disable_telemetry(logger l);
+
 // fakes/testdata
+
+void fake_send_otlp_metric(logger log);
 
 void fake_load_config(logger log, struct config *cfg, char *path);
 
 void fake_load_config_no_svcname(logger log, struct config *cfg, char *path);
+
+void fake_load_config_disable_telemetry_not_specified(logger log, struct config *cfg, char *path);
+
+void fake_load_config_disable_telemetry_true(logger log, struct config *cfg, char *path);
 
 cmdline_reader new_default_test_cmdline_reader();
 

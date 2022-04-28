@@ -18,13 +18,16 @@ void split_on_eq(char *string, struct kv *pair);
 void load_config(logger log, struct config *cfg, char *file_name) {
     read_config_file(log, cfg, file_name);
     if (cfg->service_name == NULL) {
-        log_debug(log, "service_name not found in config");
+        log_debug(log, "service_name not specified in config");
     }
     if (cfg->java_agent_jar == NULL) {
-        log_debug(log, "java_agent_jar not found in config");
+        log_debug(log, "java_agent_jar not specified in config");
     }
     if (cfg->resource_attributes == NULL) {
-        log_debug(log, "resource_attributes not found in config");
+        log_debug(log, "resource_attributes not specified in config");
+    }
+    if (cfg->disable_telemetry == NULL) {
+        log_debug(log, "disable_telemetry not specified in config");
     }
 }
 
@@ -58,6 +61,8 @@ void read_lines(struct config *cfg, FILE *fp) {
             cfg->service_name = strdup(pair.v);
         } else if (streq(pair.k, "resource_attributes")) {
             cfg->resource_attributes = strdup(pair.v);
+        } else if (streq(pair.k, "disable_telemetry")) {
+            cfg->disable_telemetry = strdup(pair.v);
         }
     }
 }
@@ -67,11 +72,21 @@ void split_on_eq(char *string, struct kv *pair) {
     pair->v = string;
 }
 
+bool eq_true(char *v) {
+    return v != NULL && !streq("false", v) && !streq("FALSE", v) && !streq("0", v);
+}
+
 void free_config(struct config *cfg) {
     if (cfg->java_agent_jar != NULL) {
         free(cfg->java_agent_jar);
     }
     if (cfg->service_name != NULL) {
         free(cfg->service_name);
+    }
+    if (cfg->resource_attributes != NULL) {
+        free(cfg->resource_attributes);
+    }
+    if (cfg->disable_telemetry != NULL) {
+        free(cfg->disable_telemetry);
     }
 }

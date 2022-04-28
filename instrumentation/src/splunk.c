@@ -1,5 +1,6 @@
 #include "splunk.h"
 #include "config.h"
+#include "metrics_client.h"
 #include "args.h"
 
 #include <stdlib.h>
@@ -43,7 +44,7 @@ void __attribute__((constructor)) splunk_instrumentation_enter() {
     if (cr == NULL) {
         return;
     }
-    auto_instrument(l, has_read_access, program_invocation_short_name, load_config, cr);
+    auto_instrument(l, has_read_access, program_invocation_short_name, load_config, cr, send_otlp_metric);
     cmdline_reader_close(cr);
     free_logger(l);
 }
@@ -53,7 +54,8 @@ void auto_instrument(
         has_access_func_t has_access,
         const char *program_name,
         load_config_func_t load_config_func,
-        cmdline_reader cr
+        cmdline_reader cr,
+        send_otlp_metric_func_t send_otlp_metric_func
 ) {
     if (!streq(program_name, "java")) {
         return;
@@ -67,7 +69,12 @@ void auto_instrument(
         return;
     }
 
-    struct config cfg = {.java_agent_jar = NULL, .service_name = NULL};
+    struct config cfg = {
+            .java_agent_jar = NULL,
+            .resource_attributes = NULL,
+            .service_name = NULL,
+            .disable_telemetry = NULL
+    };
     load_config_func(log, &cfg, conf_file);
     if (cfg.java_agent_jar == NULL) {
         log_warning(log, "java_agent_jar not set, quitting");
@@ -88,6 +95,12 @@ void auto_instrument(
     }
 
     set_env_var_from_attr(log, "resource_attributes", resource_attributes_var, cfg.resource_attributes);
+
+    if (eq_true(cfg.disable_telemetry)) {
+        log_info(log, "disabling telemetry as per config");
+    } else {
+        send_otlp_metric_func(log);
+    }
 
     free_config(&cfg);
 }

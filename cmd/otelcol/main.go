@@ -28,7 +28,6 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"go.opentelemetry.io/collector/config/mapconverter/overwritepropertiesmapconverter"
 	"go.opentelemetry.io/collector/config/mapprovider/envmapprovider"
 	"go.opentelemetry.io/collector/config/mapprovider/filemapprovider"
@@ -122,7 +121,6 @@ func main() {
 				),
 			},
 			MapConverters: configMapConverters,
-			Unmarshaler:   configunmarshaler.NewDefault(),
 		})
 	if err != nil {
 		log.Fatal(err)

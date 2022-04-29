@@ -21,8 +21,8 @@ func pdataMetrics() pmetric.Metrics {
 
 	ilms := resourceMetrics.ScopeMetrics()
 	ilmOne := ilms.AppendEmpty()
-	ilmOne.InstrumentationLibrary().SetName("an_instrumentation_library_name")
-	ilmOne.InstrumentationLibrary().SetVersion("an_instrumentation_library_version")
+	ilmOne.Scope().SetName("an_instrumentation_library_name")
+	ilmOne.Scope().SetVersion("an_instrumentation_library_version")
 	ilmOneMetrics := ilmOne.Metrics()
 	ilmOneMetricOne := ilmOneMetrics.AppendEmpty()
 	ilmOneMetricOne.SetName("an_int_gauge")
@@ -46,7 +46,7 @@ func pdataMetrics() pmetric.Metrics {
 	ilmOneMetricTwoDps.AppendEmpty().SetDoubleVal(345.67)
 	ilmOneMetricTwoDps.At(1).Attributes().Insert("label_name_4", pcommon.NewValueString("label_value_4"))
 
-	ilms.AppendEmpty().InstrumentationLibrary().SetName("an_instrumentation_library_without_version_or_metrics")
+	ilms.AppendEmpty().Scope().SetName("an_instrumentation_library_without_version_or_metrics")
 
 	ilmThreeMetrics := ilms.AppendEmpty().Metrics()
 

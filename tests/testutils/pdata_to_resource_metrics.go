@@ -28,8 +28,8 @@ func PDataToResourceMetrics(pdataMetrics ...pmetric.Metrics) (ResourceMetrics, e
 				ilms := ScopeMetrics{Metrics: []Metric{}}
 				pdataILM := pdataILMs.At(j)
 				ilms.InstrumentationLibrary = InstrumentationLibrary{
-					Name:    pdataILM.InstrumentationLibrary().Name(),
-					Version: pdataILM.InstrumentationLibrary().Version(),
+					Name:    pdataILM.Scope().Name(),
+					Version: pdataILM.Scope().Version(),
 				}
 				for k := 0; k < pdataILM.Metrics().Len(); k++ {
 					pdataMetric := pdataILM.Metrics().At(k)
@@ -63,10 +63,10 @@ func addSum(ilms *ScopeMetrics, metric pmetric.Metric) {
 		var val interface{}
 		var metricType MetricType
 		switch dp.ValueType() {
-		case pmetric.MetricValueTypeInt:
+		case pmetric.NumberDataPointValueTypeInt:
 			val = dp.IntVal()
 			metricType = intMetricType
-		case pmetric.MetricValueTypeDouble:
+		case pmetric.NumberDataPointValueTypeDouble:
 			val = dp.DoubleVal()
 			metricType = doubleMetricType
 		}
@@ -124,10 +124,10 @@ func addGauge(ilms *ScopeMetrics, metric pmetric.Metric) {
 		var val interface{}
 		var metricType MetricType
 		switch dp.ValueType() {
-		case pmetric.MetricValueTypeInt:
+		case pmetric.NumberDataPointValueTypeInt:
 			val = dp.IntVal()
 			metricType = IntGauge
-		case pmetric.MetricValueTypeDouble:
+		case pmetric.NumberDataPointValueTypeDouble:
 			val = dp.DoubleVal()
 			metricType = DoubleGauge
 		}

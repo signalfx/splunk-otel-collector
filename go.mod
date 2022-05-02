@@ -358,8 +358,8 @@ require (
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	go.etcd.io/etcd/api/v3 v3.5.2 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.2 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.4 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.4 // indirect
 	go.mongodb.org/atlas v0.15.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.opentelemetry.io/collector/semconv v0.50.0 // indirect
@@ -452,6 +452,9 @@ replace (
 	github.com/nats-io/nats.go => github.com/nats-io/nats.go v1.14.0
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.3
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
+	go.etcd.io/etcd/api/v3 => go.etcd.io/etcd/api/v3 v3.5.4
+	go.etcd.io/etcd/client/pkg/v3 => go.etcd.io/etcd/client/pkg/v3 v3.5.4
+	go.etcd.io/etcd/client/v3 => go.etcd.io/etcd/client/v3 v3.5.4
 )
 
 // vault has invalid requirements https://github.com/hashicorp/vault/pull/13321

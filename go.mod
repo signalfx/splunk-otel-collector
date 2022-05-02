@@ -441,6 +441,7 @@ replace (
 
 // security updates
 replace (
+	github.com/apache/thrift => github.com/apache/thrift v0.16.0
 	github.com/containerd/containerd => github.com/containerd/containerd v1.5.10
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
 	github.com/hashicorp/vault/api => github.com/hashicorp/vault/api v1.5.0

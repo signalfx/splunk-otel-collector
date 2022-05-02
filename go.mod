@@ -325,8 +325,9 @@ require (
 	github.com/shirou/gopsutil v3.21.10+incompatible // indirect
 	github.com/shirou/gopsutil/v3 v3.22.3 // indirect
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
-	github.com/signalfx/gateway v1.2.19-0.20191125135538-2c417b7ae0bd // indirect
+	github.com/signalfx/gateway v1.2.23 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
+	github.com/signalfx/golib v2.4.1+incompatible // indirect
 	github.com/signalfx/ingest-protocols v0.1.3 // indirect
 	github.com/signalfx/sapm-proto v0.9.0 // indirect
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20211117172757-84f64129e93d // indirect

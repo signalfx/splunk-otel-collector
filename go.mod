@@ -11,9 +11,9 @@ require (
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-zookeeper/zk v1.0.2
 	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/vault v1.9.4
-	github.com/hashicorp/vault-plugin-auth-gcp v0.11.3
-	github.com/hashicorp/vault/api v1.3.1
+	github.com/hashicorp/vault v1.10.2
+	github.com/hashicorp/vault-plugin-auth-gcp v0.12.1
+	github.com/hashicorp/vault/api v1.4.1
 	github.com/jaegertracing/jaeger v1.33.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.50.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.50.0
@@ -201,9 +201,9 @@ require (
 	github.com/hashicorp/go-plugin v1.4.3 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
-	github.com/hashicorp/go-secure-stdlib/awsutil v0.1.5 // indirect
+	github.com/hashicorp/go-secure-stdlib/awsutil v0.1.6 // indirect
 	github.com/hashicorp/go-secure-stdlib/mlock v0.1.2 // indirect
-	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.3 // indirect
+	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.4 // indirect
 	github.com/hashicorp/go-secure-stdlib/strutil v0.1.2 // indirect
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
@@ -211,7 +211,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-3 // indirect
 	github.com/hashicorp/serf v0.9.6 // indirect
-	github.com/hashicorp/vault/sdk v0.3.1-0.20220224202448-00c495209246 // indirect
+	github.com/hashicorp/vault/sdk v0.4.2-0.20220422204215-a7cef09c9429 // indirect
 	github.com/hashicorp/yamux v0.0.0-20211028200310-0bc27b27de87 // indirect
 	github.com/hetznercloud/hcloud-go v1.33.1 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
@@ -441,6 +441,8 @@ replace (
 // security updates
 replace (
 	github.com/containerd/containerd => github.com/containerd/containerd v1.5.10
+	github.com/hashicorp/vault/api => github.com/hashicorp/vault/api v1.5.0
+	github.com/hashicorp/vault/sdk => github.com/hashicorp/vault/sdk v0.4.1
 	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.8.1
 	github.com/nats-io/nats.go => github.com/nats-io/nats.go v1.14.0

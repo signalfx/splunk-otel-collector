@@ -1120,8 +1120,8 @@ github.com/hashicorp/serf v0.9.6 h1:uuEX1kLR6aoda1TBttmJQKDLZE1Ob7KN0NPdE7EtCDc=
 github.com/hashicorp/serf v0.9.6/go.mod h1:TXZNMjZQijwlDvp+r0b63xZ45H7JmCmgg4gpTwn9UV4=
 github.com/hashicorp/vault v1.9.4 h1:NIu/hf8PL1zvDgCGIfvYiTA3dYFmrbG019ZEdNth4bQ=
 github.com/hashicorp/vault v1.9.4/go.mod h1:gC/ndowZX+7LI51UTcJIUQMfnuhL1pcDU+g8A2ccHis=
-github.com/hashicorp/vault-plugin-auth-gcp v0.11.3 h1:kdfbpf4bLubMqeQZIAGVYAO7scqun6GYMqU4sGEadd0=
-github.com/hashicorp/vault-plugin-auth-gcp v0.11.3/go.mod h1:HJc8ih7gLNpBJYTwFlXJA3H48LKsP8mlVKYtPWfRkHs=
+github.com/hashicorp/vault-plugin-auth-gcp v0.12.1 h1:LOxL1IedHBEkgziRelh3yv8gIKognoyRDqTuhJFZsr4=
+github.com/hashicorp/vault-plugin-auth-gcp v0.12.1/go.mod h1:mNOajlE7KlNecnCqO1we+PG0/EIHgHMTuVhk/H2W+Tw=
 github.com/hashicorp/vault/api v1.0.4/go.mod h1:gDcqh3WGcR1cpF5AJz/B1UFheUEneMoIospckxBxk6Q=
 github.com/hashicorp/vault/api v1.3.0/go.mod h1:EabNQLI0VWbWoGlA+oBLC8PXmR9D60aUVgQGvangFWQ=
 github.com/hashicorp/vault/api v1.3.1 h1:pkDkcgTh47PRjY1NEFeofqR4W/HkNUi9qIakESO2aRM=
@@ -1677,8 +1677,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.50.0/go.mod h1:9xOsxeCXmt3gnUr9Ixk7Z3KQNY7/niFFQjotCXRi1Q8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.50.0 h1:6wTpYrxjq5tU6Mk64OOM4dTuNwnFZaBMYmj5wAcwRgA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.50.0/go.mod h1:B/OsoU5N0AV4Xj3lTaXao7lkw0HwoFvlE06h/nS3Gj0=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.50.0 h1:5rsVhs0Jocui6bTRq+sgXcrOMmTcSpiUSu76Q+mE9iU=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.50.0/go.mod h1:lPR5UDDN2/yGa+G84b4eqUshMZhmW4K4TVCYaugfKps=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.50.1-0.20220429023127-719d5ccfbea9 h1:qPD+HvUo2FZSXMc81ErhLo9WPOrno0o3ppS48AjGM3k=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.50.1-0.20220429023127-719d5ccfbea9/go.mod h1:VK6ivccBN2C/ew+JyUW+vVSUOHmOXN9ANpPNAeAM880=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.50.0 h1:j/yNbUMz8+UW8fahx91gs3Yh0I0vnvzXpeneLkQlnpY=
@@ -2693,7 +2691,6 @@ golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20220209214540-3681064d5158/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220222172238-00053529121e/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.0.0-20220328115105-d36c6a25d886 h1:eJv7u3ksNXoLbGSKuv2s/SIO4tJVxc/A+MTpzxDgz/Q=
 golang.org/x/sys v0.0.0-20220328115105-d36c6a25d886/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220412211240-33da011f77ad h1:ntjMns5wyP/fN65tdBD4g8J5w8n015+iIIs9rtjXkY0=
 golang.org/x/sys v0.0.0-20220412211240-33da011f77ad/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

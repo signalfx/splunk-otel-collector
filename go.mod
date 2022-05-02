@@ -392,6 +392,7 @@ require (
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/fatih/set.v0 v0.1.0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
+	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.29.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
@@ -443,6 +444,7 @@ replace (
 replace (
 	github.com/containerd/containerd => github.com/containerd/containerd v1.5.10
 	github.com/coreos/etcd => github.com/coreos/etcd v3.3.27+incompatible
+	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
 	github.com/hashicorp/vault/api => github.com/hashicorp/vault/api v1.5.0
 	github.com/hashicorp/vault/sdk => github.com/hashicorp/vault/sdk v0.4.1
 	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0

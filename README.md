@@ -80,7 +80,11 @@ Splunk OpenTelemetry Collector can be configured to send data to them via the
 [`splunk_hec`
 exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter).
 
-> :construction: This project is currently in **BETA** ([what does beta mean?](docs/beta-definition.md))
+## Current Status
+
+- The Splunk Distribution of the OpenTelemetry Collector is production tested; it is in use by a number of customers in their production environments
+- Customers that use our distribution can receive direct help from official Splunk support within SLA's
+- Customers can use or migrate to the Splunk Distribution of the OpenTelemetry Collector without worrying about future breaking changes to its core configuration experience for metrics and traces collection (OpenTelemetry logs collection configuration is in beta)
 
 ## Getting Started
 

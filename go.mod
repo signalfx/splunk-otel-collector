@@ -50,7 +50,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.50.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.50.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.50.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.50.1-0.20220429023127-719d5ccfbea9
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.50.1-0.20220429023127-719d5ccfbea9 // ignore-update-deps
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.50.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.50.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.50.0

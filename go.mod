@@ -452,6 +452,7 @@ replace (
 	github.com/nats-io/nats.go => github.com/nats-io/nats.go v1.14.0
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.3
 	github.com/spf13/viper => github.com/spf13/viper v1.11.0 // required to drop dependency on deprecated github.com/coreos/go-etcd
+	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
 	go.etcd.io/etcd/api/v3 => go.etcd.io/etcd/api/v3 v3.5.4
 	go.etcd.io/etcd/client/pkg/v3 => go.etcd.io/etcd/client/pkg/v3 v3.5.4
 	go.etcd.io/etcd/client/v3 => go.etcd.io/etcd/client/v3 v3.5.4

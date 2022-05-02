@@ -468,3 +468,6 @@ replace (
 
 // https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/8081
 replace github.com/googleapis/gnostic v0.5.6 => github.com/googleapis/gnostic v0.5.5
+
+// required to drop dependency on deprecated git.apache.org/thrift.git
+exclude go.opencensus.io v0.19.1

@@ -373,7 +373,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v0.29.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/goleak v1.1.12 // indirect
-	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
+	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd // indirect
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/net v0.0.0-20220325170049-de3da57026de // indirect
 	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a // indirect
@@ -443,6 +443,9 @@ replace (
 	github.com/containerd/containerd => github.com/containerd/containerd v1.5.10
 	github.com/hashicorp/vault/api => github.com/hashicorp/vault/api v1.5.0
 	github.com/hashicorp/vault/sdk => github.com/hashicorp/vault/sdk v0.4.1
+	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0
+	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.8.1
+	github.com/nats-io/nats.go => github.com/nats-io/nats.go v1.14.0
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.3
 )
 

@@ -9,6 +9,8 @@
 
 #define ENV_VAR_LEN 512
 #define MAX_CONFIG_ATTR_LEN 256
+#define MAX_CMDLINE_LEN 16000
+#define MAX_ARGS 256
 
 #define JAVA_TOOL_OPTIONS_PREFIX "-javaagent:";
 
@@ -25,6 +27,8 @@ void set_service_name_from_cmdline(logger log, cmdline_reader cr);
 void set_service_name_from_config(logger log, struct config *cfg);
 
 bool is_disable_env_set();
+
+bool is_java_tool_options_set();
 
 void set_env_var(logger log, const char *var_name, const char *value);
 
@@ -55,7 +59,11 @@ void auto_instrument(
         return;
     }
     if (is_disable_env_set()) {
-        log_debug(log, "disable_env_set, quitting");
+        log_debug(log, "disable_env set, quitting");
+        return;
+    }
+    if (is_java_tool_options_set()) {
+        log_debug(log, "java_tool_options set, quitting");
         return;
     }
 
@@ -85,9 +93,9 @@ void auto_instrument(
 }
 
 void set_service_name_from_cmdline(logger log, cmdline_reader cr) {
-    char *args[256];
-    int n = get_cmdline_args(args, 256, cr);
-    char service_name[MAX_CONFIG_ATTR_LEN] = "";
+    char *args[MAX_ARGS];
+    int n = get_cmdline_args(args, cr, MAX_ARGS, MAX_CMDLINE_LEN, log);
+    char service_name[MAX_CMDLINE_LEN] = "";
     generate_servicename_from_args(service_name, args, n);
     set_env_var(log, otel_service_name_var, service_name);
     free_cmdline_args(args, n);
@@ -143,6 +151,11 @@ void set_java_tool_options(logger log, struct config *cfg) {
 bool is_disable_env_set() {
     char *env = getenv(disable_env_var);
     return env && !streq("false", env) && !streq("FALSE", env) && !streq("0", env);
+}
+
+bool is_java_tool_options_set() {
+    char *env = getenv(java_tool_options_var);
+    return env != NULL && strlen(env) > 0;
 }
 
 bool has_read_access(const char *s) {

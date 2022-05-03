@@ -5,6 +5,8 @@
 
 void require_true(char *funcname, bool actual);
 
+void require_false(char *funcname, bool actual);
+
 void require_equal_strings(char *funcname, char *expected, char *actual);
 
 void require_equal_ints(char *funcname, int expected, int actual);

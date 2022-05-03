@@ -449,6 +449,7 @@ replace (
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.8.1
 	github.com/nats-io/nats.go => github.com/nats-io/nats.go v1.14.0
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.3
+	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
 )
 
 // vault has invalid requirements https://github.com/hashicorp/vault/pull/13321

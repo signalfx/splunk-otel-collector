@@ -208,7 +208,6 @@ bool is_legal_java_main_class_with_module(const char *str) {
     }
 
     if (!is_legal_module(module)) {
-        printf("not legal! module: %s\n", module);
         return false;
     }
 

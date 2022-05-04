@@ -62,7 +62,16 @@ func (c *configSourceConfigMapProvider) Retrieve(
 	if err != nil {
 		return config.Retrieved{}, err
 	}
-	c.wrappedRetrieved = wr
+
+	existingMap, _ := c.wrappedRetrieved.AsMap()
+	// Need to merge config maps that we've encountered so far
+	if existingMap != nil {
+		wrMap, _ := wr.AsMap()
+		wrMap.Merge(existingMap)
+		c.wrappedRetrieved = config.NewRetrievedFromMap(wrMap)
+	} else {
+		c.wrappedRetrieved = wr
+	}
 
 	cfg, err := c.Get(ctx)
 	if err != nil {
@@ -105,6 +114,12 @@ func (c *configSourceConfigMapProvider) Get(context.Context) (*config.Map, error
 	effectiveMap, err := csm.Resolve(context.Background(), wrappedMap)
 	if err != nil {
 		return nil, err
+	}
+
+	// If we've already initiated and started a server, shut it down and create a new one for
+	// updated config sources.
+	if c.configServer != nil {
+		c.configServer.shutdown()
 	}
 
 	c.configServer = newConfigServer(c.logger, wrappedMap.ToStringMap(), effectiveMap.ToStringMap())

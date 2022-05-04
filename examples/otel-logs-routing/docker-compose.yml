@@ -4,7 +4,7 @@ services:
   logging:
     image: bash:latest
     container_name: logging
-    command: 'bash -c "while(true) do echo \"$${date} new message\" >> /output/file.log ; sleep 1; done"'
+    command: 'bash -c "while(true) do echo \"$$(date) new message\" >> /output/file.log ; sleep 1; done"'
     volumes:
       - ./output:/output
   # Splunk Enterprise server:

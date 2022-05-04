@@ -4,7 +4,7 @@ services:
   logging:
     image: bash:latest
     container_name: logging
-    command: 'bash -c "while(true) do echo \"$${date} my SSN is $$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9))-$$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9))-$$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9)). Please do not share.\" >> /output/file.log ; sleep 1; done"'
+    command: 'bash -c "while(true) do echo \"$$(date) my SSN is $$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9))-$$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9))-$$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9))$$(($$RANDOM % 9)). Please do not share.\" >> /output/file.log ; sleep 1; done"'
     volumes:
       - ./output:/output
   # Splunk Enterprise server:

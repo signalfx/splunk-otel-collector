@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <stdio.h>
 
-#define MAX_ARG_LEN 4096
+#define MAX_ARG_LEN 8192
 
 // individual args are copied onto the heap and should be freed
 int get_cmdline_args(char **args, cmdline_reader cr, int max_args, int max_cmdline_len, logger log) {

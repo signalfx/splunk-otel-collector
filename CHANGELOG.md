@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v0.50.1
+
+### 💡 Enhancements 💡
+
+- Security updates for third-party dependencies
+- Update bundled Smart Agent to [v5.20.1](https://github.com/signalfx/signalfx-agent/releases/tag/v5.20.1)
+
 ## v0.50.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.50.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.50.0) and the [opentelemetry-collector-contrib v0.50.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.50.0) releases.

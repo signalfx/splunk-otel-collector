@@ -34,7 +34,9 @@ void test_read_config_missing_file(logger l);
 
 void test_read_args_simple(logger l);
 
-void test_read_args_limit(logger l);
+void test_read_args_max_args_limit(logger l);
+
+void test_read_args_max_cmdline_len_limit(logger l);
 
 void test_extract_servicename_from_args_tomcat(logger l);
 
@@ -42,9 +44,23 @@ void test_extract_servicename_from_args_simple_jar(logger l);
 
 void test_extract_servicename_from_args_module(logger l);
 
-void test_clean_jars(logger l);
+void test_extract_servicename_from_args_okhttp(logger l);
 
-void test_clean_jar(logger l);
+void test_extract_servicename_from_args_zk(logger l);
+
+void test_extract_servicename_from_args_kafka(logger l);
+
+void test_extract_servicename_from_args_spring(logger l);
+
+void test_transform_multi_jars(logger l);
+
+void test_tokenset(logger l);
+
+void test_tokenset_overflow(logger l);
+
+void test_transform_jar_path_elements(logger l);
+
+void test_dedupe_hyphenated(logger l);
 
 void test_is_unique_path_element(logger l);
 
@@ -55,6 +71,14 @@ void test_truncate_jar_short(logger l);
 void test_dots_to_dashes(logger l);
 
 void test_env_var_already_set(logger l);
+
+void test_is_legal_java_module_main_class(logger l);
+
+void test_is_legal_java_fq_main_class(logger l);
+
+void test_is_legal_java_package_element(logger l);
+
+void test_is_legal_module(logger l);
 
 // fakes/testdata
 
@@ -73,5 +97,15 @@ int tomcat_args(char *args[]);
 int petclinic_args(char *args[]);
 
 int module_args(char *args[]);
+
+int okhttp_and_jedis_args(char *args[]);
+
+int zk_args(char *args[]);
+
+int kafka_args(char *args[]);
+
+int spring_args(char *args[]);
+
+char *zk_classpath();
 
 #endif //SPLUNK_INSTRUMENTATION_TEST_MAIN_H

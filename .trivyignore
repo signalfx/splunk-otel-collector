@@ -1,0 +1,2 @@
+# False positive, resolved in https://github.com/signalfx/splunk-otel-collector/pull/1817
+CVE-2022-1996

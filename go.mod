@@ -445,6 +445,7 @@ replace (
 	github.com/containerd/containerd => github.com/containerd/containerd v1.5.10
 	github.com/containernetworking/plugins => github.com/containernetworking/plugins v1.1.1
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
+	github.com/go-kit/kit => github.com/go-kit/kit v0.12.0 // required to drop dependency on deprecated go.etcd.io/etcd
 	github.com/hashicorp/vault/api => github.com/hashicorp/vault/api v1.5.0
 	github.com/hashicorp/vault/sdk => github.com/hashicorp/vault/sdk v0.4.1
 	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0

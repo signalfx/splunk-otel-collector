@@ -10,6 +10,13 @@ void require_true(char *funcname, bool actual) {
     }
 }
 
+void require_false(char *funcname, bool actual) {
+    if (actual) {
+        printf("%s: require_false: got true\n", funcname);
+        fail();
+    }
+}
+
 void require_equal_strings(char *funcname, char *expected, char *actual) {
     if (!streq(expected, actual)) {
         printf("%s: require_equal_strings: expected [%s] got [%s]\n", funcname, expected, actual);

@@ -1,11 +1,11 @@
-FROM debian:jessie
+FROM debian:bullseye
 
 RUN apt-get update &&\
     apt-get install -yq ca-certificates procps systemd wget apt-transport-https libcap2-bin curl gnupg lsb-release
 
 ARG PUPPET_RELEASE="6"
-RUN wget https://apt.puppetlabs.com/puppet${PUPPET_RELEASE}-release-jessie.deb && \
-    dpkg -i puppet${PUPPET_RELEASE}-release-jessie.deb && \
+RUN wget https://apt.puppetlabs.com/puppet${PUPPET_RELEASE}-release-bullseye.deb && \
+    dpkg -i puppet${PUPPET_RELEASE}-release-bullseye.deb && \
     apt-get update && \
     apt-get install -y puppet-agent
 
@@ -34,4 +34,4 @@ COPY deployments/puppet /etc/puppetlabs/code/environments/production/modules/spl
 
 VOLUME [ "/sys/fs/cgroup" ]
 
-CMD ["/sbin/init"]
+ENTRYPOINT ["/lib/systemd/systemd"]

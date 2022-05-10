@@ -1,7 +1,6 @@
 # Class for default param values based on OS
 class splunk_otel_collector::params {
   $fluentd_version_default = '4.3.0'
-  $fluentd_version_jessie  = '3.3.0-1'
   $fluentd_version_stretch = '3.7.1-0'
 
   if $::osfamily == 'redhat' or $::osfamily == 'debian' or $::osfamily == 'suse' {
@@ -14,7 +13,6 @@ class splunk_otel_collector::params {
     $collector_config_dest = $collector_config_source
     if $::osfamily == 'debian' {
       $fluentd_version = downcase($facts['os']['distro']['codename']) ? {
-        'jessie'  => $fluentd_version_jessie,
         'stretch' => $fluentd_version_stretch,
         default   => "${fluentd_version_default}-1",
       }

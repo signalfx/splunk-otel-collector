@@ -34,8 +34,7 @@ splunk_ballast_size_mib: ""
 install_fluentd: true
 
 # Explicitly set version of td-agent,
-# By default: 3.3.0 for Debian jessie, 3.7.1 for Debian stretch,
-# and 4.1.1 for other distros.
+# By default: 3.7.1 for Debian stretch and 4.3.0 for other distros.
 td_agent_version: ""
 
 # Default path on Linux: "/etc/otel/collector/fluentd/fluent.conf".

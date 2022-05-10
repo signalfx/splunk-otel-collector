@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- Removed support for Debian 8
+
+### 💡 Enhancements 💡
+
+- Add support for Debian 11
+
 ## ansible-v0.6.0
 
 ### 🧰 Bug fixes 🧰

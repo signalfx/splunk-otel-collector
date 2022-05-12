@@ -58,6 +58,7 @@ jobs:
           - centos8
           - debian9
           - debian10
+          - debian11
           - opensuse12
           - opensuse15
           - ubuntu1604

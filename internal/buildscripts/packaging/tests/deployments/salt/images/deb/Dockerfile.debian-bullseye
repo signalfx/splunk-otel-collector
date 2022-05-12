@@ -1,0 +1,34 @@
+FROM debian:bullseye
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get upgrade -y -o DPkg::Options::=--force-confold
+RUN apt-get install -y software-properties-common ca-certificates wget curl apt-transport-https python3-pip vim systemd procps
+
+RUN curl -L https://repo.saltproject.io/py3/debian/11/amd64/latest/SALTSTACK-GPG-KEY.pub | apt-key add -
+RUN echo 'deb http://repo.saltproject.io/py3/debian/11/amd64/latest/ bullseye main' > /etc/apt/sources.list.d/saltstack.list && \
+    apt-get update && \
+    apt-get install -y salt-minion
+
+ENV container docker
+
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
+    "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
+    rm -f /lib/systemd/system/multi-user.target.wants/*;\
+    rm -f /lib/systemd/system/local-fs.target.wants/*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+    rm -f /lib/systemd/system/anaconda.target.wants/*;
+
+RUN systemctl set-default multi-user.target
+ENV init /lib/systemd/systemd
+
+COPY internal/buildscripts/packaging/tests/deployments/salt/minion /etc/salt/minion
+COPY deployments/salt/splunk-otel-collector /srv/salt/splunk-otel-collector
+COPY deployments/salt/templates /srv/salt/templates
+COPY internal/buildscripts/packaging/tests/deployments/salt/top.sls /srv/pillar/top.sls
+COPY internal/buildscripts/packaging/tests/deployments/salt/top.sls /srv/salt/top.sls
+
+VOLUME [ "/sys/fs/cgroup" ]
+
+ENTRYPOINT ["/lib/systemd/systemd"]

@@ -82,7 +82,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-require go.opentelemetry.io/collector/pdata v0.50.0
+require go.opentelemetry.io/collector/pdata v0.51.0
 
 require (
 	cloud.google.com/go/compute v1.6.0 // indirect

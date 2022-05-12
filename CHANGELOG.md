@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- Removed Debian 8 (jessie) support from the [Linux installer script](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/linux-installer.md) (#1354)
+
+### 💡 Enhancements 💡
+
+- Added Debian 11 (bullseye) support to the [Linux installer script](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/linux-installer.md) (#1354)
+
 ## v0.50.1
 
 ### 💡 Enhancements 💡

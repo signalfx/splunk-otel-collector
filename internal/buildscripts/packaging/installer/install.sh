@@ -37,14 +37,14 @@ get_distro_codename() {
 
   if [ "$distro" = "debian" ] && [ -z "$codename" ]; then
     case "$( get_distro_version )" in
-      8)
-        codename="jessie"
-        ;;
       9)
         codename="stretch"
         ;;
       10)
         codename="buster"
+        ;;
+      11)
+        codename="bullseye"
         ;;
       *)
         codename=""
@@ -89,7 +89,6 @@ default_memory_size="512"
 
 default_collector_version="latest"
 default_td_agent_version="4.3.0"
-default_td_agent_version_jessie="3.3.0-1"
 default_td_agent_version_stretch="3.7.1-0"
 
 default_service_user="splunk-otel-collector"
@@ -97,8 +96,6 @@ default_service_group="splunk-otel-collector"
 
 if [ "$distro_codename" = "stretch" ]; then
   default_td_agent_version="$default_td_agent_version_stretch"
-elif [ "$distro_codename" = "jessie" ]; then
-  default_td_agent_version="$default_td_agent_version_jessie"
 fi
 
 default_instrumentation_version="latest"
@@ -464,7 +461,7 @@ install() {
       apt-get -y update
       install_apt_package "splunk-otel-collector" "$collector_version"
       if [ -n "$td_agent_version" ]; then
-        if [ "$distro_codename" != "stretch" ] && [ "$distro_codename" != "jessie" ]; then
+        if [ "$distro_codename" != "stretch" ]; then
           td_agent_version="${td_agent_version}-1"
         fi
         if [ "$skip_fluentd_repo" = "false" ]; then
@@ -646,7 +643,7 @@ distro_is_supported() {
       ;;
     debian)
       case "$distro_codename" in
-        buster|jessie|stretch)
+        bullseye|buster|stretch)
           return 0
           ;;
       esac

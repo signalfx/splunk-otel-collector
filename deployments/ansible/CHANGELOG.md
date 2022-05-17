@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## ansible-v0.7.0
+
 ### 🛑 Breaking changes 🛑
 
 - Removed support for Debian 8

@@ -49,7 +49,7 @@ jobs:
     strategy:
       matrix:
         ansible:
-          - ansible~=2.9.0
+          - ansible~=2.10.0
           - ansible~=3.0
           - ansible~=4.0
         distro:

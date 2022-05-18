@@ -8,11 +8,13 @@ name: Ansible
 on:
   push:
     paths:
+      - '.github/workflows/ansible.yml'
       - 'deployments/ansible/galaxy.yml'
     branches:
       - main
   pull_request:
     paths:
+      - '.github/workflows/ansible.yml'
       - 'deployments/ansible/**'
 
 permissions:

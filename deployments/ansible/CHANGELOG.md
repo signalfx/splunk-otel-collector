@@ -7,6 +7,7 @@
 ### 🛑 Breaking changes 🛑
 
 - Removed support for Debian 8
+- Bump minimum supported ansible version to 2.10
 
 ### 💡 Enhancements 💡
 

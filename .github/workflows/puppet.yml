@@ -6,7 +6,10 @@ name: Puppet
 on:
   push:
     paths:
+      - '.github/workflows/puppet.yml'
       - 'deployments/puppet/metadata.json'
+    branches:
+      - main
 
 permissions:
   contents: write

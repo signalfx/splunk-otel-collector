@@ -19,6 +19,10 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"strconv"
+
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/mapconverter/overwritepropertiesmapconverter"
@@ -26,9 +30,6 @@ import (
 	"go.opentelemetry.io/collector/config/mapprovider/filemapprovider"
 	"go.opentelemetry.io/collector/service"
 	"go.uber.org/zap"
-	"log"
-	"os"
-	"strconv"
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
@@ -214,15 +215,16 @@ func checkConfig() {
 	configPathVar := os.Getenv(configEnvVarName)
 	configYaml := os.Getenv(configYamlEnvVarName)
 
-	if len(getConfigFlags()) != 0 {
+	switch {
+	case len(getConfigFlags()) != 0:
 		checkInputConfigs()
 		log.Printf("Set config to %v", configFlags.String())
-	} else if configPathVar != "" {
+	case configPathVar != "":
 		checkConfigPathEnvVar()
 		log.Printf("Set config to %v", configPathVar)
-	} else if configYaml != "" {
+	case configYaml != "":
 		log.Printf("Using environment variable %s for configuration", configYamlEnvVarName)
-	} else {
+	default:
 		defaultConfigPath := getExistingDefaultConfigPath()
 		configFlags.Set(defaultConfigPath)
 		checkRequiredEnvVars(getConfigFlags())
@@ -336,11 +338,13 @@ func configLocations() []string {
 	}
 
 	configYaml := os.Getenv(configYamlEnvVarName)
-	if len(configPaths) == 0 && configYaml != "" {
+
+	switch {
+	case len(configPaths) == 0 && configYaml != "":
 		return []string{"env:" + configYamlEnvVarName}
-	} else if len(configPaths) == 0 {
+	case len(configPaths) == 0:
 		return []string{""}
-	} else {
+	default:
 		return configPaths
 	}
 }

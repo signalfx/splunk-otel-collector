@@ -10,20 +10,20 @@ import (
 
 var (
 	// Command-line flags that are used by Splunk's distribution of the collector
-	helpFlag            	bool
-	noConvertConfigFlag		bool
-	versionFlag         	bool
+	helpFlag              bool
+	noConvertConfigFlag   bool
+	versionFlag           bool
 	defaultUndeclaredFlag = -1
 	memBallastSizeMibFlag int
 	configFlags           = new(stringArrayValue)
 	setFlags              = new(stringArrayValue)
-	gatesList  = featuregate.FlagValue{}
+	gatesList             = featuregate.FlagValue{}
 )
 
 // required to support config and set flags
 // taken from https://github.com/open-telemetry/opentelemetry-collector/blob/48a2e01652fa679c89259866210473fc0d42ca95/service/flags.go#L39
 type stringArrayValue struct {
-	values 	[]string
+	values []string
 }
 
 func (s *stringArrayValue) Set(val string) error {

@@ -33,7 +33,7 @@ func testInitFlags() {
 	flagSet.Parse(os.Args[1:])
 }
 
-func  testCheckRuntimeParams() {
+func testCheckRuntimeParams() {
 	testInitFlags()
 	checkRuntimeParams()
 }

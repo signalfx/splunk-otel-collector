@@ -3,7 +3,7 @@ module github.com/signalfx/splunk-otel-collector/tests
 go 1.18
 
 require (
-	github.com/docker/docker v20.10.8+incompatible
+	github.com/docker/docker v20.10.16+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/google/uuid v1.3.0
 	github.com/shirou/gopsutil/v3 v3.22.3
@@ -40,7 +40,6 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/klauspost/compress v1.15.1 // indirect
 	github.com/knadh/koanf v1.4.1 // indirect

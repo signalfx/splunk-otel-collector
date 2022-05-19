@@ -26,16 +26,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func testInitFlags() {
-	configFlags = new(stringArrayValue)
-	setFlags = new(stringArrayValue)
-	flagSet := flags()
-	flagSet.Parse(os.Args[1:])
-}
-
 func testCheckRuntimeParams() {
-	testInitFlags()
-	checkRuntimeParams()
+	inputFlags, _ := parseFlags(os.Args[1:])
+	checkRuntimeParams(inputFlags)
 }
 
 func TestCheckRuntimeParams_Default(t *testing.T) {
@@ -174,10 +167,11 @@ func TestUseConfigFromEnvVar(t *testing.T) {
 	configPath := path.Join("../../", defaultLocalSAPMConfig)
 	os.Setenv(configEnvVarName, configPath)
 	defer os.Unsetenv(configEnvVarName)
-	checkConfig()
 
-	testInitFlags()
-	if configPath != path.Join("../../", defaultLocalSAPMConfig) {
+	inputFlags, _ := parseFlags(os.Args[1:])
+	checkConfig(inputFlags)
+
+	if !inputFlags.configFlags.contains(path.Join("../../", defaultLocalSAPMConfig)) {
 		t.Error("Config CLI param not set as expected")
 	}
 }
@@ -287,8 +281,8 @@ service:
 				os.Setenv(configEnvVarName, test.splunkConfigVal)
 				os.Setenv(configYamlEnvVarName, test.splunkConfigYamlVal)
 
-				testInitFlags()
-				checkConfig()
+				inputFlags, _ := parseFlags(os.Args[1:])
+				checkConfig(inputFlags)
 
 				actualLogs := actualLogsBuf.String()
 

@@ -63,11 +63,10 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Core flag parser will handle errors, we don't have to handle them here.
-	flagSet := flags()
-	flagSet.Parse(os.Args[1:])
+	inputFlags, _ := parseFlags(os.Args[1:])
 
-	if !helpFlag && !versionFlag {
-		checkRuntimeParams()
+	if !inputFlags.helpFlag && !inputFlags.versionFlag {
+		checkRuntimeParams(inputFlags)
 		setDefaultEnvVars()
 	}
 
@@ -86,10 +85,10 @@ func main() {
 	}
 
 	configMapConverters := []config.MapConverter{
-		overwritepropertiesmapconverter.New(getSetFlags()),
+		overwritepropertiesmapconverter.New(inputFlags.getSetFlags()),
 	}
 
-	if noConvertConfigFlag {
+	if inputFlags.noConvertConfigFlag {
 		// the collector complains about this flag if we don't remove it. Unfortunately,
 		// this must be done manually since the flag library has no functionality to remove
 		// args
@@ -108,7 +107,7 @@ func main() {
 	fmp := filemapprovider.New()
 	serviceConfigProvider, err := service.NewConfigProvider(
 		service.ConfigProviderSettings{
-			Locations: configLocations(),
+			Locations: configLocations(inputFlags),
 			MapProviders: map[string]config.MapProvider{
 				emp.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
 					emp,
@@ -144,8 +143,8 @@ func main() {
 // Runtime parameters take priority over environment variables
 // Config and ballast flags are checked
 // Config and all memory env vars are checked
-func checkRuntimeParams() {
-	checkConfig()
+func checkRuntimeParams(inputFlags flags) {
+	checkConfig(inputFlags)
 
 	// Set default total memory
 	memTotalSize := defaultMemoryTotalMiB
@@ -160,7 +159,7 @@ func checkRuntimeParams() {
 		}
 	}
 
-	ballastSize := setMemoryBallast(memTotalSize)
+	ballastSize := setMemoryBallast(inputFlags, memTotalSize)
 	memLimit := setMemoryLimit(memTotalSize)
 
 	// Validate memoryLimit and memoryBallast are sane
@@ -169,17 +168,17 @@ func checkRuntimeParams() {
 	}
 }
 
-func checkInputConfigs() {
+func checkInputConfigs(inputFlags flags) {
 	configPathVar := os.Getenv(configEnvVarName)
 	configYaml := os.Getenv(configYamlEnvVarName)
 
-	for _, filePath := range getConfigFlags() {
+	for _, filePath := range inputFlags.getConfigFlags() {
 		if _, err := os.Stat(filePath); err != nil {
 			log.Fatalf("Unable to find the configuration file (%s) ensure flag '--config' is set properly", filePath)
 		}
 	}
 
-	if configPathVar != "" && !configFlags.contains(configPathVar) {
+	if configPathVar != "" && !inputFlags.configFlags.contains(configPathVar) {
 		log.Printf("Both environment variable %v and flag '--config' were specified. Using the flag values and ignoring the environment variable value %s in this session", configEnvVarName, configPathVar)
 	}
 
@@ -187,10 +186,10 @@ func checkInputConfigs() {
 		log.Printf("Both environment variable %s and flag '--config' were specified. Using the flag values and ignoring the environment variable in this session", configYamlEnvVarName)
 	}
 
-	checkRequiredEnvVars(getConfigFlags())
+	checkRequiredEnvVars(inputFlags.getConfigFlags())
 }
 
-func checkConfigPathEnvVar() {
+func checkConfigPathEnvVar(inputFlags flags) {
 	configPathVar := os.Getenv(configEnvVarName)
 	configYaml := os.Getenv(configYamlEnvVarName)
 
@@ -202,32 +201,32 @@ func checkConfigPathEnvVar() {
 		log.Printf("Both %s and %s were specified. Using %s environment variable value %s for this session", configEnvVarName, configYamlEnvVarName, configEnvVarName, configPathVar)
 	}
 
-	if !configFlags.contains(configPathVar) {
-		configFlags.Set(configPathVar)
+	if !inputFlags.configFlags.contains(configPathVar) {
+		inputFlags.configFlags.Set(configPathVar)
 	}
 
-	checkRequiredEnvVars(getConfigFlags())
+	checkRequiredEnvVars(inputFlags.getConfigFlags())
 }
 
 // Config priority queue (highest to lowest): '--config' flag, SPLUNK_CONFIG env var,
 // SPLUNK_CONFIG_YAML env var, default config path.
-func checkConfig() {
+func checkConfig(inputFlags flags) {
 	configPathVar := os.Getenv(configEnvVarName)
 	configYaml := os.Getenv(configYamlEnvVarName)
 
 	switch {
-	case len(getConfigFlags()) != 0:
-		checkInputConfigs()
-		log.Printf("Set config to %v", configFlags.String())
+	case len(inputFlags.getConfigFlags()) != 0:
+		checkInputConfigs(inputFlags)
+		log.Printf("Set config to %v", inputFlags.configFlags.String())
 	case configPathVar != "":
-		checkConfigPathEnvVar()
+		checkConfigPathEnvVar(inputFlags)
 		log.Printf("Set config to %v", configPathVar)
 	case configYaml != "":
 		log.Printf("Using environment variable %s for configuration", configYamlEnvVarName)
 	default:
 		defaultConfigPath := getExistingDefaultConfigPath()
-		configFlags.Set(defaultConfigPath)
-		checkRequiredEnvVars(getConfigFlags())
+		inputFlags.configFlags.Set(defaultConfigPath)
+		checkRequiredEnvVars(inputFlags.getConfigFlags())
 		log.Printf("Set config to %v", defaultConfigPath)
 	}
 }
@@ -264,14 +263,14 @@ func checkRequiredEnvVars(paths []string) {
 }
 
 // Validate and set the memory ballast
-func setMemoryBallast(memTotalSizeMiB int) int {
+func setMemoryBallast(inputFlags flags, memTotalSizeMiB int) int {
 	// Check if deprecated memory ballast flag was passed, if so, ensure the env variable for memory ballast is set.
 	// Then set memory ballast and limit properly
-	if memBallastSizeMibFlag != defaultUndeclaredFlag {
+	if inputFlags.memBallastSizeMibFlag != defaultUndeclaredFlag {
 		if os.Getenv(ballastEnvVarName) != "" {
 			log.Fatalf("Both %v and '--mem-ballast-size-mib' were specified, but only one is allowed", ballastEnvVarName)
 		}
-		_ = os.Setenv(ballastEnvVarName, strconv.Itoa(memBallastSizeMibFlag))
+		_ = os.Setenv(ballastEnvVarName, strconv.Itoa(inputFlags.memBallastSizeMibFlag))
 	}
 
 	ballastSize := memTotalSizeMiB * defaultMemoryBallastPercentage / 100
@@ -329,9 +328,9 @@ func setDefaultEnvVars() {
 }
 
 // configLocations returns a config location based on provided environment variables and --config argument.
-func configLocations() []string {
+func configLocations(inputFlags flags) []string {
 	var configPaths []string
-	if configPaths = getConfigFlags(); len(configPaths) == 0 {
+	if configPaths = inputFlags.getConfigFlags(); len(configPaths) == 0 {
 		if configEnvVal := os.Getenv(configEnvVarName); len(configEnvVal) != 0 {
 			configPaths = []string{"file:" + configEnvVal}
 		}

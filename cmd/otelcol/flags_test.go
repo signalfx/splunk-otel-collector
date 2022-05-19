@@ -26,15 +26,13 @@ func TestFlagParseFailure(t *testing.T) {
 
 	// Parsing should stop once an unspecified flag is found
 	os.Args = []string{"otelcol", "--invalid-flag", "100", "--version", "true"}
-	flagSet := flags()
-	flagSet.Parse(os.Args[1:])
-	assert.False(t, versionFlag)
+	inputFlags, _ := parseFlags(os.Args[1:])
+	assert.False(t, inputFlags.versionFlag)
 
 	// Make sure wrong name doesn't get parsed into given variable
 	os.Args = []string{"otelcol", "--ver", "true"}
-	flagSet = flags()
-	flagSet.Parse(os.Args[1:])
-	assert.False(t, versionFlag)
+	inputFlags, _ = parseFlags(os.Args[1:])
+	assert.False(t, inputFlags.versionFlag)
 
 	os.Args = oldArgs
 	os.Clearenv()
@@ -45,10 +43,8 @@ func TestFlagParseSuccess(t *testing.T) {
 	oldArgs := os.Args
 
 	os.Args = []string{"otelcol", "--version"}
-	flagSet := flags()
-	flagSet.Parse(os.Args[1:])
-	assert.True(t, versionFlag)
-	versionFlag = false
+	inputFlags, _ := parseFlags(os.Args[1:])
+	assert.True(t, inputFlags.versionFlag)
 
 	os.Args = []string{"otelcol",
 		"--version",
@@ -63,24 +59,23 @@ func TestFlagParseSuccess(t *testing.T) {
 		"--feature-gates", "foo",
 		"--feature-gates", "-bar"}
 
-	flagSet = flags()
-	flagSet.Parse(os.Args[1:])
+	inputFlags, _ = parseFlags(os.Args[1:])
 
-	assert.True(t, versionFlag)
-	assert.True(t, helpFlag)
-	assert.True(t, noConvertConfigFlag)
+	assert.True(t, inputFlags.versionFlag)
+	assert.True(t, inputFlags.helpFlag)
+	assert.True(t, inputFlags.noConvertConfigFlag)
 
-	assert.Contains(t, getConfigFlags(), "foo.yml")
-	assert.Contains(t, getConfigFlags(), "bar.yml")
+	assert.Contains(t, inputFlags.getConfigFlags(), "foo.yml")
+	assert.Contains(t, inputFlags.getConfigFlags(), "bar.yml")
 
-	assert.Equal(t, 100, memBallastSizeMibFlag)
+	assert.Equal(t, 100, inputFlags.memBallastSizeMibFlag)
 
-	assert.Contains(t, getSetFlags(), "foo")
-	assert.Contains(t, getSetFlags(), "bar")
-	assert.Contains(t, getSetFlags(), "baz")
+	assert.Contains(t, inputFlags.getSetFlags(), "foo")
+	assert.Contains(t, inputFlags.getSetFlags(), "bar")
+	assert.Contains(t, inputFlags.getSetFlags(), "baz")
 
-	assert.Equal(t, true, gatesList["foo"])
-	assert.Equal(t, false, gatesList["bar"])
+	assert.Equal(t, true, inputFlags.gatesList["foo"])
+	assert.Equal(t, false, inputFlags.gatesList["bar"])
 
 	os.Args = oldArgs
 	os.Clearenv()
@@ -91,12 +86,9 @@ func TestShortenedFlagNames(t *testing.T) {
 	oldArgs := os.Args
 
 	os.Args = []string{"otelcol", "--v", "--h"}
-	flagSet := flags()
-	flagSet.Parse(os.Args[1:])
-	assert.True(t, versionFlag)
-	assert.True(t, helpFlag)
-	versionFlag = false
-	helpFlag = false
+	inputFlags, _ := parseFlags(os.Args[1:])
+	assert.True(t, inputFlags.versionFlag)
+	assert.True(t, inputFlags.helpFlag)
 
 	os.Args = oldArgs
 	os.Clearenv()

@@ -22,17 +22,26 @@ import (
 	"go.opentelemetry.io/collector/service/featuregate"
 )
 
-var (
+type flags struct {
 	// Command-line flags that are used by Splunk's distribution of the collector
+	configFlags           *stringArrayValue
+	setFlags              *stringArrayValue
+	gatesList             featuregate.FlagValue
 	helpFlag              bool
 	noConvertConfigFlag   bool
 	versionFlag           bool
-	defaultUndeclaredFlag = -1
 	memBallastSizeMibFlag int
-	configFlags           = new(stringArrayValue)
-	setFlags              = new(stringArrayValue)
-	gatesList             = featuregate.FlagValue{}
-)
+}
+
+var defaultUndeclaredFlag = -1
+
+func (f *flags) getConfigFlags() []string {
+	return f.configFlags.values
+}
+
+func (f *flags) getSetFlags() []string {
+	return f.setFlags.values
+}
 
 // required to support config and set flags
 // taken from https://github.com/open-telemetry/opentelemetry-collector/blob/48a2e01652fa679c89259866210473fc0d42ca95/service/flags.go#L39
@@ -59,34 +68,34 @@ func (s *stringArrayValue) contains(input string) bool {
 	return false
 }
 
-func flags() *flag.FlagSet {
+func parseFlags(args []string) (flags, error) {
 	flagSet := new(flag.FlagSet)
+	out := flags{
+		configFlags: new(stringArrayValue),
+		setFlags:    new(stringArrayValue),
+		gatesList:   featuregate.FlagValue{},
+	}
+
 	// This is an internal flag parser, it shouldn't give any output to user.
 	flagSet.SetOutput(io.Discard)
 
 	// Need to account for full flag names and abbreviations
-	flagSet.BoolVar(&helpFlag, "h", false, "")
-	flagSet.BoolVar(&helpFlag, "help", false, "")
-	flagSet.BoolVar(&noConvertConfigFlag, "no-convert-config", false, "")
-	flagSet.BoolVar(&versionFlag, "v", false, "")
-	flagSet.BoolVar(&versionFlag, "version", false, "")
+	flagSet.BoolVar(&out.helpFlag, "h", false, "")
+	flagSet.BoolVar(&out.helpFlag, "help", false, "")
+	flagSet.BoolVar(&out.noConvertConfigFlag, "no-convert-config", false, "")
+	flagSet.BoolVar(&out.versionFlag, "v", false, "")
+	flagSet.BoolVar(&out.versionFlag, "version", false, "")
 
 	// This is a deprecated option, but it is still used when set
-	flagSet.IntVar(&memBallastSizeMibFlag, "mem-ballast-size-mib", defaultUndeclaredFlag, "")
+	flagSet.IntVar(&out.memBallastSizeMibFlag, "mem-ballast-size-mib", defaultUndeclaredFlag, "")
 
-	flagSet.Var(configFlags, "config", "")
-	flagSet.Var(setFlags, "set", "")
-	flagSet.Var(gatesList, "feature-gates", "")
+	flagSet.Var(out.configFlags, "config", "")
+	flagSet.Var(out.setFlags, "set", "")
+	flagSet.Var(&out.gatesList, "feature-gates", "")
 
-	return flagSet
-}
+	err := flagSet.Parse(args)
 
-func getConfigFlags() []string {
-	return configFlags.values
-}
-
-func getSetFlags() []string {
-	return setFlags.values
+	return out, err
 }
 
 func removeFlag(flags *[]string, flag string) {

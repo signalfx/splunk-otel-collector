@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- Add support for Ubuntu 22.04 (collector only; log collection with Fluentd not currently supported)
+
 ## ansible-v0.7.0
 
 ### 🛑 Breaking changes 🛑

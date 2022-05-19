@@ -60,4 +60,4 @@
 
 - name: Install FluentD
   ansible.builtin.import_tasks: linux_install_fluentd.yml
-  when: install_fluentd and ansible_os_family != "Suse"
+  when: install_fluentd and ansible_os_family != "Suse" and ansible_distribution_release != "jammy"

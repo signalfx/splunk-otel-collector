@@ -2,7 +2,9 @@
 
 This package provides a command-line tool, `translatesfx`, that translates a 
 SignalFx Smart Agent configuration file into a configuration that can be
-used by a Splunk Distribution of OpenTelemetry Collector.
+used by a Splunk Distribution of OpenTelemetry Collector. The `translatesfx`
+tool is intended to be part of a larger migration process covered in the document
+[Migrating from SignalFx Smart Agent to Splunk Distribution of OpenTelemetry Collector](https://docs.splunk.com/Observability/gdi/opentelemetry/smart-agent-migration-to-otel-collector.html).
 
 ## Caveats
 

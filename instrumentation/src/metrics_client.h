@@ -5,8 +5,8 @@
 
 #include "logger.h"
 
-typedef void (*send_otlp_metric_func_t)(logger);
+typedef void (*send_otlp_metric_func_t)(logger, char *);
 
-void send_otlp_metric(logger);
+void send_otlp_metric(logger, char *);
 
 #endif //INSTRUMENTATION_METRICS_CLIENT_H

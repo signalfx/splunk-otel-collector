@@ -466,7 +466,7 @@ void test_disable_telemetry(logger l) {
 
 // fakes/testdata
 
-void fake_send_otlp_metric(logger log) {
+void fake_send_otlp_metric(logger log, char *service_name) {
     log_debug(log, "sending metric");
 }
 

@@ -88,7 +88,7 @@ void test_disable_telemetry(logger l);
 
 // fakes/testdata
 
-void fake_send_otlp_metric(logger log);
+void fake_send_otlp_metric(logger log, char *service_name);
 
 void fake_load_config(logger log, struct config *cfg, char *path);
 

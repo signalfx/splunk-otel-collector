@@ -10,6 +10,8 @@
 
 static const int RECV_BUF_LEN = 1024;
 
+static const int METRIC_JSON_MAX_LEN = 1024;
+
 static char *const expected = "HTTP/1.1 200 OK";
 
 bool http_post(char *host, int port, char *method, char *path, char *postData, logger pImpl);
@@ -22,15 +24,22 @@ bool post(int socket_descriptor, char *host, int port, char *method, char *path,
 
 bool receive(int socket_descriptor);
 
-void send_otlp_metric(logger log) {
-    char *postData = "{\"resourceMetrics\":[{\"resource\":{},\"scopeMetrics\":[{\"scope\":{},\"metrics\":"
-                     "[{\"name\":\"splunk.linux-autoinstr.executions\",\"sum\":{\"dataPoints\":[{\"asInt\":\"1\"}],"
-                     "\"aggregationTemporality\":\"AGGREGATION_TEMPORALITY_DELTA\"}}]}]}]}";
+void send_otlp_metric(logger log, char *service_name) {
+    char *tmpl = "{\"resourceMetrics\":[{\"resource\":{},\"scopeMetrics\":[{\"scope\":{},\"metrics\":"
+                 "[{\"name\":\"splunk.linux-autoinstr.executions\",\"sum\":{\"dataPoints\":"
+                 "[{\"attributes\":[{\"key\":\"service.name\",\"value\":{\"stringValue\":\"%s\"}}],\"asInt\":\"1\"}],"
+                 "\"aggregationTemporality\":\"AGGREGATION_TEMPORALITY_DELTA\"}}]}]}]}";
+    char json[METRIC_JSON_MAX_LEN];
+    snprintf(json, METRIC_JSON_MAX_LEN, tmpl, service_name);
+    if (strlen(json) == METRIC_JSON_MAX_LEN) {
+        log_debug(log, "otlp metric json too long, not sending");
+        return;
+    }
     char *host = "127.0.0.1";
     int port = 4318;
     char *method = "POST";
     char *path = "/v1/metrics";
-    if (http_post(host, port, method, path, postData, log)) {
+    if (http_post(host, port, method, path, tmpl, log)) {
         log_debug(log, "send otlp metric succeeded");
     } else {
         log_debug(log, "send otlp metric failed");

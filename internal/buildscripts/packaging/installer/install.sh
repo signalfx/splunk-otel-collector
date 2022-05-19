@@ -636,7 +636,7 @@ distro_is_supported() {
   case "$distro" in
     ubuntu)
       case "$distro_codename" in
-        bionic|focal|xenial)
+        bionic|focal|xenial|jammy)
           return 0
           ;;
       esac
@@ -858,6 +858,11 @@ parse_args_and_install() {
   case "$distro" in
     sles|opensuse*)
       with_fluentd="false"
+      ;;
+    ubuntu)
+      if [ "$distro_codename" = "jammy" ]; then
+        with_fluentd="false"
+      fi
       ;;
   esac
 

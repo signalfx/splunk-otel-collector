@@ -36,7 +36,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor v0.51.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.51.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.51.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.51.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.51.1-0.20220519173841-3aa6851ab886 // ignore-update-deps
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.51.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor v0.51.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.51.0
@@ -118,7 +118,7 @@ require (
 	github.com/apache/thrift v0.16.0 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/aws/aws-sdk-go v1.44.11 // indirect
+	github.com/aws/aws-sdk-go v1.44.15 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.16.3 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.4.3 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.4.0 // indirect

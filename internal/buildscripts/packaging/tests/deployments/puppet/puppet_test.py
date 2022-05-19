@@ -99,11 +99,11 @@ def test_puppet_with_fluentd(distro, puppet_release):
                 run_puppet_apply(container, config)
                 verify_env_file(container)
                 assert wait_for(lambda: service_is_running(container))
-                if "opensuse" not in distro:
+                if "opensuse" not in distro and distro != "ubuntu-jammy":
                     assert container.exec_run("systemctl status td-agent").exit_code == 0
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
-            if "opensuse" not in distro:
+            if "opensuse" not in distro and distro != "ubuntu-jammy":
                 run_container_cmd(container, "journalctl -u td-agent --no-pager")
                 if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
                     run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")

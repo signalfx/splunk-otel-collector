@@ -48,6 +48,12 @@ class splunk_otel_collector (
     default   => $fluentd_service_name,
   }
 
+  $install_fluentd = $::osfamily ? {
+    'suse'   => false,
+    'debian' => $with_fluentd and downcase($facts['os']['distro']['codename']) != 'jammy',
+    default  => $with_fluentd,
+  }
+
   if empty($splunk_access_token) {
     fail('The splunk_access_token parameter is required')
   }
@@ -198,7 +204,7 @@ class splunk_otel_collector (
     }
   }
 
-  if $with_fluentd and $::osfamily != 'suse' {
+  if $install_fluentd {
     case $::osfamily {
       'debian': {
         package { ['build-essential', 'libcap-ng0', 'libcap-ng-dev', 'pkg-config']:
@@ -299,6 +305,7 @@ class splunk_otel_collector (
           | EOH
         ,
         require => File[$fluentd_config_dest],
+        notify  => Exec['systemctl daemon-reload'],
       }
 
       # enable linux capabilities for fluentd

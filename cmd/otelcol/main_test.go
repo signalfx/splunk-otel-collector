@@ -171,7 +171,7 @@ func TestUseConfigFromEnvVar(t *testing.T) {
 	inputFlags, _ := parseFlags(os.Args[1:])
 	checkConfig(inputFlags)
 
-	if !inputFlags.configFlags.contains(path.Join("../../", defaultLocalSAPMConfig)) {
+	if !inputFlags.configs.contains(path.Join("../../", defaultLocalSAPMConfig)) {
 		t.Error("Config CLI param not set as expected")
 	}
 }

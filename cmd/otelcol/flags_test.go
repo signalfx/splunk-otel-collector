@@ -27,12 +27,12 @@ func TestFlagParseFailure(t *testing.T) {
 	// Parsing should stop once an unspecified flag is found
 	os.Args = []string{"otelcol", "--invalid-flag", "100", "--version", "true"}
 	inputFlags, _ := parseFlags(os.Args[1:])
-	assert.False(t, inputFlags.versionFlag)
+	assert.False(t, inputFlags.version)
 
 	// Make sure wrong name doesn't get parsed into given variable
 	os.Args = []string{"otelcol", "--ver", "true"}
 	inputFlags, _ = parseFlags(os.Args[1:])
-	assert.False(t, inputFlags.versionFlag)
+	assert.False(t, inputFlags.version)
 
 	os.Args = oldArgs
 	os.Clearenv()
@@ -44,7 +44,7 @@ func TestFlagParseSuccess(t *testing.T) {
 
 	os.Args = []string{"otelcol", "--version"}
 	inputFlags, _ := parseFlags(os.Args[1:])
-	assert.True(t, inputFlags.versionFlag)
+	assert.True(t, inputFlags.version)
 
 	os.Args = []string{"otelcol",
 		"--version",
@@ -61,18 +61,18 @@ func TestFlagParseSuccess(t *testing.T) {
 
 	inputFlags, _ = parseFlags(os.Args[1:])
 
-	assert.True(t, inputFlags.versionFlag)
-	assert.True(t, inputFlags.helpFlag)
-	assert.True(t, inputFlags.noConvertConfigFlag)
+	assert.True(t, inputFlags.version)
+	assert.True(t, inputFlags.help)
+	assert.True(t, inputFlags.noConvertConfig)
 
-	assert.Contains(t, inputFlags.getConfigFlags(), "foo.yml")
-	assert.Contains(t, inputFlags.getConfigFlags(), "bar.yml")
+	assert.Contains(t, inputFlags.configs.values, "foo.yml")
+	assert.Contains(t, inputFlags.configs.values, "bar.yml")
 
-	assert.Equal(t, 100, inputFlags.memBallastSizeMibFlag)
+	assert.Equal(t, 100, inputFlags.memBallastSizeMib)
 
-	assert.Contains(t, inputFlags.getSetFlags(), "foo")
-	assert.Contains(t, inputFlags.getSetFlags(), "bar")
-	assert.Contains(t, inputFlags.getSetFlags(), "baz")
+	assert.Contains(t, inputFlags.sets.values, "foo")
+	assert.Contains(t, inputFlags.sets.values, "bar")
+	assert.Contains(t, inputFlags.sets.values, "baz")
 
 	assert.Equal(t, true, inputFlags.gatesList["foo"])
 	assert.Equal(t, false, inputFlags.gatesList["bar"])
@@ -87,8 +87,8 @@ func TestShortenedFlagNames(t *testing.T) {
 
 	os.Args = []string{"otelcol", "--v", "--h"}
 	inputFlags, _ := parseFlags(os.Args[1:])
-	assert.True(t, inputFlags.versionFlag)
-	assert.True(t, inputFlags.helpFlag)
+	assert.True(t, inputFlags.version)
+	assert.True(t, inputFlags.help)
 
 	os.Args = oldArgs
 	os.Clearenv()

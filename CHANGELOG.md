@@ -11,6 +11,7 @@
 ### 💡 Enhancements 💡
 
 - Initial release of [Chef cookbook](https://supermarket.chef.io/cookbooks/splunk_otel_collector) for Linux and Windows
+- Support multiple --config arguments (#1576)
 
 ## v0.52.0
 

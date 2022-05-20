@@ -63,9 +63,12 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Core flag parser will handle errors, we don't have to handle them here.
-	inputFlags, _ := parseFlags(os.Args[1:])
+	inputFlags, err := parseFlags(os.Args[1:])
+	if err != nil {
+		log.Fatalf("Error: %v\nUse \"--help\" to show valid usage", err)
+	}
 
-	if !inputFlags.helpFlag && !inputFlags.versionFlag {
+	if !inputFlags.help && !inputFlags.version {
 		checkRuntimeParams(inputFlags)
 		setDefaultEnvVars()
 	}
@@ -85,10 +88,10 @@ func main() {
 	}
 
 	configMapConverters := []config.MapConverter{
-		overwritepropertiesmapconverter.New(inputFlags.getSetFlags()),
+		overwritepropertiesmapconverter.New(inputFlags.sets.values),
 	}
 
-	if inputFlags.noConvertConfigFlag {
+	if inputFlags.noConvertConfig {
 		// the collector complains about this flag if we don't remove it. Unfortunately,
 		// this must be done manually since the flag library has no functionality to remove
 		// args
@@ -172,13 +175,13 @@ func checkInputConfigs(inputFlags flags) {
 	configPathVar := os.Getenv(configEnvVarName)
 	configYaml := os.Getenv(configYamlEnvVarName)
 
-	for _, filePath := range inputFlags.getConfigFlags() {
+	for _, filePath := range inputFlags.configs.values {
 		if _, err := os.Stat(filePath); err != nil {
 			log.Fatalf("Unable to find the configuration file (%s) ensure flag '--config' is set properly", filePath)
 		}
 	}
 
-	if configPathVar != "" && !inputFlags.configFlags.contains(configPathVar) {
+	if configPathVar != "" && !inputFlags.configs.contains(configPathVar) {
 		log.Printf("Both environment variable %v and flag '--config' were specified. Using the flag values and ignoring the environment variable value %s in this session", configEnvVarName, configPathVar)
 	}
 
@@ -186,7 +189,7 @@ func checkInputConfigs(inputFlags flags) {
 		log.Printf("Both environment variable %s and flag '--config' were specified. Using the flag values and ignoring the environment variable in this session", configYamlEnvVarName)
 	}
 
-	checkRequiredEnvVars(inputFlags.getConfigFlags())
+	checkRequiredEnvVars(inputFlags.configs.values)
 }
 
 func checkConfigPathEnvVar(inputFlags flags) {
@@ -201,11 +204,11 @@ func checkConfigPathEnvVar(inputFlags flags) {
 		log.Printf("Both %s and %s were specified. Using %s environment variable value %s for this session", configEnvVarName, configYamlEnvVarName, configEnvVarName, configPathVar)
 	}
 
-	if !inputFlags.configFlags.contains(configPathVar) {
-		inputFlags.configFlags.Set(configPathVar)
+	if !inputFlags.configs.contains(configPathVar) {
+		_ = inputFlags.configs.Set(configPathVar)
 	}
 
-	checkRequiredEnvVars(inputFlags.getConfigFlags())
+	checkRequiredEnvVars(inputFlags.configs.values)
 }
 
 // Config priority queue (highest to lowest): '--config' flag, SPLUNK_CONFIG env var,
@@ -215,9 +218,9 @@ func checkConfig(inputFlags flags) {
 	configYaml := os.Getenv(configYamlEnvVarName)
 
 	switch {
-	case len(inputFlags.getConfigFlags()) != 0:
+	case len(inputFlags.configs.values) != 0:
 		checkInputConfigs(inputFlags)
-		log.Printf("Set config to %v", inputFlags.configFlags.String())
+		log.Printf("Set config to %v", inputFlags.configs.String())
 	case configPathVar != "":
 		checkConfigPathEnvVar(inputFlags)
 		log.Printf("Set config to %v", configPathVar)
@@ -225,8 +228,8 @@ func checkConfig(inputFlags flags) {
 		log.Printf("Using environment variable %s for configuration", configYamlEnvVarName)
 	default:
 		defaultConfigPath := getExistingDefaultConfigPath()
-		inputFlags.configFlags.Set(defaultConfigPath)
-		checkRequiredEnvVars(inputFlags.getConfigFlags())
+		inputFlags.configs.Set(defaultConfigPath)
+		checkRequiredEnvVars(inputFlags.configs.values)
 		log.Printf("Set config to %v", defaultConfigPath)
 	}
 }
@@ -266,11 +269,11 @@ func checkRequiredEnvVars(paths []string) {
 func setMemoryBallast(inputFlags flags, memTotalSizeMiB int) int {
 	// Check if deprecated memory ballast flag was passed, if so, ensure the env variable for memory ballast is set.
 	// Then set memory ballast and limit properly
-	if inputFlags.memBallastSizeMibFlag != defaultUndeclaredFlag {
+	if inputFlags.memBallastSizeMib != defaultUndeclaredFlag {
 		if os.Getenv(ballastEnvVarName) != "" {
 			log.Fatalf("Both %v and '--mem-ballast-size-mib' were specified, but only one is allowed", ballastEnvVarName)
 		}
-		_ = os.Setenv(ballastEnvVarName, strconv.Itoa(inputFlags.memBallastSizeMibFlag))
+		_ = os.Setenv(ballastEnvVarName, strconv.Itoa(inputFlags.memBallastSizeMib))
 	}
 
 	ballastSize := memTotalSizeMiB * defaultMemoryBallastPercentage / 100
@@ -330,7 +333,7 @@ func setDefaultEnvVars() {
 // configLocations returns a config location based on provided environment variables and --config argument.
 func configLocations(inputFlags flags) []string {
 	var configPaths []string
-	if configPaths = inputFlags.getConfigFlags(); len(configPaths) == 0 {
+	if configPaths = inputFlags.configs.values; len(configPaths) == 0 {
 		if configEnvVal := os.Getenv(configEnvVarName); len(configEnvVal) != 0 {
 			configPaths = []string{"file:" + configEnvVal}
 		}

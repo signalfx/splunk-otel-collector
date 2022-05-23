@@ -77,20 +77,20 @@ bool has_token(struct tokenset *tks, char *token) {
     return false;
 }
 
-void generate_servicename_from_args(char *out, char **args, int num_args) {
+void generate_servicename_from_args(char *dest, char **args, int num_args) {
     struct tokenset tks;
     init_tokenset(&tks);
     for (int i = 0; i < num_args; ++i) {
         char *arg = args[i];
         if (strstr(arg, ".jar") != NULL) {
-            transform_multi_jars(out, arg, &tks);
+            transform_multi_jars(dest, arg, &tks);
         }
         if (arg[0] == '-') {
             continue;
         }
         if (is_legal_java_main_class_with_module(arg)) {
             format_arg(arg);
-            strcpy(out, arg);
+            strcpy(dest, arg);
             return;
         }
     }
@@ -99,8 +99,8 @@ void generate_servicename_from_args(char *out, char **args, int num_args) {
 
 // concatenates colon separated jars and removes non-uniquely-identifying dirs as well as double dots from the path
 // `arg` is e.g. "/usr/local/apache-tomcat/8.5.4/bin/bootstrap.jar:/usr/local/apache-tomcat/8.5.4/bin/tomcat-juli.jar"
-// `out` is on the stack, `arg` is on the heap
-void transform_multi_jars(char *out, char *arg, struct tokenset *tks) {
+// `dest` is on the stack, `arg` is on the heap
+void transform_multi_jars(char *dest, char *arg, struct tokenset *tks) {
     char *token;
     while ((token = strsep(&arg, ":")) != NULL) {
         char transformed_jar_path_elements[MAX_ARG_LEN] = "";
@@ -109,10 +109,10 @@ void transform_multi_jars(char *out, char *arg, struct tokenset *tks) {
         char deduped[MAX_ARG_LEN] = "";
         dedupe_hyphenated(deduped, transformed_jar_path_elements, tks);
 
-        if (strlen(out) > 0) {
-            strcat(out, "-");
+        if (strlen(dest) > 0) {
+            strcat(dest, "-");
         }
-        strcat(out, deduped);
+        strcat(dest, deduped);
     }
 }
 

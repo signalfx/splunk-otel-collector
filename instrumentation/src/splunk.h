@@ -4,6 +4,7 @@
 #include "logger.h"
 #include "config.h"
 #include "cmdline_reader.h"
+#include "metrics_client.h"
 #include <stdbool.h>
 
 static char *const disable_env_var = "DISABLE_SPLUNK_AUTOINSTRUMENTATION";
@@ -20,7 +21,8 @@ void auto_instrument(
         has_access_func_t has_access,
         const char *program_name,
         load_config_func_t load_config_func,
-        cmdline_reader cr
+        cmdline_reader cr,
+        send_otlp_metric_func_t send_otlp_metric_func
 );
 
 bool streq(const char *expected, const char *actual);

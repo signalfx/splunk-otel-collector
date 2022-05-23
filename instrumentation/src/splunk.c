@@ -1,5 +1,6 @@
 #include "splunk.h"
 #include "config.h"
+#include "metrics_client.h"
 #include "args.h"
 
 #include <stdlib.h>
@@ -22,9 +23,7 @@ bool has_read_access(const char *s);
 
 void set_java_tool_options(logger log, struct config *cfg);
 
-void set_service_name_from_cmdline(logger log, cmdline_reader cr);
-
-void set_service_name_from_config(logger log, struct config *cfg);
+void get_service_name_from_cmdline(logger log, char *dest, cmdline_reader cr);
 
 bool is_disable_env_set();
 
@@ -43,7 +42,7 @@ void __attribute__((constructor)) splunk_instrumentation_enter() {
     if (cr == NULL) {
         return;
     }
-    auto_instrument(l, has_read_access, program_invocation_short_name, load_config, cr);
+    auto_instrument(l, has_read_access, program_invocation_short_name, load_config, cr, send_otlp_metric);
     cmdline_reader_close(cr);
     free_logger(l);
 }
@@ -53,7 +52,8 @@ void auto_instrument(
         has_access_func_t has_access,
         const char *program_name,
         load_config_func_t load_config_func,
-        cmdline_reader cr
+        cmdline_reader cr,
+        send_otlp_metric_func_t send_otlp_metric_func
 ) {
     if (!streq(program_name, "java")) {
         return;
@@ -67,7 +67,12 @@ void auto_instrument(
         return;
     }
 
-    struct config cfg = {.java_agent_jar = NULL, .service_name = NULL};
+    struct config cfg = {
+            .java_agent_jar = NULL,
+            .resource_attributes = NULL,
+            .service_name = NULL,
+            .disable_telemetry = NULL
+    };
     load_config_func(log, &cfg, conf_file);
     if (cfg.java_agent_jar == NULL) {
         log_warning(log, "java_agent_jar not set, quitting");
@@ -79,37 +84,38 @@ void auto_instrument(
         return;
     }
 
-    set_java_tool_options(log, &cfg);
-
+    char service_name[MAX_CMDLINE_LEN] = "";
     if (cfg.service_name == NULL) {
-        set_service_name_from_cmdline(log, cr);
+        get_service_name_from_cmdline(log, service_name, cr);
     } else {
-        set_service_name_from_config(log, &cfg);
+        strncpy(service_name, cfg.service_name, MAX_CMDLINE_LEN);
     }
 
+    if (strlen(service_name) == 0) {
+        log_info(log, "service name empty, quitting");
+        return;
+    }
+
+    set_env_var(log, otel_service_name_var, service_name);
+
+    set_java_tool_options(log, &cfg);
+
     set_env_var_from_attr(log, "resource_attributes", resource_attributes_var, cfg.resource_attributes);
+
+    if (eq_true(cfg.disable_telemetry)) {
+        log_info(log, "disabling telemetry as per config");
+    } else {
+        send_otlp_metric_func(log, service_name);
+    }
 
     free_config(&cfg);
 }
 
-void set_service_name_from_cmdline(logger log, cmdline_reader cr) {
+void get_service_name_from_cmdline(logger log, char *dest, cmdline_reader cr) {
     char *args[MAX_ARGS];
     int n = get_cmdline_args(args, cr, MAX_ARGS, MAX_CMDLINE_LEN, log);
-    char service_name[MAX_CMDLINE_LEN] = "";
-    generate_servicename_from_args(service_name, args, n);
-    set_env_var(log, otel_service_name_var, service_name);
+    generate_servicename_from_args(dest, args, n);
     free_cmdline_args(args, n);
-}
-
-void set_service_name_from_config(logger log, struct config *cfg) {
-    char log_line[MAX_LOG_LINE_LEN] = "";
-    size_t service_name_len = strlen(cfg->service_name);
-    if (service_name_len > MAX_CONFIG_ATTR_LEN) {
-        sprintf(log_line, "service_name too long: got %zu chars, max %d chars", service_name_len, MAX_CONFIG_ATTR_LEN);
-        log_warning(log, log_line);
-        return;
-    }
-    set_env_var(log, otel_service_name_var, cfg->service_name);
 }
 
 void set_env_var_from_attr(logger log, const char *attr_name, const char *env_var_name, const char *value) {

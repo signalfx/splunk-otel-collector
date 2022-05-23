@@ -63,7 +63,11 @@ func (c *configSourceConfigMapProvider) Retrieve(
 		return config.Retrieved{}, err
 	}
 
-	existingMap, _ := c.wrappedRetrieved.AsMap()
+	existingMap, err := c.wrappedRetrieved.AsMap()
+	if err != nil {
+		return config.Retrieved{}, err
+	}
+
 	// Need to merge config maps that we've encountered so far
 	if existingMap != nil {
 		wrMap, _ := wr.AsMap()

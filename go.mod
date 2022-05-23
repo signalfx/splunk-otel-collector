@@ -479,5 +479,3 @@ replace github.com/googleapis/gnostic v0.5.6 => github.com/googleapis/gnostic v0
 
 // required to drop dependency on deprecated git.apache.org/thrift.git
 exclude go.opencensus.io v0.19.1
-
-replace go.opentelemetry.io/collector v0.0.0-00010101000000-000000000000 => ../opentelemetry-collector

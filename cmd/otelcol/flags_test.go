@@ -26,12 +26,14 @@ func TestFlagParseFailure(t *testing.T) {
 
 	// Parsing should stop once an unspecified flag is found
 	os.Args = []string{"otelcol", "--invalid-flag", "100", "--version", "true"}
-	inputFlags, _ := parseFlags(os.Args[1:])
+	inputFlags, err := parseFlags(os.Args[1:])
+	assert.EqualError(t, err, "flag provided but not defined: -invalid-flag")
 	assert.False(t, inputFlags.version)
 
 	// Make sure wrong name doesn't get parsed into given variable
 	os.Args = []string{"otelcol", "--ver", "true"}
-	inputFlags, _ = parseFlags(os.Args[1:])
+	inputFlags, err = parseFlags(os.Args[1:])
+	assert.EqualError(t, err, "flag provided but not defined: -ver")
 	assert.False(t, inputFlags.version)
 
 	os.Args = oldArgs
@@ -43,7 +45,8 @@ func TestFlagParseSuccess(t *testing.T) {
 	oldArgs := os.Args
 
 	os.Args = []string{"otelcol", "--version"}
-	inputFlags, _ := parseFlags(os.Args[1:])
+	inputFlags, err := parseFlags(os.Args[1:])
+	assert.NoError(t, err)
 	assert.True(t, inputFlags.version)
 
 	os.Args = []string{"otelcol",
@@ -59,7 +62,8 @@ func TestFlagParseSuccess(t *testing.T) {
 		"--feature-gates", "foo",
 		"--feature-gates", "-bar"}
 
-	inputFlags, _ = parseFlags(os.Args[1:])
+	inputFlags, err = parseFlags(os.Args[1:])
+	assert.NoError(t, err)
 
 	assert.True(t, inputFlags.version)
 	assert.True(t, inputFlags.help)
@@ -86,7 +90,8 @@ func TestShortenedFlagNames(t *testing.T) {
 	oldArgs := os.Args
 
 	os.Args = []string{"otelcol", "--v", "--h"}
-	inputFlags, _ := parseFlags(os.Args[1:])
+	inputFlags, err := parseFlags(os.Args[1:])
+	assert.NoError(t, err)
 	assert.True(t, inputFlags.version)
 	assert.True(t, inputFlags.help)
 

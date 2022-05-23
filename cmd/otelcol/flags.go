@@ -71,7 +71,8 @@ func parseFlags(args []string) (flags, error) {
 	// This is an internal flag parser, it shouldn't give any output to user.
 	flagSet.SetOutput(io.Discard)
 
-	// Need to account for full flag names and abbreviations
+	// Need to account for full flag names and abbreviations. Usage messages are empty since they're provided
+	// by the cobra flags in the core collector.
 	flagSet.BoolVar(&out.help, "h", false, "")
 	flagSet.BoolVar(&out.help, "help", false, "")
 	flagSet.BoolVar(&out.noConvertConfig, "no-convert-config", false, "")

@@ -21,6 +21,9 @@ obj/logger.o: obj src/logger.c src/logger.h
 obj/config.o: obj src/config.c src/config.h
 	gcc -c -Wall -Werror -fpic -o obj/config.o src/config.c
 
+obj/metrics_client.o: obj src/metrics_client.c src/metrics_client.h
+	gcc -c -Wall -Werror -fpic -o obj/metrics_client.o src/metrics_client.c
+
 obj/splunk.o: obj src/splunk.c src/splunk.h
 	gcc -c -Wall -Werror -fpic -o obj/splunk.o src/splunk.c
 
@@ -30,11 +33,12 @@ obj/args.o: obj src/args.c src/args.h
 obj/cmdline_reader.o: obj src/cmdline_reader.c src/cmdline_reader.h
 	gcc -c -Wall -Werror -fpic -o obj/cmdline_reader.o src/cmdline_reader.c
 
-so/libsplunk.so: obj so obj/logger.o obj/config.o obj/cmdline_reader.o obj/args.o obj/splunk.o
-	gcc -shared -o so/libsplunk.so obj/logger.o obj/config.o obj/cmdline_reader.o obj/args.o obj/splunk.o
+so/libsplunk.so: obj so obj/logger.o obj/config.o obj/metrics_client.o obj/cmdline_reader.o obj/args.o obj/splunk.o
+	gcc -shared -o so/libsplunk.so obj/logger.o obj/config.o obj/metrics_client.o obj/cmdline_reader.o obj/args.o obj/splunk.o
 
-tests: src/test_main.h src/test_main.c src/test_utils.h src/test_utils.c src/logger.h src/test_logger.c src/cmdline_reader.h src/cmdline_reader_test.c obj/config.o obj/args.o obj/splunk.o
-	gcc -g -o tests src/test_main.c src/test_utils.c src/test_logger.c src/cmdline_reader_test.c obj/config.o obj/args.o obj/splunk.o
+tests: src/test_main.h src/test_main.c src/test_utils.h src/test_utils.c src/logger.h src/test_logger.c \
+src/metrics_client.h src/cmdline_reader.h src/cmdline_reader_test.c obj/config.o obj/metrics_client.o obj/args.o obj/splunk.o
+	gcc -g -o tests src/test_main.c src/test_utils.c src/test_logger.c src/cmdline_reader_test.c obj/config.o obj/metrics_client.o obj/args.o obj/splunk.o
 
 .PHONY: test
 test: tests
@@ -61,7 +65,7 @@ endif
 
 # Run this to install and enable the auto-instrumentation files. Mostly intended for development.
 .PHONY: install
-install: all
+install: all uninstall
 	mkdir -p $(INSTALL_DIR)
 	cp install/instrumentation.conf $(INSTALL_DIR)
 	cp splunk-otel-javaagent.jar $(INSTALL_DIR)

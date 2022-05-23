@@ -23,7 +23,7 @@ int get_cmdline_args(char **args, cmdline_reader cr, int max_args, int max_cmdli
 
 void free_cmdline_args(char **args, int num_args);
 
-void generate_servicename_from_args(char *out, char **args, int num_args);
+void generate_servicename_from_args(char *dest, char **args, int num_args);
 
 bool is_legal_java_main_class(const char *str);
 
@@ -35,7 +35,7 @@ bool is_legal_module(char *module);
 
 bool is_legal_java_package_element(const char *str);
 
-void transform_multi_jars(char *out, char *arg, struct tokenset *tks);
+void transform_multi_jars(char *dest, char *arg, struct tokenset *tks);
 
 void transform_jar_path_elements(char *out, char *path);
 

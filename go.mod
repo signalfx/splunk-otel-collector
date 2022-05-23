@@ -9,7 +9,7 @@ require (
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-zookeeper/zk v1.0.2
 	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/vault v1.10.2
+	github.com/hashicorp/vault v1.10.3
 	github.com/hashicorp/vault-plugin-auth-gcp v0.12.1
 	github.com/hashicorp/vault/api v1.5.0
 	github.com/jaegertracing/jaeger v1.33.0
@@ -215,7 +215,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-3 // indirect
 	github.com/hashicorp/serf v0.9.7 // indirect
-	github.com/hashicorp/vault/sdk v0.4.2-0.20220422204215-a7cef09c9429 // indirect
+	github.com/hashicorp/vault/sdk v0.4.2-0.20220429220057-bdb59a36e632 // indirect
 	github.com/hashicorp/yamux v0.0.0-20211028200310-0bc27b27de87 // indirect
 	github.com/hetznercloud/hcloud-go v1.33.1 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect

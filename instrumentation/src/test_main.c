@@ -77,8 +77,8 @@ void test_auto_instrument_svc_name_in_config(logger l) {
     int n = get_logs(l, logs);
     char *funcname = "test_auto_instrument_svc_name_in_config";
     require_equal_ints(funcname, 4, n);
-    require_equal_strings(funcname, "setting JAVA_TOOL_OPTIONS='-javaagent:/foo/asdf.jar'", logs[0]);
-    require_equal_strings(funcname, "setting OTEL_SERVICE_NAME='my.service'", logs[1]);
+    require_equal_strings(funcname, "setting OTEL_SERVICE_NAME='my.service'", logs[0]);
+    require_equal_strings(funcname, "setting JAVA_TOOL_OPTIONS='-javaagent:/foo/asdf.jar'", logs[1]);
     require_equal_strings(funcname, "setting OTEL_RESOURCE_ATTRIBUTES='myattr=myval'", logs[2]);
     require_equal_strings(funcname, "sending metric", logs[3]);
     require_env(funcname, "-javaagent:/foo/asdf.jar", java_tool_options_var);
@@ -93,8 +93,8 @@ void test_auto_instrument_no_svc_name_in_config(logger l) {
     int n = get_logs(l, logs);
     char *funcname = "test_auto_instrument_no_svc_name_in_config";
     require_equal_ints(funcname, 3, n);
-    require_equal_strings(funcname, "setting JAVA_TOOL_OPTIONS='-javaagent:/foo/asdf.jar'", logs[0]);
-    require_equal_strings(funcname, "setting OTEL_SERVICE_NAME='foo'", logs[1]);
+    require_equal_strings(funcname, "setting OTEL_SERVICE_NAME='foo'", logs[0]);
+    require_equal_strings(funcname, "setting JAVA_TOOL_OPTIONS='-javaagent:/foo/asdf.jar'", logs[1]);
     require_equal_strings(funcname, "sending metric", logs[2]);
     require_env(funcname, "-javaagent:/foo/asdf.jar", java_tool_options_var);
     require_env(funcname, "foo", otel_service_name_var);

@@ -24,14 +24,12 @@ bool post(int socket_descriptor, char *host, int port, char *method, char *path,
 
 bool receive(int socket_descriptor);
 
+int mk_metrics_json(char *dest, int max_len, char *service_name);
+
 void send_otlp_metric(logger log, char *service_name) {
-    char *tmpl = "{\"resourceMetrics\":[{\"resource\":{},\"scopeMetrics\":[{\"scope\":{},\"metrics\":"
-                 "[{\"name\":\"splunk.linux-autoinstr.executions\",\"sum\":{\"dataPoints\":"
-                 "[{\"attributes\":[{\"key\":\"service.name\",\"value\":{\"stringValue\":\"%s\"}}],\"asInt\":\"1\"}],"
-                 "\"aggregationTemporality\":\"AGGREGATION_TEMPORALITY_DELTA\"}}]}]}]}";
     char json[METRIC_JSON_MAX_LEN];
-    snprintf(json, METRIC_JSON_MAX_LEN, tmpl, service_name);
-    if (strlen(json) == METRIC_JSON_MAX_LEN) {
+    int len = mk_metrics_json(json, METRIC_JSON_MAX_LEN, service_name);
+    if (len == METRIC_JSON_MAX_LEN - 1) {
         log_debug(log, "otlp metric json too long, not sending");
         return;
     }
@@ -39,11 +37,19 @@ void send_otlp_metric(logger log, char *service_name) {
     int port = 4318;
     char *method = "POST";
     char *path = "/v1/metrics";
-    if (http_post(host, port, method, path, tmpl, log)) {
+    if (http_post(host, port, method, path, json, log)) {
         log_debug(log, "send otlp metric succeeded");
     } else {
         log_debug(log, "send otlp metric failed");
     }
+}
+
+int mk_metrics_json(char *dest, int max_len, char *service_name) {
+    char *format = "{\"resourceMetrics\":[{\"resource\":{},\"scopeMetrics\":[{\"scope\":{},\"metrics\":"
+                   "[{\"name\":\"splunk.linux-autoinstr.executions\",\"sum\":{\"dataPoints\":"
+                   "[{\"attributes\":[{\"key\":\"service.name\",\"value\":{\"stringValue\":\"%s\"}}],\"asInt\":\"1\"}],"
+                   "\"aggregationTemporality\":\"AGGREGATION_TEMPORALITY_DELTA\"}}]}]}]}";
+    return snprintf(dest, max_len, format, service_name);
 }
 
 bool http_post(char *host, int port, char *method, char *path, char *postData, logger log) {

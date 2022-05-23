@@ -84,15 +84,21 @@ void auto_instrument(
         return;
     }
 
-    set_java_tool_options(log, &cfg);
-
     char service_name[MAX_CMDLINE_LEN] = "";
     if (cfg.service_name == NULL) {
         get_service_name_from_cmdline(log, service_name, cr);
     } else {
         strncpy(service_name, cfg.service_name, MAX_CMDLINE_LEN);
     }
+
+    if (strlen(service_name) == 0) {
+        log_info(log, "service name empty, quitting");
+        return;
+    }
+
     set_env_var(log, otel_service_name_var, service_name);
+
+    set_java_tool_options(log, &cfg);
 
     set_env_var_from_attr(log, "resource_attributes", resource_attributes_var, cfg.resource_attributes);
 

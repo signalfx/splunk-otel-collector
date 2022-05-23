@@ -43,8 +43,6 @@ resource_metrics:
             type: DoubleGauge
           - name: gauge.solr.jvm_heap_usage
             type: DoubleGauge
-          - name: gauge.solr.jvm_memory_pools_Code-Cache_usage
-            type: DoubleGauge
           - name: gauge.solr.jvm_memory_pools_Metaspace_usage
             type: DoubleGauge
           - name: gauge.solr.jvm_total_memory

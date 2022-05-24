@@ -15,45 +15,145 @@
 package pulsarexporter
 
 import (
+	"errors"
 	"fmt"
-	"github.com/apache/pulsar-client-go/pulsar"
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/exporter/exporterhelper"
 	"time"
+
+	"github.com/apache/pulsar-client-go/pulsar"
+	"github.com/rs/zerolog/log"
+	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configtls"
+	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
+
+type Authentication struct {
+	TLS *configtls.TLSClientSetting `mapstructure:"tls"`
+}
 // Config defines configuration for pulsar exporter.
 type Config struct {
-	config.ExporterSettings        `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
-	exporterhelper.TimeoutSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct.
+	config.ExporterSettings        `mapstructure:",squash"`
+	exporterhelper.TimeoutSettings `mapstructure:",squash"`
 	exporterhelper.QueueSettings   `mapstructure:"sending_queue"`
 	exporterhelper.RetrySettings   `mapstructure:"retry_on_failure"`
 
-	//// The list of pulsar brokers (default localhost:9092)
-	Brokers string `mapstructure:"brokers"`
-	//// The name of the pulsar topic to export to (default otlp_spans for traces, otlp_metrics for metrics)
+	// The list of pulsar brokers (default localhost:9092)
+	Broker string `mapstructure:"broker"`
+	// The name of the pulsar topic to export to (default otlp_spans for traces, otlp_metrics for metrics)
 	Topic string `mapstructure:"topic"`
 
 	// Encoding of messages (default "otlp_proto")
 	Encoding string `mapstructure:"encoding"`
-
-	//// Metadata is the namespace for metadata management properties used by the
-	//// Client, and shared by the Producer/Consumer.
-	Metadata Metadata `mapstructure:"metadata"`
 
 	// Producer is the namespaces for producer properties used only by the Producer
 	Producer Producer `mapstructure:"producer"`
 
 	// Authentication defines used authentication mechanism.
 	Authentication Authentication `mapstructure:"auth"`
-}
 
-// Metadata defines configuration for retrieving metadata from the broker.
-type Metadata struct {
+	//Operation time out
+	OperationTimeout time.Duration `mapstructure:"operation_timeout"`
+
+	//Connection time out
+	ConnectionTimeout time.Duration `mapstructure:"connection_timeout"`
 }
 
 // Producer defines configuration for producer
 type Producer struct {
+	// Name specifies a name for the producer.
+	// If not assigned, the system will generate a globally unique name which can be access with
+	// Producer.ProducerName().
+	// When specifying a name, it is up to the user to ensure that, for a given topic, the producer name is unique
+	// across all Pulsar's clusters. Brokers will enforce that only a single producer a given name can be publishing on
+	// a topic.
+	Name string `mapstructure:"producer_name"`
+
+	// Properties specifies a set of application defined properties for the producer.
+	// This properties will be visible in the topic stats
+	Properties map[string]string `mapstructure:"producer_properties"`
+
+	// SendTimeout specifies the timeout for a message that has not been acknowledged by the server since sent.
+	// Send and SendAsync returns an error after timeout.
+	// Default is 30 seconds, negative such as -1 to disable.
+	SendTimeout time.Duration `mapstructure:"send_timeout"`
+
+	// DisableBlockIfQueueFull controls whether Send and SendAsync block if producer's message queue is full.
+	// Default is false, if set to true then Send and SendAsync return error when queue is full.
+	DisableBlockIfQueueFull bool `mapstructure:"disable_block_if_queue_full"`
+
+	// MaxPendingMessages specifies the max size of the queue holding the messages pending to receive an
+	// acknowledgment from the broker.
+	MaxPendingMessages int `mapstructure:"max_pending_messages"`
+
+	// HashingScheme is used to define the partition on where to publish a particular message.
+	// Standard hashing functions available are:
+	//
+	//  - `JavaStringHash` : Java String.hashCode() equivalent
+	//  - `Murmur3_32Hash` : Use Murmur3 hashing function.
+	// 		https://en.wikipedia.org/wiki/MurmurHash">https://en.wikipedia.org/wiki/MurmurHash
+	//
+	// Default is `JavaStringHash`.
+	HashingScheme string `mapstructure:"hashing_scheme"`
+
+	// CompressionType specifies the compression type for the producer.
+	// By default, message payloads are not compressed. Supported compression types are:
+	//  - LZ4
+	//  - ZLIB
+	//  - ZSTD
+	//
+	// Note: ZSTD is supported since Pulsar 2.3. Consumers will need to be at least at that
+	// release in order to be able to receive messages compressed with ZSTD.
+	CompressionType string `mapstructure:"compression_type"`
+
+	// CompressionLevel defines the desired compression level. Options:
+	// - Default
+	// - Faster
+	// - Better
+	CompressionLevel string `mapstructure:"compression_level"`
+
+	// NumPartitions used as TopicMetadata in MessageRouter which represents a custom message routing policy by passing an implementation of MessageRouter
+	// The router is a function that given a particular message and the topic metadata, returns the
+	// partition index where the message should be routed to
+	TopicMetadata int `mapstructure:"num_partitions"`
+
+	// DisableBatching controls whether automatic batching of messages is enabled for the producer. By default batching
+	// is enabled.
+	// When batching is enabled, multiple calls to Producer.sendAsync can result in a single batch to be sent to the
+	// broker, leading to better throughput, especially when publishing small messages. If compression is enabled,
+	// messages will be compressed at the batch level, leading to a much better compression ratio for similar headers or
+	// contents.
+	// When enabled default batch delay is set to 1 ms and default batch size is 1000 messages
+	// Setting `DisableBatching: true` will make the producer to send messages individually
+	DisableBatching bool `mapstructure:"disable_batching"`
+
+	// BatchingMaxPublishDelay specifies the time period within which the messages sent will be batched (default: 10ms)
+	// if batch messages are enabled. If set to a non zero value, messages will be queued until this time
+	// interval or until
+	BatchingMaxPublishDelay time.Duration `mapstructure:"batching_max_publish_delay"`
+
+	// BatchingMaxMessages specifies the maximum number of messages permitted in a batch. (default: 1000)
+	// If set to a value greater than 1, messages will be queued until this threshold is reached or
+	// BatchingMaxSize (see below) has been reached or the batch interval has elapsed.
+	BatchingMaxMessages uint `mapstructure:"batching_max_messages"`
+
+	// BatchingMaxSize specifies the maximum number of bytes permitted in a batch. (default 128 KB)
+	// If set to a value greater than 1, messages will be queued until this threshold is reached or
+	// BatchingMaxMessages (see above) has been reached or the batch interval has elapsed.
+	BatchingMaxSize uint `mapstructure:"batching_max_size"`
+
+	// MaxReconnectToBroker specifies the maximum retry number of reconnectToBroker. (default: ultimate)
+	MaxReconnectToBroker *uint `mapstructure:"max_reconnect_broker"`
+
+	// BatcherBuilderType sets the batch builder type (default DefaultBatchBuilder)
+	// This will be used to create batch container when batching is enabled.
+	// Options:
+	// - DefaultBatchBuilder
+	// - KeyBasedBatchBuilder
+	BatcherBuilderType int `mapstructure:"batch_builder_type"`
+
+	// PartitionsAutoDiscoveryInterval is the time interval for the background process to discover new partitions
+	// Default is 1 minute
+	PartitionsAutoDiscoveryInterval time.Duration `mapstructure:"partitions_auto_discovery_interval"`
 }
 
 // MetadataRetry defines retry configuration for Metadata.
@@ -67,16 +167,70 @@ func (cfg *Config) Validate() error {
 	return nil
 }
 
-func (cfg *Config) getClientOptions() (*pulsar.ClientOptions, error) {
+func (cfg *Config) getClientOptions() (pulsar.ClientOptions, error) {
 
-	return &pulsar.ClientOptions{URL: "pulsar+ssl://10.176.29.102:6651",
-		OperationTimeout:           30 * time.Second,
-		ConnectionTimeout:          30 * time.Second,
-		TLSAllowInsecureConnection: true,
-		TLSTrustCertsFilePath:      "",
-		Authentication:             pulsar.NewAuthenticationTLS("my-cert.pem", "my-key.pem"),
-		TLSValidateHostname:        false,
-		MaxConnectionsPerBroker:    1}, nil
+	options := pulsar.ClientOptions{
+		URL:                     cfg.Broker,
+		OperationTimeout:        cfg.OperationTimeout,
+		ConnectionTimeout:       cfg.ConnectionTimeout,
+		MaxConnectionsPerBroker: 1,
+	}
+
+	if cfg.Authentication.TLS.InsecureSkipVerify == true {
+		options.TLSAllowInsecureConnection = cfg.Authentication.TLS.InsecureSkipVerify
+		return options, nil
+	}
+
+	if len(cfg.Authentication.TLS.CAFile) > 0 && len(cfg.Authentication.TLS.CertFile) > 0 && len(cfg.Authentication.TLS.KeyFile) > 0 {
+		options.TLSTrustCertsFilePath = cfg.Authentication.TLS.CAFile
+		options.Authentication = pulsar.NewAuthenticationTLS(cfg.Authentication.TLS.CertFile, cfg.Authentication.TLS.KeyFile)
+	} else {
+		return options, errors.New("cert file paths are not configured. If certs are not available, set insecure_skip_verify to true for insecure connection")
+	}
+
+	return options, nil
+}
+
+func (cfg *Config) getProducerOptions() (pulsar.ProducerOptions, error) {
+	producerOptions := pulsar.ProducerOptions{
+		Topic:                           cfg.Topic,
+		Name:                            cfg.Producer.Name,
+		DisableBatching:                 cfg.Producer.DisableBatching,
+		SendTimeout:                     cfg.Producer.SendTimeout,
+		DisableBlockIfQueueFull:         cfg.Producer.DisableBlockIfQueueFull,
+		MaxPendingMessages:              cfg.Producer.MaxPendingMessages,
+		BatchingMaxPublishDelay:         cfg.Producer.BatchingMaxPublishDelay,
+		BatchingMaxSize:                 cfg.Producer.BatchingMaxSize,
+		BatchingMaxMessages:             cfg.Producer.BatchingMaxMessages,
+		PartitionsAutoDiscoveryInterval: cfg.Producer.PartitionsAutoDiscoveryInterval,
+		MaxReconnectToBroker:            cfg.Producer.MaxReconnectToBroker,
+		MessageRouter: func(message *pulsar.ProducerMessage, metadata pulsar.TopicMetadata) int {
+			return cfg.Producer.TopicMetadata
+		},
+	}
+
+	compressionType, err := pulsarProducerCompressionType(cfg.Producer.CompressionType)
+	if err == nil {
+		producerOptions.CompressionType = compressionType
+	} else {
+		log.Info().Msgf("%v",err)
+	}
+
+	compressionLevel, err := pulsarProducerCompressionLevel(cfg.Producer.CompressionLevel)
+	if err == nil {
+		producerOptions.CompressionLevel = compressionLevel
+	} else {
+		log.Info().Msgf("%v",err)
+	}
+
+	hashingScheme, err := pulsarProducerHashingScheme(cfg.Producer.HashingScheme)
+	if err == nil {
+		producerOptions.HashingScheme = hashingScheme
+	} else {
+		log.Info().Msgf("%v",err)
+	}
+
+	return producerOptions, nil
 }
 
 func pulsarProducerCompressionType(compressionType string) (pulsar.CompressionType, error) {
@@ -90,6 +244,30 @@ func pulsarProducerCompressionType(compressionType string) (pulsar.CompressionTy
 	case "zstd":
 		return pulsar.ZSTD, nil
 	default:
-		return pulsar.NoCompression, fmt.Errorf("producer.compressionType should be one of 'none', 'lz4', 'zlib', or 'zstd'. configured value %v", compressionType)
+		return pulsar.NoCompression, fmt.Errorf("producer.compressionType should be one of 'none', 'lz4', 'zlib', or 'zstd'. configured value %v. Assiging default value as nocompression", compressionType)
+	}
+}
+
+func pulsarProducerCompressionLevel(compressionLevel string) (pulsar.CompressionLevel, error) {
+	switch compressionLevel {
+	case "default":
+		return pulsar.Default, nil
+	case "faster":
+		return pulsar.Faster, nil
+	case "better":
+		return pulsar.Better, nil
+	default:
+		return pulsar.Default, fmt.Errorf("producer.compressionLevel should be one of 'none', 'lz4', 'zlib', or 'zstd'. configured value %v. Assiging default value as default", compressionLevel)
+	}
+}
+
+func pulsarProducerHashingScheme(hashingScheme string) (pulsar.HashingScheme, error) {
+	switch hashingScheme {
+	case "java_string_hash":
+		return pulsar.JavaStringHash, nil
+	case "murmur3_32hash":
+		return pulsar.Murmur3_32Hash, nil
+	default:
+		return pulsar.JavaStringHash, fmt.Errorf("producer.hashingScheme should be one of 'none', 'lz4', 'zlib', or 'zstd'. configured value %v, Assiging default value as java_string_hash", hashingScheme)
 	}
 }

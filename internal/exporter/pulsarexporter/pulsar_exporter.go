@@ -17,91 +17,94 @@ package pulsarexporter
 import (
 	"context"
 	"fmt"
-	"log"
-	"time"
+	"go.uber.org/multierr"
+	"go.uber.org/zap"
 
 	"github.com/apache/pulsar-client-go/pulsar"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-	"go.uber.org/zap"
 )
 
 var errUnrecognizedEncoding = fmt.Errorf("unrecognized encoding")
 
-// pulsarMetricsProducer uses sarama to produce metrics messages to pulsar
-type pulsarMetricsProducer struct {
+// pulsarMetricsExporter produce metrics messages to pulsar
+type pulsarMetricsExporter struct {
+	client    pulsar.Client
 	producer  pulsar.Producer
+	topic     string
 	marshaler MetricsMarshaler
 	logger    *zap.Logger
 }
 
-type pulsarErrors struct {
-	err string
-}
-
-func (pe pulsarErrors) Error() string {
-	return fmt.Sprintf("Failed to deliver messages due to %s", pe.err)
-}
-
-func (e *pulsarMetricsProducer) metricsDataPusher(_ context.Context, md pmetric.Metrics) error {
+func (e *pulsarMetricsExporter) metricsDataPusher(ctx context.Context, md pmetric.Metrics) error {
 	messages, err := e.marshaler.Marshal(md)
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
-	for _, element := range messages { // (1) pulsar at the time of implementing this did not support sending an array of messages. (2) Use array index if needed to propagate back the errors
-		_, err = e.producer.Send(context.Background(), element)
+	var errors error
+	for _, element := range messages {
+		e.producer.SendAsync(ctx, element, func(_ pulsar.MessageID, _ *pulsar.ProducerMessage, err error) {
+			if err != nil {
+				errors = multierr.Append(errors, err)
+			}
+		})
 	}
-	if err != nil {
-		log.Fatal(err)
-		return pulsarErrors{err.Error()}
+	if errors == nil{
+		return nil
 	}
+	return fmt.Errorf("pulsar producer failed to send metric data due to error: %w", errors)
+}
+
+func (e *pulsarMetricsExporter) Close(context.Context) error {
+	e.producer.Close()
 	return nil
 }
 
-func newPulsarProducer(config Config) (pulsar.Producer, error) {
-
-	client, err := pulsar.NewClient(pulsar.ClientOptions{
-		URL:                        config.Brokers,
-		OperationTimeout:           30 * time.Second,
-		ConnectionTimeout:          30 * time.Second,
-		TLSAllowInsecureConnection: true,
-	})
-	if err != nil {
-		log.Fatalf("Could not instantiate Pulsar client: %v", err)
+func newPulsarProducer(config Config) (pulsar.Client, pulsar.Producer, error) {
+	// Get pulsar client options
+	clientOptions, clientOptionsErr := config.getClientOptions()
+	if clientOptionsErr != nil {
+		return nil, nil, clientOptionsErr
 	}
 
-	producer, err := client.CreateProducer(pulsar.ProducerOptions{
-		Topic: config.Topic,
-	})
-
-	if err != nil {
-		return nil, err
+	// Initiate pulsar client
+	client, clientErr := pulsar.NewClient(clientOptions)
+	if clientErr != nil {
+		return nil, nil, clientErr
 	}
-	return producer, nil
+
+	// Get pulsar pruducer options
+	producerOptions, producerOptionsErr := config.getProducerOptions()
+	if producerOptionsErr != nil {
+		return nil, nil, producerOptionsErr
+	}
+
+	// Initiate pulsar producer
+	producer, producerErr := client.CreateProducer(producerOptions)
+	if producerErr != nil {
+		return nil, nil, producerErr
+	}
+
+	return client, producer, nil
 }
 
-func newMetricsExporter(config Config, set component.ExporterCreateSettings, marshalers map[string]MetricsMarshaler) (*pulsarMetricsProducer, error) {
+func newMetricsExporter(config Config, set component.ExporterCreateSettings, marshalers map[string]MetricsMarshaler) (*pulsarMetricsExporter, error) {
 	marshaler := marshalers[config.Encoding]
 	if marshaler == nil {
 		return nil, errUnrecognizedEncoding
 	}
-	producer, err := newPulsarProducer(config)
-	if err != nil {
-		log.Fatal(err)
-	}
+	client, producer, err := newPulsarProducer(config)
+
 	if err != nil {
 		return nil, err
 	}
 
-	return &pulsarMetricsProducer{
+	return &pulsarMetricsExporter{
+		client:    client,
 		producer:  producer,
+		topic:     config.Topic,
 		marshaler: marshaler,
 		logger:    set.Logger,
 	}, nil
-}
-
-func (e *pulsarMetricsProducer) Close(context.Context) error {
-	e.producer.Close()
-	return nil // TODO: check return
 }

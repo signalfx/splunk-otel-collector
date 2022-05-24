@@ -13,9 +13,10 @@ package pulsarexporter
 
 import (
 	"context"
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/config/configtest"
@@ -25,16 +26,13 @@ func TestCreateDefaultConfig(t *testing.T) {
 	cfg := createDefaultConfig().(*Config)
 	assert.NotNil(t, cfg, "failed to create default config")
 	assert.NoError(t, configtest.CheckConfigStruct(cfg))
-	assert.Equal(t, defaultBroker, cfg.Brokers)
-	assert.Equal(t, "", cfg.Topic)
+	assert.Equal(t, defaultBroker, cfg.Broker)
+	assert.Equal(t, defaultMetricsTopic, cfg.Topic)
 }
 
 func TestCreateMetricsExport(t *testing.T) {
 	cfg := createDefaultConfig().(*Config)
-	cfg.Brokers = "invalid:9092"
-	//cfg.ProtocolVersion = "2.0.0"
-	// this disables contacting the broker so we can successfully create the exporter
-	//cfg.Metadata.Full = false
+	cfg.Broker = "pulsar+ssl://localhost:6651"
 	mf := pulsarExporterFactory{metricsMarshalers: metricsMarshalers()}
 	mr, err := mf.createMetricsExporter(context.Background(), componenttest.NewNopExporterCreateSettings(), cfg)
 	require.NoError(t, err)
@@ -43,8 +41,7 @@ func TestCreateMetricsExport(t *testing.T) {
 
 func TestCreateMetricsExporter_err(t *testing.T) {
 	cfg := createDefaultConfig().(*Config)
-	cfg.Brokers = "invalid:9092"
-	//cfg.ProtocolVersion = "2.0.0"
+	cfg.Broker = "invalid:9092"
 	mf := pulsarExporterFactory{metricsMarshalers: metricsMarshalers()}
 	mr, err := mf.createMetricsExporter(context.Background(), componenttest.NewNopExporterCreateSettings(), cfg)
 	require.Error(t, err)

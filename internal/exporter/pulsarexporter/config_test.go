@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 	"go.opentelemetry.io/collector/service/servicetest"
 )
@@ -34,7 +35,7 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(cfg.Exporters))
 
-	c := cfg.Exporters[config.NewComponentID(typeStr)].(*Config)
+	configActual := cfg.Exporters[config.NewComponentID(typeStr)].(*Config)
 	assert.Equal(t, &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		TimeoutSettings: exporterhelper.TimeoutSettings{
@@ -53,6 +54,31 @@ func TestLoadConfig(t *testing.T) {
 		},
 		Topic:    "otlp_metrics",
 		Encoding: "otlp_proto",
-		Brokers:  "pulsar://localhost:6650",
-	}, c)
+		Broker:   "pulsar+ssl://localhost:6651",
+		Producer: Producer{
+			Name: "otel-pulsar",
+			SendTimeout: 0,
+			DisableBlockIfQueueFull: false,
+			MaxPendingMessages: 100,
+			HashingScheme: "java_string_hash",
+			CompressionType: "zstd",
+			CompressionLevel: defaultCompressionLevel,
+			TopicMetadata: 5,
+			BatcherBuilderType: 1,
+			DisableBatching: false,
+			BatchingMaxPublishDelay: 10,
+			BatchingMaxMessages: 1000,
+			BatchingMaxSize: 128000,
+			PartitionsAutoDiscoveryInterval: 1,
+		},
+		Authentication: Authentication{TLS: &configtls.TLSClientSetting{
+			InsecureSkipVerify: true,
+			TLSSetting: configtls.TLSSetting{
+				CAFile:   "",
+				CertFile: "",
+				KeyFile:  "",
+			},
+		},
+		},
+	}, configActual)
 }

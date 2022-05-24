@@ -19,22 +19,21 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
 const (
 	typeStr             = "pulsar"
-	defaultTracesTopic  = "otlp_spans"
 	defaultMetricsTopic = "otlp_metrics"
-	defaultLogsTopic    = "otlp_logs"
 	defaultEncoding     = "otlp_proto"
 	defaultBroker       = "pulsar://localhost:6651"
-	//pulsar.ClientOptions
-	defaultOperationTimeout  = 30
-	defaultConnectionTimeout = 30
-	//pulsar.ProducerOptions
-
+	defaultName         = "otlp_producer"
+	defaultCompressionType = "none"
+	defaultCompressionLevel = "default"
+	defaultHashingScheme = "java_string_hash"
+	defaultTopicMetadata = 1
 )
 
 // FactoryOption applies changes to pulsarExporterFactory.
@@ -45,8 +44,8 @@ func NewFactory(options ...FactoryOption) component.ExporterFactory {
 	f := &pulsarExporterFactory{
 		metricsMarshalers: metricsMarshalers(),
 	}
-	for _, o := range options {
-		o(f)
+	for _, option := range options {
+		option(f)
 	}
 	return component.NewExporterFactory(
 		typeStr,
@@ -60,43 +59,46 @@ type pulsarExporterFactory struct {
 }
 
 func createDefaultConfig() config.Exporter {
+
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		TimeoutSettings:  exporterhelper.NewDefaultTimeoutSettings(),
 		RetrySettings:    exporterhelper.NewDefaultRetrySettings(),
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
-		Brokers:          defaultBroker,
-		// using an empty topic to track when it has not been set by user, default is based on traces or metrics.
-		Topic:    "",
-		Encoding: defaultEncoding,
-		Metadata: Metadata{},
-		Producer: Producer{},
+		Broker:           defaultBroker,
+		Topic:            defaultMetricsTopic,
+		Encoding:         defaultEncoding,
+		Producer: Producer{
+			Name: defaultName,
+			CompressionType: defaultCompressionType,
+			CompressionLevel: defaultCompressionLevel,
+			HashingScheme: defaultHashingScheme,
+			TopicMetadata: defaultTopicMetadata,
+		},
+		Authentication: Authentication{TLS: &configtls.TLSClientSetting{
+			InsecureSkipVerify: true,
+		}},
 	}
 }
 
 func (f *pulsarExporterFactory) createMetricsExporter(
 	_ ctx.Context,
-	set component.ExporterCreateSettings,
+	settings component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.MetricsExporter, error) {
 	oCfg := cfg.(*Config)
-	if oCfg.Topic == "" {
-		oCfg.Topic = defaultMetricsTopic
-	}
 	if oCfg.Encoding == "otlp_json" {
-		set.Logger.Info("otlp_json is considered experimental and should not be used in a production environment")
+		settings.Logger.Info("otlp_json is considered experimental and should not be used in a production environment")
 	}
-	exp, err := newMetricsExporter(*oCfg, set, f.metricsMarshalers)
+	exp, err := newMetricsExporter(*oCfg, settings, f.metricsMarshalers)
 	if err != nil {
 		return nil, err
 	}
 	return exporterhelper.NewMetricsExporter(
 		cfg,
-		set,
+		settings,
 		exp.metricsDataPusher,
 		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
-		// Disable exporterhelper Timeout, because we cannot pass a Context to the Producer,
-		// and will rely on the sarama Producer Timeout logic.
 		exporterhelper.WithTimeout(exporterhelper.TimeoutSettings{Timeout: 0}),
 		exporterhelper.WithRetry(oCfg.RetrySettings),
 		exporterhelper.WithQueue(oCfg.QueueSettings),

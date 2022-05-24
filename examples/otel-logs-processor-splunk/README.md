@@ -23,3 +23,7 @@ Splunk will become available on port 18000. You can login on [http://localhost:1
 Once logged in, visit the [search application](http://localhost:18000/en-US/app/search) to see the logs collected by Splunk.
 
 You can visit the `logs`, `logs2` and `logs3` indexes to see different log messages.
+
+Here is how to see the contents of an index. In the search application, click on the Search bar at the top.
+
+In the search bar, enter `index="logs"` to search the contents of the logs index.

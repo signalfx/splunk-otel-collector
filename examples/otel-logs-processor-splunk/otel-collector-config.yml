@@ -43,7 +43,7 @@ processors:
       actions:
         - key: com.splunk.index
           action: upsert
-          value: "log"
+          value: "logs"
         - key: logindex
           action: delete
     attributes/log2:

@@ -11,4 +11,4 @@
 - name: Assert td-agent service is running
   assert:
     that: ansible_facts.services['td-agent.service'].state == 'running'
-  when: ansible_os_family != "Suse"
+  when: ansible_os_family != "Suse" and ansible_distribution_release != "jammy"

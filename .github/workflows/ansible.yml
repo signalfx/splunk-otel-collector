@@ -49,6 +49,7 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         ansible:
           - ansible~=2.10.0
@@ -66,6 +67,7 @@ jobs:
           - ubuntu1604
           - ubuntu1804
           - ubuntu2004
+          - ubuntu2204
 
     steps:
       - name: Check out the codebase.

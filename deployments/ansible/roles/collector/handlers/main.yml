@@ -12,7 +12,7 @@
   ansible.builtin.service:
     name: td-agent
     state: restarted
-  when: install_fluentd
+  when: install_fluentd and ansible_distribution_release != "jammy"
   listen: "restart td-agent"
 
 - name: Restart Splunk OpenTelemetry Collector

@@ -139,7 +139,7 @@ def test_installer_mode(distro, version, mode):
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
-            if "opensuse" not in distro:
+            if "opensuse" not in distro and distro != "ubuntu-jammy":
                 assert container.exec_run("systemctl status td-agent").exit_code == 0
 
             # test support bundle script
@@ -148,7 +148,7 @@ def test_installer_mode(distro, version, mode):
             verify_uninstall(container, distro)
 
         finally:
-            if "opensuse" not in distro:
+            if "opensuse" not in distro and distro != "ubuntu-jammy":
                 run_container_cmd(container, "journalctl -u td-agent --no-pager")
                 if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
                     run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
@@ -187,13 +187,13 @@ def test_installer_ballast(distro, version):
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
-            if "opensuse" not in distro:
+            if "opensuse" not in distro and distro != "ubuntu-jammy":
                 assert container.exec_run("systemctl status td-agent").exit_code == 0
 
             verify_uninstall(container, distro)
 
         finally:
-            if "opensuse" not in distro:
+            if "opensuse" not in distro and distro != "ubuntu-jammy":
                 run_container_cmd(container, "journalctl -u td-agent --no-pager")
                 if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
                     run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
@@ -234,13 +234,13 @@ def test_installer_service_owner(distro, version):
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=service_owner))
 
-            if "opensuse" not in distro:
+            if "opensuse" not in distro and distro != "ubuntu-jammy":
                 assert container.exec_run("systemctl status td-agent").exit_code == 0
 
             verify_uninstall(container, distro)
 
         finally:
-            if "opensuse" not in distro:
+            if "opensuse" not in distro and distro != "ubuntu-jammy":
                 run_container_cmd(container, "journalctl -u td-agent --no-pager")
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
 

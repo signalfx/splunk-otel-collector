@@ -17,6 +17,7 @@ galaxy_info:
         - bionic
         - focal
         - xenial
+        - jammy
     - name: Debian
       versions:
         - buster

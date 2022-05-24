@@ -4,7 +4,7 @@
 
 ### 💡 Enhancements 💡
 
-- Add Ubuntu 22.04 support to the [Linux installer script](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/linux-installer.md) (collector only; log collection with Fluentd not currently supported) (#1587)
+- Add Ubuntu 22.04 support to the [Linux installer script](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/linux-installer.md) (collector only; log collection with Fluentd [not currently supported](https://www.fluentd.org/blog/td-agent-v4.3.1-has-been-released)) (#1587)
 
 ## v0.51.0
 

@@ -50,9 +50,9 @@
     {
       "operatingsystem": "Debian",
       "operatingsystemrelease": [
-        "8",
         "9",
-        "10"
+        "10",
+        "11"
       ]
     },
     {
@@ -60,7 +60,8 @@
       "operatingsystemrelease": [
         "16.04",
         "18.04",
-        "20.04"
+        "20.04",
+        "22.04"
       ]
     },
     {

@@ -14,7 +14,7 @@ Check splunk_realm:
 
 {% set install_fluentd = salt['pillar.get']('splunk-otel-collector:install_fluentd', True) | to_bool %}
 include:
-{% if grains['os_family'] == 'Suse' or install_fluentd == False %}
+{% if grains['os_family'] == 'Suse' or grains['oscodename'] == 'jammy' or install_fluentd == False %}
   - splunk-otel-collector.install
   - splunk-otel-collector.service_owner
   - splunk-otel-collector.config

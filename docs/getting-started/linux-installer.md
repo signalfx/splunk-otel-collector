@@ -22,7 +22,7 @@ Currently, the following Linux distributions and versions are supported:
 - CentOS / Red Hat / Oracle: 7, 8
 - Debian: 9, 10, 11
 - SUSE: 12, 15 (**Note:** Only for Collector versions v0.34.0 or higher.  Log collection with Fluentd not currently supported.)
-- Ubuntu: 16.04, 18.04, 20.04, 22.04 (**Note:** Log collection with Fluentd not currently supported on Ubuntu 22.04.)
+- Ubuntu: 16.04, 18.04, 20.04, 22.04 (**Note:** Log collection with Fluentd [not currently supported on Ubuntu 22.04](https://www.fluentd.org/blog/td-agent-v4.3.1-has-been-released).)
 
 ## Getting Started
 

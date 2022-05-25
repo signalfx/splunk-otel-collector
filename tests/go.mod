@@ -8,7 +8,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/shirou/gopsutil/v3 v3.22.4
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.2
-	github.com/signalfx/signalfx-go v1.19.0
+	github.com/signalfx/signalfx-go v1.20.0
 	github.com/stretchr/testify v1.7.1
 	github.com/testcontainers/testcontainers-go v0.11.1
 	go.opentelemetry.io/collector v0.51.0

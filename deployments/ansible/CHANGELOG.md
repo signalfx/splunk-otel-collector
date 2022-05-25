@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## ansible-v0.8.0
+
 ### 💡 Enhancements 💡
 
 - Add support for Ubuntu 22.04 (collector only; log collection with Fluentd [not currently supported](https://www.fluentd.org/blog/td-agent-v4.3.1-has-been-released))

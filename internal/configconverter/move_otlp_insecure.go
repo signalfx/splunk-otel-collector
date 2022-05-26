@@ -23,7 +23,9 @@ import (
 	"go.opentelemetry.io/collector/config"
 )
 
-func MoveOTLPInsecureKey(_ context.Context, in *config.Map) error {
+type MoveOTLPInsecureKey struct{}
+
+func (MoveOTLPInsecureKey) Convert(_ context.Context, in *config.Map) error {
 	if in == nil {
 		return fmt.Errorf("cannot MoveOTLPInsecureKey on nil *config.Map")
 	}

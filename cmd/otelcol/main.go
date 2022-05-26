@@ -84,7 +84,7 @@ func main() {
 		Version: version.Version,
 	}
 
-	configMapConverters := []config.MapConverterFunc{
+	configMapConverters := []config.MapConverter{
 		overwritepropertiesmapconverter.New(getSetProperties()),
 	}
 
@@ -93,11 +93,12 @@ func main() {
 		// the collector complains about this flag if we don't remove it
 		removeFlag(&os.Args, noConvertConfigFlag)
 	} else {
-		configMapConverters = append(configMapConverters,
-			configconverter.RemoveBallastKey,
-			configconverter.MoveOTLPInsecureKey,
-			configconverter.MoveHecTLS,
-			configconverter.RenameK8sTagger,
+		configMapConverters = append(
+			configMapConverters,
+			configconverter.RemoveBallastKey{},
+			configconverter.MoveOTLPInsecureKey{},
+			configconverter.MoveHecTLS{},
+			configconverter.RenameK8sTagger{},
 		)
 	}
 

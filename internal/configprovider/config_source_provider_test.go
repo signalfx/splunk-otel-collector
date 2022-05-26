@@ -101,12 +101,13 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 			}
 
 			r, err := pp.Retrieve(context.Background(), tt.configLocation, nil)
+			rMap, _ := r.AsMap()
 			if tt.wantErr == nil {
 				require.NoError(t, err)
-				require.NotNil(t, r.Map)
+				require.NotNil(t, rMap)
 			} else {
 				assert.IsType(t, tt.wantErr, err)
-				assert.Nil(t, r.Map)
+				assert.Nil(t, rMap)
 				return
 			}
 
@@ -137,7 +138,7 @@ var _ config.MapProvider = (*mockParserProvider)(nil)
 
 func (mpp *mockParserProvider) Retrieve(ctx context.Context, _ string, _ config.WatcherFunc) (config.Retrieved, error) {
 	m, err := mpp.Get(ctx)
-	return config.Retrieved{Map: m}, err
+	return config.NewRetrievedFromMap(m), err
 }
 
 func (mpp *mockParserProvider) Shutdown(ctx context.Context) error {

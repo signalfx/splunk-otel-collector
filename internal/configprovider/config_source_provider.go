@@ -69,16 +69,10 @@ func (c *configSourceConfigMapProvider) Retrieve(
 		return config.Retrieved{}, err
 	}
 
-	closeFunc := c.wrappedRetrieved.CloseFunc
-	if closeFunc == nil {
-		closeFunc = func(context.Context) error { return nil }
-	}
-
-	c.retrieved = config.Retrieved{
-		Map:       cfg,
-		CloseFunc: closeFunc,
-	}
-
+	c.retrieved = config.NewRetrievedFromMap(
+		cfg,
+		config.WithRetrievedClose(wr.Close),
+	)
 	return c.retrieved, err
 }
 
@@ -99,17 +93,21 @@ func (c *configSourceConfigMapProvider) Get(context.Context) (*config.Map, error
 		return nil, err
 	}
 
-	csm, err := NewManager(c.wrappedRetrieved.Map, c.logger, c.buildInfo, factories)
+	wrappedMap, err := c.wrappedRetrieved.AsMap()
+	if err != nil {
+		return nil, err
+	}
+	csm, err := NewManager(wrappedMap, c.logger, c.buildInfo, factories)
 	if err != nil {
 		return nil, err
 	}
 
-	effectiveMap, err := csm.Resolve(context.Background(), c.wrappedRetrieved.Map)
+	effectiveMap, err := csm.Resolve(context.Background(), wrappedMap)
 	if err != nil {
 		return nil, err
 	}
 
-	c.configServer = newConfigServer(c.logger, c.wrappedRetrieved.Map.ToStringMap(), effectiveMap.ToStringMap())
+	c.configServer = newConfigServer(c.logger, wrappedMap.ToStringMap(), effectiveMap.ToStringMap())
 	if err = c.configServer.start(); err != nil {
 		return nil, err
 	}
@@ -130,7 +128,7 @@ func (c *configSourceConfigMapProvider) Close(ctx context.Context) error {
 	if c.configServer != nil {
 		_ = c.configServer.shutdown()
 	}
-	return multierr.Combine(c.csm.Close(ctx), c.retrieved.CloseFunc(ctx))
+	return multierr.Combine(c.csm.Close(ctx), c.retrieved.Close(ctx))
 }
 
 func makeFactoryMap(factories []Factory) (Factories, error) {

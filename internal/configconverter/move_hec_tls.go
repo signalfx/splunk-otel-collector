@@ -23,7 +23,9 @@ import (
 	"go.opentelemetry.io/collector/config"
 )
 
-func MoveHecTLS(_ context.Context, in *config.Map) error {
+type MoveHecTLS struct{}
+
+func (MoveHecTLS) Convert(_ context.Context, in *config.Map) error {
 	if in == nil {
 		return fmt.Errorf("cannot MoveHecTLS on nil *config.Map")
 	}

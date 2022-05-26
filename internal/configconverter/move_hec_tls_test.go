@@ -28,7 +28,8 @@ func TestMoveHecTLS(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 
-	MoveHecTLS(context.Background(), cfgMap)
+	err = MoveHecTLS{}.Convert(context.Background(), cfgMap)
+	require.NoError(t, err)
 
 	assert.False(t, cfgMap.IsSet("exporters::splunk_hec::ca_file"))
 	assert.True(t, true, cfgMap.Get("exporters::splunk_hec::tls::insecure_skip_verify"))

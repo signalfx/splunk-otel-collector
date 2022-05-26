@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- Respect set [gopsutil environment variables](https://github.com/shirou/gopsutil#usage) in the `smartagent` receiver to provide better experience with the `hostmetrics` receiver, even if set in the `smartagent` extension configuration ([#1615](https://github.com/signalfx/splunk-otel-collector/pull/1615))
+
 ### 💡 Enhancements 💡
 
 - Add Ubuntu 22.04 support to the [Linux installer script](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/linux-installer.md) (collector only; log collection with Fluentd [not currently supported](https://www.fluentd.org/blog/td-agent-v4.3.1-has-been-released)) (#1587)

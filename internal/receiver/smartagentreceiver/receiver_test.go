@@ -29,6 +29,7 @@ import (
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/cpu"
+	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
@@ -47,8 +48,21 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 )
 
-func cleanUp() {
-	configureEnvironmentOnce = sync.Once{}
+func cleanUp() func() {
+	previousVals := map[string]string{}
+	envVars := []string{hostfs.HostProcVar, hostfs.HostEtcVar, hostfs.HostVarVar, hostfs.HostRunVar, hostfs.HostSysVar}
+	for i := range envVars {
+		envVar := envVars[i]
+		previousVals[envVar] = os.Getenv(envVar)
+		os.Unsetenv(envVar)
+	}
+
+	return func() {
+		for envVar, val := range previousVals {
+			os.Setenv(envVar, val)
+		}
+		configureEnvironmentOnce = sync.Once{}
+	}
 }
 
 func newReceiverCreateSettings() component.ReceiverCreateSettings {
@@ -91,7 +105,7 @@ func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
 }
 
 func TestSmartAgentReceiver(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("valid", "cpu", 10)
 	consumer := new(consumertest.MetricsSink)
 	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
@@ -183,7 +197,7 @@ func TestStripMonitorTypePrefix(t *testing.T) {
 }
 
 func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("invalid", "cpu", -123)
 	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
@@ -193,7 +207,7 @@ func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 }
 
 func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("invalid", "notamonitortype", 1)
 	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
@@ -203,7 +217,7 @@ func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 }
 
 func TestStartAndShutdown(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("valid", "cpu", 1)
 	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
@@ -214,7 +228,7 @@ func TestStartAndShutdown(t *testing.T) {
 }
 
 func TestOutOfOrderShutdownInvocations(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("valid", "cpu", 1)
 	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
 
@@ -226,7 +240,7 @@ func TestOutOfOrderShutdownInvocations(t *testing.T) {
 }
 
 func TestMultipleInstacesOfSameMonitorType(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("valid", "cpu", 1)
 	fstRcvr := NewReceiver(newReceiverCreateSettings(), cfg)
 
@@ -241,7 +255,7 @@ func TestMultipleInstacesOfSameMonitorType(t *testing.T) {
 }
 
 func TestInvalidMonitorStateAtShutdown(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("valid", "cpu", 1)
 	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
 	receiver.monitor = new(interface{})
@@ -252,7 +266,7 @@ func TestInvalidMonitorStateAtShutdown(t *testing.T) {
 }
 
 func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	tests := []struct {
 		name           string
 		monitorFactory func() interface{}
@@ -282,7 +296,7 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 }
 
 func TestFilteringNoMetadata(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	monitors.MonitorFactories["fakemonitor"] = func() interface{} { return struct{}{} }
 	cfg := newConfig("valid", "fakemonitor", 1)
 	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
@@ -291,7 +305,7 @@ func TestFilteringNoMetadata(t *testing.T) {
 }
 
 func TestSmartAgentConfigProviderOverrides(t *testing.T) {
-	t.Cleanup(cleanUp)
+	t.Cleanup(cleanUp())
 	cfg := newConfig("valid", "cpu", 1)
 	observedLogger, logs := observer.New(zapcore.WarnLevel)
 	logger := zap.New(observedLogger)
@@ -347,6 +361,48 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	require.Equal(t, "/run", os.Getenv("HOST_RUN"))
 	require.Equal(t, "/var", os.Getenv("HOST_VAR"))
 	require.Equal(t, "/etc", os.Getenv("HOST_ETC"))
+}
+
+func TestSmartAgentConfigProviderRespectsGopsutilEnvVars(t *testing.T) {
+	t.Cleanup(cleanUp())
+	cfg := newConfig("valid", "cpu", 1)
+	observedLogger, logs := observer.New(zapcore.InfoLevel)
+	logger := zap.New(observedLogger)
+	rcs := newReceiverCreateSettings()
+	rcs.Logger = logger
+	r := NewReceiver(rcs, cfg)
+
+	envVars := map[string]string{
+		"HOST_PROC": "/hostfs/proc",
+		"HOST_SYS":  "",
+		"HOST_RUN":  "/hostfs/run",
+		"HOST_VAR":  "/hostfs/var",
+		"HOST_ETC":  "/hostfs/etc",
+	}
+
+	for envVar, val := range envVars {
+		require.NoError(t, os.Setenv(envVar, val))
+	}
+
+	require.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
+	require.NoError(t, r.Shutdown(context.Background()))
+
+	for envVar, val := range envVars {
+		require.Equal(t, os.Getenv(envVar), val)
+	}
+
+	require.True(t, func() bool {
+		for _, message := range logs.All() {
+			if strings.HasPrefix(message.Message, "Not setting gopsutil envvar because it has already been set for collector process.") {
+				envVar := fmt.Sprintf("%s", message.ContextMap()["envvar"])
+				currentVal := fmt.Sprintf("%s", message.ContextMap()["current value"])
+				require.Equal(t, fmt.Sprintf("%q", envVars[envVar]), currentVal)
+				delete(envVars, envVar)
+			}
+		}
+		return len(envVars) == 0
+	}())
+
 }
 
 func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {

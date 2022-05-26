@@ -188,7 +188,7 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 	// set required envs.
 	configureEnvironmentOnce.Do(func() {
 		r.setUpSmartAgentConfigProvider(host.GetExtensions())
-		setUpEnvironment()
+		setUpEnvironment(r.logger)
 	})
 
 	if r.config.monitorConfig.MonitorConfigCore().IsCollectdBased() {
@@ -244,15 +244,33 @@ func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[config.Component
 	}
 }
 
-func setUpEnvironment() {
+func setUpEnvironment(logger *zap.Logger) {
 	os.Setenv(constants.BundleDirEnvVar, saConfig.BundleDir)
 	if runtime.GOOS != "windows" { // Agent bundle doesn't include jre for Windows
 		os.Setenv("JAVA_HOME", filepath.Join(saConfig.BundleDir, "jre"))
 	}
 
-	os.Setenv(hostfs.HostProcVar, saConfig.ProcPath)
-	os.Setenv(hostfs.HostEtcVar, saConfig.EtcPath)
-	os.Setenv(hostfs.HostVarVar, saConfig.VarPath)
-	os.Setenv(hostfs.HostRunVar, saConfig.RunPath)
-	os.Setenv(hostfs.HostSysVar, saConfig.SysPath)
+	envVars := []struct {
+		envVar string
+		val    string
+	}{
+		{hostfs.HostProcVar, saConfig.ProcPath},
+		{hostfs.HostEtcVar, saConfig.EtcPath},
+		{hostfs.HostVarVar, saConfig.VarPath},
+		{hostfs.HostRunVar, saConfig.RunPath},
+		{hostfs.HostSysVar, saConfig.SysPath},
+	}
+
+	for i := range envVars {
+		envVar := envVars[i]
+		if currentVal, ok := os.LookupEnv(envVar.envVar); !ok {
+			os.Setenv(envVar.envVar, envVar.val)
+		} else {
+			logger.Info(
+				"Not setting gopsutil envvar because it has already been set for collector process. "+
+					"This may result in unexpected metric content for legacy monitors.",
+				zap.String("envvar", envVar.envVar), zap.String("current value", fmt.Sprintf("%q", currentVal)),
+			)
+		}
+	}
 }

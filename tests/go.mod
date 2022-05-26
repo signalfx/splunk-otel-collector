@@ -91,4 +91,5 @@ require (
 replace (
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.1.2
+	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0
 )

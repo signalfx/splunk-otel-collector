@@ -458,6 +458,7 @@ replace (
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.1.2
 	github.com/spf13/viper => github.com/spf13/viper v1.11.0 // required to drop dependency on deprecated github.com/coreos/etcd and github.com/coreos/go-etcd
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
+	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0
 	k8s.io/apiserver => k8s.io/apiserver v0.24.0 // required to drop dependency on deprecated go.etcd.io/etcd
 )
 

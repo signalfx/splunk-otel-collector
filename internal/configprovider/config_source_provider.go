@@ -71,9 +71,7 @@ func (c *configSourceConfigMapProvider) Retrieve(
 
 	c.retrieved = config.NewRetrievedFromMap(
 		cfg,
-		config.WithRetrievedClose(func(ctx context.Context) error {
-			return wr.Close(ctx)
-		}),
+		config.WithRetrievedClose(wr.Close),
 	)
 	return c.retrieved, err
 }

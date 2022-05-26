@@ -120,15 +120,16 @@ func (c *configSourceConfigMapProvider) Get(context.Context) (*config.Map, error
 		return nil, err
 	}
 
-	// If we've already initiated and started a server, shut it down and create a new one for
-	// updated config sources.
-	if c.configServer != nil {
-		c.configServer.shutdown()
-	}
-
-	c.configServer = newConfigServer(c.logger, wrappedMap.ToStringMap(), effectiveMap.ToStringMap())
-	if err = c.configServer.start(); err != nil {
-		return nil, err
+	// Only start config server if this is the first config source
+	if c.configServer == nil {
+		c.configServer = newConfigServer(c.logger, wrappedMap.ToStringMap(), effectiveMap.ToStringMap())
+		if err = c.configServer.start(); err != nil {
+			return nil, err
+		}
+	} else {
+		// Update config server when getting different config sources
+		c.configServer.setInitial(wrappedMap.ToStringMap())
+		c.configServer.setEffective(effectiveMap.ToStringMap())
 	}
 
 	c.csm = csm

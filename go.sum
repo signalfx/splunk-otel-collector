@@ -996,8 +996,9 @@ github.com/hashicorp/go-multierror v1.1.1 h1:H5DkEtf6CXdFp0N0Em5UCwQpXMWke8IA0+l
 github.com/hashicorp/go-multierror v1.1.1/go.mod h1:iw975J/qwKPdAO1clOe2L8331t/9/fmwbPZ6JB6eMoM=
 github.com/hashicorp/go-plugin v1.4.0/go.mod h1:5fGEH17QVwTTcR0zV7yhDPLLmFX9YSZ38b18Udy6vYQ=
 github.com/hashicorp/go-plugin v1.4.2/go.mod h1:5fGEH17QVwTTcR0zV7yhDPLLmFX9YSZ38b18Udy6vYQ=
-github.com/hashicorp/go-plugin v1.4.3 h1:DXmvivbWD5qdiBts9TpBC7BYL1Aia5sxbRgQB+v6UZM=
 github.com/hashicorp/go-plugin v1.4.3/go.mod h1:5fGEH17QVwTTcR0zV7yhDPLLmFX9YSZ38b18Udy6vYQ=
+github.com/hashicorp/go-plugin v1.4.4 h1:NVdrSdFRt3SkZtNckJ6tog7gbpRrcbOjQi/rgF7JYWQ=
+github.com/hashicorp/go-plugin v1.4.4/go.mod h1:viDMjcLJuDui6pXb8U4HVfb8AamCWhHGUjr2IrTF67s=
 github.com/hashicorp/go-raftchunking v0.6.3-0.20191002164813-7e9e8525653a h1:FmnBDwGwlTgugDGbVxwV8UavqSMACbGrUpfc98yFLR4=
 github.com/hashicorp/go-retryablehttp v0.5.3/go.mod h1:9B5zBasrRhHXnJnui7y6sL7es7NDiJgTc6Er0maI1Xs=
 github.com/hashicorp/go-retryablehttp v0.5.4/go.mod h1:9B5zBasrRhHXnJnui7y6sL7es7NDiJgTc6Er0maI1Xs=
@@ -1151,8 +1152,8 @@ github.com/jaegertracing/jaeger v1.22.0/go.mod h1:WnwW68MjJEViSLRQhe0nkIsBDaF3Cz
 github.com/jaegertracing/jaeger v1.23.0/go.mod h1:gB6Qc+Kjd/IX1G82oGTArbHI3ZRO//iUkaMW+gzL9uw=
 github.com/jaegertracing/jaeger v1.26.0/go.mod h1:SwHsl1PLZVAdkQTPrziQ+4xV9FxzJXRvTDW1YrUIWEA=
 github.com/jaegertracing/jaeger v1.31.0/go.mod h1:KukZMhuamI3NVbzWmngcmXbcnxiB3WyaNf0nxio+sUw=
-github.com/jaegertracing/jaeger v1.34.1 h1:mWrhDdf4PJdp3jrJDTaJx/UBpVoQA5lAJFixKPF/Voc=
-github.com/jaegertracing/jaeger v1.34.1/go.mod h1:md+YcRcDgMCAgB9qyXl0PdstYiq8fjA8KG5cNuyV2kA=
+github.com/jaegertracing/jaeger v1.35.0 h1:H82YIps30JYRNdeZWXmQ4K3JkcV6dR8cXSLOdg6TjDM=
+github.com/jaegertracing/jaeger v1.35.0/go.mod h1:e7FBVZ14ptsRjwiHEnLyxvOa4bSnZA0BDFE1OcvNiHs=
 github.com/jcmturner/aescts/v2 v2.0.0 h1:9YKLH6ey7H4eDBXW8khjYslgyqG2xZikXP0EQFKrle8=
 github.com/jcmturner/aescts/v2 v2.0.0/go.mod h1:AiaICIRyfYg35RUkr8yESTqvSy7csK90qZ5xfvvsoNs=
 github.com/jcmturner/dnsutils/v2 v2.0.0 h1:lltnkeZGL0wILNvrNiVCR6Ro5PGU/SeBvVO/8c/iPbo=

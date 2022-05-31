@@ -1,0 +1,142 @@
+---
+driver:
+  name: dokken
+  chef_license: accept
+  privileged: true
+
+transport:
+  name: dokken
+
+provisioner:
+  name: dokken
+  always_update_cookbooks: true
+  chef_license: accept
+  enforce_idempotency: true
+  multiple_converge: 2
+
+verifier:
+  root_path: /opt/verifier
+
+platforms:
+  - name: amazonlinux-2
+    driver:
+      image: dokken/amazonlinux-2
+      pid_one_command: /usr/lib/systemd/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: centos-7
+    driver:
+      image: dokken/centos-7
+      pid_one_command: /usr/lib/systemd/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: centos-8
+    driver:
+      image: dokken/centos-8
+      pid_one_command: /usr/lib/systemd/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: debian-9
+    driver:
+      image: dokken/debian-9
+      pid_one_command: /bin/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: debian-10
+    driver:
+      image: dokken/debian-10
+      pid_one_command: /bin/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: debian-11
+    driver:
+      image: dokken/debian-11
+      pid_one_command: /bin/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: opensuse-12
+    driver:
+      image: opensuse/leap:42
+      intermediate_instructions: |
+        ENV container docker
+        RUN sed -i 's|download.opensuse.org|ftp5.gwdg.de/pub/opensuse/discontinued|' /etc/zypp/repos.d/*.repo
+        RUN zypper -n clean && zypper -n refresh
+        RUN zypper -n install -l curl procps dbus-1 systemd-sysvinit tar wget hostname sudo
+        RUN (cd /usr/lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \
+            "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
+            rm -f /usr/lib/systemd/system/multi-user.target.wants/*;\
+            rm -f /usr/lib/systemd/system/local-fs.target.wants/*; \
+            rm -f /usr/lib/systemd/system/sockets.target.wants/*udev*; \
+            rm -f /usr/lib/systemd/system/sockets.target.wants/*initctl*; \
+            rm -f /usr/lib/systemd/system/basic.target.wants/*;\
+            rm -f /usr/lib/systemd/system/anaconda.target.wants/*;
+        ENV init /sbin/init
+      pid_one_command: /sbin/init
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: opensuse-15
+    driver:
+      image: dokken/opensuse-leap-15
+      pid_one_command: /usr/lib/systemd/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: oraclelinux-7
+    driver:
+      image: dokken/oraclelinux-7
+      pid_one_command: /usr/lib/systemd/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: oraclelinux-8
+    driver:
+      image: dokken/oraclelinux-8
+      pid_one_command: /usr/lib/systemd/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: ubuntu-18.04
+    driver:
+      image: dokken/ubuntu-18.04
+      pid_one_command: /bin/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: ubuntu-20.04
+    driver:
+      image: dokken/ubuntu-20.04
+      pid_one_command: /bin/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+  - name: ubuntu-22.04
+    driver:
+      image: dokken/ubuntu-22.04
+      pid_one_command: /bin/systemd
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+suites:
+  - name: default
+    run_list:
+      - recipe[splunk_otel_collector]
+    attributes:
+      splunk-otel-collector:
+        splunk_access_token: testing123
+        splunk_realm: test
+
+  - name: without_fluentd
+    run_list:
+      - recipe[splunk_otel_collector]
+    attributes:
+      splunk-otel-collector:
+        splunk_access_token: testing123
+        splunk_realm: test
+        with_fluentd: false

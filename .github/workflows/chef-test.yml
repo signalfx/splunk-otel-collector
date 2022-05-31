@@ -1,0 +1,93 @@
+name: chef-test
+
+# Only run tests for main branch or if the PR has relevant changes
+on: 
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/chef-test.yml'
+      - 'deployments/chef/**'
+  pull_request:
+    paths:
+      - '.github/workflows/chef-test.yml'
+      - 'deployments/chef/**'
+
+concurrency:
+  group: chef-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: 'deployments/chef'
+
+jobs:
+  chef-lint-spec-test:
+    name: chef-lint-spec-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+      
+      - name: lint
+        run: make lint
+
+      - name: Rake spec
+        run: |
+          make rake-spec
+
+  chef-kitchen-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        DISTRO: ['amazonlinux-2', 'centos-7', 'centos-8', 'debian-9', 'debian-10', 'debian-11', 'opensuse-12', 'opensuse-15', 'oraclelinux-7', 'oraclelinux-8', 'ubuntu-1804', 'ubuntu-2004', 'ubuntu-2204']
+        SUITE: ['default', 'without-fluentd']
+      fail-fast: false
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Install chef
+        uses: actionshub/chef-install@2.0.3
+
+      - run: kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
+          path: deployments/chef/.kitchen/logs/*
+
+  chef-kitchen-windows:
+    runs-on: ${{ matrix.OS }}
+    strategy:
+      matrix:
+        OS: ['windows-2019', 'windows-2022']
+        SUITE: ['default', 'without-fluentd']
+      fail-fast: false
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Install chef
+        uses: actionshub/chef-install@2.0.3
+
+      - name: gem install kitchen-docker
+        run: |
+          $env:PATH = 'C:\opscode\chef-workstation\embedded\bin;' + $env:PATH
+          gem install kitchen-docker
+
+      - name: kitchen test ${{ matrix.SUITE }}-${{ matrix.OS }}
+        run: |
+          kitchen test ${{ matrix.SUITE }}-${{ matrix.OS }}
+          # For some reason, kitchen returns 0 here even if there are test failures, so check the log instead.
+          grep -q '0 failures' .kitchen/logs/kitchen.log || exit 1
+        shell: bash
+        env:
+          KITCHEN_YAML: kitchen.windows.yml
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: ${{ matrix.SUITE }}-${{ matrix.OS }}
+          path: deployments/chef/.kitchen/logs/*

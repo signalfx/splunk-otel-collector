@@ -1,0 +1,7 @@
+source 'https://rubygems.org'
+
+gem 'rake'
+gem 'chefspec'
+gem 'berkshelf'
+gem 'cookstyle'
+gem 'rubyzip', '< 2.0.0'

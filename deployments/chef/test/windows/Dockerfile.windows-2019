@@ -1,0 +1,17 @@
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
+
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+RUN choco install -y -f --no-progress chef-client
+
+RUN $env:PATH += ';C:\opscode\chef\embedded\bin'; Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\' -Name Path -Value $env:PATH
+
+RUN gem install serverspec
+
+COPY test/integration C:/test
+COPY test/windows/spec_helper.rb C:/test/default/serverspec/spec_helper.rb
+COPY test/windows/spec_helper.rb C:/test/without_fluentd/serverspec/spec_helper.rb
+
+WORKDIR C:\\test

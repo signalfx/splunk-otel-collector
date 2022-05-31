@@ -10,7 +10,7 @@ require (
 	github.com/go-zookeeper/zk v1.0.2
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.10.3
-	github.com/hashicorp/vault-plugin-auth-gcp v0.12.1
+	github.com/hashicorp/vault-plugin-auth-gcp v0.13.0
 	github.com/hashicorp/vault/api v1.5.0
 	github.com/jaegertracing/jaeger v1.35.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.52.0
@@ -199,7 +199,7 @@ require (
 	github.com/hashicorp/consul/api v1.12.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-gcp-common v0.7.0 // indirect
+	github.com/hashicorp/go-gcp-common v0.7.1-0.20220519220342-94aabf4c4c87 // indirect
 	github.com/hashicorp/go-hclog v1.2.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-kms-wrapping/entropy v0.1.0 // indirect

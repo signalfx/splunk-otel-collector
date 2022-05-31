@@ -11,7 +11,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.10.3
 	github.com/hashicorp/vault-plugin-auth-gcp v0.13.0
-	github.com/hashicorp/vault/api v1.5.0
+	github.com/hashicorp/vault/api v1.6.0
 	github.com/jaegertracing/jaeger v1.35.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.52.0
@@ -209,7 +209,7 @@ require (
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/go-secure-stdlib/awsutil v0.1.6 // indirect
 	github.com/hashicorp/go-secure-stdlib/mlock v0.1.2 // indirect
-	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.4 // indirect
+	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.5 // indirect
 	github.com/hashicorp/go-secure-stdlib/strutil v0.1.2 // indirect
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
@@ -217,7 +217,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-3 // indirect
 	github.com/hashicorp/serf v0.9.7 // indirect
-	github.com/hashicorp/vault/sdk v0.4.2-0.20220429220057-bdb59a36e632 // indirect
+	github.com/hashicorp/vault/sdk v0.5.0 // indirect
 	github.com/hashicorp/yamux v0.0.0-20211028200310-0bc27b27de87 // indirect
 	github.com/hetznercloud/hcloud-go v1.33.1 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect

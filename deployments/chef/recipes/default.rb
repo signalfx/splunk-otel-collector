@@ -107,4 +107,6 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
       include_recipe 'splunk-otel-collector::fluentd_linux_install'
     end
   end
+else
+  raise "Platform family #{platform_family} not supported."
 end

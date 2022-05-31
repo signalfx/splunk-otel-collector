@@ -61,3 +61,27 @@
 - name: Install FluentD
   ansible.builtin.import_tasks: linux_install_fluentd.yml
   when: install_fluentd and ansible_os_family != "Suse" and ansible_distribution_release != "jammy"
+
+- name: Install Splunk OpenTelemetry Auto Instrumentation with apt package manager
+  ansible.builtin.import_tasks: apt_install_auto_instrumentation.yml
+  when: install_splunk_otel_auto_instrumentation and ansible_os_family == "Debian"
+
+- name: Install Splunk OpenTelemetry Auto Instrumentation with yum package manager
+  ansible.builtin.import_tasks: yum_install_auto_instrumentation.yml
+  when: install_splunk_otel_auto_instrumentation and ansible_os_family == "RedHat"
+
+- name: Install Splunk OpenTelemetry Auto Instrumentation with zypper package manager
+  ansible.builtin.import_tasks: zypper_install_auto_instrumentation.yml
+  when: install_splunk_otel_auto_instrumentation and ansible_os_family == "Suse"
+
+- name: Set up /etc/ld.so.preload for Splunk OpenTelemetry Auto Instrumentation
+  ansible.builtin.template:
+    src: ld_so_preload.j2
+    dest: /etc/ld.so.preload
+  when: install_splunk_otel_auto_instrumentation
+
+- name: Set up the Splunk OpenTelemetry Auto Instrumentation config file
+  ansible.builtin.template:
+    src: splunk-otel-auto-instrumentation.conf.j2
+    dest: /usr/lib/splunk-instrumentation/instrumentation.conf
+  when: install_splunk_otel_auto_instrumentation

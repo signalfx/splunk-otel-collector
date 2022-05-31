@@ -36,6 +36,8 @@ how to use the role in a playbook with minimal required configuration:
 
 ## Role Variables
 
+### Collector
+
 - `splunk_access_token` (**Required**): The Splunk access token to
   authenticate requests.
 
@@ -114,6 +116,8 @@ how to use the role in a playbook with minimal required configuration:
 - `splunk_ballast_size_mib`: Memory ballast size in MiB that will be set to the Splunk 
   OTel Collector. (**default:** 1/3 of `splunk_memory_total_mib`)
 
+### Fluentd
+
 - `install_fluentd`: Whether to install/manage fluentd and dependencies for log
   collection. The dependencies include [capng_c](
   https://github.com/fluent-plugins-nursery/capng_c) for enabling
@@ -137,3 +141,60 @@ how to use the role in a playbook with minimal required configuration:
   remote hosts. Can be used to submit a custom fluentd config,
   e.g. `./custom_fluentd_config.conf`. (**default:** `""` meaning 
   that nothing will be copied and existing `splunk_fluentd_config` will be used)
+
+### Auto Instrumentation
+
+- `install_splunk_otel_auto_instrumentation` (Linux only): Whether to
+  install/manage [Splunk OpenTelemetry Auto Instrumentation for Java](
+  https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation).
+  When set to `true`, the `splunk-otel-auto-instrumentation` deb/rpm package
+  will be downloaded and installed from the Collector repository. **Note:** The
+  Java application on the node need to be started/restarted separately after
+  installation in order for auto instrumentation to take effect.
+  (**default:** `false`)
+
+- `splunk_otel_auto_instrumentation_version` (Linux only): Version of the
+  `splunk-otel-auto-instrumentation` package to install, e.g. `0.50.0`.
+  The minimum supported version is `0.48.0`. **Note:** The Java application on
+  the node needs to be restarted separately in order for any change to take
+  effect. (**default:** `latest`)
+
+- `splunk_otel_auto_instrumentation_ld_so_preload` (Linux only): By default,
+  the `/etc/ld.so.preload` file on the node will be configured for the
+  `/usr/lib/splunk-instrumentation/libsplunk.so` [shared object library](
+  https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#operation)
+  provided by the `splunk-otel-auto-instrumentation` package and is required
+  for auto instrumentation. Configure this variable to include additional
+  library paths, e.g. `/path/to/my.library.so`. **Note:** The Java
+  application on the node needs to be restarted separately in order for any
+  change to take effect. (**default:** ``)
+
+- `splunk_otel_auto_instrumentation_java_agent_jar` (Linux only): Path to the
+  [Splunk OpenTelemetry Java agent](
+  https://github.com/signalfx/splunk-otel-java). The default path is provided
+  by the `splunk-otel-auto-instrumentation` package. If the path is changed
+  from the default value, the path should be an existing file on the node. The
+  specified path will be added to the
+  `/usr/lib/splunk-instrumentation/instrumentation.conf` config file on the
+  node. **Note:** The Java application on the node needs to be restarted
+  separately in order for any change to take effect. (**default:**
+  `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`)
+
+- `splunk_otel_auto_instrumentation_resource_attributes` (Linux only):
+  Configure the OpenTelemetry instrumentation [resource attributes](
+  https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#configuration-file),
+  e.g. `deployment.environment=prod`. The specified resource attribute(s) will
+  be added to the `/usr/lib/splunk-instrumentation/instrumentation.conf` config
+  file on the node. **Note:** The Java application on the node needs to be
+  restarted separately in order for any change to take effect.
+  (**default:** ``)
+
+- `splunk_otel_auto_instrumentation_service_name` (Linux only): Explicitly set
+  the [service name](
+  https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#configuration-file),
+  for the instrumented Java application, e.g. `my.service`. By default, the
+  service name is automatically derived from the arguments of the Java
+  executable on the node. The specifed service name will be added to the
+  `/usr/lib/splunk-instrumentation/instrumentation.conf` config file on the
+  node. **Note:** The Java application on the node needs to be restarted
+  separately in order for any change to take effect. (**default:** ``)

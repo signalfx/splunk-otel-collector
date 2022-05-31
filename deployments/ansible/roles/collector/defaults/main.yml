@@ -53,3 +53,10 @@ splunk_collectd_dir: ""
 # Configure otel collector service to use a proxy
 splunk_otel_collector_proxy_http: ""
 splunk_otel_collector_proxy_https: ""
+
+install_splunk_otel_auto_instrumentation: false
+splunk_otel_auto_instrumentation_version: latest
+splunk_otel_auto_instrumentation_ld_so_preload: ""
+splunk_otel_auto_instrumentation_java_agent_jar: /usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar
+splunk_otel_auto_instrumentation_resource_attributes: ""
+splunk_otel_auto_instrumentation_service_name: ""

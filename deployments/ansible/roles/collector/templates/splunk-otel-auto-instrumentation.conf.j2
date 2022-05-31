@@ -1,0 +1,7 @@
+java_agent_jar={{ splunk_otel_auto_instrumentation_java_agent_jar }}
+{% if splunk_otel_auto_instrumentation_resource_attributes is defined and splunk_otel_auto_instrumentation_resource_attributes %}
+resource_attributes={{ splunk_otel_auto_instrumentation_resource_attributes }}
+{% endif %}
+{% if splunk_otel_auto_instrumentation_service_name is defined and splunk_otel_auto_instrumentation_service_name %}
+service_name={{ splunk_otel_auto_instrumentation_service_name }}
+{% endif %}

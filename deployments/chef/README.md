@@ -38,13 +38,8 @@ required `splunk_access_token` attribute and some optional attributes:
 ```yaml 
 {
     "splunk-otel-collector": {
-        "splunk_access_token": "testing123",
-        "splunk_realm": "test",
-        "splunk_ingest_url": "https://ingest.test.signalfx.com",
-        "splunk_api_url": "https://api.test.signalfx.com",
-        "splunk_service_user": "splunk-otel-collector",
-        "splunk_service_group": "splunk-otel-collector",
-        "with_fluentd": true
+        "splunk_access_token": "<SPLUNK_ACCESS_TOKEN>",
+        "splunk_realm": "<SPLUNK_REALM>",
     }
 }
 ```
@@ -76,6 +71,25 @@ required `splunk_access_token` attribute and some optional attributes:
 - `collector_version`: Version of the Collector package to install, e.g.
   `0.34.0`. (**default:** `latest`)
 
+- `collector_config_source`: Source path to the Collector config YAML file.
+  This file will be copied to the `collector_config_dest` path on the node. See
+  the [source attribute](https://docs.chef.io/resources/remote_file/) of the
+  file resource for supported value types. The default source file is provided
+  by the Collector package. (**default:**
+  `/etc/otel/collector/agent_config.yaml` on Linux,
+  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent_config.yaml` on Windows)
+
+- `collector_config_dest`: Destination path of the Collector config file on the
+  node. The `SPLUNK_CONFIG` environment variable will be set with this value
+  for the Collector service. (**default:**
+  `/etc/otel/collector/agent_config.yaml` on Linux,
+  `%PROGRAMDATA%\Splunk\OpenTelemetry Collector\agent_config.yaml` on Windows)
+
+- `node['splunk-otel-collector']['collector_config']`: The Collector
+  configuration object. Everything underneath this object gets directly
+  converted to YAML and becomes the Collector config file. Using this option
+  preempts `collector_config_source` functionality. (**default:** `{}`)
+
 - `splunk_memory_total_mib`: Amount of memory in MiB allocated to the
   Collector. The `SPLUNK_MEMORY_TOTAL_MIB` environment variable will be set
   with this value for the Collector service. (**default:** `512`)
@@ -85,6 +99,41 @@ required `splunk_access_token` attribute and some optional attributes:
   This should be set to 1/3 to 1/2 of configured memory. The
   `SPLUNK_BALLAST_SIZE_MIB` environment variable will be set with this value
   for the Collector service. (**default:** `''`)
+
+- `splunk_service_user` and `splunk_service_group` (Linux only): Set the
+  user/group ownership for the Collector service. The user/group will be
+  created if they do not exist. (**default:** `splunk-otel-collector`)
+
+- `package_stage`: The Collector package repository stage to use.  Can be
+  `release`, `beta`, or `test`. (**default:** `release`)
+
+- `with_fluentd`: Whether to install/manage Fluentd and dependencies for log
+  collection. On Linux, the dependencies include [capng_c](
+  https://github.com/fluent-plugins-nursery/capng_c) for enabling
+  [Linux capabilities](https://docs.fluentd.org/deployment/linux-capability),
+  [fluent-plugin-systemd](
+  https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) for systemd
+  journal log collection, and the required libraries/development tools.
+  (**default:** `true`)
+
+- `fluentd_version`: Version of the [td-agent](
+  https://www.fluentd.org/download) (Fluentd) package to install (**default:**
+  `3.7.1` for Debian stretch, and `4.3.1` for all other Linux distros and
+  Windows)
+
+- `fluentd_config_source`: Source path to the Fluentd config file. This file
+  will be copied to the `fluentd_config_dest` path on the node. See the
+  [source attribute](https://docs.chef.io/resources/remote_file/) of the file
+  resource for supported value types. The default source file is provided by
+  the Collector package. Only applicable if `with_fluentd` is set to true.
+  (**default:** `/etc/otel/collector/fluentd/fluent.conf` on Linux, 
+  `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf` on Windows)
+
+- `fluentd_config_dest` (Linux only): Destination path to the Fluentd config
+  file on the node. Only applicable if `with_fluentd` is set to `true`.
+  **Note**: On Windows, the path will always be set to
+  `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf`. (**default:**
+  `/etc/otel/collector/fluentd/fluent.conf`)
 
 - `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
   https://github.com/signalfx/splunk-otel-collector/blob/main/internal/extension/smartagentextension/README.md).
@@ -104,55 +153,3 @@ required `splunk_access_token` attribute and some optional attributes:
   `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd`
   on Windows)
 
-- `collector_config_source`: Source path to the Collector config YAML file.
-  This file will be copied to the `collector_config_dest` path on the node. See
-  the [source attribute](https://docs.chef.io/resources/remote_file/) of the
-  file resource for supported value types. The default source file is provided
-  by the Collector package. (**default:**
-  `/etc/otel/collector/agent_config.yaml` on Linux,
-  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent_config.yaml` on Windows)
-
-- `collector_config_dest`: Destination path of the Collector config file on the
-  node. The `SPLUNK_CONFIG` environment variable will be set with this value
-  for the Collector service. (**default:**
-  `/etc/otel/collector/agent_config.yaml` on Linux,
-  `%PROGRAMDATA%\Splunk\OpenTelemetry Collector\agent_config.yaml` on Windows)
-
-- `package_stage`: The Collector package repository stage to use.  Can be
-  `release`, `beta`, or `test`. (**default:** `release`)
-
-- `splunk_service_user` and `splunk_service_group` (Linux only): Set the
-  user/group ownership for the Collector service. The user/group will be
-  created if they do not exist. (**default:** `splunk-otel-collector`)
-
-- `with_fluentd`: Whether to install/manage Fluentd and dependencies for log
-  collection. On Linux, the dependencies include [capng_c](
-  https://github.com/fluent-plugins-nursery/capng_c) for enabling
-  [Linux capabilities](https://docs.fluentd.org/deployment/linux-capability),
-  [fluent-plugin-systemd](
-  https://github.com/fluent-plugin-systemd/fluent-plugin-systemd) for systemd
-  journal log collection, and the required libraries/development tools.
-  (**default:** `true`)
-
-- `fluentd_version`: Version of the [td-agent](
-  https://www.fluentd.org/download) (Fluentd) package to install (**default:**
-  `3.7.1` for Debian stretch, and `4.3.0` for all other Linux distros and
-  Windows)
-
-- `fluentd_config_source`: Source path to the Fluentd config file. This file
-  will be copied to the `fluentd_config_dest` path on the node. See the
-  [source attribute](https://docs.chef.io/resources/remote_file/) of the file
-  resource for supported value types. The default source file is provided by
-  the Collector package. Only applicable if `with_fluentd` is set to true.
-  (**default:** `/etc/otel/collector/fluentd/fluent.conf` on Linux, 
-  `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf` on Windows)
-
-- `fluentd_config_dest` (Linux only): Destination path to the Fluentd config
-  file on the node. Only applicable if `with_fluentd` is set to `true`.
-  **Note**: On Windows, the path will always be set to
-  `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf`. (**default:**
-  `/etc/otel/collector/fluentd/fluent.conf`)
-
-- `node['splunk-otel-collector']['collector_config']`: The Collector
-  configuration object. Everything underneath this object gets directly
-  converted to YAML and becomes the Collector config file. (**default:** `{}`)

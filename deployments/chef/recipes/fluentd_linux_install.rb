@@ -1,9 +1,9 @@
-# Cookbook:: splunk-otel-collector
+# Cookbook:: splunk_otel_collector
 # Recipe:: fluentd_linux_install
 
 package 'td-agent' do
   action :install
-  version node['splunk-otel-collector']['fluentd_version']
+  version node['splunk_otel_collector']['fluentd_version']
   flush_cache [ :before ] if platform_family?('amazon', 'rhel')
   options '--allow-downgrades' if platform_family?('debian') \
     && node['packages'] \
@@ -21,7 +21,7 @@ directory '/etc/systemd/system/td-agent.service.d' do
 end
 
 file '/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf' do
-  content "[Service]\nEnvironment=FLUENT_CONF=#{node['splunk-otel-collector']['fluentd_config_dest']}"
+  content "[Service]\nEnvironment=FLUENT_CONF=#{node['splunk_otel_collector']['fluentd_config_dest']}"
   mode '0644'
   notifies :run, 'execute[systemctl daemon-reload td-agent]', :immediately
   action :create
@@ -59,12 +59,12 @@ service 'td-agent' do
   action [:enable, :start]
 end
 
-directory ::File.dirname(node['splunk-otel-collector']['fluentd_config_dest']) do
+directory ::File.dirname(node['splunk_otel_collector']['fluentd_config_dest']) do
   action :create
 end
 
-remote_file node['splunk-otel-collector']['fluentd_config_dest'] do
-  source "#{node['splunk-otel-collector']['fluentd_config_source']}"
+remote_file node['splunk_otel_collector']['fluentd_config_dest'] do
+  source "#{node['splunk_otel_collector']['fluentd_config_source']}"
   owner 'td-agent'
   group 'td-agent'
   mode '0644'

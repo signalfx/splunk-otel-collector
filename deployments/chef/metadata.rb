@@ -1,9 +1,9 @@
-name 'splunk-otel-collector'
+name 'splunk_otel_collector'
 maintainer 'Splunk, Inc.'
 maintainer_email 'signalfx-support@splunk.com'
 license 'Apache-2.0'
 description 'Install/Configure the Splunk OpenTelemetry Collector'
-version '0.1.0'
+version '0.2.0'
 chef_version '>= 16.0'
 
 supports 'amazon'

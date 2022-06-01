@@ -652,3 +652,21 @@ cve-scan:
         curl -X POST ${SLACK_WEBHOOK_URL} -H 'Content-Type: application/json' \
           --data "{\"blocks\": [{\"type\": \"section\",\"text\": {\"type\": \"mrkdwn\",\"text\": \"*@here Gitlab Job #${CI_JOB_ID}*\"}},{\"type\": \"section\",\"text\": {\"type\": \"mrkdwn\",\"text\": \"*:ghost: Vulnerability scan failed on splunk-otel-collector*\"},\"accessory\": {\"type\": \"button\",\"text\": {\"type\": \"plain_text\",\"text\": \"More Info\",\"emoji\": true},\"style\": \"danger\",\"url\": \"${CI_JOB_URL}\",\"action_id\": \"button-action\"}}]}"
       fi
+
+chef-release:
+  image: '${DOCKER_HUB_REPO}/ruby:2.7-buster'
+  stage: release
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^chef-v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  before_script:
+    - mkdir -p ~/.chef
+    - cat "$CHEF_PEM" > ~/.chef/signalfx.pem
+    - cat "$CHEF_KNIFE_RB" > ~/.chef/knife.rb
+    - gem install knife
+    - mkdir -p /tmp/cookbooks
+    - cp -r deployments/chef /tmp/cookbooks/splunk_otel_collector
+  script:
+    - knife supermarket share -o /tmp/cookbooks splunk_otel_collector

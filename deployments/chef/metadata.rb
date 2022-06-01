@@ -1,4 +1,4 @@
-name 'splunk-otel-collector'
+name 'splunk_otel_collector'
 maintainer 'Splunk, Inc.'
 maintainer_email 'signalfx-support@splunk.com'
 license 'Apache-2.0'

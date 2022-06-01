@@ -1,0 +1,56 @@
+name: Chef
+
+# This workflow is triggered by any change in deployments/chef/metadata.rb of the main branch.
+# The 'version' property is read from this file, and a new 'chef-v<VERSION>' tag is pushed if it does not already exist.
+
+on:
+  push:
+    paths:
+      - '.github/workflows/chef.yml'
+      - 'deployments/chef/metadata.rb'
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  push-release-tag:
+    name: Push Release Tag
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Read version from metadata.rb
+        id: read-metadata
+        run: |
+          version=$( grep -E "^version " deployments/chef/metadata.rb | sed -Ee "s/version '(.*)'/\1/" )
+          if [ -z "$version" ]; then
+            echo "Failed to get version from deployments/chef/metadata.rb"
+            exit 1
+          fi
+          echo "::set-output name=version::${version}"
+
+      - name: Push new release tag if it doesn't exist
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+              const tagRef = "tags/chef-v${{ steps.read-metadata.outputs.version }}"
+              const existingRefs = await github.rest.git.listMatchingRefs({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: tagRef
+              })
+              if (existingRefs.data.length === 0) {
+                await github.rest.git.createRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: "refs/" + tagRef,
+                  sha: context.sha
+                })
+              } else {
+                console.log(tagRef + " already exists")
+              }

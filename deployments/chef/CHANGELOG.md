@@ -2,6 +2,6 @@
 
 ## Unreleased
 
-## chef-v0.1.0
+## chef-v0.2.0
 
 - Initial release

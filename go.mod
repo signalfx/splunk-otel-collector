@@ -40,6 +40,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.52.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.52.0
@@ -112,6 +113,7 @@ require (
 	github.com/Showmax/go-fqdn v1.0.0 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
+	github.com/alecthomas/participle/v2 v2.0.0-alpha9 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/apache/arrow/go/arrow v0.0.0-20210818145353-234c94e4ce64 // indirect
 	github.com/apache/thrift v0.16.0 // indirect

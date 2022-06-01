@@ -1,22 +1,21 @@
 version: "3"
 services:
-  # Sample Go application producing logs.
   logging:
     image: bash:latest
     container_name: logging
-    command: 'bash -c "while(true) do echo \"$${date} log new message\" >> /output/file.log ; sleep 1; done"'
+    command: 'bash -c "while(true) do echo \"$$(date) log new message\" >> /output/file.log ; sleep 1; done"'
     volumes:
       - ./output:/output
   logging2:
     image: bash:latest
     container_name: logging2
-    command: 'bash -c "while(true) do echo \"$${date} log2 new message\" >> /output/file2.log ; sleep 1; done"'
+    command: 'bash -c "while(true) do echo \"$$(date) log2 new message\" >> /output/file2.log ; sleep 1; done"'
     volumes:
       - ./output:/output
   logging3:
     image: bash:latest
     container_name: logging3
-    command: 'bash -c "while(true) do echo \"$${date} log3 new message\" >> /output/file3.log ; sleep 1; done"'
+    command: 'bash -c "while(true) do echo \"$$(date) log3 new message\" >> /output/file3.log ; sleep 1; done"'
     volumes:
       - ./output:/output
   # Splunk Enterprise server:

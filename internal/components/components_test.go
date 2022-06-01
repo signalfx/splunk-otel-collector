@@ -81,6 +81,7 @@ func TestDefaultComponents(t *testing.T) {
 		"resourcedetection",
 		"routing",
 		"span",
+		"transform",
 	}
 	expectedExporters := []config.Type{
 		"file",

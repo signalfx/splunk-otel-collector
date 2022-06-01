@@ -1,3 +1,3 @@
 <% require 'yaml' %>
-<% collector_config = node['splunk-otel-collector']['collector_config'].to_hash %>
+<% collector_config = node['splunk_otel_collector']['collector_config'].to_hash %>
 <%= collector_config.to_yaml %>

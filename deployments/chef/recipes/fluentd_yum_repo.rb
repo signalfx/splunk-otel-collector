@@ -1,7 +1,7 @@
-# Cookbook:: splunk-otel-collector
+# Cookbook:: splunk_otel_collector
 # Recipe:: collector_yum_repo
 
-td_agent_major_version = node['splunk-otel-collector']['fluentd_version'].split('.')[0]
+td_agent_major_version = node['splunk_otel_collector']['fluentd_version'].split('.')[0]
 
 distro = if platform_family?('amazon')
            'amazon'
@@ -11,15 +11,15 @@ distro = if platform_family?('amazon')
 
 yum_repository 'treasure-data' do
   description 'TreasureData Repository'
-  baseurl "#{node['splunk-otel-collector']['fluentd_base_url']}/#{td_agent_major_version}/#{distro}/$releasever/$basearch"
+  baseurl "#{node['splunk_otel_collector']['fluentd_base_url']}/#{td_agent_major_version}/#{distro}/$releasever/$basearch"
   gpgcheck true
-  gpgkey "#{node['splunk-otel-collector']['fluentd_base_url']}/GPG-KEY-td-agent"
+  gpgkey "#{node['splunk_otel_collector']['fluentd_base_url']}/GPG-KEY-td-agent"
   enabled true
   action :create
   notifies :run, 'execute[add-rhel-key]', :immediately
 end
 
 execute 'add-rhel-key' do
-  command "rpm --import #{node['splunk-otel-collector']['fluentd_base_url']}/GPG-KEY-td-agent"
+  command "rpm --import #{node['splunk_otel_collector']['fluentd_base_url']}/GPG-KEY-td-agent"
   action :nothing
 end

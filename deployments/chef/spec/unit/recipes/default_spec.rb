@@ -6,12 +6,12 @@
 
 require 'spec_helper'
 
-describe 'splunk-otel-collector::default' do
+describe 'splunk_otel_collector::default' do
   context 'on the Linux platform family' do
     context 'on debian-family distro' do
       cached(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'ubuntu', version: '16.04') do |node|
-          node.normal['splunk-otel-collector'] = {
+          node.normal['splunk_otel_collector'] = {
             'splunk_access_token' => 'test123',
             'splunk_realm' => 'test',
           }
@@ -30,7 +30,7 @@ describe 'splunk-otel-collector::default' do
     context 'on amazon-family distro' do
       cached(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'amazon', version: '2') do |node|
-          node.normal['splunk-otel-collector'] = {
+          node.normal['splunk_otel_collector'] = {
             'splunk_access_token' => 'test123',
             'splunk_realm' => 'test',
           }
@@ -49,7 +49,7 @@ describe 'splunk-otel-collector::default' do
     context 'on RedHat-family distro' do
       cached(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'centos', version: '7') do |node|
-          node.normal['splunk-otel-collector'] = {
+          node.normal['splunk_otel_collector'] = {
             'splunk_access_token' => 'test123',
             'splunk_realm' => 'test',
           }
@@ -68,7 +68,7 @@ describe 'splunk-otel-collector::default' do
     context 'on suse-family distro' do
       cached(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'suse', version: '15') do |node|
-          node.normal['splunk-otel-collector'] = {
+          node.normal['splunk_otel_collector'] = {
             'splunk_access_token' => 'test123',
             'splunk_realm' => 'test',
           }
@@ -106,7 +106,7 @@ describe 'splunk-otel-collector::default' do
     context 'on windows-family distro' do
       cached(:chef_run) do
         ChefSpec::SoloRunner.new(platform: 'windows', version: '2019') do |node|
-          node.normal['splunk-otel-collector'] = {
+          node.normal['splunk_otel_collector'] = {
             'splunk_access_token' => 'test123',
             'splunk_realm' => 'test',
             'collector_version' => '0.41.1',

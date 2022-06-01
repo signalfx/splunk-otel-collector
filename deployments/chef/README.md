@@ -32,7 +32,7 @@ Currently, the following Windows versions are supported:
 ## Usage
 
 To install the Collector and Fluentd, include the
-`splunk-otel-collector::default` recipe in the `run_list`, and set the
+`splunk_otel_collector::default` recipe in the `run_list`, and set the
 attributes on the node's `run_state`. Below is an example to configure the
 required `splunk_access_token` attribute and some optional attributes:
 ```yaml 
@@ -85,7 +85,7 @@ required `splunk_access_token` attribute and some optional attributes:
   `/etc/otel/collector/agent_config.yaml` on Linux,
   `%PROGRAMDATA%\Splunk\OpenTelemetry Collector\agent_config.yaml` on Windows)
 
-- `node['splunk-otel-collector']['collector_config']`: The Collector
+- `node['splunk_otel_collector']['collector_config']`: The Collector
   configuration object. Everything underneath this object gets directly
   converted to YAML and becomes the Collector config file. Using this option
   preempts `collector_config_source` functionality. (**default:** `{}`)

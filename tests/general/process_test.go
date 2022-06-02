@@ -1,6 +1,9 @@
 package tests
 
 import (
+	"io/ioutil"
+	"log"
+	"net/http"
 	"path"
 	"strings"
 	"testing"
@@ -52,6 +55,44 @@ func TestCollectorProcessWithMultipleConfigs(t *testing.T) {
 			}
 		}
 		return false
+	}, 20*time.Second, time.Second)
+
+	require.Eventually(t, func() bool {
+		// Need expected configs for comparison to config server contents. Sections in the config server can be in
+		// different orders, so ensure the proper sections are in place without enforcing order requirements.
+		expectedBodySections := []string{
+			"receivers:\n  hostmetrics:\n    collection_interval: 10s\n    scrapers:\n      cpu: null\n      disk: null\n      filesystem: null\n      memory: null\n      network: null\n",
+			"processors:\n  resourcedetection:\n    detectors:\n    - system\n",
+			"exporters:\n  otlp:\n    endpoint: localhost:23456\n    tls:\n      insecure: true\n",
+			"service:\n  pipelines:\n    metrics:\n      exporters:\n      - otlp\n      processors:\n      - resourcedetection\n      receivers:\n      - hostmetrics",
+		}
+		// There aren't any keys or tokens in test configs, so initial and effective have the same contents.
+		// We don't need to test the token removal functionality for the effective server here since config server
+		// tests already cover it.
+		configServerURLs := []string{
+			"http://localhost:55554/debug/configz/initial",
+			"http://localhost:55554/debug/configz/effective",
+		}
+
+		for _, url := range configServerURLs {
+			resp, err := http.Get(url)
+			if err != nil {
+				return false
+			}
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			sb := string(body)
+
+			for _, bodySection := range expectedBodySections {
+				if !strings.Contains(sb, bodySection) {
+					return false
+				}
+			}
+		}
+
+		return true
 	}, 20*time.Second, time.Second)
 
 	err = collector.Shutdown()

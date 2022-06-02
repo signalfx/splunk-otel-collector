@@ -31,8 +31,6 @@ exporters:
         # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
         # For this demo, we use a self-signed certificate on the Splunk docker instance, so this flag is set to true.
         insecure_skip_verify: true
-    logging:
-      loglevel: debug
 processors:
     batch:
     attributes/log:
@@ -83,4 +81,4 @@ service:
       logs:
         receivers: [filelog]
         processors: [batch, attributes/log, attributes/log2, attributes/log3]
-        exporters: [splunk_hec/logs, logging]
+        exporters: [splunk_hec/logs]

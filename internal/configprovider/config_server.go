@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
@@ -27,26 +28,65 @@ import (
 )
 
 const (
-	configServerEnabledEnvVar = "SPLUNK_DEBUG_CONFIG_SERVER"
-	configServerPortEnvVar    = "SPLUNK_DEBUG_CONFIG_SERVER_PORT"
-
+	configServerEnabledEnvVar   = "SPLUNK_DEBUG_CONFIG_SERVER"
+	configServerPortEnvVar      = "SPLUNK_DEBUG_CONFIG_SERVER_PORT"
 	defaultConfigServerEndpoint = "localhost:55554"
+	effectivePath               = "/debug/configz/effective"
+	initialPath                 = "/debug/configz/initial"
 )
 
+type ConfigType int
+
+const (
+	initialConfig   ConfigType = 1
+	effectiveConfig ConfigType = 2
+)
+
+// NOTE: initial and effective should never be directly referenced. Use get/set methods instead.
+// Since we support having multiple configuration files, we have to support modifying initial and effective
+// maps. This requires locking, implemented in the get/set methods.
 type configServer struct {
-	logger    *zap.Logger
-	initial   map[string]interface{}
-	effective map[string]interface{}
-	server    *http.Server
-	doneCh    chan struct{}
+	logger              *zap.Logger
+	initial             map[string]interface{}
+	effective           map[string]interface{}
+	server              *http.Server
+	doneCh              chan struct{}
+	initialConfigSync   sync.RWMutex
+	effectiveConfigSync sync.RWMutex
 }
 
 func newConfigServer(logger *zap.Logger, initial, effective map[string]interface{}) *configServer {
-	return &configServer{
-		logger:    logger,
-		initial:   initial,
-		effective: effective,
+	cs := &configServer{
+		logger: logger,
 	}
+	cs.setInitial(initial)
+	cs.setEffective(effective)
+
+	return cs
+}
+
+func (cs *configServer) setInitial(config map[string]interface{}) {
+	cs.initialConfigSync.Lock()
+	cs.initial = config
+	cs.initialConfigSync.Unlock()
+}
+
+func (cs *configServer) setEffective(config map[string]interface{}) {
+	cs.effectiveConfigSync.Lock()
+	cs.effective = config
+	cs.effectiveConfigSync.Unlock()
+}
+
+func (cs *configServer) getInitial() map[string]interface{} {
+	cs.initialConfigSync.RLock()
+	defer cs.initialConfigSync.RUnlock()
+	return cs.initial
+}
+
+func (cs *configServer) getEffective() map[string]interface{} {
+	cs.effectiveConfigSync.RLock()
+	defer cs.effectiveConfigSync.RUnlock()
+	return cs.effective
 }
 
 func (cs *configServer) start() error {
@@ -72,17 +112,17 @@ func (cs *configServer) start() error {
 
 	mux := http.NewServeMux()
 
-	initialHandleFunc, err := cs.muxHandleFunc(cs.initial)
+	initialHandleFunc := cs.muxHandleFunc(initialConfig)
 	if err != nil {
 		return err
 	}
-	mux.HandleFunc("/debug/configz/initial", initialHandleFunc)
+	mux.HandleFunc(initialPath, initialHandleFunc)
 
-	effectiveHandleFunc, err := cs.muxHandleFunc(simpleRedact(cs.effective))
+	effectiveHandleFunc := cs.muxHandleFunc(effectiveConfig)
 	if err != nil {
 		return err
 	}
-	mux.HandleFunc("/debug/configz/effective", effectiveHandleFunc)
+	mux.HandleFunc(effectivePath, effectiveHandleFunc)
 
 	cs.server = &http.Server{
 		Handler: mux,
@@ -111,19 +151,21 @@ func (cs *configServer) shutdown() error {
 	return err
 }
 
-func (cs *configServer) muxHandleFunc(config map[string]interface{}) (func(http.ResponseWriter, *http.Request), error) {
-	configYAML, err := yaml.Marshal(config)
-	if err != nil {
-		return nil, err
-	}
-
+func (cs *configServer) muxHandleFunc(configType ConfigType) func(http.ResponseWriter, *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		if request.Method != "GET" {
 			writer.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
+
+		var configYAML []byte
+		if configType == initialConfig {
+			configYAML, _ = yaml.Marshal(cs.getInitial())
+		} else {
+			configYAML, _ = yaml.Marshal(simpleRedact(cs.getEffective()))
+		}
 		_, _ = writer.Write(configYAML)
-	}, nil
+	}
 }
 
 func simpleRedact(config map[string]interface{}) map[string]interface{} {

@@ -35,7 +35,7 @@ import (
 func TestConfigSourceConfigMapProvider(t *testing.T) {
 	tests := []struct {
 		parserProvider config.MapProvider
-		configLocation string
+		configLocation []string
 		wantErr        error
 		name           string
 		factories      []Factory
@@ -66,14 +66,20 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				},
 			},
 			parserProvider: filemapprovider.New(),
-			configLocation: "file:" + path.Join("testdata", "basic_config.yaml"),
+			configLocation: []string{"file:" + path.Join("testdata", "basic_config.yaml")},
 			wantErr:        &errConfigSourceCreation{},
 		},
 		{
 			name:           "manager_resolve_error",
 			parserProvider: filemapprovider.New(),
-			configLocation: "file:" + path.Join("testdata", "manager_resolve_error.yaml"),
+			configLocation: []string{"file:" + path.Join("testdata", "manager_resolve_error.yaml")},
 			wantErr:        fmt.Errorf("error not wrappedProviders by specific error type: %w", configsource.ErrSessionClosed),
+		},
+		{
+			name:           "multiple_config_success",
+			parserProvider: filemapprovider.New(),
+			configLocation: []string{"file:" + path.Join("testdata", "arrays_and_maps_expected.yaml"),
+				"file:" + path.Join("testdata", "yaml_injection_expected.yaml")},
 		},
 	}
 
@@ -100,15 +106,27 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				cspp.wrappedProvider = tt.parserProvider
 			}
 
-			r, err := pp.Retrieve(context.Background(), tt.configLocation, nil)
-			rMap, _ := r.AsMap()
-			if tt.wantErr == nil {
-				require.NoError(t, err)
-				require.NotNil(t, rMap)
-			} else {
-				assert.IsType(t, tt.wantErr, err)
-				assert.Nil(t, rMap)
-				return
+			// Need to run Retrieve method no matter what, so we can't just iterate passed in config locations
+			i := 0
+			for ok := true; ok; {
+				var configLocation string
+				if tt.configLocation != nil {
+					configLocation = tt.configLocation[i]
+				} else {
+					configLocation = ""
+				}
+				r, err := pp.Retrieve(context.Background(), configLocation, nil)
+				rMap, _ := r.AsMap()
+				if tt.wantErr == nil {
+					require.NoError(t, err)
+					require.NotNil(t, rMap)
+				} else {
+					assert.IsType(t, tt.wantErr, err)
+					assert.Nil(t, rMap)
+					return
+				}
+				i++
+				ok = i < len(tt.configLocation)
 			}
 
 			var watchForUpdatedError error

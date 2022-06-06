@@ -90,7 +90,7 @@ func TestSpecifiedContainerConfigDefaultsToCmdLineArgIfEnvVarConflict(t *testing
 			if strings.Contains(
 				log.Message,
 				`Both environment variable SPLUNK_CONFIG and flag '--config' were specified. `+
-					`Using the flag value /etc/config.yaml and ignoring the environment variable value `+
+					`Using the flag values and ignoring the environment variable value `+
 					`/not/a/real/path in this session`,
 			) {
 				return true

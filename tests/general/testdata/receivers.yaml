@@ -1,0 +1,9 @@
+receivers:
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      filesystem:
+      memory:
+      network:
+      cpu:
+      disk:

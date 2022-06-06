@@ -18,13 +18,10 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -65,8 +62,14 @@ func main() {
 	// TODO: Use same format as the collector
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	if !hasFlag("-h") && !hasFlag("--help") && !hasFlag("-v") && !hasFlag("--version") {
-		checkRuntimeParams()
+	// Core flag parser will handle errors, we don't have to handle them here.
+	inputFlags, err := parseFlags(os.Args[1:])
+	if err != nil {
+		log.Fatalf("Error: %v\nUse \"--help\" to show valid usage", err)
+	}
+
+	if !inputFlags.help && !inputFlags.version {
+		checkRuntimeParams(inputFlags)
 		setDefaultEnvVars()
 	}
 
@@ -85,13 +88,14 @@ func main() {
 	}
 
 	configMapConverters := []config.MapConverter{
-		overwritepropertiesmapconverter.New(getSetProperties()),
+		overwritepropertiesmapconverter.New(inputFlags.sets.values),
 	}
 
-	const noConvertConfigFlag = "--no-convert-config"
-	if hasFlag(noConvertConfigFlag) {
-		// the collector complains about this flag if we don't remove it
-		removeFlag(&os.Args, noConvertConfigFlag)
+	if inputFlags.noConvertConfig {
+		// the collector complains about this flag if we don't remove it. Unfortunately,
+		// this must be done manually since the flag library has no functionality to remove
+		// args
+		removeFlag(&os.Args, "--no-convert-config")
 	} else {
 		configMapConverters = append(
 			configMapConverters,
@@ -106,7 +110,7 @@ func main() {
 	fmp := filemapprovider.New()
 	serviceConfigProvider, err := service.NewConfigProvider(
 		service.ConfigProviderSettings{
-			Locations: []string{configLocation()},
+			Locations: configLocations(inputFlags),
 			MapProviders: map[string]config.MapProvider{
 				emp.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
 					emp,
@@ -138,85 +142,12 @@ func main() {
 	}
 }
 
-// required to support --set functionality no longer directly parsed by the core config loader.
-// taken from https://github.com/open-telemetry/opentelemetry-collector/blob/48a2e01652fa679c89259866210473fc0d42ca95/service/flags.go#L39
-type stringArrayValue struct {
-	values []string
-}
-
-func (s *stringArrayValue) Set(val string) error {
-	s.values = append(s.values, val)
-	return nil
-}
-
-func (s *stringArrayValue) String() string {
-	return "[" + strings.Join(s.values, ",") + "]"
-}
-
-func getSetProperties() []string {
-	properties := &stringArrayValue{}
-	flagSet := flag.NewFlagSet("", flag.ContinueOnError)
-	flagSet.SetOutput(io.Discard)
-	flagSet.Var(properties, "set", "")
-	// we are only interested in the --set option so ignore errors
-	_ = flagSet.Parse(os.Args[1:])
-	return properties.values
-}
-
-func hasFlag(flag string) bool {
-	return contains(os.Args[1:], flag)
-}
-
-// Check whether a string exists in an array of CLI arguments
-// Support key/value with and without an equal sign
-func contains(arr []string, str string) bool {
-	for _, a := range arr {
-		// Command line argument may be of form
-		// --key value OR --key=value
-		if a == str {
-			return true
-		} else if strings.Contains(a, str+"=") {
-			return true
-		}
-	}
-	return false
-}
-
-func removeFlag(flags *[]string, flag string) {
-	var out []string
-	for _, s := range *flags {
-		if s != flag {
-			out = append(out, s)
-		}
-	}
-	*flags = out
-}
-
-// Get the value of a key in an array
-// Support key/value with and with an equal sign
-func getKeyValue(args []string, arg string) (exists bool, value string) {
-	argEq := arg + "="
-	for i := range args {
-		switch {
-		case strings.HasPrefix(args[i], argEq):
-			return true, strings.SplitN(args[i], "=", 2)[1]
-		case args[i] == arg:
-			exists = true
-			if i < (len(args) - 1) {
-				value = args[i+1]
-			}
-			return
-		}
-	}
-	return
-}
-
 // Check runtime parameters
 // Runtime parameters take priority over environment variables
 // Config and ballast flags are checked
 // Config and all memory env vars are checked
-func checkRuntimeParams() {
-	checkConfig()
+func checkRuntimeParams(inputFlags flags) {
+	checkConfig(inputFlags)
 
 	// Set default total memory
 	memTotalSize := defaultMemoryTotalMiB
@@ -231,7 +162,7 @@ func checkRuntimeParams() {
 		}
 	}
 
-	ballastSize := setMemoryBallast(memTotalSize)
+	ballastSize := setMemoryBallast(inputFlags, memTotalSize)
 	memLimit := setMemoryLimit(memTotalSize)
 
 	// Validate memoryLimit and memoryBallast are sane
@@ -240,63 +171,67 @@ func checkRuntimeParams() {
 	}
 }
 
-// Sets flag '--config' to specified env var SPLUNK_CONFIG, if the flag not specified.
-// Logs a message and returns if env var SPLUNK_CONFIG_YAML specified, and '--config' and SPLUNK_CONFIG not specified.
-// Sets '--config' to default config file path if '--config', SPLUNK_CONFIG and SPLUNK_CONFIG_YAML not specified.
-func checkConfig() {
-	configPathFlagExists, configPathFlag := getKeyValue(os.Args[1:], "--config")
+func checkInputConfigs(inputFlags flags) {
 	configPathVar := os.Getenv(configEnvVarName)
 	configYaml := os.Getenv(configYamlEnvVarName)
 
-	if configPathFlagExists && configPathFlag == "" {
-		log.Fatal("Command line flag --config specified but empty")
+	for _, filePath := range inputFlags.configs.values {
+		if _, err := os.Stat(filePath); err != nil {
+			log.Fatalf("Unable to find the configuration file (%s) ensure flag '--config' is set properly", filePath)
+		}
 	}
 
-	if configPathFlag != "" {
-		if _, err := os.Stat(configPathFlag); err != nil {
-			log.Fatalf("Unable to find the configuration file (%s) ensure flag '--config' is set properly", configPathFlag)
-		}
-
-		if configPathVar != "" && configPathVar != configPathFlag {
-			log.Printf("Both environment variable %v and flag '--config' were specified. Using the flag value %s and ignoring the environment variable value %s in this session", configEnvVarName, configPathFlag, configPathVar)
-		}
-
-		if configYaml != "" {
-			log.Printf("Both environment variable %s and flag '--config' were specified. Using the flag value %s and ignoring the environment variable in this session", configYamlEnvVarName, configPathFlag)
-		}
-
-		checkRequiredEnvVars(configPathFlag)
-
-		log.Printf("Set config to %v", configPathFlag)
-		return
-	}
-
-	if configPathVar != "" {
-		if _, err := os.Stat(configPathVar); err != nil {
-			log.Fatalf("Unable to find the configuration file (%s) ensure %s environment variable is set properly", configPathVar, configEnvVarName)
-		}
-
-		os.Args = append(os.Args, "--config="+configPathVar)
-
-		if configYaml != "" {
-			log.Printf("Both %s and %s were specified. Using %s environment variable value %s for this session", configEnvVarName, configYamlEnvVarName, configEnvVarName, configPathVar)
-		}
-
-		checkRequiredEnvVars(configPathVar)
-
-		log.Printf("Set config to %v", configPathVar)
-		return
+	if configPathVar != "" && !inputFlags.configs.contains(configPathVar) {
+		log.Printf("Both environment variable %v and flag '--config' were specified. Using the flag values and ignoring the environment variable value %s in this session", configEnvVarName, configPathVar)
 	}
 
 	if configYaml != "" {
-		log.Printf("Using environment variable %s for configuration", configYamlEnvVarName)
-		return
+		log.Printf("Both environment variable %s and flag '--config' were specified. Using the flag values and ignoring the environment variable in this session", configYamlEnvVarName)
 	}
 
-	defaultConfigPath := getExistingDefaultConfigPath()
-	checkRequiredEnvVars(defaultConfigPath)
-	os.Args = append(os.Args, "--config="+defaultConfigPath)
-	log.Printf("Set config to %v", defaultConfigPath)
+	checkRequiredEnvVars(inputFlags.configs.values)
+}
+
+func checkConfigPathEnvVar(inputFlags flags) {
+	configPathVar := os.Getenv(configEnvVarName)
+	configYaml := os.Getenv(configYamlEnvVarName)
+
+	if _, err := os.Stat(configPathVar); err != nil {
+		log.Fatalf("Unable to find the configuration file (%s) ensure %s environment variable is set properly", configPathVar, configEnvVarName)
+	}
+
+	if configYaml != "" {
+		log.Printf("Both %s and %s were specified. Using %s environment variable value %s for this session", configEnvVarName, configYamlEnvVarName, configEnvVarName, configPathVar)
+	}
+
+	if !inputFlags.configs.contains(configPathVar) {
+		_ = inputFlags.configs.Set(configPathVar)
+	}
+
+	checkRequiredEnvVars(inputFlags.configs.values)
+}
+
+// Config priority queue (highest to lowest): '--config' flag, SPLUNK_CONFIG env var,
+// SPLUNK_CONFIG_YAML env var, default config path.
+func checkConfig(inputFlags flags) {
+	configPathVar := os.Getenv(configEnvVarName)
+	configYaml := os.Getenv(configYamlEnvVarName)
+
+	switch {
+	case len(inputFlags.configs.values) != 0:
+		checkInputConfigs(inputFlags)
+		log.Printf("Set config to %v", inputFlags.configs.String())
+	case configPathVar != "":
+		checkConfigPathEnvVar(inputFlags)
+		log.Printf("Set config to %v", configPathVar)
+	case configYaml != "":
+		log.Printf("Using environment variable %s for configuration", configYamlEnvVarName)
+	default:
+		defaultConfigPath := getExistingDefaultConfigPath()
+		inputFlags.configs.Set(defaultConfigPath)
+		checkRequiredEnvVars(inputFlags.configs.values)
+		log.Printf("Set config to %v", defaultConfigPath)
+	}
 }
 
 func getExistingDefaultConfigPath() (path string) {
@@ -310,34 +245,35 @@ func getExistingDefaultConfigPath() (path string) {
 	return
 }
 
-func checkRequiredEnvVars(path string) {
+func checkRequiredEnvVars(paths []string) {
 	// Check environment variables required by default configuration.
-	switch path {
-	case
-		defaultDockerSAPMConfig,
-		defaultDockerOTLPConfig,
-		defaultLocalSAPMConfig,
-		defaultLocalOTLPConfig:
-		requiredEnvVars := []string{realmEnvVarName, tokenEnvVarName}
-		for _, v := range requiredEnvVars {
-			if len(os.Getenv(v)) == 0 {
-				log.Printf("Usage: %s=12345 %s=us0 %s", tokenEnvVarName, realmEnvVarName, os.Args[0])
-				log.Fatalf("ERROR: Missing required environment variable %s with default config path %s", v, path)
+	for _, path := range paths {
+		switch path {
+		case
+			defaultDockerSAPMConfig,
+			defaultDockerOTLPConfig,
+			defaultLocalSAPMConfig,
+			defaultLocalOTLPConfig:
+			requiredEnvVars := []string{realmEnvVarName, tokenEnvVarName}
+			for _, v := range requiredEnvVars {
+				if len(os.Getenv(v)) == 0 {
+					log.Printf("Usage: %s=12345 %s=us0 %s", tokenEnvVarName, realmEnvVarName, os.Args[0])
+					log.Fatalf("ERROR: Missing required environment variable %s with default config path %s", v, path)
+				}
 			}
 		}
 	}
 }
 
 // Validate and set the memory ballast
-func setMemoryBallast(memTotalSizeMiB int) int {
+func setMemoryBallast(inputFlags flags, memTotalSizeMiB int) int {
 	// Check if deprecated memory ballast flag was passed, if so, ensure the env variable for memory ballast is set.
 	// Then set memory ballast and limit properly
-	_, ballastSizeFlag := getKeyValue(os.Args[1:], "--mem-ballast-size-mib")
-	if ballastSizeFlag != "" {
+	if inputFlags.memBallastSizeMib != defaultUndeclaredFlag {
 		if os.Getenv(ballastEnvVarName) != "" {
 			log.Fatalf("Both %v and '--mem-ballast-size-mib' were specified, but only one is allowed", ballastEnvVarName)
 		}
-		_ = os.Setenv(ballastEnvVarName, ballastSizeFlag)
+		_ = os.Setenv(ballastEnvVarName, strconv.Itoa(inputFlags.memBallastSizeMib))
 	}
 
 	ballastSize := memTotalSizeMiB * defaultMemoryBallastPercentage / 100
@@ -394,20 +330,25 @@ func setDefaultEnvVars() {
 	}
 }
 
-// configLocation returns a config location based on provided environment variables and --config argument.
-func configLocation() string {
-	var configPath string
-	var ok bool
-	if ok, configPath = getKeyValue(os.Args[1:], "--config"); !ok {
-		configPath = os.Getenv(configEnvVarName)
+// configLocations returns a config location based on provided environment variables and --config argument.
+func configLocations(inputFlags flags) []string {
+	var configPaths []string
+	if configPaths = inputFlags.configs.values; len(configPaths) == 0 {
+		if configEnvVal := os.Getenv(configEnvVarName); len(configEnvVal) != 0 {
+			configPaths = []string{"file:" + configEnvVal}
+		}
 	}
+
 	configYaml := os.Getenv(configYamlEnvVarName)
 
-	if configPath == "" && configYaml != "" {
-		return "env:" + configYamlEnvVarName
+	switch {
+	case len(configPaths) == 0 && configYaml != "":
+		return []string{"env:" + configYamlEnvVarName}
+	case len(configPaths) == 0:
+		return []string{""}
+	default:
+		return configPaths
 	}
-
-	return "file:" + configPath
 }
 
 func runInteractive(settings service.CollectorSettings) error {

@@ -1,0 +1,6 @@
+service:
+  pipelines:
+    metrics:
+      receivers: [ hostmetrics ]
+      processors: [ resourcedetection ]
+      exporters: [ otlp ]

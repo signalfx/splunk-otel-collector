@@ -481,4 +481,4 @@ replace github.com/googleapis/gnostic v0.5.6 => github.com/googleapis/gnostic v0
 exclude go.opencensus.io v0.19.1
 
 // A kubeletstatsreceiver regression was introduced in v0.52.0 (Splunk charts break for pod and container metrics)
-replace github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver => github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.51.0
+replace github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver => github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.51.0 // ignore-update-deps

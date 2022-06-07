@@ -149,7 +149,7 @@ how to use the role in a playbook with minimal required configuration:
   https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation).
   When set to `true`, the `splunk-otel-auto-instrumentation` deb/rpm package
   will be downloaded and installed from the Collector repository. **Note:** The
-  Java application on the node need to be started/restarted separately after
+  Java application on the node needs to be started/restarted separately after
   installation in order for auto instrumentation to take effect.
   (**default:** `false`)
 
@@ -196,5 +196,5 @@ how to use the role in a playbook with minimal required configuration:
   service name is automatically derived from the arguments of the Java
   executable on the node. The specifed service name will be added to the
   `/usr/lib/splunk-instrumentation/instrumentation.conf` config file on the
-  node. **Note:** The Java application on the node needs to be restarted
+  node, overriding any generated service name. **Note:** The Java application on the node needs to be restarted
   separately in order for any change to take effect. (**default:** ``)

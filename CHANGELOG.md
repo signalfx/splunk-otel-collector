@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v0.52.2
+
+### 💡 Enhancements 💡
+
+- Upgrade Golang to 1.18.3 (#1633)
+- Support multiple `--config` command-line arguments (#1576)
+
 ### 🧰 Bug fixes 🧰
 
 - [`kubeletstats` receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver) introduced a regression in version 52.0 that can break metrics for Kubernetes pods and containers, pinning this receiver's version to v0.51.0 until the regression is resolved (#1638)
@@ -15,7 +22,6 @@
 ### 💡 Enhancements 💡
 
 - Initial release of [Chef cookbook](https://supermarket.chef.io/cookbooks/splunk_otel_collector) for Linux and Windows
-- Support multiple --config arguments (#1576)
 
 ## v0.52.0
 

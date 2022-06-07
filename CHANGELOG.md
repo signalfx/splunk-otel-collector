@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🧰 Bug fixes 🧰
+
+- [`kubeletstats` receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver) introduced a regression in version 52.0 that can break metrics for Kubernetes pods and containers, pinning this receiver's version to v0.51.0 until the regression is resolved (#1638)
+
 ## v0.52.1
 
 ### 🚀 New components 🚀

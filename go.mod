@@ -72,7 +72,7 @@ require (
 	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.5.0
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 	go.etcd.io/bbolt v1.3.6
 	go.etcd.io/etcd/client/v2 v2.305.4
 	go.opentelemetry.io/collector v0.52.0
@@ -408,7 +408,7 @@ require (
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.1.0 // indirect
 	k8s.io/api v0.24.0 // indirect
 	k8s.io/apimachinery v0.24.0 // indirect

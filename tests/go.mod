@@ -9,7 +9,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.22.5
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.2
 	github.com/signalfx/signalfx-go v1.20.0
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 	github.com/testcontainers/testcontainers-go v0.11.1
 	go.opentelemetry.io/collector v0.52.0
 	go.opentelemetry.io/collector/pdata v0.52.0
@@ -82,7 +82,7 @@ require (
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
 	google.golang.org/grpc v1.46.2 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 // security updates

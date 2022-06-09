@@ -26,7 +26,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension v0.52.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.52.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.53.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.52.0
@@ -48,7 +48,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.52.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.52.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.53.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.52.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.52.0
@@ -75,7 +75,7 @@ require (
 	github.com/stretchr/testify v1.7.2
 	go.etcd.io/bbolt v1.3.6
 	go.etcd.io/etcd/client/v2 v2.305.4
-	go.opentelemetry.io/collector v0.52.0
+	go.opentelemetry.io/collector v0.53.0
 	go.opentelemetry.io/otel/trace v1.7.0
 	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.21.0
@@ -83,7 +83,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-require go.opentelemetry.io/collector/pdata v0.52.0
+require go.opentelemetry.io/collector/pdata v0.53.0
 
 require (
 	cloud.google.com/go/compute v1.6.1 // indirect
@@ -249,7 +249,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/karrick/godirwalk v1.10.3 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/klauspost/compress v1.15.4 // indirect
+	github.com/klauspost/compress v1.15.6 // indirect
 	github.com/knadh/koanf v1.4.1 // indirect
 	github.com/kolo/xmlrpc v0.0.0-20201022064351-38db28db192b // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
@@ -300,7 +300,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.52.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/stanza v0.52.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.52.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.52.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.53.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus v0.52.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/signalfx v0.52.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
@@ -373,7 +373,7 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.4 // indirect
 	go.mongodb.org/atlas v0.16.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	go.opentelemetry.io/collector/semconv v0.52.0 // indirect
+	go.opentelemetry.io/collector/semconv v0.53.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.32.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.32.0 // indirect
 	go.opentelemetry.io/contrib/zpages v0.32.0 // indirect
@@ -398,7 +398,7 @@ require (
 	google.golang.org/api v0.80.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220505152158-f39f71e6c8f3 // indirect
-	google.golang.org/grpc v1.46.2 // indirect
+	google.golang.org/grpc v1.47.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/fatih/set.v0 v0.1.0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
@@ -410,9 +410,9 @@ require (
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.1.0 // indirect
-	k8s.io/api v0.24.0 // indirect
-	k8s.io/apimachinery v0.24.0 // indirect
-	k8s.io/client-go v0.24.0 // indirect
+	k8s.io/api v0.24.1 // indirect
+	k8s.io/apimachinery v0.24.1 // indirect
+	k8s.io/client-go v0.24.1 // indirect
 	k8s.io/klog/v2 v2.60.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
 	k8s.io/kubelet v0.24.0 // indirect

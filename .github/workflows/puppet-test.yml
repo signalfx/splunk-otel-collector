@@ -53,9 +53,10 @@ jobs:
     strategy:
       matrix:
         PACKAGE_TYPE: [ "deb", "rpm" ]
+        PUPPET_RELEASE: [ "6", "7" ]
+        TEST_CASE: [ "with_fluentd", "without_fluentd", "with_instrumentation" ]
     env:
       PYTHON_VERSION: '3.10'
-      PIP_VERSION: '22.0.4'
       REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
       RESULT_PATH: "~/testresults"
     steps:
@@ -77,21 +78,16 @@ jobs:
           key: v1-pytest-${{ env.PYTHON_VERSION }}-${{ hashFiles(env.REQUIREMENTS_PATH) }}
 
       - name: Install pytest
-        run: |
-          if which pip; then
-              pip install --upgrade 'pip==${{ env.PIP_VERSION }}'
-          else
-              curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-              python get-pip.py 'pip==${{ env.PIP_VERSION }}'
-          fi
-          pip install -r "${{ env.REQUIREMENTS_PATH }}"
+        run: pip install -r "${{ env.REQUIREMENTS_PATH }}"
 
       - name: Test puppet deployment
         timeout-minutes: 45
         run: |
+          export PUPPET_RELEASE=${{ matrix.PUPPET_RELEASE }}
           mkdir -p ${{ env.RESULT_PATH }}
           echo ${{ matrix.PACKAGE_TYPE }}
           pytest -n2 --verbose -m ${{ matrix.PACKAGE_TYPE }} \
+            -k ${{ matrix.TEST_CASE }} \
             --junitxml=${{ env.RESULT_PATH }}/results.xml \
             --html=${{ env.RESULT_PATH }}/results.html \
             --self-contained-html \
@@ -100,5 +96,5 @@ jobs:
       - name: Uploading artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: puppet-test-${{ matrix.PACKAGE_TYPE }}-result
+          name: puppet-${{ matrix.PUPPET_RELEASE }}-${{ matrix.PACKAGE_TYPE }}-${{ matrix.TEST_CASE }}-result
           path: ${{ env.RESULT_PATH }}

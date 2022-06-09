@@ -33,15 +33,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/configtest"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
 func TestRenameK8sTaggerTestRenameK8sTagger(t *testing.T) {
-	actual, err := configtest.LoadConfigMap("testdata/k8s-tagger.yaml")
+	actual, err := confmaptest.LoadConf("testdata/k8s-tagger.yaml")
 	require.NoError(t, err)
 	require.NotNil(t, actual)
 
-	expected, err := configtest.LoadConfigMap("testdata/k8sattributes.yaml")
+	expected, err := confmaptest.LoadConf("testdata/k8sattributes.yaml")
 	require.NoError(t, err)
 
 	err = RenameK8sTagger{}.Convert(context.Background(), actual)

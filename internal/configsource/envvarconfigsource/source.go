@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"os"
 
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
+	"go.opentelemetry.io/collector/confmap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
@@ -56,10 +56,10 @@ func newConfigSource(_ configprovider.CreateParams, cfg *Config) configsource.Co
 	}
 }
 
-func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, paramsConfigMap *config.Map) (configsource.Retrieved, error) {
+func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, paramsConfigMap *confmap.Conf) (configsource.Retrieved, error) {
 	actualParams := retrieveParams{}
 	if paramsConfigMap != nil {
-		paramsParser := config.NewMapFromStringMap(paramsConfigMap.ToStringMap())
+		paramsParser := confmap.NewFromStringMap(paramsConfigMap.ToStringMap())
 		if err := paramsParser.UnmarshalExact(&actualParams); err != nil {
 			return nil, &errInvalidRetrieveParams{fmt.Errorf("failed to unmarshall retrieve params: %w", err)}
 		}

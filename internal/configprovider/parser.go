@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
+	"go.opentelemetry.io/collector/confmap"
 )
 
 const (
@@ -40,7 +41,7 @@ type (
 
 // Load reads the configuration for ConfigSource objects from the given parser and returns a map
 // from the full name of config sources to the respective ConfigSettings.
-func Load(ctx context.Context, v *config.Map, factories Factories) (map[string]expcfg.Source, error) {
+func Load(ctx context.Context, v *confmap.Conf, factories Factories) (map[string]expcfg.Source, error) {
 	processedParser, err := processParser(ctx, v)
 	if err != nil {
 		return nil, err
@@ -54,8 +55,8 @@ func Load(ctx context.Context, v *config.Map, factories Factories) (map[string]e
 	return cfgSrcSettings, nil
 }
 
-// processParser prepares a config.Map to be used to load config source settings.
-func processParser(ctx context.Context, v *config.Map) (*config.Map, error) {
+// processParser prepares a confmap.Conf to be used to load config source settings.
+func processParser(ctx context.Context, v *confmap.Conf) (*confmap.Conf, error) {
 	// Use a manager to resolve environment variables with a syntax consistent with
 	// the config source usage.
 	manager := newManager(make(map[string]configsource.ConfigSource))
@@ -63,7 +64,7 @@ func processParser(ctx context.Context, v *config.Map) (*config.Map, error) {
 		_ = manager.Close(ctx)
 	}()
 
-	processedParser := config.NewMap()
+	processedParser := map[string]interface{}{}
 	for _, key := range v.AllKeys() {
 		if !strings.HasPrefix(key, configSourcesKey) {
 			// In Load we only care about config sources, ignore everything else.
@@ -74,10 +75,10 @@ func processParser(ctx context.Context, v *config.Map) (*config.Map, error) {
 		if err != nil {
 			return nil, err
 		}
-		processedParser.Set(key, value)
+		processedParser[key] = value
 	}
 
-	return processedParser, nil
+	return confmap.NewFromStringMap(processedParser), nil
 }
 
 func loadSettings(css map[string]interface{}, factories Factories) (map[string]expcfg.Source, error) {
@@ -86,7 +87,7 @@ func loadSettings(css map[string]interface{}, factories Factories) (map[string]e
 
 	// Iterate over extensions and create a config for each.
 	for key, value := range css {
-		settingsParser := config.NewMapFromStringMap(cast.ToStringMap(value))
+		settingsParser := confmap.NewFromStringMap(cast.ToStringMap(value))
 
 		// Decode the key into type and fullName components.
 		componentID, err := config.NewComponentIDFromString(key)

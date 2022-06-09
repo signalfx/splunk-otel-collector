@@ -20,11 +20,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/configtest"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
 func TestMoveHecTLS(t *testing.T) {
-	cfgMap, err := configtest.LoadConfigMap("testdata/hec-tls.yaml")
+	cfgMap, err := confmaptest.LoadConf("testdata/hec-tls.yaml")
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 

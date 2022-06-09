@@ -27,8 +27,8 @@ import (
 
 	"github.com/spf13/cast"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
+	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
@@ -181,7 +181,7 @@ type Manager struct {
 // NewManager creates a new instance of a Manager to be used to inject data from
 // ConfigSource objects into a configuration and watch for updates on the injected
 // data.
-func NewManager(configMap *config.Map, logger *zap.Logger, buildInfo component.BuildInfo, factories Factories) (*Manager, error) {
+func NewManager(configMap *confmap.Conf, logger *zap.Logger, buildInfo component.BuildInfo, factories Factories) (*Manager, error) {
 	configSourcesSettings, err := Load(context.Background(), configMap, factories)
 	if err != nil {
 		return nil, err
@@ -199,18 +199,18 @@ func NewManager(configMap *config.Map, logger *zap.Logger, buildInfo component.B
 	return newManager(cfgSources), nil
 }
 
-// Resolve inspects the given config.Map and resolves all config sources referenced
-// in the configuration, returning a config.Map in which all env vars and config sources on
+// Resolve inspects the given confmap.Conf and resolves all config sources referenced
+// in the configuration, returning a confmap.Conf in which all env vars and config sources on
 // the given input config map are resolved to actual literal values of the env vars or config sources.
 // This method must be called only once per lifetime of a Manager object.
-func (m *Manager) Resolve(ctx context.Context, configMap *config.Map) (*config.Map, error) {
-	res := config.NewMap()
+func (m *Manager) Resolve(ctx context.Context, configMap *confmap.Conf) (*confmap.Conf, error) {
+	res := map[string]interface{}{}
 	allKeys := configMap.AllKeys()
 	for _, k := range allKeys {
 		if strings.HasPrefix(k, configSourcesKey) {
 			// Remove everything under the config_sources section. The `config_sources` section
 			// is read when loading the config sources used in the configuration, but it is not
-			// part of the resulting configuration returned via *config.Map.
+			// part of the resulting configuration returned via *confmap.Conf.
 			continue
 		}
 
@@ -218,10 +218,10 @@ func (m *Manager) Resolve(ctx context.Context, configMap *config.Map) (*config.M
 		if err != nil {
 			return nil, err
 		}
-		res.Set(k, value)
+		res[k] = value
 	}
 
-	return res, nil
+	return confmap.NewFromStringMap(res), nil
 }
 
 // WatchForUpdate must watch for updates on any of the values retrieved from config sources
@@ -302,7 +302,7 @@ func newManager(configSources map[string]configsource.ConfigSource) *Manager {
 
 // parseConfigValue takes the value of a "config node" and process it recursively. The processing consists
 // in transforming invocations of config sources and/or environment variables into literal data that can be
-// used directly from a `config.Map` object.
+// used directly from a `confmap.Conf` object.
 func (m *Manager) parseConfigValue(ctx context.Context, value interface{}) (interface{}, error) {
 	switch v := value.(type) {
 	case string:
@@ -569,11 +569,11 @@ func newErrUnknownConfigSource(cfgSrcName string) error {
 
 // parseCfgSrcInvocation parses the original string in the configuration that has a config source
 // retrieve operation and return its "logical components": the config source name, the selector, and
-// a config.Map to be used in this invocation of the config source. See Test_parseCfgSrcInvocation
+// a confmap.Conf to be used in this invocation of the config source. See Test_parseCfgSrcInvocation
 // for some examples of input and output.
 // The caller should check for error explicitly since it is possible for the
 // other values to have been partially set.
-func parseCfgSrcInvocation(s string) (cfgSrcName, selector string, paramsConfigMap *config.Map, err error) {
+func parseCfgSrcInvocation(s string) (cfgSrcName, selector string, paramsConfigMap *confmap.Conf, err error) {
 	parts := strings.SplitN(s, string(configSourceNameDelimChar), 2)
 	if len(parts) != 2 {
 		err = fmt.Errorf("invalid config source syntax at %q, it must have at least the config source name and a selector", s)
@@ -594,7 +594,7 @@ func parseCfgSrcInvocation(s string) (cfgSrcName, selector string, paramsConfigM
 			if err = yaml.Unmarshal([]byte(parts[1]), &data); err != nil {
 				return
 			}
-			paramsConfigMap = config.NewMapFromStringMap(data)
+			paramsConfigMap = confmap.NewFromStringMap(data)
 		}
 
 	default:
@@ -616,7 +616,7 @@ func parseCfgSrcInvocation(s string) (cfgSrcName, selector string, paramsConfigM
 	return cfgSrcName, selector, paramsConfigMap, err
 }
 
-func parseParamsAsURLQuery(s string) (*config.Map, error) {
+func parseParamsAsURLQuery(s string) (*confmap.Conf, error) {
 	values, err := url.ParseQuery(s)
 	if err != nil {
 		return nil, err
@@ -647,7 +647,7 @@ func parseParamsAsURLQuery(s string) (*config.Map, error) {
 			params[k] = elemSlice
 		}
 	}
-	return config.NewMapFromStringMap(params), err
+	return confmap.NewFromStringMap(params), err
 }
 
 // osExpandEnv replicate the internal behavior of os.ExpandEnv when handling env

@@ -19,8 +19,8 @@ import (
 	"context"
 	"fmt"
 
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
+	"go.opentelemetry.io/collector/confmap"
 )
 
 // testConfigSource a ConfigSource to be used in tests.
@@ -31,7 +31,7 @@ type testConfigSource struct {
 	ErrOnRetrieveEnd error
 	ErrOnClose       error
 
-	OnRetrieve func(ctx context.Context, selector string, paramsConfigMap *config.Map) error
+	OnRetrieve func(ctx context.Context, selector string, paramsConfigMap *confmap.Conf) error
 }
 
 type valueEntry struct {
@@ -41,7 +41,7 @@ type valueEntry struct {
 
 var _ configsource.ConfigSource = (*testConfigSource)(nil)
 
-func (t *testConfigSource) Retrieve(ctx context.Context, selector string, paramsConfigMap *config.Map) (configsource.Retrieved, error) {
+func (t *testConfigSource) Retrieve(ctx context.Context, selector string, paramsConfigMap *confmap.Conf) (configsource.Retrieved, error) {
 	if t.OnRetrieve != nil {
 		if err := t.OnRetrieve(ctx, selector, paramsConfigMap); err != nil {
 			return nil, err

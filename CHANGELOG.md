@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 🚀 New components 🚀
+
+- [`k8sevents` receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8seventsreceiver)
+  to collect Kubernetes events in OpenTelemetry semantics (#1641)
+
 ## v0.52.2
 
 ### 💡 Enhancements 💡

@@ -30,15 +30,6 @@ func TestCreateDefaultConfig(t *testing.T) {
 	assert.Equal(t, defaultMetricsTopic, cfg.Topic)
 }
 
-func TestCreateMetricsExport(t *testing.T) {
-	cfg := createDefaultConfig().(*Config)
-	cfg.Broker = "pulsar+ssl://localhost:6651"
-	mf := pulsarExporterFactory{metricsMarshalers: metricsMarshalers()}
-	mr, err := mf.createMetricsExporter(context.Background(), componenttest.NewNopExporterCreateSettings(), cfg)
-	require.NoError(t, err)
-	assert.NotNil(t, mr)
-}
-
 func TestCreateMetricsExporter_err(t *testing.T) {
 	cfg := createDefaultConfig().(*Config)
 	cfg.Broker = "invalid:9092"

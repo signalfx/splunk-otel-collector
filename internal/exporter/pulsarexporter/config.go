@@ -111,11 +111,6 @@ type Producer struct {
 	// - Better
 	CompressionLevel string `mapstructure:"compression_level"`
 
-	// NumPartitions used as TopicMetadata in MessageRouter which represents a custom message routing policy by passing an implementation of MessageRouter
-	// The router is a function that given a particular message and the topic metadata, returns the
-	// partition index where the message should be routed to
-	TopicMetadata int `mapstructure:"num_partitions"`
-
 	// DisableBatching controls whether automatic batching of messages is enabled for the producer. By default batching
 	// is enabled.
 	// When batching is enabled, multiple calls to Producer.sendAsync can result in a single batch to be sent to the
@@ -156,10 +151,6 @@ type Producer struct {
 	PartitionsAutoDiscoveryInterval time.Duration `mapstructure:"partitions_auto_discovery_interval"`
 }
 
-// MetadataRetry defines retry configuration for Metadata.
-type MetadataRetry struct {
-}
-
 var _ config.Exporter = (*Config)(nil)
 
 //Validate checks if the exporter configuration is valid
@@ -185,7 +176,7 @@ func (cfg *Config) getClientOptions() (pulsar.ClientOptions, error) {
 		options.TLSTrustCertsFilePath = cfg.Authentication.TLS.CAFile
 		options.Authentication = pulsar.NewAuthenticationTLS(cfg.Authentication.TLS.CertFile, cfg.Authentication.TLS.KeyFile)
 	} else {
-		return options, errors.New("cert file paths are not configured. If certs are not available, set insecure_skip_verify to true for insecure connection")
+		return options, errors.New("failed to load TLS config. If certs are not available, set insecure_skip_verify to true for insecure connection")
 	}
 
 	return options, nil
@@ -204,26 +195,23 @@ func (cfg *Config) getProducerOptions() (pulsar.ProducerOptions, error) {
 		BatchingMaxMessages:             cfg.Producer.BatchingMaxMessages,
 		PartitionsAutoDiscoveryInterval: cfg.Producer.PartitionsAutoDiscoveryInterval,
 		MaxReconnectToBroker:            cfg.Producer.MaxReconnectToBroker,
-		MessageRouter: func(message *pulsar.ProducerMessage, metadata pulsar.TopicMetadata) int {
-			return cfg.Producer.TopicMetadata
-		},
 	}
 
-	compressionType, err := pulsarProducerCompressionType(cfg.Producer.CompressionType)
+	compressionType, err := stringToCompressionType(cfg.Producer.CompressionType)
 	if err == nil {
 		producerOptions.CompressionType = compressionType
 	} else {
 		log.Info().Msgf("%v",err)
 	}
 
-	compressionLevel, err := pulsarProducerCompressionLevel(cfg.Producer.CompressionLevel)
+	compressionLevel, err := stringToCompressionLevel(cfg.Producer.CompressionLevel)
 	if err == nil {
 		producerOptions.CompressionLevel = compressionLevel
 	} else {
 		log.Info().Msgf("%v",err)
 	}
 
-	hashingScheme, err := pulsarProducerHashingScheme(cfg.Producer.HashingScheme)
+	hashingScheme, err := stringToHashingScheme(cfg.Producer.HashingScheme)
 	if err == nil {
 		producerOptions.HashingScheme = hashingScheme
 	} else {
@@ -233,7 +221,7 @@ func (cfg *Config) getProducerOptions() (pulsar.ProducerOptions, error) {
 	return producerOptions, nil
 }
 
-func pulsarProducerCompressionType(compressionType string) (pulsar.CompressionType, error) {
+func stringToCompressionType(compressionType string) (pulsar.CompressionType, error) {
 	switch compressionType {
 	case "none":
 		return pulsar.NoCompression, nil
@@ -248,7 +236,7 @@ func pulsarProducerCompressionType(compressionType string) (pulsar.CompressionTy
 	}
 }
 
-func pulsarProducerCompressionLevel(compressionLevel string) (pulsar.CompressionLevel, error) {
+func stringToCompressionLevel(compressionLevel string) (pulsar.CompressionLevel, error) {
 	switch compressionLevel {
 	case "default":
 		return pulsar.Default, nil
@@ -261,7 +249,7 @@ func pulsarProducerCompressionLevel(compressionLevel string) (pulsar.Compression
 	}
 }
 
-func pulsarProducerHashingScheme(hashingScheme string) (pulsar.HashingScheme, error) {
+func stringToHashingScheme(hashingScheme string) (pulsar.HashingScheme, error) {
 	switch hashingScheme {
 	case "java_string_hash":
 		return pulsar.JavaStringHash, nil

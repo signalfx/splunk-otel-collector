@@ -1,29 +1,29 @@
-#receivers:
-#  otlp:
-#    protocols:
-#      grpc:
-#      http:
-#  signalfx:
-#    endpoint: 0.0.0.0:23081
-#    access_token_passthrough: true
-#processors:
-#  batch:
-#  memory_limiter:
-#    # 75% of maximum memory up to 4G
-#    limit_mib: 1536
-#    # 25% of limit up to 2G
-#    spike_limit_mib: 512
-#    check_interval: 5s
-processors:
-  nop:
-
 receivers:
-  nop:
+  otlp:
+    protocols:
+      grpc:
+      http:
+  signalfx:
+    endpoint: 0.0.0.0:23081
+    access_token_passthrough: true
+processors:
+  batch:
+  memory_limiter:
+    # 75% of maximum memory up to 4G
+    limit_mib: 1536
+    # 25% of limit up to 2G
+    spike_limit_mib: 512
+    check_interval: 5s
+#processors:
+#  nop:
+#
+#receivers:
+#  nop:
 
 exporters:
   pulsar:
     topic: otlp_metrics
-    broker: pulsar+ssl://localhost:6651
+    broker: pulsar+ssl://10.176.5.10:6651
     auth:
       tls:
         ca_file: ""
@@ -38,7 +38,6 @@ exporters:
       hashing_scheme: java_string_hash
       compression_type: zstd
       compression_level: default
-      num_partitions: 5
       batch_builder_type: 1
       disable_batching: false
       batching_max_publish_delay: 10
@@ -49,6 +48,6 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers: [nop]
-      processors: [nop]
+      receivers: [signalfx]
+      processors: [batch, memory_limiter]
       exporters: [pulsar]

@@ -30,11 +30,58 @@ var errUnrecognizedEncoding = fmt.Errorf("unrecognized encoding")
 
 // pulsarMetricsExporter produce metrics messages to pulsar
 type pulsarMetricsExporter struct {
-	client    pulsar.Client
 	producer  pulsar.Producer
 	topic     string
 	marshaler MetricsMarshaler
 	logger    *zap.Logger
+}
+
+
+func newMetricsExporter(config Config, set component.ExporterCreateSettings, marshalers map[string]MetricsMarshaler) (*pulsarMetricsExporter, error) {
+	marshaler := marshalers[config.Encoding]
+	if marshaler == nil {
+		return nil, errUnrecognizedEncoding
+	}
+	producer, err := newPulsarProducer(config)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &pulsarMetricsExporter{
+		producer:  producer,
+		topic:     config.Topic,
+		marshaler: marshaler,
+		logger:    set.Logger,
+	}, nil
+}
+
+func newPulsarProducer(config Config) (pulsar.Producer, error) {
+	// Get pulsar client options
+	clientOptions, clientOptionsErr := config.getClientOptions()
+	if clientOptionsErr != nil {
+		return nil, clientOptionsErr
+	}
+
+	// Initiate pulsar client
+	client, clientErr := pulsar.NewClient(clientOptions)
+	if clientErr != nil {
+		return nil, clientErr
+	}
+
+	// Get pulsar pruducer options
+	producerOptions, producerOptionsErr := config.getProducerOptions()
+	if producerOptionsErr != nil {
+		return nil, producerOptionsErr
+	}
+
+	// Initiate pulsar producer
+	producer, producerErr := client.CreateProducer(producerOptions)
+	if producerErr != nil {
+		return nil, producerErr
+	}
+
+	return producer, nil
 }
 
 func (e *pulsarMetricsExporter) metricsDataPusher(ctx context.Context, md pmetric.Metrics) error {
@@ -61,50 +108,5 @@ func (e *pulsarMetricsExporter) Close(context.Context) error {
 	return nil
 }
 
-func newPulsarProducer(config Config) (pulsar.Client, pulsar.Producer, error) {
-	// Get pulsar client options
-	clientOptions, clientOptionsErr := config.getClientOptions()
-	if clientOptionsErr != nil {
-		return nil, nil, clientOptionsErr
-	}
 
-	// Initiate pulsar client
-	client, clientErr := pulsar.NewClient(clientOptions)
-	if clientErr != nil {
-		return nil, nil, clientErr
-	}
 
-	// Get pulsar pruducer options
-	producerOptions, producerOptionsErr := config.getProducerOptions()
-	if producerOptionsErr != nil {
-		return nil, nil, producerOptionsErr
-	}
-
-	// Initiate pulsar producer
-	producer, producerErr := client.CreateProducer(producerOptions)
-	if producerErr != nil {
-		return nil, nil, producerErr
-	}
-
-	return client, producer, nil
-}
-
-func newMetricsExporter(config Config, set component.ExporterCreateSettings, marshalers map[string]MetricsMarshaler) (*pulsarMetricsExporter, error) {
-	marshaler := marshalers[config.Encoding]
-	if marshaler == nil {
-		return nil, errUnrecognizedEncoding
-	}
-	client, producer, err := newPulsarProducer(config)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &pulsarMetricsExporter{
-		client:    client,
-		producer:  producer,
-		topic:     config.Topic,
-		marshaler: marshaler,
-		logger:    set.Logger,
-	}, nil
-}

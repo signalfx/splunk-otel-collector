@@ -63,7 +63,6 @@ func TestLoadConfig(t *testing.T) {
 			HashingScheme: "java_string_hash",
 			CompressionType: "zstd",
 			CompressionLevel: defaultCompressionLevel,
-			TopicMetadata: 5,
 			BatcherBuilderType: 1,
 			DisableBatching: false,
 			BatchingMaxPublishDelay: 10,

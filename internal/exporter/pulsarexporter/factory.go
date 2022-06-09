@@ -33,7 +33,6 @@ const (
 	defaultCompressionType = "none"
 	defaultCompressionLevel = "default"
 	defaultHashingScheme = "java_string_hash"
-	defaultTopicMetadata = 1
 )
 
 // FactoryOption applies changes to pulsarExporterFactory.
@@ -73,7 +72,6 @@ func createDefaultConfig() config.Exporter {
 			CompressionType: defaultCompressionType,
 			CompressionLevel: defaultCompressionLevel,
 			HashingScheme: defaultHashingScheme,
-			TopicMetadata: defaultTopicMetadata,
 		},
 		Authentication: Authentication{TLS: &configtls.TLSClientSetting{
 			InsecureSkipVerify: true,

@@ -16,13 +16,13 @@ package pulsarexporter
 
 import (
 	"context"
-	"go.uber.org/zap"
 	"testing"
 
 	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/pulsarexporter/testdata"
@@ -36,83 +36,80 @@ func TestNewMetricsExporter_err_encoding(t *testing.T) {
 	assert.Nil(t, mexp)
 }
 
+func TestNewMetricsExporter_err_auth_type(t *testing.T) {
+	c := Config{
+		Authentication: Authentication{TLS: &configtls.TLSClientSetting{
+			TLSSetting: configtls.TLSSetting{
+				CAFile:   "",
+				CertFile: "",
+				KeyFile:  "",
+			},
+		},
+		},
+		Encoding: defaultEncoding,
+		Producer: Producer{
+			CompressionType: "none",
+		},
+	}
+	mexp, err := newMetricsExporter(c, componenttest.NewNopExporterCreateSettings(), metricsMarshalers())
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to load TLS config")
+	assert.Nil(t, mexp)
+}
+
 func TestMetricsDataPusher(t *testing.T) {
-	cfg := createDefaultConfig().(*Config)
-	cfg.Broker = "pulsar+ssl://localhost:6651"
-	cfg.Authentication.TLS.InsecureSkipVerify = true
-	clientOps, err := cfg.getClientOptions()
-	client, err := pulsar.NewClient(clientOps)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-
-	defer client.Close()
-	producerOps, err := cfg.getProducerOptions()
-	producer, err := client.CreateProducer(producerOps)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-
-	p := pulsarMetricsExporter{
-		producer:  producer,
-		marshaler: newPdataMetricsMarshaler(pmetric.NewProtoMarshaler(), defaultEncoding),
-	}
-	t.Cleanup(func() {
-		require.NoError(t, p.Close(context.Background()))
-	})
-
+	producer := &mockProducer{topic: defaultName, name: defaultName}
 	ms := testdata.GenerateMetricsTwoMetrics()
-	//md := testdata.GenerateMetricsManyMetricsSameResource(2)
-	err1 := p.metricsDataPusher(context.Background(), ms)
-	require.NoError(t, err1)
+	err := producer.metricsDataPusher(context.Background(), ms)
+	require.NoError(t, err)
 }
 
-func TestMetricsDataPusher_err(t *testing.T) {
-	expErr := "pulsar producer failed to send metric data due to error"
-	cfg := createDefaultConfig().(*Config)
-	cfg.Broker = "pulsar+ssl://localhost:6651"
-	cfg.Authentication.TLS.InsecureSkipVerify = true
-	clientOps, err := cfg.getClientOptions()
-	client, err := pulsar.NewClient(clientOps)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
 
-	defer client.Close()
-	producerOps, err := cfg.getProducerOptions()
-	producer, err := client.CreateProducer(producerOps)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-
-	p := pulsarMetricsExporter{
-		producer:  producer,
-		marshaler: newPdataMetricsMarshaler(pmetric.NewProtoMarshaler(), defaultEncoding),
-		logger:    zap.NewNop(),
-	}
-	t.Cleanup(func() {
-		require.NoError(t, p.Close(context.Background()))
-	})
-
-	md := testdata.GenerateMetricsTwoMetrics()
-	err1 := p.metricsDataPusher(context.Background(), md)
-	assert.ErrorContains(t, err1,expErr)
-}
-
-type metricsErrorMarshaler struct {
+type mockMetricsMarshaler struct {
 	err error
 	encoding string
 }
 
-func (e metricsErrorMarshaler) Marshal(_ pmetric.Metrics, _ string) ([]*pulsar.ProducerMessage, error) {
-	return nil, e.err
+func (e *mockMetricsMarshaler) Marshal(_ pmetric.Metrics, _ string) ([]*pulsar.ProducerMessage, error) {
+	return nil, nil
 }
 
-func (e metricsErrorMarshaler) Encoding() string {
-	//panic("implement me")
+func (e *mockMetricsMarshaler) Encoding() string {
 	return e.encoding
+}
+
+type mockProducer struct {
+	topic string
+	name  string
+}
+
+func (c *mockProducer) Topic() string {
+	return c.topic
+}
+
+func (c *mockProducer) Name() string {
+	return c.name
+}
+
+func (e *mockProducer) metricsDataPusher(ctx context.Context, md pmetric.Metrics) error {
+	return nil
+}
+
+func (c *mockProducer) Send(context.Context, *pulsar.ProducerMessage) (pulsar.MessageID, error) {
+	return nil, nil
+}
+
+func (c *mockProducer) SendAsync(context.Context, *pulsar.ProducerMessage, func(pulsar.MessageID, *pulsar.ProducerMessage, error)) error{
+	return nil
+}
+
+func (c *mockProducer) LastSequenceID() int64 {
+	return 1
+}
+
+func (c *mockProducer) Flush() error {
+	return nil
+}
+
+func (c *mockProducer) Close() {
 }

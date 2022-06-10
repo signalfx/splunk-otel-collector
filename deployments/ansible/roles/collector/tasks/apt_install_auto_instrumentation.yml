@@ -1,0 +1,10 @@
+---
+# Install Splunk OpenTelemetry Auto Instrumentation from apt repository
+
+- name: Install Splunk OpenTelemetry Auto Instrumentation via apt package manager
+  ansible.builtin.apt:
+    name: "splunk-otel-auto-instrumentation{% if splunk_otel_auto_instrumentation_version != 'latest' %}\
+      ={{ splunk_otel_auto_instrumentation_version }}{% endif %}"
+    state: "{% if splunk_otel_auto_instrumentation_version != 'latest' %}present{% else %}latest{% endif %}"
+    force: yes
+    update_cache: yes

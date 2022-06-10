@@ -1,0 +1,15 @@
+---
+- name: Converge scenario with auto-instrumentation installation
+  hosts: all
+  become: yes
+  vars:
+    splunk_access_token: fake-token
+    splunk_realm: fake-realm
+    install_splunk_otel_auto_instrumentation: true
+    splunk_otel_auto_instrumentation_version: 0.50.0
+    splunk_otel_auto_instrumentation_resource_attributes: deployment.environment=test
+    splunk_otel_auto_instrumentation_service_name: test
+  tasks:
+    - name: "Include signalfx.splunk_otel_collector.collector role"
+      include_role:
+        name: "collector"

@@ -20,29 +20,29 @@ import (
 	"log"
 	"regexp"
 
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/confmap"
 )
 
 type MoveOTLPInsecureKey struct{}
 
-func (MoveOTLPInsecureKey) Convert(_ context.Context, in *config.Map) error {
+func (MoveOTLPInsecureKey) Convert(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
-		return fmt.Errorf("cannot MoveOTLPInsecureKey on nil *config.Map")
+		return fmt.Errorf("cannot MoveOTLPInsecureKey on nil *confmap.Conf")
 	}
 
 	const expr = "exporters::otlp(/\\w+)?::insecure"
 	insecureRE := regexp.MustCompile(expr)
-	out := config.NewMap()
+	out := map[string]interface{}{}
 	var deprecatedOTLPConfigFound bool
 	for _, k := range in.AllKeys() {
 		v := in.Get(k)
 		match := insecureRE.FindStringSubmatch(k)
 		if match == nil {
-			out.Set(k, v)
+			out[k] = v
 		} else {
 			tlsKey := fmt.Sprintf("exporters::otlp%s::tls::insecure", match[1])
 			log.Printf("Unsupported key found: %s. Moving to %s\n", k, tlsKey)
-			out.Set(tlsKey, v)
+			out[tlsKey] = v
 			deprecatedOTLPConfigFound = true
 		}
 	}
@@ -52,6 +52,6 @@ func (MoveOTLPInsecureKey) Convert(_ context.Context, in *config.Map) error {
 			"https://github.com/signalfx/splunk-otel-collector#from-0350-to-0360.")
 	}
 
-	*in = *out
+	*in = *confmap.NewFromStringMap(out)
 	return nil
 }

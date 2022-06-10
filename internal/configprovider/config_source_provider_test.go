@@ -26,15 +26,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
-	"go.opentelemetry.io/collector/config/mapprovider/filemapprovider"
+	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.uber.org/zap"
 )
 
 func TestConfigSourceConfigMapProvider(t *testing.T) {
 	tests := []struct {
-		parserProvider config.MapProvider
+		parserProvider confmap.Provider
 		configLocation []string
 		wantErr        error
 		name           string
@@ -65,19 +65,19 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 					ErrOnCreateConfigSource: errors.New("new_manager_builder_error forced error"),
 				},
 			},
-			parserProvider: filemapprovider.New(),
+			parserProvider: fileprovider.New(),
 			configLocation: []string{"file:" + path.Join("testdata", "basic_config.yaml")},
 			wantErr:        &errConfigSourceCreation{},
 		},
 		{
 			name:           "manager_resolve_error",
-			parserProvider: filemapprovider.New(),
+			parserProvider: fileprovider.New(),
 			configLocation: []string{"file:" + path.Join("testdata", "manager_resolve_error.yaml")},
 			wantErr:        fmt.Errorf("error not wrappedProviders by specific error type: %w", configsource.ErrSessionClosed),
 		},
 		{
 			name:           "multiple_config_success",
-			parserProvider: filemapprovider.New(),
+			parserProvider: fileprovider.New(),
 			configLocation: []string{"file:" + path.Join("testdata", "arrays_and_maps_expected.yaml"),
 				"file:" + path.Join("testdata", "yaml_injection_expected.yaml")},
 		},
@@ -116,7 +116,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 					configLocation = ""
 				}
 				r, err := pp.Retrieve(context.Background(), configLocation, nil)
-				rMap, _ := r.AsMap()
+				rMap, _ := r.AsConf()
 				if tt.wantErr == nil {
 					require.NoError(t, err)
 					require.NotNil(t, rMap)
@@ -152,11 +152,14 @@ type mockParserProvider struct {
 	ErrOnGet bool
 }
 
-var _ config.MapProvider = (*mockParserProvider)(nil)
+var _ confmap.Provider = (*mockParserProvider)(nil)
 
-func (mpp *mockParserProvider) Retrieve(ctx context.Context, _ string, _ config.WatcherFunc) (config.Retrieved, error) {
+func (mpp *mockParserProvider) Retrieve(ctx context.Context, _ string, _ confmap.WatcherFunc) (confmap.Retrieved, error) {
 	m, err := mpp.Get(ctx)
-	return config.NewRetrievedFromMap(m), err
+	if err != nil {
+		return confmap.Retrieved{}, err
+	}
+	return confmap.NewRetrieved(m.ToStringMap())
 }
 
 func (mpp *mockParserProvider) Shutdown(ctx context.Context) error {
@@ -167,11 +170,11 @@ func (mpp *mockParserProvider) Scheme() string {
 	return ""
 }
 
-func (mpp *mockParserProvider) Get(context.Context) (*config.Map, error) {
+func (mpp *mockParserProvider) Get(context.Context) (*confmap.Conf, error) {
 	if mpp.ErrOnGet {
 		return nil, &errOnParserProviderGet{errors.New("mockParserProvider.Get() forced test error")}
 	}
-	return config.NewMap(), nil
+	return confmap.New(), nil
 }
 
 func (mpp *mockParserProvider) Close(context.Context) error {

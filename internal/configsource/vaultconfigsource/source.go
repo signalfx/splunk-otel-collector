@@ -24,8 +24,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/vault/api"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
+	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -84,7 +84,7 @@ func newConfigSource(params configprovider.CreateParams, cfg *Config) (configsou
 	}, nil
 }
 
-func (v *vaultConfigSource) Retrieve(_ context.Context, selector string, _ *config.Map) (configsource.Retrieved, error) {
+func (v *vaultConfigSource) Retrieve(_ context.Context, selector string, _ *confmap.Conf) (configsource.Retrieved, error) {
 	// By default assume that watcher is not supported. The exception will be the first
 	// value read from the vault secret.
 	var watchForUpdateFn func() error

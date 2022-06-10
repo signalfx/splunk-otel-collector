@@ -23,8 +23,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configtest"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -32,7 +32,7 @@ import (
 
 func TestVaultLoadConfig(t *testing.T) {
 	fileName := path.Join("testdata", "config.yaml")
-	v, err := configtest.LoadConfigMap(fileName)
+	v, err := confmaptest.LoadConf(fileName)
 	require.NoError(t, err)
 
 	factories := map[config.Type]configprovider.Factory{

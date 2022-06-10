@@ -20,29 +20,29 @@ import (
 	"log"
 	"regexp"
 
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/confmap"
 )
 
 type MoveHecTLS struct{}
 
-func (MoveHecTLS) Convert(_ context.Context, in *config.Map) error {
+func (MoveHecTLS) Convert(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
-		return fmt.Errorf("cannot MoveHecTLS on nil *config.Map")
+		return fmt.Errorf("cannot MoveHecTLS on nil *confmap.Conf")
 	}
 
 	const expression = "exporters::splunk_hec(/\\w+)?::(insecure_skip_verify|ca_file|cert_file|key_file)"
 	re := regexp.MustCompile(expression)
-	out := config.NewMap()
+	out := map[string]interface{}{}
 	unsupportedKeyFound := false
 	for _, k := range in.AllKeys() {
 		v := in.Get(k)
 		match := re.FindStringSubmatch(k)
 		if match == nil {
-			out.Set(k, v)
+			out[k] = v
 		} else {
 			tlsKey := fmt.Sprintf("exporters::splunk_hec%s::tls::%s", match[1], match[2])
 			log.Printf("Unsupported key found: %s. Moving to %s\n", k, tlsKey)
-			out.Set(tlsKey, v)
+			out[tlsKey] = v
 			unsupportedKeyFound = true
 		}
 	}
@@ -54,6 +54,6 @@ func (MoveHecTLS) Convert(_ context.Context, in *config.Map) error {
 		)
 	}
 
-	*in = *out
+	*in = *confmap.NewFromStringMap(out)
 	return nil
 }

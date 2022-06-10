@@ -21,15 +21,15 @@ import (
 	"reflect"
 	"regexp"
 
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/confmap"
 )
 
 // RenameK8sTagger will replace k8s_tagger processor items with k8sattributes ones.
 type RenameK8sTagger struct{}
 
-func (RenameK8sTagger) Convert(_ context.Context, in *config.Map) error {
+func (RenameK8sTagger) Convert(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
-		return fmt.Errorf("cannot RenameK8sTagger on nil *config.Map")
+		return fmt.Errorf("cannot RenameK8sTagger on nil *confmap.Conf")
 	}
 
 	tagger := "k8s_tagger(/\\w+:{0,2})?"
@@ -41,12 +41,12 @@ func (RenameK8sTagger) Convert(_ context.Context, in *config.Map) error {
 	serviceEntryRe := regexp.MustCompile(serviceExpr)
 
 	found := false
-	out := config.NewMap()
+	out := map[string]interface{}{}
 	for _, k := range in.AllKeys() {
 		v := in.Get(k)
 		if match := k8sTaggerKeyRe.FindStringSubmatch(k); match != nil {
 			k8sAttributesKey := fmt.Sprintf("processors::k8sattributes%s%s", match[1], match[2])
-			out.Set(k8sAttributesKey, v)
+			out[k8sAttributesKey] = v
 			if !found {
 				log.Println("[WARNING] `k8s_tagger` processor was renamed to `k8sattributes`. Please update your config accordingly.")
 			}
@@ -68,9 +68,9 @@ func (RenameK8sTagger) Convert(_ context.Context, in *config.Map) error {
 					}
 				}
 			}
-			out.Set(k, v)
+			out[k] = v
 		}
 	}
-	*in = *out
+	*in = *confmap.NewFromStringMap(out)
 	return nil
 }

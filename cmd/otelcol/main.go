@@ -24,10 +24,10 @@ import (
 	"strconv"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/mapconverter/overwritepropertiesmapconverter"
-	"go.opentelemetry.io/collector/config/mapprovider/envmapprovider"
-	"go.opentelemetry.io/collector/config/mapprovider/filemapprovider"
+	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/confmap/converter/overwritepropertiesconverter"
+	"go.opentelemetry.io/collector/confmap/provider/envprovider"
+	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/service"
 	"go.uber.org/zap"
 
@@ -87,8 +87,8 @@ func main() {
 		Version: version.Version,
 	}
 
-	configMapConverters := []config.MapConverter{
-		overwritepropertiesmapconverter.New(inputFlags.sets.values),
+	configMapConverters := []confmap.Converter{
+		overwritepropertiesconverter.New(inputFlags.sets.values),
 	}
 
 	if inputFlags.noConvertConfig {
@@ -106,12 +106,12 @@ func main() {
 		)
 	}
 
-	emp := envmapprovider.New()
-	fmp := filemapprovider.New()
+	emp := envprovider.New()
+	fmp := fileprovider.New()
 	serviceConfigProvider, err := service.NewConfigProvider(
 		service.ConfigProviderSettings{
 			Locations: configLocations(inputFlags),
-			MapProviders: map[string]config.MapProvider{
+			MapProviders: map[string]confmap.Provider{
 				emp.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
 					emp,
 					zap.NewNop(), // The service logger is not available yet, setting it to NoP.

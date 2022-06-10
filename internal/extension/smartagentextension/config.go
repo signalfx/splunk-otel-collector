@@ -21,6 +21,7 @@ import (
 	"github.com/signalfx/defaults"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/confmap"
 	"gopkg.in/yaml.v2"
 )
 
@@ -33,7 +34,7 @@ type Config struct {
 	saconfig.Config `mapstructure:"-,squash"`
 }
 
-func (cfg *Config) Unmarshal(componentParser *config.Map) error {
+func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 	allSettings := componentParser.ToStringMap()
 
 	configDirSet := false

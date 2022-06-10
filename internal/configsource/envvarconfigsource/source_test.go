@@ -22,8 +22,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
+	"go.opentelemetry.io/collector/confmap"
 )
 
 func TestEnvVarConfigSource_Session(t *testing.T) {
@@ -94,7 +94,7 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 				assert.NoError(t, source.Close(ctx))
 			}()
 
-			r, err := source.Retrieve(ctx, tt.selector, config.NewMapFromStringMap(tt.params))
+			r, err := source.Retrieve(ctx, tt.selector, confmap.NewFromStringMap(tt.params))
 			if tt.wantErr != nil {
 				assert.Nil(t, r)
 				require.IsType(t, tt.wantErr, err)

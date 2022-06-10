@@ -24,9 +24,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configtest"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
 func TestConfigSourceParser(t *testing.T) {
@@ -111,7 +111,7 @@ func TestConfigSourceParser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfgFile := path.Join("testdata", tt.file+".yaml")
-			v, err := configtest.LoadConfigMap(cfgFile)
+			v, err := confmaptest.LoadConf(cfgFile)
 			require.NoError(t, err)
 
 			for key, value := range tt.envvars {

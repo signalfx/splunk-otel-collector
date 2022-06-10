@@ -20,7 +20,7 @@ import (
 	"log"
 	"regexp"
 
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/confmap"
 )
 
 // RemoveBallastKey is a MapConverter that removes a ballast_size_mib on a
@@ -29,24 +29,24 @@ import (
 // prevent the Collector from starting.
 type RemoveBallastKey struct{}
 
-func (RemoveBallastKey) Convert(_ context.Context, cfgMap *config.Map) error {
+func (RemoveBallastKey) Convert(_ context.Context, cfgMap *confmap.Conf) error {
 	if cfgMap == nil {
-		return fmt.Errorf("cannot RemoveBallastKey on nil *config.Map")
+		return fmt.Errorf("cannot RemoveBallastKey on nil *confmap.Conf")
 	}
 
 	const expr = "processors::memory_limiter(/\\w+)?::ballast_size_mib"
 	ballastKeyRegexp := regexp.MustCompile(expr)
 
-	out := config.NewMap()
+	out := map[string]interface{}{}
 	for _, k := range cfgMap.AllKeys() {
 		if ballastKeyRegexp.MatchString(k) {
 			log.Println("[WARNING] `ballast_size_mib` parameter in `memory_limiter` processor is " +
 				"deprecated. Please update the config according to the guideline: " +
 				"https://github.com/signalfx/splunk-otel-collector#from-0340-to-0350.")
 		} else {
-			out.Set(k, cfgMap.Get(k))
+			out[k] = cfgMap.Get(k)
 		}
 	}
-	*cfgMap = *out
+	*cfgMap = *confmap.NewFromStringMap(out)
 	return nil
 }

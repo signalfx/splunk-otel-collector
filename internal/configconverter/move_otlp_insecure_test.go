@@ -34,11 +34,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/configtest"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
 func TestMoveOTLPInsecureKey(t *testing.T) {
-	cfgMap, err := configtest.LoadConfigMap("testdata/otlp-insecure.yaml")
+	cfgMap, err := confmaptest.LoadConf("testdata/otlp-insecure.yaml")
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 
@@ -50,7 +50,7 @@ func TestMoveOTLPInsecureKey(t *testing.T) {
 }
 
 func TestMoveOTLPInsecureKey_Custom(t *testing.T) {
-	cfgMap, err := configtest.LoadConfigMap("testdata/otlp-insecure-custom.yaml")
+	cfgMap, err := confmaptest.LoadConf("testdata/otlp-insecure-custom.yaml")
 	require.NoError(t, err)
 	require.NotNil(t, cfgMap)
 

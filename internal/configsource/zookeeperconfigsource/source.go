@@ -22,8 +22,8 @@ import (
 	"time"
 
 	"github.com/go-zookeeper/zk"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
+	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -52,7 +52,7 @@ func newZkConfigSource(params configprovider.CreateParams, connect connectFunc) 
 	}
 }
 
-func (s *zkConfigSource) Retrieve(ctx context.Context, selector string, _ *config.Map) (configsource.Retrieved, error) {
+func (s *zkConfigSource) Retrieve(ctx context.Context, selector string, _ *confmap.Conf) (configsource.Retrieved, error) {
 	conn, err := s.connect(ctx)
 	if err != nil {
 		return nil, err

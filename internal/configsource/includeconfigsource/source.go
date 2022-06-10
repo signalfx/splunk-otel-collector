@@ -24,8 +24,8 @@ import (
 	"text/template"
 
 	"github.com/fsnotify/fsnotify"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
+	"go.opentelemetry.io/collector/confmap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
@@ -53,7 +53,7 @@ func newConfigSource(_ configprovider.CreateParams, config *Config) (configsourc
 	}, nil
 }
 
-func (is *includeConfigSource) Retrieve(_ context.Context, selector string, paramsConfigMap *config.Map) (configsource.Retrieved, error) {
+func (is *includeConfigSource) Retrieve(_ context.Context, selector string, paramsConfigMap *confmap.Conf) (configsource.Retrieved, error) {
 	tmpl, err := template.ParseFiles(selector)
 	if err != nil {
 		return nil, err

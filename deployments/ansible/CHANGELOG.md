@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- Initial support for Splunk OpenTelemetry Auto Instrumentation for Java (Linux only)
+
 ## ansible-v0.8.0
 
 ### 💡 Enhancements 💡

@@ -1,0 +1,46 @@
+---
+- name: Verify scenario with auto-instrumentation installation
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert splunk-otel-collector service is running
+      assert:
+        that: ansible_facts.services['splunk-otel-collector.service'].state == 'running'
+
+    - name: Populate package facts
+      ansible.builtin.package_facts:
+
+    - name: Assert specified version of splunk-otel-auto-instrumentation is installed
+      assert:
+        that: ansible_facts.packages['splunk-otel-auto-instrumentation'][0].version == '0.50.0'
+
+    - name: Assert /etc/ld.so.preload contains path to libsplunk.so
+      ansible.builtin.lineinfile:
+        line: /usr/lib/splunk-instrumentation/libsplunk.so
+        dest: /etc/ld.so.preload
+        state: present
+      check_mode: yes
+
+    - name: Assert instrumentation config contains path to java agent
+      ansible.builtin.lineinfile:
+        line: java_agent_jar=/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar
+        dest: /usr/lib/splunk-instrumentation/instrumentation.conf
+        state: present
+      check_mode: yes
+
+    - name: Assert instrumentation config contains resource attribute
+      ansible.builtin.lineinfile:
+        line: resource_attributes=deployment.environment=test
+        dest: /usr/lib/splunk-instrumentation/instrumentation.conf
+        state: present
+      check_mode: yes
+
+    - name: Assert instrumentation config contains service name
+      ansible.builtin.lineinfile:
+        line: service_name=test
+        dest: /usr/lib/splunk-instrumentation/instrumentation.conf
+        state: present
+      check_mode: yes

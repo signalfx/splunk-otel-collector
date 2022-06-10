@@ -1,0 +1,4 @@
+/usr/lib/splunk-instrumentation/libsplunk.so
+{% if splunk_otel_auto_instrumentation_ld_so_preload is defined and splunk_otel_auto_instrumentation_ld_so_preload %}
+{{ splunk_otel_auto_instrumentation_ld_so_preload }}
+{% endif %}

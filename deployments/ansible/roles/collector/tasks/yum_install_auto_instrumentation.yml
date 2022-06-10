@@ -1,0 +1,10 @@
+---
+# Install Splunk OpenTelemetry Auto Instrumentation from yum repository
+
+- name: Install Splunk OpenTelemetry Auto Instrumentation via yum package manager
+  ansible.builtin.yum:
+    name: "splunk-otel-auto-instrumentation{% if splunk_otel_auto_instrumentation_version != 'latest' %}\
+      -{{ splunk_otel_auto_instrumentation_version }}{% endif %}"
+    state: "{% if splunk_otel_auto_instrumentation_version != 'latest' %}present{% else %}latest{% endif %}"
+    allow_downgrade: yes
+    update_cache: yes

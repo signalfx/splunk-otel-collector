@@ -1,0 +1,10 @@
+---
+# Install Splunk OpenTelemetry Auto Instrumentation from zypper repository
+
+- name: Install Splunk OpenTelemetry Auto Instrumentation via zypper package manager
+  community.general.zypper:
+    name: "splunk-otel-auto-instrumentation{% if splunk_otel_auto_instrumentation_version != 'latest' %}\
+      -{{ splunk_otel_auto_instrumentation_version }}{% endif %}"
+    state: "{% if splunk_otel_auto_instrumentation_version != 'latest' %}present{% else %}latest{% endif %}"
+    oldpackage: yes
+    update_cache: yes

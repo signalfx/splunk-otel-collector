@@ -51,3 +51,12 @@ new release. In addition, any of these components may be removed prior to the
 | [statsd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/statsdreceiver)             |            |                                                                                                     |            |
 | [syslog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/syslogreceiver)             |            |                                                                                                     |            |
 | [tcplog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/tcplogreceiver)             |            |                                                                                                     |            |
+
+## Experimental
+
+These components should not be considered stable. They are made available
+for testing and validation purposes.
+
+| Receivers | Processors | Exporters                                     | Extensions |
+|-----------|------------|-----------------------------------------------|------------|
+|           |            | [pulsar](../internal/exporter/pulsarexporter) |            |

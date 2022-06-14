@@ -17,13 +17,13 @@ package pulsarexporter
 import (
 	"context"
 	"fmt"
-	"go.uber.org/multierr"
-	"go.uber.org/zap"
 
 	"github.com/apache/pulsar-client-go/pulsar"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.uber.org/multierr"
+	"go.uber.org/zap"
 )
 
 var errUnrecognizedEncoding = fmt.Errorf("unrecognized encoding")
@@ -31,11 +31,10 @@ var errUnrecognizedEncoding = fmt.Errorf("unrecognized encoding")
 // pulsarMetricsExporter produce metrics messages to pulsar
 type pulsarMetricsExporter struct {
 	producer  pulsar.Producer
-	topic     string
 	marshaler MetricsMarshaler
 	logger    *zap.Logger
+	topic     string
 }
-
 
 func newMetricsExporter(config Config, set component.ExporterCreateSettings, marshalers map[string]MetricsMarshaler) (*pulsarMetricsExporter, error) {
 	marshaler := marshalers[config.Encoding]
@@ -97,7 +96,7 @@ func (e *pulsarMetricsExporter) metricsDataPusher(ctx context.Context, md pmetri
 			}
 		})
 	}
-	if errors == nil{
+	if errors == nil {
 		return nil
 	}
 	return fmt.Errorf("pulsar producer failed to send metric data due to error: %w", errors)
@@ -107,6 +106,3 @@ func (e *pulsarMetricsExporter) Close(context.Context) error {
 	e.producer.Close()
 	return nil
 }
-
-
-

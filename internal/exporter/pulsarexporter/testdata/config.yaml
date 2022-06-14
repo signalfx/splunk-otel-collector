@@ -1,8 +1,8 @@
 processors:
- nop:
+  nop:
 
 receivers:
- nop:
+  nop:
 
 exporters:
   pulsar:
@@ -32,6 +32,6 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers: [nop]
-      processors: [nop]
-      exporters: [pulsar]
+      receivers: [ nop ]
+      processors: [ nop ]
+      exporters: [ pulsar ]

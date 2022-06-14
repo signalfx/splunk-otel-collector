@@ -90,6 +90,7 @@ func TestDefaultComponents(t *testing.T) {
 		"logging",
 		"otlp",
 		"otlphttp",
+		"pulsar",
 		"sapm",
 		"signalfx",
 		"splunk_hec",

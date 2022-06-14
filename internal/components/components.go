@@ -66,6 +66,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
+	"github.com/signalfx/splunk-otel-collector/internal/exporter/pulsarexporter"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
@@ -147,6 +148,7 @@ func Get() (component.Factories, error) {
 		signalfxexporter.NewFactory(),
 		splunkhecexporter.NewFactory(),
 		httpsinkexporter.NewFactory(),
+		pulsarexporter.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)

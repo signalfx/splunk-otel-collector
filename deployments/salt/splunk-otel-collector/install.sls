@@ -1,16 +1,8 @@
-{% set os_family = salt['grains.get']('os_family') %}
-
-# Check if the OS is in supported types.
-
-{% if os_family not in ['Debian', 'RedHat', 'Suse'] %}
-
-{{ "This deploy is supported on ['Debian', 'Ubuntu'], ['CentOS', 'Red Hat Enterprise Linux', 'Amazon'], ['Suse'] " }}
-
-{% else %}
-
+{% set os_family = grains['os_family'] %}
 {% set splunk_repo_base_url = salt['pillar.get']('splunk-otel-collector:repo_base_url', 'https://splunk.jfrog.io/splunk') %}
-
 {% set package_stage = salt['pillar.get']('splunk-otel-collector:package_stage', 'release') %}
+{% set collector_version = salt['pillar.get']('splunk-otel-collector:collector_version', 'latest') %}
+
 # Repository configuration.
 
 {% if os_family == 'RedHat' %}
@@ -79,8 +71,4 @@ Add Splunk OpenTelemetry Collector repo to zypper source list:
 Install Splunk OpenTelemetry Collector:
   pkg.installed:
     - name: splunk-otel-collector
-{% if salt['pillar.get']('splunk-otel-collector:collector_version') is not none and salt['pillar.get']('splunk-otel-collector:collector_version') != 'latest' %}
-    - version: {{ salt['pillar.get']('splunk-otel-collector:collector_version') }}
-{% endif %}
-
-{% endif %}
+    - version: {{ collector_version }}

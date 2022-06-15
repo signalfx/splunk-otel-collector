@@ -1,0 +1,37 @@
+processors:
+  nop:
+
+receivers:
+  nop:
+
+exporters:
+  pulsar:
+    topic: otlp_metrics
+    broker: pulsar+ssl://localhost:6651
+    auth:
+      tls:
+        ca_file: "/path/to/cacert"
+        cert_file: "/path/to/cert"
+        key_file: "/path/to/key"
+        insecure_skip_verify: true
+    producer:
+      producer_name: otel-pulsar
+      send_timeout: 0
+      disable_block_if_queue_full: false
+      max_pending_messages: 100
+      hashing_scheme: java_string_hash
+      compression_type: zstd
+      compression_level: default
+      batch_builder_type: 1
+      disable_batching: false
+      batching_max_publish_delay: 10
+      batching_max_messages: 1000
+      batching_max_size: 128000
+      partitions_auto_discovery_interval: 1
+
+service:
+  pipelines:
+    metrics:
+      receivers: [ nop ]
+      processors: [ nop ]
+      exporters: [ pulsar ]

@@ -78,6 +78,7 @@ import (
 	"go.uber.org/multierr"
 
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/httpsinkexporter"
+	"github.com/signalfx/splunk-otel-collector/internal/exporter/pulsarexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/smartagentreceiver"
@@ -147,6 +148,7 @@ func Get() (component.Factories, error) {
 		signalfxexporter.NewFactory(),
 		splunkhecexporter.NewFactory(),
 		httpsinkexporter.NewFactory(),
+		pulsarexporter.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)

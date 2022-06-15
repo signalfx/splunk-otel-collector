@@ -26,6 +26,7 @@ from tests.helpers.util import (
     run_container_cmd,
     run_distro_container,
     service_is_running,
+    verify_package_version,
     wait_for,
     REPO_DIR,
     SERVICE_NAME,
@@ -76,7 +77,7 @@ def verify_env_file(container):
     run_container_cmd(container, f"grep '^SPLUNK_TRACE_URL={SPLUNK_INGEST_URL}/v2/trace$' {SPLUNK_ENV_PATH}")
 
 
-@pytest.mark.installer
+@pytest.mark.puppet
 @pytest.mark.parametrize(
     "distro",
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
@@ -102,10 +103,10 @@ def test_puppet_with_fluentd(distro, puppet_release):
                 assert wait_for(lambda: service_is_running(container))
                 if "opensuse" not in distro and distro != "ubuntu-jammy":
                     assert container.exec_run("systemctl status td-agent").exit_code == 0
-                if distro in DEB_DISTROS:
-                    assert container.exec_run("dpkg -s splunk-otel-auto-instrumentation").exit_code != 0
+                if collector_version == "latest":
+                    verify_package_version(container, "splunk-otel-collector", collector_version, "0.34.0")
                 else:
-                    assert container.exec_run("rpm -q splunk-otel-auto-instrumentation").exit_code != 0
+                    verify_package_version(container, "splunk-otel-collector", collector_version)
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
             if "opensuse" not in distro and distro != "ubuntu-jammy":
@@ -114,7 +115,7 @@ def test_puppet_with_fluentd(distro, puppet_release):
                     run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
 
 
-@pytest.mark.installer
+@pytest.mark.puppet
 @pytest.mark.parametrize(
     "distro",
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
@@ -176,7 +177,8 @@ def verify_instrumentation_config(container):
         run_container_cmd(container, f"cat {config_path}")
 
 
-@pytest.mark.installer
+@pytest.mark.puppet
+@pytest.mark.instrumentation
 @pytest.mark.parametrize(
     "distro",
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
@@ -202,10 +204,10 @@ def test_puppet_with_instrumentation(distro, puppet_release):
                 assert wait_for(lambda: service_is_running(container))
                 if "opensuse" not in distro and distro != "ubuntu-jammy":
                     assert container.exec_run("systemctl status td-agent").exit_code == 0
-                if distro in DEB_DISTROS:
-                    run_container_cmd(container, "dpkg -s splunk-otel-auto-instrumentation")
+                if version == "latest":
+                    verify_package_version(container, "splunk-otel-auto-instrumentation", version, "0.48.0")
                 else:
-                    run_container_cmd(container, "rpm -q splunk-otel-auto-instrumentation")
+                    verify_package_version(container, "splunk-otel-auto-instrumentation", version)
                 verify_instrumentation_config(container)
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")

@@ -138,3 +138,18 @@ def service_is_running(container, service_name=SERVICE_NAME, service_owner=SERVI
     cmd = f"sh -ec 'systemctl status {service_name} && pgrep -a -u {service_owner} -f {process}'"
     code, _ = run_container_cmd(container, cmd, exit_code=None)
     return code == 0
+
+
+def verify_package_version(container, package, version, old_version=None):
+    if container.exec_run("bash -c 'command -v dpkg-query'").exit_code == 0:
+        _, output = run_container_cmd(container, f"dpkg-query --showformat='${{Version}}' --show {package}")
+    else:
+        _, output = run_container_cmd(container, f"rpm -q --queryformat '%{{VERSION}}' {package}")
+    installed_version = output.decode("utf-8").strip()
+    assert installed_version, f"failed to get {package} version"
+    if version == "latest" and old_version:
+        assert tuple(installed_version.split(".")) > tuple(old_version.split(".")), \
+            f"installed version = {installed_version}, expected version > {old_version}"
+    elif version != "latest":
+        assert installed_version == version, \
+            f"installed version = {installed_version}, expected version = {version}"

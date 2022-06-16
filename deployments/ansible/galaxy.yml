@@ -2,7 +2,7 @@
 namespace: signalfx
 name: splunk_otel_collector
 description: Ansible collection for Splunk OpenTelemetry Collector
-version: 0.8.0
+version: 0.9.0
 readme: README.md
 authors:
   - Splunk Inc.

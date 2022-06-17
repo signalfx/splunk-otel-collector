@@ -244,23 +244,23 @@ func translateExporters(sa saCfgInfo, cfg *otelCfg) {
 }
 
 func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
-	rcReceivers := map[string]map[string]interface{}{}
+	var standardReceivers, rcReceivers componentCollection
 	for _, monV := range sa.monitors {
 		monitor := monV.(map[interface{}]interface{})
 		receiver, w, isRC := saMonitorToOtelReceiver(monitor, sa.observers)
 		warnings = append(warnings, w...)
-		target := cfg.Receivers
 		if isRC {
-			target = rcReceivers
-		}
-		for k, v := range receiver {
-			target[k] = v
+			rcReceivers = append(rcReceivers, receiver)
+		} else {
+			standardReceivers = append(standardReceivers, receiver)
 		}
 	}
 
+	cfg.Receivers = standardReceivers.toComponentMap()
+	rcReceiverMap := rcReceivers.toComponentMap()
 	metricsReceivers, tracesReceivers, logsReceivers := receiverLists(cfg.Receivers)
 
-	if len(rcReceivers) > 0 {
+	if len(rcReceiverMap) > 0 {
 		switch {
 		case sa.observers == nil:
 			warnings = append(warnings, errors.New("found Smart Agent discovery rule but no observers"))
@@ -270,7 +270,7 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 			obs := saObserverTypeToOtel(sa.observers[0].(map[interface{}]interface{})["type"].(string))
 			const rc = "receiver_creator"
 			cfg.Receivers[rc] = map[string]interface{}{
-				"receivers":       rcReceivers,
+				"receivers":       rcReceiverMap,
 				"watch_observers": []string{obs},
 			}
 			metricsReceivers = append(metricsReceivers, rc)
@@ -486,14 +486,14 @@ func sfxExporter(sa saCfgInfo) map[string]map[string]interface{} {
 }
 
 func saMonitorToOtelReceiver(monitor map[interface{}]interface{}, observers []interface{}) (
-	out map[string]map[string]interface{},
+	cmp component,
 	warnings []error,
 	isReceiverCreator bool,
 ) {
 	strm := interfaceMapToStringMap(monitor)
 	if _, ok := monitor[discoveryRule]; ok {
-		receiver, w := saMonitorToRCReceiver(strm, observers)
-		return receiver, w, true
+		cmp, warnings = saMonitorToRCReceiver(strm, observers)
+		return cmp, warnings, true
 	}
 	return saMonitorToStandardReceiver(strm), nil, false
 }
@@ -514,7 +514,7 @@ func stringMapToInterfaceMap(in map[string]interface{}) map[interface{}]interfac
 	return out
 }
 
-func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface{}) (out map[string]map[string]interface{}, warnings []error) {
+func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface{}) (cmp component, warnings []error) {
 	key := "smartagent/" + monitor["type"].(string)
 	dr := monitor[discoveryRule].(string)
 	rcr, err := discoveryRuleToRCRule(dr, observers)
@@ -524,21 +524,59 @@ func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface
 		warnings = append(warnings, err)
 	}
 	delete(monitor, discoveryRule)
-	return map[string]map[string]interface{}{
-		key: {
+
+	cmp = component{
+		provisionalKey: key,
+		attrs: map[string]interface{}{
 			"rule":   rcr,
 			"config": monitor,
 		},
-	}, warnings
+	}
+	return
 }
 
-func saMonitorToStandardReceiver(monitor map[string]interface{}) map[string]map[string]interface{} {
+type component struct {
+	attrs          map[string]interface{}
+	provisionalKey string
+}
+
+type componentCollection []component
+
+// toComponentMap turns a componentCollection into a map such that its keys have a `/<number>`
+// suffix for any components with colliding provisional keys
+func (cc componentCollection) toComponentMap() map[string]map[string]interface{} {
+	keyCounts := map[string]int{}
+	hasMultiKeys := map[string]struct{}{}
+	for _, c := range cc {
+		count := keyCounts[c.provisionalKey]
+		if count > 0 {
+			hasMultiKeys[c.provisionalKey] = struct{}{}
+		}
+		keyCounts[c.provisionalKey] = count + 1
+	}
+	keyCounts = map[string]int{}
+	out := map[string]map[string]interface{}{}
+	for _, c := range cc {
+		_, found := hasMultiKeys[c.provisionalKey]
+		key := c.provisionalKey
+		if found {
+			numSeen := keyCounts[c.provisionalKey]
+			key = fmt.Sprintf("%s/%d", key, numSeen)
+			keyCounts[c.provisionalKey] = numSeen + 1
+		}
+		out[key] = c.attrs
+	}
+	return out
+}
+
+func saMonitorToStandardReceiver(monitor map[string]interface{}) component {
 	if excludes, ok := monitor[metricsToExclude]; ok {
 		delete(monitor, metricsToExclude)
 		monitor["datapointsToExclude"] = excludes
 	}
-	return map[string]map[string]interface{}{
-		"smartagent/" + monitor["type"].(string): monitor,
+	return component{
+		provisionalKey: "smartagent/" + monitor["type"].(string),
+		attrs:          monitor,
 	}
 }
 

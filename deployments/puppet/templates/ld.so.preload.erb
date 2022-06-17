@@ -1,0 +1,4 @@
+/usr/lib/splunk-instrumentation/libsplunk.so
+<% if defined?(@auto_instrumentation_ld_so_preload) && @auto_instrumentation_ld_so_preload != "" -%>
+<%= @auto_instrumentation_ld_so_preload %>
+<% end -%>

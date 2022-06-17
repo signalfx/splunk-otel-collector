@@ -1,0 +1,7 @@
+java_agent_jar=<%= @auto_instrumentation_java_agent_jar %>
+<% if defined?(@auto_instrumentation_resource_attributes) && @auto_instrumentation_resource_attributes != "" -%>
+resource_attributes=<%= @auto_instrumentation_resource_attributes %>
+<% end -%>
+<% if defined?(@auto_instrumentation_service_name) && @auto_instrumentation_service_name != "" -%>
+service_name=<%= @auto_instrumentation_service_name %>
+<% end -%>

@@ -31,7 +31,13 @@ class splunk_otel_collector (
   $fluentd_config_dest     = $splunk_otel_collector::params::fluentd_config_dest,
   $fluentd_capng_c_version = '<=0.2.2',  # linux only
   $fluentd_systemd_version = '<=1.0.2',  # linux only
-  $manage_repo             = true  # linux only
+  $manage_repo             = true,  # linux only
+  $with_auto_instrumentation                = false,  # linux only
+  $auto_instrumentation_version             = $splunk_otel_collector::params::auto_instrumentation_version,  # linux only
+  $auto_instrumentation_ld_so_preload       = '',  # linux only
+  $auto_instrumentation_java_agent_jar      = $splunk_otel_collector::params::auto_instrumentation_java_agent_jar,  # linux only
+  $auto_instrumentation_resource_attributes = '',  # linux only
+  $auto_instrumentation_service_name        = ''   # linux only
 ) inherits splunk_otel_collector::params {
 
   $collector_service_name = 'splunk-otel-collector'
@@ -357,6 +363,38 @@ class splunk_otel_collector (
         enable  => true,
         require => [Class['splunk_otel_collector::fluentd_win_install'], Service[$collector_service_name]],
       }
+    }
+  }
+
+  if $with_auto_instrumentation {
+    $auto_instrumentation_package_name = 'splunk-otel-auto-instrumentation'
+    $ld_so_preload_path =  '/etc/ld.so.preload'
+    $instrumentation_config_path = '/usr/lib/splunk-instrumentation/instrumentation.conf'
+
+    if $::osfamily == 'debian' {
+      package { $auto_instrumentation_package_name:
+        ensure  => $auto_instrumentation_version,
+        require => [Class['splunk_otel_collector::collector_debian_repo'], Package[$collector_package_name]],
+      }
+    } elsif $::osfamily == 'redhat' or $::osfamily == 'suse' {
+      package { $auto_instrumentation_package_name:
+        ensure  => $auto_instrumentation_version,
+        require => [Class['splunk_otel_collector::collector_yum_repo'], Package[$collector_package_name]],
+      }
+    } else {
+      fail("Splunk OpenTelemetry Auto Instrumentation is not supported for your OS family (${::osfamily})")
+    }
+
+    file { $ld_so_preload_path:
+      ensure  => file,
+      content => template('splunk_otel_collector/ld.so.preload.erb'),
+      require => Package[$auto_instrumentation_package_name],
+    }
+
+    file { $instrumentation_config_path:
+      ensure  => file,
+      content => template('splunk_otel_collector/instrumentation.conf.erb'),
+      require => Package[$auto_instrumentation_package_name],
     }
   }
 }

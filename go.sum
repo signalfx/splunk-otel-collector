@@ -1198,8 +1198,8 @@ github.com/jaegertracing/jaeger v1.22.0/go.mod h1:WnwW68MjJEViSLRQhe0nkIsBDaF3Cz
 github.com/jaegertracing/jaeger v1.23.0/go.mod h1:gB6Qc+Kjd/IX1G82oGTArbHI3ZRO//iUkaMW+gzL9uw=
 github.com/jaegertracing/jaeger v1.26.0/go.mod h1:SwHsl1PLZVAdkQTPrziQ+4xV9FxzJXRvTDW1YrUIWEA=
 github.com/jaegertracing/jaeger v1.31.0/go.mod h1:KukZMhuamI3NVbzWmngcmXbcnxiB3WyaNf0nxio+sUw=
-github.com/jaegertracing/jaeger v1.35.1 h1:Jb7/5anKF70V4FQSJRJ3AYBcA/hJDfWy45kE/9nFSe8=
-github.com/jaegertracing/jaeger v1.35.1/go.mod h1:e7FBVZ14ptsRjwiHEnLyxvOa4bSnZA0BDFE1OcvNiHs=
+github.com/jaegertracing/jaeger v1.35.2 h1:7bQhPrAHqYpucz9wB3laOm8QO+1rFuSlCcfWASY2QGM=
+github.com/jaegertracing/jaeger v1.35.2/go.mod h1:e7FBVZ14ptsRjwiHEnLyxvOa4bSnZA0BDFE1OcvNiHs=
 github.com/jawher/mow.cli v1.0.4/go.mod h1:5hQj2V8g+qYmLUVWqu4Wuja1pI57M83EChYLVZ0sMKk=
 github.com/jawher/mow.cli v1.2.0/go.mod h1:y+pcA3jBAdo/GIZx/0rFjw/K2bVEODP9rfZOfaiq8Ko=
 github.com/jcmturner/aescts/v2 v2.0.0 h1:9YKLH6ey7H4eDBXW8khjYslgyqG2xZikXP0EQFKrle8=

@@ -1,8 +1,11 @@
 resource_metrics:
   - instrumentation_library_metrics:
-      - metrics:
+      - instrumentation_library:
+          name: otelcol/hostmetricsreceiver/memory
+          version: <FROM_BUILD>
+        metrics:
           - name: system.memory.usage
-            type: IntGauge
+            type: IntNonmonotonicCumulativeSum
             labels:
               state: used
               single-dollar: an-envvar-value-suffix

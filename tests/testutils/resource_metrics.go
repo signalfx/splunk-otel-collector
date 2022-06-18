@@ -22,6 +22,8 @@ import (
 	"reflect"
 
 	"gopkg.in/yaml.v2"
+
+	"github.com/signalfx/splunk-otel-collector/tests/internal/version"
 )
 
 type MetricType string
@@ -42,6 +44,8 @@ const (
 	IntNonmonotonicDeltaSum          MetricType = "IntNonmonotonicDeltaSum"
 	IntNonmonotonicUnspecifiedSum    MetricType = "IntNonmonotonicUnspecifiedSum"
 )
+
+const buildVersionPlaceholder = "<FROM_BUILD>"
 
 var supporedtMetricTypeOptions = fmt.Sprintf(
 	"%s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s",
@@ -122,11 +126,23 @@ func LoadResourceMetrics(path string) (*ResourceMetrics, error) {
 	if err != nil {
 		return nil, err
 	}
+	loaded.FillDefaultValues()
 	err = loaded.Validate() // in lieu of json/yaml schema adoption
 	if err != nil {
 		return nil, err
 	}
 	return &loaded, nil
+}
+
+// FillDefaultValues fills ResourceMetrics with default values
+func (resourceMetrics *ResourceMetrics) FillDefaultValues() {
+	for i, rm := range resourceMetrics.ResourceMetrics {
+		for j, ilm := range rm.ILMs {
+			if ilm.InstrumentationLibrary.Version == buildVersionPlaceholder {
+				resourceMetrics.ResourceMetrics[i].ILMs[j].InstrumentationLibrary.Version = version.Version
+			}
+		}
+	}
 }
 
 // Determines if all values in ResourceMetrics item are valid

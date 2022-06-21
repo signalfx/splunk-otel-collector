@@ -228,7 +228,7 @@ func (v *vaultConfigSource) buildPollingWatcher() (func() error, error) {
 		return nil, nil
 	}
 
-	mdMap, ok := mdValue.(map[string]interface{})
+	mdMap, ok := mdValue.(map[string]any)
 	if !ok {
 		v.logger.Warn("Metadata not in the expected format to create polling watcher for vault config source", zap.String("path", v.path))
 		return nil, nil
@@ -286,7 +286,7 @@ type versionMetadata struct {
 	Version   int64
 }
 
-func (v *vaultConfigSource) extractVersionMetadata(metadataMap map[string]interface{}, timestampKey, versionKey string) *versionMetadata {
+func (v *vaultConfigSource) extractVersionMetadata(metadataMap map[string]any, timestampKey, versionKey string) *versionMetadata {
 	timestamp, ok := metadataMap[timestampKey].(string)
 	if !ok {
 		v.logger.Warn("Missing or unexpected type for timestamp on the metadata map", zap.String("key", timestampKey))
@@ -312,7 +312,7 @@ func (v *vaultConfigSource) extractVersionMetadata(metadataMap map[string]interf
 }
 
 // Allows key to be dot-delimited to traverse nested maps.
-func traverseToKey(data map[string]interface{}, key string) interface{} {
+func traverseToKey(data map[string]any, key string) any {
 	// Since strings.Split is called with a non-empty separator it will always return
 	// a slice with at least one element.
 	parts := strings.Split(key, ".")
@@ -324,7 +324,7 @@ func traverseToKey(data map[string]interface{}, key string) interface{} {
 		}
 
 		var ok bool
-		data, ok = partVal.(map[string]interface{})
+		data, ok = partVal.(map[string]any)
 		if !ok {
 			return nil
 		}

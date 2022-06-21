@@ -47,15 +47,15 @@ const (
 // maps. This requires locking, implemented in the get/set methods.
 type configServer struct {
 	logger              *zap.Logger
-	initial             map[string]interface{}
-	effective           map[string]interface{}
+	initial             map[string]any
+	effective           map[string]any
 	server              *http.Server
 	doneCh              chan struct{}
 	initialConfigSync   sync.RWMutex
 	effectiveConfigSync sync.RWMutex
 }
 
-func newConfigServer(logger *zap.Logger, initial, effective map[string]interface{}) *configServer {
+func newConfigServer(logger *zap.Logger, initial, effective map[string]any) *configServer {
 	cs := &configServer{
 		logger: logger,
 	}
@@ -65,25 +65,25 @@ func newConfigServer(logger *zap.Logger, initial, effective map[string]interface
 	return cs
 }
 
-func (cs *configServer) setInitial(config map[string]interface{}) {
+func (cs *configServer) setInitial(config map[string]any) {
 	cs.initialConfigSync.Lock()
 	cs.initial = config
 	cs.initialConfigSync.Unlock()
 }
 
-func (cs *configServer) setEffective(config map[string]interface{}) {
+func (cs *configServer) setEffective(config map[string]any) {
 	cs.effectiveConfigSync.Lock()
 	cs.effective = config
 	cs.effectiveConfigSync.Unlock()
 }
 
-func (cs *configServer) getInitial() map[string]interface{} {
+func (cs *configServer) getInitial() map[string]any {
 	cs.initialConfigSync.RLock()
 	defer cs.initialConfigSync.RUnlock()
 	return cs.initial
 }
 
-func (cs *configServer) getEffective() map[string]interface{} {
+func (cs *configServer) getEffective() map[string]any {
 	cs.effectiveConfigSync.RLock()
 	defer cs.effectiveConfigSync.RUnlock()
 	return cs.effective
@@ -168,17 +168,17 @@ func (cs *configServer) muxHandleFunc(configType ConfigType) func(http.ResponseW
 	}
 }
 
-func simpleRedact(config map[string]interface{}) map[string]interface{} {
-	redactedConfig := make(map[string]interface{})
+func simpleRedact(config map[string]any) map[string]any {
+	redactedConfig := make(map[string]any)
 	for k, v := range config {
 		switch value := v.(type) {
 		case string:
 			if shouldRedactKey(k) {
 				v = "<redacted>"
 			}
-		case map[string]interface{}:
+		case map[string]any:
 			v = simpleRedact(value)
-		case map[interface{}]interface{}:
+		case map[any]any:
 			v = simpleRedact(cast.ToStringMap(value))
 		}
 

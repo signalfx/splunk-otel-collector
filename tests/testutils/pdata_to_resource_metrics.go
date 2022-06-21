@@ -60,7 +60,7 @@ func addSum(ilms *ScopeMetrics, metric pmetric.Metric) {
 	intMetricType := intSumMetricType(sum)
 	for l := 0; l < sum.DataPoints().Len(); l++ {
 		dp := sum.DataPoints().At(l)
-		var val interface{}
+		var val any
 		var metricType MetricType
 		switch dp.ValueType() {
 		case pmetric.NumberDataPointValueTypeInt:
@@ -88,7 +88,7 @@ func addSum(ilms *ScopeMetrics, metric pmetric.Metric) {
 }
 
 func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pcommon.Value) {
-	var val interface{}
+	var val any
 	switch value.Type() {
 	case pcommon.ValueTypeString:
 		val = value.StringVal()
@@ -101,7 +101,7 @@ func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pco
 	case pcommon.ValueTypeMap:
 		val = value.MapVal().AsRaw()
 	case pcommon.ValueTypeSlice:
-		// Coerce to []interface{}
+		// Coerce to []any
 		// Required pdata helper is not exposed so we pass value as a map
 		// and use helper that calls it internally.
 		toTranslate := pcommon.NewMap()
@@ -112,7 +112,7 @@ func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pco
 		val = nil
 	}
 	if resourceMetric.Resource.Attributes == nil {
-		resourceMetric.Resource.Attributes = map[string]interface{}{}
+		resourceMetric.Resource.Attributes = map[string]any{}
 	}
 	resourceMetric.Resource.Attributes[name] = val
 }
@@ -121,7 +121,7 @@ func addGauge(ilms *ScopeMetrics, metric pmetric.Metric) {
 	doubleGauge := metric.Gauge()
 	for l := 0; l < doubleGauge.DataPoints().Len(); l++ {
 		dp := doubleGauge.DataPoints().At(l)
-		var val interface{}
+		var val any
 		var metricType MetricType
 		switch dp.ValueType() {
 		case pmetric.NumberDataPointValueTypeInt:

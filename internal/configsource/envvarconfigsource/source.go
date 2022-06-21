@@ -42,11 +42,11 @@ type retrieveParams struct {
 
 // envVarConfigSource implements the configsource.Session interface.
 type envVarConfigSource struct {
-	defaults map[string]interface{}
+	defaults map[string]any
 }
 
 func newConfigSource(_ configprovider.CreateParams, cfg *Config) configsource.ConfigSource {
-	defaults := make(map[string]interface{})
+	defaults := make(map[string]any)
 	if cfg.Defaults != nil {
 		defaults = cfg.Defaults
 	}

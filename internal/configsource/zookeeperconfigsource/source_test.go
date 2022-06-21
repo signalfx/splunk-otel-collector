@@ -41,7 +41,7 @@ func TestSessionRetrieve(t *testing.T) {
 
 	testsCases := []struct {
 		expect *string
-		params interface{}
+		params any
 		name   string
 		key    string
 	}{

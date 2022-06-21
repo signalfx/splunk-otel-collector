@@ -48,7 +48,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 				Dimensions: map[string]string{
 					"dimension_name": "dimension_value",
 				},
-				Properties: map[string]interface{}{
+				Properties: map[string]any{
 					"bool_property_name":    true,
 					"string_property_name":  "some value",
 					"int_property_name":     int(12345),
@@ -69,7 +69,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 				}
 				properties := pcommon.NewValueMap()
 				pcommon.NewMapFromRaw(
-					map[string]interface{}{
+					map[string]any{
 						"bool_property_name":    true,
 						"string_property_name":  "some value",
 						"int_property_name":     12345,
@@ -90,7 +90,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 			event: event.Event{
 				EventType: "some_event_type",
 				Category:  10000000,
-				Properties: map[string]interface{}{
+				Properties: map[string]any{
 					"nil_property":    nil,
 					"struct_property": struct{ field string }{"something"},
 					"uint_property":   uint(12345),
@@ -103,7 +103,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 				}
 				properties := pcommon.NewValueMap()
 				pcommon.NewMapFromRaw(
-					map[string]interface{}{
+					map[string]any{
 						"struct_property": "{something}",
 						"uint_property":   "12345",
 					},

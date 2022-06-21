@@ -32,7 +32,7 @@ func (MoveHecTLS) Convert(_ context.Context, in *confmap.Conf) error {
 
 	const expression = "exporters::splunk_hec(/\\w+)?::(insecure_skip_verify|ca_file|cert_file|key_file)"
 	re := regexp.MustCompile(expression)
-	out := map[string]interface{}{}
+	out := map[string]any{}
 	unsupportedKeyFound := false
 	for _, k := range in.AllKeys() {
 		v := in.Get(k)

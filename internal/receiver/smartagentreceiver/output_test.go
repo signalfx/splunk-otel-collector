@@ -230,7 +230,7 @@ func TestSendEvent(t *testing.T) {
 
 	event := event.Event{
 		EventType: "my_event",
-		Properties: map[string]interface{}{
+		Properties: map[string]any{
 			"property": "property_value",
 		},
 	}

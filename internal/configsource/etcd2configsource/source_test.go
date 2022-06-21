@@ -40,7 +40,7 @@ func TestSessionRetrieve(t *testing.T) {
 
 	source := &etcd2ConfigSource{logger: logger, kapi: kapi}
 	testsCases := []struct {
-		params interface{}
+		params any
 		expect *string
 		name   string
 		key    string

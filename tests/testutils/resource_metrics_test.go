@@ -125,10 +125,10 @@ func TestLoadMetricsInvalidMetricType(t *testing.T) {
 
 func TestResourceEquivalence(t *testing.T) {
 	resource := func() Resource {
-		return Resource{Attributes: map[string]interface{}{
+		return Resource{Attributes: map[string]any{
 			"one": 1, "two": "two", "three": nil,
 			"four": []int{1, 2, 3, 4},
-			"five": map[string]interface{}{
+			"five": map[string]any{
 				"true": true, "false": false, "nil": nil,
 			},
 		}}
@@ -140,10 +140,10 @@ func TestResourceEquivalence(t *testing.T) {
 	assert.True(t, rOne.Equals(rTwo))
 	assert.True(t, rTwo.Equals(rOne))
 
-	rTwo.Attributes["five"].(map[string]interface{})["another"] = "item"
+	rTwo.Attributes["five"].(map[string]any)["another"] = "item"
 	assert.False(t, rOne.Equals(rTwo))
 	assert.False(t, rTwo.Equals(rOne))
-	rOne.Attributes["five"].(map[string]interface{})["another"] = "item"
+	rOne.Attributes["five"].(map[string]any)["another"] = "item"
 	assert.True(t, rOne.Equals(rTwo))
 	assert.True(t, rTwo.Equals(rOne))
 }
@@ -307,7 +307,7 @@ func TestMetricLabelRelaxedEquivalence(t *testing.T) {
 }
 
 func TestHashFunctionConsistency(t *testing.T) {
-	resource := Resource{Attributes: map[string]interface{}{
+	resource := Resource{Attributes: map[string]any{
 		"one": "1", "two": 2, "three": 3.000, "four": false, "five": nil,
 	}}
 	for i := 0; i < 100; i++ {
@@ -331,7 +331,7 @@ func TestHashFunctionConsistency(t *testing.T) {
 }
 
 func TestFlattenResourceMetricsByResourceIdentity(t *testing.T) {
-	resource := Resource{Attributes: map[string]interface{}{"attribute_one": nil, "attribute_two": 123.456}}
+	resource := Resource{Attributes: map[string]any{"attribute_one": nil, "attribute_two": 123.456}}
 	resourceMetrics := ResourceMetrics{
 		ResourceMetrics: []ResourceMetric{
 			{Resource: resource},
@@ -344,7 +344,7 @@ func TestFlattenResourceMetricsByResourceIdentity(t *testing.T) {
 }
 
 func TestFlattenResourceMetricsByScopeMetricsIdentity(t *testing.T) {
-	resource := Resource{Attributes: map[string]interface{}{"attribute_three": true, "attribute_four": 23456}}
+	resource := Resource{Attributes: map[string]any{"attribute_three": true, "attribute_four": 23456}}
 	ilm := ScopeMetrics{InstrumentationLibrary: InstrumentationLibrary{
 		Name: "an instrumentation library", Version: "an instrumentation library version",
 	}, Metrics: []Metric{}}
@@ -365,7 +365,7 @@ func TestFlattenResourceMetricsByScopeMetricsIdentity(t *testing.T) {
 }
 
 func TestFlattenResourceMetricsByMetricsIdentity(t *testing.T) {
-	resource := Resource{Attributes: map[string]interface{}{}}
+	resource := Resource{Attributes: map[string]any{}}
 	metrics := []Metric{
 		{Name: "a metric", Unit: "a unit", Description: "a description", Value: 123},
 		{Name: "another metric", Unit: "another unit", Description: "another description", Value: 234},

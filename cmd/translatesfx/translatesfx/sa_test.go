@@ -24,7 +24,7 @@ import (
 
 func TestExpandSA_Map(t *testing.T) {
 	yml := `myMap: {"#from": "testdata/map.yaml", "default": "foo"}`
-	var v interface{}
+	var v any
 	err := yaml.UnmarshalStrict([]byte(yml), &v)
 	require.NoError(t, err)
 	out, _, _ := expand(v, "", yamlPath{}, nil)
@@ -38,7 +38,7 @@ func TestExpandSA_Map(t *testing.T) {
 
 func TestExpandSA_List(t *testing.T) {
 	yml := `myList: [{"#from": "testdata/map.yaml", "default": "foo"}]`
-	var v interface{}
+	var v any
 	err := yaml.UnmarshalStrict([]byte(yml), &v)
 	require.NoError(t, err)
 	out, _, _ := expand(v, "", yamlPath{}, nil)
@@ -57,7 +57,7 @@ func TestExpandSA_FlattenSlice(t *testing.T) {
   - {"#from": "testdata/list1.yaml", flatten: true}
   - {"#from": "testdata/list2.yaml", flatten: true}
 `
-	var v interface{}
+	var v any
 	err := yaml.UnmarshalStrict([]byte(yml), &v)
 	require.NoError(t, err)
 	out, _, _ := expand(v, "", yamlPath{}, nil)
@@ -78,13 +78,13 @@ func TestExpandSA_FlattenMap(t *testing.T) {
   message: hello
   xxx: {"#from": "testdata/map.yaml", flatten: true}
 `
-	var v interface{}
+	var v any
 	err := yaml.UnmarshalStrict([]byte(yml), &v)
 	require.NoError(t, err)
 	expanded, _, _ := expand(v, "", yamlPath{}, nil)
 	require.NoError(t, err)
-	expected := map[interface{}]interface{}{
-		"map": map[interface{}]interface{}{
+	expected := map[any]any{
+		"map": map[any]any{
 			"message": "hello",
 			"foo":     "bar",
 			"baz":     "glarch",
@@ -98,10 +98,10 @@ func TestExpandSA_Complex(t *testing.T) {
 	expanded, _, err := expandSA(v, "")
 	require.NoError(t, err)
 	assert.Equal(t, "https://api.us1.signalfx.com", expanded["apiUrl"])
-	monitors := expanded["monitors"].([]interface{})
+	monitors := expanded["monitors"].([]any)
 	cpuFound, loadFound := false, false
 	for _, monitor := range monitors {
-		monMap := monitor.(map[interface{}]interface{})
+		monMap := monitor.(map[any]any)
 		monType := monMap["type"]
 		if monType == "cpu" {
 			cpuFound = true
@@ -117,7 +117,7 @@ func TestMultiMonitors(t *testing.T) {
 	v := fromYAML(t, "testdata/sa-multimonitors.yaml")
 	expanded, _, err := expandSA(v, "")
 	require.NoError(t, err)
-	assert.Equal(t, 2, len(expanded["monitors"].([]interface{})))
+	assert.Equal(t, 2, len(expanded["monitors"].([]any)))
 }
 
 func TestYamlPath(t *testing.T) {
@@ -139,7 +139,7 @@ func TestYamlPath(t *testing.T) {
 	assert.True(t, yp2.forceExpand())
 }
 
-func toYaml(t *testing.T, v interface{}) string {
+func toYaml(t *testing.T, v any) string {
 	expandedYaml, err := yaml.Marshal(v)
 	require.NoError(t, err)
 	return string(expandedYaml)

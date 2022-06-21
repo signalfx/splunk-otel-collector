@@ -83,7 +83,7 @@ type ResourceMetric struct {
 
 // The top level item producing metrics, defined by its Attributes.
 type Resource struct {
-	Attributes map[string]interface{} `yaml:"attributes,omitempty"`
+	Attributes map[string]any `yaml:"attributes,omitempty"`
 }
 
 // The collection of metrics produced by a given InstrumentationLibrary
@@ -106,7 +106,7 @@ type Metric struct {
 	Unit        string             `yaml:"unit,omitempty"`
 	Labels      *map[string]string `yaml:"labels,omitempty"`
 	Type        MetricType         `yaml:"type"`
-	Value       interface{}        `yaml:"value,omitempty"`
+	Value       any                `yaml:"value,omitempty"`
 }
 
 // Returns a ResourceMetrics instance generated via parsing a valid yaml file at the provided path.

@@ -57,16 +57,16 @@ func saInfoToOtelConfig(sa saCfgInfo, vaultPaths []string) (otel *otelCfg, warni
 
 func newOtelCfg() *otelCfg {
 	return &otelCfg{
-		ConfigSources: map[string]interface{}{
+		ConfigSources: map[string]any{
 			"include": nil,
 		},
-		Receivers: map[string]map[string]interface{}{},
-		Processors: map[string]map[string]interface{}{
+		Receivers: map[string]map[string]any{},
+		Processors: map[string]map[string]any{
 			resourceDetection: {
 				"detectors": []string{"system", "env", "gce", "ecs", "ec2", "azure"},
 			},
 		},
-		Extensions: map[string]map[string]interface{}{},
+		Extensions: map[string]map[string]any{},
 		Service: service{
 			Pipelines: map[string]*rpe{},
 		},
@@ -78,14 +78,14 @@ func translateFilters(sa saCfgInfo, otel *otelCfg) {
 		return
 	}
 
-	metricsFilter := map[string]interface{}{}
-	otel.Processors[filterProc] = map[string]interface{}{
+	metricsFilter := map[string]any{}
+	otel.Processors[filterProc] = map[string]any{
 		"metrics": metricsFilter,
 	}
 
 	excludeExpressions := saExcludesToExpr(sa.metricsToExclude, sa.metricsToInclude, false)
 	if excludeExpressions != nil {
-		metricsFilter["exclude"] = map[string]interface{}{
+		metricsFilter["exclude"] = map[string]any{
 			"match_type":  "expr",
 			"expressions": excludeExpressions,
 		}
@@ -93,7 +93,7 @@ func translateFilters(sa saCfgInfo, otel *otelCfg) {
 
 	excludeExpressionsNegated := saExcludesToExpr(sa.metricsToExclude, sa.metricsToInclude, true)
 	if excludeExpressionsNegated != nil {
-		metricsFilter["include"] = map[string]interface{}{
+		metricsFilter["include"] = map[string]any{
 			"match_type":  "expr",
 			"expressions": excludeExpressionsNegated,
 		}
@@ -102,11 +102,11 @@ func translateFilters(sa saCfgInfo, otel *otelCfg) {
 	otel.Service.Pipelines["metrics"].appendProcessor(filterProc)
 }
 
-func saExcludesToExpr(excludes []interface{}, overrides []interface{}, expectedNegation bool) []string {
+func saExcludesToExpr(excludes []any, overrides []any, expectedNegation bool) []string {
 	overridesExpr := saIncludesToExpr(overrides)
 	var out []string
 	for _, v := range excludes {
-		line := filterToExpr(v.(map[interface{}]interface{}), false, expectedNegation)
+		line := filterToExpr(v.(map[any]any), false, expectedNegation)
 		if line == "" {
 			continue
 		}
@@ -118,10 +118,10 @@ func saExcludesToExpr(excludes []interface{}, overrides []interface{}, expectedN
 	return out
 }
 
-func saIncludesToExpr(includes []interface{}) string {
+func saIncludesToExpr(includes []any) string {
 	out := ""
 	for _, includeV := range includes {
-		line := filterToExpr(includeV.(map[interface{}]interface{}), true, false)
+		line := filterToExpr(includeV.(map[any]any), true, false)
 		if line == "" {
 			continue
 		}
@@ -133,7 +133,7 @@ func saIncludesToExpr(includes []interface{}) string {
 	return out
 }
 
-func filterToExpr(filter map[interface{}]interface{}, flipNegation, expectedNegation bool) string {
+func filterToExpr(filter map[any]any, flipNegation, expectedNegation bool) string {
 	effectiveNegated := false
 	if negatedV, ok := filter["negated"]; ok {
 		effectiveNegated = negatedV.(bool)
@@ -143,17 +143,17 @@ func filterToExpr(filter map[interface{}]interface{}, flipNegation, expectedNega
 		return ""
 	}
 
-	var names []interface{}
+	var names []any
 	if namesV, ok := filter["metricNames"]; ok {
-		names = namesV.([]interface{})
+		names = namesV.([]any)
 	} else if nameV, metricNameOK := filter["metricName"]; metricNameOK {
-		names = []interface{}{nameV}
+		names = []any{nameV}
 	}
 	line := metricNamesToExpr(names, flipNegation)
 	dimsV, ok := filter["dimensions"]
-	var dims map[interface{}]interface{}
+	var dims map[any]any
 	if ok && dimsV != nil {
-		dims = dimsV.(map[interface{}]interface{})
+		dims = dimsV.(map[any]any)
 	}
 	dimExpr := dimsToExpr(dims)
 	if dimExpr != "" {
@@ -165,7 +165,7 @@ func filterToExpr(filter map[interface{}]interface{}, flipNegation, expectedNega
 	return line
 }
 
-func metricNamesToExpr(names []interface{}, flipNegation bool) string {
+func metricNamesToExpr(names []any, flipNegation bool) string {
 	out := ""
 	for _, nameV := range names {
 		name := nameV.(string)
@@ -179,17 +179,17 @@ func metricNamesToExpr(names []interface{}, flipNegation bool) string {
 	return out
 }
 
-func dimsToExpr(dimSets map[interface{}]interface{}) string {
+func dimsToExpr(dimSets map[any]any) string {
 	if dimSets == nil {
 		return ""
 	}
 	out := ""
 	for dimsKey, ds := range dimSets {
-		var dimSet []interface{}
+		var dimSet []any
 		switch t := ds.(type) {
 		case string:
-			dimSet = []interface{}{t}
-		case []interface{}:
+			dimSet = []any{t}
+		case []any:
 			dimSet = t
 		}
 
@@ -246,7 +246,7 @@ func translateExporters(sa saCfgInfo, cfg *otelCfg) {
 func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 	var standardReceivers, rcReceivers componentCollection
 	for _, monV := range sa.monitors {
-		monitor := monV.(map[interface{}]interface{})
+		monitor := monV.(map[any]any)
 		receiver, w, isRC := saMonitorToOtelReceiver(monitor, sa.observers)
 		warnings = append(warnings, w...)
 		if isRC {
@@ -267,9 +267,9 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 		case len(sa.observers) > 1:
 			warnings = append(warnings, errors.New("found Smart Agent discovery rule but multiple observers"))
 		default:
-			obs := saObserverTypeToOtel(sa.observers[0].(map[interface{}]interface{})["type"].(string))
+			obs := saObserverTypeToOtel(sa.observers[0].(map[any]any)["type"].(string))
 			const rc = "receiver_creator"
-			cfg.Receivers[rc] = map[string]interface{}{
+			cfg.Receivers[rc] = map[string]any{
 				"receivers":       rcReceiverMap,
 				"watch_observers": []string{obs},
 			}
@@ -319,8 +319,8 @@ func sendTraceCorrelation(sa saCfgInfo) bool {
 	return true
 }
 
-func sapmExporter(sa saCfgInfo) map[string]interface{} {
-	return map[string]interface{}{
+func sapmExporter(sa saCfgInfo) map[string]any {
+	return map[string]any{
 		"access_token": sa.accessToken,
 		"endpoint":     sapmEndpoint(sa),
 	}
@@ -364,7 +364,7 @@ func translateObservers(sa saCfgInfo, otel *otelCfg) {
 }
 
 func translateConfigSources(sa saCfgInfo, otel *otelCfg, vaultPaths []string) {
-	otel.ConfigSources = map[string]interface{}{
+	otel.ConfigSources = map[string]any{
 		"include": nil,
 	}
 	if sa.configSources == nil {
@@ -381,11 +381,11 @@ func translateZK(sa saCfgInfo, otel *otelCfg) {
 	if !ok {
 		return
 	}
-	zk, ok := v.(map[interface{}]interface{})
+	zk, ok := v.(map[any]any)
 	if !ok {
 		return
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"endpoints": zk["endpoints"],
 	}
 	if tos, ok := zk["timeoutSeconds"]; ok {
@@ -399,14 +399,14 @@ func translateEtcd(sa saCfgInfo, otel *otelCfg) {
 	if !ok {
 		return
 	}
-	etcd, o := v.(map[interface{}]interface{})
+	etcd, o := v.(map[any]any)
 	if !o {
 		return
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"endpoints": etcd["endpoints"],
 	}
-	auth := map[string]interface{}{}
+	auth := map[string]any{}
 	if username, ok := etcd["username"]; ok {
 		auth["username"] = username
 	}
@@ -421,15 +421,15 @@ func translateEtcd(sa saCfgInfo, otel *otelCfg) {
 
 func translateVault(sa saCfgInfo, otel *otelCfg, vaultPaths []string) {
 	if v, ok := sa.configSources["vault"]; ok {
-		vault, ok := v.(map[interface{}]interface{})
+		vault, ok := v.(map[any]any)
 		if !ok {
 			return
 		}
 		for i, vaultPath := range vaultPaths {
-			otel.ConfigSources[fmt.Sprintf("vault/%d", i)] = map[string]interface{}{
+			otel.ConfigSources[fmt.Sprintf("vault/%d", i)] = map[string]any{
 				"endpoint": vault["vaultAddr"],
 				"path":     vaultPath,
-				"auth": map[string]interface{}{
+				"auth": map[string]any{
 					"token": vault["vaultToken"],
 				},
 			}
@@ -437,9 +437,9 @@ func translateVault(sa saCfgInfo, otel *otelCfg, vaultPaths []string) {
 	}
 }
 
-func dimsToMetricsTransformProcessor(m map[interface{}]interface{}) map[string]interface{} {
-	return map[string]interface{}{
-		"transforms": []map[interface{}]interface{}{{
+func dimsToMetricsTransformProcessor(m map[any]any) map[string]any {
+	return map[string]any{
+		"transforms": []map[any]any{{
 			"include":    ".*",
 			"match_type": "regexp",
 			"action":     "update",
@@ -448,7 +448,7 @@ func dimsToMetricsTransformProcessor(m map[interface{}]interface{}) map[string]i
 	}
 }
 
-func receiverLists(receivers map[string]map[string]interface{}) (metrics, traces, logs []string) {
+func receiverLists(receivers map[string]map[string]any) (metrics, traces, logs []string) {
 	for k := range receivers {
 		if _, ok := exclusivelyLogsReceiverMonitorTypes[k]; ok {
 			logs = append(logs, k)
@@ -467,8 +467,8 @@ func receiverLists(receivers map[string]map[string]interface{}) (metrics, traces
 	return
 }
 
-func sfxExporter(sa saCfgInfo) map[string]map[string]interface{} {
-	cfg := map[string]interface{}{
+func sfxExporter(sa saCfgInfo) map[string]map[string]any {
+	cfg := map[string]any{
 		"access_token": sa.accessToken,
 	}
 	if sa.realm != "" {
@@ -480,12 +480,12 @@ func sfxExporter(sa saCfgInfo) map[string]map[string]interface{} {
 	if sa.APIURL != "" {
 		cfg["api_url"] = sa.APIURL
 	}
-	return map[string]map[string]interface{}{
+	return map[string]map[string]any{
 		"signalfx": cfg,
 	}
 }
 
-func saMonitorToOtelReceiver(monitor map[interface{}]interface{}, observers []interface{}) (
+func saMonitorToOtelReceiver(monitor map[any]any, observers []any) (
 	cmp component,
 	warnings []error,
 	isReceiverCreator bool,
@@ -498,23 +498,23 @@ func saMonitorToOtelReceiver(monitor map[interface{}]interface{}, observers []in
 	return saMonitorToStandardReceiver(strm), nil, false
 }
 
-func interfaceMapToStringMap(in map[interface{}]interface{}) map[string]interface{} {
-	out := map[string]interface{}{}
+func interfaceMapToStringMap(in map[any]any) map[string]any {
+	out := map[string]any{}
 	for k, v := range in {
 		out[k.(string)] = v
 	}
 	return out
 }
 
-func stringMapToInterfaceMap(in map[string]interface{}) map[interface{}]interface{} {
-	out := map[interface{}]interface{}{}
+func stringMapToInterfaceMap(in map[string]any) map[any]any {
+	out := map[any]any{}
 	for k, v := range in {
 		out[k] = v
 	}
 	return out
 }
 
-func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface{}) (cmp component, warnings []error) {
+func saMonitorToRCReceiver(monitor map[string]any, observers []any) (cmp component, warnings []error) {
 	baseName := "smartagent/" + monitor["type"].(string)
 	dr := monitor[discoveryRule].(string)
 	rcr, err := discoveryRuleToRCRule(dr, observers)
@@ -527,7 +527,7 @@ func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface
 
 	cmp = component{
 		baseName: baseName,
-		attrs: map[string]interface{}{
+		attrs: map[string]any{
 			"rule":   rcr,
 			"config": monitor,
 		},
@@ -535,10 +535,10 @@ func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface
 	return
 }
 
-func saObserversToOtel(observers []interface{}) map[string]interface{} {
-	out := map[string]interface{}{}
+func saObserversToOtel(observers []any) map[string]any {
+	out := map[string]any{}
 	for _, v := range observers {
-		obs, ok := v.(map[interface{}]interface{})
+		obs, ok := v.(map[any]any)
 		if !ok {
 			return nil
 		}
@@ -553,12 +553,12 @@ func saObserversToOtel(observers []interface{}) map[string]interface{} {
 		otelObserverType := saObserverTypeToOtel(observerType)
 		switch otelObserverType {
 		case k8sObserver:
-			out[k8sObserver] = map[string]interface{}{
+			out[k8sObserver] = map[string]any{
 				"auth_type": "serviceAccount",
 				"node":      "${K8S_NODE_NAME}",
 			}
 		case hostObserver:
-			out[hostObserver] = map[string]interface{}{}
+			out[hostObserver] = map[string]any{}
 		}
 	}
 	return out
@@ -574,7 +574,7 @@ func saObserverTypeToOtel(saType string) string {
 	return ""
 }
 
-func mtOperations(m map[interface{}]interface{}) (out []map[interface{}]interface{}) {
+func mtOperations(m map[any]any) (out []map[any]any) {
 	var keys []string
 	for k := range m {
 		keys = append(keys, k.(string))
@@ -582,7 +582,7 @@ func mtOperations(m map[interface{}]interface{}) (out []map[interface{}]interfac
 	// sorted for easier testing
 	sort.Strings(keys)
 	for _, k := range keys {
-		out = append(out, map[interface{}]interface{}{
+		out = append(out, map[any]any{
 			"action":    "add_label",
 			"new_label": k,
 			"new_value": m[k],
@@ -592,17 +592,17 @@ func mtOperations(m map[interface{}]interface{}) (out []map[interface{}]interfac
 }
 
 type otelCfg struct {
-	ConfigSources map[string]interface{}            `yaml:"config_sources"`
-	Extensions    map[string]map[string]interface{} `yaml:",omitempty"`
-	Receivers     map[string]map[string]interface{}
-	Processors    map[string]map[string]interface{} `yaml:",omitempty"`
-	Exporters     map[string]map[string]interface{}
+	ConfigSources map[string]any            `yaml:"config_sources"`
+	Extensions    map[string]map[string]any `yaml:",omitempty"`
+	Receivers     map[string]map[string]any
+	Processors    map[string]map[string]any `yaml:",omitempty"`
+	Exporters     map[string]map[string]any
 	Service       service
 }
 
-func (c *otelCfg) addExtensions(m map[string]interface{}) {
+func (c *otelCfg) addExtensions(m map[string]any) {
 	for k, v := range m {
-		c.Extensions[k] = v.(map[string]interface{})
+		c.Extensions[k] = v.(map[string]any)
 	}
 }
 

@@ -438,8 +438,8 @@ func TestFilteringConfig(t *testing.T) {
 				DatapointsToExclude: []saconfig.MetricFilter{
 					{
 						MetricName: "df_inodes.*",
-						Dimensions: map[string]interface{}{
-							"mountpoint": []interface{}{"*", "!/hostfs/var/lib/cni"},
+						Dimensions: map[string]any{
+							"mountpoint": []any{"*", "!/hostfs/var/lib/cni"},
 						},
 					},
 				},

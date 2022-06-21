@@ -31,7 +31,7 @@ import (
 )
 
 func TestConfigServer_RequireEnvVar(t *testing.T) {
-	initial := map[string]interface{}{
+	initial := map[string]any{
 		"minimal": "config",
 	}
 
@@ -80,7 +80,7 @@ func TestConfigServer_EnvVar(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			initial := map[string]interface{}{
+			initial := map[string]any{
 				"key": "value",
 			}
 
@@ -124,21 +124,21 @@ func TestConfigServer_Serve(t *testing.T) {
 		assert.NoError(t, os.Unsetenv(configServerEnabledEnvVar))
 	})
 
-	initial := map[string]interface{}{
+	initial := map[string]any{
 		"field":   "not_redacted",
 		"api_key": "not_redacted_on_initial",
 		"int":     42,
-		"map": map[interface{}]interface{}{
+		"map": map[any]any{
 			"k0":       true,
 			"k1":       -1,
 			"password": "$ENV_VAR",
 		},
 	}
-	effective := map[string]interface{}{
+	effective := map[string]any{
 		"field":   "not_redacted",
 		"api_key": "<redacted>",
 		"int":     42,
-		"map": map[interface{}]interface{}{
+		"map": map[any]any{
 			"k0":       true,
 			"k1":       -1,
 			"password": "<redacted>",
@@ -158,7 +158,7 @@ func TestConfigServer_Serve(t *testing.T) {
 	assertValidYAMLPages(t, effective, "/debug/configz/effective")
 }
 
-func assertValidYAMLPages(t *testing.T, expected map[string]interface{}, path string) {
+func assertValidYAMLPages(t *testing.T, expected map[string]any, path string) {
 	url := "http://" + defaultConfigServerEndpoint + path
 
 	client := &http.Client{}
@@ -181,7 +181,7 @@ func assertValidYAMLPages(t *testing.T, expected map[string]interface{}, path st
 	respBytes, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	var unmarshalled map[string]interface{}
+	var unmarshalled map[string]any
 	require.NoError(t, yaml.Unmarshal(respBytes, &unmarshalled))
 
 	assert.Equal(t, expected, unmarshalled)

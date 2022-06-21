@@ -31,9 +31,9 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 	const testEnvVarValue = "test_env_value"
 
 	tests := []struct {
-		defaults map[string]interface{}
-		params   map[string]interface{}
-		expected interface{}
+		defaults map[string]any
+		params   map[string]any
+		expected any
 		wantErr  error
 		name     string
 		selector string
@@ -46,14 +46,14 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 		{
 			name:     "missing_not_required",
 			selector: "UNDEFINED_ENV_VAR",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"optional": true,
 			},
 			expected: nil,
 		},
 		{
 			name: "invalid_param",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"unknow_params_field": true,
 			},
 			wantErr: &errInvalidRetrieveParams{},
@@ -65,7 +65,7 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 		},
 		{
 			name: "required_on_defaults",
-			defaults: map[string]interface{}{
+			defaults: map[string]any{
 				"FALLBACK_ENV_VAR": "fallback_env_var",
 			},
 			selector: "FALLBACK_ENV_VAR",
@@ -82,7 +82,7 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			defaults := tt.defaults
 			if defaults == nil {
-				defaults = make(map[string]interface{})
+				defaults = make(map[string]any)
 			}
 
 			source := &envVarConfigSource{

@@ -88,7 +88,7 @@ func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 		return fmt.Errorf("you must specify a \"type\" for a smartagent receiver")
 	}
 
-	var endpoint interface{}
+	var endpoint any
 	if endpoint, ok = allSettings["endpoint"]; ok {
 		cfg.Endpoint = fmt.Sprintf("%s", endpoint)
 		delete(allSettings, "endpoint")
@@ -143,11 +143,11 @@ func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 	return nil
 }
 
-func getStringSliceFromAllSettings(allSettings map[string]interface{}, key string, errToReturn error) ([]string, error) {
+func getStringSliceFromAllSettings(allSettings map[string]any, key string, errToReturn error) ([]string, error) {
 	var items []string
 	if value, ok := allSettings[key]; ok {
 		items = []string{}
-		if valueAsSlice, isSlice := value.([]interface{}); isSlice {
+		if valueAsSlice, isSlice := value.([]any); isSlice {
 			for _, c := range valueAsSlice {
 				if client, isString := c.(string); isString {
 					items = append(items, client)
@@ -166,7 +166,7 @@ func getStringSliceFromAllSettings(allSettings map[string]interface{}, key strin
 // If using the receivercreator, observer-provided endpoints should be used to set
 // the Host and Port fields of monitor config structs.  This can only be done by reflection without
 // making type assertions over all possible monitor types.
-func setHostAndPortViaEndpoint(endpoint string, monitorConfig interface{}) error {
+func setHostAndPortViaEndpoint(endpoint string, monitorConfig any) error {
 	if endpoint == "" {
 		return nil
 	}
@@ -205,7 +205,7 @@ func setHostAndPortViaEndpoint(endpoint string, monitorConfig interface{}) error
 
 // Monitors can only set the "Host" and "Port" fields if they accept endpoints,
 // which is defined as a struct tag for each monitor config.
-func monitorAcceptsEndpoints(monitorConfig interface{}) (bool, error) {
+func monitorAcceptsEndpoints(monitorConfig any) (bool, error) {
 	field, ok := reflect.TypeOf(monitorConfig).Elem().FieldByName("MonitorConfig")
 	if !ok {
 		return false, fmt.Errorf("could not reflect monitor config, top level MonitorConfig does not exist")

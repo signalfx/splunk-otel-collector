@@ -35,7 +35,7 @@ type testConfigSource struct {
 }
 
 type valueEntry struct {
-	Value            interface{}
+	Value            any
 	WatchForUpdateFn func() error
 }
 

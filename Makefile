@@ -38,11 +38,13 @@ MISSPELL=misspell -error
 MISSPELL_CORRECTION=misspell -w
 
 BUILD_INFO_IMPORT_PATH=github.com/signalfx/splunk-otel-collector/internal/version
+BUILD_INFO_IMPORT_PATH_TESTS=github.com/signalfx/splunk-otel-collector/tests/internal/version
 BUILD_INFO_IMPORT_PATH_CORE=go.opentelemetry.io/collector/internal/version
 VERSION=$(shell git describe --match "v[0-9]*" HEAD)
 BUILD_X1=-X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION)
 BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
+BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
 
 SMART_AGENT_RELEASE=$(shell cat internal/buildscripts/packaging/smart-agent-release.txt)
 SKIP_COMPILE=false
@@ -91,7 +93,7 @@ integration-test:
 	@set -e; for dir in $(ALL_TESTS_DIRS); do \
 	  echo "go test ./... in $${dir}"; \
 	  (cd "$${dir}" && \
-	   $(GOTEST) -v -timeout 5m -count 1 ./... ); \
+	   $(GOTEST) $(BUILD_INFO_TESTS) -v -timeout 5m -count 1 ./... ); \
 	done
 
 .PHONY: end-to-end-test

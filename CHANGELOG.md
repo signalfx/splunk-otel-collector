@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v0.53.1
+
+### 🧰 Bug fixes 🧰
+
+- Upgrade [`metricstransform` 
+  processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor) 
+  to pick up [migration from OpenCensus data model to 
+  OTLP](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/10817) that fixes a few issues with 
+  the processor.
+
 ## v0.53.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.53.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.53.0) and the [opentelemetry-collector-contrib v0.53.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.53.0) releases.

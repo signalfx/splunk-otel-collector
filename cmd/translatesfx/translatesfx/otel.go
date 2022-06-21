@@ -515,7 +515,7 @@ func stringMapToInterfaceMap(in map[string]interface{}) map[interface{}]interfac
 }
 
 func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface{}) (cmp component, warnings []error) {
-	key := "smartagent/" + monitor["type"].(string)
+	baseName := "smartagent/" + monitor["type"].(string)
 	dr := monitor[discoveryRule].(string)
 	rcr, err := discoveryRuleToRCRule(dr, observers)
 	if err != nil {
@@ -526,58 +526,13 @@ func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface
 	delete(monitor, discoveryRule)
 
 	cmp = component{
-		provisionalKey: key,
+		baseName: baseName,
 		attrs: map[string]interface{}{
 			"rule":   rcr,
 			"config": monitor,
 		},
 	}
 	return
-}
-
-type component struct {
-	attrs          map[string]interface{}
-	provisionalKey string
-}
-
-type componentCollection []component
-
-// toComponentMap turns a componentCollection into a map such that its keys have a `/<number>`
-// suffix for any components with colliding provisional keys
-func (cc componentCollection) toComponentMap() map[string]map[string]interface{} {
-	keyCounts := map[string]int{}
-	hasMultiKeys := map[string]struct{}{}
-	for _, c := range cc {
-		count := keyCounts[c.provisionalKey]
-		if count > 0 {
-			hasMultiKeys[c.provisionalKey] = struct{}{}
-		}
-		keyCounts[c.provisionalKey] = count + 1
-	}
-	keyCounts = map[string]int{}
-	out := map[string]map[string]interface{}{}
-	for _, c := range cc {
-		_, found := hasMultiKeys[c.provisionalKey]
-		key := c.provisionalKey
-		if found {
-			numSeen := keyCounts[c.provisionalKey]
-			key = fmt.Sprintf("%s/%d", key, numSeen)
-			keyCounts[c.provisionalKey] = numSeen + 1
-		}
-		out[key] = c.attrs
-	}
-	return out
-}
-
-func saMonitorToStandardReceiver(monitor map[string]interface{}) component {
-	if excludes, ok := monitor[metricsToExclude]; ok {
-		delete(monitor, metricsToExclude)
-		monitor["datapointsToExclude"] = excludes
-	}
-	return component{
-		provisionalKey: "smartagent/" + monitor["type"].(string),
-		attrs:          monitor,
-	}
 }
 
 func saObserversToOtel(observers []interface{}) map[string]interface{} {

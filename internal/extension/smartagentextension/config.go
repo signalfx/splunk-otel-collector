@@ -39,7 +39,7 @@ func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 
 	configDirSet := false
 	if collectd, ok := allSettings["collectd"]; ok {
-		if collectdBlock, ok := collectd.(map[string]interface{}); ok {
+		if collectdBlock, ok := collectd.(map[string]any); ok {
 			if _, ok := collectdBlock["configDir"]; ok {
 				configDirSet = true
 			}
@@ -64,12 +64,12 @@ func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 	return nil
 }
 
-func smartAgentConfigFromSettingsMap(settings map[string]interface{}) (*saconfig.Config, error) {
+func smartAgentConfigFromSettingsMap(settings map[string]any) (*saconfig.Config, error) {
 	var config saconfig.Config
-	var collectdSettings map[string]interface{}
+	var collectdSettings map[string]any
 	var ok bool
-	if collectdSettings, ok = settings["collectd"].(map[string]interface{}); !ok {
-		collectdSettings = map[string]interface{}{}
+	if collectdSettings, ok = settings["collectd"].(map[string]any); !ok {
+		collectdSettings = map[string]any{}
 	}
 
 	settings["collectd"] = collectdSettings

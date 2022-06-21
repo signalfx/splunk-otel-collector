@@ -22,7 +22,7 @@ import (
 // Config holds the configuration for the creation of environment variable config source objects.
 type Config struct {
 	// Defaults specify a map to fallback if a given environment variable is not defined.
-	Defaults map[string]interface{} `mapstructure:"defaults"`
+	Defaults map[string]any `mapstructure:"defaults"`
 
 	expcfg.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
 }

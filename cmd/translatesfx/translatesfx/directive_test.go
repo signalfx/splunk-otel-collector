@@ -22,7 +22,7 @@ import (
 )
 
 func TestParseDirective_Empty(t *testing.T) {
-	_, isDirective, err := parseDirective(map[interface{}]interface{}{}, "")
+	_, isDirective, err := parseDirective(map[any]any{}, "")
 	require.NoError(t, err)
 	require.False(t, isDirective)
 }
@@ -47,7 +47,7 @@ func TestParseFrom_Unknown(t *testing.T) {
 }
 
 func TestParseDirective(t *testing.T) {
-	d, _, err := parseDirective(map[interface{}]interface{}{
+	d, _, err := parseDirective(map[any]any{
 		"#from":    "/some/path",
 		"flatten":  true,
 		"default":  "abc123",
@@ -61,7 +61,7 @@ func TestParseDirective(t *testing.T) {
 }
 
 func TestRender_ConfigSource(t *testing.T) {
-	d, _, err := parseDirective(map[interface{}]interface{}{
+	d, _, err := parseDirective(map[any]any{
 		"#from": "testdata/token",
 	}, "")
 	require.NoError(t, err)
@@ -71,7 +71,7 @@ func TestRender_ConfigSource(t *testing.T) {
 }
 
 func TestRender_FileExpansion_Simple(t *testing.T) {
-	d, _, err := parseDirective(map[interface{}]interface{}{
+	d, _, err := parseDirective(map[any]any{
 		"#from":   "testdata/token",
 		"default": "foo", // specify a default to force file expansion
 	}, "")
@@ -82,21 +82,21 @@ func TestRender_FileExpansion_Simple(t *testing.T) {
 }
 
 func TestRender_FileExpansion_Map(t *testing.T) {
-	d, _, err := parseDirective(map[interface{}]interface{}{
+	d, _, err := parseDirective(map[any]any{
 		"#from":   "testdata/map.yaml",
 		"default": "foo", // specify a default to force file expansion
 	}, "")
 	require.NoError(t, err)
 	v, err := d.render(false, nil)
 	require.NoError(t, err)
-	assert.Equal(t, map[interface{}]interface{}{
+	assert.Equal(t, map[any]any{
 		"foo": "bar",
 		"baz": "glarch",
 	}, v)
 }
 
 func TestRender_FileExpansion_Wildcard(t *testing.T) {
-	d, _, err := parseDirective(map[interface{}]interface{}{
+	d, _, err := parseDirective(map[any]any{
 		"#from": "testdata/cfgs/map*.yaml", // asterisk forces file expansion
 	}, "")
 	require.NoError(t, err)
@@ -106,7 +106,7 @@ func TestRender_FileExpansion_Wildcard(t *testing.T) {
 }
 
 func TestRender_FileExpansion_MissingNonOptionalFile(t *testing.T) {
-	d, _, err := parseDirective(map[interface{}]interface{}{
+	d, _, err := parseDirective(map[any]any{
 		"#from":   "testdata/missing",
 		"default": "foo", // specify a default to force file expansion
 	}, "")
@@ -117,7 +117,7 @@ func TestRender_FileExpansion_MissingNonOptionalFile(t *testing.T) {
 }
 
 func TestDirective_ZK(t *testing.T) {
-	d, _, err := parseDirective(map[interface{}]interface{}{
+	d, _, err := parseDirective(map[any]any{
 		"#from": "zk:/foo/bar",
 	}, "")
 	require.NoError(t, err)
@@ -127,7 +127,7 @@ func TestDirective_ZK(t *testing.T) {
 }
 
 func TestDirective_Vault(t *testing.T) {
-	d, _, err := parseDirective(map[interface{}]interface{}{
+	d, _, err := parseDirective(map[any]any{
 		"#from": "vault:/foo/bar[aaa]",
 	}, "")
 	require.NoError(t, err)
@@ -137,7 +137,7 @@ func TestDirective_Vault(t *testing.T) {
 	assert.Equal(t, "${vault/0:aaa}", rendered)
 	assert.Equal(t, []string{"/foo/bar"}, vaultPaths)
 
-	d, _, err = parseDirective(map[interface{}]interface{}{
+	d, _, err = parseDirective(map[any]any{
 		"#from": "vault:/foo/bar[bbb]",
 	}, "")
 	require.NoError(t, err)
@@ -146,7 +146,7 @@ func TestDirective_Vault(t *testing.T) {
 	assert.Equal(t, "${vault/0:bbb}", rendered)
 	assert.Equal(t, []string{"/foo/bar"}, vaultPaths)
 
-	d, _, err = parseDirective(map[interface{}]interface{}{
+	d, _, err = parseDirective(map[any]any{
 		"#from": "vault:/foo/baz[ccc]",
 	}, "")
 	require.NoError(t, err)
@@ -162,19 +162,19 @@ func TestDirectiveSource(t *testing.T) {
 }
 
 func TestMerge_Slices(t *testing.T) {
-	merged, err := merge([]interface{}{
-		[]interface{}{"aaa"}, []interface{}{"bbb"},
+	merged, err := merge([]any{
+		[]any{"aaa"}, []any{"bbb"},
 	})
 	require.NoError(t, err)
-	assert.Equal(t, []interface{}{"aaa", "bbb"}, merged)
+	assert.Equal(t, []any{"aaa", "bbb"}, merged)
 }
 
 func TestMerge_Maps(t *testing.T) {
-	m1 := map[interface{}]interface{}{"aaa": 111}
-	m2 := map[interface{}]interface{}{"bbb": 222}
-	merged, err := merge([]interface{}{m1, m2})
+	m1 := map[any]any{"aaa": 111}
+	m2 := map[any]any{"bbb": 222}
+	merged, err := merge([]any{m1, m2})
 	require.NoError(t, err)
-	assert.Equal(t, map[interface{}]interface{}{
+	assert.Equal(t, map[any]any{
 		"aaa": 111,
 		"bbb": 222,
 	}, merged)

@@ -63,7 +63,7 @@ var bundleDir = func() string {
 }()
 
 func createDefaultConfig() config.Extension {
-	cfg, _ := smartAgentConfigFromSettingsMap(map[string]interface{}{})
+	cfg, _ := smartAgentConfigFromSettingsMap(map[string]any{})
 	if cfg == nil {
 		// We won't truly be using this default in our custom unmarshaler
 		// so zero value is adequate

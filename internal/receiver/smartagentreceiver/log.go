@@ -145,7 +145,7 @@ func newDefaultLoggerCfg(core zapcore.Core) *zap.Config {
 	defaultLoggerCfg.Encoding = "console"
 	defaultLoggerCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	defaultLoggerCfg.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-	defaultLoggerCfg.InitialFields = map[string]interface{}{
+	defaultLoggerCfg.InitialFields = map[string]any{
 		"component_kind": "receiver",
 		"component_type": "smartagent",
 	}

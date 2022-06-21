@@ -43,12 +43,12 @@ func TestDiscoveryRuleToRCRule_HasPort(t *testing.T) {
 	require.NoError(t, err)
 	program, err := expr.Compile(rcRule)
 	require.NoError(t, err)
-	output, err := expr.Run(program, map[string]interface{}{
+	output, err := expr.Run(program, map[string]any{
 		"port": nil,
 	})
 	require.NoError(t, err)
 	assert.False(t, output.(bool))
-	output, err = expr.Run(program, map[string]interface{}{
+	output, err = expr.Run(program, map[string]any{
 		"type": "hostport",
 		"port": 1234,
 	})
@@ -77,7 +77,7 @@ func TestDiscoveryRuleToRCRule_K8s(t *testing.T) {
 }
 
 func TestGuessType(t *testing.T) {
-	typ, _ := guessRuleType([]interface{}{map[interface{}]interface{}{
+	typ, _ := guessRuleType([]any{map[any]any{
 		"type": "host",
 	}})
 	assert.Equal(t, "hostport", typ)

@@ -19,23 +19,23 @@ type saCfgInfo struct {
 	realm            string
 	ingestURL        string
 	APIURL           string
-	globalDims       map[interface{}]interface{}
-	saExtension      map[string]interface{}
-	configSources    map[interface{}]interface{}
-	writer           map[interface{}]interface{}
-	monitors         []interface{}
-	observers        []interface{}
-	metricsToExclude []interface{}
-	metricsToInclude []interface{}
+	globalDims       map[any]any
+	saExtension      map[string]any
+	configSources    map[any]any
+	writer           map[any]any
+	monitors         []any
+	observers        []any
+	metricsToExclude []any
+	metricsToInclude []any
 }
 
-func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) saCfgInfo {
+func saExpandedToCfgInfo(saExpanded map[any]any) saCfgInfo {
 	return saCfgInfo{
 		accessToken:      toString(saExpanded, "signalFxAccessToken"),
 		realm:            toString(saExpanded, "signalFxRealm"),
 		ingestURL:        toString(saExpanded, "ingestUrl"),
 		APIURL:           toString(saExpanded, "apiUrl"),
-		monitors:         saExpanded["monitors"].([]interface{}),
+		monitors:         saExpanded["monitors"].([]any),
 		globalDims:       globalDims(saExpanded),
 		saExtension:      saExtension(saExpanded),
 		observers:        observers(saExpanded),
@@ -46,7 +46,7 @@ func saExpandedToCfgInfo(saExpanded map[interface{}]interface{}) saCfgInfo {
 	}
 }
 
-func toString(saExpanded map[interface{}]interface{}, name string) string {
+func toString(saExpanded map[any]any, name string) string {
 	v, ok := saExpanded[name]
 	if !ok {
 		return ""
@@ -54,27 +54,27 @@ func toString(saExpanded map[interface{}]interface{}, name string) string {
 	return v.(string)
 }
 
-func observers(saExpanded map[interface{}]interface{}) []interface{} {
+func observers(saExpanded map[any]any) []any {
 	v, ok := saExpanded["observers"]
 	if !ok {
 		return nil
 	}
-	obs, ok := v.([]interface{})
+	obs, ok := v.([]any)
 	if !ok {
 		return nil
 	}
 	return obs
 }
 
-func globalDims(saExpanded map[interface{}]interface{}) map[interface{}]interface{} {
-	var out map[interface{}]interface{}
+func globalDims(saExpanded map[any]any) map[any]any {
+	var out map[any]any
 	if gd, ok := saExpanded["globalDimensions"]; ok {
-		out = gd.(map[interface{}]interface{})
+		out = gd.(map[any]any)
 	}
 	return out
 }
 
-func saExtension(saExpanded map[interface{}]interface{}) map[string]interface{} {
+func saExtension(saExpanded map[any]any) map[string]any {
 	keys := []string{
 		"bundleDir",
 		"procPath",
@@ -84,7 +84,7 @@ func saExtension(saExpanded map[interface{}]interface{}) map[string]interface{} 
 		"sysPath",
 		"collectd",
 	}
-	extensionAttrs := map[string]interface{}{}
+	extensionAttrs := map[string]any{}
 	for _, key := range keys {
 		if v, ok := saExpanded[key]; ok {
 			extensionAttrs[key] = v
@@ -93,49 +93,49 @@ func saExtension(saExpanded map[interface{}]interface{}) map[string]interface{} 
 	if len(extensionAttrs) == 0 {
 		return nil
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"smartagent": extensionAttrs,
 	}
 }
 
-func configSources(saExpanded map[interface{}]interface{}) map[interface{}]interface{} {
+func configSources(saExpanded map[any]any) map[any]any {
 	v, ok := saExpanded["configSources"]
 	if !ok {
 		return nil
 	}
-	cs, ok := v.(map[interface{}]interface{})
+	cs, ok := v.(map[any]any)
 	if !ok {
 		return nil
 	}
 	return cs
 }
 
-func saToMetricsToExclude(saExpanded map[interface{}]interface{}) []interface{} {
+func saToMetricsToExclude(saExpanded map[any]any) []any {
 	return toSlice(saExpanded, "metricsToExclude")
 }
 
-func saToMetricsToInclude(saExpanded map[interface{}]interface{}) []interface{} {
+func saToMetricsToInclude(saExpanded map[any]any) []any {
 	return toSlice(saExpanded, "metricsToInclude")
 }
 
-func toSlice(saExpanded map[interface{}]interface{}, key string) []interface{} {
+func toSlice(saExpanded map[any]any, key string) []any {
 	v, ok := saExpanded[key]
 	if !ok {
 		return nil
 	}
-	l, ok := v.([]interface{})
+	l, ok := v.([]any)
 	if !ok {
 		return nil
 	}
 	return l
 }
 
-func writer(saExpanded map[interface{}]interface{}) map[interface{}]interface{} {
+func writer(saExpanded map[any]any) map[any]any {
 	v, ok := saExpanded["writer"]
 	if !ok {
 		return nil
 	}
-	wr, ok := v.(map[interface{}]interface{})
+	wr, ok := v.(map[any]any)
 	if !ok {
 		return nil
 	}

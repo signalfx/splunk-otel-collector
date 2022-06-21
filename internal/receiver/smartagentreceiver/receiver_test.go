@@ -244,7 +244,7 @@ func TestInvalidMonitorStateAtShutdown(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
 	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
-	receiver.monitor = new(interface{})
+	receiver.monitor = new(any)
 
 	err := receiver.Shutdown(context.Background())
 	require.Error(t, err)
@@ -255,15 +255,15 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 	t.Cleanup(cleanUp)
 	tests := []struct {
 		name           string
-		monitorFactory func() interface{}
+		monitorFactory func() any
 		expectedError  string
 	}{
-		{"anonymous struct", func() interface{} { return struct{}{} }, ""},
-		{"anonymous struct pointer", func() interface{} { return &struct{}{} }, ""},
-		{"nil interface pointer", func() interface{} { return new(interface{}) }, ": invalid struct instance: (*interface {})"},
-		{"nil", func() interface{} { return nil }, ": invalid struct instance: <nil>"},
-		{"boolean", func() interface{} { return false }, ": invalid struct instance: false"},
-		{"string", func() interface{} { return "asdf" }, ": invalid struct instance: \"asdf\""},
+		{"anonymous struct", func() any { return struct{}{} }, ""},
+		{"anonymous struct pointer", func() any { return &struct{}{} }, ""},
+		{"nil interface pointer", func() any { return new(any) }, ": invalid struct instance: (*interface {})"},
+		{"nil", func() any { return nil }, ": invalid struct instance: <nil>"},
+		{"boolean", func() any { return false }, ": invalid struct instance: false"},
+		{"string", func() any { return "asdf" }, ": invalid struct instance: \"asdf\""},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
@@ -283,7 +283,7 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 
 func TestFilteringNoMetadata(t *testing.T) {
 	t.Cleanup(cleanUp)
-	monitors.MonitorFactories["fakemonitor"] = func() interface{} { return struct{}{} }
+	monitors.MonitorFactories["fakemonitor"] = func() any { return struct{}{} }
 	cfg := newConfig("valid", "fakemonitor", 1)
 	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())

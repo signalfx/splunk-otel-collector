@@ -17,7 +17,7 @@ package translatesfx
 import "fmt"
 
 type component struct {
-	attrs map[string]interface{}
+	attrs map[string]any
 	// baseName has the baseName for what will eventually be the key to this
 	// component in the config -- e.g. "smartagent/sql" which might end up being
 	// "smartagent/sql/0"
@@ -28,7 +28,7 @@ type componentCollection []component
 
 // toComponentMap turns a componentCollection into a map such that its keys have a `/<number>`
 // suffix for any components with colliding provisional keys
-func (cc componentCollection) toComponentMap() map[string]map[string]interface{} {
+func (cc componentCollection) toComponentMap() map[string]map[string]any {
 	keyCounts := map[string]int{}
 	hasMultiKeys := map[string]struct{}{}
 	for _, c := range cc {
@@ -39,7 +39,7 @@ func (cc componentCollection) toComponentMap() map[string]map[string]interface{}
 		keyCounts[c.baseName] = count + 1
 	}
 	keyCounts = map[string]int{}
-	out := map[string]map[string]interface{}{}
+	out := map[string]map[string]any{}
 	for _, c := range cc {
 		_, found := hasMultiKeys[c.baseName]
 		key := c.baseName
@@ -53,7 +53,7 @@ func (cc componentCollection) toComponentMap() map[string]map[string]interface{}
 	return out
 }
 
-func saMonitorToStandardReceiver(monitor map[string]interface{}) component {
+func saMonitorToStandardReceiver(monitor map[string]any) component {
 	if excludes, ok := monitor[metricsToExclude]; ok {
 		delete(monitor, metricsToExclude)
 		monitor["datapointsToExclude"] = excludes

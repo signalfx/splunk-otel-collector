@@ -90,14 +90,14 @@ func TestConfigSourceManager_Simple(t *testing.T) {
 		},
 	})
 
-	originalCfg := map[string]interface{}{
-		"top0": map[string]interface{}{
+	originalCfg := map[string]any{
+		"top0": map[string]any{
 			"int":    1,
 			"cfgsrc": "$tstcfgsrc:test_selector",
 		},
 	}
-	expectedCfg := map[string]interface{}{
-		"top0": map[string]interface{}{
+	expectedCfg := map[string]any{
+		"top0": map[string]any{
 			"int":    1,
 			"cfgsrc": "test_value",
 		},
@@ -123,11 +123,11 @@ func TestConfigSourceManager_Simple(t *testing.T) {
 }
 
 func TestConfigSourceManager_ResolveRemoveConfigSourceSection(t *testing.T) {
-	cfg := map[string]interface{}{
-		"config_sources": map[string]interface{}{
+	cfg := map[string]any{
+		"config_sources": map[string]any{
 			"testcfgsrc": nil,
 		},
-		"another_section": map[string]interface{}{
+		"another_section": map[string]any{
 			"int": 42,
 		},
 	}
@@ -149,13 +149,13 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 	testErr := errors.New("test error")
 
 	tests := []struct {
-		config          map[string]interface{}
+		config          map[string]any
 		configSourceMap map[string]configsource.ConfigSource
 		name            string
 	}{
 		{
 			name: "incorrect_cfgsrc_ref",
-			config: map[string]interface{}{
+			config: map[string]any{
 				"cfgsrc": "$tstcfgsrc:selector?{invalid}",
 			},
 			configSourceMap: map[string]configsource.ConfigSource{
@@ -164,7 +164,7 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 		},
 		{
 			name: "error_on_retrieve",
-			config: map[string]interface{}{
+			config: map[string]any{
 				"cfgsrc": "$tstcfgsrc:selector",
 			},
 			configSourceMap: map[string]configsource.ConfigSource{
@@ -260,7 +260,7 @@ func TestConfigSourceManager_ParamsHandling(t *testing.T) {
 		ValueMap: map[string]valueEntry{
 			"elem0": {Value: nil},
 			"elem1": {
-				Value: map[string]interface{}{
+				Value: map[string]any{
 					"p0": true,
 					"p1": "a string with spaces",
 					"p3": 42,
@@ -268,10 +268,10 @@ func TestConfigSourceManager_ParamsHandling(t *testing.T) {
 			},
 			"k0": {Value: nil},
 			"k1": {
-				Value: map[string]interface{}{
+				Value: map[string]any{
 					"p0": true,
 					"p1": "a string with spaces",
-					"p2": map[string]interface{}{
+					"p2": map[string]any{
 						"p2_0": "a nested map0",
 						"p2_1": true,
 					},
@@ -282,7 +282,7 @@ func TestConfigSourceManager_ParamsHandling(t *testing.T) {
 
 	// Set OnRetrieve to check if the parameters were parsed as expected.
 	tstCfgSrc.OnRetrieve = func(ctx context.Context, selector string, paramsConfigMap *confmap.Conf) error {
-		var val interface{}
+		var val any
 		if paramsConfigMap != nil {
 			val = paramsConfigMap.ToStringMap()
 		}
@@ -325,8 +325,8 @@ func TestConfigSourceManager_WatchForUpdate(t *testing.T) {
 		},
 	})
 
-	originalCfg := map[string]interface{}{
-		"top0": map[string]interface{}{
+	originalCfg := map[string]any{
+		"top0": map[string]any{
 			"var0": "$tstcfgsrc:test_selector",
 		},
 	}
@@ -376,8 +376,8 @@ func TestConfigSourceManager_MultipleWatchForUpdate(t *testing.T) {
 		},
 	})
 
-	originalCfg := map[string]interface{}{
-		"top0": map[string]interface{}{
+	originalCfg := map[string]any{
+		"top0": map[string]any{
 			"var0": "$tstcfgsrc:test_selector",
 			"var1": "$tstcfgsrc:test_selector",
 			"var2": "$tstcfgsrc:test_selector",
@@ -423,7 +423,7 @@ func TestConfigSourceManager_EnvVarHandling(t *testing.T) {
 
 	// Intercept "params_key" and create an entry with the params themselves.
 	tstCfgSrc.OnRetrieve = func(ctx context.Context, selector string, paramsConfigMap *confmap.Conf) error {
-		var val interface{}
+		var val any
 		if paramsConfigMap != nil {
 			val = paramsConfigMap.ToStringMap()
 		}
@@ -477,7 +477,7 @@ func TestManager_expandString(t *testing.T) {
 	}()
 
 	tests := []struct {
-		want    interface{}
+		want    any
 		wantErr error
 		name    string
 		input   string
@@ -598,7 +598,7 @@ func TestManager_expandString(t *testing.T) {
 
 func Test_parseCfgSrc(t *testing.T) {
 	tests := []struct {
-		params     interface{}
+		params     any
 		name       string
 		str        string
 		cfgSrcName string
@@ -621,7 +621,7 @@ func Test_parseCfgSrc(t *testing.T) {
 			str:        "cfgsrc:selector?p0=1&p1=a_string&p2=true",
 			cfgSrcName: "cfgsrc",
 			selector:   "selector",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"p0": 1,
 				"p1": "a_string",
 				"p2": true,
@@ -632,7 +632,7 @@ func Test_parseCfgSrc(t *testing.T) {
 			str:        "cfgsrc:selector?p0&p1&p2",
 			cfgSrcName: "cfgsrc",
 			selector:   "selector",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"p0": nil,
 				"p1": nil,
 				"p2": nil,
@@ -643,8 +643,8 @@ func Test_parseCfgSrc(t *testing.T) {
 			str:        "cfgsrc:selector?p0=0&p0=1&p0=2&p1=done",
 			cfgSrcName: "cfgsrc",
 			selector:   "selector",
-			params: map[string]interface{}{
-				"p0": []interface{}{0, 1, 2},
+			params: map[string]any{
+				"p0": []any{0, 1, 2},
 				"p1": "done",
 			},
 		},
@@ -653,8 +653,8 @@ func Test_parseCfgSrc(t *testing.T) {
 			str:        "cfgsrc:selector?no_closing=",
 			cfgSrcName: "cfgsrc",
 			selector:   "selector",
-			params: map[string]interface{}{
-				"no_closing": interface{}(nil),
+			params: map[string]any{
+				"no_closing": any(nil),
 			},
 		},
 		{
@@ -662,7 +662,7 @@ func Test_parseCfgSrc(t *testing.T) {
 			str:        "cfgsrc:selector?p0=contains+%3D+and+%26+too",
 			cfgSrcName: "cfgsrc",
 			selector:   "selector",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"p0": "contains = and & too",
 			},
 		},
@@ -678,7 +678,7 @@ func Test_parseCfgSrc(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, tt.cfgSrcName, cfgSrcName)
 			assert.Equal(t, tt.selector, selector)
-			var val interface{}
+			var val any
 			if paramsConfigMap != nil {
 				val = paramsConfigMap.ToStringMap()
 			}

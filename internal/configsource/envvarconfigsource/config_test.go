@@ -47,9 +47,9 @@ func TestEnvVarConfigSourceLoadConfig(t *testing.T) {
 		},
 		"env/with_fallback": &Config{
 			SourceSettings: expcfg.NewSourceSettings(config.NewComponentIDWithName(typeStr, "with_fallback")),
-			Defaults: map[string]interface{}{
+			Defaults: map[string]any{
 				"k0": 42,
-				"m0": map[string]interface{}{
+				"m0": map[string]any{
 					"k0": "v0",
 					"k1": "v1",
 				},

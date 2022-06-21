@@ -204,7 +204,7 @@ func NewManager(configMap *confmap.Conf, logger *zap.Logger, buildInfo component
 // the given input config map are resolved to actual literal values of the env vars or config sources.
 // This method must be called only once per lifetime of a Manager object.
 func (m *Manager) Resolve(ctx context.Context, configMap *confmap.Conf) (*confmap.Conf, error) {
-	res := map[string]interface{}{}
+	res := map[string]any{}
 	allKeys := configMap.AllKeys()
 	for _, k := range allKeys {
 		if strings.HasPrefix(k, configSourcesKey) {
@@ -303,14 +303,14 @@ func newManager(configSources map[string]configsource.ConfigSource) *Manager {
 // parseConfigValue takes the value of a "config node" and process it recursively. The processing consists
 // in transforming invocations of config sources and/or environment variables into literal data that can be
 // used directly from a `confmap.Conf` object.
-func (m *Manager) parseConfigValue(ctx context.Context, value interface{}) (interface{}, error) {
+func (m *Manager) parseConfigValue(ctx context.Context, value any) (any, error) {
 	switch v := value.(type) {
 	case string:
 		// Only if the value of the node is a string it can contain an env var or config source
 		// invocation that requires transformation.
 		return m.parseStringValue(ctx, v)
-	case []interface{}:
-		// The value is of type []interface{} when an array is used in the configuration, YAML example:
+	case []any:
+		// The value is of type []any when an array is used in the configuration, YAML example:
 		//
 		//  array0:
 		//    - elem0
@@ -322,7 +322,7 @@ func (m *Manager) parseConfigValue(ctx context.Context, value interface{}) (inte
 		//        str: $tstcfgsrc:elem1
 		//
 		// Both "array0" and "array1" are going to be leaf config nodes hitting this case.
-		nslice := make([]interface{}, 0, len(v))
+		nslice := make([]any, 0, len(v))
 		for _, vint := range v {
 			value, err := m.parseConfigValue(ctx, vint)
 			if err != nil {
@@ -331,11 +331,11 @@ func (m *Manager) parseConfigValue(ctx context.Context, value interface{}) (inte
 			nslice = append(nslice, value)
 		}
 		return nslice, nil
-	case map[string]interface{}:
-		// The value is of type map[string]interface{} when an array in the configuration is populated with map
-		// elements. From the case above (for type []interface{}) each element of "array1" is going to hit the
+	case map[string]any:
+		// The value is of type map[string]any when an array in the configuration is populated with map
+		// elements. From the case above (for type []any) each element of "array1" is going to hit the
 		// the current case block.
-		nmap := make(map[interface{}]interface{}, len(v))
+		nmap := make(map[any]any, len(v))
 		for k, vint := range v {
 			value, err := m.parseConfigValue(ctx, vint)
 			if err != nil {
@@ -352,7 +352,7 @@ func (m *Manager) parseConfigValue(ctx context.Context, value interface{}) (inte
 
 // parseStringValue transforms environment variables and config sources, if any are present, on
 // the given string in the configuration into an object to be inserted into the resulting configuration.
-func (m *Manager) parseStringValue(ctx context.Context, s string) (interface{}, error) {
+func (m *Manager) parseStringValue(ctx context.Context, s string) (any, error) {
 	// Code based on os.Expand function. All delimiters that are checked against are
 	// ASCII so bytes are fine for this operation.
 	var buf []byte
@@ -439,7 +439,7 @@ func (m *Manager) parseStringValue(ctx context.Context, s string) (interface{}, 
 				consumedAll := j+w+1 == len(s)
 				if consumedAll && len(buf) == 0 {
 					// This is the only expandableContent on the string, config
-					// source is free to return interface{} but parse it as YAML
+					// source is free to return any but parse it as YAML
 					// if it is a string or byte slice.
 					switch value := retrieved.(type) {
 					case []byte:
@@ -454,9 +454,9 @@ func (m *Manager) parseStringValue(ctx context.Context, s string) (interface{}, 
 						}
 					}
 
-					if mapIFace, ok := retrieved.(map[interface{}]interface{}); ok {
-						// yaml.Unmarshal returns map[interface{}]interface{} but config
-						// map uses map[string]interface{}, fix it with a cast.
+					if mapIFace, ok := retrieved.(map[any]any); ok {
+						// yaml.Unmarshal returns map[any]any but config
+						// map uses map[string]any, fix it with a cast.
 						retrieved = cast.ToStringMap(mapIFace)
 					}
 
@@ -520,7 +520,7 @@ func getBareExpandableContent(s string, i int) (expandableContent string, consum
 
 // retrieveConfigSourceData retrieves data from the specified config source and injects them into
 // the configuration. The Manager tracks sessions and watcher objects as needed.
-func (m *Manager) retrieveConfigSourceData(ctx context.Context, cfgSrcName, cfgSrcInvocation string) (interface{}, error) {
+func (m *Manager) retrieveConfigSourceData(ctx context.Context, cfgSrcName, cfgSrcInvocation string) (any, error) {
 	cfgSrc, ok := m.configSources[cfgSrcName]
 	if !ok {
 		return nil, newErrUnknownConfigSource(cfgSrcName)
@@ -532,7 +532,7 @@ func (m *Manager) retrieveConfigSourceData(ctx context.Context, cfgSrcName, cfgS
 	}
 
 	// Recursively expand the selector.
-	var expandedSelector interface{}
+	var expandedSelector any
 	expandedSelector, err = m.parseStringValue(ctx, selector)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process selector for config source %q selector %q: %w", cfgSrcName, selector, err)
@@ -590,7 +590,7 @@ func parseCfgSrcInvocation(s string) (cfgSrcName, selector string, paramsConfigM
 		selector = strings.Trim(parts[0], " ")
 
 		if len(parts) > 1 && len(parts[1]) > 0 {
-			var data map[string]interface{}
+			var data map[string]any
 			if err = yaml.Unmarshal([]byte(parts[1]), &data); err != nil {
 				return
 			}
@@ -623,22 +623,22 @@ func parseParamsAsURLQuery(s string) (*confmap.Conf, error) {
 	}
 
 	// Transform single array values in scalars.
-	params := make(map[string]interface{})
+	params := make(map[string]any)
 	for k, v := range values {
 		switch len(v) {
 		case 0:
 			params[k] = nil
 		case 1:
-			var iface interface{}
+			var iface any
 			if err = yaml.Unmarshal([]byte(v[0]), &iface); err != nil {
 				return nil, err
 			}
 			params[k] = iface
 		default:
 			// It is a slice add element by element
-			elemSlice := make([]interface{}, 0, len(v))
+			elemSlice := make([]any, 0, len(v))
 			for _, elem := range v {
-				var iface interface{}
+				var iface any
 				if err = yaml.Unmarshal([]byte(elem), &iface); err != nil {
 					return nil, err
 				}

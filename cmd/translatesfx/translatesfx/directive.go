@@ -36,7 +36,7 @@ const (
 	directiveSourceVault
 )
 
-func parseDirective(m map[interface{}]interface{}, wd string) (out directive, isDirective bool, err error) {
+func parseDirective(m map[any]any, wd string) (out directive, isDirective bool, err error) {
 	fromRaw, ok := m["#from"]
 	if !ok {
 		return
@@ -103,15 +103,15 @@ func strToSource(s string) source {
 	return directiveSourceUnknown
 }
 
-func parseFlatten(m map[interface{}]interface{}) (bool, error) {
+func parseFlatten(m map[any]any) (bool, error) {
 	return parseField(m, "flatten")
 }
 
-func parseOptional(m map[interface{}]interface{}) (bool, error) {
+func parseOptional(m map[any]any) (bool, error) {
 	return parseField(m, "optional")
 }
 
-func parseField(m map[interface{}]interface{}, field string) (bool, error) {
+func parseField(m map[any]any, field string) (bool, error) {
 	v, ok := m[field]
 	if !ok {
 		return false, nil
@@ -123,7 +123,7 @@ func parseField(m map[interface{}]interface{}, field string) (bool, error) {
 	return out, nil
 }
 
-func parseDefault(m map[interface{}]interface{}) (string, error) {
+func parseDefault(m map[any]any) (string, error) {
 	rawDefault, ok := m["default"]
 	if !ok {
 		return "", nil
@@ -144,7 +144,7 @@ type directive struct {
 	optional bool
 }
 
-func (d directive) render(forceExpand bool, vaultPaths *[]string) (interface{}, error) {
+func (d directive) render(forceExpand bool, vaultPaths *[]string) (any, error) {
 	switch d.fromType {
 	case directiveSourceFile:
 		return d.handleFileType(forceExpand)
@@ -163,7 +163,7 @@ func (d directive) render(forceExpand bool, vaultPaths *[]string) (interface{}, 
 	}
 }
 
-func (d directive) expandEnv() (interface{}, error) {
+func (d directive) expandEnv() (any, error) {
 	return fmt.Sprintf("${%s}", d.fromPath), nil
 }
 
@@ -175,7 +175,7 @@ func directiveSource(from string) string {
 	return from[:idx]
 }
 
-func (d directive) handleFileType(forceExpand bool) (interface{}, error) {
+func (d directive) handleFileType(forceExpand bool) (any, error) {
 	// configsource doesn't handle flatten, glob, or default values at this time, so
 	// we inline the value if any of those are specified in the #from directive
 	if forceExpand || d.flatten || hasGlob(d.fromPath) || d.defaultV != "" {
@@ -189,7 +189,7 @@ func hasGlob(path string) bool {
 	return strings.ContainsAny(path, "*?[]")
 }
 
-func (d directive) expandFiles() (interface{}, error) {
+func (d directive) expandFiles() (any, error) {
 	path := resolvePath(d.fromPath, d.wd)
 	filepaths, err := filepath.Glob(path)
 	if err != nil {
@@ -206,7 +206,7 @@ func (d directive) expandFiles() (interface{}, error) {
 		}
 	}
 
-	var items []interface{}
+	var items []any
 	for _, p := range filepaths {
 		unmarshaled, err := unmarshal(p)
 		if err != nil {
@@ -217,15 +217,15 @@ func (d directive) expandFiles() (interface{}, error) {
 	return merge(items)
 }
 
-func (d directive) expandZK() (interface{}, error) {
+func (d directive) expandZK() (any, error) {
 	return fmt.Sprintf("${zookeeper:%s}", d.fromPath), nil
 }
 
-func (d directive) expandEtcd2() (interface{}, error) {
+func (d directive) expandEtcd2() (any, error) {
 	return fmt.Sprintf("${etcd2:%s}", d.fromPath), nil
 }
 
-func (d directive) expandVault(vaultPaths *[]string) (interface{}, error) {
+func (d directive) expandVault(vaultPaths *[]string) (any, error) {
 	path, keys := parseVaultPath(d.fromPath)
 	idx, found := indexOf(*vaultPaths, path)
 	if !found {
@@ -258,12 +258,12 @@ func resolvePath(path, wd string) string {
 	return filepath.Join(wd, path)
 }
 
-func unmarshal(path string) (interface{}, error) {
+func unmarshal(path string) (any, error) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	var replacement interface{}
+	var replacement any
 	err = yaml.UnmarshalStrict(bytes, &replacement)
 	if err != nil {
 		return nil, err
@@ -271,7 +271,7 @@ func unmarshal(path string) (interface{}, error) {
 	return replacement, nil
 }
 
-func merge(items []interface{}) (interface{}, error) {
+func merge(items []any) (any, error) {
 	switch len(items) {
 	case 0:
 		return nil, nil
@@ -279,18 +279,18 @@ func merge(items []interface{}) (interface{}, error) {
 		return items[0], nil
 	}
 	switch items[0].(type) {
-	case []interface{}:
+	case []any:
 		return mergeSlices(items)
-	case map[interface{}]interface{}:
+	case map[any]any:
 		return mergeMaps(items)
 	}
 	return nil, fmt.Errorf("unable to merge: %v", items)
 }
 
-func mergeSlices(items []interface{}) (interface{}, error) {
-	var out []interface{}
+func mergeSlices(items []any) (any, error) {
+	var out []any
 	for _, item := range items {
-		l, ok := item.([]interface{})
+		l, ok := item.([]any)
 		if !ok {
 			return nil, fmt.Errorf("mergeSlices: type coersion failed for item %v in items %v", item, items)
 		}
@@ -299,10 +299,10 @@ func mergeSlices(items []interface{}) (interface{}, error) {
 	return out, nil
 }
 
-func mergeMaps(items []interface{}) (interface{}, error) {
-	out := map[interface{}]interface{}{}
+func mergeMaps(items []any) (any, error) {
+	out := map[any]any{}
 	for _, item := range items {
-		m, ok := item.(map[interface{}]interface{})
+		m, ok := item.(map[any]any)
 		if !ok {
 			return nil, fmt.Errorf("mergeMaps: type coersion failed for item %v in items %v", item, items)
 		}

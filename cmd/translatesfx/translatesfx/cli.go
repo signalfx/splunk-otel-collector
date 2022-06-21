@@ -85,12 +85,12 @@ func translateConfig(fname, wd string) (configYaml string, warnings []error) {
 	return header + string(bytes), warnings
 }
 
-func loadCfg(fname string) (interface{}, error) {
+func loadCfg(fname string) (any, error) {
 	bytes, err := os.ReadFile(fname)
 	if err != nil {
 		return nil, err
 	}
-	var orig interface{}
+	var orig any
 	err = yaml.UnmarshalStrict(bytes, &orig)
 	return orig, err
 }

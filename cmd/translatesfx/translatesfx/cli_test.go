@@ -28,7 +28,7 @@ func TestTranslateConfig(t *testing.T) {
 	assert.Nil(t, w)
 	expected, err := os.ReadFile("testdata/otel-e2e-expected.yaml")
 	require.NoError(t, err)
-	var translatedV, expectedV interface{}
+	var translatedV, expectedV any
 	err = yaml.Unmarshal([]byte(translated), &translatedV)
 	require.NoError(t, err)
 	err = yaml.Unmarshal(expected, &expectedV)

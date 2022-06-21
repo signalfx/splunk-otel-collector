@@ -428,13 +428,13 @@ func TestVaultRetrieveErrors(t *testing.T) {
 
 func Test_vaultSession_extractVersionMetadata(t *testing.T) {
 	tests := []struct {
-		metadataMap map[string]interface{}
+		metadataMap map[string]any
 		expectedMd  *versionMetadata
 		name        string
 	}{
 		{
 			name: "typical",
-			metadataMap: map[string]interface{}{
+			metadataMap: map[string]any{
 				"tsKey":  "2021-04-02T22:30:51.4733477Z",
 				"verKey": json.Number("1"),
 			},
@@ -445,21 +445,21 @@ func Test_vaultSession_extractVersionMetadata(t *testing.T) {
 		},
 		{
 			name: "missing_expected_timestamp",
-			metadataMap: map[string]interface{}{
+			metadataMap: map[string]any{
 				"otherKey": "2021-04-02T22:30:51.4733477Z",
 				"verKey":   json.Number("1"),
 			},
 		},
 		{
 			name: "missing_expected_version",
-			metadataMap: map[string]interface{}{
+			metadataMap: map[string]any{
 				"tsKey":    "2021-04-02T22:30:51.4733477Z",
 				"otherKey": json.Number("1"),
 			},
 		},
 		{
 			name: "incorrect_version_format",
-			metadataMap: map[string]interface{}{
+			metadataMap: map[string]any{
 				"tsKey":  "2021-04-02T22:30:51.4733477Z",
 				"verKey": json.Number("not_a_number"),
 			},

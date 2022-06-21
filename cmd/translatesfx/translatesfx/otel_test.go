@@ -15,6 +15,7 @@
 package translatesfx
 
 import (
+	"sort"
 	"strconv"
 	"testing"
 
@@ -58,12 +59,11 @@ func TestSAToOtelConfig(t *testing.T) {
 }
 
 func TestMonitorToReceiver(t *testing.T) {
-	receiver, w, isRC := saMonitorToOtelReceiver(testvSphereMonitorCfg(), nil)
+	cmp, w, isRC := saMonitorToOtelReceiver(testvSphereMonitorCfg(), nil)
 	assert.Nil(t, w)
 	assert.False(t, isRC)
-	v, ok := receiver["smartagent/vsphere"]
-	require.True(t, ok)
-	assert.Equal(t, "vsphere", v["type"])
+	assert.Equal(t, "smartagent/vsphere", cmp.baseName)
+	assert.Equal(t, "vsphere", cmp.attrs["type"])
 }
 
 func testvSphereMonitorCfg() map[interface{}]interface{} {
@@ -76,16 +76,16 @@ func testvSphereMonitorCfg() map[interface{}]interface{} {
 }
 
 func TestMonitorToReceiver_Rule(t *testing.T) {
-	otel, w, isRC := saMonitorToOtelReceiver(map[interface{}]interface{}{
+	cmp, w, isRC := saMonitorToOtelReceiver(map[interface{}]interface{}{
 		"type":          "redis",
 		"discoveryRule": `target == "hostport" && container_image =~ "redis" && port == 6379`,
 	}, nil)
 	assert.Nil(t, w)
 	assert.True(t, isRC)
-	redis := otel["smartagent/redis"]
-	_, ok := redis["rule"]
+	assert.Equal(t, "smartagent/redis", cmp.baseName)
+	_, ok := cmp.attrs["rule"]
 	require.True(t, ok)
-	_, ok = redis["config"]
+	_, ok = cmp.attrs["config"]
 	require.True(t, ok)
 }
 
@@ -316,6 +316,52 @@ func TestInfoToOtelConfig_MetricsToExclude_Monitor(t *testing.T) {
 			"metricNames": []interface{}{"foo*"},
 		},
 	}, ex)
+}
+
+func TestComponentCollection_Single(t *testing.T) {
+	cc := componentCollection{{
+		baseName: "mycomponent",
+		attrs:    map[string]interface{}{"foo": "bar"},
+	}}
+	componentMap := cc.toComponentMap()
+	var keys []string
+	for k := range componentMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	assert.Equal(t, []string{"mycomponent"}, keys)
+}
+
+func TestComponentCollection_Multiple(t *testing.T) {
+	cc := componentCollection{{
+		baseName: "mycomponent",
+		attrs:    map[string]interface{}{"foo": "bar"},
+	}, {
+		baseName: "mycomponent",
+		attrs:    map[string]interface{}{"foo": "bar"},
+	}}
+	componentMap := cc.toComponentMap()
+	var keys []string
+	for k := range componentMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	assert.Equal(t, []string{"mycomponent/0", "mycomponent/1"}, keys)
+}
+
+func TestInfoToOtelConfig_DuplicateMonitors(t *testing.T) {
+	cfg, _ := yamlToOtelConfig(t, "testdata/sa-duplicate-monitors.yaml")
+	assert.Equal(t, 2, len(cfg.Receivers))
+	metrics := cfg.Service.Pipelines["metrics"]
+	const sa0 = "smartagent/sql/0"
+	const sa1 = "smartagent/sql/1"
+	assert.Equal(t, []string{sa0, sa1}, metrics.Receivers)
+	receiver0 := cfg.Receivers[sa0]
+	_, found := receiver0["connectionString"]
+	assert.True(t, found)
+	assert.Equal(t, 7, len(receiver0))
+	receiver1 := cfg.Receivers[sa1]
+	assert.Equal(t, map[any]any{"user": "postgres", "password": "s3cr3t"}, receiver1["params"])
 }
 
 func yamlToOtelConfig(t *testing.T, filename string) (out *otelCfg, warnings []error) {

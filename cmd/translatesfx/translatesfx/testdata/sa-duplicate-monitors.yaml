@@ -1,0 +1,33 @@
+signalFxAccessToken: abc123
+signalFxRealm: us1
+
+logging:
+  level: debug
+
+monitors:
+  - type: sql
+    host: localhost
+    port: 5432
+    dbDriver: postgres
+    params:
+      user: postgres
+      password: s3cr3t
+    connectionString: 'host={{.host}} port={{.port}} user={{.user}} password={{.password}} sslmode=disable'
+    queries:
+      - query: 'SELECT 42 as num'
+        metrics:
+          - metricName: "my.num"
+            valueColumn: "num"
+  - type: sql
+    host: localhost
+    port: 5432
+    dbDriver: postgres
+    params:
+      user: postgres
+      password: s3cr3t
+    connectionString: 'host={{.host}} port={{.port}} user={{.user}} password={{.password}} sslmode=disable'
+    queries:
+      - query: 'SELECT 110 as eleventy'
+        metrics:
+          - metricName: "my.other.num"
+            valueColumn: "eleventy"

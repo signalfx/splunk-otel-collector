@@ -244,23 +244,23 @@ func translateExporters(sa saCfgInfo, cfg *otelCfg) {
 }
 
 func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
-	rcReceivers := map[string]map[string]interface{}{}
+	var standardReceivers, rcReceivers componentCollection
 	for _, monV := range sa.monitors {
 		monitor := monV.(map[interface{}]interface{})
 		receiver, w, isRC := saMonitorToOtelReceiver(monitor, sa.observers)
 		warnings = append(warnings, w...)
-		target := cfg.Receivers
 		if isRC {
-			target = rcReceivers
-		}
-		for k, v := range receiver {
-			target[k] = v
+			rcReceivers = append(rcReceivers, receiver)
+		} else {
+			standardReceivers = append(standardReceivers, receiver)
 		}
 	}
 
+	cfg.Receivers = standardReceivers.toComponentMap()
+	rcReceiverMap := rcReceivers.toComponentMap()
 	metricsReceivers, tracesReceivers, logsReceivers := receiverLists(cfg.Receivers)
 
-	if len(rcReceivers) > 0 {
+	if len(rcReceiverMap) > 0 {
 		switch {
 		case sa.observers == nil:
 			warnings = append(warnings, errors.New("found Smart Agent discovery rule but no observers"))
@@ -270,7 +270,7 @@ func translateMonitors(sa saCfgInfo, cfg *otelCfg) (warnings []error) {
 			obs := saObserverTypeToOtel(sa.observers[0].(map[interface{}]interface{})["type"].(string))
 			const rc = "receiver_creator"
 			cfg.Receivers[rc] = map[string]interface{}{
-				"receivers":       rcReceivers,
+				"receivers":       rcReceiverMap,
 				"watch_observers": []string{obs},
 			}
 			metricsReceivers = append(metricsReceivers, rc)
@@ -486,14 +486,14 @@ func sfxExporter(sa saCfgInfo) map[string]map[string]interface{} {
 }
 
 func saMonitorToOtelReceiver(monitor map[interface{}]interface{}, observers []interface{}) (
-	out map[string]map[string]interface{},
+	cmp component,
 	warnings []error,
 	isReceiverCreator bool,
 ) {
 	strm := interfaceMapToStringMap(monitor)
 	if _, ok := monitor[discoveryRule]; ok {
-		receiver, w := saMonitorToRCReceiver(strm, observers)
-		return receiver, w, true
+		cmp, warnings = saMonitorToRCReceiver(strm, observers)
+		return cmp, warnings, true
 	}
 	return saMonitorToStandardReceiver(strm), nil, false
 }
@@ -514,8 +514,8 @@ func stringMapToInterfaceMap(in map[string]interface{}) map[interface{}]interfac
 	return out
 }
 
-func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface{}) (out map[string]map[string]interface{}, warnings []error) {
-	key := "smartagent/" + monitor["type"].(string)
+func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface{}) (cmp component, warnings []error) {
+	baseName := "smartagent/" + monitor["type"].(string)
 	dr := monitor[discoveryRule].(string)
 	rcr, err := discoveryRuleToRCRule(dr, observers)
 	if err != nil {
@@ -524,22 +524,15 @@ func saMonitorToRCReceiver(monitor map[string]interface{}, observers []interface
 		warnings = append(warnings, err)
 	}
 	delete(monitor, discoveryRule)
-	return map[string]map[string]interface{}{
-		key: {
+
+	cmp = component{
+		baseName: baseName,
+		attrs: map[string]interface{}{
 			"rule":   rcr,
 			"config": monitor,
 		},
-	}, warnings
-}
-
-func saMonitorToStandardReceiver(monitor map[string]interface{}) map[string]map[string]interface{} {
-	if excludes, ok := monitor[metricsToExclude]; ok {
-		delete(monitor, metricsToExclude)
-		monitor["datapointsToExclude"] = excludes
 	}
-	return map[string]map[string]interface{}{
-		"smartagent/" + monitor["type"].(string): monitor,
-	}
+	return
 }
 
 func saObserversToOtel(observers []interface{}) map[string]interface{} {

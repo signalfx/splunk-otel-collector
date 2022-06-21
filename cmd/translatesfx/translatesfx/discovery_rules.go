@@ -103,7 +103,7 @@ var k8sIDs = map[string]string{
 	"kubernetes_pod_uid":     otelRulePodUID,
 }
 
-func discoveryRuleToRCRule(dr string, observers []interface{}) (rcRule string, err error) {
+func discoveryRuleToRCRule(dr string, observers []any) (rcRule string, err error) {
 	dr = strings.ReplaceAll(dr, "=~", " matches ")
 
 	tree, err := parser.Parse(dr)
@@ -204,14 +204,14 @@ func translateTree(node ast.Node, idMap map[string]string) error {
 // guessRuleType is for rules that don't have the required e.g. 'type == "foo"'.
 // We guess the type is "hostport" if there is one `host` observer and "port"
 // if there is one `k8s-api` observer.
-func guessRuleType(observers []interface{}) (string, error) {
+func guessRuleType(observers []any) (string, error) {
 	if observers == nil {
 		return "", errors.New("guessRuleType: no observers")
 	}
 	if len(observers) != 1 {
 		return "", fmt.Errorf("guessRuleType: too many observers: %v", observers)
 	}
-	obs := observers[0].(map[interface{}]interface{})
+	obs := observers[0].(map[any]any)
 	switch obs["type"] {
 	case "host":
 		return "hostport", nil

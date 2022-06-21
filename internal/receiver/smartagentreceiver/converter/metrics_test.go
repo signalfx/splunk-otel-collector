@@ -50,7 +50,7 @@ func pdataMetric() (pmetric.Metrics, pmetric.Metric) {
 	return out, m
 }
 
-func pdataMetrics(dataType pmetric.MetricDataType, value interface{}, timeReceived time.Time) pmetric.Metrics {
+func pdataMetrics(dataType pmetric.MetricDataType, value any, timeReceived time.Time) pmetric.Metrics {
 	metrics, metric := pdataMetric()
 	metric.SetDataType(dataType)
 	metric.SetName("some metric")
@@ -82,7 +82,7 @@ func pdataMetrics(dataType pmetric.MetricDataType, value interface{}, timeReceiv
 	}
 
 	attributes.Clear()
-	pcommon.NewMapFromRaw(map[string]interface{}{
+	pcommon.NewMapFromRaw(map[string]any{
 		"k0": "v0",
 		"k1": "v1",
 		"k2": "v2",

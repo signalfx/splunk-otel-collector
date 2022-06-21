@@ -33,9 +33,9 @@ import (
 
 func TestIncludeConfigSource_Session(t *testing.T) {
 	tests := []struct {
-		defaults map[string]interface{}
-		params   map[string]interface{}
-		expected interface{}
+		defaults map[string]any
+		params   map[string]any
+		expected any
 		wantErr  error
 		name     string
 		selector string

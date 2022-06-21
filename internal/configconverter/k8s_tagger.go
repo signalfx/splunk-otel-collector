@@ -41,7 +41,7 @@ func (RenameK8sTagger) Convert(_ context.Context, in *confmap.Conf) error {
 	serviceEntryRe := regexp.MustCompile(serviceExpr)
 
 	found := false
-	out := map[string]interface{}{}
+	out := map[string]any{}
 	for _, k := range in.AllKeys() {
 		v := in.Get(k)
 		if match := k8sTaggerKeyRe.FindStringSubmatch(k); match != nil {
@@ -55,7 +55,7 @@ func (RenameK8sTagger) Convert(_ context.Context, in *confmap.Conf) error {
 			if serviceEntryRe.MatchString(k) {
 				kind := reflect.TypeOf(v).Kind()
 				if kind == reflect.Slice {
-					if sliceOfInterfaces, ok := v.([]interface{}); ok {
+					if sliceOfInterfaces, ok := v.([]any); ok {
 						for i, val := range sliceOfInterfaces {
 							if strVal, ok := val.(string); ok {
 								if match = taggerRe.FindStringSubmatch(strVal); match != nil {

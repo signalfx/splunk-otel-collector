@@ -64,7 +64,7 @@ func processParser(ctx context.Context, v *confmap.Conf) (*confmap.Conf, error) 
 		_ = manager.Close(ctx)
 	}()
 
-	processedParser := map[string]interface{}{}
+	processedParser := map[string]any{}
 	for _, key := range v.AllKeys() {
 		if !strings.HasPrefix(key, configSourcesKey) {
 			// In Load we only care about config sources, ignore everything else.
@@ -81,7 +81,7 @@ func processParser(ctx context.Context, v *confmap.Conf) (*confmap.Conf, error) 
 	return confmap.NewFromStringMap(processedParser), nil
 }
 
-func loadSettings(css map[string]interface{}, factories Factories) (map[string]expcfg.Source, error) {
+func loadSettings(css map[string]any, factories Factories) (map[string]expcfg.Source, error) {
 	// Prepare resulting map.
 	cfgSrcToSettings := make(map[string]expcfg.Source)
 

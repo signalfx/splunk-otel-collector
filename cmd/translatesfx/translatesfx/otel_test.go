@@ -43,7 +43,7 @@ func TestRPE_Append(t *testing.T) {
 }
 
 func TestSAToOtelConfig(t *testing.T) {
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		"type":     "vsphere",
 		"host":     "localhost",
 		"username": "administrator",
@@ -52,7 +52,7 @@ func TestSAToOtelConfig(t *testing.T) {
 	otelConfig, w := saInfoToOtelConfig(saCfgInfo{
 		realm:       "us1",
 		accessToken: "s3cr3t",
-		monitors:    []interface{}{testvSphereMonitorCfg()},
+		monitors:    []any{testvSphereMonitorCfg()},
 	}, nil)
 	assert.Nil(t, w)
 	require.Equal(t, expected, otelConfig.Receivers["smartagent/vsphere"])
@@ -66,8 +66,8 @@ func TestMonitorToReceiver(t *testing.T) {
 	assert.Equal(t, "vsphere", cmp.attrs["type"])
 }
 
-func testvSphereMonitorCfg() map[interface{}]interface{} {
-	return map[interface{}]interface{}{
+func testvSphereMonitorCfg() map[any]any {
+	return map[any]any{
 		"type":     "vsphere",
 		"host":     "localhost",
 		"username": "administrator",
@@ -76,7 +76,7 @@ func testvSphereMonitorCfg() map[interface{}]interface{} {
 }
 
 func TestMonitorToReceiver_Rule(t *testing.T) {
-	cmp, w, isRC := saMonitorToOtelReceiver(map[interface{}]interface{}{
+	cmp, w, isRC := saMonitorToOtelReceiver(map[any]any{
 		"type":          "redis",
 		"discoveryRule": `target == "hostport" && container_image =~ "redis" && port == 6379`,
 	}, nil)
@@ -90,7 +90,7 @@ func TestMonitorToReceiver_Rule(t *testing.T) {
 }
 
 func TestMTOperations(t *testing.T) {
-	ops := mtOperations(map[interface{}]interface{}{
+	ops := mtOperations(map[any]any{
 		"d": "3",
 		"c": "2",
 		"b": "1",
@@ -104,23 +104,23 @@ func TestMTOperations(t *testing.T) {
 }
 
 func TestDimsToMTP(t *testing.T) {
-	block := dimsToMetricsTransformProcessor(map[interface{}]interface{}{
+	block := dimsToMetricsTransformProcessor(map[any]any{
 		"aaa": "bbb",
 		"ccc": "ddd",
 	})
-	transforms := block["transforms"].([]map[interface{}]interface{})
+	transforms := block["transforms"].([]map[any]any)
 	transform := transforms[0]
 	assert.Equal(t, ".*", transform["include"])
 	assert.Equal(t, "regexp", transform["match_type"])
 	assert.Equal(t, "update", transform["action"])
-	ops := transform["operations"].([]map[interface{}]interface{})
+	ops := transform["operations"].([]map[any]any)
 	assert.Equal(t, 2, len(ops))
-	assert.Equal(t, map[interface{}]interface{}{
+	assert.Equal(t, map[any]any{
 		"action":    "add_label",
 		"new_label": "aaa",
 		"new_value": "bbb",
 	}, ops[0])
-	assert.Equal(t, map[interface{}]interface{}{
+	assert.Equal(t, map[any]any{
 		"action":    "add_label",
 		"new_label": "ccc",
 		"new_value": "ddd",
@@ -147,7 +147,7 @@ func TestInfoToOtelConfig_CollectD(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, 7, len(saExt))
 	v := saExt["collectd"]
-	collectd, ok := v.(map[interface{}]interface{}) // FIXME?
+	collectd, ok := v.(map[any]any) // FIXME?
 	require.True(t, ok)
 	assert.Equal(t, 4, len(collectd))
 	serviceExt := oc.Service.Extensions
@@ -158,7 +158,7 @@ func TestInfoToOtelConfig_ResourceDetectionProcessor(t *testing.T) {
 	oc, _ := yamlToOtelConfig(t, "testdata/sa-simple.yaml")
 	assert.NotNil(t, oc.Processors)
 	rdProc := oc.Processors["resourcedetection"]
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"detectors": []string{"system", "env", "gce", "ecs", "ec2", "azure"},
 	}, rdProc)
 	assert.Equal(t, []string{"resourcedetection"}, oc.Service.Pipelines["metrics"].Processors)
@@ -168,7 +168,7 @@ func TestInfoToOtelConfig_SFxForwarder(t *testing.T) {
 	oc, _ := yamlToOtelConfig(t, "testdata/sa-forwarder.yaml")
 	receiverName := "smartagent/signalfx-forwarder"
 	rcvr := oc.Receivers[receiverName]
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"type":          "signalfx-forwarder",
 		"listenAddress": "0.0.0.0:9080",
 	}, rcvr)
@@ -184,13 +184,13 @@ func TestInfoToOtelConfig_ProcessList(t *testing.T) {
 	oc, _ := yamlToOtelConfig(t, "testdata/sa-processlist.yaml")
 	processListReceiverName := "smartagent/processlist"
 	rcvr := oc.Receivers[processListReceiverName]
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"type": "processlist",
 	}, rcvr)
 
 	kubernetesEventsReceiverName := "smartagent/kubernetes-events"
 	rcvr = oc.Receivers[kubernetesEventsReceiverName]
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"type": "kubernetes-events",
 	}, rcvr)
 
@@ -209,13 +209,13 @@ func TestInfoToOtelConfig_Observers(t *testing.T) {
 	oc, _ := yamlToOtelConfig(t, "testdata/sa-observers.yaml")
 	obs, ok := oc.Extensions["k8s_observer"]
 	require.True(t, ok)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"auth_type": "serviceAccount",
 		"node":      "${K8S_NODE_NAME}",
 	}, obs)
 	assert.Equal(t, []string{"k8s_observer"}, oc.Service.Extensions)
 	v := oc.Receivers["receiver_creator"]["receivers"]
-	m := v.(map[string]map[string]interface{})
+	m := v.(map[string]map[string]any)
 	rr := m["smartagent/collectd/redis"]
 	assert.Equal(t, `type == "port" && pod.name == "redis" && port == 6379`, rr["rule"])
 }
@@ -224,9 +224,9 @@ func TestInfoToOtelConfig_ZK(t *testing.T) {
 	oc, _ := yamlToOtelConfig(t, "testdata/sa-zk.yaml")
 	v, ok := oc.ConfigSources["zookeeper"]
 	require.True(t, ok)
-	zk, ok := v.(map[string]interface{})
+	zk, ok := v.(map[string]any)
 	require.True(t, ok)
-	assert.Equal(t, []interface{}{"127.0.0.1:2181"}, zk["endpoints"])
+	assert.Equal(t, []any{"127.0.0.1:2181"}, zk["endpoints"])
 	assert.Equal(t, "10s", zk["timeout"])
 }
 
@@ -234,12 +234,12 @@ func TestInfoToOtelConfig_Etcd(t *testing.T) {
 	oc, _ := yamlToOtelConfig(t, "testdata/sa-etcd.yaml")
 	v, ok := oc.ConfigSources["etcd2"]
 	require.True(t, ok)
-	etcd, ok := v.(map[string]interface{})
+	etcd, ok := v.(map[string]any)
 	require.True(t, ok)
-	assert.Equal(t, []interface{}{"http://127.0.0.1:2379"}, etcd["endpoints"])
+	assert.Equal(t, []any{"http://127.0.0.1:2379"}, etcd["endpoints"])
 	auth, ok := etcd["auth"]
 	require.True(t, ok)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"username": "foo",
 		"password": "bar",
 	}, auth)
@@ -251,7 +251,7 @@ func TestInfoToOtelConfig_Vault(t *testing.T) {
 	oc, _ := yamlToOtelConfig(t, "testdata/sa-vault.yaml")
 	v, ok := oc.ConfigSources["vault/0"]
 	require.True(t, ok)
-	vault, ok := v.(map[string]interface{})
+	vault, ok := v.(map[string]any)
 	require.True(t, ok)
 	assert.Equal(t, "http://127.0.0.1:8200", vault["endpoint"])
 }
@@ -260,8 +260,8 @@ func TestInfoToOtelConfig_MetricsToExclude_Simple(t *testing.T) {
 	cfg, _ := yamlToOtelConfig(t, "testdata/sa-metrics-to-exclude-simple.yaml")
 	fp := cfg.Processors["filter"]
 	require.NotNil(t, fp)
-	metrics := fp["metrics"].(map[string]interface{})
-	exclude := metrics["exclude"].(map[string]interface{})
+	metrics := fp["metrics"].(map[string]any)
+	exclude := metrics["exclude"].(map[string]any)
 	assert.Equal(t, "expr", exclude["match_type"])
 	expressions := exclude["expressions"].([]string)
 	assert.Equal(t, []string{
@@ -273,8 +273,8 @@ func TestInfoToOtelConfig_MetricsToExclude(t *testing.T) {
 	cfg, _ := yamlToOtelConfig(t, "testdata/sa-metrics-to-exclude.yaml")
 	fp := cfg.Processors["filter"]
 	require.NotNil(t, fp)
-	metrics := fp["metrics"].(map[string]interface{})
-	exclude := metrics["exclude"].(map[string]interface{})
+	metrics := fp["metrics"].(map[string]any)
+	exclude := metrics["exclude"].(map[string]any)
 	assert.Equal(t, "expr", exclude["match_type"])
 	expressions := exclude["expressions"].([]string)
 	assert.Equal(t, 3, len(expressions))
@@ -291,7 +291,7 @@ func TestInfoToOtelConfig_MetricsToExclude(t *testing.T) {
 
 func TestInfoToOtelConfig_MetricsToExclude_Regex(t *testing.T) {
 	cfg, _ := yamlToOtelConfig(t, "testdata/sa-metrics-to-exclude-regex.yaml")
-	expression := cfg.Processors["filter"]["metrics"].(map[string]interface{})["exclude"].(map[string]interface{})["expressions"].([]string)[0]
+	expression := cfg.Processors["filter"]["metrics"].(map[string]any)["exclude"].(map[string]any)["expressions"].([]string)[0]
 	assert.Equal(t, `MetricName matches "vsphere\\.cpu_\\w*_percent"`, expression)
 }
 
@@ -311,9 +311,9 @@ func TestInfoToOtelConfig_MetricsToExclude_Monitor(t *testing.T) {
 
 	ex, ok := saReceiver["datapointsToExclude"]
 	assert.True(t, ok)
-	assert.Equal(t, []interface{}{
-		map[interface{}]interface{}{
-			"metricNames": []interface{}{"foo*"},
+	assert.Equal(t, []any{
+		map[any]any{
+			"metricNames": []any{"foo*"},
 		},
 	}, ex)
 }
@@ -321,7 +321,7 @@ func TestInfoToOtelConfig_MetricsToExclude_Monitor(t *testing.T) {
 func TestComponentCollection_Single(t *testing.T) {
 	cc := componentCollection{{
 		baseName: "mycomponent",
-		attrs:    map[string]interface{}{"foo": "bar"},
+		attrs:    map[string]any{"foo": "bar"},
 	}}
 	componentMap := cc.toComponentMap()
 	var keys []string
@@ -335,10 +335,10 @@ func TestComponentCollection_Single(t *testing.T) {
 func TestComponentCollection_Multiple(t *testing.T) {
 	cc := componentCollection{{
 		baseName: "mycomponent",
-		attrs:    map[string]interface{}{"foo": "bar"},
+		attrs:    map[string]any{"foo": "bar"},
 	}, {
 		baseName: "mycomponent",
-		attrs:    map[string]interface{}{"foo": "bar"},
+		attrs:    map[string]any{"foo": "bar"},
 	}}
 	componentMap := cc.toComponentMap()
 	var keys []string
@@ -374,9 +374,9 @@ func yamlToOtelConfig(t *testing.T, filename string) (out *otelCfg, warnings []e
 }
 
 func TestSAExcludesToExpr_Simple(t *testing.T) {
-	ex := saExcludesToExpr([]interface{}{
-		map[interface{}]interface{}{
-			"metricNames": []interface{}{
+	ex := saExcludesToExpr([]any{
+		map[any]any{
+			"metricNames": []any{
 				"aaa",
 			},
 		},
@@ -385,12 +385,12 @@ func TestSAExcludesToExpr_Simple(t *testing.T) {
 }
 
 func TestSAExcludesToExpr_MetricNamesAndDimensions(t *testing.T) {
-	ex := saExcludesToExpr([]interface{}{
-		map[interface{}]interface{}{
-			"metricNames": []interface{}{
+	ex := saExcludesToExpr([]any{
+		map[any]any{
+			"metricNames": []any{
 				"aaa",
 			},
-			"dimensions": map[interface{}]interface{}{
+			"dimensions": map[any]any{
 				"foo": "bar",
 			},
 		},
@@ -463,7 +463,7 @@ func TestFilterTranslation(t *testing.T) {
 			name: "dimension filter",
 			excludeFilters: []config.MetricFilter{{
 				MetricNames: []string{"cpu.*"},
-				Dimensions: map[string]interface{}{
+				Dimensions: map[string]any{
 					"host": "aaa",
 				},
 			}},
@@ -590,16 +590,16 @@ func TestFilterTranslation(t *testing.T) {
 	}
 }
 
-func metricFiltersToMapRepresentation(excludes []config.MetricFilter) []interface{} {
-	var out []interface{}
+func metricFiltersToMapRepresentation(excludes []config.MetricFilter) []any {
+	var out []any
 	for _, filter := range excludes {
 		names := filter.MetricNames
 		if names == nil {
 			names = []string{filter.MetricName}
 		}
-		out = append(out, map[interface{}]interface{}{
-			"metricNames": func(strings []string) []interface{} {
-				var v []interface{}
+		out = append(out, map[any]any{
+			"metricNames": func(strings []string) []any {
+				var v []any
 				for _, s := range strings {
 					v = append(v, s)
 				}
@@ -616,16 +616,16 @@ func TestMetricNamesToExpr(t *testing.T) {
 	assert.Equal(
 		t,
 		`MetricName matches "^aaaa$"`,
-		metricNamesToExpr([]interface{}{"aaaa"}, false),
+		metricNamesToExpr([]any{"aaaa"}, false),
 	)
 	assert.Equal(
 		t,
 		`MetricName matches "^aaaa$" or MetricName matches "^bbbb$"`,
-		metricNamesToExpr([]interface{}{"aaaa", "bbbb"}, false),
+		metricNamesToExpr([]any{"aaaa", "bbbb"}, false),
 	)
 }
 
-type assertionFunc func(t assert.TestingT, value bool, msgAndArgs ...interface{}) bool
+type assertionFunc func(t assert.TestingT, value bool, msgAndArgs ...any) bool
 
 func testFilter(
 	t *testing.T,
@@ -643,7 +643,7 @@ func testFilter(
 
 func testExpr(t *testing.T, excludePrograms []*vm.Program, includePrograms []*vm.Program, dp *datapoint.Datapoint) bool {
 	for _, includeProgram := range includePrograms {
-		v, err := expr.Run(includeProgram, map[string]interface{}{
+		v, err := expr.Run(includeProgram, map[string]any{
 			"MetricName": dp.Metric,
 			"Label": func(key string) string {
 				return dp.Dimensions[key]
@@ -656,7 +656,7 @@ func testExpr(t *testing.T, excludePrograms []*vm.Program, includePrograms []*vm
 	}
 
 	for _, excludeProgram := range excludePrograms {
-		v, err := expr.Run(excludeProgram, map[string]interface{}{
+		v, err := expr.Run(excludeProgram, map[string]any{
 			"MetricName": dp.Metric,
 			"Label": func(key string) string {
 				return dp.Dimensions[key]
@@ -717,15 +717,15 @@ func TestDimsToExpr_OneDim(t *testing.T) {
 	assert.Equal(
 		t,
 		`Label("interfaces") matches "^eth0$"`,
-		dimsToExpr(map[interface{}]interface{}{
-			"interfaces": []interface{}{"eth0"},
+		dimsToExpr(map[any]any{
+			"interfaces": []any{"eth0"},
 		}),
 	)
 }
 
 func TestDimsToExpr_TwoDims(t *testing.T) {
-	ex := dimsToExpr(map[interface{}]interface{}{
-		"interfaces": []interface{}{"eth*", "!eth1"},
+	ex := dimsToExpr(map[any]any{
+		"interfaces": []any{"eth*", "!eth1"},
 	})
 	assert.Equal(
 		t,
@@ -735,8 +735,8 @@ func TestDimsToExpr_TwoDims(t *testing.T) {
 }
 
 func TestDimsToExpr_ThreeDims(t *testing.T) {
-	ex := dimsToExpr(map[interface{}]interface{}{
-		"interfaces": []interface{}{"eth*", "!eth1", "!eth2"},
+	ex := dimsToExpr(map[any]any{
+		"interfaces": []any{"eth*", "!eth1", "!eth2"},
 	})
 	assert.Equal(
 		t,
@@ -746,9 +746,9 @@ func TestDimsToExpr_ThreeDims(t *testing.T) {
 }
 
 func TestSAExcludesToExpr_MetricNamesOnly(t *testing.T) {
-	ex := saExcludesToExpr([]interface{}{
-		map[interface{}]interface{}{
-			"metricNames": []interface{}{
+	ex := saExcludesToExpr([]any{
+		map[any]any{
+			"metricNames": []any{
 				"node_filesystem_*",
 				"!node_filesystem_free_bytes",
 				"!node_filesystem_readonly",
@@ -759,11 +759,11 @@ func TestSAExcludesToExpr_MetricNamesOnly(t *testing.T) {
 }
 
 func TestSAExcludesToExpr_MetricNameAndDims(t *testing.T) {
-	ex := saExcludesToExpr([]interface{}{
-		map[interface{}]interface{}{
+	ex := saExcludesToExpr([]any{
+		map[any]any{
 			"metricName": "node_network_*",
-			"dimensions": map[interface{}]interface{}{
-				"interface": []interface{}{"*", "!eth0"},
+			"dimensions": map[any]any{
+				"interface": []any{"*", "!eth0"},
 			},
 		},
 	}, nil, false)
@@ -818,8 +818,8 @@ func TestIsRegexFilter(t *testing.T) {
 }
 
 func TestSAIncludesToExpr(t *testing.T) {
-	expression := saIncludesToExpr([]interface{}{
-		map[interface{}]interface{}{
+	expression := saIncludesToExpr([]any{
+		map[any]any{
 			"metricName": "foo",
 		},
 	})

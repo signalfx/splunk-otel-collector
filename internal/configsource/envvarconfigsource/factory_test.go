@@ -43,7 +43,7 @@ func TestEnvVarConfigSourceFactory_CreateConfigSource(t *testing.T) {
 		{
 			name: "with_defaults",
 			config: &Config{
-				Defaults: map[string]interface{}{
+				Defaults: map[string]any{
 					"k0": "v0",
 				},
 			},

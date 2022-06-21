@@ -20,11 +20,11 @@ import (
 )
 
 type retrieved struct {
-	value interface{}
+	value any
 }
 
 // NewRetrieved is a helper that implements the Retrieved interface.
-func NewRetrieved(value interface{}) configsource.Retrieved {
+func NewRetrieved(value any) configsource.Retrieved {
 	return &retrieved{
 		value,
 	}
@@ -32,7 +32,7 @@ func NewRetrieved(value interface{}) configsource.Retrieved {
 
 var _ configsource.Retrieved = (*retrieved)(nil)
 
-func (r *retrieved) Value() interface{} {
+func (r *retrieved) Value() any {
 	return r.value
 }
 
@@ -42,7 +42,7 @@ type watchableRetrieved struct {
 }
 
 // NewWatchableRetrieved is a helper that implements the Watchable interface.
-func NewWatchableRetrieved(value interface{}, watchForUpdateFn func() error) configsource.Retrieved {
+func NewWatchableRetrieved(value any, watchForUpdateFn func() error) configsource.Retrieved {
 	return &watchableRetrieved{
 		retrieved: retrieved{
 			value: value,
@@ -54,7 +54,7 @@ func NewWatchableRetrieved(value interface{}, watchForUpdateFn func() error) con
 var _ configsource.Watchable = (*watchableRetrieved)(nil)
 var _ configsource.Retrieved = (*watchableRetrieved)(nil)
 
-func (r *watchableRetrieved) Value() interface{} {
+func (r *watchableRetrieved) Value() any {
 	return r.retrieved.value
 }
 

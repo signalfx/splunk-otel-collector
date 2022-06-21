@@ -39,14 +39,14 @@ func TestSAExpandedToConfigInfo_SASimple(t *testing.T) {
 
 func TestSAExpandedToCfgInfo_Observers(t *testing.T) {
 	cfg := yamlToCfgInfo(t, "testdata/sa-observers.yaml")
-	assert.Equal(t, map[interface{}]interface{}{
+	assert.Equal(t, map[any]any{
 		"type": "k8s-api",
 	}, cfg.observers[0])
 }
 
 func TestSAExpandedToCfgInfo_ZK(t *testing.T) {
 	cfg := yamlToCfgInfo(t, "testdata/sa-zk.yaml")
-	zkPwd := cfg.monitors[0].(map[interface{}]interface{})["port"].(string)
+	zkPwd := cfg.monitors[0].(map[any]any)["port"].(string)
 	assert.Equal(t, "${zookeeper:/redis/port}", zkPwd)
 }
 
@@ -57,10 +57,10 @@ func yamlToCfgInfo(t *testing.T, filename string) saCfgInfo {
 	return saExpandedToCfgInfo(expanded)
 }
 
-func fromYAML(t *testing.T, filename string) interface{} {
+func fromYAML(t *testing.T, filename string) any {
 	yml, err := ioutil.ReadFile(filename)
 	require.NoError(t, err)
-	var v interface{}
+	var v any
 	err = yaml.UnmarshalStrict(yml, &v)
 	require.NoError(t, err)
 	return v

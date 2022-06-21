@@ -49,12 +49,12 @@ type emailNotifications struct {
 
 type jobTask struct {
 	EmailNotifications struct{}     `json:"email_notifications,omitempty"`
-	PythonWheelTask    interface{}  `json:"python_wheel_task,omitempty"`
-	PipelineTask       interface{}  `json:"pipeline_task,omitempty"`
-	SparkPythonTask    interface{}  `json:"spark_python_task,omitempty"`
-	SparkJarTask       interface{}  `json:"spark_jar_task,omitempty"`
-	NotebookTask       interface{}  `json:"notebook_task,omitempty"`
-	SparkSubmitTask    interface{}  `json:"spark_submit_task,omitempty"`
+	PythonWheelTask    any          `json:"python_wheel_task,omitempty"`
+	PipelineTask       any          `json:"pipeline_task,omitempty"`
+	SparkPythonTask    any          `json:"spark_python_task,omitempty"`
+	SparkJarTask       any          `json:"spark_jar_task,omitempty"`
+	NotebookTask       any          `json:"notebook_task,omitempty"`
+	SparkSubmitTask    any          `json:"spark_submit_task,omitempty"`
 	Description        string       `json:"description,omitempty"`
 	ExistingClusterID  string       `json:"existing_cluster_id,omitempty"`
 	TaskKey            string       `json:"task_key"`

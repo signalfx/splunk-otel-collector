@@ -101,7 +101,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					"123456789abcdef0",
 					ptrace.SpanKindServer,
 					1000, 3000,
-					map[string]interface{}{
+					map[string]any{
 						"some tag":      "some tag value",
 						"another tag":   "another tag value",
 						"net.host.ip":   loopback,
@@ -150,7 +150,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					"0",
 					ptrace.SpanKindClient,
 					1000, 3000,
-					map[string]interface{}{
+					map[string]any{
 						"some tag": "some tag value",
 					},
 					map[uint64]string{
@@ -207,7 +207,7 @@ func TestSFxSpansToPDataTraces(t *testing.T) {
 					"23456789",
 					ptrace.SpanKindConsumer,
 					1000, 3000,
-					map[string]interface{}{
+					map[string]any{
 						"some tag":      "some tag value",
 						"another tag":   "another tag value",
 						"net.host.ip":   loopbackIPv6,
@@ -402,7 +402,7 @@ func assertSpansAreEqual(t *testing.T, expectedResourceSpans, resourceSpans ptra
 				assert.Equal(t, expectedSpan.Status(), span.Status())
 				assert.Equal(t, expectedSpan.Links(), span.Links())
 
-				updateMap := func(m map[string]interface{}) func(k string, v pcommon.Value) bool {
+				updateMap := func(m map[string]any) func(k string, v pcommon.Value) bool {
 					return func(k string, v pcommon.Value) bool {
 						switch v.Type() {
 						case pcommon.ValueTypeString:
@@ -414,10 +414,10 @@ func assertSpansAreEqual(t *testing.T, expectedResourceSpans, resourceSpans ptra
 					}
 				}
 
-				attributeMap := map[string]interface{}{}
+				attributeMap := map[string]any{}
 				span.Attributes().Range(updateMap(attributeMap))
 
-				expectedAttributeMap := map[string]interface{}{}
+				expectedAttributeMap := map[string]any{}
 				expectedSpan.Attributes().Range(updateMap(expectedAttributeMap))
 
 				assert.Equal(t, expectedAttributeMap, attributeMap)
@@ -467,7 +467,7 @@ func newSFxSpan(
 	}
 	if dataSourceIP != "" {
 		if span.Meta == nil {
-			span.Meta = map[interface{}]interface{}{}
+			span.Meta = map[any]any{}
 		}
 		span.Meta[sfxConstants.DataSourceIPKey] = net.ParseIP(dataSourceIP)
 	}
@@ -495,7 +495,7 @@ func newPDataSpan(
 	serviceName, name, traceID, spanID, parentID string,
 	kind ptrace.SpanKind,
 	startTime, endTime uint64,
-	attributes map[string]interface{}, events map[uint64]string,
+	attributes map[string]any, events map[uint64]string,
 	dataSourceIP string,
 ) ptrace.Traces {
 	td := ptrace.NewTraces()

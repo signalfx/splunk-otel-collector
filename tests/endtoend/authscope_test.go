@@ -168,7 +168,7 @@ func TestIngestAuthScopeTokenGrantsRequiredEventCapabilities(tt *testing.T) {
 					require.Contains(t, raw, "metadata")
 					// added by configured resource processor
 					require.Contains(t, raw["metadata"], "testid")
-					metadata, ok := raw["metadata"].(map[string]interface{})
+					metadata, ok := raw["metadata"].(map[string]any)
 					require.True(t, ok)
 					require.Equal(t, tc.ID, metadata["testid"])
 					close(done)

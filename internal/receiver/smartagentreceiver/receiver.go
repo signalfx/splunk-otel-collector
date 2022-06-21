@@ -44,7 +44,7 @@ const setOutputErrMsg = "unable to set Output field of monitor"
 const systemTypeKey = "system.type"
 
 type Receiver struct {
-	monitor             interface{}
+	monitor             any
 	nextMetricsConsumer consumer.Metrics
 	nextLogsConsumer    consumer.Logs
 	nextTracesConsumer  consumer.Traces
@@ -141,7 +141,7 @@ func (r *Receiver) Shutdown(context.Context) error {
 	return nil
 }
 
-func (r *Receiver) createMonitor(monitorType string, host component.Host) (monitor interface{}, err error) {
+func (r *Receiver) createMonitor(monitorType string, host component.Host) (monitor any, err error) {
 	// retrieve registered MonitorFactory from agent's registration store
 	monitorFactory, ok := monitors.MonitorFactories[monitorType]
 	if !ok {

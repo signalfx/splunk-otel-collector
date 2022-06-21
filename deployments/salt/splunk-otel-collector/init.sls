@@ -1,18 +1,23 @@
-{% if not salt['pillar.get']('splunk-otel-collector:splunk_access_token') %}
+{% if grains['os_family'] not in ['Debian', 'RedHat', 'Suse'] %}
+Check OS family:
+  test.fail_without_changes:
+    - name: "OS family ({{ grains['os_family'] }}) is not supported!"
+    - failhard: True
+{% elif not salt['pillar.get']('splunk-otel-collector:splunk_access_token') %}
 Check splunk_access_token:
-  cmd.run:
-    - name: |
-        echo "splunk_access_token is is not specified";
-        exit 1
+  test.fail_without_changes:
+    - name: "splunk_access_token is not specified!"
+    - failhard: True
 {% elif not salt['pillar.get']('splunk-otel-collector:splunk_realm') %}
 Check splunk_realm:
-  cmd.run:
-    - name: |
-        echo "splunk_realm is is not specified";
-        exit 1
-{% else %}
+  test.fail_without_changes:
+    - name: "splunk_realm is not specified!"
+    - failhard: True
+{% endif %}
 
 {% set install_fluentd = salt['pillar.get']('splunk-otel-collector:install_fluentd', True) | to_bool %}
+{% set install_auto_instrumentation = salt['pillar.get']('splunk-otel-collector:install_auto_instrumentation', False) | to_bool %}
+
 include:
 {% if grains['os_family'] == 'Suse' or grains['oscodename'] == 'jammy' or install_fluentd == False %}
   - splunk-otel-collector.install
@@ -30,5 +35,6 @@ include:
   - splunk-otel-collector.fluentd_config
   - splunk-otel-collector.fluentd_service
 {% endif %}
-
+{% if install_auto_instrumentation %}
+  - splunk-otel-collector.auto_instrumentation
 {% endif %}

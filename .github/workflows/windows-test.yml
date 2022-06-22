@@ -49,7 +49,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $env:GOPATH = "${env:USERPROFILE}\go"
           go env -w CGO_ENABLED=0
-          go install github.com/ory/go-acc@v0.2.6
+          go install github.com/ory/go-acc@v0.2.8
 
       - name: Unit tests with coverage
         run: |

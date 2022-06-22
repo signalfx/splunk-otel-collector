@@ -172,7 +172,7 @@ install-tools:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.45.0
 	go install github.com/google/addlicense@v0.0.0-20200906110928-a0294312aa76
 	go install github.com/jstemmer/go-junit-report@v0.9.1
-	go install github.com/ory/go-acc@v0.2.6
+	go install github.com/ory/go-acc@v0.2.8
 	go install github.com/pavius/impi/cmd/impi@v0.0.3
 	go install github.com/tcnksm/ghr@v0.14.0
 	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest

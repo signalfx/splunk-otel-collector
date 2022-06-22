@@ -33,7 +33,7 @@ if platform_family?('windows')
     action [:enable, :start]
   end
 
-  if node['splunk_otel_collector']['with_fluentd'] != false
+  if node['splunk_otel_collector']['with_fluentd'].to_s.downcase == 'true'
     include_recipe 'splunk_otel_collector::fluentd_win_install'
   end
 elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
@@ -98,7 +98,7 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
     action [:enable, :start]
   end
 
-  if node['splunk_otel_collector']['with_fluentd'] != false
+  if node['splunk_otel_collector']['with_fluentd'].to_s.downcase == 'true'
     if platform_family?('debian') && node['lsb']['codename'] != 'jammy'
       include_recipe 'splunk_otel_collector::fluentd_deb_repo'
       include_recipe 'splunk_otel_collector::fluentd_linux_install'
@@ -106,6 +106,10 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
       include_recipe 'splunk_otel_collector::fluentd_yum_repo'
       include_recipe 'splunk_otel_collector::fluentd_linux_install'
     end
+  end
+
+  if node['splunk_otel_collector']['with_auto_instrumentation'].to_s.downcase == 'true'
+    include_recipe 'splunk_otel_collector::auto_instrumentation'
   end
 else
   raise "Platform family #{platform_family} not supported."

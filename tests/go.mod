@@ -9,7 +9,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.22.5
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.2
 	github.com/signalfx/signalfx-go v1.20.0
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.7.4
 	github.com/testcontainers/testcontainers-go v0.11.1
 	go.opentelemetry.io/collector v0.53.0
 	go.opentelemetry.io/collector/pdata v0.53.0

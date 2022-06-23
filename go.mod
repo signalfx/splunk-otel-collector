@@ -15,7 +15,7 @@ require (
 	github.com/jaegertracing/jaeger v1.35.2
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.54.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.54.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.54.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.54.1-0.20220623212839-2e5adcdd8098
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.54.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.54.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.54.0
@@ -355,7 +355,7 @@ require (
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
 	github.com/signalfx/golib v2.5.1+incompatible // indirect
 	github.com/signalfx/ingest-protocols v0.1.10 // indirect
-	github.com/signalfx/sapm-proto v0.9.0 // indirect
+	github.com/signalfx/sapm-proto v0.11.0 // indirect
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20201202163743-65b4fa925fc8 // indirect
 	github.com/signalfx/signalfx-go v1.20.0 // indirect
 	github.com/snowflakedb/gosnowflake v1.6.3 // indirect

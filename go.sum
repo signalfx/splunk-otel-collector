@@ -1556,6 +1556,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.54.0 h1:e5GJcWH2K6rixHOp9oTP11kKodKx+B6gEa3X6dEBvKg=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.54.0 h1:Tz78aHW8KpIzTd4DZhn38CI8fWBfGjZ5sz9bcT1EVqU=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.54.0/go.mod h1:DSlY89vVpDaHOrvHYb/zixcqayUJmdKjMobcY3A9QAU=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.54.1-0.20220623212839-2e5adcdd8098 h1:/DbnhpOjr76YffGE5InBX2x/tkNkaJEbbgqqezqz/o8=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.54.1-0.20220623212839-2e5adcdd8098/go.mod h1:IVjJpl0wx1hX0w+D21SkrfxteE7XZiQhSXLdAi3cOuM=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.54.0 h1:gHh14SWz4XohGoOO6fHJdMVmwGvrbWcghP9N+IU85OU=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.54.0/go.mod h1:UdV4/ZAh2OuxPSL4a/OLQD6y/OTEThKyNRYez9T8f9g=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.54.0 h1:VONYJ+xLbRpmd5N5+LmQoxFCKaHNsoGzBWseN9xHo2s=
@@ -1958,6 +1960,8 @@ github.com/signalfx/sapm-proto v0.4.0/go.mod h1:x3gtwJ1GRejtkghB4nYpwixh2zqJrLbP
 github.com/signalfx/sapm-proto v0.7.2/go.mod h1:HLufOh6Gd2altGxbeve+s6hh0EWCWoOM7MmuYuvs5PI=
 github.com/signalfx/sapm-proto v0.9.0 h1:x4EfhzOZtBGyt2x8gc/C23Id9B+3lf1zE59VUWLKbpQ=
 github.com/signalfx/sapm-proto v0.9.0/go.mod h1:OmhyyGyhBzoKQn6G2wM1vpEsGKGo0lym/kj0G41KqZk=
+github.com/signalfx/sapm-proto v0.11.0 h1:TIbJNKJ/J00yyASLlbF1DlVZv+X1bY4/BiaYSU7wfxc=
+github.com/signalfx/sapm-proto v0.11.0/go.mod h1:bYZgdl2ZoMriE4arrRThWH8M6DkVbN7+xsxg4v2HP8Q=
 github.com/signalfx/signalfx-agent v1.0.1-0.20220518223045-8c3c5837d0d2 h1:v0Qp+/e0+p4dq3BGhmbNTB3S/D6ODPW+DAYkDkw5dIc=
 github.com/signalfx/signalfx-agent v1.0.1-0.20220518223045-8c3c5837d0d2/go.mod h1:MOqIM18owq1VYHb9osF/TTB1Vfl/50dtCppW0UhrhMw=
 github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220518215101-87bebecfd75e h1:umn+LPO3ZGbipl6FvXuTkG+8440P2ZJQVCGW+jsL17A=

@@ -503,18 +503,48 @@ jobs:
         run: |
           make docker-otelcol SKIP_COMPILE=true ARCH=${{ matrix.ARCH }}
 
-      - name: Run docker image
+      - name: Check image arch
         run: |
           # ensure that the arch in the image manifest is correct
           [ "$( docker inspect --format='{{.Architecture}}' otelcol:${{ matrix.ARCH }} )" = "${{ matrix.ARCH }}" ] || exit 1
+
+      - name: Run docker image
+        run: |
+          # ensure the collector can start with the default config file
           docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
           sleep 10
           if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
             docker logs otelcol
-            echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
+            echo "Failing job execution: fail to start otelcol docker container with the default config in 10 seconds."
             exit 1
           fi
+
+          # get all provided config files from the container
+          tmpdir=$(mktemp -d)
+          docker cp otelcol:/etc/otel/collector $tmpdir
+          docker rm -f otelcol
+
+          # ensure the collector can start with all provided config files
+          configs=$(ls ${tmpdir}/collector/ 2>/dev/null)
+          if [ -z "$configs" ]; then
+            echo "failed to get config files from otelcol:/etc/otel/collector"
+            exit 1
+          fi
+          for config in $configs; do
+            docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_CONFIG=/etc/otel/collector/${config} -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
+            sleep 10
+            if [ -z "$( docker ps --filter=status=running --filter=name=otelcol -q )" ]; then
+              docker logs otelcol
+              echo "Failing job execution: fail to start otelcol docker container with ${config} in 10 seconds."
+              exit 1
+            fi
+            docker rm -f otelcol
+          done
+
+      - name: Check journalctl
+        run: |
           # ensure journalctl can run with the collected libraries
+          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
           docker exec otelcol /bin/journalctl
 
   docker-otelcol-windows:

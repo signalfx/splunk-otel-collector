@@ -162,6 +162,11 @@ In addition, the following components can be configured:
   - Information about migrating from the SignalFx Smart Agent can be found
     [here](docs/signalfx-smart-agent-migration.md)
 
+By default the Splunk OpenTelemetry Collector provides a sensitive value-redacting, local config server listening at
+`http://localhost:55554/debug/configz/effective` that is helpful in troubleshooting. To disable this feature please
+set the `SPLUNK_DEBUG_CONFIG_SERVER` environment variable to any value other than `true`. To set the desired port to
+listen to configure the `SPLUNK_DEBUG_CONFIG_SERVER_PORT` environment variable.
+
 ## Upgrade guidelines
 
 The following changes need to be done to configuration files for Splunk OTel Collector for specific

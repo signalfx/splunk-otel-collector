@@ -1665,8 +1665,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxrecei
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.54.1-0.20220623204142-5a003321b217/go.mod h1:GxQhDexTdlA7pOr8uNdtpfDL8Nn/V6H2VqLA5V+r52A=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.54.0 h1:xXuWfq385UCab5OcsViFZqAYGyfT/4KAbtxIcxK3heg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.54.0/go.mod h1:iI9Oz7U3IluYwvbxjzhDtm4LMwGx0GShMjKiSMGDsNg=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.54.0 h1:ZrEVSDAdIbTXrvmWqKPF7ADVdhXMqkuC9hZxgHuhxIU=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.54.0/go.mod h1:eNtU7i42fi3OLYOXd7DEzRD91GlBne9f1HZersiFvTU=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.54.1-0.20220623212839-2e5adcdd8098 h1:29+8v91kPMmsRAT99z9W7DM72Q+p5MMMIlB1blhRct4=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.54.1-0.20220623212839-2e5adcdd8098/go.mod h1:eNtU7i42fi3OLYOXd7DEzRD91GlBne9f1HZersiFvTU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.54.0 h1:da1/tu1KZmJYfoH3qjMwCkBHBXlvA0UuQFOWxJ+ZaKc=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.54.0/go.mod h1:UsnBqR574CH8jvxGuWBIhjBmL3XKigS1Zq0V+eEgWLM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.54.0 h1:NuJudiIrP0tF/1uasv96kjUeqyji6twQ1qayqpOK6Ck=

@@ -97,8 +97,8 @@ func TestSmartAgentReceiver(t *testing.T) {
 	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
 	receiver.registerMetricsConsumer(consumer)
 
-	err := receiver.Start(context.Background(), componenttest.NewNopHost())
-	require.NoError(t, err)
+	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
+	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
 
 	assert.EqualValues(t, "smartagentvalid", cfg.monitorConfig.MonitorConfigCore().MonitorID)
 	monitor, isMonitor := receiver.monitor.(*cpu.Monitor)
@@ -173,8 +173,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 
 	metrics := consumer.AllMetrics()
 	assert.Greater(t, len(metrics), 0)
-	err = receiver.Shutdown(context.Background())
-	assert.NoError(t, err)
+	assert.NoError(t, receiver.Shutdown(context.Background()))
 }
 
 func TestStripMonitorTypePrefix(t *testing.T) {

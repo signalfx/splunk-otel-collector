@@ -92,6 +92,11 @@ func (r *Receiver) registerTracesConsumer(tracesConsumer consumer.Traces) {
 }
 
 func (r *Receiver) Start(_ context.Context, host component.Host) error {
+	// subsequent Start() invocations should noop
+	if r.monitor != nil {
+		return nil
+	}
+
 	err := r.config.validate()
 	if err != nil {
 		return fmt.Errorf("config validation failed for %q: %w", r.config.ID().String(), err)

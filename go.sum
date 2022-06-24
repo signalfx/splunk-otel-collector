@@ -1659,8 +1659,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusrec
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.54.0/go.mod h1:688CTpvhIX8WQk/u8i3+8K0Orex3/00mcYkpLUIK59o=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.54.0 h1:zd42yKQa2XH8809T0/zAiRsQ6TwGiUAr8Ni5bxAAM5I=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.54.0/go.mod h1:b5Vdhr0skyV1rHyoboHb7uF/Cp+Wfjb0WDGTEw6hcpY=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.54.0 h1:0JItECYvJcZmrIBeMZhOAUUWaPGx71v0TDvIoant8oM=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.54.0/go.mod h1:S65o6LorAo9xp+zCCp9wSXKyGQZjyuqDemNjJ3TTWQM=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.54.1-0.20220624145907-1c70a76e2f76 h1:c8oF858znVsPOEqLJs+AFGEFT8XkPlzcFS8D1kLW+Pw=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.54.1-0.20220624145907-1c70a76e2f76/go.mod h1:xqTxTsJL2vXQDhuGJKj2HMuCHwHnFHtG704FNZsGJWE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.54.1-0.20220623204142-5a003321b217 h1:xauE9hyCBsBmHOA+l6APO4SVCabUqAO/z3fwQCvgLRc=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.54.1-0.20220623204142-5a003321b217/go.mod h1:GxQhDexTdlA7pOr8uNdtpfDL8Nn/V6H2VqLA5V+r52A=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.54.0 h1:xXuWfq385UCab5OcsViFZqAYGyfT/4KAbtxIcxK3heg=

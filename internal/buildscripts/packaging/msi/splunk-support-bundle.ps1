@@ -156,8 +156,8 @@ function getStatus {
 #######################################
 function getLogs {
     Write-Output "INFO: Getting logs..."
-    Get-EventLog -LogName Application -Source "splunk-otel-collector" -ErrorAction SilentlyContinue > $TMPDIR/logs/splunk-otel-collector.log 2>&1
-    Get-EventLog -LogName Application -Source "td-agent" -ErrorAction SilentlyContinue > $TMPDIR/logs/td-agent.log 2>&1
+    Get-EventLog -LogName Application -Source "splunk-otel-collector" -ErrorAction SilentlyContinue | Format-Table -auto -wrap > $TMPDIR/logs/splunk-otel-collector.log 2>&1
+    Get-EventLog -LogName Application -Source "td-agent" -ErrorAction SilentlyContinue | Format-Table -auto -wrap > $TMPDIR/logs/td-agent.log 2>&1
     $LOGDIR="${env:SYSTEMDRIVE}\var\log\td-agent"
     if (Test-Path -Path $LOGDIR) {
         Copy-Item -Path "$LOGDIR" -Destination "$TMPDIR/logs/td-agent/" -Recurse

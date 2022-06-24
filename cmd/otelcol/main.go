@@ -75,7 +75,9 @@ func main() {
 
 	// Allow dumping configuration locally by default
 	// Used by support bundle script
-	_ = os.Setenv(configServerEnabledEnvVar, "true")
+	if _, ok := os.LookupEnv(configServerEnabledEnvVar); !ok {
+		_ = os.Setenv(configServerEnabledEnvVar, "true")
+	}
 
 	factories, err := components.Get()
 	if err != nil {

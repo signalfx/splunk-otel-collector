@@ -69,4 +69,10 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   default['splunk_otel_collector']['fluentd_config_source'] = 'file:///etc/otel/collector/fluentd/fluent.conf'
   default['splunk_otel_collector']['fluentd_config_dest'] = '/etc/otel/collector/fluentd/fluent.conf'
 
+  default['splunk_otel_collector']['with_auto_instrumentation'] = false
+  default['splunk_otel_collector']['auto_instrumentation_version'] = 'latest'
+  default['splunk_otel_collector']['auto_instrumentation_ld_so_preload'] = ''
+  default['splunk_otel_collector']['auto_instrumentation_java_agent_jar'] = '/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
+  default['splunk_otel_collector']['auto_instrumentation_resource_attributes'] = ''
+  default['splunk_otel_collector']['auto_instrumentation_service_name'] = ''
 end

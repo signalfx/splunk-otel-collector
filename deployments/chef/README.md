@@ -153,3 +153,56 @@ required `splunk_access_token` attribute and some optional attributes:
   `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd`
   on Windows)
 
+- `with_auto_instrumentation`: Whether to install/manage [Splunk OpenTelemetry
+  Auto Instrumentation for Java](
+  https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation).
+  When set to `true`, the `splunk-otel-auto-instrumentation` deb/rpm package
+  will be downloaded and installed from the Collector repository. **Note:** The
+  Java application on the node needs to be started/restarted separately after
+  installation in order for auto instrumentation to take effect. (**default:**
+  `false`)
+
+- `auto_instrumentation_version`: Version of the
+  `splunk-otel-auto-instrumentation` package to install, e.g. `0.50.0`. The
+  minimum supported version is `0.48.0`. **Note:** The Java application on the
+  node needs to be restarted separately in order for any change to take effect.
+  (**default:** `latest`)
+
+- `auto_instrumentation_ld_so_preload`: By default, the `/etc/ld.so.preload`
+  file on the node will be configured for the
+  `/usr/lib/splunk-instrumentation/libsplunk.so` [shared object library](
+  https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#operation)
+  provided by the `splunk-otel-auto-instrumentation` package and is required
+  for auto instrumentation. Configure this variable to include additional
+  library paths, e.g. `/path/to/my.library.so`. **Note:** The Java application
+  on the node needs to be restarted separately in order for any change to take
+  effect. (**default:** `''`)
+
+- `auto_instrumentation_java_agent_path`: Path to the [Splunk OpenTelemetry
+  Java agent](https://github.com/signalfx/splunk-otel-java). The default path
+  is provided by the `splunk-otel-auto-instrumentation` package. If the path is
+  changed from the default value, the path should be an existing file on the
+  node. The specified path will be added to the
+  `/usr/lib/splunk-instrumentation/instrumentation.conf` config file on the
+  node. **Note:** The Java application on the node needs to be restarted
+  separately in order for any change to take effect. (**default:**
+  `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`)
+
+- `auto_instrumentation_resource_attributes`: Configure the OpenTelemetry
+  instrumentation [resource attributes](
+  https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#configuration-file),
+  e.g. `deployment.environment=prod`. The specified resource attribute(s) will
+  be added to the `/usr/lib/splunk-instrumentation/instrumentation.conf` config
+  file on the node. **Note:** The Java application on the node needs to be
+  restarted separately in order for any change to take effect. (**default:**
+  `''`)
+
+- `auto_instrumentation_service_name`: Explicitly set the [service name](
+  https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#configuration-file)
+  for the instrumented Java application, e.g. `my.service`. By default, the
+  service name is automatically derived from the arguments of the Java
+  executable on the node. However, if this variable is set to a non-empty
+  value, the value will override the derived service name and be added to the
+  `/usr/lib/splunk-instrumentation/instrumentation.conf` config file on the
+  node. **Note:** The Java application on the node needs to be restarted
+  separately in order for any change to take effect. (**default:** `''`)

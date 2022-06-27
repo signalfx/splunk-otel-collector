@@ -1,0 +1,4 @@
+/usr/lib/splunk-instrumentation/libsplunk.so
+<% if defined?(node['splunk_otel_collector']['auto_instrumentation_ld_so_preload']) && node['splunk_otel_collector']['auto_instrumentation_ld_so_preload'] != "" -%>
+<%= node['splunk_otel_collector']['auto_instrumentation_ld_so_preload'] %>
+<% end -%>

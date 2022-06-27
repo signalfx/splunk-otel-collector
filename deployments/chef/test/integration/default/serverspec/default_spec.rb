@@ -68,4 +68,7 @@ else
       end
     end
   end
+  describe package('splunk-otel-auto-instrumentation') do
+    it { should_not be_installed }
+  end
 end

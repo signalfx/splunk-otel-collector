@@ -41,7 +41,7 @@ jobs:
     strategy:
       matrix:
         DISTRO: ['amazonlinux-2', 'centos-7', 'centos-8', 'debian-9', 'debian-10', 'debian-11', 'opensuse-12', 'opensuse-15', 'oraclelinux-7', 'oraclelinux-8', 'ubuntu-1804', 'ubuntu-2004', 'ubuntu-2204']
-        SUITE: ['default', 'without-fluentd']
+        SUITE: ['default', 'without-fluentd', 'with-instrumentation']
       fail-fast: false
     steps:
       - name: Check out code

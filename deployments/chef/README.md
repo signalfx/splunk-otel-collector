@@ -20,7 +20,7 @@ Currently, the following Linux distributions and versions are supported:
 - CentOS / Red Hat / Oracle: 7, 8
 - Debian: 9, 10, 11
 - SUSE: 12, 15 (**Note:** Only for Collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
-- Ubuntu: 18.04, 20.04, 22.04 (**Note:** Log collection with Fluentd [not currently supported on Ubuntu 22.04](https://www.fluentd.org/blog/td-agent-v4.3.1-has-been-released).)
+- Ubuntu: 18.04, 20.04, 22.04
 
 ## Windows
 
@@ -30,6 +30,8 @@ Currently, the following Windows versions are supported:
 - Windows Server 2022 64-bit
 
 ## Usage
+
+This cookbook can be downloaded and installed from [Chef Supermarket](https://supermarket.chef.io/cookbooks/splunk_otel_collector).
 
 To install the Collector and Fluentd, include the
 `splunk_otel_collector::default` recipe in the `run_list`, and set the

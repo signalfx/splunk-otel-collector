@@ -451,6 +451,7 @@ replace (
 
 // security updates
 replace (
+	github.com/Masterminds/goutils => github.com/Masterminds/goutils v1.1.1
 	github.com/apache/thrift => github.com/apache/thrift v0.16.0
 	github.com/containerd/containerd => github.com/containerd/containerd v1.5.13
 	github.com/containernetworking/plugins => github.com/containernetworking/plugins v1.1.1

@@ -9,9 +9,9 @@
       {%- elif ansible_distribution_release == "stretch" -%}
         3.7.1-0
       {%- elif ansible_os_family == "Debian" -%}
-        4.3.0-1
+        4.3.2-1
       {%- else -%}
-        4.3.0
+        4.3.2
       {%- endif -%}
 
 - name: Set required td-agent major version

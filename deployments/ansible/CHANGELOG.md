@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## ansible-v0.10.0
+
+### 💡 Enhancements 💡
+
+- Update default `td-agent` version to 4.3.2 to support log collection with fluentd on Ubuntu 22.04
+
 ## ansible-v0.9.0
 
 ### 💡 Enhancements 💡

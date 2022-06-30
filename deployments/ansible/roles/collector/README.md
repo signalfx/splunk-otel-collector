@@ -129,7 +129,7 @@ how to use the role in a playbook with minimal required configuration:
   (**default:** `true`)
 
 - `td_agent_version`: Version of td-agent (fluentd package) that will be 
-  installed (**default:** `3.7.1` for Debian stretch and `4.3.0` for other
+  installed (**default:** `3.7.1` for Debian stretch and `4.3.2` for other
   distros)
 
 - `splunk_fluentd_config`: Path to the fluentd config file on the remote host.

@@ -56,7 +56,6 @@ class splunk_otel_collector (
 
   $install_fluentd = $::osfamily ? {
     'suse'   => false,
-    'debian' => $with_fluentd and downcase($facts['os']['distro']['codename']) != 'jammy',
     default  => $with_fluentd,
   }
 

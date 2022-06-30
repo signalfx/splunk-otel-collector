@@ -11,7 +11,7 @@ Currently, the following Linux distributions and versions are supported:
 - CentOS / Red Hat / Oracle: 7, 8
 - Debian: 9, 10, 11
 - SUSE: 12, 15 (**Note:** Only for collector versions v0.34.0 or higher. Log collection with Fluentd not currently supported.)
-- Ubuntu: 16.04, 18.04, 20.04, 22.04 (**Note:** Log collection with Fluentd [not currently supported on Ubuntu 22.04](https://www.fluentd.org/blog/td-agent-v4.3.1-has-been-released).)
+- Ubuntu: 16.04, 18.04, 20.04, 22.04
 
 > Note: `systemd` is required to be installed on the host for service
 > management.
@@ -24,6 +24,10 @@ Currently, the following Windows versions are supported and requires PowerShell
 - Windows Server 2012 64-bit
 - Windows Server 2016 64-bit
 - Windows Server 2019 64-bit
+
+## Usage
+
+This module can be downloaded and installed from [Puppet Forge](https://forge.puppet.com/modules/signalfx/splunk_otel_collector).
 
 To use this module, include the `splunk_otel_collector` class in your
 manifests with the supported parameters (see the table below for descriptions

@@ -101,7 +101,7 @@ def test_puppet_with_fluentd(distro, puppet_release):
                 run_puppet_apply(container, config)
                 verify_env_file(container)
                 assert wait_for(lambda: service_is_running(container))
-                if "opensuse" not in distro and distro != "ubuntu-jammy":
+                if "opensuse" not in distro:
                     assert container.exec_run("systemctl status td-agent").exit_code == 0
                 if collector_version == "latest":
                     verify_package_version(container, "splunk-otel-collector", collector_version, "0.34.0")
@@ -109,7 +109,7 @@ def test_puppet_with_fluentd(distro, puppet_release):
                     verify_package_version(container, "splunk-otel-collector", collector_version)
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
-            if "opensuse" not in distro and distro != "ubuntu-jammy":
+            if "opensuse" not in distro:
                 run_container_cmd(container, "journalctl -u td-agent --no-pager")
                 if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
                     run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
@@ -202,7 +202,7 @@ def test_puppet_with_instrumentation(distro, puppet_release):
                 run_puppet_apply(container, config)
                 verify_env_file(container)
                 assert wait_for(lambda: service_is_running(container))
-                if "opensuse" not in distro and distro != "ubuntu-jammy":
+                if "opensuse" not in distro:
                     assert container.exec_run("systemctl status td-agent").exit_code == 0
                 if version == "latest":
                     verify_package_version(container, "splunk-otel-auto-instrumentation", version, "0.48.0")
@@ -211,7 +211,7 @@ def test_puppet_with_instrumentation(distro, puppet_release):
                 verify_instrumentation_config(container)
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
-            if "opensuse" not in distro and distro != "ubuntu-jammy":
+            if "opensuse" not in distro:
                 run_container_cmd(container, "journalctl -u td-agent --no-pager")
                 if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
                     run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")

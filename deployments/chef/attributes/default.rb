@@ -31,10 +31,10 @@ default['splunk_otel_collector']['fluentd_version'] = if platform_family?('debia
                                                         when 'stretch'
                                                           '3.7.1-0'
                                                         else
-                                                          '4.3.1-1'
+                                                          '4.3.2-1'
                                                         end
                                                       else
-                                                        '4.3.1'
+                                                        '4.3.2'
                                                       end
 
 if platform_family?('windows')

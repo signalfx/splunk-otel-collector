@@ -25,10 +25,8 @@ describe service('splunk-otel-collector') do
 end
 
 if os[:family] != 'suse' && os[:family] != 'opensuse'
-  if os[:family] != 'ubuntu' || os[:release] != '22.04'
-    describe service('td-agent') do
-      it { should be_enabled }
-      it { should be_running }
-    end
+  describe service('td-agent') do
+    it { should be_enabled }
+    it { should be_running }
   end
 end

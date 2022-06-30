@@ -88,7 +88,7 @@ default_realm="us0"
 default_memory_size="512"
 
 default_collector_version="latest"
-default_td_agent_version="4.3.0"
+default_td_agent_version="4.3.2"
 default_td_agent_version_stretch="3.7.1-0"
 
 default_service_user="splunk-otel-collector"
@@ -858,11 +858,6 @@ parse_args_and_install() {
   case "$distro" in
     sles|opensuse*)
       with_fluentd="false"
-      ;;
-    ubuntu)
-      if [ "$distro_codename" = "jammy" ]; then
-        with_fluentd="false"
-      fi
       ;;
   esac
 

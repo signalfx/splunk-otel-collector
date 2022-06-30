@@ -57,15 +57,13 @@ else
     its('content') { should match /^Group=splunk-otel-collector$/ }
   end
   if os[:family] != 'suse' && os[:family] != 'opensuse'
-    if os[:family] != 'ubuntu' || os[:release] != '22.04'
-      fluentd_config_path = '/etc/otel/collector/fluentd/fluent.conf'
-      describe service('td-agent') do
-        it { should be_enabled }
-        it { should be_running }
-      end
-      describe file('/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf') do
-        its('content') { should match /^Environment=FLUENT_CONF=#{fluentd_config_path}$/ }
-      end
+    fluentd_config_path = '/etc/otel/collector/fluentd/fluent.conf'
+    describe service('td-agent') do
+      it { should be_enabled }
+      it { should be_running }
+    end
+    describe file('/etc/systemd/system/td-agent.service.d/splunk-otel-collector.conf') do
+      its('content') { should match /^Environment=FLUENT_CONF=#{fluentd_config_path}$/ }
     end
   end
   describe package('splunk-otel-auto-instrumentation') do

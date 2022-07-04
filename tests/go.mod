@@ -6,7 +6,7 @@ require (
 	github.com/docker/docker v20.10.17+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/google/uuid v1.3.0
-	github.com/shirou/gopsutil/v3 v3.22.5
+	github.com/shirou/gopsutil/v3 v3.22.6
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.2
 	github.com/signalfx/signalfx-go v1.20.0
 	github.com/stretchr/testify v1.8.0
@@ -76,7 +76,7 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
-	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
+	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

@@ -5,6 +5,8 @@ config_sources:
     defaults:
       METRICS_TO_EXCLUDE: []
       ECS_METADATA_EXCLUDED_IMAGES: []
+      ECS_TASK_METADATA_ENDPOINT: "${ECS_CONTAINER_METADATA_URI_V4}/task"
+      ECS_TASK_STATS_ENDPOINT: "${ECS_CONTAINER_METADATA_URI_V4}/task/stats"
 
 extensions:
   health_check:
@@ -76,8 +78,8 @@ receivers:
     listenAddress: 0.0.0.0:9080
   smartagent/ecs-metadata:
     type: ecs-metadata
-    metadataEndpoint: "${ECS_TASK_METADATA_ENDPOINT}"
-    statsEndpoint: "${ECS_TASK_STATS_ENDPOINT}"
+    metadataEndpoint: "${env:ECS_TASK_METADATA_ENDPOINT}"
+    statsEndpoint: "${env:ECS_TASK_STATS_ENDPOINT}"
     excludedImages: ${env:ECS_METADATA_EXCLUDED_IMAGES}
 
 processors:
@@ -98,10 +100,9 @@ processors:
   resourcedetection/internal:
     detectors: [ecs]
     override: true
-  # Enables the filter processor with example settings
+  # Defines the filter processor with example settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/filterprocessor
-  # NOTE: These settings need to be change when using this processor
-  filter/1:
+  filter:
     metrics:
       exclude:
         match_type: regexp
@@ -145,11 +146,11 @@ service:
       exporters: [sapm, signalfx]
     metrics:
       receivers: [hostmetrics, signalfx, smartagent/signalfx-forwarder, smartagent/ecs-metadata]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors: [memory_limiter, batch, filter, resourcedetection]
       exporters: [signalfx]
     metrics/internal:
       receivers: [prometheus/internal]
-      processors: [memory_limiter, batch, resourcedetection/internal]
+      processors: [memory_limiter, batch, filter, resourcedetection/internal]
       exporters: [signalfx]
     logs:
       receivers: [otlp]

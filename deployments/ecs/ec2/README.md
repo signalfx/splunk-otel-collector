@@ -3,9 +3,8 @@ Familiarity with Amazon ECS using launch type EC2 is assumed. Consult the
 [Getting started with the Amazon ECS console using Amazon EC2](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/getting-started-ecs-ec2.html)
 for further reading.
 
-The
-[Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector)
-(Collector) should to be run as a Daemon service in an EC2 ECS cluster.
+The [Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector)
+(Collector) can be run as a Daemon service in an ECS cluster with EC2 launch type.
 
 Requires Collector release v0.34.1 or newer which corresponds to image tag 0.34.1 and newer.
 See image repository [here](https://quay.io/repository/signalfx/splunk-otel-collector?tab=tags).
@@ -23,32 +22,51 @@ The Collector is configured to use the default configuration file `/etc/otel/col
 The Collector image Dockerfile is available [here](../../../cmd/otelcol/Dockerfile) and the contents of the default
 configuration file can be seen [here](../../../cmd/otelcol/config/collector/ecs_ec2_config.yaml).
 
-**Note**: You do not need the `smartagent/ecs-metadata` metrics receiver in the default
-configuration file if all you want is tracing. You can take the default configuration, remove
-the receiver, then use the configuration in a custom configuration following the direction
-in the [custom configuration](#custom-configuration) section.
-
-The configured network mode for the task is **host**. This means that **task metadata endpoint
-version 2** used by receiver `smartagent/ecs-metadata` is not enabled by default. See
+The suggested configured network mode for the task is **host**. This means that **task metadata
+endpoint version 2** used by receiver `smartagent/ecs-metadata` is not enabled by default. See
 [here](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint.html)
-if **task metadata endpoint version 3** is enabled by default for your task. If enabled add the
-following to the **environment** list in the task definition JSON:
+to determine if **task metadata endpoint version 4** is enabled by default for your task. If so
+the default configuration for ECS with EC2 launch type already uses it to form the metadata and stats endpoints
+for the receiver to query to generate metrics and no task definition change is required. If you're using an alternate
+task stats or metadata endpoint, configure them via the `ECS_TASK_METADATA_ENDPOINT` and `ECS_TASK_STATS_ENDPOINT`
+environment variables list in your container definition as necessary:
+
 ```json
-{
-  "name": "ECS_TASK_METADATA_ENDPOINT",
-  "value": "${ECS_CONTAINER_METADATA_URI}/task"
-},
-{
-  "name": "ECS_TASK_STATS_ENDPOINT",
-  "value": "${ECS_CONTAINER_METADATA_URI}/task/stats"
-}
+"environment": [
+...
+  {
+    "name": "ECS_TASK_METADATA_ENDPOINT",
+    "value": "<MY_TASK_METADATA_ENDPOINT>/task"
+  },
+  {
+    "name": "ECS_TASK_STATS_ENDPOINT",
+    "value": "<MY_TASK_METADATA_ENDPOINT>/task/stats"
+  },
+...
+]
 ```
 
-Assign a stringified array of metrics you want excluded to environment variable
-`METRICS_TO_EXCLUDE`. You can set the memory limit for the memory limiter processor using
-environment variable `SPLUNK_MEMORY_LIMIT_MIB`. The default memory limit is 512 MiB. For
-more information about the memory limiter processor, see
-[here](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md)
+**Note**: You do not need the `smartagent/ecs-metadata` metrics receiver in the default
+configuration file if all you want is tracing or logs. You can take the default configuration,
+remove the receiver, then use the configuration in a custom configuration following the direction
+in the [custom configuration](#custom-configuration) section.
+
+The default configuration includes a filter processor that allows you to specify metrics not to report via the
+`METRICS_TO_EXCLUDE` environment variable. Assign a stringified array of metrics you want excluded:
+
+```json
+"environment": [
+...
+  {
+    "name": "METRICS_TO_EXCLUDE",
+    "value": "[\"excluded.metric.name.regex.pattern.one\", \"excluded.metric.name.regex.pattern.two\"]"
+  },
+...
+]
+```
+
+You can set the memory limit for the memory limiter processor using environment variable `SPLUNK_MEMORY_LIMIT_MIB`.
+For more information about the memory limiter processor, see [its documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor/README.md).
 
 ### Launch the Collector
 The Collector is designed to be run as a Daemon service in an EC2 ECS cluster.
@@ -144,5 +162,42 @@ For example, you can store the custom configuration above in a parameter called
 `splunk-otel-collector-config` in **AWS Systems Manager Parameter Store**. Then
 assign the parameter to environment variable `SPLUNK_CONFIG_YAML` using `valueFrom`.
 
-**Note:** You should add policy `AmazonSSMReadOnlyAccess` to the task role in order for
+Using the aws-cli to create the parameter from a config file:
+
+```bash
+aws ssm put-parameter --tier Intelligent-Tiering --type String --name <My Collector Config Parameter Name> --value file://<my-collector-config.yaml>
+```
+
+Adding the required `secrets` mapping in the Collector container definition (being sure to remove any existing `SPLUNK_CONFIG` environment variable):
+
+```json
+"secrets": [
+  {
+    "name": "SPLUNK_CONFIG_YAML",
+    "valueFrom": "<My Collector Config Parameter Name>"
+  }
+]
+```
+
+**Note:** Using the [`Intelligent-Tiering` tier mode](https://docs.aws.amazon.com/cli/latest/reference/ssm/put-parameter.html) will automatically
+determine whether to use [standard or advanced SSM parameter tiers](https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-advanced-parameters.html) based on the provided config size. The maximum size for standard is 4KB and 8KB for advanced. Usage charges will apply for configuration requiring the advanced parameter tier.
+
+**Note:** You should add the `AmazonSSMReadOnlyAccess` policy to the task role in order for
 the task to have read access to the Parameter Store.
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:Describe*",
+                "ssm:Get*",
+                "ssm:List*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```

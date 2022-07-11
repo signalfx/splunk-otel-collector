@@ -6,6 +6,9 @@
 
 - Update default `td-agent` version to 4.3.2 in the [Linux installer script](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/linux-installer.md) to support log collection with fluentd on Ubuntu 22.04
 
+- Include [tail_sampling](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor) and [span_metrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanmetricsprocessor) in our distribution
+
+
 ### 🧰 Bug fixes 🧰
 
 - Correct invalid environment variable expansion for ECS task metadata endpoints on EC2 (#1764)
@@ -27,10 +30,10 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🧰 Bug fixes 🧰
 
-- Upgrade [`metricstransform` 
-  processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor) 
-  to pick up [migration from OpenCensus data model to 
-  OTLP](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/10817) that fixes a few issues with 
+- Upgrade [`metricstransform`
+  processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor)
+  to pick up [migration from OpenCensus data model to
+  OTLP](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/10817) that fixes a few issues with
   the processor.
 
 ## v0.53.0
@@ -161,8 +164,8 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🧰 Bug fixes 🧰
 
-- As a bug fix for hosts number miscalculation in Splunk Observability Cloud, Splunk OpenTelemetry Collector running in 
-  agent mode now is configured to override `host.name` attribute of all signals sent from instrumentation libraries by 
+- As a bug fix for hosts number miscalculation in Splunk Observability Cloud, Splunk OpenTelemetry Collector running in
+  agent mode now is configured to override `host.name` attribute of all signals sent from instrumentation libraries by
   default (#1307)
 
 ## v0.45.0
@@ -320,10 +323,10 @@ This Splunk OpenTelemetry Connector release includes changes from the [opentelem
 
 ### 🛑 Breaking changes 🛑
 
-- Reorder detectors in default configs, moving the `system` detector to the 
+- Reorder detectors in default configs, moving the `system` detector to the
   end of the list. Applying this change to a pre-existing config in an EC2
-  or Azure deployment will change both the `host.name` dimension and the 
-  resource ID dimension on some MTSes, possibly causing detectors to fire. 
+  or Azure deployment will change both the `host.name` dimension and the
+  resource ID dimension on some MTSes, possibly causing detectors to fire.
   (#822)
 
 ### 💡 Enhancements 💡

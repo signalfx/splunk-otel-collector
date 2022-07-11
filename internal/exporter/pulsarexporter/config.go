@@ -17,6 +17,7 @@ package pulsarexporter
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/apache/pulsar-client-go/pulsar"
@@ -95,9 +96,22 @@ func (cfg *Config) getClientOptions() (pulsar.ClientOptions, error) {
 }
 
 func (cfg *Config) getProducerOptions() (pulsar.ProducerOptions, error) {
+
+	// Creating random character and adding it to producer name to avoid creating multiple producers with same name
+	rand.Seed(time.Now().UnixNano())
+	charset := "abcdefghijklmnopqrstuvwxyz"
+	length := 4
+	b := make([]byte, length)
+	// Getting random characters
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+
+	producerName := cfg.Producer.Name + string(b)
+
 	producerOptions := pulsar.ProducerOptions{
 		Topic:                           cfg.Topic,
-		Name:                            cfg.Producer.Name,
+		Name:                            producerName,
 		DisableBatching:                 cfg.Producer.DisableBatching,
 		SendTimeout:                     cfg.Producer.SendTimeout,
 		DisableBlockIfQueueFull:         cfg.Producer.DisableBlockIfQueueFull,

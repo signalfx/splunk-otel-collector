@@ -39,7 +39,9 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.54.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.54.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/routingprocessor v0.54.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.54.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.54.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.54.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.54.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/carbonreceiver v0.54.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.54.0
@@ -202,7 +204,7 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.0.0-20220520183353-fd19c99a87aa // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.1.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.4.0 // indirect
 	github.com/gophercloud/gophercloud v0.24.0 // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect

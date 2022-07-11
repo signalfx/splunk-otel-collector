@@ -4,20 +4,20 @@
       "cpu": 0,
       "environment": [
         {
-          "name": "ECS_METADATA_EXCLUDED_IMAGES",
-          "value": "[\"quay.io/signalfx/splunk-otel-collector\"]"
-        },
-        {
           "name": "SPLUNK_ACCESS_TOKEN",
           "value": "MY_SPLUNK_ACCESS_TOKEN"
+        },
+        {
+          "name": "SPLUNK_REALM",
+          "value": "MY_SPLUNK_REALM"
         },
         {
           "name": "SPLUNK_CONFIG",
           "value": "/etc/otel/collector/ecs_ec2_config.yaml"
         },
         {
-          "name": "SPLUNK_REALM",
-          "value": "MY_SPLUNK_REALM"
+          "name": "ECS_METADATA_EXCLUDED_IMAGES",
+          "value": "[\"quay.io/signalfx/splunk-otel-collector\"]"
         },
         {
           "name": "HOST_PROC",

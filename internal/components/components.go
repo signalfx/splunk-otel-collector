@@ -168,8 +168,8 @@ func Get() (component.Factories, error) {
 		resourcedetectionprocessor.NewFactory(),
 		resourceprocessor.NewFactory(),
 		routingprocessor.NewFactory(),
-		spanprocessor.NewFactory(),
 		spanmetricsprocessor.NewFactory(),
+		spanprocessor.NewFactory(),
 		tailsamplingprocessor.NewFactory(),
 		transformprocessor.NewFactory(),
 	)

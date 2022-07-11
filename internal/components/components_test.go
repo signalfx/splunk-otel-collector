@@ -83,7 +83,7 @@ func TestDefaultComponents(t *testing.T) {
 		"routing",
 		"span",
 		"spanmetrics",
-		"tailsampling",
+		"tail_sampling",
 		"transform",
 	}
 	expectedExporters := []config.Type{

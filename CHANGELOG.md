@@ -6,6 +6,8 @@
 
 - Update default `td-agent` version to 4.3.2 in the [Linux installer script](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/getting-started/linux-installer.md) to support log collection with fluentd on Ubuntu 22.04
 
+- Include [tail_sampling](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor) and [span_metrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanmetricsprocessor) in our distribution
+
 ### 🧰 Bug fixes 🧰
 
 - Correct invalid environment variable expansion for ECS task metadata endpoints on EC2 (#1764)

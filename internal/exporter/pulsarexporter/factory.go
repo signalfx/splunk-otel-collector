@@ -29,7 +29,6 @@ const (
 	defaultMetricsTopic     = "otlp_metrics"
 	defaultEncoding         = "otlp_proto"
 	defaultBroker           = "pulsar://localhost:6651"
-	defaultName             = "otlp_producer"
 	defaultCompressionType  = "none"
 	defaultCompressionLevel = "default"
 	defaultHashingScheme    = "java_string_hash"
@@ -68,7 +67,6 @@ func createDefaultConfig() config.Exporter {
 		Topic:            defaultMetricsTopic,
 		Encoding:         defaultEncoding,
 		Producer: Producer{
-			Name:             defaultName,
 			CompressionType:  defaultCompressionType,
 			CompressionLevel: defaultCompressionLevel,
 			HashingScheme:    defaultHashingScheme,

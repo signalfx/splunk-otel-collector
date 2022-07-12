@@ -17,7 +17,6 @@ package pulsarexporter
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/apache/pulsar-client-go/pulsar"
@@ -52,7 +51,6 @@ type Producer struct {
 	HashingScheme                   string            `mapstructure:"hashing_scheme"`
 	CompressionLevel                string            `mapstructure:"compression_level"`
 	CompressionType                 string            `mapstructure:"compression_type"`
-	Name                            string            `mapstructure:"producer_name"`
 	MaxPendingMessages              int               `mapstructure:"max_pending_messages"`
 	BatcherBuilderType              int               `mapstructure:"batch_builder_type"`
 	PartitionsAutoDiscoveryInterval time.Duration     `mapstructure:"partitions_auto_discovery_interval"`
@@ -97,21 +95,8 @@ func (cfg *Config) getClientOptions() (pulsar.ClientOptions, error) {
 
 func (cfg *Config) getProducerOptions() (pulsar.ProducerOptions, error) {
 
-	// Creating random character and adding it to producer name to avoid creating multiple producers with same name
-	rand.Seed(time.Now().UnixNano())
-	charset := "abcdefghijklmnopqrstuvwxyz"
-	length := 4
-	b := make([]byte, length)
-	// Getting random characters
-	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
-	}
-
-	producerName := cfg.Producer.Name + string(b)
-
 	producerOptions := pulsar.ProducerOptions{
 		Topic:                           cfg.Topic,
-		Name:                            producerName,
 		DisableBatching:                 cfg.Producer.DisableBatching,
 		SendTimeout:                     cfg.Producer.SendTimeout,
 		DisableBlockIfQueueFull:         cfg.Producer.DisableBlockIfQueueFull,

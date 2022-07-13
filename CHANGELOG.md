@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v0.55.1
+
+### 🧰 Bug fixes 🧰
+
+- `pulsar` exporter: Removed pulsar producer name from config to avoid producer name conflict (#1782)
+
 ## v0.55.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.55.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.55.0) and the [opentelemetry-collector-contrib v0.55.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.55.0) releases.

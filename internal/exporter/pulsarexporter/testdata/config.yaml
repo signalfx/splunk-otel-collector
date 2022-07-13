@@ -15,7 +15,6 @@ exporters:
         key_file: "/path/to/key"
         insecure_skip_verify: true
     producer:
-      producer_name: otel-pulsar
       send_timeout: 0
       disable_block_if_queue_full: false
       max_pending_messages: 100

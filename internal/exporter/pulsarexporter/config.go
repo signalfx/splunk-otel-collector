@@ -51,7 +51,6 @@ type Producer struct {
 	HashingScheme                   string            `mapstructure:"hashing_scheme"`
 	CompressionLevel                string            `mapstructure:"compression_level"`
 	CompressionType                 string            `mapstructure:"compression_type"`
-	Name                            string            `mapstructure:"producer_name"`
 	MaxPendingMessages              int               `mapstructure:"max_pending_messages"`
 	BatcherBuilderType              int               `mapstructure:"batch_builder_type"`
 	PartitionsAutoDiscoveryInterval time.Duration     `mapstructure:"partitions_auto_discovery_interval"`
@@ -95,9 +94,9 @@ func (cfg *Config) getClientOptions() (pulsar.ClientOptions, error) {
 }
 
 func (cfg *Config) getProducerOptions() (pulsar.ProducerOptions, error) {
+
 	producerOptions := pulsar.ProducerOptions{
 		Topic:                           cfg.Topic,
-		Name:                            cfg.Producer.Name,
 		DisableBatching:                 cfg.Producer.DisableBatching,
 		SendTimeout:                     cfg.Producer.SendTimeout,
 		DisableBlockIfQueueFull:         cfg.Producer.DisableBlockIfQueueFull,

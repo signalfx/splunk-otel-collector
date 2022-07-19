@@ -637,8 +637,8 @@ github.com/signalfx/golib/v3 v3.3.37 h1:CvL6Q8hySjm7D82P039qH2lFWJvBa18IJdAwa4LH
 github.com/signalfx/golib/v3 v3.3.37/go.mod h1:zH70SVnrzVUqDmUFEwDk1HSwS71Pi2w3bSsNpnOtYuQ=
 github.com/signalfx/gomemcache v0.0.0-20180823214636-4f7ef64c72a9/go.mod h1:Ytb8KfCSyuwy/VILnROdgCvbQLA5ch0nkbG7lKT0BXw=
 github.com/signalfx/sapm-proto v0.4.0/go.mod h1:x3gtwJ1GRejtkghB4nYpwixh2zqJrLbPU959ZNhM0Fk=
-github.com/signalfx/signalfx-go v1.21.0 h1:zya/s1ieaLtn3g/RzlcA+cop1GP4uHKeQrEPWC1a1bI=
-github.com/signalfx/signalfx-go v1.21.0/go.mod h1:YhPTMdQJDfphcRBdk+9acbbAw1gYY7z5BIHUWzLmGlA=
+github.com/signalfx/signalfx-go v1.22.0 h1:7b7MwCNOFL2xq+onzOpkDJYBMSk5HTWhEZI7d1QQb/k=
+github.com/signalfx/signalfx-go v1.22.0/go.mod h1:YhPTMdQJDfphcRBdk+9acbbAw1gYY7z5BIHUWzLmGlA=
 github.com/sirupsen/logrus v1.0.6/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMBDgk/93Q=

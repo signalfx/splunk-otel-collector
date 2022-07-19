@@ -17,7 +17,7 @@ include:
     file: '/templates/.sast_scan.yml'
   - project: 'prodsec/whitesource'
     ref: latest
-    file: '/templates/.whitesource.yml'
+    file: '/templates/.oss-scan.yml'
 
 semgrep:
   stage: sast-oss-scan
@@ -33,62 +33,15 @@ semgrep:
     - main
     - schedules
 
-whitesource:
-  extends: .whitesource
+fossa:
+  extends: .oss-scan
   stage: sast-oss-scan
-  retry: 2
   variables:
-    ws_user_key: ${WHITESOURCE_USER_KEY}
-    product_id: ${WHITESOURCE_ID}
-    config: go-modules
-    config_overlay: $CI_PROJECT_DIR/.whitesource.conf
+    run_fossa: "true"
   only:
     - main
     - schedules
   # allow_failure: false
-  cache:
-    key: "whitesource-go1.18.3"
-    paths:
-      - /usr/local/go
-      - /go/pkg/mod
-  before_script:
-    - mkdir -p /lib64
-    - ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
-    - |
-      set -e
-      if [ ! -d /usr/local/go ]; then
-        pushd /usr/local
-        wget https://golang.org/dl/go1.18.3.linux-amd64.tar.gz
-        tar xzf go1.18.3.linux-amd64.tar.gz
-        popd
-      fi
-    - export GOROOT=/usr/local/go
-    - export GOPATH=/go
-    - export PATH=${GOROOT}/bin:$PATH
-  script:
-    - bash /whitesource/templates/template-gitlab.sh
-    - |
-      # Check the report and fail if high vulns or rejected components were found
-      set -e
-      report="whitesource-results/json-artifacts/report_metadata.json"
-      if [ -f "$report" ]; then
-        high_vulns="$( jq '."Total High Vulns"' $report )"
-        if [ "$high_vulns" = "null" ]; then
-          echo "Failed to get 'Total High Vulns' from $report"
-          exit 1
-        fi
-        rejected="$( jq '."Total Components Rejected"' $report )"
-        if [ "$rejected" = "null" ]; then
-          echo "Failed to get 'Total Components Rejected' from $report"
-          exit 1
-        fi
-        if [ "$high_vulns" -gt 0 ] || [ "$rejected" -gt 0 ]; then
-          exit 1
-        fi
-      else
-        echo "$report not found"
-        exit 1
-      fi
 
 .go-cache:
   image: '${DOCKER_HUB_REPO}/golang:1.18.3'

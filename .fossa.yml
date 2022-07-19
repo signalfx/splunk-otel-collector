@@ -1,0 +1,11 @@
+version: 3
+
+targets:
+  only:
+    - type: gomod
+
+paths:
+  exclude:
+    - examples
+    - internal/buildscripts
+    - tests

@@ -73,7 +73,7 @@ require (
 	github.com/signalfx/golib/v3 v3.3.45
 	github.com/signalfx/signalfx-agent v1.0.1-0.20220624151302-2b2cbfb325a2
 	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cast v1.5.0
 	github.com/stretchr/testify v1.8.0
 	go.etcd.io/bbolt v1.3.6
@@ -83,7 +83,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.8.0
 	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b
+	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8
 	gopkg.in/yaml.v2 v2.4.0
 )
 

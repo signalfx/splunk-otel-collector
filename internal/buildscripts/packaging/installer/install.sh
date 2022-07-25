@@ -591,6 +591,12 @@ Options:
   --ballast <ballast size>          Set the ballast size explicitly instead of the value calculated from the --memory option
                                     This should be set to 1/3 to 1/2 of configured memory
   --beta                            Use the beta package repo instead of the primary
+  --collector-config <path>         Set the path to an existing custom config file for the collector service instead of the default
+                                    config file provided by the collector package based on the '--mode <agent|gateway>' option.
+                                    *Note*: If the specified config file requires custom environment variables, the variables and
+                                    values can be manually added to $collector_env_path after installation.
+                                    Restart the collector service with the 'sudo systemctl restart splunk-otel-collector' command
+                                    for the changes to take effect.
   --collector-version <version>     The splunk-otel-collector package version to install (default: "$default_collector_version")
   --hec-token <token>               Set the HEC token if different than the specified Splunk access_token
   --hec-url <url>                   Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm
@@ -711,6 +717,10 @@ parse_args_and_install() {
         ;;
       --beta)
         stage="beta"
+        ;;
+      --collector-config)
+        collector_config_path="$2"
+        shift 1
         ;;
       --collector-version)
         collector_version="$2"
@@ -930,24 +940,27 @@ parse_args_and_install() {
   create_user_group "$service_user" "$service_group"
   configure_service_owner "$service_user" "$service_group"
 
-  if [ "$mode" = "agent" ]; then
-    if [ -f "$agent_config_path" ]; then
-      # use the agent config if the installed package includes it
-      collector_config_path="$agent_config_path"
-    elif [ -f "$old_config_path" ]; then
-      # use the old config if the installed package does not include the new agent config
-      collector_config_path="$old_config_path"
-    fi
-  else
-    if [ -f "$gateway_config_path" ]; then
-      # use the gateway config if the installed package includes it
-      collector_config_path="$gateway_config_path"
-    elif [ -f "$agent_config_path" ]; then
-      # use the agent config if the installed package includes it
-      collector_config_path="$agent_config_path"
-    elif [ -f "$old_config_path" ]; then
-      # use the old config if the installed package does not include the new agent or gateway config
-      collector_config_path="$old_config_path"
+  if [ -z "$collector_config_path" ]; then
+    # custom config not provided; use the config provided by the collector package based on the --mode option
+    if [ "$mode" = "agent" ]; then
+      if [ -f "$agent_config_path" ]; then
+        # use the agent config if the installed package includes it
+        collector_config_path="$agent_config_path"
+      elif [ -f "$old_config_path" ]; then
+        # use the old config if the installed package does not include the new agent config
+        collector_config_path="$old_config_path"
+      fi
+    else
+      if [ -f "$gateway_config_path" ]; then
+        # use the gateway config if the installed package includes it
+        collector_config_path="$gateway_config_path"
+      elif [ -f "$agent_config_path" ]; then
+        # use the agent config if the installed package includes it
+        collector_config_path="$agent_config_path"
+      elif [ -f "$old_config_path" ]; then
+        # use the old config if the installed package does not include the new agent or gateway config
+        collector_config_path="$old_config_path"
+      fi
     fi
   fi
 

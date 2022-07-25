@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+## v0.56.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.56.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.56.0) and the [opentelemetry-collector-contrib v0.56.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.56.0) releases.
+
 ### 💡 Enhancements 💡
 
 - Add the `--collector-config` option to the Linux installer script to allow a custom config file path (#1806)
+- Update auto instrumentation java agent to [v1.14.0](https://github.com/signalfx/splunk-otel-java/releases/tag/v1.14.0)
+- Update bundled Smart Agent to [v5.22.0](https://github.com/signalfx/signalfx-agent/releases/tag/v5.22.0)
 
 ### 🧰 Bug fixes 🧰
 

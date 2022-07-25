@@ -10,7 +10,7 @@ require (
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.11.1
-	github.com/hashicorp/vault-plugin-auth-gcp v0.13.0
+	github.com/hashicorp/vault-plugin-auth-gcp v0.13.1
 	github.com/hashicorp/vault/api v1.7.2
 	github.com/jaegertracing/jaeger v1.36.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.56.0
@@ -215,7 +215,7 @@ require (
 	github.com/hashicorp/consul/api v1.13.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-gcp-common v0.7.1-0.20220519220342-94aabf4c4c87 // indirect
+	github.com/hashicorp/go-gcp-common v0.8.0 // indirect
 	github.com/hashicorp/go-hclog v1.2.1 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-kms-wrapping/entropy v0.1.0 // indirect
@@ -233,7 +233,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-3 // indirect
 	github.com/hashicorp/serf v0.9.7 // indirect
-	github.com/hashicorp/vault/sdk v0.5.3-0.20220621155127-c9ca5e0e239b // indirect
+	github.com/hashicorp/vault/sdk v0.5.3 // indirect
 	github.com/hashicorp/yamux v0.0.0-20211028200310-0bc27b27de87 // indirect
 	github.com/hetznercloud/hcloud-go v1.35.0 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
@@ -459,7 +459,7 @@ replace (
 	github.com/containernetworking/plugins => github.com/containernetworking/plugins v1.1.1
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
 	github.com/go-kit/kit => github.com/go-kit/kit v0.12.0 // required to drop dependency on deprecated go.etcd.io/etcd
-	github.com/hashicorp/vault/sdk => github.com/hashicorp/vault/sdk v0.4.1
+	github.com/hashicorp/vault/sdk => github.com/hashicorp/vault/sdk v0.5.3
 	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.8.1
 	github.com/nats-io/nats.go => github.com/nats-io/nats.go v1.14.0

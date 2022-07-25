@@ -109,6 +109,17 @@ modified as needed. Possible configuration options can be found in the
 - [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector)
 - [OpenTelemetry Collector Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib)
 
+To use an existing collector configuration file instead of the default, run
+the installer script with the `--collector-config PATH_TO_CONFIG` option
+(replace `PATH_TO_CONFIG` with the absolute path to the desired configuration
+file on the host).  For example:
+
+```sh
+curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
+sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --collector-config /etc/my-config.yaml \
+    -- SPLUNK_ACCESS_TOKEN
+```
+
 After modification, the Collector service needs to be restarted:
 
 ```sh

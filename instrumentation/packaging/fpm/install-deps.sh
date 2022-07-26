@@ -20,4 +20,5 @@ apt-get update
 
 apt-get install -y ruby ruby-dev rubygems build-essential git rpm sudo curl jq
 
+gem install --no-document dotenv -v 2.7.6
 gem install --no-document fpm -v 1.11.0

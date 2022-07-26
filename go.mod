@@ -16,7 +16,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.56.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.56.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.56.1-0.20220725175435-05f3ece2ce45
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.56.0
@@ -71,7 +71,7 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.0
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.45
-	github.com/signalfx/signalfx-agent v1.0.1-0.20220624151302-2b2cbfb325a2
+	github.com/signalfx/signalfx-agent v1.0.1-0.20220726135153-ffcbf412e1fa
 	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cast v1.5.0
@@ -112,7 +112,7 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v0.32.3 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/Microsoft/hcsshim v0.9.3 // indirect
-	github.com/SAP/go-hdb v0.105.2 // indirect
+	github.com/SAP/go-hdb v0.106.1 // indirect
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a // indirect
 	github.com/Shopify/sarama v1.34.1 // indirect
 	github.com/Showmax/go-fqdn v1.0.0 // indirect
@@ -120,20 +120,23 @@ require (
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/alecthomas/participle/v2 v2.0.0-alpha9 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
-	github.com/apache/arrow/go/arrow v0.0.0-20210818145353-234c94e4ce64 // indirect
+	github.com/apache/arrow/go/arrow v0.0.0-20211112161151-bc219186db40 // indirect
 	github.com/apache/pulsar-client-go/oauth2 v0.0.0-20220120090717-25e59572242e // indirect
 	github.com/apache/thrift v0.16.0 // indirect
 	github.com/ardielle/ardielle-go v1.5.2 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/aws/aws-sdk-go v1.44.57 // indirect
+	github.com/aws/aws-sdk-go v1.44.62 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.16.3 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.4.3 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.4.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.2.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.3.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.5.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.12.0 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.0.0 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.6.1 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.7.1 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.0 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.0.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.5.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.5.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.9.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.19.0 // indirect
 	github.com/aws/smithy-go v1.11.2 // indirect
 	github.com/beevik/ntp v0.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -168,7 +171,7 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible // indirect
-	github.com/gabriel-vasile/mimetype v1.3.1 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.0 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
@@ -191,12 +194,11 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.3.0 // indirect
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
-	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/cadvisor v0.26.1 // indirect
+	github.com/google/cadvisor v0.44.1 // indirect
 	github.com/google/flatbuffers v2.0.0+incompatible // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
@@ -261,7 +263,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/karrick/godirwalk v1.10.3 // indirect
+	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/keybase/go-keychain v0.0.0-20190712205309-48d3d31d256d // indirect
 	github.com/klauspost/compress v1.15.8 // indirect
@@ -350,17 +352,17 @@ require (
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20200724154423-2164a8ac840e // indirect
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.9 // indirect
-	github.com/shirou/gopsutil v3.21.5+incompatible // indirect
+	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shirou/gopsutil/v3 v3.22.6 // indirect
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
 	github.com/signalfx/gateway v1.2.23 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
 	github.com/signalfx/golib v2.5.1+incompatible // indirect
-	github.com/signalfx/ingest-protocols v0.1.10 // indirect
+	github.com/signalfx/ingest-protocols v0.1.13 // indirect
 	github.com/signalfx/sapm-proto v0.11.0 // indirect
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20201202163743-65b4fa925fc8 // indirect
 	github.com/signalfx/signalfx-go v1.22.0 // indirect
-	github.com/snowflakedb/gosnowflake v1.6.3 // indirect
+	github.com/snowflakedb/gosnowflake v1.6.11 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
@@ -381,7 +383,7 @@ require (
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f // indirect
 	github.com/vjeantet/grok v1.0.0 // indirect
-	github.com/vmware/govmomi v0.23.0 // indirect
+	github.com/vmware/govmomi v0.29.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect
@@ -432,7 +434,7 @@ require (
 	k8s.io/client-go v0.24.3 // indirect
 	k8s.io/klog/v2 v2.70.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
-	k8s.io/kubelet v0.24.0 // indirect
+	k8s.io/kubelet v0.24.3 // indirect
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
@@ -447,7 +449,7 @@ replace (
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.35.1-0.20220503184552-2381d7be5731
 
-	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220624151302-2b2cbfb325a2
+	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220726135153-ffcbf412e1fa
 	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required for smartagentreceiver to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
 )
 

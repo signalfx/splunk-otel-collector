@@ -1572,8 +1572,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexp
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.56.0 h1:3DstXxJV6jSTNoxCvNBGEcBnZekbX2yldfbDdyx38hU=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.56.0 h1:N1L3t3zjuu8goSS+9CM3BkE4kkEd4ys7Hb/mZIaqdbQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.56.0/go.mod h1:hTasLUpORrrt3XS7iHSA6WYXfLcpZ6NXWXz2dzUMMJk=
-github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.56.0 h1:zZG2w7cdbySo+NEHrHTBDxV65e1VMCOsDO8EhvL0fJw=
-github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.56.0/go.mod h1:DWm1adKo8DVxmlyA/d7sE/MqaZPOx+YS8HaHyDRDa2o=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.56.1-0.20220725175435-05f3ece2ce45 h1:88+blKcUevwB+0tWKhyuhjwTAhx6ASdws5SRCBH9Hwc=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.56.1-0.20220725175435-05f3ece2ce45/go.mod h1:DWm1adKo8DVxmlyA/d7sE/MqaZPOx+YS8HaHyDRDa2o=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.56.0 h1:wdytmr0UIhut5KiHmwpkJ39ESRg6hgp+8eDtd2X+jUU=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.56.0/go.mod h1:KLKKob9pH/LcrTeSQyf4nMYlhg40fr4pn/j69ywip98=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.56.0 h1:cnlHbsdtwrk8/gdpNCPcUzkgsl2vivaUzknHTD0z3jM=

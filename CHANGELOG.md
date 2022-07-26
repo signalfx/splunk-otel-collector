@@ -6,6 +6,10 @@
 
 - Add the `--collector-config` option to the Linux installer script to allow a custom config file path (#1806)
 
+### 🧰 Bug fixes 🧰
+
+- `signalfx` exporter: Fix invalid error response message [#12654](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/12654)
+
 ## v0.55.1
 
 ### 🧰 Bug fixes 🧰

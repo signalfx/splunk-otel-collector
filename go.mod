@@ -16,7 +16,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.56.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.56.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.56.1-0.20220725175435-05f3ece2ce45
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.56.0

@@ -72,7 +72,7 @@ curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-co
 sh /tmp/splunk-otel-collector.sh -h
 ```
 
-One additional parameter that may need to changed is `--memory` in order to
+One additional parameter that may need to be changed is `--memory` in order to
 configure the memory allocation.
 
 > By default, this variable is set to `512`. If you have allocated more memory
@@ -109,10 +109,10 @@ modified as needed. Possible configuration options can be found in the
 - [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector)
 - [OpenTelemetry Collector Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib)
 
-To use an existing collector configuration file instead of the default, run
-the installer script with the `--collector-config PATH_TO_CONFIG` option
-(replace `PATH_TO_CONFIG` with the absolute path to the desired configuration
-file on the host).  For example:
+To use an existing Collector configuration file instead of the default, run
+the installer script with the `--collector-config PATH_TO_CONFIG` option,
+replacing `PATH_TO_CONFIG` with the absolute path to the desired configuration
+file on the host.  For example:
 
 ```sh
 curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
@@ -120,7 +120,8 @@ sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --collector-config /e
     -- SPLUNK_ACCESS_TOKEN
 ```
 
-After modification, the Collector service needs to be restarted:
+If the configuration file is modified after installation, the Collector
+service needs to be restarted for the changes to take effect:
 
 ```sh
 sudo systemctl restart splunk-otel-collector

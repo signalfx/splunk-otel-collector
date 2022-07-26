@@ -4,7 +4,7 @@
 
 ### 💡 Enhancements 💡
 
-- Add `--collector-config` option to the Linux installer script to allow a custom config file path (#1806)
+- Add the `--collector-config` option to the Linux installer script to allow a custom config file path (#1806)
 
 ## v0.55.1
 

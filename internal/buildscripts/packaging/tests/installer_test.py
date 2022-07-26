@@ -390,3 +390,44 @@ def test_installer_with_deployment_environment(distro, version):
 
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
+
+
+@pytest.mark.installer
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+    )
+def test_installer_custom_config(distro):
+    custom_config = "/etc/my-config.yaml"
+    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --without-fluentd"
+
+    if STAGE != "release":
+        assert STAGE in ("test", "beta"), f"Unsupported stage '{STAGE}'!"
+        install_cmd = f"{install_cmd} --{STAGE}"
+
+    install_cmd = f"{install_cmd} --collector-config {custom_config}"
+
+    print(f"Testing installation on {distro} from {STAGE} stage ...")
+    with run_distro_container(distro) as container:
+        local_config = REPO_DIR / "cmd" / "otelcol" / "config" / "collector" / "agent_config.yaml"
+        copy_file_into_container(container, local_config, custom_config)
+        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+
+        try:
+            # run installer script
+            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
+            time.sleep(5)
+
+            # verify custom config was set
+            run_container_cmd(container, f"grep '^SPLUNK_CONFIG={custom_config}$' {SPLUNK_ENV_PATH}")
+
+            # verify collector service status
+            assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
+
+            verify_uninstall(container, distro)
+
+            # verify custom config was not deleted after uninstall
+            run_container_cmd(container, f"test -f {custom_config}")
+        finally:
+            run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")

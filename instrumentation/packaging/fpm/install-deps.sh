@@ -16,9 +16,10 @@
 
 set -euxo pipefail
 
+SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
+
 apt-get update
 
-apt-get install -y ruby ruby-dev rubygems build-essential git rpm sudo curl jq
+apt-get install -y ruby ruby-dev rubygems build-essential git rpm sudo curl jq ruby-bundler
 
-gem install --no-document dotenv -v 2.7.6
-gem install --no-document fpm -v 1.11.0
+bundle install --gemfile ${SCRIPT_DIR}/Gemfile

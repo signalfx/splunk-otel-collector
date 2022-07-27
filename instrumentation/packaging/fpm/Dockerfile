@@ -8,7 +8,7 @@ ENV VERSION=""
 ENV ARCH="amd64"
 ENV OUTPUT_DIR="/instrumentation/dist/"
 
-COPY install-deps.sh /install-deps.sh
+COPY install-deps.sh Gemfile Gemfile.lock /
 
 RUN /install-deps.sh
 

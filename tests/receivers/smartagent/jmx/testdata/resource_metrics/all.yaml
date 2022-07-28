@@ -1,0 +1,11 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: cassandra.status
+            type: DoubleGauge
+          - name: cassandra.state
+            type: DoubleGauge
+          - name: cassandra.load
+            type: DoubleGauge
+          - name: cassandra.ownership
+            type: DoubleGauge

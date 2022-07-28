@@ -1983,8 +1983,8 @@ github.com/signalfx/signalfx-agent v1.0.1-0.20220726135153-ffcbf412e1fa h1:6WODJ
 github.com/signalfx/signalfx-agent v1.0.1-0.20220726135153-ffcbf412e1fa/go.mod h1:UCKTG/dGaroeHSL2au72xzM4++/S6uqI8AVZSbp2fEM=
 github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220726135153-ffcbf412e1fa h1:SETSBNCY4dBr1qQHz+EbI5XpTih6HA2nO7AFAjMUEwc=
 github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220726135153-ffcbf412e1fa/go.mod h1:II1zi/nz5Af7ep689U012sr0HD9vRShFKaAjw39D+7g=
-github.com/signalfx/signalfx-go v1.22.0 h1:7b7MwCNOFL2xq+onzOpkDJYBMSk5HTWhEZI7d1QQb/k=
-github.com/signalfx/signalfx-go v1.22.0/go.mod h1:YhPTMdQJDfphcRBdk+9acbbAw1gYY7z5BIHUWzLmGlA=
+github.com/signalfx/signalfx-go v1.23.0 h1:gWLOw2TuYckzzqQ6/aMWrKypNLIzx5s2XwkINw5m+Ck=
+github.com/signalfx/signalfx-go v1.23.0/go.mod h1:YhPTMdQJDfphcRBdk+9acbbAw1gYY7z5BIHUWzLmGlA=
 github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87 h1:ayeUHxiUjcxzuEzjWVkXJxf42UYNw8UKmYmIQu9mAqo=
 github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87/go.mod h1:1gnMOcwGO3lAxfoMq28M8gjooF2MqVwquPVEvgZ1its=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=

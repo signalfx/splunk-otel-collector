@@ -361,7 +361,7 @@ require (
 	github.com/signalfx/ingest-protocols v0.1.13 // indirect
 	github.com/signalfx/sapm-proto v0.11.0 // indirect
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20201202163743-65b4fa925fc8 // indirect
-	github.com/signalfx/signalfx-go v1.22.0 // indirect
+	github.com/signalfx/signalfx-go v1.23.0 // indirect
 	github.com/snowflakedb/gosnowflake v1.6.11 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect

@@ -8,6 +8,8 @@ stages:
   - package
   - cve-scan
   - release
+  - sign-metadata
+  - upload-signature
   - choco-release
   - github-release
 
@@ -18,6 +20,8 @@ include:
   - project: 'prodsec/whitesource'
     ref: latest
     file: '/templates/.oss-scan.yml'
+  - project: 'core-ee/signing/api-integration'
+    file: '/templates/.sign-client.yml'
 
 semgrep:
   stage: sast-oss-scan
@@ -414,21 +418,29 @@ release-debs:
   artifacts:
     paths:
       - dist/signed/*.deb
+      - Release
 
 release-rpms:
   extends:
     - .sign-release-cache
     - .sign-release
   stage: release
+  parallel:
+    matrix:
+      - ARCH: ['x86_64', 'aarch64']
   resource_group: artifactory-rpm
   dependencies:
     - build-rpm
     - instrumentation-rpm
   variables:
-    PATHS: dist/*.rpm
+    PATHS: dist/*${ARCH}.rpm
+  after_script:
+    - mkdir ${ARCH}
+    - mv repomd.xml ${ARCH}/repomd.xml
   artifacts:
     paths:
-      - dist/signed/*.rpm
+      - dist/signed/*${ARCH}.rpm
+      - ${ARCH}/repomd.xml
 
 # only sign the MSI; disable push to S3 until we get a token
 release-msi:
@@ -444,6 +456,106 @@ release-msi:
   artifacts:
     paths:
       - dist/signed/*.msi
+
+sign-apt-metadata:
+  extends: .submit-request
+  stage: sign-metadata
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  resource_group: artifactory-deb
+  needs:
+    - release-debs
+  dependencies:
+    - release-debs
+  variables:
+    ARTIFACT: Release
+    SIGN_TYPE: GPG
+  before_script:
+    - set -ex
+  after_script:
+    - mv Release signed/Release
+  artifacts:
+    paths:
+      - signed/Release
+      - signed/Release.asc
+
+sign-yum-metadata:
+  extends: .submit-request
+  stage: sign-metadata
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  parallel:
+    matrix:
+      - ARCH: ['x86_64', 'aarch64']
+  resource_group: artifactory-rpm
+  needs:
+    - release-rpms
+  dependencies:
+    - release-rpms
+  variables:
+    ARTIFACT: ${ARCH}/repomd.xml
+    SIGN_TYPE: GPG
+  before_script:
+    - set -ex
+  after_script:
+    - mkdir signed/${ARCH}
+    - mv ${ARCH}/repomd.xml signed/${ARCH}/repomd.xml
+    - mv signed/repomd.xml.asc signed/${ARCH}/repomd.xml.asc
+  artifacts:
+    paths:
+      - signed/${ARCH}/repomd.xml
+      - signed/${ARCH}/repomd.xml.asc
+
+upload-apt-signature:
+  stage: upload-signature
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  resource_group: artifactory-deb
+  needs:
+    - sign-apt-metadata
+  dependencies:
+    - sign-apt-metadata
+  script:
+    - |
+      set -ex
+      STAGE="test"
+      if [[ "${CI_COMMIT_TAG:-}" =~ beta ]]; then
+        STAGE="beta"
+      elif [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        STAGE="release"
+      fi
+      curl -u ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
+
+upload-yum-signature:
+  stage: upload-signature
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  resource_group: artifactory-rpm
+  parallel:
+    matrix:
+      - ARCH: ['x86_64', 'aarch64']
+  needs:
+    - sign-yum-metadata
+  dependencies:
+    - sign-yum-metadata
+  script:
+    - |
+      set -ex
+      STAGE="test"
+      if [[ "${CI_COMMIT_TAG:-}" =~ beta ]]; then
+        STAGE="beta"
+      elif [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        STAGE="release"
+      fi
+      curl -u ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T signed/${ARCH}/repomd.xml.asc
 
 choco-release:
   only:

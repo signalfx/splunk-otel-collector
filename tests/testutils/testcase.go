@@ -98,7 +98,7 @@ func (t *Testcase) Containers(builders ...Container) (containers []*Container, s
 
 	stop = func() {
 		for _, container := range containers {
-			assert.NoError(t, container.Stop(context.Background()))
+			assert.NoError(t, container.Stop(context.Background(), nil))
 		}
 	}
 

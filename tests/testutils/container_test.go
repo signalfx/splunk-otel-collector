@@ -207,7 +207,7 @@ func TestTestcontainersContainerMethodsRequireBuilding(t *testing.T) {
 	require.Error(t, err)
 	assert.Equal(t, "cannot start a container that hasn't been built", err.Error())
 
-	err = builder.Stop(context.Background())
+	err = builder.Stop(context.Background(), nil)
 	require.Error(t, err)
 	assert.Equal(t, "cannot invoke Stop() on unstarted container", err.Error())
 
@@ -313,7 +313,7 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 	).WillWaitForLogs("rdy").Build()
 
 	defer func() {
-		err := alpine.Stop(context.Background())
+		err := alpine.Stop(context.Background(), nil)
 		require.NoError(t, err)
 
 		err = alpine.Terminate(context.Background())

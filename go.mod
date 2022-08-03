@@ -64,6 +64,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.56.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.56.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.56.0
@@ -72,7 +73,7 @@ require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.45
 	github.com/signalfx/signalfx-agent v1.0.1-0.20220726135153-ffcbf412e1fa
-	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
+	github.com/signalfx/splunk-otel-collector/tests v0.0.0-20220803195910-b8b291c66324
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cast v1.5.0
 	github.com/stretchr/testify v1.8.0
@@ -141,7 +142,6 @@ require (
 	github.com/beevik/ntp v0.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bmatcuk/doublestar/v3 v3.0.0 // indirect
-	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -362,6 +362,7 @@ require (
 	github.com/signalfx/sapm-proto v0.11.0 // indirect
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20201202163743-65b4fa925fc8 // indirect
 	github.com/signalfx/signalfx-go v1.23.0 // indirect
+	github.com/sijms/go-ora/v2 v2.4.26 // indirect
 	github.com/snowflakedb/gosnowflake v1.6.11 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
@@ -372,7 +373,7 @@ require (
 	github.com/spf13/viper v1.12.0 // indirect
 	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/subosito/gotenv v1.3.0 // indirect
-	github.com/testcontainers/testcontainers-go v0.11.1 // indirect
+	github.com/testcontainers/testcontainers-go v0.13.0 // indirect
 	github.com/tidwall/gjson v1.10.2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect

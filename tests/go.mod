@@ -10,7 +10,7 @@ require (
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.2
 	github.com/signalfx/signalfx-go v1.23.0
 	github.com/stretchr/testify v1.8.0
-	github.com/testcontainers/testcontainers-go v0.11.1
+	github.com/testcontainers/testcontainers-go v0.13.0
 	go.opentelemetry.io/collector v0.56.0
 	go.opentelemetry.io/collector/pdata v0.56.0
 	go.opentelemetry.io/otel/trace v1.8.0
@@ -45,6 +45,7 @@ require (
 	github.com/klauspost/compress v1.15.8 // indirect
 	github.com/knadh/koanf v1.4.2 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
+	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect

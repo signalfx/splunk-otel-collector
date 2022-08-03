@@ -18,7 +18,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"time"
 
+	"github.com/docker/docker/api/types"
 	dockerContainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
@@ -180,7 +182,7 @@ func (container *Container) assertStarted(operation string) error {
 	return nil
 }
 
-func (container *Container) Stop(ctx context.Context) error {
+func (container *Container) Stop(ctx context.Context, _ *time.Duration) error {
 	if err := container.assertStarted("Stop"); err != nil {
 		return err
 	}
@@ -310,6 +312,18 @@ func (container *Container) CopyFileToContainer(ctx context.Context, hostFilePat
 		return err
 	}
 	return (*container.container).CopyFileToContainer(ctx, hostFilePath, containerFilePath, fileMode)
+}
+
+func (container *Container) State(ctx context.Context) (*types.ContainerState, error) {
+	return nil, nil
+}
+
+func (container *Container) CopyToContainer(ctx context.Context, fileContent []byte, containerFilePath string, fileMode int64) error {
+	return nil
+}
+
+func (container *Container) CopyFileFromContainer(ctx context.Context, filePath string) (io.ReadCloser, error) {
+	return nil, nil
 }
 
 // Will create any networks that don't already exist on system.

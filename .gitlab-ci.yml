@@ -17,9 +17,9 @@ include:
   - project: 'prodsec/scp-scanning/gitlab-checkmarx'
     ref: latest
     file: '/templates/.sast_scan.yml'
-  - project: 'prodsec/whitesource'
-    ref: latest
-    file: '/templates/.oss-scan.yml'
+  - project: 'ci-cd/templates'
+    ref: master
+    file: '/prodsec/.oss-scan.yml'
   - project: 'core-ee/signing/api-integration'
     file: '/templates/.sign-client.yml'
 
@@ -40,8 +40,6 @@ semgrep:
 fossa:
   extends: .oss-scan
   stage: sast-oss-scan
-  variables:
-    run_fossa: "true"
   only:
     - main
     - schedules

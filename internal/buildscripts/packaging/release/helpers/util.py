@@ -327,7 +327,10 @@ def upload_package_to_artifactory(
 
     if sign_metadata:
         wait_for_artifactory_metadata(metadata_api_url, orig_md5, user, token, timeout=timeout)
-        sign_artifactory_metadata(metadata_url, user, token, timeout=timeout, **signing_args)
+        # don't sign the metadata; just download it so that it can be signed externally
+        # sign_artifactory_metadata(metadata_url, user, token, timeout=timeout, **signing_args)
+        dest = os.path.join(REPO_DIR, os.path.basename(metadata_url))
+        download_file(metadata_url, dest, user, token)
 
 
 def release_deb_to_artifactory(asset, args, **signing_args):

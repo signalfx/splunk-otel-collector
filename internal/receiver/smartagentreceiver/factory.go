@@ -57,9 +57,9 @@ func NewFactory() component.ReceiverFactory {
 	return component.NewReceiverFactory(
 		typeStr,
 		CreateDefaultConfig,
-		component.WithMetricsReceiver(createMetricsReceiver),
-		component.WithLogsReceiver(createLogsReceiver),
-		component.WithTracesReceiver(createTracesReceiver),
+		component.WithMetricsReceiver(createMetricsReceiver, component.StabilityLevelBeta),
+		component.WithLogsReceiver(createLogsReceiver, component.StabilityLevelBeta),
+		component.WithTracesReceiver(createTracesReceiver, component.StabilityLevelBeta),
 	)
 }
 

@@ -64,6 +64,7 @@ func TestDefaultComponents(t *testing.T) {
 		"signalfx",
 		"smartagent",
 		"splunk_hec",
+		"sqlquery",
 		"statsd",
 		"syslog",
 		"tcplog",

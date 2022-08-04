@@ -20,7 +20,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.6.1
+        uses: aquasecurity/trivy-action@0.6.2
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -52,7 +52,7 @@ jobs:
         env:
           DOCKER_BUILDKIT: '1'
       - name: Run trivy image scan
-        uses: aquasecurity/trivy-action@0.6.1
+        uses: aquasecurity/trivy-action@0.6.2
         with:
           scan-type: 'image'
           image-ref: 'otelcol:latest'

@@ -22,5 +22,4 @@ import (
 
 func TestTelegrafProcstatReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml", nil)
-
 }

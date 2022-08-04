@@ -1709,6 +1709,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometh
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.56.0/go.mod h1:s6SNKvqfq/MycXY8cblV0HN9EYN/lPGPJql8biY5tWs=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.56.0 h1:4zC+jOAByau8ADFlXSO7AiJZfytG9uQw6WxVfsEXcA4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/splunkhecreceiver v0.56.0/go.mod h1:4XwhkUOgDJc2h5SBHaAkmgX/EEFgzIRAalDXfTbuiyQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.56.0 h1:mVX6lV6iidaVTsDeolFj9wR+zwe22bCBnqqzipeXWvs=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sqlqueryreceiver v0.56.0/go.mod h1:nEg2XZo0a25rpxI9h0SdKeOVA3osxoDNwFEclP6ttJw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.56.0 h1:xa2lycDsO2HWOp0vZ3JpRgbE3VqHPBmjfICPdE+5raA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver v0.56.0/go.mod h1:B+vvFAStT+H09B/dowLU3Pr6HhfBWkyIbidyp9a94kk=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.56.0 h1:U1/Hp1sjhRpkHuguBSGTvlUs/aCGOtAEUUIEa8E1SZQ=
@@ -1995,6 +1997,8 @@ github.com/signalfx/signalfx-go v1.23.0 h1:gWLOw2TuYckzzqQ6/aMWrKypNLIzx5s2XwkIN
 github.com/signalfx/signalfx-go v1.23.0/go.mod h1:YhPTMdQJDfphcRBdk+9acbbAw1gYY7z5BIHUWzLmGlA=
 github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87 h1:ayeUHxiUjcxzuEzjWVkXJxf42UYNw8UKmYmIQu9mAqo=
 github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87/go.mod h1:1gnMOcwGO3lAxfoMq28M8gjooF2MqVwquPVEvgZ1its=
+github.com/sijms/go-ora/v2 v2.4.26 h1:nHDCq1jROHU5r+hGh0wxrIJ32qTUtDuEoo3x/XTGNRY=
+github.com/sijms/go-ora/v2 v2.4.26/go.mod h1:EHxlY6x7y9HAsdfumurRfTd+v8NrEOTR3Xl4FWlH6xk=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMBDgk/93Q=

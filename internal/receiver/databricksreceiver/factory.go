@@ -34,7 +34,7 @@ func NewFactory() component.ReceiverFactory {
 	return component.NewReceiverFactory(
 		typeStr,
 		createDefaultConfig,
-		component.WithMetricsReceiver(createReceiverFunc(newAPIClient)),
+		component.WithMetricsReceiver(createReceiverFunc(newAPIClient), component.StabilityLevelAlpha),
 	)
 }
 

@@ -150,8 +150,11 @@ func (collector *CollectorContainer) Shutdown() error {
 	if collector.contextArchive == nil {
 		return fmt.Errorf("cannot Shutdown a CollectorContainer that hasn't been successfully built")
 	}
-	defer collector.Container.StopLogProducer()
-	return collector.Container.Terminate(context.Background())
+	defer collector.Container.Terminate(context.Background())
+	if err := collector.Container.Stop(context.Background(), nil); err != nil {
+		return err
+	}
+	return collector.Container.StopLogProducer()
 }
 
 func (collector *CollectorContainer) buildContextArchive() (io.Reader, error) {

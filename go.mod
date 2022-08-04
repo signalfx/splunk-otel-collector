@@ -73,7 +73,7 @@ require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.45
 	github.com/signalfx/signalfx-agent v1.0.1-0.20220726135153-ffcbf412e1fa
-	github.com/signalfx/splunk-otel-collector/tests v0.0.0-20220803195910-b8b291c66324
+	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cast v1.5.0
 	github.com/stretchr/testify v1.8.0
@@ -142,6 +142,7 @@ require (
 	github.com/beevik/ntp v0.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bmatcuk/doublestar/v3 v3.0.0 // indirect
+	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -443,6 +444,9 @@ require (
 )
 
 replace github.com/signalfx/splunk-otel-collector/tests => ./tests
+
+// TODO: update testutils to 0.13.0
+replace github.com/testcontainers/testcontainers-go => github.com/testcontainers/testcontainers-go v0.11.1
 
 // each of these is required for the smartagentreceiver
 replace (

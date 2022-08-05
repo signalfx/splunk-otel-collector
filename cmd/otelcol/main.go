@@ -20,9 +20,12 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 
+	"contrib.go.opencensus.io/exporter/prometheus"
+	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/converter/overwritepropertiesconverter"
@@ -139,9 +142,34 @@ func main() {
 		ConfigProvider: serviceConfigProvider,
 	}
 
+	if err := runCustomPromServer("8889"); err != nil {
+		log.Fatal(err)
+	}
+
 	if err := run(serviceParams); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func runCustomPromServer(port string) error {
+	pe, err := prometheus.NewExporter(prometheus.Options{})
+	if err != nil {
+		return err
+	}
+
+	view.RegisterExporter(pe)
+
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", pe)
+
+	server := &http.Server{
+		Addr:    ":"+port,
+		Handler: mux,
+	}
+
+	go server.ListenAndServe()
+
+	return nil
 }
 
 // Check runtime parameters

@@ -1,4 +1,4 @@
 PyGithub==1.55
-boto3==1.24.45
+boto3==1.24.46
 docker==5.0.3
 requests==2.28.1

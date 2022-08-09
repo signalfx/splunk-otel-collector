@@ -2,7 +2,7 @@ module app
 
 go 1.18
 
-require go.uber.org/zap v1.21.0
+require go.uber.org/zap v1.22.0
 
 require (
 	go.uber.org/atomic v1.7.0 // indirect

@@ -18,7 +18,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"time"
 
+	"github.com/docker/docker/api/types"
 	dockerContainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
@@ -180,11 +182,11 @@ func (container *Container) assertStarted(operation string) error {
 	return nil
 }
 
-func (container *Container) Stop(ctx context.Context) error {
+func (container *Container) Stop(ctx context.Context, timeout *time.Duration) error {
 	if err := container.assertStarted("Stop"); err != nil {
 		return err
 	}
-	return container.Terminate(ctx)
+	return (*container.container).Stop(ctx, timeout)
 }
 
 func (container *Container) GetContainerID() string {
@@ -310,6 +312,27 @@ func (container *Container) CopyFileToContainer(ctx context.Context, hostFilePat
 		return err
 	}
 	return (*container.container).CopyFileToContainer(ctx, hostFilePath, containerFilePath, fileMode)
+}
+
+func (container *Container) State(ctx context.Context) (*types.ContainerState, error) {
+	if err := container.assertStarted("State"); err != nil {
+		return nil, err
+	}
+	return (*container.container).State(ctx)
+}
+
+func (container *Container) CopyToContainer(ctx context.Context, fileContent []byte, containerFilePath string, fileMode int64) error {
+	if err := container.assertStarted("CopyToContainer"); err != nil {
+		return err
+	}
+	return (*container.container).CopyToContainer(ctx, fileContent, containerFilePath, fileMode)
+}
+
+func (container *Container) CopyFileFromContainer(ctx context.Context, filePath string) (io.ReadCloser, error) {
+	if err := container.assertStarted("CopyFileFromContainer"); err != nil {
+		return nil, err
+	}
+	return (*container.container).CopyFileFromContainer(ctx, filePath)
 }
 
 // Will create any networks that don't already exist on system.

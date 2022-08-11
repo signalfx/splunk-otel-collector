@@ -27,6 +27,7 @@ from tests.helpers.util import (
     DEB_DISTROS,
     REPO_DIR,
     RPM_DISTROS,
+    TAR_DISTROS,
     TESTS_DIR,
 )
 
@@ -45,7 +46,7 @@ BUNDLE_DIR = "/usr/lib/splunk-otel-collector/agent-bundle"
 def get_package(distro, name, path):
     if distro in DEB_DISTROS:
         pkg_paths = glob.glob(str(path / f"{name}*amd64.deb"))
-    else:
+    elif distro in RPM_DISTROS:
         pkg_paths = glob.glob(str(path / f"{name}*x86_64.rpm"))
 
     if pkg_paths:
@@ -75,7 +76,7 @@ def test_collector_package_install(distro):
 
     with run_distro_container(distro) as container:
         # install setcap dependency
-        if distro in RPM_DISTROS:
+        if distro in RPM_DISTROS or distro in TAR_DISTROS:
             run_container_cmd(container, get_libcap_command(container))
         else:
             run_container_cmd(container, "apt-get update")
@@ -87,7 +88,7 @@ def test_collector_package_install(distro):
             # install package
             if distro in DEB_DISTROS:
                 run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
-            else:
+            elif distro in RPM_DISTROS:
                 run_container_cmd(container, f"rpm -i /test/{pkg_base}")
 
             run_container_cmd(container, f"test -d {BUNDLE_DIR}")
@@ -125,7 +126,7 @@ def test_collector_package_install(distro):
 
         if distro in DEB_DISTROS:
             run_container_cmd(container, f"dpkg -P {PKG_NAME}")
-        else:
+        elif distro in RPM_DISTROS:
             run_container_cmd(container, f"rpm -e {PKG_NAME}")
 
         time.sleep(5)
@@ -167,7 +168,7 @@ def test_collector_package_upgrade(distro):
             # upgrade package
             if distro in DEB_DISTROS:
                 run_container_cmd(container, f"dpkg -i --force-confold /test/{pkg_base}")
-            else:
+            elif distro in RPM_DISTROS:
                 run_container_cmd(container, f"rpm -U /test/{pkg_base}")
 
             time.sleep(5)

@@ -15,8 +15,7 @@ Splunk will become available on port 18000. You can login on [http://localhost:1
 
 Once logged in, visit the [search application](http://localhost:18000/en-US/app/search) to see the logs collected by Splunk.
 
-If you would like to see the metrics exposed by the OpenTelemetry Collector, 
-you can visit [http://localhost:8888](http://localhost:8888) to see the metrics emitted by the collector.
+Visit [http://localhost:8888](http://localhost:8888) to see the metrics emitted by the OpenTelemetry Collector.
 
 Here is a sample excerpt of metrics:
 ```

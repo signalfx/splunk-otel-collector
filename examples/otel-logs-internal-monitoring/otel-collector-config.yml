@@ -18,9 +18,10 @@ exporters:
         disable_compression: false
         # HTTP timeout when sending data. Defaults to 10s.
         timeout: 10s
-        # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
-        # For this demo, we use a self-signed certificate on the Splunk docker instance, so this flag is set to true.
-        insecure_skip_verify: true
+        tls:
+          # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
+          # For this demo, we use a self-signed certificate on the Splunk docker instance, so this flag is set to true.
+          insecure_skip_verify: true
 
 processors:
     batch:
@@ -35,6 +36,9 @@ extensions:
 
 service:
     extensions: [pprof, zpages, health_check]
+    telemetry:
+      metrics:
+        address: ":8888"
     pipelines:
       logs:
         receivers: [filelog]

@@ -16,7 +16,7 @@ services:
       - SPLUNK_HEC_TOKEN=00000000-0000-0000-0000-0000000000000
       - SPLUNK_PASSWORD=changeme
     ports:
-      - 18000:8000
+      - "18000:8000"
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:8000']
       interval: 5s
@@ -28,7 +28,7 @@ services:
       - /opt/splunk/etc
   # OpenTelemetry Collector
   otelcollector:
-    image:  quay.io/signalfx/splunk-otel-collector:0.41.0
+    image:  quay.io/signalfx/splunk-otel-collector:0.57.0
     container_name: otelcollector
     command: ["--config=/etc/otel-collector-config.yml"]
     volumes:
@@ -37,4 +37,15 @@ services:
     depends_on:
       - splunk
     ports:
-      - 18088:8088
+      - "18088:8088"
+      - "8888:8888"
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:v2.36.2
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"

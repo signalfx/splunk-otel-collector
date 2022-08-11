@@ -42,12 +42,13 @@ AGENT_CONFIG_PATH = "/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_PATH = "/etc/otel/collector/gateway_config.yaml"
 BUNDLE_DIR = "/usr/lib/splunk-otel-collector/agent-bundle"
 
-
 def get_package(distro, name, path):
     if distro in DEB_DISTROS:
         pkg_paths = glob.glob(str(path / f"{name}*amd64.deb"))
     elif distro in RPM_DISTROS:
         pkg_paths = glob.glob(str(path / f"{name}*x86_64.rpm"))
+    elif distro in TAR_DISTROS:
+        pkg_paths = glob.glob(str(path / f"{name}*amd64.tar.gz"))
 
     if pkg_paths:
         return sorted(pkg_paths)[-1]
@@ -67,7 +68,8 @@ def get_libcap_command(container):
 @pytest.mark.parametrize(
     "distro",
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
-    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.tar) for distro in TAR_DISTROS],
 )
 def test_collector_package_install(distro):
     pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
@@ -84,18 +86,25 @@ def test_collector_package_install(distro):
 
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
 
+
         try:
             # install package
             if distro in DEB_DISTROS:
                 run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
             elif distro in RPM_DISTROS:
                 run_container_cmd(container, f"rpm -i /test/{pkg_base}")
+            elif distro in TAR_DISTROS:
+                run_container_cmd(container, f"tar xzf /test/{pkg_base} -C /")
 
             run_container_cmd(container, f"test -d {BUNDLE_DIR}")
             run_container_cmd(container, f"test -d {BUNDLE_DIR}/run/collectd")
 
             run_container_cmd(container, f"test -f {AGENT_CONFIG_PATH}")
             run_container_cmd(container, f"test -f {GATEWAY_CONFIG_PATH}")
+
+            if distro in TAR_DISTROS:
+                # We don't check the service lifecycle for tar.gz distros.
+                return
 
             # verify service is not running after install without config file
             time.sleep(5)

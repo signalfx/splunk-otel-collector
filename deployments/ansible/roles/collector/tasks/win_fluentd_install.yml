@@ -61,6 +61,10 @@
   ansible.windows.win_get_url:
     url: "{{td_agent_base_url}}/4/windows/{{win_fluentd_msi}}"
     dest: "%TEMP%"
+    proxy_password: "{{ proxy_password | default(omit) }}"
+    proxy_url: "{{ proxy_url | default(omit) }}"
+    proxy_username: "{{ proxy_username | default(omit) }}"
+    use_proxy: "{{ use_proxy }}"
   register: fluentd_msi
 
 - name: Install Fluentd on Windows

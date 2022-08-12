@@ -62,4 +62,5 @@
     registry_key: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
     package_stage: release
     win_base_url: https://dl.signalfx.com
+    use_proxy: "no"
   when: ansible_os_family == "Windows"

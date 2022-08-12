@@ -21,6 +21,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
@@ -125,7 +126,8 @@ func (cs *configServer) start() error {
 	mux.HandleFunc(effectivePath, effectiveHandleFunc)
 
 	cs.server = &http.Server{
-		Handler: mux,
+		ReadHeaderTimeout: 20 * time.Second,
+		Handler:           mux,
 	}
 	cs.doneCh = make(chan struct{})
 	go func() {

@@ -11,6 +11,7 @@ ALL_DOC := $(shell find . \( -name "*.md" -o -name "*.yaml" \) \
 ALL_SRC := $(shell find . -name '*.go' \
 							-not -path './examples/*' \
 							-not -path './tests/*' \
+							-not -path './internal/tools/*' \
 							-type f | sort)
 
 # ALL_PKGS is the list of all packages where ALL_SRC files reside.
@@ -162,9 +163,10 @@ misspell-correction:
 tidy:
 	go mod tidy -compat=1.17
 	cd tests && go mod tidy -compat=1.17
+	cd internal/tools && go mod tidy -compat=1.17
 
 .PHONY: fmt
-fmt: addlicense
+fmt: addlicense misspell-correction
 	go fmt ./...
 	fieldalignment -fix ./... || true
 
@@ -178,14 +180,14 @@ impi:
 
 .PHONY: install-tools
 install-tools:
-	go install github.com/client9/misspell/cmd/misspell
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint
-	go install github.com/google/addlicense
-	go install github.com/jstemmer/go-junit-report
-	go install github.com/ory/go-acc
-	go install github.com/pavius/impi/cmd/impi
-	go install github.com/tcnksm/ghr
-	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
+	cd ./internal/tools && go install github.com/client9/misspell/cmd/misspell
+	cd ./internal/tools && go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	cd ./internal/tools && go install github.com/google/addlicense
+	cd ./internal/tools && go install github.com/jstemmer/go-junit-report
+	cd ./internal/tools && go install github.com/ory/go-acc
+	cd ./internal/tools && go install github.com/pavius/impi/cmd/impi
+	cd ./internal/tools && go install github.com/tcnksm/ghr
+	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 
 .PHONY: otelcol
 otelcol:

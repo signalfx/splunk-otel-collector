@@ -118,7 +118,7 @@ how to use the role in a playbook with minimal required configuration:
 
 #### Windows Proxy
 
-The collector installation on Windows relies on [win_get_url](https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_get_url_module.html)
+The collector and fluentd installation on Windows relies on [win_get_url](https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_get_url_module.html)
 which allows setting up a proxy to download the collector binaries.
 
 - `win_proxy_url` (Windows only): An explicit proxy to use for the request. By default, the request will use the IE defined proxy unless `win_use_proxy` is set to `no`. (**default:** ``)

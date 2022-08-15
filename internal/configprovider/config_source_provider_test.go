@@ -116,13 +116,14 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 					configLocation = ""
 				}
 				r, err := pp.Retrieve(context.Background(), configLocation, nil)
-				rMap, _ := r.AsConf()
 				if tt.wantErr == nil {
 					require.NoError(t, err)
+					require.NotNil(t, r)
+					rMap, _ := r.AsConf()
 					require.NotNil(t, rMap)
 				} else {
 					assert.IsType(t, tt.wantErr, err)
-					assert.Nil(t, rMap)
+					assert.Nil(t, r)
 					return
 				}
 				i++
@@ -154,10 +155,10 @@ type mockParserProvider struct {
 
 var _ confmap.Provider = (*mockParserProvider)(nil)
 
-func (mpp *mockParserProvider) Retrieve(ctx context.Context, _ string, _ confmap.WatcherFunc) (confmap.Retrieved, error) {
+func (mpp *mockParserProvider) Retrieve(ctx context.Context, _ string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	m, err := mpp.Get(ctx)
 	if err != nil {
-		return confmap.Retrieved{}, err
+		return nil, err
 	}
 	return confmap.NewRetrieved(m.ToStringMap())
 }

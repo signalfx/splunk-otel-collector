@@ -31,6 +31,7 @@ type Authentication struct {
 
 // Config defines configuration for pulsar exporter.
 type Config struct {
+	exporterhelper.QueueSettings   `mapstructure:"sending_queue"`
 	Authentication                 Authentication `mapstructure:"auth"`
 	config.ExporterSettings        `mapstructure:",squash"`
 	Broker                         string   `mapstructure:"broker"`
@@ -38,7 +39,6 @@ type Config struct {
 	Encoding                       string   `mapstructure:"encoding"`
 	Producer                       Producer `mapstructure:"producer"`
 	exporterhelper.RetrySettings   `mapstructure:"retry_on_failure"`
-	exporterhelper.QueueSettings   `mapstructure:"sending_queue"`
 	exporterhelper.TimeoutSettings `mapstructure:",squash"`
 	OperationTimeout               time.Duration `mapstructure:"operation_timeout"`
 	ConnectionTimeout              time.Duration `mapstructure:"connection_timeout"`

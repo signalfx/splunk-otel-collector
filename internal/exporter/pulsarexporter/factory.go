@@ -78,7 +78,7 @@ func createDefaultConfig() config.Exporter {
 }
 
 func (f *pulsarExporterFactory) createMetricsExporter(
-	_ ctx.Context,
+	ctx ctx.Context,
 	settings component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.MetricsExporter, error) {
@@ -90,9 +90,10 @@ func (f *pulsarExporterFactory) createMetricsExporter(
 	if err != nil {
 		return nil, err
 	}
-	return exporterhelper.NewMetricsExporter(
-		cfg,
+	return exporterhelper.NewMetricsExporterWithContext(
+		ctx,
 		settings,
+		cfg,
 		exp.metricsDataPusher,
 		exporterhelper.WithCapabilities(consumer.Capabilities{MutatesData: false}),
 		exporterhelper.WithTimeout(exporterhelper.TimeoutSettings{Timeout: 0}),

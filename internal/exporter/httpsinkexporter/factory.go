@@ -46,14 +46,15 @@ func createDefaultConfig() config.Exporter {
 }
 
 func createTracesExporter(
-	_ context.Context,
+	ctx context.Context,
 	set component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.TracesExporter, error) {
 	exp := &httpSinkExporter{endpoint: cfg.(*Config).Endpoint}
-	return exporterhelper.NewTracesExporter(
-		cfg,
+	return exporterhelper.NewTracesExporterWithContext(
+		ctx,
 		set,
+		cfg,
 		exp.ConsumeTraces,
 		exporterhelper.WithStart(exp.Start),
 		exporterhelper.WithShutdown(exp.Shutdown),

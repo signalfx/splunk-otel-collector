@@ -64,12 +64,28 @@ def get_libcap_command(container):
     else:
         return "zypper install -y libcap-progs"
 
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.tar) for distro in TAR_DISTROS]
+)
+def test_tar_collector_package_install(distro):
+    pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
+    assert pkg_path, f"{PKG_NAME} package not found in {PKG_DIR}"
+    pkg_base = os.path.basename(pkg_path)
+
+    with run_distro_container(distro) as container:
+
+        copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
+        run_container_cmd(container, f"tar xzf /test/{pkg_base} -C /tmp")
+        run_container_cmd(container, f"test -d /tmp/bin")
+        run_container_cmd(container, f"test -d /tmp/signalfx-agent")
+        run_container_cmd(container, f"test -f /tmp/bin/otelcol")
+        run_container_cmd(container, f"test -f /tmp/bin/translatesfx")
 
 @pytest.mark.parametrize(
     "distro",
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
-    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS]
-    + [pytest.param(distro, marks=pytest.mark.tar) for distro in TAR_DISTROS],
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 def test_collector_package_install(distro):
     pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
@@ -78,7 +94,7 @@ def test_collector_package_install(distro):
 
     with run_distro_container(distro) as container:
         # install setcap dependency
-        if distro in RPM_DISTROS or distro in TAR_DISTROS:
+        if distro in RPM_DISTROS:
             run_container_cmd(container, get_libcap_command(container))
         else:
             run_container_cmd(container, "apt-get update")
@@ -93,18 +109,12 @@ def test_collector_package_install(distro):
                 run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
             elif distro in RPM_DISTROS:
                 run_container_cmd(container, f"rpm -i /test/{pkg_base}")
-            elif distro in TAR_DISTROS:
-                run_container_cmd(container, f"tar xzf /test/{pkg_base} -C /")
 
             run_container_cmd(container, f"test -d {BUNDLE_DIR}")
             run_container_cmd(container, f"test -d {BUNDLE_DIR}/run/collectd")
 
             run_container_cmd(container, f"test -f {AGENT_CONFIG_PATH}")
             run_container_cmd(container, f"test -f {GATEWAY_CONFIG_PATH}")
-
-            if distro in TAR_DISTROS:
-                # We don't check the service lifecycle for tar.gz distros.
-                return
 
             # verify service is not running after install without config file
             time.sleep(5)

@@ -4,10 +4,10 @@
   ansible.windows.win_get_url:
     url: "{{win_base_url}}/splunk-otel-collector/msi/{{package_stage}}/latest.txt"
     dest: "%TEMP%"
-    proxy_password: "{{ proxy_password | default(omit) }}"
-    proxy_url: "{{ proxy_url | default(omit) }}"
-    proxy_username: "{{ proxy_username | default(omit) }}"
-    use_proxy: "{{ use_proxy }}"
+    proxy_password: "{{ win_proxy_password | default(omit) }}"
+    proxy_url: "{{ win_proxy_url | default(omit) }}"
+    proxy_username: "{{ win_proxy_username | default(omit) }}"
+    use_proxy: "{{ win_use_proxy }}"
   register: latest
   when: splunk_otel_collector_version == "latest"
 

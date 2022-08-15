@@ -19,8 +19,8 @@ type MetricIntf interface {
 
 // Intentionally not exposing this so that it is opaque and can change freely.
 type metricImpl struct {
-	name     string
 	initFunc func(pmetric.Metric)
+	name     string
 }
 
 // Name returns the metric name.
@@ -78,58 +78,58 @@ func (m *metricStruct) ByName(n string) MetricIntf {
 // manipulating those metrics.
 var Metrics = &metricStruct{
 	&metricImpl{
-		"databricks.jobs.active.total",
 		func(metric pmetric.Metric) {
 			metric.SetName("databricks.jobs.active.total")
 			metric.SetDescription("A snapshot of the number of active jobs taken at each scrape")
 			metric.SetUnit("{jobs}")
 			metric.SetDataType(pmetric.MetricDataTypeGauge)
 		},
+		"databricks.jobs.active.total",
 	},
 	&metricImpl{
-		"databricks.jobs.run.duration",
 		func(metric pmetric.Metric) {
 			metric.SetName("databricks.jobs.run.duration")
 			metric.SetDescription("The execution duration in milliseconds per completed job")
 			metric.SetUnit("ms")
 			metric.SetDataType(pmetric.MetricDataTypeGauge)
 		},
+		"databricks.jobs.run.duration",
 	},
 	&metricImpl{
-		"databricks.jobs.schedule.status",
 		func(metric pmetric.Metric) {
 			metric.SetName("databricks.jobs.schedule.status")
 			metric.SetDescription("A snapshot of the pause/run status per job taken at each scrape")
 			metric.SetUnit("{status}")
 			metric.SetDataType(pmetric.MetricDataTypeGauge)
 		},
+		"databricks.jobs.schedule.status",
 	},
 	&metricImpl{
-		"databricks.jobs.total",
 		func(metric pmetric.Metric) {
 			metric.SetName("databricks.jobs.total")
 			metric.SetDescription("A snapshot of the total number of jobs registered in the Databricks instance taken at each scrape")
 			metric.SetUnit("{jobs}")
 			metric.SetDataType(pmetric.MetricDataTypeGauge)
 		},
+		"databricks.jobs.total",
 	},
 	&metricImpl{
-		"databricks.tasks.run.duration",
 		func(metric pmetric.Metric) {
 			metric.SetName("databricks.tasks.run.duration")
 			metric.SetDescription("The execution duration in milliseconds per completed task")
 			metric.SetUnit("ms")
 			metric.SetDataType(pmetric.MetricDataTypeGauge)
 		},
+		"databricks.tasks.run.duration",
 	},
 	&metricImpl{
-		"databricks.tasks.schedule.status",
 		func(metric pmetric.Metric) {
 			metric.SetName("databricks.tasks.schedule.status")
 			metric.SetDescription("A snapshot of the pause/run status per task taken at each scrape")
 			metric.SetUnit("{status}")
 			metric.SetDataType(pmetric.MetricDataTypeGauge)
 		},
+		"databricks.tasks.schedule.status",
 	},
 }
 

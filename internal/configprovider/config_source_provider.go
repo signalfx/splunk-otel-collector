@@ -36,8 +36,8 @@ type configSourceConfigMapProvider struct {
 	csm              *Manager
 	configServer     *configServer
 	wrappedProvider  confmap.Provider
-	wrappedRetrieved confmap.Retrieved
-	retrieved        confmap.Retrieved
+	wrappedRetrieved *confmap.Retrieved
+	retrieved        *confmap.Retrieved
 	buildInfo        component.BuildInfo
 	factories        []Factory
 }
@@ -46,10 +46,12 @@ type configSourceConfigMapProvider struct {
 func NewConfigSourceConfigMapProvider(wrappedProvider confmap.Provider, logger *zap.Logger,
 	buildInfo component.BuildInfo, factories ...Factory) confmap.Provider {
 	return &configSourceConfigMapProvider{
-		wrappedProvider: wrappedProvider,
-		logger:          logger,
-		factories:       factories,
-		buildInfo:       buildInfo,
+		wrappedProvider:  wrappedProvider,
+		logger:           logger,
+		factories:        factories,
+		buildInfo:        buildInfo,
+		wrappedRetrieved: &confmap.Retrieved{},
+		retrieved:        &confmap.Retrieved{},
 	}
 }
 
@@ -57,37 +59,43 @@ func (c *configSourceConfigMapProvider) Retrieve(
 	ctx context.Context,
 	location string,
 	onChange confmap.WatcherFunc,
-) (confmap.Retrieved, error) {
-	wr, err := c.wrappedProvider.Retrieve(ctx, location, onChange)
-	if err != nil {
-		return confmap.Retrieved{}, err
+) (*confmap.Retrieved, error) {
+	var tmpWR *confmap.Retrieved
+	var err error
+	newWrappedRetrieved := &confmap.Retrieved{}
+	if tmpWR, err = c.wrappedProvider.Retrieve(ctx, location, onChange); err != nil {
+		return nil, err
+	} else if tmpWR != nil {
+		newWrappedRetrieved = tmpWR
 	}
 
 	existingMap, err := c.wrappedRetrieved.AsConf()
 	if err != nil {
-		return confmap.Retrieved{}, err
+		return nil, err
 	}
 
 	// Need to merge config maps that we've encountered so far
 	if existingMap != nil {
-		wrMap, _ := wr.AsConf()
+		wrMap, _ := newWrappedRetrieved.AsConf()
 		wrMap.Merge(existingMap)
-		c.wrappedRetrieved, err = confmap.NewRetrieved(wrMap.ToStringMap())
-		if err != nil {
-			return confmap.Retrieved{}, err
+		if tmpWR, err = confmap.NewRetrieved(wrMap.ToStringMap()); err != nil {
+			return nil, err
+		} else if tmpWR != nil {
+			newWrappedRetrieved = tmpWR
 		}
-	} else {
-		c.wrappedRetrieved = wr
 	}
+	c.wrappedRetrieved = newWrappedRetrieved
 
-	cfg, err := c.Get(ctx)
-	if err != nil {
-		return confmap.Retrieved{}, err
+	var cfg *confmap.Conf
+	if cfg, err = c.Get(ctx); err != nil {
+		return nil, err
+	} else if cfg == nil {
+		cfg = &confmap.Conf{}
 	}
 
 	c.retrieved, err = confmap.NewRetrieved(
 		cfg.ToStringMap(),
-		confmap.WithRetrievedClose(wr.Close),
+		confmap.WithRetrievedClose(c.wrappedRetrieved.Close),
 	)
 	return c.retrieved, err
 }

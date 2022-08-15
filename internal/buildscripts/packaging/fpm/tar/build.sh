@@ -23,8 +23,7 @@ VERSION="${1:-}"
 ARCH="${2:-amd64}"
 OUTPUT_DIR="${3:-$REPO_DIR/dist}"
 SMART_AGENT_RELEASE="${4:-}"
-BUNDLE_BASE_DIR=""
-AGENT_BUNDLE_INSTALL_DIR=""
+AGENT_BUNDLE_INSTALL_DIR="agent-bundle"
 OTELCOL_INSTALL_PATH="/bin/otelcol"
 TRANSLATESFX_INSTALL_PATH="/bin/translatesfx"
 
@@ -52,8 +51,9 @@ tar_download_smart_agent() {
     echo "Downloading $dl_url ..."
     curl -sL "$dl_url" -o "$buildroot/signalfx-agent.tar.gz"
 
-    mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
-    tar -xzf "$buildroot/signalfx-agent.tar.gz" -C "$buildroot/$BUNDLE_BASE_DIR"
+    mkdir -p "$buildroot"
+    tar -xzf "$buildroot/signalfx-agent.tar.gz" -C "$buildroot/"
+    mv "$buildroot/signalfx-agent" "$buildroot/$AGENT_BUNDLE_INSTALL_DIR"
     find "$buildroot/$AGENT_BUNDLE_INSTALL_DIR" -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
     rm -f "$buildroot/signalfx-agent.tar.gz"
 }

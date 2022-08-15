@@ -78,7 +78,7 @@ def test_tar_collector_package_install(distro):
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
         run_container_cmd(container, f"tar xzf /test/{pkg_base} -C /tmp")
         run_container_cmd(container, f"test -d /tmp/bin")
-        run_container_cmd(container, f"test -d /tmp/signalfx-agent")
+        run_container_cmd(container, f"test -d /tmp/agent-bundle")
         run_container_cmd(container, f"test -f /tmp/bin/otelcol")
         run_container_cmd(container, f"test -f /tmp/bin/translatesfx")
 

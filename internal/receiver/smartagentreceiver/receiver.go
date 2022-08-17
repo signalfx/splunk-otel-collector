@@ -57,12 +57,12 @@ type Receiver struct {
 var _ component.MetricsReceiver = (*Receiver)(nil)
 
 var (
-	rusToZap                 *logrusToZap
+	saConfig                 *saconfig.Config
+	nonWordCharacters        = regexp.MustCompile(`[^\w]+`)
+	logrusShim               *logrusToZap
 	configureCollectdOnce    sync.Once
 	configureEnvironmentOnce sync.Once
-	saConfig                 *saconfig.Config
-	configureRusToZapOnce    sync.Once
-	nonWordCharacters        = regexp.MustCompile(`[^\w]+`)
+	configureLogrusOnce      sync.Once
 )
 
 func NewReceiver(params component.ReceiverCreateSettings, config Config) *Receiver {
@@ -104,17 +104,20 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 
 	configCore := r.config.monitorConfig.MonitorConfigCore()
 	monitorType := configCore.Type
-	monitorName := nonWordCharacters.ReplaceAllString(r.config.ID().String(), "")
-	configCore.MonitorID = types.MonitorID(monitorName)
+	monitorID := nonWordCharacters.ReplaceAllString(r.config.ID().String(), "")
+	configCore.MonitorID = types.MonitorID(monitorID)
 
-	configureRusToZapOnce.Do(func() {
-		rusToZap = newLogrusToZap(loggerProvider(r.logger.Core()))
+	configureLogrusOnce.Do(func() {
+		// we need a default logger that doesn't tie to a particular receiver instance
+		// but still uses the underlying service TelemetrySettings.Logger:
+		logrusShim = newLogrusToZap(r.logger.With(zap.String("name", "default")))
 	})
 
-	// source logger set to the standard logrus logger because it is assumed that is what the monitor is using.
-	rusToZap.redirect(logrusKey{
+	// source logger set to the logrus StandardLogger because it is assumed that the monitor's is derived from it
+	logrusShim.redirect(monitorLogrus{
 		Logger:      logrus.StandardLogger(),
 		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
+		monitorID:   monitorID,
 	}, r.logger)
 
 	if !r.config.acceptsEndpoints {
@@ -131,11 +134,6 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 }
 
 func (r *Receiver) Shutdown(context.Context) error {
-	defer rusToZap.unRedirect(logrusKey{
-		Logger:      logrus.StandardLogger(),
-		monitorType: r.config.monitorConfig.MonitorConfigCore().Type,
-	}, r.logger)
-
 	if r.monitor == nil {
 		return fmt.Errorf("smartagentreceiver's Shutdown() called before Start() or with invalid monitor state")
 	} else if shutdownable, ok := (r.monitor).(monitors.Shutdownable); !ok {

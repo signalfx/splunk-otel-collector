@@ -16,8 +16,7 @@ package smartagentreceiver
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
+	"io"
 	"strings"
 	"sync"
 
@@ -28,25 +27,27 @@ import (
 
 var (
 	logrusToZapLevel = map[logrus.Level]zapcore.Level{
-		logrus.FatalLevel: zapcore.FatalLevel,
-		logrus.PanicLevel: zapcore.PanicLevel,
-		logrus.ErrorLevel: zapcore.ErrorLevel,
-		logrus.WarnLevel:  zapcore.WarnLevel,
-		logrus.InfoLevel:  zapcore.InfoLevel,
 		logrus.DebugLevel: zapcore.DebugLevel,
+		logrus.ErrorLevel: zapcore.ErrorLevel,
+		logrus.FatalLevel: zapcore.FatalLevel,
+		logrus.InfoLevel:  zapcore.InfoLevel,
+		logrus.PanicLevel: zapcore.PanicLevel,
 		// No zap level equivalent to trace. Mapping trace to debug.
 		logrus.TraceLevel: zapcore.DebugLevel,
+		logrus.WarnLevel:  zapcore.WarnLevel,
 	}
 
 	zapToLogrusLevel = map[zapcore.Level]logrus.Level{
-		zapcore.FatalLevel: logrus.FatalLevel,
-		zapcore.PanicLevel: logrus.PanicLevel,
-		zapcore.ErrorLevel: logrus.ErrorLevel,
-		zapcore.WarnLevel:  logrus.WarnLevel,
-		zapcore.InfoLevel:  logrus.InfoLevel,
 		zapcore.DebugLevel: logrus.DebugLevel,
+		zapcore.ErrorLevel: logrus.ErrorLevel,
+		zapcore.FatalLevel: logrus.FatalLevel,
+		zapcore.InfoLevel:  logrus.InfoLevel,
+		zapcore.PanicLevel: logrus.PanicLevel,
+		zapcore.WarnLevel:  logrus.WarnLevel,
 	}
 
+	// zapLevels must be in lowest to highest sensitivity order
+	// given current getLevelFromCore() implementation
 	zapLevels = []zapcore.Level{
 		zapcore.DebugLevel,
 		zapcore.InfoLevel,
@@ -60,198 +61,137 @@ var (
 
 var _ logrus.Hook = (*logrusToZap)(nil)
 
-// logrusToZap stores a mapping of logrus to zap loggers in loggerMap and hooks to the logrus loggers.
+// logrusToZap provides a logrus.Hook ~singleton that redirects logrus.Logger.Log() calls
+// to the desired registered zap.Logger routed by agent-set "monitorType" and "monitorID" field values.
 type logrusToZap struct {
-	loggerMap     map[logrusKey][]*zap.Logger
+	// ~sync.Map(map[monitorLogrus]*zap.Logger)
+	loggerMap     *sync.Map
 	noopLogger    *logrus.Logger
 	defaultLogger *zap.Logger
-	mu            sync.Mutex
 }
 
-type noopFormatter struct{}
-
-type logrusKey struct {
-	*logrus.Logger
-	monitorType string
-}
-
-func (l *noopFormatter) Format(*logrus.Entry) ([]byte, error) {
-	return nil, nil
-}
-
-func (l *logrusKey) reportCaller() {
-	if !l.ReportCaller {
-		l.SetReportCaller(true)
-	}
-}
-
-func (l *logrusKey) addHookUnique(newHook logrus.Hook) {
-	for _, hooks := range l.Hooks {
-		for _, hook := range hooks {
-			if hook == newHook {
-				return
-			}
-		}
-	}
-	l.AddHook(newHook)
-}
-
-func (l *logrusKey) removeHook(remove logrus.Hook, levels ...logrus.Level) {
-	if levels == nil {
-		levels = logrus.AllLevels
-	}
-
-	keep := make(logrus.LevelHooks)
-	for _, level := range levels {
-		keep[level] = make([]logrus.Hook, 0)
-		for _, hook := range l.Hooks[level] {
-			if hook != remove {
-				keep[level] = append(keep[level], hook)
-			}
-		}
-	}
-
-	l.ReplaceHooks(keep)
-}
-
-func loggerProvider(core zapcore.Core) func() *zap.Logger {
-	return func() *zap.Logger {
-		logger, err := newDefaultLoggerCfg(core).Build()
-		if err != nil {
-			log.Fatalf("Cannot initialize the default zap logger: %v", err)
-		}
-		return logger
-	}
-}
-
-func newLogrusToZap(loggerProvider func() *zap.Logger) *logrusToZap {
-	logger := loggerProvider()
-	defer logger.Sync()
-
+func newLogrusToZap(defaultLogger *zap.Logger) *logrusToZap {
 	return &logrusToZap{
-		loggerMap:     make(map[logrusKey][]*zap.Logger),
-		mu:            sync.Mutex{},
-		defaultLogger: logger,
+		loggerMap:     &sync.Map{},
+		defaultLogger: defaultLogger,
 		noopLogger: &logrus.Logger{
-			Out:       ioutil.Discard,
+			Out:       io.Discard,
 			Formatter: new(noopFormatter),
 			Hooks:     make(logrus.LevelHooks),
 		},
 	}
 }
 
-func newDefaultLoggerCfg(core zapcore.Core) *zap.Config {
-	defaultLoggerCfg := zap.NewProductionConfig()
-	defaultLoggerCfg.Encoding = "console"
-	defaultLoggerCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	defaultLoggerCfg.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-	defaultLoggerCfg.InitialFields = map[string]any{
-		"component_kind": "receiver",
-		"component_type": "smartagent",
+// redirect prepares the src monitorLogrus to reflect the dst zap.Logger's settings
+// and registers it for rerouting in the logrus.Hook's Fire()
+func (l *logrusToZap) redirect(src monitorLogrus, dst *zap.Logger) {
+	if desiredLogrusLevel, ok := zapToLogrusLevel[getLevelFromCore(dst.Core())]; ok {
+		src.Logger.SetLevel(desiredLogrusLevel)
 	}
-	defaultLoggerCfg.Level.SetLevel(getLevelFromCore(core))
-	return &defaultLoggerCfg
+
+	src.initialize()
+	src.addLogrusToZapHook(l)
+
+	// we only register for the first monitorLogrus instance
+	// since there should only be one logger per component
+	_, _ = l.loggerMap.LoadOrStore(src, dst)
+}
+
+func (l *logrusToZap) getZapLogger(src monitorLogrus) *zap.Logger {
+	logger := l.defaultLogger
+	if l.loggerMap != nil {
+		if z, ok := l.loggerMap.Load(src); ok {
+			logger = z.(*zap.Logger)
+		}
+	}
+	return logger
+}
+
+// Levels is a logrus.Hook method that returns all logrus logging levels so
+// that its Fire() is executed for all logrus logging activity.
+func (l *logrusToZap) Levels() []logrus.Level {
+	return logrus.AllLevels
+}
+
+// Fire is a logrus.Hook method that is called when logging on the logging levels returned by Levels.
+// A zap log entry is created from the supplied logrus entry and written out.
+func (l *logrusToZap) Fire(entry *logrus.Entry) error {
+	var monitorType string
+	var monitorID string
+
+	fields := make([]zapcore.Field, 0)
+
+	for k, v := range entry.Data {
+		if k == "monitorType" {
+			monitorType = strings.TrimSpace(fmt.Sprintf("%v", v))
+		} else if k == "monitorID" {
+			monitorID = strings.TrimSpace(fmt.Sprintf("%v", v))
+		}
+		fields = append(fields, zap.Any(k, v))
+	}
+
+	zapLogger := l.getZapLogger(monitorLogrus{
+		Logger:      entry.Logger,
+		monitorType: monitorType,
+		monitorID:   monitorID,
+	})
+
+	if ce := zapLogger.Check(logrusToZapLevel[entry.Level], entry.Message); ce != nil {
+		ce.Time = entry.Time
+		// clear stack so that it's not for parent Check()
+		ce.Stack = ""
+		if entry.Caller != nil {
+			ce.Caller = zapcore.NewEntryCaller(entry.Caller.PC, entry.Caller.File, entry.Caller.Line, true)
+		}
+		ce.Write(fields...)
+	}
+
+	// we must set the Entry's logger to noop to prevent writing to the
+	// StandardLogger during further processing. This will only be for the lifetime
+	// of the hook evaluation chain
+	entry.Logger = l.noopLogger
+
+	return nil
+}
+
+type monitorLogrus struct {
+	// in practice this will always be the logrus.StandardLogger
+	// but embed it to support potential others
+	*logrus.Logger
+	// the monitor-logged "monitorType" field
+	monitorType string
+	// the monitor-logged "monitorID" field
+	monitorID string
+}
+
+func (ml *monitorLogrus) initialize() {
+	if !ml.ReportCaller {
+		ml.SetReportCaller(true)
+	}
+}
+
+func (ml *monitorLogrus) addLogrusToZapHook(l *logrusToZap) {
+	for _, hooks := range ml.Hooks {
+		for _, existing := range hooks {
+			if existing == l {
+				return
+			}
+		}
+	}
+	ml.AddHook(l)
 }
 
 func getLevelFromCore(core zapcore.Core) zapcore.Level {
-	for i := range zapLevels {
-		if core.Enabled(zapLevels[i]) {
-			return zapLevels[i]
+	for _, level := range zapLevels {
+		if core.Enabled(level) {
+			return level
 		}
 	}
 	return zapcore.InfoLevel
 }
 
-func (l *logrusToZap) redirect(src logrusKey, dst *zap.Logger) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
+type noopFormatter struct{}
 
-	if _, ok := l.loggerMap[src]; !ok {
-		l.loggerMap[src] = make([]*zap.Logger, 0)
-	}
-
-	if desiredLogrusLevel, ok := zapToLogrusLevel[getLevelFromCore(dst.Core())]; ok {
-		src.Logger.SetLevel(desiredLogrusLevel)
-	}
-
-	src.reportCaller()
-	src.addHookUnique(l)
-
-	l.loggerMap[src] = append(l.loggerMap[src], dst)
-}
-
-func (l *logrusToZap) unRedirect(src logrusKey, dst *zap.Logger) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
-	vLen := len(l.loggerMap[src])
-	if vLen == 0 || vLen == 1 {
-		src.removeHook(l)
-		delete(l.loggerMap, src)
-		return
-	}
-
-	keep := make([]*zap.Logger, 0)
-	for _, logger := range l.loggerMap[src] {
-		if logger != dst {
-			keep = append(keep, logger)
-		}
-	}
-	l.loggerMap[src] = keep
-}
-
-func (l *logrusToZap) loggerMapValue0(src logrusKey) (*zap.Logger, bool) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
-	if l.loggerMap == nil {
-		return nil, false
-	}
-
-	loggers, inMap := l.loggerMap[src]
-
-	if len(loggers) > 0 {
-		return loggers[0], inMap
-	}
-
-	return nil, inMap
-}
-
-// Levels is a logrus.Hook implementation that returns all logrus logging levels.
-func (l *logrusToZap) Levels() []logrus.Level {
-	return logrus.AllLevels
-}
-
-// Fire is a logrus.Hook implementation that is called when logging on the logging levels returned by Levels.
-// A zap log entry is created from the supplied logrus entry and written out.
-func (l *logrusToZap) Fire(e *logrus.Entry) error {
-	var monitorType string
-
-	fields := make([]zapcore.Field, 0)
-
-	// Creating zap entry fields from logrus entry fields.
-	for k, v := range e.Data {
-		if k == "monitorType" {
-			monitorType = strings.TrimSpace(fmt.Sprintf("%v", v))
-		}
-		fields = append(fields, zap.Any(k, v))
-	}
-
-	logger, _ := l.loggerMapValue0(logrusKey{e.Logger, monitorType})
-	if logger == nil {
-		logger = l.defaultLogger
-	}
-
-	if ce := logger.Check(logrusToZapLevel[e.Level], e.Message); ce != nil {
-		ce.Time = e.Time
-		ce.Stack = ""
-		if e.Caller != nil {
-			ce.Caller = zapcore.NewEntryCaller(e.Caller.PC, e.Caller.File, e.Caller.Line, true)
-		}
-		ce.Write(fields...)
-	}
-
-	e.Logger = l.noopLogger
-
-	return nil
+func (n *noopFormatter) Format(*logrus.Entry) ([]byte, error) {
+	return nil, nil
 }

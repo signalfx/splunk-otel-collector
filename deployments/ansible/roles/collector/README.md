@@ -116,6 +116,16 @@ how to use the role in a playbook with minimal required configuration:
 - `splunk_ballast_size_mib`: Memory ballast size in MiB that will be set to the Splunk 
   OTel Collector. (**default:** 1/3 of `splunk_memory_total_mib`)
 
+#### Windows Proxy
+
+The collector and fluentd installation on Windows relies on [win_get_url](https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_get_url_module.html),
+which allows setting up a proxy to download the collector binaries.
+
+- `win_proxy_url` (Windows only): An explicit proxy to use for the request. By default, the request will use the IE defined proxy unless `win_use_proxy` is set to `no`. (**default:** ``)
+- `win_use_proxy` (Windows only): If set to `no`, it will not use the proxy defined in IE for the current user. (**default:** `no`)
+- `win_proxy_username` (Windows only): The username to use for proxy authentication. (**default:** ``)
+- `win_proxy_password` (Windows only): The password for `win_proxy_username`. (**default:** ``)
+
 ### Fluentd
 
 - `install_fluentd`: Whether to install/manage fluentd and dependencies for log

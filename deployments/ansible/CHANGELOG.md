@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## ansible-v0.11.0
+
+### 💡 Enhancements 💡
+
+- Support downloading the Splunk Collector Agent and fluentd using a proxy on Windows.
+
 ## ansible-v0.10.0
 
 ### 💡 Enhancements 💡

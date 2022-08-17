@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM eclipse-temurin:8-jdk
 
 WORKDIR /root
 
@@ -6,14 +6,13 @@ WORKDIR /root
 RUN apt-get update \
     && apt-get install -y \
     curl \
-    openjdk-8-jdk-headless \
     openssh-server \
     tar
 
 RUN systemctl enable ssh.service
 
-# set environment variables for hadoop
-ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
+## set environment variables for hadoop
+ENV JAVA_HOME=/opt/java/openjdk
 
 # setup ssh
 RUN ssh-keygen -t rsa -f /root/.ssh/id_rsa -P '' \

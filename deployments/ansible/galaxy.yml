@@ -12,10 +12,8 @@ dependencies:
 license:
   - Apache-2.0
 tags:
-  - agent
   - apm
   - collector
-  - gateway
   - logs
   - metrics
   - o11y

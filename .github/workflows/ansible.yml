@@ -96,9 +96,8 @@ jobs:
 
   push-release-tag:
     name: Push Release Tag
-    needs: test
+    #    needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -109,7 +108,7 @@ jobs:
         with:
           file: deployments/ansible/galaxy.yml
           version: version
-      
+
       - name: Ensure version is fetched from galaxy.yml
         if: steps.read-galaxy-yaml.outputs.version == ''
         run: echo "Fail to read version from galaxy.yml" && exit 1
@@ -119,19 +118,22 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-              const tagRef = "tags/ansible-v${{ steps.read-galaxy-yaml.outputs.version }}"
-              const existingRefs = await github.rest.git.listMatchingRefs({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: tagRef
-              })
-              if (existingRefs.data.length === 0) {
-                await github.rest.git.createRef({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  ref: "refs/" + tagRef,
-                  sha: context.sha
-                })
-              } else {
-                console.log(tagRef + " already exists")
-              }
+            console.log("context.repo.owner", context.repo.owner)
+            console.log("context.repo.repo", context.repo.repo)
+            console.log("context.repo", context.repo)
+            const tagRef = "tags/ansible-v${{ steps.read-galaxy-yaml.outputs.version }}"
+            const existingRefs = await github.rest.git.listMatchingRefs({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: tagRef
+            })
+#              if (existingRefs.data.length === 0) {
+#                await github.rest.git.createRef({
+#                  owner: context.repo.owner,
+#                  repo: context.repo.repo,
+#                  ref: "refs/" + tagRef,
+#                  sha: context.sha
+#                })
+#              } else {
+#                console.log(tagRef + " already exists")
+#              }

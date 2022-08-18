@@ -443,9 +443,9 @@ This ensures that the binaries in the bundle have the right loader set on them s
 
 The tar archive contains the default agent and gateway configuration files.
 Both refer to environment variables described in the [Other](#Other) section above.
-Additionally, the agent configuration file requires that you set two environment variables:
-- `SPLUNK_BUNDLE_DIR` (no default): The path to the Smart Agent bundle, e.g. /usr/lib/splunk-otel-collector/agent-bundle
-- `SPLUNK_COLLECTD_DIR` (no default): The path to the collectd config directory for the Smart Agent, e.g. /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
+If you are running the Collector from a non-default location, the Smart Agent receiver and agent configuration file require that you set two environment variables currently used in the Smart Agent extension:
+- `SPLUNK_BUNDLE_DIR` (`/usr/lib/splunk-otel-collector/agent-bundle` default): The path to the Smart Agent bundle, e.g. `/opt/my/environment/splunk-otel-collector/agent-bundle`
+- `SPLUNK_COLLECTD_DIR` (`/usr/lib/splunk-otel-collector/agent-bundle/run/collectd` default): The path to the collectd config directory for the Smart Agent, e.g. `/opt/my/environment/splunk-otel-collector/agent-bundle/run/collectd`
 
 ## Advanced Configuration
 

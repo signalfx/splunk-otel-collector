@@ -23,9 +23,10 @@ VERSION="${1:-}"
 ARCH="${2:-amd64}"
 OUTPUT_DIR="${3:-$REPO_DIR/dist}"
 SMART_AGENT_RELEASE="${4:-}"
-AGENT_BUNDLE_INSTALL_DIR="agent-bundle"
-OTELCOL_INSTALL_PATH="/bin/otelcol"
-TRANSLATESFX_INSTALL_PATH="/bin/translatesfx"
+BUNDLE_BASE_DIR="/splunk-otel-collector"
+AGENT_BUNDLE_INSTALL_DIR="$BUNDLE_BASE_DIR/agent-bundle"
+OTELCOL_INSTALL_PATH="$BUNDLE_BASE_DIR/bin/otelcol"
+TRANSLATESFX_INSTALL_PATH="$BUNDLE_BASE_DIR/bin/translatesfx"
 
 tar_download_smart_agent() {
     local tag="$1"
@@ -51,7 +52,7 @@ tar_download_smart_agent() {
     echo "Downloading $dl_url ..."
     curl -sL "$dl_url" -o "$buildroot/signalfx-agent.tar.gz"
 
-    mkdir -p "$buildroot"
+    mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
     tar -xzf "$buildroot/signalfx-agent.tar.gz" -C "$buildroot/"
     mv "$buildroot/signalfx-agent" "$buildroot/$AGENT_BUNDLE_INSTALL_DIR"
     find "$buildroot/$AGENT_BUNDLE_INSTALL_DIR" -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
@@ -61,7 +62,8 @@ tar_download_smart_agent() {
 tar_setup_files_and_permissions() {
     local otelcol="$1"
     local translatesfx="$2"
-    local buildroot="$3"
+    local config_folder="$3"
+    local buildroot="$4"
 
     create_user_group
 
@@ -69,6 +71,10 @@ tar_setup_files_and_permissions() {
     cp -f "$otelcol" "$buildroot/$OTELCOL_INSTALL_PATH"
     sudo chown root:root "$buildroot/$OTELCOL_INSTALL_PATH"
     sudo chmod 755 "$buildroot/$OTELCOL_INSTALL_PATH"
+
+    mkdir -p "$buildroot/$BUNDLE_BASE_DIR/config"
+    cp "$config_folder/gateway_config.yaml" "$buildroot/$BUNDLE_BASE_DIR/config/"
+    cp "$config_folder/agent_config.yaml" "$buildroot/$BUNDLE_BASE_DIR/config/"
 
     mkdir -p "$buildroot/$(dirname $TRANSLATESFX_INSTALL_PATH)"
     cp -f "$translatesfx" "$buildroot/$TRANSLATESFX_INSTALL_PATH"
@@ -87,6 +93,7 @@ fi
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
 translatesfx_path="$REPO_DIR/bin/translatesfx_linux_${ARCH}"
+config_folder_path="$REPO_DIR/cmd/otelcol/config/collector"
 
 buildroot="$(mktemp -d)"
 
@@ -94,7 +101,7 @@ if [ "$ARCH" = "amd64" ]; then
     tar_download_smart_agent "$SMART_AGENT_RELEASE" "$buildroot"
 fi
 
-tar_setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$buildroot"
+tar_setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$config_folder_path" "$buildroot"
 
 mkdir -p "$OUTPUT_DIR"
 

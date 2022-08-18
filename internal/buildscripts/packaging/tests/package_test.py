@@ -77,10 +77,12 @@ def test_tar_collector_package_install(distro):
 
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
         run_container_cmd(container, f"tar xzf /test/{pkg_base} -C /tmp")
-        run_container_cmd(container, f"test -d /tmp/bin")
-        run_container_cmd(container, f"test -d /tmp/agent-bundle")
-        run_container_cmd(container, f"test -f /tmp/bin/otelcol")
-        run_container_cmd(container, f"test -f /tmp/bin/translatesfx")
+        run_container_cmd(container, f"test -d /tmp/splunk-otel-collector/bin")
+        run_container_cmd(container, f"test -d /tmp/splunk-otel-collector/agent-bundle")
+        run_container_cmd(container, f"test -f /tmp/splunk-otel-collector/bin/otelcol")
+        run_container_cmd(container, f"test -f /tmp/splunk-otel-collector/bin/translatesfx")
+        run_container_cmd(container, f"test -f /tmp/splunk-otel-collector/config/agent_config.yaml")
+        run_container_cmd(container, f"test -f /tmp/splunk-otel-collector/config/gateway_config.yaml")
 
 @pytest.mark.parametrize(
     "distro",

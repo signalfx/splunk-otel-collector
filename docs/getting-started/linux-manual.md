@@ -14,6 +14,7 @@ The following deployment options are supported:
 - [DEB and RPM Packages](#deb-and-rpm-packages)
 - [Docker](#docker)
 - [Binary](#binary)
+- [Tar archive](#tar)
 
 ## Getting Started
 
@@ -425,6 +426,26 @@ make install-tools
 make otelcol
 SPLUNK_ACCESS_TOKEN=12345 SPLUNK_REALM=us0 ./bin/otelcol
 ```
+
+### Tar
+
+We offer for convenience a tar.gz archive of the distribution.
+
+To use the archive:
+
+1. Unarchive it to a directory of your choice on the target system.
+```bash
+tar xzf splunk-otel-collector_<version>_<arch>.tar.gz
+```
+
+2. On amd64 systems, go into the unarchived `agent-bundle` directory and run `bin/patch-interpreter $(pwd)`. 
+This ensures that the binaries in the bundle have the right loader set on them since your host's loader may not be compatible.
+
+The tar archive contains the default agent and gateway configuration files.
+Both refer to environment variables described in the [Other](#Other) section above.
+Additionally, the agent configuration file requires that you set two environment variables:
+- `SPLUNK_BUNDLE_DIR` (no default): The path to the Smart Agent bundle, e.g. /usr/lib/splunk-otel-collector/agent-bundle
+- `SPLUNK_COLLECTD_DIR` (no default): The path to the collectd config directory for the Smart Agent, e.g. /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
 
 ## Advanced Configuration
 

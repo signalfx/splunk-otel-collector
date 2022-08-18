@@ -155,20 +155,20 @@ receivers:
                    // Only emit a single log record for this status entry instead of one for each matching received metric (`false`, the default)
                    first_only: true
                    record:
-                     severity: info
+                     severity_text: info
                      body: Successfully able to connect to Redis container.
              statements:
                partial:
                  - regexp: (WRONGPASS|NOAUTH|ERR AUTH)
                    first_only: true
                    record:
-                     severity: warn
+                     severity_text: warn
                      body: Container appears to be accepting redis connections but the default auth setting is incorrect. 
                failed:
                  - regexp: ConnectionRefusedError
                    first_only: true
                    record:
-                     severity: debug
+                     severity_text: debug
                      body: Container appears to not be accepting redis connections.
 exporters:
   logging:
@@ -302,7 +302,7 @@ Flags: 0
 | Name | Type | Default | Docs |
 | ---- | ---- | ------- | ---- |
 | `rule` (required) | string | <no value> | The Receiver Creator compatible discover rule |
-| `config` | map[string]interface{} | <no value> | The receiver instance configuration, including any Receiver Creator endpoint env value expr program value expansion |
+| `config` | map[string]any | <no value> | The receiver instance configuration, including any Receiver Creator endpoint env value expr program value expansion |
 | `resource_attributes` | map[string]string | <no value> | A mapping of string resource attributes and their (expr program compatible) values to include in reported metrics for status log record matches |
 | `status` | map[string]Match | <no value> | A mapping of `metrics` and/or `statements` to Match items for status evaluation |
 
@@ -322,7 +322,7 @@ Flags: 0
 
 | Name | Type | Default | Docs |
 | ---- | ---- | ------- | ---- |
-| `severity` | string | Emitted log statement severity level, if any, or "info" | The emitted log record's severity text |
+| `severity_text` | string | Emitted log statement severity level, if any, or "info" | The emitted log record's severity text |
 | `body` | string | Emitted log statement message | The emitted log record's body |
 | `attributes` | map[string]string | Emitted log statements fields | The emitted log record's attributes |
 

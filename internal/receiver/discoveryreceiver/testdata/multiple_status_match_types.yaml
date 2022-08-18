@@ -1,0 +1,26 @@
+extensions:
+
+receivers:
+  discovery:
+    watch_observers:
+      - an_observer
+    receivers:
+      a_receiver:
+        rule: a rule
+        status:
+          metrics:
+            successful:
+              - regexp: 'a regex'
+                strict: 'a strict'
+          statements:
+            failed:
+              - strict: 'another strict'
+                expr: 'an expr'
+exporters:
+  nop:
+
+service:
+  pipelines:
+    logs:
+      receivers: [discovery]
+      exporters: [nop]

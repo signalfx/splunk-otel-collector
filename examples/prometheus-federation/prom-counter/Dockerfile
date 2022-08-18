@@ -1,4 +1,4 @@
-FROM golang:1.18.3-stretch
+FROM golang:1.19.0-bullseye
 
 WORKDIR /go/src/app
 

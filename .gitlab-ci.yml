@@ -46,7 +46,7 @@ fossa:
   # allow_failure: false
 
 .go-cache:
-  image: '${DOCKER_HUB_REPO}/golang:1.18.3'
+  image: '${DOCKER_HUB_REPO}/golang:1.19.0'
   variables:
     GOPATH: "$CI_PROJECT_DIR/.go"
   before_script:

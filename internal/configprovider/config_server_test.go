@@ -16,7 +16,7 @@
 package configprovider
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -178,7 +178,7 @@ func assertValidYAMLPages(t *testing.T, expected map[string]any, path string) {
 		assert.NoError(t, resp.Body.Close())
 	})
 
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
 	var unmarshalled map[string]any

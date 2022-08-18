@@ -17,7 +17,6 @@ package includeconfigsource
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path"
 	"runtime"
@@ -95,10 +94,10 @@ func TestIncludeConfigSource_DeleteFile(t *testing.T) {
 
 	// Copy test file
 	src := path.Join("testdata", "scalar_data_file")
-	contents, err := ioutil.ReadFile(src)
+	contents, err := os.ReadFile(src)
 	require.NoError(t, err)
 	dst := path.Join("testdata", "copy_scalar_data_file")
-	require.NoError(t, ioutil.WriteFile(dst, contents, 0600))
+	require.NoError(t, os.WriteFile(dst, contents, 0600))
 	t.Cleanup(func() {
 		// It should be removed prior to this so an error is expected.
 		assert.Error(t, os.Remove(dst))
@@ -132,10 +131,10 @@ func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
 
 	// Copy test file
 	src := path.Join("testdata", "scalar_data_file")
-	contents, err := ioutil.ReadFile(src)
+	contents, err := os.ReadFile(src)
 	require.NoError(t, err)
 	dst := path.Join("testdata", "copy_scalar_data_file")
-	require.NoError(t, ioutil.WriteFile(dst, contents, 0600))
+	require.NoError(t, os.WriteFile(dst, contents, 0600))
 	f, err := os.OpenFile(dst, os.O_RDWR, 0)
 	require.NoError(t, err)
 	t.Cleanup(func() {

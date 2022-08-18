@@ -15,7 +15,7 @@
 package translatesfx
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -58,7 +58,7 @@ func yamlToCfgInfo(t *testing.T, filename string) saCfgInfo {
 }
 
 func fromYAML(t *testing.T, filename string) any {
-	yml, err := ioutil.ReadFile(filename)
+	yml, err := os.ReadFile(filename)
 	require.NoError(t, err)
 	var v any
 	err = yaml.UnmarshalStrict(yml, &v)

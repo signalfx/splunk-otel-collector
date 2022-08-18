@@ -391,13 +391,13 @@ def release_rpm_to_artifactory(asset, args, **signing_args):
             if resp.lower() not in ("y", "yes"):
                 sys.exit(1)
 
-    print(f"Signing {asset.name} (may take 10+ minutes):")
-    if not asset.sign(overwrite=args.force, timeout=args.timeout, **signing_args):
-        sys.exit(1)
+    #print(f"Signing {asset.name} (may take 10+ minutes):")
+    #if not asset.sign(overwrite=args.force, timeout=args.timeout, **signing_args):
+    #    sys.exit(1)
 
     if not args.no_push:
         upload_package_to_artifactory(
-            asset.signed_path,
+            asset.path,
             dest_url,
             user,
             token,
@@ -407,7 +407,7 @@ def release_rpm_to_artifactory(asset, args, **signing_args):
             timeout=args.timeout,
             **signing_args,
         )
-        upload_file_to_artifactory(asset.signed_path, staging_url, args.staging_user, args.staging_token)
+        upload_file_to_artifactory(asset.path, staging_url, args.staging_user, args.staging_token)
 
 
 def s3_file_exists(s3_client, path):

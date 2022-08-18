@@ -4,13 +4,12 @@ default:
 stages:
   - sast-oss-scan
   - build
-  - sign
+  - sign-binaries
   - package
   - cve-scan
+  - sign-packages
   - release
   - sign-metadata
-  - upload-signature
-  - choco-release
   - github-release
 
 include:
@@ -44,6 +43,46 @@ fossa:
     - main
     - schedules
   # allow_failure: false
+
+.get-artifactory-stage:
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  before_script:
+    - |
+      set -ex
+      export STAGE="test"
+      if [[ "${CI_COMMIT_TAG:-}" =~ beta ]]; then
+        export STAGE="beta"
+      elif [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        export STAGE="release"
+      fi
+
+.sign-release:
+  extends: .get-artifactory-stage
+  image: '${DOCKER_CICD_REPO}/ci-container:python-3.9'
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  cache:
+    key:
+      files:
+        - internal/buildscripts/packaging/release/requirements.txt
+    paths:
+      - .cache/pip
+  retry: 2
+  script:
+    - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
+    - |
+      for path in ${PATHS:-}; do
+        if [ ! -f "$path" ]; then
+          echo "$path not found!"
+          exit 1
+        fi
+        python3 internal/buildscripts/packaging/release/sign_release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
+      done
 
 .go-cache:
   image: '${DOCKER_HUB_REPO}/golang:1.19.0'
@@ -111,7 +150,7 @@ libsplunk:
   except:
     - schedules
   stage: package
-  dependencies:
+  needs:
     - libsplunk
   parallel:
     matrix:
@@ -137,49 +176,11 @@ instrumentation-rpm:
     paths:
       - dist/*.rpm
 
-.sign-release-cache:
-  image: '${DOCKER_CICD_REPO}/ci-container:python-3.9'
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  cache:
-    key:
-      files:
-        - internal/buildscripts/packaging/release/requirements.txt
-    paths:
-      - .cache/pip
-  before_script:
-    - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
-
-.sign-release:
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
-  retry: 2
-  script:
-    - |
-      set -ex
-      STAGE="test"
-      if [[ "${CI_COMMIT_TAG:-}" =~ beta ]]; then
-        STAGE="beta"
-      elif [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        STAGE="release"
-      fi
-      for path in ${PATHS:-}; do
-        if [ ! -f "$path" ]; then
-          echo "$path not found!"
-          exit 1
-        fi
-        python3 internal/buildscripts/packaging/release/sign_release.py --force --stage=$STAGE --path=$path ${OPTIONS:-}
-      done
-
 sign-exe:
-  extends:
-    - .sign-release-cache
-    - .sign-release
-  stage: sign
+  extends: .sign-release
+  stage: sign-binaries
+  needs:
+    - compile
   parallel:
     matrix:
       - TARGET: [otelcol, translatesfx]
@@ -194,10 +195,10 @@ sign-exe:
       - dist/signed/${TARGET}_windows_amd64.exe
 
 sign-osx:
-  extends:
-    - .sign-release-cache
-    - .sign-release
-  stage: sign
+  extends: .sign-release
+  stage: sign-binaries
+  needs:
+    - compile
   parallel:
     matrix:
       - TARGET: [otelcol, translatesfx]
@@ -219,7 +220,7 @@ build-linux-image:
   except:
     - schedules
   stage: package
-  dependencies:
+  needs:
     - compile
   parallel:
     matrix:
@@ -244,7 +245,7 @@ build-linux-image:
   except:
     - schedules
   stage: package
-  dependencies:
+  needs:
     - compile
   parallel:
     matrix:
@@ -278,7 +279,7 @@ build-msi:
   except:
     - schedules
   stage: package
-  dependencies:
+  needs:
     - sign-exe
   before_script:
     # build the MSI with the signed exe
@@ -290,6 +291,89 @@ build-msi:
   artifacts:
     paths:
       - dist/*.msi
+
+sign-debs:
+  extends: .submit-request
+  stage: sign-packages
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  needs:
+    - build-deb
+    - instrumentation-deb
+  variables:
+    ARTIFACT: dist/packages.tar.gz
+    SIGN_TYPE: DEB
+    OPTIONS: archive
+    DOWNLOAD_DIR: dist/signed
+  before_script:
+    - pushd dist && tar -czvf packages.tar.gz *.deb && popd
+  after_script:
+    - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
+  artifacts:
+    paths:
+      - dist/signed/*.deb
+
+sign-rpms:
+  extends: .submit-request
+  stage: sign-packages
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  needs:
+    - build-rpm
+    - instrumentation-rpm
+  variables:
+    ARTIFACT: dist/packages.tar.gz
+    SIGN_TYPE: RPM
+    OPTIONS: archive
+    DOWNLOAD_DIR: dist/signed
+  before_script:
+    - pushd dist && tar -czvf packages.tar.gz *.rpm && popd
+  after_script:
+    - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
+  artifacts:
+    paths:
+      - dist/signed/*.rpm
+
+sign-msi:
+  extends: .sign-release
+  stage: sign-packages
+  needs:
+    - build-msi
+  variables:
+    PATHS: dist/*.msi
+    OPTIONS: "--no-push"
+  artifacts:
+    paths:
+      - dist/signed/*.msi
+
+verify-signed-packages:
+  stage: sign-packages
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  needs:
+    - build-deb
+    - build-rpm
+    - build-msi
+    - instrumentation-deb
+    - instrumentation-rpm
+    - sign-debs
+    - sign-rpms
+    - sign-msi
+  script:
+    - |
+      set -ex
+      for pkg in dist/*.rpm dist/*.deb dist/*.msi; do
+        if [[ ! -f dist/signed/$(basename $pkg) ]]; then
+          echo "$pkg was not signed!" >&2
+          exit 1
+        fi
+      done
 
 push-linux-image:
   only:
@@ -399,39 +483,29 @@ build-push-windows-image:
       - dist/windows_digest.txt
 
 release-debs:
-  extends:
-    - .sign-release-cache
-    - .sign-release
+  extends: .sign-release
   stage: release
   resource_group: artifactory-deb
   dependencies:
-    - build-deb
-    - instrumentation-deb
+    - sign-debs
   variables:
-    PATHS: dist/*.deb
-  after_script:
-    # stage the debs to be picked up by the github-release job
-    - mkdir -p dist/signed
-    - cp dist/*.deb dist/signed/
+    PATHS: dist/signed/*.deb
   artifacts:
     paths:
       - dist/signed/*.deb
       - Release
 
 release-rpms:
-  extends:
-    - .sign-release-cache
-    - .sign-release
+  extends: .sign-release
   stage: release
   parallel:
     matrix:
       - ARCH: ['x86_64', 'aarch64']
   resource_group: artifactory-rpm
   dependencies:
-    - build-rpm
-    - instrumentation-rpm
+    - sign-rpms
   variables:
-    PATHS: dist/*${ARCH}.rpm
+    PATHS: dist/signed/*${ARCH}.rpm
   after_script:
     - mkdir ${ARCH}
     - mv repomd.xml ${ARCH}/repomd.xml
@@ -440,121 +514,6 @@ release-rpms:
       - dist/signed/*${ARCH}.rpm
       - ${ARCH}/repomd.xml
 
-# only sign the MSI; disable push to S3 until we get a token
-release-msi:
-  extends:
-    - .sign-release-cache
-    - .sign-release
-  stage: release
-  dependencies:
-    - build-msi
-  variables:
-    PATHS: dist/*.msi
-    OPTIONS: "--no-push"
-  artifacts:
-    paths:
-      - dist/signed/*.msi
-
-sign-apt-metadata:
-  extends: .submit-request
-  stage: sign-metadata
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  resource_group: artifactory-deb
-  needs:
-    - release-debs
-  dependencies:
-    - release-debs
-  variables:
-    ARTIFACT: Release
-    SIGN_TYPE: GPG
-  before_script:
-    - set -ex
-  after_script:
-    - mv Release signed/Release
-  artifacts:
-    paths:
-      - signed/Release
-      - signed/Release.asc
-
-sign-yum-metadata:
-  extends: .submit-request
-  stage: sign-metadata
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  parallel:
-    matrix:
-      - ARCH: ['x86_64', 'aarch64']
-  resource_group: artifactory-rpm
-  needs:
-    - release-rpms
-  dependencies:
-    - release-rpms
-  variables:
-    ARTIFACT: ${ARCH}/repomd.xml
-    SIGN_TYPE: GPG
-  before_script:
-    - set -ex
-  after_script:
-    - mkdir signed/${ARCH}
-    - mv ${ARCH}/repomd.xml signed/${ARCH}/repomd.xml
-    - mv signed/repomd.xml.asc signed/${ARCH}/repomd.xml.asc
-  artifacts:
-    paths:
-      - signed/${ARCH}/repomd.xml
-      - signed/${ARCH}/repomd.xml.asc
-
-upload-apt-signature:
-  stage: upload-signature
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  resource_group: artifactory-deb
-  needs:
-    - sign-apt-metadata
-  dependencies:
-    - sign-apt-metadata
-  script:
-    - |
-      set -ex
-      STAGE="test"
-      if [[ "${CI_COMMIT_TAG:-}" =~ beta ]]; then
-        STAGE="beta"
-      elif [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        STAGE="release"
-      fi
-      curl -u ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
-
-upload-yum-signature:
-  stage: upload-signature
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  resource_group: artifactory-rpm
-  parallel:
-    matrix:
-      - ARCH: ['x86_64', 'aarch64']
-  needs:
-    - sign-yum-metadata
-  dependencies:
-    - sign-yum-metadata
-  script:
-    - |
-      set -ex
-      STAGE="test"
-      if [[ "${CI_COMMIT_TAG:-}" =~ beta ]]; then
-        STAGE="beta"
-      elif [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        STAGE="release"
-      fi
-      curl -u ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T signed/${ARCH}/repomd.xml.asc
-
 choco-release:
   only:
     variables:
@@ -562,9 +521,9 @@ choco-release:
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   except:
     - schedules
-  stage: choco-release
+  stage: release
   dependencies:
-    - release-msi
+    - sign-msi
   tags:
     - windows
   script:
@@ -588,16 +547,74 @@ choco-release:
     paths:
       - dist/signed/*.nupkg
 
-# release installer scripts; disabled until we get a token for pushing to S3
-.release-installers:
-  extends:
-    - .sign-release-cache
+sign-apt-metadata:
+  extends: .submit-request
+  stage: sign-metadata
   only:
     variables:
+      - $CI_COMMIT_BRANCH == "main"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  stage: release
+  except:
+    - schedules
+  resource_group: artifactory-deb
+  needs:
+    - release-debs
+  variables:
+    ARTIFACT: Release
+    SIGN_TYPE: GPG
+  after_script:
+    - mv Release signed/Release
+  artifacts:
+    paths:
+      - signed/Release
+      - signed/Release.asc
+
+sign-yum-metadata:
+  extends: .submit-request
+  stage: sign-metadata
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  parallel:
+    matrix:
+      - ARCH: ['x86_64', 'aarch64']
+  resource_group: artifactory-rpm
+  needs:
+    - release-rpms
+  variables:
+    ARTIFACT: ${ARCH}/repomd.xml
+    SIGN_TYPE: GPG
+    DOWNLOAD_DIR: signed/${ARCH}
+  after_script:
+    - mv ${ARCH}/repomd.xml signed/${ARCH}/repomd.xml
+  artifacts:
+    paths:
+      - signed/${ARCH}/repomd.xml
+      - signed/${ARCH}/repomd.xml.asc
+
+upload-apt-signature:
+  extends: .get-artifactory-stage
+  stage: sign-metadata
+  resource_group: artifactory-deb
+  needs:
+    - sign-apt-metadata
   script:
-    - python3 internal/buildscripts/packaging/release/sign_release.py --force --installers
+    - curl -u ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
+
+upload-yum-signature:
+  extends: .get-artifactory-stage
+  stage: sign-metadata
+  resource_group: artifactory-rpm
+  parallel:
+    matrix:
+      - ARCH: ['x86_64', 'aarch64']
+  needs:
+    - sign-yum-metadata
+  script:
+    - curl -u ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T signed/${ARCH}/repomd.xml.asc
 
 github-release:
   extends: .go-cache
@@ -614,7 +631,7 @@ github-release:
     - sign-osx
     - release-debs
     - release-rpms
-    - release-msi
+    - sign-msi
     - push-linux-image
     - build-push-windows-image
     - choco-release

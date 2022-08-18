@@ -18,7 +18,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -130,7 +130,7 @@ func (m *Migrator) MigrateJournaldPos(matches []string) {
 			if err != nil {
 				continue
 			}
-			byteValue, _ := ioutil.ReadAll(jsonFile)
+			byteValue, _ := io.ReadAll(jsonFile)
 			var cursor journaldCursor
 			err = json.Unmarshal(byteValue, &cursor)
 			if err != nil {

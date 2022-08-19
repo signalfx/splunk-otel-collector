@@ -51,5 +51,5 @@ func createLogsReceiver(
 	if err := dCfg.Validate(); err != nil {
 		return nil, err
 	}
-	return newDiscoveryReceiver(settings, dCfg, consumer)
+	return newDiscoveryReceiver(settings, dCfg, consumer), nil
 }

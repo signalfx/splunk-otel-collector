@@ -15,6 +15,7 @@ on:
       - 'go.sum'
       - '!**.md'
       - '!internal/buildscripts/packaging/tests/deployments/**'
+      - '!internal/buildscripts/packaging/release/**'
 
 concurrency:
   group: windows-test-${{ github.event.pull_request.number || github.ref }}

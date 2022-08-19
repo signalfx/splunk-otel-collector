@@ -56,6 +56,8 @@ tar_download_smart_agent() {
     tar -xzf "$buildroot/signalfx-agent.tar.gz" -C "$buildroot/"
     mv "$buildroot/signalfx-agent" "$buildroot/$AGENT_BUNDLE_INSTALL_DIR"
     find "$buildroot/$AGENT_BUNDLE_INSTALL_DIR" -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
+    rm -f "$buildroot/$AGENT_BUNDLE_INSTALL_DIR/bin/signalfx-agent"
+    rm -f "$buildroot/$AGENT_BUNDLE_INSTALL_DIR/bin/agent-status"
     rm -f "$buildroot/signalfx-agent.tar.gz"
 }
 

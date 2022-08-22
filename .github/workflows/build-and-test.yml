@@ -228,7 +228,7 @@ jobs:
     needs: [cross-compile]
     strategy:
       matrix:
-        SYS_PACKAGE: [ "deb", "rpm" ]
+        SYS_PACKAGE: [ "deb", "rpm", "tar" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3

@@ -27,6 +27,7 @@ from tests.helpers.util import (
     DEB_DISTROS,
     REPO_DIR,
     RPM_DISTROS,
+    TAR_DISTROS,
     TESTS_DIR,
 )
 
@@ -41,12 +42,13 @@ AGENT_CONFIG_PATH = "/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_PATH = "/etc/otel/collector/gateway_config.yaml"
 BUNDLE_DIR = "/usr/lib/splunk-otel-collector/agent-bundle"
 
-
 def get_package(distro, name, path):
     if distro in DEB_DISTROS:
         pkg_paths = glob.glob(str(path / f"{name}*amd64.deb"))
-    else:
+    elif distro in RPM_DISTROS:
         pkg_paths = glob.glob(str(path / f"{name}*x86_64.rpm"))
+    elif distro in TAR_DISTROS:
+        pkg_paths = glob.glob(str(path / f"{name}*amd64.tar.gz"))
 
     if pkg_paths:
         return sorted(pkg_paths)[-1]
@@ -62,6 +64,25 @@ def get_libcap_command(container):
     else:
         return "zypper install -y libcap-progs"
 
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.tar) for distro in TAR_DISTROS]
+)
+def test_tar_collector_package_install(distro):
+    pkg_path = get_package(distro, PKG_NAME, PKG_DIR)
+    assert pkg_path, f"{PKG_NAME} package not found in {PKG_DIR}"
+    pkg_base = os.path.basename(pkg_path)
+
+    with run_distro_container(distro) as container:
+
+        copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
+        run_container_cmd(container, f"tar xzf /test/{pkg_base} -C /tmp")
+        run_container_cmd(container, f"test -d /tmp/splunk-otel-collector/bin")
+        run_container_cmd(container, f"test -d /tmp/splunk-otel-collector/agent-bundle")
+        run_container_cmd(container, f"test -f /tmp/splunk-otel-collector/bin/otelcol")
+        run_container_cmd(container, f"test -f /tmp/splunk-otel-collector/bin/translatesfx")
+        run_container_cmd(container, f"test -f /tmp/splunk-otel-collector/config/agent_config.yaml")
+        run_container_cmd(container, f"test -f /tmp/splunk-otel-collector/config/gateway_config.yaml")
 
 @pytest.mark.parametrize(
     "distro",
@@ -83,11 +104,12 @@ def test_collector_package_install(distro):
 
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
 
+
         try:
             # install package
             if distro in DEB_DISTROS:
                 run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
-            else:
+            elif distro in RPM_DISTROS:
                 run_container_cmd(container, f"rpm -i /test/{pkg_base}")
 
             run_container_cmd(container, f"test -d {BUNDLE_DIR}")
@@ -125,7 +147,7 @@ def test_collector_package_install(distro):
 
         if distro in DEB_DISTROS:
             run_container_cmd(container, f"dpkg -P {PKG_NAME}")
-        else:
+        elif distro in RPM_DISTROS:
             run_container_cmd(container, f"rpm -e {PKG_NAME}")
 
         time.sleep(5)
@@ -167,7 +189,7 @@ def test_collector_package_upgrade(distro):
             # upgrade package
             if distro in DEB_DISTROS:
                 run_container_cmd(container, f"dpkg -i --force-confold /test/{pkg_base}")
-            else:
+            elif distro in RPM_DISTROS:
                 run_container_cmd(container, f"rpm -U /test/{pkg_base}")
 
             time.sleep(5)

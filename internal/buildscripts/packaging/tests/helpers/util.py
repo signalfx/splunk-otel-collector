@@ -26,6 +26,7 @@ TESTS_DIR = Path(__file__).parent.parent.resolve()
 REPO_DIR = TESTS_DIR.parent.parent.parent.parent.resolve()
 DEB_DISTROS = [df.split(".")[-1] for df in glob.glob(str(TESTS_DIR / "images" / "deb" / "Dockerfile.*"))]
 RPM_DISTROS = [df.split(".")[-1] for df in glob.glob(str(TESTS_DIR / "images" / "rpm" / "Dockerfile.*"))]
+TAR_DISTROS = [df.split(".")[-1] for df in glob.glob(str(TESTS_DIR / "images" / "tar" / "Dockerfile.*"))]
 SERVICE_NAME = "splunk-otel-collector"
 SERVICE_OWNER = "splunk-otel-collector"
 OTELCOL_BIN = "/usr/bin/otelcol"
@@ -48,8 +49,10 @@ def run_distro_container(distro, dockerfile=None, path=TESTS_DIR, buildargs=None
     if not dockerfile:
         if distro in DEB_DISTROS:
             dockerfile = TESTS_DIR / "images" / "deb" / f"Dockerfile.{distro}"
-        else:
+        elif distro in RPM_DISTROS:
             dockerfile = TESTS_DIR / "images" / "rpm" / f"Dockerfile.{distro}"
+        else:
+            dockerfile = TESTS_DIR / "images" / "tar" / f"Dockerfile.{distro}"
 
     assert os.path.isfile(str(dockerfile)), f"{dockerfile} not found!"
 

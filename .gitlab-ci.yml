@@ -319,6 +319,7 @@ sign-debs:
     - pushd dist && tar -czvf packages.tar.gz *.deb && popd
   after_script:
     - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
+    - rm dist/signed/packages.tar.gz
   artifacts:
     paths:
       - dist/signed/*.deb
@@ -365,6 +366,7 @@ sign-tar:
     - pushd dist && tar -czvf packages.tar.gz *.tar.gz && popd
   after_script:
     - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
+    - mv dist/splunk-otel-collector*.tar.gz dist/signed/
     - rm dist/signed/packages.tar.gz
   artifacts:
     paths:

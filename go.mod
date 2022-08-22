@@ -20,6 +20,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.58.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.58.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.58.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.58.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.58.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.58.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver v0.58.0
@@ -309,7 +310,6 @@ require (
 	github.com/observiq/ctimefmt v1.0.0 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.58.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/ecsutil v0.58.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.58.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.58.0 // indirect

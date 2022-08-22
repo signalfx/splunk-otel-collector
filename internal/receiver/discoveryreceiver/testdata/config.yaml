@@ -1,0 +1,50 @@
+receivers:
+  discovery:
+    watch_observers:
+      - an_observer
+      - another_observer/with_name
+    log_endpoints: true
+    embed_receiver_config: true
+    receivers:
+      smartagent/redis:
+        rule: type == "container"
+        config:
+          type: collectd/redis
+          auth: password
+          host: '`host`'
+          port: '`port`'
+        resource_attributes:
+          receiver_attribute: receiver_attribute_value
+        status:
+          metrics:
+            successful:
+              - regexp: '.*'
+                first_only: true
+                log_record:
+                  severity_text: info
+                  body: smartagent/redis receiver successful status
+                  attributes:
+                    attr_one: attr_one_val
+                    attr_two: attr_two_val
+          statements:
+            failed:
+              - regexp: ConnectionRefusedError
+                first_only: true
+                log_record:
+                  attributes: {}
+                  severity_text: info
+                  body: container appears to not be accepting redis connections
+            partial:
+              - regexp: (WRONGPASS|NOAUTH|ERR AUTH)
+                first_only: false
+                log_record:
+                  severity_text: warn
+                  body: desired log invalid auth log body
+exporters:
+  nop:
+
+service:
+  pipelines:
+    logs:
+      receivers: [discovery]
+      exporters: [nop]

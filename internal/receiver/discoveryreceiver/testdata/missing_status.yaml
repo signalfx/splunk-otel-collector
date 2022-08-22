@@ -1,0 +1,17 @@
+extensions:
+
+receivers:
+  discovery:
+    watch_observers:
+      - an_observer
+    receivers:
+      a_receiver:
+        rule: a rule
+exporters:
+  nop:
+
+service:
+  pipelines:
+    logs:
+      receivers: [discovery]
+      exporters: [nop]

@@ -1,0 +1,24 @@
+extensions:
+
+receivers:
+  discovery:
+    watch_observers:
+      - an_observer
+    receivers:
+      a_receiver:
+        rule: a rule
+        status:
+          metrics:
+            unsupported:
+              - regexp: '.*'
+          statements:
+            another_unsupported:
+              - regexp: '.*'
+exporters:
+  nop:
+
+service:
+  pipelines:
+    logs:
+      receivers: [discovery]
+      exporters: [nop]

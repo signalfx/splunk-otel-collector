@@ -262,7 +262,7 @@ binaries-windows_amd64:
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) translatesfx
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) migratecheckpoint
 
-.PHONY: deb-rpm-package
+.PHONY: deb-rpm-tar-package
 %-package:
 ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-linux_$(ARCH)

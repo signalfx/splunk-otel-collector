@@ -99,6 +99,10 @@ exporters:
     ## to avoid double translations and exclusions.
     #translation_rules: []
     #exclude_metrics: []
+  signalfx/internal:
+    access_token: "${SPLUNK_ACCESS_TOKEN}"
+    realm: "${SPLUNK_REALM}"
+    sync_host_metadata: true
   # Debug
   #logging:
     #loglevel: debug
@@ -120,7 +124,7 @@ service:
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection/internal]
-      exporters: [signalfx]
+      exporters: [signalfx/internal]
     logs:
       receivers: [otlp, signalfx]
       processors: [memory_limiter, batch]

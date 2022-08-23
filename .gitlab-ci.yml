@@ -44,25 +44,25 @@ fossa:
     - schedules
   # allow_failure: false
 
-.get-artifactory-stage:
+.get-artifactory-stage: &get-artifactory-stage
+  - |
+    set -ex
+    export STAGE="test"
+    if [[ "${CI_COMMIT_TAG:-}" =~ beta ]]; then
+      export STAGE="beta"
+    elif [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      export STAGE="release"
+    fi
+
+.trigger-filter:
   only:
     variables:
       - $CI_COMMIT_BRANCH == "main"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   except:
     - schedules
-  before_script:
-    - |
-      set -ex
-      export STAGE="test"
-      if [[ "${CI_COMMIT_TAG:-}" =~ beta ]]; then
-        export STAGE="beta"
-      elif [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        export STAGE="release"
-      fi
 
 .sign-release:
-  extends: .get-artifactory-stage
   image: '${DOCKER_CICD_REPO}/ci-container:python-3.9'
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -73,6 +73,8 @@ fossa:
     paths:
       - .cache/pip
   retry: 2
+  before_script:
+    - *get-artifactory-stage
   script:
     - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
     - |
@@ -102,13 +104,9 @@ fossa:
       - .go/bin
 
 compile:
-  extends: .go-cache
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  extends:
+    - .trigger-filter
+    - .go-cache
   stage: build
   parallel:
     matrix:
@@ -125,12 +123,7 @@ compile:
       - bin/migratecheckpoint_*
 
 libsplunk:
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  extends: .trigger-filter
   stage: build
   retry: 2
   parallel:
@@ -143,12 +136,7 @@ libsplunk:
       - instrumentation/dist/libsplunk_*.so
 
 .instrumentation-deb-rpm:
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  extends: .trigger-filter
   stage: package
   needs:
     - libsplunk
@@ -177,7 +165,9 @@ instrumentation-rpm:
       - dist/*.rpm
 
 sign-exe:
-  extends: .sign-release
+  extends:
+    - .trigger-filter
+    - .sign-release
   stage: sign-binaries
   needs:
     - compile
@@ -195,7 +185,9 @@ sign-exe:
       - dist/signed/${TARGET}_windows_amd64.exe
 
 sign-osx:
-  extends: .sign-release
+  extends:
+    - .trigger-filter
+    - .sign-release
   stage: sign-binaries
   needs:
     - compile
@@ -213,12 +205,7 @@ sign-osx:
       - dist/signed/${TARGET}_darwin_amd64
 
 build-linux-image:
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  extends: .trigger-filter
   stage: package
   needs:
     - compile
@@ -238,12 +225,6 @@ build-linux-image:
       - dist/otelcol-*.tar
 
 .build-tar-deb-rpm:
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
   stage: package
   needs:
     - compile
@@ -256,7 +237,9 @@ build-linux-image:
     - ./internal/buildscripts/packaging/fpm/${PKG_TYPE}/build.sh "${CI_COMMIT_TAG:-}" "$ARCH" "./dist"
 
 build-deb:
-  extends: .build-tar-deb-rpm
+  extends:
+    - .trigger-filter
+    - .build-tar-deb-rpm
   variables:
     PKG_TYPE: deb
   artifacts:
@@ -264,7 +247,9 @@ build-deb:
       - dist/*.deb
 
 build-rpm:
-  extends: .build-tar-deb-rpm
+  extends:
+    - .trigger-filter
+    - .build-tar-deb-rpm
   variables:
     PKG_TYPE: rpm
   artifacts:
@@ -272,7 +257,9 @@ build-rpm:
       - dist/*.rpm
 
 build-tar:
-  extends: .build-tar-deb-rpm
+  extends:
+    - .trigger-filter
+    - .build-tar-deb-rpm
   variables:
     PKG_TYPE: tar
   artifacts:
@@ -280,12 +267,7 @@ build-tar:
       - dist/*.tar.gz
 
 build-msi:
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  extends: .trigger-filter
   stage: package
   needs:
     - sign-exe
@@ -301,12 +283,10 @@ build-msi:
       - dist/*.msi
 
 sign-debs:
-  extends: .submit-request
+  extends:
+    - .trigger-filter
+    - .submit-request
   stage: sign-packages
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   needs:
     - build-deb
     - instrumentation-deb
@@ -325,12 +305,10 @@ sign-debs:
       - dist/signed/*.deb
 
 sign-rpms:
-  extends: .submit-request
+  extends:
+    - .trigger-filter
+    - .submit-request
   stage: sign-packages
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   needs:
     - build-rpm
     - instrumentation-rpm
@@ -349,12 +327,10 @@ sign-rpms:
       - dist/signed/*.rpm
 
 sign-tar:
-  extends: .submit-request
+  extends:
+    - .trigger-filter
+    - .submit-request
   stage: sign-packages
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   needs:
     - build-tar
   variables:
@@ -374,7 +350,9 @@ sign-tar:
       - dist/signed/*.tar.gz.asc
 
 sign-msi:
-  extends: .sign-release
+  extends:
+    - .trigger-filter
+    - .sign-release
   stage: sign-packages
   needs:
     - build-msi
@@ -386,11 +364,8 @@ sign-msi:
       - dist/signed/*.msi
 
 verify-signed-packages:
+  extends: .trigger-filter
   stage: sign-packages
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   needs:
     - build-deb
     - build-rpm
@@ -410,15 +385,14 @@ verify-signed-packages:
           echo "$pkg was not signed!" >&2
           exit 1
         fi
+        if [[ "${pkg##*.}" = "gz" && ! -f dist/signed/$(basename $pkg).asc ]]; then
+          echo "$pkg was not signed!" >&2
+          exit 1
+        fi
       done
 
 push-linux-image:
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  extends: .trigger-filter
   stage: release
   dependencies:
     - build-linux-image
@@ -475,12 +449,7 @@ push-linux-image:
       - dist/manifest_digest.txt
 
 build-push-windows-image:
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  extends: .trigger-filter
   stage: release
   dependencies:
     - sign-exe
@@ -520,7 +489,9 @@ build-push-windows-image:
       - dist/windows_digest.txt
 
 release-debs:
-  extends: .sign-release
+  extends:
+    - .trigger-filter
+    - .sign-release
   stage: release
   resource_group: artifactory-deb
   dependencies:
@@ -533,7 +504,9 @@ release-debs:
       - Release
 
 release-rpms:
-  extends: .sign-release
+  extends:
+    - .trigger-filter
+    - .sign-release
   stage: release
   parallel:
     matrix:
@@ -552,12 +525,7 @@ release-rpms:
       - ${ARCH}/repomd.xml
 
 choco-release:
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  extends: .trigger-filter
   stage: release
   dependencies:
     - sign-msi
@@ -585,14 +553,10 @@ choco-release:
       - dist/signed/*.nupkg
 
 sign-apt-metadata:
-  extends: .submit-request
+  extends:
+    - .trigger-filter
+    - .submit-request
   stage: sign-metadata
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
   resource_group: artifactory-deb
   needs:
     - release-debs
@@ -607,14 +571,10 @@ sign-apt-metadata:
       - signed/Release.asc
 
 sign-yum-metadata:
-  extends: .submit-request
+  extends:
+    - .trigger-filter
+    - .submit-request
   stage: sign-metadata
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
   parallel:
     matrix:
       - ARCH: ['x86_64', 'aarch64']
@@ -633,16 +593,18 @@ sign-yum-metadata:
       - signed/${ARCH}/repomd.xml.asc
 
 upload-apt-signature:
-  extends: .get-artifactory-stage
+  extends: .trigger-filter
   stage: sign-metadata
   resource_group: artifactory-deb
   needs:
     - sign-apt-metadata
+  before_script:
+    - *get-artifactory-stage
   script:
     - curl -u ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-deb/dists/${STAGE}/Release.gpg" -T signed/Release.asc
 
 upload-yum-signature:
-  extends: .get-artifactory-stage
+  extends: .trigger-filter
   stage: sign-metadata
   resource_group: artifactory-rpm
   parallel:
@@ -650,16 +612,15 @@ upload-yum-signature:
       - ARCH: ['x86_64', 'aarch64']
   needs:
     - sign-yum-metadata
+  before_script:
+    - *get-artifactory-stage
   script:
     - curl -u ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_TOKEN} -X PUT "https://splunk.jfrog.io/artifactory/otel-collector-rpm/${STAGE}/${ARCH}/repodata/repomd.xml.asc" -T signed/${ARCH}/repomd.xml.asc
 
 github-release:
-  extends: .go-cache
-  only:
-    variables:
-      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
-  except:
-    - schedules
+  extends:
+    - .trigger-filter
+    - .go-cache
   stage: github-release
   dependencies:
     - compile
@@ -680,8 +641,13 @@ github-release:
     - cp instrumentation/dist/libsplunk_*.so dist/assets/
     - cp dist/signed/* dist/assets/
     - pushd dist/assets && shasum -a 256 * > checksums.txt && popd
-    - release_notes="$( ./internal/buildscripts/packaging/release/gh-release-notes.sh "$CI_COMMIT_TAG" )"
-    - ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$CI_COMMIT_TAG" -b "$release_notes" --replace "$CI_COMMIT_TAG" dist/assets/
+    - |
+      # only create github release for stable release tags
+      set -e
+      if [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        release_notes="$( ./internal/buildscripts/packaging/release/gh-release-notes.sh "$CI_COMMIT_TAG" )"
+        ghr -t "$GITHUB_TOKEN" -u signalfx -r splunk-otel-collector -n "$CI_COMMIT_TAG" -b "$release_notes" --replace "$CI_COMMIT_TAG" dist/assets/
+      fi
   artifacts:
     when: always
     paths:

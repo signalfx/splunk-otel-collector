@@ -23,11 +23,19 @@
 ## Steps
 
 1. If necessary, update the OpenTelemetry Core and Contrib dependency versions
-   in [go.mod](../go.mod) and run `go mod tidy`.
+   in [go.mod](../go.mod) and [tests/go.mod](../tests/go.mod), and run
+   `make tidy`.
 1. If necessary, update [smart-agent-release.txt](
    ../internal/buildscripts/packaging/smart-agent-release.txt) for the latest
    applicable [Smart Agent release](
    https://github.com/signalfx/signalfx-agent/releases).
+1. If necessary, update the `github.com/signalfx/signalfx-agent` and
+   `github.com/signalfx/signalfx-agent/pkg/apm` dependencies in [go.mod](
+   ../go.mod), and run `make tidy`.
+1. If necessary, update [java-agent-release.txt](
+   ../instrumentation/packaging/java-agent-release.txt) for the latest
+   applicable [Java Agent release](
+   https://github.com/signalfx/splunk-otel-java/releases).
 1. Update [CHANGELOG.md](../CHANGELOG.md) with the changes for the release.
    In order for the Github release notes to be added correctly, ensure that the
    new version has the `## <TAG>` heading.
@@ -56,8 +64,8 @@
    ../CHANGELOG.md).
 1. Download the MSI (`splunk-otel-collector-<VERSION>-amd64.msi`) from the
    Github Release to your workstation.
-1. Request prod access via slack and the `splunkcloud_account_power` role with
-   `okta-aws-setup us0`.
+1. Request the `signalfx/splunkcloud_account_power` role by running
+   `okta-aws-setup us0` locally on your workstation.
 1. Run the following script in virtualenv to push the signed MSI and installer
    scripts to S3 (replace `PATH_TO_MSI` with the path to the signed MSI file
    downloaded from the previous step).
@@ -65,3 +73,22 @@
    $ source venv/bin/activate  # if not already in virtualenv
    $ ./internal/buildscripts/packaging/release/sign_release.py --stage=release --path=PATH_TO_MSI --installers --no-sign-msi
    ```
+
+## Ansible/Chef/Puppet Release Steps
+
+1. Open a PR in a non-forked branch with the updated version and changelog
+   for the module:
+   - Ansible: [galaxy.yml](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/ansible/galaxy.yml)
+   - Chef: [metadata.rb](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/chef/metadata.rb)
+   - Puppet: [metadata.json](https://github.com/signalfx/splunk-otel-collector/blob/main/deployments/puppet/metadata.json)
+1. After the PR is merged, a new tag based on the new version will be created
+   and pushed by the corresponding github workflow:
+   - [Ansible](https://github.com/signalfx/splunk-otel-collector/actions/workflows/ansible.yml)
+   - [Chef](https://github.com/signalfx/splunk-otel-collector/actions/workflows/chef.yml)
+   - [Puppet](https://github.com/signalfx/splunk-otel-collector/actions/workflows/puppet.yml)
+1. The corresponding gitlab release pipeline will be triggered for the new tag
+   (may take up to 30 minutes to sync with github) to build and publish the
+   new module version:
+   - [Ansible Galaxy](https://galaxy.ansible.com/signalfx/splunk_otel_collector)
+   - [Chef Supermarket](https://supermarket.chef.io/cookbooks/splunk_otel_collector)
+   - [Puppet Forge](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)

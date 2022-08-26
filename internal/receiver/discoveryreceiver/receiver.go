@@ -17,28 +17,37 @@ package discoveryreceiver
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
-	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
 )
 
-var _ component.LogsReceiver = (*discoveryReceiver)(nil)
+const (
+	eventTypeAttr    = "discovery.event.type"
+	observerNameAttr = "discovery.observer.name"
+	observerTypeAttr = "discovery.observer.type"
+)
 
-// Discovery receiver is a metrics consumer from the internal receiver creator
-// but it will be evaluating them for log record conversion
-var _ consumer.Metrics = (*discoveryReceiver)(nil)
+var (
+	_ component.LogsReceiver = (*discoveryReceiver)(nil)
+)
 
 type discoveryReceiver struct {
 	logsConsumer      consumer.Logs
+	endpointTracker   *endpointTracker
+	sentinel          chan struct{}
 	logger            *zap.Logger
 	config            *Config
 	obsreportReceiver *obsreport.Receiver
+	pLogs             chan plog.Logs
 	observables       map[config.ComponentID]observer.Observable
+	loopFinished      *sync.WaitGroup
 	settings          component.ReceiverCreateSettings
 }
 
@@ -46,7 +55,7 @@ func newDiscoveryReceiver(
 	settings component.ReceiverCreateSettings,
 	config *Config,
 	consumer consumer.Logs,
-) (*discoveryReceiver, error) { // nolint:unparam
+) *discoveryReceiver {
 	d := &discoveryReceiver{
 		config: config,
 		obsreportReceiver: obsreport.NewReceiver(obsreport.ReceiverSettings{
@@ -57,29 +66,64 @@ func newDiscoveryReceiver(
 		logger:       settings.TelemetrySettings.Logger,
 		settings:     settings,
 		logsConsumer: consumer,
+		pLogs:        make(chan plog.Logs),
+		sentinel:     make(chan struct{}, 1),
+		loopFinished: &sync.WaitGroup{},
 	}
 
-	return d, nil
+	return d
 }
 
 func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err error) {
 	if d.observables, err = d.observablesFromHost(host); err != nil {
 		return fmt.Errorf("failed obtaining observables from host: %w", err)
 	}
-	return nil
+
+	d.endpointTracker = newEndpointTracker(d.observables, d.config, d.logger, d.pLogs)
+	d.endpointTracker.start()
+
+	loopStarted := &sync.WaitGroup{}
+	loopStarted.Add(1)
+	d.loopFinished.Add(1)
+	go d.consumerLoop(loopStarted)
+	// wait until we know consumer loop is running before starting receiver creator
+	// so as not to miss any resulting telemetry
+	d.logger.Debug("log consumer initializing")
+	loopStarted.Wait()
+	d.logger.Debug("successfully initialized")
+	return
 }
 
 func (d *discoveryReceiver) Shutdown(ctx context.Context) error {
+	d.endpointTracker.stop()
+	d.sentinel <- struct{}{}
+	d.loopFinished.Wait()
+	close(d.sentinel)
+	close(d.pLogs)
+	d.logger.Debug("finished shutdown")
 	return nil
 }
 
-func (d *discoveryReceiver) Capabilities() consumer.Capabilities {
-	return consumer.Capabilities{}
-}
-
-func (d *discoveryReceiver) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
-	// TODO: md -> plog.Logs and evaluation
-	return nil
+func (d *discoveryReceiver) consumerLoop(loopStarted *sync.WaitGroup) {
+	loopStarted.Done()
+	defer d.loopFinished.Done()
+	for {
+		select {
+		case <-d.sentinel:
+			d.logger.Debug("halting consumer loop.")
+			return
+		case pLog, ok := <-d.pLogs:
+			if !ok {
+				return
+			}
+			ctx := d.obsreportReceiver.StartLogsOp(context.Background())
+			err := d.logsConsumer.ConsumeLogs(context.Background(), pLog)
+			if err != nil {
+				d.logger.Info("logsConsumer failed consumption", zap.Error(err))
+			}
+			d.obsreportReceiver.EndLogsOp(ctx, typeStr, pLog.LogRecordCount(), err)
+		}
+	}
 }
 
 // observablesFromHost finds configured `watch_observers` extension instances from the host

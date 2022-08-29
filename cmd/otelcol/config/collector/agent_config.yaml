@@ -172,9 +172,9 @@ service:
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
+      # When sending to gateway, at least one metrics pipeline needs
+      # to use signalfx exporter so host metadata gets emitted
       exporters: [signalfx]
-      # Use instead when sending to gateway
-      #exporters: [otlp]
     logs/signalfx:
       receivers: [signalfx]
       processors: [memory_limiter, batch]

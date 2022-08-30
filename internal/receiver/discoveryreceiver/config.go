@@ -15,10 +15,16 @@
 package discoveryreceiver
 
 import (
+	"encoding/base64"
 	"fmt"
+	"regexp"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/multierr"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -34,6 +40,12 @@ var (
 	}()
 
 	allowedMatchTypes = []string{"regexp", "strict", "expr"}
+
+	endpointIDAttr        = "discovery.endpoint.id"
+	receiverNameAttr      = "discovery.receiver.name"
+	receiverTypeAttr      = "discovery.receiver.type"
+	receiverCreatorRegexp = regexp.MustCompile(`receiver_creator/`)
+	endpointTargetRegexp  = regexp.MustCompile(`{endpoint=[^}]*}/`)
 )
 
 type Config struct {
@@ -92,8 +104,21 @@ type LogRecord struct {
 func (cfg *Config) Validate() error {
 	var err error
 	for rName, rEntry := range cfg.Receivers {
+		name := rName.String()
+		if rName.Type() == "receiver_creator" {
+			err = multierr.Combine(err, fmt.Errorf("receiver %q validation failure: receiver cannot be a receiver_creator", name))
+			continue
+		}
+		// These check reserved separators used by the Receiver Creator by which we
+		// obtain receiver config.ComponentID and observer.EndpointID. If they are used
+		// directly in config we won't be able to determine the ids.
+		for _, re := range []*regexp.Regexp{receiverCreatorRegexp, endpointTargetRegexp} {
+			if re.MatchString(name) {
+				err = multierr.Combine(err, fmt.Errorf("receiver %q validation failure: receiver name cannot contain %q", name, re.String()))
+			}
+		}
 		if e := rEntry.validate(); e != nil {
-			err = multierr.Combine(err, fmt.Errorf("receiver %q validation failure: %w", rName, e))
+			err = multierr.Combine(err, fmt.Errorf("receiver %q validation failure: %w", name, e))
 		}
 	}
 
@@ -159,4 +184,73 @@ func (s *Status) validate() error {
 func (lr *LogRecord) validate() error {
 	// TODO: supported severity text validation
 	return nil
+}
+
+// receiverCreatorFactoryAndConfig will embed the applicable receiver creator fields in a new receiver creator config
+// suitable for being used to create a receiver instance by the returned factory.
+func (cfg *Config) receiverCreatorFactoryAndConfig() (component.ReceiverFactory, config.Receiver, error) {
+	receiverCreatorFactory := receivercreator.NewFactory()
+	receiverCreatorDefaultConfig := receiverCreatorFactory.CreateDefaultConfig()
+	receiverCreatorConfig, ok := receiverCreatorDefaultConfig.(*receivercreator.Config)
+	if !ok {
+		return nil, nil, fmt.Errorf("failed to coerce to receivercreator.Config")
+	}
+	receiverCreatorConfig.SetIDName(cfg.ID().String())
+	receiverCreatorConfig.WatchObservers = cfg.WatchObservers
+
+	receiversConfig, err := cfg.receiverCreatorReceiversConfig()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to produce receiver creator receivers config: %w", err)
+	}
+	receiverTemplates := confmap.NewFromStringMap(map[string]any{"receivers": receiversConfig})
+	if err := receiverCreatorConfig.Unmarshal(receiverTemplates); err != nil {
+		return nil, nil, fmt.Errorf("failed unmarshaling discoveryreceiver receiverTemplates into receiver_creator config: %w", err)
+	}
+
+	return receiverCreatorFactory, receiverCreatorConfig, nil
+}
+
+// receiverCreatorReceiversConfig produces the actual config string map used by the receiver creator config unmarshaler.
+func (cfg *Config) receiverCreatorReceiversConfig() (map[string]any, error) {
+	receiversConfig := map[string]any{}
+	for receiverID, rEntry := range cfg.Receivers {
+		resourceAttributes := map[string]string{}
+		for k, v := range rEntry.ResourceAttributes {
+			resourceAttributes[k] = v
+		}
+		resourceAttributes[receiverNameAttr] = receiverID.Name()
+		resourceAttributes[receiverTypeAttr] = string(receiverID.Type())
+		resourceAttributes[receiverRuleAttr] = rEntry.Rule
+		resourceAttributes[endpointIDAttr] = "`id`"
+
+		if cfg.EmbedReceiverConfig {
+			embeddedConfig := map[string]any{}
+			embeddedReceiversConfig := map[string]any{}
+			receiverConfig := map[string]any{}
+			receiverConfig["rule"] = rEntry.Rule
+			receiverConfig["config"] = rEntry.Config
+			receiverConfig["resource_attributes"] = rEntry.ResourceAttributes
+			embeddedReceiversConfig[receiverID.String()] = receiverConfig
+			embeddedConfig["receivers"] = embeddedReceiversConfig
+
+			// we don't embed the `watch_observers` array here since it is added
+			// on statement or metric evaluator matches by looking up the
+			// Endpoint.ID to the originating observer ComponentID
+			var configYaml []byte
+			var err error
+			if configYaml, err = yaml.Marshal(embeddedConfig); err != nil {
+				return nil, fmt.Errorf("failed embedding %q receiver config: %w", receiverID.String(), err)
+			}
+			encoded := base64.StdEncoding.EncodeToString(configYaml)
+			resourceAttributes[receiverConfigAttr] = encoded
+		}
+
+		rEntryMap := map[string]any{}
+		rEntryMap["rule"] = rEntry.Rule
+		rEntryMap["config"] = rEntry.Config
+		rEntryMap["resource_attributes"] = resourceAttributes
+		receiversConfig[receiverID.String()] = rEntryMap
+	}
+
+	return receiversConfig, nil
 }

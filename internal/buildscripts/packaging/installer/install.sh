@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # A convenience script to install the collector package on any of our supported
-# distros.  NOT recommended for production use.  Please refer to
+# distros.  Please refer to
 # https://github.com/signalfx/splunk-otel-collector/tree/main/deployments for
 # other installation methods (ansible, chef, puppet, etc.) that are
 # more suitable for production environments.

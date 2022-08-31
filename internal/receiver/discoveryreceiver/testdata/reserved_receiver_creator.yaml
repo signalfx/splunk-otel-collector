@@ -1,0 +1,21 @@
+extensions:
+
+receivers:
+  discovery:
+    watch_observers:
+      - an_observer
+    receivers:
+      receiver_creator/with-name:
+        rule: a rule
+        status:
+          metrics:
+            successful:
+              - regexp: '.*'
+exporters:
+  nop:
+
+service:
+  pipelines:
+    logs:
+      receivers: [discovery]
+      exporters: [nop]

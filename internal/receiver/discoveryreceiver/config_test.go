@@ -15,15 +15,19 @@
 package discoveryreceiver
 
 import (
+	"encoding/base64"
 	"fmt"
 	"path"
 	"testing"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/service/servicetest"
+	"gopkg.in/yaml.v2"
 )
 
 func TestValidConfig(t *testing.T) {
@@ -41,7 +45,7 @@ func TestValidConfig(t *testing.T) {
 
 	assert.Equal(t, len(collectorConfig.Receivers), 1)
 
-	cfg := collectorConfig.Receivers[config.NewComponentID(typeStr)].(*Config)
+	cfg := collectorConfig.Receivers[config.NewComponentIDWithName(typeStr, "discovery-name")].(*Config)
 	require.Equal(t, &Config{
 		Receivers: map[config.ComponentID]ReceiverEntry{
 			config.NewComponentIDWithName("smartagent", "redis"): {
@@ -105,7 +109,7 @@ func TestValidConfig(t *testing.T) {
 				Rule: "type == \"container\"",
 			},
 		},
-		ReceiverSettings:    config.NewReceiverSettings(config.NewComponentID("discovery")),
+		ReceiverSettings:    config.NewReceiverSettings(config.NewComponentIDWithName("discovery", "discovery-name")),
 		LogEndpoints:        true,
 		EmbedReceiverConfig: true,
 		WatchObservers: []config.ComponentID{
@@ -129,6 +133,9 @@ func TestInvalidConfigs(t *testing.T) {
 		{name: "missing_status_metrics_and_statements", expectedError: "receiver \"discovery\" has invalid configuration: receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
 		{name: "invalid_status_types", expectedError: `receiver "discovery" has invalid configuration: receiver "a_receiver" validation failure: unsupported status "unsupported". must be one of [successful partial failed]; unsupported status "another_unsupported". must be one of [successful partial failed]`},
 		{name: "multiple_status_match_types", expectedError: "receiver \"discovery\" has invalid configuration: receiver \"a_receiver\" validation failure: `metrics` status source type `successful` match type validation failed. Must provide one of [regexp strict expr] but received [strict regexp]; `statements` status source type `failed` match type validation failed. Must provide one of [regexp strict expr] but received [strict expr]"},
+		{name: "reserved_receiver_creator", expectedError: `receiver "discovery" has invalid configuration: receiver "receiver_creator/with-name" validation failure: receiver cannot be a receiver_creator`},
+		{name: "reserved_receiver_name", expectedError: `receiver "discovery" has invalid configuration: receiver "a_receiver/with-receiver_creator/in-name" validation failure: receiver name cannot contain "receiver_creator/"`},
+		{name: "reserved_receiver_name_with_endpoint", expectedError: `receiver "discovery" has invalid configuration: receiver "receiver/with{endpoint=}/" validation failure: receiver name cannot contain "{endpoint=[^}]*}/"`},
 	}
 
 	for _, test := range tests {
@@ -140,4 +147,79 @@ func TestInvalidConfigs(t *testing.T) {
 			})
 		}(test.name, test.expectedError)
 	}
+}
+
+func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
+	conf, err := confmaptest.LoadConf(path.Join(".", "testdata", "config.yaml"))
+	require.NoError(t, err)
+	conf, err = conf.Sub("receivers")
+	require.NoError(t, err)
+	require.NotEmpty(t, conf.ToStringMap())
+	conf, err = conf.Sub("discovery/discovery-name")
+	require.NoError(t, err)
+	require.NotEmpty(t, conf.ToStringMap())
+	dCfg := Config{ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName("discovery", "discovery-name"))}
+	require.NoError(t, conf.UnmarshalExact(&dCfg))
+
+	factory, rCfg, err := dCfg.receiverCreatorFactoryAndConfig()
+	require.NoError(t, err)
+	require.Equal(t, config.Type("receiver_creator"), factory.Type())
+
+	require.NoError(t, rCfg.Validate())
+	require.Equal(t, config.NewComponentIDWithName("receiver_creator", "discovery/discovery-name"), rCfg.ID())
+
+	creatorCfg, ok := rCfg.(*receivercreator.Config)
+	require.True(t, ok)
+	require.NotNil(t, creatorCfg)
+
+	// receiver templates aren't exported so limited to WatchObservers
+	require.Equal(t, []config.ComponentID{
+		config.NewComponentID("an_observer"),
+		config.NewComponentIDWithName("another_observer", "with_name"),
+	}, creatorCfg.WatchObservers)
+
+	receiverTemplate, err := dCfg.receiverCreatorReceiversConfig()
+	require.NoError(t, err)
+	expectedConfigHash := "cmVjZWl2ZXJzOgogIHNtYXJ0YWdlbnQvcmVkaXM6CiAgICBjb25maWc6CiAgICAgIGF1dGg6IHBhc3N3b3JkCiAgICAgIGhvc3Q6ICdgaG9zdGAnCiAgICAgIHBvcnQ6ICdgcG9ydGAnCiAgICAgIHR5cGU6IGNvbGxlY3RkL3JlZGlzCiAgICByZXNvdXJjZV9hdHRyaWJ1dGVzOgogICAgICByZWNlaXZlcl9hdHRyaWJ1dGU6IHJlY2VpdmVyX2F0dHJpYnV0ZV92YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiY29udGFpbmVyIgo="
+	expectedTemplate := map[string]any{
+		"smartagent/redis": map[string]any{
+			"config": map[string]any{
+				"auth": "password",
+				"host": "`host`",
+				"port": "`port`",
+				"type": "collectd/redis",
+			},
+			"resource_attributes": map[string]string{
+				"discovery.endpoint.id":     "`id`",
+				"discovery.receiver.config": expectedConfigHash,
+				"discovery.receiver.name":   "redis",
+				"discovery.receiver.rule":   `type == "container"`,
+				"discovery.receiver.type":   "smartagent",
+				"receiver_attribute":        "receiver_attribute_value",
+			},
+			"rule": `type == "container"`,
+		},
+	}
+	require.Equal(t, expectedTemplate, receiverTemplate)
+
+	decoded, err := base64.StdEncoding.DecodeString(expectedConfigHash)
+	require.NoError(t, err)
+	embedded := map[string]any{}
+	yaml.Unmarshal(decoded, &embedded)
+	require.Equal(t, map[string]any{
+		"receivers": map[any]any{
+			"smartagent/redis": map[any]any{
+				"config": map[any]any{
+					"auth": "password",
+					"host": "`host`",
+					"port": "`port`",
+					"type": "collectd/redis",
+				},
+				"resource_attributes": map[any]any{
+					"receiver_attribute": "receiver_attribute_value",
+				},
+				"rule": `type == "container"`,
+			},
+		},
+	}, embedded)
 }

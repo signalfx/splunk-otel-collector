@@ -30,6 +30,8 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 )
 
 func TestConfigSourceConfigMapProvider(t *testing.T) {
@@ -96,6 +98,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				&mockParserProvider{},
 				zap.NewNop(),
 				component.NewDefaultBuildInfo(),
+				configconverter.NewConfigServer(),
 				factories...,
 			)
 			require.NotNil(t, pp)

@@ -108,26 +108,32 @@ func main() {
 		)
 	}
 
-	emp := envprovider.New()
-	fmp := fileprovider.New()
+	configServer := configconverter.NewConfigServer()
+	configMapConverters = append(configMapConverters, configServer)
+
+	envProvider := envprovider.New()
+	fileProvider := fileprovider.New()
 	serviceConfigProvider, err := service.NewConfigProvider(
 		service.ConfigProviderSettings{
-			Locations: configLocations(inputFlags),
-			MapProviders: map[string]confmap.Provider{
-				emp.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
-					emp,
-					zap.NewNop(), // The service logger is not available yet, setting it to NoP.
-					info,
-					configsources.Get()...,
-				),
-				fmp.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
-					fmp,
-					zap.NewNop(), // The service logger is not available yet, setting it to NoP.
-					info,
-					configsources.Get()...,
-				),
+			ResolverSettings: confmap.ResolverSettings{
+				URIs: configLocations(inputFlags),
+				Providers: map[string]confmap.Provider{
+					envProvider.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
+						envProvider,
+						zap.NewNop(), // The service logger is not available yet, setting it to NoP.
+						info,
+						configServer,
+						configsources.Get()...,
+					),
+					fileProvider.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
+						fileProvider,
+						zap.NewNop(), // The service logger is not available yet, setting it to NoP.
+						info,
+						configServer,
+						configsources.Get()...,
+					),
+				}, Converters: configMapConverters,
 			},
-			MapConverters: configMapConverters,
 		})
 	if err != nil {
 		log.Fatal(err)

@@ -13,9 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configprovider
+package configconverter
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"os"
@@ -24,7 +25,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
+	"go.opentelemetry.io/collector/confmap"
 	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
@@ -35,13 +36,11 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 		"minimal": "config",
 	}
 
-	cs := newConfigServer(zap.NewNop(), initial, initial)
+	cs := NewConfigServer()
 	require.NotNil(t, cs)
-
-	require.NoError(t, cs.start())
-	t.Cleanup(func() {
-		require.NoError(t, cs.shutdown())
-	})
+	cs.Register()
+	t.Cleanup(cs.Unregister)
+	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 
 	client := &http.Client{}
 	path := "/debug/configz/initial"
@@ -91,11 +90,12 @@ func TestConfigServer_EnvVar(t *testing.T) {
 				}()
 			}
 
-			cs := newConfigServer(zap.NewNop(), initial, initial)
-			require.NoError(t, cs.start())
-			defer func() {
-				assert.NoError(t, cs.shutdown())
-			}()
+			cs := NewConfigServer()
+			require.NotNil(t, cs)
+			cs.Register()
+
+			require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
+			defer cs.Unregister()
 
 			endpoint := tt.endpoint
 			if endpoint == "" {
@@ -128,7 +128,7 @@ func TestConfigServer_Serve(t *testing.T) {
 		"field":   "not_redacted",
 		"api_key": "not_redacted_on_initial",
 		"int":     42,
-		"map": map[any]any{
+		"map": map[string]any{
 			"k0":       true,
 			"k1":       -1,
 			"password": "$ENV_VAR",
@@ -138,23 +138,23 @@ func TestConfigServer_Serve(t *testing.T) {
 		"field":   "not_redacted",
 		"api_key": "<redacted>",
 		"int":     42,
-		"map": map[any]any{
+		"map": map[string]any{
 			"k0":       true,
 			"k1":       -1,
 			"password": "<redacted>",
 		},
 	}
 
-	cs := newConfigServer(zap.NewNop(), initial, initial)
+	cs := NewConfigServer()
 	require.NotNil(t, cs)
+	cs.Register()
+	t.Cleanup(cs.Unregister)
 
-	require.NoError(t, cs.start())
-	t.Cleanup(func() {
-		require.NoError(t, cs.shutdown())
-	})
+	cs.SetForScheme("scheme", initial)
+	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 
 	// Test for the pages to be actually valid YAML files.
-	assertValidYAMLPages(t, initial, "/debug/configz/initial")
+	assertValidYAMLPages(t, map[string]any{"scheme": initial}, "/debug/configz/initial")
 	assertValidYAMLPages(t, effective, "/debug/configz/effective")
 }
 
@@ -184,5 +184,5 @@ func assertValidYAMLPages(t *testing.T, expected map[string]any, path string) {
 	var unmarshalled map[string]any
 	require.NoError(t, yaml.Unmarshal(respBytes, &unmarshalled))
 
-	assert.Equal(t, expected, unmarshalled)
+	assert.Equal(t, expected, confmap.NewFromStringMap(unmarshalled).ToStringMap())
 }

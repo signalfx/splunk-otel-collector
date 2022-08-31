@@ -5,6 +5,7 @@
 ### 💡 Enhancements 💡
 
 - Upgrade Golang to 1.19
+- debug/configz: Address multiple confmap.Providers for service config and index debug/configz/initial by provider scheme.
 
 ## v0.58.0
 

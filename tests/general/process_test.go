@@ -1,8 +1,8 @@
 package tests
 
 import (
-	"io/ioutil"
-	"log"
+	"fmt"
+	"io"
 	"net/http"
 	"path"
 	"strings"
@@ -10,8 +10,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
+	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -57,44 +59,60 @@ func TestCollectorProcessWithMultipleConfigs(t *testing.T) {
 		return false
 	}, 20*time.Second, time.Second)
 
-	require.Eventually(t, func() bool {
-		// Need expected configs for comparison to config server contents. Sections in the config server can be in
-		// different orders, so ensure the proper sections are in place without enforcing order requirements.
-		expectedBodySections := []string{
-			"receivers:\n  hostmetrics:\n    collection_interval: 10s\n    scrapers:\n      cpu: null\n      disk: null\n      filesystem: null\n      memory: null\n      network: null\n",
-			"processors:\n  resourcedetection:\n    detectors:\n    - system\n",
-			"exporters:\n  otlp:\n    endpoint: localhost:23456\n    tls:\n      insecure: true\n",
-			"service:\n  pipelines:\n    metrics:\n      exporters:\n      - otlp\n      processors:\n      - resourcedetection\n      receivers:\n      - hostmetrics",
-		}
-		// There aren't any keys or tokens in test configs, so initial and effective have the same contents.
-		// We don't need to test the token removal functionality for the effective server here since config server
-		// tests already cover it.
-		configServerURLs := []string{
-			"http://localhost:55554/debug/configz/initial",
-			"http://localhost:55554/debug/configz/effective",
-		}
+	expectedConfig := map[string]any{
+		"receivers": map[string]any{
+			"hostmetrics": map[string]any{
+				"collection_interval": "10s",
+				"scrapers": map[string]any{
+					"cpu":        nil,
+					"disk":       nil,
+					"filesystem": nil,
+					"memory":     nil,
+					"network":    nil,
+				},
+			},
+		},
+		"processors": map[string]any{
+			"resourcedetection": map[string]any{
+				"detectors": []any{"system"},
+			},
+		},
+		"exporters": map[string]any{
+			"otlp": map[string]any{
+				"endpoint": "localhost:23456",
+				"tls": map[string]any{
+					"insecure": true,
+				},
+			},
+		},
+		"service": map[string]any{
+			"pipelines": map[string]any{
+				"metrics": map[string]any{
+					"processors": []any{"resourcedetection"},
+					"receivers":  []any{"hostmetrics"},
+					"exporters":  []any{"otlp"},
+				},
+			},
+		},
+	}
+	for _, tc := range []struct {
+		expected map[string]any
+		endpoint string
+	}{
+		{expected: map[string]any{"file": expectedConfig}, endpoint: "initial"},
+		{expected: expectedConfig, endpoint: "effective"},
+	} {
+		resp, err := http.Get(fmt.Sprintf("http://localhost:55554/debug/configz/%s", tc.endpoint))
+		require.NoError(t, err)
 
-		for _, url := range configServerURLs {
-			resp, err := http.Get(url)
-			if err != nil {
-				return false
-			}
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				log.Fatalln(err)
-			}
-			sb := string(body)
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
 
-			for _, bodySection := range expectedBodySections {
-				if !strings.Contains(sb, bodySection) {
-					return false
-				}
-			}
-		}
+		actual := map[string]any{}
+		require.NoError(t, yaml.Unmarshal(body, &actual))
 
-		return true
-	}, 20*time.Second, time.Second)
+		require.Equal(t, tc.expected, confmap.NewFromStringMap(actual).ToStringMap())
+	}
 
-	err = collector.Shutdown()
-	require.NoError(t, err)
+	require.NoError(t, collector.Shutdown())
 }

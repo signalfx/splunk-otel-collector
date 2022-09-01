@@ -24,7 +24,15 @@
 
 1. If necessary, update the OpenTelemetry Core and Contrib dependency versions
    in [go.mod](../go.mod) and [tests/go.mod](../tests/go.mod), and run
-   `make tidy`.
+   `make tidy`.  Alternatively, you can try using the [update-deps](
+   ../internal/buildscripts/update-deps) script (replace `<VERSION>` with
+   either `latest` or the desired Core/Contrib tag):
+   ```
+   $ OTEL_VERSION=<VERSION> ./internal/buildscripts/update-deps
+   ```
+   Check the changes to ensure that everything was updated as intended.
+   **Note:** The script will try to update each Core/Contrib dependency in
+   `go.mod` one at a time, and may fail due to breaking upstream changes.
 1. If necessary, update [smart-agent-release.txt](
    ../internal/buildscripts/packaging/smart-agent-release.txt) for the latest
    applicable [Smart Agent release](

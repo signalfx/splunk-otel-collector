@@ -3,8 +3,6 @@
   hosts: all
   gather_facts: true
   tasks:
-    - name: Import shared verification tasks
-      ansible.builtin.import_tasks: ../shared/verify_tasks.yml
 
     - name: Assert SPLUNK_ACCESS_TOKEN env var is set
       ansible.builtin.lineinfile:
@@ -47,3 +45,14 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
+
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert splunk-otel-collector service is stopped
+      assert:
+        that: ansible_facts.services['splunk-otel-collector.service'].state == 'stopped'
+
+    - name: Assert td-agent service is stopped
+      assert:
+        that: ansible_facts.services['td-agent.service'].state == 'stopped'

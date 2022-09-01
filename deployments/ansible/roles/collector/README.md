@@ -34,6 +34,13 @@ how to use the role in a playbook with minimal required configuration:
         splunk_realm: SPLUNK_REALM
 ```
 
+You can disable starting the collector, smart agent, and fluentd services by setting 
+the argument `skip_restart` to `true`:
+
+```
+$> ansible-playbook playbook.yaml -e skip_restart=true
+```
+
 ## Role Variables
 
 ### Collector

@@ -56,7 +56,7 @@
 
     - name: Assert specified version of splunk-otel-collector is installed
       assert:
-        that: ansible_facts.packages['splunk-otel-collector'][0].version == '0.34.0'
+        that: ansible_facts.packages['splunk-otel-collector'][0].version == '0.48.0'
 
     - name: Assert custom service user is set
       ansible.builtin.lineinfile:

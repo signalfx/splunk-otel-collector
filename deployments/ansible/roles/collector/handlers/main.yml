@@ -7,12 +7,16 @@
   listen:
     - restart splunk-otel-collector
     - restart td-agent
+  when:
+    - skip_restart | default("false") == "false"
 
 - name: Restart td-agent
   ansible.builtin.service:
     name: td-agent
     state: restarted
-  when: install_fluentd
+  when:
+    - install_fluentd
+    - skip_restart | default("false") == "false"
   listen: "restart td-agent"
 
 - name: Restart Splunk OpenTelemetry Collector
@@ -20,15 +24,21 @@
     name: splunk-otel-collector
     state: restarted
   listen: "restart splunk-otel-collector"
+  when:
+    - skip_restart | default("false") == "false"
 
 - name: Restart Splunk OpenTelemetry Collector for windows
   ansible.windows.win_service:
     name: splunk-otel-collector
     state: restarted
   listen: "restart windows splunk-otel-collector"
+  when:
+    - skip_restart | default("false") == "false"
 
 - name: Restart td-agent for windows
   ansible.windows.win_service:
     name: fluentdwinsvc
     state: restarted
   listen: "restart windows fluentdwinsvc"
+  when:
+    - skip_restart | default("false") == "false"

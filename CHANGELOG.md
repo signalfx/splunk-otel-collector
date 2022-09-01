@@ -10,6 +10,8 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 - Upgrade Golang to 1.19
 - debug/configz: Address multiple confmap.Providers for service config and index debug/configz/initial by provider scheme.
+- Add tar.gz distribution of Splunk Collector
+- Update default gateway config to sync host metadata by default
 
 ## v0.58.0
 

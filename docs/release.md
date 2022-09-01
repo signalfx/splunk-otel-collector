@@ -11,6 +11,7 @@
    repo and CI/CD pipeline.
 1. You must have prod access and the `splunkcloud_account_power` role in `us0`
    to push to the SignalFx S3 bucket.
+1. Install Golang (same version as the `go` directive in [go.mod](../go.mod)).
 1. Install Python 3, [pip](https://pip.pypa.io/en/stable/installing/),
    and [virtualenv](https://virtualenv.pypa.io/en/latest/) on your workstation.
 1. Install the required dependencies with pip in virtualenv on your workstation:
@@ -37,9 +38,11 @@
    ../internal/buildscripts/packaging/smart-agent-release.txt) for the latest
    applicable [Smart Agent release](
    https://github.com/signalfx/signalfx-agent/releases).
-1. If necessary, update the `github.com/signalfx/signalfx-agent` and
+1. If the Smart Agent from the previous step was updated, update the
+   `github.com/signalfx/signalfx-agent` and
    `github.com/signalfx/signalfx-agent/pkg/apm` dependencies in [go.mod](
-   ../go.mod), and run `make tidy`.
+   ../go.mod) to the commit hash for the Smart Agent release tag, and run
+   `make tidy`.
 1. If necessary, update [java-agent-release.txt](
    ../instrumentation/packaging/java-agent-release.txt) for the latest
    applicable [Java Agent release](

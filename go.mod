@@ -28,7 +28,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.58.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension v0.58.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.58.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.58.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.59.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.58.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.58.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.58.0

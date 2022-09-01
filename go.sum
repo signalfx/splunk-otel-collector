@@ -1618,8 +1618,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.58.
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.58.0 h1:AQOkQoreeSSKfX8oxeVbd+yVSUQQbHuA/HUmLPBELZQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.58.0/go.mod h1:jZwlP+hBqVqKu2cv7PJPFO2xTo+R6A1f7OwRCoa9oyU=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.58.0 h1:3011Ty31ul73iHKdAOcmWGhyeYd2e8k6F8QXbGl7GM0=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.58.0 h1:7FrckRvF0OzYBXiWqsHrTE9QhRW2jTvAM6DySPMoLKc=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.58.0/go.mod h1:c0g0/g92ce6QZ1lXj7cEkwokdT3ey1UtbYGMdXZcz6I=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.59.0 h1:iIohPzm97Id5x6EV9lghHKSoy+X38Kw42Fb4JogBWkQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.59.0/go.mod h1:c0g0/g92ce6QZ1lXj7cEkwokdT3ey1UtbYGMdXZcz6I=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.58.0 h1:kzOTdxkYNeBe3QQTJfHmPfssh/cc6Cj2m0WnBLIowis=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.58.0 h1:mCN8i5T9UdA26EPrKJ3iZcOz72qa1J+Tr8TQB2og06Q=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.58.0/go.mod h1:GCT6K7P9ChqwMQ6x8A6WJuoQWAukNFobWpBbNjj+RCI=

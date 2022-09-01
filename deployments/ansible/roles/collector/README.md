@@ -34,7 +34,7 @@ how to use the role in a playbook with minimal required configuration:
         splunk_realm: SPLUNK_REALM
 ```
 
-You can disable starting the collector, smart agent, and fluentd services by setting 
+You can disable starting the collector and fluentd services by setting 
 the argument `start_service` to `false`:
 
 ```

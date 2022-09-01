@@ -69,9 +69,9 @@ func pdataMetrics(dataType pmetric.MetricDataType, value any, timeReceived time.
 
 	dp := dps.AppendEmpty()
 	attributes = dp.Attributes()
-	attributes.Upsert("k0", pcommon.NewValueString("v0"))
-	attributes.Upsert("k1", pcommon.NewValueString("v1"))
-	attributes.Upsert("k2", pcommon.NewValueString("v2"))
+	attributes.UpsertString("k0", "v0")
+	attributes.UpsertString("k1", "v1")
+	attributes.UpsertString("k2", "v2")
 	attributes.Sort()
 	dp.SetTimestamp(pcommon.Timestamp(timeReceived.UnixNano()))
 	switch val := value.(type) {
@@ -208,7 +208,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			}(),
 			expectedMetrics: func() pmetric.Metrics {
 				md := pdataMetrics(pmetric.MetricDataTypeGauge, 13, now)
-				md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).Attributes().Update("k0", pcommon.NewValueString(""))
+				md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).Attributes().UpdateString("k0", "")
 				return md
 			}(),
 		},

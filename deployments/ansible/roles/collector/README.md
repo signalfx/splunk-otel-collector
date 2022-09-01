@@ -35,10 +35,10 @@ how to use the role in a playbook with minimal required configuration:
 ```
 
 You can disable starting the collector, smart agent, and fluentd services by setting 
-the argument `skip_restart` to `true`:
+the argument `start_service` to `false`:
 
 ```
-$> ansible-playbook playbook.yaml -e skip_restart=true
+$> ansible-playbook playbook.yaml -e start_service=false
 ```
 
 ## Role Variables

@@ -5,7 +5,7 @@
   vars:
     splunk_access_token: fake-token
     splunk_realm: fake-realm
-    skip_restart: true
+    start_service: false
   tasks:
     - name: "Include signalfx.splunk_otel_collector.collector role"
       include_role:

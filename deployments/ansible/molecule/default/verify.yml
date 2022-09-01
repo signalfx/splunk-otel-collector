@@ -56,3 +56,4 @@
     - name: Assert td-agent service is stopped
       assert:
         that: ansible_facts.services['td-agent.service'].state == 'stopped'
+      when: ansible_os_family != "Suse"

@@ -123,6 +123,8 @@ $> ansible-playbook playbook.yaml -e start_service=false
 - `splunk_ballast_size_mib`: Memory ballast size in MiB that will be set to the Splunk 
   OTel Collector. (**default:** 1/3 of `splunk_memory_total_mib`)
 
+- `start_service`: Whether to restart the services installed by the playbook. (**default:** true)
+
 #### Windows Proxy
 
 The collector and fluentd installation on Windows relies on [win_get_url](https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_get_url_module.html),

@@ -7,8 +7,6 @@
   listen:
     - restart splunk-otel-collector
     - restart td-agent
-  when:
-    - (start_service | default(true) | bool)
 
 - name: Restart td-agent
   ansible.builtin.service:

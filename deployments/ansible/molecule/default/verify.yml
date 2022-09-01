@@ -4,6 +4,13 @@
   gather_facts: true
   tasks:
 
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert splunk-otel-collector service is stopped
+      assert:
+        that: ansible_facts.services['splunk-otel-collector.service'].state == 'stopped'
+
     - name: Assert SPLUNK_ACCESS_TOKEN env var is set
       ansible.builtin.lineinfile:
         line: SPLUNK_ACCESS_TOKEN=fake-token
@@ -45,15 +52,3 @@
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
-
-    - name: Populate service facts
-      ansible.builtin.service_facts:
-
-    - name: Assert splunk-otel-collector service is stopped
-      assert:
-        that: ansible_facts.services['splunk-otel-collector.service'].state == 'stopped'
-
-    - name: Assert td-agent service is stopped
-      assert:
-        that: ansible_facts.services['td-agent.service'].state == 'stopped'
-      when: ansible_os_family != "Suse"

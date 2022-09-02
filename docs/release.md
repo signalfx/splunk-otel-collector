@@ -20,10 +20,7 @@
    $ source venv/bin/activate
    $ pip install -r internal/buildscripts/packaging/release/requirements.txt
    ```
-1. Clone [cargo](https://cd.splunkdev.com/observability/cloudinfra/cargo/-/tree/master/)
-   repository for local access to the [okta-aws-setup](
-   https://cd.splunkdev.com/observability/cloudinfra/cargo/-/blob/master/okta-aws-setup/okta-aws-setup.sh)
-   script.
+1. Clone cargo repository for local access to the okta-aws-setup script.
 
 ## Steps
 

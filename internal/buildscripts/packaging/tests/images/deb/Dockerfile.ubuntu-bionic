@@ -1,6 +1,7 @@
 # A ubuntu image with systemd enabled.  Must be run with:
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
-FROM ubuntu:bionic
+# revert to ubuntu:bionic post https://bugs.launchpad.net/cloud-images/+bug/1988498/comments/2
+FROM ubuntu:bionic-20220801
 
 RUN apt-get update &&\
     apt-get install -yq ca-certificates curl procps systemd wget

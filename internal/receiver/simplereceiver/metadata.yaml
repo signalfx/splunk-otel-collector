@@ -1,0 +1,21 @@
+# "Receivers can contain a metadata.yaml file that documents the metrics that may be emitted by the receiver."
+# I have not seen this referenced in the documentation at all, but if you want your receiver to emit metrics, 
+# this is the simplest way to generate the code to support it.
+#
+# The file format documentation can be found here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/mdatagen
+
+name: simplereceiver
+
+resource_attributes:
+  simplereceiver.api.name:
+    description: The name of the api being scraped
+    type: string
+
+metrics:
+  simple.value:
+    enabled: true
+    description: Gauge representing a single measurement from a simple receiver.
+    unit: 1
+    gauge:
+      value_type: double
+

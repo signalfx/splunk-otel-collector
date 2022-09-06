@@ -73,7 +73,7 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.0
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.45
-	github.com/signalfx/signalfx-agent v1.0.1-0.20220810191306-a41fb5c94d53
+	github.com/signalfx/signalfx-agent v1.0.1-0.20220901141412-c14862a155e5
 	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cast v1.5.0
@@ -130,7 +130,7 @@ require (
 	github.com/ardielle/ardielle-go v1.5.2 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/aws/aws-sdk-go v1.44.87 // indirect
+	github.com/aws/aws-sdk-go v1.44.89 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.16.11 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.14 // indirect
@@ -363,7 +363,7 @@ require (
 	github.com/signalfx/golib v2.5.1+incompatible // indirect
 	github.com/signalfx/ingest-protocols v0.1.13 // indirect
 	github.com/signalfx/sapm-proto v0.11.0 // indirect
-	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220810191306-a41fb5c94d53 // indirect
+	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220901141412-c14862a155e5 // indirect
 	github.com/signalfx/signalfx-go v1.23.0 // indirect
 	github.com/sijms/go-ora/v2 v2.5.3 // indirect
 	github.com/snowflakedb/gosnowflake v1.6.13 // indirect

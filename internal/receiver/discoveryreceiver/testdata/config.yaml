@@ -1,5 +1,5 @@
 receivers:
-  discovery:
+  discovery/discovery-name:
     watch_observers:
       - an_observer
       - another_observer/with_name

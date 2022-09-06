@@ -84,6 +84,8 @@ receivers:
   smartagent/signalfx-forwarder:
     type: signalfx-forwarder
     listenAddress: 0.0.0.0:9080
+  smartagent/processlist:
+    type: processlist
   signalfx:
     endpoint: 0.0.0.0:9943
     # Whether to preserve incoming access token and use instead of exporter token
@@ -172,11 +174,11 @@ service:
     metrics/internal:
       receivers: [prometheus/internal]
       processors: [memory_limiter, batch, resourcedetection]
+      # When sending to gateway, at least one metrics pipeline needs
+      # to use signalfx exporter so host metadata gets emitted
       exporters: [signalfx]
-      # Use instead when sending to gateway
-      #exporters: [otlp]
     logs/signalfx:
-      receivers: [signalfx]
+      receivers: [signalfx, smartagent/processlist]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
       # Use instead when sending to gateway

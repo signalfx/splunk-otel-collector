@@ -2,9 +2,16 @@
 
 ## Unreleased
 
+## v0.59.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.59.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.59.0) and the [opentelemetry-collector-contrib v0.59.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.59.0) releases.
+
 ### 💡 Enhancements 💡
 
 - Upgrade Golang to 1.19
+- debug/configz: Address multiple confmap.Providers for service config and index debug/configz/initial by provider scheme.
+- Add tar.gz distribution of Splunk Collector
+- Update default gateway config to sync host metadata by default
 
 ## v0.58.0
 

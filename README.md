@@ -115,18 +115,20 @@ This distribution is supported on and packaged for a variety of platforms includ
   - [YAML](https://github.com/signalfx/splunk-otel-collector-chart/tree/main/rendered)
 - [HashiCorp Nomad](./deployments/nomad)
 - Linux
-  - [Installer script (recommended)](./docs/getting-started/linux-installer.md)
-  - Configuration management
+  - [Installer script](./docs/getting-started/linux-installer.md) (recommended for single-host demo/test environments)
+  - Configuration management (recommended for multi-host production environments)
     - [Ansible](https://galaxy.ansible.com/signalfx/splunk_otel_collector)
+    - [Chef](https://supermarket.chef.io/cookbooks/splunk_otel_collector)
     - [Puppet](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)
     - [Salt](https://github.com/signalfx/splunk-otel-collector/tree/main/deployments/salt)
   - Platform as a Service
     - [Heroku](https://github.com/signalfx/splunk-otel-collector-heroku#getting-started)
   - [Manual](./docs/getting-started/linux-manual.md) including DEB/RPM packages, Docker, and binary
 - Windows
-  - [Installer script (recommended)](./docs/getting-started/windows-installer.md)
-  - Configuration management
+  - [Installer script](./docs/getting-started/windows-installer.md) (recommended for single-host demo/test environments)
+  - Configuration management (recommended for multi-host production environments)
     - [Ansible](https://galaxy.ansible.com/signalfx/splunk_otel_collector)
+    - [Chef](https://supermarket.chef.io/cookbooks/splunk_otel_collector)
     - [Puppet](https://forge.puppet.com/modules/signalfx/splunk_otel_collector)
   - [Manual](./docs/getting-started/windows-manual.md) including MSI with GUI and Powershell, Chocolatey, and Docker
 

@@ -79,3 +79,21 @@ func TestIncompatibleExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
 	expectedResourceMetrics := tc.ResourceMetrics("incompat_env_config_source_labels.yaml")
 	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
+
+func TestExpandedYamlViaEnvConfigSource(t *testing.T) {
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPMetricsReceiverSink()
+
+	tc.SkipIfNotContainer()
+
+	_, shutdown := tc.SplunkOtelCollectorWithEnv(
+		"yaml_from_env.yaml",
+		map[string]string{"YAML": "[{action: update, include: .*, match_type: regexp, operations: [{action: add_label, new_label: yaml-from-env, new_value: value-from-env}]}]"},
+	)
+
+	defer shutdown()
+
+	expectedResourceMetrics := tc.ResourceMetrics("yaml_from_env.yaml")
+	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+}

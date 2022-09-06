@@ -264,8 +264,8 @@ github.com/aws/aws-sdk-go v1.38.35/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2z
 github.com/aws/aws-sdk-go v1.40.45/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
 github.com/aws/aws-sdk-go v1.43.11/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
 github.com/aws/aws-sdk-go v1.43.31/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
-github.com/aws/aws-sdk-go v1.44.87 h1:u/1sm8MNUSQHt8MGLEQHAj4r3lns3w0B1IXelPKbpn4=
-github.com/aws/aws-sdk-go v1.44.87/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
+github.com/aws/aws-sdk-go v1.44.89 h1:Xf5Pp9GsNSMRinAuWNiQd0vusXXb3IgYbNlxldhWS2Q=
+github.com/aws/aws-sdk-go v1.44.89/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
 github.com/aws/aws-sdk-go-v2 v1.9.1/go.mod h1:cK/D0BBs0b/oWPIcX/Z/obahJK1TT7IPVjy53i/mX/4=
 github.com/aws/aws-sdk-go-v2 v1.9.2/go.mod h1:cK/D0BBs0b/oWPIcX/Z/obahJK1TT7IPVjy53i/mX/4=
 github.com/aws/aws-sdk-go-v2 v1.11.0/go.mod h1:SQfA+m2ltnu1cA0soUkj4dRSsmITiVQUJvBIZjzfPyQ=
@@ -1579,7 +1579,7 @@ github.com/onsi/gomega v1.10.4/go.mod h1:g/HbgYopi++010VEqkFgJHKC09uJiW9UkXvMUuK
 github.com/onsi/gomega v1.13.0/go.mod h1:lRk9szgn8TxENtWd0Tp4c3wjlRfMTMH27I+3Je41yGY=
 github.com/onsi/gomega v1.15.0/go.mod h1:cIuvLEne0aoVhAgh/O6ac0Op8WWw9H6eYCriF+tEHG0=
 github.com/onsi/gomega v1.16.0/go.mod h1:HnhC7FXeEQY45zxNK3PPoIUhzk/80Xly9PcubAlGdZY=
-github.com/onsi/gomega v1.20.0 h1:8W0cWlwFkflGPLltQvLRB7ZVD5HuP6ng320w2IS245Q=
+github.com/onsi/gomega v1.20.2 h1:8uQq0zMgLEfa0vRrrBgaJF2gyW9Da9BmfGV+OyUzfkY=
 github.com/op/go-logging v0.0.0-20160315200505-970db520ece7/go.mod h1:HzydrMdWErDVzsI23lYNej1Htcns9BCg93Dk0bBINWk=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.59.0 h1:DPsEXX2Z+NhlPlhs2XvZdx3njrdGu89M+jYnrW5Fi6U=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.59.0/go.mod h1:PXapW0E1vEAW2v0tVQonmJusk5psmkAuGCdTpFi2rDQ=
@@ -2000,8 +2000,8 @@ github.com/signalfx/sapm-proto v0.4.0/go.mod h1:x3gtwJ1GRejtkghB4nYpwixh2zqJrLbP
 github.com/signalfx/sapm-proto v0.7.2/go.mod h1:HLufOh6Gd2altGxbeve+s6hh0EWCWoOM7MmuYuvs5PI=
 github.com/signalfx/sapm-proto v0.11.0 h1:TIbJNKJ/J00yyASLlbF1DlVZv+X1bY4/BiaYSU7wfxc=
 github.com/signalfx/sapm-proto v0.11.0/go.mod h1:bYZgdl2ZoMriE4arrRThWH8M6DkVbN7+xsxg4v2HP8Q=
-github.com/signalfx/signalfx-agent v1.0.1-0.20220810191306-a41fb5c94d53 h1:A+pCo4BzlS0xBq2tc7nGGiAqyjq84h6896thPaL2Uqs=
-github.com/signalfx/signalfx-agent v1.0.1-0.20220810191306-a41fb5c94d53/go.mod h1:NEJ85TpSB1UyFNbWqfBq7zh1HnbNTK/i9cgXussYMXE=
+github.com/signalfx/signalfx-agent v1.0.1-0.20220901141412-c14862a155e5 h1:jOCjhUfMwsl81K2nX0Nccvf2vGo/HwGHsaKVMyIvEFw=
+github.com/signalfx/signalfx-agent v1.0.1-0.20220901141412-c14862a155e5/go.mod h1:NwWDbguy1q9iKhzxgU6FOylCmni4y/738KoNkuJ1Ea0=
 github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220810191306-a41fb5c94d53 h1:mCPfYCY4wOBzbFAWIK0WmjUO8eKJZHzIP0EquzbZJ0o=
 github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220810191306-a41fb5c94d53/go.mod h1:II1zi/nz5Af7ep689U012sr0HD9vRShFKaAjw39D+7g=
 github.com/signalfx/signalfx-go v1.23.0 h1:gWLOw2TuYckzzqQ6/aMWrKypNLIzx5s2XwkINw5m+Ck=

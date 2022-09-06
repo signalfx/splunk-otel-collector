@@ -39,11 +39,12 @@
    ../internal/buildscripts/packaging/smart-agent-release.txt) for the latest
    applicable [Smart Agent release](
    https://github.com/signalfx/signalfx-agent/releases).
-1. If the Smart Agent from the previous step was updated, update the
+1. If the Smart Agent from the previous step was updated, or if there are
+   desired native Go monitor updates, the
    `github.com/signalfx/signalfx-agent` and
    `github.com/signalfx/signalfx-agent/pkg/apm` dependencies in [go.mod](
-   ../go.mod) to the commit hash for the Smart Agent release tag, and run
-   `make tidy`.
+   ../go.mod) should be updated to the commit hash for the Smart Agent release tag or feature commit
+   via `go get github.com/signalfx/signalfx-agent@<SHA> github.com/signalfx/signalfx-agent/pkg/apm@<SHA>` and running `make tidy`.
 1. If necessary, update [java-agent-release.txt](
    ../instrumentation/packaging/java-agent-release.txt) for the latest
    applicable [Java Agent release](

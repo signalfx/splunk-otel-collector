@@ -179,7 +179,7 @@ service:
       exporters: [signalfx]
     logs/signalfx:
       receivers: [signalfx, smartagent/processlist]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, batch, resourcedetection]
       exporters: [signalfx]
       # Use instead when sending to gateway
       #exporters: [otlp]

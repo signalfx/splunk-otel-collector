@@ -1,6 +1,6 @@
 // Responsible for defining, receiving and validating the configuration of the receiver.
 
-package simplereceiver
+package githubmetricsreceiver
 
 import (
 	"fmt"
@@ -14,6 +14,8 @@ type Config struct {
     confighttp.HTTPClientSettings `mapstructure:",squash"`
     Interval                      string `mapstructure:"interval"`
     APIKey                        string `mapstructure:"api_key"`
+    RepoName                      string `mapstructure:"repo_name"`
+    GitUsername                   string `mapstructure:"git_username"`
 }
 
 func (cfg *Config) Validate() error {
@@ -26,8 +28,8 @@ func (cfg *Config) Validate() error {
         return fmt.Errorf("A valid API key is required for the snowflake receiver")
     }
 
-    if (interval.Minutes() < 1) {
-        return fmt.Errorf("Interval must be set to at least 1 minute")
+    if (interval.Minutes() < 60) {
+        return fmt.Errorf("Interval must be set to at least 1 hour")
     }
 
     return nil

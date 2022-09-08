@@ -1,7 +1,7 @@
 // The factory file is responsible for providing the required ReceiverFactory object that every
 // receiver must return to the opentelemetry receiever.
 
-package simplereceiver
+package githubmetricsreceiver
 
 import (
 	"time"
@@ -11,8 +11,8 @@ import (
 )
 
 const (
-    typeStr = "snowflake"
-    defaultInterval = 1 * time.Minute
+    typeStr = "GithubMetrics"
+    defaultInterval = 60 * time.Minute
 )
 
 func createDefaultConfig() config.Receiver {

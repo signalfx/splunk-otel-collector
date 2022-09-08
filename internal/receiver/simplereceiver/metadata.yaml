@@ -4,18 +4,80 @@
 #
 # The file format documentation can be found here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/mdatagen
 
-name: simplereceiver
+name: githubmetricsreceiver
 
 resource_attributes:
-  simplereceiver.api.name:
-    description: The name of the api being scraped
+  github.repo.name:
+    description: The name of the repo being scraped
     type: string
+  github.repo.username:
+    description: Repository owners username
 
 metrics:
-  simple.value:
+  codechanges.additions: 
     enabled: true
-    description: Gauge representing a single measurement from a simple receiver.
+    description: Code additions to repo 
     unit: 1
     gauge:
-      value_type: double
+      value_type: int
+  codechanges.deletions: 
+    enabled: true
+    description: Code deletions to repo 
+    unit: 1
+    gauge:
+      value_type: int
+  commits.total.ytd:
+    enabled: true
+    description: Number of total commits YTD
+    unit: 1
+    gauge:
+      value_type: int
+  commits.total.weekly:
+    enabled: true
+    description: Number of total commits this week (beginning Sunday)
+    unit: 1
+    gauge:
+      value_type: int
+  commits.sunday:
+    enabled: true
+    description: Number of commits on Sunday
+    unit: 1
+    gauge:
+      value_type: int 
+  commits.monday:
+    enabled: true
+    description: Number of commits on Monday
+    unit: 1
+    gauge:
+      value_type: int
+  commits.tuesday:
+    enabled: true
+    description: Number of commits on Tuesday 
+    unit: 1
+    gauge:
+      value_type: int
+  commits.wednesday:
+    enabled: true
+    description: Number of commits on Wednesday
+    unit: 1
+    gauge:
+      value_type: int
+  commits.thursday:
+    enabled: true
+    description: Number of commits on Thursday
+    unit: 1
+    gauge:
+      value_type: int
+  commits.friday:
+    enabled: true
+    description: Number of commits on Friday
+    unit: 1
+    gauge:
+      value_type: int
+  commits.saturday:
+    enabled: true
+    description: Number of commits on Saturday
+    unit: 1
+    gauge:
+      value_type: int
 

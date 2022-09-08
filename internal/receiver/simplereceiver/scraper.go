@@ -2,4 +2,8 @@
 // from the REST API. The scraper object will wrap the client and handle the request dispatching,
 // converting the json response to a metric, and emitting this metric.
 
-package simplereceiver
+package githubmetricsreceiver
+
+type githubMetricsScraper struct {
+    client githubmetricsClinet
+}

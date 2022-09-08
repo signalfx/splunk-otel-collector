@@ -3,8 +3,13 @@
   hosts: all
   gather_facts: true
   tasks:
-    - name: Import shared verification tasks
-      ansible.builtin.import_tasks: ../shared/verify_tasks.yml
+
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert splunk-otel-collector service is stopped
+      assert:
+        that: ansible_facts.services['splunk-otel-collector.service'].state == 'stopped'
 
     - name: Assert SPLUNK_ACCESS_TOKEN env var is set
       ansible.builtin.lineinfile:

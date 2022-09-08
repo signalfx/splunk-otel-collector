@@ -34,6 +34,13 @@ how to use the role in a playbook with minimal required configuration:
         splunk_realm: SPLUNK_REALM
 ```
 
+You can disable starting the collector and fluentd services by setting 
+the argument `start_service` to `false`:
+
+```
+$> ansible-playbook playbook.yaml -e start_service=false
+```
+
 ## Role Variables
 
 ### Collector
@@ -115,6 +122,8 @@ how to use the role in a playbook with minimal required configuration:
 
 - `splunk_ballast_size_mib`: Memory ballast size in MiB that will be set to the Splunk 
   OTel Collector. (**default:** 1/3 of `splunk_memory_total_mib`)
+
+- `start_service`: Whether to restart the services installed by the playbook. (**default:** true)
 
 #### Windows Proxy
 

@@ -6,7 +6,7 @@
     splunk_access_token: fake-token
     splunk_ingest_url: https://fake-ingest.com
     splunk_api_url: https://fake-api.com
-    splunk_otel_collector_version: 0.34.0
+    splunk_otel_collector_version: 0.48.0
     splunk_otel_collector_config: /etc/otel/collector/custom_config.yml
     splunk_otel_collector_config_source: ./custom_collector_config.yml
     splunk_service_user: custom-user

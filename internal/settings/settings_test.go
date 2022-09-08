@@ -31,9 +31,10 @@ import (
 )
 
 var (
-	configPath        = filepath.Join(".", "testdata", "config.yaml")
-	anotherConfigPath = filepath.Join(".", "testdata", "another-config.yaml")
-	localGateway      = filepath.Join("..", "..", DefaultLocalGatewayConfig)
+	configPath           = filepath.Join(".", "testdata", "config.yaml")
+	anotherConfigPath    = filepath.Join(".", "testdata", "another-config.yaml")
+	localGatewayConfig   = filepath.Join("..", "..", "cmd/otelcol/config/collector/gateway_config.yaml")
+	localOTLPLinuxConfig = filepath.Join("..", "..", "cmd/otelcol/config/collector/otlp_config_linux.yaml")
 )
 
 func TestNewSettingsWithUnknownFlagsAcceptable(t *testing.T) {
@@ -172,16 +173,16 @@ func TestSplunkConfigYamlUtilizedInResolverURIs(t *testing.T) {
 func TestSplunkConfigYamlNotUtilizedInResolverURIsWithConfigEnvVar(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 	require.NoError(t, os.Setenv(ConfigYamlEnvVar, "some: yaml"))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGateway))
+	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, []string{localGateway}, settings.ResolverURIs())
+	require.Equal(t, []string{localGatewayConfig}, settings.ResolverURIs())
 }
 
 func TestCheckRuntimeParams_Default(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGateway))
+	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
@@ -191,7 +192,7 @@ func TestCheckRuntimeParams_Default(t *testing.T) {
 
 func TestCheckRuntimeParams_MemTotalEnv(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGateway))
+	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
 	require.NoError(t, os.Setenv(MemTotalEnvVar, "1000"))
 	settings, err := New([]string{})
 	require.NoError(t, err)
@@ -202,7 +203,7 @@ func TestCheckRuntimeParams_MemTotalEnv(t *testing.T) {
 
 func TestCheckRuntimeParams_MemTotalAndBallastEnvs(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGateway))
+	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
 	require.NoError(t, os.Setenv(MemTotalEnvVar, "200"))
 	require.NoError(t, os.Setenv(BallastEnvVar, "90"))
 
@@ -215,7 +216,7 @@ func TestCheckRuntimeParams_MemTotalAndBallastEnvs(t *testing.T) {
 
 func TestCheckRuntimeParams_LimitAndBallastEnvs(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(ConfigEnvVar, localGateway))
+	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
 	require.NoError(t, os.Setenv(MemLimitMiBEnvVar, "250"))
 	require.NoError(t, os.Setenv(BallastEnvVar, "120"))
 
@@ -303,18 +304,16 @@ func TestCheckRuntimeParams_MemTotalEnvAndBallastFlag(t *testing.T) {
 
 func TestUseConfigPathsFromEnvVar(t *testing.T) {
 	t.Cleanup(clearEnv(t))
-	os.Setenv(ConfigEnvVar, localGateway)
+	os.Setenv(ConfigEnvVar, localGatewayConfig)
 
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	configPaths := settingsToFlags(t, settings).configPaths.value
-	require.Equal(t, []string{localGateway}, configPaths)
-	require.Equal(t, []string{localGateway}, settings.ResolverURIs())
+	require.Equal(t, []string{localGatewayConfig}, configPaths)
+	require.Equal(t, []string{localGatewayConfig}, settings.ResolverURIs())
 }
 
 func TestConfigPrecedence(t *testing.T) {
-	validPath1 := filepath.Join("..", "..", DefaultLocalGatewayConfig)
-	validPath2 := filepath.Join("..", "..", DefaultLocalOTLPLinuxConfig)
 	validConfig := `receivers:
   hostmetrics:
     collection_interval: 1s
@@ -339,29 +338,29 @@ service:
 	}{
 		{
 			name:                "Flag --config precedences env SPLUNK_CONFIG and SPLUNK_CONFIG_YAML",
-			configFlagVals:      []string{validPath1},
-			splunkConfigVal:     validPath2,
+			configFlagVals:      []string{localGatewayConfig},
+			splunkConfigVal:     localOTLPLinuxConfig,
 			splunkConfigYamlVal: validConfig,
 			expectedLogs: []string{
-				fmt.Sprintf("Both environment variable SPLUNK_CONFIG and flag '--config' were specified. Using the flag values and ignoring the environment variable value %s in this session", validPath2),
-				fmt.Sprintf("Set config to [%v]", validPath1),
+				fmt.Sprintf("Both environment variable SPLUNK_CONFIG and flag '--config' were specified. Using the flag values and ignoring the environment variable value %s in this session", localOTLPLinuxConfig),
+				fmt.Sprintf("Set config to [%v]", localGatewayConfig),
 			},
 			unexpectedLogs: []string{
-				fmt.Sprintf("Set config to [%v]", validPath2),
+				fmt.Sprintf("Set config to [%v]", localOTLPLinuxConfig),
 				fmt.Sprintf("Using environment variable %s for configuration", ConfigYamlEnvVar),
 			},
 		},
 		{
 			name:                "env SPLUNK_CONFIG precedences SPLUNK_CONFIG_YAML",
 			configFlagVals:      []string{},
-			splunkConfigVal:     validPath2,
+			splunkConfigVal:     localOTLPLinuxConfig,
 			splunkConfigYamlVal: validConfig,
 			expectedLogs: []string{
-				fmt.Sprintf("Both %s and %s were specified. Using %s environment variable value %s for this session", ConfigEnvVar, ConfigYamlEnvVar, ConfigEnvVar, validPath2),
-				fmt.Sprintf("Set config to %v", validPath2),
+				fmt.Sprintf("Both %s and %s were specified. Using %s environment variable value %s for this session", ConfigEnvVar, ConfigYamlEnvVar, ConfigEnvVar, localOTLPLinuxConfig),
+				fmt.Sprintf("Set config to %v", localOTLPLinuxConfig),
 			},
 			unexpectedLogs: []string{
-				fmt.Sprintf("Set config to [%v]", validPath1),
+				fmt.Sprintf("Set config to [%v]", localGatewayConfig),
 				fmt.Sprintf("Using environment variable %s for configuration", ConfigYamlEnvVar),
 			},
 		},
@@ -374,18 +373,18 @@ service:
 				fmt.Sprintf("Using environment variable %s for configuration", ConfigYamlEnvVar),
 			},
 			unexpectedLogs: []string{
-				fmt.Sprintf("Set config to %v", validPath1),
-				fmt.Sprintf("Set config to %v", validPath2),
+				fmt.Sprintf("Set config to %v", localGatewayConfig),
+				fmt.Sprintf("Set config to %v", localOTLPLinuxConfig),
 			},
 		},
 		{
 			name:                "Flag --config precedences other envvars, works with multiple values",
-			configFlagVals:      []string{validPath1, validPath2},
+			configFlagVals:      []string{localGatewayConfig, localOTLPLinuxConfig},
 			splunkConfigVal:     "",
 			splunkConfigYamlVal: validConfig,
 			expectedLogs: []string{
 				fmt.Sprintf("Both environment variable %s and flag '--config' were specified. Using the flag values and ignoring the environment variable in this session", ConfigYamlEnvVar),
-				fmt.Sprintf("Set config to [%v,%v]", validPath1, validPath2),
+				fmt.Sprintf("Set config to [%v,%v]", localGatewayConfig, localOTLPLinuxConfig),
 			},
 			unexpectedLogs: []string{
 				fmt.Sprintf("Using environment variable %s for configuration", ConfigYamlEnvVar),
@@ -447,8 +446,7 @@ func TestRemoveFlag(t *testing.T) {
 // to satisfy Settings generation
 func setRequiredEnvVars(t *testing.T) func() {
 	cleanup := clearEnv(t)
-	require.NoError(t, os.Setenv(TokenEnvVar, "some-token"))
-	require.NoError(t, os.Setenv(RealmEnvVar, "some-realm"))
+	require.NoError(t, os.Setenv(ConfigEnvVar, localGatewayConfig))
 	return cleanup
 }
 

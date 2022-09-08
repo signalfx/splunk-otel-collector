@@ -50,8 +50,6 @@ const (
 
 	DefaultGatewayConfig           = "/etc/otel/collector/gateway_config.yaml"
 	DefaultOTLPLinuxConfig         = "/etc/otel/collector/otlp_config_linux.yaml"
-	DefaultLocalGatewayConfig      = "cmd/otelcol/config/collector/gateway_config.yaml"
-	DefaultLocalOTLPLinuxConfig    = "cmd/otelcol/config/collector/otlp_config_linux.yaml"
 	DefaultMemoryBallastPercentage = 33
 	DefaultMemoryLimitPercentage   = 90
 	DefaultMemoryTotalMiB          = 512
@@ -291,13 +289,11 @@ func checkConfig(settings *flags) error {
 }
 
 func getExistingDefaultConfigPath() (path string, err error) {
-	if _, err = os.Stat(DefaultLocalGatewayConfig); err == nil {
-		path = DefaultLocalGatewayConfig
-	} else if _, err = os.Stat(DefaultGatewayConfig); err == nil {
+	if _, err = os.Stat(DefaultGatewayConfig); err == nil {
 		path = DefaultGatewayConfig
-	} else {
-		err = fmt.Errorf("unable to find the default configuration file (%s) or (%s)", DefaultLocalGatewayConfig, DefaultGatewayConfig)
+		return
 	}
+	err = fmt.Errorf("unable to find the default configuration file %s", DefaultGatewayConfig)
 	return
 }
 
@@ -400,9 +396,7 @@ func confirmRequiredEnvVarsForDefaultConfigs(paths []string) error {
 		switch path {
 		case
 			DefaultGatewayConfig,
-			DefaultOTLPLinuxConfig,
-			DefaultLocalGatewayConfig,
-			DefaultLocalOTLPLinuxConfig:
+			DefaultOTLPLinuxConfig:
 			requiredEnvVars := []string{RealmEnvVar, TokenEnvVar}
 			for _, v := range requiredEnvVars {
 				if len(os.Getenv(v)) == 0 {

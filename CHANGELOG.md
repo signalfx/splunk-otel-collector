@@ -7,7 +7,7 @@
 ### 💡 Enhancements 💡
 
 - Upgrade to include changes from [SignalFx Smart Agent v5.23.0](https://github.com/signalfx/signalfx-agent/releases/tag/v5.23.0)
-- Add `processlist` and `resourcedetection to default config
+- Add `processlist` and `resourcedetection` to default config
 
 ## v0.59.0
 

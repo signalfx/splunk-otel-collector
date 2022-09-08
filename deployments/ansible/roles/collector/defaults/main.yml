@@ -32,6 +32,8 @@ splunk_memory_total_mib: 512
 splunk_ballast_size_mib: ""
 
 install_fluentd: true
+# Whether to start the services installed by the role (splunk-otel-collector and td-agent).
+start_service: true
 
 # Explicitly set version of td-agent,
 # By default: 3.7.1 for Debian stretch and 4.3.2 for other distros.

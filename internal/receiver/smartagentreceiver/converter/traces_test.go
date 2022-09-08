@@ -501,10 +501,10 @@ func newPDataSpan(
 	td := ptrace.NewTraces()
 	rs := td.ResourceSpans().AppendEmpty()
 	if serviceName != "" {
-		rs.Resource().Attributes().InsertString("service.name", serviceName)
+		rs.Resource().Attributes().UpsertString("service.name", serviceName)
 	}
 	if dataSourceIP != "" {
-		rs.Resource().Attributes().InsertString("ip", dataSourceIP)
+		rs.Resource().Attributes().UpsertString("ip", dataSourceIP)
 	}
 	span := rs.ScopeSpans().AppendEmpty().Spans().AppendEmpty()
 
@@ -538,11 +538,11 @@ func newPDataSpan(
 	for k, val := range attributes {
 		switch v := val.(type) {
 		case string:
-			attrs.InsertString(k, v)
+			attrs.UpsertString(k, v)
 		default:
 			vInt, err := strconv.ParseInt(fmt.Sprintf("%v", v), 10, 64)
 			require.NoError(t, err)
-			attrs.InsertInt(k, vInt)
+			attrs.UpsertInt(k, vInt)
 		}
 	}
 

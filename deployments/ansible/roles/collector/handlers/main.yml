@@ -12,7 +12,8 @@
   ansible.builtin.service:
     name: td-agent
     state: restarted
-  when: install_fluentd
+  when:
+    - install_fluentd and (start_service | default(true) | bool)
   listen: "restart td-agent"
 
 - name: Restart Splunk OpenTelemetry Collector
@@ -20,15 +21,21 @@
     name: splunk-otel-collector
     state: restarted
   listen: "restart splunk-otel-collector"
+  when:
+    - (start_service | default(true) | bool)
 
 - name: Restart Splunk OpenTelemetry Collector for windows
   ansible.windows.win_service:
     name: splunk-otel-collector
     state: restarted
   listen: "restart windows splunk-otel-collector"
+  when:
+    - (start_service | default(true) | bool)
 
 - name: Restart td-agent for windows
   ansible.windows.win_service:
     name: fluentdwinsvc
     state: restarted
   listen: "restart windows fluentdwinsvc"
+  when:
+    - (start_service | default(true) | bool)

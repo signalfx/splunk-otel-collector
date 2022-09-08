@@ -167,7 +167,7 @@ instrumentation-rpm:
 sign-exe:
   extends:
     - .trigger-filter
-    - .sign-release
+    - .submit-request
   stage: sign-binaries
   needs:
     - compile
@@ -175,11 +175,9 @@ sign-exe:
     matrix:
       - TARGET: [otelcol, translatesfx]
   variables:
-    PATHS: bin/${TARGET}_windows_amd64.exe
-    OPTIONS: "--no-push"
-  after_script:
-    - mkdir -p dist/signed
-    - mv bin/signed/${TARGET}_windows_amd64.exe dist/signed/
+    ARTIFACT: bin/${TARGET}_windows_amd64.exe
+    SIGN_TYPE: WIN
+    DOWNLOAD_DIR: dist/signed
   artifacts:
     paths:
       - dist/signed/${TARGET}_windows_amd64.exe

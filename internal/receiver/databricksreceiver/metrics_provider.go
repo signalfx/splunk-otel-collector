@@ -17,7 +17,6 @@ package databricksreceiver
 import (
 	"fmt"
 
-	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
@@ -50,24 +49,14 @@ func (p metricsProvider) addJobStatusMetrics(ms pmetric.MetricSlice) ([]int, err
 		jobPt := jobPts.AppendEmpty()
 		pauseStatus := pauseStatusToInt(j.Settings.Schedule.PauseStatus)
 		jobPt.SetIntVal(pauseStatus)
-		jobIDAttr := pcommon.NewValueInt(int64(j.JobID))
-		jobPt.Attributes().Insert(metadata.A.JobID, jobIDAttr)
+		jobPt.Attributes().UpsertInt(metadata.A.JobID, int64(j.JobID))
 		for _, task := range j.Settings.Tasks {
 			taskPt := taskPts.AppendEmpty()
 			taskPt.SetIntVal(pauseStatus)
 			taskAttrs := taskPt.Attributes()
-			taskAttrs.Insert(
-				metadata.A.JobID,
-				jobIDAttr,
-			)
-			taskAttrs.Insert(
-				metadata.A.TaskID,
-				pcommon.NewValueString(task.TaskKey),
-			)
-			taskAttrs.Insert(
-				metadata.A.TaskType,
-				pcommon.NewValueString(taskType(task)),
-			)
+			taskAttrs.UpsertInt(metadata.A.JobID, int64(j.JobID))
+			taskAttrs.UpsertString(metadata.A.TaskID, task.TaskKey)
+			taskAttrs.UpsertString(metadata.A.TaskType, taskType(task))
 		}
 	}
 	return jobIDs, nil

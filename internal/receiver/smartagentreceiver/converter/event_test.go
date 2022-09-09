@@ -127,7 +127,7 @@ func newExpectedLog(properties map[string]pcommon.Value, timestamp uint64) plog.
 
 	attrs := lr.Attributes()
 	for k, v := range properties {
-		attrs.Insert(k, v)
+		v.CopyTo(attrs.UpsertEmpty(k))
 	}
 
 	return ld

@@ -101,13 +101,7 @@ func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pco
 	case pcommon.ValueTypeMap:
 		val = value.MapVal().AsRaw()
 	case pcommon.ValueTypeSlice:
-		// Coerce to []any
-		// Required pdata helper is not exposed so we pass value as a map
-		// and use helper that calls it internally.
-		toTranslate := pcommon.NewMap()
-		toTranslate.Insert(name, value)
-		translated := toTranslate.AsRaw()
-		val = translated[name]
+		val = value.SliceVal().AsRaw()
 	default:
 		val = nil
 	}

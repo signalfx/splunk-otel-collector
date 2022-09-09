@@ -115,9 +115,9 @@ func endpointToPLogs(observerID config.ComponentID, eventType string, endpoints 
 	pLogs = plog.NewLogs()
 	rlog := pLogs.ResourceLogs().AppendEmpty()
 	rAttrs := rlog.Resource().Attributes()
-	rAttrs.InsertString(eventTypeAttr, eventType)
-	rAttrs.InsertString(observerNameAttr, observerID.Name())
-	rAttrs.InsertString(observerTypeAttr, string(observerID.Type()))
+	rAttrs.UpsertString(eventTypeAttr, eventType)
+	rAttrs.UpsertString(observerNameAttr, observerID.Name())
+	rAttrs.UpsertString(observerTypeAttr, string(observerID.Type()))
 	sl := rlog.ScopeLogs().AppendEmpty()
 	for _, endpoint := range endpoints {
 		logRecord := sl.LogRecords().AppendEmpty()
@@ -134,12 +134,12 @@ func endpointToPLogs(observerID config.ComponentID, eventType string, endpoints 
 				// this must be the first mutation of attrs since it's destructive
 				envAttrs.CopyTo(attrs)
 			}
-			attrs.InsertString("type", string(endpoint.Details.Type()))
+			attrs.UpsertString("type", string(endpoint.Details.Type()))
 		} else {
 			logRecord.Body().SetStringVal(fmt.Sprintf("%s endpoint %s", eventType, endpoint.ID))
 		}
-		attrs.InsertString("endpoint", endpoint.Target)
-		attrs.InsertString("id", string(endpoint.ID))
+		attrs.UpsertString("endpoint", endpoint.Target)
+		attrs.UpsertString("id", string(endpoint.ID))
 
 		// sorted log record attributes for determinism
 		attrs.Sort()
@@ -155,13 +155,11 @@ func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer
 		// should result in a ValueMap
 		case shouldEmbedMap(endpointType, k):
 			if asMap, ok := v.(map[string]string); ok {
-				val := pcommon.NewValueMap()
-				mapVal := val.MapVal()
+				mapVal := attrs.UpsertEmptyMap(k)
 				for item, itemVal := range asMap {
-					mapVal.InsertString(item, itemVal)
+					mapVal.UpsertString(item, itemVal)
 				}
 				mapVal.Sort()
-				attrs.Insert(k, val)
 			} else {
 				return attrs, fmt.Errorf("failed parsing %v env attributes", endpointType)
 			}
@@ -169,24 +167,22 @@ func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer
 		// embedded as ValueMap
 		case observer.EndpointType(k) == observer.PodType && endpointType == observer.PortType:
 			if podEnv, ok := v.(observer.EndpointEnv); ok {
-				val := pcommon.NewValueMap()
 				podAttrs, e := endpointEnvToAttrs(observer.PodType, podEnv)
 				if e != nil {
 					return attrs, fmt.Errorf("failed parsing %v pod attributes ", endpointType)
 				}
-				podAttrs.CopyTo(val.MapVal())
-				attrs.Insert(k, val)
+				podAttrs.CopyTo(attrs.UpsertEmptyMap(k))
 			} else {
 				return attrs, fmt.Errorf("failed parsing %v pod env %#v", endpointType, v)
 			}
 		default:
 			switch vVal := v.(type) {
 			case uint16:
-				attrs.InsertInt(k, int64(vVal))
+				attrs.UpsertInt(k, int64(vVal))
 			case bool:
-				attrs.InsertBool(k, vVal)
+				attrs.UpsertBool(k, vVal)
 			default:
-				attrs.InsertString(k, fmt.Sprintf("%v", v))
+				attrs.UpsertString(k, fmt.Sprintf("%v", v))
 			}
 		}
 	}

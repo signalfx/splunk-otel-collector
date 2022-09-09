@@ -113,6 +113,6 @@ func fillNumberDatapoint(value sfx.Value, timestamp time.Time, dimensions map[st
 	attributes := dp.Attributes()
 	attributes.EnsureCapacity(len(dimensions))
 	for k, v := range dimensions {
-		attributes.InsertString(k, v)
+		attributes.UpsertString(k, v)
 	}
 }

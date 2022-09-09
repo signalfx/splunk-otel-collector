@@ -21,6 +21,8 @@
    $ pip install -r internal/buildscripts/packaging/release/requirements.txt
    ```
 1. Clone cargo repository for local access to the okta-aws-setup script.
+1. Determine if a new [SignalFx Smart Agent](https://github.com/signalfx/signalfx-agent)
+   release is necessary. If yes, create a new release before proceeding.
 
 ## Steps
 
@@ -35,10 +37,10 @@
    Check the changes to ensure that everything was updated as intended.
    **Note:** The script will try to update each Core/Contrib dependency in
    `go.mod` one at a time, and may fail due to breaking upstream changes.
-1. If necessary, update [smart-agent-release.txt](
+1. If a new SignalFx Smart Agent release has been created since the last Splunk
+   OpenTelemetry Collector release, update [smart-agent-release.txt](
    ../internal/buildscripts/packaging/smart-agent-release.txt) for the latest
-   applicable [Smart Agent release](
-   https://github.com/signalfx/signalfx-agent/releases).
+   [Smart Agent release](https://github.com/signalfx/signalfx-agent/releases).
 1. If the Smart Agent from the previous step was updated, or if there are
    desired native Go monitor updates, the
    `github.com/signalfx/signalfx-agent` and
@@ -62,13 +64,15 @@
    $ make add-tag TAG=v1.2.3
    $ git push --tags origin  # assuming "origin" is the upstream repository and not your fork
    ```
-1. Wait for the gitlab repo to be synced with the new tag (may take up to 30
-   minutes; if you have permissions, you can trigger the sync immediately from
-   repo settings in gitlab).  The CI/CD pipeline will then trigger
+1. Wait for the gitlab repo (`o11y-gdi/splunk-otel-collector-releases`) to be synced with
+   the new tag (may take up to 30 minutes). The CI/CD pipeline will then trigger
    automatically for the new tag.
+   - If you have `Maintainer` permissions or above, you can trigger the sync
+     immediately. Go to `Settings` -> `Repository` -> `Mirroring repositories` ->
+     `Click button to update existing mirrored repository`
 1. Ensure that the build and release jobs in gitlab for the tag are successful
    (may take over 30 minutes to complete).
-   - Make sure to check the pipeline for the new tag, not the commit on the
+   - Make sure to reference the CI/CD pipeline for the new tag, not the commit on the
      `main` branch.
 1. Ensure that the `quay.io/signalfx/splunk-otel-collector:<VERSION>` image
    was built and pushed.
@@ -81,8 +85,11 @@
    ../CHANGELOG.md).
 1. Download the MSI (`splunk-otel-collector-<VERSION>-amd64.msi`) from the
    Github Release to your workstation.
-1. Request the `signalfx/splunkcloud_account_power` role by running
-   `okta-aws-setup us0` locally on your workstation.
+1. Get `us0` realm credentials through Okta.
+   ```
+   $ okta-aws-setup us0
+   ```
+   Select the `signalfx/splunkcloud_account_power` role.
 1. Run the following script in virtualenv to push the signed MSI and installer
    scripts to S3 (replace `PATH_TO_MSI` with the path to the signed MSI file
    downloaded from the previous step).

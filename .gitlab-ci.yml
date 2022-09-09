@@ -350,13 +350,20 @@ sign-tar:
 sign-msi:
   extends:
     - .trigger-filter
-    - .sign-release
+    - .submit-request
   stage: sign-packages
   needs:
     - build-msi
   variables:
-    PATHS: dist/*.msi
-    OPTIONS: "--no-push"
+    ARTIFACT: dist/packages.tar.gz
+    SIGN_TYPE: WIN
+    OPTIONS: archive
+    DOWNLOAD_DIR: dist/signed
+  before_script:
+    - pushd dist && tar -czvf packages.tar.gz *.msi && popd
+  after_script:
+    - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
+    - rm dist/signed/packages.tar.gz
   artifacts:
     paths:
       - dist/signed/*.msi

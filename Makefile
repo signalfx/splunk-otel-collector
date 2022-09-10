@@ -19,8 +19,12 @@ ALL_PKGS := $(shell go list $(sort $(dir $(ALL_SRC))))
 
 ALL_TESTS_DIRS := $(shell find tests -name '*_test.go' | xargs -L 1 dirname | uniq | sort -r)
 
+ALL_EXAMPLES_DOCKER_COMPOSE_TESTS := $(shell find examples -name 'docker-compose.yml' |  xargs dirname | xargs basename | awk '{print "example-"$$1}')
+ALL_EXAMPLES_DOCKER_COMPOSE := $(shell find examples -name 'docker-compose.yml')
+
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
+VERSION?=latest
 
 GIT_SHA=$(shell git rev-parse --short HEAD)
 GO_ACC=go-acc
@@ -276,3 +280,20 @@ ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-windows_amd64
 endif
 	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(SMART_AGENT_RELEASE)"
+
+.PHONY: update-examples
+update-examples:
+	sed -i '' "s;quay.io/signalfx/splunk-otel-collector:.*$$;quay.io/signalfx/splunk-otel-collector:$(VERSION);g" $(ALL_EXAMPLES_DOCKER_COMPOSE)
+
+.PHONY: examples-test-run
+examples-test-run: $(ALL_EXAMPLES_DOCKER_COMPOSE_TESTS)
+
+.PHONY: $(ALL_EXAMPLES_DOCKER_COMPOSE_TESTS)
+$(ALL_EXAMPLES_DOCKER_COMPOSE_TESTS): example-%:
+	cd examples/$* && docker-compose up -d
+	sleep 15
+ifeq ($(shell docker ps | grep otelcollector | wc -l),0)
+	docker logs otelcollector
+	cd examples/$* && docker-compose down && exit 1
+endif
+	cd examples/$* && docker-compose down

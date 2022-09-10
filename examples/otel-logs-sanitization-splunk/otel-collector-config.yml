@@ -4,12 +4,12 @@ receivers:
       operators:
         - type: regex_parser
           regex: '(?P<before>.*)\d\d\d\d-\d\d\d-\d\d\d\d(?P<after>.*)'
-          parse_to: parsed
+          parse_to: body.parsed
           output: before_and_after
         - id: before_and_after
           type: add
-          field: $$body
-          value: EXPR($$body.parsed.before + "XXX-XXX-XXXX" + $$body.parsed.after)
+          field: body
+          value: EXPR(body.parsed.before + "XXX-XXX-XXXX" + body.parsed.after)
 
 
 exporters:

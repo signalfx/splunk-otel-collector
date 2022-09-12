@@ -22,7 +22,9 @@
    ```
 1. Clone cargo repository for local access to the okta-aws-setup script.
 1. Determine if a new [SignalFx Smart Agent](https://github.com/signalfx/signalfx-agent)
-   release is necessary. If yes, create a new release before proceeding.
+   release is necessary. A new release is necessary if any change has been made that
+   can be added to the release notes since the last release. If yes, create a new
+   release before proceeding.
 
 ## Steps
 

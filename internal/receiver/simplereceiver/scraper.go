@@ -5,5 +5,5 @@
 package githubmetricsreceiver
 
 type githubMetricsScraper struct {
-    client githubmetricsClinet
+    client defaultGithubMetricsClient
 }

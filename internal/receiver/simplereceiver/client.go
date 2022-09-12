@@ -5,6 +5,7 @@ package githubmetricsreceiver
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -120,14 +121,29 @@ func (client defaultGithubMetricsClient) makeRequest(ctx context.Context, p stri
 }
 
 // these wrap the generic request function for each endpoint we want to hit.
-func (client defaultGithubMetricsClient) getRepoChanges(ctx context.Context, c Config) (*CommitStats, error) {
-    p := fmt.Stringf("/repos/%s/%s/stats/commit_activity", c.GitUsername, c.RepoName) 
+func (client defaultGithubMetricsClient) getRepoChanges(ctx context.Context, c Config) (*commitStats, error) {
+    p := fmt.Sprintf("/repos/%s/%s/stats/commit_activity", c.GitUsername, c.RepoName) 
     body, err := client.makeRequest(ctx, p)
     if err != nil {
         return nil, err
     }
+    
+    comstats := []commitStats{}
+
+    err = json.Unmarshal(body, &comstats)
+    return &comstats[len(comstats)-1], err
 }
 
-func (client defaultGithubMetricsClient) getCommitStats(ctx context.Context) {}
+func (client defaultGithubMetricsClient) getCommitStats(ctx context.Context, c Config) (*commitActivity, error) {
+    p := fmt.Sprintf("/repost/%s/%s/stats/code_frequency", c.GitUsername, c.RepoName)
+    body, err := client.makeRequest(ctx, p)
+    if err != nil {
+        return nil, err
+    }
+
+    comAct, err := newCommitActivity(body)
+
+    return comAct, err
+}
 
 

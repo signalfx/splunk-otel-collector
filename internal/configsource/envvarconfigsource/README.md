@@ -51,24 +51,18 @@ components:
 
 The typical case to use the environment variable config source is when one wants
 to inject YAML fragments. The example below shows how this can be done on Linux and
-Windows.
+Windows when running the collector from your current session. For guidance on setting
+service environment variables for your installation please see the related
+[Linux](../../../docs/getting-started/linux-manual.md#collector-debianrpm-post-install-configuration)
+and [Windows](../../../docs/getting-started/windows-installer.md#collector-configuration) installer documentation.
 
-1. Define the environment variables:
-- Linux:
-```terminal
-export OTLP_PROTOCOLS="{ grpc: , http: , }"
-export JAEGER_PROTOCOLS="{ protocols: { grpc: , thrift_binary: , thrift_compact: , thrift_http: , } }"
-```
-- Windows:
-```terminal
-set OTLP_PROTOCOLS={ grpc: , http: , }
-set JAEGER_PROTOCOLS={ protocols: { grpc: , thrift_binary: , thrift_compact: , thrift_http: , } }
-```
-
-2. Use the environment variables on the configuration:
+1. Use the `env` config source environment variables in your configuration:
 ```yaml
 config_sources:
   env:
+    defaults:
+      JAEGER_PROTOCOLS: "{ protocols: { grpc: , } }"
+      OTLP_PROTOCOLS: "{ grpc: , }"
 
 receivers:
   jaeger:
@@ -77,4 +71,19 @@ receivers:
     protocols:
       ${env:OTLP_PROTOCOLS}
 ...
+```
+
+2. Export the environment variables for your session before running the collector:
+- Linux:
+```terminal
+export OTLP_PROTOCOLS="{ grpc: , http: , }"
+export JAEGER_PROTOCOLS="{ protocols: { grpc: , thrift_binary: , thrift_compact: , thrift_http: , } }"
+otelcol --config <your-configuration.yaml>
+```
+
+- Windows:
+```terminal
+set OTLP_PROTOCOLS={ grpc: , http: , }
+set JAEGER_PROTOCOLS={ protocols: { grpc: , thrift_binary: , thrift_compact: , thrift_http: , } }
+otelcol.exe --config <your-configuration.yaml>
 ```

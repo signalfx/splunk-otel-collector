@@ -1,0 +1,46 @@
+config_sources:
+  env:
+    defaults:
+      JAEGER_PROTOCOLS: "{ protocols: { grpc: , } }"
+      OTLP_PROTOCOLS: "{ grpc: , }"
+
+receivers:
+  jaeger:
+    ${env:JAEGER_PROTOCOLS}
+  otlp:
+    protocols:
+      ${env:OTLP_PROTOCOLS}
+  hostmetrics:
+    collection_interval: 2s
+    scrapers:
+      memory:
+processors:
+  filter:
+    metrics:
+      include:
+        match_type: strict
+        metric_names:
+          - system.memory.usage
+  metricstransform:
+    transforms: ${env:YAML}
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+service:
+  pipelines:
+    traces:
+      receivers:
+        - jaeger
+      exporters:
+        - otlp
+    metrics:
+      receivers:
+        - hostmetrics
+        - otlp
+      processors:
+        - filter
+        - metricstransform
+      exporters:
+        - otlp

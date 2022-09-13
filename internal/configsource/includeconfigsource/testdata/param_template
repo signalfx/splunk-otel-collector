@@ -1,0 +1,1 @@
+logs_path: {{ .glob_pattern }}

@@ -5,6 +5,7 @@ receivers:
       - another_observer/with_name
     log_endpoints: true
     embed_receiver_config: true
+    correlation_ttl: 25s
     receivers:
       smartagent/redis:
         rule: type == "container"

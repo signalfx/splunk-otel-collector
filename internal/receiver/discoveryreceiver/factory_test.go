@@ -17,6 +17,7 @@ package discoveryreceiver
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,6 +36,7 @@ func TestCreateDefaultConfig(t *testing.T) {
 		ReceiverSettings:    config.NewReceiverSettings(config.NewComponentID(typeStr)),
 		LogEndpoints:        false,
 		EmbedReceiverConfig: false,
+		CorrelationTTL:      10 * time.Minute,
 	}, cfg)
 }
 

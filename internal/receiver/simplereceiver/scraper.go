@@ -4,6 +4,12 @@
 
 package githubmetricsreceiver
 
+import (
+	"go.opentelemetry.io/collector/component"
+)
+
 type githubMetricsScraper struct {
     client defaultGithubMetricsClient
+    settings component.TelemetrySettings
+    conf *Config
 }

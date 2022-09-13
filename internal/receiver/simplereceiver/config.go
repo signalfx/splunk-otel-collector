@@ -20,8 +20,12 @@ type Config struct {
 
 func (cfg *Config) Validate() error {
     interval, _ := time.ParseDuration(cfg.Interval)
-    if (cfg.Endpoint == "") {
-        return fmt.Errorf("You must provide a valid endpoint")
+    if (cfg.RepoName == "") {
+        return fmt.Errorf("You must provide a valid repository name")
+    }
+
+    if (cfg.GitUsername == "") {
+        return fmt.Errorf("You must provide a valid github username")
     }
 
     if (cfg.APIKey == "") {

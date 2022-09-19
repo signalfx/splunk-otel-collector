@@ -18,6 +18,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator"
 	"go.opentelemetry.io/collector/component"
@@ -25,6 +26,8 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/multierr"
 	"gopkg.in/yaml.v2"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver/statussources"
 )
 
 var (
@@ -41,9 +44,6 @@ var (
 
 	allowedMatchTypes = []string{"regexp", "strict", "expr"}
 
-	endpointIDAttr        = "discovery.endpoint.id"
-	receiverNameAttr      = "discovery.receiver.name"
-	receiverTypeAttr      = "discovery.receiver.type"
 	receiverCreatorRegexp = regexp.MustCompile(`receiver_creator/`)
 	endpointTargetRegexp  = regexp.MustCompile(`{endpoint=[^}]*}/`)
 )
@@ -65,6 +65,8 @@ type Config struct {
 	// Warning: these values will include the literal receiver subconfig from the parent Collector config.
 	// The feature provides no secret redaction and its output is easily decodable into plaintext.
 	EmbedReceiverConfig bool `mapstructure:"embed_receiver_config"`
+	// The duration to maintain "removed" endpoints since their last updated timestamp.
+	CorrelationTTL time.Duration `mapstructure:"correlation_ttl"`
 }
 
 // ReceiverEntry is a definition for a receiver instance to instantiate for each Endpoint matching
@@ -188,7 +190,7 @@ func (lr *LogRecord) validate() error {
 
 // receiverCreatorFactoryAndConfig will embed the applicable receiver creator fields in a new receiver creator config
 // suitable for being used to create a receiver instance by the returned factory.
-func (cfg *Config) receiverCreatorFactoryAndConfig() (component.ReceiverFactory, config.Receiver, error) {
+func (cfg *Config) receiverCreatorFactoryAndConfig(correlations correlationStore) (component.ReceiverFactory, config.Receiver, error) {
 	receiverCreatorFactory := receivercreator.NewFactory()
 	receiverCreatorDefaultConfig := receiverCreatorFactory.CreateDefaultConfig()
 	receiverCreatorConfig, ok := receiverCreatorDefaultConfig.(*receivercreator.Config)
@@ -198,7 +200,7 @@ func (cfg *Config) receiverCreatorFactoryAndConfig() (component.ReceiverFactory,
 	receiverCreatorConfig.SetIDName(cfg.ID().String())
 	receiverCreatorConfig.WatchObservers = cfg.WatchObservers
 
-	receiversConfig, err := cfg.receiverCreatorReceiversConfig()
+	receiversConfig, err := cfg.receiverCreatorReceiversConfig(correlations)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to produce receiver creator receivers config: %w", err)
 	}
@@ -211,17 +213,17 @@ func (cfg *Config) receiverCreatorFactoryAndConfig() (component.ReceiverFactory,
 }
 
 // receiverCreatorReceiversConfig produces the actual config string map used by the receiver creator config unmarshaler.
-func (cfg *Config) receiverCreatorReceiversConfig() (map[string]any, error) {
+func (cfg *Config) receiverCreatorReceiversConfig(correlations correlationStore) (map[string]any, error) {
 	receiversConfig := map[string]any{}
 	for receiverID, rEntry := range cfg.Receivers {
 		resourceAttributes := map[string]string{}
 		for k, v := range rEntry.ResourceAttributes {
 			resourceAttributes[k] = v
 		}
-		resourceAttributes[receiverNameAttr] = receiverID.Name()
-		resourceAttributes[receiverTypeAttr] = string(receiverID.Type())
+		resourceAttributes[statussources.ReceiverNameAttr] = receiverID.Name()
+		resourceAttributes[statussources.ReceiverTypeAttr] = string(receiverID.Type())
 		resourceAttributes[receiverRuleAttr] = rEntry.Rule
-		resourceAttributes[endpointIDAttr] = "`id`"
+		resourceAttributes[statussources.EndpointIDAttr] = "`id`"
 
 		if cfg.EmbedReceiverConfig {
 			embeddedConfig := map[string]any{}
@@ -243,6 +245,7 @@ func (cfg *Config) receiverCreatorReceiversConfig() (map[string]any, error) {
 			}
 			encoded := base64.StdEncoding.EncodeToString(configYaml)
 			resourceAttributes[receiverConfigAttr] = encoded
+			correlations.UpdateAttrs(receiverID, map[string]string{receiverConfigAttr: encoded})
 		}
 
 		rEntryMap := map[string]any{}

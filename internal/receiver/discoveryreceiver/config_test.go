@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator"
 	"github.com/stretchr/testify/assert"
@@ -27,6 +28,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/service/servicetest"
+	"go.uber.org/zap/zaptest"
 	"gopkg.in/yaml.v2"
 )
 
@@ -112,6 +114,7 @@ func TestValidConfig(t *testing.T) {
 		ReceiverSettings:    config.NewReceiverSettings(config.NewComponentIDWithName("discovery", "discovery-name")),
 		LogEndpoints:        true,
 		EmbedReceiverConfig: true,
+		CorrelationTTL:      25 * time.Second,
 		WatchObservers: []config.ComponentID{
 			config.NewComponentID("an_observer"),
 			config.NewComponentIDWithName("another_observer", "with_name"),
@@ -161,7 +164,8 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	dCfg := Config{ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName("discovery", "discovery-name"))}
 	require.NoError(t, conf.UnmarshalExact(&dCfg))
 
-	factory, rCfg, err := dCfg.receiverCreatorFactoryAndConfig()
+	correlations := newCorrelationStore(zaptest.NewLogger(t), time.Second)
+	factory, rCfg, err := dCfg.receiverCreatorFactoryAndConfig(correlations)
 	require.NoError(t, err)
 	require.Equal(t, config.Type("receiver_creator"), factory.Type())
 
@@ -178,7 +182,7 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 		config.NewComponentIDWithName("another_observer", "with_name"),
 	}, creatorCfg.WatchObservers)
 
-	receiverTemplate, err := dCfg.receiverCreatorReceiversConfig()
+	receiverTemplate, err := dCfg.receiverCreatorReceiversConfig(correlations)
 	require.NoError(t, err)
 	expectedConfigHash := "cmVjZWl2ZXJzOgogIHNtYXJ0YWdlbnQvcmVkaXM6CiAgICBjb25maWc6CiAgICAgIGF1dGg6IHBhc3N3b3JkCiAgICAgIGhvc3Q6ICdgaG9zdGAnCiAgICAgIHBvcnQ6ICdgcG9ydGAnCiAgICAgIHR5cGU6IGNvbGxlY3RkL3JlZGlzCiAgICByZXNvdXJjZV9hdHRyaWJ1dGVzOgogICAgICByZWNlaXZlcl9hdHRyaWJ1dGU6IHJlY2VpdmVyX2F0dHJpYnV0ZV92YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiY29udGFpbmVyIgo="
 	expectedTemplate := map[string]any{

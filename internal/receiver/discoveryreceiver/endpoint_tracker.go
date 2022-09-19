@@ -42,6 +42,7 @@ type endpointTracker struct {
 	logger       *zap.Logger
 	pLogs        chan plog.Logs
 	observables  map[config.ComponentID]observer.Observable
+	correlations correlationStore
 	notifies     []*notify
 	logEndpoints bool
 }
@@ -53,12 +54,15 @@ type notify struct {
 	id              observer.NotifyID
 }
 
-func newEndpointTracker(observables map[config.ComponentID]observer.Observable, config *Config, logger *zap.Logger, pLogs chan plog.Logs) *endpointTracker {
+func newEndpointTracker(
+	observables map[config.ComponentID]observer.Observable, config *Config, logger *zap.Logger,
+	pLogs chan plog.Logs, correlations correlationStore) *endpointTracker {
 	return &endpointTracker{
 		logEndpoints: config.LogEndpoints,
 		observables:  observables,
 		logger:       logger,
 		pLogs:        pLogs,
+		correlations: correlations,
 	}
 }
 
@@ -74,6 +78,7 @@ func (et *endpointTracker) start() {
 		et.notifies = append(et.notifies, n)
 		go observable.ListAndWatch(n)
 	}
+	et.correlations.Start()
 }
 
 func (et *endpointTracker) stop() {
@@ -81,6 +86,7 @@ func (et *endpointTracker) stop() {
 		et.logger.Debug("endpointTracker unsubscribing from observable", zap.Any("observer", n.observerID))
 		go n.observable.Unsubscribe(n)
 	}
+	et.correlations.Stop()
 }
 
 func (et *endpointTracker) emitEndpointLogs(observerCID config.ComponentID, eventType endpointState, endpoints []observer.Endpoint, received time.Time) {
@@ -95,20 +101,29 @@ func (et *endpointTracker) emitEndpointLogs(observerCID config.ComponentID, even
 	}
 }
 
+func (et *endpointTracker) updateEndpoints(endpoints []observer.Endpoint, state endpointState, observerID config.ComponentID) {
+	for _, endpoint := range endpoints {
+		et.correlations.UpdateEndpoint(endpoint, state, observerID)
+	}
+}
+
 func (n *notify) ID() observer.NotifyID {
 	return n.id
 }
 
 func (n *notify) OnAdd(added []observer.Endpoint) {
 	n.endpointTracker.emitEndpointLogs(n.observerID, addedState, added, time.Now())
+	n.endpointTracker.updateEndpoints(added, addedState, n.observerID)
 }
 
 func (n *notify) OnRemove(removed []observer.Endpoint) {
 	n.endpointTracker.emitEndpointLogs(n.observerID, removedState, removed, time.Now())
+	n.endpointTracker.updateEndpoints(removed, removedState, n.observerID)
 }
 
 func (n *notify) OnChange(changed []observer.Endpoint) {
 	n.endpointTracker.emitEndpointLogs(n.observerID, changedState, changed, time.Now())
+	n.endpointTracker.updateEndpoints(changed, changedState, n.observerID)
 }
 
 func endpointToPLogs(observerID config.ComponentID, eventType string, endpoints []observer.Endpoint, received time.Time) (pLogs plog.Logs, failed int, err error) {

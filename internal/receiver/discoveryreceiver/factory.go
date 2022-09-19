@@ -16,6 +16,7 @@ package discoveryreceiver
 
 import (
 	"context"
+	"time"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -38,6 +39,7 @@ func createDefaultConfig() config.Receiver {
 		ReceiverSettings:    config.NewReceiverSettings(config.NewComponentID(typeStr)),
 		LogEndpoints:        false,
 		EmbedReceiverConfig: false,
+		CorrelationTTL:      10 * time.Minute,
 	}
 }
 

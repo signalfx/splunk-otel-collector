@@ -32,11 +32,12 @@ import (
 )
 
 const (
-	eventTypeAttr      = "discovery.event.type"
-	observerNameAttr   = "discovery.observer.name"
-	observerTypeAttr   = "discovery.observer.type"
-	receiverConfigAttr = "discovery.receiver.config"
-	receiverRuleAttr   = "discovery.receiver.rule"
+	eventTypeAttr             = "discovery.event.type"
+	observerNameAttr          = "discovery.observer.name"
+	observerTypeAttr          = "discovery.observer.type"
+	receiverConfigAttr        = "discovery.receiver.config"
+	receiverUpdatedConfigAttr = "discovery.receiver.updated.config"
+	receiverRuleAttr          = "discovery.receiver.rule"
 )
 
 var (
@@ -88,7 +89,8 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 		return fmt.Errorf("failed obtaining observables from host: %w", err)
 	}
 
-	d.endpointTracker = newEndpointTracker(d.observables, d.config, d.logger, d.pLogs)
+	correlations := newCorrelationStore(d.logger, d.config.CorrelationTTL)
+	d.endpointTracker = newEndpointTracker(d.observables, d.config, d.logger, d.pLogs, correlations)
 	d.endpointTracker.start()
 
 	d.metricEvaluator = newMetricEvaluator()
@@ -155,7 +157,7 @@ func (d *discoveryReceiver) consumerLoop(loopStarted *sync.WaitGroup) {
 }
 
 func (d *discoveryReceiver) createAndSetReceiverCreator() error {
-	receiverCreatorFactory, receiverCreatorConfig, err := d.config.receiverCreatorFactoryAndConfig()
+	receiverCreatorFactory, receiverCreatorConfig, err := d.config.receiverCreatorFactoryAndConfig(d.endpointTracker.correlations)
 	if err != nil {
 		return nil
 	}

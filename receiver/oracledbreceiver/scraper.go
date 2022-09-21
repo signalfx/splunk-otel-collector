@@ -99,49 +99,48 @@ func (s *scraper) Start(context.Context, component.Host) error {
 
 func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 	s.logger.Debug("Begin scrape")
-	now := pcommon.NewTimestampFromTime(time.Now())
 	if s.metricsSettings.OracledbQueryCPUTime.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, now, queryCPUTimeSQL, s.metricsBuilder.RecordOracledbQueryCPUTimeDataPoint); err != nil {
+		if err := s.executeOneQueryWithFullText(ctx, queryCPUTimeSQL, s.metricsBuilder.RecordOracledbQueryCPUTimeDataPoint); err != nil {
 			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", queryCPUTimeSQL, err)
 		}
 	}
 	if s.metricsSettings.OracledbQueryElapsedTime.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, now, queryElapsedTimeSQL, s.metricsBuilder.RecordOracledbQueryElapsedTimeDataPoint); err != nil {
+		if err := s.executeOneQueryWithFullText(ctx, queryElapsedTimeSQL, s.metricsBuilder.RecordOracledbQueryElapsedTimeDataPoint); err != nil {
 			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", queryElapsedTimeSQL, err)
 		}
 	}
 	if s.metricsSettings.OracledbQueryExecutions.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, now, queryExecutionsTimeSQL, s.metricsBuilder.RecordOracledbQueryExecutionsDataPoint); err != nil {
+		if err := s.executeOneQueryWithFullText(ctx, queryExecutionsTimeSQL, s.metricsBuilder.RecordOracledbQueryExecutionsDataPoint); err != nil {
 			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", queryExecutionsTimeSQL, err)
 		}
 	}
 	if s.metricsSettings.OracledbQueryParseCalls.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, now, queryParseCallsSQL, s.metricsBuilder.RecordOracledbQueryParseCallsDataPoint); err != nil {
+		if err := s.executeOneQueryWithFullText(ctx, queryParseCallsSQL, s.metricsBuilder.RecordOracledbQueryParseCallsDataPoint); err != nil {
 			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", queryParseCallsSQL, err)
 		}
 	}
 	if s.metricsSettings.OracledbQueryPhysicalReadBytes.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, now, queryPhysicalReadBytesSQL, s.metricsBuilder.RecordOracledbQueryPhysicalReadBytesDataPoint); err != nil {
+		if err := s.executeOneQueryWithFullText(ctx, queryPhysicalReadBytesSQL, s.metricsBuilder.RecordOracledbQueryPhysicalReadBytesDataPoint); err != nil {
 			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", queryPhysicalReadBytesSQL, err)
 		}
 	}
 	if s.metricsSettings.OracledbQueryPhysicalReadRequests.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, now, queryPhysicalReadRequestsSQL, s.metricsBuilder.RecordOracledbQueryPhysicalReadRequestsDataPoint); err != nil {
+		if err := s.executeOneQueryWithFullText(ctx, queryPhysicalReadRequestsSQL, s.metricsBuilder.RecordOracledbQueryPhysicalReadRequestsDataPoint); err != nil {
 			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", queryPhysicalReadRequestsSQL, err)
 		}
 	}
 	if s.metricsSettings.OracledbQueryPhysicalWriteBytes.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, now, queryPhysicalWriteBytesSQL, s.metricsBuilder.RecordOracledbQueryPhysicalWriteBytesDataPoint); err != nil {
+		if err := s.executeOneQueryWithFullText(ctx, queryPhysicalWriteBytesSQL, s.metricsBuilder.RecordOracledbQueryPhysicalWriteBytesDataPoint); err != nil {
 			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", queryPhysicalWriteBytesSQL, err)
 		}
 	}
 	if s.metricsSettings.OracledbQueryPhysicalWriteRequests.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, now, queryPhysicalWriteRequestsSQL, s.metricsBuilder.RecordOracledbQueryPhysicalWriteRequestsDataPoint); err != nil {
+		if err := s.executeOneQueryWithFullText(ctx, queryPhysicalWriteRequestsSQL, s.metricsBuilder.RecordOracledbQueryPhysicalWriteRequestsDataPoint); err != nil {
 			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", queryPhysicalWriteRequestsSQL, err)
 		}
 	}
 	if s.metricsSettings.OracledbQueryTotalSharableMem.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, now, queryTotalSharableMemSQL, s.metricsBuilder.RecordOracledbQueryTotalSharableMemDataPoint); err != nil {
+		if err := s.executeOneQueryWithFullText(ctx, queryTotalSharableMemSQL, s.metricsBuilder.RecordOracledbQueryTotalSharableMemDataPoint); err != nil {
 			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", queryTotalSharableMemSQL, err)
 		}
 	}
@@ -161,76 +160,76 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 				if err != nil {
 					return pmetric.Metrics{}, err
 				}
-				s.metricsBuilder.RecordOracledbSessionCPUUsageDataPoint(now, value)
+				s.metricsBuilder.RecordOracledbSessionCPUUsageDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
 			}
 			if s.metricsSettings.OracledbSessionPgaMemory.Enabled {
 				value, err := strconv.ParseInt(row["PGA_MEMORY"], 10, 64)
 				if err != nil {
 					return pmetric.Metrics{}, fmt.Errorf("pga_memory value: %s, %w", row["PGA_MEMORY"], err)
 				}
-				s.metricsBuilder.RecordOracledbSessionPgaMemoryDataPoint(now, value)
+				s.metricsBuilder.RecordOracledbSessionPgaMemoryDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
 			}
 			if s.metricsSettings.OracledbSessionPhysicalReads.Enabled {
 				value, err := strconv.ParseInt(row["PHYSICAL_READS"], 10, 64)
 				if err != nil {
 					return pmetric.Metrics{}, fmt.Errorf("physical_reads value: %s, %w", row["PHYSICAL_READS"], err)
 				}
-				s.metricsBuilder.RecordOracledbSessionPhysicalReadsDataPoint(now, value)
+				s.metricsBuilder.RecordOracledbSessionPhysicalReadsDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
 			}
 			if s.metricsSettings.OracledbSessionLogicalReads.Enabled {
 				value, err := strconv.ParseInt(row["LOGICAL_READS"], 10, 64)
 				if err != nil {
 					return pmetric.Metrics{}, fmt.Errorf("logical_reads value: %s, %w", row["LOGICAL_READS"], err)
 				}
-				s.metricsBuilder.RecordOracledbSessionLogicalReadsDataPoint(now, value)
+				s.metricsBuilder.RecordOracledbSessionLogicalReadsDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
 			}
 			if s.metricsSettings.OracledbSessionHardParses.Enabled {
 				value, err := strconv.ParseInt(row["HARD_PARSES"], 10, 64)
 				if err != nil {
 					return pmetric.Metrics{}, fmt.Errorf("hard_parses value: %s, %w", row["HARD_PARSES"], err)
 				}
-				s.metricsBuilder.RecordOracledbSessionHardParsesDataPoint(now, value)
+				s.metricsBuilder.RecordOracledbSessionHardParsesDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
 			}
 			if s.metricsSettings.OracledbSessionSoftParses.Enabled {
 				value, err := strconv.ParseInt(row["SOFT_PARSES"], 10, 64)
 				if err != nil {
 					return pmetric.Metrics{}, fmt.Errorf("soft_parses value: %s, %w", row["SOFT_PARSES"], err)
 				}
-				s.metricsBuilder.RecordOracledbSessionSoftParsesDataPoint(now, value)
+				s.metricsBuilder.RecordOracledbSessionSoftParsesDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
 			}
 		}
 	}
 
 	if s.metricsSettings.OracledbSessionEnqueueDeadlocks.Enabled {
-		if err := s.executeOneQuery(ctx, now, sessionEnqueueDeadlocksSQL, s.metricsBuilder.RecordOracledbSessionEnqueueDeadlocksDataPoint); err != nil {
+		if err := s.executeOneQuery(ctx, sessionEnqueueDeadlocksSQL, s.metricsBuilder.RecordOracledbSessionEnqueueDeadlocksDataPoint); err != nil {
 			return pmetric.Metrics{}, err
 		}
 	}
 	if s.metricsSettings.OracledbSessionExchangeDeadlocks.Enabled {
-		if err := s.executeOneQuery(ctx, now, sessionExchangeDeadlocksSQL, s.metricsBuilder.RecordOracledbSessionExchangeDeadlocksDataPoint); err != nil {
+		if err := s.executeOneQuery(ctx, sessionExchangeDeadlocksSQL, s.metricsBuilder.RecordOracledbSessionExchangeDeadlocksDataPoint); err != nil {
 			return pmetric.Metrics{}, err
 		}
 	}
 	if s.metricsSettings.OracledbSessionExecuteCount.Enabled {
-		if err := s.executeOneQuery(ctx, now, sessionExecuteCountSQL, s.metricsBuilder.RecordOracledbSessionExecuteCountDataPoint); err != nil {
+		if err := s.executeOneQuery(ctx, sessionExecuteCountSQL, s.metricsBuilder.RecordOracledbSessionExecuteCountDataPoint); err != nil {
 			return pmetric.Metrics{}, err
 		}
 	}
 
 	if s.metricsSettings.OracledbSessionParseCountTotal.Enabled {
-		if err := s.executeOneQuery(ctx, now, sessionParseCountTotalSQL, s.metricsBuilder.RecordOracledbSessionParseCountTotalDataPoint); err != nil {
+		if err := s.executeOneQuery(ctx, sessionParseCountTotalSQL, s.metricsBuilder.RecordOracledbSessionParseCountTotalDataPoint); err != nil {
 			return pmetric.Metrics{}, err
 		}
 	}
 
 	if s.metricsSettings.OracledbSessionUserCommits.Enabled {
-		if err := s.executeOneQuery(ctx, now, sessionUserCommitsSQL, s.metricsBuilder.RecordOracledbSessionUserCommitsDataPoint); err != nil {
+		if err := s.executeOneQuery(ctx, sessionUserCommitsSQL, s.metricsBuilder.RecordOracledbSessionUserCommitsDataPoint); err != nil {
 			return pmetric.Metrics{}, err
 		}
 	}
 
 	if s.metricsSettings.OracledbSessionUserRollbacks.Enabled {
-		if err := s.executeOneQuery(ctx, now, sessionUserRollbacksSQL, s.metricsBuilder.RecordOracledbSessionUserRollbacksDataPoint); err != nil {
+		if err := s.executeOneQuery(ctx, sessionUserRollbacksSQL, s.metricsBuilder.RecordOracledbSessionUserRollbacksDataPoint); err != nil {
 			return pmetric.Metrics{}, err
 		}
 	}
@@ -246,7 +245,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 			if err != nil {
 				return pmetric.Metrics{}, err
 			}
-			s.metricsBuilder.RecordOracledbSystemActiveSessionTotalDataPoint(now, value, fmt.Sprintf("%s-%s", row["STATUS"], row["TYPE"]))
+			s.metricsBuilder.RecordOracledbSystemActiveSessionTotalDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, fmt.Sprintf("%s-%s", row["STATUS"], row["TYPE"]))
 		}
 	}
 	if s.metricsSettings.OracledbSystemCachedSessionTotal.Enabled {
@@ -260,7 +259,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 			if err != nil {
 				return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", cachedSessionTotalSQL, err)
 			}
-			s.metricsBuilder.RecordOracledbSystemCachedSessionTotalDataPoint(now, value, row["TYPE"])
+			s.metricsBuilder.RecordOracledbSystemCachedSessionTotalDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["TYPE"])
 		}
 	}
 
@@ -269,7 +268,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 	return out, nil
 }
 
-func (s *scraper) executeOneQuery(ctx context.Context, now pcommon.Timestamp, query string, recorder func(ts pcommon.Timestamp, val int64)) error {
+func (s *scraper) executeOneQuery(ctx context.Context, query string, recorder func(ts pcommon.Timestamp, val int64)) error {
 	client := s.clientProviderFunc(s.db, query, s.logger)
 	rows, err := client.metricRows(ctx)
 	if err != nil {
@@ -280,12 +279,12 @@ func (s *scraper) executeOneQuery(ctx context.Context, now pcommon.Timestamp, qu
 		if err != nil {
 			return fmt.Errorf("value: %s, %s, %w", row["VALUE"], query, err)
 		}
-		recorder(now, value)
+		recorder(pcommon.NewTimestampFromTime(time.Now()), value)
 	}
 	return nil
 }
 
-func (s *scraper) executeOneQueryWithFullText(ctx context.Context, now pcommon.Timestamp, query string, recorder func(ts pcommon.Timestamp, val int64, oracledbQueryFulltextAttributeValue string)) error {
+func (s *scraper) executeOneQueryWithFullText(ctx context.Context, query string, recorder func(ts pcommon.Timestamp, val int64, oracledbQueryFulltextAttributeValue string)) error {
 	client := s.clientProviderFunc(s.db, query, s.logger)
 	rows, err := client.metricRows(ctx)
 	if err != nil {
@@ -296,7 +295,7 @@ func (s *scraper) executeOneQueryWithFullText(ctx context.Context, now pcommon.T
 		if err != nil {
 			return fmt.Errorf("value: %s, %s, %w", row["VALUE"], query, err)
 		}
-		recorder(now, value, row["SQL_FULLTEXT"])
+		recorder(pcommon.NewTimestampFromTime(time.Now()), value, row["SQL_FULLTEXT"])
 	}
 	return nil
 }

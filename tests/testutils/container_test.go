@@ -276,7 +276,7 @@ func TestTestcontainersContainerMethodsRequireBuilding(t *testing.T) {
 	require.Error(t, err)
 	assert.Equal(t, "cannot invoke NetworkAliases() on unstarted container", err.Error())
 
-	ec, err := builder.Exec(context.Background(), []string{})
+	ec, _, err := builder.Exec(context.Background(), []string{})
 	assert.Zero(t, ec)
 	require.Error(t, err)
 	assert.Equal(t, "cannot invoke Exec() on unstarted container", err.Error())
@@ -385,7 +385,7 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 	lc := logConsumer{}
 	alpine.FollowOutput(&lc)
 
-	ec, err := alpine.Exec(context.Background(), []string{"sh", "-c", "echo 'some message' >> /tmp/something"})
+	ec, _, err := alpine.Exec(context.Background(), []string{"sh", "-c", "echo 'some message' >> /tmp/something"})
 	assert.Equal(t, 0, ec)
 	require.NoError(t, err)
 	require.Eventually(t, func() bool {

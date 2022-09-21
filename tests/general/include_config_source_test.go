@@ -32,9 +32,6 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 	err = collector.Start()
 	require.NoError(t, err)
 
-	_, ok := collector.(*testutils.CollectorProcess)
-	require.True(t, ok)
-
 	require.Eventually(t, func() bool {
 		for _, log := range logs.All() {
 			if strings.Contains(log.Message,

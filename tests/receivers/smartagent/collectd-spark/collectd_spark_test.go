@@ -51,10 +51,10 @@ func TestCollectdSparkReceiverProvidesAllMetrics(t *testing.T) {
 	defer stop()
 
 	master := containers[0]
-	rc, err := master.Exec(context.Background(), []string{"sh", "-c", "nc -lk 9999 &"})
+	rc, _, err := master.Exec(context.Background(), []string{"sh", "-c", "nc -lk 9999 &"})
 	require.NoError(t, err)
 
-	rc, err = master.Exec(context.Background(), []string{
+	rc, _, err = master.Exec(context.Background(), []string{
 		"sh", "-c", "bin/spark-submit --master spark://spark-master:7077 --conf spark.driver.host=spark-master " +
 			"examples/src/main/python/streaming/network_wordcount.py spark-master 9999 &",
 	})

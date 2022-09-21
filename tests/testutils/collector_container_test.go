@@ -108,7 +108,7 @@ func TestCollectorContainerWithInvalidImage(t *testing.T) {
 	require.NoError(t, err)
 
 	err = collector.Start()
-	require.Contains(t, err.Error(), "Error response from daemon: No such image")
+	require.Contains(t, err.Error(), "Error: No such image")
 
 	err = collector.Shutdown()
 	require.EqualError(t, err, "cannot invoke Stop() on unstarted container")

@@ -293,9 +293,9 @@ func (container *Container) NetworkAliases(ctx context.Context) (map[string][]st
 	return (*container.container).NetworkAliases(ctx)
 }
 
-func (container *Container) Exec(ctx context.Context, cmd []string) (int, error) {
+func (container *Container) Exec(ctx context.Context, cmd []string) (int, io.Reader, error) {
 	if err := container.assertStarted("Exec"); err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	return (*container.container).Exec(ctx, cmd)
 }
@@ -307,11 +307,22 @@ func (container *Container) ContainerIP(ctx context.Context) (string, error) {
 	return (*container.container).ContainerIP(ctx)
 }
 
+func (container Container) CopyDirToContainer(ctx context.Context, hostDirPath string, containerParentPath string, fileMode int64) error {
+	if err := container.assertStarted("CopyDirToContainer"); err != nil {
+		return err
+	}
+	return (*container.container).CopyDirToContainer(ctx, hostDirPath, containerParentPath, fileMode)
+}
+
 func (container *Container) CopyFileToContainer(ctx context.Context, hostFilePath string, containerFilePath string, fileMode int64) error {
 	if err := container.assertStarted("CopyFileToContainer"); err != nil {
 		return err
 	}
 	return (*container.container).CopyFileToContainer(ctx, hostFilePath, containerFilePath, fileMode)
+}
+
+func (container Container) IsRunning() bool {
+	return (*container.container).IsRunning()
 }
 
 func (container *Container) State(ctx context.Context) (*types.ContainerState, error) {

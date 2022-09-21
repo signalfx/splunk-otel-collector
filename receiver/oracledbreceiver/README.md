@@ -4,7 +4,6 @@
 | ------------------------ |----------------------------|
 | Stability                | [in-development]           |
 | Supported pipeline types | metrics                    |
-| Distributions            | [contrib]                  |
 
 This receiver collects metrics from an Oracle Database.
 
@@ -16,20 +15,14 @@ Supported pipeline types: metrics
 
 The following settings are required:
 
-- `username`: Oracle database account username
-- `password`: Oracle database account password
-- `endpoint`: Oracle database connection endpoint, of the form `host:port`
-- `service_name`: Oracle database service name
+- `datasource`: Oracle database connection string. Refer to Oracle Go Driver go_ora documentation for full connection string options.
 
 Example:
 
 ```yaml
 receivers:
   oracledb:
-    username: otel
-    password: password
-    endpoint: localhost:51521
-    service_name: XE
+    datasource: "oracle://otel:password@localhost:51521/XE"
 ```
 
 ## Permissions
@@ -43,3 +36,21 @@ GRANT SELECT ON V_$STATNAME TO <username>;
 GRANT SELECT ON V_$SESSMETRIC TO <username>;
 ```
 
+## Enabling metrics.
+
+See [documentation.md]. 
+
+You can enable or disable selective metrics.
+
+Example:
+
+```yaml
+receivers:
+  oracledb:
+    datasource: "oracle://otel:password@localhost:51521/XE"
+    metrics:
+      oracledb.query.cpu_time:
+        enabled: false
+      oracledb.query.physical_read_requests:
+        enabled: true
+```

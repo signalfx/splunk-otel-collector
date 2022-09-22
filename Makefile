@@ -161,9 +161,9 @@ misspell-correction:
 
 .PHONY: tidy
 tidy:
-	go mod tidy -compat=1.17
-	cd tests && go mod tidy -compat=1.17
-	cd internal/tools && go mod tidy -compat=1.17
+	go mod tidy
+	cd tests && go mod tidy
+	cd internal/tools && go mod tidy
 
 .PHONY: fmt
 fmt: addlicense misspell-correction

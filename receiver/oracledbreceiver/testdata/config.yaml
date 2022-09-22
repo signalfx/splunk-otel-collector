@@ -8,8 +8,16 @@ receivers:
     # Oracle DB service name: XE
     # Refer to Oracle Go Driver go_ora documentation for full connection string options
     datasource: "oracle://otel:password@localhost:51521/XE"
+processors:
+  resourcedetection:
+    detectors: ["system"]
+    system:
+      hostname_sources: ["os"]
 exporters:
   logging:
+  signalfx:
+    realm: us0
+    access_token: vFh6sDXnxu2AvcNoRxwGGQ
 service:
   telemetry:
     logs:
@@ -18,5 +26,8 @@ service:
     metrics:
       receivers:
         - oracledb
+      processors:
+        - resourcedetection
       exporters:
         - logging
+        - signalfx

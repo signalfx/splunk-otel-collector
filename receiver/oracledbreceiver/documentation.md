@@ -8,15 +8,15 @@ These are the metrics available for this scraper.
 
 | Name | Description | Unit | Type | Attributes |
 | ---- | ----------- | ---- | ---- | ---------- |
-| **oracledb.query.cpu_time** | CPU time (in microseconds) used by this cursor for parsing, executing, and fetching. | us | Sum(Int) | <ul> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.elapsed_time** | Elapsed time (in microseconds) used by this cursor. | us | Sum(Int) | <ul> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.executions** | Number of executions that have taken place on this object. | 1 | Sum(Int) | <ul> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.parse_calls** | Number of parse calls for all cursors with this SQL text and plan. | 1 | Sum(Int) | <ul> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.physical_read_bytes** | Number of bytes read from disks by the monitored SQL. | By | Sum(Int) | <ul> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.physical_read_requests** | Number of physical read I/O requests issued by the monitored SQL. The requests may not be disk reads. | 1 | Sum(Int) | <ul> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.physical_write_bytes** | Number of bytes written to disks by the monitored SQL. | By | Sum(Int) | <ul> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.physical_write_requests** | Number of physical write I/O requests issued by the monitored SQL. | 1 | Sum(Int) | <ul> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.total_sharable_mem** | Total shared memory (in bytes) occupied by all cursors with this SQL text and plan if they were to be fully loaded in the shared pool (that is, cursor size). | By | Gauge(Int) | <ul> <li>oracledb.query.fulltext</li> </ul> |
+| **oracledb.query.cpu_time** | CPU time (in microseconds) used by this cursor for parsing, executing, and fetching. | us | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
+| **oracledb.query.elapsed_time** | Elapsed time (in microseconds) used by this cursor. | us | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
+| **oracledb.query.executions** | Number of executions that have taken place on this object. | 1 | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
+| **oracledb.query.parse_calls** | Number of parse calls for all cursors with this SQL text and plan. | 1 | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
+| **oracledb.query.physical_read_bytes** | Number of bytes read from disks by the monitored SQL. | By | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
+| **oracledb.query.physical_read_requests** | Number of physical read I/O requests issued by the monitored SQL. The requests may not be disk reads. | 1 | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
+| **oracledb.query.physical_write_bytes** | Number of bytes written to disks by the monitored SQL. | By | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
+| **oracledb.query.physical_write_requests** | Number of physical write I/O requests issued by the monitored SQL. | 1 | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
+| **oracledb.query.total_sharable_mem** | Total shared memory (in bytes) occupied by all cursors with this SQL text and plan if they were to be fully loaded in the shared pool (that is, cursor size). | By | Gauge(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
 | **oracledb.session.cpu_usage** | CPU usage (%) | 1 | Gauge(Double) | <ul> </ul> |
 | **oracledb.session.enqueue_deadlocks** | Total number of deadlocks between table or row locks in different sessions. | 1 | Gauge(Int) | <ul> </ul> |
 | **oracledb.session.exchange_deadlocks** | Number of times that a process detected a potential deadlock when exchanging two buffers and raised an internal, restartable error. Index scans are the only operations that perform exchanges. | 1 | Gauge(Int) | <ul> </ul> |
@@ -56,14 +56,13 @@ metrics:
 
 | Name | Description | Type |
 | ---- | ----------- | ---- |
-| oracledb.query.id | Unique ID for SQL statements. | String |
+| oracledb.instance.name | The name of the instance that data is coming from. | String |
 | oracledb.session.id | Session identifier. | Int |
-| oracledb.table.name | The name of the table that data is coming from. | String |
-| oracledb.view.name | The name of the view that data is coming from. | String |
 
 ## Metric attributes
 
 | Name | Description | Values |
 | ---- | ----------- | ------ |
 | oracledb.query.fulltext | Full text for the SQL statement. |  |
+| oracledb.query.id | Unique ID for the SQL statement. |  |
 | oracledb.session.type | Session type |  |

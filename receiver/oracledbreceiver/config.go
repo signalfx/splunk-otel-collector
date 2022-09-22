@@ -17,6 +17,7 @@ package oracledbreceiver // import "github.com/signalfx/splunk-otel-collector/re
 
 import (
 	"errors"
+	"net/url"
 	"time"
 
 	"go.opentelemetry.io/collector/config"
@@ -35,6 +36,9 @@ type Config struct {
 func (c Config) Validate() error {
 	if c.DataSource == "" {
 		return errors.New("'datasource' cannot be empty")
+	}
+	if _, err := url.Parse(c.DataSource); err != nil {
+		return errors.New("'datasource' is invalid")
 	}
 	return nil
 }

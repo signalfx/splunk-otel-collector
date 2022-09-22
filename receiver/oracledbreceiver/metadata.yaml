@@ -4,20 +4,16 @@ name: oracledbreceiver
 # TODO: deadlock variable documentation isn't clear, need to confirm correct types.
 
 resource_attributes:
-  oracledb.table.name:
-    description: The name of the table that data is coming from.
-    type: string
-  oracledb.view.name:
-    description: The name of the view that data is coming from.
-    type: string
-  oracledb.query.id:
-    description: Unique ID for SQL statements.
+  oracledb.instance.name:
+    description: The name of the instance that data is coming from.
     type: string
   oracledb.session.id:
     description: Session identifier.
     type: int
 
 attributes:
+  oracledb.query.id:
+    description: Unique ID for the SQL statement.
   oracledb.query.fulltext:
     description: Full text for the SQL statement.
     type: string
@@ -35,6 +31,7 @@ metrics:
       value_type: int
     unit: us
     attributes:
+      - oracledb.query.id
       - oracledb.query.fulltext
   oracledb.query.executions:
     enabled: true
@@ -45,6 +42,7 @@ metrics:
       value_type: int
     unit: 1
     attributes:
+      - oracledb.query.id
       - oracledb.query.fulltext
   oracledb.query.parse_calls:
     enabled: true
@@ -55,6 +53,7 @@ metrics:
       value_type: int
     unit: 1
     attributes:
+      - oracledb.query.id
       - oracledb.query.fulltext
   oracledb.query.physical_read_bytes:
     enabled: true
@@ -65,6 +64,7 @@ metrics:
       value_type: int
     unit: By
     attributes:
+      - oracledb.query.id
       - oracledb.query.fulltext
   oracledb.query.physical_read_requests:
     enabled: true
@@ -75,6 +75,7 @@ metrics:
       value_type: int
     unit: 1
     attributes:
+      - oracledb.query.id
       - oracledb.query.fulltext
   oracledb.query.physical_write_bytes:
     enabled: true
@@ -85,6 +86,7 @@ metrics:
       value_type: int
     unit: By
     attributes:
+      - oracledb.query.id
       - oracledb.query.fulltext
   oracledb.query.physical_write_requests:
     enabled: true
@@ -95,6 +97,7 @@ metrics:
       value_type: int
     unit: 1
     attributes:
+      - oracledb.query.id
       - oracledb.query.fulltext
   oracledb.query.cpu_time:
     enabled: true
@@ -105,6 +108,7 @@ metrics:
       value_type: int
     unit: us
     attributes:
+      - oracledb.query.id
       - oracledb.query.fulltext
   oracledb.query.total_sharable_mem:
     enabled: true
@@ -113,6 +117,7 @@ metrics:
       value_type: int
     unit: By
     attributes:
+      - oracledb.query.id
       - oracledb.query.fulltext
 
   oracledb.system.parse_count_total:

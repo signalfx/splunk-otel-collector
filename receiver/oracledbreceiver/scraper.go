@@ -51,6 +51,7 @@ const (
 	sessionUserRollbacksSQL       = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'user rollbacks'"
 	activeSessionTotalSQL         = "select status, type, count(*) as VALUE FROM v$session GROUP BY status, type"
 	cachedSessionTotalSQL         = "select type, count(*) as VALUE FROM v$session WHERE status = 'CACHED' GROUP BY type"
+	currentSessionIdSQL           = "select sys_context('USERENV','SID') from dual"
 )
 
 type dbProviderFunc func() (*sql.DB, error)
@@ -67,9 +68,10 @@ type scraper struct {
 	scrapeCfg          scraperhelper.ScraperControllerSettings
 	startTime          pcommon.Timestamp
 	metricsSettings    metadata.MetricsSettings
+	viewName           string
 }
 
-func newScraper(id config.ComponentID, metricsBuilder *metadata.MetricsBuilder, metricsSettings metadata.MetricsSettings, scrapeCfg scraperhelper.ScraperControllerSettings, logger *zap.Logger, providerFunc dbProviderFunc, clientProviderFunc clientProviderFunc) *scraper {
+func newScraper(id config.ComponentID, metricsBuilder *metadata.MetricsBuilder, metricsSettings metadata.MetricsSettings, scrapeCfg scraperhelper.ScraperControllerSettings, logger *zap.Logger, providerFunc dbProviderFunc, clientProviderFunc clientProviderFunc, viewName string) *scraper {
 	return &scraper{
 		id:                 id,
 		metricsBuilder:     metricsBuilder,
@@ -78,6 +80,7 @@ func newScraper(id config.ComponentID, metricsBuilder *metadata.MetricsBuilder, 
 		logger:             logger,
 		dbProviderFunc:     providerFunc,
 		clientProviderFunc: clientProviderFunc,
+		viewName:           viewName,
 	}
 }
 
@@ -99,6 +102,7 @@ func (s *scraper) Start(context.Context, component.Host) error {
 
 func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 	s.logger.Debug("Begin scrape")
+	s.metricsBuilder.Reset()
 	if s.metricsSettings.OracledbQueryCPUTime.Enabled {
 		if err := s.executeOneQueryWithFullText(ctx, queryCPUTimeSQL, s.metricsBuilder.RecordOracledbQueryCPUTimeDataPoint); err != nil {
 			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", queryCPUTimeSQL, err)
@@ -262,8 +266,19 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 			s.metricsBuilder.RecordOracledbSystemCachedSessionTotalDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["TYPE"])
 		}
 	}
+	res, err := s.db.QueryContext(ctx, currentSessionIdSQL)
+	if err != nil {
+		return pmetric.Metrics{}, err
+	}
+	var sessionId int64
+	if res.Next() {
+		err = res.Scan(&sessionId)
+		if err != nil {
+			return pmetric.Metrics{}, err
+		}
+	}
 
-	out := s.metricsBuilder.Emit()
+	out := s.metricsBuilder.Emit(metadata.WithOracledbViewName(s.viewName), metadata.WithOracledbSessionID(sessionId))
 	s.logger.Debug("Done scraping")
 	return out, nil
 }

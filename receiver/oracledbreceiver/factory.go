@@ -18,6 +18,7 @@ package oracledbreceiver // import "github.com/signalfx/splunk-otel-collector/re
 import (
 	"context"
 	"database/sql"
+	"net/url"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
@@ -66,9 +67,11 @@ func createReceiverFunc(sqlOpenerFunc sqlOpenerFunc, clientProviderFunc clientPr
 		sqlCfg := cfg.(*Config)
 		var opts []scraperhelper.ScraperControllerOption
 		metricsBuilder := metadata.NewMetricsBuilder(sqlCfg.MetricsSettings, settings.BuildInfo)
+		datasourceUrl, _ := url.Parse(sqlCfg.DataSource)
+		viewName := datasourceUrl.Path[1:]
 		mp := newScraper(cfg.ID(), metricsBuilder, sqlCfg.MetricsSettings, sqlCfg.ScraperControllerSettings, settings.TelemetrySettings.Logger, func() (*sql.DB, error) {
 			return sqlOpenerFunc(sqlCfg.DataSource)
-		}, clientProviderFunc)
+		}, clientProviderFunc, viewName)
 		opt := scraperhelper.AddScraper(mp)
 		opts = append(opts, opt)
 

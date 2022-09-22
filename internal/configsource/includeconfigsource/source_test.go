@@ -54,6 +54,14 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 			selector: "no_params_template",
 			expected: []byte("bool_field: true"),
 		},
+		{
+			name:     "param_template",
+			selector: "param_template",
+			params: map[string]any{
+				"glob_pattern": "myPattern",
+			},
+			expected: []byte("logs_path: myPattern"),
+		},
 	}
 
 	for _, tt := range tests {
@@ -80,6 +88,83 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 			assert.Equal(t, tt.expected, r.Value())
 		})
 	}
+}
+
+func TestIncludeConfigSource_WatchFileClose(t *testing.T) {
+	s, err := newConfigSource(configprovider.CreateParams{}, &Config{WatchFiles: true})
+	require.NoError(t, err)
+	require.NotNil(t, s)
+
+	ctx := context.Background()
+	defer func() {
+		assert.NoError(t, s.Close(ctx))
+	}()
+
+	// Write out an initial test file
+	f, err := os.CreateTemp("", "watch_file_test")
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, os.Remove(f.Name()))
+	}()
+	_, err = f.Write([]byte("val1"))
+	require.NoError(t, err)
+	require.NoError(t, f.Close())
+
+	// Perform initial retrieve
+	r, err := s.Retrieve(ctx, f.Name(), nil)
+	require.NoError(t, err)
+	require.NotNil(t, r)
+	assert.Equal(t, []byte("val1"), r.Value())
+
+	watched, ok := r.(configsource.Watchable)
+	assert.True(t, ok)
+
+	// Close current source.
+	require.NoError(t, s.Close(context.Background()))
+	watcherErr := watched.WatchForUpdate()
+	require.ErrorIs(t, watcherErr, configsource.ErrSessionClosed)
+
+}
+
+func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
+	s, err := newConfigSource(configprovider.CreateParams{}, &Config{WatchFiles: true})
+	require.NoError(t, err)
+	require.NotNil(t, s)
+
+	ctx := context.Background()
+	defer func() {
+		assert.NoError(t, s.Close(ctx))
+	}()
+
+	// Write out an initial test file
+	f, err := os.CreateTemp("", "watch_file_test")
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, os.Remove(f.Name()))
+	}()
+	_, err = f.Write([]byte("val1"))
+	require.NoError(t, err)
+	require.NoError(t, f.Close())
+
+	// Perform initial retrieve
+	r, err := s.Retrieve(ctx, f.Name(), nil)
+	require.NoError(t, err)
+	require.NotNil(t, r)
+	assert.Equal(t, []byte("val1"), r.Value())
+	watched, ok := r.(configsource.Watchable)
+	assert.True(t, ok)
+
+	// Write update to file
+	err = os.WriteFile(f.Name(), []byte("val2"), 0600)
+	require.NoError(t, err)
+	watcherErr := watched.WatchForUpdate()
+	require.ErrorIs(t, watcherErr, configsource.ErrValueUpdated)
+
+	// Check updated file after waiting for update
+	r, err = s.Retrieve(ctx, f.Name(), nil)
+	require.NoError(t, err)
+	require.NotNil(t, r)
+	assert.Equal(t, []byte("val2"), r.Value())
 }
 
 func TestIncludeConfigSource_DeleteFile(t *testing.T) {

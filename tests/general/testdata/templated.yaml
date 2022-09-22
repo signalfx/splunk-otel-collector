@@ -1,0 +1,22 @@
+config_sources:
+  include:
+
+receivers:
+  hostmetrics:
+    scrapers:
+      filesystem:
+      memory:
+      network:
+      cpu:
+      disk:
+    collection_interval: ${include:./testdata/collection_interval_scalar}
+processors:
+  resourcedetection:
+    detectors: [ system ]
+exporters:
+  otlp: ${include:./testdata/exporter_component}
+service: |
+  $include: ./testdata/service_template_component
+  my_receivers: [ hostmetrics ]
+  my_processors: [ resourcedetection ]
+  my_exporters: [ otlp ]

@@ -1,0 +1,5 @@
+  pipelines:
+    metrics:
+      receivers: {{ .my_receivers }}
+      processors: {{ .my_processors }}
+      exporters: {{ .my_exporters }}

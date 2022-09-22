@@ -501,10 +501,10 @@ func newPDataSpan(
 	td := ptrace.NewTraces()
 	rs := td.ResourceSpans().AppendEmpty()
 	if serviceName != "" {
-		rs.Resource().Attributes().UpsertString("service.name", serviceName)
+		rs.Resource().Attributes().PutString("service.name", serviceName)
 	}
 	if dataSourceIP != "" {
-		rs.Resource().Attributes().UpsertString("ip", dataSourceIP)
+		rs.Resource().Attributes().PutString("ip", dataSourceIP)
 	}
 	span := rs.ScopeSpans().AppendEmpty().Spans().AppendEmpty()
 
@@ -525,9 +525,9 @@ func newPDataSpan(
 	pID := [8]byte{}
 	copy(pID[:], decodedParentID)
 
-	span.SetTraceID(pcommon.NewTraceID(tID))
-	span.SetSpanID(pcommon.NewSpanID(sID))
-	span.SetParentSpanID(pcommon.NewSpanID(pID))
+	span.SetTraceID(pcommon.TraceID(tID))
+	span.SetSpanID(pcommon.SpanID(sID))
+	span.SetParentSpanID(pcommon.SpanID(pID))
 
 	span.SetKind(kind)
 	span.SetStartTimestamp(pcommon.Timestamp(startTime))
@@ -538,11 +538,11 @@ func newPDataSpan(
 	for k, val := range attributes {
 		switch v := val.(type) {
 		case string:
-			attrs.UpsertString(k, v)
+			attrs.PutString(k, v)
 		default:
 			vInt, err := strconv.ParseInt(fmt.Sprintf("%v", v), 10, 64)
 			require.NoError(t, err)
-			attrs.UpsertInt(k, vInt)
+			attrs.PutInt(k, vInt)
 		}
 	}
 

@@ -53,22 +53,22 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) plog.Logs {
 	attrs.EnsureCapacity(attrsCapacity)
 
 	for k, v := range event.Dimensions {
-		attrs.UpsertString(k, v)
+		attrs.PutString(k, v)
 	}
 
 	if event.Category == 0 {
 		// This attribute must be present or SFx exporter will not know it's an event
-		attrs.UpsertEmpty(SFxEventCategoryKey)
+		attrs.PutEmpty(SFxEventCategoryKey)
 	} else {
-		attrs.UpsertInt(SFxEventCategoryKey, int64(event.Category))
+		attrs.PutInt(SFxEventCategoryKey, int64(event.Category))
 	}
 
 	if event.EventType != "" {
-		attrs.UpsertString(SFxEventType, event.EventType)
+		attrs.PutString(SFxEventType, event.EventType)
 	}
 
 	if len(event.Properties) > 0 {
-		propMap := attrs.UpsertEmptyMap(SFxEventPropertiesKey)
+		propMap := attrs.PutEmptyMap(SFxEventPropertiesKey)
 		propMap.EnsureCapacity(len(event.Properties))
 
 		for property, value := range event.Properties {
@@ -81,26 +81,26 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) plog.Logs {
 			// https://github.com/signalfx/com_signalfx_metrics_protobuf/blob/master/model/signalfx_metrics.pb.go#L567
 			// bool, float64, int64, and string are only supported types.
 			case string:
-				propMap.UpsertString(property, v)
+				propMap.PutString(property, v)
 			case bool:
-				propMap.UpsertBool(property, v)
+				propMap.PutBool(property, v)
 			case int:
-				propMap.UpsertInt(property, int64(v))
+				propMap.PutInt(property, int64(v))
 			case int8:
-				propMap.UpsertInt(property, int64(v))
+				propMap.PutInt(property, int64(v))
 			case int16:
-				propMap.UpsertInt(property, int64(v))
+				propMap.PutInt(property, int64(v))
 			case int32:
-				propMap.UpsertInt(property, int64(v))
+				propMap.PutInt(property, int64(v))
 			case int64:
-				propMap.UpsertInt(property, v)
+				propMap.PutInt(property, v)
 			case float32:
-				propMap.UpsertDouble(property, float64(v))
+				propMap.PutDouble(property, float64(v))
 			case float64:
-				propMap.UpsertDouble(property, v)
+				propMap.PutDouble(property, v)
 			default:
 				// Default to string representation.
-				propMap.UpsertString(property, fmt.Sprintf("%v", value))
+				propMap.PutString(property, fmt.Sprintf("%v", value))
 			}
 		}
 	}

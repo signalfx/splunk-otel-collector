@@ -60,7 +60,13 @@ func (is *includeConfigSource) Retrieve(_ context.Context, selector string, para
 	}
 
 	var buf bytes.Buffer
-	if err = tmpl.Execute(&buf, paramsConfigMap); err != nil {
+	var params map[string]any
+	if paramsConfigMap != nil {
+		params = paramsConfigMap.ToStringMap()
+	} else {
+		params = map[string]any{}
+	}
+	if err = tmpl.Execute(&buf, params); err != nil {
 		return nil, err
 	}
 

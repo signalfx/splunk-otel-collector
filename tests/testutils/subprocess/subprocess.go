@@ -136,6 +136,7 @@ func (subprocess *Subprocess) Shutdown(ctx context.Context) error {
 	if subprocess.cancel == nil {
 		return fmt.Errorf("no subprocess.cancel().  Has it been started properly?")
 	}
+	subprocess.cancel()
 
 	timeout := defaultShutdownTimeout
 	if subprocess.config.ShutdownTimeout != nil {

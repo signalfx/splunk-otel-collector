@@ -77,15 +77,15 @@ This class accepts the following parameters:
 ## Dependencies
 
 On Linux-based systems, the
-[puppetlabs/stdlib](https://forge.puppet.com/puppetlabs/stdlib) module is
+[puppetlabs/stdlib](https://forge.puppet.com/modules/puppetlabs/stdlib) module is
 required.
 
 On Debian-based systems, the
-[puppetlabs/apt](https://forge.puppet.com/puppetlabs/apt) module is required to
+[puppetlabs/apt](https://forge.puppet.com/modules/puppetlabs/apt) module is required to
 manage the collector and fluentd apt repositories.
 
 On RPM-based systems, the
-[puppet/yum](https://forge.puppet.com/puppet/yum) module is required to
+[puppet/yum](https://forge.puppet.com/modules/puppet/yum) module is required to
 install the "Development Tools" package group as a dependency for fluentd.
 
 On Windows systems, the

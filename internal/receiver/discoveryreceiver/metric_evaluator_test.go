@@ -169,34 +169,34 @@ func TestTimestampFromMetric(t *testing.T) {
 			return false
 		}},
 		{name: "empty MetricDataTypeSum", metricFunc: func(md pmetric.Metric) bool {
-			md.SetDataType(pmetric.MetricDataTypeSum)
+			md.SetEmptySum()
 			return true
 		}},
 		{name: "MetricDataTypeHistogram", metricFunc: func(md pmetric.Metric) bool {
-			md.SetDataType(pmetric.MetricDataTypeHistogram)
+			md.SetEmptyHistogram()
 			md.Histogram().DataPoints().AppendEmpty().SetTimestamp(expectedTime)
 			return false
 		}},
 		{name: "empty MetricDataTypeHistogram", metricFunc: func(md pmetric.Metric) bool {
-			md.SetDataType(pmetric.MetricDataTypeHistogram)
+			md.SetEmptyHistogram()
 			return true
 		}},
 		{name: "MetricDataTypeExponentialHistogram", metricFunc: func(md pmetric.Metric) bool {
-			md.SetDataType(pmetric.MetricDataTypeExponentialHistogram)
+			md.SetEmptyExponentialHistogram()
 			md.ExponentialHistogram().DataPoints().AppendEmpty().SetTimestamp(expectedTime)
 			return false
 		}},
 		{name: "empty MetricDataTypeExponentialHistogram", metricFunc: func(md pmetric.Metric) bool {
-			md.SetDataType(pmetric.MetricDataTypeExponentialHistogram)
+			md.SetEmptyExponentialHistogram()
 			return true
 		}},
 		{name: "MetricDataTypeSummary", metricFunc: func(md pmetric.Metric) bool {
-			md.SetDataType(pmetric.MetricDataTypeSummary)
+			md.SetEmptySummary()
 			md.Summary().DataPoints().AppendEmpty().SetTimestamp(expectedTime)
 			return false
 		}},
 		{name: "empty MetricDataTypeSummary", metricFunc: func(md pmetric.Metric) bool {
-			md.SetDataType(pmetric.MetricDataTypeSummary)
+			md.SetEmptySummary()
 			return true
 		}},
 		{name: "MetricDataTypeNone", metricFunc: func(md pmetric.Metric) bool { return true }},

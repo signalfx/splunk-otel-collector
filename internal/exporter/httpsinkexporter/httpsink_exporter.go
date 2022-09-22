@@ -17,7 +17,7 @@ package httpsinkexporter
 
 import (
 	"context"
-	"net/http"
+	http "net/http"
 	"sync"
 
 	"github.com/gogo/protobuf/jsonpb"

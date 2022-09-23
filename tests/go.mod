@@ -9,6 +9,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.22.8
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.2
 	github.com/signalfx/signalfx-go v1.23.0
+	github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver v0.60.0
 	github.com/stretchr/testify v1.8.0
 	github.com/testcontainers/testcontainers-go v0.14.0
 	go.opentelemetry.io/collector v0.61.0
@@ -93,3 +94,5 @@ replace (
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.1.2
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0
 )
+
+replace "github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver" => "../receiver/oracledbreceiver"

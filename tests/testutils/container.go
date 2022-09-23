@@ -137,6 +137,11 @@ func (container Container) WillWaitForLogs(logStatements ...string) Container {
 	return container
 }
 
+func (container Container) WillWaitForHealth(waitTime time.Duration) Container {
+	container.WaitingFor = append(container.WaitingFor, wait.NewHealthStrategy().WithStartupTimeout(waitTime))
+	return container
+}
+
 func (container Container) Build() *Container {
 	networkMode := dockerContainer.NetworkMode("default")
 	if container.ContainerNetworkMode != "" {

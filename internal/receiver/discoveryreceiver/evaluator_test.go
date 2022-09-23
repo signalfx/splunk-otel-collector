@@ -132,7 +132,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 
 			expectedResourceAttrs := map[string]any{
 				"one":                   "one.val",
-				"two":                   int64(2),
+				"two":                   "2",
 				"discovery.observer.id": "type/name",
 			}
 
@@ -191,7 +191,7 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 
 			expectedResourceAttrs := map[string]any{
 				"one":                       "one.val",
-				"two":                       int64(2),
+				"two":                       "2",
 				"discovery.observer.id":     "type/name",
 				"discovery.receiver.config": receiverConfig,
 			}

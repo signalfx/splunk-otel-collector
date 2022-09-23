@@ -111,8 +111,8 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 		md.ResourceMetrics().At(0).Resource().Attributes(), rAttrs,
 		m.correlations.GetOrCreate(receiverID, endpointID),
 	)
-	rAttrs.InsertString(eventTypeAttr, metricMatch)
-	rAttrs.InsertString(receiverRuleAttr, rEntry.Rule)
+	rAttrs.PutString(eventTypeAttr, metricMatch)
+	rAttrs.PutString(receiverRuleAttr, rEntry.Rule)
 
 	logRecords := rLog.ScopeLogs().AppendEmpty().LogRecords()
 
@@ -150,15 +150,15 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 					}
 					logRecord.Body().SetStringVal(desiredBody)
 					for k, v := range desiredRecord.Attributes {
-						logRecord.Attributes().InsertString(k, v)
+						logRecord.Attributes().PutString(k, v)
 					}
 					severityText := desiredRecord.SeverityText
 					if severityText == "" {
 						severityText = "info"
 					}
 					logRecord.SetSeverityText(severityText)
-					logRecord.Attributes().InsertString(metricNameAttr, metricName)
-					logRecord.Attributes().UpsertString(statusAttr, status)
+					logRecord.Attributes().PutString(metricNameAttr, metricName)
+					logRecord.Attributes().PutString(statusAttr, status)
 					if ts := m.timestampFromMetric(metric); ts != nil {
 						logRecord.SetTimestamp(*ts)
 					}

@@ -34,7 +34,7 @@ import (
 const defaultIntervalSeconds = 10
 
 var (
-	_ config.Unmarshallable = (*Config)(nil)
+	_ confmap.Unmarshaler = (*Config)(nil)
 
 	errDimensionClientValue = fmt.Errorf("dimensionClients must be an array of compatible exporter names")
 	nonWindowsMonitors      = map[string]bool{

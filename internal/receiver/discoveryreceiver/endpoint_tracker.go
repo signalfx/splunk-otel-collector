@@ -130,9 +130,9 @@ func endpointToPLogs(observerID config.ComponentID, eventType string, endpoints 
 	pLogs = plog.NewLogs()
 	rlog := pLogs.ResourceLogs().AppendEmpty()
 	rAttrs := rlog.Resource().Attributes()
-	rAttrs.UpsertString(eventTypeAttr, eventType)
-	rAttrs.UpsertString(observerNameAttr, observerID.Name())
-	rAttrs.UpsertString(observerTypeAttr, string(observerID.Type()))
+	rAttrs.PutString(eventTypeAttr, eventType)
+	rAttrs.PutString(observerNameAttr, observerID.Name())
+	rAttrs.PutString(observerTypeAttr, string(observerID.Type()))
 	sl := rlog.ScopeLogs().AppendEmpty()
 	for _, endpoint := range endpoints {
 		logRecord := sl.LogRecords().AppendEmpty()
@@ -149,12 +149,12 @@ func endpointToPLogs(observerID config.ComponentID, eventType string, endpoints 
 				// this must be the first mutation of attrs since it's destructive
 				envAttrs.CopyTo(attrs)
 			}
-			attrs.UpsertString("type", string(endpoint.Details.Type()))
+			attrs.PutString("type", string(endpoint.Details.Type()))
 		} else {
 			logRecord.Body().SetStringVal(fmt.Sprintf("%s endpoint %s", eventType, endpoint.ID))
 		}
-		attrs.UpsertString("endpoint", endpoint.Target)
-		attrs.UpsertString("id", string(endpoint.ID))
+		attrs.PutString("endpoint", endpoint.Target)
+		attrs.PutString("id", string(endpoint.ID))
 
 		// sorted log record attributes for determinism
 		attrs.Sort()
@@ -170,9 +170,9 @@ func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer
 		// should result in a ValueMap
 		case shouldEmbedMap(endpointType, k):
 			if asMap, ok := v.(map[string]string); ok {
-				mapVal := attrs.UpsertEmptyMap(k)
+				mapVal := attrs.PutEmptyMap(k)
 				for item, itemVal := range asMap {
-					mapVal.UpsertString(item, itemVal)
+					mapVal.PutString(item, itemVal)
 				}
 				mapVal.Sort()
 			} else {
@@ -186,18 +186,18 @@ func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer
 				if e != nil {
 					return attrs, fmt.Errorf("failed parsing %v pod attributes ", endpointType)
 				}
-				podAttrs.CopyTo(attrs.UpsertEmptyMap(k))
+				podAttrs.CopyTo(attrs.PutEmptyMap(k))
 			} else {
 				return attrs, fmt.Errorf("failed parsing %v pod env %#v", endpointType, v)
 			}
 		default:
 			switch vVal := v.(type) {
 			case uint16:
-				attrs.UpsertInt(k, int64(vVal))
+				attrs.PutInt(k, int64(vVal))
 			case bool:
-				attrs.UpsertBool(k, vVal)
+				attrs.PutBool(k, vVal)
 			default:
-				attrs.UpsertString(k, fmt.Sprintf("%v", v))
+				attrs.PutString(k, fmt.Sprintf("%v", v))
 			}
 		}
 	}

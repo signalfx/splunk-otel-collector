@@ -20,6 +20,9 @@ attributes:
   oracledb.session.type:
     description: Session type
     type: string
+  oracledb.session.status:
+    description: Session status
+    type: string
 
 metrics:
   oracledb.query.elapsed_time:
@@ -33,6 +36,16 @@ metrics:
     attributes:
       - oracledb.query.id
       - oracledb.query.fulltext
+  oracledb.query.long_running:
+    enabled: true
+    description: Elapsed time (in seconds) of long running queries used by this cursor.
+    sum:
+      aggregation: cumulative
+      monotonic: true
+      value_type: int
+    unit: s
+    attributes:
+      - oracledb.query.id
   oracledb.query.executions:
     enabled: true
     description: Number of executions that have taken place on this object.
@@ -176,46 +189,15 @@ metrics:
     gauge:
       value_type: int
     unit: 1
-  oracledb.system.active_session_total:
+  oracledb.system.session_count:
     enabled: true
-    description: Total number of active sessions.
+    description: Count of sessions.
     gauge:
       value_type: int
     unit: 1
     attributes:
       - oracledb.session.type
-  oracledb.system.inactive_session_total:
-    enabled: true
-    description: Total number of sessions that are inactive and either has no configured limits or has not yet exceeded the configured limits.
-    gauge:
-      value_type: int
-    unit: 1
-    attributes:
-      - oracledb.session.type
-  oracledb.system.killed_session_total:
-    enabled: true
-    description: Total number of sessions that are marked to be killed.
-    gauge:
-      value_type: int
-    unit: 1
-    attributes:
-      - oracledb.session.type
-  oracledb.system.cached_session_total:
-    enabled: true
-    description: Total number of sessions that are temporarily cached for use by Oracle*XA.
-    gauge:
-      value_type: int
-    unit: 1
-    attributes:
-      - oracledb.session.type
-  oracledb.system.sniped_session_total:
-    enabled: true
-    description: Total number of sessions that are inactive and have exceeded some configured limits (for example, resource limits specified for the resource manager consumer group or idle_time specified in the user's profile). Such sessions will not be allowed to become active again.
-    gauge:
-      value_type: int
-    unit: 1
-    attributes:
-      - oracledb.session.type
+      - oracledb.session.status
 
   oracledb.session.parse_count_total:
     enabled: true

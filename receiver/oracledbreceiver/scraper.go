@@ -42,6 +42,7 @@ const (
 	queryPhysicalWriteBytesSQL    = "select * from (select s.sql_id as sql_id, s.SQL_FULLTEXT, s.PHYSICAL_WRITE_BYTES as VALUE FROM v$sqlstats s  where to_char(LAST_ACTIVE_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.ELAPSED_TIME DESC )"
 	queryPhysicalWriteRequestsSQL = "select * from (select s.sql_id as sql_id, s.SQL_FULLTEXT, s.PHYSICAL_WRITE_REQUESTS as VALUE FROM v$sqlstats s  where to_char(LAST_ACTIVE_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.ELAPSED_TIME DESC )"
 	queryTotalSharableMemSQL      = "select * from (select s.sql_id as sql_id, s.SQL_FULLTEXT, s.TOTAL_SHARABLE_MEM as VALUE FROM v$sqlstats s  where to_char(LAST_ACTIVE_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.ELAPSED_TIME DESC )"
+	queryLongestRunningSQL        = "select s.SQL_ID, s.START_TIME, s.ELAPSED_SECONDS as VALUE FROM v$session_longops s where to_char(START_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.ELAPSED_SECONDS DESC"
 	sessionUsageSQL               = "select session_id, cpu as cpu_usage, pga_memory, physical_reads, logical_reads, hard_parses, soft_parses FROM v$sessmetric"
 	sessionEnqueueDeadlocksSQL    = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'enqueue deadlocks'"
 	sessionExchangeDeadlocksSQL   = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'exchange deadlocks'"
@@ -49,8 +50,7 @@ const (
 	sessionParseCountTotalSQL     = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'parse count (total)'"
 	sessionUserCommitsSQL         = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'user commits'"
 	sessionUserRollbacksSQL       = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'user rollbacks'"
-	activeSessionTotalSQL         = "select status, type, count(*) as VALUE FROM v$session GROUP BY status, type"
-	cachedSessionTotalSQL         = "select type, count(*) as VALUE FROM v$session WHERE status = 'CACHED' GROUP BY type"
+	sessionCountSQL               = "select status, type, count(*) as VALUE FROM v$session GROUP BY status, type"
 	currentSessionIdSQL           = "select sys_context('USERENV','SID') from dual"
 )
 
@@ -68,10 +68,10 @@ type scraper struct {
 	scrapeCfg          scraperhelper.ScraperControllerSettings
 	startTime          pcommon.Timestamp
 	metricsSettings    metadata.MetricsSettings
-	viewName           string
+	instanceName       string
 }
 
-func newScraper(id config.ComponentID, metricsBuilder *metadata.MetricsBuilder, metricsSettings metadata.MetricsSettings, scrapeCfg scraperhelper.ScraperControllerSettings, logger *zap.Logger, providerFunc dbProviderFunc, clientProviderFunc clientProviderFunc, viewName string) *scraper {
+func newScraper(id config.ComponentID, metricsBuilder *metadata.MetricsBuilder, metricsSettings metadata.MetricsSettings, scrapeCfg scraperhelper.ScraperControllerSettings, logger *zap.Logger, providerFunc dbProviderFunc, clientProviderFunc clientProviderFunc, instanceName string) *scraper {
 	return &scraper{
 		id:                 id,
 		metricsBuilder:     metricsBuilder,
@@ -80,7 +80,7 @@ func newScraper(id config.ComponentID, metricsBuilder *metadata.MetricsBuilder, 
 		logger:             logger,
 		dbProviderFunc:     providerFunc,
 		clientProviderFunc: clientProviderFunc,
-		viewName:           viewName,
+		instanceName:       instanceName,
 	}
 }
 
@@ -106,6 +106,20 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 	if s.metricsSettings.OracledbQueryCPUTime.Enabled {
 		if err := s.executeOneQueryWithFullText(ctx, queryCPUTimeSQL, s.metricsBuilder.RecordOracledbQueryCPUTimeDataPoint); err != nil {
 			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", queryCPUTimeSQL, err)
+		}
+	}
+	if s.metricsSettings.OracledbQueryLongRunning.Enabled {
+		client := s.clientProviderFunc(s.db, queryLongestRunningSQL, s.logger)
+		rows, err := client.metricRows(ctx)
+		if err != nil {
+			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", queryLongestRunningSQL, err)
+		}
+		for _, row := range rows {
+			value, err := strconv.ParseInt(row["VALUE"], 10, 64)
+			if err != nil {
+				return pmetric.Metrics{}, fmt.Errorf("value: %s, %s, %w", row["VALUE"], queryLongestRunningSQL, err)
+			}
+			s.metricsBuilder.RecordOracledbQueryLongRunningDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SQL_ID"])
 		}
 	}
 	if s.metricsSettings.OracledbQueryElapsedTime.Enabled {
@@ -238,32 +252,18 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 		}
 	}
 
-	if s.metricsSettings.OracledbSystemActiveSessionTotal.Enabled {
-		client := s.clientProviderFunc(s.db, activeSessionTotalSQL, s.logger)
+	if s.metricsSettings.OracledbSystemSessionCount.Enabled {
+		client := s.clientProviderFunc(s.db, sessionCountSQL, s.logger)
 		rows, err := client.metricRows(ctx)
 		if err != nil {
-			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", activeSessionTotalSQL, err)
+			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", sessionCountSQL, err)
 		}
 		for _, row := range rows {
 			value, err := strconv.ParseInt(row["VALUE"], 10, 64)
 			if err != nil {
 				return pmetric.Metrics{}, err
 			}
-			s.metricsBuilder.RecordOracledbSystemActiveSessionTotalDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, fmt.Sprintf("%s-%s", row["STATUS"], row["TYPE"]))
-		}
-	}
-	if s.metricsSettings.OracledbSystemCachedSessionTotal.Enabled {
-		client := s.clientProviderFunc(s.db, cachedSessionTotalSQL, s.logger)
-		rows, err := client.metricRows(ctx)
-		if err != nil {
-			return pmetric.Metrics{}, err
-		}
-		for _, row := range rows {
-			value, err := strconv.ParseInt(row["VALUE"], 10, 64)
-			if err != nil {
-				return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", cachedSessionTotalSQL, err)
-			}
-			s.metricsBuilder.RecordOracledbSystemCachedSessionTotalDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["TYPE"])
+			s.metricsBuilder.RecordOracledbSystemSessionCountDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["TYPE"], row["STATUS"])
 		}
 	}
 	res, err := s.db.QueryContext(ctx, currentSessionIdSQL)
@@ -278,7 +278,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 		}
 	}
 
-	out := s.metricsBuilder.Emit(metadata.WithOracledbViewName(s.viewName), metadata.WithOracledbSessionID(sessionId))
+	out := s.metricsBuilder.Emit(metadata.WithOracledbInstanceName(s.instanceName), metadata.WithOracledbSessionID(sessionId))
 	s.logger.Debug("Done scraping")
 	return out, nil
 }
@@ -299,7 +299,7 @@ func (s *scraper) executeOneQuery(ctx context.Context, query string, recorder fu
 	return nil
 }
 
-func (s *scraper) executeOneQueryWithFullText(ctx context.Context, query string, recorder func(ts pcommon.Timestamp, val int64, oracledbQueryFulltextAttributeValue string)) error {
+func (s *scraper) executeOneQueryWithFullText(ctx context.Context, query string, recorder func(ts pcommon.Timestamp, val int64, oracledbQueryIDAttributeValue string, oracledbQueryFulltextAttributeValue string)) error {
 	client := s.clientProviderFunc(s.db, query, s.logger)
 	rows, err := client.metricRows(ctx)
 	if err != nil {
@@ -310,7 +310,11 @@ func (s *scraper) executeOneQueryWithFullText(ctx context.Context, query string,
 		if err != nil {
 			return fmt.Errorf("value: %s, %s, %w", row["VALUE"], query, err)
 		}
-		recorder(pcommon.NewTimestampFromTime(time.Now()), value, row["SQL_FULLTEXT"])
+		fullText := row["SQL_FULLTEXT"]
+		if len(fullText) > 256 {
+			fullText = fullText[:253] + "..."
+		}
+		recorder(pcommon.NewTimestampFromTime(time.Now()), value, row["SQL_ID"], fullText)
 	}
 	return nil
 }

@@ -68,10 +68,11 @@ func createReceiverFunc(sqlOpenerFunc sqlOpenerFunc, clientProviderFunc clientPr
 		var opts []scraperhelper.ScraperControllerOption
 		metricsBuilder := metadata.NewMetricsBuilder(sqlCfg.MetricsSettings, settings.BuildInfo)
 		datasourceUrl, _ := url.Parse(sqlCfg.DataSource)
-		viewName := datasourceUrl.Path[1:]
+		instanceName := datasourceUrl.Host
+
 		mp := newScraper(cfg.ID(), metricsBuilder, sqlCfg.MetricsSettings, sqlCfg.ScraperControllerSettings, settings.TelemetrySettings.Logger, func() (*sql.DB, error) {
 			return sqlOpenerFunc(sqlCfg.DataSource)
-		}, clientProviderFunc, viewName)
+		}, clientProviderFunc, instanceName)
 		opt := scraperhelper.AddScraper(mp)
 		opts = append(opts, opt)
 

@@ -13,11 +13,17 @@ processors:
     detectors: ["system"]
     system:
       hostname_sources: ["os"]
+  resource/host_id:
+    attributes:
+      - key: host.id
+        from_attribute: host.name
+        action: upsert
 exporters:
-  logging:
+  file:
+    path: /tmp/out/file.txt
   signalfx:
     realm: us0
-    access_token: vFh6sDXnxu2AvcNoRxwGGQ
+    access_token: changeme
 service:
   telemetry:
     logs:
@@ -28,6 +34,7 @@ service:
         - oracledb
       processors:
         - resourcedetection
+        - resource/host_id
       exporters:
-        - logging
+        #- file
         - signalfx

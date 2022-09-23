@@ -11,6 +11,7 @@ These are the metrics available for this scraper.
 | **oracledb.query.cpu_time** | CPU time (in microseconds) used by this cursor for parsing, executing, and fetching. | us | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
 | **oracledb.query.elapsed_time** | Elapsed time (in microseconds) used by this cursor. | us | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
 | **oracledb.query.executions** | Number of executions that have taken place on this object. | 1 | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
+| **oracledb.query.long_running** | Elapsed time (in seconds) of long running queries used by this cursor. | s | Sum(Int) | <ul> <li>oracledb.query.id</li> </ul> |
 | **oracledb.query.parse_calls** | Number of parse calls for all cursors with this SQL text and plan. | 1 | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
 | **oracledb.query.physical_read_bytes** | Number of bytes read from disks by the monitored SQL. | By | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
 | **oracledb.query.physical_read_requests** | Number of physical read I/O requests issued by the monitored SQL. The requests may not be disk reads. | 1 | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
@@ -29,17 +30,13 @@ These are the metrics available for this scraper.
 | **oracledb.session.soft_parses** | Number of soft parses | 1 | Sum(Int) | <ul> </ul> |
 | **oracledb.session.user_commits** | Number of user commits. When a user commits a transaction, the redo generated that reflects the changes made to database blocks must be written to disk. Commits often represent the closest thing to a user transaction rate. | 1 | Sum(Int) | <ul> </ul> |
 | **oracledb.session.user_rollbacks** | Number of times users manually issue the ROLLBACK statement or an error occurs during a user's transactions | 1 | Sum(Int) | <ul> </ul> |
-| **oracledb.system.active_session_total** | Total number of active sessions. | 1 | Gauge(Int) | <ul> <li>oracledb.session.type</li> </ul> |
-| **oracledb.system.cached_session_total** | Total number of sessions that are temporarily cached for use by Oracle*XA. | 1 | Gauge(Int) | <ul> <li>oracledb.session.type</li> </ul> |
 | **oracledb.system.execute_count** | Total number of calls (user and recursive) that executed SQL statements | 1 | Sum(Int) | <ul> </ul> |
-| **oracledb.system.inactive_session_total** | Total number of sessions that are inactive and either has no configured limits or has not yet exceeded the configured limits. | 1 | Gauge(Int) | <ul> <li>oracledb.session.type</li> </ul> |
-| **oracledb.system.killed_session_total** | Total number of sessions that are marked to be killed. | 1 | Gauge(Int) | <ul> <li>oracledb.session.type</li> </ul> |
 | **oracledb.system.parse_count_total** | Total number of parse calls (hard, soft, and describe). A soft parse is a check on an object already in the shared pool, to verify that the permissions on the underlying object have not changed. | 1 | Sum(Int) | <ul> </ul> |
 | **oracledb.system.query_elapsed_time_95p** | The 95th percentile value of elapsed times for all queries. | 1 | Gauge(Double) | <ul> </ul> |
 | **oracledb.system.query_elapsed_time_99p** | The 99th percentile value of elapsed times for all queries. | 1 | Gauge(Double) | <ul> </ul> |
 | **oracledb.system.query_returned_rows_95p** | The 95th percentile value of most returned rows for all queries. | 1 | Gauge(Int) | <ul> </ul> |
 | **oracledb.system.query_returned_rows_99p** | The 99th percentile value of most returned rows for all queries. | 1 | Gauge(Int) | <ul> </ul> |
-| **oracledb.system.sniped_session_total** | Total number of sessions that are inactive and have exceeded some configured limits (for example, resource limits specified for the resource manager consumer group or idle_time specified in the user's profile). Such sessions will not be allowed to become active again. | 1 | Gauge(Int) | <ul> <li>oracledb.session.type</li> </ul> |
+| **oracledb.system.session_count** | Count of sessions. | 1 | Gauge(Int) | <ul> <li>oracledb.session.type</li> <li>oracledb.session.status</li> </ul> |
 | **oracledb.system.user_commits** | Number of user commits. When a user commits a transaction, the redo generated that reflects the changes made to database blocks must be written to disk. Commits often represent the closest thing to a user transaction rate. | 1 | Sum(Int) | <ul> </ul> |
 | **oracledb.system.user_rollbacks** | Number of times users manually issue the ROLLBACK statement or an error occurs during a user's transactions | 1 | Sum(Int) | <ul> </ul> |
 
@@ -65,4 +62,5 @@ metrics:
 | ---- | ----------- | ------ |
 | oracledb.query.fulltext | Full text for the SQL statement. |  |
 | oracledb.query.id | Unique ID for the SQL statement. |  |
+| oracledb.session.status | Session status |  |
 | oracledb.session.type | Session type |  |

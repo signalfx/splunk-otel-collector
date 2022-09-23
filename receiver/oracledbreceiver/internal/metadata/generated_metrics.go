@@ -20,6 +20,7 @@ type MetricsSettings struct {
 	OracledbQueryCPUTime               MetricSettings `mapstructure:"oracledb.query.cpu_time"`
 	OracledbQueryElapsedTime           MetricSettings `mapstructure:"oracledb.query.elapsed_time"`
 	OracledbQueryExecutions            MetricSettings `mapstructure:"oracledb.query.executions"`
+	OracledbQueryLongRunning           MetricSettings `mapstructure:"oracledb.query.long_running"`
 	OracledbQueryParseCalls            MetricSettings `mapstructure:"oracledb.query.parse_calls"`
 	OracledbQueryPhysicalReadBytes     MetricSettings `mapstructure:"oracledb.query.physical_read_bytes"`
 	OracledbQueryPhysicalReadRequests  MetricSettings `mapstructure:"oracledb.query.physical_read_requests"`
@@ -38,17 +39,13 @@ type MetricsSettings struct {
 	OracledbSessionSoftParses          MetricSettings `mapstructure:"oracledb.session.soft_parses"`
 	OracledbSessionUserCommits         MetricSettings `mapstructure:"oracledb.session.user_commits"`
 	OracledbSessionUserRollbacks       MetricSettings `mapstructure:"oracledb.session.user_rollbacks"`
-	OracledbSystemActiveSessionTotal   MetricSettings `mapstructure:"oracledb.system.active_session_total"`
-	OracledbSystemCachedSessionTotal   MetricSettings `mapstructure:"oracledb.system.cached_session_total"`
 	OracledbSystemExecuteCount         MetricSettings `mapstructure:"oracledb.system.execute_count"`
-	OracledbSystemInactiveSessionTotal MetricSettings `mapstructure:"oracledb.system.inactive_session_total"`
-	OracledbSystemKilledSessionTotal   MetricSettings `mapstructure:"oracledb.system.killed_session_total"`
 	OracledbSystemParseCountTotal      MetricSettings `mapstructure:"oracledb.system.parse_count_total"`
 	OracledbSystemQueryElapsedTime95p  MetricSettings `mapstructure:"oracledb.system.query_elapsed_time_95p"`
 	OracledbSystemQueryElapsedTime99p  MetricSettings `mapstructure:"oracledb.system.query_elapsed_time_99p"`
 	OracledbSystemQueryReturnedRows95p MetricSettings `mapstructure:"oracledb.system.query_returned_rows_95p"`
 	OracledbSystemQueryReturnedRows99p MetricSettings `mapstructure:"oracledb.system.query_returned_rows_99p"`
-	OracledbSystemSnipedSessionTotal   MetricSettings `mapstructure:"oracledb.system.sniped_session_total"`
+	OracledbSystemSessionCount         MetricSettings `mapstructure:"oracledb.system.session_count"`
 	OracledbSystemUserCommits          MetricSettings `mapstructure:"oracledb.system.user_commits"`
 	OracledbSystemUserRollbacks        MetricSettings `mapstructure:"oracledb.system.user_rollbacks"`
 }
@@ -62,6 +59,9 @@ func DefaultMetricsSettings() MetricsSettings {
 			Enabled: true,
 		},
 		OracledbQueryExecutions: MetricSettings{
+			Enabled: true,
+		},
+		OracledbQueryLongRunning: MetricSettings{
 			Enabled: true,
 		},
 		OracledbQueryParseCalls: MetricSettings{
@@ -118,19 +118,7 @@ func DefaultMetricsSettings() MetricsSettings {
 		OracledbSessionUserRollbacks: MetricSettings{
 			Enabled: true,
 		},
-		OracledbSystemActiveSessionTotal: MetricSettings{
-			Enabled: true,
-		},
-		OracledbSystemCachedSessionTotal: MetricSettings{
-			Enabled: true,
-		},
 		OracledbSystemExecuteCount: MetricSettings{
-			Enabled: true,
-		},
-		OracledbSystemInactiveSessionTotal: MetricSettings{
-			Enabled: true,
-		},
-		OracledbSystemKilledSessionTotal: MetricSettings{
 			Enabled: true,
 		},
 		OracledbSystemParseCountTotal: MetricSettings{
@@ -148,7 +136,7 @@ func DefaultMetricsSettings() MetricsSettings {
 		OracledbSystemQueryReturnedRows99p: MetricSettings{
 			Enabled: true,
 		},
-		OracledbSystemSnipedSessionTotal: MetricSettings{
+		OracledbSystemSessionCount: MetricSettings{
 			Enabled: true,
 		},
 		OracledbSystemUserCommits: MetricSettings{
@@ -171,7 +159,7 @@ func (m *metricOracledbQueryCPUTime) init() {
 	m.data.SetName("oracledb.query.cpu_time")
 	m.data.SetDescription("CPU time (in microseconds) used by this cursor for parsing, executing, and fetching.")
 	m.data.SetUnit("us")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
@@ -185,8 +173,8 @@ func (m *metricOracledbQueryCPUTime) recordDataPoint(start pcommon.Timestamp, ts
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
-	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.id", oracledbQueryIDAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -225,7 +213,7 @@ func (m *metricOracledbQueryElapsedTime) init() {
 	m.data.SetName("oracledb.query.elapsed_time")
 	m.data.SetDescription("Elapsed time (in microseconds) used by this cursor.")
 	m.data.SetUnit("us")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
@@ -239,8 +227,8 @@ func (m *metricOracledbQueryElapsedTime) recordDataPoint(start pcommon.Timestamp
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
-	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.id", oracledbQueryIDAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -279,7 +267,7 @@ func (m *metricOracledbQueryExecutions) init() {
 	m.data.SetName("oracledb.query.executions")
 	m.data.SetDescription("Number of executions that have taken place on this object.")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
@@ -293,8 +281,8 @@ func (m *metricOracledbQueryExecutions) recordDataPoint(start pcommon.Timestamp,
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
-	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.id", oracledbQueryIDAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -322,6 +310,59 @@ func newMetricOracledbQueryExecutions(settings MetricSettings) metricOracledbQue
 	return m
 }
 
+type metricOracledbQueryLongRunning struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills oracledb.query.long_running metric with initial data.
+func (m *metricOracledbQueryLongRunning) init() {
+	m.data.SetName("oracledb.query.long_running")
+	m.data.SetDescription("Elapsed time (in seconds) of long running queries used by this cursor.")
+	m.data.SetUnit("s")
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
+	m.data.Sum().SetIsMonotonic(true)
+	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricOracledbQueryLongRunning) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, oracledbQueryIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntVal(val)
+	dp.Attributes().InsertString("oracledb.query.id", oracledbQueryIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricOracledbQueryLongRunning) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricOracledbQueryLongRunning) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricOracledbQueryLongRunning(settings MetricSettings) metricOracledbQueryLongRunning {
+	m := metricOracledbQueryLongRunning{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
 type metricOracledbQueryParseCalls struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	settings MetricSettings // metric settings provided by user.
@@ -333,7 +374,7 @@ func (m *metricOracledbQueryParseCalls) init() {
 	m.data.SetName("oracledb.query.parse_calls")
 	m.data.SetDescription("Number of parse calls for all cursors with this SQL text and plan.")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
@@ -347,8 +388,8 @@ func (m *metricOracledbQueryParseCalls) recordDataPoint(start pcommon.Timestamp,
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
-	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.id", oracledbQueryIDAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -387,7 +428,7 @@ func (m *metricOracledbQueryPhysicalReadBytes) init() {
 	m.data.SetName("oracledb.query.physical_read_bytes")
 	m.data.SetDescription("Number of bytes read from disks by the monitored SQL.")
 	m.data.SetUnit("By")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
@@ -401,8 +442,8 @@ func (m *metricOracledbQueryPhysicalReadBytes) recordDataPoint(start pcommon.Tim
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
-	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.id", oracledbQueryIDAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -441,7 +482,7 @@ func (m *metricOracledbQueryPhysicalReadRequests) init() {
 	m.data.SetName("oracledb.query.physical_read_requests")
 	m.data.SetDescription("Number of physical read I/O requests issued by the monitored SQL. The requests may not be disk reads.")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
@@ -455,8 +496,8 @@ func (m *metricOracledbQueryPhysicalReadRequests) recordDataPoint(start pcommon.
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
-	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.id", oracledbQueryIDAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -495,7 +536,7 @@ func (m *metricOracledbQueryPhysicalWriteBytes) init() {
 	m.data.SetName("oracledb.query.physical_write_bytes")
 	m.data.SetDescription("Number of bytes written to disks by the monitored SQL.")
 	m.data.SetUnit("By")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
@@ -509,8 +550,8 @@ func (m *metricOracledbQueryPhysicalWriteBytes) recordDataPoint(start pcommon.Ti
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
-	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.id", oracledbQueryIDAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -549,7 +590,7 @@ func (m *metricOracledbQueryPhysicalWriteRequests) init() {
 	m.data.SetName("oracledb.query.physical_write_requests")
 	m.data.SetDescription("Number of physical write I/O requests issued by the monitored SQL.")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
@@ -563,8 +604,8 @@ func (m *metricOracledbQueryPhysicalWriteRequests) recordDataPoint(start pcommon
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
-	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.id", oracledbQueryIDAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -603,7 +644,7 @@ func (m *metricOracledbQueryTotalSharableMem) init() {
 	m.data.SetName("oracledb.query.total_sharable_mem")
 	m.data.SetDescription("Total shared memory (in bytes) occupied by all cursors with this SQL text and plan if they were to be fully loaded in the shared pool (that is, cursor size).")
 	m.data.SetUnit("By")
-	m.data.SetEmptyGauge()
+	m.data.SetDataType(pmetric.MetricDataTypeGauge)
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
@@ -615,8 +656,8 @@ func (m *metricOracledbQueryTotalSharableMem) recordDataPoint(start pcommon.Time
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
-	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.id", oracledbQueryIDAttributeValue)
+	dp.Attributes().InsertString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -655,7 +696,7 @@ func (m *metricOracledbSessionCPUUsage) init() {
 	m.data.SetName("oracledb.session.cpu_usage")
 	m.data.SetDescription("CPU usage (%)")
 	m.data.SetUnit("1")
-	m.data.SetEmptyGauge()
+	m.data.SetDataType(pmetric.MetricDataTypeGauge)
 }
 
 func (m *metricOracledbSessionCPUUsage) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
@@ -704,7 +745,7 @@ func (m *metricOracledbSessionEnqueueDeadlocks) init() {
 	m.data.SetName("oracledb.session.enqueue_deadlocks")
 	m.data.SetDescription("Total number of deadlocks between table or row locks in different sessions.")
 	m.data.SetUnit("1")
-	m.data.SetEmptyGauge()
+	m.data.SetDataType(pmetric.MetricDataTypeGauge)
 }
 
 func (m *metricOracledbSessionEnqueueDeadlocks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
@@ -753,7 +794,7 @@ func (m *metricOracledbSessionExchangeDeadlocks) init() {
 	m.data.SetName("oracledb.session.exchange_deadlocks")
 	m.data.SetDescription("Number of times that a process detected a potential deadlock when exchanging two buffers and raised an internal, restartable error. Index scans are the only operations that perform exchanges.")
 	m.data.SetUnit("1")
-	m.data.SetEmptyGauge()
+	m.data.SetDataType(pmetric.MetricDataTypeGauge)
 }
 
 func (m *metricOracledbSessionExchangeDeadlocks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
@@ -802,7 +843,7 @@ func (m *metricOracledbSessionExecuteCount) init() {
 	m.data.SetName("oracledb.session.execute_count")
 	m.data.SetDescription("Total number of calls (user and recursive) that executed SQL statements")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 }
@@ -853,7 +894,7 @@ func (m *metricOracledbSessionHardParses) init() {
 	m.data.SetName("oracledb.session.hard_parses")
 	m.data.SetDescription("Number of hard parses")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 }
@@ -904,7 +945,7 @@ func (m *metricOracledbSessionLogicalReads) init() {
 	m.data.SetName("oracledb.session.logical_reads")
 	m.data.SetDescription("Number of logical reads")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 }
@@ -955,7 +996,7 @@ func (m *metricOracledbSessionParseCountTotal) init() {
 	m.data.SetName("oracledb.session.parse_count_total")
 	m.data.SetDescription("Total number of parse calls (hard, soft, and describe). A soft parse is a check on an object already in the shared pool, to verify that the permissions on the underlying object have not changed.")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 }
@@ -1006,7 +1047,7 @@ func (m *metricOracledbSessionPgaMemory) init() {
 	m.data.SetName("oracledb.session.pga_memory")
 	m.data.SetDescription("PGA size at the end of the interval")
 	m.data.SetUnit("By")
-	m.data.SetEmptyGauge()
+	m.data.SetDataType(pmetric.MetricDataTypeGauge)
 }
 
 func (m *metricOracledbSessionPgaMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
@@ -1055,7 +1096,7 @@ func (m *metricOracledbSessionPhysicalReads) init() {
 	m.data.SetName("oracledb.session.physical_reads")
 	m.data.SetDescription("Number of physical reads")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 }
@@ -1106,7 +1147,7 @@ func (m *metricOracledbSessionSoftParses) init() {
 	m.data.SetName("oracledb.session.soft_parses")
 	m.data.SetDescription("Number of soft parses")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 }
@@ -1157,7 +1198,7 @@ func (m *metricOracledbSessionUserCommits) init() {
 	m.data.SetName("oracledb.session.user_commits")
 	m.data.SetDescription("Number of user commits. When a user commits a transaction, the redo generated that reflects the changes made to database blocks must be written to disk. Commits often represent the closest thing to a user transaction rate.")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 }
@@ -1208,7 +1249,7 @@ func (m *metricOracledbSessionUserRollbacks) init() {
 	m.data.SetName("oracledb.session.user_rollbacks")
 	m.data.SetDescription("Number of times users manually issue the ROLLBACK statement or an error occurs during a user's transactions")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 }
@@ -1248,108 +1289,6 @@ func newMetricOracledbSessionUserRollbacks(settings MetricSettings) metricOracle
 	return m
 }
 
-type metricOracledbSystemActiveSessionTotal struct {
-	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
-	capacity int            // max observed number of data points added to the metric.
-}
-
-// init fills oracledb.system.active_session_total metric with initial data.
-func (m *metricOracledbSystemActiveSessionTotal) init() {
-	m.data.SetName("oracledb.system.active_session_total")
-	m.data.SetDescription("Total number of active sessions.")
-	m.data.SetUnit("1")
-	m.data.SetEmptyGauge()
-	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
-}
-
-func (m *metricOracledbSystemActiveSessionTotal) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, oracledbSessionTypeAttributeValue string) {
-	if !m.settings.Enabled {
-		return
-	}
-	dp := m.data.Gauge().DataPoints().AppendEmpty()
-	dp.SetStartTimestamp(start)
-	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.session.type", oracledbSessionTypeAttributeValue)
-}
-
-// updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricOracledbSystemActiveSessionTotal) updateCapacity() {
-	if m.data.Gauge().DataPoints().Len() > m.capacity {
-		m.capacity = m.data.Gauge().DataPoints().Len()
-	}
-}
-
-// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricOracledbSystemActiveSessionTotal) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
-		m.updateCapacity()
-		m.data.MoveTo(metrics.AppendEmpty())
-		m.init()
-	}
-}
-
-func newMetricOracledbSystemActiveSessionTotal(settings MetricSettings) metricOracledbSystemActiveSessionTotal {
-	m := metricOracledbSystemActiveSessionTotal{settings: settings}
-	if settings.Enabled {
-		m.data = pmetric.NewMetric()
-		m.init()
-	}
-	return m
-}
-
-type metricOracledbSystemCachedSessionTotal struct {
-	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
-	capacity int            // max observed number of data points added to the metric.
-}
-
-// init fills oracledb.system.cached_session_total metric with initial data.
-func (m *metricOracledbSystemCachedSessionTotal) init() {
-	m.data.SetName("oracledb.system.cached_session_total")
-	m.data.SetDescription("Total number of sessions that are temporarily cached for use by Oracle*XA.")
-	m.data.SetUnit("1")
-	m.data.SetEmptyGauge()
-	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
-}
-
-func (m *metricOracledbSystemCachedSessionTotal) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, oracledbSessionTypeAttributeValue string) {
-	if !m.settings.Enabled {
-		return
-	}
-	dp := m.data.Gauge().DataPoints().AppendEmpty()
-	dp.SetStartTimestamp(start)
-	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.session.type", oracledbSessionTypeAttributeValue)
-}
-
-// updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricOracledbSystemCachedSessionTotal) updateCapacity() {
-	if m.data.Gauge().DataPoints().Len() > m.capacity {
-		m.capacity = m.data.Gauge().DataPoints().Len()
-	}
-}
-
-// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricOracledbSystemCachedSessionTotal) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
-		m.updateCapacity()
-		m.data.MoveTo(metrics.AppendEmpty())
-		m.init()
-	}
-}
-
-func newMetricOracledbSystemCachedSessionTotal(settings MetricSettings) metricOracledbSystemCachedSessionTotal {
-	m := metricOracledbSystemCachedSessionTotal{settings: settings}
-	if settings.Enabled {
-		m.data = pmetric.NewMetric()
-		m.init()
-	}
-	return m
-}
-
 type metricOracledbSystemExecuteCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	settings MetricSettings // metric settings provided by user.
@@ -1361,7 +1300,7 @@ func (m *metricOracledbSystemExecuteCount) init() {
 	m.data.SetName("oracledb.system.execute_count")
 	m.data.SetDescription("Total number of calls (user and recursive) that executed SQL statements")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 }
@@ -1401,108 +1340,6 @@ func newMetricOracledbSystemExecuteCount(settings MetricSettings) metricOracledb
 	return m
 }
 
-type metricOracledbSystemInactiveSessionTotal struct {
-	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
-	capacity int            // max observed number of data points added to the metric.
-}
-
-// init fills oracledb.system.inactive_session_total metric with initial data.
-func (m *metricOracledbSystemInactiveSessionTotal) init() {
-	m.data.SetName("oracledb.system.inactive_session_total")
-	m.data.SetDescription("Total number of sessions that are inactive and either has no configured limits or has not yet exceeded the configured limits.")
-	m.data.SetUnit("1")
-	m.data.SetEmptyGauge()
-	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
-}
-
-func (m *metricOracledbSystemInactiveSessionTotal) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, oracledbSessionTypeAttributeValue string) {
-	if !m.settings.Enabled {
-		return
-	}
-	dp := m.data.Gauge().DataPoints().AppendEmpty()
-	dp.SetStartTimestamp(start)
-	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.session.type", oracledbSessionTypeAttributeValue)
-}
-
-// updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricOracledbSystemInactiveSessionTotal) updateCapacity() {
-	if m.data.Gauge().DataPoints().Len() > m.capacity {
-		m.capacity = m.data.Gauge().DataPoints().Len()
-	}
-}
-
-// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricOracledbSystemInactiveSessionTotal) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
-		m.updateCapacity()
-		m.data.MoveTo(metrics.AppendEmpty())
-		m.init()
-	}
-}
-
-func newMetricOracledbSystemInactiveSessionTotal(settings MetricSettings) metricOracledbSystemInactiveSessionTotal {
-	m := metricOracledbSystemInactiveSessionTotal{settings: settings}
-	if settings.Enabled {
-		m.data = pmetric.NewMetric()
-		m.init()
-	}
-	return m
-}
-
-type metricOracledbSystemKilledSessionTotal struct {
-	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
-	capacity int            // max observed number of data points added to the metric.
-}
-
-// init fills oracledb.system.killed_session_total metric with initial data.
-func (m *metricOracledbSystemKilledSessionTotal) init() {
-	m.data.SetName("oracledb.system.killed_session_total")
-	m.data.SetDescription("Total number of sessions that are marked to be killed.")
-	m.data.SetUnit("1")
-	m.data.SetEmptyGauge()
-	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
-}
-
-func (m *metricOracledbSystemKilledSessionTotal) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, oracledbSessionTypeAttributeValue string) {
-	if !m.settings.Enabled {
-		return
-	}
-	dp := m.data.Gauge().DataPoints().AppendEmpty()
-	dp.SetStartTimestamp(start)
-	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.session.type", oracledbSessionTypeAttributeValue)
-}
-
-// updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricOracledbSystemKilledSessionTotal) updateCapacity() {
-	if m.data.Gauge().DataPoints().Len() > m.capacity {
-		m.capacity = m.data.Gauge().DataPoints().Len()
-	}
-}
-
-// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricOracledbSystemKilledSessionTotal) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
-		m.updateCapacity()
-		m.data.MoveTo(metrics.AppendEmpty())
-		m.init()
-	}
-}
-
-func newMetricOracledbSystemKilledSessionTotal(settings MetricSettings) metricOracledbSystemKilledSessionTotal {
-	m := metricOracledbSystemKilledSessionTotal{settings: settings}
-	if settings.Enabled {
-		m.data = pmetric.NewMetric()
-		m.init()
-	}
-	return m
-}
-
 type metricOracledbSystemParseCountTotal struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	settings MetricSettings // metric settings provided by user.
@@ -1514,7 +1351,7 @@ func (m *metricOracledbSystemParseCountTotal) init() {
 	m.data.SetName("oracledb.system.parse_count_total")
 	m.data.SetDescription("Total number of parse calls (hard, soft, and describe). A soft parse is a check on an object already in the shared pool, to verify that the permissions on the underlying object have not changed.")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 }
@@ -1565,7 +1402,7 @@ func (m *metricOracledbSystemQueryElapsedTime95p) init() {
 	m.data.SetName("oracledb.system.query_elapsed_time_95p")
 	m.data.SetDescription("The 95th percentile value of elapsed times for all queries.")
 	m.data.SetUnit("1")
-	m.data.SetEmptyGauge()
+	m.data.SetDataType(pmetric.MetricDataTypeGauge)
 }
 
 func (m *metricOracledbSystemQueryElapsedTime95p) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
@@ -1614,7 +1451,7 @@ func (m *metricOracledbSystemQueryElapsedTime99p) init() {
 	m.data.SetName("oracledb.system.query_elapsed_time_99p")
 	m.data.SetDescription("The 99th percentile value of elapsed times for all queries.")
 	m.data.SetUnit("1")
-	m.data.SetEmptyGauge()
+	m.data.SetDataType(pmetric.MetricDataTypeGauge)
 }
 
 func (m *metricOracledbSystemQueryElapsedTime99p) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64) {
@@ -1663,7 +1500,7 @@ func (m *metricOracledbSystemQueryReturnedRows95p) init() {
 	m.data.SetName("oracledb.system.query_returned_rows_95p")
 	m.data.SetDescription("The 95th percentile value of most returned rows for all queries.")
 	m.data.SetUnit("1")
-	m.data.SetEmptyGauge()
+	m.data.SetDataType(pmetric.MetricDataTypeGauge)
 }
 
 func (m *metricOracledbSystemQueryReturnedRows95p) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
@@ -1712,7 +1549,7 @@ func (m *metricOracledbSystemQueryReturnedRows99p) init() {
 	m.data.SetName("oracledb.system.query_returned_rows_99p")
 	m.data.SetDescription("The 99th percentile value of most returned rows for all queries.")
 	m.data.SetUnit("1")
-	m.data.SetEmptyGauge()
+	m.data.SetDataType(pmetric.MetricDataTypeGauge)
 }
 
 func (m *metricOracledbSystemQueryReturnedRows99p) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
@@ -1750,22 +1587,22 @@ func newMetricOracledbSystemQueryReturnedRows99p(settings MetricSettings) metric
 	return m
 }
 
-type metricOracledbSystemSnipedSessionTotal struct {
+type metricOracledbSystemSessionCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	settings MetricSettings // metric settings provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
-// init fills oracledb.system.sniped_session_total metric with initial data.
-func (m *metricOracledbSystemSnipedSessionTotal) init() {
-	m.data.SetName("oracledb.system.sniped_session_total")
-	m.data.SetDescription("Total number of sessions that are inactive and have exceeded some configured limits (for example, resource limits specified for the resource manager consumer group or idle_time specified in the user's profile). Such sessions will not be allowed to become active again.")
+// init fills oracledb.system.session_count metric with initial data.
+func (m *metricOracledbSystemSessionCount) init() {
+	m.data.SetName("oracledb.system.session_count")
+	m.data.SetDescription("Count of sessions.")
 	m.data.SetUnit("1")
-	m.data.SetEmptyGauge()
+	m.data.SetDataType(pmetric.MetricDataTypeGauge)
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricOracledbSystemSnipedSessionTotal) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, oracledbSessionTypeAttributeValue string) {
+func (m *metricOracledbSystemSessionCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, oracledbSessionTypeAttributeValue string, oracledbSessionStatusAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1773,18 +1610,19 @@ func (m *metricOracledbSystemSnipedSessionTotal) recordDataPoint(start pcommon.T
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
 	dp.SetIntVal(val)
-	dp.Attributes().PutString("oracledb.session.type", oracledbSessionTypeAttributeValue)
+	dp.Attributes().InsertString("oracledb.session.type", oracledbSessionTypeAttributeValue)
+	dp.Attributes().InsertString("oracledb.session.status", oracledbSessionStatusAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
-func (m *metricOracledbSystemSnipedSessionTotal) updateCapacity() {
+func (m *metricOracledbSystemSessionCount) updateCapacity() {
 	if m.data.Gauge().DataPoints().Len() > m.capacity {
 		m.capacity = m.data.Gauge().DataPoints().Len()
 	}
 }
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
-func (m *metricOracledbSystemSnipedSessionTotal) emit(metrics pmetric.MetricSlice) {
+func (m *metricOracledbSystemSessionCount) emit(metrics pmetric.MetricSlice) {
 	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
@@ -1792,8 +1630,8 @@ func (m *metricOracledbSystemSnipedSessionTotal) emit(metrics pmetric.MetricSlic
 	}
 }
 
-func newMetricOracledbSystemSnipedSessionTotal(settings MetricSettings) metricOracledbSystemSnipedSessionTotal {
-	m := metricOracledbSystemSnipedSessionTotal{settings: settings}
+func newMetricOracledbSystemSessionCount(settings MetricSettings) metricOracledbSystemSessionCount {
+	m := metricOracledbSystemSessionCount{settings: settings}
 	if settings.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
@@ -1812,7 +1650,7 @@ func (m *metricOracledbSystemUserCommits) init() {
 	m.data.SetName("oracledb.system.user_commits")
 	m.data.SetDescription("Number of user commits. When a user commits a transaction, the redo generated that reflects the changes made to database blocks must be written to disk. Commits often represent the closest thing to a user transaction rate.")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 }
@@ -1863,7 +1701,7 @@ func (m *metricOracledbSystemUserRollbacks) init() {
 	m.data.SetName("oracledb.system.user_rollbacks")
 	m.data.SetDescription("Number of times users manually issue the ROLLBACK statement or an error occurs during a user's transactions")
 	m.data.SetUnit("1")
-	m.data.SetEmptySum()
+	m.data.SetDataType(pmetric.MetricDataTypeSum)
 	m.data.Sum().SetIsMonotonic(true)
 	m.data.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 }
@@ -1914,6 +1752,7 @@ type MetricsBuilder struct {
 	metricOracledbQueryCPUTime               metricOracledbQueryCPUTime
 	metricOracledbQueryElapsedTime           metricOracledbQueryElapsedTime
 	metricOracledbQueryExecutions            metricOracledbQueryExecutions
+	metricOracledbQueryLongRunning           metricOracledbQueryLongRunning
 	metricOracledbQueryParseCalls            metricOracledbQueryParseCalls
 	metricOracledbQueryPhysicalReadBytes     metricOracledbQueryPhysicalReadBytes
 	metricOracledbQueryPhysicalReadRequests  metricOracledbQueryPhysicalReadRequests
@@ -1932,17 +1771,13 @@ type MetricsBuilder struct {
 	metricOracledbSessionSoftParses          metricOracledbSessionSoftParses
 	metricOracledbSessionUserCommits         metricOracledbSessionUserCommits
 	metricOracledbSessionUserRollbacks       metricOracledbSessionUserRollbacks
-	metricOracledbSystemActiveSessionTotal   metricOracledbSystemActiveSessionTotal
-	metricOracledbSystemCachedSessionTotal   metricOracledbSystemCachedSessionTotal
 	metricOracledbSystemExecuteCount         metricOracledbSystemExecuteCount
-	metricOracledbSystemInactiveSessionTotal metricOracledbSystemInactiveSessionTotal
-	metricOracledbSystemKilledSessionTotal   metricOracledbSystemKilledSessionTotal
 	metricOracledbSystemParseCountTotal      metricOracledbSystemParseCountTotal
 	metricOracledbSystemQueryElapsedTime95p  metricOracledbSystemQueryElapsedTime95p
 	metricOracledbSystemQueryElapsedTime99p  metricOracledbSystemQueryElapsedTime99p
 	metricOracledbSystemQueryReturnedRows95p metricOracledbSystemQueryReturnedRows95p
 	metricOracledbSystemQueryReturnedRows99p metricOracledbSystemQueryReturnedRows99p
-	metricOracledbSystemSnipedSessionTotal   metricOracledbSystemSnipedSessionTotal
+	metricOracledbSystemSessionCount         metricOracledbSystemSessionCount
 	metricOracledbSystemUserCommits          metricOracledbSystemUserCommits
 	metricOracledbSystemUserRollbacks        metricOracledbSystemUserRollbacks
 }
@@ -1965,6 +1800,7 @@ func NewMetricsBuilder(settings MetricsSettings, buildInfo component.BuildInfo, 
 		metricOracledbQueryCPUTime:               newMetricOracledbQueryCPUTime(settings.OracledbQueryCPUTime),
 		metricOracledbQueryElapsedTime:           newMetricOracledbQueryElapsedTime(settings.OracledbQueryElapsedTime),
 		metricOracledbQueryExecutions:            newMetricOracledbQueryExecutions(settings.OracledbQueryExecutions),
+		metricOracledbQueryLongRunning:           newMetricOracledbQueryLongRunning(settings.OracledbQueryLongRunning),
 		metricOracledbQueryParseCalls:            newMetricOracledbQueryParseCalls(settings.OracledbQueryParseCalls),
 		metricOracledbQueryPhysicalReadBytes:     newMetricOracledbQueryPhysicalReadBytes(settings.OracledbQueryPhysicalReadBytes),
 		metricOracledbQueryPhysicalReadRequests:  newMetricOracledbQueryPhysicalReadRequests(settings.OracledbQueryPhysicalReadRequests),
@@ -1983,17 +1819,13 @@ func NewMetricsBuilder(settings MetricsSettings, buildInfo component.BuildInfo, 
 		metricOracledbSessionSoftParses:          newMetricOracledbSessionSoftParses(settings.OracledbSessionSoftParses),
 		metricOracledbSessionUserCommits:         newMetricOracledbSessionUserCommits(settings.OracledbSessionUserCommits),
 		metricOracledbSessionUserRollbacks:       newMetricOracledbSessionUserRollbacks(settings.OracledbSessionUserRollbacks),
-		metricOracledbSystemActiveSessionTotal:   newMetricOracledbSystemActiveSessionTotal(settings.OracledbSystemActiveSessionTotal),
-		metricOracledbSystemCachedSessionTotal:   newMetricOracledbSystemCachedSessionTotal(settings.OracledbSystemCachedSessionTotal),
 		metricOracledbSystemExecuteCount:         newMetricOracledbSystemExecuteCount(settings.OracledbSystemExecuteCount),
-		metricOracledbSystemInactiveSessionTotal: newMetricOracledbSystemInactiveSessionTotal(settings.OracledbSystemInactiveSessionTotal),
-		metricOracledbSystemKilledSessionTotal:   newMetricOracledbSystemKilledSessionTotal(settings.OracledbSystemKilledSessionTotal),
 		metricOracledbSystemParseCountTotal:      newMetricOracledbSystemParseCountTotal(settings.OracledbSystemParseCountTotal),
 		metricOracledbSystemQueryElapsedTime95p:  newMetricOracledbSystemQueryElapsedTime95p(settings.OracledbSystemQueryElapsedTime95p),
 		metricOracledbSystemQueryElapsedTime99p:  newMetricOracledbSystemQueryElapsedTime99p(settings.OracledbSystemQueryElapsedTime99p),
 		metricOracledbSystemQueryReturnedRows95p: newMetricOracledbSystemQueryReturnedRows95p(settings.OracledbSystemQueryReturnedRows95p),
 		metricOracledbSystemQueryReturnedRows99p: newMetricOracledbSystemQueryReturnedRows99p(settings.OracledbSystemQueryReturnedRows99p),
-		metricOracledbSystemSnipedSessionTotal:   newMetricOracledbSystemSnipedSessionTotal(settings.OracledbSystemSnipedSessionTotal),
+		metricOracledbSystemSessionCount:         newMetricOracledbSystemSessionCount(settings.OracledbSystemSessionCount),
 		metricOracledbSystemUserCommits:          newMetricOracledbSystemUserCommits(settings.OracledbSystemUserCommits),
 		metricOracledbSystemUserRollbacks:        newMetricOracledbSystemUserRollbacks(settings.OracledbSystemUserRollbacks),
 	}
@@ -2019,14 +1851,14 @@ type ResourceMetricsOption func(pmetric.ResourceMetrics)
 // WithOracledbInstanceName sets provided value as "oracledb.instance.name" attribute for current resource.
 func WithOracledbInstanceName(val string) ResourceMetricsOption {
 	return func(rm pmetric.ResourceMetrics) {
-		rm.Resource().Attributes().PutString("oracledb.instance.name", val)
+		rm.Resource().Attributes().InsertString("oracledb.instance.name", val)
 	}
 }
 
 // WithOracledbSessionID sets provided value as "oracledb.session.id" attribute for current resource.
 func WithOracledbSessionID(val int64) ResourceMetricsOption {
 	return func(rm pmetric.ResourceMetrics) {
-		rm.Resource().Attributes().PutInt("oracledb.session.id", val)
+		rm.Resource().Attributes().InsertInt("oracledb.session.id", val)
 	}
 }
 
@@ -2065,6 +1897,7 @@ func (mb *MetricsBuilder) EmitForResource(rmo ...ResourceMetricsOption) {
 	mb.metricOracledbQueryCPUTime.emit(ils.Metrics())
 	mb.metricOracledbQueryElapsedTime.emit(ils.Metrics())
 	mb.metricOracledbQueryExecutions.emit(ils.Metrics())
+	mb.metricOracledbQueryLongRunning.emit(ils.Metrics())
 	mb.metricOracledbQueryParseCalls.emit(ils.Metrics())
 	mb.metricOracledbQueryPhysicalReadBytes.emit(ils.Metrics())
 	mb.metricOracledbQueryPhysicalReadRequests.emit(ils.Metrics())
@@ -2083,17 +1916,13 @@ func (mb *MetricsBuilder) EmitForResource(rmo ...ResourceMetricsOption) {
 	mb.metricOracledbSessionSoftParses.emit(ils.Metrics())
 	mb.metricOracledbSessionUserCommits.emit(ils.Metrics())
 	mb.metricOracledbSessionUserRollbacks.emit(ils.Metrics())
-	mb.metricOracledbSystemActiveSessionTotal.emit(ils.Metrics())
-	mb.metricOracledbSystemCachedSessionTotal.emit(ils.Metrics())
 	mb.metricOracledbSystemExecuteCount.emit(ils.Metrics())
-	mb.metricOracledbSystemInactiveSessionTotal.emit(ils.Metrics())
-	mb.metricOracledbSystemKilledSessionTotal.emit(ils.Metrics())
 	mb.metricOracledbSystemParseCountTotal.emit(ils.Metrics())
 	mb.metricOracledbSystemQueryElapsedTime95p.emit(ils.Metrics())
 	mb.metricOracledbSystemQueryElapsedTime99p.emit(ils.Metrics())
 	mb.metricOracledbSystemQueryReturnedRows95p.emit(ils.Metrics())
 	mb.metricOracledbSystemQueryReturnedRows99p.emit(ils.Metrics())
-	mb.metricOracledbSystemSnipedSessionTotal.emit(ils.Metrics())
+	mb.metricOracledbSystemSessionCount.emit(ils.Metrics())
 	mb.metricOracledbSystemUserCommits.emit(ils.Metrics())
 	mb.metricOracledbSystemUserRollbacks.emit(ils.Metrics())
 	for _, op := range rmo {
@@ -2128,6 +1957,11 @@ func (mb *MetricsBuilder) RecordOracledbQueryElapsedTimeDataPoint(ts pcommon.Tim
 // RecordOracledbQueryExecutionsDataPoint adds a data point to oracledb.query.executions metric.
 func (mb *MetricsBuilder) RecordOracledbQueryExecutionsDataPoint(ts pcommon.Timestamp, val int64, oracledbQueryIDAttributeValue string, oracledbQueryFulltextAttributeValue string) {
 	mb.metricOracledbQueryExecutions.recordDataPoint(mb.startTime, ts, val, oracledbQueryIDAttributeValue, oracledbQueryFulltextAttributeValue)
+}
+
+// RecordOracledbQueryLongRunningDataPoint adds a data point to oracledb.query.long_running metric.
+func (mb *MetricsBuilder) RecordOracledbQueryLongRunningDataPoint(ts pcommon.Timestamp, val int64, oracledbQueryIDAttributeValue string) {
+	mb.metricOracledbQueryLongRunning.recordDataPoint(mb.startTime, ts, val, oracledbQueryIDAttributeValue)
 }
 
 // RecordOracledbQueryParseCallsDataPoint adds a data point to oracledb.query.parse_calls metric.
@@ -2220,29 +2054,9 @@ func (mb *MetricsBuilder) RecordOracledbSessionUserRollbacksDataPoint(ts pcommon
 	mb.metricOracledbSessionUserRollbacks.recordDataPoint(mb.startTime, ts, val)
 }
 
-// RecordOracledbSystemActiveSessionTotalDataPoint adds a data point to oracledb.system.active_session_total metric.
-func (mb *MetricsBuilder) RecordOracledbSystemActiveSessionTotalDataPoint(ts pcommon.Timestamp, val int64, oracledbSessionTypeAttributeValue string) {
-	mb.metricOracledbSystemActiveSessionTotal.recordDataPoint(mb.startTime, ts, val, oracledbSessionTypeAttributeValue)
-}
-
-// RecordOracledbSystemCachedSessionTotalDataPoint adds a data point to oracledb.system.cached_session_total metric.
-func (mb *MetricsBuilder) RecordOracledbSystemCachedSessionTotalDataPoint(ts pcommon.Timestamp, val int64, oracledbSessionTypeAttributeValue string) {
-	mb.metricOracledbSystemCachedSessionTotal.recordDataPoint(mb.startTime, ts, val, oracledbSessionTypeAttributeValue)
-}
-
 // RecordOracledbSystemExecuteCountDataPoint adds a data point to oracledb.system.execute_count metric.
 func (mb *MetricsBuilder) RecordOracledbSystemExecuteCountDataPoint(ts pcommon.Timestamp, val int64) {
 	mb.metricOracledbSystemExecuteCount.recordDataPoint(mb.startTime, ts, val)
-}
-
-// RecordOracledbSystemInactiveSessionTotalDataPoint adds a data point to oracledb.system.inactive_session_total metric.
-func (mb *MetricsBuilder) RecordOracledbSystemInactiveSessionTotalDataPoint(ts pcommon.Timestamp, val int64, oracledbSessionTypeAttributeValue string) {
-	mb.metricOracledbSystemInactiveSessionTotal.recordDataPoint(mb.startTime, ts, val, oracledbSessionTypeAttributeValue)
-}
-
-// RecordOracledbSystemKilledSessionTotalDataPoint adds a data point to oracledb.system.killed_session_total metric.
-func (mb *MetricsBuilder) RecordOracledbSystemKilledSessionTotalDataPoint(ts pcommon.Timestamp, val int64, oracledbSessionTypeAttributeValue string) {
-	mb.metricOracledbSystemKilledSessionTotal.recordDataPoint(mb.startTime, ts, val, oracledbSessionTypeAttributeValue)
 }
 
 // RecordOracledbSystemParseCountTotalDataPoint adds a data point to oracledb.system.parse_count_total metric.
@@ -2270,9 +2084,9 @@ func (mb *MetricsBuilder) RecordOracledbSystemQueryReturnedRows99pDataPoint(ts p
 	mb.metricOracledbSystemQueryReturnedRows99p.recordDataPoint(mb.startTime, ts, val)
 }
 
-// RecordOracledbSystemSnipedSessionTotalDataPoint adds a data point to oracledb.system.sniped_session_total metric.
-func (mb *MetricsBuilder) RecordOracledbSystemSnipedSessionTotalDataPoint(ts pcommon.Timestamp, val int64, oracledbSessionTypeAttributeValue string) {
-	mb.metricOracledbSystemSnipedSessionTotal.recordDataPoint(mb.startTime, ts, val, oracledbSessionTypeAttributeValue)
+// RecordOracledbSystemSessionCountDataPoint adds a data point to oracledb.system.session_count metric.
+func (mb *MetricsBuilder) RecordOracledbSystemSessionCountDataPoint(ts pcommon.Timestamp, val int64, oracledbSessionTypeAttributeValue string, oracledbSessionStatusAttributeValue string) {
+	mb.metricOracledbSystemSessionCount.recordDataPoint(mb.startTime, ts, val, oracledbSessionTypeAttributeValue, oracledbSessionStatusAttributeValue)
 }
 
 // RecordOracledbSystemUserCommitsDataPoint adds a data point to oracledb.system.user_commits metric.

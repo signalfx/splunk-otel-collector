@@ -148,7 +148,9 @@ func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr corre
 			}
 			v = pcommon.NewValueString(configVal)
 		}
-		to.PutString(k, v.AsString())
+		if _, ok := to.Get(k); !ok {
+			v.CopyTo(to.PutEmpty(k))
+		}
 		return true
 	})
 	if hasTemporaryReceiverConfigAttr {

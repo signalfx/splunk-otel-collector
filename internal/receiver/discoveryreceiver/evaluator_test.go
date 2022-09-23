@@ -121,7 +121,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 			from := pcommon.NewMapFromRaw(
 				map[string]interface{}{
 					"one": "one.val",
-					"two": 2,
+					"two": "2",
 				})
 
 			to := pcommon.NewMap()
@@ -172,7 +172,7 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 				map[string]interface{}{
 					"discovery.receiver.config": encodedConfig,
 					"one":                       "one.val",
-					"two":                       2,
+					"two":                       "2",
 				})
 
 			to := pcommon.NewMap()

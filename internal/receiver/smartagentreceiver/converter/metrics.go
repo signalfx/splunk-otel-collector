@@ -75,17 +75,17 @@ func setDataTypeAndPoints(datapoint *sfx.Datapoint, ms pmetric.MetricSlice, time
 	switch sfxMetricType {
 	case sfx.Gauge, sfx.Enum, sfx.Rate:
 		m = ms.AppendEmpty()
-		m.SetDataType(pmetric.MetricDataTypeGauge)
+		m.SetEmptyGauge()
 		fillNumberDatapoint(datapoint.Value, datapoint.Timestamp, datapoint.Dimensions, m.Gauge().DataPoints(), timeReceived)
 	case sfx.Count:
 		m = ms.AppendEmpty()
-		m.SetDataType(pmetric.MetricDataTypeSum)
+		m.SetEmptySum()
 		m.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityDelta)
 		m.Sum().SetIsMonotonic(true)
 		fillNumberDatapoint(datapoint.Value, datapoint.Timestamp, datapoint.Dimensions, m.Sum().DataPoints(), timeReceived)
 	case sfx.Counter:
 		m = ms.AppendEmpty()
-		m.SetDataType(pmetric.MetricDataTypeSum)
+		m.SetEmptySum()
 		m.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
 		m.Sum().SetIsMonotonic(true)
 		fillNumberDatapoint(datapoint.Value, datapoint.Timestamp, datapoint.Dimensions, m.Sum().DataPoints(), timeReceived)
@@ -113,6 +113,6 @@ func fillNumberDatapoint(value sfx.Value, timestamp time.Time, dimensions map[st
 	attributes := dp.Attributes()
 	attributes.EnsureCapacity(len(dimensions))
 	for k, v := range dimensions {
-		attributes.UpsertString(k, v)
+		attributes.PutString(k, v)
 	}
 }

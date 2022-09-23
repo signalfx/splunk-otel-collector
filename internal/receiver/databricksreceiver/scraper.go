@@ -36,7 +36,7 @@ func (s scraper) scrape(_ context.Context) (pmetric.Metrics, error) {
 	out := pmetric.NewMetrics()
 	rms := out.ResourceMetrics()
 	rm := rms.AppendEmpty()
-	rm.Resource().Attributes().UpsertString(metadata.A.DatabricksInstanceName, s.instanceName)
+	rm.Resource().Attributes().PutString(metadata.A.DatabricksInstanceName, s.instanceName)
 	ilms := rm.ScopeMetrics()
 	ilm := ilms.AppendEmpty()
 	ms := ilm.Metrics()

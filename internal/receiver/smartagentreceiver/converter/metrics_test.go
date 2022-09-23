@@ -52,7 +52,18 @@ func pdataMetric() (pmetric.Metrics, pmetric.Metric) {
 
 func pdataMetrics(dataType pmetric.MetricDataType, value any, timeReceived time.Time) pmetric.Metrics {
 	metrics, metric := pdataMetric()
-	metric.SetDataType(dataType)
+	switch dataType {
+	case pmetric.MetricDataTypeGauge:
+		metric.SetEmptyGauge()
+	case pmetric.MetricDataTypeSum:
+		metric.SetEmptySum()
+	case pmetric.MetricDataTypeHistogram:
+		metric.SetEmptyHistogram()
+	case pmetric.MetricDataTypeExponentialHistogram:
+		metric.SetEmptyExponentialHistogram()
+	case pmetric.MetricDataTypeSummary:
+		metric.SetEmptySummary()
+	}
 	metric.SetName("some metric")
 
 	var dps pmetric.NumberDataPointSlice
@@ -69,9 +80,9 @@ func pdataMetrics(dataType pmetric.MetricDataType, value any, timeReceived time.
 
 	dp := dps.AppendEmpty()
 	attributes = dp.Attributes()
-	attributes.UpsertString("k0", "v0")
-	attributes.UpsertString("k1", "v1")
-	attributes.UpsertString("k2", "v2")
+	attributes.PutString("k0", "v0")
+	attributes.PutString("k1", "v1")
+	attributes.PutString("k2", "v2")
 	attributes.Sort()
 	dp.SetTimestamp(pcommon.Timestamp(timeReceived.UnixNano()))
 	switch val := value.(type) {
@@ -208,7 +219,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			}(),
 			expectedMetrics: func() pmetric.Metrics {
 				md := pdataMetrics(pmetric.MetricDataTypeGauge, 13, now)
-				md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).Attributes().UpsertString("k0", "")
+				md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).Attributes().PutString("k0", "")
 				return md
 			}(),
 		},

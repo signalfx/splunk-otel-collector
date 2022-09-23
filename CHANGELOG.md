@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## v0.60.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.60.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.60.0) and the [opentelemetry-collector-contrib v0.60.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.60.0) releases.
+
+### 💡 Enhancements 💡
+
+- Update auto instrumentation java agent to [v1.16.0](https://github.com/signalfx/splunk-otel-java/releases/tag/v1.16.0)
+- Replace usage of Map.Insert* and Map.Update* with Map.Upsert (#1957)
+- Refactor main flags as settings.Settings (#1952)
+- Support installing with ansible and skipping restart of services (#1930)
+
 ## v0.59.1
 
 ### 💡 Enhancements 💡

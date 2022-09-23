@@ -46,13 +46,13 @@ func TestMetricsToReceiverIDs(t *testing.T) {
 			rAttrs := rm.Resource().Attributes()
 
 			if tc.rType != nil {
-				rAttrs.UpsertString("discovery.receiver.type", *tc.rType)
+				rAttrs.PutString("discovery.receiver.type", *tc.rType)
 			}
 			if tc.rName != nil {
-				rAttrs.UpsertString("discovery.receiver.name", *tc.rName)
+				rAttrs.PutString("discovery.receiver.name", *tc.rName)
 			}
 			if tc.eID != nil {
-				rAttrs.UpsertString("discovery.endpoint.id", *tc.eID)
+				rAttrs.PutString("discovery.endpoint.id", *tc.eID)
 			}
 
 			receiverID, endpointID := MetricsToReceiverIDs(md)

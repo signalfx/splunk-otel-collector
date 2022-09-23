@@ -20,7 +20,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.59.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.59.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.59.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.59.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.60.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.59.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.59.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver v0.59.0

@@ -38,7 +38,7 @@ func (c Config) Validate() error {
 		return errors.New("'datasource' cannot be empty")
 	}
 	if _, err := url.Parse(c.DataSource); err != nil {
-		return errors.New("'datasource' is invalid")
+		return fmt.Errorf("'datasource' is invalid: %w", err)
 	}
 	return nil
 }

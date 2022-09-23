@@ -6,16 +6,17 @@ ADDLICENSE= addlicense
 ALL_DOC := $(shell find . \( -name "*.md" -o -name "*.yaml" \) \
                                 -type f | sort)
 
-# All source code excluding any third party code and excluding the testbed.
-# This is the code that we want to run tests for and lint, etc.
-ALL_SRC := $(shell find . -name '*.go' \
-							-not -path './examples/*' \
-							-not -path './tests/*' \
-							-not -path './internal/tools/*' \
-							-type f | sort)
+ALL_PKG_DIRS := $(shell go list -f '{{ .Dir }}' ./... | sort)
 
-# ALL_PKGS is the list of all packages where ALL_SRC files reside.
-ALL_PKGS := $(shell go list $(sort $(dir $(ALL_SRC))))
+ALL_SRC := $(shell find $(ALL_PKG_DIRS) -name '*.go' \
+                                -not -path '*/third_party/*' \
+                                -not -path '*/local/*' \
+                                -type f | sort)
+
+# All source code and documents. Used in spell check.
+ALL_SRC_AND_DOC := $(shell find $(ALL_PKG_DIRS) -name "*.md" -o -name "*.go" -o -name "*.yaml" \
+                                -not -path '*/third_party/*' \
+                                -type f | sort)
 
 ALL_TESTS_DIRS := $(shell find tests -name '*_test.go' | xargs -L 1 dirname | uniq | sort -r)
 
@@ -76,7 +77,7 @@ all-srcs:
 	@echo $(ALL_SRC) | tr ' ' '\n' | sort
 
 all-pkgs:
-	@echo $(ALL_PKGS) | tr ' ' '\n' | sort
+	@echo $(ALL_PKG_DIRS) | tr ' ' '\n' | sort
 
 .DEFAULT_GOAL := all
 
@@ -85,7 +86,7 @@ all: checklicense impi lint misspell test otelcol
 
 .PHONY: test
 test: integration-vet
-	$(GOTEST) $(GOTEST_OPT) $(ALL_PKGS)
+	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
 
 .PHONY: integration-vet
 integration-vet:
@@ -107,8 +108,8 @@ end-to-end-test:
 test-with-cover:
 	@echo Verifying that all packages have test files to count in coverage
 	@echo pre-compiling tests
-	@time go test -p $(NUM_CORES) -i $(ALL_PKGS)
-	$(GO_ACC) $(ALL_PKGS)
+	@time go test -p $(NUM_CORES) -i $(ALL_PKG_DIRS)
+	$(GO_ACC) $(ALL_PKG_DIRS)
 	go tool cover -html=coverage.txt -o coverage.html
 
 .PHONY: addlicense

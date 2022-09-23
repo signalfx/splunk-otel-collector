@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## ansible-v0.12.0
+
+### 💡 Enhancements 💡
+
+- Support installing with ansible and skipping restart of services (#1930)
+
 ## ansible-v0.11.0
 
 ### 💡 Enhancements 💡

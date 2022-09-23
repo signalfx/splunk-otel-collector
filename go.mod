@@ -12,7 +12,7 @@ require (
 	github.com/hashicorp/vault v1.11.2
 	github.com/hashicorp/vault-plugin-auth-gcp v0.13.2
 	github.com/hashicorp/vault/api v1.7.2
-	github.com/jaegertracing/jaeger v1.37.0
+	github.com/jaegertracing/jaeger v1.38.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.60.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.60.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.60.0
@@ -185,7 +185,7 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
-	github.com/go-openapi/swag v0.21.1 // indirect
+	github.com/go-openapi/swag v0.22.1 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-resty/resty/v2 v2.1.1-0.20191201195748-d7b97669fe48 // indirect

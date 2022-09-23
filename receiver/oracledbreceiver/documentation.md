@@ -32,10 +32,7 @@ These are the metrics available for this scraper.
 | **oracledb.session.user_rollbacks** | Number of times users manually issue the ROLLBACK statement or an error occurs during a user's transactions | 1 | Sum(Int) | <ul> </ul> |
 | **oracledb.system.execute_count** | Total number of calls (user and recursive) that executed SQL statements | 1 | Sum(Int) | <ul> </ul> |
 | **oracledb.system.parse_count_total** | Total number of parse calls (hard, soft, and describe). A soft parse is a check on an object already in the shared pool, to verify that the permissions on the underlying object have not changed. | 1 | Sum(Int) | <ul> </ul> |
-| **oracledb.system.query_elapsed_time_95p** | The 95th percentile value of elapsed times for all queries. | 1 | Gauge(Double) | <ul> </ul> |
-| **oracledb.system.query_elapsed_time_99p** | The 99th percentile value of elapsed times for all queries. | 1 | Gauge(Double) | <ul> </ul> |
-| **oracledb.system.query_returned_rows_95p** | The 95th percentile value of most returned rows for all queries. | 1 | Gauge(Int) | <ul> </ul> |
-| **oracledb.system.query_returned_rows_99p** | The 99th percentile value of most returned rows for all queries. | 1 | Gauge(Int) | <ul> </ul> |
+| **oracledb.system.resource_limits** | Designates the current utilization and max, initial and current value of a resource limit across processes, sessions, locks, and more. | 1 | Gauge(Int) | <ul> <li>oracledb.resource.name</li> <li>oracledb.resource.type</li> </ul> |
 | **oracledb.system.session_count** | Count of sessions. | 1 | Gauge(Int) | <ul> <li>oracledb.session.type</li> <li>oracledb.session.status</li> </ul> |
 | **oracledb.system.user_commits** | Number of user commits. When a user commits a transaction, the redo generated that reflects the changes made to database blocks must be written to disk. Commits often represent the closest thing to a user transaction rate. | 1 | Sum(Int) | <ul> </ul> |
 | **oracledb.system.user_rollbacks** | Number of times users manually issue the ROLLBACK statement or an error occurs during a user's transactions | 1 | Sum(Int) | <ul> </ul> |
@@ -62,5 +59,7 @@ metrics:
 | ---- | ----------- | ------ |
 | oracledb.query.fulltext | Full text for the SQL statement. |  |
 | oracledb.query.id | Unique ID for the SQL statement. |  |
+| oracledb.resource.name | Resource name. Example values are 'processes', 'sessions', 'enqueue_locks', 'enqueue_resources'. |  |
+| oracledb.resource.type | Resource type, one of 'current_utilization', 'max', 'initial', 'current'. |  |
 | oracledb.session.status | Session status |  |
 | oracledb.session.type | Session type |  |

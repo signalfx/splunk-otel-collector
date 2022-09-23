@@ -51,6 +51,7 @@ const (
 	sessionUserCommitsSQL         = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'user commits'"
 	sessionUserRollbacksSQL       = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'user rollbacks'"
 	sessionCountSQL               = "select status, type, count(*) as VALUE FROM v$session GROUP BY status, type"
+	systemResourceLimitsSQL       = "select RESOURCE_NAME, CURRENT_UTILIZATION, MAX_UTILIZATION, INITIAL_ALLOCATION, LIMIT_VALUE from v$resource_limit"
 	currentSessionIdSQL           = "select sys_context('USERENV','SID') from dual"
 )
 
@@ -266,6 +267,40 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 			s.metricsBuilder.RecordOracledbSystemSessionCountDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["TYPE"], row["STATUS"])
 		}
 	}
+
+	if s.metricsSettings.OracledbSystemResourceLimits.Enabled {
+		client := s.clientProviderFunc(s.db, systemResourceLimitsSQL, s.logger)
+		rows, err := client.metricRows(ctx)
+		if err != nil {
+			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", systemResourceLimitsSQL, err)
+		}
+		for _, row := range rows {
+			resourceName := row["RESOURCE_NAME"]
+
+			currentUtilization, err := strconv.ParseInt(row["CURRENT_UTILIZATION"], 10, 64)
+			if err != nil {
+				return pmetric.Metrics{}, err
+			}
+			maxUtilization, err := strconv.ParseInt(row["MAX_UTILIZATION"], 10, 64)
+			if err != nil {
+				return pmetric.Metrics{}, err
+			}
+			initialUtilization, err := strconv.ParseInt(row["INITIAL_UTILIZATION"], 10, 64)
+			if err != nil {
+				return pmetric.Metrics{}, err
+			}
+			limitValue, err := strconv.ParseInt(row["LIMIT_VALUE"], 10, 64)
+			if err != nil {
+				return pmetric.Metrics{}, err
+			}
+			now := pcommon.NewTimestampFromTime(time.Now())
+			s.metricsBuilder.RecordOracledbSystemResourceLimitsDataPoint(now, currentUtilization, resourceName, "current_utilization")
+			s.metricsBuilder.RecordOracledbSystemResourceLimitsDataPoint(now, maxUtilization, resourceName, "max")
+			s.metricsBuilder.RecordOracledbSystemResourceLimitsDataPoint(now, initialUtilization, resourceName, "initial")
+			s.metricsBuilder.RecordOracledbSystemResourceLimitsDataPoint(now, limitValue, resourceName, "current")
+		}
+	}
+
 	res, err := s.db.QueryContext(ctx, currentSessionIdSQL)
 	if err != nil {
 		return pmetric.Metrics{}, err

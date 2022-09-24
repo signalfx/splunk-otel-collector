@@ -1,13 +1,13 @@
 receivers:
-  smartagent/collectd_activemq:
-    type: collectd/activemq
-    host: localhost
-    port: 1099
-    username: testuser
-    password: testing123
-    extraMetrics: ["*"]
-    intervalSeconds: 1
-
+  oracledb:
+    # driver name: oracle
+    # username: otel
+    # password: password
+    # host: localhost
+    # container exposed port: 51521
+    # Oracle DB service name: XE
+    # Refer to Oracle Go Driver go_ora documentation for full connection string options
+    datasource: "oracle://otel:password@oracledb:1521/XE"
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -18,5 +18,5 @@ service:
   pipelines:
     metrics:
       receivers:
-        - smartagent/collectd_activemq
+        - oracledb
       exporters: [otlp]

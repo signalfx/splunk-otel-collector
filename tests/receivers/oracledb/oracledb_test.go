@@ -13,9 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
-// +build integration
-
 package tests
 
 import (
@@ -30,7 +27,7 @@ import (
 // account for startup time is to wait for the container to be healthy before continuing test.
 var oracledb = []testutils.Container{testutils.NewContainer().WithContext(
 	path.Join(".", "testdata", "server"),
-).WithExposedPorts("51521:1521").WithName("oracledb").WillWaitForHealth(15 * time.Minute)}
+).WithName("oracledb").WillWaitForHealth(15 * time.Minute)}
 
 // This test ensures the collector can connect to an Oracle DB, and properly get metrics. It's not intended to
 // test the receiver itself.

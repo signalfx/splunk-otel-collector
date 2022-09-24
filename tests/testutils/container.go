@@ -142,6 +142,13 @@ func (container Container) Build() *Container {
 	if container.ContainerNetworkMode != "" {
 		networkMode = dockerContainer.NetworkMode(container.ContainerNetworkMode)
 	}
+	var waitStrategy wait.Strategy
+	if len(container.WaitingFor) == 1 {
+		waitStrategy = container.WaitingFor[0]
+	} else {
+		waitStrategy = wait.ForAll(container.WaitingFor...)
+	}
+
 	container.req = &testcontainers.ContainerRequest{
 		Image:          container.Image,
 		FromDockerfile: container.Dockerfile,
@@ -151,7 +158,7 @@ func (container Container) Build() *Container {
 		Name:           container.ContainerName,
 		Networks:       container.ContainerNetworks,
 		NetworkMode:    networkMode,
-		WaitingFor:     wait.ForAll(container.WaitingFor...),
+		WaitingFor:     waitStrategy,
 	}
 	return &container
 }

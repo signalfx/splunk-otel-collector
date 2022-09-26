@@ -59,7 +59,7 @@ func (collector CollectorProcess) WithConfigPath(path string) Collector {
 	return &collector
 }
 
-// []string{"--set=service.telemetry.logs.level={collector.LogLevel}", "--config", collector.ConfigPath, "--metrics-level", "none"} by default
+// []string{"--set=service.telemetry.logs.level={collector.LogLevel}", "--config", collector.ConfigPath, "--set=service.telemetry.metrics.level=none"} by default
 func (collector CollectorProcess) WithArgs(args ...string) Collector {
 	collector.Args = args
 	return &collector
@@ -110,7 +110,7 @@ func (collector CollectorProcess) Build() (Collector, error) {
 	}
 	if collector.Args == nil {
 		collector.Args = []string{
-			fmt.Sprintf("--set=service.telemetry.logs.level=%s", collector.LogLevel), "--config", collector.ConfigPath, "--metrics-level", "none",
+			fmt.Sprintf("--set=service.telemetry.logs.level=%s", collector.LogLevel), "--config", collector.ConfigPath, "--set=service.telemetry.metrics.level=none",
 		}
 	}
 

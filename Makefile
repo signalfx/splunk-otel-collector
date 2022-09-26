@@ -1,24 +1,6 @@
+include ./Makefile.Common
+
 ### VARIABLES
-
-ADDLICENSE= addlicense
-
-# All source code and documents. Used in spell check.
-ALL_DOC := $(shell find . \( -name "*.md" -o -name "*.yaml" \) \
-                                -type f | sort)
-
-ALL_PKG_DIRS := $(shell go list -f '{{ .Dir }}' ./... | sort)
-
-ALL_SRC := $(shell find $(ALL_PKG_DIRS) -name '*.go' \
-                                -not -path '*/third_party/*' \
-                                -not -path '*/local/*' \
-                                -type f | sort)
-
-# All source code and documents. Used in spell check.
-ALL_SRC_AND_DOC := $(shell find $(ALL_PKG_DIRS) -name "*.md" -o -name "*.go" -o -name "*.yaml" \
-                                -not -path '*/third_party/*' \
-                                -type f | sort)
-
-ALL_TESTS_DIRS := $(shell find tests -name '*_test.go' | xargs -L 1 dirname | uniq | sort -r)
 
 
 # BUILD_TYPE should be one of (dev, release).
@@ -30,16 +12,16 @@ GO_ACC=go-acc
 GOARCH=$(shell go env GOARCH)
 GOOS=$(shell go env GOOS)
 
+FIND_MOD_ARGS=-type f -name "go.mod"
+TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
+# NONROOT_MODS includes ./* dirs (excludes . dir)
+NONROOT_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR) )
+
 # CircleCI runtime.NumCPU() is for host machine despite container instance only granting 2.
 # If we are in a CI job, limit to 2 (and scale as we increase executor size).
 NUM_CORES := $(shell if [ -z ${CIRCLE_JOB} ]; then echo `getconf _NPROCESSORS_ONLN` ; else echo 2; fi )
 GOTEST=go test -p $(NUM_CORES)
 GOTEST_OPT?= -v -race -timeout 180s
-
-IMPI=impi
-LINT=golangci-lint
-MISSPELL=misspell -error
-MISSPELL_CORRECTION=misspell -w
 
 BUILD_INFO_IMPORT_PATH=github.com/signalfx/splunk-otel-collector/internal/version
 BUILD_INFO_IMPORT_PATH_TESTS=github.com/signalfx/splunk-otel-collector/tests/internal/version
@@ -61,36 +43,28 @@ ARCH=amd64
 # for local binary testing (agent-bundle configuration required)
 export SPLUNK_OTEL_COLLECTOR_IMAGE?=quay.io/signalfx/splunk-otel-collector-dev:latest
 
-### FUNCTIONS
-
-# Function to execute a command. Note the empty line before endef to make sure each command
-# gets executed separately instead of concatenated with previous one.
-# Accepts command to execute as first parameter.
-define exec-command
-$(1)
-
-endef
+# ALL_MODULES includes ./* dirs (excludes . dir)
+ALL_GO_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
+ALL_PYTHON_DEPS := $(shell find . -type f \( -name "setup.py" -o -name "requirements.txt" \) -exec dirname {} \; | sort | egrep  '^./')
+ALL_DOCKERFILES := $(shell find . -type f -name Dockerfile -exec dirname {} \; | grep -v '^./tests' | sort)
+DEPENDABOT_PATH=./.github/dependabot.yml
 
 ### TARGETS
-
-all-srcs:
-	@echo $(ALL_SRC) | tr ' ' '\n' | sort
-
-all-pkgs:
-	@echo $(ALL_PKG_DIRS) | tr ' ' '\n' | sort
 
 .DEFAULT_GOAL := all
 
 .PHONY: all
 all: checklicense impi lint misspell test otelcol
 
-.PHONY: test
-test: integration-vet
-	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
-
-.PHONY: integration-vet
-integration-vet:
-	cd tests && go vet ./...
+.PHONY: for-all
+for-all:
+	@echo "running $${CMD} in root"
+	@$${CMD}
+	@set -e; for dir in $(NONROOT_MODS); do \
+	  (cd "$${dir}" && \
+	  	echo "running $${CMD} in $${dir}" && \
+	 	$${CMD} ); \
+	done
 
 .PHONY: integration-test
 integration-test:
@@ -112,27 +86,6 @@ test-with-cover:
 	$(GO_ACC) $(ALL_PKG_DIRS)
 	go tool cover -html=coverage.txt -o coverage.html
 
-.PHONY: addlicense
-addlicense:
-	$(ADDLICENSE) -y "" -c 'Splunk, Inc.' $(ALL_SRC)
-
-.PHONY: checklicense
-checklicense:
-	@ADDLICENSEOUT=`$(ADDLICENSE) -check $(ALL_SRC) 2>&1`; \
-		if [ "$$ADDLICENSEOUT" ]; then \
-			echo "$(ADDLICENSE) FAILED => add License errors:\n"; \
-			echo "$$ADDLICENSEOUT\n"; \
-			echo "Use 'make addlicense' to fix this."; \
-			exit 1; \
-		else \
-			echo "Check License finished successfully"; \
-		fi
-
-# ALL_MODULES includes ./* dirs (excludes . dir)
-ALL_GO_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
-ALL_PYTHON_DEPS := $(shell find . -type f \( -name "setup.py" -o -name "requirements.txt" \) -exec dirname {} \; | sort | egrep  '^./')
-ALL_DOCKERFILES := $(shell find . -type f -name Dockerfile -exec dirname {} \; | grep -v '^./tests' | sort)
-DEPENDABOT_PATH=./.github/dependabot.yml
 .PHONY: gendependabot
 gendependabot:
 	@echo "Recreate dependabot.yml file"
@@ -154,32 +107,11 @@ gendependabot:
 		  echo "  - package-ecosystem: \"docker\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"daily\"" >> ${DEPENDABOT_PATH} ); \
 	done
 
-.PHONY: misspell
-misspell:
-	$(MISSPELL) $(ALL_DOC)
-
-.PHONY: misspell-correction
-misspell-correction:
-	$(MISSPELL_CORRECTION) $(ALL_DOC)
-
-.PHONY: tidy
-tidy:
+.PHONY: tidy-all
+tidy-all:
+	$(MAKE) $(FOR_GROUP_TARGET) TARGET="tidy"
 	go mod tidy -compat=1.18
-	cd tests && go mod tidy -compat=1.18
-	cd internal/tools && go mod tidy -compat=1.18
 
-.PHONY: fmt
-fmt: addlicense misspell-correction
-	go fmt ./...
-	fieldalignment -fix ./... || true
-
-.PHONY: lint
-lint:
-	$(LINT) run
-
-.PHONY: impi
-impi:
-	@$(IMPI) --local github.com/signalfx/splunk-otel-collector --scheme stdThirdPartyLocal ./...
 
 .PHONY: install-tools
 install-tools:

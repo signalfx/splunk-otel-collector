@@ -20,6 +20,8 @@ IMPI=impi
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
 
+ALL_TESTS_DIRS := $(shell find tests -name '*_test.go' | xargs -L 1 dirname | uniq | sort -r)
+
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | sort)
 
 ALL_SRC := $(shell find $(ALL_PKG_DIRS) -name '*.go' \
@@ -54,7 +56,7 @@ common: checklicense impi lint misspell
 
 .PHONY: test
 test:
-	$(GOTEST) $(GOTEST_OPT) ./...
+	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
 
 .PHONY: do-unit-tests-with-cover
 do-unit-tests-with-cover:
@@ -76,7 +78,7 @@ benchmark:
 
 .PHONY: addlicense
 addlicense:
-	@ADDLICENCESEOUT=`$(ADDLICENCESE) -y "" -c 'The OpenTelemetry Authors' $(ALL_SRC) 2>&1`; \
+	@ADDLICENCESEOUT=`$(ADDLICENCESE) -y "" -c 'Splunk, Inc.' $(ALL_SRC) 2>&1`; \
 		if [ "$$ADDLICENCESEOUT" ]; then \
 			echo "$(ADDLICENCESE) FAILED => add License errors:\n"; \
 			echo "$$ADDLICENCESEOUT\n"; \
@@ -104,9 +106,10 @@ checklinks:
 		$(MDLINKCHECK) -q -c $(SRC_ROOT)/.github/workflows/check_links_config.json || true
 
 .PHONY: fmt
-fmt:
-	gofmt  -w -s ./
-	goimports -w  -local github.com/open-telemetry/opentelemetry-collector-contrib ./
+fmt: addlicense misspell-correction
+	go fmt  -w -s ./...
+	goimports -w  -local github.com/signalfx/splunk-otel-collector ./
+	fieldalignment -fix ./... || true
 
 .PHONY: lint
 lint: checklicense misspell

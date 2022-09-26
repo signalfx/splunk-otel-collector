@@ -19,8 +19,10 @@ ALL_PKGS := $(shell go list $(sort $(dir $(ALL_SRC))))
 
 ALL_TESTS_DIRS := $(shell find tests -name '*_test.go' | xargs -L 1 dirname | uniq | sort -r)
 
+
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
+VERSION?=latest
 
 GIT_SHA=$(shell git rev-parse --short HEAD)
 GO_ACC=go-acc
@@ -276,3 +278,7 @@ ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-windows_amd64
 endif
 	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(SMART_AGENT_RELEASE)"
+
+.PHONY: update-examples
+update-examples:
+	cd examples && $(MAKE) update-examples

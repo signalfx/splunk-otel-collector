@@ -22,8 +22,7 @@ This example showcases how the agent works with Splunk Enterprise and an existin
 
 ## [Nomad](./nomad)
 
-The demo job deploys the Splunk OpenTelemetry Collector as `agent` and `gateway`, `load
-generators`, to collect metrics and traces and export them using the `SignalFx` exporter.
+The demo job deploys the Splunk OpenTelemetry Collector as `agent` and `gateway`, `load generators`, to collect metrics and traces and export them using the `SignalFx` exporter.
 
 [Read more...](./nomad)
 
@@ -36,3 +35,10 @@ This example showcases how the collector can send traces to a Splunk Enterprise 
 ## [Filelog receiver with Splunk Enterprise](./otel-logs-splunk)
 
 This example showcases how the collector can follow a file and send its contents to Splunk Enterprise.
+
+# Dependencies
+
+- docker
+- docker-compose
+- go
+- You'll need to edit the various examples to have proper auth keys and the likes. Any such configuration is example specific.

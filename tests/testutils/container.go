@@ -28,6 +28,10 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
+const (
+	defaultContainerTimeout = 5 * time.Minute
+)
+
 // Container is a combination builder and testcontainers.Container wrapper
 // for convenient creation and management of docker images and containers.
 type Container struct {
@@ -42,6 +46,7 @@ type Container struct {
 	WaitingFor           []wait.Strategy
 	req                  *testcontainers.ContainerRequest
 	container            *testcontainers.Container
+	startupTimeout       *time.Duration
 }
 
 var _ testcontainers.Container = (*Container)(nil)
@@ -76,6 +81,11 @@ func (container Container) WithContextArchive(contextArchive io.Reader) Containe
 
 func (container Container) WithCmd(cmd ...string) Container {
 	container.Cmd = cmd
+	return container
+}
+
+func (container Container) WithStartupTimeout(startupTimeout time.Duration) Container {
+	container.startupTimeout = &startupTimeout
 	return container
 }
 
@@ -142,11 +152,11 @@ func (container Container) Build() *Container {
 	if container.ContainerNetworkMode != "" {
 		networkMode = dockerContainer.NetworkMode(container.ContainerNetworkMode)
 	}
-	var waitStrategy wait.Strategy
-	if len(container.WaitingFor) == 1 {
-		waitStrategy = container.WaitingFor[0]
+	var startupTimeout time.Duration
+	if container.startupTimeout == nil {
+		startupTimeout = defaultContainerTimeout
 	} else {
-		waitStrategy = wait.ForAll(container.WaitingFor...)
+		startupTimeout = *container.startupTimeout
 	}
 
 	container.req = &testcontainers.ContainerRequest{
@@ -158,7 +168,7 @@ func (container Container) Build() *Container {
 		Name:           container.ContainerName,
 		Networks:       container.ContainerNetworks,
 		NetworkMode:    networkMode,
-		WaitingFor:     waitStrategy,
+		WaitingFor:     wait.ForAll(container.WaitingFor...).WithStartupTimeout(startupTimeout),
 	}
 	return &container
 }

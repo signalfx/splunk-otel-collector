@@ -19,11 +19,13 @@ import (
 	"fmt"
 	"io"
 	"path"
+	"reflect"
 	"sort"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+	"unsafe"
 
 	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/assert"
@@ -199,6 +201,30 @@ func TestBuildMethod(t *testing.T) {
 	assert.NotNil(t, container.req)
 	assert.Equal(t, "some-image", container.req.Image)
 	assert.Nil(t, builder.req)
+}
+
+func TestStartupTimeout(t *testing.T) {
+	builder := NewContainer().WithStartupTimeout(10 * time.Minute)
+	container := builder.Build()
+	assert.NotSame(t, *container, builder)
+	assert.NotNil(t, container.req)
+	rs := reflect.ValueOf(container.req.WaitingFor).Elem()
+	rf := rs.FieldByName("startupTimeout")
+	rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
+	startupTimeout := rf.Interface().(time.Duration)
+	assert.Equal(t, 10*time.Minute, startupTimeout)
+}
+
+func TestStartupTimeoutDefault(t *testing.T) {
+	builder := NewContainer()
+	container := builder.Build()
+	assert.NotSame(t, *container, builder)
+	assert.NotNil(t, container.req)
+	rs := reflect.ValueOf(container.req.WaitingFor).Elem()
+	rf := rs.FieldByName("startupTimeout")
+	rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
+	startupTimeout := rf.Interface().(time.Duration)
+	assert.Equal(t, 5*time.Minute, startupTimeout)
 }
 
 func TestTestcontainersContainerMethodsRequireBuilding(t *testing.T) {

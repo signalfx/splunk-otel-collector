@@ -9,7 +9,6 @@ require (
 	github.com/shirou/gopsutil/v3 v3.22.8
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.2
 	github.com/signalfx/signalfx-go v1.23.0
-	github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver v0.60.0
 	github.com/stretchr/testify v1.8.0
 	github.com/testcontainers/testcontainers-go v0.14.0
 	go.opentelemetry.io/collector v0.61.0
@@ -24,7 +23,7 @@ require (
 	cloud.google.com/go v0.99.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
-	github.com/Microsoft/hcsshim v0.9.3 // indirect
+	github.com/Microsoft/hcsshim v0.9.4 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/containerd/cgroups v1.0.4 // indirect
 	github.com/containerd/containerd v1.6.8 // indirect
@@ -95,4 +94,4 @@ replace (
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0
 )
 
-replace "github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver" => "../receiver/oracledbreceiver"
+replace github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver => ../receiver/oracledbreceiver

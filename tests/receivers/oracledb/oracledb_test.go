@@ -16,11 +16,11 @@
 package tests
 
 import (
-	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 	"path"
-
 	"testing"
 	"time"
+
+	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 // The Oracle DB container takes close to 10 minutes on a local machine to do the default setup, so the best way to

@@ -65,6 +65,9 @@ func (cl dbSQLClient) metricRows(ctx context.Context) ([]metricRow, error) {
 		var v interface{}
 		row.attrs[colName] = func() string {
 			format := "%v"
+			if v == nil {
+				return ""
+			}
 			if reflect.TypeOf(v).Kind() == reflect.Slice {
 				// The Postgres driver returns a []uint8 (a string) for decimal and numeric types,
 				// which we want to render as strings. e.g. "4.1" instead of "[52, 46, 49]".

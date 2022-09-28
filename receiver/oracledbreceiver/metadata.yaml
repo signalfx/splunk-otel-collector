@@ -14,6 +14,8 @@ attributes:
     description: Resource name. Example values are 'processes', 'sessions', 'enqueue_locks', 'enqueue_resources'.
   oracledb.resource.type:
     description: Resource type, one of 'current_utilization', 'max', 'initial', 'current'.
+  oracledb.tablespace.name:
+    description: Tablespace name
 metrics:
   oracledb.query.cpu_time:
     attributes:
@@ -268,7 +270,6 @@ metrics:
     gauge:
       value_type: int
     unit: 1
-
   oracledb.system.user_rollbacks:
     description: Number of times users manually issue the ROLLBACK statement or an
       error occurs during a user's transactions
@@ -278,6 +279,22 @@ metrics:
       monotonic: true
       value_type: int
     unit: 1
+  oracledb.tablespace.max_size:
+    attributes:
+      - oracledb.tablespace.name
+    description: Maximum size of tablespace in bytes.
+    enabled: true
+    gauge:
+      value_type: int
+    unit: By
+  oracledb.tablespace.size:
+    attributes:
+      - oracledb.tablespace.name
+    description: Size of tablespace in bytes.
+    enabled: true
+    gauge:
+      value_type: int
+    unit: By
 name: oracledbreceiver
 resource_attributes:
   oracledb.instance.name:

@@ -17,6 +17,7 @@ package oracledbreceiver // import "github.com/signalfx/splunk-otel-collector/re
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"time"
 

@@ -36,6 +36,8 @@ These are the metrics available for this scraper.
 | **oracledb.system.session_count** | Count of sessions. | 1 | Gauge(Int) | <ul> <li>oracledb.session.type</li> <li>oracledb.session.status</li> </ul> |
 | **oracledb.system.user_commits** | Number of user commits. When a user commits a transaction, the redo generated that reflects the changes made to database blocks must be written to disk. Commits often represent the closest thing to a user transaction rate. | 1 | Sum(Int) | <ul> </ul> |
 | **oracledb.system.user_rollbacks** | Number of times users manually issue the ROLLBACK statement or an error occurs during a user's transactions | 1 | Sum(Int) | <ul> </ul> |
+| **oracledb.tablespace.max_size** | Maximum size of tablespace in bytes. | By | Gauge(Int) | <ul> <li>oracledb.tablespace.name</li> </ul> |
+| **oracledb.tablespace.size** | Size of tablespace in bytes. | By | Gauge(Int) | <ul> <li>oracledb.tablespace.name</li> </ul> |
 
 **Highlighted metrics** are emitted by default. Other metrics are optional and not emitted by default.
 Any metric can be enabled or disabled with the following scraper configuration:
@@ -63,3 +65,4 @@ metrics:
 | oracledb.resource.type | Resource type, one of 'current_utilization', 'max', 'initial', 'current'. |  |
 | oracledb.session.status | Session status |  |
 | oracledb.session.type | Session type |  |
+| oracledb.tablespace.name | Tablespace name |  |

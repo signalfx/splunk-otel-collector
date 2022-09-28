@@ -23,7 +23,7 @@ exporters:
     path: /tmp/out/file.txt
   signalfx:
     realm: us0
-    access_token: changeme
+    access_token: ySSqAChnmFPQTKCC9ErXQg
 service:
   telemetry:
     logs:

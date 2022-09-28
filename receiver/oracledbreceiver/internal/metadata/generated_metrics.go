@@ -45,6 +45,8 @@ type MetricsSettings struct {
 	OracledbSystemSessionCount         MetricSettings `mapstructure:"oracledb.system.session_count"`
 	OracledbSystemUserCommits          MetricSettings `mapstructure:"oracledb.system.user_commits"`
 	OracledbSystemUserRollbacks        MetricSettings `mapstructure:"oracledb.system.user_rollbacks"`
+	OracledbTablespaceMaxSize          MetricSettings `mapstructure:"oracledb.tablespace.max_size"`
+	OracledbTablespaceSize             MetricSettings `mapstructure:"oracledb.tablespace.size"`
 }
 
 func DefaultMetricsSettings() MetricsSettings {
@@ -131,6 +133,12 @@ func DefaultMetricsSettings() MetricsSettings {
 			Enabled: true,
 		},
 		OracledbSystemUserRollbacks: MetricSettings{
+			Enabled: true,
+		},
+		OracledbTablespaceMaxSize: MetricSettings{
+			Enabled: true,
+		},
+		OracledbTablespaceSize: MetricSettings{
 			Enabled: true,
 		},
 	}
@@ -1585,30 +1593,132 @@ func newMetricOracledbSystemUserRollbacks(settings MetricSettings) metricOracled
 	return m
 }
 
+type metricOracledbTablespaceMaxSize struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills oracledb.tablespace.max_size metric with initial data.
+func (m *metricOracledbTablespaceMaxSize) init() {
+	m.data.SetName("oracledb.tablespace.max_size")
+	m.data.SetDescription("Maximum size of tablespace in bytes.")
+	m.data.SetUnit("By")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricOracledbTablespaceMaxSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, oracledbTablespaceNameAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntVal(val)
+	dp.Attributes().PutString("oracledb.tablespace.name", oracledbTablespaceNameAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricOracledbTablespaceMaxSize) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricOracledbTablespaceMaxSize) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricOracledbTablespaceMaxSize(settings MetricSettings) metricOracledbTablespaceMaxSize {
+	m := metricOracledbTablespaceMaxSize{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricOracledbTablespaceSize struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills oracledb.tablespace.size metric with initial data.
+func (m *metricOracledbTablespaceSize) init() {
+	m.data.SetName("oracledb.tablespace.size")
+	m.data.SetDescription("Size of tablespace in bytes.")
+	m.data.SetUnit("By")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricOracledbTablespaceSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, oracledbTablespaceNameAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntVal(val)
+	dp.Attributes().PutString("oracledb.tablespace.name", oracledbTablespaceNameAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricOracledbTablespaceSize) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricOracledbTablespaceSize) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricOracledbTablespaceSize(settings MetricSettings) metricOracledbTablespaceSize {
+	m := metricOracledbTablespaceSize{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
 // MetricsBuilder provides an interface for scrapers to report metrics while taking care of all the transformations
 // required to produce metric representation defined in metadata and user settings.
 type MetricsBuilder struct {
-	startTime                                pcommon.Timestamp   // start time that will be applied to all recorded data points.
-	metricsCapacity                          int                 // maximum observed number of metrics per resource.
-	resourceCapacity                         int                 // maximum observed number of resource attributes.
-	metricsBuffer                            pmetric.Metrics     // accumulates metrics data before emitting.
-	buildInfo                                component.BuildInfo // contains version information
-	metricOracledbQueryCPUTime               metricOracledbQueryCPUTime
+	metricsBuffer                            pmetric.Metrics
+	buildInfo                                component.BuildInfo
+	metricOracledbSessionEnqueueDeadlocks    metricOracledbSessionEnqueueDeadlocks
+	metricOracledbQueryParseCalls            metricOracledbQueryParseCalls
+	metricOracledbTablespaceSize             metricOracledbTablespaceSize
+	metricOracledbSessionExecuteCount        metricOracledbSessionExecuteCount
 	metricOracledbQueryElapsedTime           metricOracledbQueryElapsedTime
 	metricOracledbQueryExecutions            metricOracledbQueryExecutions
 	metricOracledbQueryLongRunning           metricOracledbQueryLongRunning
-	metricOracledbQueryParseCalls            metricOracledbQueryParseCalls
+	metricOracledbSessionHardParses          metricOracledbSessionHardParses
 	metricOracledbQueryPhysicalReadBytes     metricOracledbQueryPhysicalReadBytes
 	metricOracledbQueryPhysicalReadRequests  metricOracledbQueryPhysicalReadRequests
 	metricOracledbQueryPhysicalWriteBytes    metricOracledbQueryPhysicalWriteBytes
 	metricOracledbQueryPhysicalWriteRequests metricOracledbQueryPhysicalWriteRequests
 	metricOracledbQueryTotalSharableMem      metricOracledbQueryTotalSharableMem
-	metricOracledbSessionCPUUsage            metricOracledbSessionCPUUsage
-	metricOracledbSessionEnqueueDeadlocks    metricOracledbSessionEnqueueDeadlocks
-	metricOracledbSessionExchangeDeadlocks   metricOracledbSessionExchangeDeadlocks
-	metricOracledbSessionExecuteCount        metricOracledbSessionExecuteCount
-	metricOracledbSessionHardParses          metricOracledbSessionHardParses
 	metricOracledbSessionLogicalReads        metricOracledbSessionLogicalReads
+	metricOracledbTablespaceMaxSize          metricOracledbTablespaceMaxSize
+	metricOracledbSessionExchangeDeadlocks   metricOracledbSessionExchangeDeadlocks
+	metricOracledbQueryCPUTime               metricOracledbQueryCPUTime
+	metricOracledbSystemUserRollbacks        metricOracledbSystemUserRollbacks
+	metricOracledbSessionCPUUsage            metricOracledbSessionCPUUsage
 	metricOracledbSessionParseCountTotal     metricOracledbSessionParseCountTotal
 	metricOracledbSessionPgaMemory           metricOracledbSessionPgaMemory
 	metricOracledbSessionPhysicalReads       metricOracledbSessionPhysicalReads
@@ -1620,7 +1730,9 @@ type MetricsBuilder struct {
 	metricOracledbSystemResourceLimits       metricOracledbSystemResourceLimits
 	metricOracledbSystemSessionCount         metricOracledbSystemSessionCount
 	metricOracledbSystemUserCommits          metricOracledbSystemUserCommits
-	metricOracledbSystemUserRollbacks        metricOracledbSystemUserRollbacks
+	resourceCapacity                         int
+	startTime                                pcommon.Timestamp
+	metricsCapacity                          int
 }
 
 // metricBuilderOption applies changes to default metrics builder.
@@ -1666,6 +1778,8 @@ func NewMetricsBuilder(settings MetricsSettings, buildInfo component.BuildInfo, 
 		metricOracledbSystemSessionCount:         newMetricOracledbSystemSessionCount(settings.OracledbSystemSessionCount),
 		metricOracledbSystemUserCommits:          newMetricOracledbSystemUserCommits(settings.OracledbSystemUserCommits),
 		metricOracledbSystemUserRollbacks:        newMetricOracledbSystemUserRollbacks(settings.OracledbSystemUserRollbacks),
+		metricOracledbTablespaceMaxSize:          newMetricOracledbTablespaceMaxSize(settings.OracledbTablespaceMaxSize),
+		metricOracledbTablespaceSize:             newMetricOracledbTablespaceSize(settings.OracledbTablespaceSize),
 	}
 	for _, op := range options {
 		op(mb)
@@ -1760,6 +1874,8 @@ func (mb *MetricsBuilder) EmitForResource(rmo ...ResourceMetricsOption) {
 	mb.metricOracledbSystemSessionCount.emit(ils.Metrics())
 	mb.metricOracledbSystemUserCommits.emit(ils.Metrics())
 	mb.metricOracledbSystemUserRollbacks.emit(ils.Metrics())
+	mb.metricOracledbTablespaceMaxSize.emit(ils.Metrics())
+	mb.metricOracledbTablespaceSize.emit(ils.Metrics())
 	for _, op := range rmo {
 		op(rm)
 	}
@@ -1917,6 +2033,16 @@ func (mb *MetricsBuilder) RecordOracledbSystemUserCommitsDataPoint(ts pcommon.Ti
 // RecordOracledbSystemUserRollbacksDataPoint adds a data point to oracledb.system.user_rollbacks metric.
 func (mb *MetricsBuilder) RecordOracledbSystemUserRollbacksDataPoint(ts pcommon.Timestamp, val int64) {
 	mb.metricOracledbSystemUserRollbacks.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordOracledbTablespaceMaxSizeDataPoint adds a data point to oracledb.tablespace.max_size metric.
+func (mb *MetricsBuilder) RecordOracledbTablespaceMaxSizeDataPoint(ts pcommon.Timestamp, val int64, oracledbTablespaceNameAttributeValue string) {
+	mb.metricOracledbTablespaceMaxSize.recordDataPoint(mb.startTime, ts, val, oracledbTablespaceNameAttributeValue)
+}
+
+// RecordOracledbTablespaceSizeDataPoint adds a data point to oracledb.tablespace.size metric.
+func (mb *MetricsBuilder) RecordOracledbTablespaceSizeDataPoint(ts pcommon.Timestamp, val int64, oracledbTablespaceNameAttributeValue string) {
+	mb.metricOracledbTablespaceSize.recordDataPoint(mb.startTime, ts, val, oracledbTablespaceNameAttributeValue)
 }
 
 // Reset resets metrics builder to its initial state. It should be used when external metrics source is restarted,

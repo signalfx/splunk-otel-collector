@@ -36,6 +36,10 @@ This example showcases how the collector can send traces to a Splunk Enterprise 
 
 This example showcases how the collector can follow a file and send its contents to Splunk Enterprise.
 
+## [Sending logs with different sourcetypes to Splunk Enterprise](./otel-logs-with-sourcetypes-splunk)
+
+This example showcases how the collector can select different sourcetypes per log sources.
+
 # Dependencies
 
 - docker

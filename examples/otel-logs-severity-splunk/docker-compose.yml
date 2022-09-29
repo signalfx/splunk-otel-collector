@@ -1,0 +1,54 @@
+version: "3"
+services:
+  logging:
+    image: bash:latest
+    container_name: logging
+    command: 'bash -c "while(true) do /output.sh 20 >> /output/file.log ; sleep 1; done"'
+    volumes:
+      - ./output.sh:/output.sh
+      - ./output:/output
+  logging2:
+    image: bash:latest
+    container_name: logging2
+    command: 'bash -c "while(true) do /output.sh 40 >> /output/file2.log ; sleep 1; done"'
+    volumes:
+      - ./output.sh:/output.sh
+      - ./output:/output
+  logging3:
+    image: bash:latest
+    container_name: logging3
+    command: 'bash -c "while(true) do /output.sh 60 >> /output/file3.log ; sleep 1; done"'
+    volumes:
+      - ./output.sh:/output.sh
+      - ./output:/output
+  # Splunk Enterprise server:
+  splunk:
+    image: splunk/splunk:latest
+    container_name: splunk
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_HEC_TOKEN=00000000-0000-0000-0000-0000000000000
+      - SPLUNK_PASSWORD=changeme
+    ports:
+      - 18000:8000
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./splunk.yml:/tmp/defaults/default.yml
+      - /opt/splunk/var
+      - /opt/splunk/etc
+  # OpenTelemetry Collector
+  otelcollector:
+    image:  quay.io/signalfx/splunk-otel-collector:0.59.1
+    container_name: otelcollector
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+      - ./output:/output
+    depends_on:
+      - splunk
+    ports:
+      - 18088:8088

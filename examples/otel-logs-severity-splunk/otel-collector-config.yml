@@ -1,0 +1,60 @@
+receivers:
+    filelog:
+      include: [ /output/file*.log ]
+      start_at: beginning
+      operators:
+          - type: json_parser
+            parse_from: body
+
+exporters:
+    splunk_hec/logs:
+        # Splunk Index targeted
+        index: logs
+        # Splunk HTTP Event Collector token.
+        token: "00000000-0000-0000-0000-0000000000000"
+        # URL to a Splunk instance to send data to.
+        endpoint: "https://splunk:8088/services/collector"
+        # Optional Splunk source: https://docs.splunk.com/Splexicon:Source
+        source: "output"
+        # Maximum HTTP connections to use simultaneously when sending data. Defaults to 100.
+        max_connections: 20
+        # Whether to disable gzip compression over HTTP. Defaults to false.
+        disable_compression: false
+        # HTTP timeout when sending data. Defaults to 10s.
+        timeout: 10s
+        tls:
+          # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
+          # For this demo, we use a self-signed certificate on the Splunk docker instance, so this flag is set to true.
+          insecure_skip_verify: true
+    logging:
+processors:
+    batch:
+    transform/log:
+      logs:
+        queries:
+          # See mapping here: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#displaying-severity
+          - set(severity_text, "DEBUG") where attributes["Level"] == "20"
+          - set(severity_text, "INFO") where attributes["Level"] == "40"
+          - set(severity_text, "WARN") where attributes["Level"] == "60"
+          - delete_key(attributes, "Level")
+          - delete_key(attributes, "message")
+          - delete_key(attributes, "time")
+
+extensions:
+    health_check:
+      endpoint: 0.0.0.0:13133
+    pprof:
+      endpoint: :1888
+    zpages:
+      endpoint: :55679
+
+service:
+    telemetry:
+      logs:
+        level: debug
+    extensions: [pprof, zpages, health_check]
+    pipelines:
+      logs:
+        receivers: [filelog]
+        processors: [batch, transform/log]
+        exporters: [splunk_hec/logs, logging]

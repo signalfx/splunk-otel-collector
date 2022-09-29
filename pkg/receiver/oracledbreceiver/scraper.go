@@ -109,13 +109,14 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 	s.logger.Debug("Begin scrape")
 	res, err := s.db.QueryContext(ctx, currentSessionIDSQL)
 	if err != nil {
-		return pmetric.Metrics{}, err
+		return pmetric.Metrics{}, fmt.Errorf("error querying current session id: %w", err)
 	}
+	defer res.Close()
 	var sessionID int64
 	if res.Next() {
 		err = res.Scan(&sessionID)
 		if err != nil {
-			return pmetric.Metrics{}, err
+			return pmetric.Metrics{}, fmt.Errorf("error reading current session id: %w", err)
 		}
 	} else {
 		return pmetric.Metrics{}, fmt.Errorf("no session id provided by SQL query %s", currentSessionIDSQL)

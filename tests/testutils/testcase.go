@@ -118,16 +118,18 @@ func (t *Testcase) SplunkOtelCollectorWithEnv(configFilename string, env map[str
 }
 
 func (t *Testcase) splunkOtelCollector(configFilename string, env map[string]string) (collector Collector, shutdown func()) {
+	useDocker := false
 	if image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE"); strings.TrimSpace(image) != "" {
 		cc := NewCollectorContainer().WithImage(image)
 		collector = &cc
+		useDocker = true
 	} else {
 		cp := NewCollectorProcess()
 		collector = &cp
 	}
 
 	otlpEndpointForContainer := t.OTLPEndpoint
-	if runtime.GOOS == "darwin" {
+	if runtime.GOOS == "darwin" && useDocker {
 		port := strings.Split(otlpEndpointForContainer, ":")[1]
 		otlpEndpointForContainer = fmt.Sprintf("host.docker.internal:%s", port)
 	}

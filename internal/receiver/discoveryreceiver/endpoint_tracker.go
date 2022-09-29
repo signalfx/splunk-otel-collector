@@ -141,7 +141,7 @@ func endpointToPLogs(observerID config.ComponentID, eventType string, endpoints 
 		logRecord.SetSeverityText("info")
 		attrs := logRecord.Attributes()
 		if endpoint.Details != nil {
-			logRecord.Body().SetStringVal(fmt.Sprintf("%s %s endpoint %s", eventType, endpoint.Details.Type(), endpoint.ID))
+			logRecord.Body().SetStr(fmt.Sprintf("%s %s endpoint %s", eventType, endpoint.Details.Type(), endpoint.ID))
 			if envAttrs, e := endpointEnvToAttrs(endpoint.Details.Type(), endpoint.Details.Env()); e != nil {
 				err = multierr.Combine(err, fmt.Errorf("failed determining attributes for %q: %w", endpoint.ID, e))
 				failed++
@@ -151,7 +151,7 @@ func endpointToPLogs(observerID config.ComponentID, eventType string, endpoints 
 			}
 			attrs.PutString("type", string(endpoint.Details.Type()))
 		} else {
-			logRecord.Body().SetStringVal(fmt.Sprintf("%s endpoint %s", eventType, endpoint.ID))
+			logRecord.Body().SetStr(fmt.Sprintf("%s endpoint %s", eventType, endpoint.ID))
 		}
 		attrs.PutString("endpoint", endpoint.Target)
 		attrs.PutString("id", string(endpoint.ID))

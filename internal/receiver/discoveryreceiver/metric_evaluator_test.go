@@ -154,52 +154,52 @@ func TestTimestampFromMetric(t *testing.T) {
 		metricFunc func(pmetric.Metric) (shouldBeNil bool)
 		name       string
 	}{
-		{name: "MetricDataTypeGauge", metricFunc: func(md pmetric.Metric) bool {
+		{name: "MetricTypeGauge", metricFunc: func(md pmetric.Metric) bool {
 			md.SetEmptyGauge()
 			md.Gauge().DataPoints().AppendEmpty().SetTimestamp(expectedTime)
 			return false
 		}},
-		{name: "empty MetricDataTypeGauge", metricFunc: func(md pmetric.Metric) bool {
+		{name: "empty MetricTypeGauge", metricFunc: func(md pmetric.Metric) bool {
 			md.SetEmptyGauge()
 			return true
 		}},
-		{name: "MetricDataTypeSum", metricFunc: func(md pmetric.Metric) bool {
+		{name: "MetricTypeSum", metricFunc: func(md pmetric.Metric) bool {
 			md.SetEmptySum()
 			md.Sum().DataPoints().AppendEmpty().SetTimestamp(expectedTime)
 			return false
 		}},
-		{name: "empty MetricDataTypeSum", metricFunc: func(md pmetric.Metric) bool {
+		{name: "empty MetricTypeSum", metricFunc: func(md pmetric.Metric) bool {
 			md.SetEmptySum()
 			return true
 		}},
-		{name: "MetricDataTypeHistogram", metricFunc: func(md pmetric.Metric) bool {
+		{name: "MetricTypeHistogram", metricFunc: func(md pmetric.Metric) bool {
 			md.SetEmptyHistogram()
 			md.Histogram().DataPoints().AppendEmpty().SetTimestamp(expectedTime)
 			return false
 		}},
-		{name: "empty MetricDataTypeHistogram", metricFunc: func(md pmetric.Metric) bool {
+		{name: "empty MetricTypeHistogram", metricFunc: func(md pmetric.Metric) bool {
 			md.SetEmptyHistogram()
 			return true
 		}},
-		{name: "MetricDataTypeExponentialHistogram", metricFunc: func(md pmetric.Metric) bool {
+		{name: "MetricTypeExponentialHistogram", metricFunc: func(md pmetric.Metric) bool {
 			md.SetEmptyExponentialHistogram()
 			md.ExponentialHistogram().DataPoints().AppendEmpty().SetTimestamp(expectedTime)
 			return false
 		}},
-		{name: "empty MetricDataTypeExponentialHistogram", metricFunc: func(md pmetric.Metric) bool {
+		{name: "empty MetricTypeExponentialHistogram", metricFunc: func(md pmetric.Metric) bool {
 			md.SetEmptyExponentialHistogram()
 			return true
 		}},
-		{name: "MetricDataTypeSummary", metricFunc: func(md pmetric.Metric) bool {
+		{name: "MetricTypeSummary", metricFunc: func(md pmetric.Metric) bool {
 			md.SetEmptySummary()
 			md.Summary().DataPoints().AppendEmpty().SetTimestamp(expectedTime)
 			return false
 		}},
-		{name: "empty MetricDataTypeSummary", metricFunc: func(md pmetric.Metric) bool {
+		{name: "empty MetricTypeSummary", metricFunc: func(md pmetric.Metric) bool {
 			md.SetEmptySummary()
 			return true
 		}},
-		{name: "MetricDataTypeNone", metricFunc: func(md pmetric.Metric) bool { return true }},
+		{name: "MetricTypeNone", metricFunc: func(md pmetric.Metric) bool { return true }},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			me := newMetricEvaluator(zaptest.NewLogger(t), &Config{}, make(chan plog.Logs), nil)

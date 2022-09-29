@@ -118,7 +118,8 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 
 			corr := eval.correlations.GetOrCreate(statussources.NoType, endpointID)
 
-			from := pcommon.NewMapFromRaw(
+			from := pcommon.NewMap()
+			from.FromRaw(
 				map[string]interface{}{
 					"one": "one.val",
 					"two": 2,
@@ -168,7 +169,8 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 
 			encodedConfig := base64.StdEncoding.EncodeToString([]byte("config: some config\nrule: some rule\n"))
 
-			from := pcommon.NewMapFromRaw(
+			from := pcommon.NewMap()
+			from.FromRaw(
 				map[string]interface{}{
 					"discovery.receiver.config": encodedConfig,
 					"one":                       "one.val",

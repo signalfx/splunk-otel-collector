@@ -34,7 +34,7 @@ func TestRunMetricProvider(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 1, jobPts.Len())
 	pt := jobPts.At(0)
-	assert.EqualValues(t, 16000, pt.IntVal())
+	assert.EqualValues(t, 16000, pt.IntValue())
 }
 
 func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
@@ -59,16 +59,16 @@ func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	jobPt := jobMetric.Gauge().DataPoints().At(0)
 	jobAttrs := jobPt.Attributes()
 	jobID, _ := jobAttrs.Get("job_id")
-	assert.EqualValues(t, 288, jobID.IntVal())
-	assert.EqualValues(t, 15000, jobPt.IntVal())
+	assert.EqualValues(t, 288, jobID.Int())
+	assert.EqualValues(t, 15000, jobPt.IntValue())
 
 	taskPt := taskMetric.Gauge().DataPoints().At(0)
 	taskAttrs := taskPt.Attributes()
 	jobID, _ = taskAttrs.Get("job_id")
-	assert.EqualValues(t, 288, jobID.IntVal())
+	assert.EqualValues(t, 288, jobID.Int())
 	taskKey, _ := taskAttrs.Get("task_id")
-	assert.Equal(t, "user-task", taskKey.StringVal())
-	assert.EqualValues(t, 15000, taskPt.IntVal())
+	assert.Equal(t, "user-task", taskKey.Str())
+	assert.EqualValues(t, 15000, taskPt.IntValue())
 }
 
 func TestFakeCompletedJobRunClient(t *testing.T) {

@@ -82,7 +82,7 @@ var Metrics = &metricStruct{
 			metric.SetName("databricks.jobs.active.total")
 			metric.SetDescription("A snapshot of the number of active jobs taken at each scrape")
 			metric.SetUnit("{jobs}")
-			metric.SetDataType(pmetric.MetricDataTypeGauge)
+			metric.SetEmptyGauge()
 		},
 		"databricks.jobs.active.total",
 	},
@@ -91,7 +91,7 @@ var Metrics = &metricStruct{
 			metric.SetName("databricks.jobs.run.duration")
 			metric.SetDescription("The execution duration in milliseconds per completed job")
 			metric.SetUnit("ms")
-			metric.SetDataType(pmetric.MetricDataTypeGauge)
+			metric.SetEmptyGauge()
 		},
 		"databricks.jobs.run.duration",
 	},
@@ -100,7 +100,7 @@ var Metrics = &metricStruct{
 			metric.SetName("databricks.jobs.schedule.status")
 			metric.SetDescription("A snapshot of the pause/run status per job taken at each scrape")
 			metric.SetUnit("{status}")
-			metric.SetDataType(pmetric.MetricDataTypeGauge)
+			metric.SetEmptyGauge()
 		},
 		"databricks.jobs.schedule.status",
 	},
@@ -109,7 +109,7 @@ var Metrics = &metricStruct{
 			metric.SetName("databricks.jobs.total")
 			metric.SetDescription("A snapshot of the total number of jobs registered in the Databricks instance taken at each scrape")
 			metric.SetUnit("{jobs}")
-			metric.SetDataType(pmetric.MetricDataTypeGauge)
+			metric.SetEmptyGauge()
 		},
 		"databricks.jobs.total",
 	},
@@ -118,7 +118,7 @@ var Metrics = &metricStruct{
 			metric.SetName("databricks.tasks.run.duration")
 			metric.SetDescription("The execution duration in milliseconds per completed task")
 			metric.SetUnit("ms")
-			metric.SetDataType(pmetric.MetricDataTypeGauge)
+			metric.SetEmptyGauge()
 		},
 		"databricks.tasks.run.duration",
 	},
@@ -127,7 +127,7 @@ var Metrics = &metricStruct{
 			metric.SetName("databricks.tasks.schedule.status")
 			metric.SetDescription("A snapshot of the pause/run status per task taken at each scrape")
 			metric.SetUnit("{status}")
-			metric.SetDataType(pmetric.MetricDataTypeGauge)
+			metric.SetEmptyGauge()
 		},
 		"databricks.tasks.schedule.status",
 	},

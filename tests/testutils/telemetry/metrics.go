@@ -45,6 +45,10 @@ const (
 	IntNonmonotonicUnspecifiedSum    MetricType = "IntNonmonotonicUnspecifiedSum"
 )
 
+const (
+	anyValue = "<ANY>"
+)
+
 var supportedMetricTypeOptions = fmt.Sprintf(
 	"%s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s",
 	DoubleGauge, DoubleMonotonicCumulativeSum,
@@ -150,6 +154,27 @@ func (resourceMetrics ResourceMetrics) Validate() error {
 	return nil
 }
 
+// Matches determines the equivalence of two Resource items by their Attributes.
+func (resource Resource) Matches(toCompare Resource) bool {
+	if len(resource.Attributes) != len(toCompare.Attributes) {
+		return false
+	}
+	for k, v := range resource.Attributes {
+		toCompareV, ok := toCompare.Attributes[k]
+		if !ok {
+			return false
+		}
+		if v == anyValue {
+			continue
+		}
+		if !reflect.DeepEqual(v, toCompareV) {
+			return false
+		}
+
+	}
+	return true
+}
+
 func (metric Metric) String() string {
 	// fieldalignment causes the Metric yaml rep to be
 	// unintuitive so unmarshal into map[string]any
@@ -166,8 +191,6 @@ func (metric Metric) String() string {
 	if err != nil {
 		panic(err)
 	}
-	// we can't store this value in the Metric
-	// as that will affect pre and post-String(), equivalence.
 	return string(out)
 }
 

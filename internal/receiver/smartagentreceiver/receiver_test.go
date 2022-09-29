@@ -60,18 +60,18 @@ func newReceiverCreateSettings() component.ReceiverCreateSettings {
 	}
 }
 
-var expectedCPUMetrics = map[string]pmetric.MetricDataType{
-	"cpu.idle":                 pmetric.MetricDataTypeSum,
-	"cpu.interrupt":            pmetric.MetricDataTypeSum,
-	"cpu.nice":                 pmetric.MetricDataTypeSum,
-	"cpu.num_processors":       pmetric.MetricDataTypeGauge,
-	"cpu.softirq":              pmetric.MetricDataTypeSum,
-	"cpu.steal":                pmetric.MetricDataTypeSum,
-	"cpu.system":               pmetric.MetricDataTypeSum,
-	"cpu.user":                 pmetric.MetricDataTypeSum,
-	"cpu.utilization":          pmetric.MetricDataTypeGauge,
-	"cpu.utilization_per_core": pmetric.MetricDataTypeGauge,
-	"cpu.wait":                 pmetric.MetricDataTypeSum,
+var expectedCPUMetrics = map[string]pmetric.MetricType{
+	"cpu.idle":                 pmetric.MetricTypeSum,
+	"cpu.interrupt":            pmetric.MetricTypeSum,
+	"cpu.nice":                 pmetric.MetricTypeSum,
+	"cpu.num_processors":       pmetric.MetricTypeGauge,
+	"cpu.softirq":              pmetric.MetricTypeSum,
+	"cpu.steal":                pmetric.MetricTypeSum,
+	"cpu.system":               pmetric.MetricTypeSum,
+	"cpu.user":                 pmetric.MetricTypeSum,
+	"cpu.utilization":          pmetric.MetricTypeGauge,
+	"cpu.utilization_per_core": pmetric.MetricTypeGauge,
+	"cpu.wait":                 pmetric.MetricTypeSum,
 }
 
 func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
@@ -125,43 +125,43 @@ func TestSmartAgentReceiver(t *testing.T) {
 					for k := 0; k < metrics.Len(); k++ {
 						metric := metrics.At(k)
 						name := metric.Name()
-						dataType := metric.DataType()
+						dataType := metric.Type()
 						expectedDataType := expectedCPUMetrics[name]
-						require.NotEqual(t, pmetric.MetricDataTypeNone, expectedDataType, "received unexpected none type for %s", name)
+						require.NotEqual(t, pmetric.MetricTypeNone, expectedDataType, "received unexpected none type for %s", name)
 						assert.Equal(t, expectedDataType, dataType)
 						var attributes pcommon.Map
 						switch dataType {
-						case pmetric.MetricDataTypeGauge:
+						case pmetric.MetricTypeGauge:
 							dg := metric.Gauge()
 							for l := 0; l < dg.DataPoints().Len(); l++ {
 								dgdp := dg.DataPoints().At(l)
 								attributes = dgdp.Attributes()
-								var val = dgdp.DoubleVal()
-								assert.NotEqual(t, val, 0, "invalid value of MetricDataTypeGauge metric %s", name)
+								var val = dgdp.DoubleValue()
+								assert.NotEqual(t, val, 0, "invalid value of MetricTypeGauge metric %s", name)
 							}
-						case pmetric.MetricDataTypeSum:
+						case pmetric.MetricTypeSum:
 							ds := metric.Sum()
 							for l := 0; l < ds.DataPoints().Len(); l++ {
 								dsdp := ds.DataPoints().At(l)
 								attributes = dsdp.Attributes()
-								var val float64 = dsdp.DoubleVal()
-								assert.NotEqual(t, val, 0, "invalid value of MetricDataTypeSum metric %s", name)
+								var val float64 = dsdp.DoubleValue()
+								assert.NotEqual(t, val, 0, "invalid value of MetricTypeSum metric %s", name)
 							}
 						default:
-							t.Errorf("unexpected type %#v for metric %s", metric.DataType(), name)
+							t.Errorf("unexpected type %#v for metric %s", metric.Type(), name)
 						}
 
 						labelVal, ok := attributes.Get("required_dimension")
 						require.True(t, ok)
-						assert.Equal(t, "required_value", labelVal.StringVal())
+						assert.Equal(t, "required_value", labelVal.Str())
 
 						systemType, ok := attributes.Get("system.type")
 						require.True(t, ok)
-						assert.Equal(t, "cpu", systemType.StringVal())
+						assert.Equal(t, "cpu", systemType.Str())
 
 						// mark metric as having been seen
 						cpuNum, _ := attributes.Get("cpu")
-						seenName := fmt.Sprintf("%s%s", name, cpuNum.StringVal())
+						seenName := fmt.Sprintf("%s%s", name, cpuNum.Str())
 						assert.False(t, seenTotalMetric[seenName], "unexpectedly repeated metric: %v", seenName)
 						seenTotalMetric[seenName] = true
 					}

@@ -34,14 +34,14 @@ func PDataToResourceMetrics(pdataMetrics ...pmetric.Metrics) (ResourceMetrics, e
 				for k := 0; k < pdataILM.Metrics().Len(); k++ {
 					pdataMetric := pdataILM.Metrics().At(k)
 					switch pdataMetric.DataType() {
-					case pmetric.MetricDataTypeGauge:
+					case pmetric.MetricTypeGauge:
 						addGauge(&ilms, pdataMetric)
-					case pmetric.MetricDataTypeSum:
+					case pmetric.MetricTypeSum:
 						addSum(&ilms, pdataMetric)
-					case pmetric.MetricDataTypeHistogram:
-						panic(fmt.Sprintf("%s not yet supported", pmetric.MetricDataTypeHistogram))
-					case pmetric.MetricDataTypeSummary:
-						panic(fmt.Sprintf("%s not yet supported", pmetric.MetricDataTypeSummary))
+					case pmetric.MetricTypeHistogram:
+						panic(fmt.Sprintf("%s not yet supported", pmetric.MetricTypeHistogram))
+					case pmetric.MetricTypeSummary:
+						panic(fmt.Sprintf("%s not yet supported", pmetric.MetricTypeSummary))
 					default:
 						panic(fmt.Sprintf("unexpected data type: %s", pdataMetric.DataType()))
 					}
@@ -91,7 +91,7 @@ func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pco
 	var val any
 	switch value.Type() {
 	case pcommon.ValueTypeString:
-		val = value.StringVal()
+		val = value.Str()
 	case pcommon.ValueTypeBool:
 		val = value.BoolVal()
 	case pcommon.ValueTypeInt:

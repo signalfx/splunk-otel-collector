@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_DIR="$( cd "$SCRIPT_DIR"/../../ && pwd )"
 CUR_DIR="$PWD"
 
@@ -11,6 +11,20 @@ CORE_VERSION="${CORE_VERSION:-$OTEL_VERSION}"
 CONTRIB_VERSION="${CONTRIB_VERSION:-$OTEL_VERSION}"
 
 trap "cd $CUR_DIR" EXIT
+
+PV_RE="v[[:digit:]]+.[[:digit:]]+.[[:digit:]]+-[[:digit:]].([[:digit:]]{14}-[[:alnum:]]{12})"
+
+# account for pseudoversions for pkg/ottl that require v0.0.0 prefix
+desired_contrib_version() {
+    CNTRB_VRSN=$CONTRIB_VERSION
+    if [[ $CONTRIB_VERSION =~ $PV_RE ]]; then
+       PV="${BASH_REMATCH[1]}"
+       if [[ $1 =~ (contrib/pkg/ottl|contrib/pkg/stanza) ]]; then
+           CNTRB_VRSN="v0.0.0-${PV}"
+       fi
+    fi
+    echo "$CNTRB_VRSN"
+}
 
 for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort ); do
     pushd "$( dirname "$gomod" )" >/dev/null
@@ -21,27 +35,31 @@ for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort );
     # update the replace directives to the new version
     lines="$( (grep 'github.com/open-telemetry/opentelemetry-collector-contrib/.* =>' "$gomod" | grep -v 'ignore-update-deps' | grep -v '^[[:space:]]*//') || true )"
     for line in $lines; do
-        pkg="$( echo "$line" | awk '{print $1}' )"
-        go mod edit -replace=${pkg}=${pkg}@${CONTRIB_VERSION}
+        if [[ $line =~ ^replace ]]; then
+            pkg="$( echo "$line" | awk '{print $2}' )"
+        else
+            pkg="$( echo "$line" | awk '{print $1}' )"
+        fi
+        go mod edit -replace="${pkg}"="${pkg}"@$(desired_contrib_version "$line")
         go mod tidy
     done
 
     if grep -q 'go.opentelemetry.io/collector ' "$gomod"; then
-        go get go.opentelemetry.io/collector@${CORE_VERSION}
+        go get go.opentelemetry.io/collector@"${CORE_VERSION}"
     fi
 
     if grep -q 'go.opentelemetry.io/collector/model ' "$gomod"; then
-        go get go.opentelemetry.io/collector/model@${CORE_VERSION}
+        go get go.opentelemetry.io/collector/model@"${CORE_VERSION}"
     fi
 
     if grep -q 'go.opentelemetry.io/collector/pdata ' "$gomod"; then
-        go get go.opentelemetry.io/collector/pdata@${CORE_VERSION}
+        go get go.opentelemetry.io/collector/pdata@"${CORE_VERSION}"
     fi
 
     lines="$( (grep 'github.com/open-telemetry/opentelemetry-collector-contrib/' "$gomod" | grep -v 'ignore-update-deps' | grep -v '^[[:space:]]*//' | grep -v '=>' | grep -v ' // indirect' | sort -u) || true )"
     for line in $lines; do
         pkg="$( echo "$line" | awk '{print $1}' )"
-        go get ${pkg}@${CONTRIB_VERSION}
+        go get "${pkg}"@$(desired_contrib_version "$line")
     done
 
     IFS=$OFS

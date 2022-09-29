@@ -38,7 +38,7 @@ func (p metricsProvider) addJobStatusMetrics(ms pmetric.MetricSlice) ([]int, err
 		return nil, fmt.Errorf("metricsProvider.addJobStatusMetrics(): %w", err)
 	}
 
-	initGauge(ms, metadata.M.DatabricksJobsTotal).AppendEmpty().SetIntVal(int64(len(jobs)))
+	initGauge(ms, metadata.M.DatabricksJobsTotal).AppendEmpty().SetIntValue(int64(len(jobs)))
 
 	jobPts := initGauge(ms, metadata.M.DatabricksJobsScheduleStatus)
 	taskPts := initGauge(ms, metadata.M.DatabricksTasksScheduleStatus)
@@ -48,11 +48,11 @@ func (p metricsProvider) addJobStatusMetrics(ms pmetric.MetricSlice) ([]int, err
 		jobIDs = append(jobIDs, j.JobID)
 		jobPt := jobPts.AppendEmpty()
 		pauseStatus := pauseStatusToInt(j.Settings.Schedule.PauseStatus)
-		jobPt.SetIntVal(pauseStatus)
+		jobPt.SetIntValue(pauseStatus)
 		jobPt.Attributes().PutInt(metadata.A.JobID, int64(j.JobID))
 		for _, task := range j.Settings.Tasks {
 			taskPt := taskPts.AppendEmpty()
-			taskPt.SetIntVal(pauseStatus)
+			taskPt.SetIntValue(pauseStatus)
 			taskAttrs := taskPt.Attributes()
 			taskAttrs.PutInt(metadata.A.JobID, int64(j.JobID))
 			taskAttrs.PutString(metadata.A.TaskID, task.TaskKey)
@@ -86,7 +86,7 @@ func (p metricsProvider) addNumActiveRunsMetric(ms pmetric.MetricSlice) error {
 		return fmt.Errorf("metricsProvider.addNumActiveJobsMetric(): %w", err)
 	}
 	pts := initGauge(ms, metadata.M.DatabricksJobsActiveTotal)
-	pts.AppendEmpty().SetIntVal(int64(len(runs)))
+	pts.AppendEmpty().SetIntValue(int64(len(runs)))
 	return nil
 }
 

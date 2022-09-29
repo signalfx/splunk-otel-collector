@@ -51,7 +51,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutString("namespace", "namespace")
 				attrs.PutString("type", "pod")
 				attrs.PutString("uid", "uid")
-				lr.Body().SetStringVal("event.type pod endpoint pod.endpoint.id")
+				lr.Body().SetStr("event.type pod endpoint pod.endpoint.id")
 				return plogs
 			}(),
 		},
@@ -80,7 +80,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutInt("port", 1)
 				attrs.PutString("transport", "transport")
 				attrs.PutString("type", "port")
-				lr.Body().SetStringVal("event.type port endpoint port.endpoint.id")
+				lr.Body().SetStr("event.type port endpoint port.endpoint.id")
 				return plogs
 			}(),
 		},
@@ -99,7 +99,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutString("process_name", "process.name")
 				attrs.PutString("transport", "transport")
 				attrs.PutString("type", "hostport")
-				lr.Body().SetStringVal("event.type hostport endpoint hostport.endpoint.id")
+				lr.Body().SetStr("event.type hostport endpoint hostport.endpoint.id")
 				return plogs
 			}(),
 		},
@@ -125,7 +125,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutString("tag", "tag")
 				attrs.PutString("transport", "transport")
 				attrs.PutString("type", "container")
-				lr.Body().SetStringVal("event.type container endpoint container.endpoint.id")
+				lr.Body().SetStr("event.type container endpoint container.endpoint.id")
 				return plogs
 			}(),
 		},
@@ -153,7 +153,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 				attrs.PutString("name", "k8s.node.name")
 				attrs.PutString("type", "k8s.node")
 				attrs.PutString("uid", "uid")
-				lr.Body().SetStringVal("event.type k8s.node endpoint k8s.node.endpoint.id")
+				lr.Body().SetStr("event.type k8s.node endpoint k8s.node.endpoint.id")
 				return plogs
 			}(),
 		},
@@ -202,7 +202,7 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 				attrs := lr.Attributes()
 				attrs.PutString("endpoint", "endpoint.target")
 				attrs.PutString("id", "endpoint.id")
-				lr.Body().SetStringVal("event.type endpoint endpoint.id")
+				lr.Body().SetStr("event.type endpoint endpoint.id")
 				return plogs
 			}(),
 		},
@@ -220,7 +220,7 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 				attrs.PutString("endpoint", "endpoint.target")
 				attrs.PutString("id", "endpoint.id")
 				attrs.PutString("type", "empty.details.env")
-				lr.Body().SetStringVal("event.type empty.details.env endpoint endpoint.id")
+				lr.Body().SetStr("event.type empty.details.env endpoint endpoint.id")
 				return plogs
 			}(),
 		},
@@ -240,7 +240,7 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 				attrs.PutString("id", "endpoint.id")
 				attrs.PutBool("labels", true)
 				attrs.PutString("type", "unexpected.env")
-				lr.Body().SetStringVal("event.type unexpected.env endpoint endpoint.id")
+				lr.Body().SetStr("event.type unexpected.env endpoint endpoint.id")
 				return plogs
 			}(),
 		},
@@ -349,7 +349,7 @@ func FuzzEndpointToPlogs(f *testing.F) {
 			rAttrs.PutString("discovery.observer.name", observerName)
 			rAttrs.PutString("discovery.observer.type", observerType)
 			expectedLR := resourceLogs.ScopeLogs().At(0).LogRecords().At(0)
-			expectedLR.Body().SetStringVal(fmt.Sprintf("%s port endpoint %s", eventType, endpointID))
+			expectedLR.Body().SetStr(fmt.Sprintf("%s port endpoint %s", eventType, endpointID))
 			attrs := expectedLR.Attributes()
 			attrs.PutString("endpoint", target)
 			attrs.PutString("id", endpointID)

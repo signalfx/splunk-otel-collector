@@ -242,12 +242,12 @@ func TestSendEvent(t *testing.T) {
 	attributes := logRecord.Attributes()
 	eventType, ok := attributes.Get("com.splunk.signalfx.event_type")
 	require.True(t, ok)
-	assert.Equal(t, "my_event", eventType.StringVal())
+	assert.Equal(t, "my_event", eventType.Str())
 	eventProperties, ok := attributes.Get("com.splunk.signalfx.event_properties")
 	require.True(t, ok)
-	val, ok := eventProperties.MapVal().Get("property")
+	val, ok := eventProperties.Map().Get("property")
 	require.True(t, ok)
-	assert.Equal(t, "property_value", val.StringVal())
+	assert.Equal(t, "property_value", val.Str())
 }
 
 func TestDimensionClientDefaultsToSFxExporter(t *testing.T) {

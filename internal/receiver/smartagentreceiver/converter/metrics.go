@@ -106,9 +106,9 @@ func fillNumberDatapoint(value sfx.Value, timestamp time.Time, dimensions map[st
 	dp.SetTimestamp(pcommon.Timestamp(uint64(timestamp.UnixNano())))
 	switch val := value.(type) {
 	case sfx.IntValue:
-		dp.SetIntVal(val.Int())
+		dp.SetIntValue(val.Int())
 	case sfx.FloatValue:
-		dp.SetDoubleVal(val.Float())
+		dp.SetDoubleValue(val.Float())
 	}
 	attributes := dp.Attributes()
 	attributes.EnsureCapacity(len(dimensions))

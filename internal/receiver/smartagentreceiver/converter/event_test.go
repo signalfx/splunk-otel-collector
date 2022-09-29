@@ -68,7 +68,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 					"dimension_name":                     pcommon.NewValueString("dimension_value"),
 				}
 				properties := pcommon.NewValueMap()
-				pcommon.NewMapFromRaw(
+				properties.FromRaw(
 					map[string]any{
 						"bool_property_name":    true,
 						"string_property_name":  "some value",
@@ -80,7 +80,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 						"float32_property_name": 12345.678,
 						"float64_property_name": 23456.789,
 					},
-				).CopyTo(properties.MapVal())
+				)
 				attrs["com.splunk.signalfx.event_properties"] = properties
 				return attrs
 			}(), 1000000001),
@@ -102,12 +102,12 @@ func TestEventToPDataLogs(tt *testing.T) {
 					"com.splunk.signalfx.event_type":     pcommon.NewValueString("some_event_type"),
 				}
 				properties := pcommon.NewValueMap()
-				pcommon.NewMapFromRaw(
+				properties.FromRaw(
 					map[string]any{
 						"struct_property": "{something}",
 						"uint_property":   "12345",
 					},
-				).CopyTo(properties.MapVal())
+				)
 				attrs["com.splunk.signalfx.event_properties"] = properties
 				return attrs
 			}(), 0),
@@ -149,13 +149,13 @@ func assertAttributeMapContainsAll(t *testing.T, first, second pcommon.Map) {
 		require.True(t, ok, fmt.Sprintf("first attribute %s not in second", firstKey))
 		require.Equal(t, firstValue.Type(), secondValue.Type())
 		if secondValue.Type() == pcommon.ValueTypeMap {
-			assertAttributeMapContainsAll(t, firstValue.MapVal(), secondValue.MapVal())
+			assertAttributeMapContainsAll(t, firstValue.Map(), secondValue.Map())
 			return true
 		}
 
 		if secondValue.Type() == pcommon.ValueTypeDouble {
 			// account for float32 -> float64 precision
-			assert.InDelta(t, firstValue.DoubleVal(), secondValue.DoubleVal(), .001)
+			assert.InDelta(t, firstValue.Double(), secondValue.Double(), .001)
 			return true
 		}
 

@@ -137,15 +137,15 @@ func TestSendSpansWithDefaultAndExtraSpanTags(t *testing.T) {
 
 	extraValue, containsExtraValue := span0.Attributes().Get("will_be_overridden")
 	require.True(t, containsExtraValue)
-	assert.Equal(t, "added extra value (want)", extraValue.StringVal())
+	assert.Equal(t, "added extra value (want)", extraValue.Str())
 
 	defaultValue, containsDefaultValue := span0.Attributes().Get("wont_be_overridden")
 	require.True(t, containsDefaultValue)
-	assert.Equal(t, "added default value", defaultValue.StringVal())
+	assert.Equal(t, "added default value", defaultValue.Str())
 
 	value, containsValue := span0.Attributes().Get("some_tag")
 	require.True(t, containsValue)
-	assert.Equal(t, "some_value", value.StringVal())
+	assert.Equal(t, "some_value", value.Str())
 
 	span1 := illSpans.At(1)
 	require.Equal(t, "00000000000000000000000034567890", span1.TraceID().HexString())
@@ -153,11 +153,11 @@ func TestSendSpansWithDefaultAndExtraSpanTags(t *testing.T) {
 
 	extraValue, containsExtraValue = span1.Attributes().Get("will_be_overridden")
 	require.True(t, containsExtraValue)
-	assert.Equal(t, "added extra value (want)", extraValue.StringVal())
+	assert.Equal(t, "added extra value (want)", extraValue.Str())
 
 	defaultValue, containsDefaultValue = span1.Attributes().Get("wont_be_overridden")
 	require.True(t, containsDefaultValue)
-	assert.Equal(t, "span-provided value (want)", defaultValue.StringVal())
+	assert.Equal(t, "span-provided value (want)", defaultValue.Str())
 
 	span2 := illSpans.At(2)
 	require.Equal(t, "00000000000000000000000056789012", span2.TraceID().HexString())
@@ -165,11 +165,11 @@ func TestSendSpansWithDefaultAndExtraSpanTags(t *testing.T) {
 
 	extraValue, containsExtraValue = span2.Attributes().Get("will_be_overridden")
 	require.True(t, containsExtraValue)
-	assert.Equal(t, "added extra value (want)", extraValue.StringVal())
+	assert.Equal(t, "added extra value (want)", extraValue.Str())
 
 	defaultValue, containsDefaultValue = span2.Attributes().Get("wont_be_overridden")
 	require.True(t, containsDefaultValue)
-	assert.Equal(t, "added default value", defaultValue.StringVal())
+	assert.Equal(t, "added default value", defaultValue.Str())
 }
 
 func TestSendSpansWithConsumerError(t *testing.T) {

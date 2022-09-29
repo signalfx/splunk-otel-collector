@@ -148,7 +148,7 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 					if desiredRecord.Body != "" {
 						desiredBody = desiredRecord.Body
 					}
-					logRecord.Body().SetStringVal(desiredBody)
+					logRecord.Body().SetStr(desiredBody)
 					for k, v := range desiredRecord.Attributes {
 						logRecord.Attributes().PutString(k, v)
 					}
@@ -175,32 +175,32 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 
 func (m *metricEvaluator) timestampFromMetric(metric pmetric.Metric) *pcommon.Timestamp {
 	var ts *pcommon.Timestamp
-	switch dt := metric.DataType(); dt {
-	case pmetric.MetricDataTypeGauge:
+	switch dt := metric.Type(); dt {
+	case pmetric.MetricTypeGauge:
 		dps := metric.Gauge().DataPoints()
 		if dps.Len() > 0 {
 			t := dps.At(0).Timestamp()
 			ts = &t
 		}
-	case pmetric.MetricDataTypeSum:
+	case pmetric.MetricTypeSum:
 		dps := metric.Sum().DataPoints()
 		if dps.Len() > 0 {
 			t := dps.At(0).Timestamp()
 			ts = &t
 		}
-	case pmetric.MetricDataTypeHistogram:
+	case pmetric.MetricTypeHistogram:
 		dps := metric.Histogram().DataPoints()
 		if dps.Len() > 0 {
 			t := dps.At(0).Timestamp()
 			ts = &t
 		}
-	case pmetric.MetricDataTypeExponentialHistogram:
+	case pmetric.MetricTypeExponentialHistogram:
 		dps := metric.ExponentialHistogram().DataPoints()
 		if dps.Len() > 0 {
 			t := dps.At(0).Timestamp()
 			ts = &t
 		}
-	case pmetric.MetricDataTypeSummary:
+	case pmetric.MetricTypeSummary:
 		dps := metric.Summary().DataPoints()
 		if dps.Len() > 0 {
 			t := dps.At(0).Timestamp()

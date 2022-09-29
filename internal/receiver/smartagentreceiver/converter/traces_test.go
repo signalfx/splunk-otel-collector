@@ -313,7 +313,7 @@ func TestSFxSpansWithDataSourceIPToPDataTraces(t *testing.T) {
 	sort.Slice(resources, func(i, j int) bool {
 		if ip1, ok := resources[i].Attributes().Get("ip"); ok {
 			if ip2, ok := resources[j].Attributes().Get("ip"); ok {
-				return ip1.StringVal() < ip2.StringVal()
+				return ip1.Str() < ip2.Str()
 			}
 		}
 		return false
@@ -405,10 +405,10 @@ func assertSpansAreEqual(t *testing.T, expectedResourceSpans, resourceSpans ptra
 				updateMap := func(m map[string]any) func(k string, v pcommon.Value) bool {
 					return func(k string, v pcommon.Value) bool {
 						switch v.Type() {
-						case pcommon.ValueTypeString:
-							m[k] = v.StringVal()
+						case pcommon.ValueTypeStr:
+							m[k] = v.Str()
 						case pcommon.ValueTypeInt:
-							m[k] = v.IntVal()
+							m[k] = v.Int()
 						}
 						return true
 					}

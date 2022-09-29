@@ -1,3 +1,25 @@
+processors:
+  batch:
+  resource/one:
+    attributes:
+      # Set the com.splunk.sourcetype log attribute key to sourcetype1.
+      # com.splunk.sourcetype is the default key the HEC exporter will use to extract the source type of the record.
+      # See https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter
+      # under the configuration key `hec_metadata_to_otel_attrs/sourcetype`
+      - key: com.splunk.sourcetype
+        value: "sourcetype1"
+        action: upsert
+  resource/two:
+    attributes:
+      - key: com.splunk.sourcetype
+        value: "sourcetype2"
+        action: upsert
+  resource/three:
+    attributes:
+      - key: com.splunk.sourcetype
+        value: "sourcetype3"
+        action: upsert
+
 receivers:
     filelog/onefile:
       include: [ /output/file.log ]
@@ -14,8 +36,6 @@ exporters:
         endpoint: "https://splunk:8088/services/collector"
         # Optional Splunk source: https://docs.splunk.com/Splexicon:Source
         source: "output"
-        # Default sourcetype. This example overrides sourcetype, so it will never be used.
-        sourcetype: "otel:shouldnotshow"
         # Splunk index, optional name of the Splunk index targeted.
         index: "logs"
         # Maximum HTTP connections to use simultaneously when sending data. Defaults to 100.
@@ -29,23 +49,7 @@ exporters:
           # For this demo, we use a self-signed certificate on the Splunk docker instance, so this flag is set to true.
           insecure_skip_verify: true
 
-processors:
-    batch:
-    resource/one:
-      attributes:
-      - key: com.splunk.sourcetype
-        value: "sourcetype1"
-        action: upsert
-    resource/two:
-      attributes:
-        - key: com.splunk.sourcetype
-          value: "sourcetype2"
-          action: upsert
-    resource/three:
-      attributes:
-        - key: com.splunk.sourcetype
-          value: "sourcetype3"
-          action: upsert
+
 
 extensions:
     health_check:

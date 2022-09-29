@@ -16,9 +16,13 @@
 package tests
 
 import (
+	"os"
 	"path"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -27,12 +31,27 @@ import (
 // account for startup time is to wait for the container to be healthy before continuing test.
 var oracledb = []testutils.Container{testutils.NewContainer().WithContext(
 	path.Join(".", "testdata", "server"),
-).WithName("oracledb").WillWaitForHealth(15 * time.Minute)}
+).WithName("oracledb").WithExposedPorts("1521:1521").WillWaitForHealth(15 * time.Minute)}
 
 // This test ensures the collector can connect to an Oracle DB, and properly get metrics. It's not intended to
 // test the receiver itself.
 func TestOracleDBIntegration(t *testing.T) {
-	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", oracledb,
-	)
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPMetricsReceiverSink()
+
+	expectedResourceMetrics := tc.ResourceMetrics("all.yaml")
+
+	_, stop := tc.Containers(oracledb...)
+	defer stop()
+	env := map[string]string{}
+	if image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE"); strings.TrimSpace(image) != "" {
+		env["ORACLEDB_URL"] = "oracle://otel:password@oracledb:1521/XE"
+	} else {
+		env["ORACLEDB_URL"] = "oracle://otel:password@localhost:1521/XE"
+	}
+	_, shutdown := tc.SplunkOtelCollectorWithEnv("all_metrics_config.yaml", env)
+	defer shutdown()
+
+	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Minute))
 }

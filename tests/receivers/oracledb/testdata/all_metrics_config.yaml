@@ -7,7 +7,7 @@ receivers:
     # container exposed port: 51521
     # Oracle DB service name: XE
     # Refer to Oracle Go Driver go_ora documentation for full connection string options
-    datasource: "oracle://otel:password@oracledb:1521/XE"
+    datasource: "${ORACLEDB_URL}"
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
@@ -15,6 +15,9 @@ exporters:
       insecure: true
 
 service:
+  telemetry:
+    logs:
+      level: "debug"
   pipelines:
     metrics:
       receivers:

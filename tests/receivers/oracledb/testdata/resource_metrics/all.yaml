@@ -3,3 +3,61 @@ resource_metrics:
       - metrics:
           - name: oracledb.query.cpu_time
             type: IntMonotonicCumulativeSum
+          - name: oracledb.query.elapsed_time
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.query.executions
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.query.long_running
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.query.parse_calls
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.query.physical_read_bytes
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.query.physical_read_requests
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.query.physical_write_bytes
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.query.physical_write_requests
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.query.total_sharable_mem
+            type: IntGauge
+          - name: oracledb.session.cpu_usage
+            type: DoubleGauge
+          - name: oracledb.session.enqueue_deadlocks
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.session.execute_count
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.session.hard_parses
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.session.logical_reads
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.session.parse_count_total
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.session.pga_memory
+            type: IntGauge
+          - name: oracledb.session.physical_reads
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.session.soft_parses
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.session.user_commits
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.session.user_rollbacks
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.system.execute_count
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.system.parse_count_total
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.system.session_count
+            type: IntGauge
+          - name: oracledb.system.user_commits
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.system.resource_limits
+            type: IntGauge
+          - name: oracledb.system.user_rollbacks
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.tablespace.max_size
+            type: IntGauge
+          - name: oracledb.tablespace.max_size
+            type: IntGauge
+          - name: oracledb.tablespace.size
+            type: IntGauge

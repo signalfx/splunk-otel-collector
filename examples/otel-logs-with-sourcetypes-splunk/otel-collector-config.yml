@@ -1,0 +1,76 @@
+processors:
+  batch:
+  resource/one:
+    attributes:
+      # Set the com.splunk.sourcetype log attribute key to sourcetype1.
+      # com.splunk.sourcetype is the default key the HEC exporter will use to extract the source type of the record.
+      # See https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter
+      # under the configuration key `hec_metadata_to_otel_attrs/sourcetype`
+      - key: com.splunk.sourcetype
+        value: "sourcetype1"
+        action: upsert
+  resource/two:
+    attributes:
+      - key: com.splunk.sourcetype
+        value: "sourcetype2"
+        action: upsert
+  resource/three:
+    attributes:
+      - key: com.splunk.sourcetype
+        value: "sourcetype3"
+        action: upsert
+
+receivers:
+    filelog/onefile:
+      include: [ /output/file.log ]
+    filelog/twofile:
+      include: [ /output/file2.log ]
+    filelog/threefolder:
+      include: [ /output3/*.log ]
+
+exporters:
+    splunk_hec/logs:
+        # Splunk HTTP Event Collector token.
+        token: "00000000-0000-0000-0000-0000000000000"
+        # URL to a Splunk instance to send data to.
+        endpoint: "https://splunk:8088/services/collector"
+        # Optional Splunk source: https://docs.splunk.com/Splexicon:Source
+        source: "output"
+        # Splunk index, optional name of the Splunk index targeted.
+        index: "logs"
+        # Maximum HTTP connections to use simultaneously when sending data. Defaults to 100.
+        max_connections: 20
+        # Whether to disable gzip compression over HTTP. Defaults to false.
+        disable_compression: false
+        # HTTP timeout when sending data. Defaults to 10s.
+        timeout: 10s
+        tls:
+          # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
+          # For this demo, we use a self-signed certificate on the Splunk docker instance, so this flag is set to true.
+          insecure_skip_verify: true
+
+
+
+extensions:
+    health_check:
+      endpoint: 0.0.0.0:13133
+    pprof:
+      endpoint: :1888
+    zpages:
+      endpoint: :55679
+
+service:
+    extensions: [pprof, zpages, health_check]
+    pipelines:
+      logs/one:
+        receivers: [ filelog/onefile ]
+        processors: [ batch, resource/one ]
+        exporters: [ splunk_hec/logs ]
+      logs/two:
+        receivers: [ filelog/twofile ]
+        processors: [ batch, resource/two ]
+        exporters: [ splunk_hec/logs ]
+      logs/three:
+        receivers: [ filelog/threefolder ]
+        processors: [ batch, resource/three ]
+        exporters: [ splunk_hec/logs ]

@@ -58,24 +58,6 @@ common: checklicense impi lint misspell
 test:
 	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
 
-.PHONY: do-unit-tests-with-cover
-do-unit-tests-with-cover:
-	@echo "running $(GOCMD) unit test ./... + coverage in `pwd`"
-	@$(GOTEST) $(GOTEST_OPT_WITH_COVERAGE) ./...
-	$(GOCMD) tool cover -html=coverage.txt -o coverage.html
-
-.PHONY: do-integration-tests-with-cover
-do-integration-tests-with-cover:
-	@echo "running $(GOCMD) integration test ./... + coverage in `pwd`"
-	@$(GOTEST) $(GOTEST_OPT_WITH_INTEGRATION) ./...
-	@if [ -e integration-coverage.txt ]; then \
-  		$(GOCMD) tool cover -html=integration-coverage.txt -o integration-coverage.html; \
-  	fi
-
-.PHONY: benchmark
-benchmark:
-	$(GOTEST) -bench=. -run=notests --tags=$(GO_BUILD_TAGS) $(ALL_PKGS)
-
 .PHONY: addlicense
 addlicense:
 	@ADDLICENCESEOUT=`$(ADDLICENCESE) -y "" -c 'Splunk, Inc.' $(ALL_SRC) 2>&1`; \

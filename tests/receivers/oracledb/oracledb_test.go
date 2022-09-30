@@ -16,6 +16,8 @@
 package tests
 
 import (
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"path"
 	"strings"
@@ -52,6 +54,27 @@ func TestOracleDBIntegration(t *testing.T) {
 	}
 	_, shutdown := tc.SplunkOtelCollectorWithEnv("all_metrics_config.yaml", env)
 	defer shutdown()
+	receivedMetrics := testutils.ResourceMetrics{}
+	var err error
+	assert.Eventually(t, func() bool {
+		if tc.OTLPMetricsReceiverSink.DataPointCount() == 0 {
+			if err == nil {
+				err = fmt.Errorf("no metrics received")
+			}
+			return false
+		}
+		receivedOTLPMetrics := tc.OTLPMetricsReceiverSink.AllMetrics()
+		tc.OTLPMetricsReceiverSink.Reset()
 
-	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+		receivedResourceMetrics, e := testutils.PDataToResourceMetrics(receivedOTLPMetrics...)
+		require.NoError(t, e)
+		require.NotNil(t, receivedResourceMetrics)
+		receivedMetrics = testutils.FlattenResourceMetrics(receivedMetrics, receivedResourceMetrics)
+
+		var containsAll bool
+		containsAll, err = receivedMetrics.ContainsAll(*expectedResourceMetrics, false)
+		return containsAll
+	}, 30*time.Second, 10*time.Millisecond, "Failed to receive expected metrics")
+
+	require.NoError(t, err)
 }

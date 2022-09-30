@@ -33,9 +33,9 @@ processors:
       logs:
         queries:
           # See mapping here: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#displaying-severity
-          - set(severity_text, "DEBUG") where attributes["Level"] == "20"
-          - set(severity_text, "INFO") where attributes["Level"] == "40"
-          - set(severity_text, "WARN") where attributes["Level"] == "60"
+          - set(severity_text, "DEBUG") where attributes["Level"] == "DETAIL"
+          - set(severity_text, "INFO") where attributes["Level"] == "LOG"
+          - set(severity_text, "WARN") where attributes["Level"] == "SEVERE"
           - delete_key(attributes, "Level")
           - delete_key(attributes, "message")
           - delete_key(attributes, "time")

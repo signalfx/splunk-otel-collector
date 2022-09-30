@@ -3,21 +3,21 @@ services:
   logging:
     image: bash:latest
     container_name: logging
-    command: 'bash -c "while(true) do /output.sh 20 >> /output/file.log ; sleep 1; done"'
+    command: 'bash -c "while(true) do /output.sh DETAIL >> /output/file.log ; sleep 1; done"'
     volumes:
       - ./output.sh:/output.sh
       - ./output:/output
   logging2:
     image: bash:latest
     container_name: logging2
-    command: 'bash -c "while(true) do /output.sh 40 >> /output/file2.log ; sleep 1; done"'
+    command: 'bash -c "while(true) do /output.sh LOG >> /output/file2.log ; sleep 1; done"'
     volumes:
       - ./output.sh:/output.sh
       - ./output:/output
   logging3:
     image: bash:latest
     container_name: logging3
-    command: 'bash -c "while(true) do /output.sh 60 >> /output/file3.log ; sleep 1; done"'
+    command: 'bash -c "while(true) do /output.sh SEVERE >> /output/file3.log ; sleep 1; done"'
     volumes:
       - ./output.sh:/output.sh
       - ./output:/output
@@ -42,7 +42,7 @@ services:
       - /opt/splunk/etc
   # OpenTelemetry Collector
   otelcollector:
-    image:  quay.io/signalfx/splunk-otel-collector:0.59.1
+    image:  quay.io/signalfx/splunk-otel-collector:0.60.0
     container_name: otelcollector
     command: ["--config=/etc/otel-collector-config.yml"]
     volumes:

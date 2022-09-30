@@ -9,7 +9,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/vault v1.11.2
+	github.com/hashicorp/vault v1.11.4
 	github.com/hashicorp/vault-plugin-auth-gcp v0.14.0
 	github.com/hashicorp/vault/api v1.8.0
 	github.com/jaegertracing/jaeger v1.38.0
@@ -112,7 +112,6 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
-	github.com/BurntSushi/toml v1.2.0 // indirect
 	github.com/DataDog/zstd v1.5.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v0.32.8 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
@@ -248,7 +247,7 @@ require (
 	github.com/hetznercloud/hcloud-go v1.35.2 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
-	github.com/imdario/mergo v0.3.12 // indirect
+	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/influxdata/go-syslog/v3 v3.0.1-0.20210608084020-ac565dc76ba6 // indirect
 	github.com/influxdata/tail v1.0.0 // indirect

@@ -11,7 +11,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.11.2
 	github.com/hashicorp/vault-plugin-auth-gcp v0.13.2
-	github.com/hashicorp/vault/api v1.7.2
+	github.com/hashicorp/vault/api v1.8.0
 	github.com/jaegertracing/jaeger v1.38.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.60.1-0.20220928022443-575c72b474b1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.60.1-0.20220928022443-575c72b474b1
@@ -243,7 +243,7 @@ require (
 	github.com/hashicorp/hcl v1.0.1-vault-3 // indirect
 	github.com/hashicorp/nomad/api v0.0.0-20220809212729-939d643fec2c // indirect
 	github.com/hashicorp/serf v0.9.7 // indirect
-	github.com/hashicorp/vault/sdk v0.5.3 // indirect
+	github.com/hashicorp/vault/sdk v0.6.0 // indirect
 	github.com/hashicorp/yamux v0.0.0-20211028200310-0bc27b27de87 // indirect
 	github.com/hetznercloud/hcloud-go v1.35.2 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect

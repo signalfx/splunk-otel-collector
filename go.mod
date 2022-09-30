@@ -10,7 +10,7 @@ require (
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.11.2
-	github.com/hashicorp/vault-plugin-auth-gcp v0.13.2
+	github.com/hashicorp/vault-plugin-auth-gcp v0.14.0
 	github.com/hashicorp/vault/api v1.8.0
 	github.com/jaegertracing/jaeger v1.38.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.60.1-0.20220928022443-575c72b474b1

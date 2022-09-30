@@ -53,5 +53,5 @@ func TestOracleDBIntegration(t *testing.T) {
 	_, shutdown := tc.SplunkOtelCollectorWithEnv("all_metrics_config.yaml", env)
 	defer shutdown()
 
-	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Minute))
+	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }

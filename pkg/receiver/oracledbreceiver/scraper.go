@@ -200,76 +200,76 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("value: %q, %s, %w", row["CPU_USAGE"], sessionUsageSQL, err))
 				}
-				s.metricsBuilder.RecordOracledbSessionCPUUsageDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
+				s.metricsBuilder.RecordOracledbSessionCPUUsageDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
 			}
 			if s.metricsSettings.OracledbSessionPgaMemory.Enabled {
 				value, err := strconv.ParseInt(row["PGA_MEMORY"], 10, 64)
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("pga_memory value: %q, %w", row["PGA_MEMORY"], err))
 				}
-				s.metricsBuilder.RecordOracledbSessionPgaMemoryDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
+				s.metricsBuilder.RecordOracledbSessionPgaMemoryDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
 			}
 			if s.metricsSettings.OracledbSessionPhysicalReads.Enabled {
 				value, err := strconv.ParseInt(row["PHYSICAL_READS"], 10, 64)
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("physical_reads value: %q, %w", row["PHYSICAL_READS"], err))
 				}
-				s.metricsBuilder.RecordOracledbSessionPhysicalReadsDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
+				s.metricsBuilder.RecordOracledbSessionPhysicalReadsDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
 			}
 			if s.metricsSettings.OracledbSessionLogicalReads.Enabled {
 				value, err := strconv.ParseInt(row["LOGICAL_READS"], 10, 64)
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("logical_reads value: %q, %w", row["LOGICAL_READS"], err))
 				}
-				s.metricsBuilder.RecordOracledbSessionLogicalReadsDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
+				s.metricsBuilder.RecordOracledbSessionLogicalReadsDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
 			}
 			if s.metricsSettings.OracledbSessionHardParses.Enabled {
 				value, err := strconv.ParseInt(row["HARD_PARSES"], 10, 64)
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("hard_parses value: %q, %w", row["HARD_PARSES"], err))
 				}
-				s.metricsBuilder.RecordOracledbSessionHardParsesDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
+				s.metricsBuilder.RecordOracledbSessionHardParsesDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
 			}
 			if s.metricsSettings.OracledbSessionSoftParses.Enabled {
 				value, err := strconv.ParseInt(row["SOFT_PARSES"], 10, 64)
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("soft_parses value: %q, %w", row["SOFT_PARSES"], err))
 				}
-				s.metricsBuilder.RecordOracledbSessionSoftParsesDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
+				s.metricsBuilder.RecordOracledbSessionSoftParsesDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
 			}
 		}
 	}
 
 	if s.metricsSettings.OracledbSessionEnqueueDeadlocks.Enabled {
-		if err := s.executeOneQuery(ctx, sessionEnqueueDeadlocksSQL, s.metricsBuilder.RecordOracledbSessionEnqueueDeadlocksDataPoint); err != nil {
+		if err := s.executeOneQueryWithSessionID(ctx, sessionEnqueueDeadlocksSQL, s.metricsBuilder.RecordOracledbSessionEnqueueDeadlocksDataPoint); err != nil {
 			scrapeErrors = append(scrapeErrors, err)
 		}
 	}
 	if s.metricsSettings.OracledbSessionExchangeDeadlocks.Enabled {
-		if err := s.executeOneQuery(ctx, sessionExchangeDeadlocksSQL, s.metricsBuilder.RecordOracledbSessionExchangeDeadlocksDataPoint); err != nil {
+		if err := s.executeOneQueryWithSessionID(ctx, sessionExchangeDeadlocksSQL, s.metricsBuilder.RecordOracledbSessionExchangeDeadlocksDataPoint); err != nil {
 			scrapeErrors = append(scrapeErrors, err)
 		}
 	}
 	if s.metricsSettings.OracledbSessionExecuteCount.Enabled {
-		if err := s.executeOneQuery(ctx, sessionExecuteCountSQL, s.metricsBuilder.RecordOracledbSessionExecuteCountDataPoint); err != nil {
+		if err := s.executeOneQueryWithSessionID(ctx, sessionExecuteCountSQL, s.metricsBuilder.RecordOracledbSessionExecuteCountDataPoint); err != nil {
 			scrapeErrors = append(scrapeErrors, err)
 		}
 	}
 
 	if s.metricsSettings.OracledbSessionParseCountTotal.Enabled {
-		if err := s.executeOneQuery(ctx, sessionParseCountTotalSQL, s.metricsBuilder.RecordOracledbSessionParseCountTotalDataPoint); err != nil {
+		if err := s.executeOneQueryWithSessionID(ctx, sessionParseCountTotalSQL, s.metricsBuilder.RecordOracledbSessionParseCountTotalDataPoint); err != nil {
 			scrapeErrors = append(scrapeErrors, err)
 		}
 	}
 
 	if s.metricsSettings.OracledbSessionUserCommits.Enabled {
-		if err := s.executeOneQuery(ctx, sessionUserCommitsSQL, s.metricsBuilder.RecordOracledbSessionUserCommitsDataPoint); err != nil {
+		if err := s.executeOneQueryWithSessionID(ctx, sessionUserCommitsSQL, s.metricsBuilder.RecordOracledbSessionUserCommitsDataPoint); err != nil {
 			scrapeErrors = append(scrapeErrors, err)
 		}
 	}
 
 	if s.metricsSettings.OracledbSessionUserRollbacks.Enabled {
-		if err := s.executeOneQuery(ctx, sessionUserRollbacksSQL, s.metricsBuilder.RecordOracledbSessionUserRollbacksDataPoint); err != nil {
+		if err := s.executeOneQueryWithSessionID(ctx, sessionUserRollbacksSQL, s.metricsBuilder.RecordOracledbSessionUserRollbacksDataPoint); err != nil {
 			scrapeErrors = append(scrapeErrors, err)
 		}
 	}
@@ -406,6 +406,22 @@ func (s *scraper) executeOneQuery(ctx context.Context, query string, recorder fu
 			return fmt.Errorf("value: %s, %s, %w", row["VALUE"], query, err)
 		}
 		recorder(pcommon.NewTimestampFromTime(time.Now()), value)
+	}
+	return nil
+}
+
+func (s *scraper) executeOneQueryWithSessionID(ctx context.Context, query string, recorder func(ts pcommon.Timestamp, val int64, sessionID string)) error {
+	client := s.clientProviderFunc(s.db, query, s.logger)
+	rows, err := client.metricRows(ctx)
+	if err != nil {
+		return fmt.Errorf("error executing %s: %w", query, err)
+	}
+	for _, row := range rows {
+		value, err := strconv.ParseInt(row["VALUE"], 10, 64)
+		if err != nil {
+			return fmt.Errorf("value: %s, %s, %w", row["VALUE"], query, err)
+		}
+		recorder(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
 	}
 	return nil
 }

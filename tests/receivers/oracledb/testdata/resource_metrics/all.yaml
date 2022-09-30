@@ -1,14 +1,20 @@
 resource_metrics:
-  - instrumentation_library_metrics:
-      - metrics:
+  - attributes:
+      oracledb.instance.name: <ANY>
+      oracledb.session.id: <ANY>
+    instrumentation_library_metrics:
+      - instrumentation_library:
+          name: otelcol/oracledbreceiver
+        metrics:
           - name: oracledb.query.cpu_time
             type: IntMonotonicCumulativeSum
           - name: oracledb.query.elapsed_time
             type: IntMonotonicCumulativeSum
           - name: oracledb.query.executions
             type: IntMonotonicCumulativeSum
-          - name: oracledb.query.long_running
-            type: IntMonotonicCumulativeSum
+# This metric is only used if a query takes over 10s.
+#          - name: oracledb.query.long_running
+#            type: IntMonotonicCumulativeSum
           - name: oracledb.query.parse_calls
             type: IntMonotonicCumulativeSum
           - name: oracledb.query.physical_read_bytes
@@ -24,7 +30,7 @@ resource_metrics:
           - name: oracledb.session.cpu_usage
             type: DoubleGauge
           - name: oracledb.session.enqueue_deadlocks
-            type: IntMonotonicCumulativeSum
+            type: IntGauge
           - name: oracledb.session.execute_count
             type: IntMonotonicCumulativeSum
           - name: oracledb.session.hard_parses
@@ -43,18 +49,10 @@ resource_metrics:
             type: IntMonotonicCumulativeSum
           - name: oracledb.session.user_rollbacks
             type: IntMonotonicCumulativeSum
-          - name: oracledb.system.execute_count
-            type: IntMonotonicCumulativeSum
-          - name: oracledb.system.parse_count_total
-            type: IntMonotonicCumulativeSum
           - name: oracledb.system.session_count
             type: IntGauge
-          - name: oracledb.system.user_commits
-            type: IntMonotonicCumulativeSum
           - name: oracledb.system.resource_limits
             type: IntGauge
-          - name: oracledb.system.user_rollbacks
-            type: IntMonotonicCumulativeSum
           - name: oracledb.tablespace.max_size
             type: IntGauge
           - name: oracledb.tablespace.max_size

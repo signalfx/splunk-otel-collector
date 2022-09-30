@@ -435,7 +435,7 @@ func TestFlattenResourceMetricsConsistency(t *testing.T) {
 
 func TestMetricContainsAllSelfCheck(t *testing.T) {
 	resourceMetrics := loadedResourceMetrics(t)
-	containsAll, err := resourceMetrics.ContainsAll(resourceMetrics)
+	containsAll, err := resourceMetrics.ContainsAll(resourceMetrics, true)
 	require.True(t, containsAll, err)
 	require.NoError(t, err)
 }
@@ -447,12 +447,12 @@ func TestMetricContainsAllNoBijection(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, expected)
 
-	containsAll, err := received.ContainsAll(*expected)
+	containsAll, err := received.ContainsAll(*expected, true)
 	require.True(t, containsAll, err)
 	require.NoError(t, err)
 
 	// Since expectedMetrics specify no values, they will never find matches with metrics w/ them.
-	containsAll, err = expected.ContainsAll(received)
+	containsAll, err = expected.ContainsAll(received, true)
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(),
@@ -467,7 +467,7 @@ func TestMetricContainsAllValueNeverReceived(t *testing.T) {
 	require.NotNil(t, expected)
 
 	// neverReceivedMetrics.yaml details a Metric with a value that isn't in resourceMetrics.yaml
-	containsAll, err := received.ContainsAll(*expected)
+	containsAll, err := received.ContainsAll(*expected, true)
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "Missing Metrics: [name: another_int_gauge\ntype: IntGauge\nvalue: 111\n]")
@@ -480,7 +480,7 @@ func TestMetricContainsAllInstrumentationScopeNeverReceived(t *testing.T) {
 	require.NotNil(t, expected)
 
 	// neverReceivedMetrics.yaml details an Instrumentation Library that isn't in resourceMetrics.yaml
-	containsAll, err := received.ContainsAll(*expected)
+	containsAll, err := received.ContainsAll(*expected, true)
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "Missing InstrumentationLibraries: [name: unmatched_instrumentation_scope\n]")
@@ -493,7 +493,7 @@ func TestMetricContainsAllResourceNeverReceived(t *testing.T) {
 	require.NotNil(t, expected)
 
 	// neverReceivedMetrics.yaml details a Resource that isn't in resourceMetrics.yaml
-	containsAll, err := received.ContainsAll(*expected)
+	containsAll, err := received.ContainsAll(*expected, true)
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "Missing resources: [not: matched\n]")
@@ -512,11 +512,11 @@ func TestMetricContainsAllWithMissingAndEmptyAttributes(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, empty)
 
-	containsAll, err := received.ContainsAll(*unspecified)
+	containsAll, err := received.ContainsAll(*unspecified, true)
 	require.True(t, containsAll)
 	require.NoError(t, err)
 
-	containsAll, err = received.ContainsAll(*empty)
+	containsAll, err = received.ContainsAll(*empty, true)
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "Missing Metrics: [attributes: {}\nname: another_int_gauge\ntype: IntGauge\nvalue: 111\n]")

@@ -47,19 +47,20 @@ var (
 )
 
 type discoveryReceiver struct {
-	logsConsumer      consumer.Logs
-	receiverCreator   component.MetricsReceiver
-	alreadyLogged     *sync.Map
-	endpointTracker   *endpointTracker
-	sentinel          chan struct{}
-	metricEvaluator   *metricEvaluator
-	logger            *zap.Logger
-	config            *Config
-	obsreportReceiver *obsreport.Receiver
-	pLogs             chan plog.Logs
-	observables       map[config.ComponentID]observer.Observable
-	loopFinished      *sync.WaitGroup
-	settings          component.ReceiverCreateSettings
+	logsConsumer       consumer.Logs
+	receiverCreator    component.MetricsReceiver
+	alreadyLogged      *sync.Map
+	endpointTracker    *endpointTracker
+	sentinel           chan struct{}
+	metricEvaluator    *metricEvaluator
+	statementEvaluator *statementEvaluator
+	logger             *zap.Logger
+	config             *Config
+	obsreportReceiver  *obsreport.Receiver
+	pLogs              chan plog.Logs
+	observables        map[config.ComponentID]observer.Observable
+	loopFinished       *sync.WaitGroup
+	settings           component.ReceiverCreateSettings
 }
 
 func newDiscoveryReceiver(
@@ -96,6 +97,10 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 	d.endpointTracker.start()
 
 	d.metricEvaluator = newMetricEvaluator(d.logger, d.config, d.pLogs, correlations)
+
+	if d.statementEvaluator, err = newStatementEvaluator(d.logger, d.config, d.pLogs, correlations); err != nil {
+		return fmt.Errorf("failed creating statement evaluator: %w", err)
+	}
 
 	if err = d.createAndSetReceiverCreator(); err != nil {
 		return fmt.Errorf("failed creating internal receiver_creator: %w", err)
@@ -165,7 +170,7 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 	}
 	receiverCreatorSettings := component.ReceiverCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
-			Logger: d.logger.With(
+			Logger: d.statementEvaluator.evaluatedLogger.With(
 				zap.String("kind", "receiver"),
 				zap.String("name", receiverCreatorConfig.ID().String()),
 			),

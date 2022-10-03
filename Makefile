@@ -65,6 +65,10 @@ for-all:
 	 	$${CMD} ); \
 	done
 
+.PHONY: integration-vet
+integration-vet:
+	cd tests && go vet ./...
+
 .PHONY: integration-test
 integration-test:
 	@set -e; for dir in $(ALL_TESTS_DIRS); do \

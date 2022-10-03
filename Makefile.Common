@@ -86,7 +86,7 @@ checklinks:
 
 .PHONY: fmt
 fmt: addlicense misspell-correction
-	go fmt  -w -s ./...
+	gofmt -w -s .
 	goimports -w  -local github.com/signalfx/splunk-otel-collector ./
 	fieldalignment -fix ./... || true
 

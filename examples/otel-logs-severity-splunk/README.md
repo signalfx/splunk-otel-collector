@@ -1,6 +1,6 @@
 # Splunk Severity Mapping Example
 
-This example showcases how the collector interpret the content of log lines and assign them severity before sending to Splunk Enterprise.
+This example showcases how the collector interprets the content of log lines and assigns them severity before sending to Splunk Enterprise.
 
 In particular, this example uses 3 separate files that log different content, each with a different "Level" field.
 

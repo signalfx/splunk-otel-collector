@@ -2,8 +2,8 @@ resource_metrics:
   - attributes:
       one_attr: one_value
       two_attr: two_value
-    instrumentation_library_metrics:
-      - instrumentation_library:
+    scope_metrics:
+      - instrumentation_scope:
           name: without_metrics
           version: some_version
       - metrics:
@@ -15,8 +15,8 @@ resource_metrics:
           - name: a_double_gauge
             type: DoubleGauge
             value: 123.456
-  - instrumentation_library_metrics:
-      - instrumentation_library:
+  - scope_metrics:
+      - instrumentation_scope:
           name: with_metrics
           version: another_version
         metrics:

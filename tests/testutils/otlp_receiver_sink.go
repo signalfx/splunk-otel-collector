@@ -30,6 +30,8 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
 )
 
 // To be used as a builder whose Build() method provides the actual instance capable of starting the OTLP receiver
@@ -133,7 +135,7 @@ func (otlp *OTLPMetricsReceiverSink) Reset() {
 	}
 }
 
-func (otlp *OTLPMetricsReceiverSink) AssertAllMetricsReceived(t *testing.T, expectedResourceMetrics ResourceMetrics, waitTime time.Duration) error {
+func (otlp *OTLPMetricsReceiverSink) AssertAllMetricsReceived(t *testing.T, expectedResourceMetrics telemetry.ResourceMetrics, waitTime time.Duration) error {
 	if err := otlp.assertBuilt("AssertAllMetricsReceived"); err != nil {
 		return err
 	}
@@ -142,7 +144,7 @@ func (otlp *OTLPMetricsReceiverSink) AssertAllMetricsReceived(t *testing.T, expe
 		return fmt.Errorf("empty ResourceMetrics provided")
 	}
 
-	receivedMetrics := ResourceMetrics{}
+	receivedMetrics := telemetry.ResourceMetrics{}
 
 	var err error
 	assert.Eventually(t, func() bool {
@@ -155,17 +157,17 @@ func (otlp *OTLPMetricsReceiverSink) AssertAllMetricsReceived(t *testing.T, expe
 		receivedOTLPMetrics := otlp.AllMetrics()
 		otlp.Reset()
 
-		receivedResourceMetrics, e := PDataToResourceMetrics(receivedOTLPMetrics...)
+		receivedResourceMetrics, e := telemetry.PDataToResourceMetrics(receivedOTLPMetrics...)
 		require.NoError(t, e)
 		require.NotNil(t, receivedResourceMetrics)
-		receivedMetrics = FlattenResourceMetrics(receivedMetrics, receivedResourceMetrics)
+		receivedMetrics = telemetry.FlattenResourceMetrics(receivedMetrics, receivedResourceMetrics)
 
 		var containsAll bool
 		containsAll, err = receivedMetrics.ContainsAll(expectedResourceMetrics)
 		return containsAll
 	}, waitTime, 10*time.Millisecond, "Failed to receive expected metrics")
 
-	//testify won't render exceptionally long errors, so leaving this here for easy debugging
+	// testify won't render exceptionally long errors, so leaving this here for easy debugging
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 	}

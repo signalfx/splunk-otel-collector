@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package testutils
+package telemetry
 
 import (
 	"bytes"
@@ -45,9 +45,7 @@ const (
 	IntNonmonotonicUnspecifiedSum    MetricType = "IntNonmonotonicUnspecifiedSum"
 )
 
-const buildVersionPlaceholder = "<FROM_BUILD>"
-
-var supporedtMetricTypeOptions = fmt.Sprintf(
+var supportedMetricTypeOptions = fmt.Sprintf(
 	"%s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s",
 	DoubleGauge, DoubleMonotonicCumulativeSum,
 	DoubleMonotonicDeltaSum, DoubleMonotonicUnspecifiedSum,
@@ -68,48 +66,37 @@ var supportedMetricTypes = map[MetricType]bool{
 	IntNonmonotonicDeltaSum: true, IntNonmonotonicUnspecifiedSum: true,
 }
 
-// Internal type for testing helpers and assertions.  Analogous to pdata form, with the exception that
-// InstrumentationLibrary.Metrics items act as both parent metric container and datapoints
+// ResourceMetrics is a convenience type for testing helpers and assertions.  Analogous to pdata form, with the exception that
+// InstrumentationScope.Metrics items act as both parent metric container and datapoints
 // whose identity is based on differing labels and other fields.
 type ResourceMetrics struct {
 	ResourceMetrics []ResourceMetric `yaml:"resource_metrics"`
 }
 
-// Top level metric type for a given Resource (set of attributes) and its associated ScopeMetrics.
+// ResourceMetric is the top level metric type for a given Resource (set of attributes) and its associated ScopeMetrics.
 type ResourceMetric struct {
-	Resource Resource       `yaml:",inline,omitempty"`
-	ILMs     []ScopeMetrics `yaml:"instrumentation_library_metrics"`
+	Resource     Resource       `yaml:",inline,omitempty"`
+	ScopeMetrics []ScopeMetrics `yaml:"scope_metrics"`
 }
 
-// The top level item producing metrics, defined by its Attributes.
-type Resource struct {
-	Attributes map[string]any `yaml:"attributes,omitempty"`
-}
-
-// The collection of metrics produced by a given InstrumentationLibrary
+// ScopeMetrics are the collection of metrics produced by a given InstrumentationScope
 type ScopeMetrics struct {
-	InstrumentationLibrary InstrumentationLibrary `yaml:"instrumentation_library,omitempty"`
-	Metrics                []Metric               `yaml:"metrics,omitempty"`
+	Scope   InstrumentationScope `yaml:"instrumentation_scope,omitempty"`
+	Metrics []Metric             `yaml:"metrics,omitempty"`
 }
 
-// The library responsible for producing metrics, defined by its Name and Version fields.
-type InstrumentationLibrary struct {
-	Name    string `yaml:"name,omitempty"`
-	Version string `yaml:"version,omitempty"`
-}
-
-// The metric content, representing both the overall definition and a single datapoint.
+// Metric is the metric content, representing both the overall definition and a single datapoint.
 // TODO: Timestamps
 type Metric struct {
-	Name        string             `yaml:"name"`
-	Description string             `yaml:"description,omitempty"`
-	Unit        string             `yaml:"unit,omitempty"`
-	Labels      *map[string]string `yaml:"labels,omitempty"`
-	Type        MetricType         `yaml:"type"`
-	Value       any                `yaml:"value,omitempty"`
+	Name        string          `yaml:"name"`
+	Description string          `yaml:"description,omitempty"`
+	Unit        string          `yaml:"unit,omitempty"`
+	Attributes  *map[string]any `yaml:"attributes,omitempty"`
+	Type        MetricType      `yaml:"type"`
+	Value       any             `yaml:"value,omitempty"`
 }
 
-// Returns a ResourceMetrics instance generated via parsing a valid yaml file at the provided path.
+// LoadResourceMetrics returns a ResourceMetrics instance generated via parsing a valid yaml file at the provided path.
 func LoadResourceMetrics(path string) (*ResourceMetrics, error) {
 	metricFile, err := os.Open(path)
 	if err != nil {
@@ -137,9 +124,9 @@ func LoadResourceMetrics(path string) (*ResourceMetrics, error) {
 // FillDefaultValues fills ResourceMetrics with default values
 func (resourceMetrics *ResourceMetrics) FillDefaultValues() {
 	for i, rm := range resourceMetrics.ResourceMetrics {
-		for j, ilm := range rm.ILMs {
-			if ilm.InstrumentationLibrary.Version == buildVersionPlaceholder {
-				resourceMetrics.ResourceMetrics[i].ILMs[j].InstrumentationLibrary.Version = version.Version
+		for j, ilm := range rm.ScopeMetrics {
+			if ilm.Scope.Version == buildVersionPlaceholder {
+				resourceMetrics.ResourceMetrics[i].ScopeMetrics[j].Scope.Version = version.Version
 			}
 		}
 	}
@@ -148,56 +135,18 @@ func (resourceMetrics *ResourceMetrics) FillDefaultValues() {
 // Determines if all values in ResourceMetrics item are valid
 func (resourceMetrics ResourceMetrics) Validate() error {
 	for _, rm := range resourceMetrics.ResourceMetrics {
-		for _, ilm := range rm.ILMs {
+		for _, ilm := range rm.ScopeMetrics {
 			for _, m := range ilm.Metrics {
 				if _, ok := supportedMetricTypes[m.Type]; m.Type != "" && !ok {
 					return fmt.Errorf(
 						"unsupported MetricType for %s - %s.  Must be one of [%s]",
-						m.Name, m.Type, supporedtMetricTypeOptions,
+						m.Name, m.Type, supportedMetricTypeOptions,
 					)
 				}
 			}
 		}
 	}
 	return nil
-}
-
-func (resource Resource) String() string {
-	out, err := yaml.Marshal(resource.Attributes)
-	if err != nil {
-		panic(err)
-	}
-	return string(out)
-}
-
-// Provides an md5 hash determined by Resource content.
-func (resource Resource) Hash() string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(resource.String())))
-}
-
-// Determines the equivalence of two Resource items by their Attributes.
-// TODO: ensure that Resource.Hash equivalence is valid given all possible Attribute values.
-func (resource Resource) Equals(toCompare Resource) bool {
-	return reflect.DeepEqual(resource.Attributes, toCompare.Attributes)
-}
-
-func (instrumentationLibrary InstrumentationLibrary) String() string {
-	out, err := yaml.Marshal(instrumentationLibrary)
-	if err != nil {
-		panic(err)
-	}
-	return string(out)
-}
-
-// Provides an md5 hash determined by InstrumentationLibrary fields.
-func (instrumentationLibrary InstrumentationLibrary) Hash() string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(instrumentationLibrary.String())))
-}
-
-// Determines the equivalence of two InstrumentationLibrary items.
-// TODO: ensure that Resource.Hash equivalence is valid given all possible Attribute values.
-func (instrumentationLibrary InstrumentationLibrary) Equals(toCompare InstrumentationLibrary) bool {
-	return instrumentationLibrary.Name == toCompare.Name && instrumentationLibrary.Version == toCompare.Version
 }
 
 func (metric Metric) String() string {
@@ -244,14 +193,14 @@ func (metric Metric) equals(toCompare Metric, strict bool) bool {
 		return false
 	}
 
-	if metric.Labels != nil {
-		return reflect.DeepEqual(metric.Labels, toCompare.Labels)
+	if metric.Attributes != nil {
+		return reflect.DeepEqual(metric.Attributes, toCompare.Attributes)
 	}
 	return true
 }
 
 // FlattenResourceMetrics takes multiple instances of ResourceMetrics and flattens them
-// to only unique entries by Resource, InstrumentationLibrary, and Metric content.
+// to only unique entries by Resource, InstrumentationScope, and Metric content.
 // It will preserve order by removing subsequent occurrences of repeated items
 // from the returned flattened ResourceMetrics item
 func FlattenResourceMetrics(resourceMetrics ...ResourceMetrics) ResourceMetrics {
@@ -260,7 +209,7 @@ func FlattenResourceMetrics(resourceMetrics ...ResourceMetrics) ResourceMetrics 
 	var resourceHashes []string
 	// maps of resource hashes to objects
 	resources := map[string]Resource{}
-	ilms := map[string][]ScopeMetrics{}
+	scopeMetrics := map[string][]ScopeMetrics{}
 
 	// flatten by Resource
 	for _, rms := range resourceMetrics {
@@ -270,11 +219,11 @@ func FlattenResourceMetrics(resourceMetrics ...ResourceMetrics) ResourceMetrics 
 				resources[resourceHash] = rm.Resource
 				resourceHashes = append(resourceHashes, resourceHash)
 			}
-			ilms[resourceHash] = append(ilms[resourceHash], rm.ILMs...)
+			scopeMetrics[resourceHash] = append(scopeMetrics[resourceHash], rm.ScopeMetrics...)
 		}
 	}
 
-	// flatten by InstrumentationLibrary
+	// flatten by InstrumentationScope
 	for _, resourceHash := range resourceHashes {
 		resource := resources[resourceHash]
 		resourceMetric := ResourceMetric{
@@ -283,12 +232,12 @@ func FlattenResourceMetrics(resourceMetrics ...ResourceMetrics) ResourceMetrics 
 
 		var ilHashes []string
 		// maps of hashes to objects
-		ils := map[string]InstrumentationLibrary{}
+		ils := map[string]InstrumentationScope{}
 		ilMetrics := map[string][]Metric{}
-		for _, ilm := range ilms[resourceHash] {
-			ilHash := ilm.InstrumentationLibrary.Hash()
+		for _, ilm := range scopeMetrics[resourceHash] {
+			ilHash := ilm.Scope.Hash()
 			if _, ok := ils[ilHash]; !ok {
-				ils[ilHash] = ilm.InstrumentationLibrary
+				ils[ilHash] = ilm.Scope
 				ilHashes = append(ilHashes, ilHash)
 			}
 			if ilm.Metrics == nil {
@@ -321,11 +270,11 @@ func FlattenResourceMetrics(resourceMetrics ...ResourceMetrics) ResourceMetrics 
 				flattenedMetrics = []Metric{}
 			}
 
-			ilms := ScopeMetrics{
-				InstrumentationLibrary: il,
-				Metrics:                flattenedMetrics,
+			sms := ScopeMetrics{
+				Scope:   il,
+				Metrics: flattenedMetrics,
 			}
-			resourceMetric.ILMs = append(resourceMetric.ILMs, ilms)
+			resourceMetric.ScopeMetrics = append(resourceMetric.ScopeMetrics, sms)
 		}
 
 		flattened.ResourceMetrics = append(flattened.ResourceMetrics, resourceMetric)
@@ -334,7 +283,7 @@ func FlattenResourceMetrics(resourceMetrics ...ResourceMetrics) ResourceMetrics 
 	return flattened
 }
 
-// Determines that everything in expectedResourceMetrics ResourceMetrics is in the receiver ResourceMetrics
+// ContainsAll determines if everything in expectedResourceMetrics ResourceMetrics is in the receiver ResourceMetrics
 // item (i.e. expected ⊆ received). Neither guarantees equivalence, nor that expected contains all of received
 // (i.e. is not an expected ≣ received nor received ⊆ expected check).
 // Metric equivalence is based on RelaxedEquals() check: fields not in expected (e.g. unit, type, value, etc.)
@@ -350,11 +299,11 @@ func (received ResourceMetrics) ContainsAll(expected ResourceMetrics) (bool, err
 		for _, resourceMetric := range received.ResourceMetrics {
 			if resourceMetric.Resource.Equals(expectedResourceMetric.Resource) {
 				resourceMatched = true
-				for _, expectedILM := range expectedResourceMetric.ILMs {
-					instrumentationLibraryMatched := false
-					for _, ilm := range resourceMetric.ILMs {
-						if ilm.InstrumentationLibrary.Equals(expectedILM.InstrumentationLibrary) {
-							instrumentationLibraryMatched = true
+				for _, expectedILM := range expectedResourceMetric.ScopeMetrics {
+					InstrumentationScopeMatched := false
+					for _, ilm := range resourceMetric.ScopeMetrics {
+						if ilm.Scope.Equals(expectedILM.Scope) {
+							InstrumentationScopeMatched = true
 							for _, expectedMetric := range expectedILM.Metrics {
 								metricFound := false
 								for _, metric := range ilm.Metrics {
@@ -373,14 +322,14 @@ func (received ResourceMetrics) ContainsAll(expected ResourceMetrics) (bool, err
 							}
 						}
 					}
-					if !instrumentationLibraryMatched {
-						missingInstrumentationLibraries = append(missingInstrumentationLibraries, expectedILM.InstrumentationLibrary.String())
+					if !InstrumentationScopeMatched {
+						missingInstrumentationLibraries = append(missingInstrumentationLibraries, expectedILM.Scope.String())
 					}
 				}
 				if len(missingInstrumentationLibraries) != 0 {
 					return false, fmt.Errorf(
 						"%v doesn't contain all of  %v.  Missing InstrumentationLibraries: %s",
-						resourceMetric.ILMs, expectedResourceMetric.ILMs, missingInstrumentationLibraries)
+						resourceMetric.ScopeMetrics, expectedResourceMetric.ScopeMetrics, missingInstrumentationLibraries)
 				}
 			}
 		}

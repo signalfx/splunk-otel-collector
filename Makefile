@@ -115,7 +115,6 @@ tidy-all:
 	$(MAKE) $(FOR_GROUP_TARGET) TARGET="tidy"
 	go mod tidy -compat=1.18
 
-
 .PHONY: install-tools
 install-tools:
 	cd ./internal/tools && go install github.com/client9/misspell/cmd/misspell

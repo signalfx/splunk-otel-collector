@@ -6,7 +6,7 @@ is:
 
 1. Building the Collector (`make otelcol` or `make all`)
 1. Defining your expected [resource metric content](./testutils/README.md#resource-metrics) as a yaml file
-([see example](./testutils/testdata/resourceMetrics.yaml))
+([see example](testutils/telemetry/testdata/metrics/resource-metrics.yaml))
 1. Spin up your target resources as [docker containers](./testutils/README.md#test-containers).
 1. Stand up an in-memory [OTLP metrics receiver and sink](./testutils/README.md#otlp-metrics-receiver-sink) capable of detecting if/when desired data are received.
 1. Spin up your Collector [as a subprocess](./testutils/README.md#collector-process) or [as a container](./testutils/README.md#collector-container) configured to report to this OTLP receiver.
@@ -22,18 +22,19 @@ package example_test
 
 import (
 	"context"
-	"path"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
+	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
 )
 
 func TestMyExampleComponent(t *testing.T) {
-	expectedResourceMetrics, err := testutils.LoadResourceMetrics(
-		path.Join(".", "testdata", "my_resource_metrics.yaml"),
+	expectedResourceMetrics, err := telemetry.LoadResourceMetrics(
+		filepath.Join(".", "testdata", "metrics", "my_resource_metrics.yaml"),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, expectedResourceMetrics)
@@ -52,7 +53,7 @@ func TestMyExampleComponent(t *testing.T) {
 	require.NoError(t, err)
 
 	// running collector subprocess that uses the provided config set to export OTLP to our test receiver
-	myCollector, err := testutils.NewCollectorProcess().WithConfigPath(path.Join(".", "testdata", "config.yaml")).Build()
+	myCollector, err := testutils.NewCollectorProcess().WithConfigPath(filepath.Join(".", "testdata", "config.yaml")).Build()
 	require.NoError(t, err)
 	err = myCollector.Start()
 	require.NoError(t, err)

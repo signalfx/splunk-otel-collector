@@ -1,0 +1,7 @@
+resource_metrics:
+  - scope_metrics:
+      - metrics:
+          - name: another_int_gauge
+            type: IntGauge
+            attributes: {}
+            value: 111

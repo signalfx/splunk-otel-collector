@@ -1,5 +1,5 @@
 resource_metrics:
-  - instrumentation_library_metrics:
+  - scope_metrics:
       - metrics:
           - name: counter.cassandra.ClientRequest.RangeSlice.Latency.Count
             type: IntMonotonicCumulativeSum

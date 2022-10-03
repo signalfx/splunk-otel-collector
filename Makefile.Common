@@ -31,14 +31,11 @@ ALL_SRC_AND_DOC := $(shell find $(ALL_PKG_DIRS) -name "*.md" -o -name "*.go" -o 
                                 -not -path '*/third_party/*' \
                                 -type f | sort)
 
-# ALL_PKGS is used with 'go cover'
-ALL_PKGS := $(shell $(GOCMD) list $(sort $(dir $(ALL_SRC))))
-
 pwd:
 	@pwd
 
 all-pkgs:
-	@echo $(ALL_PKGS) | tr ' ' '\n' | sort
+	@echo $(shell $(GOCMD) list $(sort $(ALL_PKG_DIRS))) | tr ' ' '\n' | sort
 
 all-srcs:
 	@echo $(ALL_SRC) | tr ' ' '\n' | sort

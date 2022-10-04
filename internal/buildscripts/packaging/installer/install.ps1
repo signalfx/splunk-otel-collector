@@ -64,18 +64,18 @@
     (OPTIONAL) Whether to install and configure fluentd to forward log events to the collector (default: $true)
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_fluentd $false
-.PARAMETER with_dotnet_tracing
+.PARAMETER with_dotnet_instrumentation
     (OPTIONAL) Whether to install and configure .NET tracing to forward .NET application traces to the local collector (default: $false)
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_tracing $true
+    .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true
 .PARAMETER signalfx_service_name
-    (OPTIONAL) A system-wide SignalFx service name override for .NET tracing. Sets the SIGNALFX_SERVICE_NAME environment variable. Ignored if -with_dotnet_tracing is false.
+    (OPTIONAL) A system-wide SignalFx service name override for .NET tracing. Sets the SIGNALFX_SERVICE_NAME environment variable. Ignored if -with_dotnet_instrumentation is false.
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_tracing $true -signalfx_service_name my-service-name
+    .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -signalfx_service_name my-service-name
 .PARAMETER signalfx_env
-    (OPTIONAL) A system-wide SignalFx "environment" used by .NET tracing. Sets the SIGNALFX_ENV environment variable. Ignored if -with_dotnet_tracing is false.
+    (OPTIONAL) A system-wide SignalFx "environment" used by .NET tracing. Sets the SIGNALFX_ENV environment variable. Ignored if -with_dotnet_instrumentation is false.
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_tracing $true -signalfx_env staging
+    .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -signalfx_env staging
 .PARAMETER bundle_dir
     (OPTIONAL) The location of your Smart Agent bundle for monitor functionality (default: C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle)
     .EXAMPLE
@@ -125,13 +125,12 @@ param (
     [bool]$insecure = $false,
     [string]$collector_version = "",
     [bool]$with_fluentd = $true,
-    [bool]$with_dotnet_tracing = $false,
+    [bool]$with_dotnet_instrumentation = $false,
     [string]$bundle_dir = "",
     [ValidateSet('test','beta','release')][string]$stage = "release",
     [string]$msi_path = "",
     [string]$collector_msi_url = "",
     [string]$fluentd_msi_url = "",
-    [string]$dotnet_tracing_msi_url = "",
     [string]$signalfx_service_name = "",
     [string]$signalfx_env = "",
     [bool]$UNIT_TEST = $false
@@ -177,8 +176,6 @@ $fluentd_config_dir = "$fluentd_base_dir\etc\td-agent"
 $fluentd_config_path = "$fluentd_config_dir\td-agent.conf"
 $fluentd_service_name = "fluentdwinsvc"
 
-$dotnet_tracing_msi_name = "signalfx-dotnet-tracing-0.2.9-x64.msi"
-$dotnet_tracing_dl_url = "https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/v0.2.9/$dotnet_tracing_msi_name"
 $dotnet_tracing_install_dir = "\Program Files\SignalFx\.NET Tracing"
 try {
     Resolve-Path $env:SYSTEMDRIVE
@@ -405,7 +402,7 @@ if ($with_fluentd -And (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
     throw "$fluentd_base_dir\bin\fluentd is already installed. Remove/Uninstall fluentd and re-run this script."
 }
 
-if ($with_dotnet_tracing -And (Test-Path -Path "$dotnet_tracing_base_dir\SignalFx.Tracing.ClrProfiler.Native.dll")) {
+if ($with_dotnet_instrumentation -And (Test-Path -Path "$dotnet_tracing_base_dir\SignalFx.Tracing.ClrProfiler.Native.dll")) {
     throw "SignalFx .NET tracing is already installed. Remove/Uninstall SignalFx .NET tracing and re-run this script."
 }
 
@@ -574,15 +571,31 @@ if ($with_fluentd) {
     echo "- Started"
 }
 
-if ($with_dotnet_tracing) {
-    echo "Downloading $dotnet_tracing_dl_url..."
-    download_file -url "$dotnet_tracing_dl_url" -outputDir "$tempdir" -fileName "$dotnet_tracing_msi_name"
-    $dotnet_tracing_msi_path = (Join-Path "$tempdir" "$dotnet_tracing_msi_name")
+if ($with_dotnet_instrumentation) {
+    echo "Installing SignalFx Instrumentation for .NET"
+    # signalfx-dotnet-tracing github repository API
+    $api = "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
 
-    echo "Installing $dotnet_tracing_msi_path ..."
-    Start-Process msiexec.exe -Wait -ArgumentList "/qn /norestart /i `"$dotnet_tracing_msi_path`""
-    echo "- Done"
+    # File pattern to search for
+    $pattern = "signalfx-dotnet-tracing-*-x64.msi"
 
+    echo "Finding latest MSI to download"
+    $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $pattern } | Select-Object -Property browser_download_url,name
+
+    # Download installer MSI to Temp
+    $msi = Join-Path $env:temp $download.name
+    echo "Downloading $msi"
+    Invoke-WebRequest -Uri $download.browser_download_url -OutFile $msi
+
+    # Install downloaded MSI
+    echo "Starting install process"
+    Start-Process msiexec.exe -Wait -ArgumentList "/I $msi /quiet"
+
+    # Cleanup
+    echo "Cleaning up"
+    Remove-Item $msi
+
+    echo "Setting environment variables for instrumentation"
     update_registry -path "$regkey" -name "COR_ENABLE_PROFILING" -value "1"
     update_registry -path "$regkey" -name "COR_PROFILER" -value "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
     update_registry -path "$regkey" -name "CORECLR_ENABLE_PROFILING" -value "1"
@@ -639,7 +652,7 @@ restarted to apply the changes by restarting the system or running the following
     echo "$message"
 }
 
-if ($with_dotnet_tracing) {
+if ($with_dotnet_instrumentation) {
     $message = "
 SignalFx .NET Tracing has been installed and configured to forward traces to the Splunk OpenTelemetry Collector.
 By default, .NET Tracing will automatically generate traces for popular .NET libraries.

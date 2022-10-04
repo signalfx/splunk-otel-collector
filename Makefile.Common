@@ -1,0 +1,114 @@
+# SRC_ROOT is the top of the source tree.
+SRC_ROOT := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
+
+# build tags required by any component should be defined as an independent variables and later added to GO_BUILD_TAGS below
+GO_BUILD_TAGS=""
+GOTEST_OPT?= -race -v -timeout 180s --tags=$(GO_BUILD_TAGS)
+GOCMD?= go
+GOTEST=$(GOCMD) test
+GOOS=$(shell $(GOCMD) env GOOS)
+GOARCH=$(shell $(GOCMD) env GOARCH)
+ADDLICENCESE= addlicense
+MDLINKCHECK=markdown-link-check
+MISSPELL=misspell -error
+MISSPELL_CORRECTION=misspell -w
+LINT=golangci-lint
+IMPI=impi
+# BUILD_TYPE should be one of (dev, release).
+BUILD_TYPE?=release
+
+ALL_TESTS_DIRS := $(shell find tests -name '*_test.go' | xargs -L 1 dirname | uniq | sort -r)
+
+ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | sort)
+
+ALL_SRC := $(shell find $(ALL_PKG_DIRS) -name '*.go' \
+                                -not -path '*/third_party/*' \
+                                -not -path '*/local/*' \
+                                -type f | sort)
+
+# All source code and documents. Used in spell check.
+ALL_SRC_AND_DOC := $(shell find $(ALL_PKG_DIRS) -name "*.md" -o -name "*.go" -o -name "*.yaml" \
+                                -not -path '*/third_party/*' \
+                                -type f | sort)
+
+pwd:
+	@pwd
+
+all-pkgs:
+	@echo $(shell $(GOCMD) list $(sort $(ALL_PKG_DIRS))) | tr ' ' '\n' | sort
+
+all-srcs:
+	@echo $(ALL_SRC) | tr ' ' '\n' | sort
+
+all-pkg-dirs:
+	@echo $(ALL_PKG_DIRS) | tr ' ' '\n' | sort
+
+.DEFAULT_GOAL := common
+
+.PHONY: common
+common: checklicense impi lint misspell
+
+.PHONY: test
+test:
+	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
+
+.PHONY: addlicense
+addlicense:
+	@ADDLICENCESEOUT=`$(ADDLICENCESE) -y "" -c 'Splunk, Inc.' $(ALL_SRC) 2>&1`; \
+		if [ "$$ADDLICENCESEOUT" ]; then \
+			echo "$(ADDLICENCESE) FAILED => add License errors:\n"; \
+			echo "$$ADDLICENCESEOUT\n"; \
+			exit 1; \
+		else \
+			echo "Add License finished successfully"; \
+		fi
+
+.PHONY: checklicense
+checklicense:
+	@ADDLICENCESEOUT=`$(ADDLICENCESE) -check $(ALL_SRC) 2>&1`; \
+		if [ "$$ADDLICENCESEOUT" ]; then \
+			echo "$(ADDLICENCESE) FAILED => add License errors:\n"; \
+			echo "$$ADDLICENCESEOUT\n"; \
+			echo "Use 'make addlicense' to fix this."; \
+			exit 1; \
+		else \
+			echo "Check License finished successfully"; \
+		fi
+
+.PHONY: checklinks
+checklinks:
+	command -v $(MDLINKCHECK) >/dev/null 2>&1 || { echo >&2 "$(MDLINKCHECK) not installed. Run 'npm install -g markdown-link-check'"; exit 1; }
+	find . -name \*.md -print0 | xargs -0 -n1 \
+		$(MDLINKCHECK) -q -c $(SRC_ROOT)/.github/workflows/check_links_config.json || true
+
+.PHONY: fmt
+fmt: addlicense misspell-correction
+	gofmt -w -s .
+	goimports -w  -local github.com/signalfx/splunk-otel-collector ./
+	fieldalignment -fix ./... || true
+
+.PHONY: lint
+lint: checklicense misspell
+	$(LINT) run --allow-parallel-runners
+
+.PHONY: tidy
+tidy:
+	rm -fr go.sum
+	$(GOCMD) mod tidy -compat=1.18
+
+.PHONY: misspell
+misspell:
+	@echo "running $(MISSPELL)"
+	@$(MISSPELL) $(ALL_SRC_AND_DOC)
+
+.PHONY: misspell-correction
+misspell-correction:
+	$(MISSPELL_CORRECTION) $(ALL_SRC_AND_DOC)
+
+.PHONY: impi
+impi:
+	@$(IMPI) --local github.com/signalfx/splunk-otel-collector --scheme stdThirdPartyLocal ./...
+
+.PHONY: moddownload
+moddownload:
+	$(GOCMD) mod download

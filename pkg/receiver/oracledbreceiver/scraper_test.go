@@ -19,7 +19,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"go.opentelemetry.io/collector/receiver/scrapererror"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,6 +26,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/receiver/scrapererror"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver/internal/metadata"
@@ -108,13 +108,12 @@ func TestPartial_InvalidScrape(t *testing.T) {
 						{},
 					},
 				}}
-			} else {
-				return &fakeDbClient{Responses: [][]metricRow{
-					{
-						queryResponses[s],
-					},
-				}}
 			}
+			return &fakeDbClient{Responses: [][]metricRow{
+				{
+					queryResponses[s],
+				},
+			}}
 		},
 		id:              config.ComponentID{},
 		metricsSettings: metadata.DefaultMetricsSettings(),

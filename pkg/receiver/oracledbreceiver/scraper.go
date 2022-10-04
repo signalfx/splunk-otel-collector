@@ -54,7 +54,6 @@ const (
 	sessionUserRollbacksSQL       = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'user rollbacks'"
 	sessionCountSQL               = "select status, type, count(*) as VALUE FROM v$session GROUP BY status, type"
 	systemResourceLimitsSQL       = "select RESOURCE_NAME, CURRENT_UTILIZATION, MAX_UTILIZATION, INITIAL_ALLOCATION, LIMIT_VALUE from v$resource_limit"
-	currentSessionIDSQL           = "select sys_context('USERENV','SID') from dual"
 	tablespaceUsageSQL            = "select TABLESPACE_NAME, BYTES from DBA_DATA_FILES"
 	tablespaceMaxSpaceSQL         = "select TABLESPACE_NAME, (BLOCK_SIZE*MAX_EXTENTS) AS VALUE FROM DBA_TABLESPACES"
 )
@@ -107,20 +106,6 @@ func (s *scraper) Start(context.Context, component.Host) error {
 
 func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 	s.logger.Debug("Begin scrape")
-	res, err := s.db.QueryContext(ctx, currentSessionIDSQL)
-	if err != nil {
-		return pmetric.Metrics{}, fmt.Errorf("error querying current session id: %w", err)
-	}
-	defer res.Close()
-	var sessionID int64
-	if res.Next() {
-		err = res.Scan(&sessionID)
-		if err != nil {
-			return pmetric.Metrics{}, fmt.Errorf("error reading current session id: %w", err)
-		}
-	} else {
-		return pmetric.Metrics{}, fmt.Errorf("no session id provided by SQL query %s", currentSessionIDSQL)
-	}
 
 	var scrapeErrors []error
 
@@ -386,7 +371,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 		}
 	}
 
-	out := s.metricsBuilder.Emit(metadata.WithOracledbInstanceName(s.instanceName), metadata.WithOracledbSessionID(sessionID))
+	out := s.metricsBuilder.Emit(metadata.WithOracledbInstanceName(s.instanceName))
 	s.logger.Debug("Done scraping")
 	if len(scrapeErrors) > 0 {
 		return out, multierr.Combine(scrapeErrors...)

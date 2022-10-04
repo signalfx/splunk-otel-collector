@@ -49,7 +49,6 @@ metrics:
 | Name | Description | Type |
 | ---- | ----------- | ---- |
 | oracledb.instance.name | The name of the instance that data is coming from. | String |
-| oracledb.session.id | Session identifier. | Int |
 
 ## Metric attributes
 

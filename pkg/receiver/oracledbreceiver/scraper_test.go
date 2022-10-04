@@ -43,63 +43,25 @@ func TestScraper_ErrorOnStart(t *testing.T) {
 
 func TestScraper_Scrape(t *testing.T) {
 	metricsBuilder := metadata.NewMetricsBuilder(metadata.DefaultMetricsSettings(), component.NewDefaultBuildInfo())
-	fakeClient := &fakeDbClient{
-		Responses: [][]metricRow{
-			{
-				{"value": "1", "sql_fulltext": "foo"}, // cpu time
+
+	createClient := func(sql string) dbClient {
+		switch sql {
+		case sessionUserCommitsSQL:
+			return &fakeDbClient{Responses: [][]metricRow{
+				{
+					{"value": "1"},
+				},
 			},
-			{
-				{"value": "2", "sql_fulltext": "foo"}, // elapsed time
+			}
+		case sessionUsageSQL:
+			return &fakeDbClient{Responses: [][]metricRow{
+				{
+					{"cpu_usage": "45", "pga_memory": "3455", "physical_reads": "12344", "logical_reads": "345", "hard_parses": "346", "soft_parses": "7866"},
+				},
 			},
-			{
-				{"value": "3", "sql_fulltext": "foo"}, // executions time
-			},
-			{
-				{"value": "4", "sql_fulltext": "foo"}, // parse calls
-			},
-			{
-				{"value": "5", "sql_fulltext": "foo"}, // read bytes
-			},
-			{
-				{"value": "6", "sql_fulltext": "foo"}, // read requests
-			},
-			{
-				{"value": "7", "sql_fulltext": "foo"}, // write bytes
-			},
-			{
-				{"value": "8", "sql_fulltext": "foo"}, // write requests
-			},
-			{
-				{"value": "9", "sql_fulltext": "foo"}, // total sharable mem
-			},
-			{
-				{"cpu_usage": "45", "pga_memory": "3455", "physical_reads": "12344", "logical_reads": "345", "hard_parses": "346", "soft_parses": "7866"}, // session
-			},
-			{
-				{"value": "10"}, // session enqueue deadlocks
-			},
-			{
-				{"value": "11"}, // session exchange deadlocks
-			},
-			{
-				{"value": "12"}, // session executions count
-			},
-			{
-				{"value": "13"}, // session parse count
-			},
-			{
-				{"value": "14"}, // session user commits
-			},
-			{
-				{"value": "15"}, // session user rollbacks
-			},
-			{
-				{"value": "16"}, // active sessions
-			},
-			{
-				{"value": "17"}, // cached sessions
-			},
-		},
+			}
+		}
+		return nil
 	}
 
 	scrpr := scraper{
@@ -109,7 +71,7 @@ func TestScraper_Scrape(t *testing.T) {
 			return nil, nil
 		},
 		clientProviderFunc: func(db *sql.DB, s string, logger *zap.Logger) dbClient {
-			return fakeClient
+			return createClient(s)
 		},
 		id:              config.ComponentID{},
 		metricsSettings: metadata.DefaultMetricsSettings(),

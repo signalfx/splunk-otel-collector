@@ -290,6 +290,3 @@ resource_attributes:
   oracledb.instance.name:
     description: The name of the instance that data is coming from.
     type: string
-  oracledb.session.id:
-    description: Session identifier.
-    type: int

@@ -152,7 +152,7 @@ func (m *metricOracledbQueryCPUTime) recordDataPoint(start pcommon.Timestamp, ts
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
 	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
@@ -206,7 +206,7 @@ func (m *metricOracledbQueryElapsedTime) recordDataPoint(start pcommon.Timestamp
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
 	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
@@ -260,7 +260,7 @@ func (m *metricOracledbQueryExecutions) recordDataPoint(start pcommon.Timestamp,
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
 	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
@@ -314,7 +314,7 @@ func (m *metricOracledbQueryLongRunning) recordDataPoint(start pcommon.Timestamp
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
 }
 
@@ -367,7 +367,7 @@ func (m *metricOracledbQueryParseCalls) recordDataPoint(start pcommon.Timestamp,
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
 	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
@@ -421,7 +421,7 @@ func (m *metricOracledbQueryPhysicalReadBytes) recordDataPoint(start pcommon.Tim
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
 	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
@@ -475,7 +475,7 @@ func (m *metricOracledbQueryPhysicalReadRequests) recordDataPoint(start pcommon.
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
 	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
@@ -529,7 +529,7 @@ func (m *metricOracledbQueryPhysicalWriteBytes) recordDataPoint(start pcommon.Ti
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
 	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
@@ -583,7 +583,7 @@ func (m *metricOracledbQueryPhysicalWriteRequests) recordDataPoint(start pcommon
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
 	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
@@ -635,7 +635,7 @@ func (m *metricOracledbQueryTotalSharableMem) recordDataPoint(start pcommon.Time
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.query.id", oracledbQueryIDAttributeValue)
 	dp.Attributes().PutString("oracledb.query.fulltext", oracledbQueryFulltextAttributeValue)
 }
@@ -687,7 +687,7 @@ func (m *metricOracledbSessionCPUUsage) recordDataPoint(start pcommon.Timestamp,
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetDoubleVal(val)
+	dp.SetDoubleValue(val)
 	dp.Attributes().PutString("oracledb.session.id", oracledbSessionIDAttributeValue)
 }
 
@@ -738,7 +738,7 @@ func (m *metricOracledbSessionEnqueueDeadlocks) recordDataPoint(start pcommon.Ti
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.session.id", oracledbSessionIDAttributeValue)
 }
 
@@ -789,7 +789,7 @@ func (m *metricOracledbSessionExchangeDeadlocks) recordDataPoint(start pcommon.T
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.session.id", oracledbSessionIDAttributeValue)
 }
 
@@ -842,7 +842,7 @@ func (m *metricOracledbSessionExecuteCount) recordDataPoint(start pcommon.Timest
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.session.id", oracledbSessionIDAttributeValue)
 }
 
@@ -895,7 +895,7 @@ func (m *metricOracledbSessionHardParses) recordDataPoint(start pcommon.Timestam
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.session.id", oracledbSessionIDAttributeValue)
 }
 
@@ -948,7 +948,7 @@ func (m *metricOracledbSessionLogicalReads) recordDataPoint(start pcommon.Timest
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.session.id", oracledbSessionIDAttributeValue)
 }
 
@@ -1001,7 +1001,7 @@ func (m *metricOracledbSessionParseCountTotal) recordDataPoint(start pcommon.Tim
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.session.id", oracledbSessionIDAttributeValue)
 }
 
@@ -1052,7 +1052,7 @@ func (m *metricOracledbSessionPgaMemory) recordDataPoint(start pcommon.Timestamp
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.session.id", oracledbSessionIDAttributeValue)
 }
 
@@ -1105,7 +1105,7 @@ func (m *metricOracledbSessionPhysicalReads) recordDataPoint(start pcommon.Times
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.session.id", oracledbSessionIDAttributeValue)
 }
 
@@ -1158,7 +1158,7 @@ func (m *metricOracledbSessionSoftParses) recordDataPoint(start pcommon.Timestam
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.session.id", oracledbSessionIDAttributeValue)
 }
 
@@ -1211,7 +1211,7 @@ func (m *metricOracledbSessionUserCommits) recordDataPoint(start pcommon.Timesta
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.session.id", oracledbSessionIDAttributeValue)
 }
 
@@ -1264,7 +1264,7 @@ func (m *metricOracledbSessionUserRollbacks) recordDataPoint(start pcommon.Times
 	dp := m.data.Sum().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.session.id", oracledbSessionIDAttributeValue)
 }
 
@@ -1315,7 +1315,7 @@ func (m *metricOracledbSystemResourceLimits) recordDataPoint(start pcommon.Times
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.resource.name", oracledbResourceNameAttributeValue)
 	dp.Attributes().PutString("oracledb.resource.type", oracledbResourceTypeAttributeValue)
 }
@@ -1367,7 +1367,7 @@ func (m *metricOracledbSystemSessionCount) recordDataPoint(start pcommon.Timesta
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.session.type", oracledbSessionTypeAttributeValue)
 	dp.Attributes().PutString("oracledb.session.status", oracledbSessionStatusAttributeValue)
 }
@@ -1419,7 +1419,7 @@ func (m *metricOracledbTablespaceMaxSize) recordDataPoint(start pcommon.Timestam
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.tablespace.name", oracledbTablespaceNameAttributeValue)
 }
 
@@ -1470,7 +1470,7 @@ func (m *metricOracledbTablespaceSize) recordDataPoint(start pcommon.Timestamp, 
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(start)
 	dp.SetTimestamp(ts)
-	dp.SetIntVal(val)
+	dp.SetIntValue(val)
 	dp.Attributes().PutString("oracledb.tablespace.name", oracledbTablespaceNameAttributeValue)
 }
 
@@ -1603,13 +1603,6 @@ func WithOracledbInstanceName(val string) ResourceMetricsOption {
 	}
 }
 
-// WithOracledbSessionID sets provided value as "oracledb.session.id" attribute for current resource.
-func WithOracledbSessionID(val int64) ResourceMetricsOption {
-	return func(rm pmetric.ResourceMetrics) {
-		rm.Resource().Attributes().PutInt("oracledb.session.id", val)
-	}
-}
-
 // WithStartTimeOverride overrides start time for all the resource metrics data points.
 // This option should be only used if different start time has to be set on metrics coming from different resources.
 func WithStartTimeOverride(start pcommon.Timestamp) ResourceMetricsOption {
@@ -1617,10 +1610,10 @@ func WithStartTimeOverride(start pcommon.Timestamp) ResourceMetricsOption {
 		var dps pmetric.NumberDataPointSlice
 		metrics := rm.ScopeMetrics().At(0).Metrics()
 		for i := 0; i < metrics.Len(); i++ {
-			switch metrics.At(i).DataType() {
-			case pmetric.MetricDataTypeGauge:
+			switch metrics.At(i).Type() {
+			case pmetric.MetricTypeGauge:
 				dps = metrics.At(i).Gauge().DataPoints()
-			case pmetric.MetricDataTypeSum:
+			case pmetric.MetricTypeSum:
 				dps = metrics.At(i).Sum().DataPoints()
 			}
 			for j := 0; j < dps.Len(); j++ {

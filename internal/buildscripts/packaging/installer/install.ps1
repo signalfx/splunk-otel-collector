@@ -576,16 +576,11 @@ if ($with_dotnet_instrumentation) {
     } else {
         # signalfx-dotnet-tracing github repository API
         $api = "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
-
         # File pattern to search for
         $pattern = "signalfx-dotnet-tracing-*-x64.msi"
-
-        echo "Finding latest MSI to download ..."
+        echo "Finding latest .NET Instrumentation MSI to download ..."
         $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $pattern } | Select-Object -Property browser_download_url,name
-
-        # Download installer MSI to Temp
         $msi = Join-Path $env:temp $download.name
-        echo "Downloading $download.browser_download_url ..."
         Invoke-WebRequest -Uri $download.browser_download_url -OutFile $msi
     }
 

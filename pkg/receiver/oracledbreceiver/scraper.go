@@ -379,22 +379,6 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 	return out, nil
 }
 
-func (s *scraper) executeOneQuery(ctx context.Context, query string, recorder func(ts pcommon.Timestamp, val int64)) error {
-	client := s.clientProviderFunc(s.db, query, s.logger)
-	rows, err := client.metricRows(ctx)
-	if err != nil {
-		return fmt.Errorf("error executing %s: %w", query, err)
-	}
-	for _, row := range rows {
-		value, err := strconv.ParseInt(row["VALUE"], 10, 64)
-		if err != nil {
-			return fmt.Errorf("value: %s, %s, %w", row["VALUE"], query, err)
-		}
-		recorder(pcommon.NewTimestampFromTime(time.Now()), value)
-	}
-	return nil
-}
-
 func (s *scraper) executeOneQueryWithSessionID(ctx context.Context, query string, recorder func(ts pcommon.Timestamp, val int64, sessionID string)) error {
 	client := s.clientProviderFunc(s.db, query, s.logger)
 	rows, err := client.metricRows(ctx)

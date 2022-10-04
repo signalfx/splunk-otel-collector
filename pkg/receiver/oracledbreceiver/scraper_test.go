@@ -45,23 +45,57 @@ func TestScraper_Scrape(t *testing.T) {
 	metricsBuilder := metadata.NewMetricsBuilder(metadata.DefaultMetricsSettings(), component.NewDefaultBuildInfo())
 
 	createClient := func(sql string) dbClient {
+		var row map[string]string
 		switch sql {
-		case sessionUserCommitsSQL:
-			return &fakeDbClient{Responses: [][]metricRow{
-				{
-					{"value": "1"},
-				},
-			},
-			}
+		case queryCPUTimeSQL:
+			row = map[string]string{"VALUE": "1"}
+		case queryElapsedTimeSQL:
+			row = map[string]string{"VALUE": "1"}
+		case queryExecutionsTimeSQL:
+			row = map[string]string{"VALUE": "1"}
+		case queryParseCallsSQL:
+			row = map[string]string{"VALUE": "1"}
+		case queryPhysicalReadBytesSQL:
+			row = map[string]string{"VALUE": "1"}
+		case queryPhysicalReadRequestsSQL:
+			row = map[string]string{"VALUE": "1"}
+		case queryPhysicalWriteBytesSQL:
+			row = map[string]string{"VALUE": "1"}
+		case queryPhysicalWriteRequestsSQL:
+			row = map[string]string{"VALUE": "1"}
+		case queryTotalSharableMemSQL:
+			row = map[string]string{"VALUE": "1"}
+		case queryLongestRunningSQL:
+			row = map[string]string{"VALUE": "1"}
 		case sessionUsageSQL:
-			return &fakeDbClient{Responses: [][]metricRow{
-				{
-					{"cpu_usage": "45", "pga_memory": "3455", "physical_reads": "12344", "logical_reads": "345", "hard_parses": "346", "soft_parses": "7866"},
-				},
-			},
-			}
+			row = map[string]string{"CPU_USAGE": "45", "PGA_MEMORY": "3455", "PHYSICAL_READS": "12344", "LOGICAL_READS": "345", "HARD_PARSES": "346", "SOFT_PARSES": "7866"}
+		case sessionEnqueueDeadlocksSQL:
+			row = map[string]string{"VALUE": "1"}
+		case sessionExchangeDeadlocksSQL:
+			row = map[string]string{"VALUE": "1"}
+		case sessionExecuteCountSQL:
+			row = map[string]string{"VALUE": "1"}
+		case sessionParseCountTotalSQL:
+			row = map[string]string{"VALUE": "1"}
+		case sessionUserCommitsSQL:
+			row = map[string]string{"VALUE": "1"}
+		case sessionUserRollbacksSQL:
+			row = map[string]string{"VALUE": "1"}
+		case sessionCountSQL:
+			row = map[string]string{"VALUE": "1"}
+		case systemResourceLimitsSQL:
+			row = map[string]string{"RESOURCE_NAME": "processes", "CURRENT_UTILIZATION": "3", "MAX_UTILIZATION": "10", "INITIAL_ALLOCATION": "100", "LIMIT_VALUE": "100"}
+		case tablespaceUsageSQL:
+			row = map[string]string{"TABLESPACE_NAME": "SYS", "BYTES": "1024"}
+		case tablespaceMaxSpaceSQL:
+			row = map[string]string{"TABLESPACE_NAME": "SYS", "VALUE": "1024"}
 		}
-		return nil
+
+		return &fakeDbClient{Responses: [][]metricRow{
+			{
+				row,
+			},
+		}}
 	}
 
 	scrpr := scraper{
@@ -80,35 +114,5 @@ func TestScraper_Scrape(t *testing.T) {
 	require.NoError(t, err)
 	m, err := scrpr.Scrape(context.Background())
 	require.NoError(t, err)
-	assert.Equal(t, 23, m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().Len())
-	captured := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	assert.Equal(t, int64(1), captured.At(0).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, "oracledb.query.cpu_time", captured.At(0).Name())
-	assert.Equal(t, int64(2), captured.At(1).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(3), captured.At(2).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(4), captured.At(3).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(5), captured.At(4).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(6), captured.At(5).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(7), captured.At(6).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(8), captured.At(7).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(9), captured.At(8).Gauge().DataPoints().At(0).IntVal())
-	assert.Equal(t, "oracledb.query.total_sharable_mem", captured.At(8).Name())
-	assert.Equal(t, float64(45), captured.At(9).Gauge().DataPoints().At(0).DoubleVal())
-	assert.Equal(t, "oracledb.session.cpu_usage", captured.At(9).Name())
-	assert.Equal(t, "oracledb.session.enqueue_deadlocks", captured.At(10).Name())
-	assert.Equal(t, int64(10), captured.At(10).Gauge().DataPoints().At(0).IntVal())
-	assert.Equal(t, "oracledb.session.exchange_deadlocks", captured.At(11).Name())
-	assert.Equal(t, int64(11), captured.At(11).Gauge().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(12), captured.At(12).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(346), captured.At(13).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(345), captured.At(14).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(13), captured.At(15).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(3455), captured.At(16).Gauge().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(12344), captured.At(17).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(7866), captured.At(18).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(14), captured.At(19).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(15), captured.At(20).Sum().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(16), captured.At(21).Gauge().DataPoints().At(0).IntVal())
-	assert.Equal(t, int64(17), captured.At(22).Gauge().DataPoints().At(0).IntVal())
-
+	assert.Equal(t, 26, m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().Len())
 }

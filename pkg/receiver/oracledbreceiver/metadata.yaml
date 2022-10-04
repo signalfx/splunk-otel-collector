@@ -1,7 +1,4 @@
 attributes:
-  oracledb.query.fulltext:
-    description: Full text for the SQL statement.
-    type: string
   oracledb.query.id:
     description: Unique ID for the SQL statement.
   oracledb.session.id:

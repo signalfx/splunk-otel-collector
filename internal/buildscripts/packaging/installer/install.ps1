@@ -551,11 +551,6 @@ if ($with_fluentd) {
         $fluentd_msi_name = "td-agent.msi"
     }
 
-    if ($dotnet_tracing_msi_url) {
-        $dotnet_tracing_dl_url = dotnet_tracing_msi_url
-        $dotnet_tracing_msi_name = "signalfx-dotnet-tracing.msi"
-    }
-
     echo "Downloading $fluentd_dl_url..."
     download_file -url "$fluentd_dl_url" -outputDir "$tempdir" -fileName "$fluentd_msi_name"
     $fluentd_msi_path = (Join-Path "$tempdir" "$fluentd_msi_name")
@@ -572,42 +567,49 @@ if ($with_fluentd) {
 }
 
 if ($with_dotnet_instrumentation) {
-    echo "Installing SignalFx Instrumentation for .NET"
-    # signalfx-dotnet-tracing github repository API
-    $api = "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
+    echo "Installing SignalFx Instrumentation for .NET ..."
+    if ($dotnet_tracing_msi_url) {
+        $dotnet_tracing_msi_name = "signalfx-dotnet-tracing.msi"
+        echo "Downloading $dotnet_tracing_msi_url..."
+        download_file -url "$dotnet_tracing_msi_url" -outputDir "$tempdir" -fileName "$dotnet_tracing_msi_name"
+        $msi = (Join-Path "$tempdir" "$fluentd_msi_name")
+    } else {
+        # signalfx-dotnet-tracing github repository API
+        $api = "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
 
-    # File pattern to search for
-    $pattern = "signalfx-dotnet-tracing-*-x64.msi"
+        # File pattern to search for
+        $pattern = "signalfx-dotnet-tracing-*-x64.msi"
 
-    echo "Finding latest MSI to download"
-    $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $pattern } | Select-Object -Property browser_download_url,name
+        echo "Finding latest MSI to download ..."
+        $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $pattern } | Select-Object -Property browser_download_url,name
 
-    # Download installer MSI to Temp
-    $msi = Join-Path $env:temp $download.name
-    echo "Downloading $msi"
-    Invoke-WebRequest -Uri $download.browser_download_url -OutFile $msi
+        # Download installer MSI to Temp
+        $msi = Join-Path $env:temp $download.name
+        echo "Downloading $download.browser_download_url ..."
+        Invoke-WebRequest -Uri $download.browser_download_url -OutFile $msi
+    }
 
     # Install downloaded MSI
-    echo "Starting install process"
+    echo "Starting install process ..."
     Start-Process msiexec.exe -Wait -ArgumentList "/I $msi /quiet"
 
     # Cleanup
-    echo "Cleaning up"
+    echo "Cleaning up ..."
     Remove-Item $msi
 
-    echo "Setting environment variables for instrumentation"
+    echo "Setting environment variables for instrumentation ..."
     update_registry -path "$regkey" -name "COR_ENABLE_PROFILING" -value "1"
     update_registry -path "$regkey" -name "COR_PROFILER" -value "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
     update_registry -path "$regkey" -name "CORECLR_ENABLE_PROFILING" -value "1"
     update_registry -path "$regkey" -name "CORECLR_PROFILER" -value "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
 
     if ($signalfx_service_name -ne "") {
-        echo "Setting SIGNALFX_SERVICE_NAME environment variable to $signalfx_service_name"
+        echo "Setting SIGNALFX_SERVICE_NAME environment variable to $signalfx_service_name ..."
         update_registry -path "$regkey" -name "SIGNALFX_SERVICE_NAME" -value "$signalfx_service_name"
     }
 
     if ($signalfx_env -ne "") {
-        echo "Setting SIGNALFX_ENV environment variable to $signalfx_env"
+        echo "Setting SIGNALFX_ENV environment variable to $signalfx_env ..."
         update_registry -path "$regkey" -name "SIGNALFX_ENV" -value "$signalfx_env"
     } else {
         echo "SIGNALFX_ENV environment variable not set. Unless otherwise defined, will appear as 'unknown' in the UI."

@@ -121,7 +121,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 	}, r.logger)
 
 	if !r.config.acceptsEndpoints {
-		r.logger.Info("This Smart Agent monitor does not use Host/Port config fields. If either are set, they will be ignored.", zap.String("monitor_type", monitorType))
+		r.logger.Debug("This Smart Agent monitor does not use Host/Port config fields. If either are set, they will be ignored.", zap.String("monitor_type", monitorType))
 	}
 	r.monitor, err = r.createMonitor(monitorType, host)
 	if err != nil {

@@ -101,10 +101,10 @@
     (OPTIONAL) Specify the URL to the Fluentd MSI package to install (default: "https://packages.treasuredata.com/4/windows/td-agent-4.1.0-x64.msi")
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -fluentd_msi_url https://my.host/td-agent-4.1.0-x64.msi
-.PARAMETER dotnet_tracing_msi_url
-    (OPTIONAL) Specify the URL to the SignalFx .NET Tracing MSI package to install (default: "https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/v0.2.9/signalfx-dotnet-tracing-0.2.9-x64.msi")
+.PARAMETER dotnet_instrumentation_msi_url
+    (OPTIONAL) Specify the URL to the SignalFx .NET Instrumentation MSI package to install (default: "https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/v0.2.9/signalfx-dotnet-tracing-0.2.9-x64.msi")
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -dotnet_tracing_msi_url https://my.host/signalfx-dotnet-tracing-0.2.9-x64.msi
+    .\install.ps1 -access_token "ACCESSTOKEN" -dotnet_instrumentation_msi_url https://my.host/signalfx-dotnet-tracing-0.2.9-x64.msi
 .PARAMETER msi_path
     (OPTIONAL) Specify a local path to a Splunk OpenTelemetry Collector MSI package to install instead of downloading the package.
     If specified, the -collector_version and -stage parameters will be ignored.
@@ -568,10 +568,10 @@ if ($with_fluentd) {
 
 if ($with_dotnet_instrumentation) {
     echo "Installing SignalFx Instrumentation for .NET ..."
-    if ($dotnet_tracing_msi_url) {
+    if ($dotnet_instrumentation_msi_url) {
         $dotnet_tracing_msi_name = "signalfx-dotnet-tracing.msi"
-        echo "Downloading $dotnet_tracing_msi_url..."
-        download_file -url "$dotnet_tracing_msi_url" -outputDir "$tempdir" -fileName "$dotnet_tracing_msi_name"
+        echo "Downloading $dotnet_instrumentation_msi_url..."
+        download_file -url "$dotnet_instrumentation_msi_url" -outputDir "$tempdir" -fileName "$dotnet_tracing_msi_name"
         $msi = (Join-Path "$tempdir" "$fluentd_msi_name")
     } else {
         # signalfx-dotnet-tracing github repository API
@@ -656,8 +656,8 @@ restarted to apply the changes by restarting the system or running the following
 
 if ($with_dotnet_instrumentation) {
     $message = "
-SignalFx .NET Tracing has been installed and configured to forward traces to the Splunk OpenTelemetry Collector.
-By default, .NET Tracing will automatically generate traces for popular .NET libraries.
+SignalFx .NET Instrumentation has been installed and configured to forward traces to the Splunk OpenTelemetry Collector.
+By default, .NET Instrumentation will automatically generate traces for popular .NET libraries.
 "
     echo "$message"
 }

@@ -19,6 +19,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"go.opentelemetry.io/collector/receiver/scrapererror"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -41,62 +42,32 @@ func TestScraper_ErrorOnStart(t *testing.T) {
 	require.Error(t, err)
 }
 
+var queryResponses = map[string]map[string]string{
+	queryCPUTimeSQL:               {"VALUE": "1"},
+	queryElapsedTimeSQL:           {"VALUE": "1"},
+	queryExecutionsTimeSQL:        {"VALUE": "1"},
+	queryParseCallsSQL:            {"VALUE": "1"},
+	queryPhysicalReadBytesSQL:     {"VALUE": "1"},
+	queryPhysicalReadRequestsSQL:  {"VALUE": "1"},
+	queryPhysicalWriteBytesSQL:    {"VALUE": "1"},
+	queryPhysicalWriteRequestsSQL: {"VALUE": "1"},
+	queryTotalSharableMemSQL:      {"VALUE": "1"},
+	queryLongestRunningSQL:        {"VALUE": "1"},
+	sessionUsageSQL:               {"CPU_USAGE": "45", "PGA_MEMORY": "3455", "PHYSICAL_READS": "12344", "LOGICAL_READS": "345", "HARD_PARSES": "346", "SOFT_PARSES": "7866"},
+	sessionEnqueueDeadlocksSQL:    {"VALUE": "1"},
+	sessionExchangeDeadlocksSQL:   {"VALUE": "1"},
+	sessionExecuteCountSQL:        {"VALUE": "1"},
+	sessionParseCountTotalSQL:     {"VALUE": "1"},
+	sessionUserCommitsSQL:         {"VALUE": "1"},
+	sessionUserRollbacksSQL:       {"VALUE": "1"},
+	sessionCountSQL:               {"VALUE": "1"},
+	systemResourceLimitsSQL:       {"RESOURCE_NAME": "processes", "CURRENT_UTILIZATION": "3", "MAX_UTILIZATION": "10", "INITIAL_ALLOCATION": "100", "LIMIT_VALUE": "100"},
+	tablespaceUsageSQL:            {"TABLESPACE_NAME": "SYS", "BYTES": "1024"},
+	tablespaceMaxSpaceSQL:         {"TABLESPACE_NAME": "SYS", "VALUE": "1024"},
+}
+
 func TestScraper_Scrape(t *testing.T) {
 	metricsBuilder := metadata.NewMetricsBuilder(metadata.DefaultMetricsSettings(), component.NewDefaultBuildInfo())
-
-	createClient := func(sql string) dbClient {
-		var row map[string]string
-		switch sql {
-		case queryCPUTimeSQL:
-			row = map[string]string{"VALUE": "1"}
-		case queryElapsedTimeSQL:
-			row = map[string]string{"VALUE": "1"}
-		case queryExecutionsTimeSQL:
-			row = map[string]string{"VALUE": "1"}
-		case queryParseCallsSQL:
-			row = map[string]string{"VALUE": "1"}
-		case queryPhysicalReadBytesSQL:
-			row = map[string]string{"VALUE": "1"}
-		case queryPhysicalReadRequestsSQL:
-			row = map[string]string{"VALUE": "1"}
-		case queryPhysicalWriteBytesSQL:
-			row = map[string]string{"VALUE": "1"}
-		case queryPhysicalWriteRequestsSQL:
-			row = map[string]string{"VALUE": "1"}
-		case queryTotalSharableMemSQL:
-			row = map[string]string{"VALUE": "1"}
-		case queryLongestRunningSQL:
-			row = map[string]string{"VALUE": "1"}
-		case sessionUsageSQL:
-			row = map[string]string{"CPU_USAGE": "45", "PGA_MEMORY": "3455", "PHYSICAL_READS": "12344", "LOGICAL_READS": "345", "HARD_PARSES": "346", "SOFT_PARSES": "7866"}
-		case sessionEnqueueDeadlocksSQL:
-			row = map[string]string{"VALUE": "1"}
-		case sessionExchangeDeadlocksSQL:
-			row = map[string]string{"VALUE": "1"}
-		case sessionExecuteCountSQL:
-			row = map[string]string{"VALUE": "1"}
-		case sessionParseCountTotalSQL:
-			row = map[string]string{"VALUE": "1"}
-		case sessionUserCommitsSQL:
-			row = map[string]string{"VALUE": "1"}
-		case sessionUserRollbacksSQL:
-			row = map[string]string{"VALUE": "1"}
-		case sessionCountSQL:
-			row = map[string]string{"VALUE": "1"}
-		case systemResourceLimitsSQL:
-			row = map[string]string{"RESOURCE_NAME": "processes", "CURRENT_UTILIZATION": "3", "MAX_UTILIZATION": "10", "INITIAL_ALLOCATION": "100", "LIMIT_VALUE": "100"}
-		case tablespaceUsageSQL:
-			row = map[string]string{"TABLESPACE_NAME": "SYS", "BYTES": "1024"}
-		case tablespaceMaxSpaceSQL:
-			row = map[string]string{"TABLESPACE_NAME": "SYS", "VALUE": "1024"}
-		}
-
-		return &fakeDbClient{Responses: [][]metricRow{
-			{
-				row,
-			},
-		}}
-	}
 
 	scrpr := scraper{
 		logger:         zap.NewNop(),
@@ -105,7 +76,11 @@ func TestScraper_Scrape(t *testing.T) {
 			return nil, nil
 		},
 		clientProviderFunc: func(db *sql.DB, s string, logger *zap.Logger) dbClient {
-			return createClient(s)
+			return &fakeDbClient{Responses: [][]metricRow{
+				{
+					queryResponses[s],
+				},
+			}}
 		},
 		id:              config.ComponentID{},
 		metricsSettings: metadata.DefaultMetricsSettings(),
@@ -115,4 +90,39 @@ func TestScraper_Scrape(t *testing.T) {
 	m, err := scrpr.Scrape(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, 26, m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().Len())
+}
+
+func TestPartial_InvalidScrape(t *testing.T) {
+	metricsBuilder := metadata.NewMetricsBuilder(metadata.DefaultMetricsSettings(), component.NewDefaultBuildInfo())
+
+	scrpr := scraper{
+		logger:         zap.NewNop(),
+		metricsBuilder: metricsBuilder,
+		dbProviderFunc: func() (*sql.DB, error) {
+			return nil, nil
+		},
+		clientProviderFunc: func(db *sql.DB, s string, logger *zap.Logger) dbClient {
+			if s == tablespaceUsageSQL {
+				return &fakeDbClient{Responses: [][]metricRow{
+					{
+						{},
+					},
+				}}
+			} else {
+				return &fakeDbClient{Responses: [][]metricRow{
+					{
+						queryResponses[s],
+					},
+				}}
+			}
+		},
+		id:              config.ComponentID{},
+		metricsSettings: metadata.DefaultMetricsSettings(),
+	}
+	err := scrpr.Start(context.Background(), componenttest.NewNopHost())
+	require.NoError(t, err)
+	_, err = scrpr.Scrape(context.Background())
+	require.Error(t, err)
+	require.True(t, scrapererror.IsPartialScrapeError(err))
+	require.EqualError(t, err, `bytes for "": "", select TABLESPACE_NAME, BYTES from DBA_DATA_FILES, strconv.ParseInt: parsing "": invalid syntax`)
 }

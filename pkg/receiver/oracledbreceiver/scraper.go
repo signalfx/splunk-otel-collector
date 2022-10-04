@@ -19,6 +19,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"go.opentelemetry.io/collector/receiver/scrapererror"
 	"strconv"
 	"strings"
 	"time"
@@ -374,7 +375,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 	out := s.metricsBuilder.Emit(metadata.WithOracledbInstanceName(s.instanceName))
 	s.logger.Debug("Done scraping")
 	if len(scrapeErrors) > 0 {
-		return out, multierr.Combine(scrapeErrors...)
+		return out, scrapererror.NewPartialScrapeError(multierr.Combine(scrapeErrors...), len(scrapeErrors))
 	}
 	return out, nil
 }

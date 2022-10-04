@@ -26,7 +26,8 @@ func TestTelegrafSQLServerReceiverProvidesAllMetrics(t *testing.T) {
 		path.Join(".", "testdata", "server"),
 	).WithExposedPorts("1433:1433").WithName("sql-server").WithNetworks(
 		"mssql",
-	).WillWaitForPorts("1433").WillWaitForLogs("SQL Server is now ready for client connections.")
+	).WillWaitForPorts("1433").WillWaitForLogs(
+		"SQL Server is now ready for client connections.", "Recovery is complete.")
 
 	client := testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "client"),

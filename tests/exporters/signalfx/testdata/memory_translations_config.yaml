@@ -1,0 +1,26 @@
+receivers:
+  hostmetrics:
+    collection_interval: 1s
+    scrapers:
+      memory:
+  signalfx:
+    endpoint: 127.0.0.1:9943
+
+exporters:
+  signalfx:
+    access_token: token
+    ingest_url: http://127.0.0.1:9943
+    api_url: http://127.0.0.1:9943
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics/in:
+      receivers: [hostmetrics]
+      exporters: [signalfx]
+    metrics/out:
+      receivers: [signalfx]
+      exporters: [otlp]

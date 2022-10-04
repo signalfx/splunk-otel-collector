@@ -1,0 +1,9 @@
+resource_metrics:
+  - instrumentation_library_metrics:
+      - metrics:
+          - name: cpu.utilization
+            type: DoubleGauge
+          - name: cpu.num_processors
+            type: IntGauge
+          - name: cpu.idle
+            type: IntMonotonicCumulativeSum

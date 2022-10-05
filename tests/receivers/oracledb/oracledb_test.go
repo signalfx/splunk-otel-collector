@@ -17,13 +17,13 @@ package tests
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"path"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"

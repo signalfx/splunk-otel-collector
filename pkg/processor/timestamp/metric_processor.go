@@ -16,6 +16,7 @@ package timestamp
 
 import (
 	"context"
+	"fmt"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -79,6 +80,8 @@ func newMetricAttributesProcessor(_ *zap.Logger, offsetFn func(timestamp pcommon
 							dp.SetStartTimestamp(offsetFn(dp.StartTimestamp()))
 							dp.SetTimestamp(offsetFn(dp.Timestamp()))
 						}
+					default:
+						return pmetric.Metrics{}, fmt.Errorf("unsupported metric type: %v", metric.Type())
 					}
 				}
 			}

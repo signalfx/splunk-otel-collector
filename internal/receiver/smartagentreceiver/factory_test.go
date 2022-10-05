@@ -139,9 +139,9 @@ func TestCreateMetricsThenLogsAndThenTracesReceiver(t *testing.T) {
 	assert.Same(t, logsReceiver, tracesReceiver)
 	assert.Same(t, metricsReceiver, receiverStore[cfg.(*Config)])
 
-	assert.Same(t, nextMetricsConsumer, metricsReceiver.(*Receiver).nextMetricsConsumer)
-	assert.Same(t, nextLogsConsumer, metricsReceiver.(*Receiver).nextLogsConsumer)
-	assert.Same(t, nextTracesConsumer, metricsReceiver.(*Receiver).nextTracesConsumer)
+	assert.Same(t, nextMetricsConsumer, metricsReceiver.(*receiver).nextMetricsConsumer)
+	assert.Same(t, nextLogsConsumer, metricsReceiver.(*receiver).nextLogsConsumer)
+	assert.Same(t, nextTracesConsumer, metricsReceiver.(*receiver).nextTracesConsumer)
 }
 
 func TestCreateTracesThenLogsAndThenMetricsReceiver(t *testing.T) {
@@ -169,7 +169,7 @@ func TestCreateTracesThenLogsAndThenMetricsReceiver(t *testing.T) {
 	assert.Same(t, logsReceiver, tracesReceiver)
 	assert.Same(t, metricsReceiver, receiverStore[cfg.(*Config)])
 
-	assert.Same(t, nextMetricsConsumer, metricsReceiver.(*Receiver).nextMetricsConsumer)
-	assert.Same(t, nextLogsConsumer, metricsReceiver.(*Receiver).nextLogsConsumer)
-	assert.Same(t, nextTracesConsumer, metricsReceiver.(*Receiver).nextTracesConsumer)
+	assert.Same(t, nextMetricsConsumer, metricsReceiver.(*receiver).nextMetricsConsumer)
+	assert.Same(t, nextLogsConsumer, metricsReceiver.(*receiver).nextLogsConsumer)
+	assert.Same(t, nextTracesConsumer, metricsReceiver.(*receiver).nextTracesConsumer)
 }

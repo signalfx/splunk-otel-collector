@@ -40,10 +40,10 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 )
 
-const setOutputErrMsg = "unable to set Output field of monitor"
+const setOutputErrMsg = "unable to set output field of monitor"
 const systemTypeKey = "system.type"
 
-type Receiver struct {
+type receiver struct {
 	monitor             any
 	nextMetricsConsumer consumer.Metrics
 	nextLogsConsumer    consumer.Logs
@@ -54,7 +54,7 @@ type Receiver struct {
 	sync.Mutex
 }
 
-var _ component.MetricsReceiver = (*Receiver)(nil)
+var _ component.MetricsReceiver = (*receiver)(nil)
 
 var (
 	saConfig                 *saconfig.Config
@@ -65,33 +65,33 @@ var (
 	configureLogrusOnce      sync.Once
 )
 
-func NewReceiver(params component.ReceiverCreateSettings, config Config) *Receiver {
-	return &Receiver{
+func newReceiver(params component.ReceiverCreateSettings, config Config) *receiver {
+	return &receiver{
 		logger: params.Logger,
 		params: params,
 		config: &config,
 	}
 }
 
-func (r *Receiver) registerMetricsConsumer(metricsConsumer consumer.Metrics) {
+func (r *receiver) registerMetricsConsumer(metricsConsumer consumer.Metrics) {
 	r.Lock()
 	defer r.Unlock()
 	r.nextMetricsConsumer = metricsConsumer
 }
 
-func (r *Receiver) registerLogsConsumer(logsConsumer consumer.Logs) {
+func (r *receiver) registerLogsConsumer(logsConsumer consumer.Logs) {
 	r.Lock()
 	defer r.Unlock()
 	r.nextLogsConsumer = logsConsumer
 }
 
-func (r *Receiver) registerTracesConsumer(tracesConsumer consumer.Traces) {
+func (r *receiver) registerTracesConsumer(tracesConsumer consumer.Traces) {
 	r.Lock()
 	defer r.Unlock()
 	r.nextTracesConsumer = tracesConsumer
 }
 
-func (r *Receiver) Start(_ context.Context, host component.Host) error {
+func (r *receiver) Start(_ context.Context, host component.Host) error {
 	// subsequent Start() invocations should noop
 	if r.monitor != nil {
 		return nil
@@ -133,7 +133,7 @@ func (r *Receiver) Start(_ context.Context, host component.Host) error {
 	return saconfig.CallConfigure(r.monitor, r.config.monitorConfig)
 }
 
-func (r *Receiver) Shutdown(context.Context) error {
+func (r *receiver) Shutdown(context.Context) error {
 	if r.monitor == nil {
 		return fmt.Errorf("smartagentreceiver's Shutdown() called before Start() or with invalid monitor state")
 	} else if shutdownable, ok := (r.monitor).(monitors.Shutdownable); !ok {
@@ -144,7 +144,7 @@ func (r *Receiver) Shutdown(context.Context) error {
 	return nil
 }
 
-func (r *Receiver) createMonitor(monitorType string, host component.Host) (monitor any, err error) {
+func (r *receiver) createMonitor(monitorType string, host component.Host) (monitor any, err error) {
 	// retrieve registered MonitorFactory from agent's registration store
 	monitorFactory, ok := monitors.MonitorFactories[monitorType]
 	if !ok {
@@ -166,10 +166,10 @@ func (r *Receiver) createMonitor(monitorType string, host component.Host) (monit
 		return nil, err
 	}
 
-	output := NewOutput(
+	output := newOutput(
 		*r.config, monitorFiltering, r.nextMetricsConsumer, r.nextLogsConsumer, r.nextTracesConsumer, host, r.params,
 	)
-	set, err := SetStructFieldWithExplicitType(
+	set, err := setStructFieldWithExplicitType(
 		monitor, "Output", output,
 		reflect.TypeOf((*types.Output)(nil)).Elem(),
 		reflect.TypeOf((*types.FilteringOutput)(nil)).Elem(),
@@ -212,7 +212,7 @@ func stripMonitorTypePrefix(s string) string {
 	return s[idx+1:]
 }
 
-func (r *Receiver) setUpSmartAgentConfigProvider(extensions map[config.ComponentID]component.Extension) {
+func (r *receiver) setUpSmartAgentConfigProvider(extensions map[config.ComponentID]component.Extension) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
 	saConfig = &f.CreateDefaultConfig().(*smartagentextension.Config).Config

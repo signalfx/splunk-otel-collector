@@ -94,7 +94,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 10)
 	consumer := new(consumertest.MetricsSink)
-	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings(), cfg)
 	receiver.registerMetricsConsumer(consumer)
 
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
@@ -105,7 +105,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 	require.True(t, isMonitor)
 
 	monitorOutput := monitor.Output
-	_, isOutput := monitorOutput.(*Output)
+	_, isOutput := monitorOutput.(*output)
 	assert.True(t, isOutput)
 
 	assert.Eventuallyf(t, func() bool {
@@ -184,7 +184,7 @@ func TestStripMonitorTypePrefix(t *testing.T) {
 func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("invalid", "cpu", -123)
-	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings(), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	assert.EqualError(t, err,
 		"config validation failed for \"smartagent/invalid\": intervalSeconds must be greater than 0s (-123 provided)",
@@ -194,7 +194,7 @@ func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("invalid", "notamonitortype", 1)
-	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings(), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	assert.EqualError(t, err,
 		"failed creating monitor \"notamonitortype\": unable to find MonitorFactory for \"notamonitortype\"",
@@ -204,7 +204,7 @@ func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 func TestStartAndShutdown(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
-	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings(), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
@@ -215,7 +215,7 @@ func TestStartAndShutdown(t *testing.T) {
 func TestOutOfOrderShutdownInvocations(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
-	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings(), cfg)
 
 	err := receiver.Shutdown(context.Background())
 	require.Error(t, err)
@@ -227,14 +227,14 @@ func TestOutOfOrderShutdownInvocations(t *testing.T) {
 func TestMultipleInstacesOfSameMonitorType(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
-	fstRcvr := NewReceiver(newReceiverCreateSettings(), cfg)
+	fstRcvr := newReceiver(newReceiverCreateSettings(), cfg)
 
 	ctx := context.Background()
 	mh := internaltest.NewAssertNoErrorHost(t)
 	require.NoError(t, fstRcvr.Start(ctx, mh))
 	require.NoError(t, fstRcvr.Shutdown(ctx))
 
-	sndRcvr := NewReceiver(newReceiverCreateSettings(), cfg)
+	sndRcvr := newReceiver(newReceiverCreateSettings(), cfg)
 	assert.NoError(t, sndRcvr.Start(ctx, mh))
 	assert.NoError(t, sndRcvr.Shutdown(ctx))
 }
@@ -242,7 +242,7 @@ func TestMultipleInstacesOfSameMonitorType(t *testing.T) {
 func TestInvalidMonitorStateAtShutdown(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
-	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings(), cfg)
 	receiver.monitor = new(any)
 
 	err := receiver.Shutdown(context.Background())
@@ -270,11 +270,11 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 			monitors.MonitorMetadatas["notarealmonitor"] = &monitors.Metadata{MonitorType: "notarealmonitor"}
 
 			cfg := newConfig("invalid", "notarealmonitor", 123)
-			receiver := NewReceiver(newReceiverCreateSettings(), cfg)
+			receiver := newReceiver(newReceiverCreateSettings(), cfg)
 			err := receiver.Start(context.Background(), componenttest.NewNopHost())
 			require.Error(tt, err)
 			assert.Contains(tt, err.Error(),
-				fmt.Sprintf("failed creating monitor \"notarealmonitor\": unable to set Output field of monitor%s", test.expectedError),
+				fmt.Sprintf("failed creating monitor \"notarealmonitor\": unable to set output field of monitor%s", test.expectedError),
 			)
 		})
 	}
@@ -284,7 +284,7 @@ func TestFilteringNoMetadata(t *testing.T) {
 	t.Cleanup(cleanUp)
 	monitors.MonitorFactories["fakemonitor"] = func() any { return struct{}{} }
 	cfg := newConfig("valid", "fakemonitor", 1)
-	receiver := NewReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings(), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.EqualError(t, err, "failed creating monitor \"fakemonitor\": could not find monitor metadata of type fakemonitor")
 }
@@ -296,7 +296,7 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	logger := zap.New(observedLogger)
 	rcs := newReceiverCreateSettings()
 	rcs.Logger = logger
-	r := NewReceiver(rcs, cfg)
+	r := newReceiver(rcs, cfg)
 
 	configs := getSmartAgentExtensionConfig(t)
 	host := &mockHost{

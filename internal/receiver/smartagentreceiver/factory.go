@@ -31,10 +31,10 @@ var (
 	// Smart Agent receivers can be for metrics or logs (events).
 	// We keep store of them to ensure the same instance is used for a given config.
 	receiverStoreLock = sync.Mutex{}
-	receiverStore     = map[*Config]*Receiver{}
+	receiverStore     = map[*Config]*receiver{}
 )
 
-func getOrCreateReceiver(cfg config.Receiver, params component.ReceiverCreateSettings) (*Receiver, error) {
+func getOrCreateReceiver(cfg config.Receiver, params component.ReceiverCreateSettings) (*receiver, error) {
 	receiverStoreLock.Lock()
 	defer receiverStoreLock.Unlock()
 	receiverConfig := cfg.(*Config)
@@ -46,7 +46,7 @@ func getOrCreateReceiver(cfg config.Receiver, params component.ReceiverCreateSet
 
 	receiver, ok := receiverStore[receiverConfig]
 	if !ok {
-		receiver = NewReceiver(params, *receiverConfig)
+		receiver = newReceiver(params, *receiverConfig)
 		receiverStore[receiverConfig] = receiver
 	}
 

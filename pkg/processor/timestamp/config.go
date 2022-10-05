@@ -43,7 +43,7 @@ func (cfg *Config) Validate() error {
 		return errorInvalidOffsetFormat
 	}
 	_, err := time.ParseDuration(cfg.Offset[1:])
-	return err
+	return fmt.Errorf("invalid offset format %s: %w", cfg.Offset, err)
 }
 
 func (cfg *Config) offsetFn() func(pcommon.Timestamp) pcommon.Timestamp {

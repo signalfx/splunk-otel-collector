@@ -24,12 +24,12 @@ import (
 )
 
 const (
-	// SFxEventCategoryKey key for splunk event category,
-	SFxEventCategoryKey = "com.splunk.signalfx.event_category"
-	// SFxEventPropertiesKey key for splunk event properties.
-	SFxEventPropertiesKey = "com.splunk.signalfx.event_properties"
-	// SFxEventType key for splunk event type
-	SFxEventType = "com.splunk.signalfx.event_type"
+	// sfxEventCategoryKey key for splunk event category,
+	sfxEventCategoryKey = "com.splunk.signalfx.event_category"
+	// sfxEventPropertiesKey key for splunk event properties.
+	sfxEventPropertiesKey = "com.splunk.signalfx.event_properties"
+	// sfxEventType key for splunk event type
+	sfxEventType = "com.splunk.signalfx.event_type"
 )
 
 // eventToLog converts a SFx event to a plog.Logs entry suitable for consumption by LogConsumer.
@@ -58,17 +58,17 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) plog.Logs {
 
 	if event.Category == 0 {
 		// This attribute must be present or SFx exporter will not know it's an event
-		attrs.PutEmpty(SFxEventCategoryKey)
+		attrs.PutEmpty(sfxEventCategoryKey)
 	} else {
-		attrs.PutInt(SFxEventCategoryKey, int64(event.Category))
+		attrs.PutInt(sfxEventCategoryKey, int64(event.Category))
 	}
 
 	if event.EventType != "" {
-		attrs.PutString(SFxEventType, event.EventType)
+		attrs.PutString(sfxEventType, event.EventType)
 	}
 
 	if len(event.Properties) > 0 {
-		propMap := attrs.PutEmptyMap(SFxEventPropertiesKey)
+		propMap := attrs.PutEmptyMap(sfxEventPropertiesKey)
 		propMap.EnsureCapacity(len(event.Properties))
 
 		for property, value := range event.Properties {

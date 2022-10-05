@@ -47,11 +47,13 @@ func TestConfig(t *testing.T) {
 	assert.Equal(t, r0, createDefaultConfig())
 
 	r1 := cfg.Processors[config.NewComponentIDWithName(typeStr, "add2h")].(*Config)
-	offset1 := r1.offsetFn()(ts)
+	offset, _ := time.ParseDuration(r1.Offset)
+	offset1 := offsetFn(offset)(ts)
 	require.Equal(t, now.Add(2*time.Hour), offset1.AsTime())
 
 	r2 := cfg.Processors[config.NewComponentIDWithName(typeStr, "remove3h")].(*Config)
-	offset2 := r2.offsetFn()(ts)
+	offset, _ = time.ParseDuration(r2.Offset)
+	offset2 := offsetFn(offset)(ts)
 	require.Equal(t, now.Add(-3*time.Hour), offset2.AsTime())
 }
 
@@ -61,6 +63,7 @@ func TestOffsetFnZero(t *testing.T) {
 	}
 	zeroTime := time.Time{}
 	require.True(t, zeroTime.IsZero())
-	result := r1.offsetFn()(pcommon.Timestamp(uint64(0)))
+	offset, _ := time.ParseDuration(r1.Offset)
+	result := offsetFn(offset)(pcommon.Timestamp(uint64(0)))
 	require.Equal(t, pcommon.Timestamp(uint64(0)), result)
 }

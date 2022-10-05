@@ -16,6 +16,7 @@ package timestamp
 
 import (
 	"context"
+	"time"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -46,7 +47,7 @@ func NewFactory() component.ProcessorFactory {
 func createDefaultConfig() config.Processor {
 	return &Config{
 		ProcessorSettings: config.NewProcessorSettings(config.NewComponentID(typeStr)),
-		Offset:            "+0h",
+		Offset:            "0h",
 	}
 }
 
@@ -57,13 +58,14 @@ func createTracesProcessor(
 	nextConsumer consumer.Traces,
 ) (component.TracesProcessor, error) {
 	oCfg := cfg.(*Config)
+	offset, _ := time.ParseDuration(oCfg.Offset)
 
 	return processorhelper.NewTracesProcessor(
 		ctx,
 		set,
 		cfg,
 		nextConsumer,
-		newSpanAttributesProcessor(set.Logger, oCfg.offsetFn()),
+		newSpanAttributesProcessor(set.Logger, offsetFn(offset)),
 		processorhelper.WithCapabilities(processorCapabilities))
 }
 
@@ -74,13 +76,14 @@ func createLogsProcessor(
 	nextConsumer consumer.Logs,
 ) (component.LogsProcessor, error) {
 	oCfg := cfg.(*Config)
+	offset, _ := time.ParseDuration(oCfg.Offset)
 
 	return processorhelper.NewLogsProcessor(
 		ctx,
 		set,
 		cfg,
 		nextConsumer,
-		newLogAttributesProcessor(set.Logger, oCfg.offsetFn()),
+		newLogAttributesProcessor(set.Logger, offsetFn(offset)),
 		processorhelper.WithCapabilities(processorCapabilities))
 }
 
@@ -91,12 +94,13 @@ func createMetricsProcessor(
 	nextConsumer consumer.Metrics,
 ) (component.MetricsProcessor, error) {
 	oCfg := cfg.(*Config)
-
+	offset, _ := time.ParseDuration(oCfg.Offset)
+	
 	return processorhelper.NewMetricsProcessor(
 		ctx,
 		set,
 		cfg,
 		nextConsumer,
-		newMetricAttributesProcessor(set.Logger, oCfg.offsetFn()),
+		newMetricAttributesProcessor(set.Logger, offsetFn(offset)),
 		processorhelper.WithCapabilities(processorCapabilities))
 }

@@ -15,7 +15,7 @@
 package timestamp
 
 import (
-	"errors"
+	"fmt"
 	"time"
 
 	"go.opentelemetry.io/collector/config"
@@ -24,10 +24,6 @@ import (
 
 const (
 	zeroTs = pcommon.Timestamp(0)
-)
-
-var (
-	errorInvalidOffsetFormat = errors.New("invalid offset format")
 )
 
 type Config struct {
@@ -39,27 +35,20 @@ var _ config.Processor = (*Config)(nil)
 
 // Validate checks if the processor configuration is valid
 func (cfg *Config) Validate() error {
-	if cfg.Offset[0] != '-' && cfg.Offset[0] != '+' {
-		return errorInvalidOffsetFormat
+	_, err := time.ParseDuration(cfg.Offset)
+	if err != nil {
+		return fmt.Errorf("invalid offset format %s: %w", cfg.Offset, err)
 	}
-	_, err := time.ParseDuration(cfg.Offset[1:])
-	return fmt.Errorf("invalid offset format %s: %w", cfg.Offset, err)
+	return nil
 }
 
-func (cfg *Config) offsetFn() func(pcommon.Timestamp) pcommon.Timestamp {
-	backwards := cfg.Offset[0] == '-'
-	interval, _ := time.ParseDuration(cfg.Offset[1:])
+func offsetFn(offset time.Duration) func(pcommon.Timestamp) pcommon.Timestamp {
 	return func(ts pcommon.Timestamp) pcommon.Timestamp {
 		if ts == zeroTs {
 			return ts
 		}
 		t := ts.AsTime()
-
-		if backwards {
-			t = t.Add(-1 * interval)
-		} else {
-			t = t.Add(interval)
-		}
+		t = t.Add(offset)
 		return pcommon.NewTimestampFromTime(t)
 	}
 }

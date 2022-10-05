@@ -1,9 +1,9 @@
 processors:
   timestamp:
-    offset: "+0h"
+    offset: "0h"
 
   timestamp/add2h:
-    offset: "+2h"
+    offset: "2h"
 
   timestamp/remove3h:
     offset: "-3h"

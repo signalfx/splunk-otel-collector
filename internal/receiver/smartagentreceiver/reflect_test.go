@@ -47,14 +47,14 @@ func TestGetSettableStructFieldValue(t *testing.T) {
 		},
 		YetAnotherThing: "yet another thing",
 	}
-	fieldValue, err := GetSettableStructFieldValue(envelope, "Thing", stringType)
+	fieldValue, err := getSettableStructFieldValue(envelope, "Thing", stringType)
 	require.NoError(t, err)
 	require.NotNil(t, fieldValue)
 	require.Equal(t, "thing", fieldValue.String())
 	fieldValue.Set(reflect.ValueOf("something else"))
 	require.Equal(t, "something else", envelope.Thing)
 
-	fieldValue, err = GetSettableStructFieldValue(envelope, "AnotherThing", stringType)
+	fieldValue, err = getSettableStructFieldValue(envelope, "AnotherThing", stringType)
 	require.NoError(t, err)
 	require.NotNil(t, fieldValue)
 	require.Equal(t, "another thing", fieldValue.String())
@@ -62,11 +62,11 @@ func TestGetSettableStructFieldValue(t *testing.T) {
 	require.Equal(t, "used to be 'another thing'", envelope.AnotherThing)
 
 	// Envelope isn't addressable so its exported fields cannot be set
-	fieldValue, err = GetSettableStructFieldValue(*envelope, "YetAnotherThing", stringType)
+	fieldValue, err = getSettableStructFieldValue(*envelope, "YetAnotherThing", stringType)
 	require.NoError(t, err)
 	require.Nil(t, fieldValue)
 
-	fieldValue, err = GetSettableStructFieldValue(envelope, "YetAnotherThing", stringType)
+	fieldValue, err = getSettableStructFieldValue(envelope, "YetAnotherThing", stringType)
 	require.NoError(t, err)
 	require.NotNil(t, fieldValue)
 	require.Equal(t, "yet another thing", fieldValue.String())
@@ -76,7 +76,7 @@ func TestGetSettableStructFieldValue(t *testing.T) {
 
 func TestSetStructFieldWithExplicitType(t *testing.T) {
 	envelope := &Envelope{YetAnotherThing: "not zero value"}
-	set, err := SetStructFieldWithExplicitType(
+	set, err := setStructFieldWithExplicitType(
 		envelope, "YetAnotherThing", "desired value",
 		reflect.TypeOf(nil), reflect.TypeOf(1), stringType, reflect.TypeOf(struct{}{}),
 	)
@@ -84,7 +84,7 @@ func TestSetStructFieldWithExplicitType(t *testing.T) {
 	require.True(t, set)
 	require.Equal(t, "desired value", envelope.YetAnotherThing)
 
-	set, err = SetStructFieldWithExplicitType(
+	set, err = setStructFieldWithExplicitType(
 		envelope, "Thing", "another desired value",
 		reflect.TypeOf(nil), reflect.TypeOf(1), stringType, reflect.TypeOf(struct{}{}),
 	)
@@ -95,12 +95,12 @@ func TestSetStructFieldWithExplicitType(t *testing.T) {
 
 func TestSetStructFieldWithZeroValue(t *testing.T) {
 	envelope := &Envelope{YetAnotherThing: "not zero value"}
-	set, err := SetStructFieldIfZeroValue(envelope, "Thing", "desired value")
+	set, err := setStructFieldIfZeroValue(envelope, "Thing", "desired value")
 	require.NoError(t, err)
 	require.True(t, set)
 	require.Equal(t, "desired value", envelope.Thing)
 
-	set, err = SetStructFieldIfZeroValue(envelope, "YetAnotherThing", "should not take")
+	set, err = setStructFieldIfZeroValue(envelope, "YetAnotherThing", "should not take")
 	require.NoError(t, err)
 	require.False(t, set)
 	require.Equal(t, "not zero value", envelope.YetAnotherThing)

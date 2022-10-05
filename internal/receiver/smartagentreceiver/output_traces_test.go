@@ -28,7 +28,7 @@ import (
 )
 
 func TestSendSpansWithoutNextTracesConsumer(t *testing.T) {
-	output := NewOutput(
+	output := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		nil, componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
@@ -37,58 +37,58 @@ func TestSendSpansWithoutNextTracesConsumer(t *testing.T) {
 }
 
 func TestExtraSpanTags(t *testing.T) {
-	output := NewOutput(
+	o := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
-	assert.Empty(t, output.extraSpanTags)
+	assert.Empty(t, o.extraSpanTags)
 
-	output.RemoveExtraSpanTag("not_a_known_tag")
+	o.RemoveExtraSpanTag("not_a_known_tag")
 
-	output.AddExtraSpanTag("a_tag", "a_value")
-	assert.Equal(t, "a_value", output.extraSpanTags["a_tag"])
+	o.AddExtraSpanTag("a_tag", "a_value")
+	assert.Equal(t, "a_value", o.extraSpanTags["a_tag"])
 
-	cp, ok := output.Copy().(*Output)
+	cp, ok := o.Copy().(*output)
 	require.True(t, ok)
 	assert.Equal(t, "a_value", cp.extraSpanTags["a_tag"])
 
 	cp.RemoveExtraSpanTag("a_tag")
 	assert.Empty(t, cp.extraSpanTags["a_tag"])
-	assert.Equal(t, "a_value", output.extraSpanTags["a_tag"])
+	assert.Equal(t, "a_value", o.extraSpanTags["a_tag"])
 
 	cp.AddExtraSpanTag("another_tag", "another_tag_value")
 	assert.Equal(t, "another_tag_value", cp.extraSpanTags["another_tag"])
-	assert.Empty(t, output.extraSpanTags["another_tag"])
+	assert.Empty(t, o.extraSpanTags["another_tag"])
 }
 
 func TestDefaultSpanTags(t *testing.T) {
-	output := NewOutput(
+	o := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
-	assert.Empty(t, output.defaultSpanTags)
+	assert.Empty(t, o.defaultSpanTags)
 
-	output.RemoveDefaultSpanTag("not_a_known_tag")
+	o.RemoveDefaultSpanTag("not_a_known_tag")
 
-	output.AddDefaultSpanTag("a_tag", "a_value")
-	assert.Equal(t, "a_value", output.defaultSpanTags["a_tag"])
+	o.AddDefaultSpanTag("a_tag", "a_value")
+	assert.Equal(t, "a_value", o.defaultSpanTags["a_tag"])
 
-	cp, ok := output.Copy().(*Output)
+	cp, ok := o.Copy().(*output)
 	require.True(t, ok)
 	assert.Equal(t, "a_value", cp.defaultSpanTags["a_tag"])
 
 	cp.RemoveDefaultSpanTag("a_tag")
 	assert.Empty(t, cp.defaultSpanTags["a_tag"])
-	assert.Equal(t, "a_value", output.defaultSpanTags["a_tag"])
+	assert.Equal(t, "a_value", o.defaultSpanTags["a_tag"])
 
 	cp.AddDefaultSpanTag("another_tag", "another_tag_value")
 	assert.Equal(t, "another_tag_value", cp.defaultSpanTags["another_tag"])
-	assert.Empty(t, output.defaultSpanTags["another_tag"])
+	assert.Empty(t, o.defaultSpanTags["another_tag"])
 }
 
 func TestSendSpansWithDefaultAndExtraSpanTags(t *testing.T) {
 	tracesSink := consumertest.TracesSink{}
-	output := NewOutput(
+	output := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		&tracesSink, componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
@@ -181,7 +181,7 @@ func TestSendSpansWithConsumerError(t *testing.T) {
 
 	err := fmt.Errorf("desired error")
 	tracesConsumer := consumertest.NewErr(err)
-	output := NewOutput(
+	output := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		tracesConsumer, componenttest.NewNopHost(), rcs,
 	)

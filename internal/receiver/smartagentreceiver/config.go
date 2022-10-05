@@ -187,14 +187,14 @@ func setHostAndPortViaEndpoint(endpoint string, monitorConfig any) error {
 	}
 
 	if host != "" {
-		_, err := SetStructFieldIfZeroValue(monitorConfig, "Host", host)
+		_, err := setStructFieldIfZeroValue(monitorConfig, "Host", host)
 		if err != nil {
 			return fmt.Errorf("unable to set monitor Host field using Endpoint-derived value of %s: %w", host, err)
 		}
 	}
 
 	if port != 0 {
-		_, err := SetStructFieldIfZeroValue(monitorConfig, "Port", port)
+		_, err := setStructFieldIfZeroValue(monitorConfig, "Port", port)
 		if err != nil {
 			return fmt.Errorf("unable to set monitor Port field using Endpoint-derived value of %d: %w", port, err)
 		}

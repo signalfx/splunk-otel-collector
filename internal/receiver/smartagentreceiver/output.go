@@ -35,11 +35,11 @@ import (
 
 const internalTransport = "internal"
 
-// Output is an implementation of a Smart Agent FilteringOutput that receives datapoints, events, and dimension updates
+// output is an implementation of a Smart Agent FilteringOutput that receives datapoints, events, and dimension updates
 // from a configured monitor.  It will forward all datapoints to the nextMetricsConsumer, all dimension updates to the
 // nextDimensionClients as determined by the associated items in Config.MetadataClients, and all events to the
 // nextLogsConsumer.
-type Output struct {
+type output struct {
 	nextMetricsConsumer  consumer.Metrics
 	nextLogsConsumer     consumer.Logs
 	nextTracesConsumer   consumer.Traces
@@ -54,15 +54,15 @@ type Output struct {
 	nextDimensionClients []metadata.MetadataExporter
 }
 
-var _ types.Output = (*Output)(nil)
-var _ types.FilteringOutput = (*Output)(nil)
+var _ types.Output = (*output)(nil)
+var _ types.FilteringOutput = (*output)(nil)
 
-func NewOutput(
+func newOutput(
 	config Config, filtering *monitorFiltering, nextMetricsConsumer consumer.Metrics,
 	nextLogsConsumer consumer.Logs, nextTracesConsumer consumer.Traces, host component.Host,
 	params component.ReceiverCreateSettings,
-) *Output {
-	return &Output{
+) *output {
+	return &output{
 		receiverID:           config.ID(),
 		nextMetricsConsumer:  nextMetricsConsumer,
 		nextLogsConsumer:     nextLogsConsumer,
@@ -162,29 +162,29 @@ func getLoneSFxExporter(host component.Host, exporterType collectorConfig.DataTy
 
 }
 
-func (output *Output) AddDatapointExclusionFilter(filter dpfilters.DatapointFilter) {
+func (output *output) AddDatapointExclusionFilter(filter dpfilters.DatapointFilter) {
 	output.logger.Debug("AddDatapointExclusionFilter has been called", zap.Any("filter", filter))
 	output.monitorFiltering.AddDatapointExclusionFilter(filter)
 }
 
-func (output *Output) EnabledMetrics() []string {
+func (output *output) EnabledMetrics() []string {
 	output.logger.Debug("EnabledMetrics has been called.")
 	return output.monitorFiltering.EnabledMetrics()
 }
 
-func (output *Output) HasEnabledMetricInGroup(group string) bool {
+func (output *output) HasEnabledMetricInGroup(group string) bool {
 	output.logger.Debug("HasEnabledMetricInGroup has been called", zap.String("group", group))
 	return output.monitorFiltering.HasEnabledMetricInGroup(group)
 }
 
-func (output *Output) HasAnyExtraMetrics() bool {
+func (output *output) HasAnyExtraMetrics() bool {
 	output.logger.Debug("HasAnyExtraMetrics has been called.")
 	return output.monitorFiltering.HasAnyExtraMetrics()
 }
 
-// Copy clones the Output to provide to child monitors with their own extraDimensions.
-func (output *Output) Copy() types.Output {
-	output.logger.Debug("Copying Output", zap.Any("output", output))
+// Copy clones the output to provide to child monitors with their own extraDimensions.
+func (output *output) Copy() types.Output {
+	output.logger.Debug("Copying output", zap.Any("output", output))
 	cp := *output
 	cp.extraDimensions = utils.CloneStringMap(output.extraDimensions)
 	cp.extraSpanTags = utils.CloneStringMap(output.extraSpanTags)
@@ -192,7 +192,7 @@ func (output *Output) Copy() types.Output {
 	return &cp
 }
 
-func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
+func (output *output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 	if output.nextMetricsConsumer == nil {
 		return
 	}
@@ -201,7 +201,7 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 
 	datapoints = output.filterDatapoints(datapoints)
 	for _, dp := range datapoints {
-		// Output's extraDimensions take priority over datapoint's
+		// output's extraDimensions take priority over datapoint's
 		dp.Dimensions = utils.MergeStringMaps(dp.Dimensions, output.extraDimensions)
 	}
 
@@ -215,7 +215,7 @@ func (output *Output) SendDatapoints(datapoints ...*datapoint.Datapoint) {
 	output.reporter.EndMetricsOp(ctx, typeStr, numPoints, err)
 }
 
-func (output *Output) SendEvent(event *event.Event) {
+func (output *output) SendEvent(event *event.Event) {
 	if output.nextLogsConsumer == nil {
 		return
 	}
@@ -231,7 +231,7 @@ func (output *Output) SendEvent(event *event.Event) {
 	}
 }
 
-func (output *Output) SendSpans(spans ...*trace.Span) {
+func (output *output) SendSpans(spans ...*trace.Span) {
 	if output.nextTracesConsumer == nil {
 		return
 	}
@@ -262,7 +262,7 @@ func (output *Output) SendSpans(spans ...*trace.Span) {
 	}
 }
 
-func (output *Output) SendDimensionUpdate(dimension *types.Dimension) {
+func (output *output) SendDimensionUpdate(dimension *types.Dimension) {
 	if len(output.nextDimensionClients) == 0 {
 		return
 	}
@@ -276,33 +276,33 @@ func (output *Output) SendDimensionUpdate(dimension *types.Dimension) {
 	}
 }
 
-func (output *Output) AddExtraDimension(key, value string) {
+func (output *output) AddExtraDimension(key, value string) {
 	output.logger.Debug("Adding extra dimension", zap.String("key", key), zap.String("value", value))
 	output.extraDimensions[key] = value
 }
 
-func (output *Output) RemoveExtraDimension(key string) {
+func (output *output) RemoveExtraDimension(key string) {
 	output.logger.Debug("Removing extra dimension", zap.String("key", key))
 	delete(output.extraDimensions, key)
 }
 
-func (output *Output) AddExtraSpanTag(key, value string) {
+func (output *output) AddExtraSpanTag(key, value string) {
 	output.extraSpanTags[key] = value
 }
 
-func (output *Output) RemoveExtraSpanTag(key string) {
+func (output *output) RemoveExtraSpanTag(key string) {
 	delete(output.extraSpanTags, key)
 }
 
-func (output *Output) AddDefaultSpanTag(key, value string) {
+func (output *output) AddDefaultSpanTag(key, value string) {
 	output.defaultSpanTags[key] = value
 }
 
-func (output *Output) RemoveDefaultSpanTag(key string) {
+func (output *output) RemoveDefaultSpanTag(key string) {
 	delete(output.defaultSpanTags, key)
 }
 
-func (output *Output) filterDatapoints(datapoints []*datapoint.Datapoint) []*datapoint.Datapoint {
+func (output *output) filterDatapoints(datapoints []*datapoint.Datapoint) []*datapoint.Datapoint {
 	filteredDatapoints := make([]*datapoint.Datapoint, 0, len(datapoints))
 	for _, dp := range datapoints {
 		if output.monitorFiltering.filterSet == nil || !output.monitorFiltering.filterSet.Matches(dp) {

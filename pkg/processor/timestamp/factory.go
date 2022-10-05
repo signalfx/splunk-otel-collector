@@ -95,7 +95,7 @@ func createMetricsProcessor(
 ) (component.MetricsProcessor, error) {
 	oCfg := cfg.(*Config)
 	offset, _ := time.ParseDuration(oCfg.Offset)
-	
+
 	return processorhelper.NewMetricsProcessor(
 		ctx,
 		set,

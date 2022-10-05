@@ -33,8 +33,7 @@ func Test_newMetricAttributesProcessor_Gauge(t *testing.T) {
 	dp := gauge.DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(now))
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(now))
-	cfg := &Config{Offset: "+1h"}
-	proc := newMetricAttributesProcessor(zap.NewNop(), cfg.offsetFn())
+	proc := newMetricAttributesProcessor(zap.NewNop(), offsetFn(1*time.Hour))
 	newMetrics, err := proc(context.Background(), metrics)
 	require.NoError(t, err)
 	require.Equal(t, 1, newMetrics.MetricCount())
@@ -51,8 +50,7 @@ func Test_newMetricAttributesProcessor_Sum(t *testing.T) {
 	dp := sum.DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(now))
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(now))
-	cfg := &Config{Offset: "+1h"}
-	proc := newMetricAttributesProcessor(zap.NewNop(), cfg.offsetFn())
+	proc := newMetricAttributesProcessor(zap.NewNop(), offsetFn(1*time.Hour))
 	newMetrics, err := proc(context.Background(), metrics)
 	require.NoError(t, err)
 	require.Equal(t, 1, newMetrics.MetricCount())
@@ -69,8 +67,7 @@ func Test_newMetricAttributesProcessor_Histogram(t *testing.T) {
 	dp := sum.DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(now))
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(now))
-	cfg := &Config{Offset: "+1h"}
-	proc := newMetricAttributesProcessor(zap.NewNop(), cfg.offsetFn())
+	proc := newMetricAttributesProcessor(zap.NewNop(), offsetFn(1*time.Hour))
 	newMetrics, err := proc(context.Background(), metrics)
 	require.NoError(t, err)
 	require.Equal(t, 1, newMetrics.MetricCount())
@@ -87,8 +84,7 @@ func Test_newMetricAttributesProcessor_ExponentionalHistogram(t *testing.T) {
 	dp := sum.DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(now))
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(now))
-	cfg := &Config{Offset: "+1h"}
-	proc := newMetricAttributesProcessor(zap.NewNop(), cfg.offsetFn())
+	proc := newMetricAttributesProcessor(zap.NewNop(), offsetFn(1*time.Hour))
 	newMetrics, err := proc(context.Background(), metrics)
 	require.NoError(t, err)
 	require.Equal(t, 1, newMetrics.MetricCount())
@@ -105,8 +101,7 @@ func Test_newMetricAttributesProcessor_Summary(t *testing.T) {
 	dp := sum.DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(now))
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(now))
-	cfg := &Config{Offset: "+1h"}
-	proc := newMetricAttributesProcessor(zap.NewNop(), cfg.offsetFn())
+	proc := newMetricAttributesProcessor(zap.NewNop(), offsetFn(1*time.Hour))
 	newMetrics, err := proc(context.Background(), metrics)
 	require.NoError(t, err)
 	require.Equal(t, 1, newMetrics.MetricCount())

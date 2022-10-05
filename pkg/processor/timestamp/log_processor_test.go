@@ -30,8 +30,7 @@ func Test_newLogAttributesProcessor(t *testing.T) {
 	logs := plog.NewLogs()
 	lr := logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty()
 	lr.SetTimestamp(pcommon.NewTimestampFromTime(now))
-	cfg := &Config{Offset: "+1h"}
-	proc := newLogAttributesProcessor(zap.NewNop(), cfg.offsetFn())
+	proc := newLogAttributesProcessor(zap.NewNop(), offsetFn(1*time.Hour))
 	newLogs, err := proc(context.Background(), logs)
 	require.NoError(t, err)
 	require.Equal(t, 1, newLogs.LogRecordCount())

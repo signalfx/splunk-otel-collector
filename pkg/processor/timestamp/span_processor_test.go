@@ -32,8 +32,7 @@ func Test_newSpanAttributesProcessor(t *testing.T) {
 	span.SetStartTimestamp(pcommon.NewTimestampFromTime(now))
 	e := span.Events().AppendEmpty()
 	e.SetTimestamp(pcommon.NewTimestampFromTime(now))
-	cfg := &Config{Offset: "+1h"}
-	proc := newSpanAttributesProcessor(zap.NewNop(), cfg.offsetFn())
+	proc := newSpanAttributesProcessor(zap.NewNop(), offsetFn(1*time.Hour))
 	newTraces, err := proc(context.Background(), traces)
 	require.NoError(t, err)
 	require.Equal(t, 1, newTraces.SpanCount())

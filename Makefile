@@ -71,7 +71,7 @@ integration-vet:
 
 .PHONY: integration-test
 integration-test:
-	@set -e; for dir in $(ALL_TESTS_DIRS); do \
+	@set -e; for dir in $(shell find tests -name '*_test.go' | xargs -L 1 dirname | uniq | sort -r); do \
 	  echo "go test ./... in $${dir}"; \
 	  (cd "$${dir}" && \
 	   $(GOTEST) $(BUILD_INFO_TESTS) -v -timeout 5m -count 1 ./... ); \

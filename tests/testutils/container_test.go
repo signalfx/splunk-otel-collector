@@ -318,8 +318,8 @@ func TestTestcontainersContainerMethodsRequireBuilding(t *testing.T) {
 }
 
 type logConsumer struct {
-	sync.Mutex
 	statements []string
+	sync.Mutex
 }
 
 func (lc *logConsumer) Accept(l testcontainers.Log) {
@@ -399,7 +399,9 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 	assert.NotEmpty(t, sid)
 
 	rc, err := alpine.Logs(context.Background())
+	require.NoError(t, err)
 	assert.NotNil(t, rc)
+
 	b := make([]byte, 15)
 	rc.Read(b)
 	assert.Contains(t, string(b), "rdy")

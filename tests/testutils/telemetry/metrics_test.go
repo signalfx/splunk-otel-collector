@@ -134,7 +134,8 @@ func TestResourceEquivalence(t *testing.T) {
 		}}
 	}
 	rOne := resource()
-	assert.True(t, rOne.Equals(rOne))
+	rOneSelf := rOne
+	assert.True(t, rOne.Equals(rOneSelf))
 
 	rTwo := resource()
 	assert.True(t, rOne.Equals(rTwo))
@@ -156,7 +157,8 @@ func TestInstrumentationScopeEquivalence(t *testing.T) {
 	}
 
 	ilOne := il()
-	assert.True(t, ilOne.Equals(ilOne))
+	ilOneSelf := ilOne
+	assert.True(t, ilOne.Equals(ilOneSelf))
 
 	ilTwo := il()
 	assert.True(t, ilOne.Equals(ilTwo))
@@ -189,7 +191,9 @@ func TestMetricEquivalence(t *testing.T) {
 	}
 
 	mOne := metric()
-	assert.True(t, mOne.Equals(mOne))
+	mOneSelf := metric()
+	assert.True(t, mOne.Equals(mOneSelf))
+
 	mTwo := metric()
 	assert.True(t, mOne.Equals(mTwo))
 	assert.True(t, mTwo.Equals(mOne))
@@ -314,7 +318,7 @@ func TestMetricHashFunctionConsistency(t *testing.T) {
 		}, Type: MetricType("some metric type"), Value: 123.456,
 	}
 	for i := 0; i < 100; i++ {
-		require.Equal(t, "5e37000a235ba850e833561ce1a82726", metric.Hash())
+		require.Equal(t, "7fb66e09a072a06173f4cd1f2d63bf03", metric.Hash())
 	}
 }
 
@@ -480,5 +484,5 @@ func TestContainsAllWithMissingAndEmptyAttributes(t *testing.T) {
 	containsAll, err = received.ContainsAll(*empty)
 	require.False(t, containsAll)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Missing Metrics: [name: another_int_gauge\nattributes: {}\ntype: IntGauge\nvalue: 111\n]")
+	require.Contains(t, err.Error(), "Missing Metrics: [attributes: {}\nname: another_int_gauge\ntype: IntGauge\nvalue: 111\n]")
 }

@@ -31,16 +31,16 @@ var _ Collector = (*CollectorContainer)(nil)
 var _ testcontainers.LogConsumer = (*collectorLogConsumer)(nil)
 
 type CollectorContainer struct {
-	Image          string
-	ConfigPath     string
-	Args           []string
-	Ports          []string
-	Logger         *zap.Logger
-	LogLevel       string
-	Fail           bool
 	Container      Container
 	contextArchive io.Reader
+	Logger         *zap.Logger
 	logConsumer    collectorLogConsumer
+	Image          string
+	ConfigPath     string
+	LogLevel       string
+	Args           []string
+	Ports          []string
+	Fail           bool
 }
 
 // To be used as a builder whose Build() method provides the actual instance capable of launching the process.

@@ -15,7 +15,7 @@
 package telemetry
 
 import (
-	"crypto/md5"
+	"crypto/md5" // #nosec this is not for cryptographic purposes
 	"fmt"
 	"reflect"
 
@@ -38,7 +38,7 @@ func (resource Resource) String() string {
 
 // Hash provides an md5 hash determined by Resource content.
 func (resource Resource) Hash() string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(resource.String())))
+	return fmt.Sprintf("%x", md5.Sum([]byte(resource.String()))) // #nosec
 }
 
 // Equals determines the equivalence of two Resource items by their Attributes.
@@ -48,9 +48,9 @@ func (resource Resource) Equals(toCompare Resource) bool {
 }
 
 type InstrumentationScope struct {
+	Attributes map[string]any `yaml:"attributes,omitempty"`
 	Name       string         `yaml:"name,omitempty"`
 	Version    string         `yaml:"version,omitempty"`
-	Attributes map[string]any `yaml:"attributes,omitempty"`
 }
 
 func (is InstrumentationScope) String() string {
@@ -63,7 +63,7 @@ func (is InstrumentationScope) String() string {
 
 // Hash provides an md5 hash determined by InstrumentationScope fields.
 func (is InstrumentationScope) Hash() string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(is.String())))
+	return fmt.Sprintf("%x", md5.Sum([]byte(is.String()))) // #nosec
 }
 
 // Equals determines the equivalence of two InstrumentationScope items.

@@ -16,7 +16,7 @@ package telemetry
 
 import (
 	"bytes"
-	"crypto/md5"
+	"crypto/md5" // #nosec this is not for cryptographic purposes
 	"fmt"
 	"os"
 	"reflect"
@@ -88,12 +88,12 @@ type ScopeMetrics struct {
 // Metric is the metric content, representing both the overall definition and a single datapoint.
 // TODO: Timestamps
 type Metric struct {
+	Value       any             `yaml:"value,omitempty"`
+	Attributes  *map[string]any `yaml:"attributes,omitempty"`
 	Name        string          `yaml:"name"`
 	Description string          `yaml:"description,omitempty"`
 	Unit        string          `yaml:"unit,omitempty"`
-	Attributes  *map[string]any `yaml:"attributes,omitempty"`
 	Type        MetricType      `yaml:"type"`
-	Value       any             `yaml:"value,omitempty"`
 }
 
 // LoadResourceMetrics returns a ResourceMetrics instance generated via parsing a valid yaml file at the provided path.
@@ -105,12 +105,13 @@ func LoadResourceMetrics(path string) (*ResourceMetrics, error) {
 	defer metricFile.Chdir()
 
 	buffer := new(bytes.Buffer)
-	_, err = buffer.ReadFrom(metricFile)
+	if _, err = buffer.ReadFrom(metricFile); err != nil {
+		return nil, err
+	}
 	by := buffer.Bytes()
 
 	var loaded ResourceMetrics
-	err = yaml.UnmarshalStrict(by, &loaded)
-	if err != nil {
+	if err = yaml.UnmarshalStrict(by, &loaded); err != nil {
 		return nil, err
 	}
 	loaded.FillDefaultValues()
@@ -150,16 +151,29 @@ func (resourceMetrics ResourceMetrics) Validate() error {
 }
 
 func (metric Metric) String() string {
+	// fieldalignment causes the Metric yaml rep to be
+	// unintuitive so unmarshal into map[string]any
+	// and remarshal for convenience.
+	ms := map[string]any{}
 	out, err := yaml.Marshal(metric)
 	if err != nil {
 		panic(err)
 	}
+	if err = yaml.Unmarshal(out, &ms); err != nil {
+		panic(err)
+	}
+	out, err = yaml.Marshal(ms)
+	if err != nil {
+		panic(err)
+	}
+	// we can't store this value in the Metric
+	// as that will affect pre and post-String(), equivalence.
 	return string(out)
 }
 
 // Provides an md5 hash determined by Metric content.
 func (metric Metric) Hash() string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(metric.String())))
+	return fmt.Sprintf("%x", md5.Sum([]byte(metric.String()))) // #nosec
 }
 
 // Confirms that all fields, defined or not, in receiver Metric are equal to toCompare.
@@ -283,20 +297,20 @@ func FlattenResourceMetrics(resourceMetrics ...ResourceMetrics) ResourceMetrics 
 	return flattened
 }
 
-// ContainsAll determines if everything in expectedResourceMetrics ResourceMetrics is in the receiver ResourceMetrics
+// ContainsAll determines if everything in `contains` ResourceMetrics is in the receiver ResourceMetrics
 // item (i.e. expected ⊆ received). Neither guarantees equivalence, nor that expected contains all of received
 // (i.e. is not an expected ≣ received nor received ⊆ expected check).
 // Metric equivalence is based on RelaxedEquals() check: fields not in expected (e.g. unit, type, value, etc.)
 // are not compared to received, but all labels must match.
 // For better reliability, it's advised that both ResourceMetrics items have been flattened by FlattenResourceMetrics.
-func (received ResourceMetrics) ContainsAll(expected ResourceMetrics) (bool, error) {
+func (resourceMetrics ResourceMetrics) ContainsAll(contains ResourceMetrics) (bool, error) {
 	var missingResources []string
 	var missingInstrumentationLibraries []string
 	var missingMetrics []string
 
-	for _, expectedResourceMetric := range expected.ResourceMetrics {
+	for _, expectedResourceMetric := range contains.ResourceMetrics {
 		resourceMatched := false
-		for _, resourceMetric := range received.ResourceMetrics {
+		for _, resourceMetric := range resourceMetrics.ResourceMetrics {
 			if resourceMetric.Resource.Equals(expectedResourceMetric.Resource) {
 				resourceMatched = true
 				for _, expectedILM := range expectedResourceMetric.ScopeMetrics {
@@ -340,7 +354,7 @@ func (received ResourceMetrics) ContainsAll(expected ResourceMetrics) (bool, err
 	if len(missingResources) != 0 {
 		return false, fmt.Errorf(
 			"%v doesn't contain all of %v.  Missing resources: %s",
-			received.ResourceMetrics, expected.ResourceMetrics, missingResources,
+			resourceMetrics.ResourceMetrics, contains.ResourceMetrics, missingResources,
 		)
 	}
 	return true, nil

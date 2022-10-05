@@ -37,11 +37,11 @@ import (
 // To be used as a builder whose Build() method provides the actual instance capable of starting the OTLP receiver
 // providing received metrics to test cases.
 type OTLPMetricsReceiverSink struct {
+	Host     component.Host
 	receiver *component.MetricsReceiver
 	sink     *consumertest.MetricsSink
-	Endpoint string
 	Logger   *zap.Logger
-	Host     component.Host
+	Endpoint string
 }
 
 func NewOTLPMetricsReceiverSink() OTLPMetricsReceiverSink {

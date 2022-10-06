@@ -44,6 +44,10 @@ func (resource Resource) Hash() string {
 // Equals determines the equivalence of two Resource items by their Attributes.
 // TODO: ensure that Resource.Hash equivalence is valid given all possible Attribute values.
 func (resource Resource) Equals(toCompare Resource) bool {
+	// if either attribute map is uninitialized reflection equality is a false negative
+	if len(resource.Attributes) == 0 && len(toCompare.Attributes) == 0 {
+		return true
+	}
 	return reflect.DeepEqual(resource.Attributes, toCompare.Attributes)
 }
 

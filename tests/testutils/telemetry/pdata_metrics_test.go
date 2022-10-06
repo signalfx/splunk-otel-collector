@@ -31,9 +31,9 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	rm := rms[0]
 	attrs := rm.Resource.Attributes
 	assert.True(t, attrs["bool"].(bool))
-	assert.Equal(t, "a_string", attrs["string"].(string))
-	assert.Equal(t, 123, int(attrs["int"].(int64)))
-	assert.Equal(t, 123.45, attrs["double"].(float64))
+	assert.Equal(t, "a_string", attrs["string"])
+	assert.Equal(t, 123, attrs["int"])
+	assert.Equal(t, 123.45, attrs["double"])
 	assert.Nil(t, attrs["null"])
 
 	scopeMetrics := rm.ScopeMetrics

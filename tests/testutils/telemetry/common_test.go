@@ -33,3 +33,16 @@ func TestResourceHashFunctionConsistency(t *testing.T) {
 		require.Equal(t, "aa00805240d9717e6db7a0d88cf5e2ba", il.Hash())
 	}
 }
+
+func TestEmptyResourcesAreEqual(t *testing.T) {
+	rOne := Resource{Attributes: map[string]any{}}
+	rTwo := Resource{}
+
+	require.True(t, rOne.Equals(rTwo))
+	require.True(t, rTwo.Equals(rOne))
+
+	for i := 0; i < 100; i++ {
+		require.Equal(t, rOne.Hash(), rTwo.Hash())
+	}
+
+}

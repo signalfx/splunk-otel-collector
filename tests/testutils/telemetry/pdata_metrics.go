@@ -17,7 +17,6 @@ package telemetry
 import (
 	"fmt"
 
-	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
@@ -31,12 +30,7 @@ func PDataToResourceMetrics(pdataMetrics ...pmetric.Metrics) (ResourceMetrics, e
 		for i := 0; i < numRM; i++ {
 			rm := ResourceMetric{}
 			pdataRM := pdataRMs.At(i)
-			pdataRM.Resource().Attributes().Range(
-				func(k string, v pcommon.Value) bool {
-					addResourceAttribute(&rm, k, v)
-					return true
-				},
-			)
+			rm.Resource.Attributes = sanitizeAttributes(pdataRM.Resource().Attributes().AsRaw())
 			pdataSMs := pdataRM.ScopeMetrics()
 			for j := 0; j < pdataSMs.Len(); j++ {
 				ISMs := ScopeMetrics{Metrics: []Metric{}}
@@ -84,7 +78,7 @@ func addSum(sms *ScopeMetrics, metric pmetric.Metric) {
 			val = dp.DoubleValue()
 			metricType = doubleMetricType
 		}
-		attributes := dp.Attributes().AsRaw()
+		attributes := sanitizeAttributes(dp.Attributes().AsRaw())
 		m := Metric{
 			Name:        metric.Name(),
 			Description: metric.Description(),
@@ -95,30 +89,6 @@ func addSum(sms *ScopeMetrics, metric pmetric.Metric) {
 		}
 		sms.Metrics = append(sms.Metrics, m)
 	}
-}
-
-func addResourceAttribute(resourceMetric *ResourceMetric, name string, value pcommon.Value) {
-	var val any
-	switch value.Type() {
-	case pcommon.ValueTypeStr:
-		val = value.Str()
-	case pcommon.ValueTypeBool:
-		val = value.Bool()
-	case pcommon.ValueTypeInt:
-		val = value.Int()
-	case pcommon.ValueTypeDouble:
-		val = value.Double()
-	case pcommon.ValueTypeMap:
-		val = value.Map().AsRaw()
-	case pcommon.ValueTypeSlice:
-		val = value.Slice().AsRaw()
-	default:
-		val = nil
-	}
-	if resourceMetric.Resource.Attributes == nil {
-		resourceMetric.Resource.Attributes = map[string]any{}
-	}
-	resourceMetric.Resource.Attributes[name] = val
 }
 
 func addGauge(sms *ScopeMetrics, metric pmetric.Metric) {
@@ -135,7 +105,7 @@ func addGauge(sms *ScopeMetrics, metric pmetric.Metric) {
 			val = dp.DoubleValue()
 			metricType = DoubleGauge
 		}
-		attributes := dp.Attributes().AsRaw()
+		attributes := sanitizeAttributes(dp.Attributes().AsRaw())
 		m := Metric{
 			Name:        metric.Name(),
 			Description: metric.Description(),

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package timestamp
+package timestampprocessor
 
 import (
 	"fmt"
@@ -28,7 +28,8 @@ const (
 
 type Config struct {
 	config.ProcessorSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
-	Offset                   string                   `mapstructure:"offset"`
+	// the time offset to apply
+	Offset string `mapstructure:"offset"`
 }
 
 var _ config.Processor = (*Config)(nil)

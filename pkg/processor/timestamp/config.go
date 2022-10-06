@@ -42,14 +42,3 @@ func (cfg *Config) Validate() error {
 	}
 	return nil
 }
-
-func offsetFn(offset time.Duration) func(pcommon.Timestamp) pcommon.Timestamp {
-	return func(ts pcommon.Timestamp) pcommon.Timestamp {
-		if ts == zeroTs {
-			return ts
-		}
-		t := ts.AsTime()
-		t = t.Add(offset)
-		return pcommon.NewTimestampFromTime(t)
-	}
-}

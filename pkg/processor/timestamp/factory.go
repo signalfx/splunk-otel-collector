@@ -21,6 +21,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/processor/processorhelper"
 )
 
@@ -103,4 +104,15 @@ func createMetricsProcessor(
 		nextConsumer,
 		newMetricAttributesProcessor(set.Logger, offsetFn(offset)),
 		processorhelper.WithCapabilities(processorCapabilities))
+}
+
+func offsetFn(offset time.Duration) func(pcommon.Timestamp) pcommon.Timestamp {
+	return func(ts pcommon.Timestamp) pcommon.Timestamp {
+		if ts == zeroTs {
+			return ts
+		}
+		t := ts.AsTime()
+		t = t.Add(offset)
+		return pcommon.NewTimestampFromTime(t)
+	}
 }

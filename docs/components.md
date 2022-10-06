@@ -61,4 +61,4 @@ for testing and validation purposes.
 | Receivers | Processors                                                                                                                 | Exporters                                     | Extensions |
 |-----------|----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------|------------|
 |           | [span_metrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanmetricsprocessor) | [pulsar](../internal/exporter/pulsarexporter) |            |
-|           | [timestamp](https://github.com/signalfx/splunk-otel-collector/tree/main/pkg/processor/timestamp)                           |                                               |            | 
+|           | [timestamp](../pkg/processor/timestamp)                                                                                    |                                               |            | 

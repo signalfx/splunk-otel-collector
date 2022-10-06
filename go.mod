@@ -453,7 +453,10 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace github.com/signalfx/splunk-otel-collector/tests => ./tests
+replace (
+	github.com/signalfx/splunk-otel-collector/tests => ./tests
+	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor => ./pkg/processor/timestamp
+)
 
 replace (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.61.0
@@ -500,4 +503,4 @@ replace github.com/googleapis/gnostic v0.5.6 => github.com/googleapis/gnostic v0
 // required to drop dependency on deprecated git.apache.org/thrift.git
 exclude go.opencensus.io v0.19.1
 
-replace github.com/signalfx/splunk-otel-collector/processor/timestampprocessor => ./pkg/processor/timestamp
+

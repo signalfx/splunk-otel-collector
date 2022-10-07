@@ -1,5 +1,5 @@
-# Include Config Source (Alpha)
-
+# Include Config Source (Beta)
+We are going to awkwardly add a sentence.
 Use the include config source to inject [golang templates](https://pkg.go.dev/text/template)
 or plain files into the configuration. The config source can be used to insert scalar data
 or complete YAML sections.

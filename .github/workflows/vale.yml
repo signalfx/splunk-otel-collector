@@ -1,0 +1,45 @@
+name: vale
+
+# Only run tests for main branch or if the PR has relevant changes
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '**/*.md'
+
+concurrency:
+  group: vale-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vale:
+    name: vale
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+        with:
+          repository: splunk/vale-splunk-style-guide
+          path: vale-splunk-style-guide
+
+      - run: |
+          cat <<EOF > .vale.ini
+          StylesPath = vale-splunk-style-guide/styles
+          MinAlertLevel = suggestion
+          
+          [*.{ md,rst }]
+          BasedOnStyles = Splunk
+          
+          Vocab = splunk
+          EOF
+      - uses: errata-ai/vale-action@v2.0.1
+        with:
+          filter_mode: added
+          fail_on_error: true
+        env:
+          # Required, set by GitHub actions automatically:
+          # https://docs.github.com/en/actions/security-guides/automatic-token-authentication#about-the-github_token-secret
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

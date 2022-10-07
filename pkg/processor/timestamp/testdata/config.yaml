@@ -1,0 +1,22 @@
+processors:
+  timestamp:
+    offset: "0h"
+
+  timestamp/add2h:
+    offset: "2h"
+
+  timestamp/remove3h:
+    offset: "-3h"
+
+receivers:
+  nop:
+
+exporters:
+  nop:
+
+service:
+  pipelines:
+    metrics:
+      receivers: [nop]
+      processors: [timestamp, timestamp/add2h, timestamp/remove3h]
+      exporters: [nop]

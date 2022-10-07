@@ -85,6 +85,7 @@ func TestDefaultComponents(t *testing.T) {
 		"span",
 		"spanmetrics",
 		"tail_sampling",
+		"timestamp",
 		"transform",
 	}
 	expectedExporters := []config.Type{

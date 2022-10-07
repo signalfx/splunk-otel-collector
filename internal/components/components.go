@@ -85,6 +85,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/smartagentreceiver"
+	"github.com/signalfx/splunk-otel-collector/processor/timestampprocessor"
 )
 
 func Get() (component.Factories, error) {
@@ -173,6 +174,7 @@ func Get() (component.Factories, error) {
 		spanmetricsprocessor.NewFactory(),
 		spanprocessor.NewFactory(),
 		tailsamplingprocessor.NewFactory(),
+		timestampprocessor.NewFactory(),
 		transformprocessor.NewFactory(),
 	)
 	if err != nil {

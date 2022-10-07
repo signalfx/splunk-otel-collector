@@ -9,12 +9,12 @@ receivers:
     # Refer to Oracle Go Driver go_ora documentation for full connection string options
     datasource: "oracle://otel:password@localhost:51521/XE"
     metrics:
-      oracledb.query.cpu_time:
+      oracledb.system.resource_limits:
         enabled: false
-      oracledb.query.physical_read_requests:
+      oracledb.tablespace.size:
         enabled: false
 exporters:
-  logging:
+  nop:
 service:
   telemetry:
     logs:
@@ -24,4 +24,4 @@ service:
       receivers:
         - oracledb
       exporters:
-        - logging
+        - nop

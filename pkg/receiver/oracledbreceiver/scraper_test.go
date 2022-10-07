@@ -42,28 +42,21 @@ func TestScraper_ErrorOnStart(t *testing.T) {
 	require.Error(t, err)
 }
 
-var queryResponses = map[string]map[string]string{
-	queryCPUTimeSQL:               {"VALUE": "1"},
-	queryElapsedTimeSQL:           {"VALUE": "1"},
-	queryExecutionsTimeSQL:        {"VALUE": "1"},
-	queryParseCallsSQL:            {"VALUE": "1"},
-	queryPhysicalReadBytesSQL:     {"VALUE": "1"},
-	queryPhysicalReadRequestsSQL:  {"VALUE": "1"},
-	queryPhysicalWriteBytesSQL:    {"VALUE": "1"},
-	queryPhysicalWriteRequestsSQL: {"VALUE": "1"},
-	queryTotalSharableMemSQL:      {"VALUE": "1"},
-	queryLongestRunningSQL:        {"VALUE": "1"},
-	sessionUsageSQL:               {"CPU_USAGE": "45", "PGA_MEMORY": "3455", "PHYSICAL_READS": "12344", "LOGICAL_READS": "345", "HARD_PARSES": "346", "SOFT_PARSES": "7866"},
-	sessionEnqueueDeadlocksSQL:    {"VALUE": "1"},
-	sessionExchangeDeadlocksSQL:   {"VALUE": "1"},
-	sessionExecuteCountSQL:        {"VALUE": "1"},
-	sessionParseCountTotalSQL:     {"VALUE": "1"},
-	sessionUserCommitsSQL:         {"VALUE": "1"},
-	sessionUserRollbacksSQL:       {"VALUE": "1"},
-	sessionCountSQL:               {"VALUE": "1"},
-	systemResourceLimitsSQL:       {"RESOURCE_NAME": "processes", "CURRENT_UTILIZATION": "3", "MAX_UTILIZATION": "10", "INITIAL_ALLOCATION": "100", "LIMIT_VALUE": "100"},
-	tablespaceUsageSQL:            {"TABLESPACE_NAME": "SYS", "BYTES": "1024"},
-	tablespaceMaxSpaceSQL:         {"TABLESPACE_NAME": "SYS", "VALUE": "1024"},
+var queryResponses = map[string][]metricRow{
+	sessionUsageSQL: {
+		{"CPU_USAGE": "45", "PGA_MEMORY": "3455", "PHYSICAL_READS": "12344", "LOGICAL_READS": "345", "HARD_PARSES": "346", "SOFT_PARSES": "7866"},
+	},
+	sessionEnqueueDeadlocksSQL:  {{"VALUE": "1"}},
+	sessionExchangeDeadlocksSQL: {{"VALUE": "1"}},
+	sessionExecuteCountSQL:      {{"VALUE": "1"}},
+	sessionParseCountTotalSQL:   {{"VALUE": "1"}},
+	sessionUserCommitsSQL:       {{"VALUE": "1"}},
+	sessionUserRollbacksSQL:     {{"VALUE": "1"}},
+	sessionCountSQL:             {{"VALUE": "1"}},
+	systemResourceLimitsSQL: {{"RESOURCE_NAME": "processes", "CURRENT_UTILIZATION": "3", "MAX_UTILIZATION": "10", "INITIAL_ALLOCATION": "100", "LIMIT_VALUE": "100"},
+		{"RESOURCE_NAME": "locks", "CURRENT_UTILIZATION": "3", "MAX_UTILIZATION": "10", "INITIAL_ALLOCATION": "-1", "LIMIT_VALUE": "-1"}},
+	tablespaceUsageSQL:    {{"TABLESPACE_NAME": "SYS", "BYTES": "1024"}},
+	tablespaceMaxSpaceSQL: {{"TABLESPACE_NAME": "SYS", "VALUE": "1024"}},
 }
 
 func TestScraper_Scrape(t *testing.T) {
@@ -76,11 +69,11 @@ func TestScraper_Scrape(t *testing.T) {
 			return nil, nil
 		},
 		clientProviderFunc: func(db *sql.DB, s string, logger *zap.Logger) dbClient {
-			return &fakeDbClient{Responses: [][]metricRow{
-				{
+			return &fakeDbClient{
+				Responses: [][]metricRow{
 					queryResponses[s],
 				},
-			}}
+			}
 		},
 		id:              config.ComponentID{},
 		metricsSettings: metadata.DefaultMetricsSettings(),
@@ -89,7 +82,7 @@ func TestScraper_Scrape(t *testing.T) {
 	require.NoError(t, err)
 	m, err := scrpr.Scrape(context.Background())
 	require.NoError(t, err)
-	assert.Equal(t, 26, m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().Len())
+	assert.Equal(t, 16, m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().Len())
 }
 
 func TestPartial_InvalidScrape(t *testing.T) {
@@ -110,9 +103,7 @@ func TestPartial_InvalidScrape(t *testing.T) {
 				}}
 			}
 			return &fakeDbClient{Responses: [][]metricRow{
-				{
-					queryResponses[s],
-				},
+				queryResponses[s],
 			}}
 		},
 		id:              config.ComponentID{},

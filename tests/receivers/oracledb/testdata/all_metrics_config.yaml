@@ -8,67 +8,6 @@ receivers:
     # Oracle DB service name: XE
     # Refer to Oracle Go Driver go_ora documentation for full connection string options
     datasource: "${ORACLEDB_URL}"
-#    metrics:
-#      oracledb.query.cpu_time:
-#        enabled: false
-#      oracledb.query.elapsed_time:
-#        enabled: false
-#      oracledb.query.executions:
-#        enabled: false
-#      oracledb.query.long_running:
-#        enabled: false
-#      oracledb.query.parse_calls:
-#        enabled: false
-#      oracledb.query.physical_read_bytes:
-#        enabled: false
-#      oracledb.query.physical_read_requests:
-#        enabled: false
-#      oracledb.query.physical_write_bytes:
-#        enabled: false
-#      oracledb.query.physical_write_requests:
-#        enabled: false
-#      oracledb.query.total_sharable_mem:
-#        enabled: false
-#      oracledb.session.cpu_usage:
-#        enabled: false
-#      oracledb.session.enqueue_deadlocks:
-#        enabled: false
-#      oracledb.session.exchange_deadlocks:
-#        enabled: false
-#      oracledb.session.execute_count:
-#        enabled: false
-#      oracledb.session.hard_parses:
-#        enabled: false
-#      oracledb.session.logical_reads:
-#        enabled: false
-#      oracledb.session.parse_count_total:
-#        enabled: false
-#      oracledb.session.pga_memory:
-#        enabled: false
-#      oracledb.session.physical_reads:
-#        enabled: false
-#      oracledb.session.soft_parses:
-#        enabled: false
-#      oracledb.session.user_commits:
-#        enabled: false
-#      oracledb.session.user_rollbacks:
-#        enabled: false
-#      oracledb.system.execute_count:
-#        enabled: false
-#      oracledb.system.parse_count_total:
-#        enabled: false
-#      oracledb.system.session_count:
-#        enabled: false
-#      oracledb.system.user_commits:
-#        enabled: false
-#      oracledb.system.resource_limits:
-#        enabled: false
-#      oracledb.system.user_rollbacks:
-#        enabled: false
-#      oracledb.tablespace.max_size:
-#        enabled: false
-#      oracledb.tablespace.size:
-#        enabled: true
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"

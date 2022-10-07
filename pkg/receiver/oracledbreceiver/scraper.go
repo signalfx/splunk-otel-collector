@@ -36,27 +36,17 @@ import (
 )
 
 const (
-	queryCPUTimeSQL               = "select s.sql_id as sql_id, s.SQL_FULLTEXT, s.CPU_TIME as VALUE FROM v$sqlstats s  where to_char(LAST_ACTIVE_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.EXECUTIONS DESC FETCH NEXT 10 ROWS ONLY"
-	queryElapsedTimeSQL           = "select s.sql_id as sql_id, s.SQL_FULLTEXT as sql_fulltext, s.ELAPSED_TIME as value FROM v$sqlstats s  where to_char(LAST_ACTIVE_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.ELAPSED_TIME DESC FETCH NEXT 10 ROWS ONLY"
-	queryExecutionsTimeSQL        = "select s.sql_id as sql_id, s.SQL_FULLTEXT, s.EXECUTIONS as VALUE FROM v$sqlstats s  where to_char(LAST_ACTIVE_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.ELAPSED_TIME DESC FETCH NEXT 10 ROWS ONLY"
-	queryParseCallsSQL            = "select s.sql_id as sql_id, s.SQL_FULLTEXT, s.PARSE_CALLS as VALUE FROM v$sqlstats s  where to_char(LAST_ACTIVE_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.EXECUTIONS DESC FETCH NEXT 10 ROWS ONLY"
-	queryPhysicalReadBytesSQL     = "select s.sql_id as sql_id, s.SQL_FULLTEXT, s.PHYSICAL_READ_BYTES as VALUE FROM v$sqlstats s  where to_char(LAST_ACTIVE_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.EXECUTIONS DESC FETCH NEXT 10 ROWS ONLY"
-	queryPhysicalReadRequestsSQL  = "select s.sql_id as sql_id, s.SQL_FULLTEXT, s.PHYSICAL_READ_REQUESTS as VALUE FROM v$sqlstats s  where to_char(LAST_ACTIVE_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.EXECUTIONS DESC FETCH NEXT 10 ROWS ONLY"
-	queryPhysicalWriteBytesSQL    = "select s.sql_id as sql_id, s.SQL_FULLTEXT, s.PHYSICAL_WRITE_BYTES as VALUE FROM v$sqlstats s  where to_char(LAST_ACTIVE_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.ELAPSED_TIME DESC FETCH NEXT 10 ROWS ONLY"
-	queryPhysicalWriteRequestsSQL = "select s.sql_id as sql_id, s.SQL_FULLTEXT, s.PHYSICAL_WRITE_REQUESTS as VALUE FROM v$sqlstats s  where to_char(LAST_ACTIVE_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.ELAPSED_TIME DESC FETCH NEXT 10 ROWS ONLY"
-	queryTotalSharableMemSQL      = "select s.sql_id as sql_id, s.SQL_FULLTEXT, s.TOTAL_SHARABLE_MEM as VALUE FROM v$sqlstats s  where to_char(LAST_ACTIVE_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.ELAPSED_TIME DESC FETCH NEXT 10 ROWS ONLY"
-	queryLongestRunningSQL        = "select s.SQL_ID, s.START_TIME, s.ELAPSED_SECONDS as VALUE FROM v$session_longops s where to_char(START_TIME , 'mm/dd/yyyy HH:MI') between to_char(sysdate - 30/(24*60), 'mm/dd/yyyy HH:MI') and to_char(sysdate, 'mm/dd/yyyy HH:MI') ORDER BY s.ELAPSED_SECONDS DESC FETCH NEXT 10 ROWS ONLY"
-	sessionUsageSQL               = "select session_id, cpu as cpu_usage, pga_memory, physical_reads, logical_reads, hard_parses, soft_parses FROM v$sessmetric"
-	sessionEnqueueDeadlocksSQL    = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'enqueue deadlocks'"
-	sessionExchangeDeadlocksSQL   = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'exchange deadlocks'"
-	sessionExecuteCountSQL        = "select ss.SID as session_id, se.value as VALUE  from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'execute count'"
-	sessionParseCountTotalSQL     = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'parse count (total)'"
-	sessionUserCommitsSQL         = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'user commits'"
-	sessionUserRollbacksSQL       = "select ss.SID as session_id, se.value as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and se.SID = ss.SID and NAME = 'user rollbacks'"
-	sessionCountSQL               = "select status, type, count(*) as VALUE FROM v$session GROUP BY status, type"
-	systemResourceLimitsSQL       = "select RESOURCE_NAME, CURRENT_UTILIZATION, MAX_UTILIZATION, INITIAL_ALLOCATION, LIMIT_VALUE from v$resource_limit"
-	tablespaceUsageSQL            = "select TABLESPACE_NAME, BYTES from DBA_DATA_FILES"
-	tablespaceMaxSpaceSQL         = "select TABLESPACE_NAME, (BLOCK_SIZE*MAX_EXTENTS) AS VALUE FROM DBA_TABLESPACES"
+	sessionUsageSQL             = "select sum(cpu) as cpu_usage, sum(pga_memory) as pga_memory, sum(physical_reads) as physical_reads, sum(logical_reads) as logical_reads, sum(hard_parses) as hard_parses, sum(soft_parses) as soft_parses FROM v$sessmetric"
+	sessionEnqueueDeadlocksSQL  = "select sum(se.value) as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and NAME = 'enqueue deadlocks'"
+	sessionExchangeDeadlocksSQL = "select sum(se.value) as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and NAME = 'exchange deadlocks'"
+	sessionExecuteCountSQL      = "select sum(se.value) as VALUE  from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and NAME = 'execute count'"
+	sessionParseCountTotalSQL   = "select sum(se.value) as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and NAME = 'parse count (total)'"
+	sessionUserCommitsSQL       = "select sum(se.value) as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and NAME = 'user commits'"
+	sessionUserRollbacksSQL     = "select sum(se.value) as VALUE from v$session ss, v$sesstat se, v$statname sn where se.STATISTIC# = sn.STATISTIC# and NAME = 'user rollbacks'"
+	sessionCountSQL             = "select status, type, count(*) as VALUE FROM v$session GROUP BY status, type"
+	systemResourceLimitsSQL     = "select RESOURCE_NAME, CURRENT_UTILIZATION, MAX_UTILIZATION, CASE WHEN TRIM(INITIAL_ALLOCATION) LIKE 'UNLIMITED' THEN '-1' ELSE TRIM(INITIAL_ALLOCATION) END as INITIAL_ALLOCATION, CASE WHEN TRIM(LIMIT_VALUE) LIKE 'UNLIMITED' THEN '-1' ELSE TRIM(LIMIT_VALUE) END as LIMIT_VALUE from v$resource_limit"
+	tablespaceUsageSQL          = "select TABLESPACE_NAME, BYTES from DBA_DATA_FILES"
+	tablespaceMaxSpaceSQL       = "select TABLESPACE_NAME, (BLOCK_SIZE*MAX_EXTENTS) AS VALUE FROM DBA_TABLESPACES"
 )
 
 type dbProviderFunc func() (*sql.DB, error)
@@ -110,66 +100,6 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 
 	var scrapeErrors []error
 
-	if s.metricsSettings.OracledbQueryCPUTime.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, queryCPUTimeSQL, s.metricsBuilder.RecordOracledbQueryCPUTimeDataPoint); err != nil {
-			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", queryCPUTimeSQL, err))
-		}
-	}
-	if s.metricsSettings.OracledbQueryLongRunning.Enabled {
-		client := s.clientProviderFunc(s.db, queryLongestRunningSQL, s.logger)
-		rows, err := client.metricRows(ctx)
-		if err != nil {
-			return pmetric.Metrics{}, fmt.Errorf("error executing %s: %w", queryLongestRunningSQL, err)
-		}
-		for _, row := range rows {
-			value, err := strconv.ParseInt(row["VALUE"], 10, 64)
-			if err != nil {
-				scrapeErrors = append(scrapeErrors, fmt.Errorf("value: %q, %s, %w", row["VALUE"], queryLongestRunningSQL, err))
-			} else {
-				s.metricsBuilder.RecordOracledbQueryLongRunningDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SQL_ID"])
-			}
-		}
-	}
-	if s.metricsSettings.OracledbQueryElapsedTime.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, queryElapsedTimeSQL, s.metricsBuilder.RecordOracledbQueryElapsedTimeDataPoint); err != nil {
-			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", queryElapsedTimeSQL, err))
-		}
-	}
-	if s.metricsSettings.OracledbQueryExecutions.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, queryExecutionsTimeSQL, s.metricsBuilder.RecordOracledbQueryExecutionsDataPoint); err != nil {
-			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", queryExecutionsTimeSQL, err))
-		}
-	}
-	if s.metricsSettings.OracledbQueryParseCalls.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, queryParseCallsSQL, s.metricsBuilder.RecordOracledbQueryParseCallsDataPoint); err != nil {
-			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", queryParseCallsSQL, err))
-		}
-	}
-	if s.metricsSettings.OracledbQueryPhysicalReadBytes.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, queryPhysicalReadBytesSQL, s.metricsBuilder.RecordOracledbQueryPhysicalReadBytesDataPoint); err != nil {
-			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", queryPhysicalReadBytesSQL, err))
-		}
-	}
-	if s.metricsSettings.OracledbQueryPhysicalReadRequests.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, queryPhysicalReadRequestsSQL, s.metricsBuilder.RecordOracledbQueryPhysicalReadRequestsDataPoint); err != nil {
-			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", queryPhysicalReadRequestsSQL, err))
-		}
-	}
-	if s.metricsSettings.OracledbQueryPhysicalWriteBytes.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, queryPhysicalWriteBytesSQL, s.metricsBuilder.RecordOracledbQueryPhysicalWriteBytesDataPoint); err != nil {
-			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", queryPhysicalWriteBytesSQL, err))
-		}
-	}
-	if s.metricsSettings.OracledbQueryPhysicalWriteRequests.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, queryPhysicalWriteRequestsSQL, s.metricsBuilder.RecordOracledbQueryPhysicalWriteRequestsDataPoint); err != nil {
-			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", queryPhysicalWriteRequestsSQL, err))
-		}
-	}
-	if s.metricsSettings.OracledbQueryTotalSharableMem.Enabled {
-		if err := s.executeOneQueryWithFullText(ctx, queryTotalSharableMemSQL, s.metricsBuilder.RecordOracledbQueryTotalSharableMemDataPoint); err != nil {
-			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", queryTotalSharableMemSQL, err))
-		}
-	}
 	runSessionUsage := s.metricsSettings.OracledbSessionCPUUsage.Enabled || s.metricsSettings.OracledbSessionPgaMemory.Enabled ||
 		s.metricsSettings.OracledbSessionPhysicalReads.Enabled || s.metricsSettings.OracledbSessionLogicalReads.Enabled || s.metricsSettings.OracledbSessionHardParses.Enabled || s.metricsSettings.OracledbSessionSoftParses.Enabled
 	if runSessionUsage {
@@ -186,76 +116,76 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("value: %q, %s, %w", row["CPU_USAGE"], sessionUsageSQL, err))
 				}
-				s.metricsBuilder.RecordOracledbSessionCPUUsageDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
+				s.metricsBuilder.RecordOracledbSessionCPUUsageDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
 			}
 			if s.metricsSettings.OracledbSessionPgaMemory.Enabled {
 				value, err := strconv.ParseInt(row["PGA_MEMORY"], 10, 64)
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("pga_memory value: %q, %w", row["PGA_MEMORY"], err))
 				}
-				s.metricsBuilder.RecordOracledbSessionPgaMemoryDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
+				s.metricsBuilder.RecordOracledbSessionPgaMemoryDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
 			}
 			if s.metricsSettings.OracledbSessionPhysicalReads.Enabled {
 				value, err := strconv.ParseInt(row["PHYSICAL_READS"], 10, 64)
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("physical_reads value: %q, %w", row["PHYSICAL_READS"], err))
 				}
-				s.metricsBuilder.RecordOracledbSessionPhysicalReadsDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
+				s.metricsBuilder.RecordOracledbSessionPhysicalReadsDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
 			}
 			if s.metricsSettings.OracledbSessionLogicalReads.Enabled {
 				value, err := strconv.ParseInt(row["LOGICAL_READS"], 10, 64)
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("logical_reads value: %q, %w", row["LOGICAL_READS"], err))
 				}
-				s.metricsBuilder.RecordOracledbSessionLogicalReadsDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
+				s.metricsBuilder.RecordOracledbSessionLogicalReadsDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
 			}
 			if s.metricsSettings.OracledbSessionHardParses.Enabled {
 				value, err := strconv.ParseInt(row["HARD_PARSES"], 10, 64)
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("hard_parses value: %q, %w", row["HARD_PARSES"], err))
 				}
-				s.metricsBuilder.RecordOracledbSessionHardParsesDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
+				s.metricsBuilder.RecordOracledbSessionHardParsesDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
 			}
 			if s.metricsSettings.OracledbSessionSoftParses.Enabled {
 				value, err := strconv.ParseInt(row["SOFT_PARSES"], 10, 64)
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("soft_parses value: %q, %w", row["SOFT_PARSES"], err))
 				}
-				s.metricsBuilder.RecordOracledbSessionSoftParsesDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
+				s.metricsBuilder.RecordOracledbSessionSoftParsesDataPoint(pcommon.NewTimestampFromTime(time.Now()), value)
 			}
 		}
 	}
 
 	if s.metricsSettings.OracledbSessionEnqueueDeadlocks.Enabled {
-		if err := s.executeOneQueryWithSessionID(ctx, sessionEnqueueDeadlocksSQL, s.metricsBuilder.RecordOracledbSessionEnqueueDeadlocksDataPoint); err != nil {
+		if err := s.executeOneQuery(ctx, sessionEnqueueDeadlocksSQL, s.metricsBuilder.RecordOracledbSessionEnqueueDeadlocksDataPoint); err != nil {
 			scrapeErrors = append(scrapeErrors, err)
 		}
 	}
 	if s.metricsSettings.OracledbSessionExchangeDeadlocks.Enabled {
-		if err := s.executeOneQueryWithSessionID(ctx, sessionExchangeDeadlocksSQL, s.metricsBuilder.RecordOracledbSessionExchangeDeadlocksDataPoint); err != nil {
+		if err := s.executeOneQuery(ctx, sessionExchangeDeadlocksSQL, s.metricsBuilder.RecordOracledbSessionExchangeDeadlocksDataPoint); err != nil {
 			scrapeErrors = append(scrapeErrors, err)
 		}
 	}
 	if s.metricsSettings.OracledbSessionExecuteCount.Enabled {
-		if err := s.executeOneQueryWithSessionID(ctx, sessionExecuteCountSQL, s.metricsBuilder.RecordOracledbSessionExecuteCountDataPoint); err != nil {
+		if err := s.executeOneQuery(ctx, sessionExecuteCountSQL, s.metricsBuilder.RecordOracledbSessionExecuteCountDataPoint); err != nil {
 			scrapeErrors = append(scrapeErrors, err)
 		}
 	}
 
 	if s.metricsSettings.OracledbSessionParseCountTotal.Enabled {
-		if err := s.executeOneQueryWithSessionID(ctx, sessionParseCountTotalSQL, s.metricsBuilder.RecordOracledbSessionParseCountTotalDataPoint); err != nil {
+		if err := s.executeOneQuery(ctx, sessionParseCountTotalSQL, s.metricsBuilder.RecordOracledbSessionParseCountTotalDataPoint); err != nil {
 			scrapeErrors = append(scrapeErrors, err)
 		}
 	}
 
 	if s.metricsSettings.OracledbSessionUserCommits.Enabled {
-		if err := s.executeOneQueryWithSessionID(ctx, sessionUserCommitsSQL, s.metricsBuilder.RecordOracledbSessionUserCommitsDataPoint); err != nil {
+		if err := s.executeOneQuery(ctx, sessionUserCommitsSQL, s.metricsBuilder.RecordOracledbSessionUserCommitsDataPoint); err != nil {
 			scrapeErrors = append(scrapeErrors, err)
 		}
 	}
 
 	if s.metricsSettings.OracledbSessionUserRollbacks.Enabled {
-		if err := s.executeOneQueryWithSessionID(ctx, sessionUserRollbacksSQL, s.metricsBuilder.RecordOracledbSessionUserRollbacksDataPoint); err != nil {
+		if err := s.executeOneQuery(ctx, sessionUserRollbacksSQL, s.metricsBuilder.RecordOracledbSessionUserRollbacksDataPoint); err != nil {
 			scrapeErrors = append(scrapeErrors, err)
 		}
 	}
@@ -296,33 +226,18 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 			} else {
 				s.metricsBuilder.RecordOracledbSystemResourceLimitsDataPoint(pcommon.NewTimestampFromTime(time.Now()), maxUtilization, resourceName, "max")
 			}
-			ok := true
-			var initialAllocation int64
-			if strings.Contains(row["INITIAL_ALLOCATION"], "UNLIMITED") {
-				initialAllocation = 0x7FF0000000000000 // max int64
+
+			initialAllocation, err := strconv.ParseInt(strings.Trim(row["INITIAL_ALLOCATION"], " "), 10, 64)
+			if err != nil {
+				scrapeErrors = append(scrapeErrors, fmt.Errorf("initial allocation for %q: %q, %s, %w", resourceName, row["INITIAL_ALLOCATION"], systemResourceLimitsSQL, err))
 			} else {
-				initialAllocation, err = strconv.ParseInt(strings.Trim(row["INITIAL_ALLOCATION"], " "), 10, 64)
-				if err != nil {
-					ok = false
-					scrapeErrors = append(scrapeErrors, fmt.Errorf("initial allocation for %q: %q, %s, %w", resourceName, row["INITIAL_ALLOCATION"], systemResourceLimitsSQL, err))
-				}
-			}
-			if ok {
 				s.metricsBuilder.RecordOracledbSystemResourceLimitsDataPoint(pcommon.NewTimestampFromTime(time.Now()), initialAllocation, resourceName, "initial")
 			}
 
-			var limitValue int64
-			ok = true
-			if strings.Contains(row["LIMIT_VALUE"], "UNLIMITED") {
-				limitValue = 0x7FF0000000000000 // max int64
+			limitValue, err := strconv.ParseInt(strings.Trim(row["LIMIT_VALUE"], " "), 10, 64)
+			if err != nil {
+				scrapeErrors = append(scrapeErrors, fmt.Errorf("limit value for %q: %q, %s, %w", resourceName, row["LIMIT_VALUE"], systemResourceLimitsSQL, err))
 			} else {
-				limitValue, err = strconv.ParseInt(strings.Trim(row["LIMIT_VALUE"], " "), 10, 64)
-				if err != nil {
-					ok = false
-					scrapeErrors = append(scrapeErrors, fmt.Errorf("limit value for %q: %q, %s, %w", resourceName, row["LIMIT_VALUE"], systemResourceLimitsSQL, err))
-				}
-			}
-			if ok {
 				s.metricsBuilder.RecordOracledbSystemResourceLimitsDataPoint(pcommon.NewTimestampFromTime(time.Now()), limitValue, resourceName, "current")
 			}
 		}
@@ -372,7 +287,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 		}
 	}
 
-	out := s.metricsBuilder.Emit(metadata.WithOracledbInstanceName(s.instanceName))
+	out := s.metricsBuilder.Emit(metadata.WithDbOracleInstanceName(s.instanceName))
 	s.logger.Debug("Done scraping")
 	if len(scrapeErrors) > 0 {
 		return out, scrapererror.NewPartialScrapeError(multierr.Combine(scrapeErrors...), len(scrapeErrors))
@@ -380,7 +295,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 	return out, nil
 }
 
-func (s *scraper) executeOneQueryWithSessionID(ctx context.Context, query string, recorder func(ts pcommon.Timestamp, val int64, sessionID string)) error {
+func (s *scraper) executeOneQuery(ctx context.Context, query string, recorder func(ts pcommon.Timestamp, val int64)) error {
 	client := s.clientProviderFunc(s.db, query, s.logger)
 	rows, err := client.metricRows(ctx)
 	if err != nil {
@@ -391,27 +306,7 @@ func (s *scraper) executeOneQueryWithSessionID(ctx context.Context, query string
 		if err != nil {
 			return fmt.Errorf("value: %s, %s, %w", row["VALUE"], query, err)
 		}
-		recorder(pcommon.NewTimestampFromTime(time.Now()), value, row["SESSION_ID"])
-	}
-	return nil
-}
-
-func (s *scraper) executeOneQueryWithFullText(ctx context.Context, query string, recorder func(ts pcommon.Timestamp, val int64, oracledbQueryIDAttributeValue string, oracledbQueryFulltextAttributeValue string)) error {
-	client := s.clientProviderFunc(s.db, query, s.logger)
-	rows, err := client.metricRows(ctx)
-	if err != nil {
-		return fmt.Errorf("error executing %s: %w", query, err)
-	}
-	for _, row := range rows {
-		value, err := strconv.ParseInt(row["VALUE"], 10, 64)
-		if err != nil {
-			return fmt.Errorf("value: %s, %s, %w", row["VALUE"], query, err)
-		}
-		fullText := row["SQL_FULLTEXT"]
-		if len(fullText) > 256 {
-			fullText = fullText[:253] + "..."
-		}
-		recorder(pcommon.NewTimestampFromTime(time.Now()), value, row["SQL_ID"], fullText)
+		recorder(pcommon.NewTimestampFromTime(time.Now()), value)
 	}
 	return nil
 }

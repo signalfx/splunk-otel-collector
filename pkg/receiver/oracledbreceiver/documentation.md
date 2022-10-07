@@ -8,32 +8,22 @@ These are the metrics available for this scraper.
 
 | Name | Description | Unit | Type | Attributes |
 | ---- | ----------- | ---- | ---- | ---------- |
-| **oracledb.query.cpu_time** | CPU time (in microseconds) used by this cursor for parsing, executing, and fetching. | us | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.elapsed_time** | Elapsed time (in microseconds) used by this cursor. | us | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.executions** | Number of executions that have taken place on this object. | 1 | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.long_running** | Elapsed time (in seconds) of long running queries used by this cursor. | s | Sum(Int) | <ul> <li>oracledb.query.id</li> </ul> |
-| **oracledb.query.parse_calls** | Number of parse calls for all cursors with this SQL text and plan. | 1 | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.physical_read_bytes** | Number of bytes read from disks by the monitored SQL. | By | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.physical_read_requests** | Number of physical read I/O requests issued by the monitored SQL. The requests may not be disk reads. | 1 | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.physical_write_bytes** | Number of bytes written to disks by the monitored SQL. | By | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.physical_write_requests** | Number of physical write I/O requests issued by the monitored SQL. | 1 | Sum(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.query.total_sharable_mem** | Total shared memory (in bytes) occupied by all cursors with this SQL text and plan if they were to be fully loaded in the shared pool (that is, cursor size). | By | Gauge(Int) | <ul> <li>oracledb.query.id</li> <li>oracledb.query.fulltext</li> </ul> |
-| **oracledb.session.cpu_usage** | CPU usage (%) | 1 | Gauge(Double) | <ul> <li>oracledb.session.id</li> </ul> |
-| **oracledb.session.enqueue_deadlocks** | Total number of deadlocks between table or row locks in different sessions. | 1 | Gauge(Int) | <ul> <li>oracledb.session.id</li> </ul> |
-| **oracledb.session.exchange_deadlocks** | Number of times that a process detected a potential deadlock when exchanging two buffers and raised an internal, restartable error. Index scans are the only operations that perform exchanges. | 1 | Gauge(Int) | <ul> <li>oracledb.session.id</li> </ul> |
-| **oracledb.session.execute_count** | Total number of calls (user and recursive) that executed SQL statements | 1 | Sum(Int) | <ul> <li>oracledb.session.id</li> </ul> |
-| **oracledb.session.hard_parses** | Number of hard parses | 1 | Sum(Int) | <ul> <li>oracledb.session.id</li> </ul> |
-| **oracledb.session.logical_reads** | Number of logical reads | 1 | Sum(Int) | <ul> <li>oracledb.session.id</li> </ul> |
-| **oracledb.session.parse_count_total** | Total number of parse calls (hard, soft, and describe). A soft parse is a check on an object already in the shared pool, to verify that the permissions on the underlying object have not changed. | 1 | Sum(Int) | <ul> <li>oracledb.session.id</li> </ul> |
-| **oracledb.session.pga_memory** | PGA size at the end of the interval | By | Gauge(Int) | <ul> <li>oracledb.session.id</li> </ul> |
-| **oracledb.session.physical_reads** | Number of physical reads | 1 | Sum(Int) | <ul> <li>oracledb.session.id</li> </ul> |
-| **oracledb.session.soft_parses** | Number of soft parses | 1 | Sum(Int) | <ul> <li>oracledb.session.id</li> </ul> |
-| **oracledb.session.user_commits** | Number of user commits. When a user commits a transaction, the redo generated that reflects the changes made to database blocks must be written to disk. Commits often represent the closest thing to a user transaction rate. | 1 | Sum(Int) | <ul> <li>oracledb.session.id</li> </ul> |
-| **oracledb.session.user_rollbacks** | Number of times users manually issue the ROLLBACK statement or an error occurs during a user's transactions | 1 | Sum(Int) | <ul> <li>oracledb.session.id</li> </ul> |
-| **oracledb.system.resource_limits** | Designates the current utilization and max, initial and current value of a resource limit across processes, sessions, locks, and more. | 1 | Gauge(Int) | <ul> <li>oracledb.resource.name</li> <li>oracledb.resource.type</li> </ul> |
-| **oracledb.system.session_count** | Count of sessions. | 1 | Gauge(Int) | <ul> <li>oracledb.session.type</li> <li>oracledb.session.status</li> </ul> |
-| **oracledb.tablespace.max_size** | Maximum size of tablespace in bytes. | By | Gauge(Int) | <ul> <li>oracledb.tablespace.name</li> </ul> |
-| **oracledb.tablespace.size** | Size of tablespace in bytes. | By | Gauge(Int) | <ul> <li>oracledb.tablespace.name</li> </ul> |
+| **oracledb.session.cpu_usage** | CPU usage (%) | 1 | Gauge(Double) | <ul> </ul> |
+| **oracledb.session.enqueue_deadlocks** | Total number of deadlocks between table or row locks in different sessions. | 1 | Gauge(Int) | <ul> </ul> |
+| **oracledb.session.exchange_deadlocks** | Number of times that a process detected a potential deadlock when exchanging two buffers and raised an internal, restartable error. Index scans are the only operations that perform exchanges. | 1 | Gauge(Int) | <ul> </ul> |
+| **oracledb.session.execute_count** | Total number of calls (user and recursive) that executed SQL statements | 1 | Sum(Int) | <ul> </ul> |
+| **oracledb.session.hard_parses** | Number of hard parses | 1 | Sum(Int) | <ul> </ul> |
+| **oracledb.session.logical_reads** | Number of logical reads | 1 | Sum(Int) | <ul> </ul> |
+| **oracledb.session.parse_count_total** | Total number of parse calls (hard, soft, and describe). A soft parse is a check on an object already in the shared pool, to verify that the permissions on the underlying object have not changed. | 1 | Sum(Int) | <ul> </ul> |
+| **oracledb.session.pga_memory** | PGA size at the end of the interval | By | Gauge(Int) | <ul> </ul> |
+| **oracledb.session.physical_reads** | Number of physical reads | 1 | Sum(Int) | <ul> </ul> |
+| **oracledb.session.soft_parses** | Number of soft parses | 1 | Sum(Int) | <ul> </ul> |
+| **oracledb.session.user_commits** | Number of user commits. When a user commits a transaction, the redo generated that reflects the changes made to database blocks must be written to disk. Commits often represent the closest thing to a user transaction rate. | 1 | Sum(Int) | <ul> </ul> |
+| **oracledb.session.user_rollbacks** | Number of times users manually issue the ROLLBACK statement or an error occurs during a user's transactions | 1 | Sum(Int) | <ul> </ul> |
+| **oracledb.system.resource_limits** | Designates the current utilization and max, initial and current value of a resource limit across processes, sessions, locks, and more. | 1 | Gauge(Int) | <ul> <li>db.oracle.resource.name</li> <li>db.oracle.resource.type</li> </ul> |
+| **oracledb.system.session_count** | Count of sessions. | 1 | Gauge(Int) | <ul> <li>db.oracle.session.type</li> <li>db.oracle.session.status</li> </ul> |
+| **oracledb.tablespace.max_size** | Maximum size of tablespace in bytes. | By | Gauge(Int) | <ul> <li>db.oracle.tablespace.name</li> </ul> |
+| **oracledb.tablespace.size** | Size of tablespace in bytes. | By | Gauge(Int) | <ul> <li>db.oracle.tablespace.name</li> </ul> |
 
 **Highlighted metrics** are emitted by default. Other metrics are optional and not emitted by default.
 Any metric can be enabled or disabled with the following scraper configuration:
@@ -48,17 +38,14 @@ metrics:
 
 | Name | Description | Type |
 | ---- | ----------- | ---- |
-| oracledb.instance.name | The name of the instance that data is coming from. | String |
+| db.oracle.instance.name | The name of the instance that data is coming from. | String |
 
 ## Metric attributes
 
 | Name | Description | Values |
 | ---- | ----------- | ------ |
-| oracledb.query.fulltext | Full text for the SQL statement. |  |
-| oracledb.query.id | Unique ID for the SQL statement. |  |
-| oracledb.resource.name | Resource name. Example values are 'processes', 'sessions', 'enqueue_locks', 'enqueue_resources'. |  |
-| oracledb.resource.type | Resource type, one of 'current_utilization', 'max', 'initial', 'current'. |  |
-| oracledb.session.id | Session id |  |
-| oracledb.session.status | Session status |  |
-| oracledb.session.type | Session type |  |
-| oracledb.tablespace.name | Tablespace name |  |
+| db.oracle.resource.name | Resource name. Example values are 'processes', 'sessions', 'enqueue_locks', 'enqueue_resources'. |  |
+| db.oracle.resource.type | Resource type, one of 'current_utilization', 'max', 'initial', 'current'. |  |
+| db.oracle.session.status | Session status |  |
+| db.oracle.session.type | Session type |  |
+| db.oracle.tablespace.name | Tablespace name |  |

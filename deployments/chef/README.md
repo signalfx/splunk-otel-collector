@@ -138,7 +138,7 @@ required `splunk_access_token` attribute and some optional attributes:
   `/etc/otel/collector/fluentd/fluent.conf`)
 
 - `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
-  https://github.com/signalfx/splunk-otel-collector/blob/main/internal/extension/smartagentextension/README.md).
+  https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/extension/smartagentextension/README.md).
   The default path is provided by the Collector package. If the specified path
   is changed from the default value, the path should be an existing directory
   on the node. The `SPLUNK_BUNDLE_DIR` environment variable will be set to

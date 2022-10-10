@@ -84,8 +84,8 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/pulsarexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/smartagentreceiver"
 	"github.com/signalfx/splunk-otel-collector/processor/timestampprocessor"
+	"github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver"
 )
 
 func Get() (component.Factories, error) {

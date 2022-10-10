@@ -1,6 +1,8 @@
 resource_metrics:
-  - instrumentation_library_metrics:
-      - instrumentation_library:
+  - attributes:
+      not: matched
+  - scope_metrics:
+      - instrumentation_scope:
           name: with_metrics
           version: another_version
         metrics:

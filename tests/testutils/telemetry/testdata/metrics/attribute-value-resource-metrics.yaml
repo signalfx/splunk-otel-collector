@@ -1,6 +1,9 @@
 resource_metrics:
-  - instrumentation_library_metrics:
+  - scope_metrics:
       - metrics:
           - name: another_int_gauge
             type: IntGauge
+            attributes:
+              attribute_one: value_one
+              attribute_two: value_two
             value: 111

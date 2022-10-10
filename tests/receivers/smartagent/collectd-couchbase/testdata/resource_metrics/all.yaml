@@ -1,5 +1,5 @@
 resource_metrics:
-  - instrumentation_library_metrics:
+  - scope_metrics:
       - metrics:
           - name: gauge.storage.ram.usedByData
             type: IntGauge

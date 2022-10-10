@@ -38,13 +38,13 @@ const (
 
 // Config exported to be used by jmx metric receiver.
 type Config struct {
-	ExecutablePath       string            `mapstructure:"executable_path"`
-	Args                 []string          `mapstructure:"args"`
 	EnvironmentVariables map[string]string `mapstructure:"environment_variables"`
-	StdInContents        string            `mapstructure:"stdin_contents"`
-	RestartOnError       bool              `mapstructure:"restart_on_error"`
 	RestartDelay         *time.Duration    `mapstructure:"restart_delay"`
 	ShutdownTimeout      *time.Duration    `mapstructure:"shutdown_timeout"`
+	ExecutablePath       string            `mapstructure:"executable_path"`
+	StdInContents        string            `mapstructure:"stdin_contents"`
+	Args                 []string          `mapstructure:"args"`
+	RestartOnError       bool              `mapstructure:"restart_on_error"`
 }
 
 // Subprocess exported to be used by jmx metric receiver.
@@ -52,12 +52,11 @@ type Subprocess struct {
 	Stdout         chan string
 	cancel         context.CancelFunc
 	config         *Config
-	envVars        []string
 	logger         *zap.Logger
-	pid            pid
 	shutdownSignal chan struct{}
-	// configurable for testing purposes
-	sendToStdIn func(string, io.Writer) error
+	sendToStdIn    func(string, io.Writer) error
+	envVars        []string
+	pid            pid
 }
 
 type pid struct {
@@ -305,8 +304,7 @@ func createCommand(execPath string, args, envVars []string) (*exec.Cmd, io.Write
 	cmd := exec.Command(execPath, args...)
 
 	var env []string
-	env = append(env, os.Environ()...)
-	cmd.Env = append(env, envVars...)
+	cmd.Env = append(append(env, os.Environ()...), envVars...)
 
 	inReader, inWriter, err := os.Pipe()
 	if err != nil {

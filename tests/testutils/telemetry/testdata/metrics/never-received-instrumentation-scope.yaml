@@ -1,8 +1,6 @@
 resource_metrics:
-  - attributes:
-      not: matched
-  - instrumentation_library_metrics:
-      - instrumentation_library:
+  - scope_metrics:
+      - instrumentation_scope:
           name: with_metrics
           version: another_version
         metrics:
@@ -10,3 +8,5 @@ resource_metrics:
             type: IntGauge
           - name: another_double_gauge
             type: DoubleGauge
+      - instrumentation_scope:
+          name: unmatched_instrumentation_scope

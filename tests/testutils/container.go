@@ -35,18 +35,18 @@ const (
 // Container is a combination builder and testcontainers.Container wrapper
 // for convenient creation and management of docker images and containers.
 type Container struct {
-	Image                string
-	Dockerfile           testcontainers.FromDockerfile
-	Cmd                  []string
 	Env                  map[string]string
-	ExposedPorts         []string
-	ContainerName        string
-	ContainerNetworks    []string
-	ContainerNetworkMode string
-	WaitingFor           []wait.Strategy
 	req                  *testcontainers.ContainerRequest
 	container            *testcontainers.Container
 	startupTimeout       *time.Duration
+	Dockerfile           testcontainers.FromDockerfile
+	Image                string
+	ContainerName        string
+	ContainerNetworkMode string
+	Cmd                  []string
+	ExposedPorts         []string
+	ContainerNetworks    []string
+	WaitingFor           []wait.Strategy
 }
 
 var _ testcontainers.Container = (*Container)(nil)

@@ -1,7 +1,7 @@
 resource_metrics:
-  - instrumentation_library_metrics:
+  - scope_metrics:
       - metrics:
           - name: system.memory.usage
             type: IntNonmonotonicCumulativeSum
-            labels:
+            attributes:
               state: used

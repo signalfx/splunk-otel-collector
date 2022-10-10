@@ -29,6 +29,8 @@ import (
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
 )
 
 func TestNewOTLPReceiverSink(t *testing.T) {
@@ -95,7 +97,7 @@ func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
 	// doesn't panic
 	otlp.Reset()
 
-	err = otlp.AssertAllMetricsReceived(t, ResourceMetrics{}, 0)
+	err = otlp.AssertAllMetricsReceived(t, telemetry.ResourceMetrics{}, 0)
 	require.Error(t, err)
 	require.EqualError(t, err, "cannot invoke AssertAllMetricsReceived() on an OTLPMetricsReceiverSink that hasn't been built")
 }
@@ -133,7 +135,7 @@ func TestOTLPReceiverMetricsAvailableToSink(t *testing.T) {
 	exporter := otlpExporter(t)
 	defer exporter.Shutdown(context.Background())
 
-	metrics := pdataMetrics()
+	metrics := telemetry.PDataMetrics()
 	expectedCount := metrics.DataPointCount()
 	err = exporter.ConsumeMetrics(context.Background(), metrics)
 	require.NoError(t, err)
@@ -156,11 +158,11 @@ func TestAssertAllMetricsReceivedHappyPath(t *testing.T) {
 	exporter := otlpExporter(t)
 	defer exporter.Shutdown(context.Background())
 
-	metrics := pdataMetrics()
+	metrics := telemetry.PDataMetrics()
 	err = exporter.ConsumeMetrics(context.Background(), metrics)
 	require.NoError(t, err)
 
-	resourceMetrics, err := PDataToResourceMetrics(metrics)
+	resourceMetrics, err := telemetry.PDataToResourceMetrics(metrics)
 	require.NoError(t, err)
 	otlp.AssertAllMetricsReceived(t, resourceMetrics, 100*time.Millisecond)
 }

@@ -31,15 +31,15 @@ const findExecutableErrorMsg = "unable to find collector executable path.  Be su
 var _ Collector = (*CollectorProcess)(nil)
 
 type CollectorProcess struct {
-	Path             string
-	ConfigPath       string
-	Args             []string
 	Env              map[string]string
 	Logger           *zap.Logger
-	LogLevel         string
-	Fail             bool
 	Process          *subprocess.Subprocess
 	subprocessConfig *subprocess.Config
+	Path             string
+	ConfigPath       string
+	LogLevel         string
+	Args             []string
+	Fail             bool
 }
 
 // To be used as a builder whose Build() method provides the actual instance capable of launching the process.
@@ -155,8 +155,8 @@ func findCollectorPath() (string, error) {
 	var collectorPath string
 	for i := 0; true; i++ {
 		attemptedPath := path.Join(dir, binaryPath)
-		info, err := os.Stat(attemptedPath)
-		if err != nil && !os.IsNotExist(err) {
+		var info os.FileInfo
+		if info, err = os.Stat(attemptedPath); err != nil && !os.IsNotExist(err) {
 			return "", fmt.Errorf("%s: %w", findExecutableErrorMsg, err)
 		}
 

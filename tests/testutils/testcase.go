@@ -30,6 +30,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
+
+	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
 )
 
 // A Testcase is a central helper utility to provide Container, OTLPMetricsReceiverSink, ResourceMetrics,
@@ -77,8 +79,8 @@ func (t *Testcase) SkipIfNotContainer() string {
 }
 
 // Loads and validates a ResourceMetrics instance, assuming it's located in ./testdata/resource_metrics
-func (t *Testcase) ResourceMetrics(filename string) *ResourceMetrics {
-	expectedResourceMetrics, err := LoadResourceMetrics(
+func (t *Testcase) ResourceMetrics(filename string) *telemetry.ResourceMetrics {
+	expectedResourceMetrics, err := telemetry.LoadResourceMetrics(
 		path.Join(".", "testdata", "resource_metrics", filename),
 	)
 	require.NoError(t, err)

@@ -53,6 +53,7 @@ func TestCollectdSparkReceiverProvidesAllMetrics(t *testing.T) {
 	master := containers[0]
 	rc, _, err := master.Exec(context.Background(), []string{"sh", "-c", "nc -lk 9999 &"})
 	require.NoError(t, err)
+	require.Zero(t, rc)
 
 	rc, _, err = master.Exec(context.Background(), []string{
 		"sh", "-c", "bin/spark-submit --master spark://spark-master:7077 --conf spark.driver.host=spark-master " +

@@ -1,11 +1,10 @@
 resource_metrics:
-  - instrumentation_library_metrics:
-      - instrumentation_library:
+  - scope_metrics:
+      - instrumentation_scope:
           name: with_metrics
           version: another_version
         metrics:
           - name: another_int_gauge
             type: IntGauge
-            value: 111
           - name: another_double_gauge
             type: DoubleGauge

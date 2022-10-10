@@ -39,8 +39,8 @@ func TestMyExampleComponent(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, expectedResourceMetrics)
 
-	// combination OTLP Receiver consumertests.MetricsSink
-	otlp, err := testutils.NewOTLPMetricsReceiverSink().WithEndpoint("localhost:23456").Build()
+	// combination OTLP Receiver, consumertests.MetricsSink, and consumertests.LogsSink
+	otlp, err := testutils.NewOTLPReceiverSink().WithEndpoint("localhost:23456").Build()
 	require.NoError(t, err)
 	require.NoError(t, otlp.Start())
 

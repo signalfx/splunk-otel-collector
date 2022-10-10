@@ -1,0 +1,22 @@
+receivers:
+  filelog:
+    include: [/opt/syslog]
+    start_at: beginning
+    operators:
+      type: syslog_parser
+      protocol: rfc3164
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  pipelines:
+    logs:
+      receivers: [filelog]
+      exporters: [otlp]

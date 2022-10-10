@@ -17,6 +17,7 @@ package telemetry
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,4 +46,60 @@ func TestEmptyResourcesAreEqual(t *testing.T) {
 		require.Equal(t, rOne.Hash(), rTwo.Hash())
 	}
 
+}
+
+func TestResourceEquivalence(t *testing.T) {
+	resource := func() Resource {
+		return Resource{Attributes: map[string]any{
+			"one": 1, "two": "two", "three": nil,
+			"four": []int{1, 2, 3, 4},
+			"five": map[string]any{
+				"true": true, "false": false, "nil": nil,
+			},
+		}}
+	}
+	rOne := resource()
+	rOneSelf := rOne
+	assert.True(t, rOne.Equals(rOneSelf))
+
+	rTwo := resource()
+	assert.True(t, rOne.Equals(rTwo))
+	assert.True(t, rTwo.Equals(rOne))
+
+	rTwo.Attributes["five"].(map[string]any)["another"] = "item"
+	assert.False(t, rOne.Equals(rTwo))
+	assert.False(t, rTwo.Equals(rOne))
+	rOne.Attributes["five"].(map[string]any)["another"] = "item"
+	assert.True(t, rOne.Equals(rTwo))
+	assert.True(t, rTwo.Equals(rOne))
+}
+
+func TestInstrumentationScopeEquivalence(t *testing.T) {
+	il := func() InstrumentationScope {
+		return InstrumentationScope{
+			Name: "an_instrumentation_scope", Version: "an_instrumentation_scope_version",
+		}
+	}
+
+	ilOne := il()
+	ilOneSelf := ilOne
+	assert.True(t, ilOne.Equals(ilOneSelf))
+
+	ilTwo := il()
+	assert.True(t, ilOne.Equals(ilTwo))
+	assert.True(t, ilTwo.Equals(ilOne))
+
+	ilTwo.Version = ""
+	assert.False(t, ilOne.Equals(ilTwo))
+	assert.False(t, ilTwo.Equals(ilOne))
+	ilOne.Version = ""
+	assert.True(t, ilOne.Equals(ilTwo))
+	assert.True(t, ilTwo.Equals(ilOne))
+
+	ilTwo.Name = ""
+	assert.False(t, ilOne.Equals(ilTwo))
+	assert.False(t, ilTwo.Equals(ilOne))
+	ilOne.Name = ""
+	assert.True(t, ilOne.Equals(ilTwo))
+	assert.True(t, ilTwo.Equals(ilOne))
 }

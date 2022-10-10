@@ -47,6 +47,7 @@ type Container struct {
 	ExposedPorts         []string
 	ContainerNetworks    []string
 	WaitingFor           []wait.Strategy
+	Mounts               []testcontainers.ContainerMount
 }
 
 var _ testcontainers.Container = (*Container)(nil)
@@ -118,6 +119,11 @@ func (container Container) WithExposedPorts(ports ...string) Container {
 	return container
 }
 
+func (container Container) WithMount(mount testcontainers.ContainerMount) Container {
+	container.Mounts = append(container.Mounts, mount)
+	return container
+}
+
 func (container Container) WithName(name string) Container {
 	container.ContainerName = name
 	return container
@@ -172,6 +178,7 @@ func (container Container) Build() *Container {
 		ExposedPorts:   container.ExposedPorts,
 		Name:           container.ContainerName,
 		Networks:       container.ContainerNetworks,
+		Mounts:         container.Mounts,
 		NetworkMode:    networkMode,
 		WaitingFor:     wait.ForAll(container.WaitingFor...).WithStartupTimeout(startupTimeout),
 	}

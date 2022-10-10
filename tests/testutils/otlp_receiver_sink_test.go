@@ -34,18 +34,20 @@ import (
 )
 
 func TestNewOTLPReceiverSink(t *testing.T) {
-	otlp := NewOTLPMetricsReceiverSink()
+	otlp := NewOTLPReceiverSink()
 	require.NotNil(t, otlp)
 
 	require.Empty(t, otlp.Endpoint)
 	require.Nil(t, otlp.Host)
 	require.Nil(t, otlp.Logger)
-	require.Nil(t, otlp.receiver)
-	require.Nil(t, otlp.sink)
+	require.Nil(t, otlp.logsReceiver)
+	require.Nil(t, otlp.logsSink)
+	require.Nil(t, otlp.metricsReceiver)
+	require.Nil(t, otlp.metricsSink)
 }
 
 func TestBuilderMethods(t *testing.T) {
-	otlp := NewOTLPMetricsReceiverSink()
+	otlp := NewOTLPReceiverSink()
 
 	withEndpoint := otlp.WithEndpoint("myendpoint")
 	require.Equal(t, "myendpoint", withEndpoint.Endpoint)
@@ -63,30 +65,32 @@ func TestBuilderMethods(t *testing.T) {
 }
 
 func TestBuildDefaults(t *testing.T) {
-	otlp, err := NewOTLPMetricsReceiverSink().Build()
+	otlp, err := NewOTLPReceiverSink().Build()
 	require.Error(t, err)
-	assert.EqualError(t, err, "must provide an Endpoint for OTLPMetricsReceiverSink")
+	assert.EqualError(t, err, "must provide an Endpoint for OTLPReceiverSink")
 	assert.Nil(t, otlp)
 
-	otlp, err = NewOTLPMetricsReceiverSink().WithEndpoint("myEndpoint").Build()
+	otlp, err = NewOTLPReceiverSink().WithEndpoint("myEndpoint").Build()
 	require.NoError(t, err)
 	assert.Equal(t, "myEndpoint", otlp.Endpoint)
 	assert.NotNil(t, otlp.Host)
 	assert.NotNil(t, otlp.Logger)
-	assert.NotNil(t, otlp.receiver)
-	assert.NotNil(t, otlp.sink)
+	assert.NotNil(t, otlp.logsReceiver)
+	assert.NotNil(t, otlp.logsSink)
+	assert.NotNil(t, otlp.metricsReceiver)
+	assert.NotNil(t, otlp.metricsSink)
 }
 
 func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
-	otlp := NewOTLPMetricsReceiverSink()
+	otlp := NewOTLPReceiverSink()
 
 	err := otlp.Start()
 	require.Error(t, err)
-	require.EqualError(t, err, "cannot invoke Start() on an OTLPMetricsReceiverSink that hasn't been built")
+	require.EqualError(t, err, "cannot invoke Start() on an OTLPReceiverSink that hasn't been built")
 
 	err = otlp.Shutdown()
 	require.Error(t, err)
-	require.EqualError(t, err, "cannot invoke Shutdown() on an OTLPMetricsReceiverSink that hasn't been built")
+	require.EqualError(t, err, "cannot invoke Shutdown() on an OTLPReceiverSink that hasn't been built")
 
 	metrics := otlp.AllMetrics()
 	require.Nil(t, metrics)
@@ -99,7 +103,7 @@ func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
 
 	err = otlp.AssertAllMetricsReceived(t, telemetry.ResourceMetrics{}, 0)
 	require.Error(t, err)
-	require.EqualError(t, err, "cannot invoke AssertAllMetricsReceived() on an OTLPMetricsReceiverSink that hasn't been built")
+	require.EqualError(t, err, "cannot invoke AssertAllMetricsReceived() on an OTLPReceiverSink that hasn't been built")
 }
 
 func otlpExporter(t *testing.T) component.MetricsExporter {
@@ -123,7 +127,7 @@ func otlpExporter(t *testing.T) component.MetricsExporter {
 }
 
 func TestOTLPReceiverMetricsAvailableToSink(t *testing.T) {
-	otlp, err := NewOTLPMetricsReceiverSink().WithEndpoint("localhost:4317").Build()
+	otlp, err := NewOTLPReceiverSink().WithEndpoint("localhost:4317").Build()
 	require.NoError(t, err)
 
 	err = otlp.Start()
@@ -146,7 +150,7 @@ func TestOTLPReceiverMetricsAvailableToSink(t *testing.T) {
 }
 
 func TestAssertAllMetricsReceivedHappyPath(t *testing.T) {
-	otlp, err := NewOTLPMetricsReceiverSink().WithEndpoint("localhost:4317").Build()
+	otlp, err := NewOTLPReceiverSink().WithEndpoint("localhost:4317").Build()
 	require.NoError(t, err)
 
 	err = otlp.Start()

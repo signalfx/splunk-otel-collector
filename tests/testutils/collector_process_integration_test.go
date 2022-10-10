@@ -34,7 +34,7 @@ func TestCollectorPath(t *testing.T) {
 }
 
 func TestCollectorProcessConfigSourced(t *testing.T) {
-	otlp, err := NewOTLPMetricsReceiverSink().WithEndpoint("localhost:23456").Build()
+	otlp, err := NewOTLPReceiverSink().WithEndpoint("localhost:23456").Build()
 	require.NoError(t, err)
 	require.NotNil(t, otlp)
 

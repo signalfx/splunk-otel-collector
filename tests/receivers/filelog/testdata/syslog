@@ -1,0 +1,8 @@
+<0>Oct  6 14:45:33 debian systemd-udevd[174657]: Using default interface naming scheme 'v247'.
+<1>Oct  6 14:45:33 debian kernel: [17099.341634] docker0: port 1(veth4f642f0) entered disabled state
+<2>Oct  6 14:45:33 debian avahi-daemon[564]: Interface veth4f642f0.IPv6 no longer relevant for mDNS.
+<3>Oct  6 14:45:33 debian avahi-daemon[564]: Leaving mDNS multicast group on interface veth4f642f0.IPv6 with address aa::bb:cc:dd:ee.
+<4>Oct  6 14:45:33 debian kernel: [17099.344322] device veth4f642f0 left promiscuous mode
+<5>Oct  6 14:45:33 debian kernel: [17099.344328] docker0: port 1(veth4f642f0) entered disabled state
+<6>Oct  6 14:45:33 debian avahi-daemon[564]: Withdrawing address record for aa::bb:cc:dd:ee on veth4f642f0.
+<7>Oct  6 14:45:33 debian NetworkManager[567]: <info>  [1665081933.1506] device (veth4f642f0): released from master device docker0

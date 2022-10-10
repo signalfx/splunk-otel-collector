@@ -1,4 +1,4 @@
-# Include Config Source (Alpha)
+# Include Config Source (Beta)
 
 Use the include config source to inject [golang templates](https://pkg.go.dev/text/template)
 or plain files into the configuration. The config source can be used to insert scalar data

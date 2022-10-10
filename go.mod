@@ -68,11 +68,11 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.61.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.61.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.61.0
-	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.46
 	github.com/signalfx/signalfx-agent v1.0.1-0.20220907171532-facb8bd041ff
-	github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000
+	github.com/signalfx/splunk-otel-collector/extension/smartagentextension v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor v0.0.0-00010101000000-000000000000
+	github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/pflag v1.0.5
@@ -364,6 +364,7 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shirou/gopsutil/v3 v3.22.8 // indirect
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 // indirect
+	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657 // indirect
 	github.com/signalfx/gateway v1.2.23 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
 	github.com/signalfx/golib v2.5.1+incompatible // indirect
@@ -455,8 +456,9 @@ require (
 )
 
 replace (
-	github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver => ./pkg/receiver/smartagent
+	github.com/signalfx/splunk-otel-collector/extension/smartagentextension => ./pkg/extension/smartagentextension
 	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor => ./pkg/processor/timestamp
+	github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver => ./pkg/receiver/smartagent
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
 )
 
@@ -504,5 +506,3 @@ replace github.com/googleapis/gnostic v0.5.6 => github.com/googleapis/gnostic v0
 
 // required to drop dependency on deprecated git.apache.org/thrift.git
 exclude go.opencensus.io v0.19.1
-
-

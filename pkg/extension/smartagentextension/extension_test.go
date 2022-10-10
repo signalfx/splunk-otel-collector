@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 
-	"github.com/signalfx/splunk-otel-collector/internal/components/componenttest"
+	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestExtensionLifecycle(t *testing.T) {
@@ -43,7 +43,7 @@ func TestExtensionLifecycle(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, fstExt)
 
-	mh := componenttest.NewAssertNoErrorHost(t)
+	mh := testutils.NewAssertNoErrorHost(t)
 	require.NoError(t, fstExt.Start(ctx, mh))
 	require.NoError(t, fstExt.Shutdown(ctx))
 

@@ -10,6 +10,7 @@ on:
       - '.github/workflows/scripts/**'
       - 'cmd/**'
       - 'internal/**'
+      - 'pkg/**'
       - 'tests/**'
       - 'Makefile'
       - 'go.mod'

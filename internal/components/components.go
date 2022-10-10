@@ -80,9 +80,9 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.uber.org/multierr"
 
+	"github.com/signalfx/splunk-otel-collector/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/httpsinkexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/pulsarexporter"
-	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver"
 	"github.com/signalfx/splunk-otel-collector/processor/timestampprocessor"
 	"github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver"

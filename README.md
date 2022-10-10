@@ -157,9 +157,9 @@ In addition, the following components can be configured:
   - [Vault](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/vaultconfigsource)
   - [Zookeeper](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/configsource/zookeeperconfigsource)
 - SignalFx Smart Agent
-  - [Extension](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/extension/smartagentextension)
+  - [Extension](https://github.com/signalfx/splunk-otel-collector/tree/main/pkg/extension/smartagentextension)
     offering Collectd and Python extensions
-  - [Receiver](https://github.com/signalfx/splunk-otel-collector/tree/main/internal/receiver/smartagentreceiver)
+  - [Receiver](https://github.com/signalfx/splunk-otel-collector/tree/main/pkg/receiver/smartagentreceiver)
     offering the complete set of Smart Agent monitors
   - Information about migrating from the SignalFx Smart Agent can be found
     [here](docs/signalfx-smart-agent-migration.md)

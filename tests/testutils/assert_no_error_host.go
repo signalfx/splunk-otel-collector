@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package componenttest is a temporary addition while related changes are not made on core.
-package componenttest
+package testutils
 
 import (
 	"testing"
@@ -34,7 +33,7 @@ var _ component.Host = (*assertNoErrorHost)(nil)
 
 // NewAssertNoErrorHost returns a new instance of a component.Host. This instance
 // asserts if an error is received.
-// TODO: Remove this package when equivalent is available from OpenTelemetry Collector repo.
+// TODO: Remove this code when equivalent is available from OpenTelemetry Collector repo.
 func NewAssertNoErrorHost(t *testing.T) component.Host {
 	return &assertNoErrorHost{
 		componenttest.NewNopHost(),

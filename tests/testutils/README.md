@@ -14,8 +14,8 @@ resource_metrics:
   - attributes:
       a_resource_attribute: a_value
       another_resource_attribute: another_value
-    instrumentation_library_metrics:
-      - instrumentation_library:
+    scope_metrics:
+      - instrumentation_scope:
           name: a library
           version: some version
       - metrics:
@@ -23,28 +23,28 @@ resource_metrics:
             type: IntGauge
             description: my.int.gauge description
             unit: ms
-            labels:
-              my_label: my_label_value
-              my_other_label: my_other_label_value
+            attributes:
+              my_attribute: my_attribute_value
+              my_other_attribute: my_other_attribute_value
             value: 123
           - name: my.double.sum
             type: DoubleNonmonotonicDeltaSum
-            labels: {} # enforced empty label map in RelaxedEquals() (only point with no labels matches)
+            attributes: {} # enforced empty attribute map in RelaxedEquals() (only point with no attributes matches)
             value: -123.456
-  - instrumentation_library_metrics:
-      - instrumentation_library:
+  - scope_metrics:
+      - instrumentation_scope:
           name: an instrumentation library from a different resource without attributes
         metrics:
           - name: my.double.gauge
             type: DoubleGauge
-            # missing labels field, so values are not compared in RelaxedEquals() (any label values are accepted)
+            # missing attributes field, so values are not compared in RelaxedEquals() (any attribute values are accepted)
             value: 456.789
           - name: my.double.gauge
             type: DoubleGauge
-            labels:
-              another: label
+            attributes:
+              another: attribute
             value: 567.890
-      - instrumentation_library:
+      - instrumentation_scope:
           name: another instrumentation library
           version: this_library_version
         metrics:
@@ -53,9 +53,9 @@ resource_metrics:
             value: 456
 ```
 
-Using `LoadResourceMetrics("my_yaml.path")` you can create an equivalent `ResourceMetrics` instance to what your yaml file specifies.
-Using `PDataToResourceMetrics(myReceivedPDataMetrics)` you can use the assertion helpers to determine if your expected
-`ResourceMetrics` are the same as those received in your test case. `FlattenResourceMetrics()` is a good way to "normalize"
+Using `telemetry.LoadResourceMetrics("my_yaml.path")` you can create an equivalent `ResourceMetrics` instance to what your yaml file specifies.
+Using `telemetry.PDataToResourceMetrics(myReceivedPDataMetrics)` you can use the assertion helpers to determine if your expected
+`ResourceMetrics` are the same as those received in your test case. `telemetry.FlattenResourceMetrics()` is a good way to "normalize"
 metrics received over time to ensure that only unique datapoints are represented, and that all unique Resources and
 Instrumentation Libraries have a single item.
 

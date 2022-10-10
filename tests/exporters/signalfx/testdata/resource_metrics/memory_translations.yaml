@@ -1,33 +1,33 @@
 resource_metrics:
-  - instrumentation_library_metrics:
+  - scope_metrics:
       - metrics:
          - name: system.memory.usage
-           labels:
+           attributes:
              state: used
            type: IntGauge
          - name: system.memory.usage
-           labels:
+           attributes:
              state: free
            type: IntGauge
          - name: system.memory.usage
-           labels:
+           attributes:
              state: buffered
            type: IntGauge
          - name: system.memory.usage
-           labels:
+           attributes:
              state: cached
            type: IntGauge
          - name: system.memory.usage
-           labels:
+           attributes:
              state: slab_reclaimable
            type: IntGauge
          - name: system.memory.usage
-           labels:
+           attributes:
              state: slab_unreclaimable
            type: IntGauge
          - name: memory.total
-           labels: {}
+           attributes: {}
            type: IntGauge
          - name: memory.utilization
-           labels: {}
+           attributes: {}
            type: DoubleGauge

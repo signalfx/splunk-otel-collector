@@ -1,11 +1,11 @@
 resource_metrics:
-  - instrumentation_library_metrics:
-      - instrumentation_library:
+  - scope_metrics:
+      - instrumentation_scope:
           name: otelcol/hostmetricsreceiver/memory
           version: <FROM_BUILD>
         metrics:
           - name: system.memory.usage
             type: IntNonmonotonicCumulativeSum
-            labels:
+            attributes:
               state: used
               yaml-from-env: value-from-env

@@ -10,6 +10,8 @@ require (
 	github.com/signalfx/golib/v3 v3.3.46
 	github.com/signalfx/signalfx-agent v1.0.1-0.20220907171532-facb8bd041ff
 	github.com/signalfx/splunk-otel-collector v0.61.0
+	github.com/signalfx/splunk-otel-collector/extension/smartagentextension v0.0.0-00010101000000-000000000000
+	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
 	go.opentelemetry.io/collector v0.61.0
@@ -260,7 +262,11 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-// each of these is required for the smartagentreceiver
+replace (
+	github.com/signalfx/splunk-otel-collector/extension/smartagentextension => ../../extension/smartagentextension
+	github.com/signalfx/splunk-otel-collector/tests => ../../../tests
+)
+
 replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87

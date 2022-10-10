@@ -43,8 +43,8 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 
-	internaltest "github.com/signalfx/splunk-otel-collector/internal/components/componenttest"
-	"github.com/signalfx/splunk-otel-collector/internal/extension/smartagentextension"
+	"github.com/signalfx/splunk-otel-collector/extension/smartagentextension"
+	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func cleanUp() {
@@ -230,7 +230,7 @@ func TestMultipleInstacesOfSameMonitorType(t *testing.T) {
 	fstRcvr := newReceiver(newReceiverCreateSettings(), cfg)
 
 	ctx := context.Background()
-	mh := internaltest.NewAssertNoErrorHost(t)
+	mh := testutils.NewAssertNoErrorHost(t)
 	require.NoError(t, fstRcvr.Start(ctx, mh))
 	require.NoError(t, fstRcvr.Shutdown(ctx))
 

@@ -1,0 +1,88 @@
+resource_logs:
+  - scope_logs:
+      - logs:
+          - body: "<0>Oct  6 14:45:33 debian systemd-udevd[174657]: Using default interface naming scheme 'v247'."
+            severity_text: emerg
+            severity: 21
+            attributes:
+              appname: systemd-udevd
+              facility: 0
+              hostname: debian
+              log.file.name: syslog
+              message: Using default interface naming scheme 'v247'.
+              priority: 0
+              proc_id: "174657"
+          - body: "<1>Oct  6 14:45:33 debian kernel: [17099.341634] docker0: port 1(veth4f642f0) entered disabled state"
+            severity_text: alert
+            severity: 19
+            attributes:
+              appname: kernel
+              facility: 0
+              hostname: debian
+              log.file.name: syslog
+              message: '[17099.341634] docker0: port 1(veth4f642f0) entered disabled state'
+              priority: 1
+          - body: "<2>Oct  6 14:45:33 debian avahi-daemon[564]: Interface veth4f642f0.IPv6 no longer relevant for mDNS."
+            severity_text: crit
+            severity: 18
+            attributes:
+              appname: avahi-daemon
+              facility: 0
+              hostname: debian
+              log.file.name: syslog
+              message: Interface veth4f642f0.IPv6 no longer relevant for mDNS.
+              priority: 2
+              proc_id: "564"
+          - body: "<3>Oct  6 14:45:33 debian avahi-daemon[564]: Leaving mDNS multicast group on interface veth4f642f0.IPv6 with address aa::bb:cc:dd:ee."
+            severity_text: err
+            severity: 17
+            attributes:
+              appname: avahi-daemon
+              facility: 0
+              hostname: debian
+              log.file.name: syslog
+              message: Leaving mDNS multicast group on interface veth4f642f0.IPv6 with address aa::bb:cc:dd:ee.
+              priority: 3
+              proc_id: "564"
+          - body: "<4>Oct  6 14:45:33 debian kernel: [17099.344322] device veth4f642f0 left promiscuous mode"
+            severity_text: warning
+            severity: 13
+            attributes:
+              appname: kernel
+              facility: 0
+              hostname: debian
+              log.file.name: syslog
+              message: '[17099.344322] device veth4f642f0 left promiscuous mode'
+              priority: 4
+          - body: "<5>Oct  6 14:45:33 debian kernel: [17099.344328] docker0: port 1(veth4f642f0) entered disabled state"
+            severity_text: notice
+            severity: 10
+            attributes:
+              appname: kernel
+              facility: 0
+              hostname: debian
+              log.file.name: syslog
+              message: '[17099.344328] docker0: port 1(veth4f642f0) entered disabled state'
+              priority: 5
+          - body: "<6>Oct  6 14:45:33 debian avahi-daemon[564]: Withdrawing address record for aa::bb:cc:dd:ee on veth4f642f0."
+            severity_text: info
+            severity: 9
+            attributes:
+              appname: avahi-daemon
+              facility: 0
+              hostname: debian
+              log.file.name: syslog
+              message: Withdrawing address record for aa::bb:cc:dd:ee on veth4f642f0.
+              priority: 6
+              proc_id: "564"
+          - body: "<7>Oct  6 14:45:33 debian NetworkManager[567]: <info>  [1665081933.1506] device (veth4f642f0): released from master device docker0"
+            severity_text: debug
+            severity: 5
+            attributes:
+              appname: NetworkManager
+              facility: 0
+              hostname: debian
+              log.file.name: syslog
+              message: '<info>  [1665081933.1506] device (veth4f642f0): released from master device docker0'
+              priority: 7
+              proc_id: <info>  [1665081933.1506

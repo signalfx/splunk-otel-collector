@@ -96,7 +96,7 @@ err = myContainerFromBuildContext.Start(context.Background())
 
 ### OTLP Metrics Receiver Sink
 
-The `OTLPMetricsReceiverSink` is a helper type that will easily stand up an inmemory OTLP Receiver with
+The `OTLPReceiverSink` is a helper type that will easily stand up an inmemory OTLP Receiver with
 `consumertest.MetricsSink` functionality.  It will listen to the configured gRPC endpoint that running Collector
 processes can be configured to reach and provides an `AssertAllMetricsReceived()` test method to confirm that expected
 `ResourceMetrics` are received within the specified window.
@@ -104,7 +104,7 @@ processes can be configured to reach and provides an `AssertAllMetricsReceived()
 ```go
 import "github.com/signafx/splunk-otel-collector/tests/testutils"
 
-otlp, err := testutils.NewOTLPMetricsReceiverSink().WithEndpoint("localhost:23456").Build()
+otlp, err := testutils.NewOTLPReceiverSink().WithEndpoint("localhost:23456").Build()
 require.NoError(t, err)
 
 defer func() {
@@ -160,7 +160,7 @@ defer func() { require.NoError(t, collector.Shutdown()) }()
 ### Testcase
 
 All the above test utilities can be easily configured by the `Testcase` helper to avoid unnecessary boilerplate in
-resource creation and cleanup.  The associated OTLPMetricsReceiverSink for each `Testcase` will have an OS-provided
+resource creation and cleanup.  The associated OTLPReceiverSink for each `Testcase` will have an OS-provided
 endpoint that can be rendered via the `"${OTLP_ENDPOINT}"` environment variable in your tested config. `testutils`
 provides a general `AssertAllMetricsReceived()` function that utilizes this type to stand up all the necessary resources
 associated with a test and assert that all expected metrics are received:
@@ -177,10 +177,10 @@ func MyTest(t *testing.T) {
         testutils.NewContainer().WithImage("my_other_docker_image"),
     }
 
-    // will implicitly create a Testcase with OTLPMetricsReceiverSink listening at $OTLP_ENDPOINT,
+    // will implicitly create a Testcase with OTLPReceiverSink listening at $OTLP_ENDPOINT,
     // ./testdata/resource_metrics/my_resource_metrics.yaml ResourceMetrics instance, CollectorProcess with
     // ./testdata/my_collector_config.yaml config, and build and start all specified containers before calling
-    // otlpMetricsReceiverSink.AssertAllMetricsReceived() with a 30s wait duration.
+    // OTLPReceiverSink.AssertAllMetricsReceived() with a 30s wait duration.
     testutils.AssertAllMetricsReceived(t, "my_resource_metrics.yaml", "my_collector_config.yaml", containers)
 }
 ```

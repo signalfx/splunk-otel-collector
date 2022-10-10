@@ -28,7 +28,7 @@ import (
 func TestCollectdSparkReceiverProvidesAllMetrics(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPMetricsReceiverSink()
+	defer tc.ShutdownOTLPReceiverSink()
 
 	spark := testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "server"),
@@ -77,7 +77,7 @@ func TestCollectdSparkReceiverProvidesAllMetrics(t *testing.T) {
 			_, shutdown := ttc.SplunkOtelCollector(args.collectorConfigFilename)
 			defer shutdown()
 
-			require.NoError(tt, ttc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(tt, *expectedResourceMetrics, 30*time.Second))
+			require.NoError(tt, ttc.OTLPReceiverSink.AssertAllMetricsReceived(tt, *expectedResourceMetrics, 30*time.Second))
 		})
 	}
 }

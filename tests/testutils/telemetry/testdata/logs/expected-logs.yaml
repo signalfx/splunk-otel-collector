@@ -1,0 +1,9 @@
+resource_logs:
+  - scope_logs:
+      - instrumentation_scope:
+          name: with_logs
+          version: another_version
+        logs:
+          - body: true
+            severity_text: arbitrary
+          - body: 0.123

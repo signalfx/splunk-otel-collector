@@ -26,6 +26,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/otel/trace"
@@ -36,40 +37,42 @@ import (
 
 // To be used as a builder whose Build() method provides the actual instance capable of starting the OTLP receiver
 // providing received metrics to test cases.
-type OTLPMetricsReceiverSink struct {
-	Host     component.Host
-	receiver *component.MetricsReceiver
-	sink     *consumertest.MetricsSink
-	Logger   *zap.Logger
-	Endpoint string
+type OTLPReceiverSink struct {
+	Host            component.Host
+	logsReceiver    *component.LogsReceiver
+	logsSink        *consumertest.LogsSink
+	metricsReceiver *component.MetricsReceiver
+	metricsSink     *consumertest.MetricsSink
+	Logger          *zap.Logger
+	Endpoint        string
 }
 
-func NewOTLPMetricsReceiverSink() OTLPMetricsReceiverSink {
-	return OTLPMetricsReceiverSink{}
+func NewOTLPReceiverSink() OTLPReceiverSink {
+	return OTLPReceiverSink{}
 }
 
-// Required
-func (otlp OTLPMetricsReceiverSink) WithEndpoint(endpoint string) OTLPMetricsReceiverSink {
+// WithEndpoint is required or Build() will fail
+func (otlp OTLPReceiverSink) WithEndpoint(endpoint string) OTLPReceiverSink {
 	otlp.Endpoint = endpoint
 	return otlp
 }
 
-// If not set will use NopHost
-func (otlp OTLPMetricsReceiverSink) WithHost(host component.Host) OTLPMetricsReceiverSink {
+// WithHost is optional: if not set will use NopHost
+func (otlp OTLPReceiverSink) WithHost(host component.Host) OTLPReceiverSink {
 	otlp.Host = host
 	return otlp
 }
 
-// If not set will use nop logger
-func (otlp OTLPMetricsReceiverSink) WithLogger(logger *zap.Logger) OTLPMetricsReceiverSink {
+// WithLogger is optional: if not set will use nop logger
+func (otlp OTLPReceiverSink) WithLogger(logger *zap.Logger) OTLPReceiverSink {
 	otlp.Logger = logger
 	return otlp
 }
 
-// Will create, configure, and start an OTLPReceiver with GRPC listener and associated metric sink
-func (otlp OTLPMetricsReceiverSink) Build() (*OTLPMetricsReceiverSink, error) {
+// Build will create, configure, and start an OTLPReceiver with GRPC listener and associated metric and log sinks
+func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 	if otlp.Endpoint == "" {
-		return nil, fmt.Errorf("must provide an Endpoint for OTLPMetricsReceiverSink")
+		return nil, fmt.Errorf("must provide an Endpoint for OTLPReceiverSink")
 	}
 	if otlp.Logger == nil {
 		otlp.Logger = zap.NewNop()
@@ -78,7 +81,8 @@ func (otlp OTLPMetricsReceiverSink) Build() (*OTLPMetricsReceiverSink, error) {
 		otlp.Host = componenttest.NewNopHost()
 	}
 
-	otlp.sink = new(consumertest.MetricsSink)
+	otlp.logsSink = new(consumertest.LogsSink)
+	otlp.metricsSink = new(consumertest.MetricsSink)
 
 	otlpFactory := otlpreceiver.NewFactory()
 	otlpConfig := otlpFactory.CreateDefaultConfig().(*otlpreceiver.Config)
@@ -86,56 +90,119 @@ func (otlp OTLPMetricsReceiverSink) Build() (*OTLPMetricsReceiverSink, error) {
 	otlpConfig.HTTP = nil
 
 	params := component.ReceiverCreateSettings{TelemetrySettings: component.TelemetrySettings{Logger: otlp.Logger, TracerProvider: trace.NewNoopTracerProvider()}}
-	receiver, err := otlpFactory.CreateMetricsReceiver(context.Background(), params, otlpConfig, otlp.sink)
+
+	logsReceiver, err := otlpFactory.CreateLogsReceiver(context.Background(), params, otlpConfig, otlp.logsSink)
 	if err != nil {
 		return nil, err
 	}
-	otlp.receiver = &receiver
+	otlp.logsReceiver = &logsReceiver
+
+	metricsReceiver, err := otlpFactory.CreateMetricsReceiver(context.Background(), params, otlpConfig, otlp.metricsSink)
+	if err != nil {
+		return nil, err
+	}
+	otlp.metricsReceiver = &metricsReceiver
 
 	return &otlp, nil
 }
 
-func (otlp *OTLPMetricsReceiverSink) assertBuilt(operation string) error {
-	if otlp.receiver == nil || otlp.sink == nil {
-		return fmt.Errorf("cannot invoke %s() on an OTLPMetricsReceiverSink that hasn't been built", operation)
+func (otlp *OTLPReceiverSink) assertBuilt(operation string) error {
+	if otlp.logsReceiver == nil || otlp.metricsReceiver == nil || otlp.metricsSink == nil || otlp.logsSink == nil {
+		return fmt.Errorf("cannot invoke %s() on an OTLPReceiverSink that hasn't been built", operation)
 	}
 	return nil
 }
 
-func (otlp *OTLPMetricsReceiverSink) Start() error {
+func (otlp *OTLPReceiverSink) Start() error {
 	if err := otlp.assertBuilt("Start"); err != nil {
 		return err
 	}
-	return (*otlp.receiver).Start(context.Background(), otlp.Host)
+	return (*otlp.metricsReceiver).Start(context.Background(), otlp.Host)
 }
 
-func (otlp *OTLPMetricsReceiverSink) Shutdown() error {
+func (otlp *OTLPReceiverSink) Shutdown() error {
 	if err := otlp.assertBuilt("Shutdown"); err != nil {
 		return err
 	}
-	return (*otlp.receiver).Shutdown(context.Background())
+	return (*otlp.metricsReceiver).Shutdown(context.Background())
 }
-func (otlp *OTLPMetricsReceiverSink) AllMetrics() []pmetric.Metrics {
+
+func (otlp *OTLPReceiverSink) AllLogs() []plog.Logs {
+	if err := otlp.assertBuilt("AllLogs"); err != nil {
+		return nil
+	}
+	return otlp.logsSink.AllLogs()
+}
+
+func (otlp *OTLPReceiverSink) AllMetrics() []pmetric.Metrics {
 	if err := otlp.assertBuilt("AllMetrics"); err != nil {
 		return nil
 	}
-	return otlp.sink.AllMetrics()
+	return otlp.metricsSink.AllMetrics()
 }
 
-func (otlp *OTLPMetricsReceiverSink) DataPointCount() int {
+func (otlp *OTLPReceiverSink) DataPointCount() int {
 	if err := otlp.assertBuilt("DataPointCount"); err != nil {
 		return 0
 	}
-	return otlp.sink.DataPointCount()
+	return otlp.metricsSink.DataPointCount()
 }
 
-func (otlp *OTLPMetricsReceiverSink) Reset() {
+func (otlp *OTLPReceiverSink) LogRecordCount() int {
+	if err := otlp.assertBuilt("LogRecordCount"); err != nil {
+		return 0
+	}
+	return otlp.logsSink.LogRecordCount()
+}
+
+func (otlp *OTLPReceiverSink) Reset() {
 	if err := otlp.assertBuilt("Reset"); err == nil {
-		otlp.sink.Reset()
+		otlp.metricsSink.Reset()
+		otlp.logsSink.Reset()
 	}
 }
 
-func (otlp *OTLPMetricsReceiverSink) AssertAllMetricsReceived(t *testing.T, expectedResourceMetrics telemetry.ResourceMetrics, waitTime time.Duration) error {
+func (otlp *OTLPReceiverSink) AssertAllLogsReceived(t *testing.T, expectedResourceLogs telemetry.ResourceLogs, waitTime time.Duration) error {
+	if err := otlp.assertBuilt("AssertAllLogsReceived"); err != nil {
+		return err
+	}
+
+	if len(expectedResourceLogs.ResourceLogs) == 0 {
+		return fmt.Errorf("empty ResourceLogs provided")
+	}
+
+	receivedLogs := telemetry.ResourceLogs{}
+
+	var err error
+	assert.Eventually(t, func() bool {
+		if otlp.LogRecordCount() == 0 {
+			if err == nil {
+				err = fmt.Errorf("no logs received")
+			}
+			return false
+		}
+		receivedOTLPLogs := otlp.AllLogs()
+		otlp.Reset()
+
+		receivedResourceLogs, e := telemetry.PDataToResourceLogs(receivedOTLPLogs...)
+		require.NoError(t, e)
+		require.NotNil(t, receivedResourceLogs)
+		receivedLogs = telemetry.FlattenResourceLogs(receivedLogs, receivedResourceLogs)
+
+		var containsAll bool
+		containsAll, err = receivedLogs.ContainsAll(expectedResourceLogs)
+		return containsAll
+	}, waitTime, 10*time.Millisecond, "Failed to receive expected logs")
+
+	// testify won't render exceptionally long errors, so leaving this here for easy debugging
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+	}
+
+	return err
+}
+
+func (otlp *OTLPReceiverSink) AssertAllMetricsReceived(t *testing.T, expectedResourceMetrics telemetry.ResourceMetrics, waitTime time.Duration) error {
 	if err := otlp.assertBuilt("AssertAllMetricsReceived"); err != nil {
 		return err
 	}

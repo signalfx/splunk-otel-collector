@@ -27,7 +27,7 @@ import (
 func TestCollectdKafkaReceiversProvideAllMetrics(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPMetricsReceiverSink()
+	defer tc.ShutdownOTLPReceiverSink()
 
 	kafka := testutils.NewContainer().WithContext(
 		path.Join(".", "testdata", "kafka"),
@@ -75,7 +75,7 @@ func TestCollectdKafkaReceiversProvideAllMetrics(t *testing.T) {
 			_, shutdown := ttc.SplunkOtelCollector(args.collectorConfigFilename)
 			defer shutdown()
 
-			require.NoError(tt, ttc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(tt, *expectedResourceMetrics, 30*time.Second))
+			require.NoError(tt, ttc.OTLPReceiverSink.AssertAllMetricsReceived(tt, *expectedResourceMetrics, 30*time.Second))
 		})
 	}
 }

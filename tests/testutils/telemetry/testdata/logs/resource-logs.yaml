@@ -1,0 +1,26 @@
+resource_logs:
+  - attributes:
+      one_attr: one_value
+      two_attr: two_value
+    scope_logs:
+      - instrumentation_scope:
+          name: without_logs
+          version: some_version
+      - logs:
+          - body: a string body
+            severity_text: info
+            severity: 1
+            attributes:
+              one_lr_attr: one_lr_value
+              two_lr_attr: two_lr_value
+          - body: 0
+  - scope_logs:
+      - instrumentation_scope:
+          name: with_logs
+          version: another_version
+        logs:
+          - body: true
+            severity_text: arbitrary
+            severity: 24
+          - body: 0.123
+            severity: 9

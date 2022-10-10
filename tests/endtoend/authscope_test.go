@@ -86,7 +86,7 @@ func TestIngestAuthScopeTokenGrantsRequiredMetricAndDimensionCapabilities(tt *te
 			tc := testutils.NewTestcase(t)
 			defer tc.PrintLogsOnFailure()
 			// Not used directly since we are sending to backend
-			tc.ShutdownOTLPMetricsReceiverSink()
+			tc.ShutdownOTLPReceiverSink()
 
 			_, stop := tc.Containers(postgresContainers()...)
 			defer stop()
@@ -131,7 +131,7 @@ func TestIngestAuthScopeTokenGrantsRequiredEventCapabilities(tt *testing.T) {
 			tc := testutils.NewTestcase(t)
 			defer tc.PrintLogsOnFailure()
 			// Not used directly since we are sending to backend
-			tc.ShutdownOTLPMetricsReceiverSink()
+			tc.ShutdownOTLPReceiverSink()
 
 			os.Setenv("SPLUNK_ACCESS_TOKEN", run.token)
 			os.Setenv("SPLUNK_API_URL", ts.APIUrl)
@@ -194,7 +194,7 @@ func TestAPIAuthScopeTokenDoesntGrantRequiredMetricAndDimensionCapabilities(t *t
 	ts := secrets(t)
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
-	tc.ShutdownOTLPMetricsReceiverSink()
+	tc.ShutdownOTLPReceiverSink()
 
 	_, stop := tc.Containers(postgresContainers()...)
 	defer stop()
@@ -220,7 +220,7 @@ func TestAPIAuthScopeTokenDoesntGrantRequiredEventCapabilities(t *testing.T) {
 	ts := secrets(t)
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
-	tc.ShutdownOTLPMetricsReceiverSink()
+	tc.ShutdownOTLPReceiverSink()
 
 	os.Setenv("SPLUNK_ACCESS_TOKEN", ts.APIToken)
 	os.Setenv("SPLUNK_API_URL", ts.APIUrl)

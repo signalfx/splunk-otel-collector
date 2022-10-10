@@ -1,0 +1,6 @@
+resource_logs:
+  - scope_logs:
+      - logs:
+          - body: a string body
+            severity_text: info
+            severity: 1

@@ -26,7 +26,7 @@ import (
 func TestExpandedDollarSignsViaStandardEnvVar(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPMetricsReceiverSink()
+	defer tc.ShutdownOTLPReceiverSink()
 
 	tc.SkipIfNotContainer()
 
@@ -38,13 +38,13 @@ func TestExpandedDollarSignsViaStandardEnvVar(t *testing.T) {
 	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("envvar_labels.yaml")
-	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
 
 func TestExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPMetricsReceiverSink()
+	defer tc.ShutdownOTLPReceiverSink()
 
 	tc.SkipIfNotContainer()
 
@@ -56,13 +56,13 @@ func TestExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
 	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("env_config_source_labels.yaml")
-	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
 
 func TestIncompatibleExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPMetricsReceiverSink()
+	defer tc.ShutdownOTLPReceiverSink()
 
 	tc.SkipIfNotContainer()
 
@@ -77,13 +77,13 @@ func TestIncompatibleExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
 	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("incompat_env_config_source_labels.yaml")
-	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
 
 func TestExpandedYamlViaEnvConfigSource(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPMetricsReceiverSink()
+	defer tc.ShutdownOTLPReceiverSink()
 
 	tc.SkipIfNotContainer()
 
@@ -95,5 +95,5 @@ func TestExpandedYamlViaEnvConfigSource(t *testing.T) {
 	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("yaml_from_env.yaml")
-	require.NoError(t, tc.OTLPMetricsReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }

@@ -1,0 +1,37 @@
+receivers:
+  redis:
+    # For more information on redis specific configuration, see
+    # See https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/redisreceiver
+    endpoint: "redis_db:6379"
+    collection_interval: 10s
+    password: ${REDIS_PASSWORD}
+    metrics:
+      redis.role:
+        enabled: true
+      redis.cmd.calls:
+        enabled: true
+extensions:
+    health_check:
+      endpoint: 0.0.0.0:13133
+processors:
+  batch:
+exporters:
+  signalfx:
+    # to configure, see https://github:com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter
+    access_token: ${SPLUNK_ACCESS_TOKEN}
+    realm: "${SPLUNK_REALM}"
+  logging:
+    loglevel: debug
+service:
+  telemetry:
+    metrics:
+      address: ":8888"
+  pipelines:
+    metrics/sfx:
+      receivers: [redis]
+      processors: [batch]
+      exporters: [signalfx]
+    metrics/logging:
+      receivers: [redis]
+      processors: [batch]
+      exporters: [logging]

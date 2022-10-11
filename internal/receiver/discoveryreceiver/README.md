@@ -148,28 +148,28 @@ receivers:
          config:
            type: collectd/redis
            // the metric or log statement
-           status:
-             metrics:
-               successful:
-                 - regexp: '.*'
-                   // Only emit a single log record for this status entry instead of one for each matching received metric (`false`, the default)
-                   first_only: true
-                   record:
-                     severity_text: info
-                     body: Successfully able to connect to Redis container.
-             statements:
-               partial:
-                 - regexp: (WRONGPASS|NOAUTH|ERR AUTH)
-                   first_only: true
-                   record:
-                     severity_text: warn
-                     body: Container appears to be accepting redis connections but the default auth setting is incorrect. 
-               failed:
-                 - regexp: ConnectionRefusedError
-                   first_only: true
-                   record:
-                     severity_text: debug
-                     body: Container appears to not be accepting redis connections.
+         status:
+           metrics:
+             successful:
+               - regexp: '.*'
+                 // Only emit a single log record for this status entry instead of one for each matching received metric (`false`, the default)
+                 first_only: true
+                 log_record:
+                   severity_text: info
+                   body: Successfully able to connect to Redis container.
+           statements:
+             partial:
+               - regexp: (WRONGPASS|NOAUTH|ERR AUTH)
+                 first_only: true
+                 log_record:
+                   severity_text: warn
+                   body: Container appears to be accepting redis connections but the default auth setting is incorrect.
+             failed:
+               - regexp: ConnectionRefusedError
+                 first_only: true
+                 log_record:
+                   severity_text: debug
+                   body: Container appears to not be accepting redis connections.
 exporters:
   logging:
     logLevel: debug

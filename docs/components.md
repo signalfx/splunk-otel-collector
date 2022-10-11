@@ -58,7 +58,7 @@ new release. In addition, any of these components may be removed prior to the
 These components should not be considered stable. They are made available
 for testing and validation purposes.
 
-| Receivers | Processors                                                                                                                 | Exporters                                     | Extensions |
-|-----------|----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------|------------|
-|           | [span_metrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanmetricsprocessor) | [pulsar](../internal/exporter/pulsarexporter) |            |
-|           | [timestamp](../pkg/processor/timestamp)                                                                                    |                                               |            | 
+| Receivers                                           | Processors                                                                                                                 | Exporters                                     | Extensions |
+|-----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------|------------|
+| [discovery](../internal/receiver/discoveryreceiver) | [span_metrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanmetricsprocessor) | [pulsar](../internal/exporter/pulsarexporter) |            |
+|                                                     | [timestamp](../pkg/processor/timestamp)                                                                                    |                                               |            |

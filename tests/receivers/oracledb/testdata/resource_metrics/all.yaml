@@ -1,10 +1,8 @@
 resource_metrics:
   - attributes:
-      db.oracle.instance.name: <ANY>
-    instrumentation_library_metrics:
-      - instrumentation_library:
-          name: otelcol/oracledbreceiver
-        metrics:
+      db.oracle.instance.name: localhost:1521
+    scope_metrics:
+      - metrics:
           - name: oracledb.session.cpu_usage
             type: DoubleGauge
           - name: oracledb.session.enqueue_deadlocks
@@ -30,8 +28,6 @@ resource_metrics:
           - name: oracledb.system.session_count
             type: IntGauge
           - name: oracledb.system.resource_limits
-            type: IntGauge
-          - name: oracledb.tablespace.max_size
             type: IntGauge
           - name: oracledb.tablespace.max_size
             type: IntGauge

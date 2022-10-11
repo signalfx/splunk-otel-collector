@@ -326,20 +326,20 @@ func FlattenResourceMetrics(resourceMetrics ...ResourceMetrics) ResourceMetrics 
 // Metric equivalence is based on RelaxedEquals() check: fields not in expected (e.g. unit, type, value, etc.)
 // are not compared to received, but all labels must match.
 // For better reliability, it's advised that both ResourceMetrics items have been flattened by FlattenResourceMetrics.
-func (received ResourceMetrics) ContainsAll(expected ResourceMetrics, strictInstrumentationLibraryMatch bool) (bool, error) {
+func (contained ResourceMetrics) ContainsAll(expected ResourceMetrics, strictInstrumentationLibraryMatch bool) (bool, error) {
 	var missingResources []string
 	var missingInstrumentationLibraries []string
 	var missingMetrics []string
 
-	for _, expectedResourceMetric := range contains.ResourceMetrics {
+	for _, expectedResourceMetric := range expected.ResourceMetrics {
 		resourceMatched := false
-		for _, resourceMetric := range resourceMetrics.ResourceMetrics {
+		for _, resourceMetric := range contained.ResourceMetrics {
 			if resourceMetric.Resource.Equals(expectedResourceMetric.Resource) {
 				resourceMatched = true
 				for _, expectedILM := range expectedResourceMetric.ScopeMetrics {
 					InstrumentationScopeMatched := false
 					for _, ilm := range resourceMetric.ScopeMetrics {
-						if expectedILM.Scope.Equals(ilm.Scope, strictInstrumentationLibraryMatch) {
+						if expectedILM.Scope.Matches(ilm.Scope, strictInstrumentationLibraryMatch) {
 							InstrumentationScopeMatched = true
 							for _, expectedMetric := range expectedILM.Metrics {
 								metricFound := false
@@ -377,7 +377,7 @@ func (received ResourceMetrics) ContainsAll(expected ResourceMetrics, strictInst
 	if len(missingResources) != 0 {
 		return false, fmt.Errorf(
 			"%v doesn't contain all of %v.  Missing resources: %s",
-			resourceMetrics.ResourceMetrics, contains.ResourceMetrics, missingResources,
+			contained.ResourceMetrics, expected.ResourceMetrics, missingResources,
 		)
 	}
 	return true, nil

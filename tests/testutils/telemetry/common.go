@@ -75,3 +75,12 @@ func (is InstrumentationScope) Hash() string {
 func (is InstrumentationScope) Equals(toCompare InstrumentationScope) bool {
 	return is.Name == toCompare.Name && is.Version == toCompare.Version
 }
+func (is InstrumentationScope) Matches(toCompare InstrumentationScope, strict bool) bool {
+	if is.Name != toCompare.Name && (strict || is.Name != "") {
+		return false
+	}
+	if is.Version != toCompare.Version && (strict || is.Version != "") {
+		return false
+	}
+	return true
+}

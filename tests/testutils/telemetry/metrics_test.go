@@ -123,33 +123,6 @@ func TestLoadMetricsInvalidMetricType(t *testing.T) {
 	require.Nil(t, resourceMetrics)
 }
 
-<<<<<<< HEAD:tests/testutils/telemetry/metrics_test.go
-=======
-func TestResourceEquivalence(t *testing.T) {
-	resource := func() Resource {
-		return Resource{Attributes: map[string]any{
-			"one": 1, "two": "two", "three": nil,
-			"four": []int{1, 2, 3, 4},
-			"five": map[string]any{
-				"true": true, "false": false, "nil": nil,
-			},
-		}}
-	}
-	rOne := resource()
-	assert.True(t, rOne.Matches(rOne))
-
-	rTwo := resource()
-	assert.True(t, rOne.Matches(rTwo))
-	assert.True(t, rTwo.Matches(rOne))
-
-	rTwo.Attributes["five"].(map[string]any)["another"] = "item"
-	assert.False(t, rOne.Matches(rTwo))
-	assert.False(t, rTwo.Matches(rOne))
-	rOne.Attributes["five"].(map[string]any)["another"] = "item"
-	assert.True(t, rOne.Matches(rTwo))
-	assert.True(t, rTwo.Matches(rOne))
-}
-
 func TestResourceMatchesWithAny(t *testing.T) {
 	rReference := Resource{Attributes: map[string]any{
 		"one": 1, "two": "<ANY>", "three": nil,
@@ -177,43 +150,6 @@ func TestResourceMatchesWithAny(t *testing.T) {
 	assert.False(t, rReference.Matches(rMissingTwo))
 }
 
-func TestInstrumentationLibraryEquivalence(t *testing.T) {
-	il := func() InstrumentationLibrary {
-		return InstrumentationLibrary{
-			Name: "an_instrumentation_library", Version: "an_instrumentation_library_version",
-		}
-	}
-
-	ilOne := il()
-	assert.True(t, ilOne.Equals(ilOne, true))
-
-	ilTwo := il()
-	assert.True(t, ilOne.Equals(ilTwo, true))
-	assert.True(t, ilTwo.Equals(ilOne, true))
-	assert.True(t, ilOne.Equals(ilTwo, false))
-
-	ilTwo.Version = ""
-	assert.False(t, ilOne.Equals(ilTwo, true))
-	assert.False(t, ilTwo.Equals(ilOne, true))
-	assert.False(t, ilOne.Equals(ilTwo, false))
-	assert.True(t, ilTwo.Equals(ilOne, false))
-	ilOne.Version = ""
-	assert.True(t, ilOne.Equals(ilTwo, true))
-	assert.True(t, ilTwo.Equals(ilOne, true))
-	assert.True(t, ilOne.Equals(ilTwo, false))
-
-	ilTwo.Name = ""
-	assert.False(t, ilOne.Equals(ilTwo, true))
-	assert.False(t, ilTwo.Equals(ilOne, true))
-	assert.False(t, ilOne.Equals(ilTwo, false))
-	assert.True(t, ilTwo.Equals(ilOne, false))
-	ilOne.Name = ""
-	assert.True(t, ilOne.Equals(ilTwo, true))
-	assert.True(t, ilTwo.Equals(ilOne, true))
-	assert.True(t, ilTwo.Equals(ilOne, false))
-}
-
->>>>>>> relax equals to allow any match:tests/testutils/resource_metrics_test.go
 func TestMetricEquivalence(t *testing.T) {
 	metric := func() Metric {
 		return Metric{

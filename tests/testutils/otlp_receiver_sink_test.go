@@ -166,12 +166,8 @@ func TestAssertAllMetricsReceivedHappyPath(t *testing.T) {
 	err = exporter.ConsumeMetrics(context.Background(), metrics)
 	require.NoError(t, err)
 
-<<<<<<< HEAD
 	resourceMetrics, err := telemetry.PDataToResourceMetrics(metrics)
-=======
-	resourceMetrics, err := PDataToResourceMetrics(metrics)
-	resourceMetrics = FlattenResourceMetrics(resourceMetrics)
->>>>>>> add bool flag for instrumentation lib match
+	resourceMetrics = telemetry.FlattenResourceMetrics(resourceMetrics)
 	require.NoError(t, err)
 	otlp.AssertAllMetricsReceived(t, resourceMetrics, 100*time.Millisecond)
 }

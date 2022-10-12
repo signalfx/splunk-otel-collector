@@ -4,6 +4,11 @@ extensions:
   host_observer/with/another/name:
 
 receivers:
+  # set up otlp receiver to use its endpoints as assertion material
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
   discovery:
     embed_receiver_config: true
     receivers:
@@ -55,6 +60,9 @@ service:
     - host_observer/with_name
     - host_observer/with/another/name
   pipelines:
+    metrics:
+      receivers: [otlp]
+      exporters: [otlp]
     logs:
       receivers: [discovery]
       processors: [attributes]

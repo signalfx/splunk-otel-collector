@@ -147,7 +147,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 
 			expectedAttrs := map[string]string{}
 			if embed {
-				expectedAttrs["discovery.receiver.updated.config"] = encodedWatchObserver
+				expectedAttrs["discovery.receiver.updated.config.type/name"] = encodedWatchObserver
 			}
 
 			require.Equal(t, expectedAttrs, attrs)
@@ -202,7 +202,7 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 			expectedAttrs := map[string]string{}
 
 			if embed {
-				expectedAttrs["discovery.receiver.updated.config"] = receiverConfig
+				expectedAttrs["discovery.receiver.updated.config.type/name"] = receiverConfig
 			}
 
 			require.Equal(t, expectedAttrs, attrs)

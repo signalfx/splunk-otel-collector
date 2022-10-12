@@ -1,0 +1,28 @@
+extensions:
+  host_observer:
+  host_observer/with_name:
+  host_observer/with/another/name:
+
+receivers:
+  discovery:
+    log_endpoints: true
+    watch_observers:
+      - host_observer
+      - host_observer/with_name
+      - host_observer/with/another/name
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  extensions:
+    - host_observer
+    - host_observer/with_name
+    - host_observer/with/another/name
+  pipelines:
+    logs:
+      receivers: [discovery]
+      exporters: [otlp]

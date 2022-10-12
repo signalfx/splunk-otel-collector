@@ -1,0 +1,69 @@
+extensions:
+  host_observer:
+  host_observer/with_name:
+  host_observer/with/another/name:
+
+receivers:
+  # set up otlp receiver to use its endpoints as assertion material
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+  discovery:
+    embed_receiver_config: true
+    receivers:
+      prometheus_simple:
+        rule: type == "hostport"
+        resource_attributes:
+          one.key: one.value
+          two.key: two.value
+        status:
+          metrics:
+            successful:
+                - regexp: ^otelcol_receiver_accepted_metric_points$
+                  first_only: true
+                  log_record:
+                    severity_text: info
+                    body: Successfully connected to prometheus server
+          statements:
+            failed:
+              - strict: Failed to scrape Prometheus endpoint
+                first_only: true
+                log_record:
+                  severity_text: debug
+                  body: Port appears to not be serving prometheus metrics
+
+    watch_observers:
+      - host_observer
+      - host_observer/with_name
+      - host_observer/with/another/name
+
+# drop scrape_timestamp attributes until we can accept arbitrary values
+processors:
+  attributes:
+    actions:
+      - action: delete
+        key: scrape_timestamp
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  extensions:
+    - host_observer
+    - host_observer/with_name
+    - host_observer/with/another/name
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      exporters: [otlp]
+    logs:
+      receivers: [discovery]
+      processors: [attributes]
+      exporters: [otlp]

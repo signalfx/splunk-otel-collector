@@ -17,9 +17,7 @@ package tests
 
 import (
 	"fmt"
-	"os"
 	"path"
-	"strings"
 	"testing"
 	"time"
 
@@ -48,11 +46,8 @@ func TestOracleDBIntegration(t *testing.T) {
 	_, stop := tc.Containers(oracledb...)
 	defer stop()
 	env := map[string]string{}
-	if image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE"); strings.TrimSpace(image) != "" {
-		env["ORACLEDB_URL"] = "oracle://otel:password@oracledb:1521/XE"
-	} else {
-		env["ORACLEDB_URL"] = "oracle://otel:password@localhost:1521/XE"
-	}
+	env["ORACLEDB_URL"] = "oracle://otel:password@localhost:1521/XE"
+
 	_, shutdown := tc.SplunkOtelCollectorWithEnv("all_metrics_config.yaml", env)
 	defer shutdown()
 	receivedMetrics := telemetry.ResourceMetrics{}

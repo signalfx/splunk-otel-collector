@@ -17,8 +17,10 @@ package httpsinkexporter
 
 import (
 	"context"
+	"net"
 	http "net/http"
 	"sync"
+	"time"
 
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/jaegertracing/jaeger/model"
@@ -31,11 +33,11 @@ var marshaler = &jsonpb.Marshaler{}
 
 // httpSinkExporter ...
 type httpSinkExporter struct {
+	ch       chan *model.Batch
+	server   *http.Server
 	endpoint string
-
-	ch      chan *model.Batch
-	clients []*client
-	mu      sync.Mutex
+	clients  []*client
+	mu       sync.Mutex
 }
 
 func (e *httpSinkExporter) ConsumeTraces(_ context.Context, td ptrace.Traces) error {
@@ -94,7 +96,7 @@ func (e *httpSinkExporter) handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (e *httpSinkExporter) Start(ctx context.Context, _ component.Host) error {
-	go e.startServer(ctx)
+	e.startServer(ctx)
 	go e.fanOut()
 	return nil
 }
@@ -117,13 +119,23 @@ func (e *httpSinkExporter) fanOut() error {
 }
 
 // Shutdown stops the exporter and is invoked during shutdown.
-func (e *httpSinkExporter) Shutdown(context.Context) error {
-	// shutdown http server
+func (e *httpSinkExporter) Shutdown(ctx context.Context) error {
+	if e.server != nil {
+		return e.server.Shutdown(ctx)
+	}
 	return nil
-
 }
 
-func (e *httpSinkExporter) startServer(context.Context) {
-	http.HandleFunc("/", e.handler)
-	http.ListenAndServe(e.endpoint, nil)
+func (e *httpSinkExporter) startServer(ctx context.Context) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", e.handler)
+	e.server = &http.Server{
+		Addr:    "e.endpoint",
+		Handler: mux,
+		BaseContext: func(listener net.Listener) context.Context {
+			return ctx
+		},
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	go e.server.ListenAndServe()
 }

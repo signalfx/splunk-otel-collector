@@ -9,15 +9,6 @@ receivers:
     # Refer to Oracle Go Driver go_ora documentation for full connection string options
     datasource: "oracle://otel:password@localhost:51521/XE"
 processors:
-  resourcedetection:
-    detectors: ["system"]
-    system:
-      hostname_sources: ["os"]
-  resource/host_id:
-    attributes:
-      - key: host.id
-        from_attribute: host.name
-        action: upsert
 exporters:
   file:
     path: /tmp/out/file.txt
@@ -33,8 +24,6 @@ service:
       receivers:
         - oracledb
       processors:
-        - resourcedetection
-        - resource/host_id
       exporters:
         #- file
         - signalfx

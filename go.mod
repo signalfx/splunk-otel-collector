@@ -459,7 +459,7 @@ require (
 replace (
 	github.com/signalfx/splunk-otel-collector/extension/smartagentextension => ./pkg/extension/smartagentextension
 	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor => ./pkg/processor/timestamp
-	github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver => ./pkg/receiver/oracledbreceiver
+	github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver => ./pkg/receiver/oracledb
 	github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver => ./pkg/receiver/smartagent
 	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor => ./pkg/processor/timestamp
 	github.com/signalfx/splunk-otel-collector/tests => ./tests

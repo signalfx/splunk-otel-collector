@@ -126,6 +126,7 @@ param (
     [string]$collector_version = "",
     [bool]$with_fluentd = $true,
     [bool]$with_dotnet_instrumentation = $false,
+    [string]$instrumentation_exclude_processes = "Powershell.exe,dotnet.exe",
     [string]$bundle_dir = "",
     [ValidateSet('test','beta','release')][string]$stage = "release",
     [string]$msi_path = "",
@@ -597,6 +598,11 @@ if ($with_dotnet_instrumentation) {
     update_registry -path "$regkey" -name "COR_PROFILER" -value "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
     update_registry -path "$regkey" -name "CORECLR_ENABLE_PROFILING" -value "1"
     update_registry -path "$regkey" -name "CORECLR_PROFILER" -value "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
+
+    if ($instrumentation_exclude_processes -ne "") {
+      echo "Setting SIGNALFX_PROFILER_EXCLUDE_PROCESSES environment variable to $instrumentation_exclude_processes ..."
+      update_registry -path "$regkey" -name "SIGNALFX_PROFILER_EXCLUDE_PROCESSES" -value "$instrumentation_exclude_processes"
+    }
 
     if ($signalfx_service_name -ne "") {
         echo "Setting SIGNALFX_SERVICE_NAME environment variable to $signalfx_service_name ..."

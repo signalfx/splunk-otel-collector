@@ -126,7 +126,7 @@ param (
     [string]$collector_version = "",
     [bool]$with_fluentd = $true,
     [bool]$with_dotnet_instrumentation = $false,
-    [string]$instrumentation_exclude_processes = "Powershell.exe,dotnet.exe",
+    [string]$instrumentation_exclude_processes = "Powershell.exe;dotnet.exe",
     [string]$bundle_dir = "",
     [ValidateSet('test','beta','release')][string]$stage = "release",
     [string]$msi_path = "",

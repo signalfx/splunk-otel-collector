@@ -901,27 +901,27 @@ func newMetricOracledbTablespaceSize(settings MetricSettings) metricOracledbTabl
 // MetricsBuilder provides an interface for scrapers to report metrics while taking care of all the transformations
 // required to produce metric representation defined in metadata and user settings.
 type MetricsBuilder struct {
-	startTime                              pcommon.Timestamp   // start time that will be applied to all recorded data points.
-	metricsCapacity                        int                 // maximum observed number of metrics per resource.
-	resourceCapacity                       int                 // maximum observed number of resource attributes.
-	metricsBuffer                          pmetric.Metrics     // accumulates metrics data before emitting.
-	buildInfo                              component.BuildInfo // contains version information
+	metricsBuffer                          pmetric.Metrics
+	buildInfo                              component.BuildInfo
+	metricOracledbSessionLogicalReads      metricOracledbSessionLogicalReads
+	metricOracledbSessionParseCountTotal   metricOracledbSessionParseCountTotal
+	metricOracledbTablespaceSize           metricOracledbTablespaceSize
 	metricOracledbSessionCPUUsage          metricOracledbSessionCPUUsage
 	metricOracledbSessionEnqueueDeadlocks  metricOracledbSessionEnqueueDeadlocks
 	metricOracledbSessionExchangeDeadlocks metricOracledbSessionExchangeDeadlocks
 	metricOracledbSessionExecuteCount      metricOracledbSessionExecuteCount
 	metricOracledbSessionHardParses        metricOracledbSessionHardParses
-	metricOracledbSessionLogicalReads      metricOracledbSessionLogicalReads
-	metricOracledbSessionParseCountTotal   metricOracledbSessionParseCountTotal
+	metricOracledbTablespaceMaxSize        metricOracledbTablespaceMaxSize
+	metricOracledbSystemSessionCount       metricOracledbSystemSessionCount
 	metricOracledbSessionPgaMemory         metricOracledbSessionPgaMemory
 	metricOracledbSessionPhysicalReads     metricOracledbSessionPhysicalReads
 	metricOracledbSessionSoftParses        metricOracledbSessionSoftParses
 	metricOracledbSessionUserCommits       metricOracledbSessionUserCommits
 	metricOracledbSessionUserRollbacks     metricOracledbSessionUserRollbacks
 	metricOracledbSystemResourceLimits     metricOracledbSystemResourceLimits
-	metricOracledbSystemSessionCount       metricOracledbSystemSessionCount
-	metricOracledbTablespaceMaxSize        metricOracledbTablespaceMaxSize
-	metricOracledbTablespaceSize           metricOracledbTablespaceSize
+	resourceCapacity                       int
+	startTime                              pcommon.Timestamp
+	metricsCapacity                        int
 }
 
 // metricBuilderOption applies changes to default metrics builder.

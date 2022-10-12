@@ -44,6 +44,7 @@ func TestDefaultComponents(t *testing.T) {
 		"cloudfoundry",
 		"collectd",
 		"databricks",
+		"discovery",
 		"filelog",
 		"fluentforward",
 		"hostmetrics",

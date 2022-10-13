@@ -157,6 +157,7 @@ replace github.com/signalfx/splunk-otel-collector/tests => ../../../tests
 
 replace (
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.38.0
+	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87
 
 	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220810191306-a41fb5c94d53
 )

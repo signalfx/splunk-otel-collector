@@ -30,9 +30,7 @@ receivers:
 Depending on which metrics you collect, you will need to assign those permissions to the database user:
 ```
 GRANT SELECT ON V_$SESSION TO <username>;
-GRANT SELECT ON V_$SESSTAT TO <username>;
-GRANT SELECT ON V_$STATNAME TO <username>;
-GRANT SELECT ON V_$SESSMETRIC TO <username>;
+GRANT SELECT ON V_$SYSSTAT TO <username>;
 GRANT SELECT ON V_$RESOURCE_LIMIT TO <username>;
 GRANT SELECT ON DBA_TABLESPACES TO <username>;
 GRANT SELECT ON DBA_DATA_FILES TO <username>;

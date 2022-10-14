@@ -3,31 +3,45 @@ resource_metrics:
       db.oracle.instance.name: localhost:1521
     scope_metrics:
       - metrics:
-          - name: oracledb.session.cpu_usage
-            type: DoubleGauge
-          - name: oracledb.session.enqueue_deadlocks
+          - name: oracledb.cpu_utilization
+            type: DoubleMonotonicCumulativeSum
+          - name: oracledb.enqueue_deadlocks
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.exchange_deadlocks
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.execute_count
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.hard_parses
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.logical_reads
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.parse_count_total
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.pga_memory
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.physical_reads
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.user_commits
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.user_rollbacks
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.session.count
             type: IntGauge
-          - name: oracledb.session.execute_count
-            type: IntMonotonicCumulativeSum
-          - name: oracledb.session.hard_parses
-            type: IntMonotonicCumulativeSum
-          - name: oracledb.session.logical_reads
-            type: IntMonotonicCumulativeSum
-          - name: oracledb.session.parse_count_total
-            type: IntMonotonicCumulativeSum
-          - name: oracledb.session.pga_memory
+          - name: oracledb.resource_limit.process.utilization
             type: IntGauge
-          - name: oracledb.session.physical_reads
-            type: IntMonotonicCumulativeSum
-          - name: oracledb.session.soft_parses
-            type: IntMonotonicCumulativeSum
-          - name: oracledb.session.user_commits
-            type: IntMonotonicCumulativeSum
-          - name: oracledb.session.user_rollbacks
-            type: IntMonotonicCumulativeSum
-          - name: oracledb.system.session_count
+          - name: oracledb.resource_limit.process.max
             type: IntGauge
-          - name: oracledb.system.resource_limits
+          - name: oracledb.resource_limit.session.utilization
+            type: IntGauge
+          - name: oracledb.resource_limit.session.max
+            type: IntGauge
+          - name: oracledb.resource_limit.enqueue_locks.utilization
+            type: IntGauge
+          - name: oracledb.resource_limit.enqueue_locks.max
+            type: IntGauge
+          - name: oracledb.resource_limit.enqueue_resources.utilization
+            type: IntGauge
+          - name: oracledb.resource_limit.enqueue_resources.max
             type: IntGauge
           - name: oracledb.tablespace.max_size
             type: IntGauge

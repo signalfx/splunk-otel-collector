@@ -40,7 +40,7 @@ func TestParseConfig(t *testing.T) {
 	assert.Equal(t, "oracle://otel:password@localhost:51521/XE", sqlCfg.DataSource)
 	settings := sqlCfg.MetricsSettings
 	assert.False(t, settings.OracledbTablespaceSize.Enabled)
-	assert.False(t, settings.OracledbSystemResourceLimits.Enabled)
+	assert.False(t, settings.OracledbExchangeDeadlocks.Enabled)
 }
 
 func testFactories(t *testing.T) component.Factories {

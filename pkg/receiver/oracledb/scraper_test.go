@@ -43,16 +43,8 @@ func TestScraper_ErrorOnStart(t *testing.T) {
 }
 
 var queryResponses = map[string][]metricRow{
-	sessionUsageSQL: {
-		{"CPU_USAGE": "45", "PGA_MEMORY": "3455", "PHYSICAL_READS": "12344", "LOGICAL_READS": "345", "HARD_PARSES": "346", "SOFT_PARSES": "7866"},
-	},
-	sessionEnqueueDeadlocksSQL:  {{"VALUE": "1"}},
-	sessionExchangeDeadlocksSQL: {{"VALUE": "1"}},
-	sessionExecuteCountSQL:      {{"VALUE": "1"}},
-	sessionParseCountTotalSQL:   {{"VALUE": "1"}},
-	sessionUserCommitsSQL:       {{"VALUE": "1"}},
-	sessionUserRollbacksSQL:     {{"VALUE": "1"}},
-	sessionCountSQL:             {{"VALUE": "1"}},
+	statsSQL:        {{"NAME": enqueueDeadlocks, "VALUE": "18"}, {"NAME": exchangeDeadlocks, "VALUE": "88898"}, {"NAME": executeCount, "VALUE": "178878"}, {"NAME": parseCountTotal, "VALUE": "1999"}, {"NAME": parseCountHard, "VALUE": "1"}, {"NAME": userCommits, "VALUE": "187778888"}, {"NAME": userRollbacks, "VALUE": "1898979879789"}, {"NAME": physicalReads, "VALUE": "1887777"}, {"NAME": sessionLogicalReads, "VALUE": "189"}, {"NAME": cpuUtilization, "VALUE": "1887"}, {"NAME": pgaMemory, "VALUE": "1999887"}},
+	sessionCountSQL: {{"VALUE": "1"}},
 	systemResourceLimitsSQL: {{"RESOURCE_NAME": "processes", "CURRENT_UTILIZATION": "3", "MAX_UTILIZATION": "10", "INITIAL_ALLOCATION": "100", "LIMIT_VALUE": "100"},
 		{"RESOURCE_NAME": "locks", "CURRENT_UTILIZATION": "3", "MAX_UTILIZATION": "10", "INITIAL_ALLOCATION": "-1", "LIMIT_VALUE": "-1"}},
 	tablespaceUsageSQL:    {{"TABLESPACE_NAME": "SYS", "BYTES": "1024"}},

@@ -1,0 +1,37 @@
+smartagent/collectd/redis:
+  rule:
+    docker_observer: type == "container" and port == 6379
+  config:
+    default:
+      type: collectd/redis
+      auth: password
+    docker_observer:
+      auth: '`labels["auth"]`'
+  status:
+    metrics:
+      successful:
+        - regexp: '.*'
+          first_only: true
+          log_record:
+            severity_text: info
+            body: smartagent/collectd-redis receiver successful metric status
+    statements:
+      failed:
+        - regexp: 'raise ValueError\(\"Unknown Redis response'
+          first_only: true
+          log_record:
+            severity_text: info
+            body: container appears to not actually be redis
+        - regexp: '^redis_info plugin: Error connecting to .* - ConnectionRefusedError.*$'
+          first_only: true
+          log_record:
+            severity_text: info
+            body: container appears to not be accepting redis connections
+      partial:
+        - regexp: "^redis_info plugin: Error .* - RedisError\\('-(WRONGPASS|NOAUTH|ERR AUTH).*$"
+          first_only: true
+          log_record:
+            severity_text: info
+            body: >-
+              Please ensure that your redis password is correctly specified in `splunk.discovery.receivers.smartagent/collectd/redis.config.auth`
+              or via the `SPLUNK_DISCOVERY_RECEIVERS_SMARTAGENT_COLLECTD_REDIS_CONFIG_AUTH` environment variable.

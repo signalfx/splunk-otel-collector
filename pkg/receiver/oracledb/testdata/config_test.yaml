@@ -11,7 +11,7 @@ receivers:
     metrics:
       oracledb.exchange_deadlocks:
         enabled: false
-      oracledb.tablespace.size:
+      oracledb.tablespaces.usage:
         enabled: false
 exporters:
   nop:

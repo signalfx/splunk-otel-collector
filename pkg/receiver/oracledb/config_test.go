@@ -39,7 +39,7 @@ func TestParseConfig(t *testing.T) {
 	sqlCfg := cfg.Receivers[config.NewComponentID("oracledb")].(*Config)
 	assert.Equal(t, "oracle://otel:password@localhost:51521/XE", sqlCfg.DataSource)
 	settings := sqlCfg.MetricsSettings
-	assert.False(t, settings.OracledbTablespaceSize.Enabled)
+	assert.False(t, settings.OracledbTablespacesUsage.Enabled)
 	assert.False(t, settings.OracledbExchangeDeadlocks.Enabled)
 }
 

@@ -45,10 +45,10 @@ const (
 	userRollbacks           = "user rollbacks"
 	physicalReads           = "physical reads"
 	sessionLogicalReads     = "session logical reads"
-	cpuUtilization          = "CPU used by this session"
+	cpuTime                 = "CPU used by this session"
 	pgaMemory               = "session pga memory"
 	sessionCountSQL         = "select status, type, count(*) as VALUE FROM v$session GROUP BY status, type"
-	systemResourceLimitsSQL = "select RESOURCE_NAME, CURRENT_UTILIZATION, MAX_UTILIZATION, CASE WHEN TRIM(INITIAL_ALLOCATION) LIKE 'UNLIMITED' THEN '-1' ELSE TRIM(INITIAL_ALLOCATION) END as INITIAL_ALLOCATION, CASE WHEN TRIM(LIMIT_VALUE) LIKE 'UNLIMITED' THEN '-1' ELSE TRIM(LIMIT_VALUE) END as LIMIT_VALUE from v$resource_limit"
+	systemResourceLimitsSQL = "select RESOURCE_NAME, CURRENT_UTILIZATION, LIMIT_VALUE, CASE WHEN TRIM(INITIAL_ALLOCATION) LIKE 'UNLIMITED' THEN '-1' ELSE TRIM(INITIAL_ALLOCATION) END as INITIAL_ALLOCATION, CASE WHEN TRIM(LIMIT_VALUE) LIKE 'UNLIMITED' THEN '-1' ELSE TRIM(LIMIT_VALUE) END as LIMIT_VALUE from v$resource_limit"
 	tablespaceUsageSQL      = "select TABLESPACE_NAME, BYTES from DBA_DATA_FILES"
 	tablespaceMaxSpaceSQL   = "select TABLESPACE_NAME, (BLOCK_SIZE*MAX_EXTENTS) AS VALUE FROM DBA_TABLESPACES"
 )
@@ -114,7 +114,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 
 	var scrapeErrors []error
 
-	runStats := s.metricsSettings.OracledbEnqueueDeadlocks.Enabled || s.metricsSettings.OracledbExchangeDeadlocks.Enabled || s.metricsSettings.OracledbExecuteCount.Enabled || s.metricsSettings.OracledbParseCountTotal.Enabled || s.metricsSettings.OracledbHardParses.Enabled || s.metricsSettings.OracledbUserCommits.Enabled || s.metricsSettings.OracledbUserRollbacks.Enabled || s.metricsSettings.OracledbPhysicalReads.Enabled || s.metricsSettings.OracledbLogicalReads.Enabled || s.metricsSettings.OracledbCPUUtilization.Enabled || s.metricsSettings.OracledbPgaMemory.Enabled
+	runStats := s.metricsSettings.OracledbEnqueueDeadlocks.Enabled || s.metricsSettings.OracledbExchangeDeadlocks.Enabled || s.metricsSettings.OracledbExecutions.Enabled || s.metricsSettings.OracledbParseCalls.Enabled || s.metricsSettings.OracledbHardParses.Enabled || s.metricsSettings.OracledbUserCommits.Enabled || s.metricsSettings.OracledbUserRollbacks.Enabled || s.metricsSettings.OracledbPhysicalReads.Enabled || s.metricsSettings.OracledbLogicalReads.Enabled || s.metricsSettings.OracledbCPUTime.Enabled || s.metricsSettings.OracledbPgaMemory.Enabled
 	if runStats {
 		now := pcommon.NewTimestampFromTime(time.Now())
 		rows, execError := s.statsClient.metricRows(ctx)
@@ -141,20 +141,20 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 					s.metricsBuilder.RecordOracledbExchangeDeadlocksDataPoint(now, value)
 				}
 			case executeCount:
-				if s.metricsSettings.OracledbExecuteCount.Enabled {
+				if s.metricsSettings.OracledbExecutions.Enabled {
 					value, err := strconv.ParseInt(row["VALUE"], 10, 64)
 					if err != nil {
 						scrapeErrors = append(scrapeErrors, fmt.Errorf("%s value: %q, %w", executeCount, row["VALUE"], err))
 					}
-					s.metricsBuilder.RecordOracledbExecuteCountDataPoint(now, value)
+					s.metricsBuilder.RecordOracledbExecutionsDataPoint(now, value)
 				}
 			case parseCountTotal:
-				if s.metricsSettings.OracledbParseCountTotal.Enabled {
+				if s.metricsSettings.OracledbParseCalls.Enabled {
 					value, err := strconv.ParseInt(row["VALUE"], 10, 64)
 					if err != nil {
 						scrapeErrors = append(scrapeErrors, fmt.Errorf("%s value: %q, %w", parseCountTotal, row["VALUE"], err))
 					}
-					s.metricsBuilder.RecordOracledbParseCountTotalDataPoint(now, value)
+					s.metricsBuilder.RecordOracledbParseCallsDataPoint(now, value)
 				}
 			case parseCountHard:
 				if s.metricsSettings.OracledbHardParses.Enabled {
@@ -196,15 +196,15 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 					}
 					s.metricsBuilder.RecordOracledbLogicalReadsDataPoint(now, value)
 				}
-			case cpuUtilization:
-				if s.metricsSettings.OracledbCPUUtilization.Enabled {
+			case cpuTime:
+				if s.metricsSettings.OracledbCPUTime.Enabled {
 					value, err := strconv.ParseFloat(row["VALUE"], 64)
 					if err != nil {
-						scrapeErrors = append(scrapeErrors, fmt.Errorf("%s value: %q, %w", cpuUtilization, row["VALUE"], err))
+						scrapeErrors = append(scrapeErrors, fmt.Errorf("%s value: %q, %w", cpuTime, row["VALUE"], err))
 					}
 					// divide by 100 as the value is expressed in tens of milliseconds
 					value /= 100
-					s.metricsBuilder.RecordOracledbCPUUtilizationDataPoint(now, value)
+					s.metricsBuilder.RecordOracledbCPUTimeDataPoint(now, value)
 				}
 			case pgaMemory:
 				if s.metricsSettings.OracledbPgaMemory.Enabled {
@@ -218,7 +218,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 		}
 	}
 
-	if s.metricsSettings.OracledbSessionCount.Enabled {
+	if s.metricsSettings.OracledbSessionsUsage.Enabled {
 		rows, err := s.sessionCountClient.metricRows(ctx)
 		if err != nil {
 			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", sessionCountSQL, err))
@@ -228,14 +228,14 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 			if err != nil {
 				scrapeErrors = append(scrapeErrors, fmt.Errorf("value: %q: %q, %w", row["VALUE"], sessionCountSQL, err))
 			}
-			s.metricsBuilder.RecordOracledbSessionCountDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["TYPE"], row["STATUS"])
+			s.metricsBuilder.RecordOracledbSessionsUsageDataPoint(pcommon.NewTimestampFromTime(time.Now()), value, row["TYPE"], row["STATUS"])
 		}
 	}
 
-	if s.metricsSettings.OracledbResourceLimitSessionUtilization.Enabled || s.metricsSettings.OracledbResourceLimitSessionMax.Enabled ||
-		s.metricsSettings.OracledbResourceLimitProcessUtilization.Enabled || s.metricsSettings.OracledbResourceLimitProcessMax.Enabled ||
-		s.metricsSettings.OracledbResourceLimitEnqueueResourcesUtilization.Enabled || s.metricsSettings.OracledbResourceLimitEnqueueResourcesMax.Enabled ||
-		s.metricsSettings.OracledbResourceLimitEnqueueLocksMax.Enabled || s.metricsSettings.OracledbResourceLimitEnqueueLocksUtilization.Enabled {
+	if s.metricsSettings.OracledbSessionsLimit.Enabled ||
+		s.metricsSettings.OracledbProcessesUsage.Enabled || s.metricsSettings.OracledbProcessesLimit.Enabled ||
+		s.metricsSettings.OracledbEnqueueResourcesUsage.Enabled || s.metricsSettings.OracledbEnqueueResourcesLimit.Enabled ||
+		s.metricsSettings.OracledbEnqueueLocksLimit.Enabled || s.metricsSettings.OracledbEnqueueLocksUsage.Enabled {
 		rows, err := s.systemResourceLimitsClient.metricRows(ctx)
 		if err != nil {
 			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", systemResourceLimitsSQL, err))
@@ -244,77 +244,69 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 			resourceName := row["RESOURCE_NAME"]
 			switch resourceName {
 			case "processes":
-				if s.metricsSettings.OracledbResourceLimitProcessUtilization.Enabled {
-					currentUtilization, err := strconv.ParseInt(row["CURRENT_UTILIZATION"], 10, 64)
+				if s.metricsSettings.OracledbProcessesUsage.Enabled {
+					currentUsage, err := strconv.ParseInt(row["CURRENT_UTILIZATION"], 10, 64)
 					if err != nil {
-						scrapeErrors = append(scrapeErrors, fmt.Errorf("current utilization for %q: %q, %s, %w", resourceName, row["CURRENT_UTILIZATION"], systemResourceLimitsSQL, err))
+						scrapeErrors = append(scrapeErrors, fmt.Errorf("current Usage for %q: %q, %s, %w", resourceName, row["CURRENT_Usage"], systemResourceLimitsSQL, err))
 					} else {
-						s.metricsBuilder.RecordOracledbResourceLimitProcessUtilizationDataPoint(pcommon.NewTimestampFromTime(time.Now()), currentUtilization)
+						s.metricsBuilder.RecordOracledbProcessesUsageDataPoint(pcommon.NewTimestampFromTime(time.Now()), currentUsage)
 					}
 				}
-				if s.metricsSettings.OracledbResourceLimitProcessMax.Enabled {
-					maxUtilization, err := strconv.ParseInt(row["MAX_UTILIZATION"], 10, 64)
+				if s.metricsSettings.OracledbProcessesLimit.Enabled {
+					maxUsage, err := strconv.ParseInt(row["LIMIT_VALUE"], 10, 64)
 					if err != nil {
-						scrapeErrors = append(scrapeErrors, fmt.Errorf("max utilization for %q: %q, %s, %w", resourceName, row["MAX_UTILIZATION"], systemResourceLimitsSQL, err))
+						scrapeErrors = append(scrapeErrors, fmt.Errorf("max Usage for %q: %q, %s, %w", resourceName, row["MAX_Usage"], systemResourceLimitsSQL, err))
 					} else {
-						s.metricsBuilder.RecordOracledbResourceLimitProcessMaxDataPoint(pcommon.NewTimestampFromTime(time.Now()), maxUtilization)
+						s.metricsBuilder.RecordOracledbProcessesLimitDataPoint(pcommon.NewTimestampFromTime(time.Now()), maxUsage)
 					}
 				}
 			case "sessions":
-				if s.metricsSettings.OracledbResourceLimitSessionUtilization.Enabled {
-					currentUtilization, err := strconv.ParseInt(row["CURRENT_UTILIZATION"], 10, 64)
+				if s.metricsSettings.OracledbSessionsLimit.Enabled {
+					maxUtilization, err := strconv.ParseInt(row["LIMIT_VALUE"], 10, 64)
 					if err != nil {
-						scrapeErrors = append(scrapeErrors, fmt.Errorf("current utilization for %q: %q, %s, %w", resourceName, row["CURRENT_UTILIZATION"], systemResourceLimitsSQL, err))
+						scrapeErrors = append(scrapeErrors, fmt.Errorf("max utilization for %q: %q, %s, %w", resourceName, row["LIMIT_VALUE"], systemResourceLimitsSQL, err))
 					} else {
-						s.metricsBuilder.RecordOracledbResourceLimitSessionUtilizationDataPoint(pcommon.NewTimestampFromTime(time.Now()), currentUtilization)
-					}
-				}
-				if s.metricsSettings.OracledbResourceLimitSessionMax.Enabled {
-					maxUtilization, err := strconv.ParseInt(row["MAX_UTILIZATION"], 10, 64)
-					if err != nil {
-						scrapeErrors = append(scrapeErrors, fmt.Errorf("max utilization for %q: %q, %s, %w", resourceName, row["MAX_UTILIZATION"], systemResourceLimitsSQL, err))
-					} else {
-						s.metricsBuilder.RecordOracledbResourceLimitSessionMaxDataPoint(pcommon.NewTimestampFromTime(time.Now()), maxUtilization)
+						s.metricsBuilder.RecordOracledbSessionsLimitDataPoint(pcommon.NewTimestampFromTime(time.Now()), maxUtilization)
 					}
 				}
 			case "enqueue_locks":
-				if s.metricsSettings.OracledbResourceLimitEnqueueLocksUtilization.Enabled {
+				if s.metricsSettings.OracledbEnqueueLocksUsage.Enabled {
 					currentUtilization, err := strconv.ParseInt(row["CURRENT_UTILIZATION"], 10, 64)
 					if err != nil {
 						scrapeErrors = append(scrapeErrors, fmt.Errorf("current utilization for %q: %q, %s, %w", resourceName, row["CURRENT_UTILIZATION"], systemResourceLimitsSQL, err))
 					} else {
-						s.metricsBuilder.RecordOracledbResourceLimitEnqueueLocksUtilizationDataPoint(pcommon.NewTimestampFromTime(time.Now()), currentUtilization)
+						s.metricsBuilder.RecordOracledbEnqueueLocksUsageDataPoint(pcommon.NewTimestampFromTime(time.Now()), currentUtilization)
 					}
 				}
-				if s.metricsSettings.OracledbResourceLimitEnqueueLocksMax.Enabled {
-					maxUtilization, err := strconv.ParseInt(row["MAX_UTILIZATION"], 10, 64)
+				if s.metricsSettings.OracledbEnqueueLocksLimit.Enabled {
+					maxUtilization, err := strconv.ParseInt(row["LIMIT_VALUE"], 10, 64)
 					if err != nil {
-						scrapeErrors = append(scrapeErrors, fmt.Errorf("max utilization for %q: %q, %s, %w", resourceName, row["MAX_UTILIZATION"], systemResourceLimitsSQL, err))
+						scrapeErrors = append(scrapeErrors, fmt.Errorf("max utilization for %q: %q, %s, %w", resourceName, row["LIMIT_VALUE"], systemResourceLimitsSQL, err))
 					} else {
-						s.metricsBuilder.RecordOracledbResourceLimitEnqueueLocksMaxDataPoint(pcommon.NewTimestampFromTime(time.Now()), maxUtilization)
+						s.metricsBuilder.RecordOracledbEnqueueLocksLimitDataPoint(pcommon.NewTimestampFromTime(time.Now()), maxUtilization)
 					}
 				}
 			case "enqueue_resources":
-				if s.metricsSettings.OracledbResourceLimitEnqueueResourcesUtilization.Enabled {
+				if s.metricsSettings.OracledbEnqueueResourcesUsage.Enabled {
 					currentUtilization, err := strconv.ParseInt(row["CURRENT_UTILIZATION"], 10, 64)
 					if err != nil {
 						scrapeErrors = append(scrapeErrors, fmt.Errorf("current utilization for %q: %q, %s, %w", resourceName, row["CURRENT_UTILIZATION"], systemResourceLimitsSQL, err))
 					} else {
-						s.metricsBuilder.RecordOracledbResourceLimitEnqueueResourcesUtilizationDataPoint(pcommon.NewTimestampFromTime(time.Now()), currentUtilization)
+						s.metricsBuilder.RecordOracledbEnqueueResourcesUsageDataPoint(pcommon.NewTimestampFromTime(time.Now()), currentUtilization)
 					}
 				}
-				if s.metricsSettings.OracledbResourceLimitEnqueueResourcesMax.Enabled {
-					maxUtilization, err := strconv.ParseInt(row["MAX_UTILIZATION"], 10, 64)
+				if s.metricsSettings.OracledbEnqueueResourcesLimit.Enabled {
+					maxUtilization, err := strconv.ParseInt(row["LIMIT_VALUE"], 10, 64)
 					if err != nil {
-						scrapeErrors = append(scrapeErrors, fmt.Errorf("max utilization for %q: %q, %s, %w", resourceName, row["MAX_UTILIZATION"], systemResourceLimitsSQL, err))
+						scrapeErrors = append(scrapeErrors, fmt.Errorf("max utilization for %q: %q, %s, %w", resourceName, row["LIMIT_VALUE"], systemResourceLimitsSQL, err))
 					} else {
-						s.metricsBuilder.RecordOracledbResourceLimitEnqueueResourcesMaxDataPoint(pcommon.NewTimestampFromTime(time.Now()), maxUtilization)
+						s.metricsBuilder.RecordOracledbEnqueueResourcesLimitDataPoint(pcommon.NewTimestampFromTime(time.Now()), maxUtilization)
 					}
 				}
 			}
 		}
 	}
-	if s.metricsSettings.OracledbTablespaceSize.Enabled {
+	if s.metricsSettings.OracledbTablespacesUsage.Enabled {
 		rows, err := s.tablespaceUsageClient.metricRows(ctx)
 		if err != nil {
 			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", tablespaceUsageSQL, err))
@@ -326,12 +318,12 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("bytes for %q: %q, %s, %w", tablespaceName, row["BYTES"], tablespaceUsageSQL, err))
 				} else {
-					s.metricsBuilder.RecordOracledbTablespaceSizeDataPoint(now, value, tablespaceName)
+					s.metricsBuilder.RecordOracledbTablespacesUsageDataPoint(now, value, tablespaceName)
 				}
 			}
 		}
 	}
-	if s.metricsSettings.OracledbTablespaceMaxSize.Enabled {
+	if s.metricsSettings.OracledbTablespacesLimit.Enabled {
 		rows, err := s.tablespaceMaxSpaceClient.metricRows(ctx)
 		if err != nil {
 			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", tablespaceMaxSpaceSQL, err))
@@ -351,7 +343,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 					}
 				}
 				if ok {
-					s.metricsBuilder.RecordOracledbTablespaceMaxSizeDataPoint(now, value, tablespaceName)
+					s.metricsBuilder.RecordOracledbTablespacesLimitDataPoint(now, value, tablespaceName)
 				}
 			}
 		}

@@ -1,6 +1,6 @@
 resource_metrics:
   - attributes:
-      db.oracle.instance.name: localhost:1521
+      oracledb.instance.name: localhost:1521
     scope_metrics:
       - metrics:
           - name: oracledb.cpu_time

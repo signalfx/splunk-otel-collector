@@ -349,7 +349,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 		}
 	}
 
-	out := s.metricsBuilder.Emit(metadata.WithDbOracleInstanceName(s.instanceName))
+	out := s.metricsBuilder.Emit(metadata.WithOracledbInstanceName(s.instanceName))
 	s.logger.Debug("Done scraping")
 	if len(scrapeErrors) > 0 {
 		return out, scrapererror.NewPartialScrapeError(multierr.Combine(scrapeErrors...), len(scrapeErrors))

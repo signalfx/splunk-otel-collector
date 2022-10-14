@@ -23,6 +23,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
 )
 
 func TestCollectorPath(t *testing.T) {
@@ -51,7 +53,7 @@ func TestCollectorProcessConfigSourced(t *testing.T) {
 	defer func() { require.NoError(t, collector.Shutdown()) }()
 
 	metricsPath := path.Join(".", "testdata", "expected_host_metrics.yaml")
-	expectedMetrics, err := LoadResourceMetrics(metricsPath)
+	expectedMetrics, err := telemetry.LoadResourceMetrics(metricsPath)
 	require.NoError(t, err)
 	require.NotNil(t, expectedMetrics)
 

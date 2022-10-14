@@ -1,7 +1,10 @@
 resource_metrics:
   - scope_metrics:
-      - metrics:
-          - name: system.memory.usage
-            type: IntNonmonotonicCumulativeSum
-            attributes:
-              state: used
+    - instrumentation_scope:
+        name: otelcol/hostmetricsreceiver/memory
+        version: <FROM_BUILD>
+      metrics:
+        - name: system.memory.usage
+          type: IntNonmonotonicCumulativeSum
+          attributes:
+            state: used

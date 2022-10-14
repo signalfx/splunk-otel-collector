@@ -306,7 +306,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 			}
 		}
 	}
-	if s.metricsSettings.OracledbTablespacesUsage.Enabled {
+	if s.metricsSettings.OracledbTablespaceSizeUsage.Enabled {
 		rows, err := s.tablespaceUsageClient.metricRows(ctx)
 		if err != nil {
 			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", tablespaceUsageSQL, err))
@@ -318,12 +318,12 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 				if err != nil {
 					scrapeErrors = append(scrapeErrors, fmt.Errorf("bytes for %q: %q, %s, %w", tablespaceName, row["BYTES"], tablespaceUsageSQL, err))
 				} else {
-					s.metricsBuilder.RecordOracledbTablespacesUsageDataPoint(now, value, tablespaceName)
+					s.metricsBuilder.RecordOracledbTablespaceSizeUsageDataPoint(now, value, tablespaceName)
 				}
 			}
 		}
 	}
-	if s.metricsSettings.OracledbTablespacesLimit.Enabled {
+	if s.metricsSettings.OracledbTablespaceSizeLimit.Enabled {
 		rows, err := s.tablespaceMaxSpaceClient.metricRows(ctx)
 		if err != nil {
 			scrapeErrors = append(scrapeErrors, fmt.Errorf("error executing %s: %w", tablespaceMaxSpaceSQL, err))
@@ -343,7 +343,7 @@ func (s *scraper) Scrape(ctx context.Context) (pmetric.Metrics, error) {
 					}
 				}
 				if ok {
-					s.metricsBuilder.RecordOracledbTablespacesLimitDataPoint(now, value, tablespaceName)
+					s.metricsBuilder.RecordOracledbTablespaceSizeLimitDataPoint(now, value, tablespaceName)
 				}
 			}
 		}

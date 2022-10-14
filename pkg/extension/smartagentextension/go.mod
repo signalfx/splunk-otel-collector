@@ -68,7 +68,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-3 // indirect
 	github.com/hashicorp/serf v0.9.7 // indirect
-	github.com/hashicorp/vault v1.10.3 // indirect
+	github.com/hashicorp/vault v1.10.6 // indirect
 	github.com/hashicorp/vault-plugin-auth-gcp v0.13.2 // indirect
 	github.com/hashicorp/vault/api v1.7.2 // indirect
 	github.com/hashicorp/vault/sdk v0.5.3 // indirect
@@ -156,8 +156,8 @@ require (
 replace github.com/signalfx/splunk-otel-collector/tests => ../../../tests
 
 replace (
-	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.38.0
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87
+	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.38.0
 
 	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20220810191306-a41fb5c94d53
 )

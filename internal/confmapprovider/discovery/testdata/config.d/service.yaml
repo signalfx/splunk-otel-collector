@@ -1,0 +1,7 @@
+pipelines:
+  metrics:
+    exporters:
+      - logging
+telemetry:
+  logs:
+    level: debug

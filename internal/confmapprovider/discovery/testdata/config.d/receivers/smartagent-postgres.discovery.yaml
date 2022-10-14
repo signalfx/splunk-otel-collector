@@ -1,0 +1,38 @@
+smartagent/postgresql:
+  rule:
+   docker_observer: type == "container" and port == 5432
+   host_observer: type == "hostport" and command contains "pg" and port == 5432
+  config:
+    default:
+      type: postgresql
+      connectionString: 'sslmode=disable user={{.username}} password={{.password}}'
+      params:
+        username: test_user
+        password: test_password
+      masterDBName: test_db
+    docker_observer:
+      params:
+        password: '`labels["auth"]`'
+  status:
+    metrics:
+      successful:
+       - strict: postgres_block_hit_ratio
+         first_only: true
+         log_record:
+           severity_text: info
+           body: postgresql SA receiver working!
+    statements:
+       failed:
+         - regexp: '.* connect: connection refused'
+           first_only: true
+           log_record:
+             severity_text: info
+             body: container appears to not be accepting postgres connections
+       partial:
+         - regexp: '.*pq: password authentication failed for user.*'
+           first_only: true
+           log_record:
+             severity_text: info
+             body: >-
+               Please ensure that your password is correctly specified in `splunk.discovery.receivers.smartagent/postgresql.config.params.username`
+               and `splunk.discovery.receivers.smartagent/postgresql.config.params.password`

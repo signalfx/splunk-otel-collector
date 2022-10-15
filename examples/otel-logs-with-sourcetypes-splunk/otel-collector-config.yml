@@ -6,18 +6,18 @@ processors:
       # com.splunk.sourcetype is the default key the HEC exporter will use to extract the source type of the record.
       # See https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter
       # under the configuration key `hec_metadata_to_otel_attrs/sourcetype`
-      - key: com.splunk.sourcetype
-        value: "sourcetype1"
+      - key: com.splunk.source
+        value: "source foo"
         action: upsert
   resource/two:
     attributes:
-      - key: com.splunk.sourcetype
-        value: "sourcetype2"
+      - key: com.splunk.source
+        value: "source bar"
         action: upsert
   resource/three:
     attributes:
-      - key: com.splunk.sourcetype
-        value: "sourcetype3"
+      - key: com.splunk.source
+        value: "source foobar"
         action: upsert
 
 receivers:

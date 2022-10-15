@@ -45,6 +45,10 @@ const (
 	IntNonmonotonicUnspecifiedSum    MetricType = "IntNonmonotonicUnspecifiedSum"
 )
 
+const (
+	anyValue = "<ANY>"
+)
+
 var supportedMetricTypeOptions = fmt.Sprintf(
 	"%s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s",
 	DoubleGauge, DoubleMonotonicCumulativeSum,
@@ -150,6 +154,27 @@ func (resourceMetrics ResourceMetrics) Validate() error {
 	return nil
 }
 
+// Matches determines the equivalence of two Resource items by their Attributes.
+func (resource Resource) Matches(toCompare Resource) bool {
+	if len(resource.Attributes) != len(toCompare.Attributes) {
+		return false
+	}
+	for k, v := range resource.Attributes {
+		toCompareV, ok := toCompare.Attributes[k]
+		if !ok {
+			return false
+		}
+		if v == anyValue {
+			continue
+		}
+		if !reflect.DeepEqual(v, toCompareV) {
+			return false
+		}
+
+	}
+	return true
+}
+
 func (metric Metric) String() string {
 	// fieldalignment causes the Metric yaml rep to be
 	// unintuitive so unmarshal into map[string]any
@@ -166,8 +191,6 @@ func (metric Metric) String() string {
 	if err != nil {
 		panic(err)
 	}
-	// we can't store this value in the Metric
-	// as that will affect pre and post-String(), equivalence.
 	return string(out)
 }
 
@@ -303,20 +326,20 @@ func FlattenResourceMetrics(resourceMetrics ...ResourceMetrics) ResourceMetrics 
 // Metric equivalence is based on RelaxedEquals() check: fields not in expected (e.g. unit, type, value, etc.)
 // are not compared to received, but all labels must match.
 // For better reliability, it's advised that both ResourceMetrics items have been flattened by FlattenResourceMetrics.
-func (resourceMetrics ResourceMetrics) ContainsAll(contains ResourceMetrics) (bool, error) {
+func (contained ResourceMetrics) ContainsAll(expected ResourceMetrics, strictInstrumentationLibraryMatch bool) (bool, error) {
 	var missingResources []string
 	var missingInstrumentationLibraries []string
 	var missingMetrics []string
 
-	for _, expectedResourceMetric := range contains.ResourceMetrics {
+	for _, expectedResourceMetric := range expected.ResourceMetrics {
 		resourceMatched := false
-		for _, resourceMetric := range resourceMetrics.ResourceMetrics {
+		for _, resourceMetric := range contained.ResourceMetrics {
 			if resourceMetric.Resource.Equals(expectedResourceMetric.Resource) {
 				resourceMatched = true
 				for _, expectedILM := range expectedResourceMetric.ScopeMetrics {
 					InstrumentationScopeMatched := false
 					for _, ilm := range resourceMetric.ScopeMetrics {
-						if ilm.Scope.Equals(expectedILM.Scope) {
+						if expectedILM.Scope.Matches(ilm.Scope, strictInstrumentationLibraryMatch) {
 							InstrumentationScopeMatched = true
 							for _, expectedMetric := range expectedILM.Metrics {
 								metricFound := false
@@ -354,7 +377,7 @@ func (resourceMetrics ResourceMetrics) ContainsAll(contains ResourceMetrics) (bo
 	if len(missingResources) != 0 {
 		return false, fmt.Errorf(
 			"%v doesn't contain all of %v.  Missing resources: %s",
-			resourceMetrics.ResourceMetrics, contains.ResourceMetrics, missingResources,
+			contained.ResourceMetrics, expected.ResourceMetrics, missingResources,
 		)
 	}
 	return true, nil

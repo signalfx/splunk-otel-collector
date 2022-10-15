@@ -86,6 +86,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/processor/timestampprocessor"
+	"github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver"
 	"github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver"
 )
 
@@ -126,6 +127,7 @@ func Get() (component.Factories, error) {
 		kafkareceiver.NewFactory(),
 		kubeletstatsreceiver.NewFactory(),
 		mongodbatlasreceiver.NewFactory(),
+		oracledbreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
 		prometheusexecreceiver.NewFactory(),
 		prometheusreceiver.NewFactory(),

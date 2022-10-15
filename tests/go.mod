@@ -23,7 +23,7 @@ require (
 	cloud.google.com/go v0.99.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
-	github.com/Microsoft/hcsshim v0.9.3 // indirect
+	github.com/Microsoft/hcsshim v0.9.4 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/containerd/cgroups v1.0.4 // indirect
 	github.com/containerd/containerd v1.6.8 // indirect
@@ -93,3 +93,5 @@ replace (
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.1.2
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0
 )
+
+replace github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver => ../receiver/oracledbreceiver

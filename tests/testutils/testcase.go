@@ -155,6 +155,7 @@ func (t *Testcase) splunkOtelCollector(configFilename string, builders ...Collec
 	if runtime.GOOS == "darwin" && useDocker {
 		port := strings.Split(otlpEndpointForContainer, ":")[1]
 		otlpEndpointForContainer = fmt.Sprintf("host.docker.internal:%s", port)
+
 	}
 
 	envVars := map[string]string{

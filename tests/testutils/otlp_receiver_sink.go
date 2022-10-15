@@ -230,7 +230,7 @@ func (otlp *OTLPReceiverSink) AssertAllMetricsReceived(t *testing.T, expectedRes
 		receivedMetrics = telemetry.FlattenResourceMetrics(receivedMetrics, receivedResourceMetrics)
 
 		var containsAll bool
-		containsAll, err = receivedMetrics.ContainsAll(expectedResourceMetrics)
+		containsAll, err = receivedMetrics.ContainsAll(expectedResourceMetrics, true)
 		return containsAll
 	}, waitTime, 10*time.Millisecond, "Failed to receive expected metrics")
 

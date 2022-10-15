@@ -5,6 +5,7 @@
 ### 💡 Enhancements 💡
 
 - Increase number of queue consumers in gateway default configuration (#2084)
+- Add a new Oracle database receiver (#2011)
 
 ## v0.61.0
 

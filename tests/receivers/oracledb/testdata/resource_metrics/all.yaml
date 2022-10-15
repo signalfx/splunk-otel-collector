@@ -1,0 +1,49 @@
+resource_metrics:
+  - attributes:
+      oracledb.instance.name: localhost:1521
+    scope_metrics:
+      - metrics:
+          - name: oracledb.cpu_time
+            type: DoubleMonotonicCumulativeSum
+          - name: oracledb.enqueue_deadlocks
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.exchange_deadlocks
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.executions
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.hard_parses
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.logical_reads
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.parse_calls
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.pga_memory
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.physical_reads
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.user_commits
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.user_rollbacks
+            type: IntMonotonicCumulativeSum
+          - name: oracledb.sessions.usage
+            type: IntGauge
+          - name: oracledb.processes.usage
+            type: IntGauge
+          - name: oracledb.processes.limit
+            type: IntGauge
+          - name: oracledb.sessions.usage
+            type: IntGauge
+          - name: oracledb.sessions.limit
+            type: IntGauge
+          - name: oracledb.enqueue_locks.usage
+            type: IntGauge
+          - name: oracledb.enqueue_locks.limit
+            type: IntGauge
+          - name: oracledb.enqueue_resources.usage
+            type: IntGauge
+          - name: oracledb.enqueue_resources.limit
+            type: IntGauge
+          - name: oracledb.tablespace_size.limit
+            type: IntGauge
+          - name: oracledb.tablespace_size.usage
+            type: IntGauge

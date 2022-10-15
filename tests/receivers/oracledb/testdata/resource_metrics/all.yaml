@@ -43,6 +43,14 @@ resource_metrics:
             type: IntGauge
           - name: oracledb.enqueue_resources.limit
             type: IntGauge
+          - name: oracledb.transactions.usage
+            type: IntGauge
+          - name: oracledb.transactions.limit
+            type: IntGauge
+          - name: oracledb.dml_locks.usage
+            type: IntGauge
+          - name: oracledb.dml_locks.limit
+            type: IntGauge
           - name: oracledb.tablespace_size.limit
             type: IntGauge
           - name: oracledb.tablespace_size.usage

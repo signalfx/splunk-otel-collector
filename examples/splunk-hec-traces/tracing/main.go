@@ -1,9 +1,25 @@
+// Copyright OpenTelemetry Authors
+// Copyright Splunk, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
 	"context"
+	"crypto/rand"
 	"log"
-	"math/rand"
+	"math/big"
 	"os"
 	"os/signal"
 	"syscall"
@@ -44,6 +60,9 @@ func main() {
 		otlptracegrpc.WithInsecure(),
 		otlptracegrpc.WithEndpoint("otelcollector:4317"),
 	)
+	if err != nil {
+		log.Fatalf("Error creating trace exporter: %v", err)
+	}
 	bsp := sdktrace.NewBatchSpanProcessor(traceExporter)
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
@@ -60,10 +79,8 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
 	go func() {
-		select {
-		case <-c:
-			os.Exit(0)
-		}
+		<-c
+		os.Exit(0)
 	}()
 	tracer := otel.Tracer("test-tracer")
 
@@ -72,7 +89,7 @@ func main() {
 		attribute.String("response", "query"),
 		attribute.String("company", "splunk"),
 	}
-	numberOfRuns := 0
+	numberOfRuns := int64(0)
 	for {
 		// work begins
 		numberOfRuns++
@@ -81,7 +98,8 @@ func main() {
 			"work",
 			trace.WithAttributes(commonLabels...))
 		log.Printf("Executing run %d\n", numberOfRuns)
-		i := rand.Intn(3) * numberOfRuns % 30
+		nBig, _ := rand.Int(rand.Reader, big.NewInt(3))
+		i := nBig.Int64() * numberOfRuns % 30
 		time.Sleep(time.Duration(i) * time.Second)
 		span.End()
 		tracerProvider.ForceFlush(context.Background())

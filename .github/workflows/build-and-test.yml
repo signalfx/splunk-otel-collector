@@ -112,7 +112,7 @@ jobs:
       - name: Lint
         run: |
           make install-tools
-          make -j4 checklicense impi lint misspell
+          make -j4 for-all CMD="make checklicense impi lint misspell"
   
   test:
     name: test
@@ -141,7 +141,7 @@ jobs:
           make install-tools
           mkdir -p unit-test-results/junit
           trap "go-junit-report  -set-exit-code < unit-test-results/go-unit-tests.out > unit-test-results/junit/results.xml" EXIT
-          make test | tee unit-test-results/go-unit-tests.out
+          make for-all CMD="make test" | tee unit-test-results/go-unit-tests.out
       
       - name: Uploading artifacts
         uses: actions/upload-artifact@v3

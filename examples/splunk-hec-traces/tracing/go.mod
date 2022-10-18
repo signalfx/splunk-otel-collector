@@ -1,4 +1,4 @@
-module app
+module github.com/signalfx/splunk-otel-collector/examples/splunk-hec-traces/tracing
 
 go 1.19
 

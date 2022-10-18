@@ -1,4 +1,4 @@
-module github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver
+module github.com/signalfx/splunk-otel-collector/pkg/receiver/oracledbreceiver
 
 go 1.18
 

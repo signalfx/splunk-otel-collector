@@ -70,11 +70,11 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.61.0
 	github.com/signalfx/golib/v3 v3.3.46
 	github.com/signalfx/signalfx-agent v1.0.1-0.20220907171532-facb8bd041ff
-	github.com/signalfx/splunk-otel-collector/extension/smartagentextension v0.0.0-00010101000000-000000000000
-	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor v0.0.0-00010101000000-000000000000
-	github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver v0.0.0-00010101000000-000000000000
-	github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000
-	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
+	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.61.2
+	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.61.2
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/oracledbreceiver v0.61.2
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.61.2
+	github.com/signalfx/splunk-otel-collector/tests v0.61.2
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.0
@@ -436,7 +436,6 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/fatih/set.v0 v0.1.0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
-	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
@@ -457,11 +456,10 @@ require (
 )
 
 replace (
-	github.com/signalfx/splunk-otel-collector/extension/smartagentextension => ./pkg/extension/smartagentextension
-	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor => ./pkg/processor/timestamp
-	github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver => ./pkg/receiver/oracledb
-	github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver => ./pkg/receiver/smartagent
-	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor => ./pkg/processor/timestamp
+	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension => ./pkg/extension/smartagentextension
+	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor => ./pkg/processor/timestampprocessor
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/oracledbreceiver => ./pkg/receiver/oracledbreceiver
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver => ./pkg/receiver/smartagentreceiver
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
 )
 

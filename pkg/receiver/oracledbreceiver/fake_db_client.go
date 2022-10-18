@@ -5,7 +5,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +13,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:generate mdatagen metadata.yaml
+package oracledbreceiver // import "github.com/signalfx/splunk-otel-collector/pkg/receiver/oracledbreceiver"
 
-// Package oracledbreceiver implements a receiver collecting metrics from an Oracle database.
-package oracledbreceiver // import "github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver"
+import (
+	"context"
+)
+
+type fakeDbClient struct {
+	Err            error
+	Responses      [][]metricRow
+	RequestCounter int
+}
+
+func (c *fakeDbClient) metricRows(context.Context) ([]metricRow, error) {
+	if c.Err != nil {
+		return nil, c.Err
+	}
+	idx := c.RequestCounter
+	c.RequestCounter++
+	return c.Responses[idx], nil
+}

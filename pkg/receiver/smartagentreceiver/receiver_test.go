@@ -43,7 +43,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 
-	"github.com/signalfx/splunk-otel-collector/extension/smartagentextension"
+	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 

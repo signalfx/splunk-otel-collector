@@ -1,0 +1,32 @@
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+module-sets:
+  plugins:
+    version: v0.61.2
+    modules:
+      - github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension
+      - github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor
+      - github.com/signalfx/splunk-otel-collector/pkg/receiver/oracledbreceiver
+      - github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
+      - github.com/signalfx/splunk-otel-collector/tests
+  core:
+    version: v0.61.1
+    modules:
+      - github.com/signalfx/splunk-otel-collector
+excluded-modules:
+  - github.com/signalfx/splunk-otel-collector/examples/splunk-hec-traces/tracing
+  - github.com/signalfx/splunk-otel-collector/examples/splunk-hec/logging
+  - github.com/signalfx/splunk-otel-collector/examples/prometheus-federation/prom-counter
+  - github.com/signalfx/splunk-otel-collector/internal/tools

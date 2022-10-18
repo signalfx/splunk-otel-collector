@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package oracledbreceiver // import "github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver"
+package oracledbreceiver // import "github.com/signalfx/splunk-otel-collector/pkg/receiver/oracledbreceiver"
 
 import (
 	"context"
@@ -31,7 +31,7 @@ import (
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver/internal/metadata"
+	"github.com/signalfx/splunk-otel-collector/pkg/receiver/oracledbreceiver/internal/metadata"
 )
 
 const (

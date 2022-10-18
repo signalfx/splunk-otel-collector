@@ -94,4 +94,4 @@ replace (
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0
 )
 
-replace github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver => ../receiver/oracledbreceiver
+replace github.com/signalfx/splunk-otel-collector/pkg/receiver/oracledbreceiver => ../pkg/receiver/oracledbreceiver

@@ -21,11 +21,8 @@ require (
 	github.com/Djarvur/go-err113 v0.0.0-20210108212216-aea10b59be24 // indirect
 	github.com/GaijinEntertainment/go-exhaustruct/v2 v2.2.2 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
-	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/OpenPeeDeeP/depguard v1.1.0 // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7 // indirect
 	github.com/Songmu/retry v0.1.0 // indirect
-	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/alexkohler/prealloc v1.0.0 // indirect
 	github.com/alingse/asasalint v0.0.11 // indirect
 	github.com/ashanbrown/forbidigo v1.3.0 // indirect
@@ -46,7 +43,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denis-tingaikin/go-header v0.4.3 // indirect
 	github.com/dgraph-io/ristretto v0.0.2 // indirect
-	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/esimonov/ifshort v1.0.4 // indirect
 	github.com/ettle/strcase v0.1.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
@@ -55,9 +51,6 @@ require (
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/go-critic/go-critic v0.6.3 // indirect
-	github.com/go-git/gcfg v1.5.0 // indirect
-	github.com/go-git/go-billy/v5 v5.3.1 // indirect
-	github.com/go-git/go-git/v5 v5.4.2 // indirect
 	github.com/go-toolsmith/astcast v1.0.0 // indirect
 	github.com/go-toolsmith/astcopy v1.0.0 // indirect
 	github.com/go-toolsmith/astequal v1.0.1 // indirect
@@ -92,16 +85,11 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hexops/gotextdiff v1.0.3 // indirect
-	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/itchyny/gojq v0.12.9 // indirect
-	github.com/itchyny/timefmt-go v0.1.4 // indirect
-	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jgautheron/goconst v1.5.1 // indirect
 	github.com/jingyugao/rowserrcheck v1.1.1 // indirect
 	github.com/jirfag/go-printf-func-name v0.0.0-20200119135958-7558a9eaa5af // indirect
 	github.com/julz/importas v0.1.0 // indirect
-	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/kisielk/errcheck v1.6.2 // indirect
 	github.com/kisielk/gotool v1.0.0 // indirect
 	github.com/kulti/thelper v0.6.3 // indirect
@@ -151,7 +139,6 @@ require (
 	github.com/sanposhiho/wastedassign/v2 v2.0.6 // indirect
 	github.com/sashamelentyev/usestdlibvars v1.8.0 // indirect
 	github.com/securego/gosec/v2 v2.12.0 // indirect
-	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/sivchari/containedctx v1.0.2 // indirect
@@ -181,16 +168,12 @@ require (
 	github.com/ultraware/funlen v0.0.3 // indirect
 	github.com/ultraware/whitespace v0.0.5 // indirect
 	github.com/uudashr/gocognit v1.0.6 // indirect
-	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	github.com/yagipy/maintidx v1.0.0 // indirect
 	github.com/yeya24/promlinter v0.2.0 // indirect
 	gitlab.com/bosi/decorder v0.2.3 // indirect
-	go.opentelemetry.io/build-tools v0.1.0 // indirect
-	go.opentelemetry.io/build-tools/multimod v0.1.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.17.0 // indirect
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
 	golang.org/x/exp/typeparams v0.0.0-20220613132600-b0d781184e0d // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.0.0-20220921203646-d300de134e69 // indirect
@@ -200,8 +183,8 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.3.3 // indirect

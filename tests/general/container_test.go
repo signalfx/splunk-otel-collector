@@ -18,7 +18,6 @@ package tests
 
 import (
 	"fmt"
-	"path"
 	"strings"
 	"testing"
 	"time"
@@ -72,23 +71,30 @@ func TestDefaultContainerConfigRequiresEnvVars(t *testing.T) {
 }
 
 func TestSpecifiedContainerConfigDefaultsToCmdLineArgIfEnvVarConflict(t *testing.T) {
-	image := (&testutils.Testcase{T: t}).SkipIfNotContainer()
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
 
-	logCore, logs := observer.New(zap.DebugLevel)
-	logger := zap.New(logCore)
+	tc.SkipIfNotContainer()
 
-	env := map[string]string{"SPLUNK_CONFIG": "/not/a/real/path"}
-	config := path.Join(".", "testdata", "logged_hostmetrics.yaml")
-	c := testutils.NewCollectorContainer().WithImage(image).WithEnv(env).WithLogger(logger).WithConfigPath(config)
-	// specify in container path of provided config via cli.
-	collector, err := c.WithArgs("--config", "/etc/config.yaml").Build()
-	require.NoError(t, err)
-	require.NotNil(t, collector)
-	require.NoError(t, collector.Start())
-	defer func() { require.NoError(t, collector.Shutdown()) }()
+	_, shutdown := tc.SplunkOtelCollector(
+		"hostmetrics_cpu.yaml",
+		func(collector testutils.Collector) testutils.Collector {
+			return collector.WithArgs("--config", "/etc/config.yaml")
+		},
+		func(collector testutils.Collector) testutils.Collector {
+			return collector.WithEnv(
+				map[string]string{
+					"SPLUNK_CONFIG": "/not/a/real/path",
+				},
+			)
+		},
+	)
+
+	defer shutdown()
 
 	require.Eventually(t, func() bool {
-		for _, log := range logs.All() {
+		for _, log := range tc.ObservedLogs.All() {
 			if strings.Contains(
 				log.Message,
 				`Both environment variable SPLUNK_CONFIG and flag '--config' were specified. `+
@@ -101,15 +107,9 @@ func TestSpecifiedContainerConfigDefaultsToCmdLineArgIfEnvVarConflict(t *testing
 		return false
 	}, 20*time.Second, time.Second)
 
-	require.Eventually(t, func() bool {
-		for _, log := range logs.All() {
-			// logged host metric to confirm basic functionality
-			if strings.Contains(log.Message, "Value: ") {
-				return true
-			}
-		}
-		return false
-	}, 5*time.Second, time.Second)
+	// confirm successful service functionality
+	expectedResourceMetrics := tc.ResourceMetrics("cpu.yaml")
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
 
 func TestConfigYamlEnvVarUsingLogs(t *testing.T) {

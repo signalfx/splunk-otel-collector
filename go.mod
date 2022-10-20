@@ -13,6 +13,7 @@ require (
 	github.com/hashicorp/vault-plugin-auth-gcp v0.14.0
 	github.com/hashicorp/vault/api v1.8.1
 	github.com/jaegertracing/jaeger v1.38.1
+	github.com/knadh/koanf v1.4.3
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.62.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.62.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.62.0
@@ -274,7 +275,6 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/keybase/go-keychain v0.0.0-20190712205309-48d3d31d256d // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
-	github.com/knadh/koanf v1.4.3 // indirect
 	github.com/kolo/xmlrpc v0.0.0-20201022064351-38db28db192b // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/leoluk/perflib_exporter v0.2.0 // indirect

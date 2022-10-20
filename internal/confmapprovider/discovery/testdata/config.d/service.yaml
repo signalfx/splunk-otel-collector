@@ -1,3 +1,5 @@
+extensions:
+ - zpages
 pipelines:
   metrics:
     exporters:

@@ -567,16 +567,15 @@ if ($with_dotnet_instrumentation) {
     echo "Installing SignalFx Instrumentation for .NET ..."
     # signalfx-dotnet-tracing github repository API
     $api = "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
-    # File pattern to search for
     $module_name = "install.psm1"
-    echo "Finding latest .NET Instrumentation installer to download ..."
+    echo "Downloading .NET Instrumentation installer ..."
     $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $module_name } | Select-Object -Property browser_download_url,name
-    $tracing_module_installer_path = Join-Path $Env:ProgramFiles\WindowsPowerShell\Modules $download.name
+    $tracing_module_installer_path = Join-Path "${Env:ProgramFiles}\WindowsPowerShell\Modules" $download.name
     Invoke-WebRequest -Uri $download.browser_download_url -OutFile $tracing_module_installer_path
+    Install-Module $tracing_module_installer_path
 
-    # Install downloaded MSI
     echo "Starting install process ..."
-    Install-SignalFxDotnet()
+    Install-SignalFxDotnet
 
     echo "Setting environment variables for instrumentation ..."
     update_registry -path "$regkey" -name "COR_ENABLE_PROFILING" -value "1"

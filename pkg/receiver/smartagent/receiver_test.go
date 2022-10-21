@@ -127,7 +127,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 						name := metric.Name()
 						dataType := metric.Type()
 						expectedDataType := expectedCPUMetrics[name]
-						require.NotEqual(t, pmetric.MetricTypeNone, expectedDataType, "received unexpected none type for %s", name)
+						require.NotEqual(t, pmetric.MetricTypeEmpty, expectedDataType, "received unexpected none type for %s", name)
 						assert.Equal(t, expectedDataType, dataType)
 						var attributes pcommon.Map
 						switch dataType {
@@ -144,7 +144,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 							for l := 0; l < ds.DataPoints().Len(); l++ {
 								dsdp := ds.DataPoints().At(l)
 								attributes = dsdp.Attributes()
-								var val float64 = dsdp.DoubleValue()
+								var val = dsdp.DoubleValue()
 								assert.NotEqual(t, val, 0, "invalid value of MetricTypeSum metric %s", name)
 							}
 						default:

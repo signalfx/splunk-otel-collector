@@ -112,7 +112,7 @@ func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr corre
 
 	observerID := corr.observerID.String()
 	if observerID != "" {
-		to.PutString(observerIDAttr, observerID)
+		to.PutStr(observerIDAttr, observerID)
 	}
 
 	var receiverAttrs map[string]string
@@ -125,7 +125,7 @@ func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr corre
 			// from the receiver creator, so we should temporarily include it in `from`
 			// so as not to mutate the original while providing the desired receiver config
 			// value set by the initial receiver config parser.
-			from.PutString(receiverConfigAttr, receiverAttrs[receiverConfigAttr])
+			from.PutStr(receiverConfigAttr, receiverAttrs[receiverConfigAttr])
 			hasTemporaryReceiverConfigAttr = true
 		}
 	}
@@ -149,7 +149,7 @@ func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr corre
 					configVal = updatedConfig
 				}
 			}
-			v = pcommon.NewValueString(configVal)
+			v = pcommon.NewValueStr(configVal)
 		}
 		if _, ok := to.Get(k); !ok {
 			v.CopyTo(to.PutEmpty(k))

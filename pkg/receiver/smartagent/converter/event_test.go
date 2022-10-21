@@ -64,8 +64,8 @@ func TestEventToPDataLogs(tt *testing.T) {
 			expectedLog: newExpectedLog(func() map[string]pcommon.Value {
 				attrs := map[string]pcommon.Value{
 					"com.splunk.signalfx.event_category": pcommon.NewValueInt(1),
-					"com.splunk.signalfx.event_type":     pcommon.NewValueString("some_event_type"),
-					"dimension_name":                     pcommon.NewValueString("dimension_value"),
+					"com.splunk.signalfx.event_type":     pcommon.NewValueStr("some_event_type"),
+					"dimension_name":                     pcommon.NewValueStr("dimension_value"),
 				}
 				properties := pcommon.NewValueMap()
 				properties.FromRaw(
@@ -99,7 +99,7 @@ func TestEventToPDataLogs(tt *testing.T) {
 			expectedLog: newExpectedLog(func() map[string]pcommon.Value {
 				attrs := map[string]pcommon.Value{
 					"com.splunk.signalfx.event_category": pcommon.NewValueInt(10000000),
-					"com.splunk.signalfx.event_type":     pcommon.NewValueString("some_event_type"),
+					"com.splunk.signalfx.event_type":     pcommon.NewValueStr("some_event_type"),
 				}
 				properties := pcommon.NewValueMap()
 				properties.FromRaw(

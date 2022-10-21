@@ -26,6 +26,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/service/servicetest"
 	"go.uber.org/zap/zaptest"
@@ -162,7 +163,7 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, conf.ToStringMap())
 	dCfg := Config{ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName("discovery", "discovery-name"))}
-	require.NoError(t, conf.UnmarshalExact(&dCfg))
+	require.NoError(t, conf.Unmarshal(&dCfg, confmap.WithErrorUnused()))
 
 	correlations := newCorrelationStore(zaptest.NewLogger(t), time.Second)
 	factory, rCfg, err := dCfg.receiverCreatorFactoryAndConfig(correlations)

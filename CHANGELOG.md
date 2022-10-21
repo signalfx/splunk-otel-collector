@@ -4,8 +4,16 @@
 
 ### 💡 Enhancements 💡
 
+## v0.62.0
+
+### 💡 Enhancements 💡
+
 - Increase number of queue consumers in gateway default configuration (#2084)
 - Add a new Oracle database receiver (#2011)
+- Upgrade to java agent 1.17 (#2161)
+- Upgrade to smart agent release 5.24.0 (#2161)
+- Upgrade to OpenTelemetry Collector core and contrib 0.62 (#2161)
+- Update include config source to beta (#2093)
 
 ## v0.61.0
 

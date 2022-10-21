@@ -101,10 +101,6 @@
     (OPTIONAL) Specify the URL to the Fluentd MSI package to install (default: "https://packages.treasuredata.com/4/windows/td-agent-4.1.0-x64.msi")
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -fluentd_msi_url https://my.host/td-agent-4.1.0-x64.msi
-.PARAMETER dotnet_instrumentation_msi_url
-    (OPTIONAL) Specify the URL to the SignalFx .NET Instrumentation MSI package to install (default: "https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/v0.2.9/signalfx-dotnet-tracing-0.2.9-x64.msi")
-    .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -dotnet_instrumentation_msi_url https://my.host/signalfx-dotnet-tracing-0.2.9-x64.msi
 .PARAMETER msi_path
     (OPTIONAL) Specify a local path to a Splunk OpenTelemetry Collector MSI package to install instead of downloading the package.
     If specified, the -collector_version and -stage parameters will be ignored.
@@ -569,29 +565,18 @@ if ($with_fluentd) {
 
 if ($with_dotnet_instrumentation) {
     echo "Installing SignalFx Instrumentation for .NET ..."
-    if ($dotnet_instrumentation_msi_url) {
-        $dotnet_tracing_msi_name = "signalfx-dotnet-tracing.msi"
-        echo "Downloading $dotnet_instrumentation_msi_url..."
-        download_file -url "$dotnet_instrumentation_msi_url" -outputDir "$tempdir" -fileName "$dotnet_tracing_msi_name"
-        $msi = (Join-Path "$tempdir" "$fluentd_msi_name")
-    } else {
-        # signalfx-dotnet-tracing github repository API
-        $api = "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
-        # File pattern to search for
-        $pattern = "signalfx-dotnet-tracing-*-x64.msi"
-        echo "Finding latest .NET Instrumentation MSI to download ..."
-        $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $pattern } | Select-Object -Property browser_download_url,name
-        $msi = Join-Path $env:temp $download.name
-        Invoke-WebRequest -Uri $download.browser_download_url -OutFile $msi
-    }
+    # signalfx-dotnet-tracing github repository API
+    $api = "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
+    # File pattern to search for
+    $module_name = "install.psm1"
+    echo "Finding latest .NET Instrumentation installer to download ..."
+    $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $module_name } | Select-Object -Property browser_download_url,name
+    $tracing_module_installer_path = Join-Path $Env:ProgramFiles\WindowsPowerShell\Modules $download.name
+    Invoke-WebRequest -Uri $download.browser_download_url -OutFile $tracing_module_installer_path
 
     # Install downloaded MSI
     echo "Starting install process ..."
-    Start-Process msiexec.exe -Wait -ArgumentList "/I $msi /quiet"
-
-    # Cleanup
-    echo "Cleaning up ..."
-    Remove-Item $msi
+    Install-SignalFxDotnet()
 
     echo "Setting environment variables for instrumentation ..."
     update_registry -path "$regkey" -name "COR_ENABLE_PROFILING" -value "1"

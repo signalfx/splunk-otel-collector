@@ -112,39 +112,43 @@ func TestSpecifiedContainerConfigDefaultsToCmdLineArgIfEnvVarConflict(t *testing
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
 
-func TestConfigYamlEnvVarUsingLogs(t *testing.T) {
-	image := (&testutils.Testcase{T: t}).SkipIfNotContainer()
+func TestConfigYamlEnvVar(t *testing.T) {
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
 
-	logCore, logs := observer.New(zap.DebugLevel)
-	logger := zap.New(logCore)
+	tc.SkipIfNotContainer()
 
-	configYamlEnv := map[string]string{"SPLUNK_CONFIG_YAML": `receivers:
+	_, shutdown := tc.SplunkOtelCollector(
+		"", func(collector testutils.Collector) testutils.Collector {
+			return collector.WithEnv(
+				map[string]string{
+					"SPLUNK_CONFIG": "",
+					"SPLUNK_CONFIG_YAML": `receivers:
   hostmetrics:
     collection_interval: 1s
     scrapers:
       cpu:
+
 exporters:
-  logging:
-    logLevel: debug
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+
 service:
   pipelines:
     metrics:
       receivers: [hostmetrics]
-      exporters: [logging]`}
+      exporters: [otlp]
+`},
+			)
+		},
+	)
 
-	collector, err := testutils.NewCollectorContainer().
-		WithImage(image).
-		WithEnv(configYamlEnv).
-		WithLogger(logger).
-		Build()
-
-	require.NoError(t, err)
-	require.NotNil(t, collector)
-	require.NoError(t, collector.Start())
-	defer func() { require.NoError(t, collector.Shutdown()) }()
+	defer shutdown()
 
 	require.Eventually(t, func() bool {
-		for _, log := range logs.All() {
+		for _, log := range tc.ObservedLogs.All() {
 			if strings.Contains(
 				log.Message,
 				`Using environment variable SPLUNK_CONFIG_YAML for configuration`,
@@ -155,13 +159,7 @@ service:
 		return false
 	}, 20*time.Second, time.Second)
 
-	require.Eventually(t, func() bool {
-		for _, log := range logs.All() {
-			// logged host metric to confirm basic functionality
-			if strings.Contains(log.Message, "Value: ") {
-				return true
-			}
-		}
-		return false
-	}, 5*time.Second, time.Second)
+	// confirm successful service functionality
+	expectedResourceMetrics := tc.ResourceMetrics("cpu.yaml")
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }

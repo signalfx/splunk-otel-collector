@@ -163,10 +163,13 @@ func (t *Testcase) splunkOtelCollector(configFilename string, builders ...Collec
 		"SPLUNK_TEST_ID": t.ID,
 	}
 
-	var err error
-	collector = collector.WithConfigPath(
-		path.Join(".", "testdata", configFilename),
-	).WithEnv(envVars).WithLogLevel("debug").WithLogger(t.Logger)
+	if configFilename != "" {
+		collector = collector.WithConfigPath(
+			path.Join(".", "testdata", configFilename),
+		)
+	}
+
+	collector = collector.WithEnv(envVars).WithLogLevel("debug").WithLogger(t.Logger)
 
 	for _, builder := range builders {
 		collector = builder(collector)
@@ -182,6 +185,7 @@ func (t *Testcase) splunkOtelCollector(configFilename string, builders ...Collec
 	}
 	collector = collector.WithEnv(splunkEnv)
 
+	var err error
 	collector, err = collector.Build()
 	require.NoError(t, err)
 	require.NotNil(t, collector)

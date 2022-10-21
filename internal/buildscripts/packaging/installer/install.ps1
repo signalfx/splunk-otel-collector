@@ -570,9 +570,9 @@ if ($with_dotnet_instrumentation) {
     $module_name = "install.psm1"
     echo "Downloading .NET Instrumentation installer ..."
     $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $module_name } | Select-Object -Property browser_download_url,name
-    $tracing_module_path = Join-Path $tempdir $download.name
+    $tracing_module_path = Join-Path "\Users\splunker\Documents\WindowsPowerShell\Modules" $download.name
     Invoke-WebRequest -Uri $download.browser_download_url -OutFile $tracing_module_path
-    Install-Module $tracing_module_path
+    # Install-Module $tracing_module_path
 
     echo "Starting install process ..."
     Install-SignalFxDotnet

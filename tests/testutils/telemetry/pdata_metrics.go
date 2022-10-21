@@ -120,17 +120,17 @@ func addGauge(sms *ScopeMetrics, metric pmetric.Metric) {
 
 func doubleSumMetricType(sum pmetric.Sum) MetricType {
 	switch sum.AggregationTemporality() {
-	case pmetric.MetricAggregationTemporalityCumulative:
+	case pmetric.AggregationTemporalityCumulative:
 		if sum.IsMonotonic() {
 			return DoubleMonotonicCumulativeSum
 		}
 		return DoubleNonmonotonicCumulativeSum
-	case pmetric.MetricAggregationTemporalityDelta:
+	case pmetric.AggregationTemporalityDelta:
 		if sum.IsMonotonic() {
 			return DoubleMonotonicDeltaSum
 		}
 		return DoubleNonmonotonicDeltaSum
-	case pmetric.MetricAggregationTemporalityUnspecified:
+	case pmetric.AggregationTemporalityUnspecified:
 		if sum.IsMonotonic() {
 			return DoubleMonotonicUnspecifiedSum
 		}
@@ -141,17 +141,17 @@ func doubleSumMetricType(sum pmetric.Sum) MetricType {
 
 func intSumMetricType(sum pmetric.Sum) MetricType {
 	switch sum.AggregationTemporality() {
-	case pmetric.MetricAggregationTemporalityCumulative:
+	case pmetric.AggregationTemporalityCumulative:
 		if sum.IsMonotonic() {
 			return IntMonotonicCumulativeSum
 		}
 		return IntNonmonotonicCumulativeSum
-	case pmetric.MetricAggregationTemporalityDelta:
+	case pmetric.AggregationTemporalityDelta:
 		if sum.IsMonotonic() {
 			return IntMonotonicDeltaSum
 		}
 		return IntNonmonotonicDeltaSum
-	case pmetric.MetricAggregationTemporalityUnspecified:
+	case pmetric.AggregationTemporalityUnspecified:
 		if sum.IsMonotonic() {
 			return IntMonotonicUnspecifiedSum
 		}
@@ -165,7 +165,7 @@ func PDataMetrics() pmetric.Metrics {
 	resourceMetrics := metrics.ResourceMetrics().AppendEmpty()
 	attrs := resourceMetrics.Resource().Attributes()
 	attrs.PutBool("bool", true)
-	attrs.PutString("string", "a_string")
+	attrs.PutStr("string", "a_string")
 	attrs.PutInt("int", 123)
 	attrs.PutDouble("double", 123.45)
 	attrs.PutEmpty("null")
@@ -182,9 +182,9 @@ func PDataMetrics() pmetric.Metrics {
 	smOneMetricOne.SetEmptyGauge()
 	smOneMetricOneDps := smOneMetricOne.Gauge().DataPoints()
 	smOneMetricOneDps.AppendEmpty().SetIntValue(12345)
-	smOneMetricOneDps.At(0).Attributes().PutString("attribute_name_1", "attribute_value_1")
+	smOneMetricOneDps.At(0).Attributes().PutStr("attribute_name_1", "attribute_value_1")
 	smOneMetricOneDps.AppendEmpty().SetIntValue(23456)
-	smOneMetricOneDps.At(1).Attributes().PutString("attribute_name_2", "attribute_value_2")
+	smOneMetricOneDps.At(1).Attributes().PutStr("attribute_name_2", "attribute_value_2")
 
 	smOneMetricTwo := smOneMetrics.AppendEmpty()
 	smOneMetricTwo.SetName("a_double_gauge")
@@ -193,9 +193,9 @@ func PDataMetrics() pmetric.Metrics {
 	smOneMetricTwo.SetEmptyGauge()
 	smOneMetricTwoDps := smOneMetricTwo.Gauge().DataPoints()
 	smOneMetricTwoDps.AppendEmpty().SetDoubleValue(234.56)
-	smOneMetricTwoDps.At(0).Attributes().PutString("attribute_name_3", "attribute_value_3")
+	smOneMetricTwoDps.At(0).Attributes().PutStr("attribute_name_3", "attribute_value_3")
 	smOneMetricTwoDps.AppendEmpty().SetDoubleValue(345.67)
-	smOneMetricTwoDps.At(1).Attributes().PutString("attribute_name_4", "attribute_value_4")
+	smOneMetricTwoDps.At(1).Attributes().PutStr("attribute_name_4", "attribute_value_4")
 
 	scopeMetrics.AppendEmpty().Scope().SetName("an_instrumentation_scope_without_version_or_metrics")
 
@@ -207,12 +207,12 @@ func PDataMetrics() pmetric.Metrics {
 	smThreeMetricOne.SetUnit("a_monotonic_cumulative_int_sum_unit")
 	smThreeMetricOne.SetEmptySum()
 	smThreeMetricOne.Sum().SetIsMonotonic(true)
-	smThreeMetricOne.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
+	smThreeMetricOne.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	smThreeMetricOneDps := smThreeMetricOne.Sum().DataPoints()
 	smThreeMetricOneDps.AppendEmpty().SetIntValue(34567)
-	smThreeMetricOneDps.At(0).Attributes().PutString("attribute_name_5", "attribute_value_5")
+	smThreeMetricOneDps.At(0).Attributes().PutStr("attribute_name_5", "attribute_value_5")
 	smThreeMetricOneDps.AppendEmpty().SetIntValue(45678)
-	smThreeMetricOneDps.At(1).Attributes().PutString("attribute_name_6", "attribute_value_6")
+	smThreeMetricOneDps.At(1).Attributes().PutStr("attribute_name_6", "attribute_value_6")
 
 	smThreeMetricTwo := smThreeMetrics.AppendEmpty()
 	smThreeMetricTwo.SetName("a_monotonic_delta_int_sum")
@@ -220,12 +220,12 @@ func PDataMetrics() pmetric.Metrics {
 	smThreeMetricTwo.SetUnit("a_monotonic_delta_int_sum_unit")
 	smThreeMetricTwo.SetEmptySum()
 	smThreeMetricTwo.Sum().SetIsMonotonic(true)
-	smThreeMetricTwo.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityDelta)
+	smThreeMetricTwo.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
 	smThreeMetricTwoDps := smThreeMetricTwo.Sum().DataPoints()
 	smThreeMetricTwoDps.AppendEmpty().SetIntValue(56789)
-	smThreeMetricTwoDps.At(0).Attributes().PutString("attribute_name_7", "attribute_value_7")
+	smThreeMetricTwoDps.At(0).Attributes().PutStr("attribute_name_7", "attribute_value_7")
 	smThreeMetricTwoDps.AppendEmpty().SetIntValue(67890)
-	smThreeMetricTwoDps.At(1).Attributes().PutString("attribute_name_8", "attribute_value_8")
+	smThreeMetricTwoDps.At(1).Attributes().PutStr("attribute_name_8", "attribute_value_8")
 
 	smThreeMetricThree := smThreeMetrics.AppendEmpty()
 	smThreeMetricThree.SetName("a_monotonic_unspecified_int_sum")
@@ -233,12 +233,12 @@ func PDataMetrics() pmetric.Metrics {
 	smThreeMetricThree.SetUnit("a_monotonic_unspecified_int_sum_unit")
 	smThreeMetricThree.SetEmptySum()
 	smThreeMetricThree.Sum().SetIsMonotonic(true)
-	smThreeMetricThree.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityUnspecified)
+	smThreeMetricThree.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityUnspecified)
 	smThreeMetricThreeDps := smThreeMetricThree.Sum().DataPoints()
 	smThreeMetricThreeDps.AppendEmpty().SetIntValue(78901)
-	smThreeMetricThreeDps.At(0).Attributes().PutString("attribute_name_9", "attribute_value_9")
+	smThreeMetricThreeDps.At(0).Attributes().PutStr("attribute_name_9", "attribute_value_9")
 	smThreeMetricThreeDps.AppendEmpty().SetIntValue(89012)
-	smThreeMetricThreeDps.At(1).Attributes().PutString("attribute_name_10", "attribute_value_10")
+	smThreeMetricThreeDps.At(1).Attributes().PutStr("attribute_name_10", "attribute_value_10")
 
 	smThreeMetricFour := smThreeMetrics.AppendEmpty()
 	smThreeMetricFour.SetName("a_monotonic_cumulative_double_sum")
@@ -246,12 +246,12 @@ func PDataMetrics() pmetric.Metrics {
 	smThreeMetricFour.SetUnit("a_monotonic_cumulative_double_sum_unit")
 	smThreeMetricFour.SetEmptySum()
 	smThreeMetricFour.Sum().SetIsMonotonic(true)
-	smThreeMetricFour.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
+	smThreeMetricFour.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	smThreeMetricFourDps := smThreeMetricFour.Sum().DataPoints()
 	smThreeMetricFourDps.AppendEmpty().SetDoubleValue(456.78)
-	smThreeMetricFourDps.At(0).Attributes().PutString("attribute_name_11", "attribute_value_11")
+	smThreeMetricFourDps.At(0).Attributes().PutStr("attribute_name_11", "attribute_value_11")
 	smThreeMetricFourDps.AppendEmpty().SetDoubleValue(567.89)
-	smThreeMetricFourDps.At(1).Attributes().PutString("attribute_name_12", "attribute_value_12")
+	smThreeMetricFourDps.At(1).Attributes().PutStr("attribute_name_12", "attribute_value_12")
 
 	smThreeMetricFive := smThreeMetrics.AppendEmpty()
 	smThreeMetricFive.SetName("a_monotonic_delta_double_sum")
@@ -259,12 +259,12 @@ func PDataMetrics() pmetric.Metrics {
 	smThreeMetricFive.SetUnit("a_monotonic_delta_double_sum_unit")
 	smThreeMetricFive.SetEmptySum()
 	smThreeMetricFive.Sum().SetIsMonotonic(true)
-	smThreeMetricFive.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityDelta)
+	smThreeMetricFive.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
 	smThreeMetricFiveDps := smThreeMetricFive.Sum().DataPoints()
 	smThreeMetricFiveDps.AppendEmpty().SetDoubleValue(678.90)
-	smThreeMetricFiveDps.At(0).Attributes().PutString("attribute_name_13", "attribute_value_13")
+	smThreeMetricFiveDps.At(0).Attributes().PutStr("attribute_name_13", "attribute_value_13")
 	smThreeMetricFiveDps.AppendEmpty().SetDoubleValue(789.01)
-	smThreeMetricFiveDps.At(1).Attributes().PutString("attribute_name_14", "attribute_value_14")
+	smThreeMetricFiveDps.At(1).Attributes().PutStr("attribute_name_14", "attribute_value_14")
 
 	smThreeMetricSix := smThreeMetrics.AppendEmpty()
 	smThreeMetricSix.SetName("a_monotonic_unspecified_double_sum")
@@ -272,12 +272,12 @@ func PDataMetrics() pmetric.Metrics {
 	smThreeMetricSix.SetUnit("a_monotonic_unspecified_double_sum_unit")
 	smThreeMetricSix.SetEmptySum()
 	smThreeMetricSix.Sum().SetIsMonotonic(true)
-	smThreeMetricSix.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityUnspecified)
+	smThreeMetricSix.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityUnspecified)
 	smThreeMetricSixDps := smThreeMetricSix.Sum().DataPoints()
 	smThreeMetricSixDps.AppendEmpty().SetDoubleValue(890.12)
-	smThreeMetricSixDps.At(0).Attributes().PutString("attribute_name_15", "attribute_value_15")
+	smThreeMetricSixDps.At(0).Attributes().PutStr("attribute_name_15", "attribute_value_15")
 	smThreeMetricSixDps.AppendEmpty().SetDoubleValue(901.23)
-	smThreeMetricSixDps.At(1).Attributes().PutString("attribute_name_16", "attribute_value_16")
+	smThreeMetricSixDps.At(1).Attributes().PutStr("attribute_name_16", "attribute_value_16")
 
 	smThreeMetricSeven := smThreeMetrics.AppendEmpty()
 	smThreeMetricSeven.SetName("a_nonmonotonic_cumulative_int_sum")
@@ -285,12 +285,12 @@ func PDataMetrics() pmetric.Metrics {
 	smThreeMetricSeven.SetUnit("a_nonmonotonic_cumulative_int_sum_unit")
 	smThreeMetricSeven.SetEmptySum()
 	smThreeMetricSeven.Sum().SetIsMonotonic(false)
-	smThreeMetricSeven.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
+	smThreeMetricSeven.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	smThreeMetricSevenDps := smThreeMetricSeven.Sum().DataPoints()
 	smThreeMetricSevenDps.AppendEmpty().SetIntValue(90123)
-	smThreeMetricSevenDps.At(0).Attributes().PutString("attribute_name_17", "attribute_value_17")
+	smThreeMetricSevenDps.At(0).Attributes().PutStr("attribute_name_17", "attribute_value_17")
 	smThreeMetricSevenDps.AppendEmpty().SetIntValue(123456)
-	smThreeMetricSevenDps.At(1).Attributes().PutString("attribute_name_18", "attribute_value_18")
+	smThreeMetricSevenDps.At(1).Attributes().PutStr("attribute_name_18", "attribute_value_18")
 
 	smThreeMetricEight := smThreeMetrics.AppendEmpty()
 	smThreeMetricEight.SetName("a_nonmonotonic_delta_int_sum")
@@ -298,12 +298,12 @@ func PDataMetrics() pmetric.Metrics {
 	smThreeMetricEight.SetUnit("a_nonmonotonic_delta_int_sum_unit")
 	smThreeMetricEight.SetEmptySum()
 	smThreeMetricEight.Sum().SetIsMonotonic(false)
-	smThreeMetricEight.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityDelta)
+	smThreeMetricEight.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
 	smThreeMetricEightDps := smThreeMetricEight.Sum().DataPoints()
 	smThreeMetricEightDps.AppendEmpty().SetIntValue(234567)
-	smThreeMetricEightDps.At(0).Attributes().PutString("attribute_name_19", "attribute_value_19")
+	smThreeMetricEightDps.At(0).Attributes().PutStr("attribute_name_19", "attribute_value_19")
 	smThreeMetricEightDps.AppendEmpty().SetIntValue(345678)
-	smThreeMetricEightDps.At(1).Attributes().PutString("attribute_name_20", "attribute_value_20")
+	smThreeMetricEightDps.At(1).Attributes().PutStr("attribute_name_20", "attribute_value_20")
 
 	smThreeMetricNine := smThreeMetrics.AppendEmpty()
 	smThreeMetricNine.SetName("a_nonmonotonic_unspecified_int_sum")
@@ -311,12 +311,12 @@ func PDataMetrics() pmetric.Metrics {
 	smThreeMetricNine.SetUnit("a_nonmonotonic_unspecified_int_sum_unit")
 	smThreeMetricNine.SetEmptySum()
 	smThreeMetricNine.Sum().SetIsMonotonic(false)
-	smThreeMetricNine.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityUnspecified)
+	smThreeMetricNine.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityUnspecified)
 	smThreeMetricNineDps := smThreeMetricNine.Sum().DataPoints()
 	smThreeMetricNineDps.AppendEmpty().SetIntValue(456789)
-	smThreeMetricNineDps.At(0).Attributes().PutString("attribute_name_21", "attribute_value_21")
+	smThreeMetricNineDps.At(0).Attributes().PutStr("attribute_name_21", "attribute_value_21")
 	smThreeMetricNineDps.AppendEmpty().SetIntValue(567890)
-	smThreeMetricNineDps.At(1).Attributes().PutString("attribute_name_22", "attribute_value_22")
+	smThreeMetricNineDps.At(1).Attributes().PutStr("attribute_name_22", "attribute_value_22")
 
 	smThreeMetricTen := smThreeMetrics.AppendEmpty()
 	smThreeMetricTen.SetName("a_nonmonotonic_cumulative_double_sum")
@@ -324,12 +324,12 @@ func PDataMetrics() pmetric.Metrics {
 	smThreeMetricTen.SetUnit("a_nonmonotonic_cumulative_double_sum_unit")
 	smThreeMetricTen.SetEmptySum()
 	smThreeMetricTen.Sum().SetIsMonotonic(false)
-	smThreeMetricTen.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
+	smThreeMetricTen.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	smThreeMetricTenDps := smThreeMetricTen.Sum().DataPoints()
 	smThreeMetricTenDps.AppendEmpty().SetDoubleValue(1234.56)
-	smThreeMetricTenDps.At(0).Attributes().PutString("attribute_name_23", "attribute_value_23")
+	smThreeMetricTenDps.At(0).Attributes().PutStr("attribute_name_23", "attribute_value_23")
 	smThreeMetricTenDps.AppendEmpty().SetDoubleValue(2345.67)
-	smThreeMetricTenDps.At(1).Attributes().PutString("attribute_name_24", "attribute_value_24")
+	smThreeMetricTenDps.At(1).Attributes().PutStr("attribute_name_24", "attribute_value_24")
 
 	smThreeMetricEleven := smThreeMetrics.AppendEmpty()
 	smThreeMetricEleven.SetName("a_nonmonotonic_delta_double_sum")
@@ -337,12 +337,12 @@ func PDataMetrics() pmetric.Metrics {
 	smThreeMetricEleven.SetUnit("a_nonmonotonic_delta_double_sum_unit")
 	smThreeMetricEleven.SetEmptySum()
 	smThreeMetricEleven.Sum().SetIsMonotonic(false)
-	smThreeMetricEleven.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityDelta)
+	smThreeMetricEleven.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
 	smThreeMetricElevenDps := smThreeMetricEleven.Sum().DataPoints()
 	smThreeMetricElevenDps.AppendEmpty().SetDoubleValue(3456.78)
-	smThreeMetricElevenDps.At(0).Attributes().PutString("attribute_name_25", "attribute_value_25")
+	smThreeMetricElevenDps.At(0).Attributes().PutStr("attribute_name_25", "attribute_value_25")
 	smThreeMetricElevenDps.AppendEmpty().SetDoubleValue(4567.89)
-	smThreeMetricElevenDps.At(1).Attributes().PutString("attribute_name_26", "attribute_value_26")
+	smThreeMetricElevenDps.At(1).Attributes().PutStr("attribute_name_26", "attribute_value_26")
 
 	smThreeMetricTwelve := smThreeMetrics.AppendEmpty()
 	smThreeMetricTwelve.SetName("a_nonmonotonic_unspecified_double_sum")
@@ -350,11 +350,11 @@ func PDataMetrics() pmetric.Metrics {
 	smThreeMetricTwelve.SetUnit("a_nonmonotonic_unspecified_double_sum_unit")
 	smThreeMetricTwelve.SetEmptySum()
 	smThreeMetricTwelve.Sum().SetIsMonotonic(false)
-	smThreeMetricTwelve.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityUnspecified)
+	smThreeMetricTwelve.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityUnspecified)
 	smThreeMetricTwelveDps := smThreeMetricTwelve.Sum().DataPoints()
 	smThreeMetricTwelveDps.AppendEmpty().SetDoubleValue(5678.90)
-	smThreeMetricTwelveDps.At(0).Attributes().PutString("attribute_name_27", "attribute_value_27")
+	smThreeMetricTwelveDps.At(0).Attributes().PutStr("attribute_name_27", "attribute_value_27")
 	smThreeMetricTwelveDps.AppendEmpty().SetDoubleValue(6789.01)
-	smThreeMetricTwelveDps.At(1).Attributes().PutString("attribute_name_28", "attribute_value_28")
+	smThreeMetricTwelveDps.At(1).Attributes().PutStr("attribute_name_28", "attribute_value_28")
 	return metrics
 }

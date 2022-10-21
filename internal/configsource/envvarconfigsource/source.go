@@ -60,7 +60,7 @@ func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, params
 	actualParams := retrieveParams{}
 	if paramsConfigMap != nil {
 		paramsParser := confmap.NewFromStringMap(paramsConfigMap.ToStringMap())
-		if err := paramsParser.UnmarshalExact(&actualParams); err != nil {
+		if err := paramsParser.Unmarshal(&actualParams, confmap.WithErrorUnused()); err != nil {
 			return nil, &errInvalidRetrieveParams{fmt.Errorf("failed to unmarshall retrieve params: %w", err)}
 		}
 	}

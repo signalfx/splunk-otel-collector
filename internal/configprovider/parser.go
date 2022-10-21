@@ -107,7 +107,7 @@ func loadSettings(css map[string]any, factories Factories) (map[string]expcfg.So
 
 		// Now that the default settings struct is created we can Unmarshal into it
 		// and it will apply user-defined config on top of the default.
-		if err = settingsParser.UnmarshalExact(&cfgSrcSettings); err != nil {
+		if err = settingsParser.Unmarshal(&cfgSrcSettings, confmap.WithErrorUnused()); err != nil {
 			return nil, &errUnmarshalError{fmt.Errorf("error reading %s configuration for %q: %w", configSourcesKey, componentID, err)}
 		}
 

@@ -321,11 +321,11 @@ func TestSFxSpansWithDataSourceIPToPDataTraces(t *testing.T) {
 
 	ip, exists := resources[0].Attributes().Get("ip")
 	assert.True(t, exists)
-	assert.Equal(t, ip, pcommon.NewValueString("127.0.0.1"))
+	assert.Equal(t, ip, pcommon.NewValueStr("127.0.0.1"))
 
 	ip, exists = resources[1].Attributes().Get("ip")
 	assert.True(t, exists)
-	assert.Equal(t, ip, pcommon.NewValueString("127.0.0.2"))
+	assert.Equal(t, ip, pcommon.NewValueStr("127.0.0.2"))
 }
 
 func TestNilSFxSpanConversion(t *testing.T) {
@@ -501,10 +501,10 @@ func newPDataSpan(
 	td := ptrace.NewTraces()
 	rs := td.ResourceSpans().AppendEmpty()
 	if serviceName != "" {
-		rs.Resource().Attributes().PutString("service.name", serviceName)
+		rs.Resource().Attributes().PutStr("service.name", serviceName)
 	}
 	if dataSourceIP != "" {
-		rs.Resource().Attributes().PutString("ip", dataSourceIP)
+		rs.Resource().Attributes().PutStr("ip", dataSourceIP)
 	}
 	span := rs.ScopeSpans().AppendEmpty().Spans().AppendEmpty()
 
@@ -538,7 +538,7 @@ func newPDataSpan(
 	for k, val := range attributes {
 		switch v := val.(type) {
 		case string:
-			attrs.PutString(k, v)
+			attrs.PutStr(k, v)
 		default:
 			vInt, err := strconv.ParseInt(fmt.Sprintf("%v", v), 10, 64)
 			require.NoError(t, err)

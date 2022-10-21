@@ -11,7 +11,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.11.4
 	github.com/hashicorp/vault-plugin-auth-gcp v0.14.0
-	github.com/hashicorp/vault/api v1.8.0
+	github.com/hashicorp/vault/api v1.8.1
 	github.com/jaegertracing/jaeger v1.38.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.61.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.61.0
@@ -436,7 +436,6 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/fatih/set.v0 v0.1.0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
-	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
@@ -461,7 +460,6 @@ replace (
 	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor => ./pkg/processor/timestamp
 	github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver => ./pkg/receiver/oracledb
 	github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver => ./pkg/receiver/smartagent
-	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor => ./pkg/processor/timestamp
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
 )
 

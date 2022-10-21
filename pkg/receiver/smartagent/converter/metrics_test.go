@@ -72,7 +72,7 @@ func pdataMetrics(dataType pmetric.MetricType, value any, timeReceived time.Time
 	case pmetric.MetricTypeGauge:
 		dps = metric.Gauge().DataPoints()
 	case pmetric.MetricTypeSum:
-		metric.Sum().SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
+		metric.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 		dps = metric.Sum().DataPoints()
 	}
 
@@ -80,9 +80,9 @@ func pdataMetrics(dataType pmetric.MetricType, value any, timeReceived time.Time
 
 	dp := dps.AppendEmpty()
 	attributes = dp.Attributes()
-	attributes.PutString("k0", "v0")
-	attributes.PutString("k1", "v1")
-	attributes.PutString("k2", "v2")
+	attributes.PutStr("k0", "v0")
+	attributes.PutStr("k1", "v1")
+	attributes.PutStr("k2", "v2")
 	attributes.Sort()
 	dp.SetTimestamp(pcommon.Timestamp(timeReceived.UnixNano()))
 	switch val := value.(type) {
@@ -135,7 +135,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			expectedMetrics: func() pmetric.Metrics {
 				m := pdataMetrics(pmetric.MetricTypeSum, 13, now)
 				d := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Sum()
-				d.SetAggregationTemporality(pmetric.MetricAggregationTemporalityDelta)
+				d.SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
 				d.SetIsMonotonic(true)
 				return m
 			}(),
@@ -151,7 +151,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			expectedMetrics: func() pmetric.Metrics {
 				m := pdataMetrics(pmetric.MetricTypeSum, 13.13, now)
 				d := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Sum()
-				d.SetAggregationTemporality(pmetric.MetricAggregationTemporalityDelta)
+				d.SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
 				d.SetIsMonotonic(true)
 				return m
 			}(),
@@ -166,7 +166,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			expectedMetrics: func() pmetric.Metrics {
 				m := pdataMetrics(pmetric.MetricTypeSum, 13, now)
 				d := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Sum()
-				d.SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
+				d.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 				d.SetIsMonotonic(true)
 				return m
 			}(),
@@ -182,7 +182,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			expectedMetrics: func() pmetric.Metrics {
 				m := pdataMetrics(pmetric.MetricTypeSum, 13.13, now)
 				d := m.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Sum()
-				d.SetAggregationTemporality(pmetric.MetricAggregationTemporalityCumulative)
+				d.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 				d.SetIsMonotonic(true)
 				return m
 			}(),
@@ -219,7 +219,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 			}(),
 			expectedMetrics: func() pmetric.Metrics {
 				md := pdataMetrics(pmetric.MetricTypeGauge, 13, now)
-				md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).Attributes().PutString("k0", "")
+				md.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0).Gauge().DataPoints().At(0).Attributes().PutStr("k0", "")
 				return md
 			}(),
 		},

@@ -53,7 +53,7 @@ func newMetricAttributesProcessor(_ *zap.Logger, offsetFn func(timestamp pcommon
 								e.SetTimestamp(offsetFn(e.Timestamp()))
 							}
 						}
-					case pmetric.MetricTypeNone:
+					case pmetric.MetricTypeEmpty:
 					case pmetric.MetricTypeSum:
 						for l := 0; l < metric.Sum().DataPoints().Len(); l++ {
 							dp := metric.Sum().DataPoints().At(l)

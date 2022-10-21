@@ -4,8 +4,17 @@
 
 ### 💡 Enhancements 💡
 
+## v0.62.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.62.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.62.0) and the [opentelemetry-collector-contrib v0.62.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.62.0) releases.
+
+### 💡 Enhancements 💡
+
 - Increase number of queue consumers in gateway default configuration (#2084)
 - Add a new Oracle database receiver (#2011)
+- Upgrade to java agent 1.17 (#2161)
+- Upgrade to smart agent release 5.24.0 (#2161)
+- Update include config source to beta (#2093)
 
 ## v0.61.0
 

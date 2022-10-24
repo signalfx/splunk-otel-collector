@@ -570,12 +570,13 @@ if ($with_dotnet_instrumentation) {
     $module_name = "install.psm1"
     echo "Downloading .NET Instrumentation installer ..."
     $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $module_name } | Select-Object -Property browser_download_url,name
-    $tracing_module_path = Join-Path "\Users\splunker\Documents\WindowsPowerShell\Modules" $download.name
-    Invoke-WebRequest -Uri $download.browser_download_url -OutFile $tracing_module_path
-    # Install-Module $tracing_module_path
-
-    echo "Starting install process ..."
-    Install-SignalFxDotnet
+    $dotnet_auto_path = Join-Path $env:temp $download.name
+    Invoke-WebRequest -Uri $download.browser_download_url -OutFile $dotnet_auto_path
+    Import-Module $dotnet_auto_path
+    echo "Installing OpenTelemetry Core..."
+    Install-OpenTelemetryCore
+    echo "Registering OpenTelemetry for IIS..."
+    Register-OpenTelemetryForIIS
 
     echo "Setting environment variables for instrumentation ..."
     update_registry -path "$regkey" -name "COR_ENABLE_PROFILING" -value "1"

@@ -80,8 +80,8 @@ require (
 	github.com/stretchr/testify v1.8.0
 	go.etcd.io/bbolt v1.3.6
 	go.etcd.io/etcd/client/v2 v2.305.5
-	go.opentelemetry.io/collector v0.62.0
-	go.opentelemetry.io/collector/pdata v0.62.0
+	go.opentelemetry.io/collector v0.62.1
+	go.opentelemetry.io/collector/pdata v0.62.1
 	go.opentelemetry.io/otel/metric v0.32.1
 	go.opentelemetry.io/otel/trace v1.10.0
 	go.uber.org/multierr v1.8.0
@@ -406,7 +406,7 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.5 // indirect
 	go.mongodb.org/atlas v0.17.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	go.opentelemetry.io/collector/semconv v0.62.0 // indirect
+	go.opentelemetry.io/collector/semconv v0.62.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.36.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.36.1 // indirect
 	go.opentelemetry.io/contrib/propagators/b3 v1.10.0 // indirect

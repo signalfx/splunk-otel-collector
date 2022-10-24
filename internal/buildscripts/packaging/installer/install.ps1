@@ -68,6 +68,9 @@
     (OPTIONAL) Whether to install and configure .NET tracing to forward .NET application traces to the local collector (default: $false)
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true
+.PARAMETER instrumentation_exclude_processes
+    (OPTIONAL) A semicolon-delimited list of process names to be excluded from auto-instrumentation (default: Powershell.exe;dotnet.exe)
+    .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -instrumentation_exclude_processes "Powershell.exe;dotnet.exe;myprogram.exe"
 .PARAMETER signalfx_service_name
     (OPTIONAL) A system-wide SignalFx service name override for .NET tracing. Sets the SIGNALFX_SERVICE_NAME environment variable. Ignored if -with_dotnet_instrumentation is false.
     .EXAMPLE

@@ -567,7 +567,7 @@ if ($with_dotnet_instrumentation) {
     echo "Installing SignalFx Instrumentation for .NET ..."
     # signalfx-dotnet-tracing github repository API
     $api = "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
-    $module_name = "install.psm1"
+    $module_name = "OpenTelemetry.DotNet.Auto.psm1"
     echo "Downloading .NET Instrumentation installer ..."
     $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $module_name } | Select-Object -Property browser_download_url,name
     $dotnet_auto_path = Join-Path $env:temp $download.name

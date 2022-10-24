@@ -565,7 +565,6 @@ if ($with_fluentd) {
 
 if ($with_dotnet_instrumentation) {
     echo "Installing SignalFx Instrumentation for .NET ..."
-    # signalfx-dotnet-tracing github repository API
     $api = "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
     $module_name = "Splunk.SignalFx.DotNet.psm1"
     echo "Downloading .NET Instrumentation installer ..."
@@ -573,10 +572,8 @@ if ($with_dotnet_instrumentation) {
     $dotnet_auto_path = Join-Path $env:temp $download.name
     Invoke-WebRequest -Uri $download.browser_download_url -OutFile $dotnet_auto_path
     Import-Module $dotnet_auto_path
-    echo "Installing OpenTelemetry Core..."
-    Install-OpenTelemetryCore
-    echo "Registering OpenTelemetry for IIS..."
-    Register-OpenTelemetryForIIS
+    echo "Installing SignalFx Dotnet Auto Instrumentation..."
+    Install-SignalFxDotnet
 
     echo "Setting environment variables for instrumentation ..."
     update_registry -path "$regkey" -name "COR_ENABLE_PROFILING" -value "1"

@@ -572,7 +572,7 @@ if ($with_dotnet_instrumentation) {
     $module_name = "Splunk.SignalFx.DotNet.psm1"
     echo "Downloading .NET Instrumentation installer ..."
     $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $module_name } | Select-Object -Property browser_download_url,name
-    $dotnet_auto_path = Join-Path $env:temp $download.name
+    $dotnet_auto_path = Join-Path $tempdir $download.name
     Invoke-WebRequest -Uri $download.browser_download_url -OutFile $dotnet_auto_path
     Import-Module $dotnet_auto_path
     echo "Installing SignalFx Dotnet Auto Instrumentation..."

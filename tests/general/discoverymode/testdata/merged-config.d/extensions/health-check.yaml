@@ -1,0 +1,2 @@
+health_check/from-configd:
+  endpoint: 0.0.0.0:45678

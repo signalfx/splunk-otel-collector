@@ -1,0 +1,6 @@
+pipelines:
+  metrics:
+    receivers:
+      - hostmetrics
+    exporters:
+      - otlp

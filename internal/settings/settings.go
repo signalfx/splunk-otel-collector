@@ -35,6 +35,7 @@ const (
 	APIURLEnvVar              = "SPLUNK_API_URL"
 	BallastEnvVar             = "SPLUNK_BALLAST_SIZE_MIB"
 	ConfigEnvVar              = "SPLUNK_CONFIG"
+	ConfigDirEnvVar           = "SPLUNK_CONFIG_DIR"
 	ConfigServerEnabledEnvVar = "SPLUNK_DEBUG_CONFIG_SERVER"
 	ConfigYamlEnvVar          = "SPLUNK_CONFIG_YAML"
 	HecLogIngestURLEnvVar     = "SPLUNK_HEC_URL"
@@ -50,9 +51,13 @@ const (
 
 	DefaultGatewayConfig           = "/etc/otel/collector/gateway_config.yaml"
 	DefaultOTLPLinuxConfig         = "/etc/otel/collector/otlp_config_linux.yaml"
+	DefaultConfigDir               = "/etc/otel/collector/config.d"
 	DefaultMemoryBallastPercentage = 33
 	DefaultMemoryLimitPercentage   = 90
 	DefaultMemoryTotalMiB          = 512
+
+	DiscoveryModeScheme = "splunk.discovery.mode"
+	ConfigDScheme       = "splunk.config.d"
 )
 
 type Settings interface {
@@ -91,11 +96,14 @@ var _ Settings = (*flags)(nil)
 type flags struct {
 	configPaths       *stringArrayFlagValue
 	setProperties     *stringArrayFlagValue
+	configDir         *stringPointerFlagValue
 	serviceArgs       []string
 	memBallastSizeMiB int
 	helpFlag          bool
 	versionFlag       bool
 	noConvertConfig   bool
+	configD           bool
+	discoveryMode     bool
 }
 
 func (f *flags) ResolverURIs() []string {
@@ -104,6 +112,17 @@ func (f *flags) ResolverURIs() []string {
 		if configEnvVal := os.Getenv(ConfigEnvVar); len(configEnvVal) != 0 {
 			configPaths = []string{"file:" + configEnvVal}
 		}
+	}
+
+	configDir := getConfigDir(f)
+	if f.configD {
+		removeFlag(&f.serviceArgs, "--configd")
+		configPaths = append(configPaths, fmt.Sprintf("%s:%s", ConfigDScheme, configDir))
+	}
+	if f.discoveryMode {
+		removeFlag(&f.serviceArgs, "--discovery")
+		// discovery uri must come last to successfully merge w/ other config content
+		configPaths = append(configPaths, fmt.Sprintf("%s:%s", DiscoveryModeScheme, configDir))
 	}
 
 	configYaml := os.Getenv(ConfigYamlEnvVar)
@@ -116,6 +135,20 @@ func (f *flags) ResolverURIs() []string {
 	default:
 		return configPaths
 	}
+}
+
+func getConfigDir(f *flags) string {
+	configDir := DefaultConfigDir
+	if envConfigDir, ok := os.LookupEnv(ConfigDirEnvVar); ok {
+		configDir = envConfigDir
+	}
+
+	if f.configDir.value != nil {
+		removeFlag(&f.serviceArgs, "--config-dir")
+		configDir = f.configDir.String()
+	}
+
+	return configDir
 }
 
 func (f *flags) ConfMapConverters() []confmap.Converter {
@@ -157,6 +190,7 @@ func newFlags(args []string) (*flags, error) {
 		configPaths:   new(stringArrayFlagValue),
 		setProperties: new(stringArrayFlagValue),
 		serviceArgs:   cpArgs,
+		configDir:     new(stringPointerFlagValue),
 	}
 
 	// This is an internal flag parser, it shouldn't give any output to user.
@@ -169,6 +203,10 @@ func newFlags(args []string) (*flags, error) {
 
 	// This is a deprecated option, but it is still used when set if the corresponding env var isn't
 	flagSet.IntVar(&settings.memBallastSizeMiB, "mem-ballast-size-mib", DefaultUndeclaredFlag, "")
+
+	flagSet.BoolVar(&settings.configD, "configd", false, "")
+	flagSet.Var(settings.configDir, "config-dir", "")
+	flagSet.BoolVar(&settings.discoveryMode, "discovery", false, "")
 
 	flagSet.Var(settings.configPaths, "config", "")
 	flagSet.Var(settings.setProperties, "set", "")
@@ -437,4 +475,27 @@ func (s *stringArrayFlagValue) contains(input string) bool {
 	}
 
 	return false
+}
+
+var _ flag.Value = (*stringPointerFlagValue)(nil)
+
+// based on https://github.com/open-telemetry/opentelemetry-collector/blob/48a2e01652fa679c89259866210473fc0d42ca95/service/flags.go#L39
+type stringPointerFlagValue struct {
+	value *string
+}
+
+func (s *stringPointerFlagValue) Type() string {
+	return "string"
+}
+
+func (s *stringPointerFlagValue) Set(val string) error {
+	s.value = &val
+	return nil
+}
+
+func (s *stringPointerFlagValue) String() string {
+	if s.value == nil {
+		return ""
+	}
+	return *s.value
 }

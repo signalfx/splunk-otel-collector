@@ -37,13 +37,22 @@ import (
 func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 	logCore, logs := observer.New(zap.DebugLevel)
 	logger := zap.New(logCore)
+
+	csPort := testutils.GetAvailablePort(t)
 	collector, err := testutils.NewCollectorProcess().
 		WithArgs("--config", path.Join(".", "testdata", "templated.yaml")).
 		WithLogger(logger).
+		WithEnv(map[string]string{
+			"SPLUNK_DEBUG_CONFIG_SERVER_PORT": fmt.Sprintf("%d", csPort),
+		}).
 		Build()
 
 	require.NotNil(t, collector)
 	require.NoError(t, err)
+
+	defer func() {
+		require.NoError(t, collector.Shutdown())
+	}()
 
 	err = collector.Start()
 	require.NoError(t, err)
@@ -111,7 +120,7 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 	}{
 		{expected: expectedConfig, endpoint: "effective"},
 	} {
-		resp, err := http.Get(fmt.Sprintf("http://localhost:55554/debug/configz/%s", tc.endpoint))
+		resp, err := http.Get(fmt.Sprintf("http://localhost:%d/debug/configz/%s", csPort, tc.endpoint))
 		require.NoError(t, err)
 
 		body, err := io.ReadAll(resp.Body)
@@ -123,5 +132,4 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 		require.Equal(t, tc.expected, confmap.NewFromStringMap(actual).ToStringMap())
 	}
 
-	require.NoError(t, collector.Shutdown())
 }

@@ -37,16 +37,25 @@ import (
 func TestCollectorProcessWithMultipleConfigs(t *testing.T) {
 	logCore, logs := observer.New(zap.DebugLevel)
 	logger := zap.New(logCore)
+
+	csPort := testutils.GetAvailablePort(t)
 	collector, err := testutils.NewCollectorProcess().
 		WithArgs("--config", path.Join(".", "testdata", "receivers.yaml"),
 			"--config", path.Join(".", "testdata", "processors.yaml"),
 			"--config", path.Join(".", "testdata", "exporters.yaml"),
 			"--config", path.Join(".", "testdata", "services.yaml")).
 		WithLogger(logger).
+		WithEnv(map[string]string{
+			"SPLUNK_DEBUG_CONFIG_SERVER_PORT": fmt.Sprintf("%d", csPort),
+		}).
 		Build()
 
 	require.NotNil(t, collector)
 	require.NoError(t, err)
+
+	defer func() {
+		require.NoError(t, collector.Shutdown())
+	}()
 
 	err = collector.Start()
 	require.NoError(t, err)
@@ -118,7 +127,7 @@ func TestCollectorProcessWithMultipleConfigs(t *testing.T) {
 		{expected: map[string]any{"file": expectedConfig}, endpoint: "initial"},
 		{expected: expectedConfig, endpoint: "effective"},
 	} {
-		resp, err := http.Get(fmt.Sprintf("http://localhost:55554/debug/configz/%s", tc.endpoint))
+		resp, err := http.Get(fmt.Sprintf("http://localhost:%d/debug/configz/%s", csPort, tc.endpoint))
 		require.NoError(t, err)
 
 		body, err := io.ReadAll(resp.Body)
@@ -130,5 +139,4 @@ func TestCollectorProcessWithMultipleConfigs(t *testing.T) {
 		require.Equal(t, tc.expected, confmap.NewFromStringMap(actual).ToStringMap())
 	}
 
-	require.NoError(t, collector.Shutdown())
 }

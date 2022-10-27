@@ -21,11 +21,13 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
+	"regexp"
 
 	"github.com/testcontainers/testcontainers-go"
 	"go.uber.org/zap"
 )
+
+var configFromArgsPattern = regexp.MustCompile("--config($|[^d]+)")
 
 var _ Collector = (*CollectorContainer)(nil)
 var _ testcontainers.LogConsumer = (*collectorLogConsumer)(nil)
@@ -187,7 +189,7 @@ func (collector *CollectorContainer) buildContextArchive() (io.Reader, error) {
 		// but only if not already done so in the test
 		var configSetByArgs bool
 		for _, c := range collector.Args {
-			if strings.Contains(c, "--config") {
+			if configFromArgsPattern.Match([]byte(c)) {
 				configSetByArgs = true
 			}
 		}

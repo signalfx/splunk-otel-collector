@@ -443,6 +443,43 @@ func TestRemoveFlag(t *testing.T) {
 	require.Empty(t, args)
 }
 
+func TestEnablingConfigD(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	settings, err := New([]string{"--config", configPath})
+	require.NoError(t, err)
+	f := settingsToFlags(t, settings)
+	require.False(t, f.configD)
+	require.Nil(t, f.configDir.value)
+
+	settings, err = New([]string{"--configd", "--config", configPath})
+	require.NoError(t, err)
+	f = settingsToFlags(t, settings)
+	require.True(t, f.configD)
+	require.Nil(t, f.configDir.value)
+	require.Equal(t, "/etc/otel/collector/config.d", getConfigDir(f))
+}
+
+func TestConfigDirFromArgs(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	settings, err := New([]string{"--config-dir", "/from/args", "--config", configPath})
+	require.NoError(t, err)
+	f := settingsToFlags(t, settings)
+	require.False(t, f.configD)
+	require.NotNil(t, f.configDir.value)
+	require.Equal(t, "/from/args", f.configDir.String())
+	require.Equal(t, "/from/args", getConfigDir(f))
+}
+
+func TestConfigDirFromEnvVar(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	os.Setenv("SPLUNK_CONFIG_DIR", "/from/env/var")
+	settings, err := New([]string{"--config", configPath})
+	require.NoError(t, err)
+	f := settingsToFlags(t, settings)
+	require.Nil(t, f.configDir.value)
+	require.Equal(t, "/from/env/var", getConfigDir(f))
+}
+
 // to satisfy Settings generation
 func setRequiredEnvVars(t *testing.T) func() {
 	cleanup := clearEnv(t)

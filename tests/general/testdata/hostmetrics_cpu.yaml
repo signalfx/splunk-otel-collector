@@ -5,11 +5,12 @@ receivers:
       cpu:
 
 exporters:
-  logging:
-    logLevel: debug
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
 
 service:
   pipelines:
     metrics:
       receivers: [hostmetrics]
-      exporters: [logging]
+      exporters: [otlp]

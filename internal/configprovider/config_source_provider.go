@@ -109,6 +109,7 @@ func (c *configSourceConfigMapProvider) Scheme() string {
 }
 
 func (c *configSourceConfigMapProvider) Shutdown(ctx context.Context) error {
+	c.configServer.Unregister()
 	return c.wrappedProvider.Shutdown(ctx)
 }
 

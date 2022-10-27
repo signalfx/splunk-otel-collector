@@ -1,0 +1,13 @@
+extensions:
+  - health_check/from-configd
+pipelines:
+  metrics/from-configd:
+    receivers:
+     - otlp/from-configd
+    processors:
+     - batch/from-configd
+    exporters:
+      - otlp/from-configd
+telemetry:
+  logs:
+    level: debug

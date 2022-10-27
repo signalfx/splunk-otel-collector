@@ -109,7 +109,6 @@ type keyType interface {
 }
 
 type entryType interface {
-	ServiceEntry | ExporterEntry | ExtensionEntry | ProcessorEntry | ReceiverEntry | ObserverEntry | ReceiverToDiscoverEntry
 	ErrorF(path string, err error) error
 	Self() Entry
 	ToStringMap() map[string]any
@@ -130,6 +129,8 @@ func (e Entry) ToStringMap() map[string]any {
 	return cp
 }
 
+var _ entryType = (*ServiceEntry)(nil)
+
 type ServiceEntry struct {
 	Entry `yaml:",inline"`
 }
@@ -137,6 +138,8 @@ type ServiceEntry struct {
 func (ServiceEntry) ErrorF(path string, err error) error {
 	return errorF(typeService, path, err)
 }
+
+var _ entryType = (*ExtensionEntry)(nil)
 
 type ExtensionEntry struct {
 	Entry `yaml:",inline"`
@@ -146,6 +149,8 @@ func (ExtensionEntry) ErrorF(path string, err error) error {
 	return errorF(typeExtension, path, err)
 }
 
+var _ entryType = (*ExporterEntry)(nil)
+
 type ExporterEntry struct {
 	Entry `yaml:",inline"`
 }
@@ -153,6 +158,8 @@ type ExporterEntry struct {
 func (ExporterEntry) ErrorF(path string, err error) error {
 	return errorF(typeExporter, path, err)
 }
+
+var _ entryType = (*ObserverEntry)(nil)
 
 type ObserverEntry struct {
 	Entry `yaml:",inline"`
@@ -162,6 +169,8 @@ func (ObserverEntry) ErrorF(path string, err error) error {
 	return errorF(typeDiscoveryObserver, path, err)
 }
 
+var _ entryType = (*ProcessorEntry)(nil)
+
 type ProcessorEntry struct {
 	Entry `yaml:",inline"`
 }
@@ -169,6 +178,8 @@ type ProcessorEntry struct {
 func (ProcessorEntry) ErrorF(path string, err error) error {
 	return errorF(typeProcessor, path, err)
 }
+
+var _ entryType = (*ReceiverEntry)(nil)
 
 type ReceiverEntry struct {
 	Entry `yaml:",inline"`
@@ -187,6 +198,8 @@ type ReceiverToDiscoverEntry struct {
 	// The remaining items used to merge applicable rule and config
 	Entry `yaml:",inline"`
 }
+
+var _ entryType = (*ReceiverToDiscoverEntry)(nil)
 
 func (r ReceiverToDiscoverEntry) ToStringMap() map[string]any {
 	return r.Entry.ToStringMap()

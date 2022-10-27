@@ -176,14 +176,6 @@ $fluentd_config_dir = "$fluentd_base_dir\etc\td-agent"
 $fluentd_config_path = "$fluentd_config_dir\td-agent.conf"
 $fluentd_service_name = "fluentdwinsvc"
 
-$dotnet_tracing_install_dir = "\Program Files\SignalFx\.NET Tracing"
-try {
-    Resolve-Path $env:SYSTEMDRIVE
-    $dotnet_tracing_base_dir = "${env:SYSTEMDRIVE}$dotnet_tracing_install_dir"
-} catch {
-    $dotnet_tracing_base_dir = $dotnet_tracing_install_dir
-}
-
 # check that we're not running with a restricted execution policy
 function check_policy() {
     $executionPolicy  = (Get-ExecutionPolicy)
@@ -400,10 +392,6 @@ if ($with_fluentd -And (service_installed -name "$fluentd_service_name")) {
 
 if ($with_fluentd -And (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
     throw "$fluentd_base_dir\bin\fluentd is already installed. Remove/Uninstall fluentd and re-run this script."
-}
-
-if ($with_dotnet_instrumentation -And (Test-Path -Path "$dotnet_tracing_base_dir\SignalFx.Tracing.ClrProfiler.Native.dll")) {
-    throw "SignalFx .NET tracing is already installed. Remove/Uninstall SignalFx .NET tracing and re-run this script."
 }
 
 if ($ingest_url -eq "") {

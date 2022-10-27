@@ -1,0 +1,8 @@
+resource_metrics:
+  - scope_metrics:
+      - instrumentation_scope:
+          name: otelcol/hostmetricsreceiver/cpu
+          version: <FROM_BUILD>
+        metrics:
+          - name: system.cpu.time
+            type: DoubleMonotonicCumulativeSum

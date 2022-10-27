@@ -22,6 +22,9 @@ NONROOT_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR) )
 NUM_CORES := $(shell if [ -z ${CIRCLE_JOB} ]; then echo `getconf _NPROCESSORS_ONLN` ; else echo 2; fi )
 GOTEST=go test -p $(NUM_CORES)
 
+# Currently integration tests are flakey when run in parallel due to internal metric and config server conflicts
+GOTEST_SERIAL=go test -p 1
+
 BUILD_INFO_IMPORT_PATH=github.com/signalfx/splunk-otel-collector/internal/version
 BUILD_INFO_IMPORT_PATH_TESTS=github.com/signalfx/splunk-otel-collector/tests/internal/version
 BUILD_INFO_IMPORT_PATH_CORE=go.opentelemetry.io/collector/internal/version
@@ -74,7 +77,7 @@ integration-test:
 	@set -e; for dir in $(shell find tests -name '*_test.go' | xargs -L 1 dirname | uniq | sort -r); do \
 	  echo "go test ./... in $${dir}"; \
 	  (cd "$${dir}" && \
-	   $(GOTEST) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./... ); \
+	   $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./... ); \
 	done
 
 .PHONY: end-to-end-test

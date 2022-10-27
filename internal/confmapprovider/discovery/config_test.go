@@ -97,15 +97,14 @@ func TestReceiverToDiscoverEntryPaths(t *testing.T) {
 }
 
 var expectedConfig = Config{
-	Service: map[string]ServiceEntry{
-		"telemetry": {
-			Entry{
-				"logs": map[any]any{"level": "debug"},
+	Service: ServiceEntry{
+		Entry{
+			"extensions": []any{"zpages"},
+			"telemetry": map[string]any{
+				"logs": map[string]any{"level": "debug"},
 			},
-		},
-		"pipelines": {
-			Entry{
-				"metrics": map[any]any{
+			"pipelines": map[string]any{
+				"metrics": map[string]any{
 					"exporters": []any{"logging"},
 				},
 			},
@@ -279,21 +278,64 @@ var expectedConfig = Config{
 	},
 }
 
-func TestDiscoveryConfig(t *testing.T) {
-	discoveryDir := filepath.Join(".", "testdata", "config.d")
+func TestConfig(t *testing.T) {
+	configDir := filepath.Join(".", "testdata", "config.d")
 	cfg := NewConfig(zaptest.NewLogger(t))
 	require.NotNil(t, cfg)
-	require.NoError(t, cfg.Load(discoveryDir))
+	require.NoError(t, cfg.Load(configDir))
 	cfg.logger = nil // unset for equality check
 	require.Equal(t, expectedConfig, *cfg)
 }
 
-func TestDiscoveryConfigWithTwoReceiversInOneFile(t *testing.T) {
-	discoveryDir := filepath.Join(".", "testdata", "double-receiver-item-config.d")
+var expectedServiceConfig = map[string]any{
+	"exporters": map[string]any{
+		"signalfx": map[string]any{
+			"api_url":    "http://0.0.0.0/api",
+			"ingest_url": "http://0.0.0.0/ingest",
+		},
+	}, "extensions": map[string]any{
+		"zpages": map[string]any{
+			"endpoint": "0.0.0.0:1234",
+		},
+	}, "processors": map[string]any{
+		"batch": map[string]any{},
+	}, "receivers": map[string]any{
+		"otlp": map[string]any{
+			"protocols": map[string]any{
+				"grpc": map[string]any{
+					"endpoint": "0.0.0.0:4317",
+				}, "http": map[string]any{
+					"endpoint": "0.0.0.0:4318",
+				},
+			},
+		},
+	}, "service": map[string]any{
+		"extensions": []any{"zpages"},
+		"pipelines": map[string]any{
+			"metrics": map[string]any{
+				"exporters": []any{"logging"}}},
+		"telemetry": map[string]any{
+			"logs": map[string]any{
+				"level": "debug"},
+		},
+	},
+}
+
+func TestToServiceConfig(t *testing.T) {
+	configDir := filepath.Join(".", "testdata", "config.d")
+	cfg := NewConfig(zaptest.NewLogger(t))
+	require.NotNil(t, cfg)
+	require.NoError(t, cfg.Load(configDir))
+	sc := cfg.toServiceConfig()
+	require.Equal(t, expectedServiceConfig, sc)
+}
+
+func TestConfigWithTwoReceiversInOneFile(t *testing.T) {
+	configDir := filepath.Join(".", "testdata", "double-receiver-item-config.d")
 	logger := zaptest.NewLogger(t)
 	cfg := NewConfig(logger)
 	require.NotNil(t, cfg)
-	err := cfg.Load(discoveryDir)
+	err := cfg.Load(configDir)
 	require.Contains(t, err.Error(), "must contain a single mapping of ComponentID to component but contained [otlp otlp/disallowed]")
 	cfg.logger = nil // unset for equality check
 	require.Equal(t, Config{}, *cfg)

@@ -22,7 +22,9 @@ import (
 	"regexp"
 	"sort"
 
+	"github.com/knadh/koanf/maps"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
@@ -60,7 +62,7 @@ var (
 type Config struct {
 	logger *zap.Logger
 	// Service is for pipelines and final settings
-	Service map[string]ServiceEntry
+	Service ServiceEntry
 	// Exporters is a map of exporters to use in final config.
 	// They must be in `config.d/exporters` directory.
 	Exporters map[config.ComponentID]ExporterEntry
@@ -86,7 +88,7 @@ type Config struct {
 func NewConfig(logger *zap.Logger) *Config {
 	return &Config{
 		logger:              logger,
-		Service:             map[string]ServiceEntry{},
+		Service:             ServiceEntry{Entry{}},
 		Exporters:           map[config.ComponentID]ExporterEntry{},
 		Extensions:          map[config.ComponentID]ExtensionEntry{},
 		DiscoveryObservers:  map[config.ComponentID]ExtensionEntry{},
@@ -107,16 +109,27 @@ type keyType interface {
 }
 
 type entryType interface {
-	ServiceEntry | ExporterEntry | ExtensionEntry | ProcessorEntry | ReceiverEntry | ObserverEntry | ReceiverToDiscoverEntry
 	ErrorF(path string, err error) error
+	Self() Entry
 	ToStringMap() map[string]any
 }
 
 type Entry map[string]any
 
-func (e Entry) ToStringMap() map[string]any {
+func (e Entry) Self() Entry {
 	return e
 }
+
+func (e Entry) ToStringMap() map[string]any {
+	cp := map[string]any{}
+	for k, v := range e {
+		cp[k] = v
+	}
+	maps.IntfaceKeysToStrings(cp)
+	return cp
+}
+
+var _ entryType = (*ServiceEntry)(nil)
 
 type ServiceEntry struct {
 	Entry `yaml:",inline"`
@@ -126,6 +139,8 @@ func (ServiceEntry) ErrorF(path string, err error) error {
 	return errorF(typeService, path, err)
 }
 
+var _ entryType = (*ExtensionEntry)(nil)
+
 type ExtensionEntry struct {
 	Entry `yaml:",inline"`
 }
@@ -133,6 +148,8 @@ type ExtensionEntry struct {
 func (ExtensionEntry) ErrorF(path string, err error) error {
 	return errorF(typeExtension, path, err)
 }
+
+var _ entryType = (*ExporterEntry)(nil)
 
 type ExporterEntry struct {
 	Entry `yaml:",inline"`
@@ -142,6 +159,8 @@ func (ExporterEntry) ErrorF(path string, err error) error {
 	return errorF(typeExporter, path, err)
 }
 
+var _ entryType = (*ObserverEntry)(nil)
+
 type ObserverEntry struct {
 	Entry `yaml:",inline"`
 }
@@ -150,6 +169,8 @@ func (ObserverEntry) ErrorF(path string, err error) error {
 	return errorF(typeDiscoveryObserver, path, err)
 }
 
+var _ entryType = (*ProcessorEntry)(nil)
+
 type ProcessorEntry struct {
 	Entry `yaml:",inline"`
 }
@@ -157,6 +178,8 @@ type ProcessorEntry struct {
 func (ProcessorEntry) ErrorF(path string, err error) error {
 	return errorF(typeProcessor, path, err)
 }
+
+var _ entryType = (*ReceiverEntry)(nil)
 
 type ReceiverEntry struct {
 	Entry `yaml:",inline"`
@@ -176,26 +199,33 @@ type ReceiverToDiscoverEntry struct {
 	Entry `yaml:",inline"`
 }
 
+var _ entryType = (*ReceiverToDiscoverEntry)(nil)
+
 func (r ReceiverToDiscoverEntry) ToStringMap() map[string]any {
-	return r.Entry
+	return r.Entry.ToStringMap()
 }
 
 func (ReceiverToDiscoverEntry) ErrorF(path string, err error) error {
 	return errorF(typeReceiverToDiscover, path, err)
 }
 
-func (c *Config) Load(discoveryDPath string) error {
+// Load will walk the file tree from the configDPath root, loading the component
+// files as they are discovered, determined by their parent directory and filename.
+func (c *Config) Load(configDPath string) error {
 	if c == nil {
 		return fmt.Errorf("config must not be nil to be loaded (use NewConfig())")
 	}
-	err := filepath.WalkDir(discoveryDPath, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(configDPath, func(path string, d fs.DirEntry, err error) error {
 		c.logger.Debug("loading component", zap.String("path", path), zap.String("DirEntry", fmt.Sprintf("%#v", d)), zap.Error(err))
 		if err != nil {
 			return err
 		}
 		switch {
 		case isServiceEntryPath(path):
-			return loadEntry(typeService, path, c.Service)
+			// c.Service is not a map[string]ServiceEntry, so we form a tmp
+			// and unmarshal to the underlying ServiceEntry
+			tmpSEMap := map[string]ServiceEntry{typeService: c.Service}
+			return loadEntry(typeService, path, tmpSEMap)
 		case isExporterEntryPath(path):
 			return loadEntry(typeExporter, path, c.Exporters)
 		case isExtensionEntryPath(path):
@@ -220,12 +250,46 @@ func (c *Config) Load(discoveryDPath string) error {
 		c.DiscoveryObservers = nil
 		c.ReceiversToDiscover = nil
 		c.Receivers = nil
-		c.Service = nil
+		c.Service = ServiceEntry{nil}
 		c.Exporters = nil
 		c.Processors = nil
 		c.Extensions = nil
 	}
 	return err
+}
+
+// toServiceConfig renders the loaded Config content
+// suitable for use as a Collector configuration
+func (c Config) toServiceConfig() map[string]any {
+	sc := confmap.New()
+	service := c.Service.ToStringMap()
+	sc.Merge(confmap.NewFromStringMap(map[string]any{typeService: service}))
+
+	receivers := map[string]any{}
+	for k, v := range c.Receivers {
+		receivers[k.String()] = v.ToStringMap()
+	}
+	sc.Merge(confmap.NewFromStringMap(map[string]any{"receivers": receivers}))
+
+	processors := map[string]any{}
+	for k, v := range c.Processors {
+		processors[k.String()] = v.ToStringMap()
+	}
+	sc.Merge(confmap.NewFromStringMap(map[string]any{"processors": processors}))
+
+	exporters := map[string]any{}
+	for k, v := range c.Exporters {
+		exporters[k.String()] = v.ToStringMap()
+	}
+	sc.Merge(confmap.NewFromStringMap(map[string]any{"exporters": exporters}))
+
+	extensions := map[string]any{}
+	for k, v := range c.Extensions {
+		extensions[k.String()] = v.ToStringMap()
+	}
+	sc.Merge(confmap.NewFromStringMap(map[string]any{"extensions": extensions}))
+
+	return sc.ToStringMap()
 }
 
 func errorF(entryType, path string, err error) error {
@@ -264,7 +328,10 @@ func loadEntry[K keyType, V entryType](componentType, path string, target map[K]
 	tmpDest := map[K]V{}
 
 	componentID, err := unmarshalEntry(componentType, path, &tmpDest)
-	noTypeK := componentIDToK(noType, componentID)
+	noTypeK, err2 := stringToKeyType(noType.String(), componentID)
+	if err2 != nil {
+		return err2
+	}
 	if err != nil {
 		return tmpDest[noTypeK].ErrorF(path, err)
 	}
@@ -275,8 +342,14 @@ func loadEntry[K keyType, V entryType](componentType, path string, target map[K]
 
 	if componentType == typeService {
 		// set directly on target and exit
-		for k, v := range tmpDest {
-			target[k] = v
+		typeServiceK, err := stringToKeyType(componentType, componentID)
+		if err != nil {
+			return err
+		}
+		serviceEntry := target[typeServiceK].Self()
+		tmpDstSM := tmpDest[typeServiceK].ToStringMap()
+		for k, v := range tmpDstSM {
+			serviceEntry[keyTypeToString(k)] = v
 		}
 		return nil
 	}
@@ -294,19 +367,31 @@ func unmarshalEntry[K keyType, V entryType](componentType, path string, dst *map
 		err = fmt.Errorf("cannot load %s into nil entry", componentType)
 		return
 	}
-	if err = unmarshalYaml(path, dst); err != nil {
+
+	var unmarshalDst any = dst
+
+	// service is map[string]ServiceEntry{typeService: ServiceEntry} and we want dst to be &ServiceEntry
+	if componentType == typeService {
+		var s any = typeService
+		// service key is always string so this type assertion is safe
+		se := (*dst)[s.(K)]
+		unmarshalDst = &se
+	}
+
+	if err = unmarshalYaml(path, unmarshalDst); err != nil {
 		err = fmt.Errorf("failed unmarshalling component %s: %w", componentType, err)
 		return
 	}
 
-	// service is marshaled as complete item so return as is
 	if componentType == typeService {
-		var s any = typeService
-		// service key is always string so this type assertion is safe
-		return s.(K), nil
+		// reset map[string]ServiceEntry dst w/ unmarshalled ServiceEntry and return
+		var tService any = typeService
+		var serviceEntry any = *(unmarshalDst.(*ServiceEntry))
+		(*dst)[tService.(K)] = serviceEntry.(V)
+		return tService.(K), nil
 	}
 
-	entry := *dst
+	entry := *(unmarshalDst.(*map[K]V))
 
 	if len(entry) == 0 {
 		// empty or all-comment files are supported but ignored
@@ -348,26 +433,35 @@ func unmarshalYaml(path string, out any) error {
 	return nil
 }
 
-func componentIDToK[K keyType](cid config.ComponentID, key K) K {
+func stringToKeyType[K keyType](s string, key K) (K, error) {
 	var componentIDK any
 	for _, kid := range []K{key} {
 		var cidK any = kid
 		switch cidK.(type) {
 		case string:
-			componentIDK = cid.String()
+			var anyS any = s
+			return anyS.(K), nil
 		case config.ComponentID:
-			componentIDK = cid
+			if s == noType.String() {
+				componentIDK = noType
+			} else {
+				var err error
+				if componentIDK, err = config.NewComponentIDFromString(s); err != nil {
+					// nolint:gocritic
+					return *new(K), err // (gocritic suggestion not valid with type parameter)
+				}
+			}
 		}
 		break
 	}
-	return componentIDK.(K)
+	return componentIDK.(K), nil
 }
 
 func keyTypeToString[K keyType](key K) string {
 	var ret string
 	for _, k := range []K{key} {
-		var kk any = k
-		switch i := kk.(type) {
+		var anyK any = k
+		switch i := anyK.(type) {
 		case string:
 			ret = i
 		case config.ComponentID:

@@ -33,6 +33,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 	"github.com/signalfx/splunk-otel-collector/internal/configsources"
+	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery"
 	"github.com/signalfx/splunk-otel-collector/internal/settings"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
 )
@@ -60,6 +61,11 @@ func main() {
 	configServer := configconverter.NewConfigServer()
 	confMapConverters = append(confMapConverters, configServer)
 
+	discovery, err := discovery.New()
+	if err != nil {
+		log.Fatalf("failed to create discovery provider: %v", err)
+	}
+
 	envProvider := envprovider.New()
 	fileProvider := fileprovider.New()
 	serviceConfigProvider, err := service.NewConfigProvider(
@@ -67,6 +73,13 @@ func main() {
 			ResolverSettings: confmap.ResolverSettings{
 				URIs: collectorSettings.ResolverURIs(),
 				Providers: map[string]confmap.Provider{
+					discovery.ConfigDScheme(): configprovider.NewConfigSourceConfigMapProvider(
+						discovery.ConfigDProvider(),
+						zap.NewNop(), // The service logger is not available yet, setting it to NoP.
+						info,
+						configServer,
+						configsources.Get()...,
+					),
 					envProvider.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
 						envProvider,
 						zap.NewNop(), // The service logger is not available yet, setting it to NoP.

@@ -18,16 +18,13 @@
 package tests
 
 import (
-	"fmt"
 	"path"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
-	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
 )
 
 // The Oracle DB container takes close to 10 minutes on a local machine to do the default setup, so the best way to
@@ -43,8 +40,6 @@ func TestOracleDBIntegration(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	expectedResourceMetrics := tc.ResourceMetrics("all.yaml")
-
 	_, stop := tc.Containers(oracledb...)
 	defer stop()
 	env := map[string]string{}
@@ -52,27 +47,7 @@ func TestOracleDBIntegration(t *testing.T) {
 
 	_, shutdown := tc.SplunkOtelCollectorWithEnv("all_metrics_config.yaml", env)
 	defer shutdown()
-	receivedMetrics := telemetry.ResourceMetrics{}
-	var err error
-	assert.Eventually(t, func() bool {
-		if tc.OTLPReceiverSink.DataPointCount() == 0 {
-			if err == nil {
-				err = fmt.Errorf("no metrics received")
-			}
-			return false
-		}
-		receivedOTLPMetrics := tc.OTLPReceiverSink.AllMetrics()
-		tc.OTLPReceiverSink.Reset()
 
-		receivedResourceMetrics, e := telemetry.PDataToResourceMetrics(receivedOTLPMetrics...)
-		require.NoError(t, e)
-		require.NotNil(t, receivedResourceMetrics)
-		receivedMetrics = telemetry.FlattenResourceMetrics(receivedMetrics, receivedResourceMetrics)
-
-		var containsAll bool
-		containsAll, err = receivedMetrics.ContainsAll(*expectedResourceMetrics, false)
-		return containsAll
-	}, 30*time.Second, 10*time.Millisecond, "Failed to receive expected metrics")
-
-	require.NoError(t, err)
+	expectedResourceMetrics := tc.ResourceMetrics("all.yaml")
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }

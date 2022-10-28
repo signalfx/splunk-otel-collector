@@ -34,7 +34,7 @@ func TestLoadMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, 2, len(resourceMetrics.ResourceMetrics))
 
 	firstRM := resourceMetrics.ResourceMetrics[0]
-	firstRMAttrs := firstRM.Resource.Attributes
+	firstRMAttrs := *firstRM.Resource.Attributes
 	require.Equal(t, 2, len(firstRMAttrs))
 	require.NotNil(t, firstRMAttrs["one_attr"])
 	assert.Equal(t, "one_value", firstRMAttrs["one_attr"])
@@ -74,7 +74,7 @@ func TestLoadMetricsHappyPath(t *testing.T) {
 	assert.Empty(t, firstRMSecondScopeMetricsecondMetric.Description)
 
 	secondRM := resourceMetrics.ResourceMetrics[1]
-	require.Zero(t, len(secondRM.Resource.Attributes))
+	require.Nil(t, secondRM.Resource.Attributes)
 
 	assert.Equal(t, 1, len(secondRM.ScopeMetrics))
 	secondRMFirstSM := secondRM.ScopeMetrics[0]
@@ -124,21 +124,21 @@ func TestLoadMetricsInvalidMetricType(t *testing.T) {
 }
 
 func TestResourceMatchesWithAny(t *testing.T) {
-	rReference := Resource{Attributes: map[string]any{
+	rReference := Resource{Attributes: &map[string]any{
 		"one": 1, "two": "<ANY>", "three": nil,
 		"four": []int{1, 2, 3, 4},
 		"five": map[string]any{
 			"true": true, "false": false, "nil": nil,
 		},
 	}}
-	rShouldEqual := Resource{Attributes: map[string]any{
+	rShouldEqual := Resource{Attributes: &map[string]any{
 		"one": 1, "two": "two", "three": nil,
 		"four": []int{1, 2, 3, 4},
 		"five": map[string]any{
 			"true": true, "false": false, "nil": nil,
 		},
 	}}
-	rMissingTwo := Resource{Attributes: map[string]any{
+	rMissingTwo := Resource{Attributes: &map[string]any{
 		"one": 1, "three": nil,
 		"four": []int{1, 2, 3, 4},
 		"five": map[string]any{
@@ -146,8 +146,8 @@ func TestResourceMatchesWithAny(t *testing.T) {
 		},
 	}}
 
-	assert.True(t, rReference.Matches(rShouldEqual))
-	assert.False(t, rReference.Matches(rMissingTwo))
+	assert.True(t, rReference.Equals(rShouldEqual))
+	assert.False(t, rReference.Equals(rMissingTwo))
 }
 
 func TestMetricEquivalence(t *testing.T) {
@@ -294,7 +294,7 @@ func TestMetricHashFunctionConsistency(t *testing.T) {
 }
 
 func TestFlattenResourceMetricsByResourceIdentity(t *testing.T) {
-	resource := Resource{Attributes: map[string]any{"attribute_one": nil, "attribute_two": 123.456}}
+	resource := Resource{Attributes: &map[string]any{"attribute_one": nil, "attribute_two": 123.456}}
 	resourceMetrics := ResourceMetrics{
 		ResourceMetrics: []ResourceMetric{
 			{Resource: resource},
@@ -307,7 +307,7 @@ func TestFlattenResourceMetricsByResourceIdentity(t *testing.T) {
 }
 
 func TestFlattenResourceMetricsByScopeMetricsIdentity(t *testing.T) {
-	resource := Resource{Attributes: map[string]any{"attribute_three": true, "attribute_four": 23456}}
+	resource := Resource{Attributes: &map[string]any{"attribute_three": true, "attribute_four": 23456}}
 	sm := ScopeMetrics{Scope: InstrumentationScope{
 		Name: "an instrumentation library", Version: "an instrumentation library version",
 	}, Metrics: []Metric{}}
@@ -328,7 +328,7 @@ func TestFlattenResourceMetricsByScopeMetricsIdentity(t *testing.T) {
 }
 
 func TestFlattenResourceMetricsByMetricsIdentity(t *testing.T) {
-	resource := Resource{Attributes: map[string]any{}}
+	resource := Resource{}
 	metrics := []Metric{
 		{Name: "a metric", Unit: "a unit", Description: "a description", Value: 123},
 		{Name: "another metric", Unit: "another unit", Description: "another description", Value: 234},
@@ -361,17 +361,17 @@ func TestFlattenResourceMetricsConsistency(t *testing.T) {
 	require.NotNil(t, resourceMetrics)
 	require.Equal(t, resourceMetrics, FlattenResourceMetrics(resourceMetrics))
 	var rms []ResourceMetrics
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 50; i++ {
 		rms = append(rms, resourceMetrics)
 	}
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 50; i++ {
 		require.Equal(t, resourceMetrics, FlattenResourceMetrics(rms...))
 	}
 }
 
 func TestMetricContainsAllSelfCheck(t *testing.T) {
 	resourceMetrics := loadedResourceMetrics(t)
-	containsAll, err := resourceMetrics.ContainsAll(resourceMetrics, true)
+	containsAll, err := resourceMetrics.ContainsAll(resourceMetrics)
 	require.True(t, containsAll, err)
 	require.NoError(t, err)
 }
@@ -383,12 +383,12 @@ func TestMetricContainsAllNoBijection(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, expected)
 
-	containsAll, err := received.ContainsAll(*expected, true)
+	containsAll, err := received.ContainsAll(*expected)
 	require.True(t, containsAll, err)
 	require.NoError(t, err)
 
 	// Since expectedMetrics specify no values, they will never find matches with metrics w/ them.
-	containsAll, err = expected.ContainsAll(received, true)
+	containsAll, err = expected.ContainsAll(received)
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(),
@@ -403,7 +403,7 @@ func TestMetricContainsAllValueNeverReceived(t *testing.T) {
 	require.NotNil(t, expected)
 
 	// neverReceivedMetrics.yaml details a Metric with a value that isn't in resourceMetrics.yaml
-	containsAll, err := received.ContainsAll(*expected, true)
+	containsAll, err := received.ContainsAll(*expected)
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "Missing Metrics: [name: another_int_gauge\ntype: IntGauge\nvalue: 111\n]")
@@ -415,11 +415,11 @@ func TestMetricContainsAllInstrumentationScopeNeverReceived(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, expected)
 
-	// neverReceivedMetrics.yaml details an Instrumentation Library that isn't in resourceMetrics.yaml
-	containsAll, err := received.ContainsAll(*expected, true)
+	// neverReceivedMetrics.yaml details an InstrumentationScope  that isn't in resourceMetrics.yaml
+	containsAll, err := received.ContainsAll(*expected)
 	require.False(t, containsAll)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Missing InstrumentationLibraries: [name: unmatched_instrumentation_scope\n]")
+	require.Contains(t, err.Error(), "Missing InstrumentationScopes: [name: unmatched_instrumentation_scope\n]")
 }
 
 func TestMetricContainsAllResourceNeverReceived(t *testing.T) {
@@ -429,7 +429,7 @@ func TestMetricContainsAllResourceNeverReceived(t *testing.T) {
 	require.NotNil(t, expected)
 
 	// neverReceivedMetrics.yaml details a Resource that isn't in resourceMetrics.yaml
-	containsAll, err := received.ContainsAll(*expected, true)
+	containsAll, err := received.ContainsAll(*expected)
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "Missing resources: [not: matched\n]")
@@ -448,11 +448,11 @@ func TestMetricContainsAllWithMissingAndEmptyAttributes(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, empty)
 
-	containsAll, err := received.ContainsAll(*unspecified, true)
+	containsAll, err := received.ContainsAll(*unspecified)
 	require.True(t, containsAll)
 	require.NoError(t, err)
 
-	containsAll, err = received.ContainsAll(*empty, true)
+	containsAll, err = received.ContainsAll(*empty)
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "Missing Metrics: [attributes: {}\nname: another_int_gauge\ntype: IntGauge\nvalue: 111\n]")

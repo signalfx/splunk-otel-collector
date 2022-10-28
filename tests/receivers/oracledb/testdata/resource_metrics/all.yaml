@@ -2,7 +2,10 @@ resource_metrics:
   - attributes:
       oracledb.instance.name: localhost:1521
     scope_metrics:
-      - metrics:
+      - instrumentation_scope:
+          name: otelcol/oracledbreceiver
+          version: <VERSION_FROM_BUILD>
+        metrics:
           - name: oracledb.cpu_time
             type: DoubleMonotonicCumulativeSum
           - name: oracledb.enqueue_deadlocks

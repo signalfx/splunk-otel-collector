@@ -29,7 +29,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	rms := resourceMetrics.ResourceMetrics
 	assert.Len(t, rms, 1)
 	rm := rms[0]
-	attrs := rm.Resource.Attributes
+	attrs := *rm.Resource.Attributes
 	assert.True(t, attrs["bool"].(bool))
 	assert.Equal(t, "a_string", attrs["string"])
 	assert.Equal(t, 123, attrs["int"])

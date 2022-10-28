@@ -20,12 +20,17 @@ import (
 	"reflect"
 
 	"gopkg.in/yaml.v2"
+
+	"github.com/signalfx/splunk-otel-collector/tests/internal/version"
 )
 
-const buildVersionPlaceholder = "<FROM_BUILD>"
+const (
+	anyValue                = "<ANY>"
+	buildVersionPlaceholder = "<VERSION_FROM_BUILD>"
+)
 
 type Resource struct {
-	Attributes map[string]any `yaml:"attributes,omitempty"`
+	Attributes *map[string]any `yaml:"attributes,omitempty"`
 }
 
 func (resource Resource) String() string {
@@ -42,19 +47,24 @@ func (resource Resource) Hash() string {
 }
 
 // Equals determines the equivalence of two Resource items by their Attributes.
-// TODO: ensure that Resource.Hash equivalence is valid given all possible Attribute values.
 func (resource Resource) Equals(toCompare Resource) bool {
-	// if either attribute map is uninitialized reflection equality is a false negative
-	if len(resource.Attributes) == 0 && len(toCompare.Attributes) == 0 {
-		return true
+	return attributesAreEqual(resource.Attributes, toCompare.Attributes)
+}
+
+func (resource Resource) FillDefaultValues() {
+	if resource.Attributes != nil {
+		for k, v := range *resource.Attributes {
+			if v == buildVersionPlaceholder {
+				(*resource.Attributes)[k] = version.Version
+			}
+		}
 	}
-	return reflect.DeepEqual(resource.Attributes, toCompare.Attributes)
 }
 
 type InstrumentationScope struct {
-	Attributes map[string]any `yaml:"attributes,omitempty"`
-	Name       string         `yaml:"name,omitempty"`
-	Version    string         `yaml:"version,omitempty"`
+	Attributes *map[string]any `yaml:"attributes,omitempty"`
+	Name       string          `yaml:"name,omitempty"`
+	Version    string          `yaml:"version,omitempty"`
 }
 
 func (is InstrumentationScope) String() string {
@@ -71,16 +81,47 @@ func (is InstrumentationScope) Hash() string {
 }
 
 // Equals determines the equivalence of two InstrumentationScope items.
-// TODO: ensure that Resource.Hash equivalence is valid given all possible Attribute values.
 func (is InstrumentationScope) Equals(toCompare InstrumentationScope) bool {
-	return is.Name == toCompare.Name && is.Version == toCompare.Version
+	if is.Name != anyValue {
+		if is.Name != toCompare.Name {
+			return false
+		}
+	}
+	if is.Version != anyValue {
+		if is.Version != toCompare.Version {
+			return false
+		}
+	}
+	return attributesAreEqual(is.Attributes, toCompare.Attributes)
 }
-func (is InstrumentationScope) Matches(toCompare InstrumentationScope, strict bool) bool {
-	if is.Name != toCompare.Name && (strict || is.Name != "") {
+
+// attributesAreEqual determines if the provided `attrs` are the same as
+// `toCompare`, accounting for <ANY> values in `attrs`.
+func attributesAreEqual(attrs, toCompare *map[string]any) bool {
+	if attrs == nil {
+		return true
+	}
+	if toCompare == nil {
 		return false
 	}
-	if is.Version != toCompare.Version && (strict || is.Version != "") {
+	if len(*attrs) != len(*toCompare) {
 		return false
 	}
-	return true
+
+	rAttrs := map[string]any{}
+	tcAttrs := map[string]any{}
+
+	for k, v := range *attrs {
+		tcV, ok := (*toCompare)[k]
+		if !ok {
+			return false
+		}
+		if v == anyValue {
+			continue
+		}
+		rAttrs[k] = v
+		tcAttrs[k] = tcV
+	}
+
+	return reflect.DeepEqual(rAttrs, tcAttrs)
 }

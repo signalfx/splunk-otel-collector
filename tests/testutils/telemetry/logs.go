@@ -19,7 +19,6 @@ import (
 	"crypto/md5" // #nosec this is not for cryptographic purposes
 	"fmt"
 	"os"
-	"reflect"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -86,8 +85,9 @@ func LoadResourceLogs(path string) (*ResourceLogs, error) {
 
 // FillDefaultValues fills ResourceLogs with default values
 func (resourceLogs *ResourceLogs) FillDefaultValues() {
-	for i, rm := range resourceLogs.ResourceLogs {
-		for j, sls := range rm.ScopeLogs {
+	for i, rl := range resourceLogs.ResourceLogs {
+		rl.Resource.FillDefaultValues()
+		for j, sls := range rl.ScopeLogs {
 			if sls.Scope.Version == buildVersionPlaceholder {
 				resourceLogs.ResourceLogs[i].ScopeLogs[j].Scope.Version = version.Version
 			}
@@ -159,13 +159,7 @@ func (log Log) equals(toCompare Log, strict bool) bool {
 		}
 	}
 
-	if log.Attributes != nil {
-		if toCompare.Attributes == nil {
-			return false
-		}
-		return reflect.DeepEqual(*log.Attributes, *toCompare.Attributes)
-	}
-	return true
+	return attributesAreEqual(log.Attributes, toCompare.Attributes)
 }
 
 // FlattenResourceLogs takes multiple instances of ResourceLogs and flattens them
@@ -252,28 +246,29 @@ func FlattenResourceLogs(resourceLogs ...ResourceLogs) ResourceLogs {
 	return flattened
 }
 
-// ContainsAll determines if everything in expectedResourceLogs ResourceLogs is in the receiver ResourceLogs
-// item (i.e. expected ⊆ received). Neither guarantees equivalence, nor that expected contains all of received
-// (i.e. is not an expected ≣ received nor received ⊆ expected check).
+// ContainsAll determines if everything in expected ResourceLogs is in the receiver ResourceLogs
+// item (i.e. expected ⊆ resourceLogs). Neither guarantees equivalence, nor that expected contains all of resourceLogs
+// (i.e. is not an expected ≣ resourceLogs nor resourceLogs ⊆ expected check).
 // Log equivalence is based on RelaxedEquals() check: fields not in expected (e.g. unit, type, value, etc.)
 // are not compared to received, but all labels must match.
 // For better reliability, it's advised that both ResourceLogs items have been flattened by FlattenResourceLogs.
-func (resourceLogs ResourceLogs) ContainsAll(contains ResourceLogs) (bool, error) {
+func (resourceLogs ResourceLogs) ContainsAll(expected ResourceLogs) (bool, error) {
 	var missingResources []string
-	var missingInstrumentationLibraries []string
+	missingInstrumentationScopes := map[string]struct{}{}
 	var missingLogs []string
 
-	for _, expectedResourceLog := range contains.ResourceLogs {
+	for _, expectedResourceLog := range expected.ResourceLogs {
 		resourceMatched := false
 		for _, resourceLog := range resourceLogs.ResourceLogs {
-			if resourceLog.Resource.Equals(expectedResourceLog.Resource) {
+			if expectedResourceLog.Resource.Equals(resourceLog.Resource) {
 				resourceMatched = true
-				for _, expectedILM := range expectedResourceLog.ScopeLogs {
-					InstrumentationScopeMatched := false
+				innerMissingInstrumentationScopes := map[string]struct{}{}
+				for _, expectedSL := range expectedResourceLog.ScopeLogs {
+					matchingInstrumentationScope := ""
 					for _, ilm := range resourceLog.ScopeLogs {
-						if ilm.Scope.Equals(expectedILM.Scope) {
-							InstrumentationScopeMatched = true
-							for _, expectedLog := range expectedILM.Logs {
+						if expectedSL.Scope.Equals(ilm.Scope) {
+							matchingInstrumentationScope = ilm.Scope.String()
+							for _, expectedLog := range expectedSL.Logs {
 								logFound := false
 								for _, log := range ilm.Logs {
 									if expectedLog.RelaxedEquals(log) {
@@ -286,19 +281,37 @@ func (resourceLogs ResourceLogs) ContainsAll(contains ResourceLogs) (bool, error
 							}
 							if len(missingLogs) != 0 {
 								return false, fmt.Errorf(
-									"%v doesn't contain all of %v.  Missing Logs: %s",
-									ilm.Logs, expectedILM.Logs, missingLogs)
+									"%v doesn't contain all of %v. Missing Logs: %s",
+									ilm.Logs, expectedSL.Logs, missingLogs)
 							}
 						}
 					}
-					if !InstrumentationScopeMatched {
-						missingInstrumentationLibraries = append(missingInstrumentationLibraries, expectedILM.Scope.String())
+					if matchingInstrumentationScope != "" {
+						// no longer globally missing
+						delete(missingInstrumentationScopes, matchingInstrumentationScope)
+					} else {
+						innerMissingInstrumentationScopes[expectedSL.Scope.String()] = struct{}{}
 					}
 				}
-				if len(missingInstrumentationLibraries) != 0 {
-					return false, fmt.Errorf(
-						"%v doesn't contain all of  %v.  Missing InstrumentationLibraries: %s",
-						resourceLog.ScopeLogs, expectedResourceLog.ScopeLogs, missingInstrumentationLibraries)
+				if len(innerMissingInstrumentationScopes) != 0 {
+					if expectedResourceLog.Resource.Attributes == nil {
+						// since nil attributes will be equal with everything
+						// keep track of inner missing scopes globally to be
+						// removed above
+						for k, v := range innerMissingInstrumentationScopes {
+							missingInstrumentationScopes[k] = v
+						}
+						continue
+					} else {
+						var missingIS []string
+						for k := range innerMissingInstrumentationScopes {
+							missingIS = append(missingIS, k)
+						}
+						return false, fmt.Errorf(
+							"%v doesn't contain all of %v. Missing InstrumentationScopes: %s",
+							resourceLog.ScopeLogs, expectedResourceLog.ScopeLogs, missingIS,
+						)
+					}
 				}
 			}
 		}
@@ -306,10 +319,17 @@ func (resourceLogs ResourceLogs) ContainsAll(contains ResourceLogs) (bool, error
 			missingResources = append(missingResources, expectedResourceLog.Resource.String())
 		}
 	}
+	if len(missingInstrumentationScopes) != 0 {
+		var missingIS []string
+		for k := range missingInstrumentationScopes {
+			missingIS = append(missingIS, k)
+		}
+		return false, fmt.Errorf("Missing InstrumentationScopes: %s", missingIS)
+	}
 	if len(missingResources) != 0 {
 		return false, fmt.Errorf(
-			"%v doesn't contain all of %v.  Missing resources: %s",
-			resourceLogs.ResourceLogs, contains.ResourceLogs, missingResources,
+			"%v doesn't contain all of %v. Missing resources: %s",
+			resourceLogs.ResourceLogs, expected.ResourceLogs, missingResources,
 		)
 	}
 	return true, nil

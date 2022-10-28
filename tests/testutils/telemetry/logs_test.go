@@ -35,7 +35,7 @@ func TestLoadLogsHappyPath(t *testing.T) {
 	assert.Equal(t, 2, len(resourceLogs.ResourceLogs))
 
 	firstRL := resourceLogs.ResourceLogs[0]
-	firstRLAttrs := firstRL.Resource.Attributes
+	firstRLAttrs := *firstRL.Resource.Attributes
 	require.Equal(t, 2, len(firstRLAttrs))
 	require.NotNil(t, firstRLAttrs["one_attr"])
 	assert.Equal(t, "one_value", firstRLAttrs["one_attr"])
@@ -63,7 +63,7 @@ func TestLoadLogsHappyPath(t *testing.T) {
 	assert.Equal(t, "a string body", firstRLSecondSLFirstLog.Body)
 	assert.Equal(t, plog.SeverityNumber(1), *firstRLSecondSLFirstLog.Severity)
 	assert.Equal(t, "info", firstRLSecondSLFirstLog.SeverityText)
-	firstRLSecondSLFirstLogAttrs := firstRL.Resource.Attributes
+	firstRLSecondSLFirstLogAttrs := *firstRL.Resource.Attributes
 	require.Equal(t, 2, len(firstRLSecondSLFirstLogAttrs))
 	require.NotNil(t, firstRLSecondSLFirstLogAttrs["one_attr"])
 	assert.Equal(t, "one_value", firstRLSecondSLFirstLogAttrs["one_attr"])
@@ -78,7 +78,7 @@ func TestLoadLogsHappyPath(t *testing.T) {
 	assert.Nil(t, firstRLSecondScopeLogSecondLog.Attributes)
 
 	secondRL := resourceLogs.ResourceLogs[1]
-	require.Zero(t, len(secondRL.Resource.Attributes))
+	require.Nil(t, secondRL.Resource.Attributes)
 
 	assert.Equal(t, 1, len(secondRL.ScopeLogs))
 	secondRLFirstSL := secondRL.ScopeLogs[0]
@@ -246,7 +246,7 @@ func TestLogHashFunctionConsistency(t *testing.T) {
 }
 
 func TestFlattenResourceLogsByResourceIdentity(t *testing.T) {
-	resource := Resource{Attributes: map[string]any{"attribute_one": nil, "attribute_two": 123.456}}
+	resource := Resource{Attributes: &map[string]any{"attribute_one": nil, "attribute_two": 123.456}}
 	resourceLogs := ResourceLogs{
 		ResourceLogs: []ResourceLog{
 			{Resource: resource},
@@ -259,7 +259,7 @@ func TestFlattenResourceLogsByResourceIdentity(t *testing.T) {
 }
 
 func TestFlattenResourceLogsByScopeLogsIdentity(t *testing.T) {
-	resource := Resource{Attributes: map[string]any{"attribute_three": true, "attribute_four": 23456}}
+	resource := Resource{Attributes: &map[string]any{"attribute_three": true, "attribute_four": 23456}}
 	sm := ScopeLogs{Scope: InstrumentationScope{
 		Name: "an instrumentation library", Version: "an instrumentation library version",
 	}, Logs: []Log{}}
@@ -283,7 +283,7 @@ func TestFlattenResourceLogsByLogsIdentity(t *testing.T) {
 	sevOne := plog.SeverityNumberTrace
 	sevTwo := plog.SeverityNumberTrace2
 	sevThree := plog.SeverityNumberTrace3
-	resource := Resource{Attributes: map[string]any{}}
+	resource := Resource{Attributes: &map[string]any{}}
 	logs := []Log{
 		{Body: "a log", SeverityText: "a severity_text", Severity: &sevOne},
 		{Body: "another log", SeverityText: "another severity_text", Severity: &sevTwo},
@@ -316,10 +316,10 @@ func TestFlattenResourceLogsConsistency(t *testing.T) {
 	require.NotNil(t, resourceLogs)
 	require.Equal(t, resourceLogs, FlattenResourceLogs(resourceLogs))
 	var rms []ResourceLogs
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 50; i++ {
 		rms = append(rms, resourceLogs)
 	}
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 50; i++ {
 		require.Equal(t, resourceLogs, FlattenResourceLogs(rms...))
 	}
 }
@@ -370,11 +370,11 @@ func TestLogContainsAllInstrumentationScopeNeverReceived(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, expected)
 
-	// neverReceivedLogs.yaml details an Instrumentation Library that isn't in resourceLogs.yaml
+	// neverReceivedLogs.yaml details an InstrumentationScope that isn't in resourceLogs.yaml
 	containsAll, err := received.ContainsAll(*expected)
 	require.False(t, containsAll)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Missing InstrumentationLibraries: [name: unmatched_instrumentation_scope\n]")
+	require.Contains(t, err.Error(), "Missing InstrumentationScopes: [name: unmatched_instrumentation_scope\n]")
 }
 
 func TestLogContainsAllResourceNeverReceived(t *testing.T) {

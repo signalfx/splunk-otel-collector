@@ -30,14 +30,17 @@ func PDataToResourceMetrics(pdataMetrics ...pmetric.Metrics) (ResourceMetrics, e
 		for i := 0; i < numRM; i++ {
 			rm := ResourceMetric{}
 			pdataRM := pdataRMs.At(i)
-			rm.Resource.Attributes = sanitizeAttributes(pdataRM.Resource().Attributes().AsRaw())
+			sanitizedAttrs := sanitizeAttributes(pdataRM.Resource().Attributes().AsRaw())
+			rm.Resource.Attributes = &sanitizedAttrs
 			pdataSMs := pdataRM.ScopeMetrics()
 			for j := 0; j < pdataSMs.Len(); j++ {
 				ISMs := ScopeMetrics{Metrics: []Metric{}}
 				pdataSM := pdataSMs.At(j)
+				attrs := pdataSM.Scope().Attributes().AsRaw()
 				ISMs.Scope = InstrumentationScope{
-					Name:    pdataSM.Scope().Name(),
-					Version: pdataSM.Scope().Version(),
+					Name:       pdataSM.Scope().Name(),
+					Version:    pdataSM.Scope().Version(),
+					Attributes: &attrs,
 				}
 				for k := 0; k < pdataSM.Metrics().Len(); k++ {
 					pdMetric := pdataSM.Metrics().At(k)

@@ -27,7 +27,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var configFromArgsPattern = regexp.MustCompile("--config($|[^d]+)")
+var configFromArgsPattern = regexp.MustCompile("--config($|[^d-]+)")
 
 var _ Collector = (*CollectorContainer)(nil)
 var _ testcontainers.LogConsumer = (*collectorLogConsumer)(nil)
@@ -120,10 +120,12 @@ func (collector CollectorContainer) Build() (Collector, error) {
 
 	collector.Container = collector.Container.WithExposedPorts(collector.Ports...)
 
-	if collector.Fail {
-		collector.Container = collector.Container.WillWaitForLogs("")
-	} else {
-		collector.Container = collector.Container.WillWaitForLogs("Everything is ready. Begin running and processing data.")
+	if len(collector.Container.WaitingFor) == 0 {
+		if collector.Fail {
+			collector.Container = collector.Container.WillWaitForLogs("")
+		} else {
+			collector.Container = collector.Container.WillWaitForLogs("Everything is ready. Begin running and processing data.")
+		}
 	}
 
 	if len(collector.Args) > 0 {

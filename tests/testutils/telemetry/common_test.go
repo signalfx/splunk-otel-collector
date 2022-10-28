@@ -22,7 +22,7 @@ import (
 )
 
 func TestResourceHashFunctionConsistency(t *testing.T) {
-	resource := Resource{Attributes: map[string]any{
+	resource := Resource{Attributes: &map[string]any{
 		"one": "1", "two": 2, "three": 3.000, "four": false, "five": nil,
 	}}
 	for i := 0; i < 100; i++ {
@@ -36,21 +36,24 @@ func TestResourceHashFunctionConsistency(t *testing.T) {
 }
 
 func TestEmptyResourcesAreEqual(t *testing.T) {
-	rOne := Resource{Attributes: map[string]any{}}
-	rTwo := Resource{}
+	rOne := Resource{Attributes: &map[string]any{}}
+	rTwo := Resource{Attributes: &map[string]any{}}
+	rThree := Resource{}
 
 	require.True(t, rOne.Equals(rTwo))
 	require.True(t, rTwo.Equals(rOne))
+	require.True(t, rThree.Equals(rOne))
+	// nil attrs aren't equal to empty map
+	require.False(t, rTwo.Equals(rThree))
 
 	for i := 0; i < 100; i++ {
 		require.Equal(t, rOne.Hash(), rTwo.Hash())
 	}
-
 }
 
 func TestResourceEquivalence(t *testing.T) {
 	resource := func() Resource {
-		return Resource{Attributes: map[string]any{
+		return Resource{Attributes: &map[string]any{
 			"one": 1, "two": "two", "three": nil,
 			"four": []int{1, 2, 3, 4},
 			"five": map[string]any{
@@ -66,10 +69,10 @@ func TestResourceEquivalence(t *testing.T) {
 	assert.True(t, rOne.Equals(rTwo))
 	assert.True(t, rTwo.Equals(rOne))
 
-	rTwo.Attributes["five"].(map[string]any)["another"] = "item"
+	(*rTwo.Attributes)["five"].(map[string]any)["another"] = "item"
 	assert.False(t, rOne.Equals(rTwo))
 	assert.False(t, rTwo.Equals(rOne))
-	rOne.Attributes["five"].(map[string]any)["another"] = "item"
+	(*rOne.Attributes)["five"].(map[string]any)["another"] = "item"
 	assert.True(t, rOne.Equals(rTwo))
 	assert.True(t, rTwo.Equals(rOne))
 }

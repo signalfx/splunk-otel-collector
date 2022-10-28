@@ -19,7 +19,6 @@ import (
 	"crypto/md5" // #nosec this is not for cryptographic purposes
 	"fmt"
 	"os"
-	"reflect"
 
 	"gopkg.in/yaml.v2"
 
@@ -43,10 +42,6 @@ const (
 	IntNonmonotonicCumulativeSum     MetricType = "IntNonmonotonicCumulativeSum"
 	IntNonmonotonicDeltaSum          MetricType = "IntNonmonotonicDeltaSum"
 	IntNonmonotonicUnspecifiedSum    MetricType = "IntNonmonotonicUnspecifiedSum"
-)
-
-const (
-	anyValue = "<ANY>"
 )
 
 var supportedMetricTypeOptions = fmt.Sprintf(
@@ -129,9 +124,20 @@ func LoadResourceMetrics(path string) (*ResourceMetrics, error) {
 // FillDefaultValues fills ResourceMetrics with default values
 func (resourceMetrics *ResourceMetrics) FillDefaultValues() {
 	for i, rm := range resourceMetrics.ResourceMetrics {
-		for j, ilm := range rm.ScopeMetrics {
-			if ilm.Scope.Version == buildVersionPlaceholder {
+		rm.Resource.FillDefaultValues()
+		for j, sms := range rm.ScopeMetrics {
+			if sms.Scope.Version == buildVersionPlaceholder {
 				resourceMetrics.ResourceMetrics[i].ScopeMetrics[j].Scope.Version = version.Version
+			}
+
+			for _, m := range sms.Metrics {
+				if m.Attributes != nil {
+					for k, v := range *m.Attributes {
+						if v == buildVersionPlaceholder {
+							(*m.Attributes)[k] = version.Version
+						}
+					}
+				}
 			}
 		}
 	}
@@ -152,27 +158,6 @@ func (resourceMetrics ResourceMetrics) Validate() error {
 		}
 	}
 	return nil
-}
-
-// Matches determines the equivalence of two Resource items by their Attributes.
-func (resource Resource) Matches(toCompare Resource) bool {
-	if len(resource.Attributes) != len(toCompare.Attributes) {
-		return false
-	}
-	for k, v := range resource.Attributes {
-		toCompareV, ok := toCompare.Attributes[k]
-		if !ok {
-			return false
-		}
-		if v == anyValue {
-			continue
-		}
-		if !reflect.DeepEqual(v, toCompareV) {
-			return false
-		}
-
-	}
-	return true
 }
 
 func (metric Metric) String() string {
@@ -230,10 +215,7 @@ func (metric Metric) equals(toCompare Metric, strict bool) bool {
 		return false
 	}
 
-	if metric.Attributes != nil {
-		return reflect.DeepEqual(metric.Attributes, toCompare.Attributes)
-	}
-	return true
+	return attributesAreEqual(metric.Attributes, toCompare.Attributes)
 }
 
 // FlattenResourceMetrics takes multiple instances of ResourceMetrics and flattens them
@@ -320,27 +302,28 @@ func FlattenResourceMetrics(resourceMetrics ...ResourceMetrics) ResourceMetrics 
 	return flattened
 }
 
-// ContainsAll determines if everything in `contains` ResourceMetrics is in the receiver ResourceMetrics
-// item (i.e. expected ⊆ received). Neither guarantees equivalence, nor that expected contains all of received
-// (i.e. is not an expected ≣ received nor received ⊆ expected check).
+// ContainsAll determines if everything in `expected` ResourceMetrics is in the receiver ResourceMetrics
+// item (i.e. expected ⊆ resourceMetrics). Neither guarantees equivalence, nor that expected contains all of received
+// (i.e. is not an expected ≣ resourceMetrics nor resourceMetrics ⊆ expected check).
 // Metric equivalence is based on RelaxedEquals() check: fields not in expected (e.g. unit, type, value, etc.)
 // are not compared to received, but all labels must match.
 // For better reliability, it's advised that both ResourceMetrics items have been flattened by FlattenResourceMetrics.
-func (resourceMetrics ResourceMetrics) ContainsAll(expected ResourceMetrics, strictInstrumentationLibraryMatch bool) (bool, error) {
+func (resourceMetrics ResourceMetrics) ContainsAll(expected ResourceMetrics) (bool, error) {
 	var missingResources []string
-	var missingInstrumentationLibraries []string
+	missingInstrumentationScopes := map[string]struct{}{}
 	var missingMetrics []string
 
 	for _, expectedResourceMetric := range expected.ResourceMetrics {
 		resourceMatched := false
 		for _, resourceMetric := range resourceMetrics.ResourceMetrics {
-			if resourceMetric.Resource.Equals(expectedResourceMetric.Resource) {
+			if expectedResourceMetric.Resource.Equals(resourceMetric.Resource) {
 				resourceMatched = true
+				innerMissingInstrumentationScopes := map[string]struct{}{}
 				for _, expectedILM := range expectedResourceMetric.ScopeMetrics {
-					InstrumentationScopeMatched := false
+					matchingInstrumentationScope := ""
 					for _, ilm := range resourceMetric.ScopeMetrics {
-						if expectedILM.Scope.Matches(ilm.Scope, strictInstrumentationLibraryMatch) {
-							InstrumentationScopeMatched = true
+						if expectedILM.Scope.Equals(ilm.Scope) {
+							matchingInstrumentationScope = ilm.Scope.String()
 							for _, expectedMetric := range expectedILM.Metrics {
 								metricFound := false
 								for _, metric := range ilm.Metrics {
@@ -354,19 +337,37 @@ func (resourceMetrics ResourceMetrics) ContainsAll(expected ResourceMetrics, str
 							}
 							if len(missingMetrics) != 0 {
 								return false, fmt.Errorf(
-									"%v doesn't contain all of %v.  Missing Metrics: %s",
+									"%v doesn't contain all of %v. Missing Metrics: %s",
 									ilm.Metrics, expectedILM.Metrics, missingMetrics)
 							}
 						}
 					}
-					if !InstrumentationScopeMatched {
-						missingInstrumentationLibraries = append(missingInstrumentationLibraries, expectedILM.Scope.String())
+					if matchingInstrumentationScope != "" {
+						// no longer globally missing
+						delete(missingInstrumentationScopes, matchingInstrumentationScope)
+					} else {
+						innerMissingInstrumentationScopes[expectedILM.Scope.String()] = struct{}{}
 					}
 				}
-				if len(missingInstrumentationLibraries) != 0 {
-					return false, fmt.Errorf(
-						"%v doesn't contain all of  %v.  Missing InstrumentationLibraries: %s",
-						resourceMetric.ScopeMetrics, expectedResourceMetric.ScopeMetrics, missingInstrumentationLibraries)
+				if len(innerMissingInstrumentationScopes) != 0 {
+					if expectedResourceMetric.Resource.Attributes == nil {
+						// since nil attributes will be equal with everything
+						// keep track of inner missing scopes globally to be
+						// removed above
+						for k, v := range innerMissingInstrumentationScopes {
+							missingInstrumentationScopes[k] = v
+						}
+						continue
+					} else {
+						var missingIS []string
+						for k := range innerMissingInstrumentationScopes {
+							missingIS = append(missingIS, k)
+						}
+						return false, fmt.Errorf(
+							"%v doesn't contain all of %v. Missing InstrumentationScopes: %s",
+							resourceMetric.ScopeMetrics, expectedResourceMetric.ScopeMetrics, missingIS,
+						)
+					}
 				}
 			}
 		}
@@ -374,9 +375,16 @@ func (resourceMetrics ResourceMetrics) ContainsAll(expected ResourceMetrics, str
 			missingResources = append(missingResources, expectedResourceMetric.Resource.String())
 		}
 	}
+	if len(missingInstrumentationScopes) != 0 {
+		var missingIS []string
+		for k := range missingInstrumentationScopes {
+			missingIS = append(missingIS, k)
+		}
+		return false, fmt.Errorf("Missing InstrumentationScopes: %s", missingIS)
+	}
 	if len(missingResources) != 0 {
 		return false, fmt.Errorf(
-			"%v doesn't contain all of %v.  Missing resources: %s",
+			"%v doesn't contain all of %v. Missing resources: %s",
 			resourceMetrics.ResourceMetrics, expected.ResourceMetrics, missingResources,
 		)
 	}

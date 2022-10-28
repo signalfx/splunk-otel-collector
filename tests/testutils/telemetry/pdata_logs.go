@@ -30,7 +30,8 @@ func PDataToResourceLogs(pdataLogs ...plog.Logs) (ResourceLogs, error) {
 		for i := 0; i < numRM; i++ {
 			rl := ResourceLog{}
 			pdataRL := pdataRLs.At(i)
-			rl.Resource.Attributes = sanitizeAttributes(pdataRL.Resource().Attributes().AsRaw())
+			sanitizedAttrs := sanitizeAttributes(pdataRL.Resource().Attributes().AsRaw())
+			rl.Resource.Attributes = &sanitizedAttrs
 			pdataSLs := pdataRL.ScopeLogs()
 			for j := 0; j < pdataSLs.Len(); j++ {
 				sls := ScopeLogs{Logs: []Log{}}
@@ -39,7 +40,7 @@ func PDataToResourceLogs(pdataLogs ...plog.Logs) (ResourceLogs, error) {
 				sls.Scope = InstrumentationScope{
 					Name:       pdataSL.Scope().Name(),
 					Version:    pdataSL.Scope().Version(),
-					Attributes: attrs,
+					Attributes: &attrs,
 				}
 				for k := 0; k < pdataSL.LogRecords().Len(); k++ {
 					pdLR := pdataSL.LogRecords().At(k)

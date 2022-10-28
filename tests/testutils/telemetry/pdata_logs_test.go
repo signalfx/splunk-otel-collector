@@ -30,7 +30,7 @@ func TestPDataToResourceLogsHappyPath(t *testing.T) {
 	rls := resourceLogs.ResourceLogs
 	assert.Len(t, rls, 1)
 	rl := rls[0]
-	attrs := rl.Resource.Attributes
+	attrs := *rl.Resource.Attributes
 	assert.True(t, attrs["bool"].(bool))
 	assert.Equal(t, "a_string", attrs["string"].(string))
 	assert.Equal(t, 123, attrs["int"])

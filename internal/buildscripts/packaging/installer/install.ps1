@@ -394,6 +394,10 @@ if ($with_fluentd -And (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
     throw "$fluentd_base_dir\bin\fluentd is already installed. Remove/Uninstall fluentd and re-run this script."
 }
 
+if ($with_dotnet_instrumentation -and Get-IsSignalFxInstalled) {
+    throw "SignalFx Instrumentation for .NET is already installed. Remove/Uninstall SignalFx Instrumentation for .NET and re-run this script."
+}
+
 if ($ingest_url -eq "") {
     $ingest_url = "https://ingest.$realm.signalfx.com"
 }

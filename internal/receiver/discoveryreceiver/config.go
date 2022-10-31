@@ -27,20 +27,11 @@ import (
 	"go.uber.org/multierr"
 	"gopkg.in/yaml.v2"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver/statussources"
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 var (
 	_ config.Receiver = (*Config)(nil)
-
-	allowedStatusTypes = []string{"successful", "partial", "failed"}
-	allowedStatuses    = func() map[string]struct{} {
-		sm := map[string]struct{}{}
-		for _, status := range allowedStatusTypes {
-			sm[status] = struct{}{}
-		}
-		return sm
-	}()
 
 	allowedMatchTypes = []string{"regexp", "strict", "expr"}
 
@@ -82,8 +73,8 @@ type ReceiverEntry struct {
 // Status defines the Match rules for applicable app and telemetry sources.
 // At this time only Metrics and zap logger Statements status source types are supported.
 type Status struct {
-	Metrics    map[string][]Match `mapstructure:"metrics"`
-	Statements map[string][]Match `mapstructure:"statements"`
+	Metrics    map[discovery.StatusType][]Match `mapstructure:"metrics"`
+	Statements map[discovery.StatusType][]Match `mapstructure:"statements"`
 }
 
 // Match defines the rules for the desired match type and resulting log record
@@ -144,18 +135,18 @@ func (s *Status) validate() error {
 	}
 
 	if len(s.Metrics) == 0 && len(s.Statements) == 0 {
-		return fmt.Errorf("`status` must contain at least one `metrics` or `statements` mapping with at least one of %v", allowedStatusTypes)
+		return fmt.Errorf("`status` must contain at least one `metrics` or `statements` mapping with at least one of %v", discovery.StatusTypes)
 	}
 
 	var err error
 	statusSources := []struct {
-		matches    map[string][]Match
+		matches    map[discovery.StatusType][]Match
 		sourceType string
 	}{{s.Metrics, "metrics"}, {s.Statements, "statements"}}
 	for _, statusSource := range statusSources {
 		for statusType, statements := range statusSource.matches {
-			if _, ok := allowedStatuses[statusType]; !ok {
-				err = multierr.Combine(err, fmt.Errorf("unsupported status %q. must be one of %v", statusType, allowedStatusTypes))
+			if ok, e := discovery.IsValidStatus(statusType); !ok {
+				err = multierr.Combine(err, e)
 				continue
 			}
 			for _, logMatch := range statements {
@@ -220,10 +211,10 @@ func (cfg *Config) receiverCreatorReceiversConfig(correlations correlationStore)
 		for k, v := range rEntry.ResourceAttributes {
 			resourceAttributes[k] = v
 		}
-		resourceAttributes[statussources.ReceiverNameAttr] = receiverID.Name()
-		resourceAttributes[statussources.ReceiverTypeAttr] = string(receiverID.Type())
+		resourceAttributes[discovery.ReceiverNameAttr] = receiverID.Name()
+		resourceAttributes[discovery.ReceiverTypeAttr] = string(receiverID.Type())
 		resourceAttributes[receiverRuleAttr] = rEntry.Rule
-		resourceAttributes[statussources.EndpointIDAttr] = "`id`"
+		resourceAttributes[discovery.EndpointIDAttr] = "`id`"
 
 		if cfg.EmbedReceiverConfig {
 			embeddedConfig := map[string]any{}
@@ -244,8 +235,8 @@ func (cfg *Config) receiverCreatorReceiversConfig(correlations correlationStore)
 				return nil, fmt.Errorf("failed embedding %q receiver config: %w", receiverID.String(), err)
 			}
 			encoded := base64.StdEncoding.EncodeToString(configYaml)
-			resourceAttributes[receiverConfigAttr] = encoded
-			correlations.UpdateAttrs(receiverID, map[string]string{receiverConfigAttr: encoded})
+			resourceAttributes[discovery.ReceiverConfigAttr] = encoded
+			correlations.UpdateAttrs(receiverID, map[string]string{discovery.ReceiverConfigAttr: encoded})
 		}
 
 		rEntryMap := map[string]any{}

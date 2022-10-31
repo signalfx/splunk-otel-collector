@@ -1,0 +1,12 @@
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+service:
+  telemetry:
+    metrics:
+      address: ""
+  pipelines:
+    metrics:
+      exporters: [otlp]
+

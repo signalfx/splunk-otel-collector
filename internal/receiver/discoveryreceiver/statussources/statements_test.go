@@ -25,6 +25,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
+
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 func TestStatementFromZapCoreEntry(t *testing.T) {
@@ -171,7 +173,7 @@ func FuzzReceiverNameToIDs(f *testing.F) {
 			lr.Attributes().PutString("name", receiverName)
 			receiverID, endpointID := ReceiverNameToIDs(lr)
 			// if we can't find a receiver we should never return an EndpointID
-			if receiverID == NoType {
+			if receiverID == discovery.NoType {
 				require.Equal(t, observer.EndpointID(""), endpointID)
 			} else if receiverID.Type() == config.Type("") {
 				// if the receiver type is empty the name should also be empty

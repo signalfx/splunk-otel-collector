@@ -56,8 +56,8 @@ const (
 	DefaultMemoryLimitPercentage   = 90
 	DefaultMemoryTotalMiB          = 512
 
-	DiscoveryModeScheme = "splunk.discovery.mode"
-	ConfigDScheme       = "splunk.config.d"
+	DiscoveryModeScheme = "splunk.discovery"
+	ConfigDScheme       = "splunk.configd"
 )
 
 type Settings interface {
@@ -104,6 +104,7 @@ type flags struct {
 	noConvertConfig   bool
 	configD           bool
 	discoveryMode     bool
+	discoveryDryRun   bool
 }
 
 func (f *flags) ResolverURIs() []string {
@@ -115,14 +116,21 @@ func (f *flags) ResolverURIs() []string {
 	}
 
 	configDir := getConfigDir(f)
+
+	if f.discoveryDryRun {
+		removeFlag(&f.serviceArgs, "--dry-run")
+	}
+
 	if f.configD {
 		removeFlag(&f.serviceArgs, "--configd")
-		configPaths = append(configPaths, fmt.Sprintf("%s:%s", ConfigDScheme, configDir))
+		// config.d doesn't support --dry-run at this time
+		configPaths = append(configPaths, fmt.Sprintf("%s:false%c%s", ConfigDScheme, rune(30), configDir))
 	}
+
 	if f.discoveryMode {
 		removeFlag(&f.serviceArgs, "--discovery")
 		// discovery uri must come last to successfully merge w/ other config content
-		configPaths = append(configPaths, fmt.Sprintf("%s:%s", DiscoveryModeScheme, configDir))
+		configPaths = append(configPaths, fmt.Sprintf("%s:%t%c%s", DiscoveryModeScheme, f.discoveryDryRun, rune(30), f.configDir))
 	}
 
 	configYaml := os.Getenv(ConfigYamlEnvVar)
@@ -207,6 +215,7 @@ func newFlags(args []string) (*flags, error) {
 	flagSet.BoolVar(&settings.configD, "configd", false, "")
 	flagSet.Var(settings.configDir, "config-dir", "")
 	flagSet.BoolVar(&settings.discoveryMode, "discovery", false, "")
+	flagSet.BoolVar(&settings.discoveryDryRun, "dry-run", false, "")
 
 	flagSet.Var(settings.configPaths, "config", "")
 	flagSet.Var(settings.setProperties, "set", "")

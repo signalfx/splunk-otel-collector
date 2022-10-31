@@ -28,6 +28,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/buffer"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 var (
@@ -107,7 +109,7 @@ func ReceiverNameToIDs(record plog.LogRecord) (receiverID config.ComponentID, en
 	nameAttr, ok := record.Attributes().Get("name")
 	if !ok {
 		// there is nothing we can do without a receiver name
-		return NoType, ""
+		return discovery.NoType, ""
 	}
 	receiverName := nameAttr.AsString()
 
@@ -122,21 +124,21 @@ func ReceiverNameToIDs(record plog.LogRecord) (receiverID config.ComponentID, en
 	// one "receiver_creator" and one "{endpoint=<Endpoint.Target>}" separator or are unable to be decomposed
 	for _, re := range []*regexp.Regexp{ReceiverCreatorRegexp, EndpointTargetRegexp} {
 		if matches := re.FindAllStringSubmatch(receiverName, -1); len(matches) != 1 {
-			return NoType, ""
+			return discovery.NoType, ""
 		}
 	}
 
 	var rcIdx int
 	if rcIdx = strings.Index(receiverName, "receiver_creator/"); rcIdx == -1 {
 		// previous check enforces this to not be the case but for good measure
-		return NoType, ""
+		return discovery.NoType, ""
 	}
 	nameSection := receiverName[:rcIdx]
 	endpointSection := receiverName[rcIdx:]
 
 	var nameMatches []string
 	if nameMatches = receiverNameRegexp.FindStringSubmatch(nameSection); len(nameMatches) < 2 {
-		return NoType, ""
+		return discovery.NoType, ""
 	}
 	rType := nameMatches[1]
 

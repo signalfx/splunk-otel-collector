@@ -1,0 +1,9 @@
+telemetry:
+  metrics:
+    address: "localhost:${INTERNAL_PROMETHEUS_PORT}"
+pipelines:
+  metrics:
+    receivers:
+      - otlp
+    exporters:
+      - logging 

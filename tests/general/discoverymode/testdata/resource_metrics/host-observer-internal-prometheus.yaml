@@ -1,0 +1,15 @@
+resource_metrics:
+  - attributes:
+      http.scheme: http
+      net.host.port: <ANY>
+      service.instance.id: <ANY>
+      service.name: <ANY>
+    scope_metrics:
+      - metrics:
+          - name: otelcol_exporter_enqueue_failed_log_records
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              exporter: logging
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>

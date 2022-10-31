@@ -1,0 +1,16 @@
+prometheus_simple:
+  rule:
+    host_observer: type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}
+  config:
+    default:
+      collection_interval: invalid
+    host_observer:
+      collection_interval: 1s
+  status:
+    metrics:
+      successful:
+        - strict: otelcol_exporter_enqueue_failed_metric_points
+          first_only: true
+          log_record:
+            severity_text: info
+            body: internal collector prometheus exporter detected

@@ -394,8 +394,18 @@ if ($with_fluentd -And (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
     throw "$fluentd_base_dir\bin\fluentd is already installed. Remove/Uninstall fluentd and re-run this script."
 }
 
-if ($with_dotnet_instrumentation -and Get-IsSignalFxInstalled) {
-    throw "SignalFx Instrumentation for .NET is already installed. Remove/Uninstall SignalFx Instrumentation for .NET and re-run this script."
+if ($with_dotnet_instrumentation) {
+    echo "Installing SignalFx Instrumentation for .NET ..."
+    $api = "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
+    $module_name = "Splunk.SignalFx.DotNet.psm1"
+    echo "Downloading .NET Instrumentation installer ..."
+    $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $module_name } | Select-Object -Property browser_download_url,name
+    $dotnet_autoinstr_path = Join-Path $tempdir $download.name
+    Invoke-WebRequest -Uri $download.browser_download_url -OutFile $dotnet_autoinstr_path
+    Import-Module $dotnet_autoinstr_path
+    if (Get-IsSignalFxInstalled) {
+        throw "SignalFx Instrumentation for .NET is already installed. Remove/Uninstall SignalFx Instrumentation for .NET and re-run this script."
+    }
 }
 
 if ($ingest_url -eq "") {
@@ -559,14 +569,6 @@ if ($with_fluentd) {
 }
 
 if ($with_dotnet_instrumentation) {
-    echo "Installing SignalFx Instrumentation for .NET ..."
-    $api = "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
-    $module_name = "Splunk.SignalFx.DotNet.psm1"
-    echo "Downloading .NET Instrumentation installer ..."
-    $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $module_name } | Select-Object -Property browser_download_url,name
-    $dotnet_auto_path = Join-Path $tempdir $download.name
-    Invoke-WebRequest -Uri $download.browser_download_url -OutFile $dotnet_auto_path
-    Import-Module $dotnet_auto_path
     echo "Installing SignalFx Dotnet Auto Instrumentation..."
     Install-SignalFxDotnet
 

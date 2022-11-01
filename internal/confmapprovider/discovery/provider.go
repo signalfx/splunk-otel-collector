@@ -18,13 +18,11 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/internal/settings"
 )
@@ -98,10 +96,11 @@ func (m *mapProvider) DiscoveryModeProvider() confmap.Provider {
 
 func (m *mapProvider) retrieve(scheme string) func(context.Context, string, confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	return func(ctx context.Context, uri string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
-		configDir, dryRun, err := configDirAndDryRun(uri, scheme)
-		if err != nil {
-			return nil, fmt.Errorf("uri failed validation: %w", err)
+		schemePrefix := fmt.Sprintf("%s:", scheme)
+		if !strings.HasPrefix(uri, schemePrefix) {
+			return nil, fmt.Errorf("uri %q is not supported by %s provider", uri, scheme)
 		}
+		configDir := uri[len(schemePrefix):]
 
 		var cfg *Config
 		var ok bool
@@ -122,44 +121,11 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 			if err != nil {
 				return nil, fmt.Errorf("failed to successfully discover target services: %w", err)
 			}
-			if dryRun {
-				printYamlAndExit(discoveryCfg)
-			}
 			return confmap.NewRetrieved(discoveryCfg)
 		}
 
 		return nil, fmt.Errorf("unsupported %s scheme %q", scheme, uri)
 	}
-}
-
-func configDirAndDryRun(uri, scheme string) (string, bool, error) {
-	schemePrefix := fmt.Sprintf("%s:", scheme)
-	if !strings.HasPrefix(uri, schemePrefix) {
-		return "", false, fmt.Errorf("uri %q is not supported by %s provider", uri, scheme)
-	}
-
-	sepIdx := strings.IndexByte(uri, byte(rune(30)))
-	if sepIdx == -1 {
-		return "", false, fmt.Errorf("invalid uri missing record separator: %q", uri)
-	}
-
-	dryRunBoolStr := uri[len(schemePrefix):sepIdx]
-	dryRun, err := strconv.ParseBool(dryRunBoolStr)
-	if err != nil {
-		return "", false, fmt.Errorf("invalid dry run arg %q from %q", dryRunBoolStr, uri)
-	}
-
-	configDir := uri[sepIdx+1:]
-	return configDir, dryRun, nil
-}
-
-func printYamlAndExit(cfg map[string]any) {
-	out, err := yaml.Marshal(cfg)
-	if err != nil {
-		panic(fmt.Errorf("failed marshaling discovery config: %w", err))
-	}
-	fmt.Printf("%s", out)
-	os.Exit(0)
 }
 
 func (m *mapProvider) ConfigDScheme() string {

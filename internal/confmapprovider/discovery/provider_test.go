@@ -36,7 +36,7 @@ func TestConfigDProviderHappyPath(t *testing.T) {
 	assert.Equal(t, "splunk.configd", configD.Scheme())
 
 	configDir := filepath.Join(".", "testdata", "config.d")
-	retrieved, err := configD.Retrieve(context.Background(), fmt.Sprintf("%s:false%c%s", configD.Scheme(), rune(30), configDir), nil)
+	retrieved, err := configD.Retrieve(context.Background(), fmt.Sprintf("%s:%s", configD.Scheme(), configDir), nil)
 	assert.NoError(t, err)
 	require.NotNil(t, retrieved)
 
@@ -54,7 +54,7 @@ func TestConfigDProviderDifferentConfigDirs(t *testing.T) {
 
 	configD := provider.ConfigDProvider()
 	configDir := filepath.Join(".", "testdata", "config.d")
-	retrieved, err := configD.Retrieve(context.Background(), fmt.Sprintf("%s:false%c%s", configD.Scheme(), rune(30), configDir), nil)
+	retrieved, err := configD.Retrieve(context.Background(), fmt.Sprintf("%s:%s", configD.Scheme(), configDir), nil)
 	assert.NoError(t, err)
 	require.NotNil(t, retrieved)
 	conf, err := retrieved.AsRaw()
@@ -62,7 +62,7 @@ func TestConfigDProviderDifferentConfigDirs(t *testing.T) {
 	assert.Equal(t, expectedServiceConfig, conf)
 
 	configDir = filepath.Join(".", "testdata", "another-config.d")
-	retrieved, err = configD.Retrieve(context.Background(), fmt.Sprintf("%s:false%c%s", configD.Scheme(), rune(30), configDir), nil)
+	retrieved, err = configD.Retrieve(context.Background(), fmt.Sprintf("%s:%s", configD.Scheme(), configDir), nil)
 	assert.NoError(t, err)
 	require.NotNil(t, retrieved)
 	conf, err = retrieved.AsRaw()
@@ -90,101 +90,10 @@ func TestConfigDProviderInvalidURIs(t *testing.T) {
 	configD := provider.ConfigDProvider()
 	require.NotNil(t, configD)
 	retrieved, err := configD.Retrieve(context.Background(), "not.a.thing:not.a.path", nil)
-	assert.EqualError(t, err, `uri failed validation: uri "not.a.thing:not.a.path" is not supported by splunk.configd provider`)
+	assert.EqualError(t, err, `uri "not.a.thing:not.a.path" is not supported by splunk.configd provider`)
 	assert.Nil(t, retrieved)
 
 	retrieved, err = configD.Retrieve(context.Background(), fmt.Sprintf("%s:not.a.path", settings.DiscoveryModeScheme), nil)
-	assert.EqualError(t, err, `uri failed validation: uri "splunk.discovery:not.a.path" is not supported by splunk.configd provider`)
+	assert.EqualError(t, err, `uri "splunk.discovery:not.a.path" is not supported by splunk.configd provider`)
 	assert.Nil(t, retrieved)
-}
-
-func TestConfigDirAndDryRun(t *testing.T) {
-	for _, test := range []struct {
-		expectedConfigDir, name, uri, scheme, expectedError string
-		expectedDryRun                                      bool
-	}{
-		{
-			name:              "dry run configd",
-			uri:               fmt.Sprintf("splunk.configd:true%csome.config.dir", rune(30)),
-			scheme:            "splunk.configd",
-			expectedError:     "",
-			expectedDryRun:    true,
-			expectedConfigDir: "some.config.dir",
-		},
-		{
-			name:              "dry run discovery mode",
-			uri:               fmt.Sprintf("splunk.discovery:true%csome.config.dir", rune(30)),
-			scheme:            "splunk.discovery",
-			expectedError:     "",
-			expectedDryRun:    true,
-			expectedConfigDir: "some.config.dir",
-		},
-		{
-			name:              "no dry run configd",
-			uri:               fmt.Sprintf("splunk.configd:false%csome.config.dir", rune(30)),
-			scheme:            "splunk.configd",
-			expectedError:     "",
-			expectedDryRun:    false,
-			expectedConfigDir: "some.config.dir",
-		},
-		{
-			name:              "no dry run discovery mode",
-			uri:               fmt.Sprintf("splunk.discovery:false%csome.config.dir", rune(30)),
-			scheme:            "splunk.discovery",
-			expectedError:     "",
-			expectedDryRun:    false,
-			expectedConfigDir: "some.config.dir",
-		},
-		{
-			name:              "invalid dry run configd",
-			uri:               fmt.Sprintf("splunk.configd:notabool%csome.config.dir", rune(30)),
-			scheme:            "splunk.configd",
-			expectedError:     fmt.Sprintf(`invalid dry run arg "notabool" from %q`, fmt.Sprintf("splunk.configd:notabool%csome.config.dir", rune(30))),
-			expectedDryRun:    false,
-			expectedConfigDir: "",
-		},
-		{
-			name:              "invalid dry run discovery mode",
-			uri:               fmt.Sprintf("splunk.discovery:notabool%csome.config.dir", rune(30)),
-			scheme:            "splunk.discovery",
-			expectedError:     fmt.Sprintf(`invalid dry run arg "notabool" from %q`, fmt.Sprintf("splunk.discovery:notabool%csome.config.dir", rune(30))),
-			expectedDryRun:    false,
-			expectedConfigDir: "",
-		},
-		{
-			name:              "config.d missing dryRun uri",
-			uri:               "splunk.configd:invalid.uri",
-			scheme:            "splunk.configd",
-			expectedError:     `invalid uri missing record separator: "splunk.configd:invalid.uri"`,
-			expectedDryRun:    false,
-			expectedConfigDir: "",
-		},
-		{
-			name:              "discovery missing dryRun uri",
-			uri:               "splunk.discovery:invalid.uri",
-			scheme:            "splunk.discovery",
-			expectedError:     `invalid uri missing record separator: "splunk.discovery:invalid.uri"`,
-			expectedDryRun:    false,
-			expectedConfigDir: "",
-		},
-		{
-			name:              "invalid scheme",
-			uri:               "some.uri",
-			scheme:            "not.a.valid.scheme",
-			expectedError:     `uri "some.uri" is not supported by not.a.valid.scheme provider`,
-			expectedDryRun:    false,
-			expectedConfigDir: "",
-		},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			configDir, dryRun, err := configDirAndDryRun(test.uri, test.scheme)
-			require.Equal(t, test.expectedConfigDir, configDir)
-			require.Equal(t, test.expectedDryRun, dryRun)
-			if test.expectedError == "" {
-				require.Nil(t, err)
-			} else {
-				require.EqualError(t, err, test.expectedError)
-			}
-		})
-	}
 }

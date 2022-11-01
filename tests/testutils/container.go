@@ -336,6 +336,13 @@ func (container *Container) ContainerIP(ctx context.Context) (string, error) {
 	return (*container.container).ContainerIP(ctx)
 }
 
+func (container *Container) ContainerIPs(ctx context.Context) ([]string, error) {
+	if err := container.assertStarted("ContainerIPs"); err != nil {
+		return nil, err
+	}
+	return (*container.container).ContainerIPs(ctx)
+}
+
 func (container Container) CopyDirToContainer(ctx context.Context, hostDirPath string, containerParentPath string, fileMode int64) error {
 	if err := container.assertStarted("CopyDirToContainer"); err != nil {
 		return err

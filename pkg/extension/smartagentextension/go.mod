@@ -6,7 +6,7 @@ require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/signalfx-agent v1.0.1-0.20221021161939-93120bfc93a2
 	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	go.opentelemetry.io/collector v0.62.0
 	gopkg.in/yaml.v2 v2.4.0
 )

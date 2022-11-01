@@ -312,6 +312,11 @@ func TestTestcontainersContainerMethodsRequireBuilding(t *testing.T) {
 	require.Error(t, err)
 	assert.Equal(t, "cannot invoke ContainerIP() on unstarted container", err.Error())
 
+	ips, err := builder.ContainerIPs(context.Background())
+	assert.Nil(t, ips)
+	require.Error(t, err)
+	assert.Equal(t, "cannot invoke ContainerIPs() on unstarted container", err.Error())
+
 	err = builder.CopyFileToContainer(context.Background(), "", "", 0)
 	require.Error(t, err)
 	assert.Equal(t, "cannot invoke CopyFileToContainer() on unstarted container", err.Error())
@@ -447,6 +452,10 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 
 	cip, err := alpine.ContainerIP(context.Background())
 	assert.NotEmpty(t, cip)
+	require.NoError(t, err)
+
+	ips, err := alpine.ContainerIPs(context.Background())
+	assert.NotEmpty(t, ips)
 	require.NoError(t, err)
 
 	err = alpine.CopyFileToContainer(

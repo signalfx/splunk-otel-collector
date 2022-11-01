@@ -1381,11 +1381,11 @@ func newMetricOracledbUserRollbacks(settings MetricSettings) metricOracledbUserR
 // MetricsBuilder provides an interface for scrapers to report metrics while taking care of all the transformations
 // required to produce metric representation defined in metadata and user settings.
 type MetricsBuilder struct {
-	startTime                           pcommon.Timestamp   // start time that will be applied to all recorded data points.
-	metricsCapacity                     int                 // maximum observed number of metrics per resource.
-	resourceCapacity                    int                 // maximum observed number of resource attributes.
-	metricsBuffer                       pmetric.Metrics     // accumulates metrics data before emitting.
-	buildInfo                           component.BuildInfo // contains version information
+	metricsBuffer                       pmetric.Metrics
+	buildInfo                           component.BuildInfo
+	metricOracledbExecutions            metricOracledbExecutions
+	metricOracledbTransactionsUsage     metricOracledbTransactionsUsage
+	metricOracledbUserCommits           metricOracledbUserCommits
 	metricOracledbCPUTime               metricOracledbCPUTime
 	metricOracledbDmlLocksLimit         metricOracledbDmlLocksLimit
 	metricOracledbDmlLocksUsage         metricOracledbDmlLocksUsage
@@ -1395,22 +1395,22 @@ type MetricsBuilder struct {
 	metricOracledbEnqueueResourcesLimit metricOracledbEnqueueResourcesLimit
 	metricOracledbEnqueueResourcesUsage metricOracledbEnqueueResourcesUsage
 	metricOracledbExchangeDeadlocks     metricOracledbExchangeDeadlocks
-	metricOracledbExecutions            metricOracledbExecutions
+	metricOracledbUserRollbacks         metricOracledbUserRollbacks
 	metricOracledbHardParses            metricOracledbHardParses
-	metricOracledbLogicalReads          metricOracledbLogicalReads
+	metricOracledbProcessesLimit        metricOracledbProcessesLimit
 	metricOracledbParseCalls            metricOracledbParseCalls
 	metricOracledbPgaMemory             metricOracledbPgaMemory
 	metricOracledbPhysicalReads         metricOracledbPhysicalReads
-	metricOracledbProcessesLimit        metricOracledbProcessesLimit
+	metricOracledbLogicalReads          metricOracledbLogicalReads
 	metricOracledbProcessesUsage        metricOracledbProcessesUsage
 	metricOracledbSessionsLimit         metricOracledbSessionsLimit
 	metricOracledbSessionsUsage         metricOracledbSessionsUsage
 	metricOracledbTablespaceSizeLimit   metricOracledbTablespaceSizeLimit
 	metricOracledbTablespaceSizeUsage   metricOracledbTablespaceSizeUsage
 	metricOracledbTransactionsLimit     metricOracledbTransactionsLimit
-	metricOracledbTransactionsUsage     metricOracledbTransactionsUsage
-	metricOracledbUserCommits           metricOracledbUserCommits
-	metricOracledbUserRollbacks         metricOracledbUserRollbacks
+	resourceCapacity                    int
+	metricsCapacity                     int
+	startTime                           pcommon.Timestamp
 }
 
 // metricBuilderOption applies changes to default metrics builder.

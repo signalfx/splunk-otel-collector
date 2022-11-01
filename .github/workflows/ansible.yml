@@ -105,7 +105,7 @@ jobs:
 
       - name: Read current version of the Ansible Collection
         id: read-galaxy-yaml
-        uses: cumulusds/get-yaml-paths-action@v0.1.1
+        uses: cumulusds/get-yaml-paths-action@v1
         with:
           file: deployments/ansible/galaxy.yml
           version: version

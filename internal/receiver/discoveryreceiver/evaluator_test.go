@@ -27,7 +27,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver/statussources"
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 func setup(t testing.TB) (*evaluator, config.ComponentID, observer.EndpointID) {
@@ -116,7 +116,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 			observerID := config.NewComponentIDWithName("type", "name")
 			eval.correlations.UpdateEndpoint(endpoint, addedState, observerID)
 
-			corr := eval.correlations.GetOrCreate(statussources.NoType, endpointID)
+			corr := eval.correlations.GetOrCreate(discovery.NoType, endpointID)
 
 			from := pcommon.NewMap()
 			from.FromRaw(
@@ -127,7 +127,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 
 			to := pcommon.NewMap()
 
-			require.Empty(t, eval.correlations.Attrs(statussources.NoType))
+			require.Empty(t, eval.correlations.Attrs(discovery.NoType))
 			eval.correlateResourceAttributes(from, to, corr)
 
 			expectedResourceAttrs := map[string]any{
@@ -143,7 +143,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 
 			require.Equal(t, expectedResourceAttrs, to.AsRaw())
 
-			attrs := eval.correlations.Attrs(statussources.NoType)
+			attrs := eval.correlations.Attrs(discovery.NoType)
 
 			expectedAttrs := map[string]string{}
 			if embed {
@@ -165,7 +165,7 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 			observerID := config.NewComponentIDWithName("type", "name")
 			eval.correlations.UpdateEndpoint(endpoint, addedState, observerID)
 
-			corr := eval.correlations.GetOrCreate(statussources.NoType, endpointID)
+			corr := eval.correlations.GetOrCreate(discovery.NoType, endpointID)
 
 			encodedConfig := base64.StdEncoding.EncodeToString([]byte("config: some config\nrule: some rule\n"))
 
@@ -179,7 +179,7 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 
 			to := pcommon.NewMap()
 
-			require.Empty(t, eval.correlations.Attrs(statussources.NoType))
+			require.Empty(t, eval.correlations.Attrs(discovery.NoType))
 			eval.correlateResourceAttributes(from, to, corr)
 
 			var receiverConfig string
@@ -198,7 +198,7 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 
 			require.Equal(t, expectedResourceAttrs, to.AsRaw())
 
-			attrs := eval.correlations.Attrs(statussources.NoType)
+			attrs := eval.correlations.Attrs(discovery.NoType)
 			expectedAttrs := map[string]string{}
 
 			if embed {

@@ -28,6 +28,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap/zaptest"
+
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 func TestMetricEvaluatorBaseMetricConsumer(t *testing.T) {
@@ -61,8 +63,8 @@ func TestMetricEvaluation(t *testing.T) {
 					"one": "one.value", "two": "two.value",
 				},
 			}
-			for _, status := range []string{"successful", "partial", "failed"} {
-				t.Run(status, func(t *testing.T) {
+			for _, status := range discovery.StatusTypes {
+				t.Run(string(status), func(t *testing.T) {
 					for _, firstOnly := range []bool{true, false} {
 						match.FirstOnly = firstOnly
 						t.Run(fmt.Sprintf("FirstOnly:%v", firstOnly), func(t *testing.T) {
@@ -71,7 +73,7 @@ func TestMetricEvaluation(t *testing.T) {
 								Receivers: map[config.ComponentID]ReceiverEntry{
 									config.NewComponentIDWithName("a.receiver", "receiver.name"): {
 										Rule:   "a.rule",
-										Status: &Status{Metrics: map[string][]Match{status: {match}}},
+										Status: &Status{Metrics: map[discovery.StatusType][]Match{status: {match}}},
 									},
 								},
 								WatchObservers: []config.ComponentID{observerID},
@@ -132,7 +134,7 @@ func TestMetricEvaluation(t *testing.T) {
 
 								lrAttrs := lr.Attributes()
 								require.Equal(t, map[string]any{
-									"discovery.status": status,
+									"discovery.status": string(status),
 									"metric.name":      "desired.name",
 									"one":              "one.value",
 									"two":              "two.value",

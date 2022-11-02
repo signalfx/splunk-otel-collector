@@ -1,0 +1,2 @@
+host_observer:
+  refresh_interval: 1s

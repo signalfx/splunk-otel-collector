@@ -27,6 +27,8 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
+
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 const (
@@ -40,7 +42,6 @@ const (
 )
 
 var (
-	noType      = config.NewComponentID("")
 	defaultType = config.NewComponentID("default")
 
 	discoveryDirRegex = fmt.Sprintf("[^%s]*", compilablePathSeparator)
@@ -328,7 +329,7 @@ func loadEntry[K keyType, V entryType](componentType, path string, target map[K]
 	tmpDest := map[K]V{}
 
 	componentID, err := unmarshalEntry(componentType, path, &tmpDest)
-	noTypeK, err2 := stringToKeyType(noType.String(), componentID)
+	noTypeK, err2 := stringToKeyType(discovery.NoType.String(), componentID)
 	if err2 != nil {
 		return err2
 	}
@@ -395,7 +396,7 @@ func unmarshalEntry[K keyType, V entryType](componentType, path string, dst *map
 
 	if len(entry) == 0 {
 		// empty or all-comment files are supported but ignored
-		var noTypeK any = noType
+		var noTypeK any = discovery.NoType
 		// non-service key is always componentID so this type assertion is safe
 		return noTypeK.(K), nil
 	}
@@ -442,8 +443,8 @@ func stringToKeyType[K keyType](s string, key K) (K, error) {
 			var anyS any = s
 			return anyS.(K), nil
 		case config.ComponentID:
-			if s == noType.String() {
-				componentIDK = noType
+			if s == discovery.NoType.String() {
+				componentIDK = discovery.NoType
 			} else {
 				var err error
 				if componentIDK, err = config.NewComponentIDFromString(s); err != nil {

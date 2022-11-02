@@ -24,7 +24,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver/statussources"
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 func TestNewCorrelationStore(t *testing.T) {
@@ -46,7 +46,7 @@ func TestNewCorrelationStore(t *testing.T) {
 func TestGetOrCreateUndiscoveredReceiver(t *testing.T) {
 	cs := newCorrelationStore(zaptest.NewLogger(t), time.Hour)
 	endpointID := observer.EndpointID("an.endpoint")
-	createdCorr := cs.GetOrCreate(statussources.NoType, endpointID)
+	createdCorr := cs.GetOrCreate(discovery.NoType, endpointID)
 	require.NotNil(t, createdCorr)
 	require.Equal(t, config.NewComponentID(""), createdCorr.receiverID)
 	require.Equal(t, config.NewComponentID(""), createdCorr.observerID)
@@ -55,7 +55,7 @@ func TestGetOrCreateUndiscoveredReceiver(t *testing.T) {
 	require.Zero(t, createdCorr.lastUpdated)
 
 	createdCorr.observerID = config.NewComponentID("an.observer")
-	gotCorr := cs.GetOrCreate(statussources.NoType, endpointID)
+	gotCorr := cs.GetOrCreate(discovery.NoType, endpointID)
 	require.NotNil(t, gotCorr)
 	// all returned correlations are copies whose mutations don't persist in storage
 	require.NotSame(t, createdCorr, gotCorr)
@@ -73,7 +73,7 @@ func TestGetOrCreateDiscoveredReceiver(t *testing.T) {
 	now := time.Now()
 	cs.UpdateEndpoint(endpoint, "a.state", observerID)
 
-	corr := cs.GetOrCreate(statussources.NoType, endpointID)
+	corr := cs.GetOrCreate(discovery.NoType, endpointID)
 	require.NotNil(t, corr)
 	require.Equal(t, config.NewComponentID(""), corr.receiverID)
 	require.Equal(t, observerID, corr.observerID)
@@ -94,7 +94,7 @@ func TestGetOrCreateDiscoveredReceiver(t *testing.T) {
 func TestGetOrCreateLaterDiscoveredReceiver(t *testing.T) {
 	cs := newCorrelationStore(zaptest.NewLogger(t), time.Hour)
 	endpointID := observer.EndpointID("an.endpoint")
-	createdCorr := cs.GetOrCreate(statussources.NoType, endpointID)
+	createdCorr := cs.GetOrCreate(discovery.NoType, endpointID)
 	require.NotNil(t, createdCorr)
 	require.Equal(t, config.NewComponentID(""), createdCorr.receiverID)
 	require.Equal(t, config.NewComponentID(""), createdCorr.observerID)
@@ -110,7 +110,7 @@ func TestGetOrCreateLaterDiscoveredReceiver(t *testing.T) {
 	now := time.Now()
 	cs.UpdateEndpoint(endpoint, "a.state", observerID)
 
-	gotCorr := cs.GetOrCreate(statussources.NoType, endpointID)
+	gotCorr := cs.GetOrCreate(discovery.NoType, endpointID)
 	require.NotNil(t, createdCorr)
 	require.Equal(t, config.NewComponentID(""), gotCorr.receiverID)
 	require.Equal(t, observerID, gotCorr.observerID)
@@ -131,7 +131,7 @@ func TestGetOrCreateLaterDiscoveredReceiver(t *testing.T) {
 func TestGetOrCreateLaterDiscoveredReceiverWithUpdatedEndpoint(t *testing.T) {
 	cs := newCorrelationStore(zaptest.NewLogger(t), time.Hour)
 	endpointID := observer.EndpointID("an.endpoint")
-	createdCorr := cs.GetOrCreate(statussources.NoType, endpointID)
+	createdCorr := cs.GetOrCreate(discovery.NoType, endpointID)
 	require.NotNil(t, createdCorr)
 	require.Equal(t, config.NewComponentID(""), createdCorr.receiverID)
 	require.Equal(t, config.NewComponentID(""), createdCorr.observerID)
@@ -147,7 +147,7 @@ func TestGetOrCreateLaterDiscoveredReceiverWithUpdatedEndpoint(t *testing.T) {
 	now := time.Now()
 	cs.UpdateEndpoint(endpoint, "a.state", observerID)
 
-	gotCorr := cs.GetOrCreate(statussources.NoType, endpointID)
+	gotCorr := cs.GetOrCreate(discovery.NoType, endpointID)
 	require.NotNil(t, createdCorr)
 	require.Equal(t, config.NewComponentID(""), gotCorr.receiverID)
 	require.Equal(t, observerID, gotCorr.observerID)
@@ -168,7 +168,7 @@ func TestGetOrCreateLaterDiscoveredReceiverWithUpdatedEndpoint(t *testing.T) {
 	require.GreaterOrEqual(t, typedReceiverCorr.lastUpdated, now)
 
 	// confirm state change propagates to other receivers
-	noTypedReceiverCorr := cs.GetOrCreate(statussources.NoType, endpointID)
+	noTypedReceiverCorr := cs.GetOrCreate(discovery.NoType, endpointID)
 	require.NotNil(t, createdCorr)
 	require.Equal(t, config.NewComponentID(""), noTypedReceiverCorr.receiverID)
 	require.Equal(t, observerID, noTypedReceiverCorr.observerID)
@@ -228,7 +228,7 @@ func TestReaperLoop(t *testing.T) {
 	receiverMap, isMap := rMap.(*sync.Map)
 	require.True(t, isMap)
 
-	noTypeCorr, containsNoType := receiverMap.Load(statussources.NoType)
+	noTypeCorr, containsNoType := receiverMap.Load(discovery.NoType)
 	require.True(t, containsNoType)
 	noTypedReceiverCorr, isCorr := noTypeCorr.(*correlation)
 	require.True(t, isCorr)

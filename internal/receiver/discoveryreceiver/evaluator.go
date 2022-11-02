@@ -27,10 +27,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
-)
 
-var (
-	observerIDAttr = "discovery.observer.id"
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 // evaluator is the base status matcher that determines if telemetry warrants emitting a matching log record.
@@ -46,7 +44,7 @@ type evaluator struct {
 }
 
 // evaluateMatch parses the provided Match and returns whether it warrants a status log record
-func (e *evaluator) evaluateMatch(match Match, pattern, status string, receiverID config.ComponentID, endpointID observer.EndpointID) (bool, error) {
+func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.StatusType, receiverID config.ComponentID, endpointID observer.EndpointID) (bool, error) {
 	var matchFunc func(p string) (bool, error)
 	var matchPattern string
 
@@ -112,7 +110,7 @@ func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr corre
 
 	observerID := corr.observerID.String()
 	if observerID != "" {
-		to.PutStr(observerIDAttr, observerID)
+		to.PutStr(discovery.ObserverIDAttr, observerID)
 	}
 
 	var receiverAttrs map[string]string
@@ -120,18 +118,18 @@ func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr corre
 	receiverAttrs = e.correlations.Attrs(corr.receiverID)
 
 	if e.config.EmbedReceiverConfig {
-		if _, ok := from.Get(receiverConfigAttr); !ok {
+		if _, ok := from.Get(discovery.ReceiverConfigAttr); !ok {
 			// statements don't inherit embedded configs in their resource attributes
 			// from the receiver creator, so we should temporarily include it in `from`
 			// so as not to mutate the original while providing the desired receiver config
 			// value set by the initial receiver config parser.
-			from.PutStr(receiverConfigAttr, receiverAttrs[receiverConfigAttr])
+			from.PutStr(discovery.ReceiverConfigAttr, receiverAttrs[discovery.ReceiverConfigAttr])
 			hasTemporaryReceiverConfigAttr = true
 		}
 	}
 
 	from.Range(func(k string, v pcommon.Value) bool {
-		if k == receiverConfigAttr && e.config.EmbedReceiverConfig {
+		if k == discovery.ReceiverConfigAttr && e.config.EmbedReceiverConfig {
 			configVal := v.AsString()
 			updatedWithObserverAttr := fmt.Sprintf("%s.%s", receiverUpdatedConfigAttr, observerID)
 			if updatedConfig, ok := receiverAttrs[updatedWithObserverAttr]; ok {
@@ -140,7 +138,7 @@ func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr corre
 				var err error
 				if updatedConfig, err = addObserverToEncodedConfig(configVal, observerID); err != nil {
 					// log failure and continue with existing config sans observer
-					e.logger.Debug(fmt.Sprintf("failed adding %q to %s", observerID, receiverConfigAttr), zap.String("receiver.type", receiverType), zap.String("receiver.name", receiverName), zap.Error(err))
+					e.logger.Debug(fmt.Sprintf("failed adding %q to %s", observerID, discovery.ReceiverConfigAttr), zap.String("receiver.type", receiverType), zap.String("receiver.name", receiverName), zap.Error(err))
 				} else {
 					e.logger.Debug("Adding watch_observer to embedded receiver config receiver attrs", zap.String("observer", corr.observerID.String()), zap.String("receiver.type", receiverType), zap.String("receiver.name", receiverName))
 					e.correlations.UpdateAttrs(corr.receiverID, map[string]string{
@@ -157,7 +155,7 @@ func (e *evaluator) correlateResourceAttributes(from, to pcommon.Map, corr corre
 		return true
 	})
 	if hasTemporaryReceiverConfigAttr {
-		from.Remove(receiverConfigAttr)
+		from.Remove(discovery.ReceiverConfigAttr)
 	}
 }
 

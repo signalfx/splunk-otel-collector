@@ -31,6 +31,8 @@ import (
 	"go.opentelemetry.io/collector/service/servicetest"
 	"go.uber.org/zap/zaptest"
 	"gopkg.in/yaml.v2"
+
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 func TestValidConfig(t *testing.T) {
@@ -59,8 +61,8 @@ func TestValidConfig(t *testing.T) {
 					"type": "collectd/redis",
 				},
 				Status: &Status{
-					Metrics: map[string][]Match{
-						"successful": {
+					Metrics: map[discovery.StatusType][]Match{
+						discovery.Successful: {
 							Match{
 								Record: &LogRecord{
 									Attributes: map[string]string{
@@ -77,8 +79,8 @@ func TestValidConfig(t *testing.T) {
 							},
 						},
 					},
-					Statements: map[string][]Match{
-						"failed": {
+					Statements: map[discovery.StatusType][]Match{
+						discovery.Failed: {
 							{
 								Strict:    "",
 								Regexp:    "ConnectionRefusedError",
@@ -91,7 +93,7 @@ func TestValidConfig(t *testing.T) {
 								},
 							},
 						},
-						"partial": {
+						discovery.Partial: {
 							{
 								Strict:    "",
 								Regexp:    "(WRONGPASS|NOAUTH|ERR AUTH)",
@@ -135,7 +137,7 @@ func TestInvalidConfigs(t *testing.T) {
 		{name: "no_watch_observers", expectedError: "receiver \"discovery\" has invalid configuration: `watch_observers` must be defined and include at least one configured observer extension"},
 		{name: "missing_status", expectedError: "receiver \"discovery\" has invalid configuration: receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
 		{name: "missing_status_metrics_and_statements", expectedError: "receiver \"discovery\" has invalid configuration: receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
-		{name: "invalid_status_types", expectedError: `receiver "discovery" has invalid configuration: receiver "a_receiver" validation failure: unsupported status "unsupported". must be one of [successful partial failed]; unsupported status "another_unsupported". must be one of [successful partial failed]`},
+		{name: "invalid_status_types", expectedError: `receiver "discovery" has invalid configuration: receiver "a_receiver" validation failure: invalid status "unsupported". must be one of [successful partial failed]; invalid status "another_unsupported". must be one of [successful partial failed]`},
 		{name: "multiple_status_match_types", expectedError: "receiver \"discovery\" has invalid configuration: receiver \"a_receiver\" validation failure: `metrics` status source type `successful` match type validation failed. Must provide one of [regexp strict expr] but received [strict regexp]; `statements` status source type `failed` match type validation failed. Must provide one of [regexp strict expr] but received [strict expr]"},
 		{name: "reserved_receiver_creator", expectedError: `receiver "discovery" has invalid configuration: receiver "receiver_creator/with-name" validation failure: receiver cannot be a receiver_creator`},
 		{name: "reserved_receiver_name", expectedError: `receiver "discovery" has invalid configuration: receiver "a_receiver/with-receiver_creator/in-name" validation failure: receiver name cannot contain "receiver_creator/"`},

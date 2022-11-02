@@ -29,6 +29,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver/statussources"
 )
 
@@ -49,8 +50,8 @@ func TestStatementEvaluation(t *testing.T) {
 					"one": "one.value", "two": "two.value",
 				},
 			}
-			for _, status := range []string{"successful", "partial", "failed"} {
-				t.Run(status, func(t *testing.T) {
+			for _, status := range discovery.StatusTypes {
+				t.Run(string(status), func(t *testing.T) {
 					for _, level := range []string{"debug", "info", "warn", "error", "fatal", "dpanic", "panic"} {
 						t.Run(level, func(t *testing.T) {
 							for _, firstOnly := range []bool{true, false} {
@@ -61,7 +62,7 @@ func TestStatementEvaluation(t *testing.T) {
 										Receivers: map[config.ComponentID]ReceiverEntry{
 											config.NewComponentIDWithName("a.receiver", "receiver.name"): {
 												Rule:   "a.rule",
-												Status: &Status{Statements: map[string][]Match{status: {match}}},
+												Status: &Status{Statements: map[discovery.StatusType][]Match{status: {match}}},
 											},
 										},
 										WatchObservers: []config.ComponentID{observerID},
@@ -178,7 +179,7 @@ func TestStatementEvaluation(t *testing.T) {
 										}
 
 										require.Equal(t, map[string]any{
-											"discovery.status": status,
+											"discovery.status": string(status),
 											"name":             `a.receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
 											"one":              "one.value",
 											"two":              "two.value",
@@ -203,7 +204,7 @@ func TestLogRecordDefaultAndArbitrarySeverityText(t *testing.T) {
 		Receivers: map[config.ComponentID]ReceiverEntry{
 			config.NewComponentIDWithName("a.receiver", "receiver.name"): {
 				Rule:   "a.rule",
-				Status: &Status{Statements: map[string][]Match{"successful": {Match{Strict: "match.me"}}}},
+				Status: &Status{Statements: map[discovery.StatusType][]Match{discovery.Successful: {Match{Strict: "match.me"}}}},
 			},
 		},
 		WatchObservers: []config.ComponentID{observerID},

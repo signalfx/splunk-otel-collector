@@ -18,6 +18,8 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 // MetricsToReceiverIDs extracts the identifiers receiver creator created receivers will embed in their attributes
@@ -26,13 +28,13 @@ func MetricsToReceiverIDs(md pmetric.Metrics) (config.ComponentID, observer.Endp
 	if md.ResourceMetrics().Len() > 0 {
 		resourceMetrics := md.ResourceMetrics().At(0)
 		mResAttrs := resourceMetrics.Resource().Attributes()
-		if r, ok := mResAttrs.Get(ReceiverTypeAttr); ok {
+		if r, ok := mResAttrs.Get(discovery.ReceiverTypeAttr); ok {
 			receiverType = r.AsString()
 		}
-		if r, ok := mResAttrs.Get(ReceiverNameAttr); ok {
+		if r, ok := mResAttrs.Get(discovery.ReceiverNameAttr); ok {
 			receiverName = r.AsString()
 		}
-		if r, ok := mResAttrs.Get(EndpointIDAttr); ok {
+		if r, ok := mResAttrs.Get(discovery.EndpointIDAttr); ok {
 			endpointID = r.AsString()
 		}
 	}

@@ -26,6 +26,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver/statussources"
 )
 
@@ -186,7 +187,7 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 				}
 			}
 			logRecord.SetSeverityText(severityText)
-			logRecord.Attributes().PutString(statusAttr, status)
+			logRecord.Attributes().PutStr(discovery.StatusAttr, string(status))
 			logRecord.SetTimestamp(pcommon.NewTimestampFromTime(statement.Time))
 			logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
 		}
@@ -200,20 +201,20 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 
 func (se *statementEvaluator) receiverEntryFromLogRecord(record plog.LogRecord) (config.ComponentID, observer.EndpointID, ReceiverEntry, bool) {
 	receiverID, endpointID := statussources.ReceiverNameToIDs(record)
-	if receiverID == statussources.NoType || endpointID == "" {
+	if receiverID == discovery.NoType || endpointID == "" {
 		// statement evaluation requires both a populated receiver.ID and EndpointID
 		se.logger.Debug("unable to evaluate statement from receiver", zap.String("receiver", receiverID.String()))
-		return statussources.NoType, "", ReceiverEntry{}, false
+		return discovery.NoType, "", ReceiverEntry{}, false
 	}
 
 	rEntry, ok := se.config.Receivers[receiverID]
 	if !ok {
 		se.logger.Info("No matching configured receiver for statement status evaluation", zap.String("receiver", receiverID.String()))
-		return statussources.NoType, "", ReceiverEntry{}, false
+		return discovery.NoType, "", ReceiverEntry{}, false
 	}
 
 	if rEntry.Status == nil {
-		return statussources.NoType, "", ReceiverEntry{}, false
+		return discovery.NoType, "", ReceiverEntry{}, false
 	}
 
 	return receiverID, endpointID, rEntry, true
@@ -224,11 +225,11 @@ func (se *statementEvaluator) prepareMatchingLogs(rEntry ReceiverEntry, receiver
 	rLog := stagePLogs.ResourceLogs().AppendEmpty()
 	rAttrs := rLog.Resource().Attributes()
 	fromAttrs := pcommon.NewMap()
-	fromAttrs.PutString(statussources.ReceiverTypeAttr, string(receiverID.Type()))
-	fromAttrs.PutString(statussources.ReceiverNameAttr, receiverID.Name())
-	fromAttrs.PutString(statussources.EndpointIDAttr, string(endpointID))
+	fromAttrs.PutStr(discovery.ReceiverTypeAttr, string(receiverID.Type()))
+	fromAttrs.PutStr(discovery.ReceiverNameAttr, receiverID.Name())
+	fromAttrs.PutStr(discovery.EndpointIDAttr, string(endpointID))
 	se.correlateResourceAttributes(fromAttrs, rAttrs, se.correlations.GetOrCreate(receiverID, endpointID))
-	rAttrs.PutString(eventTypeAttr, statementMatch)
-	rAttrs.PutString(receiverRuleAttr, rEntry.Rule)
+	rAttrs.PutStr(eventTypeAttr, statementMatch)
+	rAttrs.PutStr(receiverRuleAttr, rEntry.Rule)
 	return stagePLogs, rLog.ScopeLogs().AppendEmpty().LogRecords()
 }

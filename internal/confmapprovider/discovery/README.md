@@ -43,3 +43,9 @@ This component is currently exposed in the Collector via the `--configd` option 
 `--config-dir <config.d path>` and `SPLUNK_CONFIG_DIR` option and environment variable to load
 additional components and service configuration from the specified `config.d` directory (`/etc/otel/collector/config.d`
 by default).
+
+This component is also exposed in the Collector via the `--discovery [--dry-run]` option that also uses the
+`--config-dir <config.d path>` and `SPLUNK_CONFIG_DIR` option and environment variable that attempts to
+instantiate any `.discovery.yaml` receivers using corresponding `.discovery.yaml` observers in a "preflight"
+Collector service, using any successfully discovered entities in the final config, or writing it to stdout
+if `--dry-run` was specified.

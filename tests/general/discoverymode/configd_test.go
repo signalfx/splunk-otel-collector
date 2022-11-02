@@ -17,17 +17,12 @@
 package tests
 
 import (
-	"context"
-	"io"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
-	"go.opentelemetry.io/collector/confmap"
-	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -61,17 +56,6 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 	defer shutdown()
 
 	cc := collector.(*testutils.CollectorContainer)
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	n, r, err := cc.Container.Exec(ctx, []string{"curl", "-s", "http://localhost:55554/debug/configz/initial"})
-	require.NoError(t, err)
-	require.Zero(t, n)
-	out, err := io.ReadAll(r)
-	// strip control character from curl output
-	require.True(t, len(out) >= 8, "invalid config server output")
-	initial := strings.TrimSpace(string(out[8 : len(out)-1]))
-
-	actual := map[string]any{}
-	require.NoError(t, yaml.Unmarshal([]byte(initial), &actual))
 	expected := map[string]any{
 		"file": map[string]any{
 			"exporters": map[string]any{
@@ -105,7 +89,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 				},
 			},
 		},
-		"splunk.config.d": map[string]any{
+		"splunk.configd": map[string]any{
 			"exporters": map[string]any{
 				"otlp/from-configd": map[string]any{
 					"endpoint": "0.0.0.0:${CONFIGD_PORT_FROM_ENV_VAR}",
@@ -144,17 +128,8 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 		},
 	}
 
-	require.Equal(t, expected, confmap.NewFromStringMap(actual).ToStringMap())
-
-	n, r, err = cc.Container.Exec(ctx, []string{"curl", "-s", "http://localhost:55554/debug/configz/effective"})
-	require.NoError(t, err)
-	require.Zero(t, n)
-	out, err = io.ReadAll(r)
-	require.True(t, len(out) >= 8, "invalid config server output")
-	effective := strings.TrimSpace(string(out[8 : len(out)-1])) // strip control character
-
-	actual = map[string]any{}
-	require.NoError(t, yaml.Unmarshal([]byte(effective), &actual))
+	actual := cc.InitialConfig(t, 55554)
+	require.Equal(t, expected, actual)
 
 	expected = map[string]any{
 		"exporters": map[string]any{
@@ -211,7 +186,8 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 		},
 	}
 
-	require.Equal(t, expected, confmap.NewFromStringMap(actual).ToStringMap())
+	actual = cc.EffectiveConfig(t, 55554)
+	require.Equal(t, expected, actual)
 }
 
 func TestStandaloneConfigD(t *testing.T) {

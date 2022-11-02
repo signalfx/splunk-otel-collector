@@ -59,7 +59,8 @@ func main() {
 
 	confMapConverters := collectorSettings.ConfMapConverters()
 	configServer := configconverter.NewConfigServer()
-	confMapConverters = append(confMapConverters, configServer)
+	dryRun := configconverter.NewDryRun(collectorSettings.IsDryRun())
+	confMapConverters = append(confMapConverters, dryRun, configServer)
 
 	discovery, err := discovery.New()
 	if err != nil {
@@ -75,24 +76,17 @@ func main() {
 				Providers: map[string]confmap.Provider{
 					discovery.ConfigDScheme(): configprovider.NewConfigSourceConfigMapProvider(
 						discovery.ConfigDProvider(),
-						zap.NewNop(), // The service logger is not available yet, setting it to NoP.
-						info,
-						configServer,
-						configsources.Get()...,
+						zap.NewNop(), // The service logger is not available yet, setting it to Nop.
+						info, configServer, configsources.Get()...,
+					),
+					discovery.DiscoveryModeScheme(): configprovider.NewConfigSourceConfigMapProvider(
+						discovery.DiscoveryModeProvider(), zap.NewNop(), info, configServer, configsources.Get()...,
 					),
 					envProvider.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
-						envProvider,
-						zap.NewNop(), // The service logger is not available yet, setting it to NoP.
-						info,
-						configServer,
-						configsources.Get()...,
+						envProvider, zap.NewNop(), info, configServer, configsources.Get()...,
 					),
 					fileProvider.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
-						fileProvider,
-						zap.NewNop(), // The service logger is not available yet, setting it to NoP.
-						info,
-						configServer,
-						configsources.Get()...,
+						fileProvider, zap.NewNop(), info, configServer, configsources.Get()...,
 					),
 				}, Converters: confMapConverters,
 			},

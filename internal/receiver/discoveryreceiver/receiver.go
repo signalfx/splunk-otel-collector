@@ -36,10 +36,8 @@ const (
 	metricNameAttr            = "metric.name"
 	observerNameAttr          = "discovery.observer.name"
 	observerTypeAttr          = "discovery.observer.type"
-	receiverConfigAttr        = "discovery.receiver.config"
 	receiverRuleAttr          = "discovery.receiver.rule"
 	receiverUpdatedConfigAttr = "discovery.receiver.updated.config"
-	statusAttr                = "discovery.status"
 )
 
 var (
@@ -166,7 +164,7 @@ func (d *discoveryReceiver) consumerLoop(loopStarted *sync.WaitGroup) {
 func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 	receiverCreatorFactory, receiverCreatorConfig, err := d.config.receiverCreatorFactoryAndConfig(d.endpointTracker.correlations)
 	if err != nil {
-		return nil
+		return err
 	}
 	receiverCreatorSettings := component.ReceiverCreateSettings{
 		TelemetrySettings: component.TelemetrySettings{

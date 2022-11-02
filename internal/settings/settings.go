@@ -56,8 +56,8 @@ const (
 	DefaultMemoryLimitPercentage   = 90
 	DefaultMemoryTotalMiB          = 512
 
-	DiscoveryModeScheme = "splunk.discovery.mode"
-	ConfigDScheme       = "splunk.config.d"
+	DiscoveryModeScheme = "splunk.discovery"
+	ConfigDScheme       = "splunk.configd"
 )
 
 type Settings interface {
@@ -67,6 +67,8 @@ type Settings interface {
 	ConfMapConverters() []confmap.Converter
 	// ServiceArgs are the sanitized, adjusted args to be used in updating os.Args[1:] for the collector service
 	ServiceArgs() []string
+	// IsDryRun returns whether --dry-run mode was requested
+	IsDryRun() bool
 }
 
 func New(args []string) (Settings, error) {
@@ -104,6 +106,7 @@ type flags struct {
 	noConvertConfig   bool
 	configD           bool
 	discoveryMode     bool
+	dryRun            bool
 }
 
 func (f *flags) ResolverURIs() []string {
@@ -115,14 +118,20 @@ func (f *flags) ResolverURIs() []string {
 	}
 
 	configDir := getConfigDir(f)
+
+	if f.dryRun {
+		removeFlag(&f.serviceArgs, "--dry-run")
+	}
+
 	if f.configD {
 		removeFlag(&f.serviceArgs, "--configd")
 		configPaths = append(configPaths, fmt.Sprintf("%s:%s", ConfigDScheme, configDir))
 	}
+
 	if f.discoveryMode {
 		removeFlag(&f.serviceArgs, "--discovery")
 		// discovery uri must come last to successfully merge w/ other config content
-		configPaths = append(configPaths, fmt.Sprintf("%s:%s", DiscoveryModeScheme, configDir))
+		configPaths = append(configPaths, fmt.Sprintf("%s:%s", DiscoveryModeScheme, f.configDir))
 	}
 
 	configYaml := os.Getenv(ConfigYamlEnvVar)
@@ -177,6 +186,10 @@ func (f *flags) ServiceArgs() []string {
 	return f.serviceArgs
 }
 
+func (f *flags) IsDryRun() bool {
+	return f.dryRun
+}
+
 func newFlags(args []string) (*flags, error) {
 	flagSet := flag.FlagSet{}
 	// we don't want to be responsible for tracking all supported collector service
@@ -207,6 +220,7 @@ func newFlags(args []string) (*flags, error) {
 	flagSet.BoolVar(&settings.configD, "configd", false, "")
 	flagSet.Var(settings.configDir, "config-dir", "")
 	flagSet.BoolVar(&settings.discoveryMode, "discovery", false, "")
+	flagSet.BoolVar(&settings.dryRun, "dry-run", false, "")
 
 	flagSet.Var(settings.configPaths, "config", "")
 	flagSet.Var(settings.setProperties, "set", "")

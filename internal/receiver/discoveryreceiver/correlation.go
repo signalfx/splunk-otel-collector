@@ -22,7 +22,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver/statussources"
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 // correlation is a grouping of an endpoint, the observing
@@ -94,7 +94,7 @@ func (s *store) UpdateEndpoint(endpoint observer.Endpoint, state endpointState, 
 	rMap, ok := s.correlations.LoadOrStore(endpoint.ID, &sync.Map{})
 	receiverMap := rMap.(*sync.Map)
 	if !ok {
-		receiverMap.Store(statussources.NoType, &correlation{
+		receiverMap.Store(discovery.NoType, &correlation{
 			endpoint:    endpoint,
 			observerID:  observerID,
 			lastState:   state,
@@ -124,7 +124,7 @@ func (s *store) GetOrCreate(receiverID config.ComponentID, endpointID observer.E
 		// this zero value correlation suggests the observer has yet to emit an endpoint event
 		// and this could be an invalid collector state. Likely this flow results from delayed
 		// event handling and the correlation is eventually consistent in UpdateEndpoint.
-		receiverMap.Store(statussources.NoType, &correlation{})
+		receiverMap.Store(discovery.NoType, &correlation{})
 	}
 	defer s.receiverLocks.Lock(receiverID)()
 	endpointUnlock()
@@ -134,7 +134,7 @@ func (s *store) GetOrCreate(receiverID config.ComponentID, endpointID observer.E
 	}
 	var noTypeCorrelation *correlation
 	// disregard ok since previous LoadOrStore handling guarantees existence
-	ntCorr, _ := receiverMap.Load(statussources.NoType)
+	ntCorr, _ := receiverMap.Load(discovery.NoType)
 	noTypeCorrelation = ntCorr.(*correlation)
 	cpCorr := *noTypeCorrelation
 	corr := &cpCorr
@@ -189,7 +189,7 @@ func (s *store) reap() {
 		endpointID := eID.(observer.EndpointID)
 		defer s.endpointLocks.Lock(endpointID)()
 		receiverMap := rMap.(*sync.Map)
-		if c, ok := receiverMap.Load(statussources.NoType); ok {
+		if c, ok := receiverMap.Load(discovery.NoType); ok {
 			corr := c.(*correlation)
 			if corr.lastState == removedState &&
 				time.Since(corr.lastUpdated) > s.ttl {

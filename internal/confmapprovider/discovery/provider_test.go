@@ -31,9 +31,9 @@ func TestConfigDProviderHappyPath(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, provider)
 
-	assert.Equal(t, "splunk.config.d", provider.ConfigDScheme())
+	assert.Equal(t, "splunk.configd", provider.ConfigDScheme())
 	configD := provider.ConfigDProvider()
-	assert.Equal(t, "splunk.config.d", configD.Scheme())
+	assert.Equal(t, "splunk.configd", configD.Scheme())
 
 	configDir := filepath.Join(".", "testdata", "config.d")
 	retrieved, err := configD.Retrieve(context.Background(), fmt.Sprintf("%s:%s", configD.Scheme(), configDir), nil)
@@ -90,10 +90,10 @@ func TestConfigDProviderInvalidURIs(t *testing.T) {
 	configD := provider.ConfigDProvider()
 	require.NotNil(t, configD)
 	retrieved, err := configD.Retrieve(context.Background(), "not.a.thing:not.a.path", nil)
-	assert.EqualError(t, err, `uri "not.a.thing:not.a.path" is not supported by splunk.config.d provider`)
+	assert.EqualError(t, err, `uri "not.a.thing:not.a.path" is not supported by splunk.configd provider`)
 	assert.Nil(t, retrieved)
 
 	retrieved, err = configD.Retrieve(context.Background(), fmt.Sprintf("%s:not.a.path", settings.DiscoveryModeScheme), nil)
-	assert.EqualError(t, err, `uri "splunk.discovery.mode:not.a.path" is not supported by splunk.config.d provider`)
+	assert.EqualError(t, err, `uri "splunk.discovery:not.a.path" is not supported by splunk.configd provider`)
 	assert.Nil(t, retrieved)
 }

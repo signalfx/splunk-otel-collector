@@ -27,6 +27,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver/statussources"
 )
 
@@ -89,7 +90,7 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 	}
 
 	receiverID, endpointID := statussources.MetricsToReceiverIDs(md)
-	if receiverID == statussources.NoType || endpointID == "" {
+	if receiverID == discovery.NoType || endpointID == "" {
 		m.logger.Debug("unable to evaluate metrics from receiver without corresponding name or Endpoint.ID", zap.Any("metrics", md))
 		return pLogs
 	}
@@ -157,8 +158,8 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 						severityText = "info"
 					}
 					logRecord.SetSeverityText(severityText)
-					logRecord.Attributes().PutString(metricNameAttr, metricName)
-					logRecord.Attributes().PutString(statusAttr, status)
+					logRecord.Attributes().PutStr(metricNameAttr, metricName)
+					logRecord.Attributes().PutStr(discovery.StatusAttr, string(status))
 					if ts := m.timestampFromMetric(metric); ts != nil {
 						logRecord.SetTimestamp(*ts)
 					}

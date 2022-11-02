@@ -22,9 +22,15 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"strings"
+	"testing"
+	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
+	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v2"
 )
 
 var configFromArgsPattern = regexp.MustCompile("--config($|[^d-]+)")
@@ -242,4 +248,38 @@ func (l collectorLogConsumer) Accept(log testcontainers.Log) {
 	} else {
 		l.logger.Debug(msg)
 	}
+}
+
+func (collector *CollectorContainer) InitialConfig(t testing.TB, port int) map[string]any {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	n, r, err := collector.Container.Exec(ctx, []string{"curl", "-s", fmt.Sprintf("http://localhost:%d/debug/configz/initial", port)})
+	require.NoError(t, err)
+	require.Zero(t, n)
+	out, err := io.ReadAll(r)
+	require.NoError(t, err)
+	// strip control character from curl output
+	require.True(t, len(out) >= 8, "invalid config server output")
+	initial := strings.TrimSpace(string(out[8 : len(out)-1]))
+
+	actual := map[string]any{}
+	require.NoError(t, yaml.Unmarshal([]byte(initial), &actual))
+	return confmap.NewFromStringMap(actual).ToStringMap()
+}
+
+func (collector *CollectorContainer) EffectiveConfig(t testing.TB, port int) map[string]any {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	n, r, err := collector.Container.Exec(ctx, []string{"curl", "-s", fmt.Sprintf("http://localhost:%d/debug/configz/effective", port)})
+	require.NoError(t, err)
+	require.Zero(t, n)
+	out, err := io.ReadAll(r)
+	require.NoError(t, err)
+	// strip control character from curl output
+	require.True(t, len(out) >= 8, "invalid config server output")
+	initial := strings.TrimSpace(string(out[8 : len(out)-1]))
+
+	actual := map[string]any{}
+	require.NoError(t, yaml.Unmarshal([]byte(initial), &actual))
+	return confmap.NewFromStringMap(actual).ToStringMap()
 }

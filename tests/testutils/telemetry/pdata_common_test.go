@@ -32,7 +32,7 @@ func TestSanitizeAttributes(t *testing.T) {
 	pMap := pcommon.NewMap()
 	pMap.PutInt("int", 1)
 	pMap.PutDouble("float", 1.234)
-	pMap.PutString("string", "a\nlong\nstring\n")
+	pMap.PutStr("string", "a\nlong\nstring\n")
 	pMap.PutBool("bool", false)
 	pMap.PutEmpty("empty")
 	require.Equal(t, sanitizeAttributes(pMap.AsRaw()), sanitizeAttributes(anyMap))

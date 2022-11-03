@@ -146,7 +146,7 @@ func TestReceiverNameToIDs(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			lr := plog.NewLogRecord()
-			lr.Attributes().PutString("name", test.receiverName)
+			lr.Attributes().PutStr("name", test.receiverName)
 			receiverID, endpointID := ReceiverNameToIDs(lr)
 			require.Equal(t, test.expectedReceiverID, receiverID)
 			require.Equal(t, test.expectedEndpointID, endpointID)
@@ -170,7 +170,7 @@ func FuzzReceiverNameToIDs(f *testing.F) {
 	f.Fuzz(func(t *testing.T, receiverName string) {
 		require.NotPanics(t, func() {
 			lr := plog.NewLogRecord()
-			lr.Attributes().PutString("name", receiverName)
+			lr.Attributes().PutStr("name", receiverName)
 			receiverID, endpointID := ReceiverNameToIDs(lr)
 			// if we can't find a receiver we should never return an EndpointID
 			if receiverID == discovery.NoType {

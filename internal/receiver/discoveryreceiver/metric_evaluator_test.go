@@ -93,9 +93,9 @@ func TestMetricEvaluation(t *testing.T) {
 							rm := md.ResourceMetrics().AppendEmpty()
 
 							rAttrs := rm.Resource().Attributes()
-							rAttrs.PutString("discovery.receiver.type", "a.receiver")
-							rAttrs.PutString("discovery.receiver.name", "receiver.name")
-							rAttrs.PutString("discovery.endpoint.id", "endpoint.id")
+							rAttrs.PutStr("discovery.receiver.type", "a.receiver")
+							rAttrs.PutStr("discovery.receiver.name", "receiver.name")
+							rAttrs.PutStr("discovery.endpoint.id", "endpoint.id")
 
 							sm := rm.ScopeMetrics().AppendEmpty()
 							sms := sm.Metrics()

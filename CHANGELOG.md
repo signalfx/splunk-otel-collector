@@ -5,6 +5,7 @@
 ### 💡 Enhancements 💡
 
 - Experimental --discovery and --dry-run functionality [#2195](https://github.com/signalfx/splunk-otel-collector/pull/2195)
+- Upgrade to smart agent release 5.25.0 (#2226)
 
 ## v0.62.0
 

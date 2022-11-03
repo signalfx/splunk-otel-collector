@@ -11,8 +11,8 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.11.4
 	github.com/hashicorp/vault-plugin-auth-gcp v0.14.0
-	github.com/hashicorp/vault/api v1.8.1
-	github.com/jaegertracing/jaeger v1.38.1
+	github.com/hashicorp/vault/api v1.8.2
+	github.com/jaegertracing/jaeger v1.39.0
 	github.com/knadh/koanf v1.4.4
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.63.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.63.0
@@ -70,7 +70,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.63.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.63.0
 	github.com/signalfx/golib/v3 v3.3.46
-	github.com/signalfx/signalfx-agent v1.0.1-0.20221021161939-93120bfc93a2
+	github.com/signalfx/signalfx-agent v1.0.1-0.20221102193914-2f61b1078d54
 	github.com/signalfx/splunk-otel-collector/extension/smartagentextension v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver v0.0.0-00010101000000-000000000000
@@ -134,7 +134,7 @@ require (
 	github.com/ardielle/ardielle-go v1.5.2 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/aws/aws-sdk-go v1.44.122 // indirect
+	github.com/aws/aws-sdk-go v1.44.128 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.17.1 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.23 // indirect
@@ -374,9 +374,9 @@ require (
 	github.com/signalfx/gateway v1.2.23 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
 	github.com/signalfx/golib v2.5.1+incompatible // indirect
-	github.com/signalfx/ingest-protocols v0.1.13 // indirect
+	github.com/signalfx/ingest-protocols v0.1.14 // indirect
 	github.com/signalfx/sapm-proto v0.12.0 // indirect
-	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20221021161939-93120bfc93a2 // indirect
+	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20221102193914-2f61b1078d54 // indirect
 	github.com/signalfx/signalfx-go v1.24.0 // indirect
 	github.com/sijms/go-ora/v2 v2.5.3 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect

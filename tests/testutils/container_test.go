@@ -412,11 +412,11 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 	assert.Contains(t, string(b), "rdy")
 	assert.NotContains(t, string(b), "sleep inf") // confirm this isn't a bash error logging command
 
-	err = alpine.StartLogProducer(context.Background())
-	require.NoError(t, err)
-
 	lc := logConsumer{}
 	alpine.FollowOutput(&lc)
+
+	err = alpine.StartLogProducer(context.Background())
+	require.NoError(t, err)
 
 	ec, _, err := alpine.Exec(context.Background(), []string{"sh", "-c", "echo 'some message' >> /tmp/something"})
 	assert.Equal(t, 0, ec)

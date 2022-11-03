@@ -28,6 +28,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/service/servicetest"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -48,6 +49,7 @@ func TestCreateReceiver(t *testing.T) {
 		ctx,
 		component.ReceiverCreateSettings{
 			TelemetrySettings: component.TelemetrySettings{
+				MeterProvider:  metric.NewNoopMeterProvider(),
 				TracerProvider: trace.NewNoopTracerProvider(),
 			},
 		},

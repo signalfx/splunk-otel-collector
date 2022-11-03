@@ -130,9 +130,9 @@ func endpointToPLogs(observerID config.ComponentID, eventType string, endpoints 
 	pLogs = plog.NewLogs()
 	rlog := pLogs.ResourceLogs().AppendEmpty()
 	rAttrs := rlog.Resource().Attributes()
-	rAttrs.PutString(eventTypeAttr, eventType)
-	rAttrs.PutString(observerNameAttr, observerID.Name())
-	rAttrs.PutString(observerTypeAttr, string(observerID.Type()))
+	rAttrs.PutStr(eventTypeAttr, eventType)
+	rAttrs.PutStr(observerNameAttr, observerID.Name())
+	rAttrs.PutStr(observerTypeAttr, string(observerID.Type()))
 	sl := rlog.ScopeLogs().AppendEmpty()
 	for _, endpoint := range endpoints {
 		logRecord := sl.LogRecords().AppendEmpty()
@@ -149,12 +149,12 @@ func endpointToPLogs(observerID config.ComponentID, eventType string, endpoints 
 				// this must be the first mutation of attrs since it's destructive
 				envAttrs.CopyTo(attrs)
 			}
-			attrs.PutString("type", string(endpoint.Details.Type()))
+			attrs.PutStr("type", string(endpoint.Details.Type()))
 		} else {
 			logRecord.Body().SetStr(fmt.Sprintf("%s endpoint %s", eventType, endpoint.ID))
 		}
-		attrs.PutString("endpoint", endpoint.Target)
-		attrs.PutString("id", string(endpoint.ID))
+		attrs.PutStr("endpoint", endpoint.Target)
+		attrs.PutStr("id", string(endpoint.ID))
 
 		// sorted log record attributes for determinism
 		attrs.Sort()
@@ -172,7 +172,7 @@ func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer
 			if asMap, ok := v.(map[string]string); ok {
 				mapVal := attrs.PutEmptyMap(k)
 				for item, itemVal := range asMap {
-					mapVal.PutString(item, itemVal)
+					mapVal.PutStr(item, itemVal)
 				}
 				mapVal.Sort()
 			} else {
@@ -197,7 +197,7 @@ func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer
 			case bool:
 				attrs.PutBool(k, vVal)
 			default:
-				attrs.PutString(k, fmt.Sprintf("%v", v))
+				attrs.PutStr(k, fmt.Sprintf("%v", v))
 			}
 		}
 	}

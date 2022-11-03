@@ -62,7 +62,7 @@ func sfxSpansToPDataTraces(spans []*trace.Span, logger *zap.Logger) (ptrace.Trac
 		trss := translated.ResourceSpans()
 		if ip != "" {
 			for i := 0; i < trss.Len(); i++ {
-				trss.At(i).Resource().Attributes().PutString(resourceClientIPAttrName, ip)
+				trss.At(i).Resource().Attributes().PutStr(resourceClientIPAttrName, ip)
 			}
 		}
 		translated.ResourceSpans().MoveAndAppendTo(rss)

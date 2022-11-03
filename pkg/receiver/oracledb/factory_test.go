@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -32,6 +33,7 @@ func TestNewFactory(t *testing.T) {
 		component.ReceiverCreateSettings{
 			TelemetrySettings: component.TelemetrySettings{
 				TracerProvider: trace.NewNoopTracerProvider(),
+				MeterProvider:  metric.NewNoopMeterProvider(),
 			},
 		},
 		factory.CreateDefaultConfig(),

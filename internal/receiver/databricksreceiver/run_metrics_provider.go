@@ -72,7 +72,7 @@ func (p runMetricsProvider) addSingleJobRunMetrics(
 			taskPt.SetIntValue(int64(task.ExecutionDuration))
 			taskAttrs := taskPt.Attributes()
 			taskAttrs.PutInt(metadata.Attributes.JobID, int64(jobID))
-			taskAttrs.PutString(metadata.Attributes.TaskID, task.TaskKey)
+			taskAttrs.PutStr(metadata.Attributes.TaskID, task.TaskKey)
 		}
 	}
 	return nil

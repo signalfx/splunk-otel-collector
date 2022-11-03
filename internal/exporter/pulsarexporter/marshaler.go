@@ -30,8 +30,8 @@ type MetricsMarshaler interface {
 
 // metricsMarshalers returns map of supported encodings and MetricsMarshaler
 func metricsMarshalers() map[string]MetricsMarshaler {
-	otlpPb := newPdataMetricsMarshaler(pmetric.NewProtoMarshaler(), defaultEncoding)
-	otlpJSON := newPdataMetricsMarshaler(pmetric.NewJSONMarshaler(), "otlp_json")
+	otlpPb := newPdataMetricsMarshaler(&pmetric.ProtoMarshaler{}, defaultEncoding)
+	otlpJSON := newPdataMetricsMarshaler(&pmetric.JSONMarshaler{}, "otlp_json")
 	return map[string]MetricsMarshaler{
 		otlpPb.Encoding():   otlpPb,
 		otlpJSON.Encoding(): otlpJSON,

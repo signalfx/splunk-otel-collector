@@ -176,7 +176,7 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 			}
 			if len(desiredRecord.Attributes) > 0 {
 				for k, v := range desiredRecord.Attributes {
-					logRecord.Attributes().PutString(k, v)
+					logRecord.Attributes().PutStr(k, v)
 				}
 			}
 			severityText := desiredRecord.SeverityText

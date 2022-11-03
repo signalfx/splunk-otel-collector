@@ -110,7 +110,8 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
 	require.Equal(t, []confmap.Converter{
-		overwritepropertiesconverter.New(f.setProperties.value),
+		// nolint: staticcheck
+		overwritepropertiesconverter.New(f.setProperties.value), // support until there's an actual replacement
 	}, settings.ConfMapConverters())
 	require.Equal(t, []string{
 		"--config", configPath,
@@ -146,7 +147,8 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
 	require.Equal(t, []confmap.Converter{
-		overwritepropertiesconverter.New(f.setProperties.value),
+		// nolint: staticcheck
+		overwritepropertiesconverter.New(f.setProperties.value), // support until there's an actual replacement
 		configconverter.RemoveBallastKey{},
 		configconverter.MoveOTLPInsecureKey{},
 		configconverter.MoveHecTLS{},

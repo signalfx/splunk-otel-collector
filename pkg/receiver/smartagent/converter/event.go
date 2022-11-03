@@ -53,7 +53,7 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) plog.Logs {
 	attrs.EnsureCapacity(attrsCapacity)
 
 	for k, v := range event.Dimensions {
-		attrs.PutString(k, v)
+		attrs.PutStr(k, v)
 	}
 
 	if event.Category == 0 {
@@ -64,7 +64,7 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) plog.Logs {
 	}
 
 	if event.EventType != "" {
-		attrs.PutString(sfxEventType, event.EventType)
+		attrs.PutStr(sfxEventType, event.EventType)
 	}
 
 	if len(event.Properties) > 0 {
@@ -81,7 +81,7 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) plog.Logs {
 			// https://github.com/signalfx/com_signalfx_metrics_protobuf/blob/master/model/signalfx_metrics.pb.go#L567
 			// bool, float64, int64, and string are only supported types.
 			case string:
-				propMap.PutString(property, v)
+				propMap.PutStr(property, v)
 			case bool:
 				propMap.PutBool(property, v)
 			case int:
@@ -100,7 +100,7 @@ func sfxEventToPDataLogs(event *event.Event, logger *zap.Logger) plog.Logs {
 				propMap.PutDouble(property, v)
 			default:
 				// Default to string representation.
-				propMap.PutString(property, fmt.Sprintf("%v", value))
+				propMap.PutStr(property, fmt.Sprintf("%v", value))
 			}
 		}
 	}

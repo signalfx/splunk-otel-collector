@@ -162,7 +162,8 @@ func getConfigDir(f *flags) string {
 
 func (f *flags) ConfMapConverters() []confmap.Converter {
 	confMapConverters := []confmap.Converter{
-		overwritepropertiesconverter.New(f.setProperties.value),
+		// nolint: staticcheck
+		overwritepropertiesconverter.New(f.setProperties.value), // support until there's an actual replacement
 	}
 
 	if f.noConvertConfig {

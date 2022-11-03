@@ -38,7 +38,7 @@ const (
 )
 
 var (
-	jsonMarshaler = pmetric.NewJSONMarshaler()
+	jsonMarshaler = &pmetric.JSONMarshaler{}
 )
 
 // metricEvaluator conforms to a consumer.Metrics to receive any metrics from
@@ -112,8 +112,8 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 		md.ResourceMetrics().At(0).Resource().Attributes(), rAttrs,
 		m.correlations.GetOrCreate(receiverID, endpointID),
 	)
-	rAttrs.PutString(eventTypeAttr, metricMatch)
-	rAttrs.PutString(receiverRuleAttr, rEntry.Rule)
+	rAttrs.PutStr(eventTypeAttr, metricMatch)
+	rAttrs.PutStr(receiverRuleAttr, rEntry.Rule)
 
 	logRecords := rLog.ScopeLogs().AppendEmpty().LogRecords()
 
@@ -151,7 +151,7 @@ func (m *metricEvaluator) evaluateMetrics(md pmetric.Metrics) plog.Logs {
 					}
 					logRecord.Body().SetStr(desiredBody)
 					for k, v := range desiredRecord.Attributes {
-						logRecord.Attributes().PutString(k, v)
+						logRecord.Attributes().PutStr(k, v)
 					}
 					severityText := desiredRecord.SeverityText
 					if severityText == "" {

@@ -17,10 +17,19 @@
 package tests
 
 import (
+	"fmt"
+	"io"
+	"net/http"
+	"path"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/confmap"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
+	"gopkg.in/yaml.v2"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -98,4 +107,95 @@ func TestExpandedYamlViaEnvConfigSource(t *testing.T) {
 
 	expectedResourceMetrics := tc.ResourceMetrics("yaml_from_env.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+}
+
+func TestCollectorProcessWithEnvVarConfig(t *testing.T) {
+	logCore, logs := observer.New(zap.DebugLevel)
+	logger := zap.New(logCore)
+
+	csPort := testutils.GetAvailablePort(t)
+	collector, err := testutils.NewCollectorProcess().
+		WithArgs("--config", path.Join(".", "testdata", "envvar_config.yaml")).
+		WithLogger(logger).
+		WithEnv(map[string]string{
+			"SPLUNK_DEBUG_CONFIG_SERVER_PORT": fmt.Sprintf("%d", csPort),
+			"OTLP_PROTOCOLS":                  "{ grpc: , http: , }",
+		}).
+		Build()
+
+	require.NotNil(t, collector)
+	require.NoError(t, err)
+
+	defer func() {
+		require.NoError(t, collector.Shutdown())
+	}()
+
+	err = collector.Start()
+	require.NoError(t, err)
+
+	require.Eventually(t, func() bool {
+		for _, log := range logs.All() {
+			if strings.Contains(log.Message,
+				`Set config to [testdata/envvar_config.yaml]`,
+			) {
+				return true
+			}
+		}
+		return false
+	}, 20*time.Second, time.Second)
+
+	require.Eventually(t, func() bool {
+		for _, log := range logs.All() {
+			// Confirm collector starts and runs successfully
+			if strings.Contains(log.Message, "Everything is ready. Begin running and processing data.") {
+				return true
+			}
+		}
+		return false
+	}, 20*time.Second, time.Second)
+
+	expectedConfig := map[string]any{
+		"receivers": map[string]any{
+			"otlp": map[string]any{
+				"protocols": map[string]any{
+					"grpc": nil,
+					"http": nil,
+				},
+			},
+		},
+		"exporters": map[string]any{
+			"otlp": map[string]any{
+				"endpoint": "localhost:23456",
+				"tls": map[string]any{
+					"insecure": true,
+				},
+			},
+		},
+		"service": map[string]any{
+			"pipelines": map[string]any{
+				"metrics": map[string]any{
+					"receivers": []any{"otlp"},
+					"exporters": []any{"otlp"},
+				},
+			},
+		},
+	}
+	for _, tc := range []struct {
+		expected map[string]any
+		endpoint string
+	}{
+		{expected: expectedConfig, endpoint: "effective"},
+	} {
+		resp, err := http.Get(fmt.Sprintf("http://localhost:%d/debug/configz/%s", csPort, tc.endpoint))
+		require.NoError(t, err)
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+
+		actual := map[string]any{}
+		require.NoError(t, yaml.Unmarshal(body, &actual))
+
+		require.Equal(t, tc.expected, confmap.NewFromStringMap(actual).ToStringMap())
+	}
+
 }

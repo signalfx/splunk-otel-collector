@@ -1,0 +1,19 @@
+config_sources:
+  env:
+    defaults:
+      OTLP_PROTOCOLS: "{ http: , }"
+
+receivers:
+  otlp:
+    protocols:
+      ${env:OTLP_PROTOCOLS}
+exporters:
+  otlp:
+    endpoint: localhost:23456
+    tls:
+      insecure: true
+service:
+  pipelines:
+    metrics:
+      receivers: [  otlp ]
+      exporters: [ otlp ]

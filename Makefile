@@ -74,11 +74,7 @@ integration-vet:
 
 .PHONY: integration-test
 integration-test:
-	@set -e; for dir in $(shell find tests -name '*_test.go' | xargs -L 1 dirname | uniq | sort -r); do \
-	  echo "go test ./... in $${dir}"; \
-	  (cd "$${dir}" && \
-	   $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./... ); \
-	done
+	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./...
 
 .PHONY: end-to-end-test
 end-to-end-test:

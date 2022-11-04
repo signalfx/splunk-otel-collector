@@ -7,6 +7,10 @@ receivers:
   otlp:
     protocols:
       ${env:OTLP_PROTOCOLS}
+  hostmetrics:
+    scrapers:
+      cpu:
+      memory:
 exporters:
   otlp:
     endpoint: localhost:23456
@@ -15,5 +19,5 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers: [  otlp ]
+      receivers: [ hostmetrics ]
       exporters: [ otlp ]

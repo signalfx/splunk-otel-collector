@@ -17,21 +17,12 @@
 package tests
 
 import (
-	"fmt"
-	"io"
-	"net/http"
-	"path"
-	"strings"
 	"testing"
 	"time"
 
+	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest/observer"
-	"gopkg.in/yaml.v2"
-
-	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestExpandedDollarSignsViaStandardEnvVar(t *testing.T) {
@@ -104,55 +95,27 @@ func TestExpandedYamlViaEnvConfigSource(t *testing.T) {
 	)
 
 	defer shutdown()
-
 	expectedResourceMetrics := tc.ResourceMetrics("yaml_from_env.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
 
 func TestCollectorProcessWithEnvVarConfig(t *testing.T) {
-	logCore, logs := observer.New(zap.DebugLevel)
-	logger := zap.New(logCore)
 
-	csPort := testutils.GetAvailablePort(t)
-	collector, err := testutils.NewCollectorProcess().
-		WithArgs("--config", path.Join(".", "testdata", "envvar_config.yaml")).
-		WithLogger(logger).
-		WithEnv(map[string]string{
-			"SPLUNK_DEBUG_CONFIG_SERVER_PORT": fmt.Sprintf("%d", csPort),
-			"OTLP_PROTOCOLS":                  "{ grpc: , http: , }",
-		}).
-		Build()
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
 
-	require.NotNil(t, collector)
-	require.NoError(t, err)
+	tc.SkipIfNotContainer()
+	c, shutdown := tc.SplunkOtelCollectorWithEnv(
+		"envvar_config.yaml",
+		map[string]string{
+			"OTLP_PROTOCOLS": "{ grpc: , http: , }",
+		},
+	)
 
-	defer func() {
-		require.NoError(t, collector.Shutdown())
-	}()
+	cc := c.(*testutils.CollectorContainer)
 
-	err = collector.Start()
-	require.NoError(t, err)
-
-	require.Eventually(t, func() bool {
-		for _, log := range logs.All() {
-			if strings.Contains(log.Message,
-				`Set config to [testdata/envvar_config.yaml]`,
-			) {
-				return true
-			}
-		}
-		return false
-	}, 20*time.Second, time.Second)
-
-	require.Eventually(t, func() bool {
-		for _, log := range logs.All() {
-			// Confirm collector starts and runs successfully
-			if strings.Contains(log.Message, "Everything is ready. Begin running and processing data.") {
-				return true
-			}
-		}
-		return false
-	}, 20*time.Second, time.Second)
+	defer shutdown()
 
 	expectedConfig := map[string]any{
 		"receivers": map[string]any{
@@ -160,6 +123,12 @@ func TestCollectorProcessWithEnvVarConfig(t *testing.T) {
 				"protocols": map[string]any{
 					"grpc": nil,
 					"http": nil,
+				},
+			},
+			"hostmetrics": map[string]any{
+				"scrapers": map[string]any{
+					"cpu":    nil,
+					"memory": nil,
 				},
 			},
 		},
@@ -174,28 +143,15 @@ func TestCollectorProcessWithEnvVarConfig(t *testing.T) {
 		"service": map[string]any{
 			"pipelines": map[string]any{
 				"metrics": map[string]any{
-					"receivers": []any{"otlp"},
+					"receivers": []any{"hostmetrics"},
 					"exporters": []any{"otlp"},
 				},
 			},
 		},
 	}
-	for _, tc := range []struct {
-		expected map[string]any
-		endpoint string
-	}{
-		{expected: expectedConfig, endpoint: "effective"},
-	} {
-		resp, err := http.Get(fmt.Sprintf("http://localhost:%d/debug/configz/%s", csPort, tc.endpoint))
-		require.NoError(t, err)
 
-		body, err := io.ReadAll(resp.Body)
-		require.NoError(t, err)
+	actual := cc.EffectiveConfig(t, 55554)
 
-		actual := map[string]any{}
-		require.NoError(t, yaml.Unmarshal(body, &actual))
-
-		require.Equal(t, tc.expected, confmap.NewFromStringMap(actual).ToStringMap())
-	}
+	require.Equal(t, expectedConfig, confmap.NewFromStringMap(actual).ToStringMap())
 
 }

@@ -79,6 +79,21 @@ func TestDockerBuilderMethods(t *testing.T) {
 	assert.Equal(t, []string{"network_one", "network_two"}, withNetworks.ContainerNetworks)
 	assert.NotSame(t, builder, withNetworks)
 	assert.Nil(t, builder.ContainerNetworks)
+
+	withUser := builder.WithUser("some.user")
+	assert.Equal(t, "some.user", withUser.User)
+	assert.NotSame(t, builder, withUser)
+	assert.Empty(t, builder.User)
+
+	withPrivileged := builder.WithPriviledged(true)
+	assert.True(t, withPrivileged.Privileged)
+	assert.NotSame(t, builder, withPrivileged)
+	assert.False(t, builder.Privileged)
+
+	withBinds := builder.WithBinds("one", "two")
+	assert.Equal(t, []string{"one", "two"}, withBinds.Binds)
+	assert.NotSame(t, builder, withBinds)
+	assert.Empty(t, builder.Binds)
 }
 
 func TestEnvironmentBuilderMethods(t *testing.T) {
@@ -111,6 +126,38 @@ func TestEnvironmentBuilderMethods(t *testing.T) {
 	assert.Equal(t, env, withEnvVar.Env)
 	assert.NotSame(t, builder, additionalWithEnvVar)
 	assert.Empty(t, builder.Env)
+}
+
+func TestLabelsBuilderMethods(t *testing.T) {
+	builder := NewContainer()
+	env := map[string]string{"one": "1", "two": "2"}
+	withLabels := builder.WithLabels(env)
+	assert.Equal(t, env, withLabels.Labels)
+	assert.NotSame(t, builder, withLabels)
+	assert.Empty(t, builder.Labels)
+
+	envTwo := map[string]string{"three": "3", "four": "4"}
+	additionalWithLabels := withLabels.WithLabels(envTwo)
+	expectedLabels := map[string]string{"one": "1", "two": "2", "three": "3", "four": "4"}
+	assert.Equal(t, expectedLabels, additionalWithLabels.Labels)
+	assert.NotSame(t, withLabels, additionalWithLabels)
+	assert.Equal(t, env, withLabels.Labels)
+	assert.NotSame(t, builder, additionalWithLabels)
+	assert.Empty(t, builder.Labels)
+
+	env = map[string]string{"some": "label"}
+	withLabelsVar := builder.WithLabel("some", "label")
+	assert.Equal(t, env, withLabelsVar.Labels)
+	assert.NotSame(t, builder, withLabelsVar)
+	assert.Empty(t, builder.Labels)
+
+	additionalWithLabelsVar := withLabelsVar.WithLabel("another", "label")
+	expectedLabels = map[string]string{"some": "label", "another": "label"}
+	assert.Equal(t, expectedLabels, additionalWithLabelsVar.Labels)
+	assert.NotSame(t, withLabelsVar, additionalWithLabelsVar)
+	assert.Equal(t, env, withLabelsVar.Labels)
+	assert.NotSame(t, builder, additionalWithLabelsVar)
+	assert.Empty(t, builder.Labels)
 }
 
 func TestExposedPortsBuilderMethod(t *testing.T) {

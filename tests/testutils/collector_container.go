@@ -39,7 +39,6 @@ var _ Collector = (*CollectorContainer)(nil)
 var _ testcontainers.LogConsumer = (*collectorLogConsumer)(nil)
 
 type CollectorContainer struct {
-	Container      Container
 	contextArchive io.Reader
 	Logger         *zap.Logger
 	logConsumer    collectorLogConsumer
@@ -48,6 +47,7 @@ type CollectorContainer struct {
 	LogLevel       string
 	Args           []string
 	Ports          []string
+	Container      Container
 	Fail           bool
 }
 

@@ -79,7 +79,7 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Empty(t, scopeMetrics[1].Scope.Version)
 	assert.Empty(t, scopeMetrics[1].Metrics)
 
-	require.Len(t, scopeMetrics[2].Metrics, 24)
+	require.Len(t, scopeMetrics[2].Metrics, 27)
 
 	smThreeMetricOne := scopeMetrics[2].Metrics[0]
 	assert.Equal(t, "a_monotonic_cumulative_int_sum", smThreeMetricOne.Name)
@@ -272,4 +272,31 @@ func TestPDataToResourceMetricsHappyPath(t *testing.T) {
 	assert.Equal(t, DoubleNonmonotonicUnspecifiedSum, smThreeMetricTwentyFour.Type)
 	assert.Equal(t, map[string]any{"attribute_name_28": "attribute_value_28"}, *smThreeMetricTwentyFour.Attributes)
 	assert.EqualValues(t, 6789.01, smThreeMetricTwentyFour.Value)
+
+	smThreeMetricTwentyFive := scopeMetrics[2].Metrics[24]
+	assert.Equal(t, "a_summary", smThreeMetricTwentyFive.Name)
+	assert.Equal(t, "a_summary_description", smThreeMetricTwentyFive.Description)
+	assert.Equal(t, "a_summary_unit", smThreeMetricTwentyFive.Unit)
+	assert.Equal(t, Summary, smThreeMetricTwentyFive.Type)
+	assert.Equal(t, map[string]any{"attribute_name_29": "attribute_value_29"}, *smThreeMetricTwentyFive.Attributes)
+	assert.EqualValues(t, 1.2345, smThreeMetricTwentyFive.Sum)
+	assert.EqualValues(t, 100, smThreeMetricTwentyFive.Count)
+
+	smThreeMetricTwentySix := scopeMetrics[2].Metrics[25]
+	assert.Equal(t, "a_histogram", smThreeMetricTwentySix.Name)
+	assert.Equal(t, "a_histogram_description", smThreeMetricTwentySix.Description)
+	assert.Equal(t, "a_histogram_unit", smThreeMetricTwentySix.Unit)
+	assert.Equal(t, Histogram, smThreeMetricTwentySix.Type)
+	assert.Equal(t, map[string]any{"attribute_name_30": "attribute_value_30"}, *smThreeMetricTwentySix.Attributes)
+	assert.EqualValues(t, 2.3456, smThreeMetricTwentySix.Sum)
+	assert.EqualValues(t, 200, smThreeMetricTwentySix.Count)
+
+	smThreeMetricTwentySeven := scopeMetrics[2].Metrics[26]
+	assert.Equal(t, "an_exponential_histogram", smThreeMetricTwentySeven.Name)
+	assert.Equal(t, "an_exponential_histogram_description", smThreeMetricTwentySeven.Description)
+	assert.Equal(t, "an_exponential_histogram_unit", smThreeMetricTwentySeven.Unit)
+	assert.Equal(t, ExponentialHistogram, smThreeMetricTwentySeven.Type)
+	assert.Equal(t, map[string]any{"attribute_name_31": "attribute_value_31"}, *smThreeMetricTwentySeven.Attributes)
+	assert.EqualValues(t, 3.4567, smThreeMetricTwentySeven.Sum)
+	assert.EqualValues(t, 300, smThreeMetricTwentySeven.Count)
 }

@@ -49,10 +49,12 @@ func PDataToResourceMetrics(pdataMetrics ...pmetric.Metrics) (ResourceMetrics, e
 						addGauge(&ISMs, pdMetric)
 					case pmetric.MetricTypeSum:
 						addSum(&ISMs, pdMetric)
-					case pmetric.MetricTypeHistogram:
-						panic(fmt.Sprintf("%s not yet supported", pmetric.MetricTypeHistogram))
 					case pmetric.MetricTypeSummary:
-						panic(fmt.Sprintf("%s not yet supported", pmetric.MetricTypeSummary))
+						addSummary(&ISMs, pdMetric)
+					case pmetric.MetricTypeHistogram:
+						addHistogram(&ISMs, pdMetric)
+					case pmetric.MetricTypeExponentialHistogram:
+						addExponentialHistogram(&ISMs, pdMetric)
 					default:
 						panic(fmt.Sprintf("unexpected data type: %s", t))
 					}
@@ -116,6 +118,60 @@ func addGauge(sms *ScopeMetrics, metric pmetric.Metric) {
 			Attributes:  &attributes,
 			Type:        metricType,
 			Value:       val,
+		}
+		sms.Metrics = append(sms.Metrics, m)
+	}
+}
+
+func addSummary(sms *ScopeMetrics, metric pmetric.Metric) {
+	summary := metric.Summary()
+	for l := 0; l < summary.DataPoints().Len(); l++ {
+		dp := summary.DataPoints().At(l)
+		attributes := sanitizeAttributes(dp.Attributes().AsRaw())
+		m := Metric{
+			Name:        metric.Name(),
+			Description: metric.Description(),
+			Unit:        metric.Unit(),
+			Attributes:  &attributes,
+			Type:        Summary,
+			Sum:         dp.Sum(),
+			Count:       dp.Count(),
+		}
+		sms.Metrics = append(sms.Metrics, m)
+	}
+}
+
+func addHistogram(sms *ScopeMetrics, metric pmetric.Metric) {
+	summary := metric.Histogram()
+	for l := 0; l < summary.DataPoints().Len(); l++ {
+		dp := summary.DataPoints().At(l)
+		attributes := sanitizeAttributes(dp.Attributes().AsRaw())
+		m := Metric{
+			Name:        metric.Name(),
+			Description: metric.Description(),
+			Unit:        metric.Unit(),
+			Attributes:  &attributes,
+			Type:        Histogram,
+			Sum:         dp.Sum(),
+			Count:       dp.Count(),
+		}
+		sms.Metrics = append(sms.Metrics, m)
+	}
+}
+
+func addExponentialHistogram(sms *ScopeMetrics, metric pmetric.Metric) {
+	summary := metric.ExponentialHistogram()
+	for l := 0; l < summary.DataPoints().Len(); l++ {
+		dp := summary.DataPoints().At(l)
+		attributes := sanitizeAttributes(dp.Attributes().AsRaw())
+		m := Metric{
+			Name:        metric.Name(),
+			Description: metric.Description(),
+			Unit:        metric.Unit(),
+			Attributes:  &attributes,
+			Type:        ExponentialHistogram,
+			Sum:         dp.Sum(),
+			Count:       dp.Count(),
 		}
 		sms.Metrics = append(sms.Metrics, m)
 	}
@@ -359,5 +415,39 @@ func PDataMetrics() pmetric.Metrics {
 	smThreeMetricTwelveDps.At(0).Attributes().PutStr("attribute_name_27", "attribute_value_27")
 	smThreeMetricTwelveDps.AppendEmpty().SetDoubleValue(6789.01)
 	smThreeMetricTwelveDps.At(1).Attributes().PutStr("attribute_name_28", "attribute_value_28")
+
+	smThreeMetricThirteen := smThreeMetrics.AppendEmpty()
+	smThreeMetricThirteen.SetName("a_summary")
+	smThreeMetricThirteen.SetDescription("a_summary_description")
+	smThreeMetricThirteen.SetUnit("a_summary_unit")
+	smThreeMetricThirteen.SetEmptySummary()
+	smThreeMetricThirteenDps := smThreeMetricThirteen.Summary().DataPoints()
+	smThreeMetricThirteenDpOne := smThreeMetricThirteenDps.AppendEmpty()
+	smThreeMetricThirteenDpOne.SetSum(1.2345)
+	smThreeMetricThirteenDpOne.SetCount(100)
+	smThreeMetricThirteenDpOne.Attributes().PutStr("attribute_name_29", "attribute_value_29")
+
+	smThreeMetricFourteen := smThreeMetrics.AppendEmpty()
+	smThreeMetricFourteen.SetName("a_histogram")
+	smThreeMetricFourteen.SetDescription("a_histogram_description")
+	smThreeMetricFourteen.SetUnit("a_histogram_unit")
+	smThreeMetricFourteen.SetEmptyHistogram()
+	smThreeMetricFourteenDps := smThreeMetricFourteen.Histogram().DataPoints()
+	smThreeMetricFourteenDpOne := smThreeMetricFourteenDps.AppendEmpty()
+	smThreeMetricFourteenDpOne.SetSum(2.3456)
+	smThreeMetricFourteenDpOne.SetCount(200)
+	smThreeMetricFourteenDpOne.Attributes().PutStr("attribute_name_30", "attribute_value_30")
+
+	smThreeMetricFifteen := smThreeMetrics.AppendEmpty()
+	smThreeMetricFifteen.SetName("an_exponential_histogram")
+	smThreeMetricFifteen.SetDescription("an_exponential_histogram_description")
+	smThreeMetricFifteen.SetUnit("an_exponential_histogram_unit")
+	smThreeMetricFifteen.SetEmptyExponentialHistogram()
+	smThreeMetricFifteenDps := smThreeMetricFifteen.ExponentialHistogram().DataPoints()
+	smThreeMetricFifteenDpOne := smThreeMetricFifteenDps.AppendEmpty()
+	smThreeMetricFifteenDpOne.SetSum(3.4567)
+	smThreeMetricFifteenDpOne.SetCount(300)
+	smThreeMetricFifteenDpOne.Attributes().PutStr("attribute_name_31", "attribute_value_31")
+
 	return metrics
 }

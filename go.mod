@@ -483,6 +483,10 @@ replace (
 	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required for smartagentreceiver to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
 )
 
+// https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/12322#issuecomment-1185029670
+// https://github.com/docker/go-connections/issues/99
+replace github.com/docker/go-connections => github.com/docker/go-connections v0.4.0
+
 // security updates
 replace (
 	github.com/Masterminds/goutils => github.com/Masterminds/goutils v1.1.1

@@ -42,6 +42,9 @@ const (
 	IntNonmonotonicCumulativeSum     MetricType = "IntNonmonotonicCumulativeSum"
 	IntNonmonotonicDeltaSum          MetricType = "IntNonmonotonicDeltaSum"
 	IntNonmonotonicUnspecifiedSum    MetricType = "IntNonmonotonicUnspecifiedSum"
+	Summary                          MetricType = "Summary"
+	Histogram                        MetricType = "Histogram"
+	ExponentialHistogram             MetricType = "ExponentialHistogram"
 )
 
 var supportedMetricTypeOptions = fmt.Sprintf(
@@ -88,6 +91,8 @@ type ScopeMetrics struct {
 // TODO: Timestamps
 type Metric struct {
 	Value       any             `yaml:"value,omitempty"`
+	Sum         any             `yaml:"sum,omitempty"`
+	Count       any             `yaml:"count,omitempty"`
 	Attributes  *map[string]any `yaml:"attributes,omitempty"`
 	Name        string          `yaml:"name"`
 	Description string          `yaml:"description,omitempty"`

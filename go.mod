@@ -84,7 +84,7 @@ require (
 	go.opentelemetry.io/collector v0.63.1
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.63.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.63.1
-	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.63.0
+	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.63.1
 	go.opentelemetry.io/collector/pdata v0.63.1
 	go.opentelemetry.io/otel/metric v0.33.0
 	go.opentelemetry.io/otel/trace v1.11.1

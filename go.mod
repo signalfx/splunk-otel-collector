@@ -82,7 +82,7 @@ require (
 	go.etcd.io/bbolt v1.3.6
 	go.etcd.io/etcd/client/v2 v2.305.5
 	go.opentelemetry.io/collector v0.63.1
-	go.opentelemetry.io/collector/exporter/loggingexporter v0.63.0
+	go.opentelemetry.io/collector/exporter/loggingexporter v0.63.1
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.63.1
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.63.0
 	go.opentelemetry.io/collector/pdata v0.63.1

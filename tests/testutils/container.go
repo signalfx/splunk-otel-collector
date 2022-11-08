@@ -35,19 +35,23 @@ const (
 // Container is a combination builder and testcontainers.Container wrapper
 // for convenient creation and management of docker images and containers.
 type Container struct {
-	Env                  map[string]string
 	req                  *testcontainers.ContainerRequest
 	container            *testcontainers.Container
 	startupTimeout       *time.Duration
+	Env                  map[string]string
+	Labels               map[string]string
 	Dockerfile           testcontainers.FromDockerfile
+	User                 string
 	Image                string
 	ContainerName        string
 	ContainerNetworkMode string
 	Cmd                  []string
-	ExposedPorts         []string
 	ContainerNetworks    []string
+	ExposedPorts         []string
+	Binds                []string
 	WaitingFor           []wait.Strategy
 	Mounts               []testcontainers.ContainerMount
+	Privileged           bool
 }
 
 var _ testcontainers.Container = (*Container)(nil)
@@ -158,6 +162,37 @@ func (container Container) WillWaitForHealth(waitTime time.Duration) Container {
 	return container
 }
 
+func (container Container) WithUser(user string) Container {
+	container.User = user
+	return container
+}
+
+func (container Container) WithPriviledged(privileged bool) Container {
+	container.Privileged = privileged
+	return container
+}
+
+func (container Container) WithBinds(binds ...string) Container {
+	container.Binds = append(container.Binds, binds...)
+	return container
+}
+
+func (container Container) WithLabels(labels map[string]string) Container {
+	builder := container
+	builder.Labels = copyMap(builder.Labels)
+	for k, v := range labels {
+		builder.Labels[k] = v
+	}
+	return builder
+}
+
+func (container Container) WithLabel(key, value string) Container {
+	builder := container
+	builder.Labels = copyMap(builder.Labels)
+	builder.Labels[key] = value
+	return builder
+}
+
 func (container Container) Build() *Container {
 	networkMode := dockerContainer.NetworkMode("default")
 	if container.ContainerNetworkMode != "" {
@@ -171,6 +206,8 @@ func (container Container) Build() *Container {
 	}
 
 	container.req = &testcontainers.ContainerRequest{
+		Binds:          container.Binds,
+		User:           container.User,
 		Image:          container.Image,
 		FromDockerfile: container.Dockerfile,
 		Cmd:            container.Cmd,
@@ -180,6 +217,8 @@ func (container Container) Build() *Container {
 		Networks:       container.ContainerNetworks,
 		Mounts:         container.Mounts,
 		NetworkMode:    networkMode,
+		Labels:         container.Labels,
+		Privileged:     container.Privileged,
 		WaitingFor:     wait.ForAll(container.WaitingFor...).WithStartupTimeout(startupTimeout),
 	}
 	return &container

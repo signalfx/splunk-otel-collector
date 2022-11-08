@@ -1617,6 +1617,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/signalf
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/signalfx v0.63.0/go.mod h1:zxJ9pFSNqRbxNH6QCAgzkk/ub4VJ5H5G3fjN6uZ+km0=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.63.0 h1:4QCzLDflK3Bz1eMS20Cho7cC9MW7tSJZiIK1TI7b3XA=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.63.0/go.mod h1:AL75UWqPct104ab4juSg8ChVTFq8hYqPtq8uP7aM2DQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/winperfcounters v0.63.0 h1:lZibGKPvH0UJkZLE2yG80F81ow11FSG6kvKy90RL1/4=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/winperfcounters v0.63.0/go.mod h1:QnzYj6TY66520bgjfhVwFrzbOY95xDXWP0c6jcGrCx0=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.63.0 h1:6+LmD1djirBkC8rKDQoSEYcYaGNfdPvwxQvfJrjHtNM=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.63.0/go.mod h1:7ZuYh9HCR5n4338uRfgxK6Z9QTHzSi8jl+x8d4SufWQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.63.0 h1:0rTPw3Jx1j3DH9tRtg5AlsAZexfcVXVYL0tlvibbUZo=
@@ -1693,6 +1695,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceive
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver v0.63.0/go.mod h1:TVKuPPfTkkcXcUDGXnafMnbU3tdhc6mG7AocLY5xWZQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.63.0 h1:8RZU2iEYcB6ict/ttWepO8SeSzhWvPunDNryL0ZN6L8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver v0.63.0/go.mod h1:StMLISg2Tf+gycdJNg2+OCbRBQgSeHw9vXCT8lkkkbQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.63.0 h1:UcFPTcH8ys2sEi37aHAVwH1E/gZMAaeJexNqWQU0PBI=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.63.0/go.mod h1:BKvZwqkoXePyVIC4wNp/O0V51AiD0NtF3CfIYTQkhzw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.63.0 h1:sj7UU3LMKQ5DILVUq/qRht1tG9bYKNyg6xV0jhtrQkk=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.63.0/go.mod h1:gTJP/fLyVLz3DBNn2ZdRGWFy4u6DFJvZqcjyd35IwZg=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=

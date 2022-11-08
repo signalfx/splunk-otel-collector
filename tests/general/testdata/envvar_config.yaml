@@ -1,19 +1,20 @@
 config_sources:
   env:
     defaults:
-      OTLP_PROTOCOLS: "{ http: , }"
+      OVERRIDDEN_DEFAULT: "{ http: , }"
+      USED_DEFAULT: localhost:23456
 
 receivers:
   otlp:
     protocols:
-      ${env:OTLP_PROTOCOLS}
+      ${env:OVERRIDDEN_DEFAULT}
   hostmetrics:
     scrapers:
       cpu:
       memory:
 exporters:
   otlp:
-    endpoint: localhost:23456
+    endpoint: ${env:USED_DEFAULT}
     tls:
       insecure: true
 service:

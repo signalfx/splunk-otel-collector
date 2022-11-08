@@ -17,12 +17,13 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/confmap"
+
+	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestExpandedDollarSignsViaStandardEnvVar(t *testing.T) {
@@ -99,25 +100,66 @@ func TestExpandedYamlViaEnvConfigSource(t *testing.T) {
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
 
-func TestCollectorProcessWithEnvVarConfig(t *testing.T) {
-
+func TestEnvConfigSource(t *testing.T) {
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
+	configServerPort := testutils.GetAvailablePort(t)
 	tc.SkipIfNotContainer()
 	c, shutdown := tc.SplunkOtelCollectorWithEnv(
 		"envvar_config.yaml",
 		map[string]string{
-			"OTLP_PROTOCOLS": "{ grpc: , http: , }",
+			"OVERRIDDEN_DEFAULT":              "{ grpc: , http: , }",
+			"SPLUNK_DEBUG_CONFIG_SERVER_PORT": fmt.Sprintf("%d", configServerPort),
 		},
 	)
-
+	defer shutdown()
 	cc := c.(*testutils.CollectorContainer)
 
-	defer shutdown()
+	expectedInitial := map[string]any{
+		"file": map[string]any{
+			"config_sources": map[string]any{
+				"env": map[string]any{
+					"defaults": map[string]any{
+						"OVERRIDDEN_DEFAULT": "{ http: , }",
+						"USED_DEFAULT":       "localhost:23456",
+					},
+				},
+			},
+			"receivers": map[string]any{
+				"otlp": map[string]any{
+					"protocols": "${env:OVERRIDDEN_DEFAULT}",
+				},
+				"hostmetrics": map[string]any{
+					"scrapers": map[string]any{
+						"cpu":    nil,
+						"memory": nil,
+					},
+				},
+			},
+			"exporters": map[string]any{
+				"otlp": map[string]any{
+					"endpoint": "${env:USED_DEFAULT}",
+					"tls": map[string]any{
+						"insecure": true,
+					},
+				},
+			},
+			"service": map[string]any{
+				"pipelines": map[string]any{
+					"metrics": map[string]any{
+						"receivers": []any{"hostmetrics"},
+						"exporters": []any{"otlp"},
+					},
+				},
+			},
+		},
+	}
 
-	expectedConfig := map[string]any{
+	require.Equal(t, expectedInitial, cc.InitialConfig(t, configServerPort))
+
+	expectedEffective := map[string]any{
 		"receivers": map[string]any{
 			"otlp": map[string]any{
 				"protocols": map[string]any{
@@ -150,8 +192,5 @@ func TestCollectorProcessWithEnvVarConfig(t *testing.T) {
 		},
 	}
 
-	actual := cc.EffectiveConfig(t, 55554)
-
-	require.Equal(t, expectedConfig, confmap.NewFromStringMap(actual).ToStringMap())
-
+	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, configServerPort))
 }

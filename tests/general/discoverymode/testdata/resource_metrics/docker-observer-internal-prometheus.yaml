@@ -1,0 +1,14 @@
+resource_metrics:
+  - attributes:
+      container.image.name: bitnami/prometheus
+      container.name: <ANY>
+      http.scheme: http
+      net.host.name: <ANY>
+      net.host.port: "9090"
+      service.instance.id: <ANY>
+      service.name: <ANY>
+    scope_metrics:
+      - metrics:
+          - name: prometheus_tsdb_exemplar_exemplars_in_storage
+            description: Number of exemplars currently in circular storage.
+            type: DoubleGauge

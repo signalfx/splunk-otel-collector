@@ -122,11 +122,10 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		cancels = append(cancels, cancel)
 		if e := observer.Start(ctx, d); e != nil {
-			d.logger.Info(
+			d.logger.Warn(
 				fmt.Sprintf("%s startup failed. Won't proceed with %s-based discovery", observerID.String(), observerID.Type()),
 				zap.Error(e),
 			)
-			return nil, nil
 		}
 	}
 
@@ -135,7 +134,10 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		cancels = append(cancels, cancel)
 		if err = receiver.Start(ctx, d); err != nil {
-			return nil, err
+			d.logger.Warn(
+				fmt.Sprintf("%s startup failed.", receiverID.String()),
+				zap.Error(err),
+			)
 		}
 	}
 
@@ -236,8 +238,17 @@ func (d *discoverer) createObserver(observerID config.ComponentID, cfg *Config) 
 	if err = d.expandConverter.Convert(context.Background(), observerCfgMap); err != nil {
 		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID.String(), err)
 	}
-	if err = observerCfgMap.Unmarshal(observerConfig); err != nil {
+
+	if err = config.UnmarshalExtension(observerCfgMap, observerConfig); err != nil {
 		return nil, fmt.Errorf("failed unmarshaling %s config: %w", observerID.String(), err)
+	}
+
+	if ce := d.logger.Check(zap.DebugLevel, "unmarshalled observer config"); ce != nil {
+		if c, e := yaml.Marshal(observerConfig); e != nil {
+			d.logger.Debug("failed marshaling observer config for logging", zap.Error(e))
+		} else {
+			ce.Write(zap.String("config", string(c)))
+		}
 	}
 
 	observerSettings := d.createExtensionCreateSettings(observerID.String())

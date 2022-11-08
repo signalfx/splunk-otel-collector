@@ -1,0 +1,2 @@
+docker_observer:
+  endpoint: unix:///var/run/dock.e.r.sock

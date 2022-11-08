@@ -1,0 +1,16 @@
+prometheus_simple:
+  rule:
+    docker_observer: type == "container" and labels['test.id'] == '${SPLUNK_TEST_ID}' and port == 9090
+  config:
+    default:
+      collection_interval: invalid
+    docker_observer:
+      collection_interval: 1s
+  status:
+    metrics:
+      successful:
+        - strict: prometheus_tsdb_time_retentions_total
+          first_only: true
+          log_record:
+            severity_text: info
+            body: prometheus detected

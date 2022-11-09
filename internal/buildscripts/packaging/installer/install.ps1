@@ -68,10 +68,10 @@
     (OPTIONAL) Whether to install and configure .NET tracing to forward .NET application traces to the local collector (default: $false)
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true
-.PARAMETER signalfx_env
+.PARAMETER deployment_env
     (OPTIONAL) A system-wide SignalFx "environment" used by .NET instrumentation. Sets the SIGNALFX_ENV environment variable. Ignored if -with_dotnet_instrumentation is false.
     .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -signalfx_env staging
+    .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -deployment_env staging
 .PARAMETER bundle_dir
     (OPTIONAL) The location of your Smart Agent bundle for monitor functionality (default: C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle)
     .EXAMPLE
@@ -123,7 +123,7 @@ param (
     [string]$msi_path = "",
     [string]$collector_msi_url = "",
     [string]$fluentd_msi_url = "",
-    [string]$signalfx_env = "",
+    [string]$deployment_env = "",
     [bool]$UNIT_TEST = $false
 )
 
@@ -565,9 +565,9 @@ if ($with_dotnet_instrumentation) {
     echo "Installing SignalFx Dotnet Auto Instrumentation..."
     Install-SignalFxDotnet
 
-    if ($signalfx_env -ne "") {
-        echo "Setting SIGNALFX_ENV environment variable to $signalfx_env ..."
-        update_registry -path "$regkey" -name "SIGNALFX_ENV" -value "$signalfx_env"
+    if ($deployment_env -ne "") {
+        echo "Setting SIGNALFX_ENV environment variable to $deployment_env ..."
+        update_registry -path "$regkey" -name "SIGNALFX_ENV" -value "$deployment_env"
     } else {
         echo "SIGNALFX_ENV environment variable not set. Unless otherwise defined, will appear as 'unknown' in the UI."
     }

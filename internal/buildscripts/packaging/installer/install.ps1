@@ -147,12 +147,14 @@ $old_config_path = "$program_data_path\config.yaml"
 $agent_config_path = "$program_data_path\agent_config.yaml"
 $gateway_config_path = "$program_data_path\gateway_config.yaml"
 $config_path = ""
+
 try {
     Resolve-Path $env:TEMP
     $tempdir = "${env:TEMP}\Splunk\OpenTelemetry Collector"
 } catch {
     $tempdir = "\tmp\Splunk\OpenTelemetry Collector"
 }
+
 $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
 $fluentd_msi_name = "td-agent-4.3.2-x64.msi"
@@ -385,6 +387,9 @@ if ($with_fluentd -And (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
     throw "$fluentd_base_dir\bin\fluentd is already installed. Remove/Uninstall fluentd and re-run this script."
 }
 
+# create a temporary directory
+$tempdir = create_temp_dir -tempdir $tempdir
+
 if ($with_dotnet_instrumentation) {
     echo "Installing SignalFx Instrumentation for .NET ..."
     $api = "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
@@ -433,9 +438,6 @@ if ("$env:VERIFY_ACCESS_TOKEN" -ne "false") {
         echo '- Verified Access Token'
     }
 }
-
-# set up a temporary directory
-$tempdir = create_temp_dir -tempdir $tempdir
 
 if ($collector_msi_url) {
     $collector_msi_name = "splunk-otel-collector.msi"

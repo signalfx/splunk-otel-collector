@@ -1,0 +1,22 @@
+receivers:
+  smartagent/collectd_activemq:
+    type: collectd/activemq
+    host: localhost
+    port: 1099
+    username: testuser
+    password: testing123
+    extraMetrics: ["*"]
+    intervalSeconds: 1
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/collectd_activemq
+      exporters: [otlp]

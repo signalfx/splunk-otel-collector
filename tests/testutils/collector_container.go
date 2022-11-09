@@ -250,7 +250,7 @@ func (l collectorLogConsumer) Accept(log testcontainers.Log) {
 	}
 }
 
-func (collector *CollectorContainer) InitialConfig(t testing.TB, port int) map[string]any {
+func (collector *CollectorContainer) InitialConfig(t testing.TB, port uint16) map[string]any {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	n, r, err := collector.Container.Exec(ctx, []string{"curl", "-s", fmt.Sprintf("http://localhost:%d/debug/configz/initial", port)})
@@ -267,7 +267,7 @@ func (collector *CollectorContainer) InitialConfig(t testing.TB, port int) map[s
 	return confmap.NewFromStringMap(actual).ToStringMap()
 }
 
-func (collector *CollectorContainer) EffectiveConfig(t testing.TB, port int) map[string]any {
+func (collector *CollectorContainer) EffectiveConfig(t testing.TB, port uint16) map[string]any {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	n, r, err := collector.Container.Exec(ctx, []string{"curl", "-s", fmt.Sprintf("http://localhost:%d/debug/configz/effective", port)})

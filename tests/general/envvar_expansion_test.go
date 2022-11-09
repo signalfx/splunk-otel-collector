@@ -17,6 +17,7 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -95,7 +96,101 @@ func TestExpandedYamlViaEnvConfigSource(t *testing.T) {
 	)
 
 	defer shutdown()
-
 	expectedResourceMetrics := tc.ResourceMetrics("yaml_from_env.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+}
+
+func TestEnvConfigSource(t *testing.T) {
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
+
+	configServerPort := testutils.GetAvailablePort(t)
+	tc.SkipIfNotContainer()
+	c, shutdown := tc.SplunkOtelCollectorWithEnv(
+		"envvar_config.yaml",
+		map[string]string{
+			"OVERRIDDEN_DEFAULT":              "{ grpc: , http: , }",
+			"SPLUNK_DEBUG_CONFIG_SERVER_PORT": fmt.Sprintf("%d", configServerPort),
+		},
+	)
+	defer shutdown()
+	cc := c.(*testutils.CollectorContainer)
+
+	expectedInitial := map[string]any{
+		"file": map[string]any{
+			"config_sources": map[string]any{
+				"env": map[string]any{
+					"defaults": map[string]any{
+						"OVERRIDDEN_DEFAULT": "{ http: , }",
+						"USED_DEFAULT":       "localhost:23456",
+					},
+				},
+			},
+			"receivers": map[string]any{
+				"otlp": map[string]any{
+					"protocols": "${env:OVERRIDDEN_DEFAULT}",
+				},
+				"hostmetrics": map[string]any{
+					"scrapers": map[string]any{
+						"cpu":    nil,
+						"memory": nil,
+					},
+				},
+			},
+			"exporters": map[string]any{
+				"otlp": map[string]any{
+					"endpoint": "${env:USED_DEFAULT}",
+					"tls": map[string]any{
+						"insecure": true,
+					},
+				},
+			},
+			"service": map[string]any{
+				"pipelines": map[string]any{
+					"metrics": map[string]any{
+						"receivers": []any{"hostmetrics"},
+						"exporters": []any{"otlp"},
+					},
+				},
+			},
+		},
+	}
+
+	require.Equal(t, expectedInitial, cc.InitialConfig(t, configServerPort))
+
+	expectedEffective := map[string]any{
+		"receivers": map[string]any{
+			"otlp": map[string]any{
+				"protocols": map[string]any{
+					"grpc": nil,
+					"http": nil,
+				},
+			},
+			"hostmetrics": map[string]any{
+				"scrapers": map[string]any{
+					"cpu":    nil,
+					"memory": nil,
+				},
+			},
+		},
+		"exporters": map[string]any{
+			"otlp": map[string]any{
+				"endpoint": "localhost:23456",
+				"tls": map[string]any{
+					"insecure": true,
+				},
+			},
+		},
+		"service": map[string]any{
+			"pipelines": map[string]any{
+				"metrics": map[string]any{
+					"receivers": []any{"hostmetrics"},
+					"exporters": []any{"otlp"},
+				},
+			},
+		},
+	}
+
+	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, configServerPort))
 }

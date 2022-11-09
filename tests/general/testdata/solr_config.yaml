@@ -1,0 +1,21 @@
+receivers:
+  smartagent/collectd_solr:
+    type: collectd/solr
+    host: localhost
+    port: 8983
+    extraMetrics: ["*"]
+    intervalSeconds: 1
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/collectd_solr
+      exporters:
+        - otlp

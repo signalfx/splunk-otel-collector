@@ -1,0 +1,7 @@
+resource_metrics:
+  - scope_metrics:
+      - metrics:
+          - name: counter.amq.TotalConnectionsCount
+            type: IntMonotonicCumulativeSum
+          - name: jmx_memory.committed
+            type: IntGauge

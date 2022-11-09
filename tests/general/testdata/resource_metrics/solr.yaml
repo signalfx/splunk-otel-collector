@@ -1,0 +1,5 @@
+resource_metrics:
+  - scope_metrics:
+      - metrics:
+          - name: counter.solr.http_2xx_responses
+            type: IntMonotonicCumulativeSum

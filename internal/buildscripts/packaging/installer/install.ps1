@@ -68,15 +68,8 @@
     (OPTIONAL) Whether to install and configure .NET tracing to forward .NET application traces to the local collector (default: $false)
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true
-.PARAMETER instrumentation_exclude_processes
-    (OPTIONAL) A semicolon-delimited list of process names to be excluded from auto-instrumentation (default: Powershell.exe;dotnet.exe)
-    .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -instrumentation_exclude_processes "Powershell.exe;dotnet.exe;myprogram.exe"
-.PARAMETER signalfx_service_name
-    (OPTIONAL) A system-wide SignalFx service name override for .NET tracing. Sets the SIGNALFX_SERVICE_NAME environment variable. Ignored if -with_dotnet_instrumentation is false.
-    .EXAMPLE
-    .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -signalfx_service_name my-service-name
 .PARAMETER signalfx_env
-    (OPTIONAL) A system-wide SignalFx "environment" used by .NET tracing. Sets the SIGNALFX_ENV environment variable. Ignored if -with_dotnet_instrumentation is false.
+    (OPTIONAL) A system-wide SignalFx "environment" used by .NET instrumentation. Sets the SIGNALFX_ENV environment variable. Ignored if -with_dotnet_instrumentation is false.
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -signalfx_env staging
 .PARAMETER bundle_dir
@@ -125,13 +118,11 @@ param (
     [string]$collector_version = "",
     [bool]$with_fluentd = $true,
     [bool]$with_dotnet_instrumentation = $false,
-    [string]$instrumentation_exclude_processes = "Powershell.exe;dotnet.exe",
     [string]$bundle_dir = "",
     [ValidateSet('test','beta','release')][string]$stage = "release",
     [string]$msi_path = "",
     [string]$collector_msi_url = "",
     [string]$fluentd_msi_url = "",
-    [string]$signalfx_service_name = "",
     [string]$signalfx_env = "",
     [bool]$UNIT_TEST = $false
 )
@@ -572,22 +563,6 @@ if ($with_dotnet_instrumentation) {
     echo "Installing SignalFx Dotnet Auto Instrumentation..."
     Install-SignalFxDotnet
 
-    echo "Setting environment variables for instrumentation ..."
-    update_registry -path "$regkey" -name "COR_ENABLE_PROFILING" -value "1"
-    update_registry -path "$regkey" -name "COR_PROFILER" -value "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
-    update_registry -path "$regkey" -name "CORECLR_ENABLE_PROFILING" -value "1"
-    update_registry -path "$regkey" -name "CORECLR_PROFILER" -value "{B4C89B0F-9908-4F73-9F59-0D77C5A06874}"
-
-    if ($instrumentation_exclude_processes -ne "") {
-      echo "Setting SIGNALFX_PROFILER_EXCLUDE_PROCESSES environment variable to $instrumentation_exclude_processes ..."
-      update_registry -path "$regkey" -name "SIGNALFX_PROFILER_EXCLUDE_PROCESSES" -value "$instrumentation_exclude_processes"
-    }
-
-    if ($signalfx_service_name -ne "") {
-        echo "Setting SIGNALFX_SERVICE_NAME environment variable to $signalfx_service_name ..."
-        update_registry -path "$regkey" -name "SIGNALFX_SERVICE_NAME" -value "$signalfx_service_name"
-    }
-
     if ($signalfx_env -ne "") {
         echo "Setting SIGNALFX_ENV environment variable to $signalfx_env ..."
         update_registry -path "$regkey" -name "SIGNALFX_ENV" -value "$signalfx_env"
@@ -637,7 +612,7 @@ restarted to apply the changes by restarting the system or running the following
 if ($with_dotnet_instrumentation) {
     $message = "
 SignalFx .NET Instrumentation has been installed and configured to forward traces to the Splunk OpenTelemetry Collector.
-By default, .NET Instrumentation will automatically generate traces for popular .NET libraries.
+By default, .NET Instrumentation will automatically generate traces for applications running on IIS.
 "
     echo "$message"
 }

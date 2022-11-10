@@ -64,6 +64,14 @@
     (OPTIONAL) Whether to install and configure fluentd to forward log events to the collector (default: $true)
     .EXAMPLE
     .\install.ps1 -access_token "ACCESSTOKEN" -with_fluentd $false
+.PARAMETER with_dotnet_instrumentation
+    (OPTIONAL) Whether to install and configure .NET tracing to forward .NET application traces to the local collector (default: $false)
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true
+.PARAMETER deployment_env
+    (OPTIONAL) A system-wide SignalFx "environment" used by .NET instrumentation. Sets the SIGNALFX_ENV environment variable. Ignored if -with_dotnet_instrumentation is false.
+    .EXAMPLE
+    .\install.ps1 -access_token "ACCESSTOKEN" -with_dotnet_instrumentation $true -deployment_env staging
 .PARAMETER bundle_dir
     (OPTIONAL) The location of your Smart Agent bundle for monitor functionality (default: C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle)
     .EXAMPLE
@@ -109,11 +117,13 @@ param (
     [bool]$insecure = $false,
     [string]$collector_version = "",
     [bool]$with_fluentd = $true,
+    [bool]$with_dotnet_instrumentation = $false,
     [string]$bundle_dir = "",
     [ValidateSet('test','beta','release')][string]$stage = "release",
     [string]$msi_path = "",
     [string]$collector_msi_url = "",
     [string]$fluentd_msi_url = "",
+    [string]$deployment_env = "",
     [bool]$UNIT_TEST = $false
 )
 
@@ -137,12 +147,14 @@ $old_config_path = "$program_data_path\config.yaml"
 $agent_config_path = "$program_data_path\agent_config.yaml"
 $gateway_config_path = "$program_data_path\gateway_config.yaml"
 $config_path = ""
+
 try {
     Resolve-Path $env:TEMP
     $tempdir = "${env:TEMP}\Splunk\OpenTelemetry Collector"
 } catch {
     $tempdir = "\tmp\Splunk\OpenTelemetry Collector"
 }
+
 $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
 $fluentd_msi_name = "td-agent-4.3.2-x64.msi"
@@ -375,6 +387,23 @@ if ($with_fluentd -And (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
     throw "$fluentd_base_dir\bin\fluentd is already installed. Remove/Uninstall fluentd and re-run this script."
 }
 
+# create a temporary directory
+$tempdir = create_temp_dir -tempdir $tempdir
+
+if ($with_dotnet_instrumentation) {
+    echo "Installing SignalFx Instrumentation for .NET ..."
+    $api = "https://api.github.com/repos/signalfx/signalfx-dotnet-tracing/releases/latest"
+    $module_name = "Splunk.SignalFx.DotNet.psm1"
+    echo "Downloading .NET Instrumentation installer ..."
+    $download = (Invoke-WebRequest $api | ConvertFrom-Json).assets | Where-Object { $_.name -like $module_name } | Select-Object -Property browser_download_url,name
+    $dotnet_autoinstr_path = Join-Path $tempdir $download.name
+    Invoke-WebRequest -Uri $download.browser_download_url -OutFile $dotnet_autoinstr_path
+    Import-Module $dotnet_autoinstr_path
+    if (Get-IsSignalFxInstalled) {
+        throw "SignalFx Instrumentation for .NET is already installed. Remove/Uninstall SignalFx Instrumentation for .NET and re-run this script."
+    }
+}
+
 if ($ingest_url -eq "") {
     $ingest_url = "https://ingest.$realm.signalfx.com"
 }
@@ -409,9 +438,6 @@ if ("$env:VERIFY_ACCESS_TOKEN" -ne "false") {
         echo '- Verified Access Token'
     }
 }
-
-# set up a temporary directory
-$tempdir = create_temp_dir -tempdir $tempdir
 
 if ($collector_msi_url) {
     $collector_msi_name = "splunk-otel-collector.msi"
@@ -535,6 +561,18 @@ if ($with_fluentd) {
     echo "- Started"
 }
 
+if ($with_dotnet_instrumentation) {
+    echo "Installing SignalFx Dotnet Auto Instrumentation..."
+    Install-SignalFxDotnet
+
+    if ($deployment_env -ne "") {
+        echo "Setting SIGNALFX_ENV environment variable to $deployment_env ..."
+        update_registry -path "$regkey" -name "SIGNALFX_ENV" -value "$deployment_env"
+    } else {
+        echo "SIGNALFX_ENV environment variable not set. Unless otherwise defined, will appear as 'unknown' in the UI."
+    }
+}
+
 # remove the temporary directory
 Remove-Item -Recurse -Force "$tempdir"
 
@@ -569,6 +607,14 @@ If the fluentd configuration is modified or new config files are added, the flue
 restarted to apply the changes by restarting the system or running the following PowerShell commands:
   PS> Stop-Service $fluentd_service_name
   PS> Start-Service $fluentd_service_name
+"
+    echo "$message"
+}
+
+if ($with_dotnet_instrumentation) {
+    $message = "
+SignalFx .NET Instrumentation has been installed and configured to forward traces to the Splunk OpenTelemetry Collector.
+By default, .NET Instrumentation will automatically generate traces for applications running on IIS.
 "
     echo "$message"
 }

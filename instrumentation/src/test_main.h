@@ -16,6 +16,8 @@ void test_auto_instrument_not_java(logger l);
 
 void test_auto_instrument_svc_name_in_config(logger l);
 
+void test_auto_instrument_svc_name_explicitly_enabled(logger l);
+
 void test_auto_instrument_no_svc_name_in_config(logger l);
 
 void test_auto_instrument_no_access(logger l);
@@ -29,6 +31,8 @@ void test_auto_instrument_splunk_env_var_false_caps(logger l);
 void test_auto_instrument_splunk_env_var_zero(logger l);
 
 void test_read_config(logger l);
+
+void test_read_config_svcname(logger l);
 
 void test_read_config_missing_file(logger l);
 
@@ -90,7 +94,9 @@ void test_disable_telemetry(logger l);
 
 void fake_send_otlp_metric(logger log, char *service_name);
 
-void fake_load_config(logger log, struct config *cfg, char *path);
+void fake_load_config_svcname_unspecified(logger log, struct config *cfg, char *path);
+
+void fake_load_config_generate_svcname_enabled(logger log, struct config *cfg, char *path);
 
 void fake_load_config_no_svcname(logger log, struct config *cfg, char *path);
 

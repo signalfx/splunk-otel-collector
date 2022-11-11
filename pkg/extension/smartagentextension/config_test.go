@@ -29,7 +29,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configtest"
 	"go.opentelemetry.io/collector/service/servicetest"
 )
 
@@ -51,18 +50,18 @@ func TestLoadConfig(t *testing.T) {
 
 	require.Equal(t, len(cfg.Extensions), 3)
 
-	emptyConfig := cfg.Extensions[config.NewComponentIDWithName(typeStr, "default_settings")]
+	emptyConfig := cfg.Extensions[component.NewIDWithName(typeStr, "default_settings")]
 	require.NotNil(t, emptyConfig)
-	require.NoError(t, configtest.CheckConfigStruct(emptyConfig))
+	require.NoError(t, componenttest.CheckConfigStruct(emptyConfig))
 	require.Equal(t, func() *Config {
 		cfg := defaultConfig()
 		cfg.ExtensionSettings.SetIDName("default_settings")
 		return &cfg
 	}(), emptyConfig)
 
-	allSettingsConfig := cfg.Extensions[config.NewComponentIDWithName(typeStr, "all_settings")]
+	allSettingsConfig := cfg.Extensions[component.NewIDWithName(typeStr, "all_settings")]
 	require.NotNil(t, allSettingsConfig)
-	require.NoError(t, configtest.CheckConfigStruct(allSettingsConfig))
+	require.NoError(t, componenttest.CheckConfigStruct(allSettingsConfig))
 	require.Equal(t, func() *Config {
 		cfg := defaultConfig()
 		cfg.ExtensionSettings.SetIDName("all_settings")
@@ -87,9 +86,9 @@ func TestLoadConfig(t *testing.T) {
 		return &cfg
 	}(), allSettingsConfig)
 
-	partialSettingsConfig := cfg.Extensions[config.NewComponentIDWithName(typeStr, "partial_settings")]
+	partialSettingsConfig := cfg.Extensions[component.NewIDWithName(typeStr, "partial_settings")]
 	require.NotNil(t, partialSettingsConfig)
-	require.NoError(t, configtest.CheckConfigStruct(partialSettingsConfig))
+	require.NoError(t, componenttest.CheckConfigStruct(partialSettingsConfig))
 	require.Equal(t, func() *Config {
 		cfg := defaultConfig()
 		cfg.ExtensionSettings.SetIDName("partial_settings")
@@ -119,7 +118,7 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 
 	require.GreaterOrEqual(t, len(cfg.Extensions), 1)
 
-	allSettingsConfig := cfg.Extensions[config.NewComponentIDWithName(typeStr, "all_settings")]
+	allSettingsConfig := cfg.Extensions[component.NewIDWithName(typeStr, "all_settings")]
 	require.NotNil(t, allSettingsConfig)
 
 	ext, err := factory.CreateExtension(context.Background(), component.ExtensionCreateSettings{}, allSettingsConfig)
@@ -164,7 +163,7 @@ func TestLoadInvalidConfig(t *testing.T) {
 
 func defaultConfig() Config {
 	return Config{
-		ExtensionSettings: config.NewExtensionSettings(config.NewComponentID(typeStr)),
+		ExtensionSettings: config.NewExtensionSettings(component.NewID(typeStr)),
 		Config: saconfig.Config{
 			BundleDir:              bundleDir,
 			SignalFxRealm:          "us0",

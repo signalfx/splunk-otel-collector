@@ -22,7 +22,7 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -68,15 +68,15 @@ func TestMetricEvaluation(t *testing.T) {
 					for _, firstOnly := range []bool{true, false} {
 						match.FirstOnly = firstOnly
 						t.Run(fmt.Sprintf("FirstOnly:%v", firstOnly), func(t *testing.T) {
-							observerID := config.NewComponentIDWithName("an.observer", "observer.name")
+							observerID := component.NewIDWithName("an.observer", "observer.name")
 							cfg := &Config{
-								Receivers: map[config.ComponentID]ReceiverEntry{
-									config.NewComponentIDWithName("a.receiver", "receiver.name"): {
+								Receivers: map[component.ID]ReceiverEntry{
+									component.NewIDWithName("a.receiver", "receiver.name"): {
 										Rule:   "a.rule",
 										Status: &Status{Metrics: map[discovery.StatusType][]Match{status: {match}}},
 									},
 								},
-								WatchObservers: []config.ComponentID{observerID},
+								WatchObservers: []component.ID{observerID},
 							}
 							require.NoError(t, cfg.Validate())
 

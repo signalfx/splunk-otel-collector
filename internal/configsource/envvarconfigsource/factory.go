@@ -18,7 +18,7 @@ package envvarconfigsource
 import (
 	"context"
 
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 
@@ -32,13 +32,13 @@ const (
 
 type envVarFactory struct{}
 
-func (e *envVarFactory) Type() config.Type {
+func (e *envVarFactory) Type() component.Type {
 	return typeStr
 }
 
 func (e *envVarFactory) CreateDefaultConfig() expcfg.Source {
 	return &Config{
-		SourceSettings: expcfg.NewSourceSettings(config.NewComponentID(typeStr)),
+		SourceSettings: expcfg.NewSourceSettings(component.NewID(typeStr)),
 	}
 }
 

@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/multierr"
@@ -41,7 +41,7 @@ var (
 type endpointTracker struct {
 	logger       *zap.Logger
 	pLogs        chan plog.Logs
-	observables  map[config.ComponentID]observer.Observable
+	observables  map[component.ID]observer.Observable
 	correlations correlationStore
 	notifies     []*notify
 	logEndpoints bool
@@ -50,12 +50,12 @@ type endpointTracker struct {
 type notify struct {
 	observable      observer.Observable
 	endpointTracker *endpointTracker
-	observerID      config.ComponentID
+	observerID      component.ID
 	id              observer.NotifyID
 }
 
 func newEndpointTracker(
-	observables map[config.ComponentID]observer.Observable, config *Config, logger *zap.Logger,
+	observables map[component.ID]observer.Observable, config *Config, logger *zap.Logger,
 	pLogs chan plog.Logs, correlations correlationStore) *endpointTracker {
 	return &endpointTracker{
 		logEndpoints: config.LogEndpoints,
@@ -89,7 +89,7 @@ func (et *endpointTracker) stop() {
 	et.correlations.Stop()
 }
 
-func (et *endpointTracker) emitEndpointLogs(observerCID config.ComponentID, eventType endpointState, endpoints []observer.Endpoint, received time.Time) {
+func (et *endpointTracker) emitEndpointLogs(observerCID component.ID, eventType endpointState, endpoints []observer.Endpoint, received time.Time) {
 	if et.logEndpoints && et.pLogs != nil {
 		pLogs, numFailed, err := endpointToPLogs(observerCID, fmt.Sprintf("endpoint.%s", eventType), endpoints, received)
 		if err != nil {
@@ -101,7 +101,7 @@ func (et *endpointTracker) emitEndpointLogs(observerCID config.ComponentID, even
 	}
 }
 
-func (et *endpointTracker) updateEndpoints(endpoints []observer.Endpoint, state endpointState, observerID config.ComponentID) {
+func (et *endpointTracker) updateEndpoints(endpoints []observer.Endpoint, state endpointState, observerID component.ID) {
 	for _, endpoint := range endpoints {
 		et.correlations.UpdateEndpoint(endpoint, state, observerID)
 	}
@@ -126,7 +126,7 @@ func (n *notify) OnChange(changed []observer.Endpoint) {
 	n.endpointTracker.updateEndpoints(changed, changedState, n.observerID)
 }
 
-func endpointToPLogs(observerID config.ComponentID, eventType string, endpoints []observer.Endpoint, received time.Time) (pLogs plog.Logs, failed int, err error) {
+func endpointToPLogs(observerID component.ID, eventType string, endpoints []observer.Endpoint, received time.Time) (pLogs plog.Logs, failed int, err error) {
 	pLogs = plog.NewLogs()
 	rlog := pLogs.ResourceLogs().AppendEmpty()
 	rAttrs := rlog.Resource().Attributes()

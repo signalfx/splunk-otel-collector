@@ -78,7 +78,7 @@ var expectedCPUMetrics = map[string]pmetric.MetricType{
 
 func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
 	return Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, nameVal)),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, nameVal)),
 		monitorConfig: &cpu.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:            monitorType,
@@ -361,10 +361,10 @@ func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {
 	)
 	require.NoError(t, err)
 
-	partialSettingsConfig := cfg.Extensions[config.NewComponentIDWithName(typeStr, "partial_settings")]
+	partialSettingsConfig := cfg.Extensions[component.NewIDWithName(typeStr, "partial_settings")]
 	require.NotNil(t, partialSettingsConfig)
 
-	extraSettingsConfig := cfg.Extensions[config.NewComponentIDWithName(typeStr, "extra")]
+	extraSettingsConfig := cfg.Extensions[component.NewIDWithName(typeStr, "extra")]
 	require.NotNil(t, extraSettingsConfig)
 
 	one, ok := partialSettingsConfig.(*smartagentextension.Config)
@@ -383,21 +383,21 @@ type mockHost struct {
 func (m *mockHost) ReportFatalError(error) {
 }
 
-func (m *mockHost) GetFactory(component.Kind, config.Type) component.Factory {
+func (m *mockHost) GetFactory(component.Kind, component.Type) component.Factory {
 	return nil
 }
 
-func (m *mockHost) GetExtensions() map[config.ComponentID]component.Extension {
+func (m *mockHost) GetExtensions() map[component.ID]component.Extension {
 	exampleFactory := componenttest.NewNopExtensionFactory()
 	randomExtensionConfig := exampleFactory.CreateDefaultConfig()
-	return map[config.ComponentID]component.Extension{
+	return map[component.ID]component.Extension{
 		m.smartagentextensionConfig.ID():      getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
 		randomExtensionConfig.ID():            getExtension(exampleFactory, randomExtensionConfig),
 		m.smartagentextensionConfigExtra.ID(): getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfigExtra),
 	}
 }
 
-func getExtension(f component.ExtensionFactory, cfg config.Extension) component.Extension {
+func getExtension(f component.ExtensionFactory, cfg component.ExtensionConfig) component.Extension {
 	e, err := f.CreateExtension(context.Background(), component.ExtensionCreateSettings{}, cfg)
 	if err != nil {
 		panic(err)
@@ -405,6 +405,6 @@ func getExtension(f component.ExtensionFactory, cfg config.Extension) component.
 	return e
 }
 
-func (m *mockHost) GetExporters() map[config.DataType]map[config.ComponentID]component.Exporter {
+func (m *mockHost) GetExporters() map[component.DataType]map[component.ID]component.Exporter {
 	return nil
 }

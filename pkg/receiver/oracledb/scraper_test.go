@@ -25,7 +25,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/receiver/scrapererror"
 	"go.uber.org/zap"
 
@@ -67,7 +66,7 @@ func TestScraper_Scrape(t *testing.T) {
 				},
 			}
 		},
-		id:              config.ComponentID{},
+		id:              component.ID{},
 		metricsSettings: metadata.DefaultMetricsSettings(),
 	}
 	err := scrpr.Start(context.Background(), componenttest.NewNopHost())
@@ -98,7 +97,7 @@ func TestPartial_InvalidScrape(t *testing.T) {
 				queryResponses[s],
 			}}
 		},
-		id:              config.ComponentID{},
+		id:              component.ID{},
 		metricsSettings: metadata.DefaultMetricsSettings(),
 	}
 	err := scrpr.Start(context.Background(), componenttest.NewNopHost())

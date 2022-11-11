@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 )
@@ -32,7 +33,7 @@ type Config struct {
 	Offset string `mapstructure:"offset"`
 }
 
-var _ config.Processor = (*Config)(nil)
+var _ component.ProcessorConfig = (*Config)(nil)
 
 // Validate checks if the processor configuration is valid
 func (cfg *Config) Validate() error {

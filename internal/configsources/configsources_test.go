@@ -20,14 +20,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 func TestConfigSourcesGet(t *testing.T) {
 	tests := []struct {
-		configSourceType config.Type
+		configSourceType component.Type
 	}{
 		{"env"},
 		{"etcd2"},
@@ -39,7 +39,7 @@ func TestConfigSourcesGet(t *testing.T) {
 	defaultCfgSrcFactories := Get()
 	require.Equal(t, len(tests), len(defaultCfgSrcFactories))
 
-	cfgSrcFactoryMap := make(map[config.Type]struct{})
+	cfgSrcFactoryMap := make(map[component.Type]struct{})
 	for _, tt := range tests {
 		t.Run(string(tt.configSourceType), func(t *testing.T) {
 			var factory configprovider.Factory

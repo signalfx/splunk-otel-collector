@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
@@ -46,7 +45,7 @@ type Config struct {
 	MaxResults                              int `mapstructure:"max_results"`
 }
 
-func createDefaultConfig() config.Receiver {
+func createDefaultConfig() component.ReceiverConfig {
 	scs := scraperhelper.NewDefaultScraperControllerSettings(typeStr)
 	// we set the default collection interval to 30 seconds which is half of the
 	// lowest job frequency of 1 minute
@@ -60,13 +59,13 @@ func createDefaultConfig() config.Receiver {
 func createReceiverFunc(createAPIClient func(baseURL string, tok string, httpClient *http.Client, logger *zap.Logger) apiClientInterface) func(
 	_ context.Context,
 	settings component.ReceiverCreateSettings,
-	cfg config.Receiver,
+	cfg component.ReceiverConfig,
 	consumer consumer.Metrics,
 ) (component.MetricsReceiver, error) {
 	return func(
 		_ context.Context,
 		settings component.ReceiverCreateSettings,
-		cfg config.Receiver,
+		cfg component.ReceiverConfig,
 		consumer consumer.Metrics,
 	) (component.MetricsReceiver, error) {
 		dbcfg := cfg.(*Config)

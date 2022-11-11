@@ -18,7 +18,7 @@ import (
 	"context"
 	"time"
 
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 
@@ -38,13 +38,13 @@ type errMissingEndpoint struct{ error }
 
 type zkFactory struct{}
 
-func (v *zkFactory) Type() config.Type {
+func (v *zkFactory) Type() component.Type {
 	return typeStr
 }
 
 func (v *zkFactory) CreateDefaultConfig() expcfg.Source {
 	return &Config{
-		SourceSettings: expcfg.NewSourceSettings(config.NewComponentID(typeStr)),
+		SourceSettings: expcfg.NewSourceSettings(component.NewID(typeStr)),
 		Endpoints:      []string{defaultEndpoint},
 		Timeout:        defaultTimeout,
 	}

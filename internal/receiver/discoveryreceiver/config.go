@@ -31,7 +31,7 @@ import (
 )
 
 var (
-	_ config.Receiver = (*Config)(nil)
+	_ component.ReceiverConfig = (*Config)(nil)
 
 	allowedMatchTypes = []string{"regexp", "strict", "expr"}
 
@@ -42,11 +42,11 @@ var (
 type Config struct {
 	// Receivers is a mapping of receivers to discover to their receiver creator configs
 	// and evaluated metrics and application statements, which are used to determine component status.
-	Receivers               map[config.ComponentID]ReceiverEntry `mapstructure:"receivers"`
+	Receivers               map[component.ID]ReceiverEntry `mapstructure:"receivers"`
 	config.ReceiverSettings `mapstructure:",squash"`
 	// The configured Observer extensions from which to receive Endpoint events.
 	// Must implement the observer.Observable interface.
-	WatchObservers []config.ComponentID `mapstructure:"watch_observers"`
+	WatchObservers []component.ID `mapstructure:"watch_observers"`
 	// Whether to emit log records for all endpoint activity, consisting of Endpoint
 	// content as record attributes.
 	LogEndpoints bool `mapstructure:"log_endpoints"`
@@ -103,7 +103,7 @@ func (cfg *Config) Validate() error {
 			continue
 		}
 		// These check reserved separators used by the Receiver Creator by which we
-		// obtain receiver config.ComponentID and observer.EndpointID. If they are used
+		// obtain receiver component.ID and observer.EndpointID. If they are used
 		// directly in config we won't be able to determine the ids.
 		for _, re := range []*regexp.Regexp{receiverCreatorRegexp, endpointTargetRegexp} {
 			if re.MatchString(name) {
@@ -181,7 +181,7 @@ func (lr *LogRecord) validate() error {
 
 // receiverCreatorFactoryAndConfig will embed the applicable receiver creator fields in a new receiver creator config
 // suitable for being used to create a receiver instance by the returned factory.
-func (cfg *Config) receiverCreatorFactoryAndConfig(correlations correlationStore) (component.ReceiverFactory, config.Receiver, error) {
+func (cfg *Config) receiverCreatorFactoryAndConfig(correlations correlationStore) (component.ReceiverFactory, component.ReceiverConfig, error) {
 	receiverCreatorFactory := receivercreator.NewFactory()
 	receiverCreatorDefaultConfig := receiverCreatorFactory.CreateDefaultConfig()
 	receiverCreatorConfig, ok := receiverCreatorDefaultConfig.(*receivercreator.Config)

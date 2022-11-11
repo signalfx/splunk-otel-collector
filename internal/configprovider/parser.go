@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cast"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/confmap"
@@ -90,7 +90,8 @@ func loadSettings(css map[string]any, factories Factories) (map[string]expcfg.So
 		settingsParser := confmap.NewFromStringMap(cast.ToStringMap(value))
 
 		// Decode the key into type and fullName components.
-		componentID, err := config.NewComponentIDFromString(key)
+		componentID := &component.ID{}
+		err := componentID.UnmarshalText([]byte(key))
 		if err != nil {
 			return nil, &errInvalidTypeAndNameKey{fmt.Errorf("invalid %s type and name key %q: %w", configSourcesKey, key, err)}
 		}

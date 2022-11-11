@@ -21,7 +21,7 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 )
@@ -162,7 +162,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t1 := time.Now()
 			plogs, failed, err := endpointToPLogs(
-				config.NewComponentIDWithName("observer.type", "observer.name"),
+				component.NewIDWithName("observer.type", "observer.name"),
 				"event.type", []observer.Endpoint{test.endpoint}, t0,
 			)
 			t2 := time.Now()
@@ -284,7 +284,7 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
 			plogs, failed, err := endpointToPLogs(
-				config.NewComponentIDWithName("observer.type", "observer.name"),
+				component.NewIDWithName("observer.type", "observer.name"),
 				"event.type", []observer.Endpoint{test.endpoint}, t0,
 			)
 			if test.expectedError != "" {
@@ -316,7 +316,7 @@ func FuzzEndpointToPlogs(f *testing.F) {
 		namespace, transport string, port uint16) {
 		require.NotPanics(t, func() {
 			plogs, failed, err := endpointToPLogs(
-				config.NewComponentIDWithName(config.Type(observerType), observerName), eventType, []observer.Endpoint{
+				component.NewIDWithName(component.Type(observerType), observerName), eventType, []observer.Endpoint{
 					{
 						ID:     observer.EndpointID(endpointID),
 						Target: target,

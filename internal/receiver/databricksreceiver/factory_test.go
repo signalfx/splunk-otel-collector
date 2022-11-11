@@ -25,7 +25,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/service/servicetest"
 	"go.opentelemetry.io/otel/metric"
@@ -69,7 +68,7 @@ func TestParseConfig(t *testing.T) {
 	factories.Receivers[typeStr] = NewFactory()
 	cfg, err := servicetest.LoadConfigAndValidate(path.Join("testdata", "config.yaml"), factories)
 	require.NoError(t, err)
-	rcfg := cfg.Receivers[config.NewComponentID(typeStr)].(*Config)
+	rcfg := cfg.Receivers[component.NewID(typeStr)].(*Config)
 	assert.Equal(t, "my-instance", rcfg.InstanceName)
 	assert.Equal(t, "abc123", rcfg.Token)
 	assert.Equal(t, "https://my.databricks.instance", rcfg.Endpoint)

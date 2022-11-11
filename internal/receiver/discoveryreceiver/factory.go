@@ -34,9 +34,9 @@ func NewFactory() component.ReceiverFactory {
 		component.WithLogsReceiver(createLogsReceiver, component.StabilityLevelInDevelopment))
 }
 
-func createDefaultConfig() config.Receiver {
+func createDefaultConfig() component.ReceiverConfig {
 	return &Config{
-		ReceiverSettings:    config.NewReceiverSettings(config.NewComponentID(typeStr)),
+		ReceiverSettings:    config.NewReceiverSettings(component.NewID(typeStr)),
 		LogEndpoints:        false,
 		EmbedReceiverConfig: false,
 		CorrelationTTL:      10 * time.Minute,
@@ -46,7 +46,7 @@ func createDefaultConfig() config.Receiver {
 func createLogsReceiver(
 	_ context.Context,
 	settings component.ReceiverCreateSettings,
-	cfg config.Receiver,
+	cfg component.ReceiverConfig,
 	consumer consumer.Logs,
 ) (component.LogsReceiver, error) {
 	dCfg := cfg.(*Config)

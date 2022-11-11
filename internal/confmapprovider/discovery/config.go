@@ -23,7 +23,7 @@ import (
 	"sort"
 
 	"github.com/knadh/koanf/maps"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
@@ -42,7 +42,7 @@ const (
 )
 
 var (
-	defaultType = config.NewComponentID("default")
+	defaultType = component.NewID("default")
 
 	discoveryDirRegex = fmt.Sprintf("[^%s]*", compilablePathSeparator)
 	serviceEntryRegex = regexp.MustCompile(fmt.Sprintf("%s%sservice\\.(yaml|yml)$", discoveryDirRegex, compilablePathSeparator))
@@ -66,36 +66,36 @@ type Config struct {
 	Service ServiceEntry
 	// Exporters is a map of exporters to use in final config.
 	// They must be in `config.d/exporters` directory.
-	Exporters map[config.ComponentID]ExporterEntry
+	Exporters map[component.ID]ExporterEntry
 	// Extensions is a map of extensions to use in final config.
 	// They must be in `config.d/extensions` directory.
-	Extensions map[config.ComponentID]ExtensionEntry
+	Extensions map[component.ID]ExtensionEntry
 	// DiscoveryObservers is a map of observer extensions to use in discovery,
 	// overriding the default settings. They must be in `config.d/extensions` directory
 	// and end with ".discovery.yaml".
-	DiscoveryObservers map[config.ComponentID]ExtensionEntry
+	DiscoveryObservers map[component.ID]ExtensionEntry
 	// Processors is a map of extensions to use in final config.
 	// They must be in `config.d/processors` directory.
-	Processors map[config.ComponentID]ProcessorEntry
+	Processors map[component.ID]ProcessorEntry
 	// Receivers is a map of receiver entries to use in final config
 	// They must be in `config.d/receivers` directory.
-	Receivers map[config.ComponentID]ReceiverEntry
+	Receivers map[component.ID]ReceiverEntry
 	// ReceiversToDiscover is a map of receiver entries to use in discovery mode's
 	// underlying discovery receiver. They must be in `config.d/receivers` directory and
 	// end with ".discovery.yaml".
-	ReceiversToDiscover map[config.ComponentID]ReceiverToDiscoverEntry
+	ReceiversToDiscover map[component.ID]ReceiverToDiscoverEntry
 }
 
 func NewConfig(logger *zap.Logger) *Config {
 	return &Config{
 		logger:              logger,
 		Service:             ServiceEntry{Entry{}},
-		Exporters:           map[config.ComponentID]ExporterEntry{},
-		Extensions:          map[config.ComponentID]ExtensionEntry{},
-		DiscoveryObservers:  map[config.ComponentID]ExtensionEntry{},
-		Processors:          map[config.ComponentID]ProcessorEntry{},
-		Receivers:           map[config.ComponentID]ReceiverEntry{},
-		ReceiversToDiscover: map[config.ComponentID]ReceiverToDiscoverEntry{},
+		Exporters:           map[component.ID]ExporterEntry{},
+		Extensions:          map[component.ID]ExtensionEntry{},
+		DiscoveryObservers:  map[component.ID]ExtensionEntry{},
+		Processors:          map[component.ID]ProcessorEntry{},
+		Receivers:           map[component.ID]ReceiverEntry{},
+		ReceiversToDiscover: map[component.ID]ReceiverToDiscoverEntry{},
 	}
 }
 
@@ -106,7 +106,7 @@ func dirAndEntryRegex(dirName string) (*regexp.Regexp, *regexp.Regexp) {
 }
 
 type keyType interface {
-	string | config.ComponentID
+	string | component.ID
 }
 
 type entryType interface {
@@ -192,10 +192,10 @@ func (ReceiverEntry) ErrorF(path string, err error) error {
 
 type ReceiverToDiscoverEntry struct {
 	// Receiver creator rules by observer extension ID
-	Rule map[config.ComponentID]string
+	Rule map[component.ID]string
 	// Platform/observer specific config by observer extension ID.
 	// These are merged w/ "default" component.ID in a "config" map
-	Config map[config.ComponentID]map[string]any
+	Config map[component.ID]map[string]any
 	// The remaining items used to merge applicable rule and config
 	Entry `yaml:",inline"`
 }
@@ -401,10 +401,10 @@ func unmarshalEntry[K keyType, V entryType](componentType, path string, dst *map
 		return noTypeK.(K), nil
 	}
 	var componentIDs []K
-	var component V
+	var comp V
 	for k, v := range entry {
 		componentIDs = append(componentIDs, k)
-		component = v
+		comp = v
 	}
 
 	if len(componentIDs) != 1 {
@@ -414,7 +414,7 @@ func unmarshalEntry[K keyType, V entryType](componentType, path string, dst *map
 			cids = append(cids, keyTypeToString(i))
 		}
 		sort.Strings(cids)
-		err = component.ErrorF(
+		err = comp.ErrorF(
 			path, fmt.Errorf("must contain a single mapping of ComponentID to component but contained %v", cids),
 		)
 		return
@@ -442,12 +442,13 @@ func stringToKeyType[K keyType](s string, key K) (K, error) {
 		case string:
 			var anyS any = s
 			return anyS.(K), nil
-		case config.ComponentID:
+		case component.ID:
 			if s == discovery.NoType.String() {
 				componentIDK = discovery.NoType
 			} else {
 				var err error
-				if componentIDK, err = config.NewComponentIDFromString(s); err != nil {
+				componentIDK := &component.ID{}
+				if err = componentIDK.UnmarshalText([]byte(s)); err != nil {
 					// nolint:gocritic
 					return *new(K), err // (gocritic suggestion not valid with type parameter)
 				}
@@ -465,7 +466,7 @@ func keyTypeToString[K keyType](key K) string {
 		switch i := anyK.(type) {
 		case string:
 			ret = i
-		case config.ComponentID:
+		case component.ID:
 			ret = i.String()
 		}
 		break

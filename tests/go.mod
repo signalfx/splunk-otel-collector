@@ -13,7 +13,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.15.0
 	go.opentelemetry.io/collector v0.63.1
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.63.1
-	go.opentelemetry.io/collector/pdata v0.63.1
+	go.opentelemetry.io/collector/pdata v0.64.1
 	go.opentelemetry.io/otel/metric v0.33.0
 	go.opentelemetry.io/otel/trace v1.11.1
 	go.uber.org/atomic v1.10.0

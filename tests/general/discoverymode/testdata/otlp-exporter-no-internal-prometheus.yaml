@@ -5,6 +5,7 @@ exporters:
 service:
   telemetry:
     metrics:
+      level: none
       address: ""
   pipelines:
     metrics:

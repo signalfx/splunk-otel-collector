@@ -90,9 +90,8 @@ func loadSettings(css map[string]any, factories Factories) (map[string]expcfg.So
 		settingsParser := confmap.NewFromStringMap(cast.ToStringMap(value))
 
 		// Decode the key into type and fullName components.
-		componentID := &component.ID{}
-		err := componentID.UnmarshalText([]byte(key))
-		if err != nil {
+		componentID := component.ID{}
+		if err := componentID.UnmarshalText([]byte(key)); err != nil {
 			return nil, &errInvalidTypeAndNameKey{fmt.Errorf("invalid %s type and name key %q: %w", configSourcesKey, key, err)}
 		}
 
@@ -108,7 +107,7 @@ func loadSettings(css map[string]any, factories Factories) (map[string]expcfg.So
 
 		// Now that the default settings struct is created we can Unmarshal into it
 		// and it will apply user-defined config on top of the default.
-		if err = settingsParser.Unmarshal(&cfgSrcSettings, confmap.WithErrorUnused()); err != nil {
+		if err := settingsParser.Unmarshal(&cfgSrcSettings, confmap.WithErrorUnused()); err != nil {
 			return nil, &errUnmarshalError{fmt.Errorf("error reading %s configuration for %q: %w", configSourcesKey, componentID, err)}
 		}
 

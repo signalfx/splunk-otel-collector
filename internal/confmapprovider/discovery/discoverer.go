@@ -478,7 +478,7 @@ func (d *discoverer) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 		}
 
 		if obsID != "" {
-			observerID := &component.ID{}
+			observerID = component.ID{}
 			if err = observerID.UnmarshalText([]byte(obsID)); err != nil {
 				d.logger.Debug(
 					fmt.Sprintf("invalid %s", discovery.ObserverIDAttr),

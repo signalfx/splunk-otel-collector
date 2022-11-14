@@ -1,5 +1,6 @@
 telemetry:
   metrics:
+    level: normal
     address: "localhost:${INTERNAL_PROMETHEUS_PORT}"
 pipelines:
   metrics:

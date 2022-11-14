@@ -1,0 +1,116 @@
+resource_metrics:
+  - attributes:
+      http.scheme: http
+      net.host.port: "8889"
+      service.instance.id: localhost:8889
+      service.name: otel-agent
+    scope_metrics:
+      - metrics:
+          - name: otelcol_process_runtime_total_sys_memory_bytes
+            description: Total bytes of memory obtained from the OS (see 'go doc runtime.MemStats.Sys')
+            type: DoubleGauge
+            attributes:
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_process_memory_rss
+            description: Total physical memory (resident set size)
+            type: DoubleGauge
+            attributes:
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_process_cpu_seconds
+            description: Total CPU user and system time in seconds
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_process_uptime
+            description: Uptime of the process
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_process_runtime_total_alloc_bytes
+            description: Cumulative bytes allocated for heap objects (see 'go doc runtime.MemStats.TotalAlloc')
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_process_runtime_heap_alloc_bytes
+            description: Bytes of allocated heap objects (see 'go doc runtime.MemStats.HeapAlloc')
+            type: DoubleGauge
+            attributes:
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_enqueue_failed_log_records
+            description: Number of log records failed to be added to the sending queue.
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_enqueue_failed_metric_points
+            description: Number of metric points failed to be added to the sending queue.
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_enqueue_failed_spans
+            description: Number of spans failed to be added to the sending queue.
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_queue_capacity
+            description: Fixed capacity of the retry queue (in batches)
+            type: DoubleGauge
+            attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_queue_size
+            description: Current size of the retry queue (in batches)
+            type: DoubleGauge
+            attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_sent_metric_points
+            description: Number of metric points successfully sent to destination.
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_receiver_accepted_metric_points
+            description: Number of metric points successfully pushed into the pipeline.
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              receiver: prometheus
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+              transport: http
+          - name: otelcol_receiver_refused_metric_points
+            description: Number of metric points that could not be pushed into the pipeline.
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              receiver: prometheus
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+              transport: http

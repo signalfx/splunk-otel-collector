@@ -22,7 +22,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.uber.org/zap"
 
@@ -41,12 +40,12 @@ func TestEnvVarConfigSourceLoadConfig(t *testing.T) {
 	actualSettings, err := configprovider.Load(context.Background(), v, factories)
 	require.NoError(t, err)
 
-	expectedSettings := map[string]expcfg.Source{
+	expectedSettings := map[string]configprovider.Source{
 		"env": &Config{
-			SourceSettings: expcfg.NewSourceSettings(component.NewID(typeStr)),
+			SourceSettings: configprovider.NewSourceSettings(component.NewID(typeStr)),
 		},
 		"env/with_fallback": &Config{
-			SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName(typeStr, "with_fallback")),
+			SourceSettings: configprovider.NewSourceSettings(component.NewIDWithName(typeStr, "with_fallback")),
 			Defaults: map[string]any{
 				"k0": 42,
 				"m0": map[string]any{

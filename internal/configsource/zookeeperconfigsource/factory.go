@@ -19,8 +19,6 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/component"
-	expcfg "go.opentelemetry.io/collector/config/experimental/config"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
@@ -42,15 +40,15 @@ func (v *zkFactory) Type() component.Type {
 	return typeStr
 }
 
-func (v *zkFactory) CreateDefaultConfig() expcfg.Source {
+func (v *zkFactory) CreateDefaultConfig() configprovider.Source {
 	return &Config{
-		SourceSettings: expcfg.NewSourceSettings(component.NewID(typeStr)),
+		SourceSettings: configprovider.NewSourceSettings(component.NewID(typeStr)),
 		Endpoints:      []string{defaultEndpoint},
 		Timeout:        defaultTimeout,
 	}
 }
 
-func (v *zkFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg expcfg.Source) (configsource.ConfigSource, error) {
+func (v *zkFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.Source) (configprovider.ConfigSource, error) {
 	return newConfigSource(params, cfg.(*Config))
 }
 

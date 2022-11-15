@@ -29,7 +29,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -88,7 +87,7 @@ func TestVaultSessionForKV(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, retrievedMetadata.Value())
 
-	watcher, ok := retrieved.(configsource.Watchable)
+	watcher, ok := retrieved.(configprovider.Watchable)
 	require.True(t, ok)
 
 	var watcherErr error
@@ -101,7 +100,7 @@ func TestVaultSessionForKV(t *testing.T) {
 	require.NoError(t, source.Close(context.Background()))
 
 	<-doneCh
-	require.Equal(t, configsource.ErrSessionClosed, watcherErr)
+	require.Equal(t, configprovider.ErrSessionClosed, watcherErr)
 }
 
 func TestVaultPollingKVUpdate(t *testing.T) {
@@ -132,11 +131,11 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "v1", retrievedK1.Value().(string))
 
-	watcherK0, ok := retrievedK0.(configsource.Watchable)
+	watcherK0, ok := retrievedK0.(configprovider.Watchable)
 	require.True(t, ok)
 
 	// Only the first retrieved key provides a working watcher.
-	_, ok = retrievedK1.(configsource.Watchable)
+	_, ok = retrievedK1.(configprovider.Watchable)
 	require.False(t, ok)
 
 	var watcherErr error
@@ -151,7 +150,7 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 
 	// Wait for update.
 	<-doneCh
-	require.ErrorIs(t, watcherErr, configsource.ErrValueUpdated)
+	require.ErrorIs(t, watcherErr, configprovider.ErrValueUpdated)
 
 	// Close current source.
 	require.NoError(t, source.Close(context.Background()))
@@ -166,7 +165,7 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "v1.1", retrievedUpdatedK1.Value().(string))
 
-	watcherUpdatedK1, ok := retrievedUpdatedK1.(configsource.Watchable)
+	watcherUpdatedK1, ok := retrievedUpdatedK1.(configprovider.Watchable)
 	require.True(t, ok)
 
 	// Wait for close.
@@ -178,7 +177,7 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 
 	require.NoError(t, source.Close(context.Background()))
 	<-doneCh
-	require.ErrorIs(t, watcherErr, configsource.ErrSessionClosed)
+	require.ErrorIs(t, watcherErr, configprovider.ErrSessionClosed)
 }
 
 func TestVaultRenewableSecret(t *testing.T) {
@@ -212,15 +211,15 @@ func TestVaultRenewableSecret(t *testing.T) {
 	retrievedPwd, err := source.Retrieve(context.Background(), "password", nil)
 	require.NoError(t, err)
 
-	watcherUser, ok := retrievedUser.(configsource.Watchable)
+	watcherUser, ok := retrievedUser.(configprovider.Watchable)
 	require.True(t, ok)
 
 	// Only the first retrieved key provides a working watcher.
-	_, ok = retrievedPwd.(configsource.Watchable)
+	_, ok = retrievedPwd.(configprovider.Watchable)
 	require.False(t, ok)
 
 	watcherErr := watcherUser.WatchForUpdate()
-	require.ErrorIs(t, watcherErr, configsource.ErrValueUpdated)
+	require.ErrorIs(t, watcherErr, configprovider.ErrValueUpdated)
 
 	// Close current source.
 	require.NoError(t, source.Close(context.Background()))
@@ -240,7 +239,7 @@ func TestVaultRenewableSecret(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, retrievedPwd.Value(), retrievedUpdatedPwd.Value())
 
-	watcherUpdatedUser, ok := retrievedUpdatedUser.(configsource.Watchable)
+	watcherUpdatedUser, ok := retrievedUpdatedUser.(configprovider.Watchable)
 	require.True(t, ok)
 
 	// Wait for close.
@@ -253,7 +252,7 @@ func TestVaultRenewableSecret(t *testing.T) {
 	runtime.Gosched()
 	require.NoError(t, source.Close(context.Background()))
 	<-doneCh
-	require.ErrorIs(t, watcherErr, configsource.ErrSessionClosed)
+	require.ErrorIs(t, watcherErr, configprovider.ErrSessionClosed)
 }
 
 func TestVaultV1SecretWithTTL(t *testing.T) {
@@ -281,7 +280,7 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "s3cr3t", retrievedValue.Value().(string))
 
-	watcher, ok := retrievedValue.(configsource.Watchable)
+	watcher, ok := retrievedValue.(configprovider.Watchable)
 	require.True(t, ok)
 
 	var watcherErr error
@@ -294,7 +293,7 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 
 	// Wait for update.
 	<-doneCh
-	require.ErrorIs(t, watcherErr, configsource.ErrValueUpdated)
+	require.ErrorIs(t, watcherErr, configprovider.ErrValueUpdated)
 
 	// Close current source.
 	require.NoError(t, source.Close(context.Background()))
@@ -309,7 +308,7 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "s3cr3t", retrievedValue.Value().(string))
 
-	watcher, ok = retrievedValue.(configsource.Watchable)
+	watcher, ok = retrievedValue.(configprovider.Watchable)
 	require.True(t, ok)
 
 	// Wait for close.
@@ -321,7 +320,7 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 
 	require.NoError(t, source.Close(context.Background()))
 	<-doneCh
-	require.ErrorIs(t, watcherErr, configsource.ErrSessionClosed)
+	require.ErrorIs(t, watcherErr, configprovider.ErrSessionClosed)
 }
 
 func TestVaultV1NonWatchableSecret(t *testing.T) {
@@ -349,7 +348,7 @@ func TestVaultV1NonWatchableSecret(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "s3cr3t", retrievedValue.Value().(string))
 
-	_, ok := retrievedValue.(configsource.Watchable)
+	_, ok := retrievedValue.(configprovider.Watchable)
 	require.False(t, ok)
 
 	// Close current source.

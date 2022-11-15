@@ -22,8 +22,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	expcfg "go.opentelemetry.io/collector/config/experimental/config"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
 )
 
@@ -39,17 +37,17 @@ func TestConfigSourceBuild(t *testing.T) {
 	}
 
 	tests := []struct {
-		configSettings     map[string]expcfg.Source
+		configSettings     map[string]Source
 		factories          Factories
-		expectedCfgSources map[string]configsource.ConfigSource
+		expectedCfgSources map[string]ConfigSource
 		wantErr            error
 		name               string
 	}{
 		{
 			name: "unknown_config_source",
-			configSettings: map[string]expcfg.Source{
+			configSettings: map[string]Source{
 				"tstcfgsrc": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName("unknown_config_source", "tstcfgsrc")),
+					SourceSettings: NewSourceSettings(component.NewIDWithName("unknown_config_source", "tstcfgsrc")),
 				},
 			},
 			factories: testFactories,
@@ -57,9 +55,9 @@ func TestConfigSourceBuild(t *testing.T) {
 		},
 		{
 			name: "creation_error",
-			configSettings: map[string]expcfg.Source{
+			configSettings: map[string]Source{
 				"tstcfgsrc": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(component.NewID("tstcfgsrc")),
+					SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
 				},
 			},
 			factories: Factories{
@@ -71,9 +69,9 @@ func TestConfigSourceBuild(t *testing.T) {
 		},
 		{
 			name: "factory_return_nil",
-			configSettings: map[string]expcfg.Source{
+			configSettings: map[string]Source{
 				"tstcfgsrc": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(component.NewID("tstcfgsrc")),
+					SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
 				},
 			},
 			factories: Factories{
@@ -83,20 +81,20 @@ func TestConfigSourceBuild(t *testing.T) {
 		},
 		{
 			name: "base_case",
-			configSettings: map[string]expcfg.Source{
+			configSettings: map[string]Source{
 				"tstcfgsrc/named": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
+					SourceSettings: NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
 					Endpoint:       "some_endpoint",
 					Token:          "some_token",
 				},
 			},
 			factories: testFactories,
-			expectedCfgSources: map[string]configsource.ConfigSource{
+			expectedCfgSources: map[string]ConfigSource{
 				"tstcfgsrc/named": &testConfigSource{
 					ValueMap: map[string]valueEntry{
 						"tstcfgsrc/named": {
 							Value: &mockCfgSrcSettings{
-								SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
+								SourceSettings: NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
 								Endpoint:       "some_endpoint",
 								Token:          "some_token",
 							},
@@ -124,13 +122,13 @@ func (m *mockNilCfgSrcFactory) Type() component.Type {
 
 var _ (Factory) = (*mockNilCfgSrcFactory)(nil)
 
-func (m *mockNilCfgSrcFactory) CreateDefaultConfig() expcfg.Source {
+func (m *mockNilCfgSrcFactory) CreateDefaultConfig() Source {
 	return &mockCfgSrcSettings{
-		SourceSettings: expcfg.NewSourceSettings(component.NewID("tstcfgsrc")),
+		SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
 		Endpoint:       "default_endpoint",
 	}
 }
 
-func (m *mockNilCfgSrcFactory) CreateConfigSource(context.Context, CreateParams, expcfg.Source) (configsource.ConfigSource, error) {
+func (m *mockNilCfgSrcFactory) CreateConfigSource(context.Context, CreateParams, Source) (ConfigSource, error) {
 	return nil, nil
 }

@@ -22,8 +22,6 @@ import (
 
 	"github.com/spf13/cast"
 	"go.opentelemetry.io/collector/component"
-	expcfg "go.opentelemetry.io/collector/config/experimental/config"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/confmap"
 )
 
@@ -41,7 +39,7 @@ type (
 
 // Load reads the configuration for ConfigSource objects from the given parser and returns a map
 // from the full name of config sources to the respective ConfigSettings.
-func Load(ctx context.Context, v *confmap.Conf, factories Factories) (map[string]expcfg.Source, error) {
+func Load(ctx context.Context, v *confmap.Conf, factories Factories) (map[string]Source, error) {
 	processedParser, err := processParser(ctx, v)
 	if err != nil {
 		return nil, err
@@ -59,7 +57,7 @@ func Load(ctx context.Context, v *confmap.Conf, factories Factories) (map[string
 func processParser(ctx context.Context, v *confmap.Conf) (*confmap.Conf, error) {
 	// Use a manager to resolve environment variables with a syntax consistent with
 	// the config source usage.
-	manager := newManager(make(map[string]configsource.ConfigSource))
+	manager := newManager(make(map[string]ConfigSource))
 	defer func() {
 		_ = manager.Close(ctx)
 	}()
@@ -81,9 +79,9 @@ func processParser(ctx context.Context, v *confmap.Conf) (*confmap.Conf, error) 
 	return confmap.NewFromStringMap(processedParser), nil
 }
 
-func loadSettings(css map[string]any, factories Factories) (map[string]expcfg.Source, error) {
+func loadSettings(css map[string]any, factories Factories) (map[string]Source, error) {
 	// Prepare resulting map.
-	cfgSrcToSettings := make(map[string]expcfg.Source)
+	cfgSrcToSettings := make(map[string]Source)
 
 	// Iterate over extensions and create a config for each.
 	for key, value := range css {

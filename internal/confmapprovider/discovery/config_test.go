@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -110,32 +110,32 @@ var expectedConfig = Config{
 			},
 		},
 	},
-	Exporters: map[config.ComponentID]ExporterEntry{
-		config.NewComponentID("signalfx"): {Entry{
+	Exporters: map[component.ID]ExporterEntry{
+		component.NewID("signalfx"): {Entry{
 			"api_url":    "http://0.0.0.0/api",
 			"ingest_url": "http://0.0.0.0/ingest",
 		}},
 	},
-	Extensions: map[config.ComponentID]ExtensionEntry{
-		config.NewComponentID("zpages"): {
+	Extensions: map[component.ID]ExtensionEntry{
+		component.NewID("zpages"): {
 			Entry{
 				"endpoint": "0.0.0.0:1234",
 			},
 		},
 	},
-	DiscoveryObservers: map[config.ComponentID]ExtensionEntry{
-		config.NewComponentID("docker_observer"): {
+	DiscoveryObservers: map[component.ID]ExtensionEntry{
+		component.NewID("docker_observer"): {
 			Entry{
 				"endpoint": "tcp://debian:54321",
 				"timeout":  "2s",
 			},
 		},
 	},
-	Processors: map[config.ComponentID]ProcessorEntry{
-		config.NewComponentID("batch"): {},
+	Processors: map[component.ID]ProcessorEntry{
+		component.NewID("batch"): {},
 	},
-	Receivers: map[config.ComponentID]ReceiverEntry{
-		config.NewComponentID("otlp"): {
+	Receivers: map[component.ID]ReceiverEntry{
+		component.NewID("otlp"): {
 			Entry{
 				"protocols": map[any]any{
 					"grpc": map[any]any{
@@ -148,14 +148,14 @@ var expectedConfig = Config{
 			},
 		},
 	},
-	ReceiversToDiscover: map[config.ComponentID]ReceiverToDiscoverEntry{
-		config.NewComponentIDWithName(config.Type("smartagent"), "postgresql"): {
-			Rule: map[config.ComponentID]string{
-				config.NewComponentID("docker_observer"): `type == "container" and port == 5432`,
-				config.NewComponentID("host_observer"):   `type == "hostport" and command contains "pg" and port == 5432`,
+	ReceiversToDiscover: map[component.ID]ReceiverToDiscoverEntry{
+		component.NewIDWithName(component.Type("smartagent"), "postgresql"): {
+			Rule: map[component.ID]string{
+				component.NewID("docker_observer"): `type == "container" and port == 5432`,
+				component.NewID("host_observer"):   `type == "hostport" and command contains "pg" and port == 5432`,
 			},
 
-			Config: map[config.ComponentID]map[string]any{
+			Config: map[component.ID]map[string]any{
 				defaultType: {
 					"type":             "postgresql",
 					"connectionString": "sslmode=disable user={{.username}} password={{.password}}",
@@ -165,7 +165,7 @@ var expectedConfig = Config{
 					},
 					"masterDBName": "test_db",
 				},
-				config.NewComponentID("docker_observer"): {
+				component.NewID("docker_observer"): {
 					"params": map[any]any{
 						"password": "`labels[\"auth\"]`",
 					},
@@ -212,17 +212,17 @@ var expectedConfig = Config{
 				},
 			},
 		},
-		config.NewComponentIDWithName(config.Type("smartagent"), "collectd/redis"): {
-			Rule: map[config.ComponentID]string{
-				config.NewComponentID("docker_observer"): `type == "container" and port == 6379`,
+		component.NewIDWithName(component.Type("smartagent"), "collectd/redis"): {
+			Rule: map[component.ID]string{
+				component.NewID("docker_observer"): `type == "container" and port == 6379`,
 			},
 
-			Config: map[config.ComponentID]map[string]any{
+			Config: map[component.ID]map[string]any{
 				defaultType: {
 					"type": "collectd/redis",
 					"auth": "password",
 				},
-				config.NewComponentID("docker_observer"): {
+				component.NewID("docker_observer"): {
 					"auth": "`labels[\"auth\"]`",
 				},
 			},

@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.uber.org/zap"
@@ -35,7 +35,7 @@ func TestIncludeConfigSourceLoadConfig(t *testing.T) {
 	v, err := confmaptest.LoadConf(fileName)
 	require.NoError(t, err)
 
-	factories := map[config.Type]configprovider.Factory{
+	factories := map[component.Type]configprovider.Factory{
 		typeStr: NewFactory(),
 	}
 
@@ -44,14 +44,14 @@ func TestIncludeConfigSourceLoadConfig(t *testing.T) {
 
 	expectedSettings := map[string]expcfg.Source{
 		"include": &Config{
-			SourceSettings: expcfg.NewSourceSettings(config.NewComponentID(typeStr)),
+			SourceSettings: expcfg.NewSourceSettings(component.NewID(typeStr)),
 		},
 		"include/delete_files": &Config{
-			SourceSettings: expcfg.NewSourceSettings(config.NewComponentIDWithName(typeStr, "delete_files")),
+			SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName(typeStr, "delete_files")),
 			DeleteFiles:    true,
 		},
 		"include/watch_files": &Config{
-			SourceSettings: expcfg.NewSourceSettings(config.NewComponentIDWithName(typeStr, "watch_files")),
+			SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName(typeStr, "watch_files")),
 			WatchFiles:     true,
 		},
 	}

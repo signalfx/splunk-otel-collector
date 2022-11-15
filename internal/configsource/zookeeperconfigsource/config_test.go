@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.uber.org/zap"
@@ -35,7 +35,7 @@ func TestZookeeperLoadConfig(t *testing.T) {
 	v, err := confmaptest.LoadConf(fileName)
 	require.NoError(t, err)
 
-	factories := map[config.Type]configprovider.Factory{
+	factories := map[component.Type]configprovider.Factory{
 		typeStr: NewFactory(),
 	}
 
@@ -44,12 +44,12 @@ func TestZookeeperLoadConfig(t *testing.T) {
 
 	expectedSettings := map[string]expcfg.Source{
 		"zookeeper": &Config{
-			SourceSettings: expcfg.NewSourceSettings(config.NewComponentID(typeStr)),
+			SourceSettings: expcfg.NewSourceSettings(component.NewID(typeStr)),
 			Endpoints:      []string{"http://localhost:1234"},
 			Timeout:        time.Second * 10,
 		},
 		"zookeeper/timeout": &Config{
-			SourceSettings: expcfg.NewSourceSettings(config.NewComponentIDWithName(typeStr, "timeout")),
+			SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName(typeStr, "timeout")),
 			Endpoints:      []string{"https://localhost:3010"},
 			Timeout:        time.Second * 8,
 		},

@@ -33,7 +33,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.uber.org/zap"
 
@@ -212,7 +211,7 @@ func stripMonitorTypePrefix(s string) string {
 	return s[idx+1:]
 }
 
-func (r *receiver) setUpSmartAgentConfigProvider(extensions map[config.ComponentID]component.Extension) {
+func (r *receiver) setUpSmartAgentConfigProvider(extensions map[component.ID]component.Extension) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
 	saConfig = &f.CreateDefaultConfig().(*smartagentextension.Config).Config
@@ -221,7 +220,7 @@ func (r *receiver) setUpSmartAgentConfigProvider(extensions map[config.Component
 	// to be applied across instances of the receiver.
 	var foundAtLeastOne bool
 	var multipleSAExtensions bool
-	var chosenExtension config.ComponentID
+	var chosenExtension component.ID
 	for c, ext := range extensions {
 		if c.Type() != f.Type() {
 			continue

@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
@@ -37,18 +37,18 @@ type correlation struct {
 	lastState   endpointState
 	lastUpdated time.Time
 	endpoint    observer.Endpoint
-	receiverID  config.ComponentID
-	observerID  config.ComponentID
+	receiverID  component.ID
+	observerID  component.ID
 }
 
 // correlationStore provides a centralized interface for up-to-date correlations
 // and receiver attributes as a message passing mechanism by observed components.
 // It manages a reaping loop to prevent stale endpoint buildup over time.
 type correlationStore interface {
-	UpdateEndpoint(endpoint observer.Endpoint, state endpointState, observerID config.ComponentID)
-	GetOrCreate(receiverID config.ComponentID, endpointID observer.EndpointID) correlation
-	Attrs(receiverID config.ComponentID) map[string]string
-	UpdateAttrs(receiverID config.ComponentID, attrs map[string]string)
+	UpdateEndpoint(endpoint observer.Endpoint, state endpointState, observerID component.ID)
+	GetOrCreate(receiverID component.ID, endpointID observer.EndpointID) correlation
+	Attrs(receiverID component.ID) map[string]string
+	UpdateAttrs(receiverID component.ID, attrs map[string]string)
 	// Start the reaping loop to prevent unnecessary endpoint buildup
 	Start()
 	// Stop the reaping loop
@@ -89,7 +89,7 @@ func newCorrelationStore(logger *zap.Logger, ttl time.Duration) correlationStore
 
 // UpdateEndpoint will update all existing correlation timestamps and states by endpoint.ID, or
 // creates a new no-type ~singleton w/ the initial correlation info for later use in correlation creation.
-func (s *store) UpdateEndpoint(endpoint observer.Endpoint, state endpointState, observerID config.ComponentID) {
+func (s *store) UpdateEndpoint(endpoint observer.Endpoint, state endpointState, observerID component.ID) {
 	defer s.endpointLocks.Lock(endpoint.ID)()
 	rMap, ok := s.correlations.LoadOrStore(endpoint.ID, &sync.Map{})
 	receiverMap := rMap.(*sync.Map)
@@ -116,7 +116,7 @@ func (s *store) UpdateEndpoint(endpoint observer.Endpoint, state endpointState, 
 
 // GetOrCreate returns an existing receiver/endpoint correlation or creates a new one
 // based on the no-type ~singleton for the last endpoint update event.
-func (s *store) GetOrCreate(receiverID config.ComponentID, endpointID observer.EndpointID) correlation {
+func (s *store) GetOrCreate(receiverID component.ID, endpointID observer.EndpointID) correlation {
 	endpointUnlock := s.endpointLocks.Lock(endpointID)
 	rMap, ok := s.correlations.LoadOrStore(endpointID, &sync.Map{})
 	receiverMap := rMap.(*sync.Map)
@@ -143,7 +143,7 @@ func (s *store) GetOrCreate(receiverID config.ComponentID, endpointID observer.E
 	return *corr
 }
 
-func (s *store) Attrs(receiverID config.ComponentID) map[string]string {
+func (s *store) Attrs(receiverID component.ID) map[string]string {
 	defer s.receiverLocks.Lock(receiverID)()
 	rInfo, _ := s.receiverAttrs.LoadOrStore(receiverID, map[string]string{})
 	receiverInfo := rInfo.(map[string]string)
@@ -154,7 +154,7 @@ func (s *store) Attrs(receiverID config.ComponentID) map[string]string {
 	return cp
 }
 
-func (s *store) UpdateAttrs(receiverID config.ComponentID, attrs map[string]string) {
+func (s *store) UpdateAttrs(receiverID component.ID, attrs map[string]string) {
 	defer s.receiverLocks.Lock(receiverID)()
 	rAttrs, _ := s.receiverAttrs.LoadOrStore(receiverID, map[string]string{})
 	receiverAttrs := rAttrs.(map[string]string)

@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
@@ -104,7 +104,7 @@ func (s *Statement) ToLogRecord() plog.LogRecord {
 // where receiver creator receiver names are of the form
 // `<receiver.type>/<receiver.name>/receiver_creator/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`.
 // If receiverName argument is not of this form empty Component and Endpoint IDs are returned.
-func ReceiverNameToIDs(record plog.LogRecord) (receiverID config.ComponentID, endpointID observer.EndpointID) {
+func ReceiverNameToIDs(record plog.LogRecord) (receiverID component.ID, endpointID observer.EndpointID) {
 	// The receiver creator sets dynamically created receiver names as the zap "name" field for their component logger.
 	nameAttr, ok := record.Attributes().Get("name")
 	if !ok {
@@ -157,5 +157,5 @@ func ReceiverNameToIDs(record plog.LogRecord) (receiverID config.ComponentID, en
 	if endpointMatches := endpointIDRegexp.FindStringSubmatch(endpointSection); len(endpointMatches) > 1 {
 		eID = endpointMatches[1]
 	}
-	return config.NewComponentIDWithName(config.Type(rType), rName), observer.EndpointID(eID)
+	return component.NewIDWithName(component.Type(rType), rName), observer.EndpointID(eID)
 }

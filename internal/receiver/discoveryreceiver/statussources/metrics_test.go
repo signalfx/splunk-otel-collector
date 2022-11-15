@@ -19,7 +19,7 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
@@ -61,7 +61,7 @@ func TestMetricsToReceiverIDs(t *testing.T) {
 			if tc.rType != nil {
 				expectedRType = *tc.rType
 			}
-			require.Equal(t, config.Type(expectedRType), receiverID.Type())
+			require.Equal(t, component.Type(expectedRType), receiverID.Type())
 
 			var expectedRName string
 			if tc.rName != nil {
@@ -81,7 +81,7 @@ func TestMetricsToReceiverIDs(t *testing.T) {
 func TestMetricsToReceiverIDsMissingRMetrics(t *testing.T) {
 	md := pmetric.NewMetrics()
 	receiverID, endpointID := MetricsToReceiverIDs(md)
-	require.Equal(t, config.Type(""), receiverID.Type())
+	require.Equal(t, component.Type(""), receiverID.Type())
 	require.Equal(t, "", receiverID.Name())
 	require.Equal(t, observer.EndpointID(""), endpointID)
 }
@@ -92,7 +92,7 @@ func TestMetricsToReceiverIDsMissingRAttributes(t *testing.T) {
 	rm.Resource().Attributes().Clear()
 
 	receiverID, endpointID := MetricsToReceiverIDs(md)
-	require.Equal(t, config.Type(""), receiverID.Type())
+	require.Equal(t, component.Type(""), receiverID.Type())
 	require.Equal(t, "", receiverID.Name())
 	require.Equal(t, observer.EndpointID(""), endpointID)
 }

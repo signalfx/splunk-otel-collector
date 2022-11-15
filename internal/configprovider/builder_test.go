@@ -22,7 +22,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
@@ -50,7 +49,7 @@ func TestConfigSourceBuild(t *testing.T) {
 			name: "unknown_config_source",
 			configSettings: map[string]expcfg.Source{
 				"tstcfgsrc": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(config.NewComponentIDWithName("unknown_config_source", "tstcfgsrc")),
+					SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName("unknown_config_source", "tstcfgsrc")),
 				},
 			},
 			factories: testFactories,
@@ -60,7 +59,7 @@ func TestConfigSourceBuild(t *testing.T) {
 			name: "creation_error",
 			configSettings: map[string]expcfg.Source{
 				"tstcfgsrc": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(config.NewComponentID("tstcfgsrc")),
+					SourceSettings: expcfg.NewSourceSettings(component.NewID("tstcfgsrc")),
 				},
 			},
 			factories: Factories{
@@ -74,7 +73,7 @@ func TestConfigSourceBuild(t *testing.T) {
 			name: "factory_return_nil",
 			configSettings: map[string]expcfg.Source{
 				"tstcfgsrc": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(config.NewComponentID("tstcfgsrc")),
+					SourceSettings: expcfg.NewSourceSettings(component.NewID("tstcfgsrc")),
 				},
 			},
 			factories: Factories{
@@ -86,7 +85,7 @@ func TestConfigSourceBuild(t *testing.T) {
 			name: "base_case",
 			configSettings: map[string]expcfg.Source{
 				"tstcfgsrc/named": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(config.NewComponentIDWithName("tstcfgsrc", "named")),
+					SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
 					Endpoint:       "some_endpoint",
 					Token:          "some_token",
 				},
@@ -97,7 +96,7 @@ func TestConfigSourceBuild(t *testing.T) {
 					ValueMap: map[string]valueEntry{
 						"tstcfgsrc/named": {
 							Value: &mockCfgSrcSettings{
-								SourceSettings: expcfg.NewSourceSettings(config.NewComponentIDWithName("tstcfgsrc", "named")),
+								SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
 								Endpoint:       "some_endpoint",
 								Token:          "some_token",
 							},
@@ -119,7 +118,7 @@ func TestConfigSourceBuild(t *testing.T) {
 
 type mockNilCfgSrcFactory struct{}
 
-func (m *mockNilCfgSrcFactory) Type() config.Type {
+func (m *mockNilCfgSrcFactory) Type() component.Type {
 	return "tstcfgsrc"
 }
 
@@ -127,7 +126,7 @@ var _ (Factory) = (*mockNilCfgSrcFactory)(nil)
 
 func (m *mockNilCfgSrcFactory) CreateDefaultConfig() expcfg.Source {
 	return &mockCfgSrcSettings{
-		SourceSettings: expcfg.NewSourceSettings(config.NewComponentID("tstcfgsrc")),
+		SourceSettings: expcfg.NewSourceSettings(component.NewID("tstcfgsrc")),
 		Endpoint:       "default_endpoint",
 	}
 }

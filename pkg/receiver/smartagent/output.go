@@ -25,7 +25,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"go.opentelemetry.io/collector/component"
-	collectorConfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
 	"go.uber.org/zap"
@@ -50,7 +49,7 @@ type output struct {
 	reporter             *obsreport.Receiver
 	translator           converter.Translator
 	monitorFiltering     *monitorFiltering
-	receiverID           collectorConfig.ComponentID
+	receiverID           component.ID
 	nextDimensionClients []metadata.MetadataExporter
 }
 
@@ -74,7 +73,7 @@ func newOutput(
 		extraSpanTags:        map[string]string{},
 		defaultSpanTags:      map[string]string{},
 		monitorFiltering:     filtering,
-		reporter: obsreport.NewReceiver(obsreport.ReceiverSettings{
+		reporter: obsreport.MustNewReceiver(obsreport.ReceiverSettings{
 			ReceiverID:             config.ID(),
 			Transport:              internalTransport,
 			ReceiverCreateSettings: params,
@@ -93,7 +92,7 @@ func getMetadataExporters(
 	exporters, noClientsSpecified := getDimensionClientsFromMetricsExporters(cfg.DimensionClients, host, nextMetricsConsumer, logger)
 
 	if len(exporters) == 0 && noClientsSpecified {
-		sfxExporter := getLoneSFxExporter(host, collectorConfig.MetricsDataType)
+		sfxExporter := getLoneSFxExporter(host, component.DataTypeMetrics)
 		if sfxExporter != nil {
 			if sfx, ok := sfxExporter.(metadata.MetadataExporter); ok {
 				exporters = append(exporters, sfx)
@@ -123,7 +122,7 @@ func getDimensionClientsFromMetricsExporters(
 		return
 	}
 
-	if builtExporters, ok := host.GetExporters()[collectorConfig.MetricsDataType]; ok {
+	if builtExporters, ok := host.GetExporters()[component.DataTypeMetrics]; ok {
 		for _, client := range specifiedClients {
 			var found bool
 			for exporterConfig, exporter := range builtExporters {
@@ -145,7 +144,7 @@ func getDimensionClientsFromMetricsExporters(
 	return
 }
 
-func getLoneSFxExporter(host component.Host, exporterType collectorConfig.DataType) component.Exporter {
+func getLoneSFxExporter(host component.Host, exporterType component.DataType) component.Exporter {
 	var sfxExporter component.Exporter
 	if builtExporters, ok := host.GetExporters()[exporterType]; ok {
 		for exporterConfig, exporter := range builtExporters {

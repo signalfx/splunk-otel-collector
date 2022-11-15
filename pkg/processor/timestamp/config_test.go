@@ -21,8 +21,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/service/servicetest"
 )
@@ -43,15 +43,15 @@ func TestConfig(t *testing.T) {
 
 	assert.Equal(t, len(cfg.Processors), 3)
 
-	r0 := cfg.Processors[config.NewComponentID(typeStr)].(*Config)
+	r0 := cfg.Processors[component.NewID(typeStr)].(*Config)
 	assert.Equal(t, r0, createDefaultConfig())
 
-	r1 := cfg.Processors[config.NewComponentIDWithName(typeStr, "add2h")].(*Config)
+	r1 := cfg.Processors[component.NewIDWithName(typeStr, "add2h")].(*Config)
 	offset, _ := time.ParseDuration(r1.Offset)
 	offset1 := offsetFn(offset)(ts)
 	require.Equal(t, now.Add(2*time.Hour), offset1.AsTime())
 
-	r2 := cfg.Processors[config.NewComponentIDWithName(typeStr, "remove3h")].(*Config)
+	r2 := cfg.Processors[component.NewIDWithName(typeStr, "remove3h")].(*Config)
 	offset, _ = time.ParseDuration(r2.Offset)
 	offset2 := offsetFn(offset)(ts)
 	require.Equal(t, now.Add(-3*time.Hour), offset2.AsTime())

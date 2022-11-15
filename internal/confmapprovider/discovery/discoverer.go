@@ -27,7 +27,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
@@ -55,11 +54,11 @@ type discoverer struct {
 	factories           component.Factories
 	expandConverter     confmap.Converter
 	configs             map[string]*Config
-	extensions          map[config.ComponentID]component.Extension
+	extensions          map[component.ID]component.Extension
 	logger              *zap.Logger
-	discoveredReceivers map[config.ComponentID]discovery.StatusType
-	discoveredConfig    map[config.ComponentID]map[string]any
-	discoveredObservers map[config.ComponentID]discovery.StatusType
+	discoveredReceivers map[component.ID]discovery.StatusType
+	discoveredConfig    map[component.ID]map[string]any
+	discoveredObservers map[component.ID]discovery.StatusType
 	info                component.BuildInfo
 	duration            time.Duration
 	mu                  sync.Mutex
@@ -88,14 +87,14 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 		logger:              logger,
 		info:                info,
 		factories:           factories,
-		extensions:          map[config.ComponentID]component.Extension{},
+		extensions:          map[component.ID]component.Extension{},
 		configs:             map[string]*Config{},
 		duration:            duration,
 		mu:                  sync.Mutex{},
 		expandConverter:     expandconverter.New(),
-		discoveredReceivers: map[config.ComponentID]discovery.StatusType{},
-		discoveredConfig:    map[config.ComponentID]map[string]any{},
-		discoveredObservers: map[config.ComponentID]discovery.StatusType{},
+		discoveredReceivers: map[component.ID]discovery.StatusType{},
+		discoveredConfig:    map[component.ID]map[string]any{},
+		discoveredObservers: map[component.ID]discovery.StatusType{},
 	}
 	return m, nil
 }
@@ -170,9 +169,9 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 	return discoveryConfig, nil
 }
 
-func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[config.ComponentID]component.LogsReceiver, map[config.ComponentID]component.Extension, error) {
-	discoveryObservers := map[config.ComponentID]component.Extension{}
-	discoveryReceivers := map[config.ComponentID]component.LogsReceiver{}
+func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[component.ID]component.LogsReceiver, map[component.ID]component.Extension, error) {
+	discoveryObservers := map[component.ID]component.Extension{}
+	discoveryReceivers := map[component.ID]component.LogsReceiver{}
 
 	discoveryReceiverFactory := discoveryreceiver.NewFactory()
 	for _, observerID := range cfg.observersForDiscoveryMode() {
@@ -209,7 +208,7 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[conf
 			return nil, nil, fmt.Errorf("error converting environment variables in receiver config: %w", err)
 		}
 
-		if err = config.UnmarshalReceiver(discoveryReceiverConfMap, discoveryReceiverConfig); err != nil {
+		if err = component.UnmarshalReceiverConfig(discoveryReceiverConfMap, discoveryReceiverConfig); err != nil {
 			return nil, nil, fmt.Errorf("failed unmarshaling discovery receiver config: %w", err)
 		}
 
@@ -227,7 +226,7 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[conf
 	return discoveryReceivers, discoveryObservers, nil
 }
 
-func (d *discoverer) createObserver(observerID config.ComponentID, cfg *Config) (component.Extension, error) {
+func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (component.Extension, error) {
 	observerFactory, err := factoryForObserverType(observerID.Type())
 	if err != nil {
 		return nil, err
@@ -239,7 +238,7 @@ func (d *discoverer) createObserver(observerID config.ComponentID, cfg *Config) 
 		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID.String(), err)
 	}
 
-	if err = config.UnmarshalExtension(observerCfgMap, observerConfig); err != nil {
+	if err = component.UnmarshalExtensionConfig(observerCfgMap, observerConfig); err != nil {
 		return nil, fmt.Errorf("failed unmarshaling %s config: %w", observerID.String(), err)
 	}
 
@@ -259,7 +258,7 @@ func (d *discoverer) createObserver(observerID config.ComponentID, cfg *Config) 
 	return observer, nil
 }
 
-func (d *discoverer) updateReceiverForObserver(receiverID config.ComponentID, receiver ReceiverToDiscoverEntry, observerID config.ComponentID) (bool, error) {
+func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver ReceiverToDiscoverEntry, observerID component.ID) (bool, error) {
 	observerRule, hasRule := receiver.Rule[observerID]
 	if !hasRule {
 		d.logger.Debug(fmt.Sprintf("disregarding %s without a %s rule", receiverID.String(), observerID.String()))
@@ -289,8 +288,8 @@ func (d *discoverer) updateReceiverForObserver(receiverID config.ComponentID, re
 	return true, nil
 }
 
-func factoryForObserverType(extType config.Type) (component.ExtensionFactory, error) {
-	factories := map[config.Type]component.ExtensionFactory{
+func factoryForObserverType(extType component.Type) (component.ExtensionFactory, error) {
+	factories := map[component.Type]component.ExtensionFactory{
 		"docker_observer":   dockerobserver.NewFactory(),
 		"host_observer":     hostobserver.NewFactory(),
 		"k8s_observer":      k8sobserver.NewFactory(),
@@ -395,8 +394,8 @@ func (d *discoverer) createReceiverCreateSettings() component.ReceiverCreateSett
 	}
 }
 
-func (c Config) observersForDiscoveryMode() []config.ComponentID {
-	var cids []config.ComponentID
+func (c Config) observersForDiscoveryMode() []component.ID {
+	var cids []component.ID
 	for k := range c.DiscoveryObservers {
 		cids = append(cids, k)
 	}
@@ -411,7 +410,7 @@ func (d *discoverer) ReportFatalError(err error) {
 }
 
 // GetFactory is a component.Host method used to forward the distribution's components.
-func (d *discoverer) GetFactory(kind component.Kind, componentType config.Type) component.Factory {
+func (d *discoverer) GetFactory(kind component.Kind, componentType component.Type) component.Factory {
 	switch kind {
 	case component.KindExporter:
 		return d.factories.Exporters[componentType]
@@ -426,12 +425,12 @@ func (d *discoverer) GetFactory(kind component.Kind, componentType config.Type) 
 }
 
 // GetExtensions is a component.Host method used to forward discovery observers.
-func (d *discoverer) GetExtensions() map[config.ComponentID]component.Extension {
+func (d *discoverer) GetExtensions() map[component.ID]component.Extension {
 	return d.extensions
 }
 
 // GetExporters is a component.Host method.
-func (d *discoverer) GetExporters() map[config.DataType]map[config.ComponentID]component.Exporter {
+func (d *discoverer) GetExporters() map[component.DataType]map[component.ID]component.Exporter {
 	return nil
 }
 
@@ -457,7 +456,7 @@ func (d *discoverer) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 		var (
 			receiverType, receiverName string
 			receiverConfig, obsID      string
-			observerID                 config.ComponentID
+			observerID                 component.ID
 			err                        error
 		)
 		rlog := rlogs.At(i)
@@ -479,7 +478,8 @@ func (d *discoverer) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 		}
 
 		if obsID != "" {
-			if observerID, err = config.NewComponentIDFromString(obsID); err != nil {
+			observerID = component.ID{}
+			if err = observerID.UnmarshalText([]byte(obsID)); err != nil {
 				d.logger.Debug(
 					fmt.Sprintf("invalid %s", discovery.ObserverIDAttr),
 					zap.String("observer id", obsID), zap.Error(err),
@@ -488,7 +488,7 @@ func (d *discoverer) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 			}
 		}
 
-		receiverID := config.NewComponentIDWithName(config.Type(receiverType), receiverName)
+		receiverID := component.NewIDWithName(component.Type(receiverType), receiverName)
 		if receiverConfig != "" {
 			rCfg := map[string]any{}
 			var dBytes []byte

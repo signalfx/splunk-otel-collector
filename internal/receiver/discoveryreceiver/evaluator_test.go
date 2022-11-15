@@ -23,14 +23,14 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
-func setup(t testing.TB) (*evaluator, config.ComponentID, observer.EndpointID) {
+func setup(t testing.TB) (*evaluator, component.ID, observer.EndpointID) {
 	logger := zaptest.NewLogger(t)
 	alreadyLogged := &sync.Map{}
 	eval := &evaluator{
@@ -43,14 +43,14 @@ func setup(t testing.TB) (*evaluator, config.ComponentID, observer.EndpointID) {
 		},
 	}
 
-	receiverID := config.NewComponentIDWithName("type", "name")
+	receiverID := component.NewIDWithName("type", "name")
 	endpointID := observer.EndpointID("endpoint")
 	return eval, receiverID, endpointID
 }
 
 func TestEvaluateMatch(t *testing.T) {
 	eval, receiverID, endpointID := setup(t)
-	anotherReceiverID := config.NewComponentIDWithName("type", "another.name")
+	anotherReceiverID := component.NewIDWithName("type", "another.name")
 
 	for _, tc := range []struct {
 		typ string
@@ -113,7 +113,7 @@ func TestCorrelateResourceAttrs(t *testing.T) {
 			eval.config.EmbedReceiverConfig = embed
 
 			endpoint := observer.Endpoint{ID: endpointID}
-			observerID := config.NewComponentIDWithName("type", "name")
+			observerID := component.NewIDWithName("type", "name")
 			eval.correlations.UpdateEndpoint(endpoint, addedState, observerID)
 
 			corr := eval.correlations.GetOrCreate(discovery.NoType, endpointID)
@@ -162,7 +162,7 @@ func TestCorrelateResourceAttrsWithExistingConfig(t *testing.T) {
 			eval.config.EmbedReceiverConfig = embed
 
 			endpoint := observer.Endpoint{ID: endpointID}
-			observerID := config.NewComponentIDWithName("type", "name")
+			observerID := component.NewIDWithName("type", "name")
 			eval.correlations.UpdateEndpoint(endpoint, addedState, observerID)
 
 			corr := eval.correlations.GetOrCreate(discovery.NoType, endpointID)

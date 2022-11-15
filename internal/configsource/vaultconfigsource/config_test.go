@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.uber.org/zap"
@@ -35,7 +35,7 @@ func TestVaultLoadConfig(t *testing.T) {
 	v, err := confmaptest.LoadConf(fileName)
 	require.NoError(t, err)
 
-	factories := map[config.Type]configprovider.Factory{
+	factories := map[component.Type]configprovider.Factory{
 		typeStr: NewFactory(),
 	}
 
@@ -46,7 +46,7 @@ func TestVaultLoadConfig(t *testing.T) {
 	otherToken := "other_token"
 	expectedSettings := map[string]expcfg.Source{
 		"vault": &Config{
-			SourceSettings: expcfg.NewSourceSettings(config.NewComponentID(typeStr)),
+			SourceSettings: expcfg.NewSourceSettings(component.NewID(typeStr)),
 			Endpoint:       "http://localhost:8200",
 			Path:           "secret/kv",
 			PollInterval:   1 * time.Minute,
@@ -55,7 +55,7 @@ func TestVaultLoadConfig(t *testing.T) {
 			},
 		},
 		"vault/poll_interval": &Config{
-			SourceSettings: expcfg.NewSourceSettings(config.NewComponentIDWithName(typeStr, "poll_interval")),
+			SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName(typeStr, "poll_interval")),
 			Endpoint:       "https://localhost:8200",
 			Path:           "other/path/kv",
 			PollInterval:   10 * time.Second,

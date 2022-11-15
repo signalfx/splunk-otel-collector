@@ -16,14 +16,14 @@ package statussources
 
 import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 // MetricsToReceiverIDs extracts the identifiers receiver creator created receivers will embed in their attributes
-func MetricsToReceiverIDs(md pmetric.Metrics) (config.ComponentID, observer.EndpointID) {
+func MetricsToReceiverIDs(md pmetric.Metrics) (component.ID, observer.EndpointID) {
 	var receiverType, receiverName, endpointID string
 	if md.ResourceMetrics().Len() > 0 {
 		resourceMetrics := md.ResourceMetrics().At(0)
@@ -38,5 +38,5 @@ func MetricsToReceiverIDs(md pmetric.Metrics) (config.ComponentID, observer.Endp
 			endpointID = r.AsString()
 		}
 	}
-	return config.NewComponentIDWithName(config.Type(receiverType), receiverName), observer.EndpointID(endpointID)
+	return component.NewIDWithName(component.Type(receiverType), receiverName), observer.EndpointID(endpointID)
 }

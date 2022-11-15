@@ -24,7 +24,7 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -57,15 +57,15 @@ func TestStatementEvaluation(t *testing.T) {
 							for _, firstOnly := range []bool{true, false} {
 								match.FirstOnly = firstOnly
 								t.Run(fmt.Sprintf("FirstOnly:%v", firstOnly), func(t *testing.T) {
-									observerID := config.NewComponentIDWithName("an.observer", "observer.name")
+									observerID := component.NewIDWithName("an.observer", "observer.name")
 									cfg := &Config{
-										Receivers: map[config.ComponentID]ReceiverEntry{
-											config.NewComponentIDWithName("a.receiver", "receiver.name"): {
+										Receivers: map[component.ID]ReceiverEntry{
+											component.NewIDWithName("a.receiver", "receiver.name"): {
 												Rule:   "a.rule",
 												Status: &Status{Statements: map[discovery.StatusType][]Match{status: {match}}},
 											},
 										},
-										WatchObservers: []config.ComponentID{observerID},
+										WatchObservers: []component.ID{observerID},
 									}
 									require.NoError(t, cfg.Validate())
 
@@ -199,15 +199,15 @@ func TestStatementEvaluation(t *testing.T) {
 }
 
 func TestLogRecordDefaultAndArbitrarySeverityText(t *testing.T) {
-	observerID := config.NewComponentIDWithName("an.observer", "observer.name")
+	observerID := component.NewIDWithName("an.observer", "observer.name")
 	cfg := &Config{
-		Receivers: map[config.ComponentID]ReceiverEntry{
-			config.NewComponentIDWithName("a.receiver", "receiver.name"): {
+		Receivers: map[component.ID]ReceiverEntry{
+			component.NewIDWithName("a.receiver", "receiver.name"): {
 				Rule:   "a.rule",
 				Status: &Status{Statements: map[discovery.StatusType][]Match{discovery.Successful: {Match{Strict: "match.me"}}}},
 			},
 		},
-		WatchObservers: []config.ComponentID{observerID},
+		WatchObservers: []component.ID{observerID},
 	}
 	require.NoError(t, cfg.Validate())
 

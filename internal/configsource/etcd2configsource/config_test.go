@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.uber.org/zap"
@@ -34,7 +34,7 @@ func TestEtcd2LoadConfig(t *testing.T) {
 	v, err := confmaptest.LoadConf(fileName)
 	require.NoError(t, err)
 
-	factories := map[config.Type]configprovider.Factory{
+	factories := map[component.Type]configprovider.Factory{
 		typeStr: NewFactory(),
 	}
 
@@ -43,11 +43,11 @@ func TestEtcd2LoadConfig(t *testing.T) {
 
 	expectedSettings := map[string]expcfg.Source{
 		"etcd2": &Config{
-			SourceSettings: expcfg.NewSourceSettings(config.NewComponentID(typeStr)),
+			SourceSettings: expcfg.NewSourceSettings(component.NewID(typeStr)),
 			Endpoints:      []string{"http://localhost:1234"},
 		},
 		"etcd2/auth": &Config{
-			SourceSettings: expcfg.NewSourceSettings(config.NewComponentIDWithName(typeStr, "auth")),
+			SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName(typeStr, "auth")),
 			Endpoints:      []string{"https://localhost:3456"},
 			Authentication: &Authentication{
 				Username: "user",

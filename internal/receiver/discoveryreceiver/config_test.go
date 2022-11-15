@@ -24,6 +24,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/confmap"
@@ -50,10 +51,10 @@ func TestValidConfig(t *testing.T) {
 
 	assert.Equal(t, len(collectorConfig.Receivers), 1)
 
-	cfg := collectorConfig.Receivers[config.NewComponentIDWithName(typeStr, "discovery-name")].(*Config)
+	cfg := collectorConfig.Receivers[component.NewIDWithName(typeStr, "discovery-name")].(*Config)
 	require.Equal(t, &Config{
-		Receivers: map[config.ComponentID]ReceiverEntry{
-			config.NewComponentIDWithName("smartagent", "redis"): {
+		Receivers: map[component.ID]ReceiverEntry{
+			component.NewIDWithName("smartagent", "redis"): {
 				Config: map[string]any{
 					"auth": "password",
 					"host": "`host`",
@@ -114,13 +115,13 @@ func TestValidConfig(t *testing.T) {
 				Rule: "type == \"container\"",
 			},
 		},
-		ReceiverSettings:    config.NewReceiverSettings(config.NewComponentIDWithName("discovery", "discovery-name")),
+		ReceiverSettings:    config.NewReceiverSettings(component.NewIDWithName("discovery", "discovery-name")),
 		LogEndpoints:        true,
 		EmbedReceiverConfig: true,
 		CorrelationTTL:      25 * time.Second,
-		WatchObservers: []config.ComponentID{
-			config.NewComponentID("an_observer"),
-			config.NewComponentIDWithName("another_observer", "with_name"),
+		WatchObservers: []component.ID{
+			component.NewID("an_observer"),
+			component.NewIDWithName("another_observer", "with_name"),
 		},
 	},
 		cfg)
@@ -164,25 +165,25 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	conf, err = conf.Sub("discovery/discovery-name")
 	require.NoError(t, err)
 	require.NotEmpty(t, conf.ToStringMap())
-	dCfg := Config{ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName("discovery", "discovery-name"))}
+	dCfg := Config{ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName("discovery", "discovery-name"))}
 	require.NoError(t, conf.Unmarshal(&dCfg, confmap.WithErrorUnused()))
 
 	correlations := newCorrelationStore(zaptest.NewLogger(t), time.Second)
 	factory, rCfg, err := dCfg.receiverCreatorFactoryAndConfig(correlations)
 	require.NoError(t, err)
-	require.Equal(t, config.Type("receiver_creator"), factory.Type())
+	require.Equal(t, component.Type("receiver_creator"), factory.Type())
 
 	require.NoError(t, rCfg.Validate())
-	require.Equal(t, config.NewComponentIDWithName("receiver_creator", "discovery/discovery-name"), rCfg.ID())
+	require.Equal(t, component.NewIDWithName("receiver_creator", "discovery/discovery-name"), rCfg.ID())
 
 	creatorCfg, ok := rCfg.(*receivercreator.Config)
 	require.True(t, ok)
 	require.NotNil(t, creatorCfg)
 
 	// receiver templates aren't exported so limited to WatchObservers
-	require.Equal(t, []config.ComponentID{
-		config.NewComponentID("an_observer"),
-		config.NewComponentIDWithName("another_observer", "with_name"),
+	require.Equal(t, []component.ID{
+		component.NewID("an_observer"),
+		component.NewIDWithName("another_observer", "with_name"),
 	}, creatorCfg.WatchObservers)
 
 	receiverTemplate, err := dCfg.receiverCreatorReceiversConfig(correlations)

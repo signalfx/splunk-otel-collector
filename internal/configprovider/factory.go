@@ -19,7 +19,6 @@ import (
 	"context"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
@@ -52,8 +51,8 @@ type Factory interface {
 	CreateConfigSource(ctx context.Context, params CreateParams, cfg expcfg.Source) (configsource.ConfigSource, error)
 
 	// Type gets the type of the component created by this factory.
-	Type() config.Type
+	Type() component.Type
 }
 
 // Factories maps the type of a ConfigSource to the respective factory object.
-type Factories map[config.Type]Factory
+type Factories map[component.Type]Factory

@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/scrapererror"
@@ -68,14 +67,14 @@ type scraper struct {
 	metricsBuilder             *metadata.MetricsBuilder
 	dbProviderFunc             dbProviderFunc
 	logger                     *zap.Logger
-	id                         config.ComponentID
+	id                         component.ID
 	instanceName               string
 	scrapeCfg                  scraperhelper.ScraperControllerSettings
 	startTime                  pcommon.Timestamp
 	metricsSettings            metadata.MetricsSettings
 }
 
-func newScraper(id config.ComponentID, metricsBuilder *metadata.MetricsBuilder, metricsSettings metadata.MetricsSettings, scrapeCfg scraperhelper.ScraperControllerSettings, logger *zap.Logger, providerFunc dbProviderFunc, clientProviderFunc clientProviderFunc, instanceName string) *scraper {
+func newScraper(id component.ID, metricsBuilder *metadata.MetricsBuilder, metricsSettings metadata.MetricsSettings, scrapeCfg scraperhelper.ScraperControllerSettings, logger *zap.Logger, providerFunc dbProviderFunc, clientProviderFunc clientProviderFunc, instanceName string) *scraper {
 	return &scraper{
 		id:                 id,
 		metricsBuilder:     metricsBuilder,
@@ -90,7 +89,7 @@ func newScraper(id config.ComponentID, metricsBuilder *metadata.MetricsBuilder, 
 
 var _ scraperhelper.Scraper = (*scraper)(nil)
 
-func (s *scraper) ID() config.ComponentID {
+func (s *scraper) ID() component.ID {
 	return s.id
 }
 

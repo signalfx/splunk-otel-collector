@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -28,7 +28,7 @@ import (
 
 func TestIncludeConfigSourceFactory_CreateConfigSource(t *testing.T) {
 	factory := NewFactory()
-	assert.Equal(t, config.Type("include"), factory.Type())
+	assert.Equal(t, component.Type("include"), factory.Type())
 	createParams := configprovider.CreateParams{
 		Logger: zap.NewNop(),
 	}

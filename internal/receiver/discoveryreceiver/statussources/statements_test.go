@@ -20,7 +20,7 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -100,47 +100,47 @@ func TestReceiverNameToIDs(t *testing.T) {
 	for _, test := range []struct {
 		name               string
 		receiverName       string
-		expectedReceiverID config.ComponentID
+		expectedReceiverID component.ID
 		expectedEndpointID observer.EndpointID
 	}{
 		{name: "happy path",
 			receiverName:       `<receiver.type>/<receiver.name>/receiver_creator/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-			expectedReceiverID: config.NewComponentIDWithName("<receiver.type>", "<receiver.name>"),
+			expectedReceiverID: component.NewIDWithName("<receiver.type>", "<receiver.name>"),
 			expectedEndpointID: observer.EndpointID("<Endpoint.ID>"),
 		},
 		{name: "missing receiver_creator separator",
 			receiverName:       `<receiver.type>/<receiver.name>/<receiver-creator.name>{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-			expectedReceiverID: config.NewComponentID(""),
+			expectedReceiverID: component.NewID(""),
 			expectedEndpointID: observer.EndpointID(""),
 		},
 		{name: "multiple receiver_creator separators",
 			receiverName:       `<receiver.type>/<receiver.name>/receiver_creator/receiver_creator/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-			expectedReceiverID: config.NewComponentID(""),
+			expectedReceiverID: component.NewID(""),
 			expectedEndpointID: observer.EndpointID(""),
 		},
 		{name: "missing endpoint separator",
 			receiverName:       `<receiver.type>/<receiver.name>/receiver_creator/<receiver-creator.name>/<Endpoint.ID>`,
-			expectedReceiverID: config.NewComponentID(""),
+			expectedReceiverID: component.NewID(""),
 			expectedEndpointID: observer.EndpointID(""),
 		},
 		{name: "multiple endpoint separators",
 			receiverName:       `<receiver.type>/<receiver.name>/receiver_creator/<receiver-creator.name>/{endpoint="<Endpoint.Target>"}/{endpoint="<Endpoint.Target>"}/<Endpoint.ID>`,
-			expectedReceiverID: config.NewComponentID(""),
+			expectedReceiverID: component.NewID(""),
 			expectedEndpointID: observer.EndpointID(""),
 		},
 		{name: "missing name with forward slash hostport",
 			receiverName:       `debug//receiver_creator/discovery/discovery_name{endpoint="127.0.0.53:53"}/(host_observer/host)127.0.0.53-53-TCP)`,
-			expectedReceiverID: config.NewComponentID("debug"),
+			expectedReceiverID: component.NewID("debug"),
 			expectedEndpointID: observer.EndpointID("(host_observer/host)127.0.0.53-53-TCP)"),
 		},
 		{name: "missing name without forward slash hostport",
 			receiverName:       `debug/receiver_creator/discovery/discovery_name{endpoint="127.0.0.53:53"}/(host_observer/host)127.0.0.53-53-TCP)`,
-			expectedReceiverID: config.NewComponentID("debug"),
+			expectedReceiverID: component.NewID("debug"),
 			expectedEndpointID: observer.EndpointID("(host_observer/host)127.0.0.53-53-TCP)"),
 		},
 		{name: "docker observer",
 			receiverName:       `smartagent/redis/with/additional/slashes/receiver_creator/discovery/discovery_name{endpoint="172.17.0.2:6379"}/d2ee077a262e23bf3fccdd6422f88ce3ec6ed2403bfe67c1d25fb3e5647a0bb7:6379`,
-			expectedReceiverID: config.NewComponentIDWithName("smartagent", "redis/with/additional/slashes"),
+			expectedReceiverID: component.NewIDWithName("smartagent", "redis/with/additional/slashes"),
 			expectedEndpointID: observer.EndpointID("d2ee077a262e23bf3fccdd6422f88ce3ec6ed2403bfe67c1d25fb3e5647a0bb7:6379"),
 		},
 	} {
@@ -175,7 +175,7 @@ func FuzzReceiverNameToIDs(f *testing.F) {
 			// if we can't find a receiver we should never return an EndpointID
 			if receiverID == discovery.NoType {
 				require.Equal(t, observer.EndpointID(""), endpointID)
-			} else if receiverID.Type() == config.Type("") {
+			} else if receiverID.Type() == component.Type("") {
 				// if the receiver type is empty the name should also be empty
 				require.Equal(t, "", receiverID.Name())
 			}

@@ -21,7 +21,7 @@ import (
 	"net/url"
 	"time"
 
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 
@@ -49,13 +49,13 @@ type (
 
 type vaultFactory struct{}
 
-func (v *vaultFactory) Type() config.Type {
+func (v *vaultFactory) Type() component.Type {
 	return typeStr
 }
 
 func (v *vaultFactory) CreateDefaultConfig() expcfg.Source {
 	return &Config{
-		SourceSettings: expcfg.NewSourceSettings(config.NewComponentID(typeStr)),
+		SourceSettings: expcfg.NewSourceSettings(component.NewID(typeStr)),
 		PollInterval:   defaultPollInterval,
 	}
 }

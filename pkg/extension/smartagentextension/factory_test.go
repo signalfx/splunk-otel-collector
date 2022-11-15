@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 )
 
 func TestFactory(t *testing.T) {
@@ -27,5 +27,5 @@ func TestFactory(t *testing.T) {
 	require.EqualValues(t, typeStr, f.Type())
 
 	cfg := f.CreateDefaultConfig()
-	require.Equal(t, config.NewComponentID(typeStr), cfg.ID())
+	require.Equal(t, component.NewID(typeStr), cfg.ID())
 }

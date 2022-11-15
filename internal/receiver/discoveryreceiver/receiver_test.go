@@ -21,7 +21,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
@@ -42,52 +41,52 @@ func TestNewDiscoveryReceiver(t *testing.T) {
 }
 
 func TestObservablesFromHost(t *testing.T) {
-	nopObsID := config.NewComponentID("nop_observer")
+	nopObsID := component.NewID("nop_observer")
 	nopObs := &nopObserver{}
-	nopObsIDWithName := config.NewComponentIDWithName("nop_observer", "with_name")
+	nopObsIDWithName := component.NewIDWithName("nop_observer", "with_name")
 	nopObsWithName := &nopObserver{}
-	nopObsvbleID := config.NewComponentID("nop_observable")
+	nopObsvbleID := component.NewID("nop_observable")
 	nopObsvble := &nopObservable{}
-	nopObsvbleIDWithName := config.NewComponentIDWithName("nop_observable", "with_name")
+	nopObsvbleIDWithName := component.NewIDWithName("nop_observable", "with_name")
 	nopObsvbleWithName := &nopObservable{}
 
 	for _, tt := range []struct {
 		name                string
-		extensions          map[config.ComponentID]component.Extension
-		expectedObservables map[config.ComponentID]observer.Observable
+		extensions          map[component.ID]component.Extension
+		expectedObservables map[component.ID]observer.Observable
 		expectedError       string
-		watchObservers      []config.ComponentID
+		watchObservers      []component.ID
 	}{
 		{name: "mixed non-observables ids",
-			extensions: map[config.ComponentID]component.Extension{
+			extensions: map[component.ID]component.Extension{
 				nopObsID:     nopObs,
 				nopObsvbleID: nopObsvble,
 			},
-			watchObservers: []config.ComponentID{nopObsID, nopObsvbleID},
+			watchObservers: []component.ID{nopObsID, nopObsvbleID},
 			expectedError:  `extension "nop_observer" in watch_observers is not an observer`,
 		},
 		{name: "mixed non-observables ids with names",
-			extensions: map[config.ComponentID]component.Extension{
+			extensions: map[component.ID]component.Extension{
 				nopObsIDWithName:     nopObsWithName,
 				nopObsvbleIDWithName: nopObsvbleWithName,
 			},
-			watchObservers: []config.ComponentID{nopObsIDWithName, nopObsvbleIDWithName},
+			watchObservers: []component.ID{nopObsIDWithName, nopObsvbleIDWithName},
 			expectedError:  `extension "nop_observer/with_name" in watch_observers is not an observer`,
 		},
 		{name: "only missing extension",
-			extensions: map[config.ComponentID]component.Extension{
+			extensions: map[component.ID]component.Extension{
 				nopObsvbleID: nopObsvble,
 			},
-			watchObservers: []config.ComponentID{nopObsID},
+			watchObservers: []component.ID{nopObsID},
 			expectedError:  `failed to find observer "nop_observer" as a configured extension`,
 		},
 		{name: "happy path",
-			extensions: map[config.ComponentID]component.Extension{
+			extensions: map[component.ID]component.Extension{
 				nopObsvbleID:         nopObsvble,
 				nopObsvbleIDWithName: nopObsvbleWithName,
 			},
-			watchObservers: []config.ComponentID{nopObsvbleID, nopObsvbleIDWithName},
-			expectedObservables: map[config.ComponentID]observer.Observable{
+			watchObservers: []component.ID{nopObsvbleID, nopObsvbleIDWithName},
+			expectedObservables: map[component.ID]observer.Observable{
 				nopObsvbleID:         nopObsvble,
 				nopObsvbleIDWithName: nopObsvbleWithName,
 			},
@@ -122,14 +121,14 @@ func TestObservablesFromHost(t *testing.T) {
 
 type mockHost struct {
 	component.Host
-	extensions map[config.ComponentID]component.Extension
+	extensions map[component.ID]component.Extension
 }
 
-func (mh mockHost) GetFactory(_ component.Kind, _ config.Type) component.Factory {
+func (mh mockHost) GetFactory(_ component.Kind, _ component.Type) component.Factory {
 	return nil
 }
 
-func (mh mockHost) GetExtensions() map[config.ComponentID]component.Extension {
+func (mh mockHost) GetExtensions() map[component.ID]component.Extension {
 	return mh.extensions
 }
 

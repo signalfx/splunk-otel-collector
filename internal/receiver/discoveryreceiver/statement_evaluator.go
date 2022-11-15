@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
@@ -115,7 +115,8 @@ func (se *statementEvaluator) Write(entry zapcore.Entry, fields []zapcore.Field)
 		return err
 	}
 	if name, ok := statement.Fields["name"]; ok {
-		if cid, err := config.NewComponentIDFromString(fmt.Sprintf("%v", name)); err == nil {
+		cid := &component.ID{}
+		if err := cid.UnmarshalText([]byte(fmt.Sprintf("%v", name))); err == nil {
 			if cid.Type() == "receiver_creator" && cid.Name() == se.config.ID().String() {
 				// this is from our internal Receiver Creator and not a generated receiver, so write
 				// it to our logger core without submitting the entry for evaluation
@@ -199,7 +200,7 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 	return pLogs
 }
 
-func (se *statementEvaluator) receiverEntryFromLogRecord(record plog.LogRecord) (config.ComponentID, observer.EndpointID, ReceiverEntry, bool) {
+func (se *statementEvaluator) receiverEntryFromLogRecord(record plog.LogRecord) (component.ID, observer.EndpointID, ReceiverEntry, bool) {
 	receiverID, endpointID := statussources.ReceiverNameToIDs(record)
 	if receiverID == discovery.NoType || endpointID == "" {
 		// statement evaluation requires both a populated receiver.ID and EndpointID
@@ -220,7 +221,7 @@ func (se *statementEvaluator) receiverEntryFromLogRecord(record plog.LogRecord) 
 	return receiverID, endpointID, rEntry, true
 }
 
-func (se *statementEvaluator) prepareMatchingLogs(rEntry ReceiverEntry, receiverID config.ComponentID, endpointID observer.EndpointID) (plog.Logs, plog.LogRecordSlice) {
+func (se *statementEvaluator) prepareMatchingLogs(rEntry ReceiverEntry, receiverID component.ID, endpointID observer.EndpointID) (plog.Logs, plog.LogRecordSlice) {
 	stagePLogs := plog.NewLogs()
 	rLog := stagePLogs.ResourceLogs().AppendEmpty()
 	rAttrs := rLog.Resource().Attributes()

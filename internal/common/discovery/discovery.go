@@ -17,7 +17,7 @@ package discovery
 import (
 	"fmt"
 
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 )
 
 const (
@@ -29,7 +29,7 @@ const (
 	StatusAttr         = "discovery.status"
 )
 
-var NoType = config.NewComponentID("")
+var NoType = component.NewID("")
 
 type StatusType string
 

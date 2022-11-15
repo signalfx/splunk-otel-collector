@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
@@ -49,12 +49,12 @@ func TestConfigSourceParser(t *testing.T) {
 			factories: testFactories,
 			expected: map[string]expcfg.Source{
 				"tstcfgsrc": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(config.NewComponentID("tstcfgsrc")),
+					SourceSettings: expcfg.NewSourceSettings(component.NewID("tstcfgsrc")),
 					Endpoint:       "some_endpoint",
 					Token:          "some_token",
 				},
 				"tstcfgsrc/named": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(config.NewComponentIDWithName("tstcfgsrc", "named")),
+					SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
 					Endpoint:       "default_endpoint",
 				},
 			},
@@ -69,7 +69,7 @@ func TestConfigSourceParser(t *testing.T) {
 			},
 			expected: map[string]expcfg.Source{
 				"tstcfgsrc": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(config.NewComponentID("tstcfgsrc")),
+					SourceSettings: expcfg.NewSourceSettings(component.NewID("tstcfgsrc")),
 					Endpoint:       "https://env_var_endpoint:8200",
 					Token:          "env_var_token",
 				},
@@ -147,13 +147,13 @@ type mockCfgSrcFactory struct {
 
 var _ Factory = (*mockCfgSrcFactory)(nil)
 
-func (m *mockCfgSrcFactory) Type() config.Type {
+func (m *mockCfgSrcFactory) Type() component.Type {
 	return "tstcfgsrc"
 }
 
 func (m *mockCfgSrcFactory) CreateDefaultConfig() expcfg.Source {
 	return &mockCfgSrcSettings{
-		SourceSettings: expcfg.NewSourceSettings(config.NewComponentID("tstcfgsrc")),
+		SourceSettings: expcfg.NewSourceSettings(component.NewID("tstcfgsrc")),
 		Endpoint:       "default_endpoint",
 	}
 }

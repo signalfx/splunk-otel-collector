@@ -56,10 +56,10 @@ type pulsarExporterFactory struct {
 	metricsMarshalers map[string]MetricsMarshaler
 }
 
-func createDefaultConfig() config.Exporter {
+func createDefaultConfig() component.ExporterConfig {
 
 	return &Config{
-		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
+		ExporterSettings: config.NewExporterSettings(component.NewID(typeStr)),
 		TimeoutSettings:  exporterhelper.NewDefaultTimeoutSettings(),
 		RetrySettings:    exporterhelper.NewDefaultRetrySettings(),
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
@@ -80,7 +80,7 @@ func createDefaultConfig() config.Exporter {
 func (f *pulsarExporterFactory) createMetricsExporter(
 	ctx ctx.Context,
 	settings component.ExporterCreateSettings,
-	cfg config.Exporter,
+	cfg component.ExporterConfig,
 ) (component.MetricsExporter, error) {
 	oCfg := cfg.(*Config)
 	if oCfg.Encoding == "otlp_json" {

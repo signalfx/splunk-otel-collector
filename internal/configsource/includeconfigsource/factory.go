@@ -18,7 +18,7 @@ package includeconfigsource
 import (
 	"context"
 
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	expcfg "go.opentelemetry.io/collector/config/experimental/config"
 	"go.opentelemetry.io/collector/config/experimental/configsource"
 
@@ -32,13 +32,13 @@ const (
 
 type includeFactory struct{}
 
-func (f *includeFactory) Type() config.Type {
+func (f *includeFactory) Type() component.Type {
 	return typeStr
 }
 
 func (f *includeFactory) CreateDefaultConfig() expcfg.Source {
 	return &Config{
-		SourceSettings: expcfg.NewSourceSettings(config.NewComponentID(typeStr)),
+		SourceSettings: expcfg.NewSourceSettings(component.NewID(typeStr)),
 	}
 }
 

@@ -20,6 +20,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service/servicetest"
@@ -36,13 +37,13 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	e0 := cfg.Exporters[config.NewComponentID(typeStr)]
+	e0 := cfg.Exporters[component.NewID(typeStr)]
 	assert.Equal(t, e0, factory.CreateDefaultConfig())
 
-	e1 := cfg.Exporters[config.NewComponentIDWithName(typeStr, "2")]
+	e1 := cfg.Exporters[component.NewIDWithName(typeStr, "2")]
 	assert.Equal(t, e1,
 		&Config{
-			ExporterSettings: config.NewExporterSettings(config.NewComponentIDWithName(typeStr, "2")),
+			ExporterSettings: config.NewExporterSettings(component.NewIDWithName(typeStr, "2")),
 			Endpoint:         "localhost:3333",
 		})
 }

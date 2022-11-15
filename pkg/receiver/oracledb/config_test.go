@@ -24,7 +24,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service/servicetest"
 )
 
@@ -36,7 +35,7 @@ func TestCreateDefaultConfig(t *testing.T) {
 func TestParseConfig(t *testing.T) {
 	cfg, err := servicetest.LoadConfigAndValidate(path.Join("testdata", "config_test.yaml"), testFactories(t))
 	require.NoError(t, err)
-	sqlCfg := cfg.Receivers[config.NewComponentID("oracledb")].(*Config)
+	sqlCfg := cfg.Receivers[component.NewID("oracledb")].(*Config)
 	assert.Equal(t, "oracle://otel:password@localhost:51521/XE", sqlCfg.DataSource)
 	settings := sqlCfg.MetricsSettings
 	assert.False(t, settings.OracledbTablespaceSizeUsage.Enabled)

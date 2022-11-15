@@ -34,7 +34,7 @@ var (
 	receiverStore     = map[*Config]*receiver{}
 )
 
-func getOrCreateReceiver(cfg config.Receiver, params component.ReceiverCreateSettings) (*receiver, error) {
+func getOrCreateReceiver(cfg component.ReceiverConfig, params component.ReceiverCreateSettings) (*receiver, error) {
 	receiverStoreLock.Lock()
 	defer receiverStoreLock.Unlock()
 	receiverConfig := cfg.(*Config)
@@ -63,16 +63,16 @@ func NewFactory() component.ReceiverFactory {
 	)
 }
 
-func CreateDefaultConfig() config.Receiver {
+func CreateDefaultConfig() component.ReceiverConfig {
 	return &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
+		ReceiverSettings: config.NewReceiverSettings(component.NewID(typeStr)),
 	}
 }
 
 func createMetricsReceiver(
 	_ context.Context,
 	params component.ReceiverCreateSettings,
-	cfg config.Receiver,
+	cfg component.ReceiverConfig,
 	metricsConsumer consumer.Metrics,
 ) (component.MetricsReceiver, error) {
 	receiver, err := getOrCreateReceiver(cfg, params)
@@ -87,7 +87,7 @@ func createMetricsReceiver(
 func createLogsReceiver(
 	_ context.Context,
 	params component.ReceiverCreateSettings,
-	cfg config.Receiver,
+	cfg component.ReceiverConfig,
 	logsConsumer consumer.Logs,
 ) (component.LogsReceiver, error) {
 	receiver, err := getOrCreateReceiver(cfg, params)
@@ -102,7 +102,7 @@ func createLogsReceiver(
 func createTracesReceiver(
 	_ context.Context,
 	params component.ReceiverCreateSettings,
-	cfg config.Receiver,
+	cfg component.ReceiverConfig,
 	tracesConsumer consumer.Traces,
 ) (component.TracesReceiver, error) {
 	receiver, err := getOrCreateReceiver(cfg, params)

@@ -44,11 +44,11 @@ func NewFactory() component.ReceiverFactory {
 		}, newDbClient), stability))
 }
 
-func createDefaultConfig() config.Receiver {
+func createDefaultConfig() component.ReceiverConfig {
 	return &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
+		ReceiverSettings: config.NewReceiverSettings(component.NewID(typeStr)),
 		ScraperControllerSettings: scraperhelper.ScraperControllerSettings{
-			ReceiverSettings:   config.NewReceiverSettings(config.NewComponentID(typeStr)),
+			ReceiverSettings:   config.NewReceiverSettings(component.NewID(typeStr)),
 			CollectionInterval: 10 * time.Second,
 		},
 		MetricsSettings: metadata.DefaultMetricsSettings(),
@@ -61,7 +61,7 @@ func createReceiverFunc(sqlOpenerFunc sqlOpenerFunc, clientProviderFunc clientPr
 	return func(
 		ctx context.Context,
 		settings component.ReceiverCreateSettings,
-		cfg config.Receiver,
+		cfg component.ReceiverConfig,
 		consumer consumer.Metrics,
 	) (component.MetricsReceiver, error) {
 		sqlCfg := cfg.(*Config)

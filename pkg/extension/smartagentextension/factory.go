@@ -27,8 +27,8 @@ import (
 )
 
 const (
-	typeStr                config.Type = "smartagent"
-	defaultIntervalSeconds int         = 10
+	typeStr                component.Type = "smartagent"
+	defaultIntervalSeconds int            = 10
 )
 
 func NewFactory() component.ExtensionFactory {
@@ -63,7 +63,7 @@ var bundleDir = func() string {
 	return dir
 }()
 
-func createDefaultConfig() config.Extension {
+func createDefaultConfig() component.ExtensionConfig {
 	cfg, _ := smartAgentConfigFromSettingsMap(map[string]any{})
 	if cfg == nil {
 		// We won't truly be using this default in our custom unmarshaler
@@ -75,7 +75,7 @@ func createDefaultConfig() config.Extension {
 	cfg.Collectd.ConfigDir = filepath.Join(bundleDir, "run", "collectd")
 
 	return &Config{
-		ExtensionSettings: config.NewExtensionSettings(config.NewComponentID(typeStr)),
+		ExtensionSettings: config.NewExtensionSettings(component.NewID(typeStr)),
 		Config:            *cfg,
 	}
 }
@@ -83,7 +83,7 @@ func createDefaultConfig() config.Extension {
 func createExtension(
 	_ context.Context,
 	_ component.ExtensionCreateSettings,
-	cfg config.Extension,
+	cfg component.ExtensionConfig,
 ) (component.Extension, error) {
 	return newSmartAgentConfigExtension(cfg.(*Config))
 }

@@ -21,7 +21,6 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
@@ -56,7 +55,7 @@ type discoveryReceiver struct {
 	config             *Config
 	obsreportReceiver  *obsreport.Receiver
 	pLogs              chan plog.Logs
-	observables        map[config.ComponentID]observer.Observable
+	observables        map[component.ID]observer.Observable
 	loopFinished       *sync.WaitGroup
 	settings           component.ReceiverCreateSettings
 }
@@ -68,7 +67,7 @@ func newDiscoveryReceiver(
 ) *discoveryReceiver {
 	d := &discoveryReceiver{
 		config: config,
-		obsreportReceiver: obsreport.NewReceiver(obsreport.ReceiverSettings{
+		obsreportReceiver: obsreport.MustNewReceiver(obsreport.ReceiverSettings{
 			ReceiverID:             config.ID(),
 			Transport:              "none",
 			ReceiverCreateSettings: settings,
@@ -192,8 +191,8 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 // observablesFromHost finds configured `watch_observers` extension instances from the host
 // by their ComponentID. It is based on the equivalent logic in the Receiver Creator:
 // https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/d6042eda45ec9d8a5df1ae553388eaca67d9d16c/receiver/receivercreator/receiver.go#L79
-func (d *discoveryReceiver) observablesFromHost(host component.Host) (map[config.ComponentID]observer.Observable, error) {
-	watchObservables := map[config.ComponentID]observer.Observable{}
+func (d *discoveryReceiver) observablesFromHost(host component.Host) (map[component.ID]observer.Observable, error) {
+	watchObservables := map[component.ID]observer.Observable{}
 	for _, obs := range d.config.WatchObservers {
 		for cid, ext := range host.GetExtensions() {
 			if cid != obs {

@@ -38,6 +38,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service/servicetest"
@@ -58,10 +59,10 @@ func TestLoadConfig(t *testing.T) {
 
 	assert.Equal(t, len(cfg.Receivers), 5)
 
-	haproxyCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "haproxy")].(*Config)
+	haproxyCfg := cfg.Receivers[component.NewIDWithName(typeStr, "haproxy")].(*Config)
 	expectedDimensionClients := []string{"nop/one", "nop/two"}
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "haproxy")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "haproxy")),
 		DimensionClients: expectedDimensionClients,
 		monitorConfig: &haproxy.Config{
 			MonitorConfig: saconfig.MonitorConfig{
@@ -79,9 +80,9 @@ func TestLoadConfig(t *testing.T) {
 	}, haproxyCfg)
 	require.NoError(t, haproxyCfg.validate())
 
-	redisCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "redis")].(*Config)
+	redisCfg := cfg.Receivers[component.NewIDWithName(typeStr, "redis")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "redis")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "redis")),
 		DimensionClients: []string{},
 		monitorConfig: &redis.Config{
 			MonitorConfig: saconfig.MonitorConfig{
@@ -96,9 +97,9 @@ func TestLoadConfig(t *testing.T) {
 	}, redisCfg)
 	require.NoError(t, redisCfg.validate())
 
-	hadoopCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "hadoop")].(*Config)
+	hadoopCfg := cfg.Receivers[component.NewIDWithName(typeStr, "hadoop")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "hadoop")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "hadoop")),
 		monitorConfig: &hadoop.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/hadoop",
@@ -113,9 +114,9 @@ func TestLoadConfig(t *testing.T) {
 	}, hadoopCfg)
 	require.NoError(t, hadoopCfg.validate())
 
-	etcdCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "etcd")].(*Config)
+	etcdCfg := cfg.Receivers[component.NewIDWithName(typeStr, "etcd")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "etcd")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "etcd")),
 		monitorConfig: &prometheusexporter.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "etcd",
@@ -134,9 +135,9 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, etcdCfg.validate())
 
 	tr := true
-	ntpqCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "ntpq")].(*Config)
+	ntpqCfg := cfg.Receivers[component.NewIDWithName(typeStr, "ntpq")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "ntpq")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "ntpq")),
 		monitorConfig: &ntpq.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "telegraf/ntpq",
@@ -209,9 +210,9 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	require.NotNil(t, cfg)
 	assert.Equal(t, len(cfg.Receivers), 2)
 
-	negativeIntervalCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "negativeintervalseconds")].(*Config)
+	negativeIntervalCfg := cfg.Receivers[component.NewIDWithName(typeStr, "negativeintervalseconds")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "negativeintervalseconds")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "negativeintervalseconds")),
 		monitorConfig: &redis.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/redis",
@@ -225,9 +226,9 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, "intervalSeconds must be greater than 0s (-234 provided)")
 
-	missingRequiredCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "missingrequired")].(*Config)
+	missingRequiredCfg := cfg.Receivers[component.NewIDWithName(typeStr, "missingrequired")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "missingrequired")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "missingrequired")),
 		monitorConfig: &consul.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/consul",
@@ -260,9 +261,9 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 
 	assert.Equal(t, len(cfg.Receivers), 4)
 
-	haproxyCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "haproxy")].(*Config)
+	haproxyCfg := cfg.Receivers[component.NewIDWithName(typeStr, "haproxy")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "haproxy")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "haproxy")),
 		Endpoint:         "[fe80::20c:29ff:fe59:9446]:2345",
 		monitorConfig: &haproxy.Config{
 			MonitorConfig: saconfig.MonitorConfig{
@@ -282,9 +283,9 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, haproxyCfg)
 	require.NoError(t, haproxyCfg.validate())
 
-	redisCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "redis")].(*Config)
+	redisCfg := cfg.Receivers[component.NewIDWithName(typeStr, "redis")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "redis")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "redis")),
 		Endpoint:         "redishost",
 		monitorConfig: &redis.Config{
 			MonitorConfig: saconfig.MonitorConfig{
@@ -299,9 +300,9 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, redisCfg)
 	require.NoError(t, redisCfg.validate())
 
-	hadoopCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "hadoop")].(*Config)
+	hadoopCfg := cfg.Receivers[component.NewIDWithName(typeStr, "hadoop")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "hadoop")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "hadoop")),
 		Endpoint:         "[::]:12345",
 		monitorConfig: &hadoop.Config{
 			MonitorConfig: saconfig.MonitorConfig{
@@ -317,9 +318,9 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, hadoopCfg)
 	require.NoError(t, hadoopCfg.validate())
 
-	etcdCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "etcd")].(*Config)
+	etcdCfg := cfg.Receivers[component.NewIDWithName(typeStr, "etcd")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "etcd")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "etcd")),
 		Endpoint:         "etcdhost:5555",
 		monitorConfig: &prometheusexporter.Config{
 			MonitorConfig: saconfig.MonitorConfig{
@@ -368,10 +369,10 @@ func TestLoadConfigWithUnsupportedEndpoint(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	nagiosCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "nagios")].(*Config)
+	nagiosCfg := cfg.Receivers[component.NewIDWithName(typeStr, "nagios")].(*Config)
 	require.Equal(t, &Config{
 		Endpoint:         "localhost:12345",
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "nagios")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "nagios")),
 		monitorConfig: &nagios.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "nagios",
@@ -429,9 +430,9 @@ func TestFilteringConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	fsCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "filesystems")].(*Config)
+	fsCfg := cfg.Receivers[component.NewIDWithName(typeStr, "filesystems")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "filesystems")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "filesystems")),
 		monitorConfig: &filesystems.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type: "filesystems",
@@ -464,9 +465,9 @@ func TestInvalidFilteringConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	fsCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "filesystems")].(*Config)
+	fsCfg := cfg.Receivers[component.NewIDWithName(typeStr, "filesystems")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "filesystems")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "filesystems")),
 		monitorConfig: &filesystems.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type: "filesystems",
@@ -499,9 +500,9 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 
 	assert.Equal(t, len(cfg.Receivers), 2)
 
-	telegrafExecCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "exec")].(*Config)
+	telegrafExecCfg := cfg.Receivers[component.NewIDWithName(typeStr, "exec")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "exec")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "exec")),
 		monitorConfig: &exec.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "telegraf/exec",
@@ -518,10 +519,10 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 	}, telegrafExecCfg)
 	require.NoError(t, telegrafExecCfg.validate())
 
-	k8sVolumesCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "kubernetes_volumes")].(*Config)
+	k8sVolumesCfg := cfg.Receivers[component.NewIDWithName(typeStr, "kubernetes_volumes")].(*Config)
 	tru := true
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "kubernetes_volumes")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "kubernetes_volumes")),
 		monitorConfig: &volumes.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "kubernetes-volumes",

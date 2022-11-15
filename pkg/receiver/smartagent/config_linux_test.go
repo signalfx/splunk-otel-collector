@@ -28,6 +28,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd/php"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service/servicetest"
@@ -38,7 +39,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	assert.Nil(t, err)
 
 	factory := NewFactory()
-	factories.Receivers[config.Type(typeStr)] = factory
+	factories.Receivers[component.Type(typeStr)] = factory
 	cfg, err := servicetest.LoadConfig(
 		path.Join(".", "testdata", "linux_config.yaml"), factories,
 	)
@@ -48,9 +49,9 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 
 	assert.Equal(t, len(cfg.Receivers), 4)
 
-	apacheCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "apache")].(*Config)
+	apacheCfg := cfg.Receivers[component.NewIDWithName(typeStr, "apache")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "apache")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "apache")),
 		monitorConfig: &apache.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/apache",
@@ -65,9 +66,9 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	}, apacheCfg)
 	require.NoError(t, apacheCfg.validate())
 
-	kafkaCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "kafka")].(*Config)
+	kafkaCfg := cfg.Receivers[component.NewIDWithName(typeStr, "kafka")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "kafka")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "kafka")),
 		monitorConfig: &kafka.Config{
 			Config: genericjmx.Config{
 				MonitorConfig: saconfig.MonitorConfig{
@@ -85,9 +86,9 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	}, kafkaCfg)
 	require.NoError(t, kafkaCfg.validate())
 
-	memcachedCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "memcached")].(*Config)
+	memcachedCfg := cfg.Receivers[component.NewIDWithName(typeStr, "memcached")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "memcached")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "memcached")),
 		monitorConfig: &memcached.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/memcached",
@@ -101,9 +102,9 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 	}, memcachedCfg)
 	require.NoError(t, memcachedCfg.validate())
 
-	phpCfg := cfg.Receivers[config.NewComponentIDWithName(typeStr, "php")].(*Config)
+	phpCfg := cfg.Receivers[component.NewIDWithName(typeStr, "php")].(*Config)
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentIDWithName(typeStr, "php")),
+		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "php")),
 		monitorConfig: &php.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/php-fpm",

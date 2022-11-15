@@ -3,12 +3,12 @@
 package metadata
 
 import (
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 // Type is the component type name.
-const Type config.Type = "databricksreceiver"
+const Type component.Type = "databricksreceiver"
 
 // MetricIntf is an interface to generically interact with generated metric.
 type MetricIntf interface {

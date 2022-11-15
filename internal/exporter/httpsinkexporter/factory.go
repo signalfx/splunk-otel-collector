@@ -38,9 +38,9 @@ func NewFactory() component.ExporterFactory {
 	)
 }
 
-func createDefaultConfig() config.Exporter {
+func createDefaultConfig() component.ExporterConfig {
 	return &Config{
-		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
+		ExporterSettings: config.NewExporterSettings(component.NewID(typeStr)),
 		Endpoint:         defaultEndpoint,
 	}
 }
@@ -48,7 +48,7 @@ func createDefaultConfig() config.Exporter {
 func createTracesExporter(
 	ctx context.Context,
 	set component.ExporterCreateSettings,
-	cfg config.Exporter,
+	cfg component.ExporterConfig,
 ) (component.TracesExporter, error) {
 	exp := &httpSinkExporter{endpoint: cfg.(*Config).Endpoint}
 	return exporterhelper.NewTracesExporter(

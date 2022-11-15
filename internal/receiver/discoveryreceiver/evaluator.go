@@ -23,7 +23,7 @@ import (
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
@@ -44,7 +44,7 @@ type evaluator struct {
 }
 
 // evaluateMatch parses the provided Match and returns whether it warrants a status log record
-func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.StatusType, receiverID config.ComponentID, endpointID observer.EndpointID) (bool, error) {
+func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.StatusType, receiverID component.ID, endpointID observer.EndpointID) (bool, error) {
 	var matchFunc func(p string) (bool, error)
 	var matchPattern string
 

@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/apache/pulsar-client-go/pulsar"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
@@ -62,7 +63,7 @@ type Producer struct {
 	DisableBatching                 bool              `mapstructure:"disable_batching"`
 }
 
-var _ config.Exporter = (*Config)(nil)
+var _ component.ExporterConfig = (*Config)(nil)
 
 // Validate checks if the exporter configuration is valid
 func (cfg *Config) Validate() error {

@@ -97,6 +97,7 @@ func TestDockerObserver(t *testing.T) {
 				"telemetry": map[string]any{
 					"metrics": map[string]any{
 						"address": "",
+						"level":   "none",
 					},
 				},
 			},
@@ -173,6 +174,7 @@ func TestDockerObserver(t *testing.T) {
 			"telemetry": map[string]any{
 				"metrics": map[string]any{
 					"address": "",
+					"level":   "none",
 				},
 			},
 		},

@@ -1,7 +1,7 @@
-FROM alpine:3.16.2 as certs
+FROM alpine:3.16.3 as certs
 RUN apk --update add ca-certificates
 
-FROM alpine:3.16.2 AS otelcol
+FROM alpine:3.16.3 AS otelcol
 COPY otelcol /
 COPY translatesfx /
 COPY migratecheckpoint /
@@ -14,7 +14,7 @@ RUN echo "splunk-otel-collector:x:999:999::/:" > /etc_passwd
 # create base dirs since we cannot chown in scratch image except via COPY
 RUN mkdir -p /otel/collector /splunk-otel-collector
 
-FROM alpine:3.16.2 AS smartagent
+FROM alpine:3.16.3 AS smartagent
 ARG SMART_AGENT_RELEASE
 ARG ARCH="amd64"
 

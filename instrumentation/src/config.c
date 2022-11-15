@@ -29,9 +29,6 @@ void load_config(logger log, struct config *cfg, char *file_name) {
     if (cfg->disable_telemetry == NULL) {
         log_debug(log, "disable_telemetry not specified in config");
     }
-    if (cfg->generate_service_name == NULL) {
-        log_debug(log, "generate_service_name not specified in config");
-    }
 }
 
 void read_config_file(logger log, struct config *cfg, char *file_name) {
@@ -66,8 +63,6 @@ void read_lines(struct config *cfg, FILE *fp) {
             cfg->resource_attributes = strdup(pair.v);
         } else if (streq(pair.k, "disable_telemetry")) {
             cfg->disable_telemetry = strdup(pair.v);
-        } else if (streq(pair.k, "generate_service_name")) {
-            cfg->generate_service_name = strdup(pair.v);
         }
     }
 }
@@ -77,7 +72,7 @@ void split_on_eq(char *string, struct kv *pair) {
     pair->v = string;
 }
 
-bool str_eq_true(char *v) {
+bool eq_true(char *v) {
     return v != NULL && !streq("false", v) && !streq("FALSE", v) && !streq("0", v);
 }
 

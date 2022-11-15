@@ -7,6 +7,5 @@ WORKDIR /libsplunk
 
 COPY src /libsplunk/src
 COPY testdata/instrumentation.conf /libsplunk/testdata/instrumentation.conf
-COPY testdata/instrumentation-svcname.conf /libsplunk/testdata/instrumentation-svcname.conf
 COPY install/instrumentation.conf /libsplunk/install/instrumentation.conf
 COPY Makefile /libsplunk/Makefile

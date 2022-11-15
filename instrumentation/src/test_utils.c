@@ -3,12 +3,6 @@
 #include "test_utils.h"
 #include "splunk.h"
 
-void print_logs(char **logs, int n) {
-    for (int i = 0; i < n; ++i) {
-        printf("logs[%d]: %s\n", i, logs[i]);
-    }
-}
-
 void require_true(char *funcname, bool actual) {
     if (!actual) {
         printf("%s: require_true: got false\n", funcname);

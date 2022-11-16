@@ -12,7 +12,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/testcontainers/testcontainers-go v0.15.0
 	go.opentelemetry.io/collector v0.64.1
-	go.opentelemetry.io/collector/exporter/otlpexporter v0.63.1
+	go.opentelemetry.io/collector/exporter/otlpexporter v0.64.1
 	go.opentelemetry.io/collector/pdata v0.64.1
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.64.1
 	go.opentelemetry.io/otel/metric v0.33.0
@@ -94,5 +94,3 @@ replace (
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.1.2
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0
 )
-
-replace github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver => ../receiver/oracledbreceiver

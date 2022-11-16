@@ -2,7 +2,16 @@
 
 ## Unreleased
 
+## v0.64.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.64.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.64.0), the [opentelemetry-collector v0.64.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.64.1), and the [opentelemetry-collector-contrib v0.64.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.64.0) releases where appropriate.
+
 ### 💡 Enhancements 💡
+
+- Add Zero Config support for installing signalfx-dotnet-tracing instrumentation (#2068)
+- Upgrade to Smart Agent release 5.26.0 (#2251)
+- Remove usage of opentelemetry-collector experimental config source package (#2267)
+- Third-party dependency updates
 
 ## v0.63.0
 

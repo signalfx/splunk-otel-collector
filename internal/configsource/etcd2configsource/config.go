@@ -15,13 +15,11 @@
 
 package etcd2configsource
 
-import (
-	expcfg "go.opentelemetry.io/collector/config/experimental/config"
-)
+import "github.com/signalfx/splunk-otel-collector/internal/configprovider"
 
 // Config defines etcd2configsource configuration
 type Config struct {
-	expcfg.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
+	configprovider.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
 
 	// Authentication defines the authentication method to be used.
 	Authentication *Authentication `mapstructure:"auth"`

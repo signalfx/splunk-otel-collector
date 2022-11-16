@@ -22,8 +22,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/confmap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 func TestEnvVarConfigSource_Session(t *testing.T) {
@@ -104,7 +105,7 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, r)
 			assert.Equal(t, tt.expected, r.Value())
-			_, ok := r.(configsource.Watchable)
+			_, ok := r.(configprovider.Watchable)
 			assert.False(t, ok)
 		})
 	}

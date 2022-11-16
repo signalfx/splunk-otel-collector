@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/vault/api"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 
@@ -41,7 +40,7 @@ type (
 	errBadSelector   struct{ error }
 )
 
-// vaultConfigSource implements the configsource.Session interface.
+// vaultConfigSource implements the configprovider.Session interface.
 type vaultConfigSource struct {
 	logger *zap.Logger
 	client *api.Client
@@ -54,7 +53,7 @@ type vaultConfigSource struct {
 	pollInterval time.Duration
 }
 
-func newConfigSource(params configprovider.CreateParams, cfg *Config) (configsource.ConfigSource, error) {
+func newConfigSource(params configprovider.CreateParams, cfg *Config) (configprovider.ConfigSource, error) {
 	// Client doesn't connect on creation and can't be closed. Keeping the same instance
 	// for all sessions is ok.
 	client, err := api.NewClient(&api.Config{
@@ -84,7 +83,7 @@ func newConfigSource(params configprovider.CreateParams, cfg *Config) (configsou
 	}, nil
 }
 
-func (v *vaultConfigSource) Retrieve(_ context.Context, selector string, _ *confmap.Conf) (configsource.Retrieved, error) {
+func (v *vaultConfigSource) Retrieve(_ context.Context, selector string, _ *confmap.Conf) (configprovider.Retrieved, error) {
 	// By default assume that watcher is not supported. The exception will be the first
 	// value read from the vault secret.
 	var watchForUpdateFn func() error
@@ -176,11 +175,11 @@ func (v *vaultConfigSource) buildLifetimeWatcher() (func() error, error) {
 			case err := <-vaultWatcher.DoneCh():
 				// Renewal stopped, error or not the client needs to re-fetch the configuration.
 				if err == nil {
-					return configsource.ErrValueUpdated
+					return configprovider.ErrValueUpdated
 				}
 				return err
 			case <-v.doneCh:
-				return configsource.ErrSessionClosed
+				return configprovider.ErrSessionClosed
 			}
 		}
 	}
@@ -201,9 +200,9 @@ func (v *vaultConfigSource) buildV1LeaseWatcher() (func() error, error) {
 		case <-time.After(updateWait):
 			// This is triggering a re-fetch. In principle this could actually
 			// check for changes in the values.
-			return configsource.ErrValueUpdated
+			return configprovider.ErrValueUpdated
 		case <-v.doneCh:
-			return configsource.ErrSessionClosed
+			return configprovider.ErrSessionClosed
 		}
 	}
 
@@ -270,10 +269,10 @@ func (v *vaultConfigSource) buildPollingWatcher() (func() error, error) {
 				// the valued of the retrieved keys was changed. The current criteria may trigger updates even for
 				// addition of new keys to the secret.
 				if originalVersion.Timestamp != latestVersion.Timestamp || originalVersion.Version != latestVersion.Version {
-					return configsource.ErrValueUpdated
+					return configprovider.ErrValueUpdated
 				}
 			case <-v.doneCh:
-				return configsource.ErrSessionClosed
+				return configprovider.ErrSessionClosed
 			}
 		}
 	}

@@ -24,7 +24,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/confmap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -116,13 +115,13 @@ func TestIncludeConfigSource_WatchFileClose(t *testing.T) {
 	require.NotNil(t, r)
 	assert.Equal(t, []byte("val1"), r.Value())
 
-	watched, ok := r.(configsource.Watchable)
+	watched, ok := r.(configprovider.Watchable)
 	assert.True(t, ok)
 
 	// Close current source.
 	require.NoError(t, s.Close(context.Background()))
 	watcherErr := watched.WatchForUpdate()
-	require.ErrorIs(t, watcherErr, configsource.ErrSessionClosed)
+	require.ErrorIs(t, watcherErr, configprovider.ErrSessionClosed)
 
 }
 
@@ -151,14 +150,14 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, r)
 	assert.Equal(t, []byte("val1"), r.Value())
-	watched, ok := r.(configsource.Watchable)
+	watched, ok := r.(configprovider.Watchable)
 	assert.True(t, ok)
 
 	// Write update to file
 	err = os.WriteFile(f.Name(), []byte("val2"), 0600)
 	require.NoError(t, err)
 	watcherErr := watched.WatchForUpdate()
-	require.ErrorIs(t, watcherErr, configsource.ErrValueUpdated)
+	require.ErrorIs(t, watcherErr, configprovider.ErrValueUpdated)
 
 	// Check updated file after waiting for update
 	r, err = s.Retrieve(ctx, f.Name(), nil)
@@ -194,7 +193,7 @@ func TestIncludeConfigSource_DeleteFile(t *testing.T) {
 	require.NotNil(t, r)
 	assert.Equal(t, []byte("42"), r.Value())
 
-	_, ok := r.(configsource.Watchable)
+	_, ok := r.(configprovider.Watchable)
 	assert.False(t, ok)
 }
 

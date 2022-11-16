@@ -27,7 +27,6 @@ import (
 
 	"github.com/spf13/cast"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
@@ -173,10 +172,10 @@ var ddBackwardCompatible = func() bool {
 //
 // For an overview about the internals of the Manager refer to the package README.md.
 type Manager struct {
-	configSources map[string]configsource.ConfigSource
+	configSources map[string]ConfigSource
 	watchingCh    chan struct{}
 	closeCh       chan struct{}
-	watchers      []configsource.Watchable
+	watchers      []Watchable
 	watchersWG    sync.WaitGroup
 }
 
@@ -243,7 +242,7 @@ func (m *Manager) WatchForUpdate() error {
 			defer m.watchersWG.Done()
 			err := watcher.WatchForUpdate()
 			switch {
-			case errors.Is(err, configsource.ErrSessionClosed):
+			case errors.Is(err, ErrSessionClosed):
 				// The Session from which this watcher was retrieved is being closed.
 				// There is no error to report, just exit from the goroutine.
 				return
@@ -270,7 +269,7 @@ func (m *Manager) WatchForUpdate() error {
 		return err
 	case <-m.closeCh:
 		// This covers the case that all watchers returned ErrWatcherNotSupported.
-		return configsource.ErrSessionClosed
+		return ErrSessionClosed
 	}
 }
 
@@ -294,7 +293,7 @@ func (m *Manager) Close(ctx context.Context) error {
 	return errs
 }
 
-func newManager(configSources map[string]configsource.ConfigSource) *Manager {
+func newManager(configSources map[string]ConfigSource) *Manager {
 	return &Manager{
 		configSources: configSources,
 		watchingCh:    make(chan struct{}),
@@ -556,7 +555,7 @@ func (m *Manager) retrieveConfigSourceData(ctx context.Context, cfgSrcName, cfgS
 		return nil, fmt.Errorf("config source %q failed to retrieve value: %w", cfgSrcName, err)
 	}
 
-	if watcher, ok := retrieved.(configsource.Watchable); ok {
+	if watcher, ok := retrieved.(Watchable); ok {
 		m.watchers = append(m.watchers, watcher)
 	}
 

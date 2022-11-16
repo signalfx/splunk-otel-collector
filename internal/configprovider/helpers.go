@@ -15,22 +15,18 @@
 
 package configprovider
 
-import (
-	"go.opentelemetry.io/collector/config/experimental/configsource"
-)
-
 type retrieved struct {
 	value any
 }
 
 // NewRetrieved is a helper that implements the Retrieved interface.
-func NewRetrieved(value any) configsource.Retrieved {
+func NewRetrieved(value any) Retrieved {
 	return &retrieved{
 		value,
 	}
 }
 
-var _ configsource.Retrieved = (*retrieved)(nil)
+var _ Retrieved = (*retrieved)(nil)
 
 func (r *retrieved) Value() any {
 	return r.value
@@ -42,7 +38,7 @@ type watchableRetrieved struct {
 }
 
 // NewWatchableRetrieved is a helper that implements the Watchable interface.
-func NewWatchableRetrieved(value any, watchForUpdateFn func() error) configsource.Retrieved {
+func NewWatchableRetrieved(value any, watchForUpdateFn func() error) Retrieved {
 	return &watchableRetrieved{
 		retrieved: retrieved{
 			value: value,
@@ -51,8 +47,8 @@ func NewWatchableRetrieved(value any, watchForUpdateFn func() error) configsourc
 	}
 }
 
-var _ configsource.Watchable = (*watchableRetrieved)(nil)
-var _ configsource.Retrieved = (*watchableRetrieved)(nil)
+var _ Watchable = (*watchableRetrieved)(nil)
+var _ Retrieved = (*watchableRetrieved)(nil)
 
 func (r *watchableRetrieved) Value() any {
 	return r.retrieved.value

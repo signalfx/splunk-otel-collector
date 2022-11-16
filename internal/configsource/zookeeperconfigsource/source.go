@@ -22,21 +22,20 @@ import (
 	"time"
 
 	"github.com/go-zookeeper/zk"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
-// zkConfigSource implements the configsource.Session interface.
+// zkConfigSource implements the configprovider.Session interface.
 type zkConfigSource struct {
 	logger  *zap.Logger
 	connect connectFunc
 	closeCh chan struct{}
 }
 
-func newConfigSource(params configprovider.CreateParams, cfg *Config) (configsource.ConfigSource, error) {
+func newConfigSource(params configprovider.CreateParams, cfg *Config) (configprovider.ConfigSource, error) {
 	if len(cfg.Endpoints) == 0 {
 		return nil, &errMissingEndpoint{errors.New("cannot connect to zk without any endpoints")}
 	}
@@ -52,7 +51,7 @@ func newZkConfigSource(params configprovider.CreateParams, connect connectFunc) 
 	}
 }
 
-func (s *zkConfigSource) Retrieve(ctx context.Context, selector string, _ *confmap.Conf) (configsource.Retrieved, error) {
+func (s *zkConfigSource) Retrieve(ctx context.Context, selector string, _ *confmap.Conf) (configprovider.Retrieved, error) {
 	conn, err := s.connect(ctx)
 	if err != nil {
 		return nil, err
@@ -74,7 +73,7 @@ func newWatcher(watchCh <-chan zk.Event, closeCh <-chan struct{}) func() error {
 	return func() error {
 		select {
 		case <-closeCh:
-			return configsource.ErrSessionClosed
+			return configprovider.ErrSessionClosed
 		case e := <-watchCh:
 			if e.Err != nil {
 				return e.Err
@@ -83,7 +82,7 @@ func newWatcher(watchCh <-chan zk.Event, closeCh <-chan struct{}) func() error {
 			switch e.Type {
 			case zk.EventNodeCreated, zk.EventNodeDataChanged, zk.EventNodeChildrenChanged:
 				// EventNodeCreated should never happen but we cover it for completeness.
-				return configsource.ErrValueUpdated
+				return configprovider.ErrValueUpdated
 			}
 			return fmt.Errorf("zookeeper watcher stopped")
 		}

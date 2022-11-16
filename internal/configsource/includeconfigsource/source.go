@@ -24,7 +24,6 @@ import (
 	"text/template"
 
 	"github.com/fsnotify/fsnotify"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/confmap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -35,14 +34,14 @@ type (
 	errFailedToDeleteFile struct{ error }
 )
 
-// includeConfigSource implements the configsource.Session interface.
+// includeConfigSource implements the configprovider.Session interface.
 type includeConfigSource struct {
 	*Config
 	watcher      *fsnotify.Watcher
 	watchedFiles map[string]struct{}
 }
 
-func newConfigSource(_ configprovider.CreateParams, config *Config) (configsource.ConfigSource, error) {
+func newConfigSource(_ configprovider.CreateParams, config *Config) (configprovider.ConfigSource, error) {
 	if config.DeleteFiles && config.WatchFiles {
 		return nil, errors.New(`cannot be configured with "delete_files" and "watch_files" at the same time`)
 	}
@@ -53,7 +52,7 @@ func newConfigSource(_ configprovider.CreateParams, config *Config) (configsourc
 	}, nil
 }
 
-func (is *includeConfigSource) Retrieve(_ context.Context, selector string, paramsConfigMap *confmap.Conf) (configsource.Retrieved, error) {
+func (is *includeConfigSource) Retrieve(_ context.Context, selector string, paramsConfigMap *confmap.Conf) (configprovider.Retrieved, error) {
 	tmpl, err := template.ParseFiles(selector)
 	if err != nil {
 		return nil, err
@@ -119,14 +118,14 @@ func (is *includeConfigSource) watchFile(file string) (func() error, error) {
 				select {
 				case event, ok := <-is.watcher.Events:
 					if !ok {
-						return configsource.ErrSessionClosed
+						return configprovider.ErrSessionClosed
 					}
 					if event.Op&fsnotify.Write == fsnotify.Write {
-						return fmt.Errorf("file used in the config modified: %q: %w", event.Name, configsource.ErrValueUpdated)
+						return fmt.Errorf("file used in the config modified: %q: %w", event.Name, configprovider.ErrValueUpdated)
 					}
 				case watcherErr, ok := <-is.watcher.Errors:
 					if !ok {
-						return configsource.ErrSessionClosed
+						return configprovider.ErrSessionClosed
 					}
 					return watcherErr
 				}

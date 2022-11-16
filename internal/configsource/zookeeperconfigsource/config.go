@@ -18,12 +18,12 @@ package zookeeperconfigsource
 import (
 	"time"
 
-	expcfg "go.opentelemetry.io/collector/config/experimental/config"
+	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 // Config defines zookeeperconfigsource configuration
 type Config struct {
-	expcfg.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
+	configprovider.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
 	// Endpoints is an array of Zookeeper server addresses. Thr ConfigSource will try to connect
 	// to these endpoints to access Zookeeper clusters.
 	Endpoints []string `mapstructure:"endpoints"`

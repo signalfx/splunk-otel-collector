@@ -24,8 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	expcfg "go.opentelemetry.io/collector/config/experimental/config"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
@@ -37,7 +35,7 @@ func TestConfigSourceParser(t *testing.T) {
 	}
 	tests := []struct {
 		factories Factories
-		expected  map[string]expcfg.Source
+		expected  map[string]Source
 		envvars   map[string]string
 		wantErr   error
 		name      string
@@ -47,14 +45,14 @@ func TestConfigSourceParser(t *testing.T) {
 			name:      "basic_config",
 			file:      "basic_config",
 			factories: testFactories,
-			expected: map[string]expcfg.Source{
+			expected: map[string]Source{
 				"tstcfgsrc": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(component.NewID("tstcfgsrc")),
+					SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
 					Endpoint:       "some_endpoint",
 					Token:          "some_token",
 				},
 				"tstcfgsrc/named": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
+					SourceSettings: NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
 					Endpoint:       "default_endpoint",
 				},
 			},
@@ -67,9 +65,9 @@ func TestConfigSourceParser(t *testing.T) {
 				"ENV_VAR_ENDPOINT": "env_var_endpoint",
 				"ENV_VAR_TOKEN":    "env_var_token",
 			},
-			expected: map[string]expcfg.Source{
+			expected: map[string]Source{
 				"tstcfgsrc": &mockCfgSrcSettings{
-					SourceSettings: expcfg.NewSourceSettings(component.NewID("tstcfgsrc")),
+					SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
 					Endpoint:       "https://env_var_endpoint:8200",
 					Token:          "env_var_token",
 				},
@@ -130,7 +128,7 @@ func TestConfigSourceParser(t *testing.T) {
 }
 
 type mockCfgSrcSettings struct {
-	expcfg.SourceSettings
+	SourceSettings
 	Endpoint string `mapstructure:"endpoint"`
 	Token    string `mapstructure:"token"`
 }
@@ -139,7 +137,7 @@ func (m mockCfgSrcSettings) Validate() error {
 	return nil
 }
 
-var _ expcfg.Source = (*mockCfgSrcSettings)(nil)
+var _ Source = (*mockCfgSrcSettings)(nil)
 
 type mockCfgSrcFactory struct {
 	ErrOnCreateConfigSource error
@@ -151,14 +149,14 @@ func (m *mockCfgSrcFactory) Type() component.Type {
 	return "tstcfgsrc"
 }
 
-func (m *mockCfgSrcFactory) CreateDefaultConfig() expcfg.Source {
+func (m *mockCfgSrcFactory) CreateDefaultConfig() Source {
 	return &mockCfgSrcSettings{
-		SourceSettings: expcfg.NewSourceSettings(component.NewID("tstcfgsrc")),
+		SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
 		Endpoint:       "default_endpoint",
 	}
 }
 
-func (m *mockCfgSrcFactory) CreateConfigSource(_ context.Context, _ CreateParams, cfg expcfg.Source) (configsource.ConfigSource, error) {
+func (m *mockCfgSrcFactory) CreateConfigSource(_ context.Context, _ CreateParams, cfg Source) (ConfigSource, error) {
 	if m.ErrOnCreateConfigSource != nil {
 		return nil, m.ErrOnCreateConfigSource
 	}

@@ -22,7 +22,6 @@ import (
 
 	"github.com/go-zookeeper/zk"
 	"github.com/stretchr/testify/assert"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -55,7 +54,7 @@ func TestSessionRetrieve(t *testing.T) {
 			retrieved, err := source.Retrieve(context.Background(), c.key, nil)
 			if c.expect != nil {
 				assert.NoError(t, err)
-				_, okWatcher := retrieved.(configsource.Watchable)
+				_, okWatcher := retrieved.(configprovider.Watchable)
 				assert.True(t, okWatcher)
 				return
 			}
@@ -88,7 +87,7 @@ func TestWatcher(t *testing.T) {
 			retrieved, err := source.Retrieve(context.Background(), "k1", nil)
 			assert.NoError(t, err)
 			assert.NotNil(t, retrieved.Value)
-			retrievedWatcher, okWatcher := retrieved.(configsource.Watchable)
+			retrievedWatcher, okWatcher := retrieved.(configprovider.Watchable)
 			assert.True(t, okWatcher)
 			assert.Contains(t, conn.watches, "k1")
 
@@ -111,9 +110,9 @@ func TestWatcher(t *testing.T) {
 			err = retrievedWatcher.WatchForUpdate()
 			switch {
 			case c.close:
-				assert.ErrorIs(t, err, configsource.ErrSessionClosed)
+				assert.ErrorIs(t, err, configprovider.ErrSessionClosed)
 			case c.result != "":
-				assert.ErrorIs(t, err, configsource.ErrValueUpdated)
+				assert.ErrorIs(t, err, configprovider.ErrValueUpdated)
 			case c.err:
 				assert.Equal(t, err, fmt.Errorf("zookeeper error"))
 			}

@@ -26,7 +26,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.uber.org/zap"
@@ -75,7 +74,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 			name:           "manager_resolve_error",
 			parserProvider: fileprovider.New(),
 			configLocation: []string{"file:" + path.Join("testdata", "manager_resolve_error.yaml")},
-			wantErr:        fmt.Errorf("error not wrappedProviders by specific error type: %w", configsource.ErrSessionClosed),
+			wantErr:        fmt.Errorf("error not wrappedProviders by specific error type: %w", ErrSessionClosed),
 		},
 		{
 			name:           "multiple_config_success",
@@ -147,7 +146,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 			assert.NoError(t, closeErr)
 
 			wg.Wait()
-			assert.Equal(t, configsource.ErrSessionClosed, watchForUpdatedError)
+			assert.Equal(t, ErrSessionClosed, watchForUpdatedError)
 		})
 	}
 }

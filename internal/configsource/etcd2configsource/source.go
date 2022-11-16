@@ -21,7 +21,6 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	"go.etcd.io/etcd/client/v2"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 
@@ -30,14 +29,14 @@ import (
 
 const maxBackoffTime = time.Second * 60
 
-// etcd2ConfigSource implements the configsource.Session interface.
+// etcd2ConfigSource implements the configprovider.Session interface.
 type etcd2ConfigSource struct {
 	logger     *zap.Logger
 	kapi       client.KeysAPI
 	closeFuncs []func()
 }
 
-func newConfigSource(params configprovider.CreateParams, cfg *Config) (configsource.ConfigSource, error) {
+func newConfigSource(params configprovider.CreateParams, cfg *Config) (configprovider.ConfigSource, error) {
 	var username, password string
 	if cfg.Authentication != nil {
 		username = cfg.Authentication.Username
@@ -61,7 +60,7 @@ func newConfigSource(params configprovider.CreateParams, cfg *Config) (configsou
 	}, nil
 }
 
-func (s *etcd2ConfigSource) Retrieve(ctx context.Context, selector string, _ *confmap.Conf) (configsource.Retrieved, error) {
+func (s *etcd2ConfigSource) Retrieve(ctx context.Context, selector string, _ *confmap.Conf) (configprovider.Retrieved, error) {
 	resp, err := s.kapi.Get(ctx, selector, nil)
 	if err != nil {
 		return nil, err
@@ -90,11 +89,11 @@ func (s *etcd2ConfigSource) newWatcher(ctx context.Context, selector string, ind
 		for {
 			_, err := watcher.Next(ctx)
 			if err == nil {
-				return configsource.ErrValueUpdated
+				return configprovider.ErrValueUpdated
 			}
 
 			if err == context.Canceled {
-				return configsource.ErrSessionClosed
+				return configprovider.ErrSessionClosed
 			}
 
 			s.logger.Info("error watching", zap.String("selector", selector), zap.Error(err))
@@ -104,7 +103,7 @@ func (s *etcd2ConfigSource) newWatcher(ctx context.Context, selector string, ind
 				case <-time.After(ebo.NextBackOff()):
 					continue
 				case <-ctx.Done():
-					return configsource.ErrSessionClosed
+					return configprovider.ErrSessionClosed
 				}
 			}
 

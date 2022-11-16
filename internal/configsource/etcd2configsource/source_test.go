@@ -21,8 +21,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 func sPtr(s string) *string {
@@ -55,7 +56,7 @@ func TestSessionRetrieve(t *testing.T) {
 			retrieved, err := source.Retrieve(context.Background(), c.key, nil)
 			if c.expect != nil {
 				assert.NoError(t, err)
-				_, okWatcher := retrieved.(configsource.Watchable)
+				_, okWatcher := retrieved.(configprovider.Watchable)
 				assert.True(t, okWatcher)
 				return
 			}
@@ -90,7 +91,7 @@ func TestWatcher(t *testing.T) {
 			retrieved, err := source.Retrieve(context.Background(), "k1", nil)
 			assert.NoError(t, err)
 			assert.NotNil(t, retrieved.Value)
-			retrievedWatcher, okWatcher := retrieved.(configsource.Watchable)
+			retrievedWatcher, okWatcher := retrieved.(configprovider.Watchable)
 			assert.True(t, okWatcher)
 			assert.False(t, watcher.closed)
 
@@ -109,12 +110,12 @@ func TestWatcher(t *testing.T) {
 
 			switch {
 			case c.close:
-				assert.ErrorIs(t, err, configsource.ErrSessionClosed)
+				assert.ErrorIs(t, err, configprovider.ErrSessionClosed)
 				assert.True(t, watcher.closed)
 			case c.err != nil:
 				assert.ErrorIs(t, err, c.err)
 			case c.result != "":
-				assert.ErrorIs(t, err, configsource.ErrValueUpdated)
+				assert.ErrorIs(t, err, configprovider.ErrValueUpdated)
 			}
 		})
 	}

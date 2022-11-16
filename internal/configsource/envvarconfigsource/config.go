@@ -15,16 +15,14 @@
 
 package envvarconfigsource
 
-import (
-	expcfg "go.opentelemetry.io/collector/config/experimental/config"
-)
+import "github.com/signalfx/splunk-otel-collector/internal/configprovider"
 
 // Config holds the configuration for the creation of environment variable config source objects.
 type Config struct {
 	// Defaults specify a map to fallback if a given environment variable is not defined.
 	Defaults map[string]any `mapstructure:"defaults"`
 
-	expcfg.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
+	configprovider.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
 }
 
 func (*Config) Validate() error {

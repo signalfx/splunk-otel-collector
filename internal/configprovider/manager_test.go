@@ -24,7 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/experimental/configsource"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.uber.org/zap"
@@ -82,7 +81,7 @@ func TestConfigSourceManager_NewManager(t *testing.T) {
 
 func TestConfigSourceManager_Simple(t *testing.T) {
 	ctx := context.Background()
-	manager := newManager(map[string]configsource.ConfigSource{
+	manager := newManager(map[string]ConfigSource{
 		"tstcfgsrc": &testConfigSource{
 			ValueMap: map[string]valueEntry{
 				"test_selector": {Value: "test_value"},
@@ -119,7 +118,7 @@ func TestConfigSourceManager_Simple(t *testing.T) {
 	manager.WaitForWatcher()
 	assert.NoError(t, manager.Close(ctx))
 	<-doneCh
-	assert.ErrorIs(t, errWatcher, configsource.ErrSessionClosed)
+	assert.ErrorIs(t, errWatcher, ErrSessionClosed)
 }
 
 func TestConfigSourceManager_ResolveRemoveConfigSourceSection(t *testing.T) {
@@ -132,7 +131,7 @@ func TestConfigSourceManager_ResolveRemoveConfigSourceSection(t *testing.T) {
 		},
 	}
 
-	manager := newManager(map[string]configsource.ConfigSource{
+	manager := newManager(map[string]ConfigSource{
 		"tstcfgsrc": &testConfigSource{},
 	})
 
@@ -150,7 +149,7 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 
 	tests := []struct {
 		config          map[string]any
-		configSourceMap map[string]configsource.ConfigSource
+		configSourceMap map[string]ConfigSource
 		name            string
 	}{
 		{
@@ -158,7 +157,7 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 			config: map[string]any{
 				"cfgsrc": "$tstcfgsrc:selector?{invalid}",
 			},
-			configSourceMap: map[string]configsource.ConfigSource{
+			configSourceMap: map[string]ConfigSource{
 				"tstcfgsrc": &testConfigSource{},
 			},
 		},
@@ -167,7 +166,7 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 			config: map[string]any{
 				"cfgsrc": "$tstcfgsrc:selector",
 			},
-			configSourceMap: map[string]configsource.ConfigSource{
+			configSourceMap: map[string]ConfigSource{
 				"tstcfgsrc": &testConfigSource{ErrOnRetrieve: testErr},
 			},
 		},
@@ -186,7 +185,7 @@ func TestConfigSourceManager_ResolveErrors(t *testing.T) {
 
 func TestConfigSourceManager_YAMLInjection(t *testing.T) {
 	ctx := context.Background()
-	manager := newManager(map[string]configsource.ConfigSource{
+	manager := newManager(map[string]ConfigSource{
 		"tstcfgsrc": &testConfigSource{
 			ValueMap: map[string]valueEntry{
 				"valid_yaml_str": {Value: `
@@ -229,7 +228,7 @@ map:
 
 func TestConfigSourceManager_ArraysAndMaps(t *testing.T) {
 	ctx := context.Background()
-	manager := newManager(map[string]configsource.ConfigSource{
+	manager := newManager(map[string]ConfigSource{
 		"tstcfgsrc": &testConfigSource{
 			ValueMap: map[string]valueEntry{
 				"elem0": {Value: "elem0_value"},
@@ -290,7 +289,7 @@ func TestConfigSourceManager_ParamsHandling(t *testing.T) {
 		return nil
 	}
 
-	manager := newManager(map[string]configsource.ConfigSource{
+	manager := newManager(map[string]ConfigSource{
 		"tstcfgsrc": &tstCfgSrc,
 	})
 
@@ -312,7 +311,7 @@ func TestConfigSourceManager_WatchForUpdate(t *testing.T) {
 	ctx := context.Background()
 	watchForUpdateCh := make(chan error, 1)
 
-	manager := newManager(map[string]configsource.ConfigSource{
+	manager := newManager(map[string]ConfigSource{
 		"tstcfgsrc": &testConfigSource{
 			ValueMap: map[string]valueEntry{
 				"test_selector": {
@@ -343,10 +342,10 @@ func TestConfigSourceManager_WatchForUpdate(t *testing.T) {
 	}()
 
 	manager.WaitForWatcher()
-	watchForUpdateCh <- configsource.ErrValueUpdated
+	watchForUpdateCh <- ErrValueUpdated
 
 	<-doneCh
-	assert.ErrorIs(t, errWatcher, configsource.ErrValueUpdated)
+	assert.ErrorIs(t, errWatcher, ErrValueUpdated)
 	assert.NoError(t, manager.Close(ctx))
 }
 
@@ -361,11 +360,11 @@ func TestConfigSourceManager_MultipleWatchForUpdate(t *testing.T) {
 		case errFromWatchForUpdate := <-watchForUpdateCh:
 			return errFromWatchForUpdate
 		case <-watchDoneCh:
-			return configsource.ErrSessionClosed
+			return ErrSessionClosed
 		}
 	}
 
-	manager := newManager(map[string]configsource.ConfigSource{
+	manager := newManager(map[string]ConfigSource{
 		"tstcfgsrc": &testConfigSource{
 			ValueMap: map[string]valueEntry{
 				"test_selector": {
@@ -399,11 +398,11 @@ func TestConfigSourceManager_MultipleWatchForUpdate(t *testing.T) {
 	manager.WaitForWatcher()
 
 	for i := 0; i < watchForUpdateChSize; i++ {
-		watchForUpdateCh <- configsource.ErrValueUpdated
+		watchForUpdateCh <- ErrValueUpdated
 	}
 
 	<-doneCh
-	assert.ErrorIs(t, errWatcher, configsource.ErrValueUpdated)
+	assert.ErrorIs(t, errWatcher, ErrValueUpdated)
 	close(watchForUpdateCh)
 	assert.NoError(t, manager.Close(ctx))
 }
@@ -432,7 +431,7 @@ func TestConfigSourceManager_EnvVarHandling(t *testing.T) {
 		}
 		return nil
 	}
-	manager := newManager(map[string]configsource.ConfigSource{
+	manager := newManager(map[string]ConfigSource{
 		"tstcfgsrc": &tstCfgSrc,
 	})
 
@@ -452,7 +451,7 @@ func TestConfigSourceManager_EnvVarHandling(t *testing.T) {
 
 func TestManager_expandString(t *testing.T) {
 	ctx := context.Background()
-	manager := newManager(map[string]configsource.ConfigSource{
+	manager := newManager(map[string]ConfigSource{
 		"tstcfgsrc": &testConfigSource{
 			ValueMap: map[string]valueEntry{
 				"str_key": {Value: "test_value"},

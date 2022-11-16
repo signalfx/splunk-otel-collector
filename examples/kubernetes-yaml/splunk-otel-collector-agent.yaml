@@ -18,6 +18,12 @@ data:
           # TODO: Ensure this is set properly
           endpoint: "https://api.${SPLUNK_REALM}.signalfx.com"
       zpages:
+      memory_ballast:
+        # In general, the ballast should be set to 1/3 of the collector's memory, the limit
+        # should be 90% of the collector's memory.
+        # The simplest way to specify the ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable.
+        # TODO: Ensure this is set properly
+        size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
     receivers:
       hostmetrics:
         collection_interval: 10s
@@ -161,12 +167,9 @@ spec:
       - command:
           - "/otelcol"
           - "--config=/conf/otel-collector-config.yaml"
-          # TODO: Ensure this is set properly
-#           Memory Ballast size should be max 1/3 to 1/2 of memory.
-          - "--mem-ballast-size-mib=168"
-    # TODO: Ensure this is set properly
-    # WARN: It is not recommended to use the latest tag in production deployments!
-    image: quay.io/signalfx/splunk-otel-collector:latest
+        # TODO: Ensure this is set properly
+        # WARN: It is not recommended to use the latest tag in production deployments!
+        image: quay.io/signalfx/splunk-otel-collector:latest
         name: otel-agent
         resources:
           limits:

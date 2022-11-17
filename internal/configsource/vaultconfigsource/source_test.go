@@ -22,13 +22,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
@@ -79,28 +79,26 @@ func TestVaultSessionForKV(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, source)
 
-	retrieved, err := source.Retrieve(context.Background(), "data.k0", nil)
+	retrieved, err := source.Retrieve(context.Background(), "data.k0", nil, func(event *confmap.ChangeEvent) {
+		panic("must not be called")
+	})
 	require.NoError(t, err)
-	require.Equal(t, "v0", retrieved.Value().(string))
-
-	retrievedMetadata, err := source.Retrieve(context.Background(), "metadata.version", nil)
+	val, err := retrieved.AsRaw()
 	require.NoError(t, err)
-	require.NotNil(t, retrievedMetadata.Value())
+	require.Equal(t, "v0", val)
 
-	watcher, ok := retrieved.(configprovider.Watchable)
-	require.True(t, ok)
+	retrievedMetadata, err := source.Retrieve(context.Background(), "metadata.version", nil, func(event *confmap.ChangeEvent) {
+		panic("must not be called because it is the second retrieve")
+	})
+	require.NoError(t, err)
+	valMetadata, err := retrievedMetadata.AsRaw()
+	require.NoError(t, err)
+	require.NotNil(t, valMetadata)
 
-	var watcherErr error
-	doneCh := make(chan struct{})
-	go func() {
-		defer close(doneCh)
-		watcherErr = watcher.WatchForUpdate()
-	}()
+	require.NoError(t, retrieved.Close(context.Background()))
+	require.NoError(t, retrievedMetadata.Close(context.Background()))
 
-	require.NoError(t, source.Close(context.Background()))
-
-	<-doneCh
-	require.Equal(t, configprovider.ErrSessionClosed, watcherErr)
+	require.NoError(t, source.Shutdown(context.Background()))
 }
 
 func TestVaultPollingKVUpdate(t *testing.T) {
@@ -122,38 +120,34 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 	require.NotNil(t, source)
 
 	// Retrieve key "k0"
-	retrievedK0, err := source.Retrieve(context.Background(), "data.k0", nil)
+	watchCh := make(chan *confmap.ChangeEvent, 1)
+	retrievedK0, err := source.Retrieve(context.Background(), "data.k0", nil, func(event *confmap.ChangeEvent) {
+		watchCh <- event
+	})
 	require.NoError(t, err)
-	require.Equal(t, "v0", retrievedK0.Value().(string))
+	valK0, err := retrievedK0.AsRaw()
+	require.NoError(t, err)
+	require.Equal(t, "v0", valK0)
 
 	// Retrieve key "k1"
-	retrievedK1, err := source.Retrieve(context.Background(), "data.k1", nil)
+	retrievedK1, err := source.Retrieve(context.Background(), "data.k1", nil, func(event *confmap.ChangeEvent) {
+		panic("must not be called because it is the second retrieve")
+	})
 	require.NoError(t, err)
-	require.Equal(t, "v1", retrievedK1.Value().(string))
-
-	watcherK0, ok := retrievedK0.(configprovider.Watchable)
-	require.True(t, ok)
-
-	// Only the first retrieved key provides a working watcher.
-	_, ok = retrievedK1.(configprovider.Watchable)
-	require.False(t, ok)
-
-	var watcherErr error
-	var doneCh chan struct{}
-	doneCh = make(chan struct{})
-	go func() {
-		defer close(doneCh)
-		watcherErr = watcherK0.WatchForUpdate()
-	}()
+	valK1, err := retrievedK1.AsRaw()
+	require.NoError(t, err)
+	require.Equal(t, "v1", valK1)
 
 	requireCmdRun(t, updateKVStore)
 
 	// Wait for update.
-	<-doneCh
-	require.ErrorIs(t, watcherErr, configprovider.ErrValueUpdated)
+	ce := <-watchCh
+	require.NoError(t, ce.Error)
 
 	// Close current source.
-	require.NoError(t, source.Close(context.Background()))
+	require.NoError(t, retrievedK0.Close(context.Background()))
+	require.NoError(t, retrievedK1.Close(context.Background()))
+	require.NoError(t, source.Shutdown(context.Background()))
 
 	// Create a new source and repeat the process.
 	source, err = newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
@@ -161,23 +155,16 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 	require.NotNil(t, source)
 
 	// Retrieve key
-	retrievedUpdatedK1, err := source.Retrieve(context.Background(), "data.k1", nil)
+	retrievedUpdatedK1, err := source.Retrieve(context.Background(), "data.k1", nil, func(event *confmap.ChangeEvent) {
+		panic("must not be called")
+	})
 	require.NoError(t, err)
-	require.Equal(t, "v1.1", retrievedUpdatedK1.Value().(string))
+	valUpdatedK1, err := retrievedUpdatedK1.AsRaw()
+	require.NoError(t, err)
+	require.Equal(t, "v1.1", valUpdatedK1)
 
-	watcherUpdatedK1, ok := retrievedUpdatedK1.(configprovider.Watchable)
-	require.True(t, ok)
-
-	// Wait for close.
-	doneCh = make(chan struct{})
-	go func() {
-		defer close(doneCh)
-		watcherErr = watcherUpdatedK1.WatchForUpdate()
-	}()
-
-	require.NoError(t, source.Close(context.Background()))
-	<-doneCh
-	require.ErrorIs(t, watcherErr, configprovider.ErrSessionClosed)
+	require.NoError(t, retrievedUpdatedK1.Close(context.Background()))
+	require.NoError(t, source.Shutdown(context.Background()))
 }
 
 func TestVaultRenewableSecret(t *testing.T) {
@@ -204,25 +191,29 @@ func TestVaultRenewableSecret(t *testing.T) {
 	require.NotNil(t, source)
 
 	// Retrieve key username, it is generated by vault no expected value.
-	retrievedUser, err := source.Retrieve(context.Background(), "username", nil)
+	watchCh := make(chan *confmap.ChangeEvent, 1)
+	retrievedUser, err := source.Retrieve(context.Background(), "username", nil, func(event *confmap.ChangeEvent) {
+		watchCh <- event
+	})
+	require.NoError(t, err)
+	retrievedUserValue, err := retrievedUser.AsRaw()
 	require.NoError(t, err)
 
 	// Retrieve key password, it is generated by vault no expected value.
-	retrievedPwd, err := source.Retrieve(context.Background(), "password", nil)
+	retrievedPwd, err := source.Retrieve(context.Background(), "password", nil, func(event *confmap.ChangeEvent) {
+		panic("must not be called because it is the second retrieve")
+	})
+	require.NoError(t, err)
+	retrievedPwdValue, err := retrievedPwd.AsRaw()
 	require.NoError(t, err)
 
-	watcherUser, ok := retrievedUser.(configprovider.Watchable)
-	require.True(t, ok)
-
-	// Only the first retrieved key provides a working watcher.
-	_, ok = retrievedPwd.(configprovider.Watchable)
-	require.False(t, ok)
-
-	watcherErr := watcherUser.WatchForUpdate()
-	require.ErrorIs(t, watcherErr, configprovider.ErrValueUpdated)
+	ce := <-watchCh
+	require.NoError(t, ce.Error)
 
 	// Close current source.
-	require.NoError(t, source.Close(context.Background()))
+	require.NoError(t, retrievedUser.Close(context.Background()))
+	require.NoError(t, retrievedPwd.Close(context.Background()))
+	require.NoError(t, source.Shutdown(context.Background()))
 
 	// Create a new source and repeat the process.
 	source, err = newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
@@ -230,29 +221,26 @@ func TestVaultRenewableSecret(t *testing.T) {
 	require.NotNil(t, source)
 
 	// Retrieve key username, it is generated by vault no expected value.
-	retrievedUpdatedUser, err := source.Retrieve(context.Background(), "username", nil)
+	retrievedUpdatedUser, err := source.Retrieve(context.Background(), "username", nil, func(event *confmap.ChangeEvent) {
+		panic("must not be called")
+	})
 	require.NoError(t, err)
-	require.NotEqual(t, retrievedUser.Value(), retrievedUpdatedUser.Value())
+	retrievedUpdatedUserValue, err := retrievedUpdatedUser.AsRaw()
+	require.NoError(t, err)
+	require.NotEqual(t, retrievedUserValue, retrievedUpdatedUserValue)
 
 	// Retrieve password and check that it changed.
-	retrievedUpdatedPwd, err := source.Retrieve(context.Background(), "password", nil)
+	retrievedUpdatedPwd, err := source.Retrieve(context.Background(), "password", nil, func(event *confmap.ChangeEvent) {
+		panic("must not be called because it is the second retrieve")
+	})
 	require.NoError(t, err)
-	require.NotEqual(t, retrievedPwd.Value(), retrievedUpdatedPwd.Value())
+	retrievedUpdatedPwdValue, err := retrievedUpdatedPwd.AsRaw()
+	require.NoError(t, err)
+	require.NotEqual(t, retrievedPwdValue, retrievedUpdatedPwdValue)
 
-	watcherUpdatedUser, ok := retrievedUpdatedUser.(configprovider.Watchable)
-	require.True(t, ok)
-
-	// Wait for close.
-	doneCh := make(chan struct{})
-	go func() {
-		defer close(doneCh)
-		watcherErr = watcherUpdatedUser.WatchForUpdate()
-	}()
-
-	runtime.Gosched()
-	require.NoError(t, source.Close(context.Background()))
-	<-doneCh
-	require.ErrorIs(t, watcherErr, configprovider.ErrSessionClosed)
+	require.NoError(t, retrievedUpdatedUser.Close(context.Background()))
+	require.NoError(t, retrievedUpdatedPwd.Close(context.Background()))
+	require.NoError(t, source.Shutdown(context.Background()))
 }
 
 func TestVaultV1SecretWithTTL(t *testing.T) {
@@ -276,27 +264,23 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 	require.NotNil(t, source)
 
 	// Retrieve value
-	retrievedValue, err := source.Retrieve(context.Background(), "my-value", nil)
+	watchCh := make(chan *confmap.ChangeEvent, 1)
+	retrievedValue, err := source.Retrieve(context.Background(), "my-value", nil, func(event *confmap.ChangeEvent) {
+		watchCh <- event
+	})
 	require.NoError(t, err)
-	require.Equal(t, "s3cr3t", retrievedValue.Value().(string))
+	retrievedVal, err := retrievedValue.AsRaw()
+	require.NoError(t, err)
+	require.Equal(t, "s3cr3t", retrievedVal)
 
-	watcher, ok := retrievedValue.(configprovider.Watchable)
-	require.True(t, ok)
-
-	var watcherErr error
-	var doneCh chan struct{}
-	doneCh = make(chan struct{})
-	go func() {
-		defer close(doneCh)
-		watcherErr = watcher.WatchForUpdate()
-	}()
+	ce := <-watchCh
 
 	// Wait for update.
-	<-doneCh
-	require.ErrorIs(t, watcherErr, configprovider.ErrValueUpdated)
+	require.NoError(t, ce.Error)
 
 	// Close current source.
-	require.NoError(t, source.Close(context.Background()))
+	require.NoError(t, retrievedValue.Close(context.Background()))
+	require.NoError(t, source.Shutdown(context.Background()))
 
 	// Create a new source and repeat the process.
 	source, err = newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
@@ -304,23 +288,16 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 	require.NotNil(t, source)
 
 	// Retrieve value
-	retrievedValue, err = source.Retrieve(context.Background(), "my-value", nil)
+	retrievedValue, err = source.Retrieve(context.Background(), "my-value", nil, func(event *confmap.ChangeEvent) {
+		panic("must not be called")
+	})
 	require.NoError(t, err)
-	require.Equal(t, "s3cr3t", retrievedValue.Value().(string))
+	retrievedVal, err = retrievedValue.AsRaw()
+	require.NoError(t, err)
+	require.Equal(t, "s3cr3t", retrievedVal)
 
-	watcher, ok = retrievedValue.(configprovider.Watchable)
-	require.True(t, ok)
-
-	// Wait for close.
-	doneCh = make(chan struct{})
-	go func() {
-		defer close(doneCh)
-		watcherErr = watcher.WatchForUpdate()
-	}()
-
-	require.NoError(t, source.Close(context.Background()))
-	<-doneCh
-	require.ErrorIs(t, watcherErr, configprovider.ErrSessionClosed)
+	require.NoError(t, retrievedValue.Close(context.Background()))
+	require.NoError(t, source.Shutdown(context.Background()))
 }
 
 func TestVaultV1NonWatchableSecret(t *testing.T) {
@@ -344,15 +321,17 @@ func TestVaultV1NonWatchableSecret(t *testing.T) {
 	require.NotNil(t, source)
 
 	// Retrieve value
-	retrievedValue, err := source.Retrieve(context.Background(), "my-value", nil)
+	retrievedValue, err := source.Retrieve(context.Background(), "my-value", nil, func(event *confmap.ChangeEvent) {
+		panic("must not be called")
+	})
 	require.NoError(t, err)
-	require.Equal(t, "s3cr3t", retrievedValue.Value().(string))
-
-	_, ok := retrievedValue.(configprovider.Watchable)
-	require.False(t, ok)
+	retrievedVal, err := retrievedValue.AsRaw()
+	require.NoError(t, err)
+	require.Equal(t, "s3cr3t", retrievedVal)
 
 	// Close current source.
-	require.NoError(t, source.Close(context.Background()))
+	require.NoError(t, retrievedValue.Close(context.Background()))
+	require.NoError(t, source.Shutdown(context.Background()))
 }
 
 func TestVaultRetrieveErrors(t *testing.T) {
@@ -413,14 +392,11 @@ func TestVaultRetrieveErrors(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, source)
 
-			defer func() {
-				assert.NoError(t, source.Close(ctx))
-			}()
-
-			r, err := source.Retrieve(ctx, tt.selector, nil)
+			r, err := source.Retrieve(ctx, tt.selector, nil, nil)
 			require.Error(t, err)
-			require.IsType(t, tt.err, err)
-			require.Nil(t, r)
+			assert.IsType(t, tt.err, err)
+			assert.Nil(t, r)
+			assert.NoError(t, source.Shutdown(ctx))
 		})
 	}
 }

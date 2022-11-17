@@ -35,12 +35,12 @@ type testConfigSource struct {
 
 type valueEntry struct {
 	Value            any
-	WatchForUpdateFn func() error
+	WatchForUpdateCh chan error
 }
 
 var _ ConfigSource = (*testConfigSource)(nil)
 
-func (t *testConfigSource) Retrieve(ctx context.Context, selector string, paramsConfigMap *confmap.Conf) (Retrieved, error) {
+func (t *testConfigSource) Retrieve(ctx context.Context, selector string, paramsConfigMap *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	if t.OnRetrieve != nil {
 		if err := t.OnRetrieve(ctx, selector, paramsConfigMap); err != nil {
 			return nil, err
@@ -56,24 +56,30 @@ func (t *testConfigSource) Retrieve(ctx context.Context, selector string, params
 		return nil, fmt.Errorf("no value for selector %q", selector)
 	}
 
-	if entry.WatchForUpdateFn != nil {
-		return &watchableRetrieved{
-			retrieved: retrieved{
-				value: entry.Value,
-			},
-			watchForUpdateFn: entry.WatchForUpdateFn,
-		}, nil
+	if entry.WatchForUpdateCh != nil {
+		doneCh := make(chan struct{})
+		startWatch(entry.WatchForUpdateCh, doneCh, watcher)
+		return confmap.NewRetrieved(entry.Value, confmap.WithRetrievedClose(func(ctx context.Context) error {
+			close(doneCh)
+			return nil
+		}))
 	}
 
-	return &retrieved{
-		value: entry.Value,
-	}, nil
+	return confmap.NewRetrieved(entry.Value)
 }
 
-func (t *testConfigSource) RetrieveEnd(context.Context) error {
-	return t.ErrOnRetrieveEnd
-}
-
-func (t *testConfigSource) Close(context.Context) error {
+func (t *testConfigSource) Shutdown(context.Context) error {
 	return t.ErrOnClose
+}
+
+func startWatch(watchForUpdateCh chan error, doneCh chan struct{}, watcher confmap.WatcherFunc) {
+	go func() {
+		select {
+		case err := <-watchForUpdateCh:
+			watcher(&confmap.ChangeEvent{Error: err})
+			return
+		case <-doneCh:
+			return
+		}
+	}()
 }

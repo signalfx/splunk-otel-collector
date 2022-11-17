@@ -17,6 +17,7 @@ package etcd2configsource
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
@@ -31,9 +32,8 @@ const maxBackoffTime = time.Second * 60
 
 // etcd2ConfigSource implements the configprovider.Session interface.
 type etcd2ConfigSource struct {
-	logger     *zap.Logger
-	kapi       client.KeysAPI
-	closeFuncs []func()
+	logger *zap.Logger
+	kapi   client.KeysAPI
 }
 
 func newConfigSource(params configprovider.CreateParams, cfg *Config) (configprovider.ConfigSource, error) {
@@ -54,60 +54,63 @@ func newConfigSource(params configprovider.CreateParams, cfg *Config) (configpro
 	kapi := client.NewKeysAPI(etcdClient)
 
 	return &etcd2ConfigSource{
-		logger:     params.Logger,
-		kapi:       kapi,
-		closeFuncs: []func(){},
+		logger: params.Logger,
+		kapi:   kapi,
 	}, nil
 }
 
-func (s *etcd2ConfigSource) Retrieve(ctx context.Context, selector string, _ *confmap.Conf) (configprovider.Retrieved, error) {
+func (s *etcd2ConfigSource) Retrieve(ctx context.Context, selector string, _ *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	resp, err := s.kapi.Get(ctx, selector, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	watchCtx, cancel := context.WithCancel(context.Background())
-	s.closeFuncs = append(s.closeFuncs, cancel)
-
-	return configprovider.NewWatchableRetrieved(resp.Node.Value, s.newWatcher(watchCtx, selector, resp.Node.ModifiedIndex)), nil
+	if watcher == nil {
+		return confmap.NewRetrieved(resp.Node.Value)
+	}
+	return confmap.NewRetrieved(resp.Node.Value, confmap.WithRetrievedClose(s.newWatcher(selector, resp.Node.ModifiedIndex, watcher)))
 }
 
-func (s *etcd2ConfigSource) Close(context.Context) error {
-	for _, cancel := range s.closeFuncs {
-		cancel()
-	}
-
+func (s *etcd2ConfigSource) Shutdown(context.Context) error {
 	return nil
 }
 
-func (s *etcd2ConfigSource) newWatcher(ctx context.Context, selector string, index uint64) func() error {
-	return func() error {
-		watcher := s.kapi.Watcher(selector, &client.WatcherOptions{AfterIndex: index})
+func (s *etcd2ConfigSource) newWatcher(selector string, index uint64, watcherFunc confmap.WatcherFunc) confmap.CloseFunc {
+	watchCtx, cancel := context.WithCancel(context.Background())
+	watcher := s.kapi.Watcher(selector, &client.WatcherOptions{AfterIndex: index})
+	ebo := backoff.NewExponentialBackOff()
+	ebo.MaxElapsedTime = maxBackoffTime
 
-		ebo := backoff.NewExponentialBackOff()
-		ebo.MaxElapsedTime = maxBackoffTime
+	go func() {
 		for {
-			_, err := watcher.Next(ctx)
+			_, err := watcher.Next(watchCtx)
 			if err == nil {
-				return configprovider.ErrValueUpdated
+				// Value updated
+				watcherFunc(&confmap.ChangeEvent{Error: nil})
+				return
 			}
 
-			if err == context.Canceled {
-				return configprovider.ErrSessionClosed
+			if errors.Is(err, context.Canceled) {
+				return
 			}
 
 			s.logger.Info("error watching", zap.String("selector", selector), zap.Error(err))
 			// if error is recoverable, try again with backoff
-			if _, ok := err.(*client.ClusterError); ok {
+			cErr := &client.ClusterError{}
+			if errors.As(err, &cErr) {
 				select {
 				case <-time.After(ebo.NextBackOff()):
 					continue
-				case <-ctx.Done():
-					return configprovider.ErrSessionClosed
+				case <-watchCtx.Done():
+					return
 				}
 			}
-
-			return err
+			watcherFunc(&confmap.ChangeEvent{Error: err})
+			return
 		}
+	}()
+
+	return func(ctx context.Context) error {
+		cancel()
+		return nil
 	}
 }

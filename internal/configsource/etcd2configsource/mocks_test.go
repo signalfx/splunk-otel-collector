@@ -20,25 +20,27 @@ import (
 	"errors"
 
 	"go.etcd.io/etcd/client/v2"
+	"go.uber.org/atomic"
 )
 
 type MockWatcher struct {
+	closed *atomic.Bool
 	values chan string
 	errors chan error
-	closed bool
 }
 
 func newMockWatcher() *MockWatcher {
 	return &MockWatcher{
-		values: make(chan string),
-		errors: make(chan error),
+		closed: atomic.NewBool(false),
+		values: make(chan string, 1),
+		errors: make(chan error, 1),
 	}
 }
 
 func (w *MockWatcher) Next(ctx context.Context) (*client.Response, error) {
 	select {
 	case <-ctx.Done():
-		w.closed = true
+		w.closed.Store(true)
 		return nil, context.Canceled
 	case err := <-w.errors:
 		return nil, err

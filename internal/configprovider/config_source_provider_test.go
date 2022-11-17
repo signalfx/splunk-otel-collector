@@ -140,7 +140,6 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				watchForUpdatedError = cspp.WatchForUpdate()
 			}()
 			require.NotNil(t, cspp.csm)
-			cspp.csm.WaitForWatcher()
 
 			closeErr := cspp.Close(context.Background())
 			assert.NoError(t, closeErr)

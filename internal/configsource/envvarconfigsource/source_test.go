@@ -23,8 +23,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 func TestEnvVarConfigSource_Session(t *testing.T) {
@@ -91,22 +89,22 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 			}
 
 			ctx := context.Background()
-			defer func() {
-				assert.NoError(t, source.Close(ctx))
-			}()
-
-			r, err := source.Retrieve(ctx, tt.selector, confmap.NewFromStringMap(tt.params))
+			r, err := source.Retrieve(ctx, tt.selector, confmap.NewFromStringMap(tt.params), nil)
 			if tt.wantErr != nil {
 				assert.Nil(t, r)
 				require.IsType(t, tt.wantErr, err)
+				assert.NoError(t, source.Shutdown(ctx))
 				return
 			}
-
 			require.NoError(t, err)
 			require.NotNil(t, r)
-			assert.Equal(t, tt.expected, r.Value())
-			_, ok := r.(configprovider.Watchable)
-			assert.False(t, ok)
+
+			val, err := r.AsRaw()
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected, val)
+
+			assert.NoError(t, r.Close(ctx))
+			assert.NoError(t, source.Shutdown(ctx))
 		})
 	}
 }

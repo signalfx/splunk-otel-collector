@@ -19,11 +19,12 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 func sPtr(s string) *string {
@@ -53,18 +54,17 @@ func TestSessionRetrieve(t *testing.T) {
 
 	for _, c := range testsCases {
 		t.Run(c.name, func(t *testing.T) {
-			retrieved, err := source.Retrieve(context.Background(), c.key, nil)
+			retrieved, err := source.Retrieve(context.Background(), c.key, nil, nil)
 			if c.expect != nil {
 				assert.NoError(t, err)
-				_, okWatcher := retrieved.(configprovider.Watchable)
-				assert.True(t, okWatcher)
+				assert.NoError(t, retrieved.Close(context.Background()))
 				return
 			}
 			assert.Error(t, err)
 			assert.Nil(t, retrieved)
-			assert.NoError(t, source.Close(context.Background()))
 		})
 	}
+	assert.NoError(t, source.Shutdown(context.Background()))
 }
 
 func TestWatcher(t *testing.T) {
@@ -87,36 +87,36 @@ func TestWatcher(t *testing.T) {
 			watcher := newMockWatcher()
 			kapi.activeWatcher = watcher
 
+			watchChannel := make(chan *confmap.ChangeEvent, 1)
 			source := &etcd2ConfigSource{logger: logger, kapi: kapi}
-			retrieved, err := source.Retrieve(context.Background(), "k1", nil)
+			retrieved, err := source.Retrieve(context.Background(), "k1", nil, func(ce *confmap.ChangeEvent) {
+				watchChannel <- ce
+			})
+			require.NoError(t, err)
+
+			val, err := retrieved.AsRaw()
 			assert.NoError(t, err)
-			assert.NotNil(t, retrieved.Value)
-			retrievedWatcher, okWatcher := retrieved.(configprovider.Watchable)
-			assert.True(t, okWatcher)
-			assert.False(t, watcher.closed)
+			assert.NotNil(t, val)
 
-			go func() {
-				switch {
-				case c.close:
-					source.Close(context.Background())
-				case c.err != nil:
-					watcher.errors <- c.err
-				case c.result != "":
-					watcher.values <- c.result
-				}
-			}()
-
-			err = retrievedWatcher.WatchForUpdate()
-
+			assert.False(t, watcher.closed.Load())
 			switch {
 			case c.close:
-				assert.ErrorIs(t, err, configprovider.ErrSessionClosed)
-				assert.True(t, watcher.closed)
+				assert.NoError(t, retrieved.Close(context.Background()))
+				assert.Eventually(t, func() bool {
+					return watcher.closed.Load()
+				}, 2*time.Second, 10*time.Millisecond)
 			case c.err != nil:
-				assert.ErrorIs(t, err, c.err)
+				watcher.errors <- c.err
+				ce := <-watchChannel
+				assert.ErrorIs(t, ce.Error, c.err)
+				assert.NoError(t, retrieved.Close(context.Background()))
 			case c.result != "":
-				assert.ErrorIs(t, err, configprovider.ErrValueUpdated)
+				watcher.values <- c.result
+				ce := <-watchChannel
+				assert.NoError(t, ce.Error)
+				assert.NoError(t, retrieved.Close(context.Background()))
 			}
+			assert.NoError(t, source.Shutdown(context.Background()))
 		})
 	}
 }

@@ -46,12 +46,12 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 		{
 			name:     "scalar_data_file",
 			selector: "scalar_data_file",
-			expected: []byte("42"),
+			expected: "42",
 		},
 		{
 			name:     "no_params_template",
 			selector: "no_params_template",
-			expected: []byte("bool_field: true"),
+			expected: "bool_field: true",
 		},
 		{
 			name:     "param_template",
@@ -59,45 +59,40 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 			params: map[string]any{
 				"glob_pattern": "myPattern",
 			},
-			expected: []byte("logs_path: myPattern"),
+			expected: "logs_path: myPattern",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			source, err := newConfigSource(configprovider.CreateParams{}, &Config{})
+			s, err := newConfigSource(configprovider.CreateParams{}, &Config{})
 			require.NoError(t, err)
-			require.NotNil(t, source)
 
 			ctx := context.Background()
-			defer func() {
-				assert.NoError(t, source.Close(ctx))
-			}()
-
 			file := path.Join("testdata", tt.selector)
-			r, err := source.Retrieve(ctx, file, confmap.NewFromStringMap(tt.params))
+			r, err := s.Retrieve(ctx, file, confmap.NewFromStringMap(tt.params), nil)
 			if tt.wantErr != nil {
 				assert.Nil(t, r)
 				require.IsType(t, tt.wantErr, err)
+				assert.NoError(t, s.Shutdown(ctx))
 				return
 			}
-
 			require.NoError(t, err)
 			require.NotNil(t, r)
-			assert.Equal(t, tt.expected, r.Value())
+
+			val, err := r.AsRaw()
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected, val)
+			require.NoError(t, r.Close(context.Background()))
+			require.NoError(t, s.Shutdown(ctx))
 		})
 	}
 }
 
-func TestIncludeConfigSource_WatchFileClose(t *testing.T) {
+func TestIncludeConfigSourceWatchFileClose(t *testing.T) {
 	s, err := newConfigSource(configprovider.CreateParams{}, &Config{WatchFiles: true})
 	require.NoError(t, err)
 	require.NotNil(t, s)
-
-	ctx := context.Background()
-	defer func() {
-		assert.NoError(t, s.Close(ctx))
-	}()
 
 	// Write out an initial test file
 	f, err := os.CreateTemp("", "watch_file_test")
@@ -110,19 +105,19 @@ func TestIncludeConfigSource_WatchFileClose(t *testing.T) {
 	require.NoError(t, f.Close())
 
 	// Perform initial retrieve
-	r, err := s.Retrieve(ctx, f.Name(), nil)
+	ctx := context.Background()
+	r, err := s.Retrieve(ctx, f.Name(), nil, func(event *confmap.ChangeEvent) {
+		panic(event)
+	})
 	require.NoError(t, err)
 	require.NotNil(t, r)
-	assert.Equal(t, []byte("val1"), r.Value())
 
-	watched, ok := r.(configprovider.Watchable)
-	assert.True(t, ok)
+	val, err := r.AsRaw()
+	require.NoError(t, err)
+	assert.Equal(t, "val1", val)
 
-	// Close current source.
-	require.NoError(t, s.Close(context.Background()))
-	watcherErr := watched.WatchForUpdate()
-	require.ErrorIs(t, watcherErr, configprovider.ErrSessionClosed)
-
+	require.NoError(t, r.Close(context.Background()))
+	require.NoError(t, s.Shutdown(ctx))
 }
 
 func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
@@ -130,71 +125,66 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
-	ctx := context.Background()
-	defer func() {
-		assert.NoError(t, s.Close(ctx))
-	}()
-
 	// Write out an initial test file
-	f, err := os.CreateTemp("", "watch_file_test")
-	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, os.Remove(f.Name()))
-	}()
-	_, err = f.Write([]byte("val1"))
-	require.NoError(t, err)
-	require.NoError(t, f.Close())
+	dst := path.Join(t.TempDir(), "watch_file_test")
+	require.NoError(t, os.WriteFile(dst, []byte("val1"), 0600))
 
 	// Perform initial retrieve
-	r, err := s.Retrieve(ctx, f.Name(), nil)
+	watchChannel := make(chan *confmap.ChangeEvent, 1)
+	ctx := context.Background()
+	r, err := s.Retrieve(ctx, dst, nil, func(event *confmap.ChangeEvent) {
+		watchChannel <- event
+	})
 	require.NoError(t, err)
 	require.NotNil(t, r)
-	assert.Equal(t, []byte("val1"), r.Value())
-	watched, ok := r.(configprovider.Watchable)
-	assert.True(t, ok)
+
+	val, err := r.AsRaw()
+	require.NoError(t, err)
+	assert.Equal(t, "val1", val)
 
 	// Write update to file
-	err = os.WriteFile(f.Name(), []byte("val2"), 0600)
-	require.NoError(t, err)
-	watcherErr := watched.WatchForUpdate()
-	require.ErrorIs(t, watcherErr, configprovider.ErrValueUpdated)
+	require.NoError(t, os.WriteFile(dst, []byte("val2"), 0600))
+
+	ce := <-watchChannel
+	assert.NoError(t, ce.Error)
+	require.NoError(t, r.Close(context.Background()))
 
 	// Check updated file after waiting for update
-	r, err = s.Retrieve(ctx, f.Name(), nil)
+	r, err = s.Retrieve(ctx, dst, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, r)
-	assert.Equal(t, []byte("val2"), r.Value())
+
+	val, err = r.AsRaw()
+	require.NoError(t, err)
+	assert.Equal(t, "val2", val)
+	require.NoError(t, r.Close(context.Background()))
+	require.NoError(t, s.Shutdown(ctx))
 }
 
-func TestIncludeConfigSource_DeleteFile(t *testing.T) {
+func TestIncludeConfigSourceDeleteFile(t *testing.T) {
 	s, err := newConfigSource(configprovider.CreateParams{}, &Config{DeleteFiles: true})
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
-	ctx := context.Background()
-	defer func() {
-		assert.NoError(t, s.Close(ctx))
-	}()
-
 	// Copy test file
-	src := path.Join("testdata", "scalar_data_file")
-	contents, err := os.ReadFile(src)
+	contents, err := os.ReadFile(path.Join("testdata", "scalar_data_file"))
 	require.NoError(t, err)
-	dst := path.Join("testdata", "copy_scalar_data_file")
+	dst := path.Join(t.TempDir(), "copy_scalar_data_file")
 	require.NoError(t, os.WriteFile(dst, contents, 0600))
-	t.Cleanup(func() {
-		// It should be removed prior to this so an error is expected.
-		assert.Error(t, os.Remove(dst))
+
+	ctx := context.Background()
+	r, err := s.Retrieve(ctx, dst, nil, func(event *confmap.ChangeEvent) {
+		panic(event)
 	})
-
-	r, err := s.Retrieve(ctx, dst, nil)
-
 	require.NoError(t, err)
 	require.NotNil(t, r)
-	assert.Equal(t, []byte("42"), r.Value())
 
-	_, ok := r.(configprovider.Watchable)
-	assert.False(t, ok)
+	val, err := r.AsRaw()
+	require.NoError(t, err)
+	assert.Equal(t, "42", val)
+
+	require.NoError(t, r.Close(context.Background()))
+	require.NoError(t, s.Shutdown(ctx))
 }
 
 func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
@@ -204,18 +194,11 @@ func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
 		t.Skip("Windows only test")
 	}
 
-	source, err := newConfigSource(configprovider.CreateParams{}, &Config{DeleteFiles: true})
+	s, err := newConfigSource(configprovider.CreateParams{}, &Config{DeleteFiles: true})
 	require.NoError(t, err)
-	require.NotNil(t, source)
-
-	ctx := context.Background()
-	defer func() {
-		assert.NoError(t, source.Close(ctx))
-	}()
 
 	// Copy test file
-	src := path.Join("testdata", "scalar_data_file")
-	contents, err := os.ReadFile(src)
+	contents, err := os.ReadFile(path.Join("testdata", "scalar_data_file"))
 	require.NoError(t, err)
 	dst := path.Join("testdata", "copy_scalar_data_file")
 	require.NoError(t, os.WriteFile(dst, contents, 0600))
@@ -226,7 +209,10 @@ func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
 		assert.NoError(t, os.Remove(dst))
 	})
 
-	r, err := source.Retrieve(ctx, dst, nil)
+	ctx := context.Background()
+	r, err := s.Retrieve(ctx, dst, nil, nil)
 	assert.IsType(t, &errFailedToDeleteFile{}, err)
 	assert.Nil(t, r)
+
+	require.NoError(t, s.Shutdown(ctx))
 }

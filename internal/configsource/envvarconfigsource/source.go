@@ -55,7 +55,7 @@ func newConfigSource(_ configprovider.CreateParams, cfg *Config) configprovider.
 	}
 }
 
-func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, paramsConfigMap *confmap.Conf) (configprovider.Retrieved, error) {
+func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, paramsConfigMap *confmap.Conf, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	actualParams := retrieveParams{}
 	if paramsConfigMap != nil {
 		paramsParser := confmap.NewFromStringMap(paramsConfigMap.ToStringMap())
@@ -67,7 +67,7 @@ func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, params
 	value, ok := os.LookupEnv(selector)
 	if ok {
 		// Environment variable found, everything is done.
-		return configprovider.NewRetrieved(value), nil
+		return confmap.NewRetrieved(value)
 	}
 
 	defaultValue, ok := e.defaults[selector]
@@ -77,9 +77,9 @@ func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, params
 		}
 	}
 
-	return configprovider.NewRetrieved(defaultValue), nil
+	return confmap.NewRetrieved(defaultValue)
 }
 
-func (e *envVarConfigSource) Close(context.Context) error {
+func (e *envVarConfigSource) Shutdown(context.Context) error {
 	return nil
 }

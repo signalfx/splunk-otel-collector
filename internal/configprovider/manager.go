@@ -16,14 +16,12 @@ package configprovider
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/spf13/cast"
 	"go.opentelemetry.io/collector/component"
@@ -173,10 +171,11 @@ var ddBackwardCompatible = func() bool {
 // For an overview about the internals of the Manager refer to the package README.md.
 type Manager struct {
 	configSources map[string]ConfigSource
-	watchingCh    chan struct{}
 	closeCh       chan struct{}
-	watchers      []Watchable
-	watchersWG    sync.WaitGroup
+	// Use a channel to capture the first error returned by any watcher and another one
+	// to ensure completion of any remaining watcher also trying to report an error.
+	errChannel chan error
+	retrieved  []*confmap.Retrieved
 }
 
 // NewManager creates a new instance of a Manager to be used to inject data from
@@ -229,42 +228,8 @@ func (m *Manager) Resolve(ctx context.Context, configMap *confmap.Conf) (*confma
 // and injected into the configuration. Typically this method is launched in a goroutine, the
 // method WaitForWatcher blocks until the WatchForUpdate goroutine is running and ready.
 func (m *Manager) WatchForUpdate() error {
-	// Use a channel to capture the first error returned by any watcher and another one
-	// to ensure completion of any remaining watcher also trying to report an error.
-	errChannel := make(chan error, 1)
-	doneCh := make(chan struct{})
-	defer close(doneCh)
-
-	for i := range m.watchers {
-		watcher := m.watchers[i]
-		m.watchersWG.Add(1)
-		go func() {
-			defer m.watchersWG.Done()
-			err := watcher.WatchForUpdate()
-			switch {
-			case errors.Is(err, ErrSessionClosed):
-				// The Session from which this watcher was retrieved is being closed.
-				// There is no error to report, just exit from the goroutine.
-				return
-			default:
-				select {
-				case errChannel <- err:
-					// Try to report any other error.
-				case <-doneCh:
-					// There was either one error published or the watcher was closed.
-					// This channel was closed and any goroutines waiting on these
-					// should simply close.
-				}
-			}
-		}()
-	}
-
-	// All goroutines were created, they may not be running yet, but the manager WatchForUpdate
-	// is only waiting for any of the watchers to terminate.
-	close(m.watchingCh)
-
 	select {
-	case err := <-errChannel:
+	case err := <-m.errChannel:
 		// Return the first error that reaches the channel and ignore any other error.
 		return err
 	case <-m.closeCh:
@@ -273,22 +238,19 @@ func (m *Manager) WatchForUpdate() error {
 	}
 }
 
-// WaitForWatcher blocks until the watchers used by WatchForUpdate are all ready.
-// This is used to ensure that the watchers are in place before proceeding.
-func (m *Manager) WaitForWatcher() {
-	<-m.watchingCh
-}
-
 // Close terminates the WatchForUpdate function and closes all Session objects used
 // in the configuration. It should be called
 func (m *Manager) Close(ctx context.Context) error {
 	var errs error
+	for _, ret := range m.retrieved {
+		errs = multierr.Append(errs, ret.Close(ctx))
+	}
+
 	for _, source := range m.configSources {
-		errs = multierr.Append(errs, source.Close(ctx))
+		errs = multierr.Append(errs, source.Shutdown(ctx))
 	}
 
 	close(m.closeCh)
-	m.watchersWG.Wait()
 
 	return errs
 }
@@ -296,8 +258,8 @@ func (m *Manager) Close(ctx context.Context) error {
 func newManager(configSources map[string]ConfigSource) *Manager {
 	return &Manager{
 		configSources: configSources,
-		watchingCh:    make(chan struct{}),
 		closeCh:       make(chan struct{}),
+		errChannel:    make(chan error, 1),
 	}
 }
 
@@ -550,16 +512,15 @@ func (m *Manager) retrieveConfigSourceData(ctx context.Context, cfgSrcName, cfgS
 		}
 	}
 
-	retrieved, err := cfgSrc.Retrieve(ctx, selector, paramsConfigMap)
+	retrieved, err := cfgSrc.Retrieve(ctx, selector, paramsConfigMap, func(event *confmap.ChangeEvent) {
+		m.errChannel <- event.Error
+	})
 	if err != nil {
 		return nil, fmt.Errorf("config source %q failed to retrieve value: %w", cfgSrcName, err)
 	}
 
-	if watcher, ok := retrieved.(Watchable); ok {
-		m.watchers = append(m.watchers, watcher)
-	}
-
-	return retrieved.Value(), nil
+	m.retrieved = append(m.retrieved, retrieved)
+	return retrieved.AsRaw()
 }
 
 func newErrUnknownConfigSource(cfgSrcName string) error {

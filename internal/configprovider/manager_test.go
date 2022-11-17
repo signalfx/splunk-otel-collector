@@ -115,7 +115,6 @@ func TestConfigSourceManager_Simple(t *testing.T) {
 		errWatcher = manager.WatchForUpdate()
 	}()
 
-	manager.WaitForWatcher()
 	assert.NoError(t, manager.Close(ctx))
 	<-doneCh
 	assert.ErrorIs(t, errWatcher, ErrSessionClosed)
@@ -197,15 +196,6 @@ map:
   k1: v1
 `},
 				"invalid_yaml_str": {Value: ":"},
-				"valid_yaml_byte_slice": {Value: []byte(`
-bool: true
-int: 42
-source: "[]byte"
-map:
-  k0: v0
-  k1: v1
-`)},
-				"invalid_yaml_byte_slice": {Value: []byte(":")},
 			},
 		},
 	})
@@ -315,10 +305,8 @@ func TestConfigSourceManager_WatchForUpdate(t *testing.T) {
 		"tstcfgsrc": &testConfigSource{
 			ValueMap: map[string]valueEntry{
 				"test_selector": {
-					Value: "test_value",
-					WatchForUpdateFn: func() error {
-						return <-watchForUpdateCh
-					},
+					Value:            "test_value",
+					WatchForUpdateCh: watchForUpdateCh,
 				},
 			},
 		},
@@ -341,7 +329,6 @@ func TestConfigSourceManager_WatchForUpdate(t *testing.T) {
 		errWatcher = manager.WatchForUpdate()
 	}()
 
-	manager.WaitForWatcher()
 	watchForUpdateCh <- ErrValueUpdated
 
 	<-doneCh
@@ -352,24 +339,13 @@ func TestConfigSourceManager_WatchForUpdate(t *testing.T) {
 func TestConfigSourceManager_MultipleWatchForUpdate(t *testing.T) {
 	ctx := context.Background()
 
-	watchDoneCh := make(chan struct{})
-	const watchForUpdateChSize int = 2
-	watchForUpdateCh := make(chan error, watchForUpdateChSize)
-	watchForUpdateFn := func() error {
-		select {
-		case errFromWatchForUpdate := <-watchForUpdateCh:
-			return errFromWatchForUpdate
-		case <-watchDoneCh:
-			return ErrSessionClosed
-		}
-	}
-
+	watchForUpdateCh := make(chan error, 2)
 	manager := newManager(map[string]ConfigSource{
 		"tstcfgsrc": &testConfigSource{
 			ValueMap: map[string]valueEntry{
 				"test_selector": {
 					Value:            "test_value",
-					WatchForUpdateFn: watchForUpdateFn,
+					WatchForUpdateCh: watchForUpdateCh,
 				},
 			},
 		},
@@ -395,11 +371,8 @@ func TestConfigSourceManager_MultipleWatchForUpdate(t *testing.T) {
 		errWatcher = manager.WatchForUpdate()
 	}()
 
-	manager.WaitForWatcher()
-
-	for i := 0; i < watchForUpdateChSize; i++ {
-		watchForUpdateCh <- ErrValueUpdated
-	}
+	watchForUpdateCh <- ErrValueUpdated
+	watchForUpdateCh <- ErrValueUpdated
 
 	<-doneCh
 	assert.ErrorIs(t, errWatcher, ErrValueUpdated)

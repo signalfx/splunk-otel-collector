@@ -55,34 +55,10 @@ type ConfigSource interface {
 	//
 	// The selector is a string that is required on all invocations, the params are optional. Each
 	// implementation handles the generic params according to their requirements.
-	Retrieve(ctx context.Context, selector string, paramsConfigMap *confmap.Conf) (Retrieved, error)
+	Retrieve(ctx context.Context, selector string, paramsConfigMap *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Retrieved, error)
 
-	// Close signals that the configuration for which it was used to retrieve values is no longer in use
+	// Shutdown signals that the configuration for which it was used to retrieve values is no longer in use
 	// and the object should close and release any watchers that it may have created.
 	// This method must be called when the configuration session ends, either in case of success or error.
-	Close(ctx context.Context) error
-}
-
-// Retrieved holds the result of a call to the Retrieve method of a Session object.
-type Retrieved interface {
-	// Value is the retrieved data that will be injected on the configuration.
-	Value() interface{}
-}
-
-// Watchable is an optional interface that Retrieved can implement if the given source
-// supports monitoring for updates.
-type Watchable interface {
-	// WatchForUpdate is used to monitor for updates on the retrieved value.
-	// It must not return until one of the following happens:
-	//
-	// 1. An update is detected for the monitored value. In this case the function should
-	//    return ErrValueUpdated or an error wrapping it.
-	//
-	// 2. The parent Session object is closed, in which case the method should return
-	//    ErrSessionClosed or an error wrapping it.
-	//
-	// 3. An error happens while watching for updates. The method should not return
-	//    on first instances of transient errors, optionally there should be
-	//    configurable thresholds to control for how long such errors can be ignored.
-	WatchForUpdate() error
+	Shutdown(ctx context.Context) error
 }

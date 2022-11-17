@@ -46,8 +46,6 @@ type vaultConfigSource struct {
 	client *api.Client
 	secret *api.Secret
 
-	doneCh chan struct{}
-
 	path string
 
 	pollInterval time.Duration
@@ -79,26 +77,30 @@ func newConfigSource(params configprovider.CreateParams, cfg *Config) (configpro
 		client:       client,
 		path:         cfg.Path,
 		pollInterval: cfg.PollInterval,
-		doneCh:       make(chan struct{}),
 	}, nil
 }
 
-func (v *vaultConfigSource) Retrieve(_ context.Context, selector string, _ *confmap.Conf) (configprovider.Retrieved, error) {
+func (v *vaultConfigSource) Retrieve(_ context.Context, selector string, _ *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	// By default assume that watcher is not supported. The exception will be the first
 	// value read from the vault secret.
-	var watchForUpdateFn func() error
+	var closeFunc confmap.CloseFunc
 
+	// The keys come all from the same secret so creating a watcher only for the first is fine.
 	if v.secret == nil {
 		if err := v.readSecret(); err != nil {
 			return nil, err
 		}
 
-		// The keys come all from the same secret so creating a watcher only for the
-		// first is fine.
-		var err error
-		watchForUpdateFn, err = v.buildWatcherFn()
-		if err != nil {
-			return nil, err
+		if watcher != nil {
+			doneCh := make(chan struct{})
+			if err := v.buildWatcherFn(watcher, doneCh); err != nil {
+				return nil, err
+			}
+
+			closeFunc = func(ctx context.Context) error {
+				close(doneCh)
+				return nil
+			}
 		}
 	}
 
@@ -107,15 +109,10 @@ func (v *vaultConfigSource) Retrieve(_ context.Context, selector string, _ *conf
 		return nil, &errBadSelector{fmt.Errorf("no value at path %q for key %q", v.path, selector)}
 	}
 
-	if watchForUpdateFn == nil {
-		return configprovider.NewRetrieved(value), nil
-	}
-	return configprovider.NewWatchableRetrieved(value, watchForUpdateFn), nil
+	return confmap.NewRetrieved(value, confmap.WithRetrievedClose(closeFunc))
 }
 
-func (v *vaultConfigSource) Close(context.Context) error {
-	close(v.doneCh)
-
+func (v *vaultConfigSource) Shutdown(context.Context) error {
 	// Vault doesn't have a close for its client, close is completed.
 	return nil
 }
@@ -142,29 +139,29 @@ func (v *vaultConfigSource) readSecret() error {
 	return nil
 }
 
-func (v *vaultConfigSource) buildWatcherFn() (func() error, error) {
+func (v *vaultConfigSource) buildWatcherFn(watcher confmap.WatcherFunc, doneCh chan struct{}) error {
 	switch {
 	case v.secret.Renewable:
 		// Dynamic secret supporting renewal.
-		return v.buildLifetimeWatcher()
+		return v.buildLifetimeWatcher(watcher, doneCh)
 	case v.secret.LeaseDuration > 0:
 		// Version 1 lease: re-fetch it periodically.
-		return v.buildV1LeaseWatcher()
+		return v.buildV1LeaseWatcher(watcher, doneCh)
 	default:
 		// Not a dynamic secret the best that can be done is polling.
-		return v.buildPollingWatcher()
+		return v.buildPollingWatcher(watcher, doneCh)
 	}
 }
 
-func (v *vaultConfigSource) buildLifetimeWatcher() (func() error, error) {
+func (v *vaultConfigSource) buildLifetimeWatcher(watcher confmap.WatcherFunc, doneCh chan struct{}) error {
 	vaultWatcher, err := v.client.NewLifetimeWatcher(&api.RenewerInput{
 		Secret: v.secret,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	watcherFn := func() error {
+	go func() {
 		go vaultWatcher.Start()
 		defer vaultWatcher.Stop()
 
@@ -174,46 +171,44 @@ func (v *vaultConfigSource) buildLifetimeWatcher() (func() error, error) {
 				v.logger.Debug("vault secret renewed", zap.String("path", v.path))
 			case err := <-vaultWatcher.DoneCh():
 				// Renewal stopped, error or not the client needs to re-fetch the configuration.
-				if err == nil {
-					return configprovider.ErrValueUpdated
-				}
-				return err
-			case <-v.doneCh:
-				return configprovider.ErrSessionClosed
+				watcher(&confmap.ChangeEvent{Error: err})
+				return
+			case <-doneCh:
+				return
 			}
 		}
-	}
+	}()
 
-	return watcherFn, nil
+	return nil
 }
 
 // buildV1LeaseWatcher builds a watcher function that takes the TTL given
 // by Vault and triggers the re-fetch of the secret when half of the TTl
 // has passed. In principle, this could be changed to actually check if the
 // values of the secret were actually changed or not.
-func (v *vaultConfigSource) buildV1LeaseWatcher() (func() error, error) {
-	watcherFn := func() error {
+func (v *vaultConfigSource) buildV1LeaseWatcher(watcher confmap.WatcherFunc, doneCh chan struct{}) error {
+	go func() {
 		// The lease duration is a hint of time to re-fetch the values.
 		// The SmartAgent waits for half ot the lease duration.
 		updateWait := time.Duration(v.secret.LeaseDuration/2) * time.Second
 		select {
 		case <-time.After(updateWait):
-			// This is triggering a re-fetch. In principle this could actually
-			// check for changes in the values.
-			return configprovider.ErrValueUpdated
-		case <-v.doneCh:
-			return configprovider.ErrSessionClosed
+			// This is triggering a re-fetch. In principle this could actually check for changes in the values.
+			watcher(&confmap.ChangeEvent{Error: nil})
+			return
+		case <-doneCh:
+			return
 		}
-	}
+	}()
 
-	return watcherFn, nil
+	return nil
 }
 
 // buildPollingWatcher builds a watcher function that monitors for changes on
 // the v.secret metadata. In principle this could be done for the actual value of
 // the retrieved keys. However, checking for metadata keeps this in sync with the
 // SignalFx SmartAgent behavior.
-func (v *vaultConfigSource) buildPollingWatcher() (func() error, error) {
+func (v *vaultConfigSource) buildPollingWatcher(watcher confmap.WatcherFunc, doneCh chan struct{}) error {
 	// Use the same requirements as SignalFx Smart Agent to build a polling watcher for the secret:
 	//
 	// This secret is not renewable or on a lease.  If it has a
@@ -224,22 +219,22 @@ func (v *vaultConfigSource) buildPollingWatcher() (func() error, error) {
 	mdValue := v.secret.Data["metadata"]
 	if mdValue == nil || !strings.Contains(v.path, "/data/") {
 		v.logger.Warn("Missing metadata to create polling watcher for vault config source", zap.String("path", v.path))
-		return nil, nil
+		return nil
 	}
 
 	mdMap, ok := mdValue.(map[string]any)
 	if !ok {
 		v.logger.Warn("Metadata not in the expected format to create polling watcher for vault config source", zap.String("path", v.path))
-		return nil, nil
+		return nil
 	}
 
 	originalVersion := v.extractVersionMetadata(mdMap, "created_time", "version")
 	if originalVersion == nil {
 		v.logger.Warn("Failed to extract version metadata to create to create polling watcher for vault config source", zap.String("path", v.path))
-		return nil, nil
+		return nil
 	}
 
-	watcherFn := func() error {
+	go func() {
 		metadataPath := strings.Replace(v.path, "/data/", "/metadata/", 1)
 		ticker := time.NewTicker(v.pollInterval)
 		defer ticker.Stop()
@@ -251,33 +246,39 @@ func (v *vaultConfigSource) buildPollingWatcher() (func() error, error) {
 				if err != nil {
 					// Docs are not clear about how to differentiate between temporary and permanent errors.
 					// Assume that the configuration needs to be re-fetched.
-					return fmt.Errorf("failed to read secret metadata at %q: %w", metadataPath, err)
+					watcher(&confmap.ChangeEvent{Error: fmt.Errorf("failed to read secret metadata at %q: %w", metadataPath, err)})
+					return
 				}
 
 				if metadataSecret == nil || metadataSecret.Data == nil {
-					return fmt.Errorf("no secret metadata found at %q", metadataPath)
+					watcher(&confmap.ChangeEvent{Error: fmt.Errorf("no secret metadata found at %q", metadataPath)})
+					return
 				}
 
 				const timestampKey = "updated_time"
 				const versionKey = "current_version"
 				latestVersion := v.extractVersionMetadata(metadataSecret.Data, timestampKey, versionKey)
 				if latestVersion == nil {
-					return fmt.Errorf("secret metadata is not in the expected format for keys %q and %q", timestampKey, versionKey)
+					watcher(&confmap.ChangeEvent{
+						Error: fmt.Errorf("secret metadata is not in the expected format for keys %q and %q", timestampKey, versionKey),
+					})
+					return
 				}
 
 				// Per SmartAgent code this is enough to trigger an update but it is also possible to check if the
 				// the valued of the retrieved keys was changed. The current criteria may trigger updates even for
 				// addition of new keys to the secret.
 				if originalVersion.Timestamp != latestVersion.Timestamp || originalVersion.Version != latestVersion.Version {
-					return configprovider.ErrValueUpdated
+					watcher(&confmap.ChangeEvent{Error: nil})
+					return
 				}
-			case <-v.doneCh:
-				return configprovider.ErrSessionClosed
+			case <-doneCh:
+				return
 			}
 		}
-	}
+	}()
 
-	return watcherFn, nil
+	return nil
 }
 
 type versionMetadata struct {

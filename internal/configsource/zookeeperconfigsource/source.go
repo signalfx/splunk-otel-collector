@@ -32,7 +32,6 @@ import (
 type zkConfigSource struct {
 	logger  *zap.Logger
 	connect connectFunc
-	closeCh chan struct{}
 }
 
 func newConfigSource(params configprovider.CreateParams, cfg *Config) (configprovider.ConfigSource, error) {
@@ -47,11 +46,10 @@ func newZkConfigSource(params configprovider.CreateParams, connect connectFunc) 
 	return &zkConfigSource{
 		logger:  params.Logger,
 		connect: connect,
-		closeCh: make(chan struct{}),
 	}
 }
 
-func (s *zkConfigSource) Retrieve(ctx context.Context, selector string, _ *confmap.Conf) (configprovider.Retrieved, error) {
+func (s *zkConfigSource) Retrieve(ctx context.Context, selector string, _ *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	conn, err := s.connect(ctx)
 	if err != nil {
 		return nil, err
@@ -61,32 +59,42 @@ func (s *zkConfigSource) Retrieve(ctx context.Context, selector string, _ *confm
 		return nil, err
 	}
 
-	return configprovider.NewWatchableRetrieved(value, newWatcher(watchCh, s.closeCh)), nil
+	closeCh := make(chan struct{})
+	startWatcher(watchCh, closeCh, watcher)
+	return confmap.NewRetrieved(string(value), confmap.WithRetrievedClose(func(ctx context.Context) error {
+		close(closeCh)
+		conn.Close()
+		return nil
+	}))
 }
 
-func (s *zkConfigSource) Close(context.Context) error {
-	close(s.closeCh)
+func (s *zkConfigSource) Shutdown(context.Context) error {
 	return nil
 }
 
-func newWatcher(watchCh <-chan zk.Event, closeCh <-chan struct{}) func() error {
-	return func() error {
+func startWatcher(watchCh <-chan zk.Event, closeCh <-chan struct{}, watcher confmap.WatcherFunc) {
+	go func() {
 		select {
 		case <-closeCh:
-			return configprovider.ErrSessionClosed
-		case e := <-watchCh:
+			return
+		case e, ok := <-watchCh:
+			if !ok {
+				// Channel close without any event, connection must have been closed.
+				return
+			}
 			if e.Err != nil {
-				return e.Err
+				watcher(&confmap.ChangeEvent{Error: e.Err})
 			}
 
 			switch e.Type {
 			case zk.EventNodeCreated, zk.EventNodeDataChanged, zk.EventNodeChildrenChanged:
 				// EventNodeCreated should never happen but we cover it for completeness.
-				return configprovider.ErrValueUpdated
+				watcher(&confmap.ChangeEvent{})
+				return
 			}
-			return fmt.Errorf("zookeeper watcher stopped")
+			watcher(&confmap.ChangeEvent{Error: fmt.Errorf("zookeeper watcher stopped")})
 		}
-	}
+	}()
 }
 
 // newConnectFunc returns a new function that can be used to establish and return a connection

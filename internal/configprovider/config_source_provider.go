@@ -59,15 +59,11 @@ func NewConfigSourceConfigMapProvider(wrappedProvider confmap.Provider, logger *
 	}
 }
 
-func (c *configSourceConfigMapProvider) Retrieve(
-	ctx context.Context,
-	location string,
-	onChange confmap.WatcherFunc,
-) (*confmap.Retrieved, error) {
+func (c *configSourceConfigMapProvider) Retrieve(ctx context.Context, uri string, onChange confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	var tmpWR *confmap.Retrieved
 	var err error
 	newWrappedRetrieved := &confmap.Retrieved{}
-	if tmpWR, err = c.wrappedProvider.Retrieve(ctx, location, onChange); err != nil {
+	if tmpWR, err = c.wrappedProvider.Retrieve(ctx, uri, onChange); err != nil {
 		return nil, err
 	} else if tmpWR != nil {
 		newWrappedRetrieved = tmpWR
@@ -91,7 +87,7 @@ func (c *configSourceConfigMapProvider) Retrieve(
 	c.wrappedRetrieved = newWrappedRetrieved
 
 	var cfg *confmap.Conf
-	if cfg, err = c.Get(ctx, location); err != nil {
+	if cfg, err = c.Get(ctx, uri); err != nil {
 		return nil, err
 	} else if cfg == nil {
 		cfg = &confmap.Conf{}

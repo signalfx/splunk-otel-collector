@@ -52,7 +52,7 @@ func newConfigSource(_ configprovider.CreateParams, config *Config) (configprovi
 	}, nil
 }
 
-func (is *includeConfigSource) Retrieve(_ context.Context, selector string, paramsConfigMap *confmap.Conf) (configprovider.Retrieved, error) {
+func (is *includeConfigSource) Retrieve(_ context.Context, selector string, paramsConfigMap *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	tmpl, err := template.ParseFiles(selector)
 	if err != nil {
 		return nil, err
@@ -75,34 +75,25 @@ func (is *includeConfigSource) Retrieve(_ context.Context, selector string, para
 		}
 	}
 
-	if !is.WatchFiles {
-		return configprovider.NewRetrieved(buf.Bytes()), nil
+	if !is.WatchFiles || watcher == nil {
+		return confmap.NewRetrieved(buf.String())
 	}
 
-	watchForUpdateFn, err := is.watchFile(selector)
+	closeFunc, err := is.watchFile(selector, watcher)
 	if err != nil {
 		return nil, err
 	}
-
-	if watchForUpdateFn == nil {
-		return configprovider.NewRetrieved(buf.Bytes()), nil
-	}
-	return configprovider.NewWatchableRetrieved(buf.Bytes(), watchForUpdateFn), nil
+	return confmap.NewRetrieved(buf.String(), confmap.WithRetrievedClose(closeFunc))
 }
 
-func (is *includeConfigSource) Close(context.Context) error {
-	if is.watcher != nil {
-		return is.watcher.Close()
-	}
-
+func (is *includeConfigSource) Shutdown(context.Context) error {
 	return nil
 }
 
-func (is *includeConfigSource) watchFile(file string) (func() error, error) {
-	var watchForUpdateFn func() error
+func (is *includeConfigSource) watchFile(file string, watcherFunc confmap.WatcherFunc) (confmap.CloseFunc, error) {
 	if _, watched := is.watchedFiles[file]; watched {
 		// This file is already watched another watch function is not needed.
-		return watchForUpdateFn, nil
+		return nil, nil
 	}
 
 	if is.watcher == nil {
@@ -113,24 +104,26 @@ func (is *includeConfigSource) watchFile(file string) (func() error, error) {
 			return nil, err
 		}
 
-		watchForUpdateFn = func() error {
+		go func() {
 			for {
 				select {
 				case event, ok := <-is.watcher.Events:
 					if !ok {
-						return configprovider.ErrSessionClosed
+						return
 					}
 					if event.Op&fsnotify.Write == fsnotify.Write {
-						return fmt.Errorf("file used in the config modified: %q: %w", event.Name, configprovider.ErrValueUpdated)
+						watcherFunc(&confmap.ChangeEvent{Error: nil})
+						return
 					}
 				case watcherErr, ok := <-is.watcher.Errors:
 					if !ok {
-						return configprovider.ErrSessionClosed
+						return
 					}
-					return watcherErr
+					watcherFunc(&confmap.ChangeEvent{Error: watcherErr})
+					return
 				}
 			}
-		}
+		}()
 	}
 
 	// Now just add the file.
@@ -140,5 +133,14 @@ func (is *includeConfigSource) watchFile(file string) (func() error, error) {
 
 	is.watchedFiles[file] = struct{}{}
 
-	return watchForUpdateFn, nil
+	return func(ctx context.Context) error {
+		err := is.watcher.Remove(file)
+		if err != nil {
+			return err
+		}
+		if len(is.watcher.WatchList()) == 0 {
+			return is.watcher.Close()
+		}
+		return nil
+	}, nil
 }

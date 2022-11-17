@@ -26,6 +26,8 @@ import (
 // the connection in tests.
 type zkConnection interface {
 	GetW(string) ([]byte, *zk.Stat, <-chan zk.Event, error)
+
+	Close()
 }
 
 type connectFunc func(context.Context) (zkConnection, error)

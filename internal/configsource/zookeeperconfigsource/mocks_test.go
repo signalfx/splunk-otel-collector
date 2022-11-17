@@ -29,22 +29,25 @@ func newMockConnectFunc(conn zkConnection) connectFunc {
 }
 
 type mockConnection struct {
-	db      map[string]string
-	watches map[string]chan zk.Event
+	db        map[string]string
+	watcherCh chan zk.Event
 }
 
 func newMockConnection(db map[string]string) *mockConnection {
 	return &mockConnection{
-		db:      db,
-		watches: map[string]chan zk.Event{},
+		db: db,
 	}
 }
 
 func (m *mockConnection) GetW(key string) ([]byte, *zk.Stat, <-chan zk.Event, error) {
 	if value, ok := m.db[key]; ok {
-		ch := make(chan zk.Event)
-		m.watches[key] = ch
-		return []byte(value), &zk.Stat{}, ch, nil
+		m.watcherCh = make(chan zk.Event)
+		return []byte(value), &zk.Stat{}, m.watcherCh, nil
 	}
 	return nil, nil, nil, fmt.Errorf("value not found")
+}
+
+func (m *mockConnection) Close() {
+	close(m.watcherCh)
+	m.watcherCh = nil
 }

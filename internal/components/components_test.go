@@ -52,6 +52,7 @@ func TestDefaultComponents(t *testing.T) {
 		"journald",
 		"k8s_cluster",
 		"k8s_events",
+		"k8sobjects",
 		"kafka",
 		"kafkametrics",
 		"kubeletstats",

@@ -53,6 +53,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8seventsreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver"
@@ -124,6 +125,7 @@ func Get() (component.Factories, error) {
 		journaldreceiver.NewFactory(),
 		k8sclusterreceiver.NewFactory(),
 		k8seventsreceiver.NewFactory(),
+		k8sobjectsreceiver.NewFactory(),
 		kafkametricsreceiver.NewFactory(),
 		kafkareceiver.NewFactory(),
 		kubeletstatsreceiver.NewFactory(),

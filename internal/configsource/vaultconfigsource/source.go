@@ -109,6 +109,17 @@ func (v *vaultConfigSource) Retrieve(_ context.Context, selector string, _ *conf
 		return nil, &errBadSelector{fmt.Errorf("no value at path %q for key %q", v.path, selector)}
 	}
 
+	// Work around the limitation of the confmap.NewRetrieved that does not accept json.Number.
+	// This limitation is enforced only for the root, if the object is a map[string]any and json.Number is
+	// one of the value, this is not a problem.
+	//
+	// This is a problem here because vaultdb uses JSON to deserialize the data.
+	//
+	// TODO: Remove this when the core collector is fixed.
+	if val, ok := value.(json.Number); ok {
+		value = val.String()
+	}
+
 	return confmap.NewRetrieved(value, confmap.WithRetrievedClose(closeFunc))
 }
 

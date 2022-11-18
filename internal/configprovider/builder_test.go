@@ -40,7 +40,7 @@ func TestConfigSourceBuild(t *testing.T) {
 		configSettings     map[string]Source
 		factories          Factories
 		expectedCfgSources map[string]ConfigSource
-		wantErr            error
+		wantErr            string
 		name               string
 	}{
 		{
@@ -51,7 +51,7 @@ func TestConfigSourceBuild(t *testing.T) {
 				},
 			},
 			factories: testFactories,
-			wantErr:   &errUnknownType{},
+			wantErr:   "unknown unknown_config_source config source type for tstcfgsrc",
 		},
 		{
 			name: "creation_error",
@@ -65,7 +65,7 @@ func TestConfigSourceBuild(t *testing.T) {
 					ErrOnCreateConfigSource: errors.New("forced test error"),
 				},
 			},
-			wantErr: &errConfigSourceCreation{},
+			wantErr: "failed to create config source tstcfgsrc: forced test error",
 		},
 		{
 			name: "factory_return_nil",
@@ -77,7 +77,7 @@ func TestConfigSourceBuild(t *testing.T) {
 			factories: Factories{
 				"tstcfgsrc": &mockNilCfgSrcFactory{},
 			},
-			wantErr: &errFactoryCreatedNil{},
+			wantErr: "factory for \"tstcfgsrc\" produced a nil extension",
 		},
 		{
 			name: "base_case",
@@ -108,7 +108,11 @@ func TestConfigSourceBuild(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			builtCfgSources, err := Build(ctx, tt.configSettings, params, tt.factories)
-			require.IsType(t, tt.wantErr, err)
+			if tt.wantErr != "" {
+				require.EqualError(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
 			require.Equal(t, tt.expectedCfgSources, builtCfgSources)
 		})
 	}

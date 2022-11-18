@@ -22,12 +22,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Private error types to help with testability.
-type (
-	errConfigSourceCreation struct{ error }
-	errFactoryCreatedNil    struct{ error }
-)
-
 // Build builds the ConfigSource objects according to the given ConfigSettings.
 func Build(ctx context.Context, configSourcesSettings map[string]Source, params CreateParams, factories Factories) (map[string]ConfigSource, error) {
 	cfgSources := make(map[string]ConfigSource, len(configSourcesSettings))
@@ -35,23 +29,17 @@ func Build(ctx context.Context, configSourcesSettings map[string]Source, params 
 		// If we have the setting we also have the factory.
 		factory, ok := factories[cfgSrcSettings.ID().Type()]
 		if !ok {
-			return nil, &errUnknownType{
-				fmt.Errorf("unknown %s config source type for %s", cfgSrcSettings.ID().Type(), fullName),
-			}
+			return nil, fmt.Errorf("unknown %s config source type for %s", cfgSrcSettings.ID().Type(), fullName)
 		}
 
 		params.Logger = params.Logger.With(zap.String("config_source", fullName))
 		cfgSrc, err := factory.CreateConfigSource(ctx, params, cfgSrcSettings)
 		if err != nil {
-			return nil, &errConfigSourceCreation{
-				fmt.Errorf("failed to create config source %s: %w", fullName, err),
-			}
+			return nil, fmt.Errorf("failed to create config source %s: %w", fullName, err)
 		}
 
 		if cfgSrc == nil {
-			return nil, &errFactoryCreatedNil{
-				fmt.Errorf("factory for %q produced a nil extension", fullName),
-			}
+			return nil, fmt.Errorf("factory for %q produced a nil extension", fullName)
 		}
 
 		cfgSources[fullName] = cfgSrc

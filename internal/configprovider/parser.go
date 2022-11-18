@@ -29,14 +29,6 @@ const (
 	configSourcesKey = "config_sources"
 )
 
-// Private error types to help with testability.
-type (
-	errInvalidTypeAndNameKey struct{ error }
-	errUnknownType           struct{ error }
-	errUnmarshalError        struct{ error }
-	errDuplicateName         struct{ error }
-)
-
 // Load reads the configuration for ConfigSource objects from the given parser and returns a map
 // from the full name of config sources to the respective ConfigSettings.
 func Load(ctx context.Context, v *confmap.Conf, factories Factories) (map[string]Source, error) {
@@ -55,13 +47,6 @@ func Load(ctx context.Context, v *confmap.Conf, factories Factories) (map[string
 
 // processParser prepares a confmap.Conf to be used to load config source settings.
 func processParser(ctx context.Context, v *confmap.Conf) (*confmap.Conf, error) {
-	// Use a manager to resolve environment variables with a syntax consistent with
-	// the config source usage.
-	manager := newManager(make(map[string]ConfigSource))
-	defer func() {
-		_ = manager.Close(ctx)
-	}()
-
 	processedParser := map[string]any{}
 	for _, key := range v.AllKeys() {
 		if !strings.HasPrefix(key, configSourcesKey) {
@@ -69,7 +54,7 @@ func processParser(ctx context.Context, v *confmap.Conf) (*confmap.Conf, error) 
 			continue
 		}
 
-		value, err := manager.parseConfigValue(ctx, v.Get(key))
+		value, _, err := parseConfigValue(ctx, make(map[string]ConfigSource), v.Get(key), nil)
 		if err != nil {
 			return nil, err
 		}
@@ -90,13 +75,13 @@ func loadSettings(css map[string]any, factories Factories) (map[string]Source, e
 		// Decode the key into type and fullName components.
 		componentID := component.ID{}
 		if err := componentID.UnmarshalText([]byte(key)); err != nil {
-			return nil, &errInvalidTypeAndNameKey{fmt.Errorf("invalid %s type and name key %q: %w", configSourcesKey, key, err)}
+			return nil, fmt.Errorf("invalid %s type and name key %q: %w", configSourcesKey, key, err)
 		}
 
 		// Find the factory based on "type" that we read from config source.
 		factory := factories[componentID.Type()]
 		if factory == nil {
-			return nil, &errUnknownType{fmt.Errorf("unknown %s type %q for %q", configSourcesKey, componentID.Type(), componentID)}
+			return nil, fmt.Errorf("unknown %s type %q for %q", configSourcesKey, componentID.Type(), componentID)
 		}
 
 		// Create the default config.
@@ -106,12 +91,12 @@ func loadSettings(css map[string]any, factories Factories) (map[string]Source, e
 		// Now that the default settings struct is created we can Unmarshal into it
 		// and it will apply user-defined config on top of the default.
 		if err := settingsParser.Unmarshal(&cfgSrcSettings, confmap.WithErrorUnused()); err != nil {
-			return nil, &errUnmarshalError{fmt.Errorf("error reading %s configuration for %q: %w", configSourcesKey, componentID, err)}
+			return nil, fmt.Errorf("error reading %s configuration for %q: %w", configSourcesKey, componentID, err)
 		}
 
 		fullName := componentID.String()
 		if cfgSrcToSettings[fullName] != nil {
-			return nil, &errDuplicateName{fmt.Errorf("duplicate %s name %s", configSourcesKey, fullName)}
+			return nil, fmt.Errorf("duplicate %s name %s", configSourcesKey, fullName)
 		}
 
 		cfgSrcToSettings[fullName] = cfgSrcSettings

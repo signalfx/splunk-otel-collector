@@ -37,7 +37,7 @@ func TestConfigSourceParser(t *testing.T) {
 		factories Factories
 		expected  map[string]Source
 		envvars   map[string]string
-		wantErr   error
+		wantErr   string
 		name      string
 		file      string
 	}{
@@ -77,13 +77,13 @@ func TestConfigSourceParser(t *testing.T) {
 			name:      "cfgsrc_load_cannot_use_cfgsrc",
 			file:      "cfgsrc_load_use_cfgsrc",
 			factories: testFactories,
-			wantErr:   &errUnknownConfigSource{},
+			wantErr:   "config source \"tstcfgsrc\" not found if this was intended to be an environment variable use \"${tstcfgsrc}\" instead\"",
 		},
 		{
 			name:      "bad_name",
 			file:      "bad_name",
 			factories: testFactories,
-			wantErr:   &errInvalidTypeAndNameKey{},
+			wantErr:   "invalid config_sources type and name key \"tstcfgsrc/\"",
 		},
 		{
 			name: "missing_factory",
@@ -91,19 +91,19 @@ func TestConfigSourceParser(t *testing.T) {
 			factories: Factories{
 				"not_in_basic_config": &mockCfgSrcFactory{},
 			},
-			wantErr: &errUnknownType{},
+			wantErr: "unknown config_sources type \"tstcfgsrc\"",
 		},
 		{
 			name:      "unknown_field",
 			file:      "unknown_field",
 			factories: testFactories,
-			wantErr:   &errUnmarshalError{},
+			wantErr:   "error reading config_sources configuration for \"tstcfgsrc\"",
 		},
 		{
 			name:      "duplicated_name",
 			file:      "duplicated_name",
 			factories: testFactories,
-			wantErr:   &errDuplicateName{},
+			wantErr:   "duplicate config_sources name tstcfgsrc",
 		},
 	}
 	for _, tt := range tests {
@@ -121,7 +121,11 @@ func TestConfigSourceParser(t *testing.T) {
 			}
 
 			cfgSrcSettings, err := Load(ctx, v, tt.factories)
-			require.IsType(t, tt.wantErr, err)
+			if tt.wantErr != "" {
+				require.ErrorContains(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
 			assert.Equal(t, tt.expected, cfgSrcSettings)
 		})
 	}

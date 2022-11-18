@@ -17,22 +17,9 @@ package configprovider
 
 import (
 	"context"
-	"errors"
 
 	"go.opentelemetry.io/collector/confmap"
 )
-
-// ErrSessionClosed is returned by WatchForUpdate functions when its parent Session
-// object is closed.
-// This error can be wrapped with additional information. Callers trying to identify this
-// specific error must use errors.Is.
-var ErrSessionClosed = errors.New("parent session was closed")
-
-// ErrValueUpdated is returned by WatchForUpdate functions when the value being watched
-// was changed or expired and needs to be retrieved again.
-// This error can be wrapped with additional information. Callers trying to identify this
-// specific error must use errors.Is.
-var ErrValueUpdated = errors.New("configuration must retrieve the updated value")
 
 // ConfigSource is the interface to be implemented by objects used by the collector
 // to retrieve external configuration information.

@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/knadh/koanf/maps"
 	"github.com/spf13/cast"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
@@ -57,15 +58,13 @@ var ddBackwardCompatible = func() bool {
 	return true
 }()
 
-// Manager is used to inject data from config sources into a configuration and also
-// to monitor for updates on the items injected into the configuration.  All methods
-// of a Manager must be called only once and have an expected sequence:
+// Resolve inspects the given confmap.Conf and resolves all config sources referenced
+// in the configuration, returning a confmap.Conf in which all env vars and config sources on
+// the given input config map are resolved to actual literal values of the env vars or config sources.
 //
-// 1. NewManager to create a new instance;
-// 2. Resolve to inject the data from config sources into a configuration;
-// 3. WatchForUpdate in a goroutine to wait for configuration updates;
-// 4. WaitForWatcher to wait until the watchers are in place;
-// 5. Close to close the instance;
+// 1. Resolve to inject the data from config sources into a configuration;
+// 2. Wait for an update on "watcher" func.
+// 3. Close the confmap.Retrieved instance;
 //
 // The current syntax to reference a config source in a YAML is provisional. Currently
 // single-line:
@@ -169,22 +168,10 @@ var ddBackwardCompatible = func() bool {
 // results.
 //
 // For an overview about the internals of the Manager refer to the package README.md.
-type Manager struct {
-	configSources map[string]ConfigSource
-	closeCh       chan struct{}
-	// Use a channel to capture the first error returned by any watcher and another one
-	// to ensure completion of any remaining watcher also trying to report an error.
-	errChannel chan error
-	retrieved  []*confmap.Retrieved
-}
-
-// NewManager creates a new instance of a Manager to be used to inject data from
-// ConfigSource objects into a configuration and watch for updates on the injected
-// data.
-func NewManager(configMap *confmap.Conf, logger *zap.Logger, buildInfo component.BuildInfo, factories Factories) (*Manager, error) {
+func Resolve(ctx context.Context, configMap *confmap.Conf, logger *zap.Logger, buildInfo component.BuildInfo, factories Factories, watcher confmap.WatcherFunc) (map[string]any, confmap.CloseFunc, error) {
 	configSourcesSettings, err := Load(context.Background(), configMap, factories)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	params := CreateParams{
@@ -193,19 +180,16 @@ func NewManager(configMap *confmap.Conf, logger *zap.Logger, buildInfo component
 	}
 	cfgSources, err := Build(context.Background(), configSourcesSettings, params, factories)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return newManager(cfgSources), nil
+	return resolve(ctx, cfgSources, configMap, watcher)
 }
 
-// Resolve inspects the given confmap.Conf and resolves all config sources referenced
-// in the configuration, returning a confmap.Conf in which all env vars and config sources on
-// the given input config map are resolved to actual literal values of the env vars or config sources.
-// This method must be called only once per lifetime of a Manager object.
-func (m *Manager) Resolve(ctx context.Context, configMap *confmap.Conf) (*confmap.Conf, error) {
+func resolve(ctx context.Context, configSources map[string]ConfigSource, configMap *confmap.Conf, watcher confmap.WatcherFunc) (map[string]any, confmap.CloseFunc, error) {
 	res := map[string]any{}
 	allKeys := configMap.AllKeys()
+	var closeFuncs []confmap.CloseFunc
 	for _, k := range allKeys {
 		if strings.HasPrefix(k, configSourcesKey) {
 			// Remove everything under the config_sources section. The `config_sources` section
@@ -214,64 +198,29 @@ func (m *Manager) Resolve(ctx context.Context, configMap *confmap.Conf) (*confma
 			continue
 		}
 
-		value, err := m.parseConfigValue(ctx, configMap.Get(k))
+		value, closeFunc, err := parseConfigValue(ctx, configSources, configMap.Get(k), watcher)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		res[k] = value
+		if closeFunc != nil {
+			closeFuncs = append(closeFuncs, closeFunc)
+		}
 	}
 
-	return confmap.NewFromStringMap(res), nil
-}
-
-// WatchForUpdate must watch for updates on any of the values retrieved from config sources
-// and injected into the configuration. Typically this method is launched in a goroutine, the
-// method WaitForWatcher blocks until the WatchForUpdate goroutine is running and ready.
-func (m *Manager) WatchForUpdate() error {
-	select {
-	case err := <-m.errChannel:
-		// Return the first error that reaches the channel and ignore any other error.
-		return err
-	case <-m.closeCh:
-		// This covers the case that all watchers returned ErrWatcherNotSupported.
-		return ErrSessionClosed
-	}
-}
-
-// Close terminates the WatchForUpdate function and closes all Session objects used
-// in the configuration. It should be called
-func (m *Manager) Close(ctx context.Context) error {
-	var errs error
-	for _, ret := range m.retrieved {
-		errs = multierr.Append(errs, ret.Close(ctx))
-	}
-
-	for _, source := range m.configSources {
-		errs = multierr.Append(errs, source.Shutdown(ctx))
-	}
-
-	close(m.closeCh)
-
-	return errs
-}
-
-func newManager(configSources map[string]ConfigSource) *Manager {
-	return &Manager{
-		configSources: configSources,
-		closeCh:       make(chan struct{}),
-		errChannel:    make(chan error, 1),
-	}
+	maps.IntfaceKeysToStrings(res)
+	return res, mergeCloseFuncs(closeFuncs), nil
 }
 
 // parseConfigValue takes the value of a "config node" and process it recursively. The processing consists
 // in transforming invocations of config sources and/or environment variables into literal data that can be
 // used directly from a `confmap.Conf` object.
-func (m *Manager) parseConfigValue(ctx context.Context, value any) (any, error) {
+func parseConfigValue(ctx context.Context, configSources map[string]ConfigSource, value any, watcher confmap.WatcherFunc) (any, confmap.CloseFunc, error) {
 	switch v := value.(type) {
 	case string:
 		// Only if the value of the node is a string it can contain an env var or config source
 		// invocation that requires transformation.
-		return m.parseStringValue(ctx, v)
+		return parseStringValue(ctx, configSources, v, watcher)
 	case []any:
 		// The value is of type []any when an array is used in the configuration, YAML example:
 		//
@@ -286,36 +235,46 @@ func (m *Manager) parseConfigValue(ctx context.Context, value any) (any, error) 
 		//
 		// Both "array0" and "array1" are going to be leaf config nodes hitting this case.
 		nslice := make([]any, 0, len(v))
+		var closeFuncs []confmap.CloseFunc
 		for _, vint := range v {
-			value, err := m.parseConfigValue(ctx, vint)
+			value, closeFunc, err := parseConfigValue(ctx, configSources, vint, watcher)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
+			}
+			if closeFunc != nil {
+				closeFuncs = append(closeFuncs, closeFunc)
 			}
 			nslice = append(nslice, value)
 		}
-		return nslice, nil
+		return nslice, mergeCloseFuncs(closeFuncs), nil
 	case map[string]any:
 		// The value is of type map[string]any when an array in the configuration is populated with map
 		// elements. From the case above (for type []any) each element of "array1" is going to hit the
 		// the current case block.
 		nmap := make(map[any]any, len(v))
+		var closeFuncs []confmap.CloseFunc
 		for k, vint := range v {
-			value, err := m.parseConfigValue(ctx, vint)
+			value, closeFunc, err := parseConfigValue(ctx, configSources, vint, watcher)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
+			}
+			if closeFunc != nil {
+				closeFuncs = append(closeFuncs, closeFunc)
 			}
 			nmap[k] = value
 		}
-		return nmap, nil
+		return nmap, mergeCloseFuncs(closeFuncs), nil
 	default:
 		// All other literals (int, boolean, etc) can't be further expanded so just return them as they are.
-		return v, nil
+		return v, nil, nil
 	}
 }
 
 // parseStringValue transforms environment variables and config sources, if any are present, on
 // the given string in the configuration into an object to be inserted into the resulting configuration.
-func (m *Manager) parseStringValue(ctx context.Context, s string) (any, error) {
+func parseStringValue(ctx context.Context, configSources map[string]ConfigSource, s string, watcher confmap.WatcherFunc) (any, confmap.CloseFunc, error) {
+	var closeFuncs []confmap.CloseFunc
+
 	// Code based on os.Expand function. All delimiters that are checked against are
 	// ASCII so bytes are fine for this operation.
 	var buf []byte
@@ -394,9 +353,12 @@ func (m *Manager) parseStringValue(ctx context.Context, s string) (any, error) {
 
 			default:
 				// A config source, retrieve and apply results.
-				retrieved, err := m.retrieveConfigSourceData(ctx, cfgSrcName, expandableContent)
+				retrieved, closeFunc, err := retrieveConfigSourceData(ctx, configSources, cfgSrcName, expandableContent, watcher)
 				if err != nil {
-					return nil, err
+					return nil, nil, err
+				}
+				if closeFunc != nil {
+					closeFuncs = append(closeFuncs, closeFunc)
 				}
 
 				consumedAll := j+w+1 == len(s)
@@ -423,7 +385,7 @@ func (m *Manager) parseStringValue(ctx context.Context, s string) (any, error) {
 						retrieved = cast.ToStringMap(mapIFace)
 					}
 
-					return retrieved, nil
+					return retrieved, mergeCloseFuncs(closeFuncs), nil
 				}
 
 				// Either there was a prefix already or there are still characters to be processed.
@@ -443,11 +405,11 @@ func (m *Manager) parseStringValue(ctx context.Context, s string) (any, error) {
 
 	if buf == nil {
 		// No changes to original string, just return it.
-		return s, nil
+		return s, mergeCloseFuncs(closeFuncs), nil
 	}
 
 	// Return whatever was accumulated on the buffer plus the remaining of the original string.
-	return string(buf) + s[i:], nil
+	return string(buf) + s[i:], mergeCloseFuncs(closeFuncs), nil
 }
 
 func getBracketedExpandableContent(s string, i int) (expandableContent string, consumed int, cfgSrcName string) {
@@ -483,44 +445,50 @@ func getBareExpandableContent(s string, i int) (expandableContent string, consum
 
 // retrieveConfigSourceData retrieves data from the specified config source and injects them into
 // the configuration. The Manager tracks sessions and watcher objects as needed.
-func (m *Manager) retrieveConfigSourceData(ctx context.Context, cfgSrcName, cfgSrcInvocation string) (any, error) {
-	cfgSrc, ok := m.configSources[cfgSrcName]
+func retrieveConfigSourceData(ctx context.Context, configSources map[string]ConfigSource, cfgSrcName, cfgSrcInvocation string, watcher confmap.WatcherFunc) (any, confmap.CloseFunc, error) {
+	var closeFuncs []confmap.CloseFunc
+	cfgSrc, ok := configSources[cfgSrcName]
 	if !ok {
-		return nil, newErrUnknownConfigSource(cfgSrcName)
+		return nil, nil, newErrUnknownConfigSource(cfgSrcName)
 	}
 
 	cfgSrcName, selector, paramsConfigMap, err := parseCfgSrcInvocation(cfgSrcInvocation)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Recursively expand the selector.
-	var expandedSelector any
-	expandedSelector, err = m.parseStringValue(ctx, selector)
+	expandedSelector, closeFunc, err := parseStringValue(ctx, configSources, selector, watcher)
 	if err != nil {
-		return nil, fmt.Errorf("failed to process selector for config source %q selector %q: %w", cfgSrcName, selector, err)
+		return nil, nil, fmt.Errorf("failed to process selector for config source %q selector %q: %w", cfgSrcName, selector, err)
 	}
 	if selector, ok = expandedSelector.(string); !ok {
-		return nil, fmt.Errorf("processed selector must be a string instead got a %T %v", expandedSelector, expandedSelector)
+		return nil, nil, fmt.Errorf("processed selector must be a string instead got a %T %v", expandedSelector, expandedSelector)
+	}
+	if closeFunc != nil {
+		closeFuncs = append(closeFuncs, closeFunc)
 	}
 
 	// Recursively resolve/parse any config source on the parameters.
 	if paramsConfigMap != nil {
-		paramsConfigMap, err = m.Resolve(ctx, paramsConfigMap)
-		if err != nil {
-			return nil, fmt.Errorf("failed to process parameters for config source %q invocation %q: %w", cfgSrcName, cfgSrcInvocation, err)
+		paramsConfigMapRet, closeFunc, errResolve := resolve(ctx, configSources, paramsConfigMap, watcher)
+		if errResolve != nil {
+			return nil, nil, fmt.Errorf("failed to process parameters for config source %q invocation %q: %w", cfgSrcName, cfgSrcInvocation, errResolve)
 		}
+		if closeFunc != nil {
+			closeFuncs = append(closeFuncs, closeFunc)
+		}
+		paramsConfigMap = confmap.NewFromStringMap(paramsConfigMapRet)
 	}
 
-	retrieved, err := cfgSrc.Retrieve(ctx, selector, paramsConfigMap, func(event *confmap.ChangeEvent) {
-		m.errChannel <- event.Error
-	})
+	retrieved, err := cfgSrc.Retrieve(ctx, selector, paramsConfigMap, watcher)
 	if err != nil {
-		return nil, fmt.Errorf("config source %q failed to retrieve value: %w", cfgSrcName, err)
+		return nil, nil, fmt.Errorf("config source %q failed to retrieve value: %w", cfgSrcName, err)
 	}
 
-	m.retrieved = append(m.retrieved, retrieved)
-	return retrieved.AsRaw()
+	closeFuncs = append(closeFuncs, retrieved.Close)
+	val, err := retrieved.AsRaw()
+	return val, mergeCloseFuncs(closeFuncs), err
 }
 
 func newErrUnknownConfigSource(cfgSrcName string) error {
@@ -701,4 +669,22 @@ func isShellSpecialVar(c uint8) bool {
 // isAlphaNum reports whether the byte is an ASCII letter, number, or underscore
 func isAlphaNum(c uint8) bool {
 	return c == '_' || '0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z'
+}
+
+func mergeCloseFuncs(closeFuncs []confmap.CloseFunc) confmap.CloseFunc {
+	if len(closeFuncs) == 0 {
+		return nil
+	}
+	if len(closeFuncs) == 1 {
+		return closeFuncs[0]
+	}
+	return func(ctx context.Context) error {
+		var errs error
+		for _, closeFunc := range closeFuncs {
+			if closeFunc != nil {
+				errs = multierr.Append(errs, closeFunc(ctx))
+			}
+		}
+		return errs
+	}
 }

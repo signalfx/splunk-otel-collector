@@ -21,13 +21,10 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
-	"go.uber.org/multierr"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 )
-
-type errDuplicatedConfigSourceFactory struct{ error }
 
 var (
 	_ confmap.Provider = (*configSourceConfigMapProvider)(nil)
@@ -35,11 +32,9 @@ var (
 
 type configSourceConfigMapProvider struct {
 	logger           *zap.Logger
-	csm              *Manager
 	configServer     *configconverter.ConfigServer
 	wrappedProvider  confmap.Provider
 	wrappedRetrieved *confmap.Retrieved
-	retrieved        *confmap.Retrieved
 	buildInfo        component.BuildInfo
 	factories        []Factory
 }
@@ -55,7 +50,6 @@ func NewConfigSourceConfigMapProvider(wrappedProvider confmap.Provider, logger *
 		factories:        factories,
 		buildInfo:        buildInfo,
 		wrappedRetrieved: &confmap.Retrieved{},
-		retrieved:        &confmap.Retrieved{},
 	}
 }
 
@@ -86,18 +80,22 @@ func (c *configSourceConfigMapProvider) Retrieve(ctx context.Context, uri string
 	}
 	c.wrappedRetrieved = newWrappedRetrieved
 
-	var cfg *confmap.Conf
-	if cfg, err = c.Get(ctx, uri); err != nil {
+	factories, err := makeFactoryMap(c.factories)
+	if err != nil {
 		return nil, err
-	} else if cfg == nil {
-		cfg = &confmap.Conf{}
 	}
 
-	c.retrieved, err = confmap.NewRetrieved(
-		cfg.ToStringMap(),
-		confmap.WithRetrievedClose(c.wrappedRetrieved.Close),
-	)
-	return c.retrieved, err
+	wrappedMap, err := c.wrappedRetrieved.AsConf()
+	if err != nil {
+		return nil, err
+	}
+	c.configServer.SetForScheme(c.Scheme(), wrappedMap.ToStringMap())
+	retrieved, closeFunc, err := Resolve(ctx, wrappedMap, c.logger, c.buildInfo, factories, onChange)
+	if err != nil {
+		return nil, err
+	}
+
+	return confmap.NewRetrieved(retrieved, confmap.WithRetrievedClose(mergeCloseFuncs([]confmap.CloseFunc{closeFunc, c.wrappedRetrieved.Close})))
 }
 
 func (c *configSourceConfigMapProvider) Scheme() string {
@@ -109,52 +107,11 @@ func (c *configSourceConfigMapProvider) Shutdown(ctx context.Context) error {
 	return c.wrappedProvider.Shutdown(ctx)
 }
 
-// Get returns a config.Parser that wraps the config.Default() with a parser
-// that can load and inject data from config sources. If there are no config sources
-// in the configuration the returned parser behaves like the config.Default().
-func (c *configSourceConfigMapProvider) Get(_ context.Context, uri string) (*confmap.Conf, error) {
-	factories, err := makeFactoryMap(c.factories)
-	if err != nil {
-		return nil, err
-	}
-
-	wrappedMap, err := c.wrappedRetrieved.AsConf()
-	if err != nil {
-		return nil, err
-	}
-	c.configServer.SetForScheme(c.Scheme(), wrappedMap.ToStringMap())
-	csm, err := NewManager(wrappedMap, c.logger, c.buildInfo, factories)
-	if err != nil {
-		return nil, err
-	}
-
-	effectiveMap, err := csm.Resolve(context.Background(), wrappedMap)
-	if err != nil {
-		return nil, err
-	}
-
-	c.csm = csm
-	return effectiveMap, nil
-}
-
-// WatchForUpdate is used to monitor for updates on configuration values that
-// were retrieved from config sources.
-func (c *configSourceConfigMapProvider) WatchForUpdate() error {
-	return c.csm.WatchForUpdate()
-}
-
-// Close ends the watch for updates and closes the parser provider and respective
-// config sources.
-func (c *configSourceConfigMapProvider) Close(ctx context.Context) error {
-	c.configServer.Unregister()
-	return multierr.Combine(c.csm.Close(ctx), c.retrieved.Close(ctx))
-}
-
 func makeFactoryMap(factories []Factory) (Factories, error) {
 	fMap := make(Factories)
 	for _, f := range factories {
 		if _, ok := fMap[f.Type()]; ok {
-			return nil, &errDuplicatedConfigSourceFactory{fmt.Errorf("duplicate config source factory %q", f.Type())}
+			return nil, fmt.Errorf("duplicate config source factory %q", f.Type())
 		}
 		fMap[f.Type()] = f
 	}

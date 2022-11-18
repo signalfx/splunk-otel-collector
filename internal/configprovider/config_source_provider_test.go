@@ -18,9 +18,7 @@ package configprovider
 import (
 	"context"
 	"errors"
-	"fmt"
 	"path"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -37,7 +35,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 	tests := []struct {
 		parserProvider confmap.Provider
 		configLocation []string
-		wantErr        error
+		wantErr        string
 		name           string
 		factories      []Factory
 	}{
@@ -49,7 +47,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 			parserProvider: &mockParserProvider{
 				ErrOnGet: true,
 			},
-			wantErr: &errOnParserProviderGet{},
+			wantErr: "mockParserProvider.Get() forced test error",
 		},
 		{
 			name: "duplicated_factory_type",
@@ -57,7 +55,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				&mockCfgSrcFactory{},
 				&mockCfgSrcFactory{},
 			},
-			wantErr: &errDuplicatedConfigSourceFactory{},
+			wantErr: "duplicate config source factory \"tstcfgsrc\"",
 		},
 		{
 			name: "new_manager_builder_error",
@@ -68,13 +66,13 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 			},
 			parserProvider: fileprovider.New(),
 			configLocation: []string{"file:" + path.Join("testdata", "basic_config.yaml")},
-			wantErr:        &errConfigSourceCreation{},
+			wantErr:        "failed to create config source tstcfgsrc",
 		},
 		{
 			name:           "manager_resolve_error",
 			parserProvider: fileprovider.New(),
 			configLocation: []string{"file:" + path.Join("testdata", "manager_resolve_error.yaml")},
-			wantErr:        fmt.Errorf("error not wrappedProviders by specific error type: %w", ErrSessionClosed),
+			wantErr:        "config source \"tstcfgsrc\" failed to retrieve value: no value for selector \"selector\"",
 		},
 		{
 			name:           "multiple_config_success",
@@ -118,13 +116,15 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 					configLocation = ""
 				}
 				r, err := pp.Retrieve(context.Background(), configLocation, nil)
-				if tt.wantErr == nil {
+				if tt.wantErr == "" {
 					require.NoError(t, err)
 					require.NotNil(t, r)
-					rMap, _ := r.AsConf()
-					require.NotNil(t, rMap)
+					rMap, errAsConf := r.AsConf()
+					require.NoError(t, errAsConf)
+					assert.NotNil(t, rMap)
+					assert.NoError(t, r.Close(context.Background()))
 				} else {
-					assert.IsType(t, tt.wantErr, err)
+					assert.ErrorContains(t, err, tt.wantErr)
 					assert.Nil(t, r)
 					return
 				}
@@ -132,20 +132,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				ok = i < len(tt.configLocation)
 			}
 
-			var watchForUpdatedError error
-			wg := sync.WaitGroup{}
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				watchForUpdatedError = cspp.WatchForUpdate()
-			}()
-			require.NotNil(t, cspp.csm)
-
-			closeErr := cspp.Close(context.Background())
-			assert.NoError(t, closeErr)
-
-			wg.Wait()
-			assert.Equal(t, ErrSessionClosed, watchForUpdatedError)
+			assert.NoError(t, cspp.Shutdown(context.Background()))
 		})
 	}
 }
@@ -156,31 +143,17 @@ type mockParserProvider struct {
 
 var _ confmap.Provider = (*mockParserProvider)(nil)
 
-func (mpp *mockParserProvider) Retrieve(ctx context.Context, _ string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
-	m, err := mpp.Get(ctx)
-	if err != nil {
-		return nil, err
+func (mpp *mockParserProvider) Retrieve(context.Context, string, confmap.WatcherFunc) (*confmap.Retrieved, error) {
+	if mpp.ErrOnGet {
+		return nil, errors.New("mockParserProvider.Get() forced test error")
 	}
-	return confmap.NewRetrieved(m.ToStringMap())
+	return confmap.NewRetrieved(confmap.New().ToStringMap())
 }
 
-func (mpp *mockParserProvider) Shutdown(ctx context.Context) error {
+func (mpp *mockParserProvider) Shutdown(context.Context) error {
 	return nil
 }
 
 func (mpp *mockParserProvider) Scheme() string {
 	return ""
 }
-
-func (mpp *mockParserProvider) Get(context.Context) (*confmap.Conf, error) {
-	if mpp.ErrOnGet {
-		return nil, &errOnParserProviderGet{errors.New("mockParserProvider.Get() forced test error")}
-	}
-	return confmap.New(), nil
-}
-
-func (mpp *mockParserProvider) Close(context.Context) error {
-	return nil
-}
-
-type errOnParserProviderGet struct{ error }

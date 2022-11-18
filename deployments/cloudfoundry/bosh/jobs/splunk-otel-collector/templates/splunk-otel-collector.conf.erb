@@ -1,0 +1,9 @@
+<% if p('otel.proxy.http', '').length > 0 %>
+export HTTP_PROXY=<%= p('otel.proxy.http') %>
+<% end %>
+<% if p('otel.proxy.https', '').length > 0 %>
+export HTTPS_PROXY=<%= p('otel.proxy.https') %>
+<% end %>
+<% if p('otel.proxy.no', '').length > 0 %>
+export NO_PROXY=<%= p('otel.proxy.no') %>
+<% end %>

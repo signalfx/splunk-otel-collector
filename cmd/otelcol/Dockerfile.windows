@@ -1,4 +1,6 @@
-FROM mcr.microsoft.com/windows/servercore:1809
+ARG BASE_IMAGE
+
+FROM ${BASE_IMAGE}
 
 # Setting PowerShell as a default executor. 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]

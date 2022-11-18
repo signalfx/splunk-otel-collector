@@ -568,10 +568,45 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
           Copy-Item .\bin\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
-          docker build -t otelcol-windows --build-arg SMART_AGENT_RELEASE=$((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v")) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 --build-arg SMART_AGENT_RELEASE=$((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v")) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\translatesfx.exe
       
+      - name: Run docker image
+        run: |
+          $ErrorActionPreference = 'Stop'
+          docker run -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol-windows:latest
+          Start-Sleep 10
+          $DockerOutput=$(docker ps --filter=status=running --filter=name=otelcol -q)
+          if ( $DockerOutput -eq $null ) {
+            docker logs otelcol
+            echo "Failing job execution: fail to start otelcol docker container in 10 seconds."
+            exit 1
+          }
+
+  docker-otelcol-windows-2022:
+    name: docker-otelcol-windows-2022
+    runs-on: windows-2022
+    needs: [cross-compile]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - name: Downloading binaries-windows_amd64
+        uses: actions/download-artifact@v3
+        with:
+          name: binaries-windows_amd64
+          path: ./bin
+
+      - name: Build docker image
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
+          Copy-Item .\bin\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
+          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg SMART_AGENT_RELEASE=$((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v")) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          Remove-Item .\cmd\otelcol\otelcol.exe
+          Remove-Item .\cmd\otelcol\translatesfx.exe
+
       - name: Run docker image
         run: |
           $ErrorActionPreference = 'Stop'

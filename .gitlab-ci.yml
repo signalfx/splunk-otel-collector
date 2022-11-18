@@ -446,11 +446,13 @@ push-linux-image:
         docker manifest push ${IMAGE_NAME}:latest
       fi
     - docker pull ${IMAGE_NAME}:${MANIFEST_TAG}
-    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${MANIFEST_TAG} | tee dist/linux_digest.txt
+    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${MANIFEST_TAG}-amd64 | tee dist/linux_amd64_digest.txt
+    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${MANIFEST_TAG}-arm64 | tee dist/linux_arm64_digest.txt
     - docker manifest inspect ${IMAGE_NAME}:${MANIFEST_TAG} | tee dist/manifest_digest.txt
   artifacts:
     paths:
       - dist/linux_digest.txt
+      - dist/linux_arm64_digest.txt
       - dist/manifest_digest.txt
 
 build-push-windows-image:
@@ -477,7 +479,7 @@ build-push-windows-image:
       }
       $SMART_AGENT_RELEASE = $((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v"))
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg SMART_AGENT_RELEASE=${SMART_AGENT_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 --build-arg SMART_AGENT_RELEASE=${SMART_AGENT_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
       docker push ${IMAGE_NAME}:${IMAGE_TAG}
       if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
@@ -492,6 +494,46 @@ build-push-windows-image:
   artifacts:
     paths:
       - dist/windows_digest.txt
+
+build-push-windows2022-image:
+  extends: .trigger-filter
+  stage: release
+  dependencies:
+    - sign-exe
+  tags:
+    - windows
+  retry: 2
+  before_script:
+    - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
+    - Copy-Item .\dist\signed\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
+  script:
+    - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
+    - |
+      $ErrorActionPreference = 'Stop'
+      if ($env:CI_COMMIT_TAG) {
+        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows"
+        $IMAGE_TAG = "${env:CI_COMMIT_TAG.TrimStart("v")}-2022"
+      } else {
+        $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows-dev"
+        $IMAGE_TAG = "${env:CI_COMMIT_SHA}-2022"
+      }
+      $SMART_AGENT_RELEASE = $((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v"))
+      echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
+      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg SMART_AGENT_RELEASE=${SMART_AGENT_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+      echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
+      docker push ${IMAGE_NAME}:${IMAGE_TAG}
+      if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
+        # only push latest tag for main and stable releases
+        echo "Tagging and pushing ${IMAGE_NAME}:latest"
+        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+        docker push ${IMAGE_NAME}:latest
+      }
+    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_2022_digest.txt
+  after_script:
+    - docker image prune --all --force
+  artifacts:
+    paths:
+      - dist/windows_2022_digest.txt
 
 release-debs:
   extends:
@@ -638,6 +680,7 @@ github-release:
     - sign-tar
     - push-linux-image
     - build-push-windows-image
+    - build-push-windows2022-image
     - choco-release
   script:
     - mkdir -p dist/assets

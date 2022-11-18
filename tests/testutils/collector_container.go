@@ -122,7 +122,11 @@ func (collector CollectorContainer) Build() (Collector, error) {
 	}
 	collector.Container = collector.Container.WithContextArchive(
 		collector.contextArchive,
-	).WithNetworkMode("host")
+	)
+
+	if collector.Container.ContainerNetworkMode == "" {
+		collector.Container = collector.Container.WithNetworkMode("host")
+	}
 
 	collector.Container = collector.Container.WithExposedPorts(collector.Ports...)
 

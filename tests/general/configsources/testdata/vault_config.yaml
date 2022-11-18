@@ -1,0 +1,32 @@
+config_sources:
+  vault:
+    endpoint: http://vault:8200
+    path: secret/data/kv
+    auth:
+      token: token
+    poll_interval: 2s
+
+receivers:
+  otlp/noop:
+    protocols:
+      http:
+
+exporters:
+  logging/noop:
+
+processors:
+  resource:
+    attributes:
+      - key: expands-vault-path-value
+        value: ${vault:data.k0}
+        action: insert
+      - key: also-expands-vault-path-value
+        value: ${vault:data.k1}
+        action: insert
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp/noop]
+      processors: [resource]
+      exporters: [logging/noop]

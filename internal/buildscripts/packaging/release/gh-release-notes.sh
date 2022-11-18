@@ -25,7 +25,7 @@ SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 REPO_DIR="$( cd "$SCRIPT_DIR"/../../../../ && pwd )"
 
 VERSION="$1"
-LINUX_DIGEST="${2:-${REPO_DIR}/dist/linux_digest.txt}"
+LINUX_AMD64_DIGEST="${2:-${REPO_DIR}/dist/linux_amd64_digest.txt}"
 LINUX_ARM64_DIGEST="${2:-${REPO_DIR}/dist/linux_arm64_digest.txt}"
 WINDOWS_DIGEST="${3:-${REPO_DIR}/dist/windows_digest.txt}"
 WINDOWS_2022_DIGEST="${3:-${REPO_DIR}/dist/windows_2022_digest.txt}"
@@ -38,7 +38,7 @@ if [[ -z "$changes" ]] || [[ "$changes" =~ ^[[:space:]]+$ ]]; then
     exit 1
 fi
 
-linux_digest="$( get_digest "$LINUX_DIGEST" )"
+linux_amd64_digest="$( get_digest "$LINUX_AMD64_DIGEST" )"
 linux_arm64_digest="$( get_digest "$LINUX_ARM64_DIGEST" )"
 
 windows_digest="$( get_digest "$WINDOWS_DIGEST" )"
@@ -47,7 +47,7 @@ windows_2022_digest="$( get_digest "$WINDOWS_2022_DIGEST" )"
 changes="""$changes
 
 > Docker Images:
-> - \`quay.io/signalfx/splunk-otel-collector:${VERSION#v}\` (digest: \`$linux_digest\`)
+> - \`quay.io/signalfx/splunk-otel-collector:${VERSION#v}-amd64\` (digest: \`$linux_amd64_digest\`)
 > - \`quay.io/signalfx/splunk-otel-collector:${VERSION#v}-arm64\` (digest: \`$linux_arm64_digest\`)
 > - \`quay.io/signalfx/splunk-otel-collector-windows:${VERSION#v}\` (digest: \`$windows_digest\`)
 > - \`quay.io/signalfx/splunk-otel-collector-windows:${VERSION#v}-2022\` (digest: \`$windows_2022_digest\`)

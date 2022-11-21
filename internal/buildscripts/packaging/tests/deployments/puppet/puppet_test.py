@@ -79,8 +79,6 @@ def verify_env_file(container):
 def skip_if_necessary(distro, puppet_release):
     if distro == "ubuntu-focal":
         pytest.skip("requires https://github.com/puppetlabs/puppetlabs-release/issues/271 to be resolved")
-    if "jessie" in distro and puppet_release != "6":
-        pytest.skip(f"Puppet release version {puppet_release} not supported on debian jessie")
 
 
 @pytest.mark.puppet

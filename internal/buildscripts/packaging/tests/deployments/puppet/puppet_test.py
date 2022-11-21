@@ -33,7 +33,6 @@ from tests.helpers.util import (
     SERVICE_OWNER,
 )
 
-
 IMAGES_DIR = Path(__file__).parent.resolve() / "images"
 DEB_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "deb" / "Dockerfile.*"))]
 RPM_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "rpm" / "Dockerfile.*"))]
@@ -77,17 +76,22 @@ def verify_env_file(container):
     run_container_cmd(container, f"grep '^SPLUNK_TRACE_URL={SPLUNK_INGEST_URL}/v2/trace$' {SPLUNK_ENV_PATH}")
 
 
+def skip_if_necessary(distro, puppet_release):
+    if distro == "ubuntu-focal":
+        pytest.skip("requires https://github.com/puppetlabs/puppetlabs-release/issues/271 to be resolved")
+    if "jessie" in distro and puppet_release != "6":
+        pytest.skip(f"Puppet release version {puppet_release} not supported on debian jessie")
+
+
 @pytest.mark.puppet
 @pytest.mark.parametrize(
     "distro",
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
-    )
+)
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
 def test_puppet_with_fluentd(distro, puppet_release):
-    if "jessie" in distro and puppet_release != "6":
-        pytest.skip(f"Puppet release version {puppet_release} not supported on debian jessie")
-
+    skip_if_necessary(distro, puppet_release)
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:
@@ -120,12 +124,10 @@ def test_puppet_with_fluentd(distro, puppet_release):
     "distro",
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
-    )
+)
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
 def test_puppet_without_fluentd(distro, puppet_release):
-    if "jessie" in distro and puppet_release != "6":
-        pytest.skip(f"Puppet release version {puppet_release} not supported on debian jessie")
-
+    skip_if_necessary(distro, puppet_release)
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:
@@ -183,12 +185,10 @@ def verify_instrumentation_config(container):
     "distro",
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
-    )
+)
 @pytest.mark.parametrize("puppet_release", PUPPET_RELEASE)
 def test_puppet_with_instrumentation(distro, puppet_release):
-    if "jessie" in distro and puppet_release != "6":
-        pytest.skip(f"Puppet release version {puppet_release} not supported on debian jessie")
-
+    skip_if_necessary(distro, puppet_release)
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:

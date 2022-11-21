@@ -37,10 +37,10 @@ import (
 type CollectorBuilder func(Collector) Collector
 
 // A Testcase is a central helper utility to provide Container, OTLPReceiverSink, ResourceMetrics,
-// SplunkOtelCollector, and ObservedLogs to integration tests with minimal boilerplate.  It also embeds *testing.T
+// SplunkOtelCollector, and ObservedLogs to integration tests with minimal boilerplate.  It also embeds testing.TB
 // for easy testing and testify usage.
 type Testcase struct {
-	*testing.T
+	testing.TB
 	Logger           *zap.Logger
 	ObservedLogs     *observer.ObservedLogs
 	OTLPReceiverSink *OTLPReceiverSink
@@ -50,8 +50,8 @@ type Testcase struct {
 
 // NewTestcase is the recommended constructor that will automatically configure an OTLPReceiverSink
 // with available endpoint and ObservedLogs.
-func NewTestcase(t *testing.T) *Testcase {
-	tc := Testcase{T: t}
+func NewTestcase(t testing.TB) *Testcase {
+	tc := Testcase{TB: t}
 	var logCore zapcore.Core
 	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
 	tc.Logger = zap.New(logCore)
@@ -217,7 +217,7 @@ func (t *Testcase) ShutdownOTLPReceiverSink() {
 // ResourceLogs and Collector Config filenames and a slice of Container builders, AssertAllLogsReceived
 // creates a Testcase, builds and starts all Container and CollectorProcess instances, and asserts that all
 // expected ResourceLogs are received before running validated cleanup functionality.
-func AssertAllLogsReceived(t *testing.T, resourceLogsFilename, collectorConfigFilename string, containers []Container) {
+func AssertAllLogsReceived(t testing.TB, resourceLogsFilename, collectorConfigFilename string, containers []Container) {
 	tc := NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
@@ -237,7 +237,7 @@ func AssertAllLogsReceived(t *testing.T, resourceLogsFilename, collectorConfigFi
 // ResourceMetrics and Collector Config filenames and a slice of Container builders, AssertAllMetricsReceived
 // creates a Testcase, builds and starts all Container and CollectorProcess instances, and asserts that all
 // expected ResourceMetrics are received before running validated cleanup functionality.
-func AssertAllMetricsReceived(t *testing.T, resourceMetricsFilename, collectorConfigFilename string, containers []Container) {
+func AssertAllMetricsReceived(t testing.TB, resourceMetricsFilename, collectorConfigFilename string, containers []Container) {
 	tc := NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()

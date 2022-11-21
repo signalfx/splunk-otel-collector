@@ -31,7 +31,7 @@ import (
 )
 
 func TestDefaultContainerConfigRequiresEnvVars(t *testing.T) {
-	image := (&testutils.Testcase{T: t}).SkipIfNotContainer()
+	image := testutils.NewTestcase(t).SkipIfNotContainer()
 
 	tests := []struct {
 		name    string

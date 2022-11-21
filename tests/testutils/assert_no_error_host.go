@@ -26,7 +26,7 @@ import (
 // there were no errors.
 type assertNoErrorHost struct {
 	component.Host
-	t *testing.T
+	t testing.TB
 }
 
 var _ component.Host = (*assertNoErrorHost)(nil)
@@ -34,7 +34,7 @@ var _ component.Host = (*assertNoErrorHost)(nil)
 // NewAssertNoErrorHost returns a new instance of a component.Host. This instance
 // asserts if an error is received.
 // TODO: Remove this code when equivalent is available from OpenTelemetry Collector repo.
-func NewAssertNoErrorHost(t *testing.T) component.Host {
+func NewAssertNoErrorHost(t testing.TB) component.Host {
 	return &assertNoErrorHost{
 		componenttest.NewNopHost(),
 		t,

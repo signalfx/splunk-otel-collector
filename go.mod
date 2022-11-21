@@ -53,6 +53,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.64.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.64.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8seventsreceiver v0.64.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver v0.64.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkametricsreceiver v0.64.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.64.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.64.0
@@ -83,7 +84,7 @@ require (
 	go.etcd.io/bbolt v1.3.6
 	go.etcd.io/etcd/client/v2 v2.305.5
 	go.opentelemetry.io/collector v0.64.1
-	go.opentelemetry.io/collector/exporter/loggingexporter v0.63.0
+	go.opentelemetry.io/collector/exporter/loggingexporter v0.64.1
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.64.1
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.63.0
 	go.opentelemetry.io/collector/extension/ballastextension v0.64.0
@@ -345,7 +346,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/signalfx v0.64.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.64.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/winperfcounters v0.64.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sobjectsreceiver v0.64.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect
 	github.com/opencontainers/runc v1.1.4 // indirect

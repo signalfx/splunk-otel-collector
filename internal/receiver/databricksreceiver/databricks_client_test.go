@@ -22,30 +22,17 @@ import (
 )
 
 func TestDatabricksClient(t *testing.T) {
-	const ignored = 25
-	c := newDatabricksClient(&testdataClient{}, ignored)
-	jobs, err := c.jobs()
+	u := databricksClient{&testdataDBRawClient{}}
+	list, err := u.jobsList(25, 0)
 	require.NoError(t, err)
-	assert.Equal(t, 6, len(jobs))
-	active, err := c.activeJobRuns()
+	assert.Equal(t, 2, len(list.Jobs))
+	activeRuns, err := u.activeJobRuns(25, 0)
 	require.NoError(t, err)
-	assert.Equal(t, 2, len(active))
-	completed, err := c.completedJobRuns(288, -1)
+	assert.Equal(t, 2, len(activeRuns.Runs))
+	completedRuns, err := u.completedJobRuns(288, 25, 0)
 	require.NoError(t, err)
-	assert.Equal(t, 98, len(completed))
-}
-
-func TestDatabricksClient_CompletedRuns(t *testing.T) {
-	const ignored = 25
-	c := newDatabricksClient(&testdataClient{}, ignored)
-
-	// 1642777677522 is from completed-job-runs-0-0.json
-	runs, err := c.completedJobRuns(288, 1642777677522)
+	assert.Equal(t, "SUCCESS", completedRuns.Runs[0].State.ResultState)
+	cl, err := u.clusterList()
 	require.NoError(t, err)
-	assert.Equal(t, 30, len(runs))
-
-	// 1642775877669 is from completed-job-runs-1-1.json
-	runs, err = c.completedJobRuns(288, 1642775877669)
-	require.NoError(t, err)
-	assert.Equal(t, 67, len(runs))
+	assert.Equal(t, 2, len(cl.Clusters))
 }

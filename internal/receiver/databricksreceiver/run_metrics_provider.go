@@ -17,7 +17,7 @@ package databricksreceiver
 import (
 	"fmt"
 
-	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
@@ -25,22 +25,20 @@ import (
 // runMetricsProvider provides metrics for job and task runs. It uses a
 // runTracker to extract just the new runs returned from the API.
 type runMetricsProvider struct {
-	tracker  *runTracker
-	dbClient databricksClientInterface
+	tracker *runTracker
+	dbsvc   databricksService
 }
 
-func newRunMetricsProvider(dbClient databricksClientInterface) runMetricsProvider {
+func newRunMetricsProvider(dbsvc databricksService) runMetricsProvider {
 	return runMetricsProvider{
-		tracker:  newRunTracker(),
-		dbClient: dbClient,
+		tracker: newRunTracker(),
+		dbsvc:   dbsvc,
 	}
 }
 
-func (p runMetricsProvider) addMultiJobRunMetrics(ms pmetric.MetricSlice, jobIDs []int) error {
-	jobPts := initGauge(ms, metadata.M.DatabricksJobsRunDuration)
-	taskPts := initGauge(ms, metadata.M.DatabricksTasksRunDuration)
+func (p runMetricsProvider) addMultiJobRunMetrics(jobIDs []int, builder *metadata.MetricsBuilder, ts pcommon.Timestamp) error {
 	for _, jobID := range jobIDs {
-		err := p.addSingleJobRunMetrics(jobPts, taskPts, jobID)
+		err := p.addSingleJobRunMetrics(jobID, builder, ts)
 		if err != nil {
 			return fmt.Errorf("runMetricsProvider.addMultiJobRunMetrics(): aborting: %w", err)
 		}
@@ -48,13 +46,9 @@ func (p runMetricsProvider) addMultiJobRunMetrics(ms pmetric.MetricSlice, jobIDs
 	return nil
 }
 
-func (p runMetricsProvider) addSingleJobRunMetrics(
-	jobPts pmetric.NumberDataPointSlice,
-	taskPts pmetric.NumberDataPointSlice,
-	jobID int,
-) error {
+func (p runMetricsProvider) addSingleJobRunMetrics(jobID int, builder *metadata.MetricsBuilder, ts pcommon.Timestamp) error {
 	startTime := p.tracker.getPrevStartTime(jobID)
-	runs, err := p.dbClient.completedJobRuns(jobID, startTime)
+	runs, err := p.dbsvc.completedJobRuns(jobID, startTime)
 	if err != nil {
 		return fmt.Errorf("runMetricsProvider.addSingleJobRunMetrics(): %w", err)
 	}
@@ -64,15 +58,9 @@ func (p runMetricsProvider) addSingleJobRunMetrics(
 		if run.State.LifeCycleState == "SKIPPED" {
 			continue
 		}
-		jobPt := jobPts.AppendEmpty()
-		jobPt.SetIntValue(int64(run.ExecutionDuration))
-		jobPt.Attributes().PutInt(metadata.Attributes.JobID, int64(jobID))
+		builder.RecordDatabricksJobsRunDurationDataPoint(ts, int64(run.ExecutionDuration), int64(jobID))
 		for _, task := range run.Tasks {
-			taskPt := taskPts.AppendEmpty()
-			taskPt.SetIntValue(int64(task.ExecutionDuration))
-			taskAttrs := taskPt.Attributes()
-			taskAttrs.PutInt(metadata.Attributes.JobID, int64(jobID))
-			taskAttrs.PutStr(metadata.Attributes.TaskID, task.TaskKey)
+			builder.RecordDatabricksTasksRunDurationDataPoint(ts, int64(task.ExecutionDuration), int64(jobID), task.TaskKey)
 		}
 	}
 	return nil

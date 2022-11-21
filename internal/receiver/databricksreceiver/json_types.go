@@ -14,9 +14,10 @@
 
 package databricksreceiver
 
-// This file contains structs into which responses from the databricks API are
-// unmarshalled. There are two top-level types: jobsList and jobRuns.
-// Reference: https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/jobs
+import "time"
+
+// This file defines types into which JSON responses from the Databricks and
+// Spark APIs are unmarshalled.
 
 // jobsList is a top level type
 type jobsList struct {
@@ -152,4 +153,69 @@ type state struct {
 	StateMessage            string `json:"state_message"`
 	ResultState             string `json:"result_state,omitempty"`
 	UserCancelledOrTimedout bool   `json:"user_cancelled_or_timedout"`
+}
+
+// clusterList is a top-level type
+type clusterList struct {
+	Clusters []cluster `json:"clusters"`
+}
+
+type cluster struct {
+	ClusterID   string `json:"cluster_id"`
+	ClusterName string `json:"cluster_name"`
+	State       string `json:"state"`
+}
+
+// pipelinesInfo is a top-level type
+type pipelinesInfo struct {
+	Statuses []struct {
+		PipelineID      string `json:"pipeline_id"`
+		State           string `json:"state"`
+		Name            string `json:"name"`
+		CreatorUserName string `json:"creator_user_name"`
+		RunAsUserName   string `json:"run_as_user_name"`
+		LatestUpdates   []struct {
+			CreationTime time.Time `json:"creation_time"`
+			UpdateID     string    `json:"update_id"`
+			State        string    `json:"state"`
+		} `json:"latest_updates"`
+	} `json:"statuses"`
+}
+
+type pipelineInfo struct {
+	Spec struct {
+		ID       string `json:"id"`
+		Name     string `json:"name"`
+		Storage  string `json:"storage"`
+		Clusters []struct {
+			Label     string `json:"label"`
+			Autoscale struct {
+				MinWorkers int    `json:"min_workers"`
+				MaxWorkers int    `json:"max_workers"`
+				Mode       string `json:"mode"`
+			} `json:"autoscale"`
+		} `json:"clusters"`
+		Libraries []struct {
+			Notebook struct {
+				Path string `json:"path"`
+			} `json:"notebook"`
+		} `json:"libraries"`
+		Continuous  bool   `json:"continuous"`
+		Development bool   `json:"development"`
+		Photon      bool   `json:"photon"`
+		Edition     string `json:"edition"`
+		Channel     string `json:"channel"`
+	} `json:"spec"`
+	PipelineID      string `json:"pipeline_id"`
+	State           string `json:"state"`
+	ClusterID       string `json:"cluster_id"`
+	Name            string `json:"name"`
+	CreatorUserName string `json:"creator_user_name"`
+	RunAsUserName   string `json:"run_as_user_name"`
+	LatestUpdates   []struct {
+		UpdateID     string    `json:"update_id"`
+		State        string    `json:"state"`
+		CreationTime time.Time `json:"creation_time"`
+	} `json:"latest_updates"`
+	LastModified int64 `json:"last_modified"`
 }

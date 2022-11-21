@@ -14,70 +14,74 @@
 
 package databricksreceiver
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
-// databricksClientInterface is extracted from databricksClient for swapping out in unit tests
-type databricksClientInterface interface {
-	jobs() (out []job, err error)
-	activeJobRuns() (out []jobRun, err error)
-	completedJobRuns(jobID int, time int64) (out []jobRun, err error)
-}
-
-// databricksClient handles pagination (responses specify hasMore=true/false) and
-// combines the returned objects into one array.
+// databricksClient wraps a databricksRawClient implementation and unmarshals json byte
+// arrays to the types defined in json_types.go. Its method signatures mirror
+// those of the rawClient.
 type databricksClient struct {
-	unmarshaller unmarshaller
-	limit        int
+	rawClient databricksRawClient
 }
 
-func newDatabricksClient(api apiClientInterface, limit int) databricksClient {
-	return databricksClient{
-		unmarshaller: unmarshaller{api: api},
-		limit:        limit,
+func (c databricksClient) jobsList(limit int, offset int) (jobsList, error) {
+	bytes, err := c.rawClient.jobsList(limit, offset)
+	out := jobsList{}
+	if err != nil {
+		return out, fmt.Errorf("databricksClient.jobsList(): %w", err)
 	}
+	err = json.Unmarshal(bytes, &out)
+	return out, err
 }
 
-func (c databricksClient) jobs() (out []job, err error) {
-	hasMore := true
-	for i := 0; hasMore; i++ {
-		resp, err := c.unmarshaller.jobsList(c.limit, c.limit*i)
-		if err != nil {
-			return nil, fmt.Errorf("databricksClient.jobs(): %w", err)
-		}
-		out = append(out, resp.Jobs...)
-		hasMore = resp.HasMore
+func (c databricksClient) activeJobRuns(limit int, offset int) (jobRuns, error) {
+	bytes, err := c.rawClient.activeJobRuns(limit, offset)
+	out := jobRuns{}
+	if err != nil {
+		return out, fmt.Errorf("databricksClient.activeJobRuns(): %w", err)
 	}
-	return out, nil
+	err = json.Unmarshal(bytes, &out)
+	return out, err
 }
 
-func (c databricksClient) activeJobRuns() (out []jobRun, err error) {
-	hasMore := true
-	for i := 0; hasMore; i++ {
-		resp, err := c.unmarshaller.activeJobRuns(c.limit, c.limit*i)
-		if err != nil {
-			return nil, fmt.Errorf("databricksClient.activeJobRuns(): %w", err)
-		}
-		out = append(out, resp.Runs...)
-		hasMore = resp.HasMore
+func (c databricksClient) completedJobRuns(jobID int, limit int, offset int) (jobRuns, error) {
+	bytes, err := c.rawClient.completedJobRuns(jobID, limit, offset)
+	out := jobRuns{}
+	if err != nil {
+		return out, fmt.Errorf("databricksClient.completedJobRuns(): %w", err)
 	}
-	return out, nil
+	err = json.Unmarshal(bytes, &out)
+	return out, err
 }
 
-func (c databricksClient) completedJobRuns(jobID int, prevStartTime int64) (out []jobRun, err error) {
-	hasMore := true
-	for i := 0; hasMore; i++ {
-		resp, err := c.unmarshaller.completedJobRuns(jobID, c.limit, c.limit*i)
-		if err != nil {
-			return nil, fmt.Errorf("databricksClient.completedJobRuns(): %w", err)
-		}
-		out = append(out, resp.Runs...)
-		if prevStartTime == 0 || resp.Runs == nil || resp.Runs[len(resp.Runs)-1].StartTime < prevStartTime {
-			// Don't do another api request if this is the first time through (time == 0) or
-			// if the bottom/earliest run in the response is older than our previous startTime
-			// for this job id.
-			break
-		}
-		hasMore = resp.HasMore
+func (c databricksClient) clusterList() (clusterList, error) {
+	bytes, err := c.rawClient.clustersList()
+	out := clusterList{}
+	if err != nil {
+		return out, fmt.Errorf("databricksClient.clusterList(): %w", err)
 	}
-	return out, nil
+	err = json.Unmarshal(bytes, &out)
+	return out, err
+}
+
+func (c databricksClient) pipelines() (pipelinesInfo, error) {
+	bytes, err := c.rawClient.pipelines()
+	out := pipelinesInfo{}
+	if err != nil {
+		return out, fmt.Errorf("databricksClient.pipelines(): %w", err)
+	}
+	err = json.Unmarshal(bytes, &out)
+	return out, err
+}
+
+func (c databricksClient) pipeline(id string) (pipelineInfo, error) {
+	bytes, err := c.rawClient.pipeline(id)
+	out := pipelineInfo{}
+	if err != nil {
+		return out, fmt.Errorf("databricksClient.pipeline(): %w", err)
+	}
+	err = json.Unmarshal(bytes, &out)
+	return out, err
 }

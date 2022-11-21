@@ -20,20 +20,39 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
 
 func TestMetricsProvider_Scrape(t *testing.T) {
-	const ignored = 25
-	c := newDatabricksClient(&testdataClient{}, ignored)
+	dbsvc := newDatabricksService(&testdataDBClient{}, 25)
+	ssvc := newTestSparkService()
 	scrpr := scraper{
-		instanceName: "my-instance",
-		mp:           newMetricsProvider(c),
-		rmp:          newRunMetricsProvider(c),
+		logger:      zap.NewNop(),
+		resourceOpt: metadata.WithDatabricksInstanceName("my-instance"),
+		builder:     newTestMetricsBuilder(),
+		rmp:         newRunMetricsProvider(dbsvc),
+		dbmp: dbMetricsProvider{
+			dbsvc: dbsvc,
+		},
+		scmb: sparkCoreMetricsBuilder{
+			ssvc: ssvc,
+		},
+		semb: sparkMetricsBuilder{
+			ssvc: ssvc,
+		},
 	}
 	metrics, err := scrpr.scrape(context.Background())
 	require.NoError(t, err)
-	assert.Equal(t, 6, metrics.MetricCount())
-	attrs := metrics.ResourceMetrics().At(0).Resource().Attributes()
+	assert.Equal(t, 122, metrics.MetricCount())
+	rms := metrics.ResourceMetrics().At(0)
+	attrs := rms.Resource().Attributes()
 	v, _ := attrs.Get("databricks.instance.name")
 	assert.Equal(t, "my-instance", v.Str())
+	metricMap := metricsByName(rms.ScopeMetrics().At(0).Metrics())
+	histoMetricName := "databricks.spark.codegenerator.compilationtime"
+	metric := metricMap[histoMetricName]
+	// spot check that a histogram made it through
+	assert.Equal(t, histoMetricName, metric.Name())
 }

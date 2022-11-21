@@ -15,37 +15,61 @@
 package databricksreceiver
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/handlertest"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/httpauth"
 )
 
-func TestDatabricksClient(t *testing.T) {
-	const ignored = 25
-	c := newDatabricksClient(&testdataClient{}, ignored)
-	jobs, err := c.jobs()
-	require.NoError(t, err)
-	assert.Equal(t, 6, len(jobs))
-	active, err := c.activeJobRuns()
-	require.NoError(t, err)
-	assert.Equal(t, 2, len(active))
-	completed, err := c.completedJobRuns(288, -1)
-	require.NoError(t, err)
-	assert.Equal(t, 98, len(completed))
+func TestAPIClient(t *testing.T) {
+	h := &handlertest.FakeHandler{}
+	svr := httptest.NewServer(h)
+	defer svr.Close()
+	c := databricksClient{
+		authClient: httpauth.NewClient(http.DefaultClient, svr.URL, "abc123"),
+		logger:     zap.NewNop(),
+	}
+	_, _ = c.jobsList(2, 3)
+	path := "/api/2.1/jobs/list?expand_tasks=true&limit=2&offset=3"
+	assert.Equal(t, path, h.Reqs[0].RequestURI)
+	_, _ = c.activeJobRuns(2, 3)
+	path = "/api/2.1/jobs/runs/list?active_only=true&limit=2&offset=3"
+	assert.Equal(t, path, h.Reqs[1].RequestURI)
+	_, _ = c.completedJobRuns(42, 2, 3)
+	path = "/api/2.1/jobs/runs/list?completed_only=true&expand_tasks=true&job_id=42&limit=2&offset=3"
+	assert.Equal(t, path, h.Reqs[2].RequestURI)
 }
 
-func TestDatabricksClient_CompletedRuns(t *testing.T) {
-	const ignored = 25
-	c := newDatabricksClient(&testdataClient{}, ignored)
+// testdataDBClient implements databricksClientIntf but is backed by json files in testdata.
+type testdataDBClient struct {
+	i int
+}
 
-	// 1642777677522 is from completed-job-runs-0-0.json
-	runs, err := c.completedJobRuns(288, 1642777677522)
-	require.NoError(t, err)
-	assert.Equal(t, 30, len(runs))
+func (*testdataDBClient) jobsList(limit int, offset int) ([]byte, error) {
+	return os.ReadFile(fmt.Sprintf("testdata/jobs-list-%d.json", offset/limit))
+}
 
-	// 1642775877669 is from completed-job-runs-1-1.json
-	runs, err = c.completedJobRuns(288, 1642775877669)
-	require.NoError(t, err)
-	assert.Equal(t, 67, len(runs))
+func (*testdataDBClient) activeJobRuns(limit int, offset int) ([]byte, error) {
+	return os.ReadFile(fmt.Sprintf("testdata/active-job-runs-%d.json", offset/limit))
+}
+
+func (c *testdataDBClient) completedJobRuns(jobID int, limit int, offset int) ([]byte, error) {
+	if jobID != 288 {
+		return []byte("{}"), nil
+	}
+	if offset == 0 {
+		c.i++
+	}
+	return os.ReadFile(fmt.Sprintf("testdata/completed-job-runs-%d-%d.json", c.i-1, offset/limit))
+}
+
+func (c *testdataDBClient) clustersList() ([]byte, error) {
+	return os.ReadFile("testdata/clusters-list.json")
 }

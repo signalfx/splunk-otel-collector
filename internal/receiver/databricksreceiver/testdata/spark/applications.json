@@ -1,0 +1,16 @@
+[ {
+  "id" : "local-1671563084457",
+  "name" : "Databricks Shell",
+  "attempts" : [ {
+    "startTime" : "2022-12-20T19:04:41.611GMT",
+    "endTime" : "1969-12-31T23:59:59.999GMT",
+    "lastUpdated" : "2022-12-20T19:04:41.611GMT",
+    "duration" : 0,
+    "sparkUser" : "root",
+    "completed" : false,
+    "appSparkVersion" : "3.3.1",
+    "endTimeEpoch" : -1,
+    "startTimeEpoch" : 1671563081611,
+    "lastUpdatedEpoch" : 1671563081611
+  } ]
+} ]

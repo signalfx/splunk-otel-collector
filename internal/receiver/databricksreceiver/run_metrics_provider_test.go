@@ -19,49 +19,57 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 func TestRunMetricProvider(t *testing.T) {
 	p := newRunMetricsProvider(&fakeCompletedJobRunClient{})
-	jobPts := pmetric.NewNumberDataPointSlice()
-	err := p.addSingleJobRunMetrics(jobPts, pmetric.NewNumberDataPointSlice(), 42)
+	builder := newTestMetricsBuilder()
+	err := p.addSingleJobRunMetrics(42, builder, 0)
 	require.NoError(t, err)
-	assert.Equal(t, 0, jobPts.Len())
+	emitted := builder.Emit()
+	assert.Equal(t, 0, emitted.MetricCount())
+	assert.Equal(t, 0, emitted.DataPointCount())
 
-	jobPts = pmetric.NewNumberDataPointSlice()
-	err = p.addSingleJobRunMetrics(jobPts, pmetric.NewNumberDataPointSlice(), 42)
+	err = p.addSingleJobRunMetrics(42, builder, 0)
 	require.NoError(t, err)
-	assert.Equal(t, 1, jobPts.Len())
-	pt := jobPts.At(0)
-	assert.EqualValues(t, 16000, pt.IntValue())
+	emitted = builder.Emit()
+	assert.Equal(t, 1, emitted.MetricCount())
+	assert.Equal(t, 1, emitted.DataPointCount())
+	metric := emitted.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics().At(0)
+	assert.EqualValues(t, 16000, metric.Gauge().DataPoints().At(0).IntValue())
 }
 
 func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	const ignored = 25
-	mp := newRunMetricsProvider(newDatabricksClient(&testdataClient{}, ignored))
-	ms := pmetric.NewMetricSlice()
-	err := mp.addMultiJobRunMetrics(ms, []int{288})
+	mp := newRunMetricsProvider(newDatabricksService(&testdataDBClient{}, ignored))
+	// ms := pmetric.NewMetricSlice()
+	builder := newTestMetricsBuilder()
+	err := mp.addMultiJobRunMetrics([]int{288}, builder, 0)
 	require.NoError(t, err)
-	jobMetric := ms.At(0)
-	assert.Equal(t, 0, jobMetric.Gauge().DataPoints().Len())
-	taskMetric := ms.At(1)
-	assert.Equal(t, 0, taskMetric.Gauge().DataPoints().Len())
 
-	ms = pmetric.NewMetricSlice()
-	err = mp.addMultiJobRunMetrics(ms, []int{288})
+	emitted := builder.Emit()
+	assert.Equal(t, 0, emitted.MetricCount())
+	assert.Equal(t, 0, emitted.DataPointCount())
+
+	err = mp.addMultiJobRunMetrics([]int{288}, builder, 0)
 	require.NoError(t, err)
-	jobMetric = ms.At(0)
+	emitted = builder.Emit()
+	assert.Equal(t, 2, emitted.MetricCount())
+	assert.Equal(t, 2, emitted.DataPointCount())
+
+	ms := emitted.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
+	metricMap := metricsByName(ms)
+
+	jobMetric := metricMap["databricks.jobs.run.duration"]
 	assert.Equal(t, 1, jobMetric.Gauge().DataPoints().Len())
-	taskMetric = ms.At(1)
-	assert.Equal(t, 1, taskMetric.Gauge().DataPoints().Len())
-
 	jobPt := jobMetric.Gauge().DataPoints().At(0)
 	jobAttrs := jobPt.Attributes()
 	jobID, _ := jobAttrs.Get("job_id")
 	assert.EqualValues(t, 288, jobID.Int())
 	assert.EqualValues(t, 15000, jobPt.IntValue())
 
+	taskMetric := metricMap["databricks.tasks.run.duration"]
+	assert.Equal(t, 1, taskMetric.Gauge().DataPoints().Len())
 	taskPt := taskMetric.Gauge().DataPoints().At(0)
 	taskAttrs := taskPt.Attributes()
 	jobID, _ = taskAttrs.Get("job_id")
@@ -106,4 +114,8 @@ func (c *fakeCompletedJobRunClient) addCompletedRun(jobID int) {
 		ExecutionDuration: 15_000 + (1000 * c.i),
 	}}, c.runs...)
 	c.i++
+}
+
+func (c *fakeCompletedJobRunClient) runningClusters() ([]cluster, error) {
+	return nil, nil
 }

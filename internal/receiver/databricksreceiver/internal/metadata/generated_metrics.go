@@ -3,173 +3,9056 @@
 package metadata
 
 import (
+	"time"
+
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
-// Type is the component type name.
-const Type component.Type = "databricksreceiver"
+// MetricSettings provides common settings for a particular metric.
+type MetricSettings struct {
+	Enabled bool `mapstructure:"enabled"`
 
-// MetricIntf is an interface to generically interact with generated metric.
-type MetricIntf interface {
-	Name() string
-	New() pmetric.Metric
-	Init(metric pmetric.Metric)
+	enabledProvidedByUser bool
 }
 
-// Intentionally not exposing this so that it is opaque and can change freely.
-type metricImpl struct {
-	initFunc func(pmetric.Metric)
-	name     string
+// IsEnabledProvidedByUser returns true if `enabled` option is explicitly set in user settings to any value.
+func (ms *MetricSettings) IsEnabledProvidedByUser() bool {
+	return ms.enabledProvidedByUser
 }
 
-// Name returns the metric name.
-func (m *metricImpl) Name() string {
-	return m.name
+func (ms *MetricSettings) Unmarshal(parser *confmap.Conf) error {
+	if parser == nil {
+		return nil
+	}
+	err := parser.Unmarshal(ms, confmap.WithErrorUnused())
+	if err != nil {
+		return err
+	}
+	ms.enabledProvidedByUser = parser.IsSet("enabled")
+	return nil
 }
 
-// New creates a metric object preinitialized.
-func (m *metricImpl) New() pmetric.Metric {
-	metric := pmetric.NewMetric()
-	m.Init(metric)
-	return metric
+// MetricsSettings provides settings for databricksreceiver metrics.
+type MetricsSettings struct {
+	DatabricksJobsActiveTotal                                                                                              MetricSettings `mapstructure:"databricks.jobs.active.total"`
+	DatabricksJobsRunDuration                                                                                              MetricSettings `mapstructure:"databricks.jobs.run.duration"`
+	DatabricksJobsScheduleStatus                                                                                           MetricSettings `mapstructure:"databricks.jobs.schedule.status"`
+	DatabricksJobsTotal                                                                                                    MetricSettings `mapstructure:"databricks.jobs.total"`
+	DatabricksSparkBlockmanagerMemoryDiskspaceused                                                                         MetricSettings `mapstructure:"databricks.spark.blockmanager.memory.diskspaceused"`
+	DatabricksSparkBlockmanagerMemoryMaxmem                                                                                MetricSettings `mapstructure:"databricks.spark.blockmanager.memory.maxmem"`
+	DatabricksSparkBlockmanagerMemoryMaxoffheapmem                                                                         MetricSettings `mapstructure:"databricks.spark.blockmanager.memory.maxoffheapmem"`
+	DatabricksSparkBlockmanagerMemoryMaxonheapmem                                                                          MetricSettings `mapstructure:"databricks.spark.blockmanager.memory.maxonheapmem"`
+	DatabricksSparkBlockmanagerMemoryMemused                                                                               MetricSettings `mapstructure:"databricks.spark.blockmanager.memory.memused"`
+	DatabricksSparkBlockmanagerMemoryOffheapmemused                                                                        MetricSettings `mapstructure:"databricks.spark.blockmanager.memory.offheapmemused"`
+	DatabricksSparkBlockmanagerMemoryOnheapmemused                                                                         MetricSettings `mapstructure:"databricks.spark.blockmanager.memory.onheapmemused"`
+	DatabricksSparkBlockmanagerMemoryRemainingmem                                                                          MetricSettings `mapstructure:"databricks.spark.blockmanager.memory.remainingmem"`
+	DatabricksSparkBlockmanagerMemoryRemainingoffheapmem                                                                   MetricSettings `mapstructure:"databricks.spark.blockmanager.memory.remainingoffheapmem"`
+	DatabricksSparkBlockmanagerMemoryRemainingonheapmem                                                                    MetricSettings `mapstructure:"databricks.spark.blockmanager.memory.remainingonheapmem"`
+	DatabricksSparkDagschedulerJobActivejobs                                                                               MetricSettings `mapstructure:"databricks.spark.dagscheduler.job.activejobs"`
+	DatabricksSparkDagschedulerJobAlljobs                                                                                  MetricSettings `mapstructure:"databricks.spark.dagscheduler.job.alljobs"`
+	DatabricksSparkDagschedulerStageFailedstages                                                                           MetricSettings `mapstructure:"databricks.spark.dagscheduler.stage.failedstages"`
+	DatabricksSparkDagschedulerStageRunningstages                                                                          MetricSettings `mapstructure:"databricks.spark.dagscheduler.stage.runningstages"`
+	DatabricksSparkDagschedulerStageWaitingstages                                                                          MetricSettings `mapstructure:"databricks.spark.dagscheduler.stage.waitingstages"`
+	DatabricksSparkDatabricksDirectorycommitAutovacuumcount                                                                MetricSettings `mapstructure:"databricks.spark.databricks.directorycommit.autovacuumcount"`
+	DatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered                                                           MetricSettings `mapstructure:"databricks.spark.databricks.directorycommit.deletedfilesfiltered"`
+	DatabricksSparkDatabricksDirectorycommitFilterlistingcount                                                             MetricSettings `mapstructure:"databricks.spark.databricks.directorycommit.filterlistingcount"`
+	DatabricksSparkDatabricksDirectorycommitJobcommitcompleted                                                             MetricSettings `mapstructure:"databricks.spark.databricks.directorycommit.jobcommitcompleted"`
+	DatabricksSparkDatabricksDirectorycommitMarkerreaderrors                                                               MetricSettings `mapstructure:"databricks.spark.databricks.directorycommit.markerreaderrors"`
+	DatabricksSparkDatabricksDirectorycommitMarkerrefreshcount                                                             MetricSettings `mapstructure:"databricks.spark.databricks.directorycommit.markerrefreshcount"`
+	DatabricksSparkDatabricksDirectorycommitMarkerrefresherrors                                                            MetricSettings `mapstructure:"databricks.spark.databricks.directorycommit.markerrefresherrors"`
+	DatabricksSparkDatabricksDirectorycommitMarkersread                                                                    MetricSettings `mapstructure:"databricks.spark.databricks.directorycommit.markersread"`
+	DatabricksSparkDatabricksDirectorycommitRepeatedlistcount                                                              MetricSettings `mapstructure:"databricks.spark.databricks.directorycommit.repeatedlistcount"`
+	DatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered                                                       MetricSettings `mapstructure:"databricks.spark.databricks.directorycommit.uncommittedfilesfiltered"`
+	DatabricksSparkDatabricksDirectorycommitUntrackedfilesfound                                                            MetricSettings `mapstructure:"databricks.spark.databricks.directorycommit.untrackedfilesfound"`
+	DatabricksSparkDatabricksDirectorycommitVacuumcount                                                                    MetricSettings `mapstructure:"databricks.spark.databricks.directorycommit.vacuumcount"`
+	DatabricksSparkDatabricksDirectorycommitVacuumerrors                                                                   MetricSettings `mapstructure:"databricks.spark.databricks.directorycommit.vacuumerrors"`
+	DatabricksSparkDatabricksPreemptionNumchecks                                                                           MetricSettings `mapstructure:"databricks.spark.databricks.preemption.numchecks"`
+	DatabricksSparkDatabricksPreemptionNumpoolsautoexpired                                                                 MetricSettings `mapstructure:"databricks.spark.databricks.preemption.numpoolsautoexpired"`
+	DatabricksSparkDatabricksPreemptionNumtaskspreempted                                                                   MetricSettings `mapstructure:"databricks.spark.databricks.preemption.numtaskspreempted"`
+	DatabricksSparkDatabricksPreemptionPoolstarvationmillis                                                                MetricSettings `mapstructure:"databricks.spark.databricks.preemption.poolstarvationmillis"`
+	DatabricksSparkDatabricksPreemptionScheduleroverheadnanos                                                              MetricSettings `mapstructure:"databricks.spark.databricks.preemption.scheduleroverheadnanos"`
+	DatabricksSparkDatabricksPreemptionTasktimewastedmillis                                                                MetricSettings `mapstructure:"databricks.spark.databricks.preemption.tasktimewastedmillis"`
+	DatabricksSparkDatabricksTaskschedulinglanesActivepools                                                                MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.activepools"`
+	DatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools                                                      MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.bypasslaneactivepools"`
+	DatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools                                                        MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.fastlaneactivepools"`
+	DatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens                                             MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.finishedqueriestotaltasktimens"`
+	DatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools                                                     MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.lanecleanup.markedpools"`
+	DatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned                                            MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.lanecleanup.twophasepoolscleaned"`
+	DatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned                                              MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.lanecleanup.zombiepoolscleaned"`
+	DatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations                    MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.preemption.slottransfernumsuccessfulpreemptioniterations"`
+	DatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted                                    MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.preemption.slottransfernumtaskspreempted"`
+	DatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens                                     MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.preemption.slottransferwastedtasktimens"`
+	DatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease                                          MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.slotreservation.numgradualdecrease"`
+	DatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop                                                MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.slotreservation.numquickdrop"`
+	DatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump                                                MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.slotreservation.numquickjump"`
+	DatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved                                               MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.slotreservation.slotsreserved"`
+	DatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools                                                        MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.slowlaneactivepools"`
+	DatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished                                                   MetricSettings `mapstructure:"databricks.spark.databricks.taskschedulinglanes.totalquerygroupsfinished"`
+	DatabricksSparkExecutorDiskUsed                                                                                        MetricSettings `mapstructure:"databricks.spark.executor.disk_used"`
+	DatabricksSparkExecutorMaxMemory                                                                                       MetricSettings `mapstructure:"databricks.spark.executor.max_memory"`
+	DatabricksSparkExecutorMemoryUsed                                                                                      MetricSettings `mapstructure:"databricks.spark.executor.memory_used"`
+	DatabricksSparkExecutorTotalInputBytes                                                                                 MetricSettings `mapstructure:"databricks.spark.executor.total_input_bytes"`
+	DatabricksSparkExecutorTotalShuffleRead                                                                                MetricSettings `mapstructure:"databricks.spark.executor.total_shuffle_read"`
+	DatabricksSparkExecutorTotalShuffleWrite                                                                               MetricSettings `mapstructure:"databricks.spark.executor.total_shuffle_write"`
+	DatabricksSparkExecutormetricsDirectpoolmemory                                                                         MetricSettings `mapstructure:"databricks.spark.executormetrics.directpoolmemory"`
+	DatabricksSparkExecutormetricsJvmheapmemory                                                                            MetricSettings `mapstructure:"databricks.spark.executormetrics.jvmheapmemory"`
+	DatabricksSparkExecutormetricsJvmoffheapmemory                                                                         MetricSettings `mapstructure:"databricks.spark.executormetrics.jvmoffheapmemory"`
+	DatabricksSparkExecutormetricsMajorgccount                                                                             MetricSettings `mapstructure:"databricks.spark.executormetrics.majorgccount"`
+	DatabricksSparkExecutormetricsMajorgctime                                                                              MetricSettings `mapstructure:"databricks.spark.executormetrics.majorgctime"`
+	DatabricksSparkExecutormetricsMappedpoolmemory                                                                         MetricSettings `mapstructure:"databricks.spark.executormetrics.mappedpoolmemory"`
+	DatabricksSparkExecutormetricsMinorgccount                                                                             MetricSettings `mapstructure:"databricks.spark.executormetrics.minorgccount"`
+	DatabricksSparkExecutormetricsMinorgctime                                                                              MetricSettings `mapstructure:"databricks.spark.executormetrics.minorgctime"`
+	DatabricksSparkExecutormetricsOffheapexecutionmemory                                                                   MetricSettings `mapstructure:"databricks.spark.executormetrics.offheapexecutionmemory"`
+	DatabricksSparkExecutormetricsOffheapstoragememory                                                                     MetricSettings `mapstructure:"databricks.spark.executormetrics.offheapstoragememory"`
+	DatabricksSparkExecutormetricsOffheapunifiedmemory                                                                     MetricSettings `mapstructure:"databricks.spark.executormetrics.offheapunifiedmemory"`
+	DatabricksSparkExecutormetricsOnheapexecutionmemory                                                                    MetricSettings `mapstructure:"databricks.spark.executormetrics.onheapexecutionmemory"`
+	DatabricksSparkExecutormetricsOnheapstoragememory                                                                      MetricSettings `mapstructure:"databricks.spark.executormetrics.onheapstoragememory"`
+	DatabricksSparkExecutormetricsOnheapunifiedmemory                                                                      MetricSettings `mapstructure:"databricks.spark.executormetrics.onheapunifiedmemory"`
+	DatabricksSparkExecutormetricsProcesstreejvmrssmemory                                                                  MetricSettings `mapstructure:"databricks.spark.executormetrics.processtreejvmrssmemory"`
+	DatabricksSparkExecutormetricsProcesstreejvmvmemory                                                                    MetricSettings `mapstructure:"databricks.spark.executormetrics.processtreejvmvmemory"`
+	DatabricksSparkExecutormetricsProcesstreeotherrssmemory                                                                MetricSettings `mapstructure:"databricks.spark.executormetrics.processtreeotherrssmemory"`
+	DatabricksSparkExecutormetricsProcesstreeothervmemory                                                                  MetricSettings `mapstructure:"databricks.spark.executormetrics.processtreeothervmemory"`
+	DatabricksSparkExecutormetricsProcesstreepythonrssmemory                                                               MetricSettings `mapstructure:"databricks.spark.executormetrics.processtreepythonrssmemory"`
+	DatabricksSparkExecutormetricsProcesstreepythonvmemory                                                                 MetricSettings `mapstructure:"databricks.spark.executormetrics.processtreepythonvmemory"`
+	DatabricksSparkHiveexternalcatalogFilecachehits                                                                        MetricSettings `mapstructure:"databricks.spark.hiveexternalcatalog.filecachehits"`
+	DatabricksSparkHiveexternalcatalogFilesdiscovered                                                                      MetricSettings `mapstructure:"databricks.spark.hiveexternalcatalog.filesdiscovered"`
+	DatabricksSparkHiveexternalcatalogHiveclientcalls                                                                      MetricSettings `mapstructure:"databricks.spark.hiveexternalcatalog.hiveclientcalls"`
+	DatabricksSparkHiveexternalcatalogParallellistingjobcount                                                              MetricSettings `mapstructure:"databricks.spark.hiveexternalcatalog.parallellistingjobcount"`
+	DatabricksSparkHiveexternalcatalogPartitionsfetched                                                                    MetricSettings `mapstructure:"databricks.spark.hiveexternalcatalog.partitionsfetched"`
+	DatabricksSparkJobNumActiveStages                                                                                      MetricSettings `mapstructure:"databricks.spark.job.num_active_stages"`
+	DatabricksSparkJobNumActiveTasks                                                                                       MetricSettings `mapstructure:"databricks.spark.job.num_active_tasks"`
+	DatabricksSparkJobNumCompletedStages                                                                                   MetricSettings `mapstructure:"databricks.spark.job.num_completed_stages"`
+	DatabricksSparkJobNumCompletedTasks                                                                                    MetricSettings `mapstructure:"databricks.spark.job.num_completed_tasks"`
+	DatabricksSparkJobNumFailedStages                                                                                      MetricSettings `mapstructure:"databricks.spark.job.num_failed_stages"`
+	DatabricksSparkJobNumFailedTasks                                                                                       MetricSettings `mapstructure:"databricks.spark.job.num_failed_tasks"`
+	DatabricksSparkJobNumSkippedStages                                                                                     MetricSettings `mapstructure:"databricks.spark.job.num_skipped_stages"`
+	DatabricksSparkJobNumSkippedTasks                                                                                      MetricSettings `mapstructure:"databricks.spark.job.num_skipped_tasks"`
+	DatabricksSparkJobNumTasks                                                                                             MetricSettings `mapstructure:"databricks.spark.job.num_tasks"`
+	DatabricksSparkJvmcpuJvmcputime                                                                                        MetricSettings `mapstructure:"databricks.spark.jvmcpu.jvmcputime"`
+	DatabricksSparkLivelistenerbusNumeventsposted                                                                          MetricSettings `mapstructure:"databricks.spark.livelistenerbus.numeventsposted"`
+	DatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents                                                           MetricSettings `mapstructure:"databricks.spark.livelistenerbus.queue.appstatus.numdroppedevents"`
+	DatabricksSparkLivelistenerbusQueueAppstatusSize                                                                       MetricSettings `mapstructure:"databricks.spark.livelistenerbus.queue.appstatus.size"`
+	DatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents                                                  MetricSettings `mapstructure:"databricks.spark.livelistenerbus.queue.executormanagement.numdroppedevents"`
+	DatabricksSparkLivelistenerbusQueueExecutormanagementSize                                                              MetricSettings `mapstructure:"databricks.spark.livelistenerbus.queue.executormanagement.size"`
+	DatabricksSparkLivelistenerbusQueueSharedNumdroppedevents                                                              MetricSettings `mapstructure:"databricks.spark.livelistenerbus.queue.shared.numdroppedevents"`
+	DatabricksSparkLivelistenerbusQueueSharedSize                                                                          MetricSettings `mapstructure:"databricks.spark.livelistenerbus.queue.shared.size"`
+	DatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents                                                             MetricSettings `mapstructure:"databricks.spark.livelistenerbus.queue.streams.numdroppedevents"`
+	DatabricksSparkLivelistenerbusQueueStreamsSize                                                                         MetricSettings `mapstructure:"databricks.spark.livelistenerbus.queue.streams.size"`
+	DatabricksSparkSparksqloperationmanagerNumhiveoperations                                                               MetricSettings `mapstructure:"databricks.spark.sparksqloperationmanager.numhiveoperations"`
+	DatabricksSparkStageDiskBytesSpilled                                                                                   MetricSettings `mapstructure:"databricks.spark.stage.disk_bytes_spilled"`
+	DatabricksSparkStageExecutorRunTime                                                                                    MetricSettings `mapstructure:"databricks.spark.stage.executor_run_time"`
+	DatabricksSparkStageInputBytes                                                                                         MetricSettings `mapstructure:"databricks.spark.stage.input_bytes"`
+	DatabricksSparkStageInputRecords                                                                                       MetricSettings `mapstructure:"databricks.spark.stage.input_records"`
+	DatabricksSparkStageMemoryBytesSpilled                                                                                 MetricSettings `mapstructure:"databricks.spark.stage.memory_bytes_spilled"`
+	DatabricksSparkStageOutputBytes                                                                                        MetricSettings `mapstructure:"databricks.spark.stage.output_bytes"`
+	DatabricksSparkStageOutputRecords                                                                                      MetricSettings `mapstructure:"databricks.spark.stage.output_records"`
+	DatabricksSparkTimerDagschedulerMessageprocessingtimeMean                                                              MetricSettings `mapstructure:"databricks.spark.timer.dagscheduler.messageprocessingtime.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean                       MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.sqlexecution.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.streaming.streamingquerylistenerbus.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean             MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.ui.sqlappstatuslistener.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.hive.thriftserver.ui.hivethriftserver2listener.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean                                MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.sparksession.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean                    MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.util.executionlistenerbus.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean                        MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.status.appstatuslistener.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean                                MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.util.profilerenv.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean       MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dataplaneeventlistener.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean      MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dbceventlogginglistener.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean                     MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.photon.photoncleanuplistener.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean            MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.executortimelogginglistener.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean                   MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.usagelogginglistener.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean                        MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.advice.advisorlistener.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean                MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.debugger.querywatchdoglistener.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean                   MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.execution.ui.iocachelistener.mean"`
+	DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean              MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.io.caching.repeatedreadsestimator.mean"`
+	DatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean                                            MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.queue.appstatus.listenerprocessingtime.mean"`
+	DatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean                                   MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.queue.executormanagement.listenerprocessingtime.mean"`
+	DatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean                                               MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.queue.shared.listenerprocessingtime.mean"`
+	DatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean                                              MetricSettings `mapstructure:"databricks.spark.timer.livelistenerbus.queue.streams.listenerprocessingtime.mean"`
+	DatabricksTasksRunDuration                                                                                             MetricSettings `mapstructure:"databricks.tasks.run.duration"`
+	DatabricksTasksScheduleStatus                                                                                          MetricSettings `mapstructure:"databricks.tasks.schedule.status"`
 }
 
-// Init initializes the provided metric object.
-func (m *metricImpl) Init(metric pmetric.Metric) {
-	m.initFunc(metric)
-}
-
-type metricStruct struct {
-	DatabricksJobsActiveTotal     MetricIntf
-	DatabricksJobsRunDuration     MetricIntf
-	DatabricksJobsScheduleStatus  MetricIntf
-	DatabricksJobsTotal           MetricIntf
-	DatabricksTasksRunDuration    MetricIntf
-	DatabricksTasksScheduleStatus MetricIntf
-}
-
-// Names returns a list of all the metric name strings.
-func (m *metricStruct) Names() []string {
-	return []string{
-		"databricks.jobs.active.total",
-		"databricks.jobs.run.duration",
-		"databricks.jobs.schedule.status",
-		"databricks.jobs.total",
-		"databricks.tasks.run.duration",
-		"databricks.tasks.schedule.status",
+func DefaultMetricsSettings() MetricsSettings {
+	return MetricsSettings{
+		DatabricksJobsActiveTotal: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksJobsRunDuration: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksJobsScheduleStatus: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksJobsTotal: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkBlockmanagerMemoryDiskspaceused: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkBlockmanagerMemoryMaxmem: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkBlockmanagerMemoryMaxoffheapmem: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkBlockmanagerMemoryMaxonheapmem: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkBlockmanagerMemoryMemused: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkBlockmanagerMemoryOffheapmemused: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkBlockmanagerMemoryOnheapmemused: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkBlockmanagerMemoryRemainingmem: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkBlockmanagerMemoryRemainingoffheapmem: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkBlockmanagerMemoryRemainingonheapmem: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDagschedulerJobActivejobs: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDagschedulerJobAlljobs: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDagschedulerStageFailedstages: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDagschedulerStageRunningstages: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDagschedulerStageWaitingstages: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksDirectorycommitAutovacuumcount: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksDirectorycommitFilterlistingcount: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksDirectorycommitJobcommitcompleted: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksDirectorycommitMarkerreaderrors: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksDirectorycommitMarkerrefreshcount: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksDirectorycommitMarkerrefresherrors: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksDirectorycommitMarkersread: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksDirectorycommitRepeatedlistcount: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksDirectorycommitUntrackedfilesfound: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksDirectorycommitVacuumcount: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksDirectorycommitVacuumerrors: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksPreemptionNumchecks: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksPreemptionNumpoolsautoexpired: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksPreemptionNumtaskspreempted: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksPreemptionPoolstarvationmillis: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksPreemptionScheduleroverheadnanos: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksPreemptionTasktimewastedmillis: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesActivepools: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutorDiskUsed: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutorMaxMemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutorMemoryUsed: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutorTotalInputBytes: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutorTotalShuffleRead: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutorTotalShuffleWrite: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsDirectpoolmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsJvmheapmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsJvmoffheapmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsMajorgccount: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsMajorgctime: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsMappedpoolmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsMinorgccount: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsMinorgctime: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsOffheapexecutionmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsOffheapstoragememory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsOffheapunifiedmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsOnheapexecutionmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsOnheapstoragememory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsOnheapunifiedmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsProcesstreejvmrssmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsProcesstreejvmvmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsProcesstreeotherrssmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsProcesstreeothervmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsProcesstreepythonrssmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkExecutormetricsProcesstreepythonvmemory: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkHiveexternalcatalogFilecachehits: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkHiveexternalcatalogFilesdiscovered: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkHiveexternalcatalogHiveclientcalls: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkHiveexternalcatalogParallellistingjobcount: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkHiveexternalcatalogPartitionsfetched: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkJobNumActiveStages: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkJobNumActiveTasks: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkJobNumCompletedStages: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkJobNumCompletedTasks: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkJobNumFailedStages: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkJobNumFailedTasks: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkJobNumSkippedStages: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkJobNumSkippedTasks: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkJobNumTasks: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkJvmcpuJvmcputime: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkLivelistenerbusNumeventsposted: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkLivelistenerbusQueueAppstatusSize: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkLivelistenerbusQueueExecutormanagementSize: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkLivelistenerbusQueueSharedNumdroppedevents: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkLivelistenerbusQueueSharedSize: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkLivelistenerbusQueueStreamsSize: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkSparksqloperationmanagerNumhiveoperations: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkStageDiskBytesSpilled: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkStageExecutorRunTime: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkStageInputBytes: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkStageInputRecords: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkStageMemoryBytesSpilled: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkStageOutputBytes: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkStageOutputRecords: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerDagschedulerMessageprocessingtimeMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksTasksRunDuration: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksTasksScheduleStatus: MetricSettings{
+			Enabled: true,
+		},
 	}
 }
 
-var metricsByName = map[string]MetricIntf{
-	"databricks.jobs.active.total":     Metrics.DatabricksJobsActiveTotal,
-	"databricks.jobs.run.duration":     Metrics.DatabricksJobsRunDuration,
-	"databricks.jobs.schedule.status":  Metrics.DatabricksJobsScheduleStatus,
-	"databricks.jobs.total":            Metrics.DatabricksJobsTotal,
-	"databricks.tasks.run.duration":    Metrics.DatabricksTasksRunDuration,
-	"databricks.tasks.schedule.status": Metrics.DatabricksTasksScheduleStatus,
+// AttributeTaskType specifies the a value task_type attribute.
+type AttributeTaskType int
+
+const (
+	_ AttributeTaskType = iota
+	AttributeTaskTypeNotebookTask
+	AttributeTaskTypeSparkJarTask
+	AttributeTaskTypeSparkPythonTask
+	AttributeTaskTypePipelineTask
+	AttributeTaskTypePythonWheelTask
+	AttributeTaskTypeSparkSubmitTask
+)
+
+// String returns the string representation of the AttributeTaskType.
+func (av AttributeTaskType) String() string {
+	switch av {
+	case AttributeTaskTypeNotebookTask:
+		return "NotebookTask"
+	case AttributeTaskTypeSparkJarTask:
+		return "SparkJarTask"
+	case AttributeTaskTypeSparkPythonTask:
+		return "SparkPythonTask"
+	case AttributeTaskTypePipelineTask:
+		return "PipelineTask"
+	case AttributeTaskTypePythonWheelTask:
+		return "PythonWheelTask"
+	case AttributeTaskTypeSparkSubmitTask:
+		return "SparkSubmitTask"
+	}
+	return ""
 }
 
-func (m *metricStruct) ByName(n string) MetricIntf {
-	return metricsByName[n]
+// MapAttributeTaskType is a helper map of string to AttributeTaskType attribute value.
+var MapAttributeTaskType = map[string]AttributeTaskType{
+	"NotebookTask":    AttributeTaskTypeNotebookTask,
+	"SparkJarTask":    AttributeTaskTypeSparkJarTask,
+	"SparkPythonTask": AttributeTaskTypeSparkPythonTask,
+	"PipelineTask":    AttributeTaskTypePipelineTask,
+	"PythonWheelTask": AttributeTaskTypePythonWheelTask,
+	"SparkSubmitTask": AttributeTaskTypeSparkSubmitTask,
 }
 
-// Metrics contains a set of methods for each metric that help with
-// manipulating those metrics.
-var Metrics = &metricStruct{
-	&metricImpl{
-		func(metric pmetric.Metric) {
-			metric.SetName("databricks.jobs.active.total")
-			metric.SetDescription("A snapshot of the number of active jobs taken at each scrape")
-			metric.SetUnit("{jobs}")
-			metric.SetEmptyGauge()
-		},
-		"databricks.jobs.active.total",
-	},
-	&metricImpl{
-		func(metric pmetric.Metric) {
-			metric.SetName("databricks.jobs.run.duration")
-			metric.SetDescription("The execution duration in milliseconds per completed job")
-			metric.SetUnit("ms")
-			metric.SetEmptyGauge()
-		},
-		"databricks.jobs.run.duration",
-	},
-	&metricImpl{
-		func(metric pmetric.Metric) {
-			metric.SetName("databricks.jobs.schedule.status")
-			metric.SetDescription("A snapshot of the pause/run status per job taken at each scrape")
-			metric.SetUnit("{status}")
-			metric.SetEmptyGauge()
-		},
-		"databricks.jobs.schedule.status",
-	},
-	&metricImpl{
-		func(metric pmetric.Metric) {
-			metric.SetName("databricks.jobs.total")
-			metric.SetDescription("A snapshot of the total number of jobs registered in the Databricks instance taken at each scrape")
-			metric.SetUnit("{jobs}")
-			metric.SetEmptyGauge()
-		},
-		"databricks.jobs.total",
-	},
-	&metricImpl{
-		func(metric pmetric.Metric) {
-			metric.SetName("databricks.tasks.run.duration")
-			metric.SetDescription("The execution duration in milliseconds per completed task")
-			metric.SetUnit("ms")
-			metric.SetEmptyGauge()
-		},
-		"databricks.tasks.run.duration",
-	},
-	&metricImpl{
-		func(metric pmetric.Metric) {
-			metric.SetName("databricks.tasks.schedule.status")
-			metric.SetDescription("A snapshot of the pause/run status per task taken at each scrape")
-			metric.SetUnit("{status}")
-			metric.SetEmptyGauge()
-		},
-		"databricks.tasks.schedule.status",
-	},
+type metricDatabricksJobsActiveTotal struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
 }
 
-// M contains a set of methods for each metric that help with
-// manipulating those metrics. M is an alias for Metrics
-var M = Metrics
-
-// Attributes contains the possible metric attributes that can be used.
-var Attributes = struct {
-	// DatabricksInstanceName (The name of the Databricks instance as defined by the value of the "instance_name" field in the config)
-	DatabricksInstanceName string
-	// JobID (The numeric ID of the Databricks job)
-	JobID string
-	// TaskID (The name of the Databricks task)
-	TaskID string
-	// TaskType (The type of the Databricks task)
-	TaskType string
-}{
-	"databricks.instance.name",
-	"job_id",
-	"task_id",
-	"task_type",
+// init fills databricks.jobs.active.total metric with initial data.
+func (m *metricDatabricksJobsActiveTotal) init() {
+	m.data.SetName("databricks.jobs.active.total")
+	m.data.SetDescription("A snapshot of the number of active jobs taken at each scrape")
+	m.data.SetUnit("{jobs}")
+	m.data.SetEmptyGauge()
 }
 
-// A is an alias for Attributes.
-var A = Attributes
+func (m *metricDatabricksJobsActiveTotal) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+}
 
-// AttributeTaskType are the possible values that the attribute "task_type" can have.
-var AttributeTaskType = struct {
-	NotebookTask    string
-	SparkJarTask    string
-	SparkPythonTask string
-	PipelineTask    string
-	PythonWheelTask string
-	SparkSubmitTask string
-}{
-	"NotebookTask",
-	"SparkJarTask",
-	"SparkPythonTask",
-	"PipelineTask",
-	"PythonWheelTask",
-	"SparkSubmitTask",
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksJobsActiveTotal) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksJobsActiveTotal) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksJobsActiveTotal(settings MetricSettings) metricDatabricksJobsActiveTotal {
+	m := metricDatabricksJobsActiveTotal{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksJobsRunDuration struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.jobs.run.duration metric with initial data.
+func (m *metricDatabricksJobsRunDuration) init() {
+	m.data.SetName("databricks.jobs.run.duration")
+	m.data.SetDescription("The execution duration in milliseconds per completed job")
+	m.data.SetUnit("ms")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksJobsRunDuration) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, jobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutInt("job_id", jobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksJobsRunDuration) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksJobsRunDuration) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksJobsRunDuration(settings MetricSettings) metricDatabricksJobsRunDuration {
+	m := metricDatabricksJobsRunDuration{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksJobsScheduleStatus struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.jobs.schedule.status metric with initial data.
+func (m *metricDatabricksJobsScheduleStatus) init() {
+	m.data.SetName("databricks.jobs.schedule.status")
+	m.data.SetDescription("A snapshot of the pause/run status per job taken at each scrape")
+	m.data.SetUnit("{status}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksJobsScheduleStatus) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, jobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutInt("job_id", jobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksJobsScheduleStatus) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksJobsScheduleStatus) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksJobsScheduleStatus(settings MetricSettings) metricDatabricksJobsScheduleStatus {
+	m := metricDatabricksJobsScheduleStatus{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksJobsTotal struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.jobs.total metric with initial data.
+func (m *metricDatabricksJobsTotal) init() {
+	m.data.SetName("databricks.jobs.total")
+	m.data.SetDescription("A snapshot of the total number of jobs registered in the Databricks instance taken at each scrape")
+	m.data.SetUnit("{jobs}")
+	m.data.SetEmptyGauge()
+}
+
+func (m *metricDatabricksJobsTotal) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksJobsTotal) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksJobsTotal) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksJobsTotal(settings MetricSettings) metricDatabricksJobsTotal {
+	m := metricDatabricksJobsTotal{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkBlockmanagerMemoryDiskspaceused struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.blockmanager.memory.diskspaceused metric with initial data.
+func (m *metricDatabricksSparkBlockmanagerMemoryDiskspaceused) init() {
+	m.data.SetName("databricks.spark.blockmanager.memory.diskspaceused")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("mb")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkBlockmanagerMemoryDiskspaceused) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkBlockmanagerMemoryDiskspaceused) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkBlockmanagerMemoryDiskspaceused) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkBlockmanagerMemoryDiskspaceused(settings MetricSettings) metricDatabricksSparkBlockmanagerMemoryDiskspaceused {
+	m := metricDatabricksSparkBlockmanagerMemoryDiskspaceused{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkBlockmanagerMemoryMaxmem struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.blockmanager.memory.maxmem metric with initial data.
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxmem) init() {
+	m.data.SetName("databricks.spark.blockmanager.memory.maxmem")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("mb")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxmem) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxmem) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkBlockmanagerMemoryMaxmem(settings MetricSettings) metricDatabricksSparkBlockmanagerMemoryMaxmem {
+	m := metricDatabricksSparkBlockmanagerMemoryMaxmem{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.blockmanager.memory.maxoffheapmem metric with initial data.
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem) init() {
+	m.data.SetName("databricks.spark.blockmanager.memory.maxoffheapmem")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("mb")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkBlockmanagerMemoryMaxoffheapmem(settings MetricSettings) metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem {
+	m := metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkBlockmanagerMemoryMaxonheapmem struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.blockmanager.memory.maxonheapmem metric with initial data.
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxonheapmem) init() {
+	m.data.SetName("databricks.spark.blockmanager.memory.maxonheapmem")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("mb")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxonheapmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxonheapmem) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxonheapmem) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkBlockmanagerMemoryMaxonheapmem(settings MetricSettings) metricDatabricksSparkBlockmanagerMemoryMaxonheapmem {
+	m := metricDatabricksSparkBlockmanagerMemoryMaxonheapmem{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkBlockmanagerMemoryMemused struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.blockmanager.memory.memused metric with initial data.
+func (m *metricDatabricksSparkBlockmanagerMemoryMemused) init() {
+	m.data.SetName("databricks.spark.blockmanager.memory.memused")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("mb")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkBlockmanagerMemoryMemused) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkBlockmanagerMemoryMemused) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkBlockmanagerMemoryMemused) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkBlockmanagerMemoryMemused(settings MetricSettings) metricDatabricksSparkBlockmanagerMemoryMemused {
+	m := metricDatabricksSparkBlockmanagerMemoryMemused{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkBlockmanagerMemoryOffheapmemused struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.blockmanager.memory.offheapmemused metric with initial data.
+func (m *metricDatabricksSparkBlockmanagerMemoryOffheapmemused) init() {
+	m.data.SetName("databricks.spark.blockmanager.memory.offheapmemused")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("mb")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkBlockmanagerMemoryOffheapmemused) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkBlockmanagerMemoryOffheapmemused) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkBlockmanagerMemoryOffheapmemused) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkBlockmanagerMemoryOffheapmemused(settings MetricSettings) metricDatabricksSparkBlockmanagerMemoryOffheapmemused {
+	m := metricDatabricksSparkBlockmanagerMemoryOffheapmemused{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkBlockmanagerMemoryOnheapmemused struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.blockmanager.memory.onheapmemused metric with initial data.
+func (m *metricDatabricksSparkBlockmanagerMemoryOnheapmemused) init() {
+	m.data.SetName("databricks.spark.blockmanager.memory.onheapmemused")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("mb")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkBlockmanagerMemoryOnheapmemused) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkBlockmanagerMemoryOnheapmemused) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkBlockmanagerMemoryOnheapmemused) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkBlockmanagerMemoryOnheapmemused(settings MetricSettings) metricDatabricksSparkBlockmanagerMemoryOnheapmemused {
+	m := metricDatabricksSparkBlockmanagerMemoryOnheapmemused{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkBlockmanagerMemoryRemainingmem struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.blockmanager.memory.remainingmem metric with initial data.
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingmem) init() {
+	m.data.SetName("databricks.spark.blockmanager.memory.remainingmem")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("mb")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingmem) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingmem) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkBlockmanagerMemoryRemainingmem(settings MetricSettings) metricDatabricksSparkBlockmanagerMemoryRemainingmem {
+	m := metricDatabricksSparkBlockmanagerMemoryRemainingmem{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.blockmanager.memory.remainingoffheapmem metric with initial data.
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem) init() {
+	m.data.SetName("databricks.spark.blockmanager.memory.remainingoffheapmem")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("mb")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem(settings MetricSettings) metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem {
+	m := metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.blockmanager.memory.remainingonheapmem metric with initial data.
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem) init() {
+	m.data.SetName("databricks.spark.blockmanager.memory.remainingonheapmem")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("mb")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkBlockmanagerMemoryRemainingonheapmem(settings MetricSettings) metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem {
+	m := metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDagschedulerJobActivejobs struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.dagscheduler.job.activejobs metric with initial data.
+func (m *metricDatabricksSparkDagschedulerJobActivejobs) init() {
+	m.data.SetName("databricks.spark.dagscheduler.job.activejobs")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDagschedulerJobActivejobs) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDagschedulerJobActivejobs) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDagschedulerJobActivejobs) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDagschedulerJobActivejobs(settings MetricSettings) metricDatabricksSparkDagschedulerJobActivejobs {
+	m := metricDatabricksSparkDagschedulerJobActivejobs{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDagschedulerJobAlljobs struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.dagscheduler.job.alljobs metric with initial data.
+func (m *metricDatabricksSparkDagschedulerJobAlljobs) init() {
+	m.data.SetName("databricks.spark.dagscheduler.job.alljobs")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDagschedulerJobAlljobs) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDagschedulerJobAlljobs) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDagschedulerJobAlljobs) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDagschedulerJobAlljobs(settings MetricSettings) metricDatabricksSparkDagschedulerJobAlljobs {
+	m := metricDatabricksSparkDagschedulerJobAlljobs{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDagschedulerStageFailedstages struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.dagscheduler.stage.failedstages metric with initial data.
+func (m *metricDatabricksSparkDagschedulerStageFailedstages) init() {
+	m.data.SetName("databricks.spark.dagscheduler.stage.failedstages")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDagschedulerStageFailedstages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDagschedulerStageFailedstages) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDagschedulerStageFailedstages) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDagschedulerStageFailedstages(settings MetricSettings) metricDatabricksSparkDagschedulerStageFailedstages {
+	m := metricDatabricksSparkDagschedulerStageFailedstages{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDagschedulerStageRunningstages struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.dagscheduler.stage.runningstages metric with initial data.
+func (m *metricDatabricksSparkDagschedulerStageRunningstages) init() {
+	m.data.SetName("databricks.spark.dagscheduler.stage.runningstages")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDagschedulerStageRunningstages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDagschedulerStageRunningstages) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDagschedulerStageRunningstages) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDagschedulerStageRunningstages(settings MetricSettings) metricDatabricksSparkDagschedulerStageRunningstages {
+	m := metricDatabricksSparkDagschedulerStageRunningstages{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDagschedulerStageWaitingstages struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.dagscheduler.stage.waitingstages metric with initial data.
+func (m *metricDatabricksSparkDagschedulerStageWaitingstages) init() {
+	m.data.SetName("databricks.spark.dagscheduler.stage.waitingstages")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDagschedulerStageWaitingstages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDagschedulerStageWaitingstages) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDagschedulerStageWaitingstages) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDagschedulerStageWaitingstages(settings MetricSettings) metricDatabricksSparkDagschedulerStageWaitingstages {
+	m := metricDatabricksSparkDagschedulerStageWaitingstages{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.directorycommit.autovacuumcount metric with initial data.
+func (m *metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount) init() {
+	m.data.SetName("databricks.spark.databricks.directorycommit.autovacuumcount")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksDirectorycommitAutovacuumcount(settings MetricSettings) metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount {
+	m := metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.directorycommit.deletedfilesfiltered metric with initial data.
+func (m *metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered) init() {
+	m.data.SetName("databricks.spark.databricks.directorycommit.deletedfilesfiltered")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered(settings MetricSettings) metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered {
+	m := metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.directorycommit.filterlistingcount metric with initial data.
+func (m *metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount) init() {
+	m.data.SetName("databricks.spark.databricks.directorycommit.filterlistingcount")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksDirectorycommitFilterlistingcount(settings MetricSettings) metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount {
+	m := metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.directorycommit.jobcommitcompleted metric with initial data.
+func (m *metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted) init() {
+	m.data.SetName("databricks.spark.databricks.directorycommit.jobcommitcompleted")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted(settings MetricSettings) metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted {
+	m := metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.directorycommit.markerreaderrors metric with initial data.
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors) init() {
+	m.data.SetName("databricks.spark.databricks.directorycommit.markerreaderrors")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors(settings MetricSettings) metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors {
+	m := metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.directorycommit.markerrefreshcount metric with initial data.
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount) init() {
+	m.data.SetName("databricks.spark.databricks.directorycommit.markerrefreshcount")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount(settings MetricSettings) metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount {
+	m := metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.directorycommit.markerrefresherrors metric with initial data.
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors) init() {
+	m.data.SetName("databricks.spark.databricks.directorycommit.markerrefresherrors")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors(settings MetricSettings) metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors {
+	m := metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksDirectorycommitMarkersread struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.directorycommit.markersread metric with initial data.
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkersread) init() {
+	m.data.SetName("databricks.spark.databricks.directorycommit.markersread")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkersread) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkersread) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkersread) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksDirectorycommitMarkersread(settings MetricSettings) metricDatabricksSparkDatabricksDirectorycommitMarkersread {
+	m := metricDatabricksSparkDatabricksDirectorycommitMarkersread{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.directorycommit.repeatedlistcount metric with initial data.
+func (m *metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount) init() {
+	m.data.SetName("databricks.spark.databricks.directorycommit.repeatedlistcount")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount(settings MetricSettings) metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount {
+	m := metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.directorycommit.uncommittedfilesfiltered metric with initial data.
+func (m *metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered) init() {
+	m.data.SetName("databricks.spark.databricks.directorycommit.uncommittedfilesfiltered")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered(settings MetricSettings) metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered {
+	m := metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.directorycommit.untrackedfilesfound metric with initial data.
+func (m *metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound) init() {
+	m.data.SetName("databricks.spark.databricks.directorycommit.untrackedfilesfound")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound(settings MetricSettings) metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound {
+	m := metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksDirectorycommitVacuumcount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.directorycommit.vacuumcount metric with initial data.
+func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumcount) init() {
+	m.data.SetName("databricks.spark.databricks.directorycommit.vacuumcount")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumcount) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumcount) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksDirectorycommitVacuumcount(settings MetricSettings) metricDatabricksSparkDatabricksDirectorycommitVacuumcount {
+	m := metricDatabricksSparkDatabricksDirectorycommitVacuumcount{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksDirectorycommitVacuumerrors struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.directorycommit.vacuumerrors metric with initial data.
+func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumerrors) init() {
+	m.data.SetName("databricks.spark.databricks.directorycommit.vacuumerrors")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumerrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumerrors) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumerrors) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksDirectorycommitVacuumerrors(settings MetricSettings) metricDatabricksSparkDatabricksDirectorycommitVacuumerrors {
+	m := metricDatabricksSparkDatabricksDirectorycommitVacuumerrors{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksPreemptionNumchecks struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.preemption.numchecks metric with initial data.
+func (m *metricDatabricksSparkDatabricksPreemptionNumchecks) init() {
+	m.data.SetName("databricks.spark.databricks.preemption.numchecks")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksPreemptionNumchecks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksPreemptionNumchecks) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksPreemptionNumchecks) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksPreemptionNumchecks(settings MetricSettings) metricDatabricksSparkDatabricksPreemptionNumchecks {
+	m := metricDatabricksSparkDatabricksPreemptionNumchecks{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.preemption.numpoolsautoexpired metric with initial data.
+func (m *metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired) init() {
+	m.data.SetName("databricks.spark.databricks.preemption.numpoolsautoexpired")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired(settings MetricSettings) metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired {
+	m := metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksPreemptionNumtaskspreempted struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.preemption.numtaskspreempted metric with initial data.
+func (m *metricDatabricksSparkDatabricksPreemptionNumtaskspreempted) init() {
+	m.data.SetName("databricks.spark.databricks.preemption.numtaskspreempted")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksPreemptionNumtaskspreempted) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksPreemptionNumtaskspreempted) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksPreemptionNumtaskspreempted) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksPreemptionNumtaskspreempted(settings MetricSettings) metricDatabricksSparkDatabricksPreemptionNumtaskspreempted {
+	m := metricDatabricksSparkDatabricksPreemptionNumtaskspreempted{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.preemption.poolstarvationmillis metric with initial data.
+func (m *metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis) init() {
+	m.data.SetName("databricks.spark.databricks.preemption.poolstarvationmillis")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksPreemptionPoolstarvationmillis(settings MetricSettings) metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis {
+	m := metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.preemption.scheduleroverheadnanos metric with initial data.
+func (m *metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos) init() {
+	m.data.SetName("databricks.spark.databricks.preemption.scheduleroverheadnanos")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos(settings MetricSettings) metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos {
+	m := metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.preemption.tasktimewastedmillis metric with initial data.
+func (m *metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis) init() {
+	m.data.SetName("databricks.spark.databricks.preemption.tasktimewastedmillis")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksPreemptionTasktimewastedmillis(settings MetricSettings) metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis {
+	m := metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesActivepools struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.activepools metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesActivepools) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.activepools")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesActivepools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesActivepools) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesActivepools) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesActivepools(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesActivepools {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesActivepools{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.bypasslaneactivepools metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.bypasslaneactivepools")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.fastlaneactivepools metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.fastlaneactivepools")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.finishedqueriestotaltasktimens metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.finishedqueriestotaltasktimens")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.lanecleanup.markedpools metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.lanecleanup.markedpools")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.lanecleanup.twophasepoolscleaned metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.lanecleanup.twophasepoolscleaned")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.lanecleanup.zombiepoolscleaned metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.lanecleanup.zombiepoolscleaned")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.preemption.slottransfernumsuccessfulpreemptioniterations metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.preemption.slottransfernumsuccessfulpreemptioniterations")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.preemption.slottransfernumtaskspreempted metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.preemption.slottransfernumtaskspreempted")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.preemption.slottransferwastedtasktimens metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.preemption.slottransferwastedtasktimens")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.slotreservation.numgradualdecrease metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.slotreservation.numgradualdecrease")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.slotreservation.numquickdrop metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.slotreservation.numquickdrop")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.slotreservation.numquickjump metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.slotreservation.numquickjump")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.slotreservation.slotsreserved metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.slotreservation.slotsreserved")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.slowlaneactivepools metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.slowlaneactivepools")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.databricks.taskschedulinglanes.totalquerygroupsfinished metric with initial data.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished) init() {
+	m.data.SetName("databricks.spark.databricks.taskschedulinglanes.totalquerygroupsfinished")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished(settings MetricSettings) metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished {
+	m := metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutorDiskUsed struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executor.disk_used metric with initial data.
+func (m *metricDatabricksSparkExecutorDiskUsed) init() {
+	m.data.SetName("databricks.spark.executor.disk_used")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("By")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutorDiskUsed) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("executor_id", executorIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutorDiskUsed) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutorDiskUsed) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutorDiskUsed(settings MetricSettings) metricDatabricksSparkExecutorDiskUsed {
+	m := metricDatabricksSparkExecutorDiskUsed{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutorMaxMemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executor.max_memory metric with initial data.
+func (m *metricDatabricksSparkExecutorMaxMemory) init() {
+	m.data.SetName("databricks.spark.executor.max_memory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("By")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutorMaxMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("executor_id", executorIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutorMaxMemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutorMaxMemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutorMaxMemory(settings MetricSettings) metricDatabricksSparkExecutorMaxMemory {
+	m := metricDatabricksSparkExecutorMaxMemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutorMemoryUsed struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executor.memory_used metric with initial data.
+func (m *metricDatabricksSparkExecutorMemoryUsed) init() {
+	m.data.SetName("databricks.spark.executor.memory_used")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("By")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutorMemoryUsed) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("executor_id", executorIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutorMemoryUsed) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutorMemoryUsed) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutorMemoryUsed(settings MetricSettings) metricDatabricksSparkExecutorMemoryUsed {
+	m := metricDatabricksSparkExecutorMemoryUsed{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutorTotalInputBytes struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executor.total_input_bytes metric with initial data.
+func (m *metricDatabricksSparkExecutorTotalInputBytes) init() {
+	m.data.SetName("databricks.spark.executor.total_input_bytes")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("By")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutorTotalInputBytes) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("executor_id", executorIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutorTotalInputBytes) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutorTotalInputBytes) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutorTotalInputBytes(settings MetricSettings) metricDatabricksSparkExecutorTotalInputBytes {
+	m := metricDatabricksSparkExecutorTotalInputBytes{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutorTotalShuffleRead struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executor.total_shuffle_read metric with initial data.
+func (m *metricDatabricksSparkExecutorTotalShuffleRead) init() {
+	m.data.SetName("databricks.spark.executor.total_shuffle_read")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("By")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutorTotalShuffleRead) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("executor_id", executorIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutorTotalShuffleRead) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutorTotalShuffleRead) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutorTotalShuffleRead(settings MetricSettings) metricDatabricksSparkExecutorTotalShuffleRead {
+	m := metricDatabricksSparkExecutorTotalShuffleRead{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutorTotalShuffleWrite struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executor.total_shuffle_write metric with initial data.
+func (m *metricDatabricksSparkExecutorTotalShuffleWrite) init() {
+	m.data.SetName("databricks.spark.executor.total_shuffle_write")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("By")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutorTotalShuffleWrite) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("executor_id", executorIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutorTotalShuffleWrite) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutorTotalShuffleWrite) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutorTotalShuffleWrite(settings MetricSettings) metricDatabricksSparkExecutorTotalShuffleWrite {
+	m := metricDatabricksSparkExecutorTotalShuffleWrite{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsDirectpoolmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.directpoolmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsDirectpoolmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.directpoolmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsDirectpoolmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsDirectpoolmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsDirectpoolmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsDirectpoolmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsDirectpoolmemory {
+	m := metricDatabricksSparkExecutormetricsDirectpoolmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsJvmheapmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.jvmheapmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsJvmheapmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.jvmheapmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsJvmheapmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsJvmheapmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsJvmheapmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsJvmheapmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsJvmheapmemory {
+	m := metricDatabricksSparkExecutormetricsJvmheapmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsJvmoffheapmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.jvmoffheapmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsJvmoffheapmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.jvmoffheapmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsJvmoffheapmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsJvmoffheapmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsJvmoffheapmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsJvmoffheapmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsJvmoffheapmemory {
+	m := metricDatabricksSparkExecutormetricsJvmoffheapmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsMajorgccount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.majorgccount metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsMajorgccount) init() {
+	m.data.SetName("databricks.spark.executormetrics.majorgccount")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsMajorgccount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsMajorgccount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsMajorgccount) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsMajorgccount(settings MetricSettings) metricDatabricksSparkExecutormetricsMajorgccount {
+	m := metricDatabricksSparkExecutormetricsMajorgccount{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsMajorgctime struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.majorgctime metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsMajorgctime) init() {
+	m.data.SetName("databricks.spark.executormetrics.majorgctime")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsMajorgctime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsMajorgctime) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsMajorgctime) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsMajorgctime(settings MetricSettings) metricDatabricksSparkExecutormetricsMajorgctime {
+	m := metricDatabricksSparkExecutormetricsMajorgctime{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsMappedpoolmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.mappedpoolmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsMappedpoolmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.mappedpoolmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsMappedpoolmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsMappedpoolmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsMappedpoolmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsMappedpoolmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsMappedpoolmemory {
+	m := metricDatabricksSparkExecutormetricsMappedpoolmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsMinorgccount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.minorgccount metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsMinorgccount) init() {
+	m.data.SetName("databricks.spark.executormetrics.minorgccount")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsMinorgccount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsMinorgccount) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsMinorgccount) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsMinorgccount(settings MetricSettings) metricDatabricksSparkExecutormetricsMinorgccount {
+	m := metricDatabricksSparkExecutormetricsMinorgccount{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsMinorgctime struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.minorgctime metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsMinorgctime) init() {
+	m.data.SetName("databricks.spark.executormetrics.minorgctime")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsMinorgctime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsMinorgctime) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsMinorgctime) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsMinorgctime(settings MetricSettings) metricDatabricksSparkExecutormetricsMinorgctime {
+	m := metricDatabricksSparkExecutormetricsMinorgctime{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsOffheapexecutionmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.offheapexecutionmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsOffheapexecutionmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.offheapexecutionmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsOffheapexecutionmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsOffheapexecutionmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsOffheapexecutionmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsOffheapexecutionmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsOffheapexecutionmemory {
+	m := metricDatabricksSparkExecutormetricsOffheapexecutionmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsOffheapstoragememory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.offheapstoragememory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsOffheapstoragememory) init() {
+	m.data.SetName("databricks.spark.executormetrics.offheapstoragememory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsOffheapstoragememory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsOffheapstoragememory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsOffheapstoragememory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsOffheapstoragememory(settings MetricSettings) metricDatabricksSparkExecutormetricsOffheapstoragememory {
+	m := metricDatabricksSparkExecutormetricsOffheapstoragememory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsOffheapunifiedmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.offheapunifiedmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsOffheapunifiedmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.offheapunifiedmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsOffheapunifiedmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsOffheapunifiedmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsOffheapunifiedmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsOffheapunifiedmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsOffheapunifiedmemory {
+	m := metricDatabricksSparkExecutormetricsOffheapunifiedmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsOnheapexecutionmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.onheapexecutionmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsOnheapexecutionmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.onheapexecutionmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsOnheapexecutionmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsOnheapexecutionmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsOnheapexecutionmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsOnheapexecutionmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsOnheapexecutionmemory {
+	m := metricDatabricksSparkExecutormetricsOnheapexecutionmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsOnheapstoragememory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.onheapstoragememory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsOnheapstoragememory) init() {
+	m.data.SetName("databricks.spark.executormetrics.onheapstoragememory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsOnheapstoragememory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsOnheapstoragememory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsOnheapstoragememory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsOnheapstoragememory(settings MetricSettings) metricDatabricksSparkExecutormetricsOnheapstoragememory {
+	m := metricDatabricksSparkExecutormetricsOnheapstoragememory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsOnheapunifiedmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.onheapunifiedmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsOnheapunifiedmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.onheapunifiedmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsOnheapunifiedmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsOnheapunifiedmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsOnheapunifiedmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsOnheapunifiedmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsOnheapunifiedmemory {
+	m := metricDatabricksSparkExecutormetricsOnheapunifiedmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.processtreejvmrssmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.processtreejvmrssmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsProcesstreejvmrssmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory {
+	m := metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsProcesstreejvmvmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.processtreejvmvmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsProcesstreejvmvmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.processtreejvmvmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsProcesstreejvmvmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsProcesstreejvmvmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsProcesstreejvmvmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsProcesstreejvmvmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsProcesstreejvmvmemory {
+	m := metricDatabricksSparkExecutormetricsProcesstreejvmvmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.processtreeotherrssmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.processtreeotherrssmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsProcesstreeotherrssmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory {
+	m := metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsProcesstreeothervmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.processtreeothervmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsProcesstreeothervmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.processtreeothervmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsProcesstreeothervmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsProcesstreeothervmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsProcesstreeothervmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsProcesstreeothervmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsProcesstreeothervmemory {
+	m := metricDatabricksSparkExecutormetricsProcesstreeothervmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.processtreepythonrssmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.processtreepythonrssmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsProcesstreepythonrssmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory {
+	m := metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkExecutormetricsProcesstreepythonvmemory struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.executormetrics.processtreepythonvmemory metric with initial data.
+func (m *metricDatabricksSparkExecutormetricsProcesstreepythonvmemory) init() {
+	m.data.SetName("databricks.spark.executormetrics.processtreepythonvmemory")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkExecutormetricsProcesstreepythonvmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkExecutormetricsProcesstreepythonvmemory) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkExecutormetricsProcesstreepythonvmemory) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkExecutormetricsProcesstreepythonvmemory(settings MetricSettings) metricDatabricksSparkExecutormetricsProcesstreepythonvmemory {
+	m := metricDatabricksSparkExecutormetricsProcesstreepythonvmemory{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkHiveexternalcatalogFilecachehits struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.hiveexternalcatalog.filecachehits metric with initial data.
+func (m *metricDatabricksSparkHiveexternalcatalogFilecachehits) init() {
+	m.data.SetName("databricks.spark.hiveexternalcatalog.filecachehits")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkHiveexternalcatalogFilecachehits) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkHiveexternalcatalogFilecachehits) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkHiveexternalcatalogFilecachehits) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkHiveexternalcatalogFilecachehits(settings MetricSettings) metricDatabricksSparkHiveexternalcatalogFilecachehits {
+	m := metricDatabricksSparkHiveexternalcatalogFilecachehits{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkHiveexternalcatalogFilesdiscovered struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.hiveexternalcatalog.filesdiscovered metric with initial data.
+func (m *metricDatabricksSparkHiveexternalcatalogFilesdiscovered) init() {
+	m.data.SetName("databricks.spark.hiveexternalcatalog.filesdiscovered")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkHiveexternalcatalogFilesdiscovered) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkHiveexternalcatalogFilesdiscovered) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkHiveexternalcatalogFilesdiscovered) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkHiveexternalcatalogFilesdiscovered(settings MetricSettings) metricDatabricksSparkHiveexternalcatalogFilesdiscovered {
+	m := metricDatabricksSparkHiveexternalcatalogFilesdiscovered{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkHiveexternalcatalogHiveclientcalls struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.hiveexternalcatalog.hiveclientcalls metric with initial data.
+func (m *metricDatabricksSparkHiveexternalcatalogHiveclientcalls) init() {
+	m.data.SetName("databricks.spark.hiveexternalcatalog.hiveclientcalls")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkHiveexternalcatalogHiveclientcalls) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkHiveexternalcatalogHiveclientcalls) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkHiveexternalcatalogHiveclientcalls) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkHiveexternalcatalogHiveclientcalls(settings MetricSettings) metricDatabricksSparkHiveexternalcatalogHiveclientcalls {
+	m := metricDatabricksSparkHiveexternalcatalogHiveclientcalls{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkHiveexternalcatalogParallellistingjobcount struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.hiveexternalcatalog.parallellistingjobcount metric with initial data.
+func (m *metricDatabricksSparkHiveexternalcatalogParallellistingjobcount) init() {
+	m.data.SetName("databricks.spark.hiveexternalcatalog.parallellistingjobcount")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkHiveexternalcatalogParallellistingjobcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkHiveexternalcatalogParallellistingjobcount) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkHiveexternalcatalogParallellistingjobcount) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkHiveexternalcatalogParallellistingjobcount(settings MetricSettings) metricDatabricksSparkHiveexternalcatalogParallellistingjobcount {
+	m := metricDatabricksSparkHiveexternalcatalogParallellistingjobcount{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkHiveexternalcatalogPartitionsfetched struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.hiveexternalcatalog.partitionsfetched metric with initial data.
+func (m *metricDatabricksSparkHiveexternalcatalogPartitionsfetched) init() {
+	m.data.SetName("databricks.spark.hiveexternalcatalog.partitionsfetched")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkHiveexternalcatalogPartitionsfetched) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkHiveexternalcatalogPartitionsfetched) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkHiveexternalcatalogPartitionsfetched) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkHiveexternalcatalogPartitionsfetched(settings MetricSettings) metricDatabricksSparkHiveexternalcatalogPartitionsfetched {
+	m := metricDatabricksSparkHiveexternalcatalogPartitionsfetched{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkJobNumActiveStages struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.job.num_active_stages metric with initial data.
+func (m *metricDatabricksSparkJobNumActiveStages) init() {
+	m.data.SetName("databricks.spark.job.num_active_stages")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("{stages}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkJobNumActiveStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkJobNumActiveStages) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkJobNumActiveStages) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkJobNumActiveStages(settings MetricSettings) metricDatabricksSparkJobNumActiveStages {
+	m := metricDatabricksSparkJobNumActiveStages{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkJobNumActiveTasks struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.job.num_active_tasks metric with initial data.
+func (m *metricDatabricksSparkJobNumActiveTasks) init() {
+	m.data.SetName("databricks.spark.job.num_active_tasks")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("{tasks}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkJobNumActiveTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkJobNumActiveTasks) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkJobNumActiveTasks) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkJobNumActiveTasks(settings MetricSettings) metricDatabricksSparkJobNumActiveTasks {
+	m := metricDatabricksSparkJobNumActiveTasks{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkJobNumCompletedStages struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.job.num_completed_stages metric with initial data.
+func (m *metricDatabricksSparkJobNumCompletedStages) init() {
+	m.data.SetName("databricks.spark.job.num_completed_stages")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("{stages}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkJobNumCompletedStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkJobNumCompletedStages) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkJobNumCompletedStages) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkJobNumCompletedStages(settings MetricSettings) metricDatabricksSparkJobNumCompletedStages {
+	m := metricDatabricksSparkJobNumCompletedStages{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkJobNumCompletedTasks struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.job.num_completed_tasks metric with initial data.
+func (m *metricDatabricksSparkJobNumCompletedTasks) init() {
+	m.data.SetName("databricks.spark.job.num_completed_tasks")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("{tasks}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkJobNumCompletedTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkJobNumCompletedTasks) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkJobNumCompletedTasks) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkJobNumCompletedTasks(settings MetricSettings) metricDatabricksSparkJobNumCompletedTasks {
+	m := metricDatabricksSparkJobNumCompletedTasks{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkJobNumFailedStages struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.job.num_failed_stages metric with initial data.
+func (m *metricDatabricksSparkJobNumFailedStages) init() {
+	m.data.SetName("databricks.spark.job.num_failed_stages")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("{stages}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkJobNumFailedStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkJobNumFailedStages) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkJobNumFailedStages) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkJobNumFailedStages(settings MetricSettings) metricDatabricksSparkJobNumFailedStages {
+	m := metricDatabricksSparkJobNumFailedStages{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkJobNumFailedTasks struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.job.num_failed_tasks metric with initial data.
+func (m *metricDatabricksSparkJobNumFailedTasks) init() {
+	m.data.SetName("databricks.spark.job.num_failed_tasks")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("{tasks}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkJobNumFailedTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkJobNumFailedTasks) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkJobNumFailedTasks) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkJobNumFailedTasks(settings MetricSettings) metricDatabricksSparkJobNumFailedTasks {
+	m := metricDatabricksSparkJobNumFailedTasks{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkJobNumSkippedStages struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.job.num_skipped_stages metric with initial data.
+func (m *metricDatabricksSparkJobNumSkippedStages) init() {
+	m.data.SetName("databricks.spark.job.num_skipped_stages")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("{stages}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkJobNumSkippedStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkJobNumSkippedStages) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkJobNumSkippedStages) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkJobNumSkippedStages(settings MetricSettings) metricDatabricksSparkJobNumSkippedStages {
+	m := metricDatabricksSparkJobNumSkippedStages{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkJobNumSkippedTasks struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.job.num_skipped_tasks metric with initial data.
+func (m *metricDatabricksSparkJobNumSkippedTasks) init() {
+	m.data.SetName("databricks.spark.job.num_skipped_tasks")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("{tasks}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkJobNumSkippedTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkJobNumSkippedTasks) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkJobNumSkippedTasks) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkJobNumSkippedTasks(settings MetricSettings) metricDatabricksSparkJobNumSkippedTasks {
+	m := metricDatabricksSparkJobNumSkippedTasks{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkJobNumTasks struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.job.num_tasks metric with initial data.
+func (m *metricDatabricksSparkJobNumTasks) init() {
+	m.data.SetName("databricks.spark.job.num_tasks")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("{tasks}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkJobNumTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkJobNumTasks) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkJobNumTasks) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkJobNumTasks(settings MetricSettings) metricDatabricksSparkJobNumTasks {
+	m := metricDatabricksSparkJobNumTasks{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkJvmcpuJvmcputime struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.jvmcpu.jvmcputime metric with initial data.
+func (m *metricDatabricksSparkJvmcpuJvmcputime) init() {
+	m.data.SetName("databricks.spark.jvmcpu.jvmcputime")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkJvmcpuJvmcputime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkJvmcpuJvmcputime) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkJvmcpuJvmcputime) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkJvmcpuJvmcputime(settings MetricSettings) metricDatabricksSparkJvmcpuJvmcputime {
+	m := metricDatabricksSparkJvmcpuJvmcputime{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkLivelistenerbusNumeventsposted struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.livelistenerbus.numeventsposted metric with initial data.
+func (m *metricDatabricksSparkLivelistenerbusNumeventsposted) init() {
+	m.data.SetName("databricks.spark.livelistenerbus.numeventsposted")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkLivelistenerbusNumeventsposted) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkLivelistenerbusNumeventsposted) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkLivelistenerbusNumeventsposted) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkLivelistenerbusNumeventsposted(settings MetricSettings) metricDatabricksSparkLivelistenerbusNumeventsposted {
+	m := metricDatabricksSparkLivelistenerbusNumeventsposted{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.livelistenerbus.queue.appstatus.numdroppedevents metric with initial data.
+func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents) init() {
+	m.data.SetName("databricks.spark.livelistenerbus.queue.appstatus.numdroppedevents")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents(settings MetricSettings) metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents {
+	m := metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkLivelistenerbusQueueAppstatusSize struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.livelistenerbus.queue.appstatus.size metric with initial data.
+func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusSize) init() {
+	m.data.SetName("databricks.spark.livelistenerbus.queue.appstatus.size")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusSize) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusSize) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkLivelistenerbusQueueAppstatusSize(settings MetricSettings) metricDatabricksSparkLivelistenerbusQueueAppstatusSize {
+	m := metricDatabricksSparkLivelistenerbusQueueAppstatusSize{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.livelistenerbus.queue.executormanagement.numdroppedevents metric with initial data.
+func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents) init() {
+	m.data.SetName("databricks.spark.livelistenerbus.queue.executormanagement.numdroppedevents")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents(settings MetricSettings) metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents {
+	m := metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.livelistenerbus.queue.executormanagement.size metric with initial data.
+func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize) init() {
+	m.data.SetName("databricks.spark.livelistenerbus.queue.executormanagement.size")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkLivelistenerbusQueueExecutormanagementSize(settings MetricSettings) metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize {
+	m := metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.livelistenerbus.queue.shared.numdroppedevents metric with initial data.
+func (m *metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents) init() {
+	m.data.SetName("databricks.spark.livelistenerbus.queue.shared.numdroppedevents")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents(settings MetricSettings) metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents {
+	m := metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkLivelistenerbusQueueSharedSize struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.livelistenerbus.queue.shared.size metric with initial data.
+func (m *metricDatabricksSparkLivelistenerbusQueueSharedSize) init() {
+	m.data.SetName("databricks.spark.livelistenerbus.queue.shared.size")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkLivelistenerbusQueueSharedSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkLivelistenerbusQueueSharedSize) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkLivelistenerbusQueueSharedSize) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkLivelistenerbusQueueSharedSize(settings MetricSettings) metricDatabricksSparkLivelistenerbusQueueSharedSize {
+	m := metricDatabricksSparkLivelistenerbusQueueSharedSize{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.livelistenerbus.queue.streams.numdroppedevents metric with initial data.
+func (m *metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents) init() {
+	m.data.SetName("databricks.spark.livelistenerbus.queue.streams.numdroppedevents")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents(settings MetricSettings) metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents {
+	m := metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkLivelistenerbusQueueStreamsSize struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.livelistenerbus.queue.streams.size metric with initial data.
+func (m *metricDatabricksSparkLivelistenerbusQueueStreamsSize) init() {
+	m.data.SetName("databricks.spark.livelistenerbus.queue.streams.size")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkLivelistenerbusQueueStreamsSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkLivelistenerbusQueueStreamsSize) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkLivelistenerbusQueueStreamsSize) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkLivelistenerbusQueueStreamsSize(settings MetricSettings) metricDatabricksSparkLivelistenerbusQueueStreamsSize {
+	m := metricDatabricksSparkLivelistenerbusQueueStreamsSize{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkSparksqloperationmanagerNumhiveoperations struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.sparksqloperationmanager.numhiveoperations metric with initial data.
+func (m *metricDatabricksSparkSparksqloperationmanagerNumhiveoperations) init() {
+	m.data.SetName("databricks.spark.sparksqloperationmanager.numhiveoperations")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkSparksqloperationmanagerNumhiveoperations) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkSparksqloperationmanagerNumhiveoperations) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkSparksqloperationmanagerNumhiveoperations) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkSparksqloperationmanagerNumhiveoperations(settings MetricSettings) metricDatabricksSparkSparksqloperationmanagerNumhiveoperations {
+	m := metricDatabricksSparkSparksqloperationmanagerNumhiveoperations{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkStageDiskBytesSpilled struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.stage.disk_bytes_spilled metric with initial data.
+func (m *metricDatabricksSparkStageDiskBytesSpilled) init() {
+	m.data.SetName("databricks.spark.stage.disk_bytes_spilled")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("By")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkStageDiskBytesSpilled) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkStageDiskBytesSpilled) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkStageDiskBytesSpilled) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkStageDiskBytesSpilled(settings MetricSettings) metricDatabricksSparkStageDiskBytesSpilled {
+	m := metricDatabricksSparkStageDiskBytesSpilled{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkStageExecutorRunTime struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.stage.executor_run_time metric with initial data.
+func (m *metricDatabricksSparkStageExecutorRunTime) init() {
+	m.data.SetName("databricks.spark.stage.executor_run_time")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkStageExecutorRunTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkStageExecutorRunTime) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkStageExecutorRunTime) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkStageExecutorRunTime(settings MetricSettings) metricDatabricksSparkStageExecutorRunTime {
+	m := metricDatabricksSparkStageExecutorRunTime{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkStageInputBytes struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.stage.input_bytes metric with initial data.
+func (m *metricDatabricksSparkStageInputBytes) init() {
+	m.data.SetName("databricks.spark.stage.input_bytes")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkStageInputBytes) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkStageInputBytes) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkStageInputBytes) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkStageInputBytes(settings MetricSettings) metricDatabricksSparkStageInputBytes {
+	m := metricDatabricksSparkStageInputBytes{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkStageInputRecords struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.stage.input_records metric with initial data.
+func (m *metricDatabricksSparkStageInputRecords) init() {
+	m.data.SetName("databricks.spark.stage.input_records")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkStageInputRecords) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkStageInputRecords) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkStageInputRecords) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkStageInputRecords(settings MetricSettings) metricDatabricksSparkStageInputRecords {
+	m := metricDatabricksSparkStageInputRecords{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkStageMemoryBytesSpilled struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.stage.memory_bytes_spilled metric with initial data.
+func (m *metricDatabricksSparkStageMemoryBytesSpilled) init() {
+	m.data.SetName("databricks.spark.stage.memory_bytes_spilled")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("By")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkStageMemoryBytesSpilled) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkStageMemoryBytesSpilled) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkStageMemoryBytesSpilled) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkStageMemoryBytesSpilled(settings MetricSettings) metricDatabricksSparkStageMemoryBytesSpilled {
+	m := metricDatabricksSparkStageMemoryBytesSpilled{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkStageOutputBytes struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.stage.output_bytes metric with initial data.
+func (m *metricDatabricksSparkStageOutputBytes) init() {
+	m.data.SetName("databricks.spark.stage.output_bytes")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("By")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkStageOutputBytes) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkStageOutputBytes) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkStageOutputBytes) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkStageOutputBytes(settings MetricSettings) metricDatabricksSparkStageOutputBytes {
+	m := metricDatabricksSparkStageOutputBytes{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkStageOutputRecords struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.stage.output_records metric with initial data.
+func (m *metricDatabricksSparkStageOutputRecords) init() {
+	m.data.SetName("databricks.spark.stage.output_records")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkStageOutputRecords) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkStageOutputRecords) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkStageOutputRecords) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkStageOutputRecords(settings MetricSettings) metricDatabricksSparkStageOutputRecords {
+	m := metricDatabricksSparkStageOutputRecords{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.dagscheduler.messageprocessingtime.mean metric with initial data.
+func (m *metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean) init() {
+	m.data.SetName("databricks.spark.timer.dagscheduler.messageprocessingtime.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean(settings MetricSettings) metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean {
+	m := metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.sqlexecution.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.sqlexecution.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.streaming.streamingquerylistenerbus.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.streaming.streamingquerylistenerbus.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.ui.sqlappstatuslistener.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.ui.sqlappstatuslistener.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.hive.thriftserver.ui.hivethriftserver2listener.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.hive.thriftserver.ui.hivethriftserver2listener.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.sparksession.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.sparksession.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.util.executionlistenerbus.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.util.executionlistenerbus.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.status.appstatuslistener.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.status.appstatuslistener.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.util.profilerenv.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.util.profilerenv.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dataplaneeventlistener.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dataplaneeventlistener.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dbceventlogginglistener.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dbceventlogginglistener.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.photon.photoncleanuplistener.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.photon.photoncleanuplistener.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.executortimelogginglistener.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.executortimelogginglistener.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.usagelogginglistener.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.usagelogginglistener.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.advice.advisorlistener.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.advice.advisorlistener.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.debugger.querywatchdoglistener.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.debugger.querywatchdoglistener.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.execution.ui.iocachelistener.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.execution.ui.iocachelistener.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.io.caching.repeatedreadsestimator.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.io.caching.repeatedreadsestimator.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean {
+	m := metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.queue.appstatus.listenerprocessingtime.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.queue.appstatus.listenerprocessingtime.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean {
+	m := metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.queue.executormanagement.listenerprocessingtime.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.queue.executormanagement.listenerprocessingtime.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean {
+	m := metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.queue.shared.listenerprocessingtime.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.queue.shared.listenerprocessingtime.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean {
+	m := metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.timer.livelistenerbus.queue.streams.listenerprocessingtime.mean metric with initial data.
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean) init() {
+	m.data.SetName("databricks.spark.timer.livelistenerbus.queue.streams.listenerprocessingtime.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("ms")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(false)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityDelta)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean(settings MetricSettings) metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean {
+	m := metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksTasksRunDuration struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.tasks.run.duration metric with initial data.
+func (m *metricDatabricksTasksRunDuration) init() {
+	m.data.SetName("databricks.tasks.run.duration")
+	m.data.SetDescription("The execution duration in milliseconds per completed task")
+	m.data.SetUnit("ms")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksTasksRunDuration) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, jobIDAttributeValue int64, taskIDAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutInt("job_id", jobIDAttributeValue)
+	dp.Attributes().PutStr("task_id", taskIDAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksTasksRunDuration) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksTasksRunDuration) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksTasksRunDuration(settings MetricSettings) metricDatabricksTasksRunDuration {
+	m := metricDatabricksTasksRunDuration{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksTasksScheduleStatus struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.tasks.schedule.status metric with initial data.
+func (m *metricDatabricksTasksScheduleStatus) init() {
+	m.data.SetName("databricks.tasks.schedule.status")
+	m.data.SetDescription("A snapshot of the pause/run status per task taken at each scrape")
+	m.data.SetUnit("{status}")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksTasksScheduleStatus) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, jobIDAttributeValue int64, taskIDAttributeValue string, taskTypeAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutInt("job_id", jobIDAttributeValue)
+	dp.Attributes().PutStr("task_id", taskIDAttributeValue)
+	dp.Attributes().PutStr("task_type", taskTypeAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksTasksScheduleStatus) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksTasksScheduleStatus) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksTasksScheduleStatus(settings MetricSettings) metricDatabricksTasksScheduleStatus {
+	m := metricDatabricksTasksScheduleStatus{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+// MetricsBuilder provides an interface for scrapers to report metrics while taking care of all the transformations
+// required to produce metric representation defined in metadata and user settings.
+type MetricsBuilder struct {
+	startTime                                                                                                                    pcommon.Timestamp   // start time that will be applied to all recorded data points.
+	metricsCapacity                                                                                                              int                 // maximum observed number of metrics per resource.
+	resourceCapacity                                                                                                             int                 // maximum observed number of resource attributes.
+	metricsBuffer                                                                                                                pmetric.Metrics     // accumulates metrics data before emitting.
+	buildInfo                                                                                                                    component.BuildInfo // contains version information
+	metricDatabricksJobsActiveTotal                                                                                              metricDatabricksJobsActiveTotal
+	metricDatabricksJobsRunDuration                                                                                              metricDatabricksJobsRunDuration
+	metricDatabricksJobsScheduleStatus                                                                                           metricDatabricksJobsScheduleStatus
+	metricDatabricksJobsTotal                                                                                                    metricDatabricksJobsTotal
+	metricDatabricksSparkBlockmanagerMemoryDiskspaceused                                                                         metricDatabricksSparkBlockmanagerMemoryDiskspaceused
+	metricDatabricksSparkBlockmanagerMemoryMaxmem                                                                                metricDatabricksSparkBlockmanagerMemoryMaxmem
+	metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem                                                                         metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem
+	metricDatabricksSparkBlockmanagerMemoryMaxonheapmem                                                                          metricDatabricksSparkBlockmanagerMemoryMaxonheapmem
+	metricDatabricksSparkBlockmanagerMemoryMemused                                                                               metricDatabricksSparkBlockmanagerMemoryMemused
+	metricDatabricksSparkBlockmanagerMemoryOffheapmemused                                                                        metricDatabricksSparkBlockmanagerMemoryOffheapmemused
+	metricDatabricksSparkBlockmanagerMemoryOnheapmemused                                                                         metricDatabricksSparkBlockmanagerMemoryOnheapmemused
+	metricDatabricksSparkBlockmanagerMemoryRemainingmem                                                                          metricDatabricksSparkBlockmanagerMemoryRemainingmem
+	metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem                                                                   metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem
+	metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem                                                                    metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem
+	metricDatabricksSparkDagschedulerJobActivejobs                                                                               metricDatabricksSparkDagschedulerJobActivejobs
+	metricDatabricksSparkDagschedulerJobAlljobs                                                                                  metricDatabricksSparkDagschedulerJobAlljobs
+	metricDatabricksSparkDagschedulerStageFailedstages                                                                           metricDatabricksSparkDagschedulerStageFailedstages
+	metricDatabricksSparkDagschedulerStageRunningstages                                                                          metricDatabricksSparkDagschedulerStageRunningstages
+	metricDatabricksSparkDagschedulerStageWaitingstages                                                                          metricDatabricksSparkDagschedulerStageWaitingstages
+	metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount                                                                metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount
+	metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered                                                           metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered
+	metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount                                                             metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount
+	metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted                                                             metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted
+	metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors                                                               metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors
+	metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount                                                             metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount
+	metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors                                                            metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors
+	metricDatabricksSparkDatabricksDirectorycommitMarkersread                                                                    metricDatabricksSparkDatabricksDirectorycommitMarkersread
+	metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount                                                              metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount
+	metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered                                                       metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered
+	metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound                                                            metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound
+	metricDatabricksSparkDatabricksDirectorycommitVacuumcount                                                                    metricDatabricksSparkDatabricksDirectorycommitVacuumcount
+	metricDatabricksSparkDatabricksDirectorycommitVacuumerrors                                                                   metricDatabricksSparkDatabricksDirectorycommitVacuumerrors
+	metricDatabricksSparkDatabricksPreemptionNumchecks                                                                           metricDatabricksSparkDatabricksPreemptionNumchecks
+	metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired                                                                 metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired
+	metricDatabricksSparkDatabricksPreemptionNumtaskspreempted                                                                   metricDatabricksSparkDatabricksPreemptionNumtaskspreempted
+	metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis                                                                metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis
+	metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos                                                              metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos
+	metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis                                                                metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis
+	metricDatabricksSparkDatabricksTaskschedulinglanesActivepools                                                                metricDatabricksSparkDatabricksTaskschedulinglanesActivepools
+	metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools                                                      metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools
+	metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools                                                        metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools
+	metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens                                             metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens
+	metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools                                                     metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools
+	metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned                                            metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned
+	metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned                                              metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned
+	metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations                    metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations
+	metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted                                    metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted
+	metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens                                     metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens
+	metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease                                          metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease
+	metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop                                                metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop
+	metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump                                                metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump
+	metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved                                               metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved
+	metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools                                                        metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools
+	metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished                                                   metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished
+	metricDatabricksSparkExecutorDiskUsed                                                                                        metricDatabricksSparkExecutorDiskUsed
+	metricDatabricksSparkExecutorMaxMemory                                                                                       metricDatabricksSparkExecutorMaxMemory
+	metricDatabricksSparkExecutorMemoryUsed                                                                                      metricDatabricksSparkExecutorMemoryUsed
+	metricDatabricksSparkExecutorTotalInputBytes                                                                                 metricDatabricksSparkExecutorTotalInputBytes
+	metricDatabricksSparkExecutorTotalShuffleRead                                                                                metricDatabricksSparkExecutorTotalShuffleRead
+	metricDatabricksSparkExecutorTotalShuffleWrite                                                                               metricDatabricksSparkExecutorTotalShuffleWrite
+	metricDatabricksSparkExecutormetricsDirectpoolmemory                                                                         metricDatabricksSparkExecutormetricsDirectpoolmemory
+	metricDatabricksSparkExecutormetricsJvmheapmemory                                                                            metricDatabricksSparkExecutormetricsJvmheapmemory
+	metricDatabricksSparkExecutormetricsJvmoffheapmemory                                                                         metricDatabricksSparkExecutormetricsJvmoffheapmemory
+	metricDatabricksSparkExecutormetricsMajorgccount                                                                             metricDatabricksSparkExecutormetricsMajorgccount
+	metricDatabricksSparkExecutormetricsMajorgctime                                                                              metricDatabricksSparkExecutormetricsMajorgctime
+	metricDatabricksSparkExecutormetricsMappedpoolmemory                                                                         metricDatabricksSparkExecutormetricsMappedpoolmemory
+	metricDatabricksSparkExecutormetricsMinorgccount                                                                             metricDatabricksSparkExecutormetricsMinorgccount
+	metricDatabricksSparkExecutormetricsMinorgctime                                                                              metricDatabricksSparkExecutormetricsMinorgctime
+	metricDatabricksSparkExecutormetricsOffheapexecutionmemory                                                                   metricDatabricksSparkExecutormetricsOffheapexecutionmemory
+	metricDatabricksSparkExecutormetricsOffheapstoragememory                                                                     metricDatabricksSparkExecutormetricsOffheapstoragememory
+	metricDatabricksSparkExecutormetricsOffheapunifiedmemory                                                                     metricDatabricksSparkExecutormetricsOffheapunifiedmemory
+	metricDatabricksSparkExecutormetricsOnheapexecutionmemory                                                                    metricDatabricksSparkExecutormetricsOnheapexecutionmemory
+	metricDatabricksSparkExecutormetricsOnheapstoragememory                                                                      metricDatabricksSparkExecutormetricsOnheapstoragememory
+	metricDatabricksSparkExecutormetricsOnheapunifiedmemory                                                                      metricDatabricksSparkExecutormetricsOnheapunifiedmemory
+	metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory                                                                  metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory
+	metricDatabricksSparkExecutormetricsProcesstreejvmvmemory                                                                    metricDatabricksSparkExecutormetricsProcesstreejvmvmemory
+	metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory                                                                metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory
+	metricDatabricksSparkExecutormetricsProcesstreeothervmemory                                                                  metricDatabricksSparkExecutormetricsProcesstreeothervmemory
+	metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory                                                               metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory
+	metricDatabricksSparkExecutormetricsProcesstreepythonvmemory                                                                 metricDatabricksSparkExecutormetricsProcesstreepythonvmemory
+	metricDatabricksSparkHiveexternalcatalogFilecachehits                                                                        metricDatabricksSparkHiveexternalcatalogFilecachehits
+	metricDatabricksSparkHiveexternalcatalogFilesdiscovered                                                                      metricDatabricksSparkHiveexternalcatalogFilesdiscovered
+	metricDatabricksSparkHiveexternalcatalogHiveclientcalls                                                                      metricDatabricksSparkHiveexternalcatalogHiveclientcalls
+	metricDatabricksSparkHiveexternalcatalogParallellistingjobcount                                                              metricDatabricksSparkHiveexternalcatalogParallellistingjobcount
+	metricDatabricksSparkHiveexternalcatalogPartitionsfetched                                                                    metricDatabricksSparkHiveexternalcatalogPartitionsfetched
+	metricDatabricksSparkJobNumActiveStages                                                                                      metricDatabricksSparkJobNumActiveStages
+	metricDatabricksSparkJobNumActiveTasks                                                                                       metricDatabricksSparkJobNumActiveTasks
+	metricDatabricksSparkJobNumCompletedStages                                                                                   metricDatabricksSparkJobNumCompletedStages
+	metricDatabricksSparkJobNumCompletedTasks                                                                                    metricDatabricksSparkJobNumCompletedTasks
+	metricDatabricksSparkJobNumFailedStages                                                                                      metricDatabricksSparkJobNumFailedStages
+	metricDatabricksSparkJobNumFailedTasks                                                                                       metricDatabricksSparkJobNumFailedTasks
+	metricDatabricksSparkJobNumSkippedStages                                                                                     metricDatabricksSparkJobNumSkippedStages
+	metricDatabricksSparkJobNumSkippedTasks                                                                                      metricDatabricksSparkJobNumSkippedTasks
+	metricDatabricksSparkJobNumTasks                                                                                             metricDatabricksSparkJobNumTasks
+	metricDatabricksSparkJvmcpuJvmcputime                                                                                        metricDatabricksSparkJvmcpuJvmcputime
+	metricDatabricksSparkLivelistenerbusNumeventsposted                                                                          metricDatabricksSparkLivelistenerbusNumeventsposted
+	metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents                                                           metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents
+	metricDatabricksSparkLivelistenerbusQueueAppstatusSize                                                                       metricDatabricksSparkLivelistenerbusQueueAppstatusSize
+	metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents                                                  metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents
+	metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize                                                              metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize
+	metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents                                                              metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents
+	metricDatabricksSparkLivelistenerbusQueueSharedSize                                                                          metricDatabricksSparkLivelistenerbusQueueSharedSize
+	metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents                                                             metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents
+	metricDatabricksSparkLivelistenerbusQueueStreamsSize                                                                         metricDatabricksSparkLivelistenerbusQueueStreamsSize
+	metricDatabricksSparkSparksqloperationmanagerNumhiveoperations                                                               metricDatabricksSparkSparksqloperationmanagerNumhiveoperations
+	metricDatabricksSparkStageDiskBytesSpilled                                                                                   metricDatabricksSparkStageDiskBytesSpilled
+	metricDatabricksSparkStageExecutorRunTime                                                                                    metricDatabricksSparkStageExecutorRunTime
+	metricDatabricksSparkStageInputBytes                                                                                         metricDatabricksSparkStageInputBytes
+	metricDatabricksSparkStageInputRecords                                                                                       metricDatabricksSparkStageInputRecords
+	metricDatabricksSparkStageMemoryBytesSpilled                                                                                 metricDatabricksSparkStageMemoryBytesSpilled
+	metricDatabricksSparkStageOutputBytes                                                                                        metricDatabricksSparkStageOutputBytes
+	metricDatabricksSparkStageOutputRecords                                                                                      metricDatabricksSparkStageOutputRecords
+	metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean                                                              metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean                       metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean             metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean                                metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean                    metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean                        metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean                                metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean       metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean      metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean                     metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean            metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean                   metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean                        metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean                metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean                   metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean
+	metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean              metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean
+	metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean                                            metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean
+	metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean                                   metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean
+	metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean                                               metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean
+	metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean                                              metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean
+	metricDatabricksTasksRunDuration                                                                                             metricDatabricksTasksRunDuration
+	metricDatabricksTasksScheduleStatus                                                                                          metricDatabricksTasksScheduleStatus
+}
+
+// metricBuilderOption applies changes to default metrics builder.
+type metricBuilderOption func(*MetricsBuilder)
+
+// WithStartTime sets startTime on the metrics builder.
+func WithStartTime(startTime pcommon.Timestamp) metricBuilderOption {
+	return func(mb *MetricsBuilder) {
+		mb.startTime = startTime
+	}
+}
+
+func NewMetricsBuilder(settings MetricsSettings, buildInfo component.BuildInfo, options ...metricBuilderOption) *MetricsBuilder {
+	mb := &MetricsBuilder{
+		startTime:                          pcommon.NewTimestampFromTime(time.Now()),
+		metricsBuffer:                      pmetric.NewMetrics(),
+		buildInfo:                          buildInfo,
+		metricDatabricksJobsActiveTotal:    newMetricDatabricksJobsActiveTotal(settings.DatabricksJobsActiveTotal),
+		metricDatabricksJobsRunDuration:    newMetricDatabricksJobsRunDuration(settings.DatabricksJobsRunDuration),
+		metricDatabricksJobsScheduleStatus: newMetricDatabricksJobsScheduleStatus(settings.DatabricksJobsScheduleStatus),
+		metricDatabricksJobsTotal:          newMetricDatabricksJobsTotal(settings.DatabricksJobsTotal),
+		metricDatabricksSparkBlockmanagerMemoryDiskspaceused:                                                                         newMetricDatabricksSparkBlockmanagerMemoryDiskspaceused(settings.DatabricksSparkBlockmanagerMemoryDiskspaceused),
+		metricDatabricksSparkBlockmanagerMemoryMaxmem:                                                                                newMetricDatabricksSparkBlockmanagerMemoryMaxmem(settings.DatabricksSparkBlockmanagerMemoryMaxmem),
+		metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem:                                                                         newMetricDatabricksSparkBlockmanagerMemoryMaxoffheapmem(settings.DatabricksSparkBlockmanagerMemoryMaxoffheapmem),
+		metricDatabricksSparkBlockmanagerMemoryMaxonheapmem:                                                                          newMetricDatabricksSparkBlockmanagerMemoryMaxonheapmem(settings.DatabricksSparkBlockmanagerMemoryMaxonheapmem),
+		metricDatabricksSparkBlockmanagerMemoryMemused:                                                                               newMetricDatabricksSparkBlockmanagerMemoryMemused(settings.DatabricksSparkBlockmanagerMemoryMemused),
+		metricDatabricksSparkBlockmanagerMemoryOffheapmemused:                                                                        newMetricDatabricksSparkBlockmanagerMemoryOffheapmemused(settings.DatabricksSparkBlockmanagerMemoryOffheapmemused),
+		metricDatabricksSparkBlockmanagerMemoryOnheapmemused:                                                                         newMetricDatabricksSparkBlockmanagerMemoryOnheapmemused(settings.DatabricksSparkBlockmanagerMemoryOnheapmemused),
+		metricDatabricksSparkBlockmanagerMemoryRemainingmem:                                                                          newMetricDatabricksSparkBlockmanagerMemoryRemainingmem(settings.DatabricksSparkBlockmanagerMemoryRemainingmem),
+		metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem:                                                                   newMetricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem(settings.DatabricksSparkBlockmanagerMemoryRemainingoffheapmem),
+		metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem:                                                                    newMetricDatabricksSparkBlockmanagerMemoryRemainingonheapmem(settings.DatabricksSparkBlockmanagerMemoryRemainingonheapmem),
+		metricDatabricksSparkDagschedulerJobActivejobs:                                                                               newMetricDatabricksSparkDagschedulerJobActivejobs(settings.DatabricksSparkDagschedulerJobActivejobs),
+		metricDatabricksSparkDagschedulerJobAlljobs:                                                                                  newMetricDatabricksSparkDagschedulerJobAlljobs(settings.DatabricksSparkDagschedulerJobAlljobs),
+		metricDatabricksSparkDagschedulerStageFailedstages:                                                                           newMetricDatabricksSparkDagschedulerStageFailedstages(settings.DatabricksSparkDagschedulerStageFailedstages),
+		metricDatabricksSparkDagschedulerStageRunningstages:                                                                          newMetricDatabricksSparkDagschedulerStageRunningstages(settings.DatabricksSparkDagschedulerStageRunningstages),
+		metricDatabricksSparkDagschedulerStageWaitingstages:                                                                          newMetricDatabricksSparkDagschedulerStageWaitingstages(settings.DatabricksSparkDagschedulerStageWaitingstages),
+		metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount:                                                                newMetricDatabricksSparkDatabricksDirectorycommitAutovacuumcount(settings.DatabricksSparkDatabricksDirectorycommitAutovacuumcount),
+		metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered:                                                           newMetricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered(settings.DatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered),
+		metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount:                                                             newMetricDatabricksSparkDatabricksDirectorycommitFilterlistingcount(settings.DatabricksSparkDatabricksDirectorycommitFilterlistingcount),
+		metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted:                                                             newMetricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted(settings.DatabricksSparkDatabricksDirectorycommitJobcommitcompleted),
+		metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors:                                                               newMetricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors(settings.DatabricksSparkDatabricksDirectorycommitMarkerreaderrors),
+		metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount:                                                             newMetricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount(settings.DatabricksSparkDatabricksDirectorycommitMarkerrefreshcount),
+		metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors:                                                            newMetricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors(settings.DatabricksSparkDatabricksDirectorycommitMarkerrefresherrors),
+		metricDatabricksSparkDatabricksDirectorycommitMarkersread:                                                                    newMetricDatabricksSparkDatabricksDirectorycommitMarkersread(settings.DatabricksSparkDatabricksDirectorycommitMarkersread),
+		metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount:                                                              newMetricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount(settings.DatabricksSparkDatabricksDirectorycommitRepeatedlistcount),
+		metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered:                                                       newMetricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered(settings.DatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered),
+		metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound:                                                            newMetricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound(settings.DatabricksSparkDatabricksDirectorycommitUntrackedfilesfound),
+		metricDatabricksSparkDatabricksDirectorycommitVacuumcount:                                                                    newMetricDatabricksSparkDatabricksDirectorycommitVacuumcount(settings.DatabricksSparkDatabricksDirectorycommitVacuumcount),
+		metricDatabricksSparkDatabricksDirectorycommitVacuumerrors:                                                                   newMetricDatabricksSparkDatabricksDirectorycommitVacuumerrors(settings.DatabricksSparkDatabricksDirectorycommitVacuumerrors),
+		metricDatabricksSparkDatabricksPreemptionNumchecks:                                                                           newMetricDatabricksSparkDatabricksPreemptionNumchecks(settings.DatabricksSparkDatabricksPreemptionNumchecks),
+		metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired:                                                                 newMetricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired(settings.DatabricksSparkDatabricksPreemptionNumpoolsautoexpired),
+		metricDatabricksSparkDatabricksPreemptionNumtaskspreempted:                                                                   newMetricDatabricksSparkDatabricksPreemptionNumtaskspreempted(settings.DatabricksSparkDatabricksPreemptionNumtaskspreempted),
+		metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis:                                                                newMetricDatabricksSparkDatabricksPreemptionPoolstarvationmillis(settings.DatabricksSparkDatabricksPreemptionPoolstarvationmillis),
+		metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos:                                                              newMetricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos(settings.DatabricksSparkDatabricksPreemptionScheduleroverheadnanos),
+		metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis:                                                                newMetricDatabricksSparkDatabricksPreemptionTasktimewastedmillis(settings.DatabricksSparkDatabricksPreemptionTasktimewastedmillis),
+		metricDatabricksSparkDatabricksTaskschedulinglanesActivepools:                                                                newMetricDatabricksSparkDatabricksTaskschedulinglanesActivepools(settings.DatabricksSparkDatabricksTaskschedulinglanesActivepools),
+		metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools:                                                      newMetricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools(settings.DatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools),
+		metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools:                                                        newMetricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools(settings.DatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools),
+		metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens:                                             newMetricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens(settings.DatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens),
+		metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools:                                                     newMetricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools(settings.DatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools),
+		metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned:                                            newMetricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned(settings.DatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned),
+		metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned:                                              newMetricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned(settings.DatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned),
+		metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations:                    newMetricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations(settings.DatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations),
+		metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted:                                    newMetricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted(settings.DatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted),
+		metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens:                                     newMetricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens(settings.DatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens),
+		metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease:                                          newMetricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease(settings.DatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease),
+		metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop:                                                newMetricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop(settings.DatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop),
+		metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump:                                                newMetricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump(settings.DatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump),
+		metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved:                                               newMetricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved(settings.DatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved),
+		metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools:                                                        newMetricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools(settings.DatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools),
+		metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished:                                                   newMetricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished(settings.DatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished),
+		metricDatabricksSparkExecutorDiskUsed:                                                                                        newMetricDatabricksSparkExecutorDiskUsed(settings.DatabricksSparkExecutorDiskUsed),
+		metricDatabricksSparkExecutorMaxMemory:                                                                                       newMetricDatabricksSparkExecutorMaxMemory(settings.DatabricksSparkExecutorMaxMemory),
+		metricDatabricksSparkExecutorMemoryUsed:                                                                                      newMetricDatabricksSparkExecutorMemoryUsed(settings.DatabricksSparkExecutorMemoryUsed),
+		metricDatabricksSparkExecutorTotalInputBytes:                                                                                 newMetricDatabricksSparkExecutorTotalInputBytes(settings.DatabricksSparkExecutorTotalInputBytes),
+		metricDatabricksSparkExecutorTotalShuffleRead:                                                                                newMetricDatabricksSparkExecutorTotalShuffleRead(settings.DatabricksSparkExecutorTotalShuffleRead),
+		metricDatabricksSparkExecutorTotalShuffleWrite:                                                                               newMetricDatabricksSparkExecutorTotalShuffleWrite(settings.DatabricksSparkExecutorTotalShuffleWrite),
+		metricDatabricksSparkExecutormetricsDirectpoolmemory:                                                                         newMetricDatabricksSparkExecutormetricsDirectpoolmemory(settings.DatabricksSparkExecutormetricsDirectpoolmemory),
+		metricDatabricksSparkExecutormetricsJvmheapmemory:                                                                            newMetricDatabricksSparkExecutormetricsJvmheapmemory(settings.DatabricksSparkExecutormetricsJvmheapmemory),
+		metricDatabricksSparkExecutormetricsJvmoffheapmemory:                                                                         newMetricDatabricksSparkExecutormetricsJvmoffheapmemory(settings.DatabricksSparkExecutormetricsJvmoffheapmemory),
+		metricDatabricksSparkExecutormetricsMajorgccount:                                                                             newMetricDatabricksSparkExecutormetricsMajorgccount(settings.DatabricksSparkExecutormetricsMajorgccount),
+		metricDatabricksSparkExecutormetricsMajorgctime:                                                                              newMetricDatabricksSparkExecutormetricsMajorgctime(settings.DatabricksSparkExecutormetricsMajorgctime),
+		metricDatabricksSparkExecutormetricsMappedpoolmemory:                                                                         newMetricDatabricksSparkExecutormetricsMappedpoolmemory(settings.DatabricksSparkExecutormetricsMappedpoolmemory),
+		metricDatabricksSparkExecutormetricsMinorgccount:                                                                             newMetricDatabricksSparkExecutormetricsMinorgccount(settings.DatabricksSparkExecutormetricsMinorgccount),
+		metricDatabricksSparkExecutormetricsMinorgctime:                                                                              newMetricDatabricksSparkExecutormetricsMinorgctime(settings.DatabricksSparkExecutormetricsMinorgctime),
+		metricDatabricksSparkExecutormetricsOffheapexecutionmemory:                                                                   newMetricDatabricksSparkExecutormetricsOffheapexecutionmemory(settings.DatabricksSparkExecutormetricsOffheapexecutionmemory),
+		metricDatabricksSparkExecutormetricsOffheapstoragememory:                                                                     newMetricDatabricksSparkExecutormetricsOffheapstoragememory(settings.DatabricksSparkExecutormetricsOffheapstoragememory),
+		metricDatabricksSparkExecutormetricsOffheapunifiedmemory:                                                                     newMetricDatabricksSparkExecutormetricsOffheapunifiedmemory(settings.DatabricksSparkExecutormetricsOffheapunifiedmemory),
+		metricDatabricksSparkExecutormetricsOnheapexecutionmemory:                                                                    newMetricDatabricksSparkExecutormetricsOnheapexecutionmemory(settings.DatabricksSparkExecutormetricsOnheapexecutionmemory),
+		metricDatabricksSparkExecutormetricsOnheapstoragememory:                                                                      newMetricDatabricksSparkExecutormetricsOnheapstoragememory(settings.DatabricksSparkExecutormetricsOnheapstoragememory),
+		metricDatabricksSparkExecutormetricsOnheapunifiedmemory:                                                                      newMetricDatabricksSparkExecutormetricsOnheapunifiedmemory(settings.DatabricksSparkExecutormetricsOnheapunifiedmemory),
+		metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory:                                                                  newMetricDatabricksSparkExecutormetricsProcesstreejvmrssmemory(settings.DatabricksSparkExecutormetricsProcesstreejvmrssmemory),
+		metricDatabricksSparkExecutormetricsProcesstreejvmvmemory:                                                                    newMetricDatabricksSparkExecutormetricsProcesstreejvmvmemory(settings.DatabricksSparkExecutormetricsProcesstreejvmvmemory),
+		metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory:                                                                newMetricDatabricksSparkExecutormetricsProcesstreeotherrssmemory(settings.DatabricksSparkExecutormetricsProcesstreeotherrssmemory),
+		metricDatabricksSparkExecutormetricsProcesstreeothervmemory:                                                                  newMetricDatabricksSparkExecutormetricsProcesstreeothervmemory(settings.DatabricksSparkExecutormetricsProcesstreeothervmemory),
+		metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory:                                                               newMetricDatabricksSparkExecutormetricsProcesstreepythonrssmemory(settings.DatabricksSparkExecutormetricsProcesstreepythonrssmemory),
+		metricDatabricksSparkExecutormetricsProcesstreepythonvmemory:                                                                 newMetricDatabricksSparkExecutormetricsProcesstreepythonvmemory(settings.DatabricksSparkExecutormetricsProcesstreepythonvmemory),
+		metricDatabricksSparkHiveexternalcatalogFilecachehits:                                                                        newMetricDatabricksSparkHiveexternalcatalogFilecachehits(settings.DatabricksSparkHiveexternalcatalogFilecachehits),
+		metricDatabricksSparkHiveexternalcatalogFilesdiscovered:                                                                      newMetricDatabricksSparkHiveexternalcatalogFilesdiscovered(settings.DatabricksSparkHiveexternalcatalogFilesdiscovered),
+		metricDatabricksSparkHiveexternalcatalogHiveclientcalls:                                                                      newMetricDatabricksSparkHiveexternalcatalogHiveclientcalls(settings.DatabricksSparkHiveexternalcatalogHiveclientcalls),
+		metricDatabricksSparkHiveexternalcatalogParallellistingjobcount:                                                              newMetricDatabricksSparkHiveexternalcatalogParallellistingjobcount(settings.DatabricksSparkHiveexternalcatalogParallellistingjobcount),
+		metricDatabricksSparkHiveexternalcatalogPartitionsfetched:                                                                    newMetricDatabricksSparkHiveexternalcatalogPartitionsfetched(settings.DatabricksSparkHiveexternalcatalogPartitionsfetched),
+		metricDatabricksSparkJobNumActiveStages:                                                                                      newMetricDatabricksSparkJobNumActiveStages(settings.DatabricksSparkJobNumActiveStages),
+		metricDatabricksSparkJobNumActiveTasks:                                                                                       newMetricDatabricksSparkJobNumActiveTasks(settings.DatabricksSparkJobNumActiveTasks),
+		metricDatabricksSparkJobNumCompletedStages:                                                                                   newMetricDatabricksSparkJobNumCompletedStages(settings.DatabricksSparkJobNumCompletedStages),
+		metricDatabricksSparkJobNumCompletedTasks:                                                                                    newMetricDatabricksSparkJobNumCompletedTasks(settings.DatabricksSparkJobNumCompletedTasks),
+		metricDatabricksSparkJobNumFailedStages:                                                                                      newMetricDatabricksSparkJobNumFailedStages(settings.DatabricksSparkJobNumFailedStages),
+		metricDatabricksSparkJobNumFailedTasks:                                                                                       newMetricDatabricksSparkJobNumFailedTasks(settings.DatabricksSparkJobNumFailedTasks),
+		metricDatabricksSparkJobNumSkippedStages:                                                                                     newMetricDatabricksSparkJobNumSkippedStages(settings.DatabricksSparkJobNumSkippedStages),
+		metricDatabricksSparkJobNumSkippedTasks:                                                                                      newMetricDatabricksSparkJobNumSkippedTasks(settings.DatabricksSparkJobNumSkippedTasks),
+		metricDatabricksSparkJobNumTasks:                                                                                             newMetricDatabricksSparkJobNumTasks(settings.DatabricksSparkJobNumTasks),
+		metricDatabricksSparkJvmcpuJvmcputime:                                                                                        newMetricDatabricksSparkJvmcpuJvmcputime(settings.DatabricksSparkJvmcpuJvmcputime),
+		metricDatabricksSparkLivelistenerbusNumeventsposted:                                                                          newMetricDatabricksSparkLivelistenerbusNumeventsposted(settings.DatabricksSparkLivelistenerbusNumeventsposted),
+		metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents:                                                           newMetricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents(settings.DatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents),
+		metricDatabricksSparkLivelistenerbusQueueAppstatusSize:                                                                       newMetricDatabricksSparkLivelistenerbusQueueAppstatusSize(settings.DatabricksSparkLivelistenerbusQueueAppstatusSize),
+		metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents:                                                  newMetricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents(settings.DatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents),
+		metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize:                                                              newMetricDatabricksSparkLivelistenerbusQueueExecutormanagementSize(settings.DatabricksSparkLivelistenerbusQueueExecutormanagementSize),
+		metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents:                                                              newMetricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents(settings.DatabricksSparkLivelistenerbusQueueSharedNumdroppedevents),
+		metricDatabricksSparkLivelistenerbusQueueSharedSize:                                                                          newMetricDatabricksSparkLivelistenerbusQueueSharedSize(settings.DatabricksSparkLivelistenerbusQueueSharedSize),
+		metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents:                                                             newMetricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents(settings.DatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents),
+		metricDatabricksSparkLivelistenerbusQueueStreamsSize:                                                                         newMetricDatabricksSparkLivelistenerbusQueueStreamsSize(settings.DatabricksSparkLivelistenerbusQueueStreamsSize),
+		metricDatabricksSparkSparksqloperationmanagerNumhiveoperations:                                                               newMetricDatabricksSparkSparksqloperationmanagerNumhiveoperations(settings.DatabricksSparkSparksqloperationmanagerNumhiveoperations),
+		metricDatabricksSparkStageDiskBytesSpilled:                                                                                   newMetricDatabricksSparkStageDiskBytesSpilled(settings.DatabricksSparkStageDiskBytesSpilled),
+		metricDatabricksSparkStageExecutorRunTime:                                                                                    newMetricDatabricksSparkStageExecutorRunTime(settings.DatabricksSparkStageExecutorRunTime),
+		metricDatabricksSparkStageInputBytes:                                                                                         newMetricDatabricksSparkStageInputBytes(settings.DatabricksSparkStageInputBytes),
+		metricDatabricksSparkStageInputRecords:                                                                                       newMetricDatabricksSparkStageInputRecords(settings.DatabricksSparkStageInputRecords),
+		metricDatabricksSparkStageMemoryBytesSpilled:                                                                                 newMetricDatabricksSparkStageMemoryBytesSpilled(settings.DatabricksSparkStageMemoryBytesSpilled),
+		metricDatabricksSparkStageOutputBytes:                                                                                        newMetricDatabricksSparkStageOutputBytes(settings.DatabricksSparkStageOutputBytes),
+		metricDatabricksSparkStageOutputRecords:                                                                                      newMetricDatabricksSparkStageOutputRecords(settings.DatabricksSparkStageOutputRecords),
+		metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean:                                                              newMetricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean(settings.DatabricksSparkTimerDagschedulerMessageprocessingtimeMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean:                       newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean: newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean:             newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean: newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean:                                newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean:                    newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean:                        newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean:                                newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean:       newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean:      newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean:                     newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean:            newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean:                   newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean:                        newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean:                newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean:                   newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean),
+		metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean:              newMetricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean(settings.DatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean),
+		metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean:                                            newMetricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean(settings.DatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean),
+		metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean:                                   newMetricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean(settings.DatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean),
+		metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean:                                               newMetricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean(settings.DatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean),
+		metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean:                                              newMetricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean(settings.DatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean),
+		metricDatabricksTasksRunDuration:                                                                                             newMetricDatabricksTasksRunDuration(settings.DatabricksTasksRunDuration),
+		metricDatabricksTasksScheduleStatus:                                                                                          newMetricDatabricksTasksScheduleStatus(settings.DatabricksTasksScheduleStatus),
+	}
+	for _, op := range options {
+		op(mb)
+	}
+	return mb
+}
+
+// updateCapacity updates max length of metrics and resource attributes that will be used for the slice capacity.
+func (mb *MetricsBuilder) updateCapacity(rm pmetric.ResourceMetrics) {
+	if mb.metricsCapacity < rm.ScopeMetrics().At(0).Metrics().Len() {
+		mb.metricsCapacity = rm.ScopeMetrics().At(0).Metrics().Len()
+	}
+	if mb.resourceCapacity < rm.Resource().Attributes().Len() {
+		mb.resourceCapacity = rm.Resource().Attributes().Len()
+	}
+}
+
+// ResourceMetricsOption applies changes to provided resource metrics.
+type ResourceMetricsOption func(pmetric.ResourceMetrics)
+
+// WithDatabricksInstanceName sets provided value as "databricks.instance.name" attribute for current resource.
+func WithDatabricksInstanceName(val string) ResourceMetricsOption {
+	return func(rm pmetric.ResourceMetrics) {
+		rm.Resource().Attributes().PutStr("databricks.instance.name", val)
+	}
+}
+
+// WithStartTimeOverride overrides start time for all the resource metrics data points.
+// This option should be only used if different start time has to be set on metrics coming from different resources.
+func WithStartTimeOverride(start pcommon.Timestamp) ResourceMetricsOption {
+	return func(rm pmetric.ResourceMetrics) {
+		var dps pmetric.NumberDataPointSlice
+		metrics := rm.ScopeMetrics().At(0).Metrics()
+		for i := 0; i < metrics.Len(); i++ {
+			switch metrics.At(i).Type() {
+			case pmetric.MetricTypeGauge:
+				dps = metrics.At(i).Gauge().DataPoints()
+			case pmetric.MetricTypeSum:
+				dps = metrics.At(i).Sum().DataPoints()
+			}
+			for j := 0; j < dps.Len(); j++ {
+				dps.At(j).SetStartTimestamp(start)
+			}
+		}
+	}
+}
+
+// EmitForResource saves all the generated metrics under a new resource and updates the internal state to be ready for
+// recording another set of data points as part of another resource. This function can be helpful when one scraper
+// needs to emit metrics from several resources. Otherwise calling this function is not required,
+// just `Emit` function can be called instead.
+// Resource attributes should be provided as ResourceMetricsOption arguments.
+func (mb *MetricsBuilder) EmitForResource(rmo ...ResourceMetricsOption) {
+	rm := pmetric.NewResourceMetrics()
+	rm.Resource().Attributes().EnsureCapacity(mb.resourceCapacity)
+	ils := rm.ScopeMetrics().AppendEmpty()
+	ils.Scope().SetName("otelcol/databricksreceiver")
+	ils.Scope().SetVersion(mb.buildInfo.Version)
+	ils.Metrics().EnsureCapacity(mb.metricsCapacity)
+	mb.metricDatabricksJobsActiveTotal.emit(ils.Metrics())
+	mb.metricDatabricksJobsRunDuration.emit(ils.Metrics())
+	mb.metricDatabricksJobsScheduleStatus.emit(ils.Metrics())
+	mb.metricDatabricksJobsTotal.emit(ils.Metrics())
+	mb.metricDatabricksSparkBlockmanagerMemoryDiskspaceused.emit(ils.Metrics())
+	mb.metricDatabricksSparkBlockmanagerMemoryMaxmem.emit(ils.Metrics())
+	mb.metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem.emit(ils.Metrics())
+	mb.metricDatabricksSparkBlockmanagerMemoryMaxonheapmem.emit(ils.Metrics())
+	mb.metricDatabricksSparkBlockmanagerMemoryMemused.emit(ils.Metrics())
+	mb.metricDatabricksSparkBlockmanagerMemoryOffheapmemused.emit(ils.Metrics())
+	mb.metricDatabricksSparkBlockmanagerMemoryOnheapmemused.emit(ils.Metrics())
+	mb.metricDatabricksSparkBlockmanagerMemoryRemainingmem.emit(ils.Metrics())
+	mb.metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem.emit(ils.Metrics())
+	mb.metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem.emit(ils.Metrics())
+	mb.metricDatabricksSparkDagschedulerJobActivejobs.emit(ils.Metrics())
+	mb.metricDatabricksSparkDagschedulerJobAlljobs.emit(ils.Metrics())
+	mb.metricDatabricksSparkDagschedulerStageFailedstages.emit(ils.Metrics())
+	mb.metricDatabricksSparkDagschedulerStageRunningstages.emit(ils.Metrics())
+	mb.metricDatabricksSparkDagschedulerStageWaitingstages.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksDirectorycommitMarkersread.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksDirectorycommitVacuumcount.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksDirectorycommitVacuumerrors.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksPreemptionNumchecks.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksPreemptionNumtaskspreempted.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesActivepools.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools.emit(ils.Metrics())
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutorDiskUsed.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutorMaxMemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutorMemoryUsed.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutorTotalInputBytes.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutorTotalShuffleRead.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutorTotalShuffleWrite.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsDirectpoolmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsJvmheapmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsJvmoffheapmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsMajorgccount.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsMajorgctime.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsMappedpoolmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsMinorgccount.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsMinorgctime.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsOffheapexecutionmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsOffheapstoragememory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsOffheapunifiedmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsOnheapexecutionmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsOnheapstoragememory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsOnheapunifiedmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsProcesstreejvmvmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsProcesstreeothervmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkExecutormetricsProcesstreepythonvmemory.emit(ils.Metrics())
+	mb.metricDatabricksSparkHiveexternalcatalogFilecachehits.emit(ils.Metrics())
+	mb.metricDatabricksSparkHiveexternalcatalogFilesdiscovered.emit(ils.Metrics())
+	mb.metricDatabricksSparkHiveexternalcatalogHiveclientcalls.emit(ils.Metrics())
+	mb.metricDatabricksSparkHiveexternalcatalogParallellistingjobcount.emit(ils.Metrics())
+	mb.metricDatabricksSparkHiveexternalcatalogPartitionsfetched.emit(ils.Metrics())
+	mb.metricDatabricksSparkJobNumActiveStages.emit(ils.Metrics())
+	mb.metricDatabricksSparkJobNumActiveTasks.emit(ils.Metrics())
+	mb.metricDatabricksSparkJobNumCompletedStages.emit(ils.Metrics())
+	mb.metricDatabricksSparkJobNumCompletedTasks.emit(ils.Metrics())
+	mb.metricDatabricksSparkJobNumFailedStages.emit(ils.Metrics())
+	mb.metricDatabricksSparkJobNumFailedTasks.emit(ils.Metrics())
+	mb.metricDatabricksSparkJobNumSkippedStages.emit(ils.Metrics())
+	mb.metricDatabricksSparkJobNumSkippedTasks.emit(ils.Metrics())
+	mb.metricDatabricksSparkJobNumTasks.emit(ils.Metrics())
+	mb.metricDatabricksSparkJvmcpuJvmcputime.emit(ils.Metrics())
+	mb.metricDatabricksSparkLivelistenerbusNumeventsposted.emit(ils.Metrics())
+	mb.metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents.emit(ils.Metrics())
+	mb.metricDatabricksSparkLivelistenerbusQueueAppstatusSize.emit(ils.Metrics())
+	mb.metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents.emit(ils.Metrics())
+	mb.metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize.emit(ils.Metrics())
+	mb.metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents.emit(ils.Metrics())
+	mb.metricDatabricksSparkLivelistenerbusQueueSharedSize.emit(ils.Metrics())
+	mb.metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents.emit(ils.Metrics())
+	mb.metricDatabricksSparkLivelistenerbusQueueStreamsSize.emit(ils.Metrics())
+	mb.metricDatabricksSparkSparksqloperationmanagerNumhiveoperations.emit(ils.Metrics())
+	mb.metricDatabricksSparkStageDiskBytesSpilled.emit(ils.Metrics())
+	mb.metricDatabricksSparkStageExecutorRunTime.emit(ils.Metrics())
+	mb.metricDatabricksSparkStageInputBytes.emit(ils.Metrics())
+	mb.metricDatabricksSparkStageInputRecords.emit(ils.Metrics())
+	mb.metricDatabricksSparkStageMemoryBytesSpilled.emit(ils.Metrics())
+	mb.metricDatabricksSparkStageOutputBytes.emit(ils.Metrics())
+	mb.metricDatabricksSparkStageOutputRecords.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean.emit(ils.Metrics())
+	mb.metricDatabricksTasksRunDuration.emit(ils.Metrics())
+	mb.metricDatabricksTasksScheduleStatus.emit(ils.Metrics())
+	for _, op := range rmo {
+		op(rm)
+	}
+	if ils.Metrics().Len() > 0 {
+		mb.updateCapacity(rm)
+		rm.MoveTo(mb.metricsBuffer.ResourceMetrics().AppendEmpty())
+	}
+}
+
+// Emit returns all the metrics accumulated by the metrics builder and updates the internal state to be ready for
+// recording another set of metrics. This function will be responsible for applying all the transformations required to
+// produce metric representation defined in metadata and user settings, e.g. delta or cumulative.
+func (mb *MetricsBuilder) Emit(rmo ...ResourceMetricsOption) pmetric.Metrics {
+	mb.EmitForResource(rmo...)
+	metrics := pmetric.NewMetrics()
+	mb.metricsBuffer.MoveTo(metrics)
+	return metrics
+}
+
+// RecordDatabricksJobsActiveTotalDataPoint adds a data point to databricks.jobs.active.total metric.
+func (mb *MetricsBuilder) RecordDatabricksJobsActiveTotalDataPoint(ts pcommon.Timestamp, val int64) {
+	mb.metricDatabricksJobsActiveTotal.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordDatabricksJobsRunDurationDataPoint adds a data point to databricks.jobs.run.duration metric.
+func (mb *MetricsBuilder) RecordDatabricksJobsRunDurationDataPoint(ts pcommon.Timestamp, val int64, jobIDAttributeValue int64) {
+	mb.metricDatabricksJobsRunDuration.recordDataPoint(mb.startTime, ts, val, jobIDAttributeValue)
+}
+
+// RecordDatabricksJobsScheduleStatusDataPoint adds a data point to databricks.jobs.schedule.status metric.
+func (mb *MetricsBuilder) RecordDatabricksJobsScheduleStatusDataPoint(ts pcommon.Timestamp, val int64, jobIDAttributeValue int64) {
+	mb.metricDatabricksJobsScheduleStatus.recordDataPoint(mb.startTime, ts, val, jobIDAttributeValue)
+}
+
+// RecordDatabricksJobsTotalDataPoint adds a data point to databricks.jobs.total metric.
+func (mb *MetricsBuilder) RecordDatabricksJobsTotalDataPoint(ts pcommon.Timestamp, val int64) {
+	mb.metricDatabricksJobsTotal.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordDatabricksSparkBlockmanagerMemoryDiskspaceusedDataPoint adds a data point to databricks.spark.blockmanager.memory.diskspaceused metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryDiskspaceusedDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryDiskspaceused.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkBlockmanagerMemoryMaxmemDataPoint adds a data point to databricks.spark.blockmanager.memory.maxmem metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryMaxmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryMaxmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkBlockmanagerMemoryMaxoffheapmemDataPoint adds a data point to databricks.spark.blockmanager.memory.maxoffheapmem metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryMaxoffheapmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkBlockmanagerMemoryMaxonheapmemDataPoint adds a data point to databricks.spark.blockmanager.memory.maxonheapmem metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryMaxonheapmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryMaxonheapmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkBlockmanagerMemoryMemusedDataPoint adds a data point to databricks.spark.blockmanager.memory.memused metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryMemusedDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryMemused.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkBlockmanagerMemoryOffheapmemusedDataPoint adds a data point to databricks.spark.blockmanager.memory.offheapmemused metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryOffheapmemusedDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryOffheapmemused.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkBlockmanagerMemoryOnheapmemusedDataPoint adds a data point to databricks.spark.blockmanager.memory.onheapmemused metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryOnheapmemusedDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryOnheapmemused.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkBlockmanagerMemoryRemainingmemDataPoint adds a data point to databricks.spark.blockmanager.memory.remainingmem metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryRemainingmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryRemainingmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkBlockmanagerMemoryRemainingoffheapmemDataPoint adds a data point to databricks.spark.blockmanager.memory.remainingoffheapmem metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryRemainingoffheapmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkBlockmanagerMemoryRemainingonheapmemDataPoint adds a data point to databricks.spark.blockmanager.memory.remainingonheapmem metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryRemainingonheapmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDagschedulerJobActivejobsDataPoint adds a data point to databricks.spark.dagscheduler.job.activejobs metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerJobActivejobsDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDagschedulerJobActivejobs.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDagschedulerJobAlljobsDataPoint adds a data point to databricks.spark.dagscheduler.job.alljobs metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerJobAlljobsDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDagschedulerJobAlljobs.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDagschedulerStageFailedstagesDataPoint adds a data point to databricks.spark.dagscheduler.stage.failedstages metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerStageFailedstagesDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDagschedulerStageFailedstages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDagschedulerStageRunningstagesDataPoint adds a data point to databricks.spark.dagscheduler.stage.runningstages metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerStageRunningstagesDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDagschedulerStageRunningstages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDagschedulerStageWaitingstagesDataPoint adds a data point to databricks.spark.dagscheduler.stage.waitingstages metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerStageWaitingstagesDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDagschedulerStageWaitingstages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksDirectorycommitAutovacuumcountDataPoint adds a data point to databricks.spark.databricks.directorycommit.autovacuumcount metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitAutovacuumcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksDirectorycommitDeletedfilesfilteredDataPoint adds a data point to databricks.spark.databricks.directorycommit.deletedfilesfiltered metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitDeletedfilesfilteredDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksDirectorycommitFilterlistingcountDataPoint adds a data point to databricks.spark.databricks.directorycommit.filterlistingcount metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitFilterlistingcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksDirectorycommitJobcommitcompletedDataPoint adds a data point to databricks.spark.databricks.directorycommit.jobcommitcompleted metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitJobcommitcompletedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksDirectorycommitMarkerreaderrorsDataPoint adds a data point to databricks.spark.databricks.directorycommit.markerreaderrors metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitMarkerreaderrorsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksDirectorycommitMarkerrefreshcountDataPoint adds a data point to databricks.spark.databricks.directorycommit.markerrefreshcount metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitMarkerrefreshcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksDirectorycommitMarkerrefresherrorsDataPoint adds a data point to databricks.spark.databricks.directorycommit.markerrefresherrors metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitMarkerrefresherrorsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksDirectorycommitMarkersreadDataPoint adds a data point to databricks.spark.databricks.directorycommit.markersread metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitMarkersreadDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitMarkersread.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksDirectorycommitRepeatedlistcountDataPoint adds a data point to databricks.spark.databricks.directorycommit.repeatedlistcount metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitRepeatedlistcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksDirectorycommitUncommittedfilesfilteredDataPoint adds a data point to databricks.spark.databricks.directorycommit.uncommittedfilesfiltered metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitUncommittedfilesfilteredDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksDirectorycommitUntrackedfilesfoundDataPoint adds a data point to databricks.spark.databricks.directorycommit.untrackedfilesfound metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitUntrackedfilesfoundDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksDirectorycommitVacuumcountDataPoint adds a data point to databricks.spark.databricks.directorycommit.vacuumcount metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitVacuumcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitVacuumcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksDirectorycommitVacuumerrorsDataPoint adds a data point to databricks.spark.databricks.directorycommit.vacuumerrors metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitVacuumerrorsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitVacuumerrors.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksPreemptionNumchecksDataPoint adds a data point to databricks.spark.databricks.preemption.numchecks metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionNumchecksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksPreemptionNumchecks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksPreemptionNumpoolsautoexpiredDataPoint adds a data point to databricks.spark.databricks.preemption.numpoolsautoexpired metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionNumpoolsautoexpiredDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksPreemptionNumtaskspreemptedDataPoint adds a data point to databricks.spark.databricks.preemption.numtaskspreempted metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionNumtaskspreemptedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksPreemptionNumtaskspreempted.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksPreemptionPoolstarvationmillisDataPoint adds a data point to databricks.spark.databricks.preemption.poolstarvationmillis metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionPoolstarvationmillisDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksPreemptionScheduleroverheadnanosDataPoint adds a data point to databricks.spark.databricks.preemption.scheduleroverheadnanos metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionScheduleroverheadnanosDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksPreemptionTasktimewastedmillisDataPoint adds a data point to databricks.spark.databricks.preemption.tasktimewastedmillis metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionTasktimewastedmillisDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesActivepoolsDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.activepools metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesActivepoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesActivepools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepoolsDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.bypasslaneactivepools metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepoolsDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.fastlaneactivepools metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimensDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.finishedqueriestotaltasktimens metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimensDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpoolsDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.lanecleanup.markedpools metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleanedDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.lanecleanup.twophasepoolscleaned metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleanedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleanedDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.lanecleanup.zombiepoolscleaned metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleanedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterationsDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.preemption.slottransfernumsuccessfulpreemptioniterations metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterationsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreemptedDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.preemption.slottransfernumtaskspreempted metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreemptedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimensDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.preemption.slottransferwastedtasktimens metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimensDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecreaseDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.slotreservation.numgradualdecrease metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecreaseDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdropDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.slotreservation.numquickdrop metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdropDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjumpDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.slotreservation.numquickjump metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjumpDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreservedDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.slotreservation.slotsreserved metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreservedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepoolsDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.slowlaneactivepools metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinishedDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.totalquerygroupsfinished metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinishedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutorDiskUsedDataPoint adds a data point to databricks.spark.executor.disk_used metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutorDiskUsedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutorDiskUsed.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, executorIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutorMaxMemoryDataPoint adds a data point to databricks.spark.executor.max_memory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutorMaxMemoryDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutorMaxMemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, executorIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutorMemoryUsedDataPoint adds a data point to databricks.spark.executor.memory_used metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutorMemoryUsedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutorMemoryUsed.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, executorIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutorTotalInputBytesDataPoint adds a data point to databricks.spark.executor.total_input_bytes metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutorTotalInputBytesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutorTotalInputBytes.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, executorIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutorTotalShuffleReadDataPoint adds a data point to databricks.spark.executor.total_shuffle_read metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutorTotalShuffleReadDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutorTotalShuffleRead.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, executorIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutorTotalShuffleWriteDataPoint adds a data point to databricks.spark.executor.total_shuffle_write metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutorTotalShuffleWriteDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutorTotalShuffleWrite.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, executorIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsDirectpoolmemoryDataPoint adds a data point to databricks.spark.executormetrics.directpoolmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsDirectpoolmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsDirectpoolmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsJvmheapmemoryDataPoint adds a data point to databricks.spark.executormetrics.jvmheapmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsJvmheapmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsJvmheapmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsJvmoffheapmemoryDataPoint adds a data point to databricks.spark.executormetrics.jvmoffheapmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsJvmoffheapmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsJvmoffheapmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsMajorgccountDataPoint adds a data point to databricks.spark.executormetrics.majorgccount metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMajorgccountDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsMajorgccount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsMajorgctimeDataPoint adds a data point to databricks.spark.executormetrics.majorgctime metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMajorgctimeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsMajorgctime.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsMappedpoolmemoryDataPoint adds a data point to databricks.spark.executormetrics.mappedpoolmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMappedpoolmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsMappedpoolmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsMinorgccountDataPoint adds a data point to databricks.spark.executormetrics.minorgccount metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMinorgccountDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsMinorgccount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsMinorgctimeDataPoint adds a data point to databricks.spark.executormetrics.minorgctime metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMinorgctimeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsMinorgctime.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsOffheapexecutionmemoryDataPoint adds a data point to databricks.spark.executormetrics.offheapexecutionmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOffheapexecutionmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsOffheapexecutionmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsOffheapstoragememoryDataPoint adds a data point to databricks.spark.executormetrics.offheapstoragememory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOffheapstoragememoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsOffheapstoragememory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsOffheapunifiedmemoryDataPoint adds a data point to databricks.spark.executormetrics.offheapunifiedmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOffheapunifiedmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsOffheapunifiedmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsOnheapexecutionmemoryDataPoint adds a data point to databricks.spark.executormetrics.onheapexecutionmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOnheapexecutionmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsOnheapexecutionmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsOnheapstoragememoryDataPoint adds a data point to databricks.spark.executormetrics.onheapstoragememory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOnheapstoragememoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsOnheapstoragememory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsOnheapunifiedmemoryDataPoint adds a data point to databricks.spark.executormetrics.onheapunifiedmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOnheapunifiedmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsOnheapunifiedmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsProcesstreejvmrssmemoryDataPoint adds a data point to databricks.spark.executormetrics.processtreejvmrssmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreejvmrssmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsProcesstreejvmvmemoryDataPoint adds a data point to databricks.spark.executormetrics.processtreejvmvmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreejvmvmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsProcesstreejvmvmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsProcesstreeotherrssmemoryDataPoint adds a data point to databricks.spark.executormetrics.processtreeotherrssmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreeotherrssmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsProcesstreeothervmemoryDataPoint adds a data point to databricks.spark.executormetrics.processtreeothervmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreeothervmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsProcesstreeothervmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsProcesstreepythonrssmemoryDataPoint adds a data point to databricks.spark.executormetrics.processtreepythonrssmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreepythonrssmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkExecutormetricsProcesstreepythonvmemoryDataPoint adds a data point to databricks.spark.executormetrics.processtreepythonvmemory metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreepythonvmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsProcesstreepythonvmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkHiveexternalcatalogFilecachehitsDataPoint adds a data point to databricks.spark.hiveexternalcatalog.filecachehits metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogFilecachehitsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkHiveexternalcatalogFilecachehits.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkHiveexternalcatalogFilesdiscoveredDataPoint adds a data point to databricks.spark.hiveexternalcatalog.filesdiscovered metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogFilesdiscoveredDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkHiveexternalcatalogFilesdiscovered.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkHiveexternalcatalogHiveclientcallsDataPoint adds a data point to databricks.spark.hiveexternalcatalog.hiveclientcalls metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogHiveclientcallsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkHiveexternalcatalogHiveclientcalls.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkHiveexternalcatalogParallellistingjobcountDataPoint adds a data point to databricks.spark.hiveexternalcatalog.parallellistingjobcount metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogParallellistingjobcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkHiveexternalcatalogParallellistingjobcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkHiveexternalcatalogPartitionsfetchedDataPoint adds a data point to databricks.spark.hiveexternalcatalog.partitionsfetched metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogPartitionsfetchedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkHiveexternalcatalogPartitionsfetched.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkJobNumActiveStagesDataPoint adds a data point to databricks.spark.job.num_active_stages metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumActiveStagesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumActiveStages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkJobNumActiveTasksDataPoint adds a data point to databricks.spark.job.num_active_tasks metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumActiveTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumActiveTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkJobNumCompletedStagesDataPoint adds a data point to databricks.spark.job.num_completed_stages metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumCompletedStagesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumCompletedStages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkJobNumCompletedTasksDataPoint adds a data point to databricks.spark.job.num_completed_tasks metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumCompletedTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumCompletedTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkJobNumFailedStagesDataPoint adds a data point to databricks.spark.job.num_failed_stages metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumFailedStagesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumFailedStages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkJobNumFailedTasksDataPoint adds a data point to databricks.spark.job.num_failed_tasks metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumFailedTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumFailedTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkJobNumSkippedStagesDataPoint adds a data point to databricks.spark.job.num_skipped_stages metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumSkippedStagesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumSkippedStages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkJobNumSkippedTasksDataPoint adds a data point to databricks.spark.job.num_skipped_tasks metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumSkippedTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumSkippedTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkJobNumTasksDataPoint adds a data point to databricks.spark.job.num_tasks metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkJvmcpuJvmcputimeDataPoint adds a data point to databricks.spark.jvmcpu.jvmcputime metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkJvmcpuJvmcputimeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkJvmcpuJvmcputime.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkLivelistenerbusNumeventspostedDataPoint adds a data point to databricks.spark.livelistenerbus.numeventsposted metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusNumeventspostedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusNumeventsposted.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedeventsDataPoint adds a data point to databricks.spark.livelistenerbus.queue.appstatus.numdroppedevents metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedeventsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkLivelistenerbusQueueAppstatusSizeDataPoint adds a data point to databricks.spark.livelistenerbus.queue.appstatus.size metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueAppstatusSizeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueAppstatusSize.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedeventsDataPoint adds a data point to databricks.spark.livelistenerbus.queue.executormanagement.numdroppedevents metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedeventsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkLivelistenerbusQueueExecutormanagementSizeDataPoint adds a data point to databricks.spark.livelistenerbus.queue.executormanagement.size metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueExecutormanagementSizeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkLivelistenerbusQueueSharedNumdroppedeventsDataPoint adds a data point to databricks.spark.livelistenerbus.queue.shared.numdroppedevents metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueSharedNumdroppedeventsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkLivelistenerbusQueueSharedSizeDataPoint adds a data point to databricks.spark.livelistenerbus.queue.shared.size metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueSharedSizeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueSharedSize.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkLivelistenerbusQueueStreamsNumdroppedeventsDataPoint adds a data point to databricks.spark.livelistenerbus.queue.streams.numdroppedevents metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueStreamsNumdroppedeventsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkLivelistenerbusQueueStreamsSizeDataPoint adds a data point to databricks.spark.livelistenerbus.queue.streams.size metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueStreamsSizeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueStreamsSize.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkSparksqloperationmanagerNumhiveoperationsDataPoint adds a data point to databricks.spark.sparksqloperationmanager.numhiveoperations metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkSparksqloperationmanagerNumhiveoperationsDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkSparksqloperationmanagerNumhiveoperations.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkStageDiskBytesSpilledDataPoint adds a data point to databricks.spark.stage.disk_bytes_spilled metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkStageDiskBytesSpilledDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageDiskBytesSpilled.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkStageExecutorRunTimeDataPoint adds a data point to databricks.spark.stage.executor_run_time metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkStageExecutorRunTimeDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageExecutorRunTime.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkStageInputBytesDataPoint adds a data point to databricks.spark.stage.input_bytes metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkStageInputBytesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageInputBytes.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkStageInputRecordsDataPoint adds a data point to databricks.spark.stage.input_records metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkStageInputRecordsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageInputRecords.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkStageMemoryBytesSpilledDataPoint adds a data point to databricks.spark.stage.memory_bytes_spilled metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkStageMemoryBytesSpilledDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageMemoryBytesSpilled.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkStageOutputBytesDataPoint adds a data point to databricks.spark.stage.output_bytes metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkStageOutputBytesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageOutputBytes.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkStageOutputRecordsDataPoint adds a data point to databricks.spark.stage.output_records metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkStageOutputRecordsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageOutputRecords.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerDagschedulerMessageprocessingtimeMeanDataPoint adds a data point to databricks.spark.timer.dagscheduler.messageprocessingtime.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerDagschedulerMessageprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.sqlexecution.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.streaming.streamingquerylistenerbus.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.ui.sqlappstatuslistener.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.hive.thriftserver.ui.hivethriftserver2listener.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.sparksession.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.util.executionlistenerbus.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.status.appstatuslistener.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.util.profilerenv.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dataplaneeventlistener.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dbceventlogginglistener.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.photon.photoncleanuplistener.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.executortimelogginglistener.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.usagelogginglistener.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.advice.advisorlistener.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.debugger.querywatchdoglistener.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.execution.ui.iocachelistener.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.io.caching.repeatedreadsestimator.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.queue.appstatus.listenerprocessingtime.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.queue.executormanagement.listenerprocessingtime.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.queue.shared.listenerprocessingtime.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.queue.streams.listenerprocessingtime.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+}
+
+// RecordDatabricksTasksRunDurationDataPoint adds a data point to databricks.tasks.run.duration metric.
+func (mb *MetricsBuilder) RecordDatabricksTasksRunDurationDataPoint(ts pcommon.Timestamp, val int64, jobIDAttributeValue int64, taskIDAttributeValue string) {
+	mb.metricDatabricksTasksRunDuration.recordDataPoint(mb.startTime, ts, val, jobIDAttributeValue, taskIDAttributeValue)
+}
+
+// RecordDatabricksTasksScheduleStatusDataPoint adds a data point to databricks.tasks.schedule.status metric.
+func (mb *MetricsBuilder) RecordDatabricksTasksScheduleStatusDataPoint(ts pcommon.Timestamp, val int64, jobIDAttributeValue int64, taskIDAttributeValue string, taskTypeAttributeValue AttributeTaskType) {
+	mb.metricDatabricksTasksScheduleStatus.recordDataPoint(mb.startTime, ts, val, jobIDAttributeValue, taskIDAttributeValue, taskTypeAttributeValue.String())
+}
+
+// Reset resets metrics builder to its initial state. It should be used when external metrics source is restarted,
+// and metrics builder should update its startTime and reset it's internal state accordingly.
+func (mb *MetricsBuilder) Reset(options ...metricBuilderOption) {
+	mb.startTime = pcommon.NewTimestampFromTime(time.Now())
+	for _, op := range options {
+		op(mb)
+	}
 }

@@ -14,70 +14,65 @@
 
 package databricksreceiver
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
 
-// databricksClientInterface is extracted from databricksClient for swapping out in unit tests
-type databricksClientInterface interface {
-	jobs() (out []job, err error)
-	activeJobRuns() (out []jobRun, err error)
-	completedJobRuns(jobID int, time int64) (out []jobRun, err error)
+	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/httpauth"
+)
+
+const (
+	jobsListPath         = "/api/2.1/jobs/list?expand_tasks=true&limit=%d&offset=%d"
+	activeJobRunsPath    = "/api/2.1/jobs/runs/list?active_only=true&limit=%d&offset=%d"
+	completedJobRunsPath = "/api/2.1/jobs/runs/list?completed_only=true&expand_tasks=true&job_id=%d&limit=%d&offset=%d"
+	clustersListPath     = "/api/2.0/clusters/list"
+)
+
+// databricksClientIntf is extracted from databricksClient so that it can be swapped for
+// testing.
+type databricksClientIntf interface {
+	jobsList(limit int, offset int) ([]byte, error)
+	activeJobRuns(limit int, offset int) ([]byte, error)
+	completedJobRuns(id int, limit int, offset int) ([]byte, error)
+	clustersList() ([]byte, error)
 }
 
-// databricksClient handles pagination (responses specify hasMore=true/false) and
-// combines the returned objects into one array.
+// databricksClient wraps an authClient, encapsulates calls to the databricks API, and
+// implements databricksClientIntf. Its methods return byte arrays to be unmarshalled
+// by the caller.
 type databricksClient struct {
-	unmarshaller unmarshaller
-	limit        int
+	logger     *zap.Logger
+	authClient httpauth.ClientIntf
 }
 
-func newDatabricksClient(api apiClientInterface, limit int) databricksClient {
-	return databricksClient{
-		unmarshaller: unmarshaller{api: api},
-		limit:        limit,
+func newDatabricksClient(endpoint string, tok string, httpClient *http.Client, logger *zap.Logger) databricksClientIntf {
+	return &databricksClient{
+		authClient: httpauth.NewClient(httpClient, endpoint, tok),
+		logger:     logger,
 	}
 }
 
-func (c databricksClient) jobs() (out []job, err error) {
-	hasMore := true
-	for i := 0; hasMore; i++ {
-		resp, err := c.unmarshaller.jobsList(c.limit, c.limit*i)
-		if err != nil {
-			return nil, fmt.Errorf("databricksClient.jobs(): %w", err)
-		}
-		out = append(out, resp.Jobs...)
-		hasMore = resp.HasMore
-	}
-	return out, nil
+func (c databricksClient) jobsList(limit int, offset int) (out []byte, err error) {
+	path := fmt.Sprintf(jobsListPath, limit, offset)
+	c.logger.Debug("databricksClient.jobsList", zap.String("path", path))
+	return c.authClient.Get(path)
 }
 
-func (c databricksClient) activeJobRuns() (out []jobRun, err error) {
-	hasMore := true
-	for i := 0; hasMore; i++ {
-		resp, err := c.unmarshaller.activeJobRuns(c.limit, c.limit*i)
-		if err != nil {
-			return nil, fmt.Errorf("databricksClient.activeJobRuns(): %w", err)
-		}
-		out = append(out, resp.Runs...)
-		hasMore = resp.HasMore
-	}
-	return out, nil
+func (c databricksClient) activeJobRuns(limit int, offset int) ([]byte, error) {
+	path := fmt.Sprintf(activeJobRunsPath, limit, offset)
+	c.logger.Debug("databricksClient.activeJobRuns", zap.String("path", path))
+	return c.authClient.Get(path)
 }
 
-func (c databricksClient) completedJobRuns(jobID int, prevStartTime int64) (out []jobRun, err error) {
-	hasMore := true
-	for i := 0; hasMore; i++ {
-		resp, err := c.unmarshaller.completedJobRuns(jobID, c.limit, c.limit*i)
-		if err != nil {
-			return nil, fmt.Errorf("databricksClient.completedJobRuns(): %w", err)
-		}
-		out = append(out, resp.Runs...)
-		if prevStartTime == 0 || resp.Runs == nil || resp.Runs[len(resp.Runs)-1].StartTime < prevStartTime {
-			// Don't do another api request if this is the first time through (time == 0) or
-			// if the bottom/earliest run in the response is older than our previous startTime
-			// for this job id.
-			break
-		}
-		hasMore = resp.HasMore
-	}
-	return out, nil
+func (c databricksClient) completedJobRuns(jobID int, limit int, offset int) ([]byte, error) {
+	path := fmt.Sprintf(completedJobRunsPath, jobID, limit, offset)
+	c.logger.Debug("databricksClient.completedJobRuns", zap.String("path", path))
+	return c.authClient.Get(path)
+}
+
+func (c databricksClient) clustersList() ([]byte, error) {
+	c.logger.Debug("databricksClient.clustersList", zap.String("path", clustersListPath))
+	return c.authClient.Get(clustersListPath)
 }

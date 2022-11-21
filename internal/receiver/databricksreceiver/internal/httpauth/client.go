@@ -12,29 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package httpauth
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 )
 
-// authClient sends requests with a bearer token to the given URL and returns a
-// byte array
-type authClient struct {
+type ClientIntf interface {
+	Get(path string) ([]byte, error)
+}
+
+type client struct {
 	httpClient *http.Client
 	endpoint   string
 	tok        string
 }
 
-type errorResponse struct {
-	ErrorCode string `json:"error_code"`
-	Message   string `json:"message"`
+func NewClient(httpClient *http.Client, endpoint string, tok string) ClientIntf {
+	return client{httpClient: httpClient, endpoint: endpoint, tok: tok}
 }
 
-func (c authClient) get(path string) ([]byte, error) {
+func (c client) Get(path string) ([]byte, error) {
 	const method = "authClient.get()"
 	req, err := http.NewRequest("GET", c.endpoint+path, nil)
 	if err != nil {
@@ -54,15 +54,11 @@ func (c authClient) get(path string) ([]byte, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		er := errorResponse{}
-		_ = json.Unmarshal(out, &er)
-		return nil, fmt.Errorf(
-			"%s: status code: %d: %s: error code: %s message: %s",
+		err = fmt.Errorf(
+			"%s: status code: %d: %s",
 			method,
 			resp.StatusCode,
 			http.StatusText(resp.StatusCode),
-			er.ErrorCode,
-			er.Message,
 		)
 	}
 

@@ -1,0 +1,140 @@
+{
+  "clusters": [
+    {
+      "cluster_id": "1110-200233-w85kg6q",
+      "creator_user_name": "mvolker@splunk.com",
+      "driver": {
+        "private_ip": "10.4.253.5",
+        "public_dns": "20.124.231.107",
+        "node_id": "a49b3eec7eb9443490cae1a01dd3483d",
+        "instance_id": "3c27851bf0614906b2c04a58455da382",
+        "start_timestamp": 1668110691159,
+        "node_attributes": {
+          "is_spot": false
+        },
+        "host_private_ip": "10.4.252.5"
+      },
+      "spark_context_id": 5169276294110980000,
+      "jdbc_port": 10000,
+      "cluster_name": "mvolker@splunk.com's Personal Compute Cluster",
+      "spark_version": "11.3.x-cpu-ml-scala2.12",
+      "spark_conf": {
+        "spark.databricks.delta.preview.enabled": "true",
+        "spark.databricks.cluster.profile": "singleNode",
+        "spark.master": "local[*, 4]"
+      },
+      "azure_attributes": {
+        "first_on_demand": 1,
+        "availability": "ON_DEMAND_AZURE",
+        "spot_bid_max_price": -1
+      },
+      "node_type_id": "Standard_DS3_v2",
+      "driver_node_type_id": "Standard_DS3_v2",
+      "custom_tags": {
+        "ResourceClass": "SingleNode"
+      },
+      "autotermination_minutes": 0,
+      "enable_elastic_disk": true,
+      "disk_spec": {},
+      "cluster_source": "UI",
+      "single_user_name": "mvolker@splunk.com",
+      "policy_id": "60634F70FA00034C",
+      "enable_local_disk_encryption": false,
+      "instance_source": {
+        "node_type_id": "Standard_DS3_v2"
+      },
+      "driver_instance_source": {
+        "node_type_id": "Standard_DS3_v2"
+      },
+      "data_security_mode": "SINGLE_USER",
+      "runtime_engine": "STANDARD",
+      "effective_spark_version": "11.3.x-cpu-ml-scala2.12",
+      "state": "RUNNING",
+      "state_message": "",
+      "start_time": 1668110553198,
+      "last_state_loss_time": 0,
+      "last_activity_time": 1668110825075,
+      "last_restarted_time": 1668110801282,
+      "num_workers": 0,
+      "cluster_memory_mb": 14336,
+      "cluster_cores": 4,
+      "default_tags": {
+        "Vendor": "Databricks",
+        "Creator": "mvolker@splunk.com",
+        "ClusterName": "mvolker@splunk.com's Personal Compute Cluster",
+        "ClusterId": "1110-200233-w85kg6q",
+        "customer": "costco",
+        "Owner": "SteveL"
+      },
+      "init_scripts_safe_mode": false
+    },
+    {
+      "cluster_id": "1019-210414-87r9zt04",
+      "creator_user_name": "stevel@splunk.com",
+      "spark_context_id": 4175446365967750700,
+      "cluster_name": "Steve Leung's Cluster",
+      "spark_version": "10.4.x-scala2.12",
+      "spark_conf": {
+        "spark.databricks.delta.preview.enabled": "true",
+        "spark.sql.streaming.metricsEnabled": "true",
+        "spark.ui.prometheus.enabled": "true",
+        "spark.master": "local[*, 4]",
+        "spark.executor.processTreeMetrics.enabled": "true",
+        "spark.databricks.cluster.profile": "singleNode"
+      },
+      "azure_attributes": {
+        "first_on_demand": 1,
+        "availability": "ON_DEMAND_AZURE",
+        "spot_bid_max_price": -1
+      },
+      "node_type_id": "Standard_DS3_v2",
+      "driver_node_type_id": "Standard_DS3_v2",
+      "ssh_public_keys": [
+        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCWqUgfgSaPdxff4D6j+3KfF5zs3IIDaEbQ4W++Y2EfuHfPpoMV9t+goszWoHLi3PpD2aCXvaP/jd+hMhVZzwOwPyc0X7+ssEUE0UbbYSxJ0wXJ6Me8cgtLoPP9Z4JGz1/zgVFlFQXvon9WADNFZAkH8iny+iZ5d17WyuYle3HhDc3JcxAA39AzsI+1x7ITojLOVgBC3/VY6UGsyyEvezpu+m8t8dv4dBlmtDtFiGULHDHgWU3Tkz3GWOlNo6BUHL3qmqmw831kas06aiO4ioyXX/NthhECU71alzLu7tmGU4hmJs66YlsrDfFvKHR6oXwpoyeuSxLJLVKz63XCWEyuUUnaoyHENtWuF0r1xVjYLu/Kv4vUGZmlDnEAxaNBe0jpN5j2puT+PVvuYr0akKqr45qNE5/O4/+uQWDVgOf9HgxT8FxkIlxPpgGF3GBj4f5BMCYI0ZADSXoissSx9O0LWQmgBt7e2ALQzkXst3V0xabHP9PLlAVzdpLwOTq22x6854vLna6a/lCB1Qm7VZ3Oagjx77vvYqgMTu9tX1UtG2OICsaxPQGfgduNS07wwRFgEDYiKVYjmwVKgWhtyrc3JEvvtE1CorweEOb6Pxk15h70z9UNL5sKp9ncDWdjEbl3Xdw13qJ2xoFMUEVj4qed2EGpkRh4HVJ0zaThjQTrLQ== .\n\nssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDHPDc2iGeAiiPiR89ApUmZ9wuENlSFewQATMU3kWPQ5dxf4aD9i4DyzUI4gaHwA039jtoE5mTl6Iy4ELF5gAwULh17E/f+650NQCTrnKtfHxjGjRIVp084pRZr+WwIGSF5InkdIH4SNW8QvJMoopxwyKjAWrxAG9lEV81Q+v0GkAcXkMrAtbzAO2ajZoD1o5EUHp6Xfw1A48Z5oPyCCnA+fXr20+XVvKn3ndOFRkSJn8ZCa7OJIjnlEeebJ4fQb4Ya7lnahZGmlZHEJQIY3d31OnqqFewl+1Pwi0lkl17Q9nqylYZK6rQIGH+85cDuzHrEVD/W97g6HrRtoEDqcTnq8Bvbqiqf8kdIOuPCa0eYv9/QGG5n1cRV+6dYW0Tbd1Ex9iMBR39h6OolXNL2rhe6pdqpgVDDzw2te3o9+duS2akWzkXvtNW8s5bNICuE5Bb7ezgf538tedx1Gj/da35bZ9gmGTijwrVmA0M9Iy/s2mpUVzndrsWFR9efntaC8O05rVFDSVv2sI0hdOGsGUE0xVc+Fke0yZxYbGYzogaJHWiCn0t1x2NHHwTewGWLwerjcE4zeqkGxWOlK0hUZWivC7ng9Tios0MnlYQyjlROVFwfjYxnCxDDB9t0/BIOaYVXQ9iklBbH+qE2nOIXsUCbMHIpy/lMc8/IfTOtyz0WvQ== mbui@C02HF22UQ05N\n\nssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDZkAJlo9sKQhfIG0iRwPkshJACo/TZ9JuWojdrOmpceWwpG5Hav21Ri5UtXjXudX5jG/fRKkQlyJovhrBjDqrQuUFrtLQ/I9UPElsMYSvs9b/42/Q4QF4BUVc5Z3e4rEEoMs0qHnpzbjnFX1cPjv1qObhlSl0URPxVuQD8EKrPEq60w9wGNPU/JGRf0KcLm/XefzxtFOglOfvZqXAwFuXKscUlg4ngIXpNQ+6rn9y7n5dArMD32eDwzemCyGKniZZ/NrqIA+pb0EdmDoR/9pP9DtMd2O3f0iqzILI4nn7pp7Iw6iPpsOeS+2nkQPwJoTy2F0TDT1fmNBf6QeAkVqgoBTq35oxTCbZUXoo4ycC4cAbGenUsTOQdciEEhzQw9pVYwZevtE0O708UXGEKa14BsHU5BixinQ/SycLlnDdxOCcILdI7VPhSmIBrcxLn7LEiI8dsNkI/1f2thsHgxTGYwIiwzmPUHdX60NvHxX+DVyUNjr56WCP83OF5qOBUBKM= mvolker@C02FW2NRMD6P\n\nssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0bTRZTKtaxSesCT4iGNP+gXx4k9WRh+nVVX+06cpDUfB8vlZzeL9HnwjyPAfVJCcmmBdbUzSx2ihsAksNhSC8iFWLT39XyDrETc87+qFU0B2BNNMNMAO8kupqEcNjHasGpE/FIChlQw5hYDm2yH3VMsrI9Ar8zNPgYfk99GqYAdyTyYq87kqAWyym8LJHtpsVqpWLzIPgMuyEJ322MoIdu2uwnZo/obyusTRmh5Wm93B5nPw0E8XNcqt4El6PhAinFr1Sy7i2i4+Hu6GJdEvxKoYJI6vw8Ze+7utSKxz3XD4nWMykT7L2SdHCihjjDMYlMZNQJlWxhO5rTS95Sp59f60Joveofj6XOBWLyo4Aja5+aYnr4L50gyzVAvLEGdG/6c7pXK8rujIaWmMrsCl2WOc6KR47usjubopqwHhGaXkJZPIbIT1+znmPWbWzdtQfagP/w7q4K32mhQ8kzy2NHIDGJYWrddXb+GrdJSNzTQVmXHniOtUI8ybkZX0Bk+c= selyian@C02D256PMD6R\n"
+      ],
+      "custom_tags": {
+        "ResourceClass": "SingleNode"
+      },
+      "autotermination_minutes": 60,
+      "enable_elastic_disk": true,
+      "disk_spec": {},
+      "cluster_source": "UI",
+      "single_user_name": "stevel@splunk.com",
+      "policy_id": "60634F70FA00034C",
+      "enable_local_disk_encryption": false,
+      "instance_source": {
+        "node_type_id": "Standard_DS3_v2"
+      },
+      "driver_instance_source": {
+        "node_type_id": "Standard_DS3_v2"
+      },
+      "data_security_mode": "LEGACY_SINGLE_USER_STANDARD",
+      "runtime_engine": "STANDARD",
+      "effective_spark_version": "10.4.x-scala2.12",
+      "state": "TERMINATED",
+      "state_message": "Inactive cluster terminated (inactive for 60 minutes).",
+      "start_time": 1666213454652,
+      "terminated_time": 1668468849233,
+      "last_state_loss_time": 1668463934965,
+      "last_activity_time": 1668465234208,
+      "last_restarted_time": 1668463935007,
+      "num_workers": 0,
+      "default_tags": {
+        "Vendor": "Databricks",
+        "Creator": "stevel@splunk.com",
+        "ClusterName": "Steve Leung's Cluster",
+        "ClusterId": "1019-210414-87r9zt04",
+        "customer": "costco",
+        "Owner": "SteveL"
+      },
+      "termination_reason": {
+        "code": "INACTIVITY",
+        "type": "SUCCESS",
+        "parameters": {
+          "inactivity_duration_min": "60"
+        }
+      },
+      "init_scripts_safe_mode": false
+    }
+  ]
+}

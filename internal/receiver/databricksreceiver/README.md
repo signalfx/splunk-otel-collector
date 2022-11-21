@@ -34,3 +34,14 @@ receivers:
     collection_interval: 60s
     max_results: 10
 ```
+
+### Databricks Spark
+
+To get the configuration parameters this receiver will need to get Spark metrics, run the following Scala notebook and note its output:
+
+```
+%scala
+val orgId = spark.conf.get("spark.databricks.clusterUsageTags.clusterOwnerOrgId")
+val apiEndpoint = dbutils.notebook.getContext.apiUrl.get
+val uiPort = spark.conf.get("spark.ui.port")
+```

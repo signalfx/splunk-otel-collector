@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package httpauth
 
 import (
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -23,34 +22,22 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/handlertest"
 )
 
 func TestAuthClient(t *testing.T) {
-	h := &fakeHandler{}
+	h := &handlertest.FakeHandler{}
 	svr := httptest.NewServer(h)
 	defer svr.Close()
 
 	s := confighttp.HTTPClientSettings{}
 	httpClient, err := s.ToClient(nil, component.TelemetrySettings{})
 	require.NoError(t, err)
-	ac := authClient{
-		httpClient: httpClient,
-		endpoint:   svr.URL,
-		tok:        "abc123",
-	}
-	_, _ = ac.get("/foo")
-	req := h.reqs[0]
+	ac := NewClient(httpClient, svr.URL, "abc123")
+	_, _ = ac.Get("/foo")
+	req := h.Reqs[0]
 	assert.Equal(t, "GET", req.Method)
 	assert.Equal(t, "Bearer abc123", req.Header.Get("Authorization"))
 	assert.Equal(t, "/foo", req.RequestURI)
-}
-
-// fakeHandler handles test reqests to a test server, appending requests to an
-// array member for later inspection
-type fakeHandler struct {
-	reqs []*http.Request
-}
-
-func (h *fakeHandler) ServeHTTP(_ http.ResponseWriter, req *http.Request) {
-	h.reqs = append(h.reqs, req)
 }

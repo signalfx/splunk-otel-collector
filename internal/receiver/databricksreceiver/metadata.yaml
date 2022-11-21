@@ -1,13 +1,30 @@
 name: databricksreceiver
-attributes:
+resource_attributes:
   databricks.instance.name:
     description: The name of the Databricks instance as defined by the value of the "instance_name" field in the config
+    type: string
+attributes:
   job_id:
     description: The numeric ID of the Databricks job
+    type: int
   task_id:
     description: The name of the Databricks task
+    type: string
+  cluster_id:
+    description: n/a
+    type: string
+  app_id:
+    description: n/a
+    type: string
+  executor_id:
+    description: n/a
+    type: string
+  spark_job_id:
+    description: n/a
+    type: int
   task_type:
     description: The type of the Databricks task
+    type: string
     enum:
       - NotebookTask
       - SparkJarTask
@@ -62,3 +79,1082 @@ metrics:
       value_type: int
     attributes:
       [job_id, task_id]
+  databricks.spark.blockmanager.memory.diskspaceused:
+    enabled: true
+    description: n/a
+    unit: mb
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.blockmanager.memory.maxmem:
+    enabled: true
+    description: n/a
+    unit: mb
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.blockmanager.memory.maxoffheapmem:
+    enabled: true
+    description: n/a
+    unit: mb
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.blockmanager.memory.maxonheapmem:
+    enabled: true
+    description: n/a
+    unit: mb
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.blockmanager.memory.memused:
+    enabled: true
+    description: n/a
+    unit: mb
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.blockmanager.memory.offheapmemused:
+    enabled: true
+    description: n/a
+    unit: mb
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.blockmanager.memory.onheapmemused:
+    enabled: true
+    description: n/a
+    unit: mb
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.blockmanager.memory.remainingmem:
+    enabled: true
+    description: n/a
+    unit: mb
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.blockmanager.memory.remainingoffheapmem:
+    enabled: true
+    description: n/a
+    unit: mb
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.blockmanager.memory.remainingonheapmem:
+    enabled: true
+    description: n/a
+    unit: mb
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.dagscheduler.job.activejobs:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.dagscheduler.job.alljobs:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.dagscheduler.stage.failedstages:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.dagscheduler.stage.runningstages:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.dagscheduler.stage.waitingstages:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.directpoolmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.jvmheapmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.jvmoffheapmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.majorgccount:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.majorgctime:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.mappedpoolmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.minorgccount:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.minorgctime:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.offheapexecutionmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.offheapstoragememory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.offheapunifiedmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.onheapexecutionmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.onheapstoragememory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.onheapunifiedmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.processtreejvmrssmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.processtreejvmvmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.processtreeotherrssmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.processtreeothervmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.processtreepythonrssmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executormetrics.processtreepythonvmemory:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.jvmcpu.jvmcputime:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.livelistenerbus.queue.appstatus.size:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.livelistenerbus.queue.executormanagement.size:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.livelistenerbus.queue.shared.size:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.livelistenerbus.queue.streams.size:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.sparksqloperationmanager.numhiveoperations:
+    enabled: true
+    description: n/a
+    gauge:
+      value_type: double
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.directorycommit.autovacuumcount:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.directorycommit.deletedfilesfiltered:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.directorycommit.filterlistingcount:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.directorycommit.jobcommitcompleted:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.directorycommit.markerreaderrors:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.directorycommit.markerrefreshcount:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.directorycommit.markerrefresherrors:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.directorycommit.markersread:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.directorycommit.repeatedlistcount:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.directorycommit.uncommittedfilesfiltered:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.directorycommit.untrackedfilesfound:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.directorycommit.vacuumcount:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.directorycommit.vacuumerrors:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.preemption.numchecks:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.preemption.numpoolsautoexpired:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.preemption.numtaskspreempted:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.preemption.poolstarvationmillis:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.preemption.scheduleroverheadnanos:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.preemption.tasktimewastedmillis:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.activepools:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.bypasslaneactivepools:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.fastlaneactivepools:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.finishedqueriestotaltasktimens:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.lanecleanup.markedpools:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.lanecleanup.twophasepoolscleaned:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.lanecleanup.zombiepoolscleaned:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.preemption.slottransfernumsuccessfulpreemptioniterations:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.preemption.slottransfernumtaskspreempted:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.preemption.slottransferwastedtasktimens:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.slotreservation.numgradualdecrease:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.slotreservation.numquickdrop:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.slotreservation.numquickjump:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.slotreservation.slotsreserved:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.slowlaneactivepools:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.databricks.taskschedulinglanes.totalquerygroupsfinished:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.hiveexternalcatalog.filecachehits:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.hiveexternalcatalog.filesdiscovered:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.hiveexternalcatalog.hiveclientcalls:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.hiveexternalcatalog.parallellistingjobcount:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.hiveexternalcatalog.partitionsfetched:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.livelistenerbus.numeventsposted:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.livelistenerbus.queue.appstatus.numdroppedevents:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.livelistenerbus.queue.executormanagement.numdroppedevents:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.livelistenerbus.queue.shared.numdroppedevents:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.livelistenerbus.queue.streams.numdroppedevents:
+    enabled: true
+    description: n/a
+    sum:
+      value_type: int
+      monotonic: false
+      aggregation: cumulative
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.dagscheduler.messageprocessingtime.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dbceventlogginglistener.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dataplaneeventlistener.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.photon.photoncleanuplistener.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.executortimelogginglistener.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.usagelogginglistener.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.advice.advisorlistener.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.debugger.querywatchdoglistener.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.execution.ui.iocachelistener.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.io.caching.repeatedreadsestimator.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.sparksession.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.sqlexecution.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.streaming.streamingquerylistenerbus.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.ui.sqlappstatuslistener.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.hive.thriftserver.ui.hivethriftserver2listener.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.util.executionlistenerbus.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.status.appstatuslistener.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.util.profilerenv.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.queue.appstatus.listenerprocessingtime.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.queue.executormanagement.listenerprocessingtime.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.queue.shared.listenerprocessingtime.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.timer.livelistenerbus.queue.streams.listenerprocessingtime.mean:
+    enabled: true
+    description: n/a
+    unit: ms
+    sum:
+      value_type: double
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id]
+  databricks.spark.executor.memory_used:
+    enabled: true
+    description: n/a
+    unit: By
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, executor_id]
+  databricks.spark.executor.disk_used:
+    enabled: true
+    description: n/a
+    unit: By
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, executor_id]
+  databricks.spark.executor.total_input_bytes:
+    enabled: true
+    description: n/a
+    unit: By
+    sum:
+      value_type: int
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id, executor_id]
+  databricks.spark.executor.total_shuffle_read:
+    enabled: true
+    description: n/a
+    unit: By
+    sum:
+      value_type: int
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id, executor_id]
+  databricks.spark.executor.total_shuffle_write:
+    enabled: true
+    description: n/a
+    unit: By
+    sum:
+      value_type: int
+      aggregation: delta
+    attributes:
+      [cluster_id, app_id, executor_id]
+  databricks.spark.executor.max_memory:
+    enabled: true
+    description: n/a
+    unit: By
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, executor_id]
+  databricks.spark.job.num_tasks:
+    enabled: true
+    description: n/a
+    unit: "{tasks}"
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.job.num_active_tasks:
+    enabled: true
+    description: n/a
+    unit: "{tasks}"
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.job.num_completed_tasks:
+    enabled: true
+    description: n/a
+    unit: "{tasks}"
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.job.num_skipped_tasks:
+    enabled: true
+    description: n/a
+    unit: "{tasks}"
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.job.num_failed_tasks:
+    enabled: true
+    description: n/a
+    unit: "{tasks}"
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.job.num_active_stages:
+    enabled: true
+    description: n/a
+    unit: "{stages}"
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.job.num_completed_stages:
+    enabled: true
+    description: n/a
+    unit: "{stages}"
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.job.num_skipped_stages:
+    enabled: true
+    description: n/a
+    unit: "{stages}"
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.job.num_failed_stages:
+    enabled: true
+    description: n/a
+    unit: "{stages}"
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.stage.executor_run_time:
+    enabled: true
+    description: n/a
+    unit: ""
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.stage.input_bytes:
+    enabled: true
+    description: n/a
+    unit: ""
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.stage.input_records:
+    enabled: true
+    description: n/a
+    unit: ""
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.stage.output_bytes:
+    enabled: true
+    description: n/a
+    unit: "By"
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.stage.output_records:
+    enabled: true
+    description: n/a
+    unit: ""
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.stage.memory_bytes_spilled:
+    enabled: true
+    description: n/a
+    unit: "By"
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]
+  databricks.spark.stage.disk_bytes_spilled:
+    enabled: true
+    description: n/a
+    unit: "By"
+    gauge:
+      value_type: int
+    attributes:
+      [cluster_id, app_id, spark_job_id]

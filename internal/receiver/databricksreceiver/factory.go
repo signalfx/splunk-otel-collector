@@ -18,14 +18,15 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
 const typeStr = "databricks"
@@ -34,35 +35,13 @@ func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
 		typeStr,
 		createDefaultConfig,
-		receiver.WithMetrics(createReceiverFunc(newAPIClient), component.StabilityLevelAlpha),
+		receiver.WithMetrics(newReceiverFactory(newDatabricksClient), component.StabilityLevelAlpha),
 	)
 }
 
-type Config struct {
-	confighttp.HTTPClientSettings           `mapstructure:",squash"`
-	InstanceName                            string `mapstructure:"instance_name"`
-	Token                                   string
-	scraperhelper.ScraperControllerSettings `mapstructure:",squash"`
-	MaxResults                              int `mapstructure:"max_results"`
-}
+type dbClientFactory func(baseURL string, tok string, httpClient *http.Client, logger *zap.Logger) databricksClientIntf
 
-func createDefaultConfig() component.Config {
-	scs := scraperhelper.NewDefaultScraperControllerSettings(typeStr)
-	// we set the default collection interval to 30 seconds which is half of the
-	// lowest job frequency of 1 minute
-	scs.CollectionInterval = time.Second * 30
-	return &Config{
-		MaxResults:                25, // 25 is the max the API supports
-		ScraperControllerSettings: scs,
-	}
-}
-
-func createReceiverFunc(createAPIClient func(baseURL string, tok string, httpClient *http.Client, logger *zap.Logger) apiClientInterface) func(
-	_ context.Context,
-	settings receiver.CreateSettings,
-	cfg component.Config,
-	consumer consumer.Metrics,
-) (receiver.Metrics, error) {
+func newReceiverFactory(dbClientFactory dbClientFactory) receiver.CreateMetricsFunc {
 	return func(
 		_ context.Context,
 		settings receiver.CreateSettings,
@@ -74,13 +53,27 @@ func createReceiverFunc(createAPIClient func(baseURL string, tok string, httpCli
 		if err != nil {
 			return nil, fmt.Errorf("%s: createReceiverFunc closure: %w", typeStr, err)
 		}
-		c := newDatabricksClient(createAPIClient(dbcfg.Endpoint, dbcfg.Token, httpClient, settings.Logger), dbcfg.MaxResults)
-		s := scraper{
-			instanceName: dbcfg.InstanceName,
-			rmp:          newRunMetricsProvider(c),
-			mp:           newMetricsProvider(c),
+		dbsvc := newDatabricksService(dbClientFactory(dbcfg.Endpoint, dbcfg.Token, httpClient, settings.Logger), dbcfg.MaxResults)
+		ssvc := newSparkService(
+			settings.Logger,
+			dbsvc,
+			httpClient,
+			dbcfg.SparkAPIEndpoint,
+			dbcfg.SparkUIPort,
+			dbcfg.OrgID,
+			dbcfg.Token,
+			newSparkUnmarshaler,
+		)
+		dbScraper := scraper{
+			logger:      settings.Logger,
+			rmp:         newRunMetricsProvider(dbsvc),
+			dbmp:        dbMetricsProvider{dbsvc: dbsvc},
+			builder:     metadata.NewMetricsBuilder(dbcfg.Metrics, settings.BuildInfo),
+			resourceOpt: metadata.WithDatabricksInstanceName(dbcfg.InstanceName),
+			scmb:        sparkCoreMetricsBuilder{ssvc: ssvc},
+			semb:        sparkMetricsBuilder{ssvc: ssvc},
 		}
-		scrpr, err := scraperhelper.NewScraper(typeStr, s.scrape)
+		collectorScraper, err := scraperhelper.NewScraper(typeStr, dbScraper.scrape)
 		if err != nil {
 			return nil, fmt.Errorf("%s: createReceiverFunc closure: %w", typeStr, err)
 		}
@@ -88,7 +81,15 @@ func createReceiverFunc(createAPIClient func(baseURL string, tok string, httpCli
 			&dbcfg.ScraperControllerSettings,
 			settings,
 			consumer,
-			scraperhelper.AddScraper(scrpr),
+			scraperhelper.AddScraper(collectorScraper),
 		)
 	}
+}
+
+func newSparkUnmarshaler(logger *zap.Logger, httpClient *http.Client, sparkProxyURL string, orgID string, port int, token string, clusterID string) spark.Unmarshaler {
+	return spark.NewUnmarshaler(httpClient, dbSparkProxyURL(sparkProxyURL, orgID, clusterID, port), token)
+}
+
+func dbSparkProxyURL(sparkProxyURL string, orgID string, clusterID string, port int) string {
+	return fmt.Sprintf("%s/driver-proxy-api/o/%s/%s/%d", sparkProxyURL, orgID, clusterID, port)
 }

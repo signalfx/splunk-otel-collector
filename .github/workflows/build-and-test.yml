@@ -193,7 +193,7 @@ jobs:
     needs: [setup-environment]
     strategy:
       matrix:
-        SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64" ]
+        SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-linux_ppc64le" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3

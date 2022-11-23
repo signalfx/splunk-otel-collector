@@ -110,7 +110,7 @@ compile:
   stage: build
   parallel:
     matrix:
-      - TARGET: [binaries-darwin_amd64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64]
+      - TARGET: [binaries-darwin_amd64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
   script: make $TARGET
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
@@ -209,7 +209,7 @@ build-linux-image:
     - compile
   parallel:
     matrix:
-      - ARCH: [amd64, arm64]
+      - ARCH: [amd64, arm64, ppc64le]
   retry: 2
   script:
     - make docker-otelcol ARCH=${ARCH} SKIP_COMPILE=true

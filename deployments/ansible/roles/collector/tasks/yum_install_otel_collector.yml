@@ -15,7 +15,7 @@
     gpgkey: "{{ splunk_repo_base_url }}/otel-collector-rpm/splunk-B3CD4420.pub"
     gpgcheck: yes
     enabled: yes
-  when: not (sfx_skip_repo | bool)
+  when: not (splunk_skip_repo | bool)
 
 - name: Install Splunk OpenTelemetry Collector via yum package manager
   ansible.builtin.yum:

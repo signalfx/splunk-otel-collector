@@ -35,6 +35,9 @@ install_fluentd: true
 # Whether to start the services installed by the role (splunk-otel-collector and td-agent).
 start_service: true
 
+# Disable setting the official Splunk Debian or RPM repository.
+splunk_skip_repo: false
+
 # Explicitly set version of td-agent,
 # By default: 3.7.1 for Debian stretch and 4.3.2 for other distros.
 td_agent_version: ""

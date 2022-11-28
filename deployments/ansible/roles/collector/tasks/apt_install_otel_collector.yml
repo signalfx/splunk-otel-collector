@@ -19,6 +19,7 @@
     repo: "deb {{ splunk_repo_base_url }}/otel-collector-deb release main"
     filename: splunk-otel-collector.list
     state: present
+  when: not (splunk_skip_repo | bool)
 
 - name: Install Splunk OpenTelemetry Collector via apt package manager
   ansible.builtin.apt:

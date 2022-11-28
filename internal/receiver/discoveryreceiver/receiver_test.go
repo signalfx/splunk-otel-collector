@@ -36,7 +36,8 @@ func TestNewDiscoveryReceiver(t *testing.T) {
 		},
 	}
 	cfg := &Config{}
-	receiver := newDiscoveryReceiver(rcs, cfg, consumertest.NewNop())
+	receiver, err := newDiscoveryReceiver(rcs, cfg, consumertest.NewNop())
+	require.NoError(t, err)
 	require.NotNil(t, receiver)
 }
 
@@ -103,7 +104,8 @@ func TestObservablesFromHost(t *testing.T) {
 			}
 			host := mockHost{extensions: test.extensions}
 			cfg := &Config{WatchObservers: test.watchObservers}
-			receiver := newDiscoveryReceiver(rcs, cfg, consumertest.NewNop())
+			receiver, err := newDiscoveryReceiver(rcs, cfg, consumertest.NewNop())
+			require.NoError(t, err)
 			require.NotNil(t, receiver)
 
 			observables, err := receiver.observablesFromHost(host)

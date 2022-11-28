@@ -31,7 +31,7 @@ func NewFactory() component.ReceiverFactory {
 	return component.NewReceiverFactory(
 		typeStr,
 		createDefaultConfig,
-		component.WithLogsReceiver(createLogsReceiver, component.StabilityLevelInDevelopment))
+		component.WithLogsReceiver(createLogsReceiver, component.StabilityLevelDevelopment))
 }
 
 func createDefaultConfig() component.ReceiverConfig {
@@ -53,5 +53,5 @@ func createLogsReceiver(
 	if err := dCfg.Validate(); err != nil {
 		return nil, err
 	}
-	return newDiscoveryReceiver(settings, dCfg, consumer), nil
+	return newDiscoveryReceiver(settings, dCfg, consumer)
 }

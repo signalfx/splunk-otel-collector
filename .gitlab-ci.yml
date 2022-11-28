@@ -524,9 +524,9 @@ build-push-windows2022-image:
       docker push ${IMAGE_NAME}:${IMAGE_TAG}
       if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
         # only push latest tag for main and stable releases
-        echo "Tagging and pushing ${IMAGE_NAME}:latest"
-        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-        docker push ${IMAGE_NAME}:latest
+        echo "Tagging and pushing ${IMAGE_NAME}:latest-2022"
+        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest-2022
+        docker push ${IMAGE_NAME}:latest-2022
       }
     - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_2022_digest.txt
   after_script:

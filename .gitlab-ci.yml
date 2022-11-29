@@ -451,7 +451,7 @@ push-linux-image:
     - docker manifest inspect ${IMAGE_NAME}:${MANIFEST_TAG} | tee dist/manifest_digest.txt
   artifacts:
     paths:
-      - dist/linux_digest.txt
+      - dist/linux_amd64_digest.txt
       - dist/linux_arm64_digest.txt
       - dist/manifest_digest.txt
 

@@ -4,6 +4,7 @@ name: splunk-otel-collector
 templates:
     ctl.erb: bin/ctl
     otel-collector-config.yaml.erb: bin/config/otel-collector-config.yaml
+    splunk-otel-collector.conf.erb: bin/config/splunk-otel-collector.conf
 
 packages:
 - splunk_otel_collector
@@ -46,6 +47,26 @@ properties:
         description: |
             User specified exporter names. This will be used for the metrics pipeline in the collector
             configuration.
+
+    # Proxy settings as defined with https://pkg.go.dev/golang.org/x/net/http/httpproxy
+    # See also https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter#proxy-support
+    otel.proxy.http:
+        description: |
+            URL used as the proxy URL for HTTP requests unless overridden by otel.proxy.no.
+        required: false
+
+    otel.proxy.https:
+        description: |
+            URL used as the proxy URL for HTTPS requests unless overridden by otel.proxy.no.
+        required: false
+
+    otel.proxy.no:
+        description: |
+            specifies a string that contains comma-separated values specifying hosts that should be excluded
+            from proxying. Each value is represented by an IP address prefix (1.2.3.4), an IP address prefix
+            in CIDR notation (1.2.3.4/8), a domain name, or a special DNS label (*).
+            An IP address prefix and domain name can also include a literal port number (1.2.3.4:80).
+        required: false
 
     splunk.access_token:
         description: "Your Splunk organization access token"

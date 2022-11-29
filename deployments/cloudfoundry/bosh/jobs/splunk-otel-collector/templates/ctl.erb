@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
+. /var/vcap/jobs/splunk-otel-collector/bin/config/splunk-otel-collector.conf
 RUN_DIR=/var/vcap/sys/run/splunk-otel-collector
 LOG_DIR=/var/vcap/sys/log/splunk-otel-collector
 PIDFILE=${RUN_DIR}/pid

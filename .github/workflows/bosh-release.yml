@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@0c611abec1fc679030907286a2c084cc92fb8f2e
       - name: Install BOSH CLI
         shell: bash
         run: |

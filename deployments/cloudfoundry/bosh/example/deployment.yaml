@@ -24,6 +24,11 @@ instance_groups:
       - name: splunk-otel-collector
         release: splunk-otel-collector
         properties:
+          otel:
+            proxy:
+              # Optional - set proxies
+              http: "http://192.168.56.1:8080"
+              https: "https://192.168.56.1:8080"
           cloudfoundry:
             rlp_gateway:
               endpoint: "https://log-stream.sys.<TAS environment name>.cf-app.com"

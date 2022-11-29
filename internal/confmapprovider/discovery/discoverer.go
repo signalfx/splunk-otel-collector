@@ -430,7 +430,7 @@ func (d *discoverer) GetExtensions() map[component.ID]component.Extension {
 }
 
 // GetExporters is a component.Host method.
-func (d *discoverer) GetExporters() map[component.DataType]map[component.ID]component.Exporter {
+func (d *discoverer) GetExporters() map[component.DataType]map[component.ID]component.Component {
 	return nil
 }
 

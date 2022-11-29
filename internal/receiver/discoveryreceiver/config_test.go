@@ -173,7 +173,7 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, component.Type("receiver_creator"), factory.Type())
 
-	require.NoError(t, rCfg.Validate())
+	require.NoError(t, component.ValidateConfig(rCfg))
 	require.Equal(t, component.NewIDWithName("receiver_creator", "discovery/discovery-name"), rCfg.ID())
 
 	creatorCfg, ok := rCfg.(*receivercreator.Config)
@@ -213,7 +213,7 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	decoded, err := base64.StdEncoding.DecodeString(expectedConfigHash)
 	require.NoError(t, err)
 	embedded := map[string]any{}
-	yaml.Unmarshal(decoded, &embedded)
+	require.NoError(t, yaml.Unmarshal(decoded, &embedded))
 	require.Equal(t, map[string]any{
 		"receivers": map[any]any{
 			"smartagent/redis": map[any]any{

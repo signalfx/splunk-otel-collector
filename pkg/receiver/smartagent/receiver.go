@@ -165,9 +165,12 @@ func (r *receiver) createMonitor(monitorType string, host component.Host) (monit
 		return nil, err
 	}
 
-	output := newOutput(
+	output, err := newOutput(
 		*r.config, monitorFiltering, r.nextMetricsConsumer, r.nextLogsConsumer, r.nextTracesConsumer, host, r.params,
 	)
+	if err != nil {
+		return nil, err
+	}
 	set, err := setStructFieldWithExplicitType(
 		monitor, "Output", output,
 		reflect.TypeOf((*types.Output)(nil)).Elem(),

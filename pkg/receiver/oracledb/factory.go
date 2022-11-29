@@ -31,7 +31,7 @@ import (
 
 const (
 	typeStr   = "oracledb"
-	stability = component.StabilityLevelInDevelopment
+	stability = component.StabilityLevelDevelopment
 )
 
 // NewFactory creates a new Oracle receiver factory.

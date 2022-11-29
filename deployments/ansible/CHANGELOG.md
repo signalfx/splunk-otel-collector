@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## ansible-v0.13.0
+
+### 💡 Enhancements 💡
+
+- Add `splunk_skip_repo` var to disable adding Splunk deb/rpm repos (#2249)
+
 ## ansible-v0.12.0
 
 ### 💡 Enhancements 💡

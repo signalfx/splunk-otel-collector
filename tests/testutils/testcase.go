@@ -15,6 +15,7 @@
 package testutils
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -251,4 +252,13 @@ func AssertAllMetricsReceived(t testing.TB, resourceMetricsFilename, collectorCo
 	defer shutdown()
 
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+}
+
+// WaitForKeyboard is a helper for add breakpoints during test creation
+func WaitForKeyboard(t testing.TB) {
+	tty, err := os.Open("/dev/tty")
+	require.NoError(t, err)
+	reader := bufio.NewReader(tty)
+	fmt.Print("Press ENTER to continue.\n")
+	_, _ = reader.ReadString('\n')
 }

@@ -29,7 +29,7 @@ const (
 	// typeStr is the value of "type" key in configuration.
 	typeStr = "timestamp"
 	// The stability level of the processor.
-	stability = component.StabilityLevelInDevelopment
+	stability = component.StabilityLevelDevelopment
 )
 
 var processorCapabilities = consumer.Capabilities{MutatesData: true}

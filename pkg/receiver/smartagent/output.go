@@ -60,7 +60,15 @@ func newOutput(
 	config Config, filtering *monitorFiltering, nextMetricsConsumer consumer.Metrics,
 	nextLogsConsumer consumer.Logs, nextTracesConsumer consumer.Traces, host component.Host,
 	params component.ReceiverCreateSettings,
-) *output {
+) (*output, error) {
+	obsReceiver, err := obsreport.NewReceiver(obsreport.ReceiverSettings{
+		ReceiverID:             config.ID(),
+		Transport:              internalTransport,
+		ReceiverCreateSettings: params,
+	})
+	if err != nil {
+		return nil, err
+	}
 	return &output{
 		receiverID:           config.ID(),
 		nextMetricsConsumer:  nextMetricsConsumer,
@@ -73,13 +81,8 @@ func newOutput(
 		extraSpanTags:        map[string]string{},
 		defaultSpanTags:      map[string]string{},
 		monitorFiltering:     filtering,
-		reporter: obsreport.MustNewReceiver(obsreport.ReceiverSettings{
-			ReceiverID:             config.ID(),
-			Transport:              internalTransport,
-			ReceiverCreateSettings: params,
-		}),
-	}
-
+		reporter:             obsReceiver,
+	}, nil
 }
 
 // getMetadataExporters walks through obtained Config.MetadataClients and returns all matching registered MetadataExporters,
@@ -144,8 +147,8 @@ func getDimensionClientsFromMetricsExporters(
 	return
 }
 
-func getLoneSFxExporter(host component.Host, exporterType component.DataType) component.Exporter {
-	var sfxExporter component.Exporter
+func getLoneSFxExporter(host component.Host, exporterType component.DataType) component.Component {
+	var sfxExporter component.Component
 	if builtExporters, ok := host.GetExporters()[exporterType]; ok {
 		for exporterConfig, exporter := range builtExporters {
 			if exporterConfig.Type() == "signalfx" {

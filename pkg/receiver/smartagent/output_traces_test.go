@@ -15,6 +15,7 @@
 package smartagentreceiver
 
 import (
+	"encoding/hex"
 	"fmt"
 	"testing"
 
@@ -28,19 +29,20 @@ import (
 )
 
 func TestSendSpansWithoutNextTracesConsumer(t *testing.T) {
-	output := newOutput(
+	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		nil, componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
-
+	require.NoError(t, err)
 	output.SendSpans(&trace.Span{TraceID: "12345678", ID: "23456789"}) // doesn't panic
 }
 
 func TestExtraSpanTags(t *testing.T) {
-	o := newOutput(
+	o, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 	assert.Empty(t, o.extraSpanTags)
 
 	o.RemoveExtraSpanTag("not_a_known_tag")
@@ -62,10 +64,11 @@ func TestExtraSpanTags(t *testing.T) {
 }
 
 func TestDefaultSpanTags(t *testing.T) {
-	o := newOutput(
+	o, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 	assert.Empty(t, o.defaultSpanTags)
 
 	o.RemoveDefaultSpanTag("not_a_known_tag")
@@ -88,10 +91,11 @@ func TestDefaultSpanTags(t *testing.T) {
 
 func TestSendSpansWithDefaultAndExtraSpanTags(t *testing.T) {
 	tracesSink := consumertest.TracesSink{}
-	output := newOutput(
+	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		&tracesSink, componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 	output.AddExtraSpanTag("will_be_overridden", "added extra value (want)")
 	output.AddDefaultSpanTag("wont_be_overridden", "added default value")
 
@@ -132,8 +136,10 @@ func TestSendSpansWithDefaultAndExtraSpanTags(t *testing.T) {
 	require.Equal(t, 3, illSpans.Len())
 
 	span0 := illSpans.At(0)
-	require.Equal(t, "00000000000000000000000012345678", span0.TraceID().HexString())
-	require.Equal(t, "0000000023456789", span0.SpanID().HexString())
+	tid := span0.TraceID()
+	require.Equal(t, "00000000000000000000000012345678", hex.EncodeToString(tid[:]))
+	sid := span0.SpanID()
+	require.Equal(t, "0000000023456789", hex.EncodeToString(sid[:]))
 
 	extraValue, containsExtraValue := span0.Attributes().Get("will_be_overridden")
 	require.True(t, containsExtraValue)
@@ -148,8 +154,10 @@ func TestSendSpansWithDefaultAndExtraSpanTags(t *testing.T) {
 	assert.Equal(t, "some_value", value.Str())
 
 	span1 := illSpans.At(1)
-	require.Equal(t, "00000000000000000000000034567890", span1.TraceID().HexString())
-	require.Equal(t, "0000000045678901", span1.SpanID().HexString())
+	tid = span1.TraceID()
+	require.Equal(t, "00000000000000000000000034567890", hex.EncodeToString(tid[:]))
+	sid = span1.SpanID()
+	require.Equal(t, "0000000045678901", hex.EncodeToString(sid[:]))
 
 	extraValue, containsExtraValue = span1.Attributes().Get("will_be_overridden")
 	require.True(t, containsExtraValue)
@@ -160,8 +168,10 @@ func TestSendSpansWithDefaultAndExtraSpanTags(t *testing.T) {
 	assert.Equal(t, "span-provided value (want)", defaultValue.Str())
 
 	span2 := illSpans.At(2)
-	require.Equal(t, "00000000000000000000000056789012", span2.TraceID().HexString())
-	require.Equal(t, "0000000067890123", span2.SpanID().HexString())
+	tid = span2.TraceID()
+	require.Equal(t, "00000000000000000000000056789012", hex.EncodeToString(tid[:]))
+	sid = span2.SpanID()
+	require.Equal(t, "0000000067890123", hex.EncodeToString(sid[:]))
 
 	extraValue, containsExtraValue = span2.Attributes().Get("will_be_overridden")
 	require.True(t, containsExtraValue)
@@ -181,11 +191,11 @@ func TestSendSpansWithConsumerError(t *testing.T) {
 
 	err := fmt.Errorf("desired error")
 	tracesConsumer := consumertest.NewErr(err)
-	output := newOutput(
+	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		tracesConsumer, componenttest.NewNopHost(), rcs,
 	)
-
+	require.NoError(t, err)
 	output.SendSpans(&trace.Span{TraceID: "12345678", ID: "23456789"})
 
 	// first log will be about lack of dimension client

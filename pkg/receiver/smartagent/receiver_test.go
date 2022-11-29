@@ -405,6 +405,6 @@ func getExtension(f component.ExtensionFactory, cfg component.ExtensionConfig) c
 	return e
 }
 
-func (m *mockHost) GetExporters() map[component.DataType]map[component.ID]component.Exporter {
+func (m *mockHost) GetExporters() map[component.DataType]map[component.ID]component.Component {
 	return nil
 }

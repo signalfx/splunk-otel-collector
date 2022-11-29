@@ -64,24 +64,29 @@ func newDiscoveryReceiver(
 	settings component.ReceiverCreateSettings,
 	config *Config,
 	consumer consumer.Logs,
-) *discoveryReceiver {
-	d := &discoveryReceiver{
-		config: config,
-		obsreportReceiver: obsreport.MustNewReceiver(obsreport.ReceiverSettings{
-			ReceiverID:             config.ID(),
-			Transport:              "none",
-			ReceiverCreateSettings: settings,
-		}),
-		logger:        settings.TelemetrySettings.Logger,
-		settings:      settings,
-		logsConsumer:  consumer,
-		pLogs:         make(chan plog.Logs),
-		sentinel:      make(chan struct{}, 1),
-		loopFinished:  &sync.WaitGroup{},
-		alreadyLogged: &sync.Map{},
+) (*discoveryReceiver, error) {
+	obsReceiver, err := obsreport.NewReceiver(obsreport.ReceiverSettings{
+		ReceiverID:             config.ID(),
+		Transport:              "none",
+		ReceiverCreateSettings: settings,
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	return d
+	d := &discoveryReceiver{
+		config:            config,
+		obsreportReceiver: obsReceiver,
+		logger:            settings.TelemetrySettings.Logger,
+		settings:          settings,
+		logsConsumer:      consumer,
+		pLogs:             make(chan plog.Logs),
+		sentinel:          make(chan struct{}, 1),
+		loopFinished:      &sync.WaitGroup{},
+		alreadyLogged:     &sync.Map{},
+	}
+
+	return d, nil
 }
 
 func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err error) {

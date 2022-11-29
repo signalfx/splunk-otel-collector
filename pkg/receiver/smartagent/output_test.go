@@ -41,11 +41,12 @@ import (
 func TestOutput(t *testing.T) {
 	rcs := component.ReceiverCreateSettings{}
 	rcs.Logger = zap.NewNop()
-	output := newOutput(
+	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(),
 		consumertest.NewNop(), consumertest.NewNop(),
 		componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 	output.AddDatapointExclusionFilter(dpfilters.DatapointFilter(nil))
 	assert.False(t, output.HasAnyExtraMetrics())
 	assert.NotSame(t, &output, output.Copy())
@@ -71,19 +72,21 @@ func TestHasEnabledMetric(t *testing.T) {
 		Groups: utils.StringSet("mem"),
 	}, zap.NewNop())
 	require.NoError(t, err)
-	output := newOutput(
+	output, err := newOutput(
 		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
 		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 	assert.Equal(t, []string{"mem.used"}, output.EnabledMetrics())
 
 	// Empty metadata
 	monitorFiltering, err = newMonitorFiltering(&saconfig.MonitorConfig{}, nil, zap.NewNop())
 	require.NoError(t, err)
-	output = newOutput(
+	output, err = newOutput(
 		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
 		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 	assert.Empty(t, output.EnabledMetrics())
 }
 
@@ -103,28 +106,31 @@ func TestHasEnabledMetricInGroup(t *testing.T) {
 		},
 	}, zap.NewNop())
 	require.NoError(t, err)
-	output := newOutput(
+	output, err := newOutput(
 		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
 		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 	assert.True(t, output.HasEnabledMetricInGroup("mem"))
 	assert.False(t, output.HasEnabledMetricInGroup("cpu"))
 
 	// Empty metadata
 	monitorFiltering, err = newMonitorFiltering(&saconfig.MonitorConfig{}, nil, zap.NewNop())
 	require.NoError(t, err)
-	output = newOutput(
+	output, err = newOutput(
 		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
 		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 	assert.False(t, output.HasEnabledMetricInGroup("any"))
 }
 
 func TestExtraDimensions(t *testing.T) {
-	o := newOutput(
+	o, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 	assert.Empty(t, o.extraDimensions)
 
 	o.RemoveExtraDimension("not_a_known_dimension_name")
@@ -147,10 +153,11 @@ func TestExtraDimensions(t *testing.T) {
 
 func TestSendDimensionUpdate(t *testing.T) {
 	mmc := mockMetadataClient{id: component.NewID("signalfx")}
-	output := newOutput(
+	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), &mmc, consumertest.NewNop(), consumertest.NewNop(),
 		componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 
 	dim := types.Dimension{
 		Name:  "my_dimension",
@@ -169,10 +176,11 @@ func TestSendDimensionUpdate(t *testing.T) {
 }
 
 func TestSendDimensionUpdateWithInvalidExporter(t *testing.T) {
-	output := newOutput(
+	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
 		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 	dim := types.Dimension{Name: "error"}
 
 	// doesn't panic
@@ -181,7 +189,7 @@ func TestSendDimensionUpdateWithInvalidExporter(t *testing.T) {
 
 func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 	mmc := mockMetadataClient{id: component.NewID("mockmetadataexporter")}
-	output := newOutput(
+	output, err := newOutput(
 		Config{
 			DimensionClients: []string{"mockmetadataexporter", "exampleexporter", "metricsreceiver", "notareceiver", "notreal"},
 		},
@@ -192,6 +200,7 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 		&hostWithExporters{exporter: &mmc},
 		newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 
 	dim := types.Dimension{
 		Name: "error",
@@ -205,11 +214,11 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 
 func TestSendDimensionUpdateFromNextConsumerMetadataExporters(t *testing.T) {
 	mmc := mockMetadataClient{id: component.NewID("signalfx")}
-	output := newOutput(
+	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), &mmc, consumertest.NewNop(),
 		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
-
+	require.NoError(t, err)
 	dim := types.Dimension{
 		Name: "error",
 	}
@@ -222,10 +231,11 @@ func TestSendDimensionUpdateFromNextConsumerMetadataExporters(t *testing.T) {
 
 func TestSendEvent(t *testing.T) {
 	mmc := mockMetadataClient{id: component.NewID("signalfx")}
-	output := newOutput(
+	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), &mmc,
 		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 
 	event := event.Event{
 		EventType: "my_event",
@@ -251,7 +261,7 @@ func TestSendEvent(t *testing.T) {
 
 func TestDimensionClientDefaultsToSFxExporter(t *testing.T) {
 	mmc := mockMetadataClient{id: component.NewID("signalfx")}
-	output := newOutput(
+	output, err := newOutput(
 		Config{DimensionClients: nil},
 		fakeMonitorFiltering(),
 		consumertest.NewNop(),
@@ -260,6 +270,7 @@ func TestDimensionClientDefaultsToSFxExporter(t *testing.T) {
 		&hostWithExporters{exporter: &mmc},
 		newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 
 	dim := types.Dimension{
 		Name: "some_dimension",
@@ -273,7 +284,7 @@ func TestDimensionClientDefaultsToSFxExporter(t *testing.T) {
 
 func TestDimensionClientDefaultsRequiresLoneSFxExporter(t *testing.T) {
 	mmc := mockMetadataClient{id: component.NewID("signalfx")}
-	output := newOutput(
+	output, err := newOutput(
 		Config{DimensionClients: nil},
 		fakeMonitorFiltering(),
 		consumertest.NewNop(),
@@ -282,6 +293,7 @@ func TestDimensionClientDefaultsRequiresLoneSFxExporter(t *testing.T) {
 		&hostWithTwoSFxExporters{sfxExporter: &mmc},
 		newReceiverCreateSettings(),
 	)
+	require.NoError(t, err)
 
 	dim := types.Dimension{
 		Name: "some_dimension",
@@ -357,9 +369,9 @@ type hostWithExporters struct {
 	exporter *mockMetadataClient
 }
 
-func getExporters() map[component.DataType]map[component.ID]component.Exporter {
-	exporters := map[component.DataType]map[component.ID]component.Exporter{}
-	metricExporterMap := map[component.ID]component.Exporter{}
+func getExporters() map[component.DataType]map[component.ID]component.Component {
+	exporters := map[component.DataType]map[component.ID]component.Component{}
+	metricExporterMap := map[component.ID]component.Component{}
 	exporters[component.DataTypeMetrics] = metricExporterMap
 
 	exampleExporterFactory := componenttest.NewNopExporterFactory()
@@ -374,7 +386,7 @@ func getExporters() map[component.DataType]map[component.ID]component.Exporter {
 	return exporters
 }
 
-func (h *hostWithExporters) GetExporters() map[component.DataType]map[component.ID]component.Exporter {
+func (h *hostWithExporters) GetExporters() map[component.DataType]map[component.ID]component.Component {
 	exporters := getExporters()
 	exporterMap := exporters[component.DataTypeMetrics]
 
@@ -388,7 +400,7 @@ type hostWithTwoSFxExporters struct {
 	sfxExporter *mockMetadataClient
 }
 
-func (h *hostWithTwoSFxExporters) GetExporters() map[component.DataType]map[component.ID]component.Exporter {
+func (h *hostWithTwoSFxExporters) GetExporters() map[component.DataType]map[component.ID]component.Component {
 	exporters := getExporters()
 	exporterMap := exporters[component.DataTypeMetrics]
 

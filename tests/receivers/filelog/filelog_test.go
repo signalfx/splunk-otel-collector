@@ -32,9 +32,7 @@ func TestFilelogReceiverSyslogFormat(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	tc.SkipIfNotContainer()
-
-	_, shutdown := tc.SplunkOtelCollector(
+	_, shutdown := tc.SplunkOtelCollectorContainer(
 		"syslog_config.yaml",
 		func(c testutils.Collector) testutils.Collector {
 			cc := c.(*testutils.CollectorContainer)

@@ -31,13 +31,12 @@ func TestExpandedDollarSignsViaStandardEnvVar(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	tc.SkipIfNotContainer()
-
-	_, shutdown := tc.SplunkOtelCollectorWithEnv(
+	_, shutdown := tc.SplunkOtelCollectorContainer(
 		"envvar_labels.yaml",
-		map[string]string{"AN_ENVVAR": "an-envvar-value"},
+		func(collector testutils.Collector) testutils.Collector {
+			return collector.WithEnv(map[string]string{"AN_ENVVAR": "an-envvar-value"})
+		},
 	)
-
 	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("envvar_labels.yaml")
@@ -49,13 +48,12 @@ func TestExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	tc.SkipIfNotContainer()
-
-	_, shutdown := tc.SplunkOtelCollectorWithEnv(
+	_, shutdown := tc.SplunkOtelCollectorContainer(
 		"env_config_source_labels.yaml",
-		map[string]string{"AN_ENVVAR": "an-envvar-value"},
+		func(collector testutils.Collector) testutils.Collector {
+			return collector.WithEnv(map[string]string{"AN_ENVVAR": "an-envvar-value"})
+		},
 	)
-
 	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("env_config_source_labels.yaml")
@@ -67,16 +65,17 @@ func TestIncompatibleExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	tc.SkipIfNotContainer()
-
-	_, shutdown := tc.SplunkOtelCollectorWithEnv(
+	_, shutdown := tc.SplunkOtelCollectorContainer(
 		"env_config_source_labels.yaml",
-		map[string]string{
-			"SPLUNK_DOUBLE_DOLLAR_CONFIG_SOURCE_COMPATIBLE": "false",
-			"AN_ENVVAR": "an-envvar-value",
+		func(collector testutils.Collector) testutils.Collector {
+			return collector.WithEnv(
+				map[string]string{
+					"SPLUNK_DOUBLE_DOLLAR_CONFIG_SOURCE_COMPATIBLE": "false",
+					"AN_ENVVAR": "an-envvar-value",
+				},
+			)
 		},
 	)
-
 	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("incompat_env_config_source_labels.yaml")
@@ -88,14 +87,17 @@ func TestExpandedYamlViaEnvConfigSource(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	tc.SkipIfNotContainer()
-
-	_, shutdown := tc.SplunkOtelCollectorWithEnv(
+	_, shutdown := tc.SplunkOtelCollectorContainer(
 		"yaml_from_env.yaml",
-		map[string]string{"YAML": "[{action: update, include: .*, match_type: regexp, operations: [{action: add_label, new_label: yaml-from-env, new_value: value-from-env}]}]"},
-	)
+		func(collector testutils.Collector) testutils.Collector {
+			return collector.WithEnv(
+				map[string]string{"YAML": "[{action: update, include: .*, match_type: regexp, operations: [{action: add_label, new_label: yaml-from-env, new_value: value-from-env}]}]"},
+			)
 
+		},
+	)
 	defer shutdown()
+
 	expectedResourceMetrics := tc.ResourceMetrics("yaml_from_env.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
@@ -106,16 +108,18 @@ func TestEnvConfigSource(t *testing.T) {
 	defer tc.ShutdownOTLPReceiverSink()
 
 	configServerPort := testutils.GetAvailablePort(t)
-	tc.SkipIfNotContainer()
-	c, shutdown := tc.SplunkOtelCollectorWithEnv(
+	cc, shutdown := tc.SplunkOtelCollectorContainer(
 		"envvar_config.yaml",
-		map[string]string{
-			"OVERRIDDEN_DEFAULT":              "{ grpc: , http: , }",
-			"SPLUNK_DEBUG_CONFIG_SERVER_PORT": fmt.Sprintf("%d", configServerPort),
+		func(collector testutils.Collector) testutils.Collector {
+			return collector.WithEnv(
+				map[string]string{
+					"OVERRIDDEN_DEFAULT":              "{ grpc: , http: , }",
+					"SPLUNK_DEBUG_CONFIG_SERVER_PORT": fmt.Sprintf("%d", configServerPort),
+				},
+			)
 		},
 	)
 	defer shutdown()
-	cc := c.(*testutils.CollectorContainer)
 
 	expectedInitial := map[string]any{
 		"file": map[string]any{

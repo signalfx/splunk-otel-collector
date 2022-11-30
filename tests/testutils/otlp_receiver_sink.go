@@ -169,7 +169,7 @@ func (otlp *OTLPReceiverSink) Reset() {
 	}
 }
 
-func (otlp *OTLPReceiverSink) AssertAllLogsReceived(t *testing.T, expectedResourceLogs telemetry.ResourceLogs, waitTime time.Duration) error {
+func (otlp *OTLPReceiverSink) AssertAllLogsReceived(t testing.TB, expectedResourceLogs telemetry.ResourceLogs, waitTime time.Duration) error {
 	if err := otlp.assertBuilt("AssertAllLogsReceived"); err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func (otlp *OTLPReceiverSink) AssertAllLogsReceived(t *testing.T, expectedResour
 	return err
 }
 
-func (otlp *OTLPReceiverSink) AssertAllMetricsReceived(t *testing.T, expectedResourceMetrics telemetry.ResourceMetrics, waitTime time.Duration) error {
+func (otlp *OTLPReceiverSink) AssertAllMetricsReceived(t testing.TB, expectedResourceMetrics telemetry.ResourceMetrics, waitTime time.Duration) error {
 	if err := otlp.assertBuilt("AssertAllMetricsReceived"); err != nil {
 		return err
 	}

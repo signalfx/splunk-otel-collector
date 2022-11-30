@@ -39,8 +39,6 @@ func TestDockerObserver(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	tc.SkipIfNotContainer()
-
 	finfo, err := os.Stat("/var/run/docker.sock")
 	require.NoError(t, err)
 	fsys := finfo.Sys()
@@ -48,7 +46,7 @@ func TestDockerObserver(t *testing.T) {
 	require.True(t, ok)
 	dockerGID := stat.Gid
 
-	c, shutdown := tc.SplunkOtelCollector(
+	cc, shutdown := tc.SplunkOtelCollectorContainer(
 		"otlp-exporter-no-internal-prometheus.yaml",
 		func(c testutils.Collector) testutils.Collector {
 			cc := c.(*testutils.CollectorContainer)
@@ -70,7 +68,6 @@ func TestDockerObserver(t *testing.T) {
 		},
 	)
 	defer shutdown()
-	cc := c.(*testutils.CollectorContainer)
 
 	_, shutdownPrometheus := tc.Containers(
 		testutils.NewContainer().WithImage("bitnami/prometheus").WithLabel("test.id", tc.ID).WillWaitForLogs("Server is ready to receive web requests."),

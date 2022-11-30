@@ -35,7 +35,7 @@ type portpair struct {
 // describing it. The port is available for opening when this function returns
 // provided that there is no race by some other code to grab the same port
 // immediately.
-func getAvailableLocalAddress(t *testing.T) string {
+func getAvailableLocalAddress(t testing.TB) string {
 	ln, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err, "Failed to get a free local port")
 	// There is a possible race if something else takes this same port before
@@ -47,7 +47,7 @@ func getAvailableLocalAddress(t *testing.T) string {
 // GetAvailablePort finds an available local port and returns it. The port is
 // available for opening when this function returns provided that there is no
 // race by some other code to grab the same port immediately.
-func GetAvailablePort(t *testing.T) uint16 {
+func GetAvailablePort(t testing.TB) uint16 {
 	// Retry has been added for windows as net.Listen can return a port that is not actually available. Details can be
 	// found in https://github.com/docker/for-win/issues/3171 but to summarize Hyper-V will reserve ranges of ports
 	// which do not show up under the "netstat -ano" but can only be found by
@@ -83,7 +83,7 @@ func GetAvailablePort(t *testing.T) uint16 {
 }
 
 // Get excluded ports on Windows from the command: netsh interface ipv4 show excludedportrange protocol=tcp
-func getExclusionsList(t *testing.T) []portpair {
+func getExclusionsList(t testing.TB) []portpair {
 	cmd := exec.Command("netsh", "interface", "ipv4", "show", "excludedportrange", "protocol=tcp")
 	output, err := cmd.CombinedOutput()
 	require.NoError(t, err)
@@ -92,7 +92,7 @@ func getExclusionsList(t *testing.T) []portpair {
 	return exclusions
 }
 
-func createExclusionsList(exclusionsText string, t *testing.T) []portpair {
+func createExclusionsList(exclusionsText string, t testing.TB) []portpair {
 	exclusions := []portpair{}
 
 	parts := strings.Split(exclusionsText, "--------")

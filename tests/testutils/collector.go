@@ -15,6 +15,8 @@
 package testutils
 
 import (
+	"testing"
+
 	"go.uber.org/zap"
 )
 
@@ -28,4 +30,6 @@ type Collector interface {
 	Build() (Collector, error)
 	Start() error
 	Shutdown() error
+	InitialConfig(t testing.TB, port uint16) map[string]any
+	EffectiveConfig(t testing.TB, port uint16) map[string]any
 }

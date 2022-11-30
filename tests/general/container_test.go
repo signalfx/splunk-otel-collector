@@ -31,8 +31,7 @@ import (
 )
 
 func TestDefaultContainerConfigRequiresEnvVars(t *testing.T) {
-	image := (&testutils.Testcase{T: t}).SkipIfNotContainer()
-
+	image := testutils.GetCollectorImageOrSkipTest(t)
 	tests := []struct {
 		name    string
 		env     map[string]string
@@ -76,9 +75,7 @@ func TestSpecifiedContainerConfigDefaultsToCmdLineArgIfEnvVarConflict(t *testing
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	tc.SkipIfNotContainer()
-
-	_, shutdown := tc.SplunkOtelCollector(
+	_, shutdown := tc.SplunkOtelCollectorContainer(
 		"hostmetrics_cpu.yaml",
 		func(collector testutils.Collector) testutils.Collector {
 			return collector.WithArgs("--config", "/etc/config.yaml")
@@ -91,7 +88,6 @@ func TestSpecifiedContainerConfigDefaultsToCmdLineArgIfEnvVarConflict(t *testing
 			)
 		},
 	)
-
 	defer shutdown()
 
 	require.Eventually(t, func() bool {
@@ -118,9 +114,7 @@ func TestConfigYamlEnvVar(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	tc.SkipIfNotContainer()
-
-	_, shutdown := tc.SplunkOtelCollector(
+	_, shutdown := tc.SplunkOtelCollectorContainer(
 		"", func(collector testutils.Collector) testutils.Collector {
 			return collector.WithEnv(
 				map[string]string{
@@ -171,14 +165,12 @@ func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	tc.SkipIfNotContainer()
-
 	_, stop := tc.Containers(testutils.NewContainer().WithContext(
 		filepath.Join("..", "receivers", "smartagent", "collectd-activemq", "testdata", "server"),
 	).WithExposedPorts("1099:1099").WithName("activemq").WillWaitForPorts("1099"))
 	defer stop()
 
-	_, shutdown := tc.SplunkOtelCollector(
+	_, shutdown := tc.SplunkOtelCollectorContainer(
 		"activemq_config.yaml",
 		func(collector testutils.Collector) testutils.Collector {
 			cc := collector.(*testutils.CollectorContainer)
@@ -197,8 +189,6 @@ func TestNonDefaultGIDCanAccessPythonInAgentBundle(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	tc.SkipIfNotContainer()
-
 	_, stop := tc.Containers(testutils.NewContainer().WithContext(
 		filepath.Join("..", "receivers", "smartagent", "collectd-solr", "testdata", "server"),
 	).WithExposedPorts("8983:8983").WithName(
@@ -206,7 +196,7 @@ func TestNonDefaultGIDCanAccessPythonInAgentBundle(t *testing.T) {
 	).WillWaitForPorts("8983").WillWaitForLogs("example launched successfully"))
 	defer stop()
 
-	_, shutdown := tc.SplunkOtelCollector(
+	_, shutdown := tc.SplunkOtelCollectorContainer(
 		"solr_config.yaml",
 		func(collector testutils.Collector) testutils.Collector {
 			cc := collector.(*testutils.CollectorContainer)

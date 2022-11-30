@@ -255,26 +255,17 @@ func (l collectorLogConsumer) Accept(log testcontainers.Log) {
 }
 
 func (collector *CollectorContainer) InitialConfig(t testing.TB, port uint16) map[string]any {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	n, r, err := collector.Container.Exec(ctx, []string{"curl", "-s", fmt.Sprintf("http://localhost:%d/debug/configz/initial", port)})
-	require.NoError(t, err)
-	require.Zero(t, n)
-	out, err := io.ReadAll(r)
-	require.NoError(t, err)
-	// strip control character from curl output
-	require.True(t, len(out) >= 8, "invalid config server output")
-	initial := strings.TrimSpace(string(out[8 : len(out)-1]))
-
-	actual := map[string]any{}
-	require.NoError(t, yaml.Unmarshal([]byte(initial), &actual))
-	return confmap.NewFromStringMap(actual).ToStringMap()
+	return collector.execConfigRequest(t, fmt.Sprintf("http://localhost:%d/debug/configz/initial", port))
 }
 
 func (collector *CollectorContainer) EffectiveConfig(t testing.TB, port uint16) map[string]any {
+	return collector.execConfigRequest(t, fmt.Sprintf("http://localhost:%d/debug/configz/effective", port))
+}
+
+func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri string) map[string]any {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	n, r, err := collector.Container.Exec(ctx, []string{"curl", "-s", fmt.Sprintf("http://localhost:%d/debug/configz/effective", port)})
+	n, r, err := collector.Container.Exec(ctx, []string{"curl", "-s", uri})
 	require.NoError(t, err)
 	require.Zero(t, n)
 	out, err := io.ReadAll(r)

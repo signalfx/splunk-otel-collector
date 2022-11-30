@@ -31,7 +31,6 @@ import (
 
 func TestBasicSecretAccess(t *testing.T) {
 	tc := testutils.NewTestcase(t)
-	tc.SkipIfNotContainer()
 
 	ctrs, shutdown := tc.Containers(
 		testutils.NewContainer().WithImage("vault:latest").WithNetworks("vault").WithName("vault").WithEnv(
@@ -58,14 +57,17 @@ func TestBasicSecretAccess(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, sc)
 
-	collector, stop := tc.SplunkOtelCollector("vault_config.yaml", func(collector testutils.Collector) testutils.Collector {
-		cc := collector.(*testutils.CollectorContainer)
-		cc.Container = cc.Container.WithNetworks("vault").WithNetworkMode("bridge")
-		return cc
-	})
+	collector, stop := tc.SplunkOtelCollectorContainer(
+		"vault_config.yaml",
+		func(collector testutils.Collector) testutils.Collector {
+			cc := collector.(*testutils.CollectorContainer)
+			cc.Container = cc.Container.WithNetworks("vault").WithNetworkMode("bridge")
+			return cc
+		},
+	)
 	defer stop()
 
-	effective := collector.(*testutils.CollectorContainer).EffectiveConfig(tc, 55554)
+	effective := collector.EffectiveConfig(tc, 55554)
 	require.Equal(t, map[string]any{
 		"exporters": map[string]any{"logging/noop": nil},
 		"processors": map[string]any{

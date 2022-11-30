@@ -32,9 +32,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	tc.SkipIfNotContainer()
-
-	collector, shutdown := tc.SplunkOtelCollector(
+	cc, shutdown := tc.SplunkOtelCollectorContainer(
 		"config-to-merge-with.yaml",
 		func(c testutils.Collector) testutils.Collector {
 			cc := c.(*testutils.CollectorContainer)
@@ -55,7 +53,6 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 
 	defer shutdown()
 
-	cc := collector.(*testutils.CollectorContainer)
 	expected := map[string]any{
 		"file": map[string]any{
 			"exporters": map[string]any{
@@ -195,9 +192,7 @@ func TestStandaloneConfigD(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	tc.SkipIfNotContainer()
-
-	_, shutdown := tc.SplunkOtelCollector(
+	_, shutdown := tc.SplunkOtelCollectorContainer(
 		"empty-config.yaml",
 		func(c testutils.Collector) testutils.Collector {
 			cc := c.(*testutils.CollectorContainer)

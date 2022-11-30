@@ -47,11 +47,9 @@ func TestHostObserver(t *testing.T) {
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
 
-	tc.SkipIfNotContainer()
-
 	promPort := testutils.GetAvailablePort(t)
 
-	c, shutdown := tc.SplunkOtelCollector(
+	cc, shutdown := tc.SplunkOtelCollectorContainer(
 		"otlp-exporter-no-internal-prometheus.yaml",
 		func(c testutils.Collector) testutils.Collector {
 			cc := c.(*testutils.CollectorContainer)
@@ -77,7 +75,7 @@ func TestHostObserver(t *testing.T) {
 		},
 	)
 	defer shutdown()
-	cc := c.(*testutils.CollectorContainer)
+
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	sc, r, err := cc.Container.Exec(ctx, []string{
 		// no config server to prevent port collisions

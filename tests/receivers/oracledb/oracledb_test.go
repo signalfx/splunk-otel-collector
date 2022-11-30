@@ -42,10 +42,13 @@ func TestOracleDBIntegration(t *testing.T) {
 
 	_, stop := tc.Containers(oracledb...)
 	defer stop()
-	env := map[string]string{}
-	env["ORACLEDB_URL"] = "oracle://otel:password@localhost:1521/XE"
 
-	_, shutdown := tc.SplunkOtelCollectorWithEnv("all_metrics_config.yaml", env)
+	_, shutdown := tc.SplunkOtelCollector(
+		"all_metrics_config.yaml",
+		func(collector testutils.Collector) testutils.Collector {
+			return collector.WithEnv(map[string]string{"ORACLEDB_URL": "oracle://otel:password@localhost:1521/XE"})
+		},
+	)
 	defer shutdown()
 
 	expectedResourceMetrics := tc.ResourceMetrics("all.yaml")

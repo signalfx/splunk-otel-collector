@@ -212,7 +212,7 @@ build-linux-image:
       - ARCH: [amd64, arm64]
   retry: 2
   script:
-    - make docker-otelcol ARCH=${ARCH} SKIP_COMPILE=true
+    - make docker-otelcol ARCH=${ARCH} DOCKER_REPO=${DOCKER_CICD_REPO} SKIP_COMPILE=true
     - arch=$( docker inspect --format='{{.Architecture}}' otelcol:${ARCH} )
     - if [[ "$arch" != "$ARCH" ]]; then exit 1; fi
   after_script:

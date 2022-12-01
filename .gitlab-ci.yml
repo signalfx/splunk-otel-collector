@@ -57,7 +57,7 @@ fossa:
 .trigger-filter:
   only:
     variables:
-      - $CI_COMMIT_BRANCH == "use_windows_2022_runner"
+      - $CI_COMMIT_BRANCH == "main"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   except:
     - schedules

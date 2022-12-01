@@ -501,7 +501,7 @@ build-push-windows2022-image:
   dependencies:
     - sign-exe
   tags:
-    - windows
+    - windows2022
   retry: 2
   before_script:
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe

@@ -490,10 +490,10 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Set up QEMU
-        if: ${{ matrix.ARCH == 'arm64'}}
+        if: ${{ matrix.ARCH != 'amd64'}}
         uses: docker/setup-qemu-action@v2
         with:
-          platforms: arm64
+          platforms: ${{ matrix.ARCH }}
 
       - name: Downloading binaries-linux_${{ matrix.ARCH }}
         uses: actions/download-artifact@v3

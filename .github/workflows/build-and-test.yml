@@ -193,7 +193,7 @@ jobs:
     needs: [setup-environment]
     strategy:
       matrix:
-        SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64" ]
+        SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-linux_ppc64le" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -470,7 +470,7 @@ jobs:
     needs: [cross-compile]
     strategy:
       matrix:
-        ARCH: [ "amd64", "arm64" ]
+        ARCH: [ "amd64", "arm64", "ppc64le" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -490,10 +490,10 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Set up QEMU
-        if: ${{ matrix.ARCH == 'arm64'}}
+        if: ${{ matrix.ARCH != 'amd64'}}
         uses: docker/setup-qemu-action@v2
         with:
-          platforms: arm64
+          platforms: ${{ matrix.ARCH }}
 
       - name: Downloading binaries-linux_${{ matrix.ARCH }}
         uses: actions/download-artifact@v3

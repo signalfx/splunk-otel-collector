@@ -1995,8 +1995,8 @@ github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083/go.mod h1:adP
 github.com/signalfx/golib v2.5.1+incompatible h1:rw16Flfx5Z29DahDSNGAA3ch8dOeNc3oOMUJm493yao=
 github.com/signalfx/golib v2.5.1+incompatible/go.mod h1:nWYefOwlUKWm/SpN/LgVSBnyH1T9NpT1ANlmgRIi1Cs=
 github.com/signalfx/golib/v3 v3.3.37/go.mod h1:zH70SVnrzVUqDmUFEwDk1HSwS71Pi2w3bSsNpnOtYuQ=
-github.com/signalfx/golib/v3 v3.3.46 h1:eiR2kQA5eVTB7nqETfn8raeem8HZhOUNcuMRVzZnOOk=
-github.com/signalfx/golib/v3 v3.3.46/go.mod h1:N7bdXqA6fGQQn03WHZRDXvyN/GUFI+BXjoJgidfncZU=
+github.com/signalfx/golib/v3 v3.3.47 h1:awph3lTi4Yp766nIOUU1bgvaS8BxB4ujW0ZwByaxiYE=
+github.com/signalfx/golib/v3 v3.3.47/go.mod h1:N7bdXqA6fGQQn03WHZRDXvyN/GUFI+BXjoJgidfncZU=
 github.com/signalfx/gomemcache v0.0.0-20180823214636-4f7ef64c72a9/go.mod h1:Ytb8KfCSyuwy/VILnROdgCvbQLA5ch0nkbG7lKT0BXw=
 github.com/signalfx/ingest-protocols v0.1.14 h1:rsTZppsoTXmEfE1RY5u+h4PePKUzqhfEdxq1pNGY2pA=
 github.com/signalfx/ingest-protocols v0.1.14/go.mod h1:CYKWPtxFWF9RCUGfN0Hh6javdTTqediTCbXFbW0BF60=

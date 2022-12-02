@@ -110,7 +110,7 @@ compile:
   stage: build
   parallel:
     matrix:
-      - TARGET: [binaries-darwin_amd64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64]
+      - TARGET: [binaries-darwin_amd64, binaries-linux_amd64, binaries-linux_arm64, binaries-windows_amd64, binaries-linux_ppc64le]
   script: make $TARGET
   after_script:
     - if [ -e bin/otelcol ]; then rm -f bin/otelcol; fi  # remove the symlink
@@ -209,7 +209,7 @@ build-linux-image:
     - compile
   parallel:
     matrix:
-      - ARCH: [amd64, arm64]
+      - ARCH: [amd64, arm64, ppc64le]
   retry: 2
   script:
     - make docker-otelcol ARCH=${ARCH} DOCKER_REPO=${DOCKER_CICD_REPO} SKIP_COMPILE=true
@@ -405,6 +405,7 @@ push-linux-image:
   before_script:
     - docker load -i dist/otelcol-amd64.tar
     - docker load -i dist/otelcol-arm64.tar
+    - docker load -i dist/otelcol-ppc64le.tar
   script:
     - docker login -u $CIRCLECI_QUAY_USERNAME -p $CIRCLECI_QUAY_PASSWORD quay.io
     - |
@@ -420,7 +421,7 @@ push-linux-image:
     - |
       # Tag and push images
       set -e
-      for arch in "amd64" "arm64"; do
+      for arch in "amd64" "arm64" "ppc64le"; do
         ARCH_TAG="${MANIFEST_TAG}-${arch}"
         echo "Tagging and pushing ${IMAGE_NAME}:${ARCH_TAG}"
         docker tag otelcol:${arch} ${IMAGE_NAME}:${ARCH_TAG}
@@ -442,17 +443,19 @@ push-linux-image:
       if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         # only push latest manifest tag for main and stable releases
         echo "Creating and pushing ${IMAGE_NAME}:latest manifest"
-        docker manifest create ${IMAGE_NAME}:latest --amend ${IMAGE_NAME}:latest-amd64 --amend ${IMAGE_NAME}:latest-arm64
+        docker manifest create ${IMAGE_NAME}:latest --amend ${IMAGE_NAME}:latest-amd64 --amend ${IMAGE_NAME}:latest-arm64 --amend ${IMAGE_NAME}:latest-ppc64le
         docker manifest push ${IMAGE_NAME}:latest
       fi
     - docker pull ${IMAGE_NAME}:${MANIFEST_TAG}
     - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${MANIFEST_TAG}-amd64 | tee dist/linux_amd64_digest.txt
     - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${MANIFEST_TAG}-arm64 | tee dist/linux_arm64_digest.txt
+    - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${MANIFEST_TAG}-ppc64le | tee dist/linux_ppc64le_digest.txt
     - docker manifest inspect ${IMAGE_NAME}:${MANIFEST_TAG} | tee dist/manifest_digest.txt
   artifacts:
     paths:
       - dist/linux_amd64_digest.txt
       - dist/linux_arm64_digest.txt
+      - dist/linux_ppc64le_digest.txt
       - dist/manifest_digest.txt
 
 build-push-windows-image:

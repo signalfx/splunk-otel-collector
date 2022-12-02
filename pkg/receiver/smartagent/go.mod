@@ -7,7 +7,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.66.0
 	github.com/openzipkin/zipkin-go v0.4.1
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
-	github.com/signalfx/golib/v3 v3.3.46
+	github.com/signalfx/golib/v3 v3.3.47
 	github.com/signalfx/signalfx-agent v1.0.1-0.20221102193914-2f61b1078d54
 	github.com/signalfx/splunk-otel-collector/extension/smartagentextension v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000

@@ -1,7 +1,8 @@
-FROM alpine:3.17.0 as certs
+ARG DOCKER_REPO=docker.io
+FROM ${DOCKER_REPO}/alpine:3.17.0 as certs
 RUN apk --update add ca-certificates
 
-FROM alpine:3.17.0 AS otelcol
+FROM ${DOCKER_REPO}/alpine:3.17.0 AS otelcol
 COPY otelcol /
 COPY translatesfx /
 COPY migratecheckpoint /
@@ -14,7 +15,7 @@ RUN echo "splunk-otel-collector:x:999:999::/:" > /etc_passwd
 # create base dirs since we cannot chown in scratch image except via COPY
 RUN mkdir -p /otel/collector /splunk-otel-collector
 
-FROM alpine:3.17.0 AS smartagent
+FROM ${DOCKER_REPO}/alpine:3.17.0 AS smartagent
 ARG SMART_AGENT_RELEASE
 ARG ARCH="amd64"
 
@@ -37,7 +38,7 @@ RUN if [ "$ARCH" = "amd64" ]; then \
     fi
 RUN find /usr/lib/splunk-otel-collector/agent-bundle -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 
-FROM debian:11.5 as journalctl
+FROM ${DOCKER_REPO}/debian:11.5 as journalctl
 RUN apt update
 RUN apt install -y systemd
 COPY collect-libs.sh /collect-libs.sh

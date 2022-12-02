@@ -45,6 +45,9 @@ ARCH=amd64
 # for local binary testing (agent-bundle configuration required)
 export SPLUNK_OTEL_COLLECTOR_IMAGE?=quay.io/signalfx/splunk-otel-collector-dev:latest
 
+# Docker repository used.
+DOCKER_REPO?=docker.io
+
 # ALL_MODULES includes ./* dirs (excludes . dir)
 ALL_GO_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
 ALL_PYTHON_DEPS := $(shell find . -type f \( -name "setup.py" -o -name "requirements.txt" \) -exec dirname {} \; | sort | egrep  '^./')
@@ -164,7 +167,7 @@ endif
 	cp ./bin/translatesfx_linux_$(ARCH) ./cmd/otelcol/translatesfx
 	cp ./bin/migratecheckpoint_linux_$(ARCH) ./cmd/otelcol/migratecheckpoint
 	cp ./internal/buildscripts/packaging/collect-libs.sh ./cmd/otelcol/collect-libs.sh
-	docker buildx build --platform linux/$(ARCH) -o type=image,name=otelcol:$(ARCH),push=false --build-arg ARCH=$(ARCH) --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) ./cmd/otelcol/
+	docker buildx build --platform linux/$(ARCH) -o type=image,name=otelcol:$(ARCH),push=false --build-arg ARCH=$(ARCH) --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) --build-arg DOCKER_REPO=$(DOCKER_REPO) ./cmd/otelcol/
 	docker tag otelcol:$(ARCH) otelcol:latest
 	rm ./cmd/otelcol/otelcol
 	rm ./cmd/otelcol/translatesfx

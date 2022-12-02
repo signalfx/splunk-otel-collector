@@ -212,7 +212,7 @@ build-linux-image:
       - ARCH: [amd64, arm64]
   retry: 2
   script:
-    - make docker-otelcol ARCH=${ARCH} SKIP_COMPILE=true
+    - make docker-otelcol ARCH=${ARCH} DOCKER_REPO=${DOCKER_CICD_REPO} SKIP_COMPILE=true
     - arch=$( docker inspect --format='{{.Architecture}}' otelcol:${ARCH} )
     - if [[ "$arch" != "$ARCH" ]]; then exit 1; fi
   after_script:
@@ -774,7 +774,7 @@ cve-scan:
         docker load -i dist/otelcol-amd64.tar
         docker tag otelcol:amd64 otelcol:latest
       else
-        make docker-otelcol
+        make docker-otelcol DOCKER_REPO=${DOCKER_CICD_REPO}
       fi
     - docker scan --accept-license --login --token ${SNYK_AUTH_TOKEN}
     - docker scan --severity high otelcol

@@ -1,4 +1,4 @@
-ARG DOCKER_REPO
+ARG DOCKER_REPO=docker.io
 FROM ${DOCKER_REPO}/alpine:3.17.0 as certs
 RUN apk --update add ca-certificates
 

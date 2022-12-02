@@ -175,7 +175,7 @@ endif
 	rm ./cmd/otelcol/collect-libs.sh
 
 .PHONY: binaries-all-sys
-binaries-all-sys: binaries-darwin_amd64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64
+binaries-all-sys: binaries-darwin_amd64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64 binaries-linux_ppc64le
 
 .PHONY: binaries-darwin_amd64
 binaries-darwin_amd64:
@@ -200,6 +200,12 @@ binaries-windows_amd64:
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) otelcol
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) translatesfx
 	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(MAKE) migratecheckpoint
+
+.PHONY: binaries-linux_ppc64le
+binaries-linux_ppc64le:
+	GOOS=linux GOARCH=ppc64le $(MAKE) otelcol
+	GOOS=linux GOARCH=ppc64le $(MAKE) translatesfx
+	GOOS=linux GOARCH=ppc64le $(MAKE) migratecheckpoint
 
 .PHONY: deb-rpm-tar-package
 %-package:

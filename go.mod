@@ -498,6 +498,8 @@ replace (
 	github.com/apache/thrift => github.com/apache/thrift v0.16.0
 	github.com/containerd/containerd => github.com/containerd/containerd v1.5.13
 	github.com/containernetworking/plugins => github.com/containernetworking/plugins v1.1.1
+	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible
+	github.com/form3tech-oss/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
 	github.com/go-kit/kit => github.com/go-kit/kit v0.12.0 // required to drop dependency on deprecated go.etcd.io/etcd
 	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0

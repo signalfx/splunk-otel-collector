@@ -80,6 +80,7 @@ func TestDefaultComponents(t *testing.T) {
 		"filter",
 		"groupbyattrs",
 		"k8sattributes",
+		"logstransform",
 		"memory_limiter",
 		"metricstransform",
 		"probabilistic_sampler",

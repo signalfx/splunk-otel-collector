@@ -1673,6 +1673,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrs
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbyattrsprocessor v0.66.0/go.mod h1:Ne1tinEpYGr/ksK+75vch+5LlNS1o8/EVtAMfJENngw=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor v0.66.0 h1:xWHSbs/8pABDQKFUd7fUkkhSIH8YLnBbHypcyAGv6K4=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor v0.66.0/go.mod h1:SvKUf0pn0YkIWrwfSs00SMZy25YlUvL0tS/fYrxxW/A=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/logstransformprocessor v0.64.0 h1:YQSe96akNaLQcdaxt+HYMwNbtyGQnLvvh5dlNEXKy9E=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/logstransformprocessor v0.64.0/go.mod h1:XGnE3pWjXK1tEg4fkWyP/kEVdCQf9fD6gF9H59CknVc=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.66.0 h1:3BCJ45CMoEWWonFMpeL/zn21sq5Hlwg6GC+jWx6rLDU=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.66.0/go.mod h1:9ss3YY3VBGx0T5mfZ+2DohVZ4PBimUnIPNCt9PeOntk=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.66.0 h1:kU1Ff+Mjw17sb42lFDH4PCv2te6VK9DBT7Q44EaqPfA=

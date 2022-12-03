@@ -192,4 +192,8 @@ require (
 	mvdan.cc/unparam v0.0.0-20220706161116-678bad134442 // indirect
 )
 
-replace golang.org/x/crypto => golang.org/x/crypto v0.3.0
+replace (
+	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible
+	github.com/form3tech-oss/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
+	golang.org/x/crypto => golang.org/x/crypto v0.3.0
+)

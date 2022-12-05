@@ -438,7 +438,7 @@ push-linux-image:
       # Create and push image manifests
       set -e
       echo "Creating and pushing ${IMAGE_NAME}:${MANIFEST_TAG} manifest"
-      docker manifest create ${IMAGE_NAME}:${MANIFEST_TAG} --amend ${IMAGE_NAME}:${MANIFEST_TAG}-amd64 --amend ${IMAGE_NAME}:${MANIFEST_TAG}-arm64
+      docker manifest create ${IMAGE_NAME}:${MANIFEST_TAG} --amend ${IMAGE_NAME}:${MANIFEST_TAG}-amd64 --amend ${IMAGE_NAME}:${MANIFEST_TAG}-arm64 --amend ${IMAGE_NAME}:${MANIFEST_TAG}-ppc64le
       docker manifest push ${IMAGE_NAME}:${MANIFEST_TAG}
       if [[ "${CI_COMMIT_BRANCH:-}" = "main" ]] || [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         # only push latest manifest tag for main and stable releases

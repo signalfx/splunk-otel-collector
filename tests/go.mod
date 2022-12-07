@@ -22,9 +22,9 @@ require (
 	go.uber.org/atomic v1.10.0
 	go.uber.org/zap v1.24.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.20.6
+	k8s.io/api v0.25.4
 	k8s.io/apimachinery v0.25.4
-	k8s.io/client-go v0.20.6
+	k8s.io/client-go v0.25.4
 	sigs.k8s.io/kind v0.17.0
 )
 

@@ -77,7 +77,10 @@ def run_distro_container(distro, dockerfile=None, path=TESTS_DIR, buildargs=None
 
         yield container
     finally:
+        print(f"Container logs")
+        print(container.logs().decode("utf-8"))
         container.remove(force=True, v=True)
+
 
 
 def run_container_cmd(container, cmd, env=None, exit_code=0):

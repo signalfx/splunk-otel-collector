@@ -62,7 +62,14 @@ def run_distro_container(distro, dockerfile=None, path=TESTS_DIR, buildargs=None
     )
 
     container = client.containers.create(
-        image.id, detach=True, privileged=True, volumes={"/sys/fs/cgroup": {"bind": "/sys/fs/cgroup", "mode": "ro"}}, cgroupns="host",
+        image.id,
+        detach=True,
+        privileged=True,
+        volumes={"/sys/fs/cgroup": {"bind": "/sys/fs/cgroup", "mode": "ro"}},
+        cgroupns="host",
+        tmpfs={'/run':'','/tmp':'','/run/lock':''},
+        cap_add=["SYS_ADMIN"],
+        security_opt=["seccomp=unconfined"],
     )
 
     try:

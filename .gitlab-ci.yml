@@ -212,6 +212,9 @@ build-linux-image:
       - ARCH: [amd64, arm64, ppc64le]
   retry: 2
   script:
+    - |
+      DOCKER_PATH="artifactory:v2/cloud/role/docker-reader-role"
+      creds-helper init && eval $(creds-helper docker --eval ${DOCKER_PATH})
     - make docker-otelcol ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO} SKIP_COMPILE=true
     - arch=$( docker inspect --format='{{.Architecture}}' otelcol:${ARCH} )
     - if [[ "$arch" != "$ARCH" ]]; then exit 1; fi
@@ -472,6 +475,9 @@ build-push-windows-image:
   script:
     - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
     - |
+      DOCKER_PATH="artifactory:v2/cloud/role/docker-reader-role"
+      creds-helper init && eval $(creds-helper docker --eval ${DOCKER_PATH})
+    - |
       $ErrorActionPreference = 'Stop'
       if ($env:CI_COMMIT_TAG) {
         $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows"
@@ -511,6 +517,9 @@ build-push-windows2022-image:
     - Copy-Item .\dist\signed\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
   script:
     - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
+    - |
+      DOCKER_PATH="artifactory:v2/cloud/role/docker-reader-role"
+      creds-helper init && eval $(creds-helper docker --eval ${DOCKER_PATH})
     - |
       $ErrorActionPreference = 'Stop'
       if ($env:CI_COMMIT_TAG) {
@@ -772,6 +781,9 @@ cve-scan:
     - apt-get update
     - apt-get install -y docker-ce-cli docker-scan-plugin
   script:
+    - |
+      DOCKER_PATH="artifactory:v2/cloud/role/docker-reader-role"
+      creds-helper init && eval $(creds-helper docker --eval ${DOCKER_PATH})
     - |
       if [ -f dist/otelcol-amd64.tar ]; then
         docker load -i dist/otelcol-amd64.tar

@@ -24,7 +24,8 @@ defaults:
 jobs:
   chef-lint-spec-test:
     name: chef-lint-spec-test
-    runs-on: ubuntu-latest
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -37,7 +38,8 @@ jobs:
           make rake-spec
 
   chef-kitchen-linux:
-    runs-on: ubuntu-latest
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         DISTRO: ['amazonlinux-2', 'centos-7', 'centos-8', 'debian-9', 'debian-10', 'debian-11', 'opensuse-12', 'opensuse-15', 'oraclelinux-7', 'oraclelinux-8', 'ubuntu-1804', 'ubuntu-2004', 'ubuntu-2204']

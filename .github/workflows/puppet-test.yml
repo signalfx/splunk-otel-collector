@@ -20,7 +20,8 @@ concurrency:
 jobs:
   puppet-lint:
     name: puppet-lint
-    runs-on: ubuntu-latest
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -33,7 +34,8 @@ jobs:
 
   puppet-rake-spec:
     name: puppet-rake-spec
-    runs-on: ubuntu-latest
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -46,7 +48,8 @@ jobs:
 
   puppet-test:
     name: puppet-test
-    runs-on: ubuntu-latest
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     needs:
       - puppet-lint
       - puppet-rake-spec

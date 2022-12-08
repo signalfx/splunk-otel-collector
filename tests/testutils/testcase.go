@@ -15,6 +15,7 @@
 package testutils
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -34,32 +35,46 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils/telemetry"
 )
 
+type TestOption int
+
+const (
+	OTLPReceiverSinkAllInterfaces TestOption = iota
+)
+
 type CollectorBuilder func(Collector) Collector
+
+func HasTestOption(opt TestOption, opts []TestOption) bool {
+	for _, o := range opts {
+		if o == opt {
+			return true
+		}
+	}
+	return false
+}
 
 // A Testcase is a central helper utility to provide Container, OTLPReceiverSink, ResourceMetrics,
 // SplunkOtelCollector, and ObservedLogs to integration tests with minimal boilerplate.  It also embeds testing.TB
 // for easy testing and testify usage.
 type Testcase struct {
 	testing.TB
-	Logger                   *zap.Logger
-	ObservedLogs             *observer.ObservedLogs
-	OTLPReceiverSink         *OTLPReceiverSink
-	OTLPEndpoint             string
-	otlpEndpointForCollector string
-	ID                       string
+	Logger                              *zap.Logger
+	ObservedLogs                        *observer.ObservedLogs
+	OTLPReceiverSink                    *OTLPReceiverSink
+	OTLPEndpoint                        string
+	otlpEndpointForCollector            string
+	ID                                  string
+	OTLPReceiverShouldBindAllInterfaces bool
 }
 
 // NewTestcase is the recommended constructor that will automatically configure an OTLPReceiverSink
 // with available endpoint and ObservedLogs.
-func NewTestcase(t testing.TB) *Testcase {
+func NewTestcase(t testing.TB, opts ...TestOption) *Testcase {
 	tc := Testcase{TB: t}
 	var logCore zapcore.Core
 	logCore, tc.ObservedLogs = observer.New(zap.DebugLevel)
 	tc.Logger = zap.New(logCore)
 
-	tc.OTLPEndpoint = getAvailableLocalAddress(t)
-	tc.otlpEndpointForCollector = tc.OTLPEndpoint
-
+	tc.setOTLPEndpoint(opts)
 	var err error
 	tc.OTLPReceiverSink, err = NewOTLPReceiverSink().WithEndpoint(tc.OTLPEndpoint).WithLogger(tc.Logger).Build()
 	require.NoError(tc, err)
@@ -69,6 +84,16 @@ func NewTestcase(t testing.TB) *Testcase {
 	require.NoError(tc, err)
 	tc.ID = id.String()
 	return &tc
+}
+
+func (t *Testcase) setOTLPEndpoint(opts []TestOption) {
+	otlpPort := GetAvailablePort(t)
+	otlpHost := "localhost"
+	if HasTestOption(OTLPReceiverSinkAllInterfaces, opts) {
+		otlpHost = "0.0.0.0"
+	}
+	t.OTLPEndpoint = fmt.Sprintf("%s:%d", otlpHost, otlpPort)
+	t.otlpEndpointForCollector = t.OTLPEndpoint
 }
 
 // Loads and validates a ResourceLogs instance, assuming it's located in ./testdata/resource_metrics
@@ -251,4 +276,13 @@ func AssertAllMetricsReceived(t testing.TB, resourceMetricsFilename, collectorCo
 	defer shutdown()
 
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+}
+
+// WaitForKeyboard is a helper for adding breakpoints during test creation
+func WaitForKeyboard(t testing.TB) {
+	tty, err := os.Open("/dev/tty")
+	require.NoError(t, err)
+	reader := bufio.NewReader(tty)
+	fmt.Print("Press ENTER to continue.\n")
+	_, _ = reader.ReadString('\n')
 }

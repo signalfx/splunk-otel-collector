@@ -1,0 +1,45 @@
+### How to generate and test the Collector Chocolatey package manually:
+
+- Run a Windows VM so that you can share a directory with it from your Mac/Linux host to the Windows guest e.g.:
+  - Download a Windows server .iso
+    - e.g. https://info.microsoft.com/ww-landing-windows-server-2022.html
+  - Install Windows on a local VM
+    - e.g. using VMware Fusion, select Standard Evaluation (Desktop Experience) then Custom Install
+- On the Mac/Linux host, in a clone of this repo (splunk otel collector):
+  - Check out the tag for the version you want to test (e.g. `v0.66.0`)
+  - Run `make binaries-windows_amd64`
+  - With Docker running, run `make msi`
+    - You should now have an msi in the collector's `dist` directory
+- Share the splunk otel collector repo dir from the host to the Windows guest
+  - If using Fusion, you'll need to install VMware tools first
+    - Select the window menu option under Virtual Machine
+    - Navigate to the newly mounted CD device and double click the 64 bit installer
+- On the Windows guest
+  - Open a PowerShell window running as administrator
+    - Start menu -> Windows PowerShell -> Windows PowerShell -> right click -> More -> Run as Administrator
+  - Install Chocolatey
+    - Follow the instructins at https://chocolatey.org/install
+  - `Set-ExecutionPolicy Bypass` so you can run arbitrary scripts (assuming a short-lived VM without security concerns)
+  - Change directory to the shared splunk otel collector choco directory
+    - e.g. `cd Z:\splunk-otel-collector\internal\buildscripts\packaging\choco`
+  - Run the following in PowerShell: e.g. `.\make.ps1 build_choco -Version 0.66.0`
+    - Replace the version number with whatever your version is
+    - Ignore the error about a missing license file
+  - You should now have a `.nupkg` file in the Collector's `dist` directory, which you can install on the Windows VM:
+    - In PowerShell, change to the `dist` directory
+    - Run `choco install chocolatey-core.extension`
+    - Run `choco install splunk-otel-collector --debug --verbose --source .`
+      - If successful the Collector and tdagent will now be installed on the Windows VM
+- On the Mac/Linux host, build and run the Chocolatey test environment:
+  - Make sure you have Vagrant and VirtualBox installed
+  - Clone the repository https://github.com/chocolatey-community/chocolatey-test-environment
+  - Change to the chocolatey-test-environment directory you just cloned
+  - Copy the `.nupkg` file you created above from the `dist` directory in the splunk otel collector repo to the `packages` directory 
+  - Run `vagrant up` (takes a long time)
+  - Uncomment the line in `Vagrantfile` that says something like this:
+    - `#choco.exe install -fdvy INSERT_NAME --allow-downgrade --source "'c:\\packages;http://chocolatey.org/api/v2/'"`
+    - and change it to
+    - `choco.exe install -fdvy splunk-otel-collector --allow-downgrade --source "'c:\\packages'"`
+  - Run `vagrant provision`
+  - Watch the logs to check for success or failure
+

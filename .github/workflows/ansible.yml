@@ -28,7 +28,8 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -47,7 +48,8 @@ jobs:
   test:
     name: Test
     needs: lint
-    runs-on: ubuntu-latest
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -97,7 +99,8 @@ jobs:
   push-release-tag:
     name: Push Release Tag
     needs: test
-    runs-on: ubuntu-latest
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     if: github.ref == 'refs/heads/main' 
     steps:
       - name: Checkout

@@ -15,7 +15,8 @@ concurrency:
 
 jobs:
   libsplunk:
-    runs-on: ubuntu-latest
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
@@ -40,7 +41,8 @@ jobs:
 
   build-package:
     name: build-package
-    runs-on: ubuntu-latest
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     needs: [libsplunk]
     strategy:
       matrix:
@@ -77,7 +79,8 @@ jobs:
 
   test-deb-package:
     name: test-deb-package
-    runs-on: ubuntu-latest
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     needs: [build-package]
     strategy:
       matrix:
@@ -107,7 +110,8 @@ jobs:
 
   test-rpm-package:
     name: test-rpm-package
-    runs-on: ubuntu-latest
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     needs: [build-package]
     strategy:
       matrix:

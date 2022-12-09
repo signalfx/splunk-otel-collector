@@ -1,0 +1,37 @@
+extensions:
+  k8s_observer:
+    auth_type: serviceAccount
+    observe_pods: true
+    observe_nodes: true
+  k8s_observer/with_name:
+    auth_type: serviceAccount
+    observe_pods: true
+    observe_nodes: true
+  k8s_observer/with/another/name:
+    auth_type: serviceAccount
+    observe_pods: true
+    observe_nodes: true
+
+receivers:
+  discovery:
+    log_endpoints: true
+    watch_observers:
+      - k8s_observer
+      - k8s_observer/with_name
+      - k8s_observer/with/another/name
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  extensions:
+    - k8s_observer
+    - k8s_observer/with_name
+    - k8s_observer/with/another/name
+  pipelines:
+    logs:
+      receivers: [discovery]
+      exporters: [otlp]

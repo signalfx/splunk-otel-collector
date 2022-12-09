@@ -1,0 +1,109 @@
+resource_logs:
+  - attributes:
+      discovery.event.type: endpoint.added
+      discovery.observer.type: k8s_observer
+      discovery.observer.name: ""
+    scope_logs:
+      - logs:
+          - severity_text: info
+            attributes:
+              annotations:
+                node.alpha.kubernetes.io/ttl: "0"
+                some.annotation: annotation.value
+              endpoint: ""
+              external_dns: ""
+              external_ip: ""
+              hostname: ""
+              id: <ANY>
+              internal_dns: ""
+              internal_ip: ""
+              kubelet_endpoint_port: 0
+              labels:
+                some.label: label.value
+              name: some.node
+              type: k8s.node
+              uid: <ANY>
+          - severity_text: info
+            attributes:
+              annotations:
+                another.annotation: another.annotation.value
+              endpoint: <ANY>
+              id: <ANY>
+              labels:
+                another.label: another.label.value
+              name: some.pod
+              namespace: test-namespace
+              type: pod
+              uid: <ANY>
+  - attributes:
+      discovery.event.type: endpoint.added
+      discovery.observer.type: k8s_observer
+      discovery.observer.name: with_name
+    scope_logs:
+      - logs:
+          - severity_text: info
+            attributes:
+              annotations:
+                node.alpha.kubernetes.io/ttl: "0"
+                some.annotation: annotation.value
+              endpoint: ""
+              external_dns: ""
+              external_ip: ""
+              hostname: ""
+              id: <ANY>
+              internal_dns: ""
+              internal_ip: ""
+              kubelet_endpoint_port: 0
+              labels:
+                some.label: label.value
+              name: some.node
+              type: k8s.node
+              uid: <ANY>
+          - severity_text: info
+            attributes:
+              annotations:
+                another.annotation: another.annotation.value
+              endpoint: <ANY>
+              id: <ANY>
+              labels:
+                another.label: another.label.value
+              name: some.pod
+              namespace: test-namespace
+              type: pod
+              uid: <ANY>
+  - attributes:
+      discovery.event.type: endpoint.added
+      discovery.observer.type: k8s_observer
+      discovery.observer.name: with/another/name
+    scope_logs:
+      - logs:
+          - severity_text: info
+            attributes:
+              annotations:
+                node.alpha.kubernetes.io/ttl: "0"
+                some.annotation: annotation.value
+              endpoint: ""
+              external_dns: ""
+              external_ip: ""
+              hostname: ""
+              id: <ANY>
+              internal_dns: ""
+              internal_ip: ""
+              kubelet_endpoint_port: 0
+              labels:
+                some.label: label.value
+              name: some.node
+              type: k8s.node
+              uid: <ANY>
+          - severity_text: info
+            attributes:
+              annotations:
+                another.annotation: another.annotation.value
+              endpoint: <ANY>
+              id: <ANY>
+              labels:
+                another.label: another.label.value
+              name: some.pod
+              namespace: test-namespace
+              type: pod
+              uid: <ANY>

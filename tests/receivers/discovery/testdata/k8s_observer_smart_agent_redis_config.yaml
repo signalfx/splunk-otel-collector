@@ -1,0 +1,68 @@
+extensions:
+  k8s_observer:
+    auth_type: serviceAccount
+  k8s_observer/with_name:
+    auth_type: serviceAccount
+  k8s_observer/with/another/name:
+    auth_type: serviceAccount
+
+receivers:
+  discovery:
+    embed_receiver_config: true
+    receivers:
+      smartagent:
+        rule: type == "port" && pod.name == "target.redis"
+        config:
+          type: collectd/redis
+        resource_attributes:
+          one.key: one.value
+          two.key: two.value
+        status:
+          metrics:
+            successful:
+                - strict: bytes.used_memory_rss
+                  first_only: true
+                  log_record:
+                    severity_text: info
+                    body: Successfully scraped metrics from redis pod
+          statements:
+            failed:
+              - regexp: "^redis_info plugin: Error connecting to .* - ConnectionRefusedError.*$"
+                first_only: true
+                log_record:
+                  severity_text: debug
+                  body: Port appears to not be from redis server
+
+    watch_observers:
+      - k8s_observer
+      - k8s_observer/with_name
+      - k8s_observer/with/another/name
+
+# drop scrape_timestamp attributes until we can accept arbitrary values
+processors:
+  attributes:
+    actions:
+      - action: delete
+        key: scrape_timestamp
+
+exporters:
+  logging:
+    logLevel: debug
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: debug
+  extensions:
+    - k8s_observer
+    - k8s_observer/with_name
+    - k8s_observer/with/another/name
+  pipelines:
+    logs:
+      receivers: [discovery]
+      processors: [attributes]
+      exporters: [otlp, logging]

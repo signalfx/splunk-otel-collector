@@ -1,0 +1,61 @@
+resource_logs:
+  - attributes:
+      discovery.endpoint.id: <ANY>
+      discovery.event.type: metric.match
+      discovery.observer.id: k8s_observer
+      discovery.receiver.config: cmVjZWl2ZXJzOgogIHNtYXJ0YWdlbnQ6CiAgICBjb25maWc6CiAgICAgIHR5cGU6IGNvbGxlY3RkL3JlZGlzCiAgICByZXNvdXJjZV9hdHRyaWJ1dGVzOgogICAgICBvbmUua2V5OiBvbmUudmFsdWUKICAgICAgdHdvLmtleTogdHdvLnZhbHVlCiAgICBydWxlOiB0eXBlID09ICJwb3J0IiAmJiBwb2QubmFtZSA9PSAidGFyZ2V0LnJlZGlzIgp3YXRjaF9vYnNlcnZlcnM6Ci0gazhzX29ic2VydmVyCg==
+      discovery.receiver.rule: type == "port" && pod.name == "target.redis"
+      discovery.receiver.type: smartagent
+      k8s.namespace.name: test-namespace
+      k8s.pod.name: target.redis
+      k8s.pod.uid: <ANY>
+      one.key: one.value
+      two.key: two.value
+    scope_logs:
+      - logs:
+          - body: Successfully scraped metrics from redis pod
+            attributes:
+              discovery.status: successful
+              metric.name: bytes.used_memory_rss
+            severity: 0
+            severity_text: info
+  - attributes:
+      discovery.endpoint.id: <ANY>
+      discovery.event.type: metric.match
+      discovery.observer.id: k8s_observer/with_name
+      discovery.receiver.config: cmVjZWl2ZXJzOgogIHNtYXJ0YWdlbnQ6CiAgICBjb25maWc6CiAgICAgIHR5cGU6IGNvbGxlY3RkL3JlZGlzCiAgICByZXNvdXJjZV9hdHRyaWJ1dGVzOgogICAgICBvbmUua2V5OiBvbmUudmFsdWUKICAgICAgdHdvLmtleTogdHdvLnZhbHVlCiAgICBydWxlOiB0eXBlID09ICJwb3J0IiAmJiBwb2QubmFtZSA9PSAidGFyZ2V0LnJlZGlzIgp3YXRjaF9vYnNlcnZlcnM6Ci0gazhzX29ic2VydmVyL3dpdGhfbmFtZQo=
+      discovery.receiver.rule: type == "port" && pod.name == "target.redis"
+      discovery.receiver.type: smartagent
+      k8s.namespace.name: test-namespace
+      k8s.pod.name: target.redis
+      k8s.pod.uid: <ANY>
+      one.key: one.value
+      two.key: two.value
+    scope_logs:
+      - logs:
+          - body: Successfully scraped metrics from redis pod
+            attributes:
+              discovery.status: successful
+              metric.name: bytes.used_memory_rss
+            severity: 0
+            severity_text: info
+  - attributes:
+      discovery.endpoint.id: <ANY>
+      discovery.event.type: metric.match
+      discovery.observer.id: k8s_observer/with/another/name
+      discovery.receiver.config: cmVjZWl2ZXJzOgogIHNtYXJ0YWdlbnQ6CiAgICBjb25maWc6CiAgICAgIHR5cGU6IGNvbGxlY3RkL3JlZGlzCiAgICByZXNvdXJjZV9hdHRyaWJ1dGVzOgogICAgICBvbmUua2V5OiBvbmUudmFsdWUKICAgICAgdHdvLmtleTogdHdvLnZhbHVlCiAgICBydWxlOiB0eXBlID09ICJwb3J0IiAmJiBwb2QubmFtZSA9PSAidGFyZ2V0LnJlZGlzIgp3YXRjaF9vYnNlcnZlcnM6Ci0gazhzX29ic2VydmVyL3dpdGgvYW5vdGhlci9uYW1lCg==
+      discovery.receiver.rule: type == "port" && pod.name == "target.redis"
+      discovery.receiver.type: smartagent
+      k8s.namespace.name: test-namespace
+      k8s.pod.name: target.redis
+      k8s.pod.uid: <ANY>
+      one.key: one.value
+      two.key: two.value
+    scope_logs:
+      - logs:
+          - body: Successfully scraped metrics from redis pod
+            attributes:
+              discovery.status: successful
+              metric.name: bytes.used_memory_rss
+            severity: 0
+            severity_text: info

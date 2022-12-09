@@ -25,8 +25,7 @@ extensions:
   zpages:
     #endpoint: 0.0.0.0:55679
   memory_ballast:
-    # In general, the ballast should be set to 1/3 of the collector's memory, the limit
-    # should be 90% of the collector's memory.
+    # In general, the ballast should be set to 1/3 of the collector's memory.
     # The simplest way to specify the ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable.
     size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
 
@@ -87,10 +86,8 @@ processors:
   batch:
   # Enabling the memory_limiter is strongly recommended for every pipeline.
   # Configuration is based on the amount of memory allocated to the collector.
-  # In general, the ballast should be set to 1/3 of the collector's memory, the limit
-  # should be 90% of the collector's memory. The simplest way to specify the
-  # ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable. Alternatively, the
-  # --mem-ballast-size-mib command line flag can be passed and take priority.
+  # In general, the limit should be 90% of the collector's memory. The simplest way to specify the
+  # ballast size is set the value of SPLUNK_BALLAST_SIZE_MIB env variable.
   # For more information about memory limiter, see
   # https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiter/README.md
   memory_limiter:

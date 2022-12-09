@@ -15,13 +15,14 @@
 
 //go:build integration
 
-package testutils
+package kubeutils
 
 import (
 	"context"
 	"errors"
 	"fmt"
 	"os"
+	"sort"
 	"syscall"
 	"testing"
 
@@ -29,11 +30,19 @@ import (
 	"github.com/stretchr/testify/require"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestKindCluster(t *testing.T) {
-	tc := NewTestcase(t)
-	cluster := CreateKindCluster(tc)
+	tc := testutils.NewTestcase(t)
+	cluster := NewKindCluster(tc)
+	ports := []int{int(testutils.GetAvailablePort(tc)), int(testutils.GetAvailablePort(tc))}
+	sort.Ints(ports)
+	portOne, portTwo := uint16(ports[0]), uint16(ports[1])
+	cluster.ExposedPorts[portOne] = 12345
+	cluster.ExposedPorts[portTwo] = 23456
+
 	defer func() {
 		cluster.Delete()
 
@@ -47,8 +56,26 @@ func TestKindCluster(t *testing.T) {
 		require.True(t, os.IsNotExist(err))
 	}()
 
+	cluster.Create()
 	assert.Equal(t, fmt.Sprintf("cluster-%s", tc.ID), cluster.Name)
 	require.NotNil(t, cluster.Clientset)
+
+	config, err := os.ReadFile(cluster.Config)
+	require.NoError(t, err)
+	require.Equal(t, fmt.Sprintf(`kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 12345
+        hostPort: %d
+        listenAddress: "0.0.0.0"
+        protocol: tcp
+      - containerPort: 23456
+        hostPort: %d
+        listenAddress: "0.0.0.0"
+        protocol: tcp
+`, portOne, portTwo), string(config))
 
 	nodes, err := cluster.Clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
 	assert.NoError(t, err)
@@ -60,4 +87,6 @@ func TestKindCluster(t *testing.T) {
 	ns, err := cluster.Clientset.CoreV1().Namespaces().Create(context.Background(), namespace, metav1.CreateOptions{})
 	require.NoError(t, err)
 	require.Equal(t, "test-namespace", ns.Name)
+
+	require.NotEmpty(t, cluster.GetDefaultGatewayIP())
 }

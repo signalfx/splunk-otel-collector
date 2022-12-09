@@ -92,7 +92,6 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 		"--no-convert-config",
 		"--config", configPath,
 		"--config", anotherConfigPath,
-		"--mem-ballast-size-mib", "100",
 		"--set", "foo",
 		"--set", "bar",
 		"--set", "baz",
@@ -104,7 +103,6 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 	f := settingsToFlags(t, settings)
 	require.True(t, f.noConvertConfig)
 
-	require.Equal(t, 100, f.memBallastSizeMiB)
 	require.Equal(t, []string{configPath, anotherConfigPath}, f.configPaths.value)
 	require.Equal(t, []string{"foo", "bar", "baz"}, f.setProperties.value)
 
@@ -116,7 +114,6 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 	require.Equal(t, []string{
 		"--config", configPath,
 		"--config", anotherConfigPath,
-		"--mem-ballast-size-mib", "100",
 		"--set", "foo", "--set", "bar", "--set", "baz",
 		"--feature-gates", "foo", "--feature-gates", "-bar",
 	}, settings.ServiceArgs())
@@ -127,7 +124,6 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	settings, err := New([]string{
 		"--config", configPath,
 		"--config", anotherConfigPath,
-		"--mem-ballast-size-mib", "100",
 		"--set", "foo",
 		"--set", "bar",
 		"--set", "baz",
@@ -141,7 +137,6 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	require.False(t, f.versionFlag)
 	require.False(t, f.noConvertConfig)
 
-	require.Equal(t, 100, f.memBallastSizeMiB)
 	require.Equal(t, []string{configPath, anotherConfigPath}, f.configPaths.value)
 	require.Equal(t, []string{"foo", "bar", "baz"}, f.setProperties.value)
 
@@ -157,7 +152,6 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	require.Equal(t, []string{
 		"--config", configPath,
 		"--config", anotherConfigPath,
-		"--mem-ballast-size-mib", "100",
 		"--set", "foo", "--set", "bar", "--set", "baz",
 		"--feature-gates", "foo", "--feature-gates", "-bar",
 	}, settings.ServiceArgs())
@@ -291,17 +285,6 @@ func TestCheckRuntimeParams_MemTotalLimitAndBallastEnvs(t *testing.T) {
 	require.NotNil(t, settings)
 	require.Equal(t, "50", os.Getenv(BallastEnvVar))
 	require.Equal(t, "150", os.Getenv(MemLimitMiBEnvVar))
-}
-
-func TestCheckRuntimeParams_MemTotalEnvAndBallastFlag(t *testing.T) {
-	t.Cleanup(setRequiredEnvVars(t))
-	require.NoError(t, os.Setenv(MemTotalEnvVar, "200"))
-
-	settings, err := New([]string{"--mem-ballast-size-mib=90"})
-	require.NoError(t, err)
-	require.NotNil(t, settings)
-	require.Equal(t, "90", os.Getenv(BallastEnvVar))
-	require.Equal(t, "180", os.Getenv(MemLimitMiBEnvVar))
 }
 
 func TestUseConfigPathsFromEnvVar(t *testing.T) {

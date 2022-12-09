@@ -40,6 +40,7 @@ func TestDefaultComponents(t *testing.T) {
 		"file_storage",
 	}
 	expectedReceivers := []component.Type{
+		"azureeventhub",
 		"carbon",
 		"cloudfoundry",
 		"collectd",

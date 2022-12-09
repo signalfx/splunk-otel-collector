@@ -96,17 +96,16 @@ func New(args []string) (Settings, error) {
 var _ Settings = (*flags)(nil)
 
 type flags struct {
-	configPaths       *stringArrayFlagValue
-	setProperties     *stringArrayFlagValue
-	configDir         *stringPointerFlagValue
-	serviceArgs       []string
-	memBallastSizeMiB int
-	helpFlag          bool
-	versionFlag       bool
-	noConvertConfig   bool
-	configD           bool
-	discoveryMode     bool
-	dryRun            bool
+	configPaths     *stringArrayFlagValue
+	setProperties   *stringArrayFlagValue
+	configDir       *stringPointerFlagValue
+	serviceArgs     []string
+	helpFlag        bool
+	versionFlag     bool
+	noConvertConfig bool
+	configD         bool
+	discoveryMode   bool
+	dryRun          bool
 }
 
 func (f *flags) ResolverURIs() []string {
@@ -215,9 +214,6 @@ func newFlags(args []string) (*flags, error) {
 
 	flagSet.BoolVar(&settings.noConvertConfig, "no-convert-config", false, "")
 
-	// This is a deprecated option, but it is still used when set if the corresponding env var isn't
-	flagSet.IntVar(&settings.memBallastSizeMiB, "mem-ballast-size-mib", DefaultUndeclaredFlag, "")
-
 	flagSet.BoolVar(&settings.configD, "configd", false, "")
 	flagSet.Var(settings.configDir, "config-dir", "")
 	flagSet.BoolVar(&settings.discoveryMode, "discovery", false, "")
@@ -261,10 +257,7 @@ func checkRuntimeParams(settings *flags) error {
 		}
 	}
 
-	ballastSize, err := setMemoryBallast(settings, memTotalSize)
-	if err != nil {
-		return err
-	}
+	ballastSize := setMemoryBallast(memTotalSize)
 	memLimit, err := setMemoryLimit(memTotalSize)
 	if err != nil {
 		return err
@@ -361,18 +354,7 @@ func envVarAsInt(env string) int {
 }
 
 // Validate and set the memory ballast
-func setMemoryBallast(settings *flags, memTotalSizeMiB int) (int, error) {
-	// Check if deprecated memory ballast flag was passed and if so confirm the env variable for memory ballast is not set.
-	// Then set memory ballast and limit properly
-	if settings.memBallastSizeMiB != DefaultUndeclaredFlag {
-		if os.Getenv(BallastEnvVar) != "" {
-			return -1, fmt.Errorf(`both %s and "--mem-ballast-size-mib" were specified, but only one is allowed`, BallastEnvVar)
-		}
-		if err := os.Setenv(BallastEnvVar, strconv.Itoa(settings.memBallastSizeMiB)); err != nil {
-			return -1, err
-		}
-	}
-
+func setMemoryBallast(memTotalSizeMiB int) int {
 	ballastSize := memTotalSizeMiB * DefaultMemoryBallastPercentage / 100
 	// Check if the memory ballast is specified via the env var, if so, validate and set properly.
 	if os.Getenv(BallastEnvVar) != "" {
@@ -384,7 +366,7 @@ func setMemoryBallast(settings *flags, memTotalSizeMiB int) (int, error) {
 
 	_ = os.Setenv(BallastEnvVar, strconv.Itoa(ballastSize))
 	log.Printf("Set ballast to %d MiB", ballastSize)
-	return ballastSize, nil
+	return ballastSize
 }
 
 // Validate and set the memory limit

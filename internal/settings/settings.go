@@ -16,7 +16,6 @@ package settings
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"strconv"
@@ -30,8 +29,6 @@ import (
 )
 
 const (
-	DefaultUndeclaredFlag = -1
-
 	APIURLEnvVar              = "SPLUNK_API_URL"
 	BallastEnvVar             = "SPLUNK_BALLAST_SIZE_MIB"
 	ConfigEnvVar              = "SPLUNK_CONFIG"
@@ -60,47 +57,11 @@ const (
 	ConfigDScheme       = "splunk.configd"
 )
 
-type Settings interface {
-	// ResolverURIs returns the collector config provider resolver uris for the collector service
-	ResolverURIs() []string
-	// ConfMapConverters returns the collector config provider resolver confmap.Converters for the collector service
-	ConfMapConverters() []confmap.Converter
-	// ServiceArgs are the sanitized, adjusted args to be used in updating os.Args[1:] for the collector service
-	ServiceArgs() []string
-	// IsDryRun returns whether --dry-run mode was requested
-	IsDryRun() bool
-}
-
-func New(args []string) (Settings, error) {
-	f, err := newFlags(args)
-	if err != nil {
-		return nil, err
-	}
-
-	// immediate exit paths, no further setup required
-	if f.helpFlag || f.versionFlag {
-		return f, nil
-	}
-
-	if err = checkRuntimeParams(f); err != nil {
-		return nil, err
-	}
-
-	if err = setDefaultEnvVars(); err != nil {
-		return nil, err
-	}
-
-	return f, nil
-}
-
-var _ Settings = (*flags)(nil)
-
-type flags struct {
+type Settings struct {
 	configPaths     *stringArrayFlagValue
 	setProperties   *stringArrayFlagValue
 	configDir       *stringPointerFlagValue
-	serviceArgs     []string
-	helpFlag        bool
+	colCoreArgs     []string
 	versionFlag     bool
 	noConvertConfig bool
 	configD         bool
@@ -108,29 +69,46 @@ type flags struct {
 	dryRun          bool
 }
 
-func (f *flags) ResolverURIs() []string {
+func New(args []string) (*Settings, error) {
+	s, err := parseArgs(args)
+	if err != nil {
+		return nil, err
+	}
+
+	// immediate exit paths, no further setup required
+	if s.versionFlag {
+		return s, nil
+	}
+
+	if err = checkRuntimeParams(s); err != nil {
+		return nil, err
+	}
+
+	if err = setDefaultEnvVars(); err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
+
+// ResolverURIs returns config provider resolver URIs for the core collector service.
+func (s *Settings) ResolverURIs() []string {
 	var configPaths []string
-	if configPaths = f.configPaths.value; len(configPaths) == 0 {
+	if configPaths = s.configPaths.value; len(configPaths) == 0 {
 		if configEnvVal := os.Getenv(ConfigEnvVar); len(configEnvVal) != 0 {
 			configPaths = []string{"file:" + configEnvVal}
 		}
 	}
 
-	configDir := getConfigDir(f)
+	configDir := getConfigDir(s)
 
-	if f.dryRun {
-		removeFlag(&f.serviceArgs, "--dry-run")
-	}
-
-	if f.configD {
-		removeFlag(&f.serviceArgs, "--configd")
+	if s.configD {
 		configPaths = append(configPaths, fmt.Sprintf("%s:%s", ConfigDScheme, configDir))
 	}
 
-	if f.discoveryMode {
-		removeFlag(&f.serviceArgs, "--discovery")
+	if s.discoveryMode {
 		// discovery uri must come last to successfully merge w/ other config content
-		configPaths = append(configPaths, fmt.Sprintf("%s:%s", DiscoveryModeScheme, f.configDir))
+		configPaths = append(configPaths, fmt.Sprintf("%s:%s", DiscoveryModeScheme, s.configDir))
 	}
 
 	configYaml := os.Getenv(ConfigYamlEnvVar)
@@ -145,32 +123,27 @@ func (f *flags) ResolverURIs() []string {
 	}
 }
 
-func getConfigDir(f *flags) string {
+func getConfigDir(f *Settings) string {
 	configDir := DefaultConfigDir
 	if envConfigDir, ok := os.LookupEnv(ConfigDirEnvVar); ok {
 		configDir = envConfigDir
 	}
 
 	if f.configDir.value != nil {
-		removeFlag(&f.serviceArgs, "--config-dir")
 		configDir = f.configDir.String()
 	}
 
 	return configDir
 }
 
-func (f *flags) ConfMapConverters() []confmap.Converter {
+// ConfMapConverters returns confmap.Converters for the collector core service.
+func (s *Settings) ConfMapConverters() []confmap.Converter {
 	confMapConverters := []confmap.Converter{
 		// nolint: staticcheck
-		overwritepropertiesconverter.New(f.setProperties.value), // support until there's an actual replacement
+		overwritepropertiesconverter.New(s.setProperties.value), // support until there's an actual replacement
 	}
 
-	if f.noConvertConfig {
-		// the collector complains about this flag if we don't remove it. Unfortunately,
-		// this must be done manually since the flag library has no functionality to remove
-		// args
-		removeFlag(&f.serviceArgs, "--no-convert-config")
-	} else {
+	if !s.noConvertConfig {
 		confMapConverters = append(
 			confMapConverters,
 			configconverter.RemoveBallastKey{},
@@ -182,64 +155,83 @@ func (f *flags) ConfMapConverters() []confmap.Converter {
 	return confMapConverters
 }
 
-func (f *flags) ServiceArgs() []string {
-	return f.serviceArgs
+// ColCoreArgs returns list of arguments to be passed to the collector core service.
+func (s *Settings) ColCoreArgs() []string {
+	return s.colCoreArgs
 }
 
-func (f *flags) IsDryRun() bool {
-	return f.dryRun
+// IsDryRun returns whether --dry-run mode was requested
+func (s *Settings) IsDryRun() bool {
+	return s.dryRun
 }
 
-func newFlags(args []string) (*flags, error) {
-	flagSet := flag.FlagSet{}
-	// we don't want to be responsible for tracking all supported collector service
-	// flags, so allow any we don't use and defer parsing to the actual service
-	flagSet.ParseErrorsWhitelist.UnknownFlags = true
+// parseArgs returns new Settings instance from command line arguments.
+func parseArgs(args []string) (*Settings, error) {
+	flagSet := flag.NewFlagSet("otelcol", flag.ContinueOnError)
 
-	var cpArgs []string
-	cpArgs = append(cpArgs, args...)
-
-	settings := &flags{
+	settings := &Settings{
 		configPaths:   new(stringArrayFlagValue),
 		setProperties: new(stringArrayFlagValue),
-		serviceArgs:   cpArgs,
 		configDir:     new(stringPointerFlagValue),
 	}
 
-	// This is an internal flag parser, it shouldn't give any output to user.
-	flagSet.SetOutput(io.Discard)
+	flagSet.Var(settings.configPaths, "config", "Locations to the config file(s), "+
+		"note that only a single location can be set per flag entry e.g. --config=/path/to/first "+
+		"--config=path/to/second.")
+	flagSet.Var(settings.setProperties, "set", "Set arbitrary component config property. "+
+		"The component has to be defined in the config file and the flag has a higher precedence. "+
+		"Array config properties are overridden and maps are joined. Example --set=processors.batch.timeout=2s")
+	flagSet.BoolVar(&settings.dryRun, "dry-run", false, "Don't run the service, just show the configuration")
+	flagSet.BoolVar(&settings.noConvertConfig, "no-convert-config", false,
+		"Do not translate old configurations to the new format automatically. "+
+			"By default, old configurations are translated to the new format for backward compatibility.")
 
-	flagSet.BoolVarP(&settings.helpFlag, "help", "h", false, "")
-	flagSet.BoolVarP(&settings.versionFlag, "version", "v", false, "")
-
-	flagSet.BoolVar(&settings.noConvertConfig, "no-convert-config", false, "")
-
+	// Experimental flags
+	flagSet.VarPF(settings.configDir, "config-dir", "", "").Hidden = true
 	flagSet.BoolVar(&settings.configD, "configd", false, "")
-	flagSet.Var(settings.configDir, "config-dir", "")
+	flagSet.MarkHidden("configd")
 	flagSet.BoolVar(&settings.discoveryMode, "discovery", false, "")
-	flagSet.BoolVar(&settings.dryRun, "dry-run", false, "")
+	flagSet.MarkHidden("discovery")
 
-	flagSet.Var(settings.configPaths, "config", "")
-	flagSet.Var(settings.setProperties, "set", "")
+	// OTel Collector Core flags
+	colCoreFlags := []string{"version", "feature-gates"}
+	flagSet.BoolVarP(&settings.versionFlag, colCoreFlags[0], "v", false, "Version of the collector.")
+	flagSet.Var(new(stringArrayFlagValue), colCoreFlags[1],
+		"Comma-delimited list of feature gate identifiers. Prefix with '-' to disable the feature. "+
+			"'+' or no prefix will enable the feature.")
 
-	if err := flagSet.Parse(cpArgs); err != nil {
+	if err := flagSet.Parse(args); err != nil {
 		return nil, err
 	}
+
+	// Pass flags that are handled by the collector core service as raw command line arguments.
+	settings.colCoreArgs = flagSetToArgs(colCoreFlags, flagSet)
 
 	return settings, nil
 }
 
-func removeFlag(flags *[]string, flag string) {
+// flagSetToArgs takes a list of flag names and returns a list of corresponding command line arguments
+// using values from the provided flagSet.
+// The flagSet must be populated (flagSet.Parse is called), otherwise the returned list of arguments will be empty.
+func flagSetToArgs(flagNames []string, flagSet *flag.FlagSet) []string {
 	var out []string
-	for _, s := range *flags {
-		if s != flag {
-			out = append(out, s)
+	for _, flagName := range flagNames {
+		flag := flagSet.Lookup(flagName)
+		if flag.Changed {
+			switch fv := flag.Value.(type) {
+			case *stringArrayFlagValue:
+				for _, val := range fv.value {
+					out = append(out, "--"+flagName, val)
+				}
+			default:
+				out = append(out, "--"+flagName, flag.Value.String())
+			}
 		}
 	}
-	*flags = out
+	return out
 }
 
-func checkRuntimeParams(settings *flags) error {
+func checkRuntimeParams(settings *Settings) error {
 	if err := checkConfig(settings); err != nil {
 		return err
 	}
@@ -303,7 +295,7 @@ func setDefaultEnvVars() error {
 // 2. SPLUNK_CONFIG env var,
 // 3. SPLUNK_CONFIG_YAML env var,
 // 4. default gateway config path.
-func checkConfig(settings *flags) error {
+func checkConfig(settings *Settings) error {
 	configPathVar := os.Getenv(ConfigEnvVar)
 	configYaml := os.Getenv(ConfigYamlEnvVar)
 
@@ -385,7 +377,7 @@ func setMemoryLimit(memTotalSizeMiB int) (int, error) {
 	return memLimit, nil
 }
 
-func checkInputConfigs(settings *flags) error {
+func checkInputConfigs(settings *Settings) error {
 	configPathVar := os.Getenv(ConfigEnvVar)
 	configYaml := os.Getenv(ConfigYamlEnvVar)
 
@@ -406,7 +398,7 @@ func checkInputConfigs(settings *flags) error {
 	return confirmRequiredEnvVarsForDefaultConfigs(settings.configPaths.value)
 }
 
-func checkConfigPathEnvVar(settings *flags) error {
+func checkConfigPathEnvVar(settings *Settings) error {
 	configPathVar := os.Getenv(ConfigEnvVar)
 	configYaml := os.Getenv(ConfigYamlEnvVar)
 

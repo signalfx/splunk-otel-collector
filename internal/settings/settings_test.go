@@ -23,6 +23,7 @@ import (
 	"strings"
 	"testing"
 
+	flag "github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/converter/overwritepropertiesconverter"
@@ -37,11 +38,11 @@ var (
 	localOTLPLinuxConfig = filepath.Join("..", "..", "cmd/otelcol/config/collector/otlp_config_linux.yaml")
 )
 
-func TestNewSettingsWithUnknownFlagsAcceptable(t *testing.T) {
+func TestNewSettingsWithUnknownFlagsNotAcceptable(t *testing.T) {
 	t.Cleanup(setRequiredEnvVars(t))
 	settings, err := New([]string{"--unknown-flag", "100"})
-	require.NoError(t, err)
-	require.NotNil(t, settings)
+	require.Error(t, err)
+	require.Nil(t, settings)
 }
 
 func TestNewSettingsWithVersionFlags(t *testing.T) {
@@ -49,20 +50,19 @@ func TestNewSettingsWithVersionFlags(t *testing.T) {
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	f := settingsToFlags(t, settings)
-	require.False(t, f.versionFlag)
+	require.False(t, settings.versionFlag)
 
 	settings, err = New([]string{"--version"})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	f = settingsToFlags(t, settings)
-	require.True(t, f.versionFlag)
+	require.True(t, settings.versionFlag)
+	require.Equal(t, []string{"--version", "true"}, settings.ColCoreArgs())
 
 	settings, err = New([]string{"-v"})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	f = settingsToFlags(t, settings)
-	require.True(t, f.versionFlag)
+	require.True(t, settings.versionFlag)
+	require.Equal(t, []string{"--version", "true"}, settings.ColCoreArgs())
 }
 
 func TestNewSettingsWithHelpFlags(t *testing.T) {
@@ -70,20 +70,16 @@ func TestNewSettingsWithHelpFlags(t *testing.T) {
 	settings, err := New([]string{})
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	f := settingsToFlags(t, settings)
-	require.False(t, f.helpFlag)
 
 	settings, err = New([]string{"--help"})
-	require.NoError(t, err)
-	require.NotNil(t, settings)
-	f = settingsToFlags(t, settings)
-	require.True(t, f.helpFlag)
+	require.Error(t, err)
+	require.Equal(t, flag.ErrHelp, err)
+	require.Nil(t, settings)
 
 	settings, err = New([]string{"-h"})
-	require.NoError(t, err)
-	require.NotNil(t, settings)
-	f = settingsToFlags(t, settings)
-	require.True(t, f.helpFlag)
+	require.Error(t, err)
+	require.Equal(t, flag.ErrHelp, err)
+	require.Nil(t, settings)
 }
 
 func TestNewSettingsNoConvertConfig(t *testing.T) {
@@ -100,23 +96,17 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	f := settingsToFlags(t, settings)
-	require.True(t, f.noConvertConfig)
+	require.True(t, settings.noConvertConfig)
 
-	require.Equal(t, []string{configPath, anotherConfigPath}, f.configPaths.value)
-	require.Equal(t, []string{"foo", "bar", "baz"}, f.setProperties.value)
+	require.Equal(t, []string{configPath, anotherConfigPath}, settings.configPaths.value)
+	require.Equal(t, []string{"foo", "bar", "baz"}, settings.setProperties.value)
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
 	require.Equal(t, []confmap.Converter{
 		// nolint: staticcheck
-		overwritepropertiesconverter.New(f.setProperties.value), // support until there's an actual replacement
+		overwritepropertiesconverter.New(settings.setProperties.value), // support until there's an actual replacement
 	}, settings.ConfMapConverters())
-	require.Equal(t, []string{
-		"--config", configPath,
-		"--config", anotherConfigPath,
-		"--set", "foo", "--set", "bar", "--set", "baz",
-		"--feature-gates", "foo", "--feature-gates", "-bar",
-	}, settings.ServiceArgs())
+	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 
 func TestNewSettingsConvertConfig(t *testing.T) {
@@ -132,29 +122,22 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	f := settingsToFlags(t, settings)
-	require.False(t, f.helpFlag)
-	require.False(t, f.versionFlag)
-	require.False(t, f.noConvertConfig)
+	require.False(t, settings.versionFlag)
+	require.False(t, settings.noConvertConfig)
 
-	require.Equal(t, []string{configPath, anotherConfigPath}, f.configPaths.value)
-	require.Equal(t, []string{"foo", "bar", "baz"}, f.setProperties.value)
+	require.Equal(t, []string{configPath, anotherConfigPath}, settings.configPaths.value)
+	require.Equal(t, []string{"foo", "bar", "baz"}, settings.setProperties.value)
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
 	require.Equal(t, []confmap.Converter{
 		// nolint: staticcheck
-		overwritepropertiesconverter.New(f.setProperties.value), // support until there's an actual replacement
+		overwritepropertiesconverter.New(settings.setProperties.value), // support until there's an actual replacement
 		configconverter.RemoveBallastKey{},
 		configconverter.MoveOTLPInsecureKey{},
 		configconverter.MoveHecTLS{},
 		configconverter.RenameK8sTagger{},
 	}, settings.ConfMapConverters())
-	require.Equal(t, []string{
-		"--config", configPath,
-		"--config", anotherConfigPath,
-		"--set", "foo", "--set", "bar", "--set", "baz",
-		"--feature-gates", "foo", "--feature-gates", "-bar",
-	}, settings.ServiceArgs())
+	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
 
 func TestSplunkConfigYamlUtilizedInResolverURIs(t *testing.T) {
@@ -293,7 +276,7 @@ func TestUseConfigPathsFromEnvVar(t *testing.T) {
 
 	settings, err := New([]string{})
 	require.NoError(t, err)
-	configPaths := settingsToFlags(t, settings).configPaths.value
+	configPaths := settings.configPaths.value
 	require.Equal(t, []string{localGatewayConfig}, configPaths)
 	require.Equal(t, []string{localGatewayConfig}, settings.ResolverURIs())
 }
@@ -418,41 +401,36 @@ service:
 	}
 }
 
-func TestRemoveFlag(t *testing.T) {
-	args := []string{"--aaa", "--bbb", "--ccc"}
-	removeFlag(&args, "--bbb")
-	require.Equal(t, []string{"--aaa", "--ccc"}, args)
-	removeFlag(&args, "--ccc")
-	require.Equal(t, []string{"--aaa"}, args)
-	removeFlag(&args, "--aaa")
-	require.Empty(t, args)
-}
-
 func TestEnablingConfigD(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 	settings, err := New([]string{"--config", configPath})
 	require.NoError(t, err)
-	f := settingsToFlags(t, settings)
-	require.False(t, f.configD)
-	require.Nil(t, f.configDir.value)
+	require.False(t, settings.configD)
+	require.Nil(t, settings.configDir.value)
 
 	settings, err = New([]string{"--configd", "--config", configPath})
 	require.NoError(t, err)
-	f = settingsToFlags(t, settings)
-	require.True(t, f.configD)
-	require.Nil(t, f.configDir.value)
-	require.Equal(t, "/etc/otel/collector/config.d", getConfigDir(f))
+	require.True(t, settings.configD)
+	require.Nil(t, settings.configDir.value)
+	require.Equal(t, "/etc/otel/collector/config.d", getConfigDir(settings))
 }
 
 func TestConfigDirFromArgs(t *testing.T) {
 	t.Cleanup(clearEnv(t))
-	settings, err := New([]string{"--config-dir", "/from/args", "--config", configPath})
-	require.NoError(t, err)
-	f := settingsToFlags(t, settings)
-	require.False(t, f.configD)
-	require.NotNil(t, f.configDir.value)
-	require.Equal(t, "/from/args", f.configDir.String())
-	require.Equal(t, "/from/args", getConfigDir(f))
+	for _, args := range [][]string{
+		{"--config-dir", "/from/args", "--config", configPath},
+		{"--config-dir=/from/args", "--config=" + configPath},
+	} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			settings, err := New(args)
+			require.NoError(t, err)
+			require.False(t, settings.configD)
+			require.NotNil(t, settings.configDir.value)
+			require.Equal(t, "/from/args", settings.configDir.String())
+			require.Equal(t, "/from/args", getConfigDir(settings))
+			require.Nil(t, settings.ColCoreArgs())
+		})
+	}
 }
 
 func TestConfigDirFromEnvVar(t *testing.T) {
@@ -460,9 +438,8 @@ func TestConfigDirFromEnvVar(t *testing.T) {
 	os.Setenv("SPLUNK_CONFIG_DIR", "/from/env/var")
 	settings, err := New([]string{"--config", configPath})
 	require.NoError(t, err)
-	f := settingsToFlags(t, settings)
-	require.Nil(t, f.configDir.value)
-	require.Equal(t, "/from/env/var", getConfigDir(f))
+	require.Nil(t, settings.configDir.value)
+	require.Equal(t, "/from/env/var", getConfigDir(settings))
 }
 
 // to satisfy Settings generation
@@ -489,12 +466,4 @@ func clearEnv(t *testing.T) func() {
 			require.NoError(t, os.Setenv(k, v))
 		}
 	}
-}
-
-func settingsToFlags(t testing.TB, settings Settings) *flags {
-	require.NotNil(t, settings)
-	f, ok := settings.(*flags)
-	require.True(t, ok)
-	require.NotNil(t, f)
-	return f
 }

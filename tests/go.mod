@@ -18,7 +18,7 @@ require (
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.66.0
 	go.opentelemetry.io/collector/pdata v0.66.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.66.0
-	go.opentelemetry.io/otel/metric v0.33.0
+	go.opentelemetry.io/otel/metric v0.34.0
 	go.opentelemetry.io/otel/trace v1.11.2
 	go.uber.org/atomic v1.10.0
 	go.uber.org/multierr v1.8.0

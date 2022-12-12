@@ -21,12 +21,12 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.66.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.66.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.66.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.66.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.67.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.66.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.66.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecstaskobserver v0.66.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/hostobserver v0.66.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.66.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/k8sobserver v0.67.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/pprofextension v0.66.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/storage v0.66.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.66.0
@@ -85,14 +85,14 @@ require (
 	github.com/stretchr/testify v1.8.1
 	go.etcd.io/bbolt v1.3.6
 	go.etcd.io/etcd/client/v2 v2.305.6
-	go.opentelemetry.io/collector v0.66.0
+	go.opentelemetry.io/collector v0.67.0
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.66.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.66.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.66.0
 	go.opentelemetry.io/collector/extension/ballastextension v0.66.0
-	go.opentelemetry.io/collector/extension/zpagesextension v0.66.0
-	go.opentelemetry.io/collector/pdata v0.66.0
-	go.opentelemetry.io/collector/processor/batchprocessor v0.66.0
+	go.opentelemetry.io/collector/extension/zpagesextension v0.67.0
+	go.opentelemetry.io/collector/pdata v1.0.0-rc1
+	go.opentelemetry.io/collector/processor/batchprocessor v0.67.0
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.66.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.66.0
 	go.opentelemetry.io/otel/metric v0.33.0
@@ -103,6 +103,8 @@ require (
 	golang.org/x/sys v0.3.0
 	gopkg.in/yaml.v2 v2.4.0
 )
+
+require go.opentelemetry.io/collector/confmap v0.67.0
 
 require (
 	cloud.google.com/go/compute v1.12.1 // indirect
@@ -338,7 +340,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.66.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/docker v0.66.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/filter v0.66.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.66.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.67.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.66.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/metadataproviders v0.66.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.66.0 // indirect
@@ -420,10 +422,10 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.6 // indirect
 	go.mongodb.org/atlas v0.19.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	go.opentelemetry.io/collector/component v0.66.0
-	go.opentelemetry.io/collector/consumer v0.66.0
-	go.opentelemetry.io/collector/featuregate v0.66.0 // indirect
-	go.opentelemetry.io/collector/semconv v0.66.0 // indirect
+	go.opentelemetry.io/collector/component v0.67.0
+	go.opentelemetry.io/collector/consumer v0.67.0
+	go.opentelemetry.io/collector/featuregate v0.67.0 // indirect
+	go.opentelemetry.io/collector/semconv v0.67.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.36.4 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.36.4 // indirect
 	go.opentelemetry.io/contrib/propagators/b3 v1.11.1 // indirect

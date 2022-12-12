@@ -32,7 +32,7 @@ JSON.
     },
     {
       "name": "ECS_METADATA_EXCLUDED_IMAGES",
-      "value": "[\"quay.io/signalfx/splunk-otel-collector\"]"
+      "value": "[\"quay.io/signalfx/splunk-otel-collector:*\"]"
     }
   ],
   "image": "quay.io/signalfx/splunk-otel-collector:0.33.0",

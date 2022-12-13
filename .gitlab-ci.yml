@@ -104,8 +104,8 @@ fossa:
       - .go/bin
 
 .docker-reader-role: &docker-reader-role |
-  DOCKER_PATH="artifactory:v2/cloud/role/docker-reader-role"
-  creds-helper init && eval $(creds-helper docker --eval ${DOCKER_PATH})
+  creds-helper init
+  creds-helper docker --eval "artifactory:v2/cloud/role/docker-reader-role"
 
 compile:
   extends:

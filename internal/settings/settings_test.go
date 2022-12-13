@@ -26,7 +26,6 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
-	"go.opentelemetry.io/collector/confmap/converter/overwritepropertiesconverter"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 )
@@ -104,7 +103,7 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
 	require.Equal(t, []confmap.Converter{
 		// nolint: staticcheck
-		overwritepropertiesconverter.New(settings.setProperties.value), // support until there's an actual replacement
+		// overwritepropertiesconverter.New(settings.setProperties.value), // support until there's an actual replacement
 	}, settings.ConfMapConverters())
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
@@ -131,7 +130,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
 	require.Equal(t, []confmap.Converter{
 		// nolint: staticcheck
-		overwritepropertiesconverter.New(settings.setProperties.value), // support until there's an actual replacement
+		// overwritepropertiesconverter.New(settings.setProperties.value), // support until there's an actual replacement
 		configconverter.RemoveBallastKey{},
 		configconverter.MoveOTLPInsecureKey{},
 		configconverter.MoveHecTLS{},

@@ -26,6 +26,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/configtls"
+	otelcolexporter "go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
@@ -107,7 +108,7 @@ func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
 	require.EqualError(t, err, "cannot invoke AssertAllMetricsReceived() on an OTLPReceiverSink that hasn't been built")
 }
 
-func otlpExporter(t *testing.T) component.MetricsExporter {
+func otlpExporter(t *testing.T) otelcolexporter.Metrics {
 	exporterCfg := otlpexporter.Config{
 		ExporterSettings: config.NewExporterSettings(component.NewIDWithName("otlp", "otlp")),
 		GRPCClientSettings: configgrpc.GRPCClientSettings{
@@ -118,7 +119,7 @@ func otlpExporter(t *testing.T) component.MetricsExporter {
 		}}
 	otlpExporterFactory := otlpexporter.NewFactory()
 	ctx := context.Background()
-	createParams := component.ExporterCreateSettings{
+	createParams := otelcolexporter.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.NewNop(),
 			TracerProvider: trace.NewNoopTracerProvider(),
@@ -144,7 +145,7 @@ func TestOTLPReceiverMetricsAvailableToSink(t *testing.T) {
 	require.NoError(t, err)
 
 	exporter := otlpExporter(t)
-	defer exporter.Shutdown(context.Background())
+	defer func() { require.NoError(t, exporter.Shutdown(context.Background())) }()
 
 	metrics := telemetry.PDataMetrics()
 	expectedCount := metrics.DataPointCount()
@@ -167,7 +168,7 @@ func TestAssertAllMetricsReceivedHappyPath(t *testing.T) {
 	require.NoError(t, err)
 
 	exporter := otlpExporter(t)
-	defer exporter.Shutdown(context.Background())
+	defer func() { require.NoError(t, exporter.Shutdown(context.Background())) }()
 
 	metrics := telemetry.PDataMetrics()
 	err = exporter.ConsumeMetrics(context.Background(), metrics)
@@ -176,5 +177,5 @@ func TestAssertAllMetricsReceivedHappyPath(t *testing.T) {
 	resourceMetrics, err := telemetry.PDataToResourceMetrics(metrics)
 	resourceMetrics = telemetry.FlattenResourceMetrics(resourceMetrics)
 	require.NoError(t, err)
-	otlp.AssertAllMetricsReceived(t, resourceMetrics, 100*time.Millisecond)
+	require.NoError(t, otlp.AssertAllMetricsReceived(t, resourceMetrics, 100*time.Millisecond))
 }

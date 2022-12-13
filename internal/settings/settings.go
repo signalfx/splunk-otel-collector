@@ -23,7 +23,6 @@ import (
 
 	flag "github.com/spf13/pflag"
 	"go.opentelemetry.io/collector/confmap"
-	"go.opentelemetry.io/collector/confmap/converter/overwritepropertiesconverter"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 )
@@ -140,7 +139,7 @@ func getConfigDir(f *Settings) string {
 func (s *Settings) ConfMapConverters() []confmap.Converter {
 	confMapConverters := []confmap.Converter{
 		// nolint: staticcheck
-		overwritepropertiesconverter.New(s.setProperties.value), // support until there's an actual replacement
+		// overwritepropertiesconverter.New(s.setProperties.value), // support until there's an actual replacement
 	}
 
 	if !s.noConvertConfig {

@@ -27,6 +27,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
+	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver/converter"
@@ -59,10 +60,10 @@ var _ types.FilteringOutput = (*output)(nil)
 func newOutput(
 	config Config, filtering *monitorFiltering, nextMetricsConsumer consumer.Metrics,
 	nextLogsConsumer consumer.Logs, nextTracesConsumer consumer.Traces, host component.Host,
-	params component.ReceiverCreateSettings,
+	params otelcolreceiver.CreateSettings,
 ) (*output, error) {
 	obsReceiver, err := obsreport.NewReceiver(obsreport.ReceiverSettings{
-		ReceiverID:             config.ID(),
+		ReceiverID:             params.ID,
 		Transport:              internalTransport,
 		ReceiverCreateSettings: params,
 	})
@@ -70,7 +71,7 @@ func newOutput(
 		return nil, err
 	}
 	return &output{
-		receiverID:           config.ID(),
+		receiverID:           params.ID,
 		nextMetricsConsumer:  nextMetricsConsumer,
 		nextLogsConsumer:     nextLogsConsumer,
 		nextTracesConsumer:   nextTracesConsumer,
@@ -270,8 +271,8 @@ func (out *output) SendDimensionUpdate(dimension *types.Dimension) {
 	}
 
 	metadataUpdate := dimensionToMetadataUpdate(*dimension)
-	for _, consumer := range out.nextDimensionClients {
-		err := consumer.ConsumeMetadata([]*metadata.MetadataUpdate{&metadataUpdate})
+	for _, consumerInst := range out.nextDimensionClients {
+		err := consumerInst.ConsumeMetadata([]*metadata.MetadataUpdate{&metadataUpdate})
 		if err != nil {
 			out.logger.Debug("SendDimensionUpdate has failed", zap.Error(err))
 		}

@@ -20,6 +20,7 @@ import (
 	"sync"
 	"time"
 
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -49,7 +50,7 @@ type metricEvaluator struct {
 	pLogs chan plog.Logs
 }
 
-func newMetricEvaluator(logger *zap.Logger, cfg *Config, pLogs chan plog.Logs, correlations correlationStore) *metricEvaluator {
+func newMetricEvaluator(logger *zap.Logger, id component.ID, cfg *Config, pLogs chan plog.Logs, correlations correlationStore) *metricEvaluator {
 	return &metricEvaluator{
 		pLogs: pLogs,
 		evaluator: &evaluator{
@@ -61,6 +62,7 @@ func newMetricEvaluator(logger *zap.Logger, cfg *Config, pLogs chan plog.Logs, c
 			exprEnv: func(pattern string) map[string]any {
 				return map[string]any{"name": pattern}
 			},
+			id: id,
 		},
 	}
 }

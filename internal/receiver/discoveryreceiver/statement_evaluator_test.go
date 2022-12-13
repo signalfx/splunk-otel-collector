@@ -78,7 +78,7 @@ func TestStatementEvaluation(t *testing.T) {
 										addedState, observerID,
 									)
 
-									se, err := newStatementEvaluator(logger, cfg, plogs, cStore)
+									se, err := newStatementEvaluator(logger, component.NewID("some.type"), cfg, plogs, cStore)
 									require.NoError(t, err)
 
 									evaluatedLogger := se.evaluatedLogger.With(
@@ -220,7 +220,7 @@ func TestLogRecordDefaultAndArbitrarySeverityText(t *testing.T) {
 		addedState, observerID,
 	)
 
-	se, err := newStatementEvaluator(logger, cfg, plogs, cStore)
+	se, err := newStatementEvaluator(logger, component.NewID("some.type"), cfg, plogs, cStore)
 	require.NoError(t, err)
 	require.NotNil(t, se)
 

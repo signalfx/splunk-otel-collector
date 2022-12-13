@@ -23,17 +23,18 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
 	"go.uber.org/zap"
 )
 
 const typeStr = "databricks"
 
-func NewFactory() component.ReceiverFactory {
-	return component.NewReceiverFactory(
+func NewFactory() receiver.Factory {
+	return receiver.NewFactory(
 		typeStr,
 		createDefaultConfig,
-		component.WithMetricsReceiver(createReceiverFunc(newAPIClient), component.StabilityLevelAlpha),
+		receiver.WithMetrics(createReceiverFunc(newAPIClient), component.StabilityLevelAlpha),
 	)
 }
 
@@ -45,7 +46,7 @@ type Config struct {
 	MaxResults                              int `mapstructure:"max_results"`
 }
 
-func createDefaultConfig() component.ReceiverConfig {
+func createDefaultConfig() component.Config {
 	scs := scraperhelper.NewDefaultScraperControllerSettings(typeStr)
 	// we set the default collection interval to 30 seconds which is half of the
 	// lowest job frequency of 1 minute
@@ -58,16 +59,16 @@ func createDefaultConfig() component.ReceiverConfig {
 
 func createReceiverFunc(createAPIClient func(baseURL string, tok string, httpClient *http.Client, logger *zap.Logger) apiClientInterface) func(
 	_ context.Context,
-	settings component.ReceiverCreateSettings,
-	cfg component.ReceiverConfig,
+	settings receiver.CreateSettings,
+	cfg component.Config,
 	consumer consumer.Metrics,
-) (component.MetricsReceiver, error) {
+) (receiver.Metrics, error) {
 	return func(
 		_ context.Context,
-		settings component.ReceiverCreateSettings,
-		cfg component.ReceiverConfig,
+		settings receiver.CreateSettings,
+		cfg component.Config,
 		consumer consumer.Metrics,
-	) (component.MetricsReceiver, error) {
+	) (receiver.Metrics, error) {
 		dbcfg := cfg.(*Config)
 		httpClient, err := dbcfg.ToClient(nil, settings.TelemetrySettings)
 		if err != nil {

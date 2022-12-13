@@ -34,6 +34,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
+	otelcolextension "go.opentelemetry.io/collector/extension"
+	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/extension/smartagentextension"
@@ -49,11 +51,11 @@ type receiver struct {
 	nextTracesConsumer  consumer.Traces
 	logger              *zap.Logger
 	config              *Config
-	params              component.ReceiverCreateSettings
+	params              otelcolreceiver.CreateSettings
 	sync.Mutex
 }
 
-var _ component.MetricsReceiver = (*receiver)(nil)
+var _ otelcolreceiver.Metrics = (*receiver)(nil)
 
 var (
 	saConfig                 *saconfig.Config
@@ -64,7 +66,7 @@ var (
 	configureLogrusOnce      sync.Once
 )
 
-func newReceiver(params component.ReceiverCreateSettings, config Config) *receiver {
+func newReceiver(params otelcolreceiver.CreateSettings, config Config) *receiver {
 	return &receiver{
 		logger: params.Logger,
 		params: params,
@@ -98,12 +100,12 @@ func (r *receiver) Start(_ context.Context, host component.Host) error {
 
 	err := r.config.validate()
 	if err != nil {
-		return fmt.Errorf("config validation failed for %q: %w", r.config.ID().String(), err)
+		return fmt.Errorf("config validation failed for %q: %w", r.params.ID.String(), err)
 	}
 
 	configCore := r.config.monitorConfig.MonitorConfigCore()
 	monitorType := configCore.Type
-	monitorID := nonWordCharacters.ReplaceAllString(r.config.ID().String(), "")
+	monitorID := nonWordCharacters.ReplaceAllString(r.params.ID.String(), "")
 	configCore.MonitorID = types.MonitorID(monitorID)
 
 	configureLogrusOnce.Do(func() {
@@ -214,7 +216,7 @@ func stripMonitorTypePrefix(s string) string {
 	return s[idx+1:]
 }
 
-func (r *receiver) setUpSmartAgentConfigProvider(extensions map[component.ID]component.Extension) {
+func (r *receiver) setUpSmartAgentConfigProvider(extensions map[component.ID]otelcolextension.Extension) {
 	// If smartagent extension is not configured, use the default config.
 	f := smartagentextension.NewFactory()
 	saConfig = &f.CreateDefaultConfig().(*smartagentextension.Config).Config

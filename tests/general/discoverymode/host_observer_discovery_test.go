@@ -76,7 +76,8 @@ func TestHostObserver(t *testing.T) {
 	)
 	defer shutdown()
 
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 	sc, r, err := cc.Container.Exec(ctx, []string{
 		// no config server to prevent port collisions
 		"bash", "-c", "SPLUNK_DEBUG_CONFIG_SERVER=false /otelcol --configd --config-dir /opt/internal-prometheus-config.d &",

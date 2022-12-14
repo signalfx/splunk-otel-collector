@@ -103,6 +103,10 @@ fossa:
       - .go/pkg/mod
       - .go/bin
 
+.docker-reader-role: &docker-reader-role |
+  creds-helper init
+  eval $(creds-helper docker --eval "artifactory:v2/cloud/role/docker-reader-role")
+
 compile:
   extends:
     - .trigger-filter
@@ -212,6 +216,7 @@ build-linux-image:
       - ARCH: [amd64, arm64, ppc64le]
   retry: 2
   script:
+    - *docker-reader-role
     - make docker-otelcol ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO} SKIP_COMPILE=true
     - arch=$( docker inspect --format='{{.Architecture}}' otelcol:${ARCH} )
     - if [[ "$arch" != "$ARCH" ]]; then exit 1; fi
@@ -772,6 +777,7 @@ cve-scan:
     - apt-get update
     - apt-get install -y docker-ce-cli docker-scan-plugin
   script:
+    - *docker-reader-role
     - |
       if [ -f dist/otelcol-amd64.tar ]; then
         docker load -i dist/otelcol-amd64.tar

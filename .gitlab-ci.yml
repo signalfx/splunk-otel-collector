@@ -105,7 +105,7 @@ fossa:
 
 .docker-reader-role: &docker-reader-role |
   creds-helper init
-  creds-helper docker --eval "artifactory:v2/cloud/role/docker-reader-role"
+  eval $(creds-helper docker --eval "artifactory:v2/cloud/role/docker-reader-role")
 
 compile:
   extends:

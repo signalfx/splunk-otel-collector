@@ -476,7 +476,6 @@ build-push-windows-image:
     - Copy-Item .\dist\signed\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
   script:
     - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
-    - *docker-reader-role
     - |
       $ErrorActionPreference = 'Stop'
       if ($env:CI_COMMIT_TAG) {
@@ -517,7 +516,6 @@ build-push-windows2022-image:
     - Copy-Item .\dist\signed\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
   script:
     - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
-    - *docker-reader-role
     - |
       $ErrorActionPreference = 'Stop'
       if ($env:CI_COMMIT_TAG) {

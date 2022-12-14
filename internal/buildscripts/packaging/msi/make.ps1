@@ -42,7 +42,7 @@ function Install-Tools {
 function New-MSI(
     [string]$Otelcol="./bin/otelcol_windows_amd64.exe",
     [string]$Translatesfx="./bin/translatesfx_windows_amd64.exe",
-    [string]$Version="0.0.1",
+    [string]$Version="0.67.0",
     [string]$BuildDir="./dist",
     [string]$Config="./cmd/otelcol/config/collector/agent_config.yaml",
     [string]$FluentdConfig="./internal/buildscripts/packaging/fpm/etc/otel/collector/fluentd/fluent.conf",

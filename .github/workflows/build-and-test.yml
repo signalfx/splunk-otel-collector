@@ -358,7 +358,7 @@ jobs:
             echo "TAG_NAME=" >> $GITHUB_ENV
           fi
           export VERSION_TAG="${TAG_NAME#v}"
-          make msi SKIP_COMPILE=true VERSION="${VERSION_TAG:-0.0.1.${{ github.run_number }}}"
+          make msi SKIP_COMPILE=true VERSION="${VERSION_TAG:-0.67.0.${{ github.run_number }}}"
       
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@v3

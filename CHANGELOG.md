@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+## v0.67.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.67.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.67.0) and the [opentelemetry-collector-contrib v0.67.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.67.0) releases where appropriate.
+
+### 🛑 Breaking changes 🛑
+- Restrict Collector service command line arguments [#2343](https://github.com/signalfx/splunk-otel-collector/pull/2343) 
+
+### 💡 Enhancements 💡
+
+- [add README to packaging/choco directory](https://github.com/signalfx/splunk-otel-collector/pull/2328A
+- [Add Azure Eventhub receiver](https://github.com/signalfx/splunk-otel-collector/pull/2342)
+- [add support for proxy as part of bosh deployment](https://github.com/signalfx/splunk-otel-collector/pull/2273)
+- [PPC support](https://github.com/signalfx/splunk-otel-collector/pull/2308)
+- [Add logstransformprocessor from contrib](https://github.com/signalfx/splunk-otel-collector/pull/2246)
+
+### 🧰 Bug fixes 🧰
+
+- [fix image filter to regex match the tag](https://github.com/signalfx/splunk-otel-collector/pull/2357)
+- [Rework command line arguments parsing](https://github.com/signalfx/splunk-otel-collector/pull/2343)
+- [Temporarily add a no-op flag --metrics-addr](https://github.com/signalfx/splunk-otel-collector/pull/2363)
+- [Remove handling of unsupported --mem-ballast-size-mib command line argument](https://github.com/signalfx/splunk-otel-collector/pull/2339)
+- [fix digest artifact path](https://github.com/signalfx/splunk-otel-collector/pull/2301)
+
 ## v0.66.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.65.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.65.0), which has the same content as [opentelemetry-collector v0.66.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.66.0), the [opentelemetry-collector-contrib v0.65.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.65.0), and the [opentelemetry-collector-contrib v0.66.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.66.0) releases where appropriate.

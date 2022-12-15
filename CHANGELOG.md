@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+## v0.67.0
+
+This release changes the handling and availability of some command line parameters.  While we do not expect any negative customer impact or action required for existing applications to work, please cut us an issue on [github](https://github.com/signalfx/splunk-otel-collector/issues) if you experience any issues related to command line flags, ensuring to include a detailed error log and the context in which any failures happened..
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.67.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.67.0) and the [opentelemetry-collector-contrib v0.67.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.67.0) releases where appropriate, in addition to various dependabot upgrades.
+
+### 💡 Enhancements 💡
+
+- [Add explicit vault creds-helper calls](https://github.com/signalfx/splunk-otel-collector/pull/2360)
+- [add README to packaging/choco directory](https://github.com/signalfx/splunk-otel-collector/pull/2328A
+- [Add Azure Eventhub receiver](https://github.com/signalfx/splunk-otel-collector/pull/2342)
+- [add support for proxy as part of bosh deployment](https://github.com/signalfx/splunk-otel-collector/pull/2273)
+- [Make it possible to use a different docker repository when building the image](https://github.com/signalfx/splunk-otel-collector/pull/2309)
+- [PPC support](https://github.com/signalfx/splunk-otel-collector/pull/2308)
+- [Add logstransformprocessor from contrib](https://github.com/signalfx/splunk-otel-collector/pull/2246)
+- [Add windowsperfcounters receiver from contrib](https://github.com/signalfx/splunk-otel-collector/pull/2187)
+
+### 🧰 Bug fixes 🧰
+
+- [fix image filter to regex match the tag](https://github.com/signalfx/splunk-otel-collector/pull/2357)
+- [Rework command line arguments parsing](https://github.com/signalfx/splunk-otel-collector/pull/2343)
+- [Temporarily add a no-op flag --metrics-addr](https://github.com/signalfx/splunk-otel-collector/pull/2363)
+- [Remove handling of unsupported --mem-ballast-size-mib command line argument](https://github.com/signalfx/splunk-otel-collector/pull/2339)
+- [fix digest artifact path](https://github.com/signalfx/splunk-otel-collector/pull/2301)
+- [Fix the docker repository reference in use to mirror docker hub](https://github.com/signalfx/splunk-otel-collector/pull/2310)
+
 ## v0.66.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.65.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.65.0), which has the same content as [opentelemetry-collector v0.66.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.66.0), the [opentelemetry-collector-contrib v0.65.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.65.0), and the [opentelemetry-collector-contrib v0.66.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.66.0) releases where appropriate.

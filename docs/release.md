@@ -7,20 +7,20 @@
 1. You must be able to sign git commits/tags. Follow [this guide](
    https://docs.github.com/en/github/authenticating-to-github/signing-commits)
    to set it up.
-1. You must have access to the `o11y-gdi/splunk-otel-collector-releaser` gitlab
+1. You must have access to the [`o11y-gdi/splunk-otel-collector-releaser`](https://cd.splunkdev.com/o11y-gdi/splunk-otel-collector-releaser) gitlab
    repo and CI/CD pipeline.
 1. You must have prod access and the `splunkcloud_account_power` role in `us0`
    to push to the SignalFx S3 bucket.
+1. [Optional] Create an account on [quay.io](https://access.redhat.com/) via RedHat's login portal if you have not already done so.  Use your "google workspace" login.
 1. Install Golang (same version as the `go` directive in [go.mod](../go.mod)).
-1. Install Python 3, [pip](https://pip.pypa.io/en/stable/installing/),
-   and [virtualenv](https://virtualenv.pypa.io/en/latest/) on your workstation.
+1. Install Python 3 and [pip](https://pip.pypa.io/en/stable/installing/).
 1. Install the required dependencies with pip in virtualenv on your workstation:
    ```
-   $ virtualenv venv
-   $ source venv/bin/activate
+   $ python -m venv ../venv
+   $ source ../venv/bin/activate
    $ pip install -r internal/buildscripts/packaging/release/requirements.txt
    ```
-1. Clone cargo repository for local access to the okta-aws-setup script.
+1. Clone cargo repository for local access to the okta-aws-setup script, or install via [brew](https://splunk.atlassian.net/wiki/spaces/PROD/pages/313936377804/Accounts+Services+and+Tools+Observability#7.-Tools%3A-Initial-Setup)
 1. Determine if a new [SignalFx Smart Agent](https://github.com/signalfx/signalfx-agent)
    release is necessary. A new release is necessary if any change has been made that
    can be added to the release notes since the last release. If yes, create a new
@@ -45,8 +45,8 @@
    [Smart Agent release](https://github.com/signalfx/signalfx-agent/releases).
 1. If the Smart Agent from the previous step was updated, or if there are
    desired native Go monitor updates, the
-   `github.com/signalfx/signalfx-agent` and
-   `github.com/signalfx/signalfx-agent/pkg/apm` dependencies in [go.mod](
+   [`github.com/signalfx/signalfx-agent`](https://github.com/signalfx/signalfx-agent) and
+   [`github.com/signalfx/signalfx-agent/pkg/apm`](https://github.com/signalfx/signalfx-agent/tree/main/pkg/apm) dependencies in [go.mod](
    ../go.mod) should be updated to the commit hash for the Smart Agent release tag or feature commit
    via `go get github.com/signalfx/signalfx-agent@<SHA> github.com/signalfx/signalfx-agent/pkg/apm@<SHA>` and running `make tidy`.
 1. If necessary, update [java-agent-release.txt](
@@ -54,7 +54,7 @@
    applicable [Java Agent release](
    https://github.com/signalfx/splunk-otel-java/releases).
 1. Update [CHANGELOG.md](../CHANGELOG.md) with the changes for the release.
-   - This requires going through PRs merged since the last release, as the
+   - This requires going through [PRs merged](https://github.com/signalfx/splunk-otel-collector/pulls?q=is%3Apr+is%3Amerged+) since the last release, as the
    CHANGELOG may not be properly updated.
    - In order for the Github release notes to be added correctly, ensure that
    the new version has the `## <TAG>` heading.
@@ -76,9 +76,9 @@
    (may take over 30 minutes to complete).
    - Make sure to reference the CI/CD pipeline for the new tag, not the commit on the
      `main` branch.
-1. Ensure that the `quay.io/signalfx/splunk-otel-collector:<VERSION>` image
+1. Ensure that the [`quay.io/signalfx/splunk-otel-collector:<VERSION>`](https://quay.io/repository/signalfx/splunk-otel-collector?tab=tags) image
    was built and pushed.
-1. Ensure that the `quay.io/signalfx/splunk-otel-collector-windows:<VERSION>`
+1. Ensure that the [`quay.io/signalfx/splunk-otel-collector-windows:<VERSION>`](https://quay.io/repository/signalfx/splunk-otel-collector?tab=tags)
    image was built and pushed.
 1. Check [Github Releases](
    https://github.com/signalfx/splunk-otel-collector/releases/) and ensure that
@@ -88,15 +88,15 @@
 1. Download the MSI (`splunk-otel-collector-<VERSION>-amd64.msi`) from the
    Github Release to your workstation.
 1. Get `us0` realm credentials through Okta.
-   ```
+   ```bash
    $ okta-aws-setup us0
    ```
    Select the `signalfx/splunkcloud_account_power` role.
 1. Run the following script in virtualenv to push the signed MSI and installer
    scripts to S3 (replace `PATH_TO_MSI` with the path to the signed MSI file
    downloaded from the previous step).
-   ```
-   $ source venv/bin/activate  # if not already in virtualenv
+   ```bash
+   $ source ../venv/bin/activate  # if not already in virtualenv
    $ ./internal/buildscripts/packaging/release/sign_release.py --stage=release --path=PATH_TO_MSI --installers --no-sign-msi
    ```
    - The script may ask to overwrite existing files. Opt `y` if prompted. You should not

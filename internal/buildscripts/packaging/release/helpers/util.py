@@ -287,27 +287,6 @@ def sign_file(src, dest, sign_type, src_user=None, src_token=None, timeout=DEFAU
         if artifactory_file_exists(staged_artifact_url, staging_user, staging_token):
             delete_artifactory_file(staged_artifact_dir, staging_user, staging_token)
 
-
-def sign_artifactory_metadata(src, artifactory_user, artifactory_token, timeout=DEFAULT_TIMEOUT, **signing_args):
-    with tempfile.TemporaryDirectory() as tmpdir:
-        base = os.path.basename(src)
-        signature_ext = ".gpg" if base == "Release" else ".asc"
-        signature_path = os.path.join(tmpdir, base) + signature_ext
-        signature_url = src + signature_ext
-
-        sign_file(
-            src,
-            signature_path,
-            "GPG",
-            src_user=artifactory_user,
-            src_token=artifactory_token,
-            timeout=timeout,
-            **signing_args,
-        )
-
-        upload_file_to_artifactory(signature_path, signature_url, artifactory_user, artifactory_token)
-
-
 def upload_package_to_artifactory(
     path,
     dest_url,
@@ -328,7 +307,6 @@ def upload_package_to_artifactory(
     if sign_metadata:
         wait_for_artifactory_metadata(metadata_api_url, orig_md5, user, token, timeout=timeout)
         # don't sign the metadata; just download it so that it can be signed externally
-        # sign_artifactory_metadata(metadata_url, user, token, timeout=timeout, **signing_args)
         dest = os.path.join(REPO_DIR, os.path.basename(metadata_url))
         download_file(metadata_url, dest, user, token)
 
@@ -444,58 +422,6 @@ def upload_file_to_s3(local_path, s3_path, force=False):
     s3_client.upload_file(local_path, S3_BUCKET, s3_path)
 
 
-def get_smart_agent_release():
-    with open(SMART_AGENT_RELEASE_PATH, "r") as fd:
-        release = fd.read().strip()
-        assert release, f"Failed to get Smart Agent release version from {SMART_AGENT_RELEASE_PATH}"
-        return release
-
-
-def build_msi(exe_path, args, msi_dir=None):
-    assert exe_path, f"{exe_path} not found!"
-
-    msi_version = args.tag.strip("v")
-    msi_name = f"{PACKAGE_NAME}-{msi_version}-amd64.msi"
-    if not msi_dir:
-        msi_dir = os.path.dirname(exe_path)
-    msi_path = os.path.join(msi_dir, msi_name)
-
-    print(f"Building {msi_path} with {exe_path} ...")
-    if not args.force and os.path.isfile(msi_path):
-        resp = input(f"{msi_path} already exists.\nOverwrite? [y/N]: ")
-        if resp.lower() not in ("y", "yes"):
-            sys.exit(1)
-        os.remove(msi_path)
-
-    os.makedirs(msi_dir, exist_ok=True)
-
-    client = docker.from_env()
-    msi_builder_path = os.path.join(REPO_DIR, "internal", "buildscripts", "packaging", "msi", "msi-builder")
-    msi_builder_image, _ = client.images.build(path=msi_builder_path)
-
-    with tempfile.TemporaryDirectory(dir=str(REPO_DIR)) as build_dir:
-        shutil.copy(exe_path, os.path.join(build_dir, "otelcol.exe"))
-        container_options = {
-            "remove": True,
-            "volumes": {
-                REPO_DIR: {"bind": "/project", "mode": "ro"},
-                build_dir: {"bind": "/work/stage", "mode": "rw"},
-            },
-            "user": 0,
-            "working_dir": "/work",
-            "environment": {'OUTPUT_DIR': "/work/stage", "SMART_AGENT_RELEASE": get_smart_agent_release()},
-            "command": [f"--otelcol /work/stage/otelcol.exe {msi_version}"],
-        }
-        output = client.containers.run(msi_builder_image, **container_options)
-        print(output.decode("utf-8"))
-        assert os.path.isfile(os.path.join(build_dir, msi_name)), f"{msi_name} not found!"
-        os.rename(os.path.join(build_dir, msi_name), msi_path)
-        assert os.path.isfile(msi_path), f"{msi_name} not found in {msi_dir}!"
-        print(f"Successfully built {msi_path}.")
-
-    return msi_path
-
-
 def sign_exe(asset, args, **signing_args):
     print(f"Signing {asset.name} (may take 10+ minutes):")
     if not asset.sign(timeout=args.timeout, overwrite=args.force, **signing_args):
@@ -540,29 +466,6 @@ def get_github_release(repo_name, tag=None, token=None):
 
     return github_release
 
-
-def download_github_assets(github_release, args):
-    assets = []
-    checksums_asset = None
-
-    for asset in github_release.get_assets():
-        ext = os.path.splitext(asset.name)[-1].strip(".")
-        if asset.name == "checksums.txt":
-            checksums_asset = Asset(url=asset.browser_download_url)
-        elif ext and ext in args.component:
-            assets.append(Asset(url=asset.browser_download_url))
-
-    assert checksums_asset, f"checksums.txt not found in {github_release.html_url}!"
-    checksums_path = os.path.join(args.assets_dir, checksums_asset.name)
-    if not checksums_asset.download(checksums_path, token=args.github_token, overwrite=args.force):
-        sys.exit(1)
-
-    for asset in assets:
-        dest = os.path.join(args.assets_dir, asset.name)
-        if not asset.download(dest, token=args.github_token, overwrite=args.force):
-            sys.exit(1)
-
-    return assets, checksums_asset
 
 
 def release_installers_to_s3(force=False):

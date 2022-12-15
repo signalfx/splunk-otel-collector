@@ -138,10 +138,8 @@ func getConfigDir(f *Settings) string {
 // ConfMapConverters returns confmap.Converters for the collector core service.
 func (s *Settings) ConfMapConverters() []confmap.Converter {
 	confMapConverters := []confmap.Converter{
-		// nolint: staticcheck
-		// overwritepropertiesconverter.New(s.setProperties.value), // support until there's an actual replacement
+		configconverter.NewOverwritePropertiesConverter(s.setProperties.value),
 	}
-
 	if !s.noConvertConfig {
 		confMapConverters = append(
 			confMapConverters,

@@ -89,7 +89,7 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 		"--config", anotherConfigPath,
 		"--set", "foo",
 		"--set", "bar",
-		"--set", "baz",
+		"--set=baz",
 		"--feature-gates", "foo",
 		"--feature-gates", "-bar",
 	})
@@ -102,8 +102,7 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
 	require.Equal(t, []confmap.Converter{
-		// nolint: staticcheck
-		// overwritepropertiesconverter.New(settings.setProperties.value), // support until there's an actual replacement
+		configconverter.NewOverwritePropertiesConverter(settings.setProperties.value),
 	}, settings.ConfMapConverters())
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
@@ -114,7 +113,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 		"--config", configPath,
 		"--config", anotherConfigPath,
 		"--set", "foo",
-		"--set", "bar",
+		"--set=bar",
 		"--set", "baz",
 		"--feature-gates", "foo",
 		"--feature-gates", "-bar",
@@ -129,8 +128,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
 	require.Equal(t, []confmap.Converter{
-		// nolint: staticcheck
-		// overwritepropertiesconverter.New(settings.setProperties.value), // support until there's an actual replacement
+		configconverter.NewOverwritePropertiesConverter(settings.setProperties.value),
 		configconverter.RemoveBallastKey{},
 		configconverter.MoveOTLPInsecureKey{},
 		configconverter.MoveHecTLS{},

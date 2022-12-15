@@ -21,20 +21,21 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/receiver"
 )
 
 const (
 	typeStr = "discovery"
 )
 
-func NewFactory() component.ReceiverFactory {
-	return component.NewReceiverFactory(
+func NewFactory() receiver.Factory {
+	return receiver.NewFactory(
 		typeStr,
 		createDefaultConfig,
-		component.WithLogsReceiver(createLogsReceiver, component.StabilityLevelDevelopment))
+		receiver.WithLogs(createLogsReceiver, component.StabilityLevelDevelopment))
 }
 
-func createDefaultConfig() component.ReceiverConfig {
+func createDefaultConfig() component.Config {
 	return &Config{
 		ReceiverSettings:    config.NewReceiverSettings(component.NewID(typeStr)),
 		LogEndpoints:        false,
@@ -45,10 +46,10 @@ func createDefaultConfig() component.ReceiverConfig {
 
 func createLogsReceiver(
 	_ context.Context,
-	settings component.ReceiverCreateSettings,
-	cfg component.ReceiverConfig,
+	settings receiver.CreateSettings,
+	cfg component.Config,
 	consumer consumer.Logs,
-) (component.LogsReceiver, error) {
+) (receiver.Logs, error) {
 	dCfg := cfg.(*Config)
 	if err := dCfg.Validate(); err != nil {
 		return nil, err

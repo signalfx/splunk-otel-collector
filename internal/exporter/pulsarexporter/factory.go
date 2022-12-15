@@ -21,6 +21,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
@@ -38,17 +39,17 @@ const (
 type FactoryOption func(factory *pulsarExporterFactory)
 
 // NewFactory creates pulsar exporter factory.
-func NewFactory(options ...FactoryOption) component.ExporterFactory {
+func NewFactory(options ...FactoryOption) exporter.Factory {
 	f := &pulsarExporterFactory{
 		metricsMarshalers: metricsMarshalers(),
 	}
 	for _, option := range options {
 		option(f)
 	}
-	return component.NewExporterFactory(
+	return exporter.NewFactory(
 		typeStr,
 		createDefaultConfig,
-		component.WithMetricsExporter(f.createMetricsExporter, component.StabilityLevelAlpha),
+		exporter.WithMetrics(f.createMetricsExporter, component.StabilityLevelAlpha),
 	)
 }
 
@@ -56,7 +57,7 @@ type pulsarExporterFactory struct {
 	metricsMarshalers map[string]MetricsMarshaler
 }
 
-func createDefaultConfig() component.ExporterConfig {
+func createDefaultConfig() component.Config {
 
 	return &Config{
 		ExporterSettings: config.NewExporterSettings(component.NewID(typeStr)),
@@ -79,9 +80,9 @@ func createDefaultConfig() component.ExporterConfig {
 
 func (f *pulsarExporterFactory) createMetricsExporter(
 	ctx ctx.Context,
-	settings component.ExporterCreateSettings,
-	cfg component.ExporterConfig,
-) (component.MetricsExporter, error) {
+	settings exporter.CreateSettings,
+	cfg component.Config,
+) (exporter.Metrics, error) {
 	oCfg := cfg.(*Config)
 	if oCfg.Encoding == "otlp_json" {
 		settings.Logger.Info("otlp_json is considered experimental and should not be used in a production environment")

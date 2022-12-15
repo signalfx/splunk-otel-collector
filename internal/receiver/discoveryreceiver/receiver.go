@@ -25,6 +25,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -40,12 +41,12 @@ const (
 )
 
 var (
-	_ component.LogsReceiver = (*discoveryReceiver)(nil)
+	_ receiver.Logs = (*discoveryReceiver)(nil)
 )
 
 type discoveryReceiver struct {
 	logsConsumer       consumer.Logs
-	receiverCreator    component.MetricsReceiver
+	receiverCreator    receiver.Metrics
 	alreadyLogged      *sync.Map
 	endpointTracker    *endpointTracker
 	sentinel           chan struct{}
@@ -57,16 +58,16 @@ type discoveryReceiver struct {
 	pLogs              chan plog.Logs
 	observables        map[component.ID]observer.Observable
 	loopFinished       *sync.WaitGroup
-	settings           component.ReceiverCreateSettings
+	settings           receiver.CreateSettings
 }
 
 func newDiscoveryReceiver(
-	settings component.ReceiverCreateSettings,
+	settings receiver.CreateSettings,
 	config *Config,
 	consumer consumer.Logs,
 ) (*discoveryReceiver, error) {
 	obsReceiver, err := obsreport.NewReceiver(obsreport.ReceiverSettings{
-		ReceiverID:             config.ID(),
+		ReceiverID:             settings.ID,
 		Transport:              "none",
 		ReceiverCreateSettings: settings,
 	})
@@ -98,9 +99,9 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 	d.endpointTracker = newEndpointTracker(d.observables, d.config, d.logger, d.pLogs, correlations)
 	d.endpointTracker.start()
 
-	d.metricEvaluator = newMetricEvaluator(d.logger, d.config, d.pLogs, correlations)
+	d.metricEvaluator = newMetricEvaluator(d.logger, d.settings.ID, d.config, d.pLogs, correlations)
 
-	if d.statementEvaluator, err = newStatementEvaluator(d.logger, d.config, d.pLogs, correlations); err != nil {
+	if d.statementEvaluator, err = newStatementEvaluator(d.logger, d.settings.ID, d.config, d.pLogs, correlations); err != nil {
 		return fmt.Errorf("failed creating statement evaluator: %w", err)
 	}
 
@@ -170,11 +171,15 @@ func (d *discoveryReceiver) createAndSetReceiverCreator() error {
 	if err != nil {
 		return err
 	}
-	receiverCreatorSettings := component.ReceiverCreateSettings{
+	id := component.NewIDWithName(receiverCreatorFactory.Type(), d.settings.ID.String())
+	// receiverCreatorConfig.SetIDName(d.settings.ID.String())
+
+	receiverCreatorSettings := receiver.CreateSettings{
+		ID: id,
 		TelemetrySettings: component.TelemetrySettings{
 			Logger: d.statementEvaluator.evaluatedLogger.With(
 				zap.String("kind", "receiver"),
-				zap.String("name", receiverCreatorConfig.ID().String()),
+				zap.String("name", id.String()),
 			),
 			TracerProvider: trace.NewNoopTracerProvider(),
 			MeterProvider:  metric.NewNoopMeterProvider(),

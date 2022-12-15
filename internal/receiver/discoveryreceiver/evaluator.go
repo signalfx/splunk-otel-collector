@@ -41,6 +41,7 @@ type evaluator struct {
 	// whether we've already emitted a record for the statement and can skip processing.
 	alreadyLogged *sync.Map
 	exprEnv       func(pattern string) map[string]any
+	id            component.ID
 }
 
 // evaluateMatch parses the provided Match and returns whether it warrants a status log record

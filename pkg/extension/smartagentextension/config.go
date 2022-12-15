@@ -20,7 +20,7 @@ import (
 
 	"github.com/signalfx/defaults"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
-	"go.opentelemetry.io/collector/config"
+	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/confmap"
 	"gopkg.in/yaml.v2"
 )
@@ -28,7 +28,7 @@ import (
 var _ confmap.Unmarshaler = (*Config)(nil)
 
 type Config struct {
-	config.ExtensionSettings `mapstructure:",squash"`
+	otelconfig.ExtensionSettings `mapstructure:",squash"`
 	// Agent uses yaml, which mapstructure doesn't support.
 	// Custom unmarshaller required for yaml and SFx defaults usage.
 	saconfig.Config `mapstructure:"-,squash"`

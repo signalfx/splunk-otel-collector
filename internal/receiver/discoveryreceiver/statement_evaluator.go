@@ -48,7 +48,7 @@ type statementEvaluator struct {
 	encoder         zapcore.Encoder
 }
 
-func newStatementEvaluator(logger *zap.Logger, config *Config, pLogs chan plog.Logs, correlations correlationStore) (*statementEvaluator, error) {
+func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config, pLogs chan plog.Logs, correlations correlationStore) (*statementEvaluator, error) {
 	zapConfig := zap.NewProductionConfig()
 	zapConfig.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
 	zapConfig.Sampling.Initial = 1
@@ -66,6 +66,7 @@ func newStatementEvaluator(logger *zap.Logger, config *Config, pLogs chan plog.L
 			exprEnv: func(pattern string) map[string]any {
 				return map[string]any{"msg": pattern}
 			},
+			id: id,
 		},
 		encoder: encoder,
 	}
@@ -117,7 +118,7 @@ func (se *statementEvaluator) Write(entry zapcore.Entry, fields []zapcore.Field)
 	if name, ok := statement.Fields["name"]; ok {
 		cid := &component.ID{}
 		if err := cid.UnmarshalText([]byte(fmt.Sprintf("%v", name))); err == nil {
-			if cid.Type() == "receiver_creator" && cid.Name() == se.config.ID().String() {
+			if cid.Type() == "receiver_creator" && cid.Name() == se.id.String() {
 				// this is from our internal Receiver Creator and not a generated receiver, so write
 				// it to our logger core without submitting the entry for evaluation
 				if ce := se.logger.Check(entry.Level, ""); ce != nil {

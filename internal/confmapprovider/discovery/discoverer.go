@@ -31,7 +31,9 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
 	"go.opentelemetry.io/collector/consumer"
+	otelcolextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/pdata/plog"
+	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -54,7 +56,7 @@ type discoverer struct {
 	factories           component.Factories
 	expandConverter     confmap.Converter
 	configs             map[string]*Config
-	extensions          map[component.ID]component.Extension
+	extensions          map[component.ID]otelcolextension.Extension
 	logger              *zap.Logger
 	discoveredReceivers map[component.ID]discovery.StatusType
 	discoveredConfig    map[component.ID]map[string]any
@@ -87,7 +89,7 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 		logger:              logger,
 		info:                info,
 		factories:           factories,
-		extensions:          map[component.ID]component.Extension{},
+		extensions:          map[component.ID]otelcolextension.Extension{},
 		configs:             map[string]*Config{},
 		duration:            duration,
 		mu:                  sync.Mutex{},
@@ -140,12 +142,12 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "Discovering for next %s...\n", d.duration.String())
+	_, _ = fmt.Fprintf(os.Stderr, "Discovering for next %s...\n", d.duration.String())
 	select {
 	case <-time.After(d.duration):
 	case <-context.Background().Done():
 	}
-	fmt.Fprintf(os.Stderr, "Discovery complete.\n")
+	_, _ = fmt.Fprintf(os.Stderr, "Discovery complete.\n")
 
 	for receiverID, receiver := range discoveryReceivers {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -169,9 +171,9 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 	return discoveryConfig, nil
 }
 
-func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[component.ID]component.LogsReceiver, map[component.ID]component.Extension, error) {
-	discoveryObservers := map[component.ID]component.Extension{}
-	discoveryReceivers := map[component.ID]component.LogsReceiver{}
+func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[component.ID]otelcolreceiver.Logs, map[component.ID]otelcolextension.Extension, error) {
+	discoveryObservers := map[component.ID]otelcolextension.Extension{}
+	discoveryReceivers := map[component.ID]otelcolreceiver.Logs{}
 
 	discoveryReceiverFactory := discoveryreceiver.NewFactory()
 	for _, observerID := range cfg.observersForDiscoveryMode() {
@@ -183,7 +185,6 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 		discoveryObservers[observerID] = observer
 
 		discoveryReceiverDefaultConfig := discoveryReceiverFactory.CreateDefaultConfig()
-		discoveryReceiverDefaultConfig.SetIDName(observerID.String())
 		discoveryReceiverConfig, ok := discoveryReceiverDefaultConfig.(*discoveryreceiver.Config)
 		if !ok {
 			return nil, nil, fmt.Errorf("failed to coerce to receivercreator.Config")
@@ -208,7 +209,7 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 			return nil, nil, fmt.Errorf("error converting environment variables in receiver config: %w", err)
 		}
 
-		if err = component.UnmarshalReceiverConfig(discoveryReceiverConfMap, discoveryReceiverConfig); err != nil {
+		if err = component.UnmarshalConfig(discoveryReceiverConfMap, discoveryReceiverConfig); err != nil {
 			return nil, nil, fmt.Errorf("failed unmarshaling discovery receiver config: %w", err)
 		}
 
@@ -216,17 +217,18 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 		discoveryReceiverConfig.EmbedReceiverConfig = true
 
 		discoveryReceiverSettings := d.createReceiverCreateSettings()
-		var lr component.LogsReceiver
+		discoveryReceiverSettings.ID = observerID
+		var lr otelcolreceiver.Logs
 		if lr, err = discoveryReceiverFactory.CreateLogsReceiver(context.Background(), discoveryReceiverSettings, discoveryReceiverDefaultConfig, d); err != nil {
 			return nil, nil, fmt.Errorf("failed creating discovery receiver: %w", err)
 		}
-		discoveryReceivers[discoveryReceiverDefaultConfig.ID()] = lr
+		discoveryReceivers[component.NewIDWithName(discoveryReceiverFactory.Type(), observerID.String())] = lr
 	}
 
 	return discoveryReceivers, discoveryObservers, nil
 }
 
-func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (component.Extension, error) {
+func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelcolextension.Extension, error) {
 	observerFactory, err := factoryForObserverType(observerID.Type())
 	if err != nil {
 		return nil, err
@@ -238,7 +240,7 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (compo
 		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID.String(), err)
 	}
 
-	if err = component.UnmarshalExtensionConfig(observerCfgMap, observerConfig); err != nil {
+	if err = component.UnmarshalConfig(observerCfgMap, observerConfig); err != nil {
 		return nil, fmt.Errorf("failed unmarshaling %s config: %w", observerID.String(), err)
 	}
 
@@ -288,8 +290,8 @@ func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver
 	return true, nil
 }
 
-func factoryForObserverType(extType component.Type) (component.ExtensionFactory, error) {
-	factories := map[component.Type]component.ExtensionFactory{
+func factoryForObserverType(extType component.Type) (otelcolextension.Factory, error) {
+	factories := map[component.Type]otelcolextension.Factory{
 		"docker_observer":   dockerobserver.NewFactory(),
 		"host_observer":     hostobserver.NewFactory(),
 		"k8s_observer":      k8sobserver.NewFactory(),
@@ -370,8 +372,8 @@ func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
 	return sMap, nil
 }
 
-func (d *discoverer) createExtensionCreateSettings(kind string) component.ExtensionCreateSettings {
-	return component.ExtensionCreateSettings{
+func (d *discoverer) createExtensionCreateSettings(kind string) otelcolextension.CreateSettings {
+	return otelcolextension.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", kind)),
 			TracerProvider: trace.NewNoopTracerProvider(),
@@ -382,8 +384,8 @@ func (d *discoverer) createExtensionCreateSettings(kind string) component.Extens
 	}
 }
 
-func (d *discoverer) createReceiverCreateSettings() component.ReceiverCreateSettings {
-	return component.ReceiverCreateSettings{
+func (d *discoverer) createReceiverCreateSettings() otelcolreceiver.CreateSettings {
+	return otelcolreceiver.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", "receiver")),
 			TracerProvider: trace.NewNoopTracerProvider(),
@@ -425,7 +427,7 @@ func (d *discoverer) GetFactory(kind component.Kind, componentType component.Typ
 }
 
 // GetExtensions is a component.Host method used to forward discovery observers.
-func (d *discoverer) GetExtensions() map[component.ID]component.Extension {
+func (d *discoverer) GetExtensions() map[component.ID]otelcolextension.Extension {
 	return d.extensions
 }
 
@@ -443,7 +445,7 @@ func (d *discoverer) Capabilities() consumer.Capabilities {
 
 // ConsumeLogs will walk through all discovery receiver-emitted logs and store all receiver and observer statuses,
 // including reported receiver configs from their discovery.receiver.config attribute. It is a consumer.Logs method.
-func (d *discoverer) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
+func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	if ld.LogRecordCount() == 0 {
 		return nil
 	}

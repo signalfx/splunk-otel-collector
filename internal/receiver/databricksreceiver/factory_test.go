@@ -26,7 +26,8 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
-	"go.opentelemetry.io/collector/service/servicetest"
+	"go.opentelemetry.io/collector/otelcol/otelcoltest"
+	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -46,7 +47,7 @@ func TestCreateReceiver(t *testing.T) {
 	f := createReceiverFunc(func(string, string, *http.Client, *zap.Logger) apiClientInterface { return &testdataClient{} })
 	receiver, err := f(
 		ctx,
-		component.ReceiverCreateSettings{
+		otelcolreceiver.CreateSettings{
 			TelemetrySettings: component.TelemetrySettings{
 				MeterProvider:  metric.NewNoopMeterProvider(),
 				TracerProvider: trace.NewNoopTracerProvider(),
@@ -66,7 +67,7 @@ func TestParseConfig(t *testing.T) {
 	factories, err := componenttest.NopFactories()
 	require.NoError(t, err)
 	factories.Receivers[typeStr] = NewFactory()
-	cfg, err := servicetest.LoadConfigAndValidate(path.Join("testdata", "config.yaml"), factories)
+	cfg, err := otelcoltest.LoadConfigAndValidate(path.Join("testdata", "config.yaml"), factories)
 	require.NoError(t, err)
 	rcfg := cfg.Receivers[component.NewID(typeStr)].(*Config)
 	assert.Equal(t, "my-instance", rcfg.InstanceName)

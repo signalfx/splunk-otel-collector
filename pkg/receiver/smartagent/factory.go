@@ -21,6 +21,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
+	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 )
 
 const (
@@ -34,7 +35,7 @@ var (
 	receiverStore     = map[*Config]*receiver{}
 )
 
-func getOrCreateReceiver(cfg component.ReceiverConfig, params component.ReceiverCreateSettings) (*receiver, error) {
+func getOrCreateReceiver(cfg component.Config, params otelcolreceiver.CreateSettings) (*receiver, error) {
 	receiverStoreLock.Lock()
 	defer receiverStoreLock.Unlock()
 	receiverConfig := cfg.(*Config)
@@ -44,26 +45,26 @@ func getOrCreateReceiver(cfg component.ReceiverConfig, params component.Receiver
 		return nil, err
 	}
 
-	receiver, ok := receiverStore[receiverConfig]
+	receiverInst, ok := receiverStore[receiverConfig]
 	if !ok {
-		receiver = newReceiver(params, *receiverConfig)
-		receiverStore[receiverConfig] = receiver
+		receiverInst = newReceiver(params, *receiverConfig)
+		receiverStore[receiverConfig] = receiverInst
 	}
 
-	return receiver, nil
+	return receiverInst, nil
 }
 
-func NewFactory() component.ReceiverFactory {
-	return component.NewReceiverFactory(
+func NewFactory() otelcolreceiver.Factory {
+	return otelcolreceiver.NewFactory(
 		typeStr,
 		CreateDefaultConfig,
-		component.WithMetricsReceiver(createMetricsReceiver, component.StabilityLevelBeta),
-		component.WithLogsReceiver(createLogsReceiver, component.StabilityLevelBeta),
-		component.WithTracesReceiver(createTracesReceiver, component.StabilityLevelBeta),
+		otelcolreceiver.WithMetrics(createMetricsReceiver, component.StabilityLevelBeta),
+		otelcolreceiver.WithLogs(createLogsReceiver, component.StabilityLevelBeta),
+		otelcolreceiver.WithTraces(createTracesReceiver, component.StabilityLevelBeta),
 	)
 }
 
-func CreateDefaultConfig() component.ReceiverConfig {
+func CreateDefaultConfig() component.Config {
 	return &Config{
 		ReceiverSettings: config.NewReceiverSettings(component.NewID(typeStr)),
 	}
@@ -71,10 +72,10 @@ func CreateDefaultConfig() component.ReceiverConfig {
 
 func createMetricsReceiver(
 	_ context.Context,
-	params component.ReceiverCreateSettings,
-	cfg component.ReceiverConfig,
+	params otelcolreceiver.CreateSettings,
+	cfg component.Config,
 	metricsConsumer consumer.Metrics,
-) (component.MetricsReceiver, error) {
+) (otelcolreceiver.Metrics, error) {
 	receiver, err := getOrCreateReceiver(cfg, params)
 	if err != nil {
 		return nil, err
@@ -86,10 +87,10 @@ func createMetricsReceiver(
 
 func createLogsReceiver(
 	_ context.Context,
-	params component.ReceiverCreateSettings,
-	cfg component.ReceiverConfig,
+	params otelcolreceiver.CreateSettings,
+	cfg component.Config,
 	logsConsumer consumer.Logs,
-) (component.LogsReceiver, error) {
+) (otelcolreceiver.Logs, error) {
 	receiver, err := getOrCreateReceiver(cfg, params)
 	if err != nil {
 		return nil, err
@@ -101,10 +102,10 @@ func createLogsReceiver(
 
 func createTracesReceiver(
 	_ context.Context,
-	params component.ReceiverCreateSettings,
-	cfg component.ReceiverConfig,
+	params otelcolreceiver.CreateSettings,
+	cfg component.Config,
 	tracesConsumer consumer.Traces,
-) (component.TracesReceiver, error) {
+) (otelcolreceiver.Traces, error) {
 	receiver, err := getOrCreateReceiver(cfg, params)
 	if err != nil {
 		return nil, err

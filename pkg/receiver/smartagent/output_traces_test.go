@@ -31,7 +31,7 @@ import (
 func TestSendSpansWithoutNextTracesConsumer(t *testing.T) {
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		nil, componenttest.NewNopHost(), newReceiverCreateSettings(),
+		nil, componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 	output.SendSpans(&trace.Span{TraceID: "12345678", ID: "23456789"}) // doesn't panic
@@ -40,7 +40,7 @@ func TestSendSpansWithoutNextTracesConsumer(t *testing.T) {
 func TestExtraSpanTags(t *testing.T) {
 	o, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 	assert.Empty(t, o.extraSpanTags)
@@ -66,7 +66,7 @@ func TestExtraSpanTags(t *testing.T) {
 func TestDefaultSpanTags(t *testing.T) {
 	o, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 	assert.Empty(t, o.defaultSpanTags)
@@ -93,7 +93,7 @@ func TestSendSpansWithDefaultAndExtraSpanTags(t *testing.T) {
 	tracesSink := consumertest.TracesSink{}
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		&tracesSink, componenttest.NewNopHost(), newReceiverCreateSettings(),
+		&tracesSink, componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 	output.AddExtraSpanTag("will_be_overridden", "added extra value (want)")
@@ -186,7 +186,7 @@ func TestSendSpansWithConsumerError(t *testing.T) {
 	obs, logs := observer.New(zap.DebugLevel)
 	logger := zap.New(obs)
 
-	rcs := newReceiverCreateSettings()
+	rcs := newReceiverCreateSettings("")
 	rcs.Logger = logger
 
 	err := fmt.Errorf("desired error")

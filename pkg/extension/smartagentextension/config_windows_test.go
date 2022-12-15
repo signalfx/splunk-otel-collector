@@ -11,8 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 //go:build windows
-// +build windows
 
 package smartagentextension
 
@@ -24,7 +24,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/service/servicetest"
+	"go.opentelemetry.io/collector/extension"
+	"go.opentelemetry.io/collector/otelcol/otelcoltest"
 )
 
 func TestBundleDirDefault(t *testing.T) {
@@ -33,7 +34,7 @@ func TestBundleDirDefault(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Extensions[typeStr] = factory
-	cfg, err := servicetest.LoadConfig(
+	cfg, err := otelcoltest.LoadConfig(
 		path.Join(".", "testdata", "config.yaml"), factories,
 	)
 
@@ -45,7 +46,7 @@ func TestBundleDirDefault(t *testing.T) {
 	allSettingsConfig := cfg.Extensions[component.NewIDWithName(typeStr, "default_settings")]
 	require.NotNil(t, allSettingsConfig)
 
-	ext, err := factory.CreateExtension(context.Background(), component.ExtensionCreateSettings{}, allSettingsConfig)
+	ext, err := factory.CreateExtension(context.Background(), extension.CreateSettings{}, allSettingsConfig)
 	require.NoError(t, err)
 	require.NotNil(t, ext)
 

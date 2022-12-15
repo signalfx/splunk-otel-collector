@@ -24,6 +24,7 @@ import (
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/extension"
 )
 
 const (
@@ -31,8 +32,8 @@ const (
 	defaultIntervalSeconds int            = 10
 )
 
-func NewFactory() component.ExtensionFactory {
-	return component.NewExtensionFactory(
+func NewFactory() extension.Factory {
+	return extension.NewFactory(
 		typeStr,
 		createDefaultConfig,
 		createExtension,
@@ -63,7 +64,7 @@ var bundleDir = func() string {
 	return dir
 }()
 
-func createDefaultConfig() component.ExtensionConfig {
+func createDefaultConfig() component.Config {
 	cfg, _ := smartAgentConfigFromSettingsMap(map[string]any{})
 	if cfg == nil {
 		// We won't truly be using this default in our custom unmarshaler
@@ -82,8 +83,8 @@ func createDefaultConfig() component.ExtensionConfig {
 
 func createExtension(
 	_ context.Context,
-	_ component.ExtensionCreateSettings,
-	cfg component.ExtensionConfig,
-) (component.Extension, error) {
+	_ extension.CreateSettings,
+	cfg component.Config,
+) (extension.Extension, error) {
 	return newSmartAgentConfigExtension(cfg.(*Config))
 }

@@ -20,14 +20,14 @@ import (
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/extension"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
 func TestExtensionLifecycle(t *testing.T) {
 	ctx := context.Background()
-	createParams := component.ExtensionCreateSettings{}
+	createParams := extension.CreateSettings{}
 	cfg := &Config{
 		Config: config.Config{
 			BundleDir: "/bundle/",

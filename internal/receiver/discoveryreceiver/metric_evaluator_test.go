@@ -38,7 +38,7 @@ func TestMetricEvaluatorBaseMetricConsumer(t *testing.T) {
 	plogs := make(chan plog.Logs)
 	cStore := newCorrelationStore(logger, time.Hour)
 
-	me := newMetricEvaluator(logger, cfg, plogs, cStore)
+	me := newMetricEvaluator(logger, component.NewID("some.type"), cfg, plogs, cStore)
 	require.Equal(t, consumer.Capabilities{}, me.Capabilities())
 
 	md := pmetric.NewMetrics()
@@ -87,7 +87,7 @@ func TestMetricEvaluation(t *testing.T) {
 								addedState, observerID,
 							)
 
-							me := newMetricEvaluator(logger, cfg, plogs, cStore)
+							me := newMetricEvaluator(logger, component.NewID("some.type"), cfg, plogs, cStore)
 
 							md := pmetric.NewMetrics()
 							rm := md.ResourceMetrics().AppendEmpty()
@@ -204,7 +204,7 @@ func TestTimestampFromMetric(t *testing.T) {
 		{name: "MetricTypeNone", metricFunc: func(md pmetric.Metric) bool { return true }},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			me := newMetricEvaluator(zaptest.NewLogger(t), &Config{}, make(chan plog.Logs), nil)
+			me := newMetricEvaluator(zaptest.NewLogger(t), component.NewID("some.type"), &Config{}, make(chan plog.Logs), nil)
 			md := pmetric.NewMetrics().ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()
 			shouldBeNil := test.metricFunc(md)
 			actual := me.timestampFromMetric(md)

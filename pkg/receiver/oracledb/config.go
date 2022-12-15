@@ -45,7 +45,7 @@ func (c Config) Validate() error {
 	return nil
 }
 
-func CreateDefaultConfig() component.ReceiverConfig {
+func CreateDefaultConfig() component.Config {
 	return &Config{
 		ScraperControllerSettings: scraperhelper.ScraperControllerSettings{
 			ReceiverSettings:   config.NewReceiverSettings(component.NewID(typeStr)),

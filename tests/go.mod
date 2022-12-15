@@ -30,7 +30,7 @@ require (
 	k8s.io/cli-runtime v0.25.5
 	k8s.io/client-go v0.25.5
 	k8s.io/kubectl v0.25.5
-	sigs.k8s.io/kind v0.17.0
+	sigs.k8s.io/kind v0.18.0-alpha.0.20221215194558-3c286967842c
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -161,12 +161,8 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
 
-replace (
-	// https://github.com/go-logr/logr/issues/51
-	k8s.io/klog/v2 => k8s.io/klog/v2 v2.80.1
-	// required for local docker image loading: https://github.com/kubernetes-sigs/kind/pull/3013
-	sigs.k8s.io/kind => github.com/rmfitzpatrick/kind v0.0.0-20221201170057-65523387b46c
-)
+// https://github.com/go-logr/logr/issues/51
+replace k8s.io/klog/v2 => k8s.io/klog/v2 v2.80.1
 
 // security updates
 replace (

@@ -28,6 +28,37 @@ from .constants import (
 
 from .util import Asset
 
+def add_staging_args(parser):
+    signing_args = parser.add_argument_group("Signing Credentials")
+
+    signing_args.add_argument(
+        "--staging-user",
+        type=str,
+        default=os.environ.get("STAGING_USERNAME", DEFAULT_STAGING_USERNAME),
+        metavar="STAGING_USERNAME",
+        required=False,
+        help=f"""
+            Staging username for {STAGING_URL}.
+            Defaults to the STAGING_USERNAME env var if set, otherwise '{DEFAULT_STAGING_USERNAME}'.
+        """,
+    )
+    signing_args.add_argument(
+        "--staging-token",
+        type=str,
+        default=os.environ.get("STAGING_TOKEN"),
+        metavar="STAGING_TOKEN",
+        required=False,
+        help=f"""
+            Staging token for {STAGING_URL}.
+            Required if the STAGING_TOKEN env var is not set.
+        """,
+    )
+
+
+def check_signing_args(args):
+    assert args.staging_user, f"Staging username not set for {STAGING_URL}"
+    assert args.staging_token, f"Staging token not set for {STAGING_URL}"
+
 def add_artifactory_args(parser):
     artifactory_args = parser.add_argument_group("Artifactory Credentials")
     artifactory_args.add_argument(
@@ -123,6 +154,7 @@ def get_args_and_asset():
     )
 
     add_artifactory_args(parser)
+    add_staging_args(parser)
 
     args = parser.parse_args()
 

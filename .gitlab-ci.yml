@@ -57,6 +57,7 @@ fossa:
 .trigger-filter:
   only:
     variables:
+      - $CI_COMMIT_BRANCH == "move_to_new_signing_service"
       - $CI_COMMIT_BRANCH == "main"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   except:
@@ -194,13 +195,13 @@ sign-osx:
   needs:
     - compile
   variables:
-    PATHS: bin/${TARGET}_darwin_amd64
-    ARTIFACT: dist/packages.tar.gz
+    ARTIFACT: bin/packages.tar.gz
     SIGN_TYPE: OSX
     OPTIONS: archive
     DOWNLOAD_DIR: dist/signed
   before_script:
-    - pushd dist && tar -czvf packages.tar.gz otelcol translatesfx && popd
+    - mkdir -p dist
+    - pushd bin && tar -czvf packages.tar.gz otelcol_darwin_amd64 translatesfx_darwin_amd64 && popd
   after_script:
     - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
     - rm dist/signed/packages.tar.gz

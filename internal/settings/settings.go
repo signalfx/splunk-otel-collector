@@ -186,6 +186,11 @@ func parseArgs(args []string) (*Settings, error) {
 		"Do not translate old configurations to the new format automatically. "+
 			"By default, old configurations are translated to the new format for backward compatibility.")
 
+	// Deprecated "--metrics-addr" flag is a noop, but temporarily required to run the collector GKE/Autopilot.
+	addressFlag := ""
+	flagSet.StringVar(&addressFlag, "metrics-addr", "", "")
+	flagSet.MarkHidden("metrics-addr")
+
 	// Experimental flags
 	flagSet.VarPF(settings.configDir, "config-dir", "", "").Hidden = true
 	flagSet.BoolVar(&settings.configD, "configd", false, "")

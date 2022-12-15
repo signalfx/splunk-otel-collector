@@ -159,7 +159,7 @@ func TestIngestAuthScopeTokenGrantsRequiredEventCapabilities(tt *testing.T) {
 			fmt.Println("sleeping 10s before sending event to Collector to allow computation to begin")
 			time.Sleep(10 * time.Second)
 
-			sendEvents(tc.T, eventType)
+			sendEvents(tc.TB, eventType)
 
 			done := make(chan struct{})
 			go func() {
@@ -250,7 +250,7 @@ func TestAPIAuthScopeTokenDoesntGrantRequiredEventCapabilities(t *testing.T) {
 	fmt.Println("sleeping 10s before sending event to Collector to allow computation to begin")
 	time.Sleep(10 * time.Second)
 
-	sendEvents(tc.T, eventType)
+	sendEvents(tc.TB, eventType)
 
 	done := make(chan struct{})
 	go func() {
@@ -335,7 +335,7 @@ func assertQueryIdDimensionsWithQueryProperties(tc *testutils.Testcase, sfxClien
 	}
 }
 
-func sendEvents(t *testing.T, eventType string) {
+func sendEvents(t testing.TB, eventType string) {
 	dim := sfxpb.Dimension{Key: "dim_one", Value: "val_one"}
 	propVal := "a test event"
 	description := sfxpb.Property{Key: "description", Value: &sfxpb.PropertyValue{StrValue: &propVal}}

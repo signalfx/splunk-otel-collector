@@ -28,47 +28,6 @@ from .constants import (
 
 from .util import Asset
 
-
-def add_signing_args(parser):
-    signing_args = parser.add_argument_group("Signing Credentials")
-    signing_args.add_argument(
-        "--chaperone-token",
-        type=str,
-        default=os.environ.get("CHAPERONE_TOKEN"),
-        metavar="CHAPERONE_TOKEN",
-        required=False,
-        help="Chaperone token. Required if the CHAPERONE_TOKEN env var is not set.",
-    )
-    signing_args.add_argument(
-        "--staging-user",
-        type=str,
-        default=os.environ.get("STAGING_USERNAME", DEFAULT_STAGING_USERNAME),
-        metavar="STAGING_USERNAME",
-        required=False,
-        help=f"""
-            Staging username for {STAGING_URL}.
-            Defaults to the STAGING_USERNAME env var if set, otherwise '{DEFAULT_STAGING_USERNAME}'.
-        """,
-    )
-    signing_args.add_argument(
-        "--staging-token",
-        type=str,
-        default=os.environ.get("STAGING_TOKEN"),
-        metavar="STAGING_TOKEN",
-        required=False,
-        help=f"""
-            Staging token for {STAGING_URL}.
-            Required if the STAGING_TOKEN env var is not set.
-        """,
-    )
-
-
-def check_signing_args(args):
-    assert args.chaperone_token, f"Chaperone token not set"
-    assert args.staging_user, f"Staging username not set for {STAGING_URL}"
-    assert args.staging_token, f"Staging token not set for {STAGING_URL}"
-
-
 def add_artifactory_args(parser):
     artifactory_args = parser.add_argument_group("Artifactory Credentials")
     artifactory_args.add_argument(
@@ -126,24 +85,6 @@ def get_args_and_asset():
         """,
     )
     parser.add_argument(
-        "--no-push",
-        action="store_true",
-        default=False,
-        required=False,
-        help="Only sign the assets. Do not push the assets to Artifactory and/or S3.",
-    )
-    parser.add_argument(
-        "--no-sign-msi",
-        action="store_true",
-        default=False,
-        required=False,
-        help="""
-            Do not sign the MSI specified by the --path option.
-            Only push the MSI to S3.
-            NOTE: Assumes the MSI is already signed.
-        """,
-    )
-    parser.add_argument(
         "--path",
         type=str,
         default=None,
@@ -182,7 +123,6 @@ def get_args_and_asset():
     )
 
     add_artifactory_args(parser)
-    add_signing_args(parser)
 
     args = parser.parse_args()
 
@@ -192,10 +132,7 @@ def get_args_and_asset():
     if args.path:
         asset = get_asset(args.path)
 
-    if asset and not (asset.component == "msi" and args.no_sign_msi):
-        check_signing_args(args)
-
-    if not args.no_push and asset and asset.component in ("deb", "rpm"):
+    if asset and asset.component in ("deb", "rpm"):
         check_artifactory_args(args)
 
     return args, asset

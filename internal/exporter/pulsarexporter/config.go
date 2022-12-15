@@ -63,7 +63,7 @@ type Producer struct {
 	DisableBatching                 bool              `mapstructure:"disable_batching"`
 }
 
-var _ component.ExporterConfig = (*Config)(nil)
+var _ component.Config = (*Config)(nil)
 
 // Validate checks if the exporter configuration is valid
 func (cfg *Config) Validate() error {

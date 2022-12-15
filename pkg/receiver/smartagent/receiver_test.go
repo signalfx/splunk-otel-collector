@@ -35,9 +35,12 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	otelcolextension "go.opentelemetry.io/collector/extension"
+	"go.opentelemetry.io/collector/extension/extensiontest"
+	"go.opentelemetry.io/collector/otelcol/otelcoltest"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-	"go.opentelemetry.io/collector/service/servicetest"
+	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -52,8 +55,9 @@ func cleanUp() {
 	configureEnvironmentOnce = sync.Once{}
 }
 
-func newReceiverCreateSettings() component.ReceiverCreateSettings {
-	return component.ReceiverCreateSettings{
+func newReceiverCreateSettings(name string) otelcolreceiver.CreateSettings {
+	return otelcolreceiver.CreateSettings{
+		ID: component.NewIDWithName("smartagent", name),
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.NewNop(),
 			TracerProvider: trace.NewNoopTracerProvider(),
@@ -62,19 +66,24 @@ func newReceiverCreateSettings() component.ReceiverCreateSettings {
 	}
 }
 
-var expectedCPUMetrics = map[string]pmetric.MetricType{
-	"cpu.idle":                 pmetric.MetricTypeSum,
-	"cpu.interrupt":            pmetric.MetricTypeSum,
-	"cpu.nice":                 pmetric.MetricTypeSum,
-	"cpu.num_processors":       pmetric.MetricTypeGauge,
-	"cpu.softirq":              pmetric.MetricTypeSum,
-	"cpu.steal":                pmetric.MetricTypeSum,
-	"cpu.system":               pmetric.MetricTypeSum,
-	"cpu.user":                 pmetric.MetricTypeSum,
-	"cpu.utilization":          pmetric.MetricTypeGauge,
-	"cpu.utilization_per_core": pmetric.MetricTypeGauge,
-	"cpu.wait":                 pmetric.MetricTypeSum,
-}
+var (
+	expectedCPUMetrics = map[string]pmetric.MetricType{
+		"cpu.idle":                 pmetric.MetricTypeSum,
+		"cpu.interrupt":            pmetric.MetricTypeSum,
+		"cpu.nice":                 pmetric.MetricTypeSum,
+		"cpu.num_processors":       pmetric.MetricTypeGauge,
+		"cpu.softirq":              pmetric.MetricTypeSum,
+		"cpu.steal":                pmetric.MetricTypeSum,
+		"cpu.system":               pmetric.MetricTypeSum,
+		"cpu.user":                 pmetric.MetricTypeSum,
+		"cpu.utilization":          pmetric.MetricTypeGauge,
+		"cpu.utilization_per_core": pmetric.MetricTypeGauge,
+		"cpu.wait":                 pmetric.MetricTypeSum,
+	}
+
+	partialSettingsID = component.NewIDWithName(typeStr, "partial_settings")
+	extraSettingsID   = component.NewIDWithName(typeStr, "extra")
+)
 
 func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
 	return Config{
@@ -96,7 +105,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 10)
 	consumer := new(consumertest.MetricsSink)
-	receiver := newReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
 	receiver.registerMetricsConsumer(consumer)
 
 	require.NoError(t, receiver.Start(context.Background(), componenttest.NewNopHost()))
@@ -125,16 +134,16 @@ func TestSmartAgentReceiver(t *testing.T) {
 					instrumentationLibraryMetric := instrumentationLibraryMetrics.At(j)
 					metrics := instrumentationLibraryMetric.Metrics()
 					for k := 0; k < metrics.Len(); k++ {
-						metric := metrics.At(k)
-						name := metric.Name()
-						dataType := metric.Type()
+						metricInst := metrics.At(k)
+						name := metricInst.Name()
+						dataType := metricInst.Type()
 						expectedDataType := expectedCPUMetrics[name]
 						require.NotEqual(t, pmetric.MetricTypeEmpty, expectedDataType, "received unexpected none type for %s", name)
 						assert.Equal(t, expectedDataType, dataType)
 						var attributes pcommon.Map
 						switch dataType {
 						case pmetric.MetricTypeGauge:
-							dg := metric.Gauge()
+							dg := metricInst.Gauge()
 							for l := 0; l < dg.DataPoints().Len(); l++ {
 								dgdp := dg.DataPoints().At(l)
 								attributes = dgdp.Attributes()
@@ -142,7 +151,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 								assert.NotEqual(t, val, 0, "invalid value of MetricTypeGauge metric %s", name)
 							}
 						case pmetric.MetricTypeSum:
-							ds := metric.Sum()
+							ds := metricInst.Sum()
 							for l := 0; l < ds.DataPoints().Len(); l++ {
 								dsdp := ds.DataPoints().At(l)
 								attributes = dsdp.Attributes()
@@ -150,7 +159,7 @@ func TestSmartAgentReceiver(t *testing.T) {
 								assert.NotEqual(t, val, 0, "invalid value of MetricTypeSum metric %s", name)
 							}
 						default:
-							t.Errorf("unexpected type %#v for metric %s", metric.Type(), name)
+							t.Errorf("unexpected type %#v for metric %s", metricInst.Type(), name)
 						}
 
 						labelVal, ok := attributes.Get("required_dimension")
@@ -186,7 +195,7 @@ func TestStripMonitorTypePrefix(t *testing.T) {
 func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("invalid", "cpu", -123)
-	receiver := newReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("invalid"), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	assert.EqualError(t, err,
 		"config validation failed for \"smartagent/invalid\": intervalSeconds must be greater than 0s (-123 provided)",
@@ -196,7 +205,7 @@ func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("invalid", "notamonitortype", 1)
-	receiver := newReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("invalid"), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	assert.EqualError(t, err,
 		"failed creating monitor \"notamonitortype\": unable to find MonitorFactory for \"notamonitortype\"",
@@ -206,7 +215,7 @@ func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 func TestStartAndShutdown(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
-	receiver := newReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
@@ -217,7 +226,7 @@ func TestStartAndShutdown(t *testing.T) {
 func TestOutOfOrderShutdownInvocations(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
-	receiver := newReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
 
 	err := receiver.Shutdown(context.Background())
 	require.Error(t, err)
@@ -226,17 +235,17 @@ func TestOutOfOrderShutdownInvocations(t *testing.T) {
 	)
 }
 
-func TestMultipleInstacesOfSameMonitorType(t *testing.T) {
+func TestMultipleInstancesOfSameMonitorType(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
-	fstRcvr := newReceiver(newReceiverCreateSettings(), cfg)
+	fstRcvr := newReceiver(newReceiverCreateSettings("valid"), cfg)
 
 	ctx := context.Background()
 	mh := testutils.NewAssertNoErrorHost(t)
 	require.NoError(t, fstRcvr.Start(ctx, mh))
 	require.NoError(t, fstRcvr.Shutdown(ctx))
 
-	sndRcvr := newReceiver(newReceiverCreateSettings(), cfg)
+	sndRcvr := newReceiver(newReceiverCreateSettings("valid"), cfg)
 	assert.NoError(t, sndRcvr.Start(ctx, mh))
 	assert.NoError(t, sndRcvr.Shutdown(ctx))
 }
@@ -244,7 +253,7 @@ func TestMultipleInstacesOfSameMonitorType(t *testing.T) {
 func TestInvalidMonitorStateAtShutdown(t *testing.T) {
 	t.Cleanup(cleanUp)
 	cfg := newConfig("valid", "cpu", 1)
-	receiver := newReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
 	receiver.monitor = new(any)
 
 	err := receiver.Shutdown(context.Background())
@@ -272,7 +281,7 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 			monitors.MonitorMetadatas["notarealmonitor"] = &monitors.Metadata{MonitorType: "notarealmonitor"}
 
 			cfg := newConfig("invalid", "notarealmonitor", 123)
-			receiver := newReceiver(newReceiverCreateSettings(), cfg)
+			receiver := newReceiver(newReceiverCreateSettings("invalid"), cfg)
 			err := receiver.Start(context.Background(), componenttest.NewNopHost())
 			require.Error(tt, err)
 			assert.Contains(tt, err.Error(),
@@ -286,7 +295,7 @@ func TestFilteringNoMetadata(t *testing.T) {
 	t.Cleanup(cleanUp)
 	monitors.MonitorFactories["fakemonitor"] = func() any { return struct{}{} }
 	cfg := newConfig("valid", "fakemonitor", 1)
-	receiver := newReceiver(newReceiverCreateSettings(), cfg)
+	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.EqualError(t, err, "failed creating monitor \"fakemonitor\": could not find monitor metadata of type fakemonitor")
 }
@@ -296,7 +305,7 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	cfg := newConfig("valid", "cpu", 1)
 	observedLogger, logs := observer.New(zapcore.WarnLevel)
 	logger := zap.New(observedLogger)
-	rcs := newReceiverCreateSettings()
+	rcs := newReceiverCreateSettings("valid")
 	rcs.Logger = logger
 	r := newReceiver(rcs, cfg)
 
@@ -356,15 +365,15 @@ func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {
 
 	factory := smartagentextension.NewFactory()
 	factories.Extensions[typeStr] = factory
-	cfg, err := servicetest.LoadConfig(
+	cfg, err := otelcoltest.LoadConfig(
 		path.Join(".", "testdata", "extension_config.yaml"), factories,
 	)
 	require.NoError(t, err)
 
-	partialSettingsConfig := cfg.Extensions[component.NewIDWithName(typeStr, "partial_settings")]
+	partialSettingsConfig := cfg.Extensions[partialSettingsID]
 	require.NotNil(t, partialSettingsConfig)
 
-	extraSettingsConfig := cfg.Extensions[component.NewIDWithName(typeStr, "extra")]
+	extraSettingsConfig := cfg.Extensions[extraSettingsID]
 	require.NotNil(t, extraSettingsConfig)
 
 	one, ok := partialSettingsConfig.(*smartagentextension.Config)
@@ -387,18 +396,18 @@ func (m *mockHost) GetFactory(component.Kind, component.Type) component.Factory 
 	return nil
 }
 
-func (m *mockHost) GetExtensions() map[component.ID]component.Extension {
-	exampleFactory := componenttest.NewNopExtensionFactory()
+func (m *mockHost) GetExtensions() map[component.ID]otelcolextension.Extension {
+	exampleFactory := extensiontest.NewNopFactory()
 	randomExtensionConfig := exampleFactory.CreateDefaultConfig()
-	return map[component.ID]component.Extension{
-		m.smartagentextensionConfig.ID():      getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
-		randomExtensionConfig.ID():            getExtension(exampleFactory, randomExtensionConfig),
-		m.smartagentextensionConfigExtra.ID(): getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfigExtra),
+	return map[component.ID]otelcolextension.Extension{
+		partialSettingsID:                      getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfig),
+		component.NewID(exampleFactory.Type()): getExtension(exampleFactory, randomExtensionConfig),
+		extraSettingsID:                        getExtension(smartagentextension.NewFactory(), m.smartagentextensionConfigExtra),
 	}
 }
 
-func getExtension(f component.ExtensionFactory, cfg component.ExtensionConfig) component.Extension {
-	e, err := f.CreateExtension(context.Background(), component.ExtensionCreateSettings{}, cfg)
+func getExtension(f otelcolextension.Factory, cfg component.Config) otelcolextension.Extension {
+	e, err := f.CreateExtension(context.Background(), otelcolextension.CreateSettings{}, cfg)
 	if err != nil {
 		panic(err)
 	}

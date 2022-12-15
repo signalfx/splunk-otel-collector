@@ -27,7 +27,7 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
-	"go.opentelemetry.io/collector/service"
+	"go.opentelemetry.io/collector/otelcol"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
@@ -74,8 +74,8 @@ func main() {
 
 	envProvider := envprovider.New()
 	fileProvider := fileprovider.New()
-	serviceConfigProvider, err := service.NewConfigProvider(
-		service.ConfigProviderSettings{
+	serviceConfigProvider, err := otelcol.NewConfigProvider(
+		otelcol.ConfigProviderSettings{
 			ResolverSettings: confmap.ResolverSettings{
 				URIs: collectorSettings.ResolverURIs(),
 				Providers: map[string]confmap.Provider{
@@ -100,7 +100,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	serviceSettings := service.CollectorSettings{
+	serviceSettings := otelcol.CollectorSettings{
 		BuildInfo:      info,
 		Factories:      factories,
 		ConfigProvider: serviceConfigProvider,
@@ -112,8 +112,8 @@ func main() {
 	}
 }
 
-func runInteractive(settings service.CollectorSettings) error {
-	cmd := service.NewCommand(settings)
+func runInteractive(settings otelcol.CollectorSettings) error {
+	cmd := otelcol.NewCommand(settings)
 	if err := cmd.Execute(); err != nil {
 		return fmt.Errorf("application run finished with error: %w", err)
 	}

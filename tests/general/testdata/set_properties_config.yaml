@@ -1,0 +1,28 @@
+receivers:
+  otlp:
+    protocols: overwritten
+
+processors:
+  filter/one:
+    metrics:
+      include:
+        match_type: overwritten
+        metric_names: overwritten
+  filter/two:
+    metrics:
+      include:
+        match_type: overwritten
+        metric_names: overwritten
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [filter/one, filter/two]
+      exporters: [otlp]

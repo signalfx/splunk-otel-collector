@@ -19,6 +19,7 @@ import (
 
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/extension"
 )
 
 // SmartAgentConfigProvider exposes global saconfig.Config to other components
@@ -44,6 +45,6 @@ func (sae *smartAgentConfigExtension) SmartAgentConfig() *saconfig.Config {
 	return sae.saCfg
 }
 
-func newSmartAgentConfigExtension(cfg *Config) (component.Extension, error) {
+func newSmartAgentConfigExtension(cfg *Config) (extension.Extension, error) {
 	return &smartAgentConfigExtension{saCfg: &cfg.Config}, nil
 }

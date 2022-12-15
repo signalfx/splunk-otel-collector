@@ -29,7 +29,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
-	"go.opentelemetry.io/collector/service/servicetest"
+	"go.opentelemetry.io/collector/otelcol/otelcoltest"
 	"go.uber.org/zap/zaptest"
 	"gopkg.in/yaml.v2"
 
@@ -42,7 +42,7 @@ func TestValidConfig(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[typeStr] = factory
-	collectorConfig, err := servicetest.LoadConfig(
+	collectorConfig, err := otelcoltest.LoadConfig(
 		path.Join(".", "testdata", "config.yaml"), factories,
 	)
 
@@ -135,20 +135,20 @@ func TestInvalidConfigs(t *testing.T) {
 	factories.Receivers[typeStr] = factory
 
 	tests := []struct{ name, expectedError string }{
-		{name: "no_watch_observers", expectedError: "receiver \"discovery\" has invalid configuration: `watch_observers` must be defined and include at least one configured observer extension"},
-		{name: "missing_status", expectedError: "receiver \"discovery\" has invalid configuration: receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
-		{name: "missing_status_metrics_and_statements", expectedError: "receiver \"discovery\" has invalid configuration: receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
-		{name: "invalid_status_types", expectedError: `receiver "discovery" has invalid configuration: receiver "a_receiver" validation failure: invalid status "unsupported". must be one of [successful partial failed]; invalid status "another_unsupported". must be one of [successful partial failed]`},
-		{name: "multiple_status_match_types", expectedError: "receiver \"discovery\" has invalid configuration: receiver \"a_receiver\" validation failure: `metrics` status source type `successful` match type validation failed. Must provide one of [regexp strict expr] but received [strict regexp]; `statements` status source type `failed` match type validation failed. Must provide one of [regexp strict expr] but received [strict expr]"},
-		{name: "reserved_receiver_creator", expectedError: `receiver "discovery" has invalid configuration: receiver "receiver_creator/with-name" validation failure: receiver cannot be a receiver_creator`},
-		{name: "reserved_receiver_name", expectedError: `receiver "discovery" has invalid configuration: receiver "a_receiver/with-receiver_creator/in-name" validation failure: receiver name cannot contain "receiver_creator/"`},
-		{name: "reserved_receiver_name_with_endpoint", expectedError: `receiver "discovery" has invalid configuration: receiver "receiver/with{endpoint=}/" validation failure: receiver name cannot contain "{endpoint=[^}]*}/"`},
+		{name: "no_watch_observers", expectedError: "receivers::discovery: `watch_observers` must be defined and include at least one configured observer extension"},
+		{name: "missing_status", expectedError: "receivers::discovery: receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
+		{name: "missing_status_metrics_and_statements", expectedError: "receivers::discovery: receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
+		{name: "invalid_status_types", expectedError: `receivers::discovery: receiver "a_receiver" validation failure: invalid status "unsupported". must be one of [successful partial failed]; invalid status "another_unsupported". must be one of [successful partial failed]`},
+		{name: "multiple_status_match_types", expectedError: "receivers::discovery: receiver \"a_receiver\" validation failure: `metrics` status source type `successful` match type validation failed. Must provide one of [regexp strict expr] but received [strict regexp]; `statements` status source type `failed` match type validation failed. Must provide one of [regexp strict expr] but received [strict expr]"},
+		{name: "reserved_receiver_creator", expectedError: `receivers::discovery: receiver "receiver_creator/with-name" validation failure: receiver cannot be a receiver_creator`},
+		{name: "reserved_receiver_name", expectedError: `receivers::discovery: receiver "a_receiver/with-receiver_creator/in-name" validation failure: receiver name cannot contain "receiver_creator/"`},
+		{name: "reserved_receiver_name_with_endpoint", expectedError: `receivers::discovery: receiver "receiver/with{endpoint=}/" validation failure: receiver name cannot contain "{endpoint=[^}]*}/"`},
 	}
 
 	for _, test := range tests {
 		func(name, expectedError string) {
 			t.Run(name, func(t *testing.T) {
-				_, err = servicetest.LoadConfigAndValidate(path.Join(".", "testdata", fmt.Sprintf("%s.yaml", name)), factories)
+				_, err = otelcoltest.LoadConfigAndValidate(path.Join(".", "testdata", fmt.Sprintf("%s.yaml", name)), factories)
 				require.Error(t, err)
 				require.EqualError(t, err, expectedError)
 			})
@@ -174,7 +174,6 @@ func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	require.Equal(t, component.Type("receiver_creator"), factory.Type())
 
 	require.NoError(t, component.ValidateConfig(rCfg))
-	require.Equal(t, component.NewIDWithName("receiver_creator", "discovery/discovery-name"), rCfg.ID())
 
 	creatorCfg, ok := rCfg.(*receivercreator.Config)
 	require.True(t, ok)

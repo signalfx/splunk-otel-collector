@@ -23,7 +23,6 @@ import (
 
 	flag "github.com/spf13/pflag"
 	"go.opentelemetry.io/collector/confmap"
-	"go.opentelemetry.io/collector/confmap/converter/overwritepropertiesconverter"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 )
@@ -139,10 +138,8 @@ func getConfigDir(f *Settings) string {
 // ConfMapConverters returns confmap.Converters for the collector core service.
 func (s *Settings) ConfMapConverters() []confmap.Converter {
 	confMapConverters := []confmap.Converter{
-		// nolint: staticcheck
-		overwritepropertiesconverter.New(s.setProperties.value), // support until there's an actual replacement
+		configconverter.NewOverwritePropertiesConverter(s.setProperties.value),
 	}
-
 	if !s.noConvertConfig {
 		confMapConverters = append(
 			confMapConverters,
@@ -182,6 +179,7 @@ func parseArgs(args []string) (*Settings, error) {
 		"The component has to be defined in the config file and the flag has a higher precedence. "+
 		"Array config properties are overridden and maps are joined. Example --set=processors.batch.timeout=2s")
 	flagSet.BoolVar(&settings.dryRun, "dry-run", false, "Don't run the service, just show the configuration")
+	flagSet.MarkHidden("dry-run")
 	flagSet.BoolVar(&settings.noConvertConfig, "no-convert-config", false,
 		"Do not translate old configurations to the new format automatically. "+
 			"By default, old configurations are translated to the new format for backward compatibility.")

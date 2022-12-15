@@ -11,8 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 //go:build linux
-// +build linux
 
 package smartagentreceiver
 
@@ -31,7 +31,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/service/servicetest"
+	"go.opentelemetry.io/collector/otelcol/otelcoltest"
 )
 
 func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
@@ -40,7 +40,7 @@ func TestLoadConfigWithLinuxOnlyMonitors(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Receivers[component.Type(typeStr)] = factory
-	cfg, err := servicetest.LoadConfig(
+	cfg, err := otelcoltest.LoadConfig(
 		path.Join(".", "testdata", "linux_config.yaml"), factories,
 	)
 

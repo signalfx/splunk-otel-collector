@@ -22,13 +22,15 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/extension"
+	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 func TestNewDiscoveryReceiver(t *testing.T) {
-	rcs := component.ReceiverCreateSettings{
+	rcs := otelcolreceiver.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.NewNop(),
 			MeterProvider:  metric.NewNoopMeterProvider(),
@@ -53,13 +55,13 @@ func TestObservablesFromHost(t *testing.T) {
 
 	for _, tt := range []struct {
 		name                string
-		extensions          map[component.ID]component.Extension
+		extensions          map[component.ID]extension.Extension
 		expectedObservables map[component.ID]observer.Observable
 		expectedError       string
 		watchObservers      []component.ID
 	}{
 		{name: "mixed non-observables ids",
-			extensions: map[component.ID]component.Extension{
+			extensions: map[component.ID]extension.Extension{
 				nopObsID:     nopObs,
 				nopObsvbleID: nopObsvble,
 			},
@@ -67,7 +69,7 @@ func TestObservablesFromHost(t *testing.T) {
 			expectedError:  `extension "nop_observer" in watch_observers is not an observer`,
 		},
 		{name: "mixed non-observables ids with names",
-			extensions: map[component.ID]component.Extension{
+			extensions: map[component.ID]extension.Extension{
 				nopObsIDWithName:     nopObsWithName,
 				nopObsvbleIDWithName: nopObsvbleWithName,
 			},
@@ -75,14 +77,14 @@ func TestObservablesFromHost(t *testing.T) {
 			expectedError:  `extension "nop_observer/with_name" in watch_observers is not an observer`,
 		},
 		{name: "only missing extension",
-			extensions: map[component.ID]component.Extension{
+			extensions: map[component.ID]extension.Extension{
 				nopObsvbleID: nopObsvble,
 			},
 			watchObservers: []component.ID{nopObsID},
 			expectedError:  `failed to find observer "nop_observer" as a configured extension`,
 		},
 		{name: "happy path",
-			extensions: map[component.ID]component.Extension{
+			extensions: map[component.ID]extension.Extension{
 				nopObsvbleID:         nopObsvble,
 				nopObsvbleIDWithName: nopObsvbleWithName,
 			},
@@ -95,7 +97,7 @@ func TestObservablesFromHost(t *testing.T) {
 	} {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
-			rcs := component.ReceiverCreateSettings{
+			rcs := otelcolreceiver.CreateSettings{
 				TelemetrySettings: component.TelemetrySettings{
 					Logger:         zap.NewNop(),
 					TracerProvider: trace.NewNoopTracerProvider(),
@@ -123,20 +125,20 @@ func TestObservablesFromHost(t *testing.T) {
 
 type mockHost struct {
 	component.Host
-	extensions map[component.ID]component.Extension
+	extensions map[component.ID]extension.Extension
 }
 
 func (mh mockHost) GetFactory(_ component.Kind, _ component.Type) component.Factory {
 	return nil
 }
 
-func (mh mockHost) GetExtensions() map[component.ID]component.Extension {
+func (mh mockHost) GetExtensions() map[component.ID]extension.Extension {
 	return mh.extensions
 }
 
 type nopObserver struct{}
 
-var _ component.Extension = (*nopObserver)(nil)
+var _ extension.Extension = (*nopObserver)(nil)
 var _ observer.Observable = (*nopObservable)(nil)
 
 func (m nopObserver) Start(_ context.Context, _ component.Host) error {

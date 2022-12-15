@@ -24,7 +24,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/service/servicetest"
+	"go.opentelemetry.io/collector/otelcol/otelcoltest"
+	"go.opentelemetry.io/collector/receiver"
 )
 
 func TestCreateDefaultConfig(t *testing.T) {
@@ -33,7 +34,7 @@ func TestCreateDefaultConfig(t *testing.T) {
 }
 
 func TestParseConfig(t *testing.T) {
-	cfg, err := servicetest.LoadConfigAndValidate(path.Join("testdata", "config_test.yaml"), testFactories(t))
+	cfg, err := otelcoltest.LoadConfigAndValidate(path.Join("testdata", "config_test.yaml"), testFactories(t))
 	require.NoError(t, err)
 	sqlCfg := cfg.Receivers[component.NewID("oracledb")].(*Config)
 	assert.Equal(t, "oracle://otel:password@localhost:51521/XE", sqlCfg.DataSource)
@@ -45,7 +46,7 @@ func TestParseConfig(t *testing.T) {
 func testFactories(t *testing.T) component.Factories {
 	factories, err := componenttest.NopFactories()
 	require.NoError(t, err)
-	factories.Receivers["oracledb"] = component.NewReceiverFactory(
+	factories.Receivers["oracledb"] = receiver.NewFactory(
 		"oracledb",
 		CreateDefaultConfig,
 	)

@@ -29,7 +29,7 @@ type Config struct {
 	Endpoint string `mapstructure:"endpoint"`
 }
 
-var _ component.ExporterConfig = (*Config)(nil)
+var _ component.Config = (*Config)(nil)
 
 // Validate checks if the exporter configuration is valid
 func (cfg *Config) Validate() error {

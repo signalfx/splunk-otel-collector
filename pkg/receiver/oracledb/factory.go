@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
 
 	"github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver/internal/metadata"
@@ -35,16 +36,16 @@ const (
 )
 
 // NewFactory creates a new Oracle receiver factory.
-func NewFactory() component.ReceiverFactory {
-	return component.NewReceiverFactory(
+func NewFactory() receiver.Factory {
+	return receiver.NewFactory(
 		typeStr,
 		createDefaultConfig,
-		component.WithMetricsReceiver(createReceiverFunc(func(dataSourceName string) (*sql.DB, error) {
+		receiver.WithMetrics(createReceiverFunc(func(dataSourceName string) (*sql.DB, error) {
 			return sql.Open("oracle", dataSourceName)
 		}, newDbClient), stability))
 }
 
-func createDefaultConfig() component.ReceiverConfig {
+func createDefaultConfig() component.Config {
 	return &Config{
 		ReceiverSettings: config.NewReceiverSettings(component.NewID(typeStr)),
 		ScraperControllerSettings: scraperhelper.ScraperControllerSettings{
@@ -57,20 +58,20 @@ func createDefaultConfig() component.ReceiverConfig {
 
 type sqlOpenerFunc func(dataSourceName string) (*sql.DB, error)
 
-func createReceiverFunc(sqlOpenerFunc sqlOpenerFunc, clientProviderFunc clientProviderFunc) component.CreateMetricsReceiverFunc {
+func createReceiverFunc(sqlOpenerFunc sqlOpenerFunc, clientProviderFunc clientProviderFunc) receiver.CreateMetricsFunc {
 	return func(
 		ctx context.Context,
-		settings component.ReceiverCreateSettings,
-		cfg component.ReceiverConfig,
+		settings receiver.CreateSettings,
+		cfg component.Config,
 		consumer consumer.Metrics,
-	) (component.MetricsReceiver, error) {
+	) (receiver.Metrics, error) {
 		sqlCfg := cfg.(*Config)
 		var opts []scraperhelper.ScraperControllerOption
 		metricsBuilder := metadata.NewMetricsBuilder(sqlCfg.MetricsSettings, settings.BuildInfo)
 		datasourceURL, _ := url.Parse(sqlCfg.DataSource)
 		instanceName := datasourceURL.Host
 
-		mp := newScraper(cfg.ID(), metricsBuilder, sqlCfg.MetricsSettings, sqlCfg.ScraperControllerSettings, settings.TelemetrySettings.Logger, func() (*sql.DB, error) {
+		mp := newScraper(settings.ID, metricsBuilder, sqlCfg.MetricsSettings, sqlCfg.ScraperControllerSettings, settings.TelemetrySettings.Logger, func() (*sql.DB, error) {
 			return sqlOpenerFunc(sqlCfg.DataSource)
 		}, clientProviderFunc, instanceName)
 		opt := scraperhelper.AddScraper(mp)

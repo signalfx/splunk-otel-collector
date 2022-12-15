@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/multierr"
 	"gopkg.in/yaml.v2"
 
@@ -31,7 +32,7 @@ import (
 )
 
 var (
-	_ component.ReceiverConfig = (*Config)(nil)
+	_ component.Config = (*Config)(nil)
 
 	allowedMatchTypes = []string{"regexp", "strict", "expr"}
 
@@ -181,14 +182,14 @@ func (lr *LogRecord) validate() error {
 
 // receiverCreatorFactoryAndConfig will embed the applicable receiver creator fields in a new receiver creator config
 // suitable for being used to create a receiver instance by the returned factory.
-func (cfg *Config) receiverCreatorFactoryAndConfig(correlations correlationStore) (component.ReceiverFactory, component.ReceiverConfig, error) {
+func (cfg *Config) receiverCreatorFactoryAndConfig(correlations correlationStore) (receiver.Factory, component.Config, error) {
 	receiverCreatorFactory := receivercreator.NewFactory()
 	receiverCreatorDefaultConfig := receiverCreatorFactory.CreateDefaultConfig()
 	receiverCreatorConfig, ok := receiverCreatorDefaultConfig.(*receivercreator.Config)
 	if !ok {
 		return nil, nil, fmt.Errorf("failed to coerce to receivercreator.Config")
 	}
-	receiverCreatorConfig.SetIDName(cfg.ID().String())
+
 	receiverCreatorConfig.WatchObservers = cfg.WatchObservers
 
 	receiversConfig, err := cfg.receiverCreatorReceiversConfig(correlations)

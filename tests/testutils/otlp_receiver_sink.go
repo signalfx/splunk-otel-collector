@@ -28,6 +28,7 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
@@ -40,9 +41,9 @@ import (
 // providing received metrics to test cases.
 type OTLPReceiverSink struct {
 	Host            component.Host
-	logsReceiver    *component.LogsReceiver
+	logsReceiver    *receiver.Logs
 	logsSink        *consumertest.LogsSink
-	metricsReceiver *component.MetricsReceiver
+	metricsReceiver *receiver.Metrics
 	metricsSink     *consumertest.MetricsSink
 	Logger          *zap.Logger
 	Endpoint        string
@@ -90,7 +91,7 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 	otlpConfig.GRPC.NetAddr = confignet.NetAddr{Endpoint: otlp.Endpoint, Transport: "tcp"}
 	otlpConfig.HTTP = nil
 
-	params := component.ReceiverCreateSettings{
+	params := receiver.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         otlp.Logger,
 			MeterProvider:  metric.NewNoopMeterProvider(),

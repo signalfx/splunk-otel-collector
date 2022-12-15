@@ -263,9 +263,18 @@ func (collector *CollectorContainer) EffectiveConfig(t testing.TB, port uint16) 
 }
 
 func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri string) map[string]any {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	n, r, err := collector.Container.Exec(ctx, []string{"curl", "-s", uri})
+	var n int
+	var r io.Reader
+	var err error
+	for i := 0; i < 3; i++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		n, r, err = collector.Container.Exec(ctx, []string{"curl", "-s", uri})
+		cancel()
+		if err == nil && n == 0 {
+			break
+		}
+		time.Sleep(time.Second)
+	}
 	require.NoError(t, err)
 	require.Zero(t, n)
 	out, err := io.ReadAll(r)

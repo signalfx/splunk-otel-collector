@@ -33,18 +33,22 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumertest"
+	otelcolexporter "go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/exporter/exportertest"
+	otelcolextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 )
 
 func TestOutput(t *testing.T) {
-	rcs := component.ReceiverCreateSettings{}
+	rcs := otelcolreceiver.CreateSettings{}
 	rcs.Logger = zap.NewNop()
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(),
 		consumertest.NewNop(), consumertest.NewNop(),
-		componenttest.NewNopHost(), newReceiverCreateSettings(),
+		componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 	output.AddDatapointExclusionFilter(dpfilters.DatapointFilter(nil))
@@ -74,7 +78,7 @@ func TestHasEnabledMetric(t *testing.T) {
 	require.NoError(t, err)
 	output, err := newOutput(
 		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"mem.used"}, output.EnabledMetrics())
@@ -84,7 +88,7 @@ func TestHasEnabledMetric(t *testing.T) {
 	require.NoError(t, err)
 	output, err = newOutput(
 		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 	assert.Empty(t, output.EnabledMetrics())
@@ -108,7 +112,7 @@ func TestHasEnabledMetricInGroup(t *testing.T) {
 	require.NoError(t, err)
 	output, err := newOutput(
 		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 	assert.True(t, output.HasEnabledMetricInGroup("mem"))
@@ -119,7 +123,7 @@ func TestHasEnabledMetricInGroup(t *testing.T) {
 	require.NoError(t, err)
 	output, err = newOutput(
 		Config{}, monitorFiltering, consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 	assert.False(t, output.HasEnabledMetricInGroup("any"))
@@ -128,7 +132,7 @@ func TestHasEnabledMetricInGroup(t *testing.T) {
 func TestExtraDimensions(t *testing.T) {
 	o, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 	assert.Empty(t, o.extraDimensions)
@@ -155,7 +159,7 @@ func TestSendDimensionUpdate(t *testing.T) {
 	mmc := mockMetadataClient{id: component.NewID("signalfx")}
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), &mmc, consumertest.NewNop(), consumertest.NewNop(),
-		componenttest.NewNopHost(), newReceiverCreateSettings(),
+		componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 
@@ -178,7 +182,7 @@ func TestSendDimensionUpdate(t *testing.T) {
 func TestSendDimensionUpdateWithInvalidExporter(t *testing.T) {
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 	dim := types.Dimension{Name: "error"}
@@ -198,7 +202,7 @@ func TestSendDimensionUpdateFromConfigMetadataExporters(t *testing.T) {
 		consumertest.NewNop(),
 		consumertest.NewNop(),
 		&hostWithExporters{exporter: &mmc},
-		newReceiverCreateSettings(),
+		newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 
@@ -216,7 +220,7 @@ func TestSendDimensionUpdateFromNextConsumerMetadataExporters(t *testing.T) {
 	mmc := mockMetadataClient{id: component.NewID("signalfx")}
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), &mmc, consumertest.NewNop(),
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 	dim := types.Dimension{
@@ -233,7 +237,7 @@ func TestSendEvent(t *testing.T) {
 	mmc := mockMetadataClient{id: component.NewID("signalfx")}
 	output, err := newOutput(
 		Config{}, fakeMonitorFiltering(), consumertest.NewNop(), &mmc,
-		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(),
+		consumertest.NewNop(), componenttest.NewNopHost(), newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 
@@ -268,7 +272,7 @@ func TestDimensionClientDefaultsToSFxExporter(t *testing.T) {
 		consumertest.NewNop(),
 		consumertest.NewNop(),
 		&hostWithExporters{exporter: &mmc},
-		newReceiverCreateSettings(),
+		newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 
@@ -291,7 +295,7 @@ func TestDimensionClientDefaultsRequiresLoneSFxExporter(t *testing.T) {
 		consumertest.NewNop(),
 		consumertest.NewNop(),
 		&hostWithTwoSFxExporters{sfxExporter: &mmc},
-		newReceiverCreateSettings(),
+		newReceiverCreateSettings(""),
 	)
 	require.NoError(t, err)
 
@@ -343,7 +347,7 @@ func (mmc *mockMetadataClient) ConsumeMetadata(updates []*metadata.MetadataUpdat
 	return nil
 }
 
-func (mmc *mockMetadataClient) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
+func (mmc *mockMetadataClient) ConsumeLogs(_ context.Context, logs plog.Logs) error {
 	mmc.receivedLogs = append(mmc.receivedLogs, logs)
 	return nil
 }
@@ -360,7 +364,7 @@ func (h *nopHost) ReportFatalError(_ error) {}
 func (h *nopHost) GetFactory(_ component.Kind, _ component.Type) component.Factory {
 	return nil
 }
-func (h *nopHost) GetExtensions() map[component.ID]component.Extension {
+func (h *nopHost) GetExtensions() map[component.ID]otelcolextension.Extension {
 	return nil
 }
 
@@ -374,12 +378,13 @@ func getExporters() map[component.DataType]map[component.ID]component.Component 
 	metricExporterMap := map[component.ID]component.Component{}
 	exporters[component.DataTypeMetrics] = metricExporterMap
 
-	exampleExporterFactory := componenttest.NewNopExporterFactory()
+	exampleExporterFactory := exportertest.NewNopFactory()
 	exampleExporter, _ := exampleExporterFactory.CreateMetricsExporter(
-		context.Background(), component.ExporterCreateSettings{}, nil,
+		context.Background(), otelcolexporter.CreateSettings{}, nil,
 	)
 
-	metricExporterMap[exampleExporterFactory.CreateDefaultConfig().ID()] = exampleExporter
+	// metricExporterMap[exampleExporterFactory.CreateDefaultConfig().ID()] = exampleExporter
+	metricExporterMap[component.NewID(exampleExporterFactory.Type())] = exampleExporter
 	metricExporterMap[component.NewID("metricsreceiver")] = &mockMetricsReceiver{}
 	metricExporterMap[component.NewID("notareceiver")] = &notAReceiver{}
 
@@ -391,7 +396,7 @@ func (h *hostWithExporters) GetExporters() map[component.DataType]map[component.
 	exporterMap := exporters[component.DataTypeMetrics]
 
 	// Add internal exporter to the list.
-	exporterMap[h.exporter.id] = component.MetricsExporter(h.exporter)
+	exporterMap[h.exporter.id] = otelcolexporter.Metrics(h.exporter)
 	return exporters
 }
 
@@ -405,9 +410,9 @@ func (h *hostWithTwoSFxExporters) GetExporters() map[component.DataType]map[comp
 	exporterMap := exporters[component.DataTypeMetrics]
 
 	meOne := component.NewIDWithName("signalfx", "sfx1")
-	exporterMap[meOne] = component.MetricsExporter(h.sfxExporter)
+	exporterMap[meOne] = otelcolexporter.Metrics(h.sfxExporter)
 
 	meTwo := component.NewIDWithName("signalfx", "sfx2")
-	exporterMap[meTwo] = component.MetricsExporter(h.sfxExporter)
+	exporterMap[meTwo] = otelcolexporter.Metrics(h.sfxExporter)
 	return exporters
 }

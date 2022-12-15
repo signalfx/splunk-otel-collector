@@ -29,7 +29,8 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/service/servicetest"
+	"go.opentelemetry.io/collector/extension"
+	"go.opentelemetry.io/collector/otelcol/otelcoltest"
 )
 
 var tru = true
@@ -41,7 +42,7 @@ func TestLoadConfig(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Extensions[typeStr] = factory
-	cfg, err := servicetest.LoadConfig(
+	cfg, err := otelcoltest.LoadConfig(
 		path.Join(".", "testdata", "config.yaml"), factories,
 	)
 
@@ -50,56 +51,59 @@ func TestLoadConfig(t *testing.T) {
 
 	require.Equal(t, len(cfg.Extensions), 3)
 
-	emptyConfig := cfg.Extensions[component.NewIDWithName(typeStr, "default_settings")]
+	defaultSettingsID := component.NewIDWithName("smartagent", "default_settings")
+	emptyConfig := cfg.Extensions[defaultSettingsID]
 	require.NotNil(t, emptyConfig)
 	require.NoError(t, componenttest.CheckConfigStruct(emptyConfig))
 	require.Equal(t, func() *Config {
-		cfg := defaultConfig()
-		cfg.ExtensionSettings.SetIDName("default_settings")
-		return &cfg
+		c := defaultConfig()
+		c.ExtensionSettings = config.NewExtensionSettings(defaultSettingsID)
+		return &c
 	}(), emptyConfig)
 
-	allSettingsConfig := cfg.Extensions[component.NewIDWithName(typeStr, "all_settings")]
+	allSettingsID := component.NewIDWithName("smartagent", "all_settings")
+	allSettingsConfig := cfg.Extensions[allSettingsID]
 	require.NotNil(t, allSettingsConfig)
 	require.NoError(t, componenttest.CheckConfigStruct(allSettingsConfig))
 	require.Equal(t, func() *Config {
-		cfg := defaultConfig()
-		cfg.ExtensionSettings.SetIDName("all_settings")
-		cfg.BundleDir = "/opt/bin/collectd/"
-		cfg.ProcPath = "/my_proc"
-		cfg.EtcPath = "/my_etc"
-		cfg.VarPath = "/my_var"
-		cfg.RunPath = "/my_run"
-		cfg.SysPath = "/my_sys"
-		cfg.Collectd.Timeout = 10
-		cfg.Collectd.ReadThreads = 1
-		cfg.Collectd.WriteThreads = 4
-		cfg.Collectd.WriteQueueLimitHigh = 5
-		cfg.Collectd.WriteQueueLimitLow = 1
-		cfg.Collectd.LogLevel = "info"
-		cfg.Collectd.IntervalSeconds = 5
-		cfg.Collectd.WriteServerIPAddr = "10.100.12.1"
-		cfg.Collectd.WriteServerPort = 9090
-		cfg.Collectd.ConfigDir = "/etc/"
-		cfg.Collectd.BundleDir = "/opt/bin/collectd/"
-		cfg.Collectd.HasGenericJMXMonitor = false
-		return &cfg
+		c := defaultConfig()
+		c.ExtensionSettings = config.NewExtensionSettings(allSettingsID)
+		c.BundleDir = "/opt/bin/collectd/"
+		c.ProcPath = "/my_proc"
+		c.EtcPath = "/my_etc"
+		c.VarPath = "/my_var"
+		c.RunPath = "/my_run"
+		c.SysPath = "/my_sys"
+		c.Collectd.Timeout = 10
+		c.Collectd.ReadThreads = 1
+		c.Collectd.WriteThreads = 4
+		c.Collectd.WriteQueueLimitHigh = 5
+		c.Collectd.WriteQueueLimitLow = 1
+		c.Collectd.LogLevel = "info"
+		c.Collectd.IntervalSeconds = 5
+		c.Collectd.WriteServerIPAddr = "10.100.12.1"
+		c.Collectd.WriteServerPort = 9090
+		c.Collectd.ConfigDir = "/etc/"
+		c.Collectd.BundleDir = "/opt/bin/collectd/"
+		c.Collectd.HasGenericJMXMonitor = false
+		return &c
 	}(), allSettingsConfig)
 
-	partialSettingsConfig := cfg.Extensions[component.NewIDWithName(typeStr, "partial_settings")]
+	partialSettingsID := component.NewIDWithName("smartagent", "partial_settings")
+	partialSettingsConfig := cfg.Extensions[partialSettingsID]
 	require.NotNil(t, partialSettingsConfig)
 	require.NoError(t, componenttest.CheckConfigStruct(partialSettingsConfig))
 	require.Equal(t, func() *Config {
-		cfg := defaultConfig()
-		cfg.ExtensionSettings.SetIDName("partial_settings")
-		cfg.BundleDir = "/opt/"
-		cfg.Collectd.Timeout = 10
-		cfg.Collectd.ReadThreads = 1
-		cfg.Collectd.WriteThreads = 4
-		cfg.Collectd.WriteQueueLimitHigh = 5
-		cfg.Collectd.ConfigDir = "/var/run/signalfx-agent/collectd"
-		cfg.Collectd.BundleDir = "/opt/"
-		return &cfg
+		c := defaultConfig()
+		c.ExtensionSettings = config.NewExtensionSettings(partialSettingsID)
+		c.BundleDir = "/opt/"
+		c.Collectd.Timeout = 10
+		c.Collectd.ReadThreads = 1
+		c.Collectd.WriteThreads = 4
+		c.Collectd.WriteQueueLimitHigh = 5
+		c.Collectd.ConfigDir = "/var/run/signalfx-agent/collectd"
+		c.Collectd.BundleDir = "/opt/"
+		return &c
 	}(), partialSettingsConfig)
 }
 
@@ -109,7 +113,7 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Extensions[typeStr] = factory
-	cfg, err := servicetest.LoadConfig(
+	cfg, err := otelcoltest.LoadConfig(
 		path.Join(".", "testdata", "config.yaml"), factories,
 	)
 
@@ -121,7 +125,7 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 	allSettingsConfig := cfg.Extensions[component.NewIDWithName(typeStr, "all_settings")]
 	require.NotNil(t, allSettingsConfig)
 
-	ext, err := factory.CreateExtension(context.Background(), component.ExtensionCreateSettings{}, allSettingsConfig)
+	ext, err := factory.CreateExtension(context.Background(), extension.CreateSettings{}, allSettingsConfig)
 	require.NoError(t, err)
 	require.NotNil(t, ext)
 
@@ -153,7 +157,7 @@ func TestLoadInvalidConfig(t *testing.T) {
 
 	factory := NewFactory()
 	factories.Extensions[typeStr] = factory
-	cfg, err := servicetest.LoadConfig(
+	cfg, err := otelcoltest.LoadConfig(
 		path.Join(".", "testdata", "invalid_config.yaml"), factories,
 	)
 

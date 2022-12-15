@@ -22,6 +22,7 @@ import (
 	"log"
 	"os"
 
+	flag "github.com/spf13/pflag"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
@@ -44,6 +45,10 @@ func main() {
 
 	collectorSettings, err := settings.New(os.Args[1:])
 	if err != nil {
+		// Exit if --help flag was supplied and usage help was displayed.
+		if err == flag.ErrHelp {
+			os.Exit(0)
+		}
 		log.Fatalf(`invalid settings detected: %v. Use "--help" to show valid usage`, err)
 	}
 
@@ -101,7 +106,7 @@ func main() {
 		ConfigProvider: serviceConfigProvider,
 	}
 
-	os.Args = append(os.Args[:1], collectorSettings.ServiceArgs()...)
+	os.Args = append(os.Args[:1], collectorSettings.ColCoreArgs()...)
 	if err = run(serviceSettings); err != nil {
 		log.Fatal(err)
 	}

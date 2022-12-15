@@ -73,10 +73,10 @@ for-all:
 
 .PHONY: integration-vet
 integration-vet:
-	cd tests && go vet ./...
+	cd tests && go vet -tags integration,endtoend ./...
 
 .PHONY: integration-test
-integration-test:
+integration-test: integration-vet
 	@set -e; cd tests && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1 ./...
 
 .PHONY: end-to-end-test

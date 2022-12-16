@@ -393,7 +393,7 @@ $tempdir = create_temp_dir -tempdir $tempdir
 if ($with_dotnet_instrumentation) {
     echo "Installing SignalFx Instrumentation for .NET ..."
     $module_name = "Splunk.SignalFx.DotNet.psm1"
-    $download = "https://github.com/signalfx/signalfx-dotnet-tracing/releases/download/latest/Splunk.SignalFx.DotNet.psm1"
+    $download = "https://github.com/signalfx/signalfx-dotnet-tracing/releases/latest/download/Splunk.SignalFx.DotNet.psm1"
     $dotnet_autoinstr_path = Join-Path $tempdir $module_name
     echo "Downloading .NET Instrumentation installer ..."
     Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path

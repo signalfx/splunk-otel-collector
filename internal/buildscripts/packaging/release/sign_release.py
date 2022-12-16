@@ -22,24 +22,14 @@ from helpers.util import (
     release_installers_to_s3,
     release_msi_to_s3,
     release_rpm_to_artifactory,
-    sign_exe,
 )
 
 
 def main():
     args, asset = get_args_and_asset()
-    signing_args = {}
-    for key, val in vars(args).items():
-        if key in ("chaperone_token", "staging_token", "staging_user"):
-            signing_args[key] = val
 
     if asset:
-        if args.no_push:
-            print("Signing the following asset:")
-        elif args.no_sign_msi and asset.component == "msi":
-            print(f"Releasing the following asset to the '{args.stage}' stage:")
-        else:
-            print(f"Signing/Releasing the following asset to the '{args.stage}' stage:")
+        print(f"Releasing the following asset to the '{args.stage}' stage:")
         print(asset.path)
 
         if not args.force:
@@ -49,22 +39,16 @@ def main():
 
         if asset.component == "deb":
             # Release deb to artifactory and sign metadata
-            release_deb_to_artifactory(asset, args, **signing_args)
+            release_deb_to_artifactory(asset, args)
         elif asset.component == "rpm":
             # Sign rpm, release to artifactory, and sign metadata
-            release_rpm_to_artifactory(asset, args, **signing_args)
-        elif asset.component == "exe":
-            # Sign Windows executable
-            sign_exe(asset, args, **signing_args)
+            release_rpm_to_artifactory(asset, args)
         elif asset.component == "msi":
             # Sign MSI and release to S3
-            release_msi_to_s3(asset, args, **signing_args)
-        elif asset.component == "osx":
-            # Sign OSX executable
-            sign_exe(asset, args, **signing_args)
+            release_msi_to_s3(asset, args)
 
     # Release installer scripts to S3
-    if args.installers and not args.no_push:
+    if args.installers:
         release_installers_to_s3(force=args.force)
 
 

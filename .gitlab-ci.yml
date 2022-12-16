@@ -189,22 +189,25 @@ sign-exe:
 sign-osx:
   extends:
     - .trigger-filter
-    - .sign-release
+    - .submit-request
   stage: sign-binaries
   needs:
     - compile
-  parallel:
-    matrix:
-      - TARGET: [otelcol, translatesfx]
   variables:
-    PATHS: bin/${TARGET}_darwin_amd64
-    OPTIONS: "--no-push"
+    ARTIFACT: bin/packages.tar.gz
+    SIGN_TYPE: OSX
+    OPTIONS: archive
+    DOWNLOAD_DIR: dist/signed
+  before_script:
+    - mkdir -p dist
+    - pushd bin && tar -czvf packages.tar.gz otelcol_darwin_amd64 translatesfx_darwin_amd64 && popd
   after_script:
-    - mkdir -p dist/signed
-    - mv bin/signed/${TARGET}_darwin_amd64 dist/signed/
+    - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
+    - rm dist/signed/packages.tar.gz
   artifacts:
     paths:
-      - dist/signed/${TARGET}_darwin_amd64
+      - dist/signed/otelcol_darwin_amd64
+      - dist/signed/translatesfx_darwin_amd64
 
 build-linux-image:
   extends: .trigger-filter

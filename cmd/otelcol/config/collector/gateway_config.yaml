@@ -57,6 +57,8 @@ receivers:
     # Whether to preserve incoming access token and use instead of exporter token
     # default = false
     #access_token_passthrough: true
+  splunk_hec/logs:
+    endpoint: 0.0.0.0:8088
   zipkin:
     endpoint: 0.0.0.0:9411
 
@@ -107,6 +109,9 @@ exporters:
     access_token: "${SPLUNK_ACCESS_TOKEN}"
     realm: "${SPLUNK_REALM}"
     sync_host_metadata: true
+  splunk_hec/logs:
+    token: "${SPLUNK_ACCESS_TOKEN}"
+    endpoint: "https://ingest.$SPLUNK_REALM.signalfx.com/v1/log"
   # Debug
   #logging:
     #loglevel: debug
@@ -130,6 +135,10 @@ service:
       processors: [memory_limiter, batch, resourcedetection/internal]
       exporters: [signalfx/internal]
     logs:
-      receivers: [otlp, signalfx]
+      receivers: [signalfx]
       processors: [memory_limiter, batch]
       exporters: [signalfx]
+    logs/hec:
+      receivers: [otlp, splunk_hec/logs]
+      processors: [ memory_limiter, batch ]
+      exporters: [ splunk_hec/logs ]

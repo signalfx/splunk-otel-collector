@@ -29,7 +29,7 @@ JAVA_AGENT_INSTALL_PATH="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.j
 CONFIG_INSTALL_PATH="/usr/lib/splunk-instrumentation/instrumentation.conf"
 
 JAVA_AGENT_RELEASE_PATH="${FPM_DIR}/../java-agent-release.txt"
-JAVA_AGENT_RELEASE_URL="https://github.com/signalfx/splunk-otel-java/releases/download/"
+JAVA_AGENT_RELEASE_URL="https://github.com/signalfx/splunk-otel-java/releases/"
 
 POSTINSTALL_PATH="$FPM_DIR/postinstall.sh"
 PREUNINSTALL_PATH="$FPM_DIR/preuninstall.sh"
@@ -56,8 +56,11 @@ download_java_agent() {
     local dest="$2"
     local api_url=""
     local dl_url=""
-
-    dl_url="$JAVA_AGENT_RELEASE_URL/$tag/splunk-otel-javaagent.jar"
+    if [[ "$tag" = "latest" ]]; then
+      dl_url="$JAVA_AGENT_RELEASE_URL/latest/download/splunk-otel-javaagent.jar"
+    else
+      dl_url="$JAVA_AGENT_RELEASE_URL/$tag/download/splunk-otel-javaagent.jar"
+    fi
 
     echo "Downloading $dl_url ..."
     mkdir -p "$( dirname $dest )"

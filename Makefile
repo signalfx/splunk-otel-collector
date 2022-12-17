@@ -71,6 +71,15 @@ for-all:
 	 	$${CMD} ); \
 	done
 
+.PHONY: $(ALL_GO_MODULES)
+$(ALL_GO_MODULES):
+	@echo "Running target '$(TARGET)' in module '$@'"
+	$(MAKE) -C $@ $(TARGET)
+
+# Trigger each module's delegation target
+.PHONY: for-all-target
+for-all-target: $(ALL_GO_MODULES)
+
 .PHONY: integration-vet
 integration-vet:
 	cd tests && go vet -tags integration,endtoend ./...

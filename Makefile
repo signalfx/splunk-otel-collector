@@ -49,7 +49,7 @@ export SPLUNK_OTEL_COLLECTOR_IMAGE?=quay.io/signalfx/splunk-otel-collector-dev:l
 DOCKER_REPO?=docker.io
 
 # ALL_MODULES includes ./* dirs (excludes . dir)
-ALL_GO_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
+ALL_GO_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort )
 ALL_PYTHON_DEPS := $(shell find . -type f \( -name "setup.py" -o -name "requirements.txt" \) -exec dirname {} \; | sort | egrep  '^./')
 ALL_DOCKERFILES := $(shell find . -type f -name Dockerfile -exec dirname {} \; | grep -v '^./tests' | sort)
 DEPENDABOT_PATH=./.github/dependabot.yml

@@ -159,7 +159,7 @@ In addition, the following components can be configured:
 - SignalFx Smart Agent
   - [Extension](https://github.com/signalfx/splunk-otel-collector/tree/main/pkg/extension/smartagentextension)
     offering Collectd and Python extensions
-  - [Receiver](https://github.com/signalfx/splunk-otel-collector/tree/main/pkg/receiver/smartagentreceiver)
+  - [Receiver](https://github.com/signalfx/splunk-otel-collector/tree/main/pkg/receiver/smartagent)
     offering the complete set of Smart Agent monitors
   - Information about migrating from the SignalFx Smart Agent can be found
     [here](docs/signalfx-smart-agent-migration.md)

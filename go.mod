@@ -60,6 +60,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.67.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver v0.67.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbatlasreceiver v0.67.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.67.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.67.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.67.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.67.0
@@ -77,7 +78,6 @@ require (
 	github.com/signalfx/signalfx-agent v1.0.1-0.20221111170137-60843d376e91
 	github.com/signalfx/splunk-otel-collector/extension/smartagentextension v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor v0.0.0-00010101000000-000000000000
-	github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
 	github.com/spf13/cast v1.5.0
@@ -480,7 +480,6 @@ require (
 replace (
 	github.com/signalfx/splunk-otel-collector/extension/smartagentextension => ./pkg/extension/smartagentextension
 	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor => ./pkg/processor/timestamp
-	github.com/signalfx/splunk-otel-collector/receiver/oracledbreceiver => ./pkg/receiver/oracledb
 	github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver => ./pkg/receiver/smartagent
 	github.com/signalfx/splunk-otel-collector/tests => ./tests
 )

@@ -38,13 +38,11 @@ def main():
                 sys.exit(1)
 
         if asset.component == "deb":
-            # Release deb to artifactory and sign metadata
+            # Release deb to artifactory
             release_deb_to_artifactory(asset, args)
         elif asset.component == "rpm":
-            # Sign rpm, release to artifactory, and sign metadata
             release_rpm_to_artifactory(asset, args)
         elif asset.component == "msi":
-            # Sign MSI and release to S3
             release_msi_to_s3(asset, args)
 
     # Release installer scripts to S3

@@ -62,7 +62,7 @@ fossa:
   except:
     - schedules
 
-.sign-release:
+.deploy-release:
   image: '${DOCKER_CICD_REPO}/ci-container:python-3.9'
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -83,7 +83,7 @@ fossa:
           echo "$path not found!"
           exit 1
         fi
-        python3 internal/buildscripts/packaging/release/sign_release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
+        python3 internal/buildscripts/packaging/release/release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
       done
 
 .go-cache:
@@ -550,7 +550,7 @@ build-push-windows2022-image:
 release-debs:
   extends:
     - .trigger-filter
-    - .sign-release
+    - .deploy-release
   stage: release
   resource_group: artifactory-deb
   dependencies:
@@ -565,7 +565,7 @@ release-debs:
 release-rpms:
   extends:
     - .trigger-filter
-    - .sign-release
+    - .deploy-release
   stage: release
   parallel:
     matrix:

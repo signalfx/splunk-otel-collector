@@ -90,7 +90,7 @@ require (
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.66.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.67.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.66.0
-	go.opentelemetry.io/collector/extension/ballastextension v0.66.0
+	go.opentelemetry.io/collector/extension/ballastextension v0.67.0
 	go.opentelemetry.io/collector/extension/zpagesextension v0.67.0
 	go.opentelemetry.io/collector/pdata v1.0.0-rc1
 	go.opentelemetry.io/collector/processor/batchprocessor v0.67.0

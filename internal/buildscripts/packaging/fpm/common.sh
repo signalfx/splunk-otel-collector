@@ -41,6 +41,7 @@ FLUENTD_CONFIG_INSTALL_DIR="/etc/otel/collector/fluentd"
 
 SMART_AGENT_RELEASE_PATH="${FPM_DIR}/../smart-agent-release.txt"
 SMART_AGENT_RELEASE_URL="https://api.github.com/repos/signalfx/signalfx-agent/releases"
+SMART_AGENT_DOWNLOAD_URL="https://github.com/signalfx/signalfx-agent/releases/download/"
 BUNDLE_BASE_DIR="/usr/lib/splunk-otel-collector"
 AGENT_BUNDLE_INSTALL_DIR="$BUNDLE_BASE_DIR/agent-bundle"
 
@@ -83,12 +84,7 @@ download_smart_agent() {
         fi
     fi
 
-    api_url="$SMART_AGENT_RELEASE_URL/tags/$tag"
-    dl_url="$( curl -sL "$api_url" | jq -r '.assets[] .browser_download_url' | grep "signalfx-agent-${tag#v}\.tar\.gz" )"
-    if [ -z "$dl_url" ]; then
-        echo "Failed to get the agent download url from $api_url" >&2
-        exit 1
-    fi
+    dl_url="$SMART_AGENT_DOWNLOAD_URL/$tag/signalfx-agent-${tag#v}.tar.gz"
 
     echo "Downloading $dl_url ..."
     curl -sL "$dl_url" -o "$buildroot/signalfx-agent.tar.gz"

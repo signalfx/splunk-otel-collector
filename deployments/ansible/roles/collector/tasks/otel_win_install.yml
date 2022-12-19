@@ -22,7 +22,7 @@
     splunk_otel_collector_version: "{{version.content | b64decode }}"
   when: splunk_otel_collector_version == "latest"
 
-- name: Get splunk-otel-collctor for windows
+- name: Get splunk-otel-collector for windows
   ansible.windows.win_get_url:
     url: "{{win_base_url}}/splunk-otel-collector/msi/{{package_stage}}/splunk-otel-collector-\
           {{splunk_otel_collector_version}}-amd64.msi"

@@ -29,7 +29,7 @@ JAVA_AGENT_INSTALL_PATH="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.j
 CONFIG_INSTALL_PATH="/usr/lib/splunk-instrumentation/instrumentation.conf"
 
 JAVA_AGENT_RELEASE_PATH="${FPM_DIR}/../java-agent-release.txt"
-JAVA_AGENT_RELEASE_URL="https://api.github.com/repos/signalfx/splunk-otel-java/releases"
+JAVA_AGENT_RELEASE_URL="https://github.com/signalfx/splunk-otel-java/releases/"
 
 POSTINSTALL_PATH="$FPM_DIR/postinstall.sh"
 PREUNINSTALL_PATH="$FPM_DIR/preuninstall.sh"
@@ -56,20 +56,10 @@ download_java_agent() {
     local dest="$2"
     local api_url=""
     local dl_url=""
-
-    if [ "$tag" = "latest" ]; then
-        tag=$( curl -sL "$JAVA_AGENT_RELEASE_URL/latest" | jq -r '.tag_name' )
-        if [ -z "$tag" ]; then
-            echo "Failed to get tag_name for latest release from $JAVA_AGENT_RELEASE_URL/latest" >&2
-            exit 1
-        fi
-    fi
-
-    api_url="$JAVA_AGENT_RELEASE_URL/tags/$tag"
-    dl_url="$( curl -sL "$api_url" | jq -r '.assets[] .browser_download_url' | grep "splunk-otel-javaagent.jar" | grep -v ".asc$" )"
-    if [ -z "$dl_url" ]; then
-        echo "Failed to get the agent download url from $api_url" >&2
-        exit 1
+    if [[ "$tag" = "latest" ]]; then
+      dl_url="$JAVA_AGENT_RELEASE_URL/latest/download/splunk-otel-javaagent.jar"
+    else
+      dl_url="$JAVA_AGENT_RELEASE_URL/$tag/download/splunk-otel-javaagent.jar"
     fi
 
     echo "Downloading $dl_url ..."

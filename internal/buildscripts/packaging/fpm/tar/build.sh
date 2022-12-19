@@ -43,11 +43,8 @@ tar_download_smart_agent() {
     fi
 
     api_url="$SMART_AGENT_RELEASE_URL/tags/$tag"
-    dl_url="$( curl -sL "$api_url" | jq -r '.assets[] .browser_download_url' | grep "signalfx-agent-${tag#v}\.tar\.gz" )"
-    if [ -z "$dl_url" ]; then
-        echo "Failed to get the agent download url from $api_url" >&2
-        exit 1
-    fi
+    dl_url="$SMART_AGENT_DOWNLOAD_URL/$tag/signalfx-agent-${tag#v}.tar.gz"
+
 
     echo "Downloading $dl_url ..."
     curl -sL "$dl_url" -o "$buildroot/signalfx-agent.tar.gz"

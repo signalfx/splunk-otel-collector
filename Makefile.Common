@@ -87,7 +87,7 @@ fmt: addlicense misspell-correction
 
 .PHONY: lint
 lint: checklicense misspell
-	$(LINT) run --allow-parallel-runners
+	$(LINT) run --allow-parallel-runners --timeout=3m
 
 .PHONY: tidy
 tidy:

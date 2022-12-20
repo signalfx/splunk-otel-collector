@@ -22,6 +22,10 @@ on:
 concurrency:
   group: build-and-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+defaults:
+  run: echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_ENV; export GITHUB_WORKSPACE=$GITHUB_WORKSPACE;
+  env:
+    GITHUB_WORKSPACE:$GITHUB_WORKSPACE"
 
 env:
   PYTHON_VERSION: '3.10'
@@ -29,6 +33,7 @@ env:
   REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
   RESULT_PATH: "~/testresults"
   GO_VERSION: 1.19.0
+  GITHUB_WORKSPACE: 1.19.0
 
 jobs:
   setup-environment:
@@ -220,6 +225,7 @@ jobs:
 
       - name: Build Collector
         run: |
+          echo "export GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           make ${{ matrix.SYS_BINARIES }}
       
       - name: Uploading binaries
@@ -266,17 +272,21 @@ jobs:
 
       - name: Build ${{ matrix.SYS_PACKAGE }} amd64 package
         run: |
-          gitRef=(${GITHUB_REF//// })
-          if [[ "${gitRef[1]}" = "tags" ]] ;
+          REF_TYPE=$GITHUB_REF_TYPE
+          REF_NAME=$GITHUB_REF_NAME
+          if [[ "$REF_TYPE" = "tag" ]] ;
           then
-            echo "TAG_NAME=${gitRef[2]}" >> $GITHUB_ENV
+            echo "setting tag $REF_NAME in env"
+            echo "TAG_NAME=$REF_NAME" >> $GITHUB_ENV
           else
             echo "TAG_NAME=" >> $GITHUB_ENV
           fi
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true VERSION="${TAG_NAME:-}" ARCH="amd64"
       
       - name: Build ${{ matrix.SYS_PACKAGE }} arm64 package
         run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true VERSION="${TAG_NAME:-}" ARCH="arm64"
       
       - name: Setup python
@@ -293,6 +303,7 @@ jobs:
 
       - name: Install pytest
         run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           if which pip; then
               pip install --upgrade 'pip==${{ env.PIP_VERSION }}'
           else
@@ -350,15 +361,18 @@ jobs:
       - name: Build MSI
         run: |
           mkdir -p dist
-          gitRef=(${GITHUB_REF//// })
-          if [[ "${gitRef[1]}" = "tags" ]] ;
+          REF_TYPE=$GITHUB_REF_TYPE
+          REF_NAME=$GITHUB_REF_NAME
+          echo "Processing $REF_NAME"
+          if [[ "$REF_TYPE" = "tag" ]] ;
           then
-            echo "TAG_NAME=${gitRef[2]}" >> $GITHUB_ENV
+            echo "TAG_NAME=$REF_NAME" >> $GITHUB_ENV
           else
             echo "TAG_NAME=" >> $GITHUB_ENV
           fi
-          export VERSION_TAG="${TAG_NAME#v}"
-          make msi SKIP_COMPILE=true VERSION="${VERSION_TAG:-0.67.0.${{ github.run_number }}}"
+          export VERSION_TAG="${REF_NAME#v}"
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          make msi SKIP_COMPILE=true VERSION="${VERSION_TAG:-0.0.1.${{ github.run_number }}}"
       
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@v3
@@ -416,6 +430,7 @@ jobs:
           Set-PSDebug -Trace 1
           $msi_file_name = Resolve-Path .\dist\splunk-otel-collector*.msi | Split-Path -leaf
           if ($msi_file_name -match '(\d+\.)(\d+\.)+(\d*)') { $version = $matches[0] }
+          $version="${$GITHUB_REF_NAME#v}"
           write-host "Building choco package..."
           .\internal\buildscripts\packaging\choco\make.ps1 build_choco -Version $version | Tee-Object -file .\dist\build_logs.log
           Test-Path -Path ".\dist\splunk-otel-collector.$version.nupkg"
@@ -512,6 +527,7 @@ jobs:
       
       - name: Build ${{ matrix.ARCH }} docker image
         run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           make docker-otelcol SKIP_COMPILE=true ARCH=${{ matrix.ARCH }}
 
       - name: Check image arch

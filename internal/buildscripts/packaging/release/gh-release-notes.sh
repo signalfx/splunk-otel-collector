@@ -21,8 +21,12 @@ get_digest() {
     echo "$digest"
 }
 
-SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
-REPO_DIR="$( cd "$SCRIPT_DIR"/../../../../ && pwd )"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#REPO_DIR="${"$(git rev-parse --show-toplevel || true)":-"$GITHUB_WORKSPACE"}"
+REPO_DIR="$GITHUB_WORKSPACE"
+[ "$(realpath "$SCRIPT_DIR/../../../../")" = "$REPO_DIR" ] || exit 1
+
+cd "$REPO_DIR"
 
 VERSION="$1"
 LINUX_AMD64_DIGEST="${2:-${REPO_DIR}/dist/linux_amd64_digest.txt}"

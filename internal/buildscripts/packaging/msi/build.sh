@@ -2,27 +2,25 @@
 
 set -euxo pipefail
 
-SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
-REPO_DIR="$( cd "$SCRIPT_DIR/../../../../" && pwd )"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#REPO_DIR="${"$(git rev-parse --show-toplevel || true)":-"$GITHUB_WORKSPACE"}"
+REPO_DIR="$GITHUB_WORKSPACE"
+[ "$(realpath"$SCRIPT_DIR/../../../../")" = "$REPO_DIR" ] || exit 1
+cd "$REPO_DIR"
 SMART_AGENT_RELEASE_PATH="${SCRIPT_DIR}/../smart-agent-release.txt"
 
 VERSION="${1:-}"
 SMART_AGENT_RELEASE="${2:-}"
 
 get_version() {
-    commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
-    if [[ -z "$commit_tag" ]]; then
-        latest_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true )"
-        # DIRTY DIRTY TRIAGE HACK THAT TODO NEEDS TO BE FIXED ASAP
-        echo "${latest_tag:-v0.67.0}.1"
-        #if [[ -n "$latest_tag" ]]; then
-        #    echo "${latest_tag}.1"
-        #else
-        #    echo "0.0.1"
-        #fi
-    else
-        echo "$commit_tag"
-    fi
+    explicit_commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
+    heuristic_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true )"
+    # Fail if not empty
+    [ -z "$explicit_commit_tag" ] && [ -z "$heuristic_tag" ] && exit 1
+    # Otherwise, return latest tag
+    # Could probably default to $GITHUB_REF_NAME if not set...?
+    latest_tag="${explicit_commit_tag:-"$heuristic_tag.1"}"
+    echo "$latest_tag"
 }
 
 if [ -z "$SMART_AGENT_RELEASE" ]; then

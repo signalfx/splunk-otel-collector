@@ -1,4 +1,5 @@
 include ./Makefile.Common
+SHELL?=/bin/bash
 
 ### VARIABLES
 

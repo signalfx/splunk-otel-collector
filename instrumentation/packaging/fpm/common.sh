@@ -13,9 +13,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-FPM_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
-REPO_DIR="$( cd "$FPM_DIR/../../../" && pwd )"
+set -euo pipefail
+THIS_SOURCE_DIR="$(dirname "${BASH_SOURCE[0]}")"
+FPM_DIR="$( cd "$THIS_SOURCE_DIR" && pwd )"
+REPO_DIR="$GITHUB_WORKSPACE"
+[ "$(realpath "$FPM_DIR/../../../")" = "$REPO_DIR" ] || exit 1
+cd "$REPO_DIR"
 
 PKG_NAME="splunk-otel-auto-instrumentation"
 PKG_VENDOR="Splunk, Inc."
@@ -36,25 +39,19 @@ PREUNINSTALL_PATH="$FPM_DIR/preuninstall.sh"
 CONFIG_PATH="$REPO_DIR/instrumentation/install/instrumentation.conf"
 
 get_version() {
-    commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
-    if [[ -z "$commit_tag" ]]; then
-        latest_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true )"
-        # DIRTY DIRTY TRIAGE HACK THAT TODO NEEDS TO BE FIXED ASAP
-        echo "${latest_tag:-v0.67.0}-post"
-        #if [[ -n "$latest_tag" ]]; then
-        #    echo "${latest_tag}-post"
-        #else
-        #    echo "0.0.1-post"
-        #fi
-    else
-        echo "$commit_tag"
-    fi
+    explicit_commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
+    heuristic_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true )"
+    # Fail if not empty
+    [ -z "$explict_commit_tag" ] && [ -z "$heuristic_tag" ] && exit 1
+    # Otherwise, return latest tag
+    # Could probably default to $GITHUB_REF_NAME if not set...?
+    latest_tag="${explicit_commit_tag:-"$heuristic_tag-post"}"
+    echo "$latest_tag"
 }
 
 download_java_agent() {
     local tag="$1"
     local dest="$2"
-    local api_url=""
     local dl_url=""
     if [[ "$tag" = "latest" ]]; then
       dl_url="$JAVA_AGENT_RELEASE_URL/latest/download/splunk-otel-javaagent.jar"

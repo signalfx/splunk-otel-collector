@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Copyright Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,10 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+set -euo pipefail
 
-FPM_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
-REPO_DIR="$( cd "$FPM_DIR/../../../../" && pwd )"
+#REPO_DIR="$(git rev-parse --show-toplevel || true)"
+REPO_DIR="$GITHUB_WORKSPACE"
+THIS_SOURCE_DIR="$(dirname "${BASH_SOURCE[0]}")"
+FPM_DIR="$THIS_SOURCE_DIR"
+[ "$FPM_DIR" = "$REPO_DIR/internal/buildscripts/packaging/fpm" ] || exit 1
+cd "$REPO_DIR"
 
+# TODO Unused, let's see if we can take them out or if some other script parses/sources them
 PKG_NAME="splunk-otel-collector"
 PKG_VENDOR="Splunk, Inc."
 PKG_MAINTAINER="Splunk, Inc."
@@ -50,19 +55,14 @@ POSTINSTALL_PATH="$FPM_DIR/postinstall.sh"
 PREUNINSTALL_PATH="$FPM_DIR/preuninstall.sh"
 
 get_version() {
-    commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
-    if [[ -z "$commit_tag" ]]; then
-        latest_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true )"
-        # DIRTY DIRTY TRIAGE HACK THAT TODO NEEDS TO BE FIXED ASAP
-        echo "${latest_tag:-v0.67.0}-post"
-        #if [[ -n "$latest_tag" ]]; then
-        #    echo "${latest_tag}-post"
-        #else
-        #    echo "0.0.1-post"
-        #fi
-    else
-        echo "$commit_tag"
-    fi
+    explicit_commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
+    heuristic_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true )"
+    # Fail if not empty
+    [ -z "$explicit_commit_tag" ] && [ -z "$heuristic_tag" ] && exit 1
+    # Otherwise, return latest tag
+    latest_tag="${explicit_commit_tag:-"$heuristic_tag-post"}"
+    # Could probably default to $GITHUB_REF_NAME if not set...?
+    echo "$latest_tag"
 }
 
 create_user_group() {
@@ -73,7 +73,6 @@ create_user_group() {
 download_smart_agent() {
     local tag="$1"
     local buildroot="$2"
-    local api_url=""
     local dl_url=""
 
     if [ "$tag" = "latest" ]; then

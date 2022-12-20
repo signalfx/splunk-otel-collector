@@ -1,4 +1,5 @@
 # SRC_ROOT is the top of the source tree.
+SHELL := /bin/bash
 SRC_ROOT := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
 # build tags required by any component should be defined as an independent variables and later added to GO_BUILD_TAGS below

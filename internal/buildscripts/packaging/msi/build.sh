@@ -13,13 +13,11 @@ get_version() {
     commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
     if [[ -z "$commit_tag" ]]; then
         latest_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true )"
-        # DIRTY DIRTY TRIAGE HACK THAT TODO NEEDS TO BE FIXED ASAP
-        echo "${latest_tag:-v0.67.0}.1"
-        #if [[ -n "$latest_tag" ]]; then
-        #    echo "${latest_tag}.1"
-        #else
-        #    echo "0.0.1"
-        #fi
+        if [[ -n "$latest_tag" ]]; then
+            echo "${latest_tag}.1"
+        else
+            echo "0.0.1"
+        fi
     else
         echo "$commit_tag"
     fi

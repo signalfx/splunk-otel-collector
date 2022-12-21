@@ -12,7 +12,7 @@ SMART_AGENT_RELEASE="${2:-}"
 get_version() {
     commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
     if [[ -z "$commit_tag" ]]; then
-        latest_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true )"
+        latest_tag="$( git ls-remote --refs --tags -q | tail -n 1 | awk -F/ '{ print $3 }' )"
         if [[ -n "$latest_tag" ]]; then
             echo "${latest_tag}.1"
         else

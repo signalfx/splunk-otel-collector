@@ -17,6 +17,8 @@ void load_config(logger log, struct config *cfg, char *file_name);
 
 bool str_eq_true(char *v);
 
+bool str_eq_false(char *v);
+
 void free_config(struct config *cfg);
 
 #endif //INSTRUMENTATION_CONFIG_H

@@ -87,15 +87,15 @@ void auto_instrument(
     }
 
     char service_name[MAX_CMDLINE_LEN] = "";
-    if (str_eq_true(cfg.generate_service_name)) {
+    if (str_eq_false(cfg.generate_service_name)) {
+        log_debug(log, "service name generation disabled");
+    } else {
         get_service_name(log, cr, &cfg, service_name);
         if (strlen(service_name) == 0) {
             log_info(log, "service name empty, quitting");
             return;
         }
         set_env_var(log, otel_service_name_var, service_name);
-    } else {
-        log_debug(log, "service name generation disabled");
     }
 
     set_java_tool_options(log, &cfg);

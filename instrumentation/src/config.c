@@ -81,6 +81,10 @@ bool str_eq_true(char *v) {
     return v != NULL && !streq("false", v) && !streq("FALSE", v) && !streq("0", v);
 }
 
+bool str_eq_false(char *v) {
+    return v != NULL && (streq("false", v) || streq("FALSE", v) || streq("0", v));
+}
+
 void free_config(struct config *cfg) {
     if (cfg->java_agent_jar != NULL) {
         free(cfg->java_agent_jar);
@@ -93,5 +97,8 @@ void free_config(struct config *cfg) {
     }
     if (cfg->disable_telemetry != NULL) {
         free(cfg->disable_telemetry);
+    }
+    if (cfg->generate_service_name != NULL) {
+        free(cfg->generate_service_name);
     }
 }

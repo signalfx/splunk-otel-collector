@@ -18,8 +18,9 @@ int main(void) {
 
 void run_tests() {
     test_func_t *tests[] = {
-            test_auto_instrument_svc_name_in_config,
-            test_auto_instrument_svc_name_explicitly_enabled,
+            test_auto_instrument_svc_name_specified,
+            test_auto_instrument_gen_svc_name_explicitly_enabled,
+            test_auto_instrument_gen_svc_name_explicitly_disabled,
             test_auto_instrument_no_svc_name_in_config,
             test_auto_instrument_not_java,
             test_auto_instrument_no_access,
@@ -55,6 +56,7 @@ void run_tests() {
             test_is_legal_java_module_main_class,
             test_is_legal_module,
             test_eq_true,
+            test_eq_false,
             test_disable_telemetry,
             test_enable_telemetry
     };
@@ -73,54 +75,70 @@ void run_test(test_func_t run_test) {
     free_logger(l);
 }
 
-void test_auto_instrument_svc_name_in_config(logger l) {
+void test_auto_instrument_svc_name_specified(logger l) {
     cmdline_reader cr = new_default_test_cmdline_reader();
-    auto_instrument(l, access_check_true, "java", fake_load_config_svcname_unspecified, cr, fake_send_otlp_metric);
+    auto_instrument(l, access_check_true, "java", fake_config_svcname_explicitly_specified, cr,
+                    fake_send_otlp_metric);
     char *logs[256];
     int n = get_logs(l, logs);
-    char *funcname = "test_auto_instrument_svc_name_in_config";
+
+    char *funcname = "test_auto_instrument_svc_name_specified";
     require_equal_ints(funcname, 4, n);
-    require_equal_strings(funcname, "service name generation disabled", logs[0]);
+    require_equal_strings(funcname, "setting OTEL_SERVICE_NAME='my.override'", logs[0]);
     require_equal_strings(funcname, "setting JAVA_TOOL_OPTIONS='-javaagent:/foo/asdf.jar'", logs[1]);
     require_equal_strings(funcname, "setting OTEL_RESOURCE_ATTRIBUTES='myattr=myval'", logs[2]);
     require_equal_strings(funcname, "sending metric", logs[3]);
     require_env(funcname, "-javaagent:/foo/asdf.jar", java_tool_options_var);
-    require_unset_env(funcname, otel_service_name_var);
+    require_env(funcname, "my.override", otel_service_name_var);
     cmdline_reader_close(cr);
 }
 
-void test_auto_instrument_svc_name_explicitly_enabled(logger l) {
-    char *funcname = "test_auto_instrument_svc_name_explicitly_enabled";
+void test_auto_instrument_gen_svc_name_explicitly_enabled(logger l) {
+    char *funcname = "test_auto_instrument_gen_svc_name_explicitly_enabled";
     cmdline_reader cr = new_default_test_cmdline_reader();
-    auto_instrument(l, access_check_true, "java", fake_load_config_generate_svcname_enabled, cr, fake_send_otlp_metric);
+    auto_instrument(l, access_check_true, "java", fake_config_generate_svcname_enabled, cr, fake_send_otlp_metric);
     char *logs[256];
     int n = get_logs(l, logs);
-    require_equal_strings(funcname, "setting OTEL_SERVICE_NAME='my.service'", logs[0]);
+    require_equal_strings(funcname, "setting OTEL_SERVICE_NAME='foo'", logs[0]);
     require_equal_strings(funcname, "setting JAVA_TOOL_OPTIONS='-javaagent:/foo/asdf.jar'", logs[1]);
     require_equal_strings(funcname, "setting OTEL_RESOURCE_ATTRIBUTES='myattr=myval'", logs[2]);
     require_equal_strings(funcname, "sending metric", logs[3]);
     require_equal_ints(funcname, 4, n);
-    require_env(funcname, "my.service", otel_service_name_var);
+    require_env(funcname, "foo", otel_service_name_var);
+}
+
+void test_auto_instrument_gen_svc_name_explicitly_disabled(logger l) {
+    char *funcname = "test_auto_instrument_gen_svc_name_explicitly_disabled";
+    cmdline_reader cr = new_default_test_cmdline_reader();
+    auto_instrument(l, access_check_true, "java", fake_config_generate_svcname_disabled, cr, fake_send_otlp_metric);
+    char *logs[256];
+    int n = get_logs(l, logs);
+    require_equal_strings(funcname, "service name generation disabled", logs[0]);
+    require_equal_strings(funcname, "setting JAVA_TOOL_OPTIONS='-javaagent:/foo/asdf.jar'", logs[1]);
+    require_equal_strings(funcname, "sending metric", logs[2]);
+    require_equal_ints(funcname, 3, n);
+    require_unset_env(funcname, otel_service_name_var);
 }
 
 void test_auto_instrument_no_svc_name_in_config(logger l) {
     cmdline_reader cr = new_default_test_cmdline_reader();
-    auto_instrument(l, access_check_true, "java", fake_load_config_no_svcname, cr, fake_send_otlp_metric);
+    auto_instrument(l, access_check_true, "java", fake_config_no_svcname, cr, fake_send_otlp_metric);
     char *logs[256];
     int n = get_logs(l, logs);
     char *funcname = "test_auto_instrument_no_svc_name_in_config";
     require_equal_ints(funcname, 3, n);
-    require_equal_strings(funcname, "service name generation disabled", logs[0]);
+    require_equal_strings(funcname, "setting OTEL_SERVICE_NAME='foo'", logs[0]);
     require_equal_strings(funcname, "setting JAVA_TOOL_OPTIONS='-javaagent:/foo/asdf.jar'", logs[1]);
     require_equal_strings(funcname, "sending metric", logs[2]);
     require_env(funcname, "-javaagent:/foo/asdf.jar", java_tool_options_var);
-    require_unset_env(funcname, otel_service_name_var);
+    require_env(funcname, "foo", otel_service_name_var);
     cmdline_reader_close(cr);
 }
 
 void test_auto_instrument_not_java(logger l) {
     cmdline_reader cr = new_default_test_cmdline_reader();
-    auto_instrument(l, access_check_true, "foo", fake_load_config_svcname_unspecified, cr, fake_send_otlp_metric);
+    auto_instrument(l, access_check_true, "foo", fake_config_svcname_explicitly_specified, cr,
+                    fake_send_otlp_metric);
     char *funcname = "test_auto_instrument_not_java";
     require_unset_env(funcname, java_tool_options_var);
     char *logs[256];
@@ -131,7 +149,8 @@ void test_auto_instrument_not_java(logger l) {
 
 void test_auto_instrument_no_access(logger l) {
     cmdline_reader cr = new_default_test_cmdline_reader();
-    auto_instrument(l, access_check_false, "java", fake_load_config_svcname_unspecified, cr, fake_send_otlp_metric);
+    auto_instrument(l, access_check_false, "java", fake_config_svcname_explicitly_specified, cr,
+                    fake_send_otlp_metric);
     require_unset_env("test_auto_instrument_no_access", java_tool_options_var);
     char *logs[256];
     char *funcname = "test_auto_instrument_no_access";
@@ -143,7 +162,8 @@ void test_auto_instrument_no_access(logger l) {
 void test_auto_instrument_splunk_env_var_true(logger l) {
     setenv(disable_env_var, "true", 0);
     cmdline_reader cr = new_default_test_cmdline_reader();
-    auto_instrument(l, access_check_true, "java", fake_load_config_svcname_unspecified, cr, fake_send_otlp_metric);
+    auto_instrument(l, access_check_true, "java", fake_config_svcname_explicitly_specified, cr,
+                    fake_send_otlp_metric);
     require_unset_env("test_auto_instrument_splunk_env_var_true", "JAVA_TOOL_OPTIONS");
     cmdline_reader_close(cr);
 }
@@ -151,7 +171,8 @@ void test_auto_instrument_splunk_env_var_true(logger l) {
 void test_auto_instrument_splunk_env_var_false(logger l) {
     setenv(disable_env_var, "false", 0);
     cmdline_reader cr = new_default_test_cmdline_reader();
-    auto_instrument(l, access_check_true, "java", fake_load_config_svcname_unspecified, cr, fake_send_otlp_metric);
+    auto_instrument(l, access_check_true, "java", fake_config_svcname_explicitly_specified, cr,
+                    fake_send_otlp_metric);
     require_env("test_auto_instrument_splunk_env_var_false", "-javaagent:/foo/asdf.jar", "JAVA_TOOL_OPTIONS");
     cmdline_reader_close(cr);
 }
@@ -159,7 +180,8 @@ void test_auto_instrument_splunk_env_var_false(logger l) {
 void test_auto_instrument_splunk_env_var_false_caps(logger l) {
     setenv(disable_env_var, "FALSE", 0);
     cmdline_reader cr = new_default_test_cmdline_reader();
-    auto_instrument(l, access_check_true, "java", fake_load_config_svcname_unspecified, cr, fake_send_otlp_metric);
+    auto_instrument(l, access_check_true, "java", fake_config_svcname_explicitly_specified, cr,
+                    fake_send_otlp_metric);
     require_env("test_auto_instrument_splunk_env_var_false_caps", "-javaagent:/foo/asdf.jar", "JAVA_TOOL_OPTIONS");
     cmdline_reader_close(cr);
 }
@@ -167,7 +189,8 @@ void test_auto_instrument_splunk_env_var_false_caps(logger l) {
 void test_auto_instrument_splunk_env_var_zero(logger l) {
     setenv(disable_env_var, "0", 0);
     cmdline_reader cr = new_default_test_cmdline_reader();
-    auto_instrument(l, access_check_true, "java", fake_load_config_svcname_unspecified, cr, fake_send_otlp_metric);
+    auto_instrument(l, access_check_true, "java", fake_config_svcname_explicitly_specified, cr,
+                    fake_send_otlp_metric);
     require_env("test_auto_instrument_splunk_env_var_zero", "-javaagent:/foo/asdf.jar", "JAVA_TOOL_OPTIONS");
     cmdline_reader_close(cr);
 }
@@ -435,7 +458,8 @@ void test_dots_to_dashes(logger l) {
 void test_env_var_already_set(logger l) {
     setenv("JAVA_TOOL_OPTIONS", "hello", 0);
     cmdline_reader cr = new_default_test_cmdline_reader();
-    auto_instrument(l, access_check_true, "java", fake_load_config_svcname_unspecified, cr, fake_send_otlp_metric);
+    auto_instrument(l, access_check_true, "java", fake_config_svcname_explicitly_specified, cr,
+                    fake_send_otlp_metric);
     char *funcname = "test_env_var_already_set";
     require_env(funcname, "hello", java_tool_options_var);
     cmdline_reader_close(cr);
@@ -484,9 +508,18 @@ void test_eq_true(logger l) {
     require_false("test_eq_true", str_eq_true(NULL));
 }
 
+void test_eq_false(logger l) {
+    require_true("str_eq_false", str_eq_false("false"));
+    require_true("str_eq_false", str_eq_false("FALSE"));
+    require_true("str_eq_false", str_eq_false("0"));
+    require_false("str_eq_false", str_eq_false("true"));
+    require_false("str_eq_false", str_eq_false("TRUE"));
+    require_false("str_eq_false", str_eq_false("1"));
+}
+
 void test_enable_telemetry(logger l) {
     cmdline_reader cr = new_default_test_cmdline_reader();
-    auto_instrument(l, access_check_true, "java", fake_load_config_disable_telemetry_not_specified, cr,
+    auto_instrument(l, access_check_true, "java", fake_config_disable_telemetry_not_specified, cr,
                     fake_send_otlp_metric);
     char *logs[256];
     get_logs(l, logs);
@@ -495,7 +528,7 @@ void test_enable_telemetry(logger l) {
 
 void test_disable_telemetry(logger l) {
     cmdline_reader cr = new_default_test_cmdline_reader();
-    auto_instrument(l, access_check_true, "java", fake_load_config_disable_telemetry_true, cr, fake_send_otlp_metric);
+    auto_instrument(l, access_check_true, "java", fake_config_disable_telemetry_true, cr, fake_send_otlp_metric);
     char *logs[256];
     get_logs(l, logs);
     require_equal_strings("test_disable_telemetry", "disabling telemetry as per config", logs[2]);
@@ -507,31 +540,36 @@ void fake_send_otlp_metric(logger log, char *service_name) {
     log_debug(log, "sending metric");
 }
 
-void fake_load_config_svcname_unspecified(logger log, struct config *cfg, char *path) {
+void fake_config_svcname_explicitly_specified(logger log, struct config *cfg, char *path) {
     cfg->java_agent_jar = strdup("/foo/asdf.jar");
-    cfg->service_name = strdup("my.service");
+    cfg->service_name = strdup("my.override");
     cfg->resource_attributes = strdup("myattr=myval");
     cfg->disable_telemetry = strdup("false");
 }
 
-void fake_load_config_generate_svcname_enabled(logger log, struct config *cfg, char *path) {
+void fake_config_generate_svcname_enabled(logger log, struct config *cfg, char *path) {
     cfg->java_agent_jar = strdup("/foo/asdf.jar");
-    cfg->service_name = strdup("my.service");
     cfg->resource_attributes = strdup("myattr=myval");
     cfg->disable_telemetry = strdup("false");
     cfg->generate_service_name = strdup("true");
 }
 
-void fake_load_config_no_svcname(logger log, struct config *cfg, char *path) {
+void fake_config_generate_svcname_disabled(logger log, struct config *cfg, char *path) {
+    cfg->java_agent_jar = strdup("/foo/asdf.jar");
+    cfg->generate_service_name = strdup("false");
+    cfg->disable_telemetry = NULL;
+}
+
+void fake_config_no_svcname(logger log, struct config *cfg, char *path) {
     cfg->java_agent_jar = strdup("/foo/asdf.jar");
 }
 
-void fake_load_config_disable_telemetry_not_specified(logger log, struct config *cfg, char *path) {
+void fake_config_disable_telemetry_not_specified(logger log, struct config *cfg, char *path) {
     cfg->java_agent_jar = strdup("/foo/asdf.jar");
     cfg->disable_telemetry = NULL;
 }
 
-void fake_load_config_disable_telemetry_true(logger log, struct config *cfg, char *path) {
+void fake_config_disable_telemetry_true(logger log, struct config *cfg, char *path) {
     cfg->java_agent_jar = strdup("/foo/asdf.jar");
     cfg->disable_telemetry = strdup("true");
 }

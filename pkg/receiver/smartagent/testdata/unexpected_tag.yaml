@@ -1,19 +1,5 @@
-receivers:
-  smartagent/unexpectedtag:
-    type: collectd/redis
-    intervalSeconds: 123
-    notASupportedTag: somevalue
+smartagent/unexpectedtag:
+  type: collectd/redis
+  intervalSeconds: 123
+  notASupportedTag: somevalue
 
-processors:
-  nop:
-
-exporters:
-  nop:
-
-service:
-  pipelines:
-    metrics:
-      receivers:
-        - smartagent/unexpectedtag
-      processors: [nop]
-      exporters: [nop]

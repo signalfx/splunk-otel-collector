@@ -23,7 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/configtls"
 	otelcolexporter "go.opentelemetry.io/collector/exporter"
@@ -110,7 +109,6 @@ func TestReceiverMethodsWithoutBuildingDisallowed(t *testing.T) {
 
 func otlpExporter(t *testing.T) otelcolexporter.Metrics {
 	exporterCfg := otlpexporter.Config{
-		ExporterSettings: config.NewExporterSettings(component.NewIDWithName("otlp", "otlp")),
 		GRPCClientSettings: configgrpc.GRPCClientSettings{
 			Endpoint: "localhost:4317",
 			TLSSetting: configtls.TLSClientSetting{

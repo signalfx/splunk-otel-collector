@@ -23,7 +23,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/extension"
 )
 
@@ -76,8 +75,7 @@ func createDefaultConfig() component.Config {
 	cfg.Collectd.ConfigDir = filepath.Join(bundleDir, "run", "collectd")
 
 	return &Config{
-		ExtensionSettings: config.NewExtensionSettings(component.NewID(typeStr)),
-		Config:            *cfg,
+		Config: *cfg,
 	}
 }
 

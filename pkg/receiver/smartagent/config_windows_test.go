@@ -20,21 +20,11 @@ import (
 	"path"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/otelcol/otelcoltest"
 )
 
 func TestLoadUnsupportedCollectdMonitorOnWindows(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "collectd_apache.yaml"), factories,
-	)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "collectd_apache.yaml"))
 	require.Error(t, err)
 	require.EqualError(t, err,
 		`error reading receivers configuration for "smartagent/collectd/apache": smart agent monitor type "collectd/apache" is not supported on windows platforms`)

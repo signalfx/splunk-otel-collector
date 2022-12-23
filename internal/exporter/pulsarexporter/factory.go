@@ -18,7 +18,6 @@ import (
 	ctx "context"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
@@ -60,13 +59,12 @@ type pulsarExporterFactory struct {
 func createDefaultConfig() component.Config {
 
 	return &Config{
-		ExporterSettings: config.NewExporterSettings(component.NewID(typeStr)),
-		TimeoutSettings:  exporterhelper.NewDefaultTimeoutSettings(),
-		RetrySettings:    exporterhelper.NewDefaultRetrySettings(),
-		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
-		Broker:           defaultBroker,
-		Topic:            defaultMetricsTopic,
-		Encoding:         defaultEncoding,
+		TimeoutSettings: exporterhelper.NewDefaultTimeoutSettings(),
+		RetrySettings:   exporterhelper.NewDefaultRetrySettings(),
+		QueueSettings:   exporterhelper.NewDefaultQueueSettings(),
+		Broker:          defaultBroker,
+		Topic:           defaultMetricsTopic,
+		Encoding:        defaultEncoding,
 		Producer: Producer{
 			CompressionType:  defaultCompressionType,
 			CompressionLevel: defaultCompressionLevel,

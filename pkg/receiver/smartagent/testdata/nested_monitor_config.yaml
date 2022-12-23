@@ -1,26 +1,10 @@
-receivers:
-  smartagent/exec:
-    type: telegraf/exec
-    commands: [ 'powershell.exe -Command "\Monitoring\Get_Directory.ps1"' ]
-    telegrafParser:
-      dataFormat: "influx"
-  smartagent/kubernetes_volumes:
-    type: kubernetes-volumes
-    kubeletAPI:
-      authType: serviceAccount
-      url: https://192.168.99.103:10250
-
-processors:
-  nop:
-
-exporters:
-  nop:
-
-service:
-  pipelines:
-    metrics:
-      receivers:
-        - smartagent/exec
-        - smartagent/kubernetes_volumes
-      processors: [nop]
-      exporters: [nop]
+smartagent/exec:
+  type: telegraf/exec
+  commands: [ 'powershell.exe -Command "\Monitoring\Get_Directory.ps1"' ]
+  telegrafParser:
+    dataFormat: "influx"
+smartagent/kubernetes_volumes:
+  type: kubernetes-volumes
+  kubeletAPI:
+    authType: serviceAccount
+    url: https://192.168.99.103:10250

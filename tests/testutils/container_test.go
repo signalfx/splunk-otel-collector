@@ -261,10 +261,11 @@ func TestStartupTimeout(t *testing.T) {
 	assert.NotSame(t, *container, builder)
 	assert.NotNil(t, container.req)
 	rs := reflect.ValueOf(container.req.WaitingFor).Elem()
-	rf := rs.FieldByName("startupTimeout")
+	rf := rs.FieldByName("deadline")
 	rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
-	startupTimeout := rf.Interface().(time.Duration)
-	assert.Equal(t, 10*time.Minute, startupTimeout)
+	startupTimeout := rf.Interface().(*time.Duration)
+	require.NotNil(t, startupTimeout)
+	assert.Equal(t, 10*time.Minute, *startupTimeout)
 }
 
 func TestStartupTimeoutDefault(t *testing.T) {
@@ -273,10 +274,10 @@ func TestStartupTimeoutDefault(t *testing.T) {
 	assert.NotSame(t, *container, builder)
 	assert.NotNil(t, container.req)
 	rs := reflect.ValueOf(container.req.WaitingFor).Elem()
-	rf := rs.FieldByName("startupTimeout")
+	rf := rs.FieldByName("deadline")
 	rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
-	startupTimeout := rf.Interface().(time.Duration)
-	assert.Equal(t, 5*time.Minute, startupTimeout)
+	startupTimeout := rf.Interface().(*time.Duration)
+	assert.Equal(t, 5*time.Minute, *startupTimeout)
 }
 
 func TestTestcontainersContainerMethodsRequireBuilding(t *testing.T) {

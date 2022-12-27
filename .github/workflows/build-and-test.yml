@@ -347,7 +347,7 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - id: latest
-        uses: pozetroninc/github-action-get-latest-release@0.5.0
+        uses: pozetroninc/github-action-get-latest-release@v0.5.0
         with:
           owner: signalfx
           repo: splunk-otel-collector
@@ -363,8 +363,8 @@ jobs:
           else
             echo "TAG_NAME=" >> $GITHUB_ENV
           fi
-          export VERSION_TAG="${TAG_NAME#v}"
-          make msi SKIP_COMPILE=true VERSION="${VERSION_TAG:-${{ steps.latest.outputs.release }}.${{ github.run_number }}}"
+          VERSION_TAG="${TAG_NAME:-${{ steps.latest.outputs.release }}.${{ github.run_number }}}"
+          make msi SKIP_COMPILE=true VERSION="${VERSION_TAG#v}"
       
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@v3
@@ -417,7 +417,7 @@ jobs:
           path: ./dist
 
       - id: latest
-        uses: pozetroninc/github-action-get-latest-release@0.5.0
+        uses: pozetroninc/github-action-get-latest-release@v0.5.0
         with:
           owner: signalfx
           repo: splunk-otel-collector

@@ -414,11 +414,6 @@ jobs:
           name: msi-build
           path: ./dist
 
-      - id: latest
-        uses: gregziegan/fetch-latest-release@v2.0.0
-        with:
-          repo_path: signalfx/splunk-otel-collector
-
       - name: Build Chocolatey
         run: |
           $ErrorActionPreference = 'Stop'
@@ -426,8 +421,7 @@ jobs:
           $msi_file_name = Resolve-Path .\dist\splunk-otel-collector*.msi | Split-Path -leaf
           if ($msi_file_name -match '(\d+\.)(\d+\.)+(\d*)') { $version = $matches[0] }
           write-host "Building choco package..."
-          $version="${{ steps.latest.outputs.tag_name }}.${{ github.run_number }}"
-          .\internal\buildscripts\packaging\choco\make.ps1 build_choco -Version $version | Tee-Object -file .\dist\build_logs.log
+          .\internal\buildscripts\packaging\choco\make.ps1 build_choco -MSIFile $msi_file_name | Tee-Object -file .\dist\build_logs.log
           Test-Path -Path ".\dist\splunk-otel-collector.$version.nupkg"
 
       - name: Uploading choco build artifacts

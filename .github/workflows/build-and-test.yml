@@ -347,11 +347,9 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - id: latest
-        uses: pozetroninc/github-action-get-latest-release@v0.5.0
+        uses: gregziegan/fetch-latest-release@v2.0.0
         with:
-          owner: signalfx
-          repo: splunk-otel-collector
-          excludes: prerelease, draft
+          repo_path: signalfx/splunk-otel-collector
 
       - name: Build MSI
         run: |
@@ -363,7 +361,7 @@ jobs:
           else
             echo "TAG_NAME=" >> $GITHUB_ENV
           fi
-          VERSION_TAG="${TAG_NAME:-${{ steps.latest.outputs.release }}.${{ github.run_number }}}"
+          VERSION_TAG="${TAG_NAME:-${{ steps.latest.outputs.tag_name }}.${{ github.run_number }}}"
           make msi SKIP_COMPILE=true VERSION="${VERSION_TAG#v}"
       
       - name: Uploading msi build artifacts
@@ -417,11 +415,9 @@ jobs:
           path: ./dist
 
       - id: latest
-        uses: pozetroninc/github-action-get-latest-release@v0.5.0
+        uses: gregziegan/fetch-latest-release@v2.0.0
         with:
-          owner: signalfx
-          repo: splunk-otel-collector
-          excludes: prerelease, draft
+          repo_path: signalfx/splunk-otel-collector
 
       - name: Build Chocolatey
         run: |
@@ -430,7 +426,7 @@ jobs:
           $msi_file_name = Resolve-Path .\dist\splunk-otel-collector*.msi | Split-Path -leaf
           if ($msi_file_name -match '(\d+\.)(\d+\.)+(\d*)') { $version = $matches[0] }
           write-host "Building choco package..."
-          $version="${{ steps.latest.outputs.release }}.${{ github.run_number }}"
+          $version="${{ steps.latest.outputs.tag_name }}.${{ github.run_number }}"
           .\internal\buildscripts\packaging\choco\make.ps1 build_choco -Version $version | Tee-Object -file .\dist\build_logs.log
           Test-Path -Path ".\dist\splunk-otel-collector.$version.nupkg"
 

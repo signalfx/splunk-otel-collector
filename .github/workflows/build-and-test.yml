@@ -56,7 +56,6 @@ jobs:
       - name: Installing dependency
         run: |
           make install-tools
-
   gofmt:
     name: gofmt
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
@@ -347,6 +346,13 @@ jobs:
             ~/go/bin
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
+      - id: latest
+        uses: pozetroninc/github-action-get-latest-release@0.5.0
+        with:
+          owner: signalfx
+          repo: splunk-otel-collector
+          excludes: prerelease, draft
+
       - name: Build MSI
         run: |
           mkdir -p dist
@@ -358,7 +364,7 @@ jobs:
             echo "TAG_NAME=" >> $GITHUB_ENV
           fi
           export VERSION_TAG="${TAG_NAME#v}"
-          make msi SKIP_COMPILE=true VERSION="${VERSION_TAG:-0.67.0.${{ github.run_number }}}"
+          make msi SKIP_COMPILE=true VERSION="${VERSION_TAG:-${{ steps.latest.outputs.release }}.${{ github.run_number }}}"
       
       - name: Uploading msi build artifacts
         uses: actions/upload-artifact@v3
@@ -410,6 +416,13 @@ jobs:
           name: msi-build
           path: ./dist
 
+      - id: latest
+        uses: pozetroninc/github-action-get-latest-release@0.5.0
+        with:
+          owner: signalfx
+          repo: splunk-otel-collector
+          excludes: prerelease, draft
+
       - name: Build Chocolatey
         run: |
           $ErrorActionPreference = 'Stop'
@@ -417,6 +430,7 @@ jobs:
           $msi_file_name = Resolve-Path .\dist\splunk-otel-collector*.msi | Split-Path -leaf
           if ($msi_file_name -match '(\d+\.)(\d+\.)+(\d*)') { $version = $matches[0] }
           write-host "Building choco package..."
+          $version="${{ steps.latest.outputs.release }}.${{ github.run_number }}"
           .\internal\buildscripts\packaging\choco\make.ps1 build_choco -Version $version | Tee-Object -file .\dist\build_logs.log
           Test-Path -Path ".\dist\splunk-otel-collector.$version.nupkg"
 

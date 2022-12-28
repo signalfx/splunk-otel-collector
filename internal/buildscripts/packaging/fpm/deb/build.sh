@@ -17,7 +17,7 @@
 set -euxo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
-. $SCRIPT_DIR/../common.sh
+. "$SCRIPT_DIR"/../common.sh
 
 VERSION="${1:-}"
 ARCH="${2:-amd64}"
@@ -30,7 +30,7 @@ fi
 VERSION="${VERSION#v}"
 
 if [[ -z "$SMART_AGENT_RELEASE" ]]; then
-    SMART_AGENT_RELEASE="$(cat $SMART_AGENT_RELEASE_PATH)"
+    SMART_AGENT_RELEASE="$(cat "$SMART_AGENT_RELEASE_PATH")"
 fi
 
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"

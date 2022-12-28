@@ -54,7 +54,6 @@ get_version() {
 download_java_agent() {
     local tag="$1"
     local dest="$2"
-    local api_url=""
     local dl_url=""
     if [[ "$tag" = "latest" ]]; then
       dl_url="$JAVA_AGENT_RELEASE_URL/latest/download/splunk-otel-javaagent.jar"

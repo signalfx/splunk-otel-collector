@@ -420,9 +420,10 @@ jobs:
           Set-PSDebug -Trace 1
           $msi_file_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           $msi_file_name = Resolve-Path .\dist\splunk-otel-collector*.msi | Split-Path -leaf
-          if ($msi_file_name -match '(\d+\.)(\d+\.)+(\d*)') { $version = $matches[0] }
+          $msi_file_name -match '(\d+\.)(\d+\.)+(\d*)'
+          $version = $matches[0]
           write-host "Building choco package..."
-          .\internal\buildscripts\packaging\choco\make.ps1 build_choco -MSIFile $msi_file_path | Tee-Object -file .\dist\build_logs.log
+          .\internal\buildscripts\packaging\choco\make.ps1 build_choco -MSIFile $msi_file_path -Version $version | Tee-Object -file .\dist\build_logs.log
           Test-Path -Path ".\dist\splunk-otel-collector.$version.nupkg"
 
       - name: Uploading choco build artifacts

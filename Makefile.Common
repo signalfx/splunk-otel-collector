@@ -1,3 +1,6 @@
+# Explicitly define the shell we will use for commands.
+SHELL?=/bin/bash
+
 # SRC_ROOT is the top of the source tree.
 SRC_ROOT := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 

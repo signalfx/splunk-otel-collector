@@ -1,6 +1,7 @@
 receivers:
     filelog:
       include: [ /output/file.log ]
+      storage: file_storage/checkpoint
 
 exporters:
     splunk_hec/logs:
@@ -18,9 +19,10 @@ exporters:
         disable_compression: false
         # HTTP timeout when sending data. Defaults to 10s.
         timeout: 10s
-        # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
-        # For this demo, we use a self-signed certificate on the Splunk docker instance, so this flag is set to true.
-        insecure_skip_verify: true
+        tls:
+          # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
+          # For this demo, we use a self-signed certificate on the Splunk docker instance, so this flag is set to true.
+          insecure_skip_verify: true
 
 processors:
     batch:
@@ -32,9 +34,16 @@ extensions:
       endpoint: :1888
     zpages:
       endpoint: :55679
+    file_storage/checkpoint:
+      directory: /output/
+      timeout: 1s
+      compaction:
+        on_start: true
+        directory: /output/
+        max_transaction_size: 65_536
 
 service:
-    extensions: [pprof, zpages, health_check]
+    extensions: [pprof, zpages, health_check, file_storage/checkpoint]
     pipelines:
       logs:
         receivers: [filelog]

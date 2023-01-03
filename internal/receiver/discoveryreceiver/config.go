@@ -22,7 +22,6 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/multierr"
@@ -43,8 +42,7 @@ var (
 type Config struct {
 	// Receivers is a mapping of receivers to discover to their receiver creator configs
 	// and evaluated metrics and application statements, which are used to determine component status.
-	Receivers               map[component.ID]ReceiverEntry `mapstructure:"receivers"`
-	config.ReceiverSettings `mapstructure:",squash"`
+	Receivers map[component.ID]ReceiverEntry `mapstructure:"receivers"`
 	// The configured Observer extensions from which to receive Endpoint events.
 	// Must implement the observer.Observable interface.
 	WatchObservers []component.ID `mapstructure:"watch_observers"`

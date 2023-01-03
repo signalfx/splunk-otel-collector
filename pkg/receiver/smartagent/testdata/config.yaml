@@ -1,47 +1,26 @@
-receivers:
-  smartagent/haproxy:
-    dimensionClients: [nop/one, nop/two]
-    type: haproxy
-    intervalSeconds: 123
-    username: SomeUser
-    password: secret
-  smartagent/redis:
-    dimensionClients: []
-    type: collectd/redis
-    host: localhost
-    port: 6379
-    intervalSeconds: 234
-  smartagent/hadoop:
-    type: collectd/hadoop
-    host: localhost
-    port: 8088
-    intervalSeconds: 345
-  smartagent/etcd:
-    type: etcd
-    host: localhost
-    port: 5309
-    intervalSeconds: 456
-  smartagent/ntpq:
-    type: telegraf/ntpq
-    intervalSeconds: 567
-    dnsLookup: true
-
-processors:
-  nop:
-
-exporters:
-  nop:
-  nop/one:
-  nop/two:
-
-service:
-  pipelines:
-    metrics:
-      receivers:
-        - smartagent/haproxy
-        - smartagent/redis
-        - smartagent/hadoop
-        - smartagent/etcd
-        - smartagent/ntpq
-      processors: [nop]
-      exporters: [nop, nop/one, nop/two]
+smartagent/haproxy:
+  dimensionClients: [nop/one, nop/two]
+  type: haproxy
+  intervalSeconds: 123
+  username: SomeUser
+  password: secret
+smartagent/redis:
+  dimensionClients: []
+  type: collectd/redis
+  host: localhost
+  port: 6379
+  intervalSeconds: 234
+smartagent/hadoop:
+  type: collectd/hadoop
+  host: localhost
+  port: 8088
+  intervalSeconds: 345
+smartagent/etcd:
+  type: etcd
+  host: localhost
+  port: 5309
+  intervalSeconds: 456
+smartagent/ntpq:
+  type: telegraf/ntpq
+  intervalSeconds: 567
+  dnsLookup: true

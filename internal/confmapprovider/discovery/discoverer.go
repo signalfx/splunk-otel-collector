@@ -32,6 +32,7 @@ import (
 	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
 	"go.opentelemetry.io/collector/consumer"
 	otelcolextension "go.opentelemetry.io/collector/extension"
+	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/pdata/plog"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/metric"
@@ -53,7 +54,7 @@ const durationEnvVar = "SPLUNK_DISCOVERY_DURATION"
 // of the underlying receivers were successfully discovered by the
 // discovery receiver from its emitted log records.
 type discoverer struct {
-	factories           component.Factories
+	factories           otelcol.Factories
 	expandConverter     confmap.Converter
 	configs             map[string]*Config
 	extensions          map[component.ID]otelcolextension.Extension
@@ -396,7 +397,7 @@ func (d *discoverer) createReceiverCreateSettings() otelcolreceiver.CreateSettin
 	}
 }
 
-func (c Config) observersForDiscoveryMode() []component.ID {
+func (c *Config) observersForDiscoveryMode() []component.ID {
 	var cids []component.ID
 	for k := range c.DiscoveryObservers {
 		cids = append(cids, k)

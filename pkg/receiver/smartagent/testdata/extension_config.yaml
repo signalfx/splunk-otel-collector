@@ -1,32 +1,15 @@
-extensions:
-  smartagent/partial_settings:
-    bundleDir: /opt/
-    collectd:
-      timeout: 10
-      readThreads: 1
-      writeThreads: 4
-      writeQueueLimitHigh: 5
-  smartagent/extra:
-    bundleDir: /opt/
-    collectd:
-      timeout: 10
-      readThreads: 1
-      writeThreads: 4
-      writeQueueLimitHigh: 5
+smartagent/partial_settings:
+  bundleDir: /opt/
+  collectd:
+    timeout: 10
+    readThreads: 1
+    writeThreads: 4
+    writeQueueLimitHigh: 5
+smartagent/extra:
+  bundleDir: /opt/
+  collectd:
+    timeout: 10
+    readThreads: 1
+    writeThreads: 4
+    writeQueueLimitHigh: 5
 
-receivers:
-  nop:
-
-processors:
-  nop:
-
-exporters:
-  nop:
-
-service:
-  extensions: [smartagent/partial_settings, smartagent/extra]
-  pipelines:
-    metrics:
-      receivers: [nop]
-      processors: [nop]
-      exporters: [nop]

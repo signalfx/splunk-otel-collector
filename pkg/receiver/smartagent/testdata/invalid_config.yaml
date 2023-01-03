@@ -1,22 +1,7 @@
-receivers:
-  smartagent/negativeintervalseconds:
-    type: collectd/redis
-    intervalSeconds: -234
-  smartagent/missingrequired:
-    type: collectd/consul
-    port: 5309
+smartagent/negativeintervalseconds:
+  type: collectd/redis
+  intervalSeconds: -234
+smartagent/missingrequired:
+  type: collectd/consul
+  port: 5309
 
-processors:
-  nop:
-
-exporters:
-  nop:
-
-service:
-  pipelines:
-    metrics:
-      receivers:
-        - smartagent/negativeintervalseconds
-        - smartagent/missingrequired
-      processors: [nop]
-      exporters: [nop]

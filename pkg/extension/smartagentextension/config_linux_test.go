@@ -23,30 +23,25 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/extension"
-	"go.opentelemetry.io/collector/otelcol/otelcoltest"
 )
 
 func TestBundleDirDefault(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	require.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Extensions[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "config.yaml"), factories,
-	)
-
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "config.yaml"))
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
+	require.Equal(t, 3, len(cfg.ToStringMap()))
 
-	require.GreaterOrEqual(t, len(cfg.Extensions), 1)
+	defaultSettingsID := component.NewIDWithName("smartagent", "default_settings")
+	cm, err := cfg.Sub(defaultSettingsID.String())
+	require.NoError(t, err)
+	emptyConfig := createDefaultConfig().(*Config)
+	err = component.UnmarshalConfig(cm, emptyConfig)
+	require.NoError(t, err)
+	require.NotNil(t, emptyConfig)
 
-	allSettingsConfig := cfg.Extensions[component.NewIDWithName(typeStr, "default_settings")]
-	require.NotNil(t, allSettingsConfig)
-
-	ext, err := factory.CreateExtension(context.Background(), extension.CreateSettings{}, allSettingsConfig)
+	ext, err := NewFactory().CreateExtension(context.Background(), extension.CreateSettings{}, emptyConfig)
 	require.NoError(t, err)
 	require.NotNil(t, ext)
 

@@ -1,21 +1,4 @@
-extensions:
-  smartagent/invalid_settings:
-    collectd:
-      timeout: ten
+smartagent/invalid_settings:
+  collectd:
+    timeout: ten
 
-receivers:
-  nop:
-
-processors:
-  nop:
-
-exporters:
-  nop:
-
-service:
-  extensions: [smartagent/invalid_settings]
-  pipelines:
-    metrics:
-      receivers: [nop]
-      processors: [nop]
-      exporters: [nop]

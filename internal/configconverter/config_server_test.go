@@ -38,8 +38,8 @@ func TestConfigServer_RequireEnvVar(t *testing.T) {
 
 	cs := NewConfigServer()
 	require.NotNil(t, cs)
-	cs.Register()
-	t.Cleanup(cs.Unregister)
+	cs.OnNew()
+	t.Cleanup(cs.OnShutdown)
 	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 
 	client := &http.Client{}
@@ -92,10 +92,10 @@ func TestConfigServer_EnvVar(t *testing.T) {
 
 			cs := NewConfigServer()
 			require.NotNil(t, cs)
-			cs.Register()
+			cs.OnNew()
 
 			require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
-			defer cs.Unregister()
+			defer cs.OnShutdown()
 
 			endpoint := tt.endpoint
 			if endpoint == "" {
@@ -147,10 +147,10 @@ func TestConfigServer_Serve(t *testing.T) {
 
 	cs := NewConfigServer()
 	require.NotNil(t, cs)
-	cs.Register()
-	t.Cleanup(cs.Unregister)
+	cs.OnNew()
+	t.Cleanup(cs.OnShutdown)
 
-	cs.SetForScheme("scheme", initial)
+	cs.OnRetrieve("scheme", initial)
 	require.NoError(t, cs.Convert(context.Background(), confmap.NewFromStringMap(initial)))
 
 	// Test for the pages to be actually valid YAML files.

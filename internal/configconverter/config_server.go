@@ -31,6 +31,8 @@ import (
 	"github.com/spf13/cast"
 	"go.opentelemetry.io/collector/confmap"
 	"gopkg.in/yaml.v2"
+
+	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 const (
@@ -49,6 +51,7 @@ const (
 )
 
 var _ confmap.Converter = (*ConfigServer)(nil)
+var _ configprovider.Hook = (*ConfigServer)(nil)
 
 type ConfigServer struct {
 	// Use get/set methods instead of direct usage
@@ -95,14 +98,14 @@ func (cs *ConfigServer) Convert(_ context.Context, conf *confmap.Conf) error {
 	return nil
 }
 
-func (cs *ConfigServer) Register() {
+func (cs *ConfigServer) OnNew() {
 	cs.wg.Add(1)
 }
 
-func (cs *ConfigServer) SetForScheme(scheme string, config map[string]any) {
+func (cs *ConfigServer) OnRetrieve(scheme string, retrieved map[string]any) {
 	cs.initialMutex.Lock()
 	defer cs.initialMutex.Unlock()
-	cs.initial[scheme] = config
+	cs.initial[scheme] = retrieved
 }
 
 func (cs *ConfigServer) getInitial() map[string]any {
@@ -123,8 +126,8 @@ func (cs *ConfigServer) getEffective() map[string]any {
 	return cs.effective
 }
 
-// start will create and start the singleton http server. It presumes cs.Register() has been
-// called at least once and will tear down the moment the final cs.Unregister() call is made.
+// start will create and start the singleton http server. It presumes cs.OnNew() has been
+// called at least once and will tear down the moment the final cs.OnShutdown() call is made.
 func (cs *ConfigServer) start() {
 	if enabled := os.Getenv(configServerEnabledEnvVar); enabled != "true" {
 		// The config server needs to be explicitly enabled for the time being.
@@ -174,7 +177,7 @@ func (cs *ConfigServer) start() {
 		})
 }
 
-func (cs *ConfigServer) Unregister() {
+func (cs *ConfigServer) OnShutdown() {
 	cs.wg.Done()
 }
 

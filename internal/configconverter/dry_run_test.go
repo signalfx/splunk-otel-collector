@@ -27,13 +27,20 @@ import (
 )
 
 func TestDryRun(t *testing.T) {
-	config := confmap.NewFromStringMap(map[string]interface{}{"one": "one"})
+	cfgOne := confmap.NewFromStringMap(map[string]any{"key.one": "value.one"})
 	dr := NewDryRun(false)
+	dr.OnNew()
+	defer func() { require.NotPanics(t, dr.OnShutdown) }()
+
+	dr.OnRetrieve("some.scheme", cfgOne.ToStringMap())
 	require.NotPanics(t, func() {
-		dr.Convert(context.Background(), config)
+		dr.Convert(context.Background(), cfgOne)
 	})
 
 	origStdOut := os.Stdout
+	t.Cleanup(func() {
+		os.Stdout = origStdOut
+	})
 	stdout, err := os.CreateTemp("", "stdout")
 	require.NoError(t, err)
 	require.NotNil(t, stdout)
@@ -48,14 +55,17 @@ func TestDryRun(t *testing.T) {
 	}())
 
 	dr = NewDryRun(true)
+	cfgTwo := confmap.NewFromStringMap(map[string]any{"key.two": "value.two"})
+	dr.OnRetrieve("some.scheme", cfgOne.ToStringMap())
+	dr.OnRetrieve("another.scheme", cfgTwo.ToStringMap())
 	require.Panics(t, func() {
-		dr.Convert(context.Background(), config)
+		dr.Convert(context.Background(), cfgTwo)
 	})
-	os.Stdout = origStdOut
 	stdout.Seek(0, 0)
 	out, err := io.ReadAll(stdout)
 	require.NoError(t, err)
 	actual := map[string]any{}
 	yaml.Unmarshal(out, &actual)
-	require.Equal(t, config.ToStringMap(), actual)
+	expected := map[string]any{"key.one": "value.one", "key.two": "value.two"}
+	require.Equal(t, expected, actual)
 }

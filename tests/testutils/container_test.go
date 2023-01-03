@@ -65,6 +65,11 @@ func TestDockerBuilderMethods(t *testing.T) {
 	assert.NotSame(t, builder, withContextArchive)
 	assert.Nil(t, builder.Dockerfile.ContextArchive)
 
+	withEntrypoint := builder.WithEntrypoint("bin", "arg")
+	assert.Equal(t, []string{"bin", "arg"}, withEntrypoint.Entrypoint)
+	assert.NotSame(t, builder, withEntrypoint)
+	assert.Empty(t, builder.Entrypoint)
+
 	withCmd := builder.WithCmd("bash", "-c", "'sleep inf'")
 	assert.Equal(t, []string{"bash", "-c", "'sleep inf'"}, withCmd.Cmd)
 	assert.NotSame(t, builder, withCmd)
@@ -384,8 +389,8 @@ func (lc *logConsumer) Accept(l testcontainers.Log) {
 var _ testcontainers.LogConsumer = (*logConsumer)(nil)
 
 func TestTestcontainersContainerMethods(t *testing.T) {
-	alpine := NewContainer().WithImage("alpine").WithCmd(
-		"sh", "-c", "echo rdy > /tmp/something && tail -f /tmp/something",
+	alpine := NewContainer().WithImage("alpine").WithEntrypoint("sh", "-c").WithCmd(
+		"echo rdy > /tmp/something && tail -f /tmp/something",
 	).WithExposedPorts("12345:12345").WithName("my-alpine").WithNetworks(
 		"bridge", "network_a", "network_b",
 	).WillWaitForLogs("rdy").Build()

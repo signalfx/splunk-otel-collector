@@ -72,6 +72,7 @@ func main() {
 		log.Fatalf("failed to create discovery provider: %v", err)
 	}
 
+	hooks := []configprovider.Hook{configServer, dryRun}
 	envProvider := envprovider.New()
 	fileProvider := fileprovider.New()
 	serviceConfigProvider, err := otelcol.NewConfigProvider(
@@ -82,16 +83,16 @@ func main() {
 					discovery.ConfigDScheme(): configprovider.NewConfigSourceConfigMapProvider(
 						discovery.ConfigDProvider(),
 						zap.NewNop(), // The service logger is not available yet, setting it to Nop.
-						info, configServer, configsources.Get()...,
+						info, hooks, configsources.Get()...,
 					),
 					discovery.DiscoveryModeScheme(): configprovider.NewConfigSourceConfigMapProvider(
-						discovery.DiscoveryModeProvider(), zap.NewNop(), info, configServer, configsources.Get()...,
+						discovery.DiscoveryModeProvider(), zap.NewNop(), info, hooks, configsources.Get()...,
 					),
 					envProvider.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
-						envProvider, zap.NewNop(), info, configServer, configsources.Get()...,
+						envProvider, zap.NewNop(), info, hooks, configsources.Get()...,
 					),
 					fileProvider.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
-						fileProvider, zap.NewNop(), info, configServer, configsources.Get()...,
+						fileProvider, zap.NewNop(), info, hooks, configsources.Get()...,
 					),
 				}, Converters: confMapConverters,
 			},

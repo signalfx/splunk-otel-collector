@@ -22,17 +22,21 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 )
 
 var (
 	_ confmap.Provider = (*configSourceConfigMapProvider)(nil)
 )
 
+type Hook interface {
+	OnNew()
+	OnRetrieve(scheme string, retrieved map[string]any)
+	OnShutdown()
+}
+
 type configSourceConfigMapProvider struct {
 	logger           *zap.Logger
-	configServer     *configconverter.ConfigServer
+	hooks            []Hook
 	wrappedProvider  confmap.Provider
 	wrappedRetrieved *confmap.Retrieved
 	buildInfo        component.BuildInfo
@@ -41,10 +45,12 @@ type configSourceConfigMapProvider struct {
 
 // NewConfigSourceConfigMapProvider creates a ParserProvider that uses config sources.
 func NewConfigSourceConfigMapProvider(wrappedProvider confmap.Provider, logger *zap.Logger,
-	buildInfo component.BuildInfo, configServer *configconverter.ConfigServer, factories ...Factory) confmap.Provider {
-	configServer.Register()
+	buildInfo component.BuildInfo, hooks []Hook, factories ...Factory) confmap.Provider {
+	for _, h := range hooks {
+		h.OnNew()
+	}
 	return &configSourceConfigMapProvider{
-		configServer:     configServer,
+		hooks:            hooks,
 		wrappedProvider:  wrappedProvider,
 		logger:           logger,
 		factories:        factories,
@@ -89,7 +95,12 @@ func (c *configSourceConfigMapProvider) Retrieve(ctx context.Context, uri string
 	if err != nil {
 		return nil, err
 	}
-	c.configServer.SetForScheme(c.Scheme(), wrappedMap.ToStringMap())
+
+	scheme, stringMap := c.Scheme(), wrappedMap.ToStringMap()
+	for _, h := range c.hooks {
+		h.OnRetrieve(scheme, stringMap)
+	}
+
 	retrieved, closeFunc, err := Resolve(ctx, wrappedMap, c.logger, c.buildInfo, factories, onChange)
 	if err != nil {
 		return nil, err
@@ -103,7 +114,9 @@ func (c *configSourceConfigMapProvider) Scheme() string {
 }
 
 func (c *configSourceConfigMapProvider) Shutdown(ctx context.Context) error {
-	c.configServer.Unregister()
+	for _, h := range c.hooks {
+		h.OnShutdown()
+	}
 	return c.wrappedProvider.Shutdown(ctx)
 }
 

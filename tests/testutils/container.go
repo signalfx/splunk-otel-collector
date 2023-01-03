@@ -45,6 +45,7 @@ type Container struct {
 	Image                string
 	ContainerName        string
 	ContainerNetworkMode string
+	Entrypoint           []string
 	Cmd                  []string
 	ContainerNetworks    []string
 	ExposedPorts         []string
@@ -81,6 +82,11 @@ func (container Container) WithContext(path string) Container {
 
 func (container Container) WithContextArchive(contextArchive io.Reader) Container {
 	container.Dockerfile.ContextArchive = contextArchive
+	return container
+}
+
+func (container Container) WithEntrypoint(entrypoint ...string) Container {
+	container.Entrypoint = entrypoint
 	return container
 }
 
@@ -211,6 +217,7 @@ func (container Container) Build() *Container {
 		Image:          container.Image,
 		FromDockerfile: container.Dockerfile,
 		Cmd:            container.Cmd,
+		Entrypoint:     container.Entrypoint,
 		Env:            container.Env,
 		ExposedPorts:   container.ExposedPorts,
 		Name:           container.ContainerName,

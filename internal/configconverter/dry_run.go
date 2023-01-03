@@ -18,32 +18,66 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sync"
 
 	"go.opentelemetry.io/collector/confmap"
 	"gopkg.in/yaml.v2"
+
+	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 var _ confmap.Converter = (*DryRun)(nil)
+var _ configprovider.Hook = (*DryRun)(nil)
 
 type DryRun struct {
+	*sync.Mutex
+	configs []map[string]any
 	enabled bool
 }
 
-func NewDryRun(enabled bool) DryRun {
-	return DryRun{enabled: enabled}
+func NewDryRun(enabled bool) *DryRun {
+	return &DryRun{
+		Mutex:   &sync.Mutex{},
+		enabled: enabled,
+		configs: []map[string]any{},
+	}
 }
 
-// Convert is intended to be called as the final service confmap.Converter so
-// that it has access to the final config before exiting, if enabled.
-func (dr DryRun) Convert(_ context.Context, conf *confmap.Conf) error {
-	if dr.enabled {
-		out, err := yaml.Marshal(conf.ToStringMap())
-		if err != nil {
-			panic(fmt.Errorf("failed marshaling --dry-run config: %w", err))
-		}
-		fmt.Fprintf(os.Stdout, "%s", out)
-		os.Stdout.Sync()
-		os.Exit(0)
+func (dr *DryRun) OnNew() {}
+
+func (dr *DryRun) OnRetrieve(_ string, retrieved map[string]any) {
+	if dr == nil || !dr.enabled {
+		return
 	}
+	dr.Lock()
+	defer dr.Unlock()
+	dr.configs = append(dr.configs, retrieved)
+}
+
+func (dr *DryRun) OnShutdown() {}
+
+// Convert disregards the provided *confmap.Conf so that it will use
+// unexpanded values (env vars, config source directives) as
+// accrued by OnRetrieve() calls.
+func (dr *DryRun) Convert(context.Context, *confmap.Conf) error {
+	if dr == nil || !dr.enabled {
+		return nil
+	}
+	cm := confmap.New()
+	dr.Lock()
+	for _, cfg := range dr.configs {
+		if err := cm.Merge(confmap.NewFromStringMap(cfg)); err != nil {
+			dr.Unlock()
+			return err
+		}
+	}
+	dr.Unlock() // not deferred because we are exiting
+	out, err := yaml.Marshal(cm.ToStringMap())
+	if err != nil {
+		panic(fmt.Errorf("failed marshaling --dry-run config: %w", err))
+	}
+	fmt.Fprintf(os.Stdout, "%s", out)
+	os.Stdout.Sync()
+	os.Exit(0)
 	return nil
 }

@@ -22,13 +22,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.uber.org/zap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 )
 
 func TestConfigSourceConfigMapProvider(t *testing.T) {
@@ -91,19 +90,36 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				}
 			}
 
+			hookOne := &mockHook{}
+			hookTwo := &mockHook{}
+			hooks := []*mockHook{hookOne, hookTwo}
+			for _, h := range hooks {
+				h.On("OnNew")
+				h.On("OnRetrieve", mock.AnythingOfType("string"), mock.Anything)
+				h.On("OnShutdown")
+			}
+
 			pp := NewConfigSourceConfigMapProvider(
 				&mockParserProvider{},
 				zap.NewNop(),
 				component.NewDefaultBuildInfo(),
-				configconverter.NewConfigServer(),
+				[]Hook{hookOne, hookTwo},
 				factories...,
 			)
 			require.NotNil(t, pp)
 
+			for _, h := range hooks {
+				h.AssertCalled(t, "OnNew")
+				h.AssertNotCalled(t, "OnRetrieve")
+				h.AssertNotCalled(t, "OnShutdown")
+			}
+
+			var expectedScheme string
 			// Do not use the config.Default() to simplify the test setup.
 			cspp := pp.(*configSourceConfigMapProvider)
 			if tt.parserProvider != nil {
 				cspp.wrappedProvider = tt.parserProvider
+				expectedScheme = tt.parserProvider.Scheme()
 			}
 
 			// Need to run Retrieve method no matter what, so we can't just iterate passed in config locations
@@ -116,6 +132,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 					configLocation = ""
 				}
 				r, err := pp.Retrieve(context.Background(), configLocation, nil)
+
 				if tt.wantErr == "" {
 					require.NoError(t, err)
 					require.NotNil(t, r)
@@ -126,13 +143,26 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				} else {
 					assert.ErrorContains(t, err, tt.wantErr)
 					assert.Nil(t, r)
-					return
+					break
 				}
 				i++
 				ok = i < len(tt.configLocation)
 			}
 
+			for _, h := range hooks {
+				if tt.wantErr != "" {
+					h.AssertNotCalled(t, "OnRetrieve")
+				} else {
+					h.AssertCalled(t, "OnRetrieve", expectedScheme, mock.Anything)
+				}
+				h.AssertNotCalled(t, "OnShutdown")
+			}
+
 			assert.NoError(t, cspp.Shutdown(context.Background()))
+
+			for _, h := range hooks {
+				h.AssertCalled(t, "OnShutdown")
+			}
 		})
 	}
 }
@@ -156,4 +186,22 @@ func (mpp *mockParserProvider) Shutdown(context.Context) error {
 
 func (mpp *mockParserProvider) Scheme() string {
 	return ""
+}
+
+type mockHook struct {
+	mock.Mock
+}
+
+var _ Hook = (*mockHook)(nil)
+
+func (m *mockHook) OnNew() {
+	m.Called()
+}
+
+func (m *mockHook) OnRetrieve(scheme string, _ map[string]any) {
+	m.Called(scheme, mock.Anything)
+}
+
+func (m *mockHook) OnShutdown() {
+	m.Called()
 }

@@ -33,6 +33,8 @@ void set_env_var(logger log, const char *var_name, const char *value);
 
 void set_env_var_from_attr(logger log, const char *attr_name, const char *env_var_name, const char *value);
 
+void get_service_name(logger log, cmdline_reader cr, struct config *cfg, char *dest);
+
 // The entry point for all executables prior to their execution. If the executable is named "java", we
 // set the env vars JAVA_TOOL_OPTIONS to the path of the java agent jar and OTEL_SERVICE_NAME to the
 // service name based on the arguments to the java command.
@@ -85,30 +87,36 @@ void auto_instrument(
     }
 
     char service_name[MAX_CMDLINE_LEN] = "";
-    if (cfg.service_name == NULL) {
-        get_service_name_from_cmdline(log, service_name, cr);
+    if (str_eq_false(cfg.generate_service_name)) {
+        log_debug(log, "service name generation disabled");
     } else {
-        strncpy(service_name, cfg.service_name, MAX_CMDLINE_LEN);
+        get_service_name(log, cr, &cfg, service_name);
+        if (strlen(service_name) == 0) {
+            log_info(log, "service name empty, quitting");
+            return;
+        }
+        set_env_var(log, otel_service_name_var, service_name);
     }
-
-    if (strlen(service_name) == 0) {
-        log_info(log, "service name empty, quitting");
-        return;
-    }
-
-    set_env_var(log, otel_service_name_var, service_name);
 
     set_java_tool_options(log, &cfg);
 
     set_env_var_from_attr(log, "resource_attributes", resource_attributes_var, cfg.resource_attributes);
 
-    if (eq_true(cfg.disable_telemetry)) {
+    if (str_eq_true(cfg.disable_telemetry)) {
         log_info(log, "disabling telemetry as per config");
     } else {
         send_otlp_metric_func(log, service_name);
     }
 
     free_config(&cfg);
+}
+
+void get_service_name(logger log, cmdline_reader cr, struct config *cfg, char *dest) {
+    if (cfg->service_name == NULL) {
+        get_service_name_from_cmdline(log, dest, cr);
+    } else {
+        strncpy(dest, (*cfg).service_name, MAX_CMDLINE_LEN);
+    }
 }
 
 void get_service_name_from_cmdline(logger log, char *dest, cmdline_reader cr) {

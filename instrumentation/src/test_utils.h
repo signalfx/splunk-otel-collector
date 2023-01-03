@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+void print_logs(char **logs, int n);
+
 void require_true(char *funcname, bool actual);
 
 void require_false(char *funcname, bool actual);

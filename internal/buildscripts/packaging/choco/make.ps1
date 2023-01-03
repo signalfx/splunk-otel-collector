@@ -28,7 +28,7 @@ $scriptDir = split-path -parent $MyInvocation.MyCommand.Definition
 $repoDir = "$scriptDir\..\..\..\.."
 
 function build_choco(
-        [string]$Version="0.67.0",
+        [string]$Version,
         [string]$MSIFile="",
         [string]$BuildDir="$repoDir\dist",
         [string]$ChocoDir="$scriptDir\splunk-otel-collector") {

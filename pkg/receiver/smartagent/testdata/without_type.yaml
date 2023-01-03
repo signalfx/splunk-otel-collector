@@ -1,15 +1,2 @@
-receivers:
-  smartagent/withouttype:
+smartagent/withouttype:
 
-processors:
-  nop:
-
-exporters:
-  nop:
-
-service:
-  pipelines:
-    metrics:
-      receivers: [smartagent/withouttype]
-      processors: [nop]
-      exporters: [nop]

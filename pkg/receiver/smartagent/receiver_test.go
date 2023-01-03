@@ -33,11 +33,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	otelcolextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/extension/extensiontest"
-	"go.opentelemetry.io/collector/otelcol/otelcoltest"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
@@ -85,9 +84,8 @@ var (
 	extraSettingsID   = component.NewIDWithName(typeStr, "extra")
 )
 
-func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
+func newConfig(monitorType string, intervalSeconds int) Config {
 	return Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, nameVal)),
 		monitorConfig: &cpu.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:            monitorType,
@@ -103,7 +101,7 @@ func newConfig(nameVal, monitorType string, intervalSeconds int) Config {
 
 func TestSmartAgentReceiver(t *testing.T) {
 	t.Cleanup(cleanUp)
-	cfg := newConfig("valid", "cpu", 10)
+	cfg := newConfig("cpu", 10)
 	consumer := new(consumertest.MetricsSink)
 	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
 	receiver.registerMetricsConsumer(consumer)
@@ -194,7 +192,7 @@ func TestStripMonitorTypePrefix(t *testing.T) {
 
 func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 	t.Cleanup(cleanUp)
-	cfg := newConfig("invalid", "cpu", -123)
+	cfg := newConfig("cpu", -123)
 	receiver := newReceiver(newReceiverCreateSettings("invalid"), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	assert.EqualError(t, err,
@@ -204,7 +202,7 @@ func TestStartReceiverWithInvalidMonitorConfig(t *testing.T) {
 
 func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 	t.Cleanup(cleanUp)
-	cfg := newConfig("invalid", "notamonitortype", 1)
+	cfg := newConfig("notamonitortype", 1)
 	receiver := newReceiver(newReceiverCreateSettings("invalid"), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	assert.EqualError(t, err,
@@ -214,7 +212,7 @@ func TestStartReceiverWithUnknownMonitorType(t *testing.T) {
 
 func TestStartAndShutdown(t *testing.T) {
 	t.Cleanup(cleanUp)
-	cfg := newConfig("valid", "cpu", 1)
+	cfg := newConfig("cpu", 1)
 	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.NoError(t, err)
@@ -225,7 +223,7 @@ func TestStartAndShutdown(t *testing.T) {
 
 func TestOutOfOrderShutdownInvocations(t *testing.T) {
 	t.Cleanup(cleanUp)
-	cfg := newConfig("valid", "cpu", 1)
+	cfg := newConfig("cpu", 1)
 	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
 
 	err := receiver.Shutdown(context.Background())
@@ -237,7 +235,7 @@ func TestOutOfOrderShutdownInvocations(t *testing.T) {
 
 func TestMultipleInstancesOfSameMonitorType(t *testing.T) {
 	t.Cleanup(cleanUp)
-	cfg := newConfig("valid", "cpu", 1)
+	cfg := newConfig("cpu", 1)
 	fstRcvr := newReceiver(newReceiverCreateSettings("valid"), cfg)
 
 	ctx := context.Background()
@@ -252,7 +250,7 @@ func TestMultipleInstancesOfSameMonitorType(t *testing.T) {
 
 func TestInvalidMonitorStateAtShutdown(t *testing.T) {
 	t.Cleanup(cleanUp)
-	cfg := newConfig("valid", "cpu", 1)
+	cfg := newConfig("cpu", 1)
 	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
 	receiver.monitor = new(any)
 
@@ -280,7 +278,7 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 			monitors.MonitorFactories["notarealmonitor"] = test.monitorFactory
 			monitors.MonitorMetadatas["notarealmonitor"] = &monitors.Metadata{MonitorType: "notarealmonitor"}
 
-			cfg := newConfig("invalid", "notarealmonitor", 123)
+			cfg := newConfig("notarealmonitor", 123)
 			receiver := newReceiver(newReceiverCreateSettings("invalid"), cfg)
 			err := receiver.Start(context.Background(), componenttest.NewNopHost())
 			require.Error(tt, err)
@@ -294,7 +292,7 @@ func TestConfirmStartingReceiverWithInvalidMonitorInstancesDoesntPanic(t *testin
 func TestFilteringNoMetadata(t *testing.T) {
 	t.Cleanup(cleanUp)
 	monitors.MonitorFactories["fakemonitor"] = func() any { return struct{}{} }
-	cfg := newConfig("valid", "fakemonitor", 1)
+	cfg := newConfig("fakemonitor", 1)
 	receiver := newReceiver(newReceiverCreateSettings("valid"), cfg)
 	err := receiver.Start(context.Background(), componenttest.NewNopHost())
 	require.EqualError(t, err, "failed creating monitor \"fakemonitor\": could not find monitor metadata of type fakemonitor")
@@ -302,7 +300,7 @@ func TestFilteringNoMetadata(t *testing.T) {
 
 func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 	t.Cleanup(cleanUp)
-	cfg := newConfig("valid", "cpu", 1)
+	cfg := newConfig("cpu", 1)
 	observedLogger, logs := observer.New(zapcore.WarnLevel)
 	logger := zap.New(observedLogger)
 	rcs := newReceiverCreateSettings("valid")
@@ -360,28 +358,25 @@ func TestSmartAgentConfigProviderOverrides(t *testing.T) {
 }
 
 func getSmartAgentExtensionConfig(t *testing.T) []*smartagentextension.Config {
-	factories, err := componenttest.NopFactories()
-	require.Nil(t, err)
 
-	factory := smartagentextension.NewFactory()
-	factories.Extensions[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "extension_config.yaml"), factories,
-	)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "extension_config.yaml"))
 	require.NoError(t, err)
 
-	partialSettingsConfig := cfg.Extensions[partialSettingsID]
+	cm, err := cfg.Sub(partialSettingsID.String())
+	require.NoError(t, err)
+	partialSettingsConfig := smartagentextension.NewFactory().CreateDefaultConfig().(*smartagentextension.Config)
+	err = component.UnmarshalConfig(cm, partialSettingsConfig)
+	require.NoError(t, err)
 	require.NotNil(t, partialSettingsConfig)
 
-	extraSettingsConfig := cfg.Extensions[extraSettingsID]
+	cm, err = cfg.Sub(partialSettingsID.String())
+	require.NoError(t, err)
+	extraSettingsConfig := smartagentextension.NewFactory().CreateDefaultConfig().(*smartagentextension.Config)
+	err = component.UnmarshalConfig(cm, extraSettingsConfig)
+	require.NoError(t, err)
 	require.NotNil(t, extraSettingsConfig)
 
-	one, ok := partialSettingsConfig.(*smartagentextension.Config)
-	require.True(t, ok)
-
-	two, ok := extraSettingsConfig.(*smartagentextension.Config)
-	require.True(t, ok)
-	return []*smartagentextension.Config{one, two}
+	return []*smartagentextension.Config{partialSettingsConfig, extraSettingsConfig}
 }
 
 type mockHost struct {

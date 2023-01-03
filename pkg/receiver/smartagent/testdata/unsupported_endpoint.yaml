@@ -1,20 +1,6 @@
-receivers:
-  smartagent/nagios:
-    endpoint: localhost:12345
-    type: nagios
-    command: some_command
-    service: some_service
+smartagent/nagios:
+  endpoint: localhost:12345
+  type: nagios
+  command: some_command
+  service: some_service
 
-processors:
-  nop:
-
-exporters:
-  nop:
-
-service:
-  pipelines:
-    metrics:
-      receivers:
-        - smartagent/nagios
-      processors: [nop]
-      exporters: [nop]

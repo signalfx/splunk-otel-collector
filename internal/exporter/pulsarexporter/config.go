@@ -21,7 +21,6 @@ import (
 
 	"github.com/apache/pulsar-client-go/pulsar"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
@@ -34,11 +33,10 @@ type Authentication struct {
 type Config struct {
 	exporterhelper.QueueSettings   `mapstructure:"sending_queue"`
 	Authentication                 Authentication `mapstructure:"auth"`
-	config.ExporterSettings        `mapstructure:",squash"`
-	Broker                         string   `mapstructure:"broker"`
-	Topic                          string   `mapstructure:"topic"`
-	Encoding                       string   `mapstructure:"encoding"`
-	Producer                       Producer `mapstructure:"producer"`
+	Broker                         string         `mapstructure:"broker"`
+	Topic                          string         `mapstructure:"topic"`
+	Encoding                       string         `mapstructure:"encoding"`
+	Producer                       Producer       `mapstructure:"producer"`
 	exporterhelper.RetrySettings   `mapstructure:"retry_on_failure"`
 	exporterhelper.TimeoutSettings `mapstructure:",squash"`
 	OperationTimeout               time.Duration `mapstructure:"operation_timeout"`

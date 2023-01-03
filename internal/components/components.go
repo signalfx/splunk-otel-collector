@@ -74,7 +74,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
@@ -82,6 +81,8 @@ import (
 	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/extension/ballastextension"
 	"go.opentelemetry.io/collector/extension/zpagesextension"
+	"go.opentelemetry.io/collector/otelcol"
+	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
 	"go.opentelemetry.io/collector/receiver"
@@ -97,7 +98,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver"
 )
 
-func Get() (component.Factories, error) {
+func Get() (otelcol.Factories, error) {
 	var errs []error
 	extensions, err := extension.MakeFactoryMap(
 		ecsobserver.NewFactory(),
@@ -173,7 +174,7 @@ func Get() (component.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	processors, err := component.MakeProcessorFactoryMap(
+	processors, err := processor.MakeFactoryMap(
 		attributesprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
 		filterprocessor.NewFactory(),
@@ -196,7 +197,7 @@ func Get() (component.Factories, error) {
 		errs = append(errs, err)
 	}
 
-	factories := component.Factories{
+	factories := otelcol.Factories{
 		Extensions: extensions,
 		Receivers:  receivers,
 		Processors: processors,

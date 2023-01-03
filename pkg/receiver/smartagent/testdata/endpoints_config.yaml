@@ -1,40 +1,22 @@
-receivers:
-  smartagent/haproxy:
-    endpoint: "[fe80::20c:29ff:fe59:9446]:2345"
-    type: haproxy
-    intervalSeconds: 123
-    username: SomeUser
-    password: secret
-  smartagent/redis:
-    endpoint: redishost
-    type: collectd/redis
-    port: 6379
-    intervalSeconds: 234
-  smartagent/hadoop:
-    endpoint: "[::]:12345"
-    type: collectd/hadoop
-    host: localhost
-    port: 8088
-    intervalSeconds: 345
-  smartagent/etcd:
-    endpoint: etcdhost:5555
-    type: etcd
-    host: localhost
-    intervalSeconds: 456
-
-processors:
-  nop:
-
-exporters:
-  nop:
-
-service:
-  pipelines:
-    metrics:
-      receivers:
-        - smartagent/haproxy
-        - smartagent/redis
-        - smartagent/hadoop
-        - smartagent/etcd
-      processors: [nop]
-      exporters: [nop]
+smartagent/haproxy:
+  endpoint: "[fe80::20c:29ff:fe59:9446]:2345"
+  type: haproxy
+  intervalSeconds: 123
+  username: SomeUser
+  password: secret
+smartagent/redis:
+  endpoint: redishost
+  type: collectd/redis
+  port: 6379
+  intervalSeconds: 234
+smartagent/hadoop:
+  endpoint: "[::]:12345"
+  type: collectd/hadoop
+  host: localhost
+  port: 8088
+  intervalSeconds: 345
+smartagent/etcd:
+  endpoint: etcdhost:5555
+  type: etcd
+  host: localhost
+  intervalSeconds: 456

@@ -28,46 +28,42 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.opentelemetry.io/collector/extension"
-	"go.opentelemetry.io/collector/otelcol/otelcoltest"
 )
 
 var tru = true
 var flse = false
 
 func TestLoadConfig(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	require.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Extensions[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "config.yaml"), factories,
-	)
-
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "config.yaml"))
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
-
-	require.Equal(t, len(cfg.Extensions), 3)
+	require.Equal(t, 3, len(cfg.ToStringMap()))
 
 	defaultSettingsID := component.NewIDWithName("smartagent", "default_settings")
-	emptyConfig := cfg.Extensions[defaultSettingsID]
+	cm, err := cfg.Sub(defaultSettingsID.String())
+	require.NoError(t, err)
+	emptyConfig := createDefaultConfig()
+	err = component.UnmarshalConfig(cm, emptyConfig)
+	require.NoError(t, err)
 	require.NotNil(t, emptyConfig)
 	require.NoError(t, componenttest.CheckConfigStruct(emptyConfig))
 	require.Equal(t, func() *Config {
 		c := defaultConfig()
-		c.ExtensionSettings = config.NewExtensionSettings(defaultSettingsID)
 		return &c
 	}(), emptyConfig)
 
 	allSettingsID := component.NewIDWithName("smartagent", "all_settings")
-	allSettingsConfig := cfg.Extensions[allSettingsID]
+	cm, err = cfg.Sub(allSettingsID.String())
+	require.NoError(t, err)
+	allSettingsConfig := NewFactory().CreateDefaultConfig().(*Config)
+	err = component.UnmarshalConfig(cm, allSettingsConfig)
+	require.NoError(t, err)
 	require.NotNil(t, allSettingsConfig)
 	require.NoError(t, componenttest.CheckConfigStruct(allSettingsConfig))
 	require.Equal(t, func() *Config {
 		c := defaultConfig()
-		c.ExtensionSettings = config.NewExtensionSettings(allSettingsID)
 		c.BundleDir = "/opt/bin/collectd/"
 		c.ProcPath = "/my_proc"
 		c.EtcPath = "/my_etc"
@@ -90,12 +86,15 @@ func TestLoadConfig(t *testing.T) {
 	}(), allSettingsConfig)
 
 	partialSettingsID := component.NewIDWithName("smartagent", "partial_settings")
-	partialSettingsConfig := cfg.Extensions[partialSettingsID]
+	cm, err = cfg.Sub(partialSettingsID.String())
+	require.NoError(t, err)
+	partialSettingsConfig := NewFactory().CreateDefaultConfig().(*Config)
+	err = component.UnmarshalConfig(cm, partialSettingsConfig)
+	require.NoError(t, err)
 	require.NotNil(t, partialSettingsConfig)
 	require.NoError(t, componenttest.CheckConfigStruct(partialSettingsConfig))
 	require.Equal(t, func() *Config {
 		c := defaultConfig()
-		c.ExtensionSettings = config.NewExtensionSettings(partialSettingsID)
 		c.BundleDir = "/opt/"
 		c.Collectd.Timeout = 10
 		c.Collectd.ReadThreads = 1
@@ -108,24 +107,21 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestSmartAgentConfigProvider(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	require.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Extensions[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "config.yaml"), factories,
-	)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "config.yaml"))
 
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	require.GreaterOrEqual(t, len(cfg.Extensions), 1)
+	require.Equal(t, 3, len(cfg.ToStringMap()))
 
-	allSettingsConfig := cfg.Extensions[component.NewIDWithName(typeStr, "all_settings")]
+	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "all_settings").String())
+	require.NoError(t, err)
+	allSettingsConfig := createDefaultConfig()
+	err = component.UnmarshalConfig(cm, allSettingsConfig)
+	require.NoError(t, err)
 	require.NotNil(t, allSettingsConfig)
 
-	ext, err := factory.CreateExtension(context.Background(), extension.CreateSettings{}, allSettingsConfig)
+	ext, err := NewFactory().CreateExtension(context.Background(), extension.CreateSettings{}, allSettingsConfig)
 	require.NoError(t, err)
 	require.NotNil(t, ext)
 
@@ -152,22 +148,16 @@ func TestSmartAgentConfigProvider(t *testing.T) {
 }
 
 func TestLoadInvalidConfig(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	require.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Extensions[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "invalid_config.yaml"), factories,
-	)
-
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "invalid_config.yaml"))
+	require.NoError(t, err)
+	cm, err := cfg.Sub("smartagent/invalid_settings")
+	require.NoError(t, err)
+	err = component.UnmarshalConfig(cm, createDefaultConfig())
 	require.Error(t, err)
-	require.Nil(t, cfg)
 }
 
 func defaultConfig() Config {
 	return Config{
-		ExtensionSettings: config.NewExtensionSettings(component.NewID(typeStr)),
 		Config: saconfig.Config{
 			BundleDir:              bundleDir,
 			SignalFxRealm:          "us0",

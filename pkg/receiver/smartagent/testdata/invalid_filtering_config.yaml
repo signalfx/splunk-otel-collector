@@ -1,18 +1,5 @@
-receivers:
-  smartagent/filesystems:
-    type: filesystems
-    datapointsToExclude:
-    - metricNames: ['./[0-']
+smartagent/filesystems:
+  type: filesystems
+  datapointsToExclude:
+  - metricNames: ['./[0-']
 
-processors:
-  nop:
-
-exporters:
-  nop:
-
-service:
-  pipelines:
-    metrics:
-      receivers: [smartagent/filesystems]
-      processors: [nop]
-      exporters: [nop]

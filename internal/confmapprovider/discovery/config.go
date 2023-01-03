@@ -261,7 +261,7 @@ func (c *Config) Load(configDPath string) error {
 
 // toServiceConfig renders the loaded Config content
 // suitable for use as a Collector configuration
-func (c Config) toServiceConfig() map[string]any {
+func (c *Config) toServiceConfig() map[string]any {
 	sc := confmap.New()
 	service := c.Service.ToStringMap()
 	sc.Merge(confmap.NewFromStringMap(map[string]any{typeService: service}))

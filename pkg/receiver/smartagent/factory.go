@@ -19,7 +19,6 @@ import (
 	"sync"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 )
@@ -65,9 +64,7 @@ func NewFactory() otelcolreceiver.Factory {
 }
 
 func CreateDefaultConfig() component.Config {
-	return &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewID(typeStr)),
-	}
+	return &Config{}
 }
 
 func createMetricsReceiver(

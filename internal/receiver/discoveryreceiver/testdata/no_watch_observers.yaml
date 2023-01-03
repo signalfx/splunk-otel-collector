@@ -1,13 +1,3 @@
-extensions:
+discovery:
+  watch_observers:
 
-receivers:
-  discovery:
-    watch_observers:
-exporters:
-  nop:
-
-service:
-  pipelines:
-    logs:
-      receivers: [discovery]
-      exporters: [nop]

@@ -21,9 +21,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 )
@@ -34,7 +32,6 @@ func TestCreateDefaultConfig(t *testing.T) {
 	assert.NotNil(t, cfg, "failed to create default config")
 	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
 	require.Equal(t, &Config{
-		ReceiverSettings:    config.NewReceiverSettings(component.NewID(typeStr)),
 		LogEndpoints:        false,
 		EmbedReceiverConfig: false,
 		CorrelationTTL:      10 * time.Minute,

@@ -39,30 +39,25 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/otelcol/otelcoltest"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
 func TestLoadConfig(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
 
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "config.yaml"), factories,
-	)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "config.yaml"))
 
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, len(cfg.Receivers), 5)
+	assert.Equal(t, 5, len(cfg.ToStringMap()))
 
-	haproxyCfg := cfg.Receivers[component.NewIDWithName(typeStr, "haproxy")].(*Config)
+	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "haproxy").String())
+	require.NoError(t, err)
+	haproxyCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, haproxyCfg))
+
 	expectedDimensionClients := []string{"nop/one", "nop/two"}
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "haproxy")),
 		DimensionClients: expectedDimensionClients,
 		monitorConfig: &haproxy.Config{
 			MonitorConfig: saconfig.MonitorConfig{
@@ -80,9 +75,12 @@ func TestLoadConfig(t *testing.T) {
 	}, haproxyCfg)
 	require.NoError(t, haproxyCfg.validate())
 
-	redisCfg := cfg.Receivers[component.NewIDWithName(typeStr, "redis")].(*Config)
+	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "redis").String())
+	require.NoError(t, err)
+	redisCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, redisCfg))
+
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "redis")),
 		DimensionClients: []string{},
 		monitorConfig: &redis.Config{
 			MonitorConfig: saconfig.MonitorConfig{
@@ -97,9 +95,12 @@ func TestLoadConfig(t *testing.T) {
 	}, redisCfg)
 	require.NoError(t, redisCfg.validate())
 
-	hadoopCfg := cfg.Receivers[component.NewIDWithName(typeStr, "hadoop")].(*Config)
+	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "hadoop").String())
+	require.NoError(t, err)
+	hadoopCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, hadoopCfg))
+
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "hadoop")),
 		monitorConfig: &hadoop.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/hadoop",
@@ -114,9 +115,12 @@ func TestLoadConfig(t *testing.T) {
 	}, hadoopCfg)
 	require.NoError(t, hadoopCfg.validate())
 
-	etcdCfg := cfg.Receivers[component.NewIDWithName(typeStr, "etcd")].(*Config)
+	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "etcd").String())
+	require.NoError(t, err)
+	etcdCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, etcdCfg))
+
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "etcd")),
 		monitorConfig: &prometheusexporter.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "etcd",
@@ -135,9 +139,11 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, etcdCfg.validate())
 
 	tr := true
-	ntpqCfg := cfg.Receivers[component.NewIDWithName(typeStr, "ntpq")].(*Config)
+	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "ntpq").String())
+	require.NoError(t, err)
+	ntpqCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, ntpqCfg))
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "ntpq")),
 		monitorConfig: &ntpq.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "telegraf/ntpq",
@@ -152,67 +158,53 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestLoadInvalidConfigWithoutType(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "without_type.yaml"), factories,
-	)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "without_type.yaml"))
+	require.NoError(t, err)
+	cm, err := cfg.Sub("smartagent/withouttype")
+	require.NoError(t, err)
+	withoutType := CreateDefaultConfig().(*Config)
+	err = component.UnmarshalConfig(cm, withoutType)
 	require.Error(t, err)
 	require.ErrorContains(t, err,
-		`error reading receivers configuration for "smartagent/withouttype": you must specify a "type" for a smartagent receiver`)
-	require.Nil(t, cfg)
+		`you must specify a "type" for a smartagent receiver`)
 }
 
 func TestLoadInvalidConfigWithUnknownType(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "unknown_type.yaml"), factories,
-	)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "unknown_type.yaml"))
+	require.NoError(t, err)
+	cm, err := cfg.Sub("smartagent/unknowntype")
+	require.NoError(t, err)
+	unknown := CreateDefaultConfig().(*Config)
+	err = component.UnmarshalConfig(cm, unknown)
 	require.Error(t, err)
 	require.ErrorContains(t, err,
-		`error reading receivers configuration for "smartagent/unknowntype": no known monitor type "notamonitor"`)
-	require.Nil(t, cfg)
+		`no known monitor type "notamonitor"`)
 }
 
 func TestLoadInvalidConfigWithUnexpectedTag(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "unexpected_tag.yaml"), factories,
-	)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "unexpected_tag.yaml"))
+	require.NoError(t, err)
+	cm, err := cfg.Sub("smartagent/unexpectedtag")
+	require.NoError(t, err)
+	unexpected := CreateDefaultConfig().(*Config)
+	err = component.UnmarshalConfig(cm, unexpected)
 	require.Error(t, err)
 	require.ErrorContains(t, err,
-		"error reading receivers configuration for \"smartagent/unexpectedtag\": failed creating Smart Agent Monitor custom config: yaml: unmarshal errors:\n  line 2: field notASupportedTag not found in type redis.Config")
-	require.Nil(t, cfg)
+		"failed creating Smart Agent Monitor custom config: yaml: unmarshal errors:\n  line 2: field notASupportedTag not found in type redis.Config")
 }
 
 func TestLoadInvalidConfigs(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "invalid_config.yaml"), factories,
-	)
-
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "invalid_config.yaml"))
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
-	assert.Equal(t, len(cfg.Receivers), 2)
 
-	negativeIntervalCfg := cfg.Receivers[component.NewIDWithName(typeStr, "negativeintervalseconds")].(*Config)
+	assert.Equal(t, 2, len(cfg.ToStringMap()))
+
+	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "negativeintervalseconds").String())
+	require.NoError(t, err)
+	negativeIntervalCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, negativeIntervalCfg))
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "negativeintervalseconds")),
 		monitorConfig: &redis.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/redis",
@@ -226,9 +218,11 @@ func TestLoadInvalidConfigs(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, "intervalSeconds must be greater than 0s (-234 provided)")
 
-	missingRequiredCfg := cfg.Receivers[component.NewIDWithName(typeStr, "missingrequired")].(*Config)
+	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "missingrequired").String())
+	require.NoError(t, err)
+	missingRequiredCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, missingRequiredCfg))
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "missingrequired")),
 		monitorConfig: &consul.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/consul",
@@ -247,24 +241,19 @@ func TestLoadInvalidConfigs(t *testing.T) {
 }
 
 func TestLoadConfigWithEndpoints(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "endpoints_config.yaml"), factories,
-	)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "endpoints_config.yaml"))
 
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, len(cfg.Receivers), 4)
+	assert.Equal(t, 4, len(cfg.ToStringMap()))
 
-	haproxyCfg := cfg.Receivers[component.NewIDWithName(typeStr, "haproxy")].(*Config)
+	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "haproxy").String())
+	require.NoError(t, err)
+	haproxyCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, haproxyCfg))
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "haproxy")),
-		Endpoint:         "[fe80::20c:29ff:fe59:9446]:2345",
+		Endpoint: "[fe80::20c:29ff:fe59:9446]:2345",
 		monitorConfig: &haproxy.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "haproxy",
@@ -283,10 +272,12 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, haproxyCfg)
 	require.NoError(t, haproxyCfg.validate())
 
-	redisCfg := cfg.Receivers[component.NewIDWithName(typeStr, "redis")].(*Config)
+	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "redis").String())
+	require.NoError(t, err)
+	redisCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, redisCfg))
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "redis")),
-		Endpoint:         "redishost",
+		Endpoint: "redishost",
 		monitorConfig: &redis.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/redis",
@@ -300,10 +291,12 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, redisCfg)
 	require.NoError(t, redisCfg.validate())
 
-	hadoopCfg := cfg.Receivers[component.NewIDWithName(typeStr, "hadoop")].(*Config)
+	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "hadoop").String())
+	require.NoError(t, err)
+	hadoopCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, hadoopCfg))
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "hadoop")),
-		Endpoint:         "[::]:12345",
+		Endpoint: "[::]:12345",
 		monitorConfig: &hadoop.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "collectd/hadoop",
@@ -318,10 +311,12 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 	}, hadoopCfg)
 	require.NoError(t, hadoopCfg.validate())
 
-	etcdCfg := cfg.Receivers[component.NewIDWithName(typeStr, "etcd")].(*Config)
+	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "etcd").String())
+	require.NoError(t, err)
+	etcdCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, etcdCfg))
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "etcd")),
-		Endpoint:         "etcdhost:5555",
+		Endpoint: "etcdhost:5555",
 		monitorConfig: &prometheusexporter.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "etcd",
@@ -341,38 +336,31 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 }
 
 func TestLoadInvalidConfigWithInvalidEndpoint(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "invalid_endpoint.yaml"))
+	require.NoError(t, err)
 
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "invalid_endpoint.yaml"), factories,
-	)
-	require.Error(t, err)
+	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "haproxy").String())
+	require.NoError(t, err)
+	haproxyCfg := CreateDefaultConfig().(*Config)
+	err = component.UnmarshalConfig(cm, haproxyCfg)
 	require.ErrorContains(t, err,
-		`error reading receivers configuration for "smartagent/haproxy": cannot determine port via Endpoint: strconv.ParseUint: parsing "notaport": invalid syntax`)
-	require.Nil(t, cfg)
+		`cannot determine port via Endpoint: strconv.ParseUint: parsing "notaport": invalid syntax`)
 }
 
 // Even though this smart-agent monitor does not accept endpoints,
 // we can create it without setting Host/Port fields.
 func TestLoadConfigWithUnsupportedEndpoint(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "unsupported_endpoint.yaml"), factories,
-	)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "unsupported_endpoint.yaml"))
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	nagiosCfg := cfg.Receivers[component.NewIDWithName(typeStr, "nagios")].(*Config)
+	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "nagios").String())
+	require.NoError(t, err)
+	nagiosCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, nagiosCfg))
+
 	require.Equal(t, &Config{
-		Endpoint:         "localhost:12345",
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "nagios")),
+		Endpoint: "localhost:12345",
 		monitorConfig: &nagios.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "nagios",
@@ -388,51 +376,40 @@ func TestLoadConfigWithUnsupportedEndpoint(t *testing.T) {
 }
 
 func TestLoadInvalidConfigWithNonArrayDimensionClients(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "invalid_nonarray_dimension_clients.yaml"), factories,
-	)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "invalid_nonarray_dimension_clients.yaml"))
+	require.NoError(t, err)
+	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "haproxy").String())
+	require.NoError(t, err)
+	haproxyCfg := CreateDefaultConfig().(*Config)
+	err = component.UnmarshalConfig(cm, haproxyCfg)
 	require.Error(t, err)
 	require.ErrorContains(t, err,
-		`error reading receivers configuration for "smartagent/haproxy": dimensionClients must be an array of compatible exporter names`)
-	require.Nil(t, cfg)
+		`dimensionClients must be an array of compatible exporter names`)
 }
 
 func TestLoadInvalidConfigWithNonStringArrayDimensionClients(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "invalid_float_dimension_clients.yaml"), factories,
-	)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "invalid_float_dimension_clients.yaml"))
+	require.NoError(t, err)
+	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "haproxy").String())
+	require.NoError(t, err)
+	haproxyCfg := CreateDefaultConfig().(*Config)
+	err = component.UnmarshalConfig(cm, haproxyCfg)
 	require.Error(t, err)
 	require.ErrorContains(t, err,
-		`error reading receivers configuration for "smartagent/haproxy": dimensionClients must be an array of compatible exporter names`)
-	require.Nil(t, cfg)
+		`dimensionClients must be an array of compatible exporter names`)
 }
 
 func TestFilteringConfig(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "filtering_config.yaml"), factories,
-	)
-
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "filtering_config.yaml"))
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	fsCfg := cfg.Receivers[component.NewIDWithName(typeStr, "filesystems")].(*Config)
+	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "filesystems").String())
+	require.NoError(t, err)
+	fsCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, fsCfg))
+
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "filesystems")),
 		monitorConfig: &filesystems.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type: "filesystems",
@@ -453,21 +430,16 @@ func TestFilteringConfig(t *testing.T) {
 }
 
 func TestInvalidFilteringConfig(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "invalid_filtering_config.yaml"), factories,
-	)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "invalid_filtering_config.yaml"))
 
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	fsCfg := cfg.Receivers[component.NewIDWithName(typeStr, "filesystems")].(*Config)
+	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "filesystems").String())
+	require.NoError(t, err)
+	fsCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, fsCfg))
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "filesystems")),
 		monitorConfig: &filesystems.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type: "filesystems",
@@ -486,23 +458,18 @@ func TestInvalidFilteringConfig(t *testing.T) {
 }
 
 func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	cfg, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "nested_monitor_config.yaml"), factories,
-	)
+	cfg, err := confmaptest.LoadConf(path.Join(".", "testdata", "nested_monitor_config.yaml"))
 
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, len(cfg.Receivers), 2)
+	assert.Equal(t, 2, len(cfg.ToStringMap()))
 
-	telegrafExecCfg := cfg.Receivers[component.NewIDWithName(typeStr, "exec")].(*Config)
+	cm, err := cfg.Sub(component.NewIDWithName(typeStr, "exec").String())
+	require.NoError(t, err)
+	telegrafExecCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, telegrafExecCfg))
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "exec")),
 		monitorConfig: &exec.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "telegraf/exec",
@@ -519,10 +486,12 @@ func TestLoadConfigWithNestedMonitorConfig(t *testing.T) {
 	}, telegrafExecCfg)
 	require.NoError(t, telegrafExecCfg.validate())
 
-	k8sVolumesCfg := cfg.Receivers[component.NewIDWithName(typeStr, "kubernetes_volumes")].(*Config)
+	cm, err = cfg.Sub(component.NewIDWithName(typeStr, "kubernetes_volumes").String())
+	require.NoError(t, err)
+	k8sVolumesCfg := CreateDefaultConfig().(*Config)
+	require.NoError(t, component.UnmarshalConfig(cm, k8sVolumesCfg))
 	tru := true
 	require.Equal(t, &Config{
-		ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName(typeStr, "kubernetes_volumes")),
 		monitorConfig: &volumes.Config{
 			MonitorConfig: saconfig.MonitorConfig{
 				Type:                "kubernetes-volumes",

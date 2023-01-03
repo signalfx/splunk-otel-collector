@@ -26,7 +26,6 @@ import (
 	saconfig "github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/confmap"
 	"gopkg.in/yaml.v2"
 )
@@ -49,8 +48,7 @@ var (
 )
 
 type Config struct {
-	monitorConfig           saconfig.MonitorCustomConfig
-	config.ReceiverSettings `mapstructure:",squash"`
+	monitorConfig saconfig.MonitorCustomConfig
 	// Generally an observer/receivercreator-set value via Endpoint.Target.
 	// Will expand to MonitorCustomConfig Host and Port values if unset.
 	Endpoint         string   `mapstructure:"endpoint"`

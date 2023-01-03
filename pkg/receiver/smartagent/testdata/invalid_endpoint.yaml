@@ -1,21 +1,7 @@
-receivers:
-  smartagent/haproxy:
-    endpoint: haproxyhost:notaport
-    type: haproxy
-    intervalSeconds: 123
-    username: SomeUser
-    password: secret
+smartagent/haproxy:
+  endpoint: haproxyhost:notaport
+  type: haproxy
+  intervalSeconds: 123
+  username: SomeUser
+  password: secret
 
-processors:
-  nop:
-
-exporters:
-  nop:
-
-service:
-  pipelines:
-    metrics:
-      receivers:
-        - smartagent/haproxy
-      processors: [nop]
-      exporters: [nop]

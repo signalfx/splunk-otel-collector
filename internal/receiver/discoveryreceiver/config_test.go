@@ -25,11 +25,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
-	"go.opentelemetry.io/collector/otelcol/otelcoltest"
 	"go.uber.org/zap/zaptest"
 	"gopkg.in/yaml.v2"
 
@@ -37,21 +34,19 @@ import (
 )
 
 func TestValidConfig(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
-	collectorConfig, err := otelcoltest.LoadConfig(
-		path.Join(".", "testdata", "config.yaml"), factories,
-	)
+	configs, err := confmaptest.LoadConf(path.Join(".", "testdata", "config.yaml"))
 
 	require.NoError(t, err)
-	require.NotNil(t, collectorConfig)
+	require.NotNil(t, configs)
 
-	assert.Equal(t, len(collectorConfig.Receivers), 1)
+	assert.Equal(t, 1, len(configs.ToStringMap()))
 
-	cfg := collectorConfig.Receivers[component.NewIDWithName(typeStr, "discovery-name")].(*Config)
+	cm, err := configs.Sub("discovery/discovery-name")
+	require.NoError(t, err)
+	cfg := createDefaultConfig().(*Config)
+	err = component.UnmarshalConfig(cm, cfg)
+	require.NoError(t, err)
+
 	require.Equal(t, &Config{
 		Receivers: map[component.ID]ReceiverEntry{
 			component.NewIDWithName("smartagent", "redis"): {
@@ -115,7 +110,6 @@ func TestValidConfig(t *testing.T) {
 				Rule: "type == \"container\"",
 			},
 		},
-		ReceiverSettings:    config.NewReceiverSettings(component.NewIDWithName("discovery", "discovery-name")),
 		LogEndpoints:        true,
 		EmbedReceiverConfig: true,
 		CorrelationTTL:      25 * time.Second,
@@ -129,26 +123,29 @@ func TestValidConfig(t *testing.T) {
 }
 
 func TestInvalidConfigs(t *testing.T) {
-	factories, err := componenttest.NopFactories()
-	assert.Nil(t, err)
-	factory := NewFactory()
-	factories.Receivers[typeStr] = factory
 
 	tests := []struct{ name, expectedError string }{
-		{name: "no_watch_observers", expectedError: "receivers::discovery: `watch_observers` must be defined and include at least one configured observer extension"},
-		{name: "missing_status", expectedError: "receivers::discovery: receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
-		{name: "missing_status_metrics_and_statements", expectedError: "receivers::discovery: receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
-		{name: "invalid_status_types", expectedError: `receivers::discovery: receiver "a_receiver" validation failure: invalid status "unsupported". must be one of [successful partial failed]; invalid status "another_unsupported". must be one of [successful partial failed]`},
-		{name: "multiple_status_match_types", expectedError: "receivers::discovery: receiver \"a_receiver\" validation failure: `metrics` status source type `successful` match type validation failed. Must provide one of [regexp strict expr] but received [strict regexp]; `statements` status source type `failed` match type validation failed. Must provide one of [regexp strict expr] but received [strict expr]"},
-		{name: "reserved_receiver_creator", expectedError: `receivers::discovery: receiver "receiver_creator/with-name" validation failure: receiver cannot be a receiver_creator`},
-		{name: "reserved_receiver_name", expectedError: `receivers::discovery: receiver "a_receiver/with-receiver_creator/in-name" validation failure: receiver name cannot contain "receiver_creator/"`},
-		{name: "reserved_receiver_name_with_endpoint", expectedError: `receivers::discovery: receiver "receiver/with{endpoint=}/" validation failure: receiver name cannot contain "{endpoint=[^}]*}/"`},
+		{name: "no_watch_observers", expectedError: "`watch_observers` must be defined and include at least one configured observer extension"},
+		{name: "missing_status", expectedError: "receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
+		{name: "missing_status_metrics_and_statements", expectedError: "receiver \"a_receiver\" validation failure: `status` must be defined and contain at least one `metrics` or `statements` mapping"},
+		{name: "invalid_status_types", expectedError: `receiver "a_receiver" validation failure: invalid status "unsupported". must be one of [successful partial failed]; invalid status "another_unsupported". must be one of [successful partial failed]`},
+		{name: "multiple_status_match_types", expectedError: "receiver \"a_receiver\" validation failure: `metrics` status source type `successful` match type validation failed. Must provide one of [regexp strict expr] but received [strict regexp]; `statements` status source type `failed` match type validation failed. Must provide one of [regexp strict expr] but received [strict expr]"},
+		{name: "reserved_receiver_creator", expectedError: `receiver "receiver_creator/with-name" validation failure: receiver cannot be a receiver_creator`},
+		{name: "reserved_receiver_name", expectedError: `receiver "a_receiver/with-receiver_creator/in-name" validation failure: receiver name cannot contain "receiver_creator/"`},
+		{name: "reserved_receiver_name_with_endpoint", expectedError: `receiver "receiver/with{endpoint=}/" validation failure: receiver name cannot contain "{endpoint=[^}]*}/"`},
 	}
 
 	for _, test := range tests {
 		func(name, expectedError string) {
 			t.Run(name, func(t *testing.T) {
-				_, err = otelcoltest.LoadConfigAndValidate(path.Join(".", "testdata", fmt.Sprintf("%s.yaml", name)), factories)
+				config, err := confmaptest.LoadConf(path.Join(".", "testdata", fmt.Sprintf("%s.yaml", name)))
+				require.NoError(t, err)
+				cm, err := config.Sub(typeStr)
+				require.NoError(t, err)
+				cfg := createDefaultConfig().(*Config)
+				err = component.UnmarshalConfig(cm, cfg)
+				require.NoError(t, err)
+				err = cfg.Validate()
 				require.Error(t, err)
 				require.EqualError(t, err, expectedError)
 			})
@@ -159,13 +156,10 @@ func TestInvalidConfigs(t *testing.T) {
 func TestReceiverCreatorFactoryAndConfig(t *testing.T) {
 	conf, err := confmaptest.LoadConf(path.Join(".", "testdata", "config.yaml"))
 	require.NoError(t, err)
-	conf, err = conf.Sub("receivers")
-	require.NoError(t, err)
-	require.NotEmpty(t, conf.ToStringMap())
 	conf, err = conf.Sub("discovery/discovery-name")
 	require.NoError(t, err)
 	require.NotEmpty(t, conf.ToStringMap())
-	dCfg := Config{ReceiverSettings: config.NewReceiverSettings(component.NewIDWithName("discovery", "discovery-name"))}
+	dCfg := Config{}
 	require.NoError(t, conf.Unmarshal(&dCfg, confmap.WithErrorUnused()))
 
 	correlations := newCorrelationStore(zaptest.NewLogger(t), time.Second)

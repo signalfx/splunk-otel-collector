@@ -498,11 +498,11 @@ replace (
 	code.cloudfoundry.org/go-loggregator => github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.40.5
-	// To prevent attempted downgrading for agent deps, do not remove signalfx-agent or signalfx/pkg/apm replace directives
-	github.com/signalfx/signalfx-agent => github.com/signalfx/signalfx-agent v1.0.1-0.20221111170137-60843d376e91
-	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20221111170137-60843d376e91
 
-	// github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20221111170137-60843d376e91
+	// To prevent attempted downgrading for agent deps, do not remove signalfx-agent or signalfx/pkg/apm replace directives
+	github.com/signalfx/signalfx-agent => github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
+	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230104182534-9eee411fe305
+
 	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required for smartagentreceiver to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
 )
 

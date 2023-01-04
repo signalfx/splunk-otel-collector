@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
-	github.com/signalfx/signalfx-agent v1.0.1-0.20221111170137-60843d376e91
+	github.com/signalfx/signalfx-agent v1.0.1-0.20230103220835-3e72f6c1a0be
 	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.8.1
 	go.opentelemetry.io/collector v0.68.1-0.20221221114823-4cf50d0f0d9d
@@ -171,6 +171,6 @@ replace (
 
 // To prevent attempted downgrading for agent deps, do not remove signalfx-agent or signalfx/pkg/apm replace directives
 replace (
-	github.com/signalfx/signalfx-agent => github.com/signalfx/signalfx-agent v1.0.1-0.20221111170137-60843d376e91
-	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20221111170137-60843d376e91 // indirect
+	github.com/signalfx/signalfx-agent => github.com/signalfx/signalfx-agent v1.0.1-0.20230103220835-3e72f6c1a0be
+	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230103220835-3e72f6c1a0be // indirect
 )

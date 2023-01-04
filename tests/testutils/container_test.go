@@ -515,4 +515,9 @@ func TestTestcontainersContainerMethods(t *testing.T) {
 		"/tmp/afile", 655,
 	)
 	require.NoError(t, err)
+
+	sc, stdout, stderr := alpine.AssertExec(t, 5*time.Second, "sh", "-c", "echo stdout > /dev/stdout && echo stderr > /dev/stderr")
+	require.Equal(t, "stdout\n", stdout)
+	require.Equal(t, "stderr\n", stderr)
+	require.Zero(t, sc)
 }

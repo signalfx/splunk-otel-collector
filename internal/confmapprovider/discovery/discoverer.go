@@ -406,7 +406,7 @@ func (c *Config) observersForDiscoveryMode() []component.ID {
 }
 
 func (d *discoverer) addUnexpandedReceiverConfig(receiverID, observerID component.ID, cfg map[string]any) {
-	d.logger.Info(fmt.Sprintf("adding unexpanded config[%s][%s]: %v\n", receiverID.String(), observerID.String(), cfg))
+	d.logger.Debug(fmt.Sprintf("adding unexpanded config[%s][%s]: %v\n", receiverID.String(), observerID.String(), cfg))
 	observerMap, ok := d.unexpandedReceiverEntries[receiverID]
 	if !ok {
 		observerMap = map[component.ID]map[string]any{}
@@ -422,7 +422,7 @@ func (d *discoverer) getUnexpandedReceiverConfig(receiverID, observerID componen
 	if hasReceiver {
 		cfg, found = observerMap[observerID]
 	}
-	d.logger.Info(fmt.Sprintf("getting unexpanded config[%s][%s](%v): %v\n", receiverID.String(), observerID.String(), found, cfg))
+	d.logger.Debug(fmt.Sprintf("getting unexpanded config[%s][%s](%v): %v\n", receiverID.String(), observerID.String(), found, cfg))
 	return cfg, found
 }
 

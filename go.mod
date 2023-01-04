@@ -64,6 +64,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.68.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.68.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator v0.68.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/redisreceiver v0.68.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/sapmreceiver v0.68.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/signalfxreceiver v0.68.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/simpleprometheusreceiver v0.68.0
@@ -108,6 +109,7 @@ require (
 require (
 	github.com/Azure/azure-amqp-common-go/v4 v4.0.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.4.0 // indirect
+	github.com/go-redis/redis/v7 v7.4.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.68.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.68.0 // indirect
 	github.com/ovh/go-ovh v1.3.0 // indirect

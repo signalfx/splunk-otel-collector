@@ -64,6 +64,7 @@ func TestDefaultComponents(t *testing.T) {
 		"prometheus_exec",
 		"prometheus_simple",
 		"receiver_creator",
+		"redis",
 		"sapm",
 		"signalfx",
 		"smartagent",

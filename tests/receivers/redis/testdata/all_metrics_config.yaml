@@ -1,0 +1,14 @@
+receivers:
+  redis:
+    endpoint: 0.0.0.0:6379
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - redis
+      exporters: [otlp]

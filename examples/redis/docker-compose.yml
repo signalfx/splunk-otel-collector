@@ -1,0 +1,30 @@
+version: "3.1"
+services:
+  # Redis instance (the thing we're instrumenting)
+  redis_db:
+    container_name: redis_db
+    image: redis:latest
+    command: redis-server /etc/redis/redis.conf
+    volumes:
+      - "./redis.conf:/etc/redis/redis.conf"
+    ports:
+      - "6379:6379"
+      - "6329:6329"
+  otelcollector:
+    # if you want to run with the currently released image,
+    #image:  quay.io/signalfx/splunk-otel-collector:latest
+    # if building locally via `make docker-otel`,
+    image:  otelcol:latest
+    container_name: otelcollector-redis-receiver-example
+    environment:
+      - SPLUNK_ACCESS_TOKEN=${SPLUNK_ACCESS_TOKEN}
+      - SPLUNK_REALM=${SPLUNK_REALM}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: ["--config=/etc/otel-collector-config.yaml", "--set=service.telemetry.logs.level=debug"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "18088:8088"
+      - "8888:8888"
+    depends_on:
+      - redis_db

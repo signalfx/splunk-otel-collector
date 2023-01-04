@@ -60,11 +60,13 @@ type discoverer struct {
 	extensions          map[component.ID]otelcolextension.Extension
 	logger              *zap.Logger
 	discoveredReceivers map[component.ID]discovery.StatusType
-	discoveredConfig    map[component.ID]map[string]any
-	discoveredObservers map[component.ID]discovery.StatusType
-	info                component.BuildInfo
-	duration            time.Duration
-	mu                  sync.Mutex
+	// receiverID -> observerID -> config
+	unexpandedReceiverEntries map[component.ID]map[component.ID]map[string]any
+	discoveredConfig          map[component.ID]map[string]any
+	discoveredObservers       map[component.ID]discovery.StatusType
+	info                      component.BuildInfo
+	duration                  time.Duration
+	mu                        sync.Mutex
 }
 
 func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
@@ -87,17 +89,18 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 	}
 
 	m := &discoverer{
-		logger:              logger,
-		info:                info,
-		factories:           factories,
-		extensions:          map[component.ID]otelcolextension.Extension{},
-		configs:             map[string]*Config{},
-		duration:            duration,
-		mu:                  sync.Mutex{},
-		expandConverter:     expandconverter.New(),
-		discoveredReceivers: map[component.ID]discovery.StatusType{},
-		discoveredConfig:    map[component.ID]map[string]any{},
-		discoveredObservers: map[component.ID]discovery.StatusType{},
+		logger:                    logger,
+		info:                      info,
+		factories:                 factories,
+		extensions:                map[component.ID]otelcolextension.Extension{},
+		configs:                   map[string]*Config{},
+		duration:                  duration,
+		mu:                        sync.Mutex{},
+		expandConverter:           expandconverter.New(),
+		discoveredReceivers:       map[component.ID]discovery.StatusType{},
+		unexpandedReceiverEntries: map[component.ID]map[component.ID]map[string]any{},
+		discoveredConfig:          map[component.ID]map[string]any{},
+		discoveredObservers:       map[component.ID]discovery.StatusType{},
 	}
 	return m, nil
 }
@@ -200,6 +203,7 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 			} else if !ok {
 				continue
 			}
+			d.addUnexpandedReceiverConfig(receiverID, observerID, receiver.Entry.ToStringMap())
 			receivers[receiverID.String()] = receiver.Entry.ToStringMap()
 		}
 
@@ -246,11 +250,7 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 	}
 
 	if ce := d.logger.Check(zap.DebugLevel, "unmarshalled observer config"); ce != nil {
-		if c, e := yaml.Marshal(observerConfig); e != nil {
-			d.logger.Debug("failed marshaling observer config for logging", zap.Error(e))
-		} else {
-			ce.Write(zap.String("config", string(c)))
-		}
+		ce.Write(zap.String("config", fmt.Sprintf("%#v\n", observerConfig)))
 	}
 
 	observerSettings := d.createExtensionCreateSettings(observerID.String())
@@ -405,6 +405,27 @@ func (c *Config) observersForDiscoveryMode() []component.ID {
 	return cids
 }
 
+func (d *discoverer) addUnexpandedReceiverConfig(receiverID, observerID component.ID, cfg map[string]any) {
+	d.logger.Info(fmt.Sprintf("adding unexpanded config[%s][%s]: %v\n", receiverID.String(), observerID.String(), cfg))
+	observerMap, ok := d.unexpandedReceiverEntries[receiverID]
+	if !ok {
+		observerMap = map[component.ID]map[string]any{}
+		d.unexpandedReceiverEntries[receiverID] = observerMap
+	}
+	observerMap[observerID] = cfg
+}
+
+func (d *discoverer) getUnexpandedReceiverConfig(receiverID, observerID component.ID) (map[string]any, bool) {
+	var found bool
+	var cfg map[string]any
+	observerMap, hasReceiver := d.unexpandedReceiverEntries[receiverID]
+	if hasReceiver {
+		cfg, found = observerMap[observerID]
+	}
+	d.logger.Info(fmt.Sprintf("getting unexpanded config[%s][%s](%v): %v\n", receiverID.String(), observerID.String(), found, cfg))
+	return cfg, found
+}
+
 var _ component.Host = (*discoverer)(nil)
 
 // ReportFatalError is a component.Host method.
@@ -491,8 +512,20 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 			}
 		}
 
+		var rule string
+		var configSection map[string]any
 		receiverID := component.NewIDWithName(component.Type(receiverType), receiverName)
+		if rCfg, hasConfig := d.getUnexpandedReceiverConfig(receiverID, observerID); hasConfig {
+			if r, hasRule := rCfg["rule"]; hasRule {
+				rule = r.(string)
+			}
+			if c, hasCfg := rCfg["config"]; hasCfg {
+				configSection = c.(map[string]any)
+			}
+			d.discoveredConfig[receiverID] = rCfg
+		}
 		if receiverConfig != "" {
+			// fallback to not fail when we have expanded config
 			rCfg := map[string]any{}
 			var dBytes []byte
 			if dBytes, err = base64.StdEncoding.DecodeString(receiverConfig); err != nil {
@@ -500,6 +533,13 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 			}
 			if err = yaml.Unmarshal(dBytes, &rCfg); err != nil {
 				return err
+			}
+			rMap := rCfg["receivers"].(map[any]any)[receiverID.String()].(map[any]any)
+			if rule != "" {
+				rMap["rule"] = rule
+			}
+			if configSection != nil {
+				rMap["config"] = configSection
 			}
 			d.discoveredConfig[receiverID] = rCfg
 		}

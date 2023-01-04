@@ -8,7 +8,7 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.1
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.47
-	github.com/signalfx/signalfx-agent v1.0.1-0.20230103220835-3e72f6c1a0be
+	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
 	github.com/signalfx/splunk-otel-collector/extension/smartagentextension v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.0
@@ -222,7 +222,7 @@ require (
 	github.com/signalfx/golib v2.5.1+incompatible // indirect
 	github.com/signalfx/ingest-protocols v0.1.14 // indirect
 	github.com/signalfx/sapm-proto v0.12.0 // indirect
-	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230103220835-3e72f6c1a0be // indirect
+	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230104182534-9eee411fe305 // indirect
 	github.com/signalfx/signalfx-go v1.25.0 // indirect
 	github.com/snowflakedb/gosnowflake v1.6.13 // indirect
 	github.com/soniah/gosnmp v0.0.0-20190220004421-68e8beac0db9 // indirect
@@ -297,8 +297,8 @@ replace (
 
 // To prevent attempted downgrading for agent deps, do not remove signalfx-agent or signalfx/pkg/apm replace directives
 replace (
-	github.com/signalfx/signalfx-agent => github.com/signalfx/signalfx-agent v1.0.1-0.20230103220835-3e72f6c1a0be
-	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230103220835-3e72f6c1a0be
+	github.com/signalfx/signalfx-agent => github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
+	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230104182534-9eee411fe305
 )
 
 // this is the version that doesn't suffer from https://github.com/mattn/go-ieproxy/issues/45

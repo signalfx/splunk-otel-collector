@@ -1592,7 +1592,7 @@ github.com/onsi/gomega v1.13.0/go.mod h1:lRk9szgn8TxENtWd0Tp4c3wjlRfMTMH27I+3Je4
 github.com/onsi/gomega v1.15.0/go.mod h1:cIuvLEne0aoVhAgh/O6ac0Op8WWw9H6eYCriF+tEHG0=
 github.com/onsi/gomega v1.17.0/go.mod h1:HnhC7FXeEQY45zxNK3PPoIUhzk/80Xly9PcubAlGdZY=
 github.com/onsi/gomega v1.19.0/go.mod h1:LY+I3pBVzYsTBU1AnDwOSxaYi9WoWiqgwooUqq9yPro=
-github.com/onsi/gomega v1.24.0 h1:+0glovB9Jd6z3VR+ScSwQqXVTIfJcGA9UBM8yzQxhqg=
+github.com/onsi/gomega v1.24.2 h1:J/tulyYK6JwBldPViHJReihxxZ+22FHs0piGjQAvoUE=
 github.com/op/go-logging v0.0.0-20160315200505-970db520ece7/go.mod h1:HzydrMdWErDVzsI23lYNej1Htcns9BCg93Dk0bBINWk=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.68.1-0.20221222071356-5909db48a28d h1:HkyYi/wsNGWVJchlXGcWF8DqXmlTi6cj1lovMjlt1sc=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.68.1-0.20221222071356-5909db48a28d/go.mod h1:mIqi1dPlW2i+BlCxynv3PZoW4lBZRFtr1pixFLWM9yY=
@@ -2028,10 +2028,10 @@ github.com/signalfx/sapm-proto v0.4.0/go.mod h1:x3gtwJ1GRejtkghB4nYpwixh2zqJrLbP
 github.com/signalfx/sapm-proto v0.7.2/go.mod h1:HLufOh6Gd2altGxbeve+s6hh0EWCWoOM7MmuYuvs5PI=
 github.com/signalfx/sapm-proto v0.12.0 h1:OtOe+Jm8L61Ml8K6X8a89zc8/RlaaMRElCImeGKR/Ew=
 github.com/signalfx/sapm-proto v0.12.0/go.mod h1:wQEki8RNCYjkv19jw5aWDcmDMTQru0ckfUbgHI69U2E=
-github.com/signalfx/signalfx-agent v1.0.1-0.20221111170137-60843d376e91 h1:84+8PBCBYGIsAN5CuzTXSsgfF56Y1jqB3rIAiyMz7xs=
-github.com/signalfx/signalfx-agent v1.0.1-0.20221111170137-60843d376e91/go.mod h1:WStAGN02wt1DXW5eRB1YAbkWBwkb3A1KmLTY+iQu7NE=
-github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20221111170137-60843d376e91 h1:xDoyVX4pkbohhiIlnSuuCjsQrCFne8GFA1PRJS4HwBw=
-github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20221111170137-60843d376e91/go.mod h1:w03Evzh9KItif6KOovIOGZK9GMw7dRNOSTtY50QM+AI=
+github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305 h1:35yV2tI5NnU2jNFriaPMympSsGk/r6sIH8T7Ee1D/w0=
+github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305/go.mod h1:pLK+kaun+g8gN8EgtGT/h/xmfQEU7v2+PQSXTe34K5U=
+github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230104182534-9eee411fe305 h1:8AVq4/zaKQVz9Mqrm5f9heAdejfNsw5P3YbsVZyuNDI=
+github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230104182534-9eee411fe305/go.mod h1:ByNJRwnFF1WKXFMZLOvLD5cXSnBXOuXb0HuaNzqdc9o=
 github.com/signalfx/signalfx-go v1.25.0 h1:Y+VvL82aYtQHWAQyPReSSyAy1wcB8cIYYziJKUWxahU=
 github.com/signalfx/signalfx-go v1.25.0/go.mod h1:YhPTMdQJDfphcRBdk+9acbbAw1gYY7z5BIHUWzLmGlA=
 github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87 h1:ayeUHxiUjcxzuEzjWVkXJxf42UYNw8UKmYmIQu9mAqo=

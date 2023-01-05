@@ -53,7 +53,7 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 
 	defer shutdown()
 
-	expected := map[string]any{
+	expectedInitial := map[string]any{
 		"file": map[string]any{
 			"exporters": map[string]any{
 				"otlp/from-config-file": map[string]any{
@@ -124,11 +124,9 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 			},
 		},
 	}
+	require.Equal(t, expectedInitial, cc.InitialConfig(t, 55554))
 
-	actual := cc.InitialConfig(t, 55554)
-	require.Equal(t, expected, actual)
-
-	expected = map[string]any{
+	expectedEffective := map[string]any{
 		"exporters": map[string]any{
 			"otlp/from-config-file": map[string]any{
 				"endpoint": "0.0.0.0:12345",
@@ -183,8 +181,56 @@ func TestConfigDInitialAndEffectiveConfig(t *testing.T) {
 		},
 	}
 
-	actual = cc.EffectiveConfig(t, 55554)
-	require.Equal(t, expected, actual)
+	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, 55554))
+
+	sc, stdout, stderr := cc.Container.AssertExec(
+		tc, 15*time.Second, "bash", "-c",
+		"SPLUNK_DEBUG_CONFIG_SERVER=false /otelcol --config-dir /opt/config.d --configd --dry-run 2>/dev/null",
+	)
+	require.Equal(t, `exporters:
+  otlp/from-config-file:
+    endpoint: 0.0.0.0:${CONFIG_FILE_PORT_FROM_ENV_VAR}
+  otlp/from-configd:
+    endpoint: 0.0.0.0:${CONFIGD_PORT_FROM_ENV_VAR}
+extensions:
+  health_check/from-config-file:
+    endpoint: 0.0.0.0:23456
+  health_check/from-configd:
+    endpoint: 0.0.0.0:45678
+processors:
+  batch/from-config-file: null
+  batch/from-configd: {}
+receivers:
+  otlp/from-config-file:
+    protocols:
+      http: null
+  otlp/from-configd:
+    protocols:
+      grpc: null
+service:
+  extensions:
+  - health_check/from-configd
+  pipelines:
+    metrics/from-config-file:
+      exporters:
+      - otlp/from-config-file
+      processors:
+      - batch/from-config-file
+      receivers:
+      - otlp/from-config-file
+    metrics/from-configd:
+      exporters:
+      - otlp/from-configd
+      processors:
+      - batch/from-configd
+      receivers:
+      - otlp/from-configd
+  telemetry:
+    logs:
+      level: debug
+`, stdout)
+	require.Equal(t, "", stderr)
+	require.Zero(t, sc)
 }
 
 func TestStandaloneConfigD(t *testing.T) {

@@ -15,15 +15,20 @@
 package testutils
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"testing"
 	"time"
 
 	"github.com/docker/docker/api/types"
 	dockerContainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -389,7 +394,7 @@ func (container *Container) ContainerIPs(ctx context.Context) ([]string, error) 
 	return (*container.container).ContainerIPs(ctx)
 }
 
-func (container Container) CopyDirToContainer(ctx context.Context, hostDirPath string, containerParentPath string, fileMode int64) error {
+func (container *Container) CopyDirToContainer(ctx context.Context, hostDirPath string, containerParentPath string, fileMode int64) error {
 	if err := container.assertStarted("CopyDirToContainer"); err != nil {
 		return err
 	}
@@ -403,7 +408,7 @@ func (container *Container) CopyFileToContainer(ctx context.Context, hostFilePat
 	return (*container.container).CopyFileToContainer(ctx, hostFilePath, containerFilePath, fileMode)
 }
 
-func (container Container) IsRunning() bool {
+func (container *Container) IsRunning() bool {
 	return (*container.container).IsRunning()
 }
 
@@ -428,9 +433,25 @@ func (container *Container) CopyFileFromContainer(ctx context.Context, filePath 
 	return (*container.container).CopyFileFromContainer(ctx, filePath)
 }
 
+// AssertExec will assert that the exec'ed command completes within the specified timeout, returning
+// the return code and demuxed stdout and stderr
+func (container *Container) AssertExec(t testing.TB, timeout time.Duration, cmd ...string) (rc int, stdout, stderr string) {
+	var err error
+	var reader io.Reader
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	rc, reader, err = container.Exec(ctx, cmd)
+	assert.NoError(t, err)
+	require.NotNil(t, reader)
+	var sout, serr bytes.Buffer
+	_, err = stdcopy.StdCopy(&sout, &serr, reader)
+	require.NoError(t, err)
+	return rc, sout.String(), serr.String()
+}
+
 // Will create any networks that don't already exist on system.
 // Teardown/cleanup is handled by the testcontainers reaper.
-func (container Container) createNetworksIfNecessary(req testcontainers.GenericContainerRequest) error {
+func (container *Container) createNetworksIfNecessary(req testcontainers.GenericContainerRequest) error {
 	provider, err := req.ProviderType.GetProvider()
 	if err != nil {
 		return err

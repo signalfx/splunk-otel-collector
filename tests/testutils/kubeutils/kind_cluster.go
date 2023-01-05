@@ -20,6 +20,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"text/template"
@@ -130,6 +131,10 @@ func (k KindCluster) GetDefaultGatewayIP() string {
 	return ""
 }
 
+func (k KindCluster) Kubectl(args ...string) (stdOut, stdErr bytes.Buffer, err error) {
+	return k.runKubectl(nil, args...)
+}
+
 func (k KindCluster) Apply(manifests string) (stdOut, stdErr bytes.Buffer, err error) {
 	sha := sha256.Sum256([]byte(manifests))
 	f, err := os.CreateTemp("", fmt.Sprintf("manifests-%x", sha[:8]))
@@ -141,9 +146,14 @@ func (k KindCluster) Apply(manifests string) (stdOut, stdErr bytes.Buffer, err e
 	require.NoError(k.Testcase, f.Close())
 
 	stdin := bytes.NewReader([]byte(manifests))
+
+	return k.runKubectl(stdin, "apply", "-f", f.Name())
+}
+
+func (k KindCluster) runKubectl(stdin io.Reader, args ...string) (stdOut, stdErr bytes.Buffer, err error) {
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
-	args := []string{"--kubeconfig", k.Kubeconfig, "apply", "-f", f.Name()}
+	fullArgs := append([]string{"--kubeconfig", k.Kubeconfig}, args...)
 	kubectl := kubectlcmd.NewDefaultKubectlCommandWithArgs(
 		kubectlcmd.KubectlOptions{
 			Arguments: append([]string{"<ignored-placeholder>"}, args...),
@@ -152,7 +162,7 @@ func (k KindCluster) Apply(manifests string) (stdOut, stdErr bytes.Buffer, err e
 			ConfigFlags: genericclioptions.NewConfigFlags(false),
 		},
 	)
-	kubectl.SetArgs(args)
+	kubectl.SetArgs(fullArgs)
 
 	kubectlcmdutil.BehaviorOnFatal(func(msg string, code int) {
 		err = fmt.Errorf("os.Exit(%d): %q", code, msg)

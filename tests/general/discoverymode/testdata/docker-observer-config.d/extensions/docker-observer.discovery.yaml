@@ -1,2 +1,2 @@
 docker_observer:
-  endpoint: unix:///var/run/dock.e.r.sock
+  endpoint: ${DOCKER_DOMAIN_SOCKET}

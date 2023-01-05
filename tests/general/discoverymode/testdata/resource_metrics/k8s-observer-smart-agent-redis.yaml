@@ -1,0 +1,16 @@
+resource_metrics:
+  - attributes:
+      k8s.namespace.name: test-namespace
+      k8s.pod.name: target.redis
+      k8s.pod.uid: <ANY>
+      one.key: one.value
+      two.key: two.value
+    scope_metrics:
+      - metrics:
+          - name: gauge.connected_clients
+            type: IntGauge
+            attributes:
+              dsname: value
+              plugin: redis_info
+              plugin_instance: <ANY>
+              system.type: redis

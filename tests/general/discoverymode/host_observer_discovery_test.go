@@ -26,7 +26,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
-	"go.opentelemetry.io/collector/confmap"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -71,17 +70,21 @@ func TestHostObserver(t *testing.T) {
 		func(c testutils.Collector) testutils.Collector {
 			return c.WithEnv(map[string]string{
 				"INTERNAL_PROMETHEUS_PORT": fmt.Sprintf("%d", promPort),
+				// confirm that debug logging doesn't affect runtime
+				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
+				"LABEL_ONE_VALUE":            "actual.label.one.value",
+				"LABEL_TWO_VALUE":            "actual.label.two.value",
 			}).WithArgs("--discovery", "--config-dir", "/opt/config.d")
 		},
 	)
 	defer shutdown()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 	sc, r, err := cc.Container.Exec(ctx, []string{
 		// no config server to prevent port collisions
 		"bash", "-c", "SPLUNK_DEBUG_CONFIG_SERVER=false /otelcol --configd --config-dir /opt/internal-prometheus-config.d &",
 	})
+	cancel()
 	if r != nil {
 		defer func() {
 			if t.Failed() {
@@ -97,12 +100,14 @@ func TestHostObserver(t *testing.T) {
 	expectedResourceMetrics := tc.ResourceMetrics("host-observer-internal-prometheus.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 
-	expected := map[string]any{
+	expectedInitial := map[string]any{
 		"file": map[string]any{
 			"exporters": map[string]any{
 				"otlp": map[string]any{
 					"endpoint": "${OTLP_ENDPOINT}",
-					"insecure": true,
+					"tls": map[string]any{
+						"insecure": true,
+					},
 				},
 			},
 			"service": map[string]any{
@@ -131,11 +136,13 @@ func TestHostObserver(t *testing.T) {
 						"prometheus_simple": map[string]any{
 							"config": map[string]any{
 								"collection_interval": "1s",
+								"labels": map[string]any{
+									"label.one": "${LABEL_ONE_VALUE}",
+									"label.two": "${LABEL_TWO_VALUE}",
+								},
 							},
 							"resource_attributes": map[string]any{},
-							"rule":                "placeholder",
-							// TODO: support unexpanded env vars in config
-							// "rule": `type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}`,
+							"rule":                `type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}`,
 						},
 					},
 					"watch_observers": []any{"host_observer"},
@@ -151,28 +158,9 @@ func TestHostObserver(t *testing.T) {
 			},
 		},
 	}
+	require.Equal(t, expectedInitial, cc.InitialConfig(t, 55554))
 
-	actual := cc.InitialConfig(t, 55554)
-	act := confmap.NewFromStringMap(actual)
-	act.Merge(confmap.NewFromStringMap(
-		map[string]any{
-			"splunk.discovery": map[string]any{
-				"receivers": map[string]any{
-					"receiver_creator/discovery": map[string]any{
-						"receivers": map[string]any{
-							"prometheus_simple": map[string]any{
-								"rule": "placeholder",
-							},
-						},
-					},
-				},
-			},
-		},
-	))
-
-	require.Equal(t, expected, act.ToStringMap())
-
-	expected = map[string]any{
+	expectedEffective := map[string]any{
 		"exporters": map[string]any{
 			"otlp": map[string]any{
 				"endpoint": tc.OTLPEndpoint,
@@ -207,31 +195,59 @@ func TestHostObserver(t *testing.T) {
 					"prometheus_simple": map[string]any{
 						"config": map[string]any{
 							"collection_interval": "1s",
+							"labels": map[string]any{
+								"label.one": "actual.label.one.value",
+								"label.two": "actual.label.two.value",
+							},
 						},
 						"resource_attributes": map[string]any{},
-						"rule":                "placeholder",
+						"rule":                fmt.Sprintf(`type == "hostport" and command contains "otelcol" and port == %d`, promPort),
 					},
 				},
 				"watch_observers": []any{"host_observer"},
 			},
 		},
 	}
+	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, 55554))
 
-	actual = cc.EffectiveConfig(t, 55554)
-	act = confmap.NewFromStringMap(actual)
-	act.Merge(confmap.NewFromStringMap(
-		map[string]any{
-			"receivers": map[string]any{
-				"receiver_creator/discovery": map[string]any{
-					"receivers": map[string]any{
-						"prometheus_simple": map[string]any{
-							"rule": "placeholder",
-						},
-					},
-				},
-			},
-		},
-	))
-
-	require.Equal(t, expected, act.ToStringMap())
+	sc, stdout, stderr := cc.Container.AssertExec(t, 15*time.Second,
+		"bash", "-c", "SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false /otelcol --config-dir /opt/config.d --discovery --dry-run",
+	)
+	require.Equal(t, `exporters:
+  otlp:
+    endpoint: ${OTLP_ENDPOINT}
+    tls:
+      insecure: true
+extensions:
+  host_observer:
+    refresh_interval: 1s
+receivers:
+  receiver_creator/discovery:
+    receivers:
+      prometheus_simple:
+        config:
+          collection_interval: 1s
+          labels:
+            label.one: ${LABEL_ONE_VALUE}
+            label.two: ${LABEL_TWO_VALUE}
+        resource_attributes: {}
+        rule: type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}
+    watch_observers:
+    - host_observer
+service:
+  extensions:
+  - host_observer
+  pipelines:
+    metrics:
+      exporters:
+      - otlp
+      receivers:
+      - receiver_creator/discovery
+  telemetry:
+    metrics:
+      address: ""
+      level: none
+`, stdout)
+	require.Contains(t, stderr, "Discovering for next 10s...\nDiscovery complete.\n")
+	require.Zero(t, sc)
 }

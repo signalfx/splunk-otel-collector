@@ -4,8 +4,12 @@ prometheus_simple:
   config:
     default:
       collection_interval: invalid
+      labels:
+        label.one: ${LABEL_ONE_VALUE}
     host_observer:
       collection_interval: 1s
+      labels:
+        label.two: ${LABEL_TWO_VALUE}
   status:
     metrics:
       successful:

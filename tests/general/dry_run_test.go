@@ -17,12 +17,9 @@
 package tests
 
 import (
-	"context"
-	"io"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
@@ -53,7 +50,8 @@ service:
       exporters:
       - ${env:OTLP_EXPORTER}
       receivers:
-      - ${HOST_METRICS_RECEIVER}`
+      - ${HOST_METRICS_RECEIVER}
+`
 
 	c, shutdown := tc.SplunkOtelCollectorContainer(
 		"", func(collector testutils.Collector) testutils.Collector {
@@ -73,22 +71,14 @@ service:
 
 	defer shutdown()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-	sc, reader, err := c.Container.Exec(ctx, []string{
+	sc, stdout, _ := c.Container.AssertExec(t, 15*time.Second,
 		"bash", "-c", "/otelcol --dry-run 2>/dev/null",
-	})
-	assert.NoError(t, err)
-	require.NotNil(t, reader)
-	dryRun, err := io.ReadAll(reader)
-	require.NoError(t, err)
-	require.True(t, len(dryRun) >= 8)
-	require.Equal(t, config, string(dryRun[8:len(dryRun)-1])) // strip leading control character
+	)
+	require.Equal(t, config, stdout)
 	require.Zero(t, sc)
 
 	// confirm successful service functionality
-	sc, _, err = c.Container.Exec(ctx, []string{"bash", "-c", "/otelcol &"})
-	assert.NoError(t, err)
+	sc, _, _ = c.Container.AssertExec(t, 15*time.Second, "bash", "-c", "/otelcol &")
 	require.Zero(t, sc)
 
 	expectedResourceMetrics := tc.ResourceMetrics("cpu.yaml")

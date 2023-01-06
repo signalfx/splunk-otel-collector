@@ -6,6 +6,8 @@ services:
     build:
       context: prom-counter
     restart: always
+    depends_on:
+      - otelcollector
   # The Prometheus server:
   prometheus:
     image: prom/prometheus
@@ -41,5 +43,7 @@ services:
     volumes:
       - ./otel-collector-config.yml:/etc/otel-collector-config.yml
     depends_on:
-      - splunk
-      - prometheus
+      splunk:
+        condition: service_healthy
+      prometheus:
+        condition: service_started

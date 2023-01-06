@@ -14,6 +14,8 @@ services:
       - /sys:/rootfs/sys:ro
       - /proc:/rootfs/proc:ro
       - /etc:/rootfs/etc:ro
+    depends_on:
+      - otelcollector
   # Splunk Enterprise server:
   splunk:
     image: splunk/splunk:latest
@@ -41,4 +43,5 @@ services:
     volumes:
       - ./otel-collector-config.yml:/etc/otel-collector-config.yml
     depends_on:
-      - splunk
+      splunk:
+        condition: service_healthy

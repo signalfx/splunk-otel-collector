@@ -46,6 +46,7 @@ services:
     volumes:
       - ./otel-collector-config.yml:/etc/otel-collector-config.yml
     depends_on:
-      - splunk
+      splunk:
+        condition: service_healthy
     ports:
       - 18088:8088

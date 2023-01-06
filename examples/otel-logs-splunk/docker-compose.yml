@@ -5,6 +5,8 @@ services:
     image: bash:latest
     container_name: logging
     command: 'bash -c "while(true) do echo \"$$(date) new message\" >> /output/file.log ; sleep 1; done"'
+    depends_on:
+      - otelcollector
     volumes:
       - ./output:/output
   # Splunk Enterprise server:
@@ -35,6 +37,7 @@ services:
       - ./otel-collector-config.yml:/etc/otel-collector-config.yml
       - ./output:/output
     depends_on:
-      - splunk
+      splunk:
+        condition: service_healthy
     ports:
       - 18088:8088

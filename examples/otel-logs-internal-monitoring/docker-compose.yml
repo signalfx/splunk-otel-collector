@@ -7,6 +7,8 @@ services:
     command: 'bash -c "while(true) do echo \"$$(date) new message\" >> /output/file.log ; sleep 1; done"'
     volumes:
       - ./output:/output
+    depends_on:
+      - prometheus
   # Splunk Enterprise server:
   splunk:
     image: splunk/splunk:latest
@@ -35,7 +37,8 @@ services:
       - ./otel-collector-config.yml:/etc/otel-collector-config.yml
       - ./output:/output
     depends_on:
-      - splunk
+      splunk:
+        condition: service_healthy
     ports:
       - "18088:8088"
       - "8888:8888"
@@ -49,3 +52,5 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
     ports:
       - "9090:9090"
+    depends_on:
+      - otelcollector

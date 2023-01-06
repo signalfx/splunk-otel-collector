@@ -7,6 +7,8 @@ services:
     volumes:
       - ./logs/:/var/log/mysql/
       - ./mysql_logging.cnf:/etc/mysql/conf.d/mysql_logging.cnf
+    depends_on:
+      - otelcollector
   tomcat:
     image: "tomcat:8-jdk8-corretto"
     container_name: tomcat
@@ -15,6 +17,8 @@ services:
       - ./sample.war:/usr/local/tomcat/webapps/sample.war
     ports:
       - "8080:8080"
+    depends_on:
+      - mysql
   # Splunk Enterprise server:
   splunk:
     image: splunk/splunk:latest
@@ -44,4 +48,5 @@ services:
       - ./logs:/logs
       - ./checkpoint:/checkpoint
     depends_on:
-      - splunk
+      splunk:
+        condition: service_healthy

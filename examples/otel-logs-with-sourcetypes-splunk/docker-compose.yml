@@ -5,18 +5,24 @@ services:
     image: bash:latest
     container_name: logging
     command: 'bash -c "while(true) do echo \"$$(date) message of logging1\" >> /output/file.log ; sleep 1; done"'
+    depends_on:
+      - otelcollector
     volumes:
       - ./output:/output
   logging2:
     image: bash:latest
     container_name: logging2
     command: 'bash -c "while(true) do echo \"$$(date) message of logging2\" >> /output/file2.log ; sleep 1; done"'
+    depends_on:
+      - otelcollector
     volumes:
       - ./output:/output
   logging3:
     image: bash:latest
     container_name: logging3
     command: 'bash -c "while(true) do echo \"$$(date) message of logging3\" >> /output/file.log ; sleep 1; done"'
+    depends_on:
+      - otelcollector
     volumes:
       - ./output3:/output
   # Splunk Enterprise server:
@@ -48,6 +54,7 @@ services:
       - ./output:/output
       - ./output3:/output3
     depends_on:
-      - splunk
+      splunk:
+        condition: service_healthy
     ports:
       - 18088:8088

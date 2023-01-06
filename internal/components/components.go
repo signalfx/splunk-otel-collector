@@ -73,6 +73,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/statsdreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/syslogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/tcplogreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"go.opentelemetry.io/collector/exporter"
@@ -154,6 +155,7 @@ func Get() (otelcol.Factories, error) {
 		syslogreceiver.NewFactory(),
 		tcplogreceiver.NewFactory(),
 		windowsperfcountersreceiver.NewFactory(),
+		windowseventlogreceiver.NewFactory(),
 		zipkinreceiver.NewFactory(),
 	)
 	if err != nil {

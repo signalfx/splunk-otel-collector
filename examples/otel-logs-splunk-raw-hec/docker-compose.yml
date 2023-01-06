@@ -4,6 +4,8 @@ services:
     image: ubuntu:latest
     command: 'bash -c "apt update && apt install curl -y && while true; do curl -XPOST -k otelcollector:8088/services/collector/raw -d \"$$(date) new message\"; sleep 5; done"'
     container_name: curl
+    depends_on:
+    - otelcollector
   # Splunk Enterprise server:
   splunk:
     image: splunk/splunk:latest
@@ -31,6 +33,7 @@ services:
     volumes:
       - ./otel-collector-config.yml:/etc/otel-collector-config.yml
     depends_on:
-      - splunk
+      splunk:
+        condition: service_healthy
     ports:
       - 18088:8088

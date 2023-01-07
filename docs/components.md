@@ -4,68 +4,117 @@
 
 The distribution offers support for the following components.
 
-> Each component has a link to configuration documentation.
+> Each component has a link to its configuration documentation.
 
-## Beta
+<div style="display: grid;grid-template-columns: auto auto auto auto;">
 
-These components are considered stable. While in beta, breaking changes may be
-introduced in a new release. In addition, any of these components may be
-removed prior to the 1.0 release.
+<div>
 
-|                                                             Receivers                                                             |                                                                 Processors                                                                  |                                                      Exporters                                                       |                                                            Extensions                                                            |
-|:---------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------:|
-|    [fluentforward](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/fluentforwardreceiver)    |           [attributes](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/attributesprocessor)           |      [file](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/fileexporter)       |    [ecs_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/ecsobserver)    |
-|      [hostmetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver)      |                    [batch](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor)                    |       [logging](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter)        | [docker_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/dockerobserver) |
-|           [jaeger](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver)           |         [groupbyattrs](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/groupbyattrsprocessor)         |          [otlp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter)           |    [healthcheck](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/healthcheckextension)     |
-|      [k8s_cluster](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8sclusterreceiver)       |               [filter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/filterprocessor)               |      [otlphttp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)       |       [httpforwarder](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarder)       |
-|     [kubeletstats](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver)     |         [k8s_tagger](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sattributesprocessor)          |      [sapm](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter)       |   [host_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/hostobserver)   |
-|                 [otlp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver)                 |            [memorylimiter](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor)            |  [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter)   |    [k8s_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/k8sobserver)    |
-|     [receiver_creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/receivercreator)      |     [metricstransform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor)     | [splunk_hec](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter) |          [pprof](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/pprofextension)           |
-|             [sapm](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sapmreceiver)             | [probabilisticsampler](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/probabilisticsamplerprocessor) |                                                                                                                      |                                        [smartagent](../pkg/extension/smartagentextension)                                        |
-|         [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/signalfxreceiver)         |             [resource](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourceprocessor)             |                                                                                                                      |             [zpages](https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/zpagesextension)              |
-| [simpleprometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/simpleprometheusreceiver) |    [resourcedetection](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor)    |                                                                                                                      |                                                                                                                                  |
-|                                             [smartagent](../pkg/receiver/smartagent)                                              |              [routing](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/routingprocessor)              |                                                                                                                      |                                                                                                                                  |
-|       [splunk_hec](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/splunkhecreceiver)        |                 [span](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanprocessor)                 |                                                                                                                      |                                                                                                                                  |
-|  [windowseventlog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowseventlogreceiver)  |        [tail_sampling](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)         |                                                                                                                      |                                                                                                                                  |
-|           [zipkin](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/zipkinreceiver)           |                                                                                                                                             | 
+| Receivers                                                                                                                               | Stability        |
+|:----------------------------------------------------------------------------------------------------------------------------------------|:-----------------|
+| [azureeventhub](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/azureeventhubreceiver)             | [alpha]          |
+| [carbon](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/carbonreceiver)                           | [alpha]          |
+| [cloudfoundry](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/cloudfoundryreceiver)               | [beta]           |
+| [collectd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/collectdreceiver)                       | [alpha]          |
+| [databricks](../internal/receiver/databricksreceiver)                                                                                   | [alpha]          |
+| [discovery](../internal/receiver/discoveryreceiver)                                                                                     | [in development] |
+| [filelog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver)                         | [beta]           |
+| [fluentforward](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/fluentforwardreceiver)             | [beta]           |
+| [hostmetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver)                 | [beta]           |
+| [jaeger](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver)                           | [beta]           |
+| [journald](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/journaldreceiver)                       | [alpha]          |
+| [k8s_cluster](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8sclusterreceiver)                  | [beta]           |
+| [k8s_events](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8seventsreceiver)                    | [alpha]          |
+| [k8sobjects](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8sobjectsreceiver)                   | [alpha]          |
+| [kafkametrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkametricsreceiver)               | [beta]           |
+| [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkareceiver)                             | [beta]           |
+| [kubeletstats](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstatsreceiver)               | [beta]           |
+| [mongodbatlas](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbatlasreceiver)               | [beta]           |
+| [oracledb](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/oracledbreceiver)                       | [alpha]          |
+| [otlp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver/otlpreceiver)                                       | [stable]         |
+| [prometheusexecreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusexecreceiver)   | [deprecated]     |
+| [prometheusreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver)           | [beta]           |
+| [receiver_creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/receivercreator)                | [beta]           |
+| [redis](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/redisreceiver)                             | [beta]           |
+| [sapm](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sapmreceiver)                               | [beta]           |
+| [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/signalfxreceiver)                       | [stable]         |
+| [simpleprometheus](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/simpleprometheusreceiver)       | [beta]           |
+| [smartagent](../pkg/receiver/smartagent)                                                                                                | [beta]           |
+| [splunk_hec](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/splunkhecreceiver)                    | [beta]           |
+| [sqlquery](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sqlqueryreceiver)                       | [alpha]          |
+| [statsd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/statsdreceiver)                           | [beta]           |
+| [syslog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/syslogreceiver)                           | [alpha]          |
+| [tcplog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/tcplogreceiver)                           | [alpha]          |
+| [windowseventlog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowseventlogreceiver)         | [alpha]          |
+| [windowsperfcounters](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowsperfcountersreceiver) | [beta]           |
+| [zipkin](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/zipkinreceiver)                           | [beta]           |
 
-## Alpha
+</div>
 
-These components may or may not be stable. In addition, the may be limited in
-their capabilities (for example the Kafka receiver/exporter only offers tracing
-support at this time). While in alpha, breaking changes may be introduced in a
-new release. In addition, any of these components may be removed prior to the
-1.0 release.
+<div>
 
-|                                                                Receivers                                                                |                                                      Processors                                                       |                                                  Exporters                                                  |                                                             Extensions                                                              |
-|:---------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------:|
-|       [azureeventhub](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/azureeventhubreceiver)       |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|              [carbon](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/carbonreceiver)              | [transform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor) | [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/kafkaexporter) | [ecs_task_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/observer/ecstaskobserver) |
-|        [cloudfoundry](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/cloudfoundryreceiver)        |                                                                                                                       |                                                                                                             |      [file_storage](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/storage/filestorage)      |
-|            [collectd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/collectdreceiver)            |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|                                          [databricks](../internal/receiver/databricksreceiver)                                          |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|             [filelog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver)             |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|            [journald](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/journaldreceiver)            |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|               [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkareceiver)               |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|        [kafkametrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkametricsreceiver)        |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|          [k8s_events](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8seventsreceiver)           |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|          [k8sobjects](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8sobjectsreceiver)          |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|        [mongodbatlas](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbatlasreceiver)        |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|            [oracledb](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/oracledbreceiver)            |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|            [sqlquery](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/sqlqueryreceiver)            |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|              [statsd](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/statsdreceiver)              |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|              [syslog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/syslogreceiver)              |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-|              [tcplog](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/tcplogreceiver)              |                                                                                                                       |                                                                                                             |                                                                                                                                     |
-| [windowsperfcounters](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/windowsperfcountersreceiver) |                                                                                                                       |                                                                                                             |                                                                                                                                     |
+| Processors                                                                                                                                  | Stability                   |
+|:--------------------------------------------------------------------------------------------------------------------------------------------|:----------------------------|
+| [attributes](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/attributesprocessor)                     | [alpha]                     |
+| [batch](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor)                                       | [beta]                      |
+| [filter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/filterprocessor)                             | [alpha]                     |
+| [groupbyattrs](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/groupbyattrsprocessor)                 | [beta]                      |
+| [k8s_tagger](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sattributesprocessor)                  | [beta]                      |
+| [logstransform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/logstransformprocessor)               | [in development]            |
+| [memorylimiter](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor)                       | [beta]                      |
+| [metricstransform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/metricstransformprocessor)         | [beta]                      |
+| [probabilisticsampler](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/probabilisticsamplerprocessor) | [beta] |
+| [resourcedetection](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor)       | [beta]                      |
+| [resource](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourceprocessor)                         | [beta]                      |
+| [routing](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/routingprocessor)                           | [beta]                      |
+| [span_metrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanmetricsprocessor)                  | [in development]            |
+| [span](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanprocessor)                                 | [alpha]                     |
+| [tail_sampling](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)                | [beta]                      |
+| [timestamp](../pkg/processor/timestamp)                                                                                                     | [in development]            |
+| [transform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor)                       | [alpha]                     |
 
-## Experimental/Development
+</div>
 
-These components should not be considered stable. They are made available
-for testing and validation purposes and may be removed at any time.
+<div>
 
-| Receivers                                           | Processors                                                                                                                    | Exporters                                     | Extensions |
-|-----------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------|------------|
-| [discovery](../internal/receiver/discoveryreceiver) | [logstransform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/logstransformprocessor) | [pulsar](../internal/exporter/pulsarexporter) |            |
-|                                                     | [span_metrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanmetricsprocessor)    |                                               |            |
-|                                                     | [timestamp](../pkg/processor/timestamp)                                                                                       |                                               |            |
+| Exporters                                                                                                            | Stability        |
+|:---------------------------------------------------------------------------------------------------------------------|:-----------------|
+| [file](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/fileexporter)            | [alpha]          |
+| [kafka](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/kafkaexporter)          | [beta]           |
+| [httpsink](../internal/exporter/httpsinkexporter)                                                                    | [in development] |
+| [logging](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter)              | [in development] |
+| [otlp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter)                    | [stable]         |
+| [otlphttp](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter)            | [stable]         |
+| [pulsar](../internal/exporter/pulsarexporter)                                                                        | [in development] |
+| [signalfx](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter)    | [beta]           |
+| [sapm](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/sapmexporter)            | [beta]           |
+| [splunk_hec](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/splunkhecexporter) | [beta]           |
+
+</div>
+
+<div>
+
+| Extensions                                                                                                                          | Stability |
+|:------------------------------------------------------------------------------------------------------------------------------------|:----------|
+| [docker_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/dockerobserver)    | [beta]    |
+| [ecs_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/ecsobserver)          | [beta]    |
+| [ecs_task_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/ecstaskobserver) | [beta]    |
+| [healthcheck](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/healthcheckextension)           | [beta]    |
+| [httpforwarder](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/httpforwarder)                | [beta]    |
+| [host_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/hostobserver)        | [beta]    |
+| [k8s_observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/k8sobserver)          | [beta]    |
+| [pprof](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/pprofextension)                       | [beta]    |
+| [smartagent](../pkg/extension/smartagentextension)                                                                                  | [beta]    |
+| [zpages](https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/zpagesextension)                             | [beta]    |
+| [file_storage](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/storage/filestorage)           | [beta]    |
+| [ballast](https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/ballastextension)                           | [beta]    |
+
+</div>
+</div>
+
+[stable]: https://github.com/open-telemetry/opentelemetry-collector#stable
+[beta]: https://github.com/open-telemetry/opentelemetry-collector#beta
+[alpha]: https://github.com/open-telemetry/opentelemetry-collector#alpha
+[in development]: https://github.com/open-telemetry/opentelemetry-collector#development
+[deprecated]: https://github.com/open-telemetry/opentelemetry-collector#deprecated
 

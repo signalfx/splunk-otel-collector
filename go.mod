@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/vault-plugin-auth-gcp v0.14.0
 	github.com/hashicorp/vault/api v1.8.2
 	github.com/jaegertracing/jaeger v1.40.0
-	github.com/knadh/koanf v1.4.4
+	github.com/knadh/koanf v1.4.5
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.68.1-0.20221222071356-5909db48a28d
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.68.1-0.20221222071356-5909db48a28d
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.68.1-0.20221222071356-5909db48a28d

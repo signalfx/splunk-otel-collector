@@ -35,7 +35,7 @@ tar_download_smart_agent() {
     local dl_url=""
 
     if [ "$tag" = "latest" ]; then
-        tag=$( curl -sL "$SMART_AGENT_RELEASE_URL/latest" | jq -r '.tag_name' )
+        tag=$( curl -sfL "$SMART_AGENT_RELEASE_URL/latest" | jq -r '.tag_name' )
         if [ -z "$tag" ]; then
             echo "Failed to get tag_name for latest release from $SMART_AGENT_RELEASE_URL/latest" >&2
             exit 1
@@ -47,7 +47,7 @@ tar_download_smart_agent() {
 
 
     echo "Downloading $dl_url ..."
-    curl -sL "$dl_url" -o "$buildroot/signalfx-agent.tar.gz"
+    curl -sfL "$dl_url" -o "$buildroot/signalfx-agent.tar.gz"
 
     mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
     tar -xzf "$buildroot/signalfx-agent.tar.gz" -C "$buildroot/"

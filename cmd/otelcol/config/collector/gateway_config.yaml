@@ -140,5 +140,5 @@ service:
       exporters: [signalfx]
     logs/hec:
       receivers: [otlp, splunk_hec/logs]
-      processors: [ memory_limiter, batch ]
-      exporters: [ splunk_hec/logs ]
+      processors: [memory_limiter, batch]
+      exporters: [splunk_hec/logs]

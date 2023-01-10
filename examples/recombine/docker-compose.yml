@@ -1,0 +1,34 @@
+version: "3"
+services:
+  # Splunk Enterprise server:
+  splunk:
+    image: splunk/splunk:latest
+    container_name: splunk
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_HEC_TOKEN=00000000-0000-0000-0000-0000000000000
+      - SPLUNK_PASSWORD=changeme
+    ports:
+      - 18000:8000
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./splunk.yml:/tmp/defaults/default.yml
+      - /opt/splunk/var
+      - /opt/splunk/etc
+  # OpenTelemetry Collector
+  otelcollector:
+    image:  quay.io/signalfx/splunk-otel-collector:0.68.0
+    container_name: otelcollector
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+      - ./input.json:/input.json
+    depends_on:
+      splunk:
+        condition: service_healthy
+    ports:
+      - 18088:8088

@@ -58,7 +58,7 @@ download_java_agent() {
     if [[ "$tag" = "latest" ]]; then
       dl_url="$JAVA_AGENT_RELEASE_URL/latest/download/splunk-otel-javaagent.jar"
     else
-      dl_url="$JAVA_AGENT_RELEASE_URL/$tag/download/splunk-otel-javaagent.jar"
+      dl_url="$JAVA_AGENT_RELEASE_URL/download/$tag/splunk-otel-javaagent.jar"
     fi
 
     echo "Downloading $dl_url ..."

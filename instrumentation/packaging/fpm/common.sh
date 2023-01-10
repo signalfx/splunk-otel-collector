@@ -63,7 +63,7 @@ download_java_agent() {
 
     echo "Downloading $dl_url ..."
     mkdir -p "$( dirname $dest )"
-    curl -sL "$dl_url" -o "$dest"
+    curl -sfL "$dl_url" -o "$dest"
 }
 
 setup_files_and_permissions() {

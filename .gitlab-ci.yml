@@ -171,7 +171,7 @@ instrumentation-rpm:
 sign-exe:
   extends:
     - .trigger-filter
-    - .submit-request
+    - .submit-signing-request
   stage: sign-binaries
   needs:
     - compile
@@ -189,7 +189,7 @@ sign-exe:
 sign-osx:
   extends:
     - .trigger-filter
-    - .submit-request
+    - .submit-signing-request
   stage: sign-binaries
   needs:
     - compile
@@ -291,7 +291,7 @@ build-msi:
 sign-debs:
   extends:
     - .trigger-filter
-    - .submit-request
+    - .submit-signing-request
   stage: sign-packages
   needs:
     - build-deb
@@ -313,7 +313,7 @@ sign-debs:
 sign-rpms:
   extends:
     - .trigger-filter
-    - .submit-request
+    - .submit-signing-request
   stage: sign-packages
   needs:
     - build-rpm
@@ -335,7 +335,7 @@ sign-rpms:
 sign-tar:
   extends:
     - .trigger-filter
-    - .submit-request
+    - .submit-signing-request
   stage: sign-packages
   needs:
     - build-tar
@@ -358,7 +358,7 @@ sign-tar:
 sign-msi:
   extends:
     - .trigger-filter
-    - .submit-request
+    - .submit-signing-request
   stage: sign-packages
   needs:
     - build-msi
@@ -614,7 +614,7 @@ choco-release:
 sign-apt-metadata:
   extends:
     - .trigger-filter
-    - .submit-request
+    - .submit-signing-request
   stage: sign-metadata
   resource_group: artifactory-deb
   needs:
@@ -632,7 +632,7 @@ sign-apt-metadata:
 sign-yum-metadata:
   extends:
     - .trigger-filter
-    - .submit-request
+    - .submit-signing-request
   stage: sign-metadata
   parallel:
     matrix:

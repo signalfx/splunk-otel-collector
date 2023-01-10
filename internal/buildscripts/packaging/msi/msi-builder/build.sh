@@ -190,7 +190,7 @@ download_and_extract_smart_agent() {
     local output_dir="$3/agent-bundle"
 
     if [ "$version" = "latest" ]; then
-        version=$( curl -sL "$SMART_AGENT_LATEST_URL" )
+        version=$( curl -sfL "$SMART_AGENT_LATEST_URL" )
         if [ -z "$version" ]; then
             echo "Failed to get version for latest release from ${SMART_AGENT_LATEST_URL}" >&2
             exit 1
@@ -199,7 +199,7 @@ download_and_extract_smart_agent() {
 
     dl_url="$SMART_AGENT_RELEASE_URL/SignalFxAgent-$version-win64.zip"
     echo "Downloading ${dl_url}..."
-    curl -sL "$dl_url" -o "${build_dir}/signalfx-agent.zip"
+    curl -sfL "$dl_url" -o "${build_dir}/signalfx-agent.zip"
 
     unzip -d "$build_dir" "${build_dir}/signalfx-agent.zip"
     mv "${build_dir}/SignalFxAgent" "$output_dir"

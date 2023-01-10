@@ -4,13 +4,21 @@
 
 ## v0.68.1
 
-This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.68.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.68.1) and the [opentelemetry-collector-contrib v0.68.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.68.1) releases where appropriate.
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.68.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.68.0) and the [opentelemetry-collector-contrib v0.68.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.68.0) releases where appropriate.
 
 ### 💡 Enhancements 💡
 
+- [Added the Windows Log Event Receiver](https://github.com/signalfx/splunk-otel-collector/pull/2449)
+- [Ensure config values aren't expanded in discovery mode](https://github.com/signalfx/splunk-otel-collector/pull/2445)
+- [Added an example of how to use the recombine operator](https://github.com/signalfx/splunk-otel-collector/pull/2451)
+
 ### 🧰 Bug fixes 🧰
 
-## v0.68.0
+- [Fixed link to Java instrumentation agent](https://github.com/signalfx/splunk-otel-collector/pull/2458)
+
+## v0.68.0 (Broken)
+
+### Instrumentation packages are incomplete. Please use release v0.68.1 instead.
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.68.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.68.0) and the [opentelemetry-collector-contrib v0.68.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.68.0) releases where appropriate.
 

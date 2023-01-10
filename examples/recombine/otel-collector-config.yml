@@ -1,0 +1,74 @@
+receivers:
+    filelog:
+        include: [ /input.json ]
+        start_at: beginning
+        include_file_name: false
+        include_file_path: true
+        max_concurrent_files: 1024
+        max_log_size: 1MiB
+        operators:
+          - id: parser-docker
+            timestamp:
+              layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+              parse_from: attributes.time
+            type: json_parser
+          - combine_field: attributes.log
+            combine_with: ""
+            id: docker-recombine
+            is_last_entry: attributes.log endsWith "\n"
+            source_identifier: attributes["log.file.path"]
+            type: recombine
+          - from: attributes.log
+            id: clean-up-log-record
+            to: body
+            type: move
+
+exporters:
+    splunk_hec/logs:
+        # Splunk HTTP Event Collector token.
+        token: "00000000-0000-0000-0000-0000000000000"
+        # URL to a Splunk instance to send data to.
+        endpoint: "https://splunk:8088/services/collector"
+        # Optional Splunk source: https://docs.splunk.com/Splexicon:Source
+        source: "output"
+        # Splunk index, optional name of the Splunk index targeted.
+        index: "logs"
+        # Maximum HTTP connections to use simultaneously when sending data. Defaults to 100.
+        max_connections: 20
+        # Whether to disable gzip compression over HTTP. Defaults to false.
+        disable_compression: false
+        # HTTP timeout when sending data. Defaults to 10s.
+        timeout: 10s
+        tls:
+          # Whether to skip checking the certificate of the HEC endpoint when sending data over HTTPS. Defaults to false.
+          # For this demo, we use a self-signed certificate on the Splunk docker instance, so this flag is set to true.
+          insecure_skip_verify: true
+
+processors:
+    batch:
+
+extensions:
+    health_check:
+      endpoint: 0.0.0.0:13133
+    pprof:
+      endpoint: :1888
+    zpages:
+      endpoint: :55679
+    file_storage/checkpoint:
+      directory: /output/
+      timeout: 1s
+      compaction:
+        on_start: true
+        directory: /output/
+        max_transaction_size: 65_536
+
+service:
+    telemetry:
+      logs:
+        level: debug
+    extensions: [pprof, zpages, health_check, file_storage/checkpoint]
+    pipelines:
+      logs:
+        receivers: [filelog]
+        processors: [batch]
+        exporters: [splunk_hec/logs]

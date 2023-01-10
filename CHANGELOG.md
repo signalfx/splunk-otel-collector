@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## v0.68.1
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.68.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.68.1) and the [opentelemetry-collector-contrib v0.68.1](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.68.1) releases where appropriate.
+
+### 💡 Enhancements 💡
+
+### 🧰 Bug fixes 🧰
+
 ## v0.68.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.68.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.68.0) and the [opentelemetry-collector-contrib v0.68.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.68.0) releases where appropriate.

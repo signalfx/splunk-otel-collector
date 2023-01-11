@@ -183,29 +183,6 @@ type pipelinesInfo struct {
 }
 
 type pipelineInfo struct {
-	Spec struct {
-		ID       string `json:"id"`
-		Name     string `json:"name"`
-		Storage  string `json:"storage"`
-		Clusters []struct {
-			Label     string `json:"label"`
-			Autoscale struct {
-				MinWorkers int    `json:"min_workers"`
-				MaxWorkers int    `json:"max_workers"`
-				Mode       string `json:"mode"`
-			} `json:"autoscale"`
-		} `json:"clusters"`
-		Libraries []struct {
-			Notebook struct {
-				Path string `json:"path"`
-			} `json:"notebook"`
-		} `json:"libraries"`
-		Continuous  bool   `json:"continuous"`
-		Development bool   `json:"development"`
-		Photon      bool   `json:"photon"`
-		Edition     string `json:"edition"`
-		Channel     string `json:"channel"`
-	} `json:"spec"`
 	PipelineID      string `json:"pipeline_id"`
 	State           string `json:"state"`
 	ClusterID       string `json:"cluster_id"`
@@ -213,9 +190,32 @@ type pipelineInfo struct {
 	CreatorUserName string `json:"creator_user_name"`
 	RunAsUserName   string `json:"run_as_user_name"`
 	LatestUpdates   []struct {
+		CreationTime time.Time `json:"creation_time"`
 		UpdateID     string    `json:"update_id"`
 		State        string    `json:"state"`
-		CreationTime time.Time `json:"creation_time"`
 	} `json:"latest_updates"`
+	Spec struct {
+		ID       string `json:"id"`
+		Name     string `json:"name"`
+		Storage  string `json:"storage"`
+		Edition  string `json:"edition"`
+		Channel  string `json:"channel"`
+		Clusters []struct {
+			Label     string `json:"label"`
+			Autoscale struct {
+				Mode       string `json:"mode"`
+				MinWorkers int    `json:"min_workers"`
+				MaxWorkers int    `json:"max_workers"`
+			} `json:"autoscale"`
+		} `json:"clusters"`
+		Libraries []struct {
+			Notebook struct {
+				Path string `json:"path"`
+			} `json:"notebook"`
+		} `json:"libraries"`
+		Continuous  bool `json:"continuous"`
+		Development bool `json:"development"`
+		Photon      bool `json:"photon"`
+	} `json:"spec"`
 	LastModified int64 `json:"last_modified"`
 }

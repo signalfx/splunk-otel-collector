@@ -1,6 +1,9 @@
 ARCH=amd64
 INSTALL_DIR=/usr/lib/splunk-instrumentation
 
+# Docker repository used.
+DOCKER_REPO?=docker.io
+
 .PHONY: all
 all: so/libsplunk.so
 
@@ -47,7 +50,7 @@ test: tests
 .PHONY: dist
 dist:
 	@mkdir -p dist
-	docker buildx build --platform linux/$(ARCH) -o type=image,name=libsplunk-builder:$(ARCH),push=false .
+	docker buildx build --platform linux/$(ARCH) --build-arg DOCKER_REPO=$(DOCKER_REPO) -o type=image,name=libsplunk-builder:$(ARCH),push=false .
 	docker rm -f libsplunk-builder 2>/dev/null || true
 	docker run -d --platform linux/$(ARCH) --name libsplunk-builder libsplunk-builder:$(ARCH) sleep inf
 	docker exec libsplunk-builder make test all

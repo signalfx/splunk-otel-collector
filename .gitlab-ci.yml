@@ -134,7 +134,8 @@ libsplunk:
     matrix:
       - ARCH: ["amd64", "arm64"]
   script:
-    - make -C instrumentation dist ARCH=${ARCH}
+    - *docker-reader-role
+    - make -C instrumentation dist ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
   artifacts:
     paths:
       - instrumentation/dist/libsplunk_*.so

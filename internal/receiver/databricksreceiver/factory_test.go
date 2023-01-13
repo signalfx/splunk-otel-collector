@@ -71,7 +71,7 @@ func TestParseConfig(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "my-instance", rcfg.InstanceName)
 	assert.Equal(t, "abc123", rcfg.Token)
-	assert.Equal(t, "https://adb-12345.6.azuredatabricks.net", rcfg.Endpoint)
+	assert.Equal(t, "https://dbr.example.net", rcfg.Endpoint)
 	duration, _ := time.ParseDuration("10s")
 	assert.Equal(t, duration, rcfg.CollectionInterval)
 }

@@ -51,6 +51,10 @@ type MetricsSettings struct {
 	DatabricksSparkBlockmanagerMemoryRemainingmem                                                                          MetricSettings `mapstructure:"databricks.spark.blockmanager.memory.remainingmem"`
 	DatabricksSparkBlockmanagerMemoryRemainingoffheapmem                                                                   MetricSettings `mapstructure:"databricks.spark.blockmanager.memory.remainingoffheapmem"`
 	DatabricksSparkBlockmanagerMemoryRemainingonheapmem                                                                    MetricSettings `mapstructure:"databricks.spark.blockmanager.memory.remainingonheapmem"`
+	DatabricksSparkCodegeneratorCompilationtimeMean                                                                        MetricSettings `mapstructure:"databricks.spark.codegenerator.compilationtime.mean"`
+	DatabricksSparkCodegeneratorGeneratedclasssizeMean                                                                     MetricSettings `mapstructure:"databricks.spark.codegenerator.generatedclasssize.mean"`
+	DatabricksSparkCodegeneratorGeneratedmethodsizeMean                                                                    MetricSettings `mapstructure:"databricks.spark.codegenerator.generatedmethodsize.mean"`
+	DatabricksSparkCodegeneratorSourcecodesizeMean                                                                         MetricSettings `mapstructure:"databricks.spark.codegenerator.sourcecodesize.mean"`
 	DatabricksSparkDagschedulerJobActivejobs                                                                               MetricSettings `mapstructure:"databricks.spark.dagscheduler.job.activejobs"`
 	DatabricksSparkDagschedulerJobAlljobs                                                                                  MetricSettings `mapstructure:"databricks.spark.dagscheduler.job.alljobs"`
 	DatabricksSparkDagschedulerStageFailedstages                                                                           MetricSettings `mapstructure:"databricks.spark.dagscheduler.stage.failedstages"`
@@ -217,6 +221,18 @@ func DefaultMetricsSettings() MetricsSettings {
 			Enabled: true,
 		},
 		DatabricksSparkBlockmanagerMemoryRemainingonheapmem: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkCodegeneratorCompilationtimeMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkCodegeneratorGeneratedclasssizeMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkCodegeneratorGeneratedmethodsizeMean: MetricSettings{
+			Enabled: true,
+		},
+		DatabricksSparkCodegeneratorSourcecodesizeMean: MetricSettings{
 			Enabled: true,
 		},
 		DatabricksSparkDagschedulerJobActivejobs: MetricSettings{
@@ -845,7 +861,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryDiskspaceused) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkBlockmanagerMemoryDiskspaceused) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkBlockmanagerMemoryDiskspaceused) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -854,7 +870,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryDiskspaceused) recordDataPoint(s
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -899,7 +915,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryMaxmem) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkBlockmanagerMemoryMaxmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -908,7 +924,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryMaxmem) recordDataPoint(start pc
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -953,7 +969,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -962,7 +978,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem) recordDataPoint(s
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1007,7 +1023,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryMaxonheapmem) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkBlockmanagerMemoryMaxonheapmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkBlockmanagerMemoryMaxonheapmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1016,7 +1032,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryMaxonheapmem) recordDataPoint(st
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1061,7 +1077,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryMemused) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkBlockmanagerMemoryMemused) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkBlockmanagerMemoryMemused) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1070,7 +1086,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryMemused) recordDataPoint(start p
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1115,7 +1131,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryOffheapmemused) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkBlockmanagerMemoryOffheapmemused) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkBlockmanagerMemoryOffheapmemused) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1124,7 +1140,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryOffheapmemused) recordDataPoint(
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1169,7 +1185,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryOnheapmemused) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkBlockmanagerMemoryOnheapmemused) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkBlockmanagerMemoryOnheapmemused) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1178,7 +1194,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryOnheapmemused) recordDataPoint(s
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1223,7 +1239,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryRemainingmem) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkBlockmanagerMemoryRemainingmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1232,7 +1248,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryRemainingmem) recordDataPoint(st
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1277,7 +1293,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1286,7 +1302,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem) recordDataP
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1331,7 +1347,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1340,7 +1356,7 @@ func (m *metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem) recordDataPo
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1370,6 +1386,222 @@ func newMetricDatabricksSparkBlockmanagerMemoryRemainingonheapmem(settings Metri
 	return m
 }
 
+type metricDatabricksSparkCodegeneratorCompilationtimeMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.codegenerator.compilationtime.mean metric with initial data.
+func (m *metricDatabricksSparkCodegeneratorCompilationtimeMean) init() {
+	m.data.SetName("databricks.spark.codegenerator.compilationtime.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkCodegeneratorCompilationtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
+	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
+	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkCodegeneratorCompilationtimeMean) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkCodegeneratorCompilationtimeMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkCodegeneratorCompilationtimeMean(settings MetricSettings) metricDatabricksSparkCodegeneratorCompilationtimeMean {
+	m := metricDatabricksSparkCodegeneratorCompilationtimeMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkCodegeneratorGeneratedclasssizeMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.codegenerator.generatedclasssize.mean metric with initial data.
+func (m *metricDatabricksSparkCodegeneratorGeneratedclasssizeMean) init() {
+	m.data.SetName("databricks.spark.codegenerator.generatedclasssize.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkCodegeneratorGeneratedclasssizeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
+	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
+	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkCodegeneratorGeneratedclasssizeMean) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkCodegeneratorGeneratedclasssizeMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkCodegeneratorGeneratedclasssizeMean(settings MetricSettings) metricDatabricksSparkCodegeneratorGeneratedclasssizeMean {
+	m := metricDatabricksSparkCodegeneratorGeneratedclasssizeMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.codegenerator.generatedmethodsize.mean metric with initial data.
+func (m *metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean) init() {
+	m.data.SetName("databricks.spark.codegenerator.generatedmethodsize.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
+	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
+	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkCodegeneratorGeneratedmethodsizeMean(settings MetricSettings) metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean {
+	m := metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricDatabricksSparkCodegeneratorSourcecodesizeMean struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	settings MetricSettings // metric settings provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills databricks.spark.codegenerator.sourcecodesize.mean metric with initial data.
+func (m *metricDatabricksSparkCodegeneratorSourcecodesizeMean) init() {
+	m.data.SetName("databricks.spark.codegenerator.sourcecodesize.mean")
+	m.data.SetDescription("n/a")
+	m.data.SetUnit("")
+	m.data.SetEmptyGauge()
+	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricDatabricksSparkCodegeneratorSourcecodesizeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	if !m.settings.Enabled {
+		return
+	}
+	dp := m.data.Gauge().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetDoubleValue(val)
+	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
+	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
+	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricDatabricksSparkCodegeneratorSourcecodesizeMean) updateCapacity() {
+	if m.data.Gauge().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Gauge().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricDatabricksSparkCodegeneratorSourcecodesizeMean) emit(metrics pmetric.MetricSlice) {
+	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricDatabricksSparkCodegeneratorSourcecodesizeMean(settings MetricSettings) metricDatabricksSparkCodegeneratorSourcecodesizeMean {
+	m := metricDatabricksSparkCodegeneratorSourcecodesizeMean{settings: settings}
+	if settings.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
 type metricDatabricksSparkDagschedulerJobActivejobs struct {
 	data     pmetric.Metric // data buffer for generated metric.
 	settings MetricSettings // metric settings provided by user.
@@ -1385,7 +1617,7 @@ func (m *metricDatabricksSparkDagschedulerJobActivejobs) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDagschedulerJobActivejobs) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDagschedulerJobActivejobs) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1394,7 +1626,7 @@ func (m *metricDatabricksSparkDagschedulerJobActivejobs) recordDataPoint(start p
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1439,7 +1671,7 @@ func (m *metricDatabricksSparkDagschedulerJobAlljobs) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDagschedulerJobAlljobs) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDagschedulerJobAlljobs) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1448,7 +1680,7 @@ func (m *metricDatabricksSparkDagschedulerJobAlljobs) recordDataPoint(start pcom
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1493,7 +1725,7 @@ func (m *metricDatabricksSparkDagschedulerStageFailedstages) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDagschedulerStageFailedstages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDagschedulerStageFailedstages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1502,7 +1734,7 @@ func (m *metricDatabricksSparkDagschedulerStageFailedstages) recordDataPoint(sta
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1547,7 +1779,7 @@ func (m *metricDatabricksSparkDagschedulerStageRunningstages) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDagschedulerStageRunningstages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDagschedulerStageRunningstages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1556,7 +1788,7 @@ func (m *metricDatabricksSparkDagschedulerStageRunningstages) recordDataPoint(st
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1601,7 +1833,7 @@ func (m *metricDatabricksSparkDagschedulerStageWaitingstages) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDagschedulerStageWaitingstages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDagschedulerStageWaitingstages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1610,7 +1842,7 @@ func (m *metricDatabricksSparkDagschedulerStageWaitingstages) recordDataPoint(st
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1657,7 +1889,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1666,7 +1898,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount) recordDa
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1713,7 +1945,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered) ini
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1722,7 +1954,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered) rec
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1769,7 +2001,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount) init(
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1778,7 +2010,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount) recor
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1825,7 +2057,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted) init(
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1834,7 +2066,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted) recor
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1881,7 +2113,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors) init() 
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1890,7 +2122,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors) recordD
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1937,7 +2169,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount) init(
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -1946,7 +2178,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount) recor
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -1993,7 +2225,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors) init
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2002,7 +2234,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors) reco
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2049,7 +2281,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitMarkersread) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksDirectorycommitMarkersread) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksDirectorycommitMarkersread) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2058,7 +2290,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitMarkersread) recordDataPo
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2105,7 +2337,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount) init()
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2114,7 +2346,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount) record
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2161,7 +2393,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered)
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2170,7 +2402,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered)
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2217,7 +2449,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound) init
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2226,7 +2458,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound) reco
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2273,7 +2505,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumcount) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2282,7 +2514,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumcount) recordDataPo
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2329,7 +2561,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumerrors) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumerrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumerrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2338,7 +2570,7 @@ func (m *metricDatabricksSparkDatabricksDirectorycommitVacuumerrors) recordDataP
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2385,7 +2617,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionNumchecks) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksPreemptionNumchecks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksPreemptionNumchecks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2394,7 +2626,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionNumchecks) recordDataPoint(sta
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2441,7 +2673,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2450,7 +2682,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired) recordDat
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2497,7 +2729,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionNumtaskspreempted) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksPreemptionNumtaskspreempted) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksPreemptionNumtaskspreempted) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2506,7 +2738,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionNumtaskspreempted) recordDataP
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2553,7 +2785,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2562,7 +2794,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis) recordDa
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2609,7 +2841,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos) init()
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2618,7 +2850,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos) record
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2665,7 +2897,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2674,7 +2906,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis) recordDa
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2721,7 +2953,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesActivepools) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesActivepools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesActivepools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2730,7 +2962,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesActivepools) recordDa
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2777,7 +3009,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2786,7 +3018,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2833,7 +3065,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools) 
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2842,7 +3074,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools) 
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2889,7 +3121,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotalt
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2898,7 +3130,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotalt
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -2945,7 +3177,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpool
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -2954,7 +3186,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpool
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -3001,7 +3233,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepo
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3010,7 +3242,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepo
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -3057,7 +3289,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepool
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3066,7 +3298,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepool
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -3113,7 +3345,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfe
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3122,7 +3354,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfe
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -3169,7 +3401,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfe
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3178,7 +3410,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfe
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -3225,7 +3457,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfe
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3234,7 +3466,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfe
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -3281,7 +3513,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgra
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3290,7 +3522,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgra
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -3337,7 +3569,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumqui
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3346,7 +3578,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumqui
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -3393,7 +3625,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumqui
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3402,7 +3634,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumqui
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -3449,7 +3681,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsr
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3458,7 +3690,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsr
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -3505,7 +3737,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools) 
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3514,7 +3746,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools) 
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -3561,7 +3793,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinis
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3570,7 +3802,7 @@ func (m *metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinis
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -3615,7 +3847,7 @@ func (m *metricDatabricksSparkExecutorDiskUsed) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutorDiskUsed) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+func (m *metricDatabricksSparkExecutorDiskUsed) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3624,8 +3856,8 @@ func (m *metricDatabricksSparkExecutorDiskUsed) recordDataPoint(start pcommon.Ti
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
-	dp.Attributes().PutStr("executor_id", executorIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
+	dp.Attributes().PutStr("spark_executor_id", sparkExecutorIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -3668,7 +3900,7 @@ func (m *metricDatabricksSparkExecutorMaxMemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutorMaxMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+func (m *metricDatabricksSparkExecutorMaxMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3677,8 +3909,8 @@ func (m *metricDatabricksSparkExecutorMaxMemory) recordDataPoint(start pcommon.T
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
-	dp.Attributes().PutStr("executor_id", executorIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
+	dp.Attributes().PutStr("spark_executor_id", sparkExecutorIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -3721,7 +3953,7 @@ func (m *metricDatabricksSparkExecutorMemoryUsed) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutorMemoryUsed) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+func (m *metricDatabricksSparkExecutorMemoryUsed) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3730,8 +3962,8 @@ func (m *metricDatabricksSparkExecutorMemoryUsed) recordDataPoint(start pcommon.
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
-	dp.Attributes().PutStr("executor_id", executorIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
+	dp.Attributes().PutStr("spark_executor_id", sparkExecutorIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -3776,7 +4008,7 @@ func (m *metricDatabricksSparkExecutorTotalInputBytes) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutorTotalInputBytes) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+func (m *metricDatabricksSparkExecutorTotalInputBytes) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3785,8 +4017,8 @@ func (m *metricDatabricksSparkExecutorTotalInputBytes) recordDataPoint(start pco
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
-	dp.Attributes().PutStr("executor_id", executorIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
+	dp.Attributes().PutStr("spark_executor_id", sparkExecutorIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -3831,7 +4063,7 @@ func (m *metricDatabricksSparkExecutorTotalShuffleRead) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutorTotalShuffleRead) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+func (m *metricDatabricksSparkExecutorTotalShuffleRead) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3840,8 +4072,8 @@ func (m *metricDatabricksSparkExecutorTotalShuffleRead) recordDataPoint(start pc
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
-	dp.Attributes().PutStr("executor_id", executorIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
+	dp.Attributes().PutStr("spark_executor_id", sparkExecutorIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -3886,7 +4118,7 @@ func (m *metricDatabricksSparkExecutorTotalShuffleWrite) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutorTotalShuffleWrite) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
+func (m *metricDatabricksSparkExecutorTotalShuffleWrite) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3895,8 +4127,8 @@ func (m *metricDatabricksSparkExecutorTotalShuffleWrite) recordDataPoint(start p
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
-	dp.Attributes().PutStr("executor_id", executorIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
+	dp.Attributes().PutStr("spark_executor_id", sparkExecutorIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -3939,7 +4171,7 @@ func (m *metricDatabricksSparkExecutormetricsDirectpoolmemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsDirectpoolmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsDirectpoolmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -3948,7 +4180,7 @@ func (m *metricDatabricksSparkExecutormetricsDirectpoolmemory) recordDataPoint(s
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -3993,7 +4225,7 @@ func (m *metricDatabricksSparkExecutormetricsJvmheapmemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsJvmheapmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsJvmheapmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4002,7 +4234,7 @@ func (m *metricDatabricksSparkExecutormetricsJvmheapmemory) recordDataPoint(star
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4047,7 +4279,7 @@ func (m *metricDatabricksSparkExecutormetricsJvmoffheapmemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsJvmoffheapmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsJvmoffheapmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4056,7 +4288,7 @@ func (m *metricDatabricksSparkExecutormetricsJvmoffheapmemory) recordDataPoint(s
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4101,7 +4333,7 @@ func (m *metricDatabricksSparkExecutormetricsMajorgccount) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsMajorgccount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsMajorgccount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4110,7 +4342,7 @@ func (m *metricDatabricksSparkExecutormetricsMajorgccount) recordDataPoint(start
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4155,7 +4387,7 @@ func (m *metricDatabricksSparkExecutormetricsMajorgctime) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsMajorgctime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsMajorgctime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4164,7 +4396,7 @@ func (m *metricDatabricksSparkExecutormetricsMajorgctime) recordDataPoint(start 
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4209,7 +4441,7 @@ func (m *metricDatabricksSparkExecutormetricsMappedpoolmemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsMappedpoolmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsMappedpoolmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4218,7 +4450,7 @@ func (m *metricDatabricksSparkExecutormetricsMappedpoolmemory) recordDataPoint(s
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4263,7 +4495,7 @@ func (m *metricDatabricksSparkExecutormetricsMinorgccount) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsMinorgccount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsMinorgccount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4272,7 +4504,7 @@ func (m *metricDatabricksSparkExecutormetricsMinorgccount) recordDataPoint(start
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4317,7 +4549,7 @@ func (m *metricDatabricksSparkExecutormetricsMinorgctime) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsMinorgctime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsMinorgctime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4326,7 +4558,7 @@ func (m *metricDatabricksSparkExecutormetricsMinorgctime) recordDataPoint(start 
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4371,7 +4603,7 @@ func (m *metricDatabricksSparkExecutormetricsOffheapexecutionmemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsOffheapexecutionmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsOffheapexecutionmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4380,7 +4612,7 @@ func (m *metricDatabricksSparkExecutormetricsOffheapexecutionmemory) recordDataP
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4425,7 +4657,7 @@ func (m *metricDatabricksSparkExecutormetricsOffheapstoragememory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsOffheapstoragememory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsOffheapstoragememory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4434,7 +4666,7 @@ func (m *metricDatabricksSparkExecutormetricsOffheapstoragememory) recordDataPoi
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4479,7 +4711,7 @@ func (m *metricDatabricksSparkExecutormetricsOffheapunifiedmemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsOffheapunifiedmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsOffheapunifiedmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4488,7 +4720,7 @@ func (m *metricDatabricksSparkExecutormetricsOffheapunifiedmemory) recordDataPoi
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4533,7 +4765,7 @@ func (m *metricDatabricksSparkExecutormetricsOnheapexecutionmemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsOnheapexecutionmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsOnheapexecutionmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4542,7 +4774,7 @@ func (m *metricDatabricksSparkExecutormetricsOnheapexecutionmemory) recordDataPo
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4587,7 +4819,7 @@ func (m *metricDatabricksSparkExecutormetricsOnheapstoragememory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsOnheapstoragememory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsOnheapstoragememory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4596,7 +4828,7 @@ func (m *metricDatabricksSparkExecutormetricsOnheapstoragememory) recordDataPoin
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4641,7 +4873,7 @@ func (m *metricDatabricksSparkExecutormetricsOnheapunifiedmemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsOnheapunifiedmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsOnheapunifiedmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4650,7 +4882,7 @@ func (m *metricDatabricksSparkExecutormetricsOnheapunifiedmemory) recordDataPoin
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4695,7 +4927,7 @@ func (m *metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4704,7 +4936,7 @@ func (m *metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory) recordData
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4749,7 +4981,7 @@ func (m *metricDatabricksSparkExecutormetricsProcesstreejvmvmemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsProcesstreejvmvmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsProcesstreejvmvmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4758,7 +4990,7 @@ func (m *metricDatabricksSparkExecutormetricsProcesstreejvmvmemory) recordDataPo
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4803,7 +5035,7 @@ func (m *metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4812,7 +5044,7 @@ func (m *metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory) recordDa
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4857,7 +5089,7 @@ func (m *metricDatabricksSparkExecutormetricsProcesstreeothervmemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsProcesstreeothervmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsProcesstreeothervmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4866,7 +5098,7 @@ func (m *metricDatabricksSparkExecutormetricsProcesstreeothervmemory) recordData
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4911,7 +5143,7 @@ func (m *metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory) init() 
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4920,7 +5152,7 @@ func (m *metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory) recordD
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -4965,7 +5197,7 @@ func (m *metricDatabricksSparkExecutormetricsProcesstreepythonvmemory) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkExecutormetricsProcesstreepythonvmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkExecutormetricsProcesstreepythonvmemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -4974,7 +5206,7 @@ func (m *metricDatabricksSparkExecutormetricsProcesstreepythonvmemory) recordDat
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -5021,7 +5253,7 @@ func (m *metricDatabricksSparkHiveexternalcatalogFilecachehits) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkHiveexternalcatalogFilecachehits) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkHiveexternalcatalogFilecachehits) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5030,7 +5262,7 @@ func (m *metricDatabricksSparkHiveexternalcatalogFilecachehits) recordDataPoint(
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -5077,7 +5309,7 @@ func (m *metricDatabricksSparkHiveexternalcatalogFilesdiscovered) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkHiveexternalcatalogFilesdiscovered) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkHiveexternalcatalogFilesdiscovered) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5086,7 +5318,7 @@ func (m *metricDatabricksSparkHiveexternalcatalogFilesdiscovered) recordDataPoin
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -5133,7 +5365,7 @@ func (m *metricDatabricksSparkHiveexternalcatalogHiveclientcalls) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkHiveexternalcatalogHiveclientcalls) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkHiveexternalcatalogHiveclientcalls) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5142,7 +5374,7 @@ func (m *metricDatabricksSparkHiveexternalcatalogHiveclientcalls) recordDataPoin
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -5189,7 +5421,7 @@ func (m *metricDatabricksSparkHiveexternalcatalogParallellistingjobcount) init()
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkHiveexternalcatalogParallellistingjobcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkHiveexternalcatalogParallellistingjobcount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5198,7 +5430,7 @@ func (m *metricDatabricksSparkHiveexternalcatalogParallellistingjobcount) record
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -5245,7 +5477,7 @@ func (m *metricDatabricksSparkHiveexternalcatalogPartitionsfetched) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkHiveexternalcatalogPartitionsfetched) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkHiveexternalcatalogPartitionsfetched) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5254,7 +5486,7 @@ func (m *metricDatabricksSparkHiveexternalcatalogPartitionsfetched) recordDataPo
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -5299,7 +5531,7 @@ func (m *metricDatabricksSparkJobNumActiveStages) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkJobNumActiveStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkJobNumActiveStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5308,7 +5540,7 @@ func (m *metricDatabricksSparkJobNumActiveStages) recordDataPoint(start pcommon.
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -5352,7 +5584,7 @@ func (m *metricDatabricksSparkJobNumActiveTasks) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkJobNumActiveTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkJobNumActiveTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5361,7 +5593,7 @@ func (m *metricDatabricksSparkJobNumActiveTasks) recordDataPoint(start pcommon.T
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -5405,7 +5637,7 @@ func (m *metricDatabricksSparkJobNumCompletedStages) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkJobNumCompletedStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkJobNumCompletedStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5414,7 +5646,7 @@ func (m *metricDatabricksSparkJobNumCompletedStages) recordDataPoint(start pcomm
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -5458,7 +5690,7 @@ func (m *metricDatabricksSparkJobNumCompletedTasks) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkJobNumCompletedTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkJobNumCompletedTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5467,7 +5699,7 @@ func (m *metricDatabricksSparkJobNumCompletedTasks) recordDataPoint(start pcommo
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -5511,7 +5743,7 @@ func (m *metricDatabricksSparkJobNumFailedStages) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkJobNumFailedStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkJobNumFailedStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5520,7 +5752,7 @@ func (m *metricDatabricksSparkJobNumFailedStages) recordDataPoint(start pcommon.
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -5564,7 +5796,7 @@ func (m *metricDatabricksSparkJobNumFailedTasks) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkJobNumFailedTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkJobNumFailedTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5573,7 +5805,7 @@ func (m *metricDatabricksSparkJobNumFailedTasks) recordDataPoint(start pcommon.T
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -5617,7 +5849,7 @@ func (m *metricDatabricksSparkJobNumSkippedStages) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkJobNumSkippedStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkJobNumSkippedStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5626,7 +5858,7 @@ func (m *metricDatabricksSparkJobNumSkippedStages) recordDataPoint(start pcommon
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -5670,7 +5902,7 @@ func (m *metricDatabricksSparkJobNumSkippedTasks) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkJobNumSkippedTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkJobNumSkippedTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5679,7 +5911,7 @@ func (m *metricDatabricksSparkJobNumSkippedTasks) recordDataPoint(start pcommon.
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -5723,7 +5955,7 @@ func (m *metricDatabricksSparkJobNumTasks) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkJobNumTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkJobNumTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5732,7 +5964,7 @@ func (m *metricDatabricksSparkJobNumTasks) recordDataPoint(start pcommon.Timesta
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -5776,7 +6008,7 @@ func (m *metricDatabricksSparkJvmcpuJvmcputime) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkJvmcpuJvmcputime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkJvmcpuJvmcputime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5785,7 +6017,7 @@ func (m *metricDatabricksSparkJvmcpuJvmcputime) recordDataPoint(start pcommon.Ti
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -5832,7 +6064,7 @@ func (m *metricDatabricksSparkLivelistenerbusNumeventsposted) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkLivelistenerbusNumeventsposted) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkLivelistenerbusNumeventsposted) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5841,7 +6073,7 @@ func (m *metricDatabricksSparkLivelistenerbusNumeventsposted) recordDataPoint(st
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -5888,7 +6120,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents) ini
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5897,7 +6129,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents) rec
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -5942,7 +6174,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusSize) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -5951,7 +6183,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueAppstatusSize) recordDataPoint
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -5998,7 +6230,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedev
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6007,7 +6239,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedev
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -6052,7 +6284,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize) init()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6061,7 +6293,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize) record
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -6108,7 +6340,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents) init()
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6117,7 +6349,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents) record
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -6162,7 +6394,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueSharedSize) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkLivelistenerbusQueueSharedSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkLivelistenerbusQueueSharedSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6171,7 +6403,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueSharedSize) recordDataPoint(st
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -6218,7 +6450,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents) init(
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6227,7 +6459,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents) recor
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -6272,7 +6504,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueStreamsSize) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkLivelistenerbusQueueStreamsSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkLivelistenerbusQueueStreamsSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6281,7 +6513,7 @@ func (m *metricDatabricksSparkLivelistenerbusQueueStreamsSize) recordDataPoint(s
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -6326,7 +6558,7 @@ func (m *metricDatabricksSparkSparksqloperationmanagerNumhiveoperations) init() 
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkSparksqloperationmanagerNumhiveoperations) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+func (m *metricDatabricksSparkSparksqloperationmanagerNumhiveoperations) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6335,7 +6567,7 @@ func (m *metricDatabricksSparkSparksqloperationmanagerNumhiveoperations) recordD
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_id", pipelineIDAttributeValue)
 	dp.Attributes().PutStr("pipeline_name", pipelineNameAttributeValue)
 }
@@ -6380,7 +6612,7 @@ func (m *metricDatabricksSparkStageDiskBytesSpilled) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkStageDiskBytesSpilled) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkStageDiskBytesSpilled) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6389,7 +6621,7 @@ func (m *metricDatabricksSparkStageDiskBytesSpilled) recordDataPoint(start pcomm
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -6433,7 +6665,7 @@ func (m *metricDatabricksSparkStageExecutorRunTime) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkStageExecutorRunTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkStageExecutorRunTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6442,7 +6674,7 @@ func (m *metricDatabricksSparkStageExecutorRunTime) recordDataPoint(start pcommo
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -6486,7 +6718,7 @@ func (m *metricDatabricksSparkStageInputBytes) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkStageInputBytes) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkStageInputBytes) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6495,7 +6727,7 @@ func (m *metricDatabricksSparkStageInputBytes) recordDataPoint(start pcommon.Tim
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -6539,7 +6771,7 @@ func (m *metricDatabricksSparkStageInputRecords) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkStageInputRecords) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkStageInputRecords) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6548,7 +6780,7 @@ func (m *metricDatabricksSparkStageInputRecords) recordDataPoint(start pcommon.T
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -6592,7 +6824,7 @@ func (m *metricDatabricksSparkStageMemoryBytesSpilled) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkStageMemoryBytesSpilled) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkStageMemoryBytesSpilled) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6601,7 +6833,7 @@ func (m *metricDatabricksSparkStageMemoryBytesSpilled) recordDataPoint(start pco
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -6645,7 +6877,7 @@ func (m *metricDatabricksSparkStageOutputBytes) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkStageOutputBytes) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkStageOutputBytes) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6654,7 +6886,7 @@ func (m *metricDatabricksSparkStageOutputBytes) recordDataPoint(start pcommon.Ti
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -6698,7 +6930,7 @@ func (m *metricDatabricksSparkStageOutputRecords) init() {
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkStageOutputRecords) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
+func (m *metricDatabricksSparkStageOutputRecords) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6707,7 +6939,7 @@ func (m *metricDatabricksSparkStageOutputRecords) recordDataPoint(start pcommon.
 	dp.SetTimestamp(ts)
 	dp.SetIntValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 	dp.Attributes().PutInt("spark_job_id", sparkJobIDAttributeValue)
 }
 
@@ -6753,7 +6985,7 @@ func (m *metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean) init()
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6762,7 +6994,7 @@ func (m *metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean) record
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -6807,7 +7039,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6816,7 +7048,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -6861,7 +7093,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6870,7 +7102,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -6915,7 +7147,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6924,7 +7156,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -6969,7 +7201,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -6978,7 +7210,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7023,7 +7255,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7032,7 +7264,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7077,7 +7309,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7086,7 +7318,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7131,7 +7363,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7140,7 +7372,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7185,7 +7417,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7194,7 +7426,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSp
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7239,7 +7471,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7248,7 +7480,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7293,7 +7525,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7302,7 +7534,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7347,7 +7579,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7356,7 +7588,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7401,7 +7633,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7410,7 +7642,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7455,7 +7687,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7464,7 +7696,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7509,7 +7741,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7518,7 +7750,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7563,7 +7795,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7572,7 +7804,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7617,7 +7849,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7626,7 +7858,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7671,7 +7903,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7680,7 +7912,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabric
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7725,7 +7957,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessi
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7734,7 +7966,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessi
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7779,7 +8011,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListene
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7788,7 +8020,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListene
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7833,7 +8065,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingt
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7842,7 +8074,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingt
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -7887,7 +8119,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessing
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
+func (m *metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
 	if !m.settings.Enabled {
 		return
 	}
@@ -7896,7 +8128,7 @@ func (m *metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessing
 	dp.SetTimestamp(ts)
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("cluster_id", clusterIDAttributeValue)
-	dp.Attributes().PutStr("app_id", appIDAttributeValue)
+	dp.Attributes().PutStr("spark_app_id", sparkAppIDAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -8051,6 +8283,10 @@ type MetricsBuilder struct {
 	metricDatabricksSparkBlockmanagerMemoryRemainingmem                                                                          metricDatabricksSparkBlockmanagerMemoryRemainingmem
 	metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem                                                                   metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem
 	metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem                                                                    metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem
+	metricDatabricksSparkCodegeneratorCompilationtimeMean                                                                        metricDatabricksSparkCodegeneratorCompilationtimeMean
+	metricDatabricksSparkCodegeneratorGeneratedclasssizeMean                                                                     metricDatabricksSparkCodegeneratorGeneratedclasssizeMean
+	metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean                                                                    metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean
+	metricDatabricksSparkCodegeneratorSourcecodesizeMean                                                                         metricDatabricksSparkCodegeneratorSourcecodesizeMean
 	metricDatabricksSparkDagschedulerJobActivejobs                                                                               metricDatabricksSparkDagschedulerJobActivejobs
 	metricDatabricksSparkDagschedulerJobAlljobs                                                                                  metricDatabricksSparkDagschedulerJobAlljobs
 	metricDatabricksSparkDagschedulerStageFailedstages                                                                           metricDatabricksSparkDagschedulerStageFailedstages
@@ -8204,6 +8440,10 @@ func NewMetricsBuilder(settings MetricsSettings, buildInfo component.BuildInfo, 
 		metricDatabricksSparkBlockmanagerMemoryRemainingmem:                                                                          newMetricDatabricksSparkBlockmanagerMemoryRemainingmem(settings.DatabricksSparkBlockmanagerMemoryRemainingmem),
 		metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem:                                                                   newMetricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem(settings.DatabricksSparkBlockmanagerMemoryRemainingoffheapmem),
 		metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem:                                                                    newMetricDatabricksSparkBlockmanagerMemoryRemainingonheapmem(settings.DatabricksSparkBlockmanagerMemoryRemainingonheapmem),
+		metricDatabricksSparkCodegeneratorCompilationtimeMean:                                                                        newMetricDatabricksSparkCodegeneratorCompilationtimeMean(settings.DatabricksSparkCodegeneratorCompilationtimeMean),
+		metricDatabricksSparkCodegeneratorGeneratedclasssizeMean:                                                                     newMetricDatabricksSparkCodegeneratorGeneratedclasssizeMean(settings.DatabricksSparkCodegeneratorGeneratedclasssizeMean),
+		metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean:                                                                    newMetricDatabricksSparkCodegeneratorGeneratedmethodsizeMean(settings.DatabricksSparkCodegeneratorGeneratedmethodsizeMean),
+		metricDatabricksSparkCodegeneratorSourcecodesizeMean:                                                                         newMetricDatabricksSparkCodegeneratorSourcecodesizeMean(settings.DatabricksSparkCodegeneratorSourcecodesizeMean),
 		metricDatabricksSparkDagschedulerJobActivejobs:                                                                               newMetricDatabricksSparkDagschedulerJobActivejobs(settings.DatabricksSparkDagschedulerJobActivejobs),
 		metricDatabricksSparkDagschedulerJobAlljobs:                                                                                  newMetricDatabricksSparkDagschedulerJobAlljobs(settings.DatabricksSparkDagschedulerJobAlljobs),
 		metricDatabricksSparkDagschedulerStageFailedstages:                                                                           newMetricDatabricksSparkDagschedulerStageFailedstages(settings.DatabricksSparkDagschedulerStageFailedstages),
@@ -8353,6 +8593,27 @@ func WithDatabricksInstanceName(val string) ResourceMetricsOption {
 	}
 }
 
+// WithSparkAppID sets provided value as "spark_app_id" attribute for current resource.
+func WithSparkAppID(val string) ResourceMetricsOption {
+	return func(rm pmetric.ResourceMetrics) {
+		rm.Resource().Attributes().PutStr("spark_app_id", val)
+	}
+}
+
+// WithSparkClusterID sets provided value as "spark_cluster_id" attribute for current resource.
+func WithSparkClusterID(val string) ResourceMetricsOption {
+	return func(rm pmetric.ResourceMetrics) {
+		rm.Resource().Attributes().PutStr("spark_cluster_id", val)
+	}
+}
+
+// WithSparkClusterName sets provided value as "spark_cluster_name" attribute for current resource.
+func WithSparkClusterName(val string) ResourceMetricsOption {
+	return func(rm pmetric.ResourceMetrics) {
+		rm.Resource().Attributes().PutStr("spark_cluster_name", val)
+	}
+}
+
 // WithStartTimeOverride overrides start time for all the resource metrics data points.
 // This option should be only used if different start time has to be set on metrics coming from different resources.
 func WithStartTimeOverride(start pcommon.Timestamp) ResourceMetricsOption {
@@ -8399,6 +8660,10 @@ func (mb *MetricsBuilder) EmitForResource(rmo ...ResourceMetricsOption) {
 	mb.metricDatabricksSparkBlockmanagerMemoryRemainingmem.emit(ils.Metrics())
 	mb.metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem.emit(ils.Metrics())
 	mb.metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem.emit(ils.Metrics())
+	mb.metricDatabricksSparkCodegeneratorCompilationtimeMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkCodegeneratorGeneratedclasssizeMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean.emit(ils.Metrics())
+	mb.metricDatabricksSparkCodegeneratorSourcecodesizeMean.emit(ils.Metrics())
 	mb.metricDatabricksSparkDagschedulerJobActivejobs.emit(ils.Metrics())
 	mb.metricDatabricksSparkDagschedulerJobAlljobs.emit(ils.Metrics())
 	mb.metricDatabricksSparkDagschedulerStageFailedstages.emit(ils.Metrics())
@@ -8561,653 +8826,673 @@ func (mb *MetricsBuilder) RecordDatabricksJobsTotalDataPoint(ts pcommon.Timestam
 }
 
 // RecordDatabricksSparkBlockmanagerMemoryDiskspaceusedDataPoint adds a data point to databricks.spark.blockmanager.memory.diskspaceused metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryDiskspaceusedDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkBlockmanagerMemoryDiskspaceused.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryDiskspaceusedDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryDiskspaceused.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkBlockmanagerMemoryMaxmemDataPoint adds a data point to databricks.spark.blockmanager.memory.maxmem metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryMaxmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkBlockmanagerMemoryMaxmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryMaxmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryMaxmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkBlockmanagerMemoryMaxoffheapmemDataPoint adds a data point to databricks.spark.blockmanager.memory.maxoffheapmem metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryMaxoffheapmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryMaxoffheapmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryMaxoffheapmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkBlockmanagerMemoryMaxonheapmemDataPoint adds a data point to databricks.spark.blockmanager.memory.maxonheapmem metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryMaxonheapmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkBlockmanagerMemoryMaxonheapmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryMaxonheapmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryMaxonheapmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkBlockmanagerMemoryMemusedDataPoint adds a data point to databricks.spark.blockmanager.memory.memused metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryMemusedDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkBlockmanagerMemoryMemused.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryMemusedDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryMemused.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkBlockmanagerMemoryOffheapmemusedDataPoint adds a data point to databricks.spark.blockmanager.memory.offheapmemused metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryOffheapmemusedDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkBlockmanagerMemoryOffheapmemused.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryOffheapmemusedDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryOffheapmemused.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkBlockmanagerMemoryOnheapmemusedDataPoint adds a data point to databricks.spark.blockmanager.memory.onheapmemused metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryOnheapmemusedDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkBlockmanagerMemoryOnheapmemused.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryOnheapmemusedDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryOnheapmemused.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkBlockmanagerMemoryRemainingmemDataPoint adds a data point to databricks.spark.blockmanager.memory.remainingmem metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryRemainingmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkBlockmanagerMemoryRemainingmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryRemainingmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryRemainingmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkBlockmanagerMemoryRemainingoffheapmemDataPoint adds a data point to databricks.spark.blockmanager.memory.remainingoffheapmem metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryRemainingoffheapmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryRemainingoffheapmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryRemainingoffheapmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkBlockmanagerMemoryRemainingonheapmemDataPoint adds a data point to databricks.spark.blockmanager.memory.remainingonheapmem metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryRemainingonheapmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkBlockmanagerMemoryRemainingonheapmemDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkBlockmanagerMemoryRemainingonheapmem.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+}
+
+// RecordDatabricksSparkCodegeneratorCompilationtimeMeanDataPoint adds a data point to databricks.spark.codegenerator.compilationtime.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkCodegeneratorCompilationtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkCodegeneratorCompilationtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+}
+
+// RecordDatabricksSparkCodegeneratorGeneratedclasssizeMeanDataPoint adds a data point to databricks.spark.codegenerator.generatedclasssize.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkCodegeneratorGeneratedclasssizeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkCodegeneratorGeneratedclasssizeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+}
+
+// RecordDatabricksSparkCodegeneratorGeneratedmethodsizeMeanDataPoint adds a data point to databricks.spark.codegenerator.generatedmethodsize.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkCodegeneratorGeneratedmethodsizeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+}
+
+// RecordDatabricksSparkCodegeneratorSourcecodesizeMeanDataPoint adds a data point to databricks.spark.codegenerator.sourcecodesize.mean metric.
+func (mb *MetricsBuilder) RecordDatabricksSparkCodegeneratorSourcecodesizeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkCodegeneratorSourcecodesizeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDagschedulerJobActivejobsDataPoint adds a data point to databricks.spark.dagscheduler.job.activejobs metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerJobActivejobsDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDagschedulerJobActivejobs.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerJobActivejobsDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDagschedulerJobActivejobs.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDagschedulerJobAlljobsDataPoint adds a data point to databricks.spark.dagscheduler.job.alljobs metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerJobAlljobsDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDagschedulerJobAlljobs.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerJobAlljobsDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDagschedulerJobAlljobs.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDagschedulerStageFailedstagesDataPoint adds a data point to databricks.spark.dagscheduler.stage.failedstages metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerStageFailedstagesDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDagschedulerStageFailedstages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerStageFailedstagesDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDagschedulerStageFailedstages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDagschedulerStageRunningstagesDataPoint adds a data point to databricks.spark.dagscheduler.stage.runningstages metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerStageRunningstagesDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDagschedulerStageRunningstages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerStageRunningstagesDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDagschedulerStageRunningstages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDagschedulerStageWaitingstagesDataPoint adds a data point to databricks.spark.dagscheduler.stage.waitingstages metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerStageWaitingstagesDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDagschedulerStageWaitingstages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDagschedulerStageWaitingstagesDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDagschedulerStageWaitingstages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksDirectorycommitAutovacuumcountDataPoint adds a data point to databricks.spark.databricks.directorycommit.autovacuumcount metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitAutovacuumcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitAutovacuumcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitAutovacuumcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksDirectorycommitDeletedfilesfilteredDataPoint adds a data point to databricks.spark.databricks.directorycommit.deletedfilesfiltered metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitDeletedfilesfilteredDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitDeletedfilesfilteredDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitDeletedfilesfiltered.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksDirectorycommitFilterlistingcountDataPoint adds a data point to databricks.spark.databricks.directorycommit.filterlistingcount metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitFilterlistingcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitFilterlistingcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitFilterlistingcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksDirectorycommitJobcommitcompletedDataPoint adds a data point to databricks.spark.databricks.directorycommit.jobcommitcompleted metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitJobcommitcompletedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitJobcommitcompletedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitJobcommitcompleted.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksDirectorycommitMarkerreaderrorsDataPoint adds a data point to databricks.spark.databricks.directorycommit.markerreaderrors metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitMarkerreaderrorsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitMarkerreaderrorsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitMarkerreaderrors.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksDirectorycommitMarkerrefreshcountDataPoint adds a data point to databricks.spark.databricks.directorycommit.markerrefreshcount metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitMarkerrefreshcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitMarkerrefreshcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitMarkerrefreshcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksDirectorycommitMarkerrefresherrorsDataPoint adds a data point to databricks.spark.databricks.directorycommit.markerrefresherrors metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitMarkerrefresherrorsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitMarkerrefresherrorsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitMarkerrefresherrors.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksDirectorycommitMarkersreadDataPoint adds a data point to databricks.spark.databricks.directorycommit.markersread metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitMarkersreadDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksDirectorycommitMarkersread.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitMarkersreadDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitMarkersread.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksDirectorycommitRepeatedlistcountDataPoint adds a data point to databricks.spark.databricks.directorycommit.repeatedlistcount metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitRepeatedlistcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitRepeatedlistcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitRepeatedlistcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksDirectorycommitUncommittedfilesfilteredDataPoint adds a data point to databricks.spark.databricks.directorycommit.uncommittedfilesfiltered metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitUncommittedfilesfilteredDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitUncommittedfilesfilteredDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitUncommittedfilesfiltered.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksDirectorycommitUntrackedfilesfoundDataPoint adds a data point to databricks.spark.databricks.directorycommit.untrackedfilesfound metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitUntrackedfilesfoundDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitUntrackedfilesfoundDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitUntrackedfilesfound.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksDirectorycommitVacuumcountDataPoint adds a data point to databricks.spark.databricks.directorycommit.vacuumcount metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitVacuumcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksDirectorycommitVacuumcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitVacuumcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitVacuumcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksDirectorycommitVacuumerrorsDataPoint adds a data point to databricks.spark.databricks.directorycommit.vacuumerrors metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitVacuumerrorsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksDirectorycommitVacuumerrors.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksDirectorycommitVacuumerrorsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksDirectorycommitVacuumerrors.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksPreemptionNumchecksDataPoint adds a data point to databricks.spark.databricks.preemption.numchecks metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionNumchecksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksPreemptionNumchecks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionNumchecksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksPreemptionNumchecks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksPreemptionNumpoolsautoexpiredDataPoint adds a data point to databricks.spark.databricks.preemption.numpoolsautoexpired metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionNumpoolsautoexpiredDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionNumpoolsautoexpiredDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksPreemptionNumpoolsautoexpired.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksPreemptionNumtaskspreemptedDataPoint adds a data point to databricks.spark.databricks.preemption.numtaskspreempted metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionNumtaskspreemptedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksPreemptionNumtaskspreempted.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionNumtaskspreemptedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksPreemptionNumtaskspreempted.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksPreemptionPoolstarvationmillisDataPoint adds a data point to databricks.spark.databricks.preemption.poolstarvationmillis metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionPoolstarvationmillisDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionPoolstarvationmillisDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksPreemptionPoolstarvationmillis.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksPreemptionScheduleroverheadnanosDataPoint adds a data point to databricks.spark.databricks.preemption.scheduleroverheadnanos metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionScheduleroverheadnanosDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionScheduleroverheadnanosDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksPreemptionScheduleroverheadnanos.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksPreemptionTasktimewastedmillisDataPoint adds a data point to databricks.spark.databricks.preemption.tasktimewastedmillis metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionTasktimewastedmillisDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksPreemptionTasktimewastedmillisDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksPreemptionTasktimewastedmillis.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesActivepoolsDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.activepools metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesActivepoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesActivepools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesActivepoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesActivepools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepoolsDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.bypasslaneactivepools metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepoolsDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.fastlaneactivepools metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimensDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.finishedqueriestotaltasktimens metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimensDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimensDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimens.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpoolsDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.lanecleanup.markedpools metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleanedDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.lanecleanup.twophasepoolscleaned metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleanedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleanedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleaned.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleanedDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.lanecleanup.zombiepoolscleaned metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleanedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleanedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleaned.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterationsDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.preemption.slottransfernumsuccessfulpreemptioniterations metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterationsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterationsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterations.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreemptedDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.preemption.slottransfernumtaskspreempted metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreemptedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreemptedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreempted.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimensDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.preemption.slottransferwastedtasktimens metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimensDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimensDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimens.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecreaseDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.slotreservation.numgradualdecrease metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecreaseDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecreaseDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecrease.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdropDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.slotreservation.numquickdrop metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdropDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdropDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdrop.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjumpDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.slotreservation.numquickjump metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjumpDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjumpDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjump.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreservedDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.slotreservation.slotsreserved metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreservedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreservedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreserved.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepoolsDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.slowlaneactivepools metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepoolsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepools.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinishedDataPoint adds a data point to databricks.spark.databricks.taskschedulinglanes.totalquerygroupsfinished metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinishedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinishedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinished.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutorDiskUsedDataPoint adds a data point to databricks.spark.executor.disk_used metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutorDiskUsedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
-	mb.metricDatabricksSparkExecutorDiskUsed.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, executorIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutorDiskUsedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutorDiskUsed.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkExecutorIDAttributeValue)
 }
 
 // RecordDatabricksSparkExecutorMaxMemoryDataPoint adds a data point to databricks.spark.executor.max_memory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutorMaxMemoryDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
-	mb.metricDatabricksSparkExecutorMaxMemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, executorIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutorMaxMemoryDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutorMaxMemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkExecutorIDAttributeValue)
 }
 
 // RecordDatabricksSparkExecutorMemoryUsedDataPoint adds a data point to databricks.spark.executor.memory_used metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutorMemoryUsedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
-	mb.metricDatabricksSparkExecutorMemoryUsed.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, executorIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutorMemoryUsedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutorMemoryUsed.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkExecutorIDAttributeValue)
 }
 
 // RecordDatabricksSparkExecutorTotalInputBytesDataPoint adds a data point to databricks.spark.executor.total_input_bytes metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutorTotalInputBytesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
-	mb.metricDatabricksSparkExecutorTotalInputBytes.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, executorIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutorTotalInputBytesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutorTotalInputBytes.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkExecutorIDAttributeValue)
 }
 
 // RecordDatabricksSparkExecutorTotalShuffleReadDataPoint adds a data point to databricks.spark.executor.total_shuffle_read metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutorTotalShuffleReadDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
-	mb.metricDatabricksSparkExecutorTotalShuffleRead.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, executorIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutorTotalShuffleReadDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutorTotalShuffleRead.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkExecutorIDAttributeValue)
 }
 
 // RecordDatabricksSparkExecutorTotalShuffleWriteDataPoint adds a data point to databricks.spark.executor.total_shuffle_write metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutorTotalShuffleWriteDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, executorIDAttributeValue string) {
-	mb.metricDatabricksSparkExecutorTotalShuffleWrite.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, executorIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutorTotalShuffleWriteDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
+	mb.metricDatabricksSparkExecutorTotalShuffleWrite.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkExecutorIDAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsDirectpoolmemoryDataPoint adds a data point to databricks.spark.executormetrics.directpoolmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsDirectpoolmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsDirectpoolmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsDirectpoolmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsDirectpoolmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsJvmheapmemoryDataPoint adds a data point to databricks.spark.executormetrics.jvmheapmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsJvmheapmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsJvmheapmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsJvmheapmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsJvmheapmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsJvmoffheapmemoryDataPoint adds a data point to databricks.spark.executormetrics.jvmoffheapmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsJvmoffheapmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsJvmoffheapmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsJvmoffheapmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsJvmoffheapmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsMajorgccountDataPoint adds a data point to databricks.spark.executormetrics.majorgccount metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMajorgccountDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsMajorgccount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMajorgccountDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsMajorgccount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsMajorgctimeDataPoint adds a data point to databricks.spark.executormetrics.majorgctime metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMajorgctimeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsMajorgctime.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMajorgctimeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsMajorgctime.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsMappedpoolmemoryDataPoint adds a data point to databricks.spark.executormetrics.mappedpoolmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMappedpoolmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsMappedpoolmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMappedpoolmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsMappedpoolmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsMinorgccountDataPoint adds a data point to databricks.spark.executormetrics.minorgccount metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMinorgccountDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsMinorgccount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMinorgccountDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsMinorgccount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsMinorgctimeDataPoint adds a data point to databricks.spark.executormetrics.minorgctime metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMinorgctimeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsMinorgctime.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsMinorgctimeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsMinorgctime.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsOffheapexecutionmemoryDataPoint adds a data point to databricks.spark.executormetrics.offheapexecutionmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOffheapexecutionmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsOffheapexecutionmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOffheapexecutionmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsOffheapexecutionmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsOffheapstoragememoryDataPoint adds a data point to databricks.spark.executormetrics.offheapstoragememory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOffheapstoragememoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsOffheapstoragememory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOffheapstoragememoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsOffheapstoragememory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsOffheapunifiedmemoryDataPoint adds a data point to databricks.spark.executormetrics.offheapunifiedmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOffheapunifiedmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsOffheapunifiedmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOffheapunifiedmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsOffheapunifiedmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsOnheapexecutionmemoryDataPoint adds a data point to databricks.spark.executormetrics.onheapexecutionmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOnheapexecutionmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsOnheapexecutionmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOnheapexecutionmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsOnheapexecutionmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsOnheapstoragememoryDataPoint adds a data point to databricks.spark.executormetrics.onheapstoragememory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOnheapstoragememoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsOnheapstoragememory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOnheapstoragememoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsOnheapstoragememory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsOnheapunifiedmemoryDataPoint adds a data point to databricks.spark.executormetrics.onheapunifiedmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOnheapunifiedmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsOnheapunifiedmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsOnheapunifiedmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsOnheapunifiedmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsProcesstreejvmrssmemoryDataPoint adds a data point to databricks.spark.executormetrics.processtreejvmrssmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreejvmrssmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreejvmrssmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsProcesstreejvmrssmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsProcesstreejvmvmemoryDataPoint adds a data point to databricks.spark.executormetrics.processtreejvmvmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreejvmvmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsProcesstreejvmvmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreejvmvmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsProcesstreejvmvmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsProcesstreeotherrssmemoryDataPoint adds a data point to databricks.spark.executormetrics.processtreeotherrssmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreeotherrssmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreeotherrssmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsProcesstreeotherrssmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsProcesstreeothervmemoryDataPoint adds a data point to databricks.spark.executormetrics.processtreeothervmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreeothervmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsProcesstreeothervmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreeothervmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsProcesstreeothervmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsProcesstreepythonrssmemoryDataPoint adds a data point to databricks.spark.executormetrics.processtreepythonrssmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreepythonrssmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreepythonrssmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsProcesstreepythonrssmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkExecutormetricsProcesstreepythonvmemoryDataPoint adds a data point to databricks.spark.executormetrics.processtreepythonvmemory metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreepythonvmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkExecutormetricsProcesstreepythonvmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkExecutormetricsProcesstreepythonvmemoryDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkExecutormetricsProcesstreepythonvmemory.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkHiveexternalcatalogFilecachehitsDataPoint adds a data point to databricks.spark.hiveexternalcatalog.filecachehits metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogFilecachehitsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkHiveexternalcatalogFilecachehits.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogFilecachehitsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkHiveexternalcatalogFilecachehits.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkHiveexternalcatalogFilesdiscoveredDataPoint adds a data point to databricks.spark.hiveexternalcatalog.filesdiscovered metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogFilesdiscoveredDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkHiveexternalcatalogFilesdiscovered.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogFilesdiscoveredDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkHiveexternalcatalogFilesdiscovered.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkHiveexternalcatalogHiveclientcallsDataPoint adds a data point to databricks.spark.hiveexternalcatalog.hiveclientcalls metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogHiveclientcallsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkHiveexternalcatalogHiveclientcalls.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogHiveclientcallsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkHiveexternalcatalogHiveclientcalls.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkHiveexternalcatalogParallellistingjobcountDataPoint adds a data point to databricks.spark.hiveexternalcatalog.parallellistingjobcount metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogParallellistingjobcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkHiveexternalcatalogParallellistingjobcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogParallellistingjobcountDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkHiveexternalcatalogParallellistingjobcount.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkHiveexternalcatalogPartitionsfetchedDataPoint adds a data point to databricks.spark.hiveexternalcatalog.partitionsfetched metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogPartitionsfetchedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkHiveexternalcatalogPartitionsfetched.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkHiveexternalcatalogPartitionsfetchedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkHiveexternalcatalogPartitionsfetched.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkJobNumActiveStagesDataPoint adds a data point to databricks.spark.job.num_active_stages metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkJobNumActiveStagesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkJobNumActiveStages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumActiveStagesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumActiveStages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkJobNumActiveTasksDataPoint adds a data point to databricks.spark.job.num_active_tasks metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkJobNumActiveTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkJobNumActiveTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumActiveTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumActiveTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkJobNumCompletedStagesDataPoint adds a data point to databricks.spark.job.num_completed_stages metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkJobNumCompletedStagesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkJobNumCompletedStages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumCompletedStagesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumCompletedStages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkJobNumCompletedTasksDataPoint adds a data point to databricks.spark.job.num_completed_tasks metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkJobNumCompletedTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkJobNumCompletedTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumCompletedTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumCompletedTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkJobNumFailedStagesDataPoint adds a data point to databricks.spark.job.num_failed_stages metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkJobNumFailedStagesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkJobNumFailedStages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumFailedStagesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumFailedStages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkJobNumFailedTasksDataPoint adds a data point to databricks.spark.job.num_failed_tasks metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkJobNumFailedTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkJobNumFailedTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumFailedTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumFailedTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkJobNumSkippedStagesDataPoint adds a data point to databricks.spark.job.num_skipped_stages metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkJobNumSkippedStagesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkJobNumSkippedStages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumSkippedStagesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumSkippedStages.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkJobNumSkippedTasksDataPoint adds a data point to databricks.spark.job.num_skipped_tasks metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkJobNumSkippedTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkJobNumSkippedTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumSkippedTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumSkippedTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkJobNumTasksDataPoint adds a data point to databricks.spark.job.num_tasks metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkJobNumTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkJobNumTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkJobNumTasksDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkJobNumTasks.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkJvmcpuJvmcputimeDataPoint adds a data point to databricks.spark.jvmcpu.jvmcputime metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkJvmcpuJvmcputimeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkJvmcpuJvmcputime.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkJvmcpuJvmcputimeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkJvmcpuJvmcputime.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkLivelistenerbusNumeventspostedDataPoint adds a data point to databricks.spark.livelistenerbus.numeventsposted metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusNumeventspostedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkLivelistenerbusNumeventsposted.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusNumeventspostedDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusNumeventsposted.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedeventsDataPoint adds a data point to databricks.spark.livelistenerbus.queue.appstatus.numdroppedevents metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedeventsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedeventsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedevents.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkLivelistenerbusQueueAppstatusSizeDataPoint adds a data point to databricks.spark.livelistenerbus.queue.appstatus.size metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueAppstatusSizeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkLivelistenerbusQueueAppstatusSize.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueAppstatusSizeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueAppstatusSize.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedeventsDataPoint adds a data point to databricks.spark.livelistenerbus.queue.executormanagement.numdroppedevents metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedeventsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedeventsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedevents.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkLivelistenerbusQueueExecutormanagementSizeDataPoint adds a data point to databricks.spark.livelistenerbus.queue.executormanagement.size metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueExecutormanagementSizeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueExecutormanagementSizeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueExecutormanagementSize.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkLivelistenerbusQueueSharedNumdroppedeventsDataPoint adds a data point to databricks.spark.livelistenerbus.queue.shared.numdroppedevents metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueSharedNumdroppedeventsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueSharedNumdroppedeventsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueSharedNumdroppedevents.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkLivelistenerbusQueueSharedSizeDataPoint adds a data point to databricks.spark.livelistenerbus.queue.shared.size metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueSharedSizeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkLivelistenerbusQueueSharedSize.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueSharedSizeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueSharedSize.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkLivelistenerbusQueueStreamsNumdroppedeventsDataPoint adds a data point to databricks.spark.livelistenerbus.queue.streams.numdroppedevents metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueStreamsNumdroppedeventsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueStreamsNumdroppedeventsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueStreamsNumdroppedevents.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkLivelistenerbusQueueStreamsSizeDataPoint adds a data point to databricks.spark.livelistenerbus.queue.streams.size metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueStreamsSizeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkLivelistenerbusQueueStreamsSize.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkLivelistenerbusQueueStreamsSizeDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkLivelistenerbusQueueStreamsSize.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkSparksqloperationmanagerNumhiveoperationsDataPoint adds a data point to databricks.spark.sparksqloperationmanager.numhiveoperations metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkSparksqloperationmanagerNumhiveoperationsDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	mb.metricDatabricksSparkSparksqloperationmanagerNumhiveoperations.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkSparksqloperationmanagerNumhiveoperationsDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
+	mb.metricDatabricksSparkSparksqloperationmanagerNumhiveoperations.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, pipelineIDAttributeValue, pipelineNameAttributeValue)
 }
 
 // RecordDatabricksSparkStageDiskBytesSpilledDataPoint adds a data point to databricks.spark.stage.disk_bytes_spilled metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkStageDiskBytesSpilledDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkStageDiskBytesSpilled.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkStageDiskBytesSpilledDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageDiskBytesSpilled.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkStageExecutorRunTimeDataPoint adds a data point to databricks.spark.stage.executor_run_time metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkStageExecutorRunTimeDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkStageExecutorRunTime.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkStageExecutorRunTimeDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageExecutorRunTime.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkStageInputBytesDataPoint adds a data point to databricks.spark.stage.input_bytes metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkStageInputBytesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkStageInputBytes.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkStageInputBytesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageInputBytes.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkStageInputRecordsDataPoint adds a data point to databricks.spark.stage.input_records metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkStageInputRecordsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkStageInputRecords.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkStageInputRecordsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageInputRecords.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkStageMemoryBytesSpilledDataPoint adds a data point to databricks.spark.stage.memory_bytes_spilled metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkStageMemoryBytesSpilledDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkStageMemoryBytesSpilled.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkStageMemoryBytesSpilledDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageMemoryBytesSpilled.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkStageOutputBytesDataPoint adds a data point to databricks.spark.stage.output_bytes metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkStageOutputBytesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkStageOutputBytes.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkStageOutputBytesDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageOutputBytes.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkStageOutputRecordsDataPoint adds a data point to databricks.spark.stage.output_records metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkStageOutputRecordsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, appIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	mb.metricDatabricksSparkStageOutputRecords.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue, sparkJobIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkStageOutputRecordsDataPoint(ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
+	mb.metricDatabricksSparkStageOutputRecords.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue, sparkJobIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerDagschedulerMessageprocessingtimeMeanDataPoint adds a data point to databricks.spark.timer.dagscheduler.messageprocessingtime.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerDagschedulerMessageprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerDagschedulerMessageprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerDagschedulerMessageprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.sqlexecution.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.streaming.streamingquerylistenerbus.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.ui.sqlappstatuslistener.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.hive.thriftserver.ui.hivethriftserver2listener.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.sparksession.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.util.executionlistenerbus.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.status.appstatuslistener.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.util.profilerenv.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dataplaneeventlistener.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dbceventlogginglistener.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.photon.photoncleanuplistener.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.executortimelogginglistener.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.usagelogginglistener.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.advice.advisorlistener.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.debugger.querywatchdoglistener.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.execution.ui.iocachelistener.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.io.caching.repeatedreadsestimator.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.queue.appstatus.listenerprocessingtime.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.queue.executormanagement.listenerprocessingtime.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.queue.shared.listenerprocessingtime.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMeanDataPoint adds a data point to databricks.spark.timer.livelistenerbus.queue.streams.listenerprocessingtime.mean metric.
-func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, appIDAttributeValue string) {
-	mb.metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, appIDAttributeValue)
+func (mb *MetricsBuilder) RecordDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMeanDataPoint(ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
+	mb.metricDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMean.recordDataPoint(mb.startTime, ts, val, clusterIDAttributeValue, sparkAppIDAttributeValue)
 }
 
 // RecordDatabricksTasksRunDurationDataPoint adds a data point to databricks.tasks.run.duration metric.

@@ -43,33 +43,33 @@ func newReceiverFactory() receiver.CreateMetricsFunc {
 		cfg component.Config,
 		consumer consumer.Metrics,
 	) (receiver.Metrics, error) {
-		dbcfg := cfg.(*Config)
-		httpClient, err := dbcfg.ToClient(nil, settings.TelemetrySettings)
+		dbrcfg := cfg.(*Config)
+		httpClient, err := dbrcfg.ToClient(nil, settings.TelemetrySettings)
 		if err != nil {
 			return nil, fmt.Errorf("newReceiverFactory: failed to create client from config: %w", err)
 		}
-		dbClient := newDatabricksRawClient(dbcfg.Token, dbcfg.Endpoint, httpClient, settings.Logger)
-		dbsvc := newDatabricksService(dbClient, dbcfg.MaxResults)
-		ssvc := newSparkService(settings.Logger, dbsvc, httpClient, dbcfg.Token, dbcfg.SparkAPIURL, dbcfg.SparkOrgID, dbcfg.SparkUIPort)
-		dbScraper := scraper{
-			logger:      settings.Logger,
-			rmp:         newRunMetricsProvider(dbsvc),
-			dbmp:        dbMetricsProvider{dbsvc: dbsvc},
-			builder:     metadata.NewMetricsBuilder(dbcfg.Metrics, settings.BuildInfo),
-			resourceOpt: metadata.WithDatabricksInstanceName(dbcfg.InstanceName),
-			scmb:        sparkClusterMetricsBuilder{ssvc: ssvc},
+		dbrClient := newDatabricksRawClient(dbrcfg.Token, dbrcfg.Endpoint, httpClient, settings.Logger)
+		dbrsvc := newDatabricksService(dbrClient, dbrcfg.MaxResults)
+		ssvc := newSparkService(settings.Logger, dbrsvc, httpClient, dbrcfg.Token, dbrcfg.SparkAPIURL, dbrcfg.SparkOrgID, dbrcfg.SparkUIPort)
+		dbrScraper := scraper{
+			dbrInstanceName: dbrcfg.InstanceName,
+			logger:          settings.Logger,
+			rmp:             newRunMetricsProvider(dbrsvc),
+			dbrmp:           dbrMetricsProvider{dbrsvc: dbrsvc},
+			metricsBuilder:  metadata.NewMetricsBuilder(dbrcfg.Metrics, settings.BuildInfo),
+			scmb:            sparkClusterMetricsBuilder{ssvc: ssvc},
 			semb: sparkExtraMetricsBuilder{
 				ssvc:   ssvc,
 				logger: settings.Logger,
 			},
-			dbsvc: dbsvc,
+			dbrsvc: dbrsvc,
 		}
-		collectorScraper, err := scraperhelper.NewScraper(typeStr, dbScraper.scrape)
+		collectorScraper, err := scraperhelper.NewScraper(typeStr, dbrScraper.scrape)
 		if err != nil {
 			return nil, fmt.Errorf("newReceiverFactory: failed to create scraper: %w", err)
 		}
 		return scraperhelper.NewScraperControllerReceiver(
-			&dbcfg.ScraperControllerSettings,
+			&dbrcfg.ScraperControllerSettings,
 			settings,
 			consumer,
 			scraperhelper.AddScraper(collectorScraper),

@@ -27,7 +27,7 @@ import (
 
 func createDefaultConfig() component.Config {
 	scs := scraperhelper.NewDefaultScraperControllerSettings(typeStr)
-	// we set the default collection interval to 30 seconds which is half of the
+	// set the default collection interval to 30 seconds which is half of the
 	// lowest job frequency of 1 minute
 	scs.CollectionInterval = time.Second * 30
 	return &Config{

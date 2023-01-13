@@ -34,13 +34,13 @@ type sparkService interface {
 
 type sparkRestService struct {
 	logger      *zap.Logger
-	dbsvc       databricksService
+	dbrsvc      databricksService
 	sparkClient spark.Client
 }
 
 func newSparkService(
 	logger *zap.Logger,
-	dbsvc databricksService,
+	dbrsvc databricksService,
 	httpClient *http.Client,
 	tok string,
 	sparkAPIURL string,
@@ -49,7 +49,7 @@ func newSparkService(
 ) sparkService {
 	return sparkRestService{
 		logger:      logger,
-		dbsvc:       dbsvc,
+		dbrsvc:      dbrsvc,
 		sparkClient: spark.NewClient(httpClient, tok, sparkAPIURL, orgID, sparkUIPort),
 	}
 }

@@ -33,7 +33,7 @@ If set explicitly, the API requires a value greater than 0 and less than or equa
 ```yaml
 databricks:
   instance_name: my-instance
-  endpoint: https://db.example.net
+  endpoint: https://dbr.example.net
   token: abc123
   spark_org_id: 1234567890
   spark_api_url: https://spark.example.net

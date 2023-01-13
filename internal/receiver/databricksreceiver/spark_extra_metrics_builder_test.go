@@ -16,8 +16,11 @@ package databricksreceiver
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/zap"
 )
 
@@ -26,12 +29,17 @@ func TestSparkMetricsBuilder_Executors(t *testing.T) {
 		ssvc:   newTestSuccessSparkService(newTestDatabricksSingleClusterService()),
 		logger: zap.NewNop(),
 	}
-	builder := newTestMetricsBuilder()
-	err := semb.buildExecutorMetrics(builder, 0, []cluster{{}})
+	execMetrics, err := semb.buildExecutorMetrics([]cluster{{ClusterID: "foo"}})
 	require.NoError(t, err)
-	emitted := builder.Emit()
-	ms := emitted.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	metricMap := metricsByName(ms)
+
+	testBuilder := newTestMetricsBuilder()
+	built := execMetrics.build(testBuilder, pcommon.NewTimestampFromTime(time.Now()))
+	emitted := pmetric.NewMetrics()
+	for _, metrics := range built {
+		metrics.ResourceMetrics().MoveAndAppendTo(emitted.ResourceMetrics())
+	}
+
+	metricMap := metricsByName(emitted)
 	assertIntGaugeEq(t, metricMap, "executor.memory_used", 709517, 636121)
 	assertIntGaugeEq(t, metricMap, "executor.disk_used", 1, 2)
 	assertIntSumEq(t, metricMap, "executor.total_input_bytes", 3, 4)
@@ -45,12 +53,17 @@ func TestSparkMetricsBuilder_Jobs(t *testing.T) {
 		ssvc:   newTestSuccessSparkService(newTestDatabricksSingleClusterService()),
 		logger: zap.NewNop(),
 	}
-	builder := newTestMetricsBuilder()
-	err := semb.buildJobMetrics(builder, 0, []cluster{{}})
+	jobMetrics, err := semb.buildJobMetrics([]cluster{{ClusterID: "foo"}})
 	require.NoError(t, err)
-	emitted := builder.Emit()
-	ms := emitted.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	metricMap := metricsByName(ms)
+
+	builder := newTestMetricsBuilder()
+	built := jobMetrics.build(builder, pcommon.NewTimestampFromTime(time.Now()))
+	emitted := pmetric.NewMetrics()
+	for _, metrics := range built {
+		metrics.ResourceMetrics().MoveAndAppendTo(emitted.ResourceMetrics())
+	}
+
+	metricMap := metricsByName(emitted)
 	assertIntGaugeEq(t, metricMap, "job.num_tasks", 9, 8)
 	assertIntGaugeEq(t, metricMap, "job.num_active_tasks", 10, 11)
 	assertIntGaugeEq(t, metricMap, "job.num_completed_tasks", 12, 13)
@@ -67,12 +80,16 @@ func TestSparkMetricsBuilder_Stages(t *testing.T) {
 		ssvc:   newTestSuccessSparkService(newTestDatabricksSingleClusterService()),
 		logger: zap.NewNop(),
 	}
-	builder := newTestMetricsBuilder()
-	err := semb.buildStageMetrics(builder, 0, []cluster{{}})
+	stageMetrics, err := semb.buildStageMetrics([]cluster{{ClusterID: "foo"}})
 	require.NoError(t, err)
-	emitted := builder.Emit()
-	ms := emitted.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	metricMap := metricsByName(ms)
+
+	testBuilder := newTestMetricsBuilder()
+	built := stageMetrics.build(testBuilder, pcommon.NewTimestampFromTime(time.Now()))
+	emitted := pmetric.NewMetrics()
+	for _, metrics := range built {
+		metrics.ResourceMetrics().MoveAndAppendTo(emitted.ResourceMetrics())
+	}
+	metricMap := metricsByName(emitted)
 	assertIntGaugeEq(t, metricMap, "stage.executor_run_time", 1, 2)
 	assertIntGaugeEq(t, metricMap, "stage.input_bytes", 3, 4)
 	assertIntGaugeEq(t, metricMap, "stage.input_records", 5, 6)

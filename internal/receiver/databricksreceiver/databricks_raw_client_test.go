@@ -71,7 +71,7 @@ func (*testdataDBRawClient) activeJobRuns(limit int, offset int) ([]byte, error)
 }
 
 func (c *testdataDBRawClient) completedJobRuns(jobID int, limit int, offset int) ([]byte, error) {
-	if jobID != 288 {
+	if jobID != testdataJobID {
 		return []byte("{}"), nil
 	}
 	if offset == 0 {

@@ -30,71 +30,80 @@ import (
 // method is the entry point into this receiver's functionality, running on a
 // timer.
 type scraper struct {
-	logger      *zap.Logger
-	rmp         runMetricsProvider
-	dbmp        dbMetricsProvider
-	builder     *metadata.MetricsBuilder
-	resourceOpt metadata.ResourceMetricsOption
-	scmb        sparkClusterMetricsBuilder
-	semb        sparkExtraMetricsBuilder
-	dbsvc       databricksService
+	rmp             runMetricsProvider
+	semb            sparkExtraMetricsBuilder
+	dbrmp           dbrMetricsProvider
+	scmb            sparkClusterMetricsBuilder
+	dbrsvc          databricksService
+	logger          *zap.Logger
+	metricsBuilder  *metadata.MetricsBuilder
+	dbrInstanceName string
 }
 
 func (s scraper) scrape(_ context.Context) (pmetric.Metrics, error) {
-	var err error
-
 	now := pcommon.NewTimestampFromTime(time.Now())
 
-	jobIDs, err := s.dbmp.addJobStatusMetrics(s.builder, now)
+	jobIDs, err := s.dbrmp.addJobStatusMetrics(s.metricsBuilder, now)
 	if err != nil {
 		return pmetric.Metrics{}, fmt.Errorf("srape: error adding job status metrics: %w", err)
 	}
 
-	err = s.dbmp.addNumActiveRunsMetric(s.builder, now)
+	err = s.dbrmp.addNumActiveRunsMetric(s.metricsBuilder, now)
 	if err != nil {
 		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to add num active runs metric %w", err)
 	}
 
-	err = s.rmp.addMultiJobRunMetrics(jobIDs, s.builder, now)
+	err = s.rmp.addMultiJobRunMetrics(jobIDs, s.metricsBuilder, now)
 	if err != nil {
 		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to add multi job run metrics: %w", err)
 	}
 
-	clusters, err := s.dbsvc.runningClusters()
+	dbrMetrics := s.metricsBuilder.Emit(metadata.WithDatabricksInstanceName(s.dbrInstanceName))
+
+	// spark metrics
+	clusters, err := s.dbrsvc.runningClusters()
 	if err != nil {
 		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to get running clusters: %w", err)
 	}
 	s.logger.Debug("found clusters", zap.Any("clusters", clusters))
 
-	pipelines, err := s.dbsvc.runningPipelines()
+	pipelines, err := s.dbrsvc.runningPipelines()
 	if err != nil {
 		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to get pipelines: %w", err)
 	}
 
-	histoMetrics, err := s.scmb.buildMetrics(s.builder, now, clusters, pipelines)
+	allSparkDbrMetrics := newSparkDbrMetrics()
+
+	coreClusterMetrics, err := s.scmb.buildCoreMetrics(clusters, pipelines)
 	if err != nil {
 		return pmetric.Metrics{}, fmt.Errorf("scrape: error building spark metrics: %w", err)
 	}
+	allSparkDbrMetrics.append(coreClusterMetrics)
 
-	err = s.semb.buildExecutorMetrics(s.builder, now, clusters)
+	execClusterMetrics, err := s.semb.buildExecutorMetrics(clusters)
 	if err != nil {
 		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to build executor metrics: %w", err)
 	}
+	allSparkDbrMetrics.append(execClusterMetrics)
 
-	err = s.semb.buildJobMetrics(s.builder, now, clusters)
+	jobClusterMetrics, err := s.semb.buildJobMetrics(clusters)
 	if err != nil {
 		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to build job metrics: %w", err)
 	}
+	allSparkDbrMetrics.append(jobClusterMetrics)
 
-	err = s.semb.buildStageMetrics(s.builder, now, clusters)
+	stageClusterMetrics, err := s.semb.buildStageMetrics(clusters)
 	if err != nil {
 		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to build stage metrics: %w", err)
 	}
+	allSparkDbrMetrics.append(stageClusterMetrics)
 
-	out := s.builder.Emit(s.resourceOpt)
-	scopeMetrics := out.ResourceMetrics().At(0).ScopeMetrics().At(0)
-	for _, histoMetric := range histoMetrics {
-		histoMetric.CopyTo(scopeMetrics.Metrics().AppendEmpty())
+	out := pmetric.NewMetrics()
+	dbrMetrics.ResourceMetrics().MoveAndAppendTo(out.ResourceMetrics())
+
+	sparkMetrics := allSparkDbrMetrics.build(s.metricsBuilder, now, metadata.WithDatabricksInstanceName(s.dbrInstanceName))
+	for _, metric := range sparkMetrics {
+		metric.ResourceMetrics().MoveAndAppendTo(out.ResourceMetrics())
 	}
 
 	return out, nil

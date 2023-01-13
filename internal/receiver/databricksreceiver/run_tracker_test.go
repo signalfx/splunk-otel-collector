@@ -21,13 +21,13 @@ import (
 )
 
 func TestRunTracker(t *testing.T) {
-	dbsvc := &fakeDatabricksRestService{}
+	dbrsvc := &fakeDatabricksRestService{}
 	tracker := newRunTracker()
-	runs, _ := dbsvc.completedJobRuns(42, 0)
+	runs, _ := dbrsvc.completedJobRuns(42, 0)
 	latest := tracker.extractNewRuns(runs)
 	assert.Equal(t, 0, len(latest))
 
-	runs, _ = dbsvc.completedJobRuns(42, 0)
+	runs, _ = dbrsvc.completedJobRuns(42, 0)
 	latest = tracker.extractNewRuns(runs)
 	assert.Equal(t, 1, len(latest))
 
@@ -35,12 +35,12 @@ func TestRunTracker(t *testing.T) {
 	latest = tracker.extractNewRuns(runs)
 	assert.Nil(t, latest)
 
-	runs, _ = dbsvc.completedJobRuns(42, 0)
+	runs, _ = dbrsvc.completedJobRuns(42, 0)
 	latest = tracker.extractNewRuns(runs)
 	assert.Equal(t, 1, len(latest))
 
-	dbsvc.addCompletedRun(42)
-	runs, _ = dbsvc.completedJobRuns(42, 0)
+	dbrsvc.addCompletedRun(42)
+	runs, _ = dbrsvc.completedJobRuns(42, 0)
 	latest = tracker.extractNewRuns(runs)
 	assert.Equal(t, 2, len(latest))
 }

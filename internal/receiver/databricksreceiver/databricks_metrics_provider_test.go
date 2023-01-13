@@ -26,8 +26,8 @@ import (
 )
 
 func TestDatabricksMetricsProvider(t *testing.T) {
-	var dbsvc = newDatabricksService(&testdataDBRawClient{}, 25)
-	mp := dbMetricsProvider{dbsvc: dbsvc}
+	var dbrsvc = newDatabricksService(&testdataDBRawClient{}, 25)
+	mp := dbrMetricsProvider{dbrsvc: dbrsvc}
 
 	builder := newTestMetricsBuilder()
 	_, err := mp.addJobStatusMetrics(builder, 0)
@@ -35,30 +35,29 @@ func TestDatabricksMetricsProvider(t *testing.T) {
 	emitted := builder.Emit()
 	assert.Equal(t, 3, emitted.MetricCount())
 
+	metricMap := metricsByName(emitted)
 	rms := emitted.ResourceMetrics()
 	assert.Equal(t, 1, rms.Len())
 	rm := rms.At(0)
 	sms := rm.ScopeMetrics()
+
 	assert.Equal(t, 1, sms.Len())
-	ms := sms.At(0).Metrics()
 
-	metricMap := metricsByName(ms)
-
-	const dbjt = "databricks.jobs.total"
-	jobTotalMetrics := metricMap[dbjt]
-	assert.Equal(t, dbjt, jobTotalMetrics.Name())
+	const dbrjt = "databricks.jobs.total"
+	jobTotalMetrics := metricMap[dbrjt]
+	assert.Equal(t, dbrjt, jobTotalMetrics.Name())
 	assert.EqualValues(t, 6, jobTotalMetrics.Gauge().DataPoints().At(0).IntValue())
 
-	const dbjss = "databricks.jobs.schedule.status"
-	jobScheduleMetrics := metricMap[dbjss]
-	assert.Equal(t, dbjss, jobScheduleMetrics.Name())
+	const dbrjss = "databricks.jobs.schedule.status"
+	jobScheduleMetrics := metricMap[dbrjss]
+	assert.Equal(t, dbrjss, jobScheduleMetrics.Name())
 	pts := jobScheduleMetrics.Gauge().DataPoints()
 	assert.Equal(t, 6, pts.Len())
 	assert.EqualValues(t, 0, pts.At(0).IntValue())
 
-	const dbtss = "databricks.tasks.schedule.status"
-	taskStatusMetric := metricMap[dbtss]
-	assert.Equal(t, dbtss, taskStatusMetric.Name())
+	const dbrtss = "databricks.tasks.schedule.status"
+	taskStatusMetric := metricMap[dbrtss]
+	assert.Equal(t, dbrtss, taskStatusMetric.Name())
 	taskPts := taskStatusMetric.Gauge().DataPoints()
 	assert.Equal(t, 8, taskPts.Len())
 
@@ -123,7 +122,7 @@ func TestDatabricksMetricsProvider(t *testing.T) {
 	rm = rms.At(0)
 	sms = rm.ScopeMetrics()
 	assert.Equal(t, 1, sms.Len())
-	ms = sms.At(0).Metrics()
+	ms := sms.At(0).Metrics()
 
 	activeRunsMetric := ms.At(0)
 	assert.Equal(t, "databricks.jobs.active.total", activeRunsMetric.Name())
@@ -134,11 +133,17 @@ func newTestMetricsBuilder() *metadata.MetricsBuilder {
 	return metadata.NewMetricsBuilder(metadata.DefaultMetricsSettings(), component.BuildInfo{})
 }
 
-func metricsByName(ms pmetric.MetricSlice) map[string]pmetric.Metric {
+func metricsByName(pm pmetric.Metrics) map[string]pmetric.Metric {
 	out := map[string]pmetric.Metric{}
-	for i := 0; i < ms.Len(); i++ {
-		metric := ms.At(i)
-		out[metric.Name()] = metric
+	for i := 0; i < pm.ResourceMetrics().Len(); i++ {
+		sms := pm.ResourceMetrics().At(i).ScopeMetrics()
+		for j := 0; j < sms.Len(); j++ {
+			ms := sms.At(j).Metrics()
+			for k := 0; k < ms.Len(); k++ {
+				metric := ms.At(k)
+				out[metric.Name()] = metric
+			}
+		}
 	}
 	return out
 }

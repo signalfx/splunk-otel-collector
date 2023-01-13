@@ -30,7 +30,7 @@ func TestDatabricksService(t *testing.T) {
 	active, err := c.activeJobRuns()
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(active))
-	completed, err := c.completedJobRuns(288, -1)
+	completed, err := c.completedJobRuns(testdataJobID, -1)
 	require.NoError(t, err)
 	assert.Equal(t, 98, len(completed))
 }
@@ -40,12 +40,12 @@ func TestDatabricksService_CompletedRuns(t *testing.T) {
 	c := newDatabricksService(&testdataDBRawClient{}, ignored)
 
 	// 1642777677522 is from completed-job-runs-0-0.json
-	runs, err := c.completedJobRuns(288, 1642777677522)
+	runs, err := c.completedJobRuns(testdataJobID, 1642777677522)
 	require.NoError(t, err)
 	assert.Equal(t, 30, len(runs))
 
 	// 1642775877669 is from completed-job-runs-1-1.json
-	runs, err = c.completedJobRuns(288, 1642775877669)
+	runs, err = c.completedJobRuns(testdataJobID, 1642775877669)
 	require.NoError(t, err)
 	assert.Equal(t, 67, len(runs))
 }

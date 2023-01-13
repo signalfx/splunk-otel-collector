@@ -28,13 +28,13 @@ type databricksService interface {
 // databricksRestService handles pagination (responses specify hasMore=true/false) and
 // combines the returned objects into one array.
 type databricksRestService struct {
-	dbc   databricksClient
+	dbrc  databricksClient
 	limit int
 }
 
-func newDatabricksService(dbc databricksRawClient, limit int) databricksService {
+func newDatabricksService(dbrc databricksRawClient, limit int) databricksService {
 	return databricksRestService{
-		dbc:   databricksClient{rawClient: dbc},
+		dbrc:  databricksClient{rawClient: dbrc},
 		limit: limit,
 	}
 }
@@ -42,7 +42,7 @@ func newDatabricksService(dbc databricksRawClient, limit int) databricksService 
 func (s databricksRestService) jobs() (out []job, err error) {
 	hasMore := true
 	for i := 0; hasMore; i++ {
-		resp, err := s.dbc.jobsList(s.limit, s.limit*i)
+		resp, err := s.dbrc.jobsList(s.limit, s.limit*i)
 		if err != nil {
 			return nil, fmt.Errorf("databricksRestService.jobs(): %w", err)
 		}
@@ -55,7 +55,7 @@ func (s databricksRestService) jobs() (out []job, err error) {
 func (s databricksRestService) activeJobRuns() (out []jobRun, err error) {
 	hasMore := true
 	for i := 0; hasMore; i++ {
-		resp, err := s.dbc.activeJobRuns(s.limit, s.limit*i)
+		resp, err := s.dbrc.activeJobRuns(s.limit, s.limit*i)
 		if err != nil {
 			return nil, fmt.Errorf("databricksRestService.activeJobRuns(): %w", err)
 		}
@@ -68,7 +68,7 @@ func (s databricksRestService) activeJobRuns() (out []jobRun, err error) {
 func (s databricksRestService) completedJobRuns(jobID int, prevStartTime int64) (out []jobRun, err error) {
 	hasMore := true
 	for i := 0; hasMore; i++ {
-		resp, err := s.dbc.completedJobRuns(jobID, s.limit, s.limit*i)
+		resp, err := s.dbrc.completedJobRuns(jobID, s.limit, s.limit*i)
 		if err != nil {
 			return nil, fmt.Errorf("databricksRestService.completedJobRuns(): %w", err)
 		}
@@ -85,7 +85,7 @@ func (s databricksRestService) completedJobRuns(jobID int, prevStartTime int64) 
 }
 
 func (s databricksRestService) runningClusters() ([]cluster, error) {
-	cl, err := s.dbc.clusterList()
+	cl, err := s.dbrc.clusterList()
 	if err != nil {
 		return nil, fmt.Errorf("databricksRestService.runningClusterIDs(): %w", err)
 	}
@@ -106,7 +106,7 @@ type pipelineSummary struct {
 }
 
 func (s databricksRestService) runningPipelines() ([]pipelineSummary, error) {
-	pipelines, err := s.dbc.pipelines()
+	pipelines, err := s.dbrc.pipelines()
 	if err != nil {
 		return nil, fmt.Errorf("databricksRestService.runningPipelines(): %w", err)
 	}
@@ -115,7 +115,7 @@ func (s databricksRestService) runningPipelines() ([]pipelineSummary, error) {
 		if status.State != "RUNNING" {
 			continue
 		}
-		pipeline, err := s.dbc.pipeline(status.PipelineID)
+		pipeline, err := s.dbrc.pipeline(status.PipelineID)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"databricksRestService.runningPipelines(): failed to get pipeline info: pipeline id: %s: %w",

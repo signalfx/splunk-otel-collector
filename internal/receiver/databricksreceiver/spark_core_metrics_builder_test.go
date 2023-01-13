@@ -16,9 +16,11 @@ package databricksreceiver
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
@@ -33,12 +35,26 @@ func TestSparkMetricsBuilder_GeneratedMetrics(t *testing.T) {
 	mp := sparkClusterMetricsBuilder{
 		ssvc: newTestSuccessSparkService(newTestDatabricksSingleClusterService()),
 	}
-	builder := newTestMetricsBuilder()
-	_, err := mp.buildMetrics(builder, 0, []cluster{{}}, nil)
+	coreMetrics, err := mp.buildCoreMetrics([]cluster{{
+		ClusterID:   "my-cluster-id",
+		ClusterName: "my-cluster-name",
+		State:       "my-cluster-state",
+	}}, nil)
 	require.NoError(t, err)
-	emitted := builder.Emit()
-	ms := emitted.ResourceMetrics().At(0).ScopeMetrics().At(0).Metrics()
-	metricMap := metricsByName(ms)
+
+	const expectedCount = 112
+
+	testBuilder := newTestMetricsBuilder()
+	built := coreMetrics.build(testBuilder, pcommon.NewTimestampFromTime(time.Now()))
+	emitted := pmetric.NewMetrics()
+	for _, metric := range built {
+		metric.ResourceMetrics().MoveAndAppendTo(emitted.ResourceMetrics())
+	}
+
+	assert.Equal(t, expectedCount, emitted.MetricCount())
+	assert.Equal(t, expectedCount, emitted.DataPointCount())
+
+	metricMap := metricsByName(emitted)
 	assertDoubleGaugeEq(t, metricMap, "blockmanager.memory.diskspaceused", 42)
 	assertDoubleGaugeEq(t, metricMap, "blockmanager.memory.maxmem", 123)
 	assertDoubleGaugeEq(t, metricMap, "blockmanager.memory.maxoffheapmem", 111)
@@ -174,30 +190,4 @@ func assertIntSumEq(t *testing.T, metricMap map[string]pmetric.Metric, metricNam
 	for i, expected := range expectedSlice {
 		assert.EqualValues(t, expected, metricMap["databricks.spark."+metricName].Sum().DataPoints().At(i).IntValue())
 	}
-}
-
-func TestSparkMetricsBuilder_Histograms(t *testing.T) {
-	mp := sparkClusterMetricsBuilder{
-		ssvc: newTestSuccessSparkService(newTestDatabricksSingleClusterService()),
-	}
-	builder := newTestMetricsBuilder()
-	histoMetrics, err := mp.buildMetrics(builder, 0, []cluster{{}}, nil)
-	require.NoError(t, err)
-	ms := pmetric.NewMetricSlice()
-	for _, metric := range histoMetrics {
-		metric.CopyTo(ms.AppendEmpty())
-	}
-	metricMap := metricsByName(ms)
-	metric := metricMap["databricks.spark.codegenerator.compilationtime"]
-	histogram := metric.Histogram()
-	dps := histogram.DataPoints()
-	pt := dps.At(0)
-	assert.EqualValues(t, 3, pt.Count())
-	assert.EqualValues(t, 14, pt.Min())
-	assert.EqualValues(t, 288, pt.Max())
-	assert.EqualValues(t, 3*106, pt.Sum())
-	bounds := pt.ExplicitBounds().AsRaw()
-	assert.Equal(t, []float64{50, 75, 95, 98, 99, 999}, bounds)
-	bucketCounts := pt.BucketCounts().AsRaw()
-	assert.Equal(t, []uint64{22, 284, 285, 286, 287, 288}, bucketCounts)
 }

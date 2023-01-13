@@ -26,13 +26,13 @@ import (
 // runTracker to extract just the new runs returned from the API.
 type runMetricsProvider struct {
 	tracker *runTracker
-	dbsvc   databricksService
+	dbrsvc  databricksService
 }
 
-func newRunMetricsProvider(dbsvc databricksService) runMetricsProvider {
+func newRunMetricsProvider(dbrsvc databricksService) runMetricsProvider {
 	return runMetricsProvider{
 		tracker: newRunTracker(),
-		dbsvc:   dbsvc,
+		dbrsvc:  dbrsvc,
 	}
 }
 
@@ -48,7 +48,7 @@ func (p runMetricsProvider) addMultiJobRunMetrics(jobIDs []int, builder *metadat
 
 func (p runMetricsProvider) addSingleJobRunMetrics(jobID int, builder *metadata.MetricsBuilder, ts pcommon.Timestamp) error {
 	startTime := p.tracker.getPrevStartTime(jobID)
-	runs, err := p.dbsvc.completedJobRuns(jobID, startTime)
+	runs, err := p.dbrsvc.completedJobRuns(jobID, startTime)
 	if err != nil {
 		return fmt.Errorf("runMetricsProvider.addSingleJobRunMetrics(): %w", err)
 	}

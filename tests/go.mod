@@ -17,7 +17,7 @@ require (
 	go.opentelemetry.io/collector/confmap v0.68.1-0.20221221114823-4cf50d0f0d9d
 	go.opentelemetry.io/collector/consumer v0.68.1-0.20221221114823-4cf50d0f0d9d
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.68.1-0.20221221114823-4cf50d0f0d9d
-	go.opentelemetry.io/collector/pdata v1.0.0-rc2
+	go.opentelemetry.io/collector/pdata v1.0.0-rc3
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.68.1-0.20221221114823-4cf50d0f0d9d
 	go.opentelemetry.io/otel/metric v0.34.0
 	go.opentelemetry.io/otel/trace v1.11.2

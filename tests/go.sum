@@ -886,8 +886,8 @@ go.opentelemetry.io/collector/exporter/otlpexporter v0.68.1-0.20221221114823-4cf
 go.opentelemetry.io/collector/exporter/otlpexporter v0.68.1-0.20221221114823-4cf50d0f0d9d/go.mod h1:WGAPX2K6RDCq1XOR+vXMoUk74PddjWOnEQ+Dd9gYWwI=
 go.opentelemetry.io/collector/featuregate v0.68.0 h1:weK0hx7VTDChvIXO7/BUUiJvOlQpB8wMCeUc0XNYJ/Y=
 go.opentelemetry.io/collector/featuregate v0.68.0/go.mod h1:tewuFKJYalWBU0bmNKg++MC1ipINXUr6szYzOw2p1GI=
-go.opentelemetry.io/collector/pdata v1.0.0-rc2 h1:sNWuA5wlrT578sv+DhADQ3DCRFG+5+H0D2xCHtQmnis=
-go.opentelemetry.io/collector/pdata v1.0.0-rc2/go.mod h1:3gknzI1BqPVbEprOIbtaPQgPAYvjRf8kdkpGMJjv14E=
+go.opentelemetry.io/collector/pdata v1.0.0-rc3 h1:CPvzMeempJcr6KgHY2mHN8yWHNyrOVA18gWh2Fi68fY=
+go.opentelemetry.io/collector/pdata v1.0.0-rc3/go.mod h1:3gknzI1BqPVbEprOIbtaPQgPAYvjRf8kdkpGMJjv14E=
 go.opentelemetry.io/collector/receiver/otlpreceiver v0.68.1-0.20221221114823-4cf50d0f0d9d h1:qk/pz4crr/dCojL85BJPZgZ9ZqG76ZUI3Mtwyu5Yrnk=
 go.opentelemetry.io/collector/receiver/otlpreceiver v0.68.1-0.20221221114823-4cf50d0f0d9d/go.mod h1:+cFyF6DtHOek5Ki20hjhDCwSwPt5bWdiSw00tBlq8VQ=
 go.opentelemetry.io/collector/semconv v0.68.0 h1:DUDowH6l4OFlecQg8zyffTmUrhu3N9qwr3wtS9Oy6pE=

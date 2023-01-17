@@ -100,7 +100,7 @@ processors:
   # libraries can send wrong values from container environments.
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#ordering
   resourcedetection:
-    detectors: [gce, ecs, ec2, azure, system]
+    detectors: [gcp, ecs, ec2, azure, system]
     override: true
 
   # Optional: The following processor can be used to add a default "deployment.environment" attribute to the logs and 

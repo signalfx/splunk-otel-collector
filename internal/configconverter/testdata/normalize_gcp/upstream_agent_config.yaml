@@ -1,0 +1,9 @@
+processors:
+  # Detect if the collector is running on a cloud system, which is important for creating unique cloud provider dimensions.
+  # Detector order is important: the `system` detector goes last so it can't preclude cloud detectors from setting host/os info.
+  # Resource detection processor is configured to override all host and cloud attributes because instrumentation
+  # libraries can send wrong values from container environments.
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor#ordering
+  resourcedetection:
+    detectors: [gce, ecs, ec2, azure, system]
+    override: true

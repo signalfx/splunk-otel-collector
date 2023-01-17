@@ -117,6 +117,12 @@ $> ansible-playbook playbook.yaml -e start_service=false
   `http://user:pass@10.0.0.42`. Notice this proxy is not used by ansible
   itself during deployment. (**default:** ``)
 
+- `splunk_otel_collector_no_proxy` (Linux only): Set the ip and/or hosts that
+  will not use `splunk_otel_collector_proxy_http` or
+  `splunk_otel_collector_proxy_https`. This variable is only used if
+  `splunk_otel_collector_proxy_http` or `splunk_otel_collector_proxy_https` is
+  defined. (**default:** `localhost,127.0.0.1,::1`)
+
 - `splunk_memory_total_mib`: Amount of memory in MiB allocated to the Splunk OTel 
   Collector. (**default:** `512`)
 

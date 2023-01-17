@@ -1,4 +1,4 @@
 [Service] 
 Environment="HTTP_PROXY={{ splunk_otel_collector_proxy_http }}"
 Environment="HTTPS_PROXY={{ splunk_otel_collector_proxy_https }}" 
-Environment="NO_PROXY=localhost,127.0.0.1,::1"
+Environment="NO_PROXY={{ splunk_otel_collector_no_proxy }}"

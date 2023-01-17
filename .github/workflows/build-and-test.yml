@@ -239,6 +239,8 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Caching dependency
         uses: actions/cache@v3
@@ -328,6 +330,8 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Downloading binaries-windows_amd64
         uses: actions/download-artifact@v3
@@ -405,6 +409,8 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Downloading msi build
         uses: actions/download-artifact@v3

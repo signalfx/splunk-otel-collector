@@ -1,5 +1,5 @@
 default:
-  image: '${DOCKER_CICD_REPO}/ci-container:debian-buster'
+  image: '${DOCKER_CICD_REPO}/ci-container/debian-buster:1.8.0'
 
 stages:
   - sast-oss-scan
@@ -63,7 +63,7 @@ fossa:
     - schedules
 
 .deploy-release:
-  image: '${DOCKER_CICD_REPO}/ci-container:python-3.9'
+  image: '${DOCKER_CICD_REPO}/ci-container/python-3.9:1.8.0'
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   cache:

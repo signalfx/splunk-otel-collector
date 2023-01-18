@@ -16,32 +16,28 @@ package configconverter
 
 import (
 	"context"
-	"fmt"
 	"go.opentelemetry.io/collector/confmap"
 	"log"
+	"regexp"
 )
 
 type NormalizeGcp struct{}
 
 func (NormalizeGcp) Convert(_ context.Context, in *confmap.Conf) error {
 	if in == nil {
-		return fmt.Errorf("cannot NormalizeGcp on nil *confmap.Conf")
+		return nil
 	}
 
-	const resourceDetector = "processors::resourcedetection::detectors"
+	const resourceDetector = "processors::resourcedetection(/\\w+)?::detectors"
+	resourceDetectorRE := regexp.MustCompile(resourceDetector)
 	out := map[string]any{}
 	nonNormalizedGcpDetectorFound := false
+
 	for _, k := range in.AllKeys() {
 		v := in.Get(k)
-		match := resourceDetector == k
-		if !match {
-			out[k] = v
-		} else {
+		match := resourceDetectorRE.FindStringSubmatch(k)
+		if match != nil {
 			switch v.(type) {
-			case string:
-				if v == "gce" || v == "gke" {
-					v = "gcp"
-				}
 			case []interface{}:
 				vArr := v.([]interface{})
 				normalizedV := make([]interface{}, 0, len(vArr))
@@ -64,7 +60,7 @@ func (NormalizeGcp) Convert(_ context.Context, in *confmap.Conf) error {
 				}
 				v = normalizedV
 			}
-			out[resourceDetector] = v
+			out[k] = v
 		}
 	}
 	if nonNormalizedGcpDetectorFound {
@@ -73,6 +69,6 @@ func (NormalizeGcp) Convert(_ context.Context, in *confmap.Conf) error {
 			"https://github.com/signalfx/splunk-otel-collector#from-0680-to-0690.")
 	}
 
-	*in = *confmap.NewFromStringMap(out)
+	in.Merge(confmap.NewFromStringMap(out))
 	return nil
 }

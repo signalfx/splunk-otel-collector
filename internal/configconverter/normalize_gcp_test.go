@@ -81,3 +81,18 @@ func TestNormalizeGcpSame(t *testing.T) {
 
 	assert.Equal(t, expectedCfgMap, cfgMap)
 }
+
+func TestNormalizeGcpNoop(t *testing.T) {
+	expectedCfgMap, err := confmaptest.LoadConf("testdata/normalize_gcp/upstream_agent_config_no_op.yaml")
+	require.NotNil(t, expectedCfgMap)
+	require.NoError(t, err)
+
+	cfgMap, err := confmaptest.LoadConf("testdata/normalize_gcp/upstream_agent_config_no_op.yaml")
+	require.NoError(t, err)
+	require.NotNil(t, cfgMap)
+
+	err = NormalizeGcp{}.Convert(context.Background(), cfgMap)
+	require.NoError(t, err)
+
+	assert.Equal(t, expectedCfgMap, cfgMap)
+}

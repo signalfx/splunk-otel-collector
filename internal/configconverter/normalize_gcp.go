@@ -16,9 +16,12 @@ package configconverter
 
 import (
 	"context"
-	"go.opentelemetry.io/collector/confmap"
 	"log"
 	"regexp"
+)
+
+import (
+	"go.opentelemetry.io/collector/confmap"
 )
 
 type NormalizeGcp struct{}

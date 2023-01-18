@@ -204,7 +204,7 @@ processors:
   # Enables the resource detection processor with default settings
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor
   # NOTE: This processor settings need to be change when using this processor
-  #resouredection:
+  #resourcedetection:
     # # a list of resource detectors to run, valid options are: "env", "system",  "gcp", "ec2", "ecs", "elastic_beanstalk"
     #detectors: [ <string> ]
     # # determines if existing resource attributes should be overridden or preserved, defaults to true

@@ -53,8 +53,8 @@ func (RenameK8sTagger) Convert(_ context.Context, in *confmap.Conf) error {
 			found = true
 		} else {
 			if serviceEntryRe.MatchString(k) {
-				kind := reflect.TypeOf(v).Kind()
-				if kind == reflect.Slice {
+				t := reflect.TypeOf(v)
+				if t != nil && t.Kind() == reflect.Slice {
 					if sliceOfInterfaces, ok := v.([]any); ok {
 						for i, val := range sliceOfInterfaces {
 							if strVal, ok := val.(string); ok {

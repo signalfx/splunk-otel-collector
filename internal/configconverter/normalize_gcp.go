@@ -40,9 +40,7 @@ func (NormalizeGcp) Convert(_ context.Context, in *confmap.Conf) error {
 		v := in.Get(k)
 		match := resourceDetectorRE.FindStringSubmatch(k)
 		if match != nil {
-			switch v.(type) {
-			case []interface{}:
-				vArr := v.([]interface{})
+			if vArr, ok := v.([]interface{}); ok {
 				normalizedV := make([]interface{}, 0, len(vArr))
 				found := false
 				for _, item := range vArr {

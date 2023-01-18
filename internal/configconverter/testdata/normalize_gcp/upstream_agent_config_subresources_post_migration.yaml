@@ -1,0 +1,9 @@
+processors:
+  resourcedetection:
+    detectors: [gcp, ecs, ec2, azure, system]
+  resourcedetection/1:
+    detectors: [gcp, ecs, ec2, azure, system]
+  resourcedetection/abc:
+    detectors: [gcp, ecs, ec2, azure, system]
+  resourcedetection/abc123_+!@#%^&*():
+    detectors: [gcp, ecs, ec2, azure, system]

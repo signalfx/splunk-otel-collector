@@ -96,3 +96,18 @@ func TestNormalizeGcpNoop(t *testing.T) {
 
 	assert.Equal(t, expectedCfgMap, cfgMap)
 }
+
+func TestNormalizeGcpSubresources(t *testing.T) {
+	expectedCfgMap, err := confmaptest.LoadConf("testdata/normalize_gcp/upstream_agent_config_subresources_post_migration.yaml")
+	require.NotNil(t, expectedCfgMap)
+	require.NoError(t, err)
+
+	cfgMap, err := confmaptest.LoadConf("testdata/normalize_gcp/upstream_agent_config_subresources.yaml")
+	require.NoError(t, err)
+	require.NotNil(t, cfgMap)
+
+	err = NormalizeGcp{}.Convert(context.Background(), cfgMap)
+	require.NoError(t, err)
+
+	assert.Equal(t, expectedCfgMap, cfgMap)
+}

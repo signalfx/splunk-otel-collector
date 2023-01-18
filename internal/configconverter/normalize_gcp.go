@@ -31,7 +31,7 @@ func (NormalizeGcp) Convert(_ context.Context, in *confmap.Conf) error {
 		return nil
 	}
 
-	const resourceDetector = "processors::resourcedetection(/\\w+)?::detectors"
+	const resourceDetector = "processors::resourcedetection(?P<processor_name>/(?:[^:]|:[^:])+)?::detectors"
 	resourceDetectorRE := regexp.MustCompile(resourceDetector)
 	out := map[string]any{}
 	nonNormalizedGcpDetectorFound := false
@@ -44,13 +44,15 @@ func (NormalizeGcp) Convert(_ context.Context, in *confmap.Conf) error {
 			case []interface{}:
 				vArr := v.([]interface{})
 				normalizedV := make([]interface{}, 0, len(vArr))
+				found := false
 				for _, item := range vArr {
 					switch item.(type) {
 					case string:
 						if item == "gce" || item == "gke" {
-							if !nonNormalizedGcpDetectorFound {
+							if !found {
 								normalizedV = append(normalizedV, "gcp")
 							}
+							found = true
 							nonNormalizedGcpDetectorFound = true
 						} else if item != nil {
 							normalizedV = append(normalizedV, item)
@@ -61,9 +63,8 @@ func (NormalizeGcp) Convert(_ context.Context, in *confmap.Conf) error {
 						}
 					}
 				}
-				v = normalizedV
+				out[k] = normalizedV
 			}
-			out[k] = v
 		}
 	}
 	if nonNormalizedGcpDetectorFound {

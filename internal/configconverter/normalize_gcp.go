@@ -18,9 +18,7 @@ import (
 	"context"
 	"log"
 	"regexp"
-)
 
-import (
 	"go.opentelemetry.io/collector/confmap"
 )
 

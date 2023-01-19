@@ -27,6 +27,8 @@ desired_contrib_version() {
 }
 
 for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort ); do
+    echo "Updating $gomod ..."
+
     pushd "$( dirname "$gomod" )" >/dev/null
 
     OFS=$IFS
@@ -41,20 +43,17 @@ for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort );
             pkg="$( echo "$line" | awk '{print $1}' )"
         fi
         go mod edit -replace="${pkg}"="${pkg}"@$(desired_contrib_version "$line")
-        go mod tidy
+        go mod tidy -compat=1.18
     done
 
-    if grep -q 'go.opentelemetry.io/collector ' "$gomod"; then
-        go get go.opentelemetry.io/collector@"${CORE_VERSION}"
-    fi
-
-    if grep -q 'go.opentelemetry.io/collector/model ' "$gomod"; then
-        go get go.opentelemetry.io/collector/model@"${CORE_VERSION}"
-    fi
-
-    if grep -q 'go.opentelemetry.io/collector/pdata ' "$gomod"; then
-        go get go.opentelemetry.io/collector/pdata@"${CORE_VERSION}"
-    fi
+    lines="$( (grep 'go.opentelemetry.io/collector' "$gomod" | grep -v 'ignore-update-deps' | grep -v '^[[:space:]]*//' | grep -v '=>' | grep -v ' // indirect' | sort -u) || true )"
+    for line in $lines; do
+        pkg="$( echo "$line" | awk '{print $1}' )"
+        # don't explicitly update pdata for now
+        if [[ ! $pkg =~ "pdata" ]]; then
+            go get "${pkg}"@${CORE_VERSION}
+        fi
+    done
 
     lines="$( (grep 'github.com/open-telemetry/opentelemetry-collector-contrib/' "$gomod" | grep -v 'ignore-update-deps' | grep -v '^[[:space:]]*//' | grep -v '=>' | grep -v ' // indirect' | sort -u) || true )"
     for line in $lines; do
@@ -64,7 +63,7 @@ for gomod in $( find "$REPO_DIR" -name "go.mod" | grep -v "/examples/" | sort );
 
     IFS=$OFS
 
-    go mod tidy
+    go mod tidy -compat=1.18
 
     popd >/dev/null
 done

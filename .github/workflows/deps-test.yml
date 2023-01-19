@@ -40,9 +40,9 @@ jobs:
         run: |
           OTEL_VERSION=${{ env.OTEL_VERSION }} ./internal/buildscripts/update-deps 2>&1 | tee -a /tmp/output.txt
           if git diff --exit-code; then
-            echo "::set-output name=has_changes::false"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=has_changes::true"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
       - name: Compile
         shell: bash

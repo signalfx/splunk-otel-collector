@@ -286,17 +286,20 @@ def release_msi_to_s3(asset, args):
 
     s3_path = f"{S3_MSI_BASE_DIR}/{args.stage}/{asset.name}"
     upload_file_to_s3(msi_path, s3_path, force=args.force)
-    with tempfile.TemporaryDirectory() as tmpdir:
-        latest_txt = os.path.join(tmpdir, "latest.txt")
-        match = re.match(f"^{PACKAGE_NAME}-(\d+\.\d+\.\d+(\.\d+)?)-amd64.msi$", asset.name)
-        assert match, f"Failed to get version from '{asset.name}'!"
-        msi_version = match.group(1)
-        with open(latest_txt, "w") as fd:
-            fd.write(msi_version)
-        s3_latest_path = f"{S3_MSI_BASE_DIR}/{args.stage}/latest.txt"
-        print(f"Updating {S3_BUCKET}/{s3_latest_path} for version '{msi_version}' ...")
-        upload_file_to_s3(latest_txt, s3_latest_path, force=True)
-        invalidate_cloudfront([s3_path, s3_latest_path])
+
+    s3_latest_path = f"{S3_MSI_BASE_DIR}/{args.stage}/latest.txt"
+    if not args.not_latest:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            latest_txt = os.path.join(tmpdir, "latest.txt")
+            match = re.match(f"^{PACKAGE_NAME}-(\d+\.\d+\.\d+(\.\d+)?)-amd64.msi$", asset.name)
+            assert match, f"Failed to get version from '{asset.name}'!"
+            msi_version = match.group(1)
+            with open(latest_txt, "w") as fd:
+                fd.write(msi_version)
+            print(f"Updating {S3_BUCKET}/{s3_latest_path} for version '{msi_version}' ...")
+            upload_file_to_s3(latest_txt, s3_latest_path, force=True)
+
+    invalidate_cloudfront([s3_path, s3_latest_path])
 
 def release_installers_to_s3(force=False):
     if not force:

@@ -147,6 +147,7 @@ func (s *Settings) ConfMapConverters() []confmap.Converter {
 			configconverter.MoveOTLPInsecureKey{},
 			configconverter.MoveHecTLS{},
 			configconverter.RenameK8sTagger{},
+			configconverter.NormalizeGcp{},
 		)
 	}
 	return confMapConverters

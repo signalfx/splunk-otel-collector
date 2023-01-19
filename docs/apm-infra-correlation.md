@@ -67,7 +67,7 @@ receivers:
 ...
 processors:
   resourcedetection:
-    detectors: [system,env,gce,ec2]
+    detectors: [system,env,gcp,ec2]
     override: true
   resource/add_environment:
     attributes:
@@ -164,7 +164,7 @@ receivers:
 ...
 processors:
   resourcedetection:
-    detectors: [system,env,gce,ec2]
+    detectors: [system,env,gcp,ec2]
     override: true
   resource/add_environment:
     attributes:

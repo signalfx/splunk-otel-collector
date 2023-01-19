@@ -56,7 +56,7 @@ processors:
     detectors:
       - system
       - env
-      - gce
+      - gcp
       - ecs
       - ec2
       - azure

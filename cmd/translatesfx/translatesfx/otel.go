@@ -63,7 +63,7 @@ func newOtelCfg() *otelCfg {
 		Receivers: map[string]map[string]any{},
 		Processors: map[string]map[string]any{
 			resourceDetection: {
-				"detectors": []string{"system", "env", "gce", "ecs", "ec2", "azure"},
+				"detectors": []string{"system", "env", "gcp", "ecs", "ec2", "azure"},
 			},
 		},
 		Extensions: map[string]map[string]any{},

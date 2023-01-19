@@ -133,6 +133,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 		configconverter.MoveOTLPInsecureKey{},
 		configconverter.MoveHecTLS{},
 		configconverter.RenameK8sTagger{},
+		configconverter.NormalizeGcp{},
 	}, settings.ConfMapConverters())
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }

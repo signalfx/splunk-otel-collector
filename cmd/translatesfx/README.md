@@ -396,7 +396,7 @@ by the `signalfx` exporter to generate cloud resource IDs.
   resourcedetection:
     detectors:
       - env
-      - gce
+      - gcp
       - ecs
       - ec2
       - azure

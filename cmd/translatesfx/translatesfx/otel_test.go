@@ -159,7 +159,7 @@ func TestInfoToOtelConfig_ResourceDetectionProcessor(t *testing.T) {
 	assert.NotNil(t, oc.Processors)
 	rdProc := oc.Processors["resourcedetection"]
 	assert.Equal(t, map[string]any{
-		"detectors": []string{"system", "env", "gce", "ecs", "ec2", "azure"},
+		"detectors": []string{"system", "env", "gcp", "ecs", "ec2", "azure"},
 	}, rdProc)
 	assert.Equal(t, []string{"resourcedetection"}, oc.Service.Pipelines["metrics"].Processors)
 }

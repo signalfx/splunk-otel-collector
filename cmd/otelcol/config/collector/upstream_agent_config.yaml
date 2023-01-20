@@ -125,6 +125,7 @@ exporters:
     # Use instead when sending to gateway
     #api_url: http://${SPLUNK_GATEWAY_URL}:6060
     #ingest_url: http://${SPLUNK_GATEWAY_URL}:9943
+    sync_host_metadata: true
     correlation:
   # Logs
   splunk_hec:

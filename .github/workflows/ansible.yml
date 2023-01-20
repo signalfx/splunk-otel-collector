@@ -17,6 +17,10 @@ on:
       - '.github/workflows/ansible.yml'
       - 'deployments/ansible/**'
 
+concurrency:
+  group: ansible-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -45,8 +49,8 @@ jobs:
       - name: Lint code.
         run: yamllint .
 
-  test:
-    name: Test
+  linux-test:
+    name: Linux Test
     needs: lint
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
@@ -75,19 +79,25 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v3
 
+      - uses: DamianReeves/write-file-action@v1.2
+        with:
+          path: "${{ github.workspace }}/requirements.txt"
+          contents: |
+            ${{ matrix.ansible }}
+            molecule==3.3.0
+            molecule-docker==0.2.4
+            docker==5.0.0
+            ansible-lint==5.4.0
+
       - name: Set up Python 3.
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
+          cache: 'pip'
+          cache-dependency-path: "${{ github.workspace }}/requirements.txt"
 
       - name: Install test dependencies.
-        run: >
-          pip3 install 
-          ${{ matrix.ansible }}
-          molecule==3.3.0 
-          molecule-docker==0.2.4 
-          docker==5.0.0
-          ansible-lint==5.4.0
+        run: pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
 
       - name: Run Molecule tests.
         run: molecule --base-config ./molecule/config/docker.yml test --all
@@ -96,9 +106,60 @@ jobs:
           ANSIBLE_FORCE_COLOR: '1'
           MOLECULE_DISTRO: ${{ matrix.distro }}
 
+  windows-test:
+    name: Windows Test
+    needs: lint
+    runs-on: macos-12
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible:
+          - ansible~=2.10.0
+          - ansible~=3.0
+          - ansible~=4.0
+        distro:
+          - "2012"
+          - "2016"
+          - "2019"
+          - "2022"
+        scenario:
+          - default
+          - custom_vars
+          - without_fluentd
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - uses: DamianReeves/write-file-action@v1.2
+        with:
+          path: "${{ github.workspace }}/requirements.txt"
+          contents: |
+            ${{ matrix.ansible }}
+            ansible-lint==5.4.0
+            molecule==4.0.4
+            molecule-vagrant==2.0.0
+            pywinrm==0.4.3
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          cache: 'pip'
+          cache-dependency-path: "${{ github.workspace }}/requirements.txt"
+
+      - name: Install test dependencies.
+        run: pip3 install --use-pep517 -r ${GITHUB_WORKSPACE}/requirements.txt
+
+      - name: Run Molecule tests.
+        run: molecule --debug -v --base-config ./molecule/config/windows.yml test -s ${{ matrix.scenario }} -p ${{ matrix.distro }}
+        env:
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'
+
   push-release-tag:
     name: Push Release Tag
-    needs: test
+    needs: lint
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
     if: github.ref == 'refs/heads/main' 

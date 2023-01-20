@@ -1,0 +1,27 @@
+---
+- name: Verify scenario without fluentd installation
+  hosts: all
+  gather_facts: true
+  become: no
+  tasks:
+    - name: Check splunk-otel-collector service
+      ansible.windows.win_service:
+        name: splunk-otel-collector
+        state: started
+      check_mode: yes
+      register: service_status
+
+    - name: Assert splunk-otel-collector service status
+      assert:
+        that: not service_status.changed
+
+    - name: Check fluentdwinsvc service
+      ansible.windows.win_service:
+        name: fluentdwinsvc
+        state: absent
+      check_mode: yes
+      register: service_status
+
+    - name: Assert fluentdwinsvc service does not exist
+      assert:
+        that: not service_status.exists

@@ -1,0 +1,21 @@
+---
+- name: Converge scenario with custom variables
+  hosts: all
+  become: no
+  vars:
+    splunk_access_token: fake-token
+    splunk_ingest_url: https://fake-ingest.com
+    splunk_api_url: https://fake-api.com
+    splunk_hec_url: https://fake-hec.com
+    splunk_hec_token: fake-hec-token
+    splunk_otel_collector_version: 0.48.0
+    splunk_otel_collector_config: '{{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\custom_config.yml'
+    splunk_otel_collector_config_source: ./custom_collector_config.yml
+    splunk_memory_total_mib: 256
+    splunk_ballast_size_mib: 100
+    splunk_fluentd_config: '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\custom_config.conf'
+    splunk_fluentd_config_source: ./custom_fluentd_config.conf
+  tasks:
+    - name: "Include signalfx.splunk_otel_collector.collector role"
+      include_role:
+        name: "collector"

@@ -1,0 +1,185 @@
+---
+- name: Verify scenario with custom variables
+  hosts: all
+  gather_facts: true
+  become: no
+  tasks:
+    - name: Check splunk-otel-collector service
+      ansible.windows.win_service:
+        name: splunk-otel-collector
+        state: started
+      check_mode: yes
+      register: service_status
+
+    - name: Assert splunk-otel-collector service status
+      assert:
+        that: not service_status.changed
+
+    - name: Check fluentdwinsvc service
+      ansible.windows.win_service:
+        name: fluentdwinsvc
+        state: started
+      check_mode: yes
+      register: service_status
+
+    - name: Assert fluentdwinsvc service status
+      assert:
+        that: not service_status.changed
+
+    - name: Download splunk-otel-collector 0.48.0 MSI
+      ansible.windows.win_get_url:
+        url: https://dl.signalfx.com/splunk-otel-collector/msi/release/splunk-otel-collector-0.48.0-amd64.msi
+        dest: "{{ansible_env.TEMP}}"
+      register: otel_msi_package
+
+    - name: Install splunk-otel-collector 0.48.0 MSI
+      ansible.windows.win_package:
+        path: "{{otel_msi_package.dest}}"
+        state: present
+      check_mode: yes
+      register: msi_installed
+
+    - name: Assert splunk-otel-collector 0.48.0 MSI is already installed
+      assert:
+        that: not msi_installed.changed
+
+    - name: Check custom_config.yml
+      ansible.windows.win_stat:
+        path: '{{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\custom_config.yml'
+      register: custom_collector_config
+
+    - name: Assert custom_config.yml exists
+      assert:
+        that: custom_collector_config.stat.exists
+
+    - name: Check SPLUNK_CONFIG custom value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_CONFIG
+        data: '{{ansible_env.ProgramData}}\Splunk\OpenTelemetry Collector\custom_config.yml'
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert custom value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_INGEST_URL custom value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_INGEST_URL
+        data: https://fake-ingest.com
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert custom value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_API_URL custom value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_API_URL
+        data: https://fake-api.com
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert custom value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_TRACE_URL custom value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_TRACE_URL
+        data: https://fake-ingest.com/v2/trace
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert custom value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_HEC_URL custom value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_HEC_URL
+        data: https://fake-hec.com
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert custom value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_HEC_TOKEN custom value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_HEC_TOKEN
+        data: fake-hec-token
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert custom value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_MEMORY_TOTAL_MIB custom value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_MEMORY_TOTAL_MIB
+        data: 256
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert custom value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_BALLAST_SIZE_MIB custom value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_BALLAST_SIZE_MIB
+        data: 100
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert custom value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check fluentd custom_config.conf
+      ansible.windows.win_stat:
+        path: '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\custom_config.conf'
+        get_checksum: yes
+      register: custom_fluentd_config
+
+    - name: Assert fluentd custom_config.conf exists
+      assert:
+        that: custom_fluentd_config.stat.exists
+
+    - name: Check td-agent.conf exists
+      ansible.windows.win_stat:
+        path: '{{ansible_env.SystemDrive}}\opt\td-agent\etc\td-agent\td-agent.conf'
+        get_checksum: yes
+      register: td_agent_config
+
+    - name: Assert fluentd custom_config.conf is used
+      assert:
+        that: custom_fluentd_config.stat.checksum == td_agent_config.stat.checksum

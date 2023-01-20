@@ -1,2 +1,2 @@
 docker_observer:
-  endpoint: ${DOCKER_DOMAIN_SOCKET}
+  endpoint: overwritten.by.cmdline.property.that.references.env.var

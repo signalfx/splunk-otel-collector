@@ -68,7 +68,10 @@ func TestDockerObserver(t *testing.T) {
 				"DOCKER_DOMAIN_SOCKET":       "unix:///var/run/dock.e.r.sock",
 				"LABEL_ONE_VALUE":            "actual.label.one.value",
 				"LABEL_TWO_VALUE":            "actual.label.two.value",
-			}).WithArgs("--discovery", "--config-dir", "/opt/config.d")
+			}).WithArgs(
+				"--discovery", "--config-dir", "/opt/config.d",
+				"--set", `splunk.discovery.extensions.docker_observer.config.endpoint=${DOCKER_DOMAIN_SOCKET}`,
+			)
 		},
 	)
 	defer shutdown()
@@ -138,6 +141,7 @@ func TestDockerObserver(t *testing.T) {
 				},
 			},
 		},
+		"splunk.property": map[string]any{},
 	}
 	require.Equal(t, expectedInitial, cc.InitialConfig(t, 55554))
 
@@ -192,8 +196,9 @@ func TestDockerObserver(t *testing.T) {
 	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, 55554))
 
 	sc, stdout, stderr := cc.Container.AssertExec(t, 25*time.Second,
-		"bash", "-c", "SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false /otelcol --config-dir /opt/config.d --discovery --dry-run",
-	)
+		"bash", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
+SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint=\${DOCKER_DOMAIN_SOCKET} \
+/otelcol --config-dir /opt/config.d --discovery --dry-run`)
 	require.Equal(t, `exporters:
   otlp:
     endpoint: ${OTLP_ENDPOINT}

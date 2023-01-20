@@ -6,6 +6,7 @@ prometheus_simple:
       collection_interval: invalid
       labels:
         label.one: ${LABEL_ONE_VALUE}
+        label.three: overwritten by discovery property
     host_observer:
       collection_interval: 1s
       labels:

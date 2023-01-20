@@ -19,6 +19,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -42,11 +43,15 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 	"github.com/signalfx/splunk-otel-collector/internal/components"
+	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/properties"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
 )
 
-const durationEnvVar = "SPLUNK_DISCOVERY_DURATION"
+const (
+	durationEnvVar = "SPLUNK_DISCOVERY_DURATION"
+	logLevelEnvVar = "SPLUNK_DISCOVERY_LOG_LEVEL"
+)
 
 // discoverer provides the mechanism for a "preflight" collector service
 // that will stand up the observers and discovery receivers based on the .discovery.yaml
@@ -64,9 +69,12 @@ type discoverer struct {
 	unexpandedReceiverEntries map[component.ID]map[component.ID]map[string]any
 	discoveredConfig          map[component.ID]map[string]any
 	discoveredObservers       map[component.ID]discovery.StatusType
-	info                      component.BuildInfo
-	duration                  time.Duration
-	mu                        sync.Mutex
+	// propertiesConf is a store of all properties from cmdline args and env vars
+	// that's merged with receiver/observer configs before creation
+	propertiesConf *confmap.Conf
+	info           component.BuildInfo
+	duration       time.Duration
+	mu             sync.Mutex
 }
 
 func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
@@ -87,7 +95,6 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 	if err != nil {
 		return (*discoverer)(nil), err
 	}
-
 	m := &discoverer{
 		logger:                    logger,
 		info:                      info,
@@ -102,7 +109,29 @@ func newDiscoverer(logger *zap.Logger) (*discoverer, error) {
 		discoveredConfig:          map[component.ID]map[string]any{},
 		discoveredObservers:       map[component.ID]discovery.StatusType{},
 	}
+	m.propertiesConf = m.propertiesConfFromEnv()
 	return m, nil
+}
+
+func (d *discoverer) propertiesConfFromEnv() *confmap.Conf {
+	propertiesConf := confmap.New()
+	for _, env := range os.Environ() {
+		equalsIdx := strings.Index(env, "=")
+		if equalsIdx != -1 && len(env) > equalsIdx+1 {
+			envVar := env[:equalsIdx]
+			if envVar == logLevelEnvVar || envVar == durationEnvVar {
+				continue
+			}
+			if p, ok, e := properties.NewPropertyFromEnvVar(envVar, env[equalsIdx+1:]); ok {
+				if e != nil {
+					d.logger.Info(fmt.Sprintf("invalid discovery property environment variable %q", env), zap.Error(e))
+					continue
+				}
+				propertiesConf.Merge(confmap.NewFromStringMap(p.ToStringMap()))
+			}
+		}
+	}
+	return propertiesConf
 }
 
 // discover will create all .discovery.yaml components, start them, wait the configured
@@ -197,19 +226,38 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 		discoveryReceiverRaw := map[string]any{}
 		receivers := map[string]any{}
 
+		receiversPropertiesConf := confmap.New()
+		if d.propertiesConf.IsSet("receivers") {
+			receiversPropertiesConf, err = d.propertiesConf.Sub("receivers")
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed obtaining receivers properties config: %w", err)
+			}
+		}
 		for receiverID, receiver := range cfg.ReceiversToDiscover {
 			if ok, err = d.updateReceiverForObserver(receiverID, receiver, observerID); err != nil {
 				return nil, nil, err
 			} else if !ok {
 				continue
 			}
-			d.addUnexpandedReceiverConfig(receiverID, observerID, receiver.Entry.ToStringMap())
-			receivers[receiverID.String()] = receiver.Entry.ToStringMap()
+			receiverEntry := receiver.Entry.ToStringMap()
+			if receiversPropertiesConf.IsSet(receiverID.String()) {
+				receiverPropertiesConf, e := receiversPropertiesConf.Sub(receiverID.String())
+				if e != nil {
+					return nil, nil, fmt.Errorf("failed obtaining receiver properties config: %w", e)
+				}
+				entryConf := confmap.NewFromStringMap(receiverEntry)
+				if err = entryConf.Merge(receiverPropertiesConf); err != nil {
+					return nil, nil, fmt.Errorf("failed merging receiver properties config: %w", err)
+				}
+				receiverEntry = entryConf.ToStringMap()
+			}
+
+			d.addUnexpandedReceiverConfig(receiverID, observerID, receiverEntry)
+			receivers[receiverID.String()] = receiverEntry
 		}
 
 		discoveryReceiverRaw["receivers"] = receivers
 		discoveryReceiverConfMap := confmap.NewFromStringMap(discoveryReceiverRaw)
-
 		if err = d.expandConverter.Convert(context.Background(), discoveryReceiverConfMap); err != nil {
 			return nil, nil, fmt.Errorf("error converting environment variables in receiver config: %w", err)
 		}
@@ -241,6 +289,24 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 
 	observerConfig := observerFactory.CreateDefaultConfig()
 	observerCfgMap := confmap.NewFromStringMap(cfg.DiscoveryObservers[observerID].ToStringMap())
+
+	if d.propertiesConf.IsSet("extensions") {
+		propertiesConf, e := d.propertiesConf.Sub("extensions")
+		if e != nil {
+			return nil, fmt.Errorf("failed obtaining extensions properties config: %w", e)
+		}
+		if propertiesConf.IsSet(observerID.String()) {
+			propertiesConf, e = propertiesConf.Sub(observerID.String())
+			if e != nil {
+				return nil, fmt.Errorf("failed obtaining observer properties config: %w", e)
+			}
+			if err = observerCfgMap.Merge(propertiesConf); err != nil {
+				return nil, fmt.Errorf("failed merging observer properties config: %w", err)
+			}
+			cfg.DiscoveryObservers[observerID] = ExtensionEntry{observerCfgMap.ToStringMap()}
+		}
+	}
+
 	if err = d.expandConverter.Convert(context.Background(), observerCfgMap); err != nil {
 		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID.String(), err)
 	}
@@ -323,7 +389,7 @@ func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
 		}
 	}
 	if receiverAdded {
-		dCfg.Merge(confmap.NewFromStringMap(map[string]any{
+		if err := dCfg.Merge(confmap.NewFromStringMap(map[string]any{
 			"service": map[string]any{
 				"pipelines": map[string]any{
 					"metrics": map[string]any{
@@ -331,7 +397,9 @@ func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
 					},
 				},
 			},
-		}))
+		})); err != nil {
+			return nil, fmt.Errorf("failed adding receiver_creator/discovery to metrics pipeline: %w", err)
+		}
 	}
 
 	extensions := confmap.NewFromStringMap(map[string]any{"extensions": map[string]any{}})
@@ -573,10 +641,12 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 
 func determineCurrentStatus(current, observed discovery.StatusType) discovery.StatusType {
 	switch {
+	case current == discovery.Successful:
+		// once successful never revert
 	case observed == discovery.Successful:
 		current = discovery.Successful
-	case current == discovery.Failed && observed == discovery.Partial:
-		current = discovery.Partial
+	case current == discovery.Partial:
+		// only update if observed successful (above)
 	default:
 		current = observed
 	}

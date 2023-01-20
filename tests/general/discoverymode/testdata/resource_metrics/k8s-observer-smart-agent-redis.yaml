@@ -14,3 +14,4 @@ resource_metrics:
               plugin: redis_info
               plugin_instance: <ANY>
               system.type: redis
+              three.key: three.value.from.cmdline.property

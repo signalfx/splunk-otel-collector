@@ -57,7 +57,7 @@ type Config struct {
 }
 
 func (cfg *Config) validate() error {
-	if cfg.monitorConfig == nil {
+	if cfg == nil || cfg.monitorConfig == nil {
 		return fmt.Errorf("you must supply a valid Smart Agent Monitor config")
 	}
 

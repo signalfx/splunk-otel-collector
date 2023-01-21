@@ -48,7 +48,7 @@ config_sources:
         role: role
         mount: gcp
         credentials: json_string # This setting is not recommended.
-        jwp_ext: 10m
+        jwt_ext: 10
         service_account: some_account
         project: project_id
 ```

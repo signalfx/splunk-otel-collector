@@ -77,7 +77,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.69.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.69.0
 	github.com/signalfx/golib/v3 v3.3.47
-	github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
+	github.com/signalfx/signalfx-agent v1.0.1-0.20230117211433-9858481024e4
 	github.com/signalfx/splunk-otel-collector/extension/smartagentextension v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/processor/timestampprocessor v0.0.0-00010101000000-000000000000
 	github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver v0.0.0-00010101000000-000000000000
@@ -398,7 +398,7 @@ require (
 	github.com/signalfx/golib v2.5.1+incompatible // indirect
 	github.com/signalfx/ingest-protocols v0.1.14 // indirect
 	github.com/signalfx/sapm-proto v0.12.0 // indirect
-	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230104182534-9eee411fe305 // indirect
+	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230117211433-9858481024e4 // indirect
 	github.com/signalfx/signalfx-go v1.25.0 // indirect
 	github.com/sijms/go-ora/v2 v2.5.21 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
@@ -494,8 +494,8 @@ replace (
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.40.5
 
 	// To prevent attempted downgrading for agent deps, do not remove signalfx-agent or signalfx/pkg/apm replace directives
-	github.com/signalfx/signalfx-agent => github.com/signalfx/signalfx-agent v1.0.1-0.20230104182534-9eee411fe305
-	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230104182534-9eee411fe305
+	github.com/signalfx/signalfx-agent => github.com/signalfx/signalfx-agent v1.0.1-0.20230117211433-9858481024e4
+	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230117211433-9858481024e4
 
 	github.com/soheilhy/cmux => github.com/soheilhy/cmux v0.1.5-0.20210205191134-5ec6847320e5 // required for smartagentreceiver to drop google.golang.org/grpc/examples/helloworld/helloworld test dep
 )

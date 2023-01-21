@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.69.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.69.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.69.1) and the [opentelemetry-collector-contrib v0.69.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.69.0) releases where appropriate.
+
+### 💡 Enhancements 💡
+- Upgraded to the latest [Java agent version (v1.20.0)](https://github.com/signalfx/splunk-otel-collector/pull/2487)
+- Upgrade to include changes from [SignalFx Smart Agent v5.27.2](https://github.com/signalfx/signalfx-agent/releases/tag/v5.27.2)
+
+### 🛑 Breaking changes 🛑
+Resource detection for `gke`/`gce` have been combined into the `gcp` resource detector.  While the Splunk distribution of the opentelemetry collector will currently automatically detect and translate any "deprecated" configuration using `gke`/`gce`, we recommend users with affected configurations specify the new `gcp` detector.
+
+
 ## v0.68.1
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.68.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.68.0) and the [opentelemetry-collector-contrib v0.68.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.68.0) releases where appropriate.

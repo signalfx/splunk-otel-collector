@@ -9,10 +9,17 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 💡 Enhancements 💡
 - Upgraded to the latest [Java agent version (v1.20.0)](https://github.com/signalfx/splunk-otel-collector/pull/2487)
 - Upgrade to include changes from [SignalFx Smart Agent v5.27.2](https://github.com/signalfx/signalfx-agent/releases/tag/v5.27.2)
+- [Added a variable for Ansible deployments to set NO_PROXY](https://github.com/signalfx/splunk-otel-collector/pull/2482)
+- [Updated configuration file for the upstream Collector to enable sync of host metadata](https://github.com/signalfx/splunk-otel-collector/pull/2491)
 
 ### 🛑 Breaking changes 🛑
-Resource detection for `gke`/`gce` have been combined into the `gcp` resource detector.  While the Splunk distribution of the opentelemetry collector will currently automatically detect and translate any "deprecated" configuration using `gke`/`gce`, we recommend users with affected configurations specify the new `gcp` detector.
+Resource detection for `gke`/`gce` have been combined into the `gcp` resource detector.  While the Splunk Distribution of the Opentelemetry Collector will currently automatically detect and translate any "deprecated" configuration using `gke`/`gce`, [we recommend users with affected configurations specify the new `gcp` detector](https://github.com/signalfx/splunk-otel-collector/pull/2488)
 
+### 🧰 Bug fixes 🧰
+
+- [Added check for nil for k8s attribute, fixing issue causing a core dump on startup](https://github.com/signalfx/splunk-otel-collector/pull/2489)
+- [Removed containerd override to address CVE](https://github.com/signalfx/splunk-otel-collector/pull/2466)
+- [Updated golang to 1.19.4 to address CVE](https://github.com/signalfx/splunk-otel-collector/pull/2493)
 
 ## v0.68.1
 

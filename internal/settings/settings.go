@@ -53,19 +53,22 @@ const (
 	DefaultMemoryTotalMiB          = 512
 
 	DiscoveryModeScheme = "splunk.discovery"
+	PropertyScheme      = "splunk.property"
 	ConfigDScheme       = "splunk.configd"
 )
 
 type Settings struct {
-	configPaths     *stringArrayFlagValue
-	setProperties   *stringArrayFlagValue
-	configDir       *stringPointerFlagValue
-	colCoreArgs     []string
-	versionFlag     bool
-	noConvertConfig bool
-	configD         bool
-	discoveryMode   bool
-	dryRun          bool
+	configPaths         *stringArrayFlagValue
+	setOptionArguments  *stringArrayFlagValue
+	configDir           *stringPointerFlagValue
+	colCoreArgs         []string
+	setProperties       []string
+	discoveryProperties []string
+	versionFlag         bool
+	noConvertConfig     bool
+	configD             bool
+	discoveryMode       bool
+	dryRun              bool
 }
 
 func New(args []string) (*Settings, error) {
@@ -100,6 +103,10 @@ func (s *Settings) ResolverURIs() []string {
 	}
 
 	configDir := getConfigDir(s)
+
+	for _, property := range s.discoveryProperties {
+		configPaths = append(configPaths, fmt.Sprintf("%s:%s", PropertyScheme, property))
+	}
 
 	if s.configD {
 		configPaths = append(configPaths, fmt.Sprintf("%s:%s", ConfigDScheme, configDir))
@@ -138,7 +145,7 @@ func getConfigDir(f *Settings) string {
 // ConfMapConverters returns confmap.Converters for the collector core service.
 func (s *Settings) ConfMapConverters() []confmap.Converter {
 	confMapConverters := []confmap.Converter{
-		configconverter.NewOverwritePropertiesConverter(s.setProperties.value),
+		configconverter.NewOverwritePropertiesConverter(s.setProperties),
 	}
 	if !s.noConvertConfig {
 		confMapConverters = append(
@@ -168,15 +175,15 @@ func parseArgs(args []string) (*Settings, error) {
 	flagSet := flag.NewFlagSet("otelcol", flag.ContinueOnError)
 
 	settings := &Settings{
-		configPaths:   new(stringArrayFlagValue),
-		setProperties: new(stringArrayFlagValue),
-		configDir:     new(stringPointerFlagValue),
+		configPaths:        new(stringArrayFlagValue),
+		setOptionArguments: new(stringArrayFlagValue),
+		configDir:          new(stringPointerFlagValue),
 	}
 
 	flagSet.Var(settings.configPaths, "config", "Locations to the config file(s), "+
 		"note that only a single location can be set per flag entry e.g. --config=/path/to/first "+
 		"--config=path/to/second.")
-	flagSet.Var(settings.setProperties, "set", "Set arbitrary component config property. "+
+	flagSet.Var(settings.setOptionArguments, "set", "Set arbitrary component config property. "+
 		"The component has to be defined in the config file and the flag has a higher precedence. "+
 		"Array config properties are overridden and maps are joined. Example --set=processors.batch.timeout=2s")
 	flagSet.BoolVar(&settings.dryRun, "dry-run", false, "Don't run the service, just show the configuration")
@@ -208,10 +215,23 @@ func parseArgs(args []string) (*Settings, error) {
 		return nil, err
 	}
 
+	settings.setProperties, settings.discoveryProperties = parseSetOptionArguments(settings.setOptionArguments.value)
+
 	// Pass flags that are handled by the collector core service as raw command line arguments.
 	settings.colCoreArgs = flagSetToArgs(colCoreFlags, flagSet)
 
 	return settings, nil
+}
+
+func parseSetOptionArguments(arguments []string) (setProperties, discoveryProperties []string) {
+	for _, arg := range arguments {
+		if strings.HasPrefix(arg, "splunk.discovery") {
+			discoveryProperties = append(discoveryProperties, arg)
+		} else {
+			setProperties = append(setProperties, arg)
+		}
+	}
+	return
 }
 
 // flagSetToArgs takes a list of flag names and returns a list of corresponding command line arguments

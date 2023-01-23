@@ -102,7 +102,11 @@ func TestK8sObserver(t *testing.T) {
 	expectedMetrics := tc.ResourceMetrics("k8s-observer-smart-agent-redis.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedMetrics, 30*time.Second))
 
-	stdout, stderr, err := cluster.Kubectl("exec", "-n", namespace, collectorPodName, "--", "bash", "-c", "SPLUNK_DEBUG_CONFIG_SERVER=false /otelcol --config=/config/config.yaml --config-dir=/config.d --discovery --dry-run")
+	stdout, stderr, err := cluster.Kubectl(
+		"exec", "-n", namespace, collectorPodName, "--", "bash", "-c",
+		`SPLUNK_DEBUG_CONFIG_SERVER=false \
+SPLUNK_DISCOVERY_RECEIVERS_smartagent_CONFIG_extraDimensions_x3a__x3a_three_x2e_key='three.value.from.env.var.property' \
+/otelcol --config=/config/config.yaml --config-dir=/config.d --discovery --dry-run`)
 	require.NoError(t, err)
 	require.Equal(t, `exporters:
   otlp:
@@ -117,6 +121,8 @@ receivers:
     receivers:
       smartagent:
         config:
+          extraDimensions:
+            three.key: three.value.from.env.var.property
           type: collectd/redis
         resource_attributes:
           one.key: one.value
@@ -315,8 +321,12 @@ func daemonSetManifest(cluster *kubeutils.KindCluster, namespace, serviceAccount
 		Labels:         map[string]string{"label.key": "label.value"},
 		Containers: []corev1.Container{
 			{
-				Image:   testutils.GetCollectorImageOrSkipTest(cluster.Testcase),
-				Command: []string{"/otelcol", "--config=/config/config.yaml", "--config-dir=/config.d", "--discovery"},
+				Image: testutils.GetCollectorImageOrSkipTest(cluster.Testcase),
+				Command: []string{
+					"/otelcol", "--config=/config/config.yaml", "--config-dir=/config.d", "--discovery",
+					// TODO update w/ resource_attributes when supported
+					"--set", "splunk.discovery.receivers.smartagent.config.extraDimensions::three.key='three.value.from.cmdline.property'",
+				},
 				Env: []corev1.EnvVar{
 					{Name: "OTLP_ENDPOINT", Value: otlpEndpoint},
 					{Name: "TARGET_POD_NAME", Value: "target.redis"},

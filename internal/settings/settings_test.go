@@ -88,8 +88,10 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 		"--config", configPath,
 		"--config", anotherConfigPath,
 		"--set", "foo",
+		"--set", "splunk.discovery.receiver.receiver-type/name.config.field.one=val.one",
 		"--set", "bar",
 		"--set=baz",
+		"--set", "splunk.discovery.receiver.receiver-type/name.config.field.two=val.two",
 		"--feature-gates", "foo",
 		"--feature-gates", "-bar",
 	})
@@ -98,11 +100,19 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 	require.True(t, settings.noConvertConfig)
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.configPaths.value)
-	require.Equal(t, []string{"foo", "bar", "baz"}, settings.setProperties.value)
+	require.Equal(t, []string{"foo", "bar", "baz"}, settings.setProperties)
+	require.Equal(t, []string{
+		"splunk.discovery.receiver.receiver-type/name.config.field.one=val.one",
+		"splunk.discovery.receiver.receiver-type/name.config.field.two=val.two",
+	}, settings.discoveryProperties)
 
-	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
+	require.Equal(t, []string{
+		configPath, anotherConfigPath,
+		"splunk.property:splunk.discovery.receiver.receiver-type/name.config.field.one=val.one",
+		"splunk.property:splunk.discovery.receiver.receiver-type/name.config.field.two=val.two",
+	}, settings.ResolverURIs())
 	require.Equal(t, []confmap.Converter{
-		configconverter.NewOverwritePropertiesConverter(settings.setProperties.value),
+		configconverter.NewOverwritePropertiesConverter(settings.setProperties),
 	}, settings.ConfMapConverters())
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
@@ -124,11 +134,12 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	require.False(t, settings.noConvertConfig)
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.configPaths.value)
-	require.Equal(t, []string{"foo", "bar", "baz"}, settings.setProperties.value)
+	require.Equal(t, []string{"foo", "bar", "baz"}, settings.setProperties)
+	require.Equal(t, []string(nil), settings.discoveryProperties)
 
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
 	require.Equal(t, []confmap.Converter{
-		configconverter.NewOverwritePropertiesConverter(settings.setProperties.value),
+		configconverter.NewOverwritePropertiesConverter(settings.setProperties),
 		configconverter.RemoveBallastKey{},
 		configconverter.MoveOTLPInsecureKey{},
 		configconverter.MoveHecTLS{},

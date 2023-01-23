@@ -72,9 +72,14 @@ func TestHostObserver(t *testing.T) {
 				"INTERNAL_PROMETHEUS_PORT": fmt.Sprintf("%d", promPort),
 				// confirm that debug logging doesn't affect runtime
 				"SPLUNK_DISCOVERY_LOG_LEVEL": "debug",
-				"LABEL_ONE_VALUE":            "actual.label.one.value",
-				"LABEL_TWO_VALUE":            "actual.label.two.value",
-			}).WithArgs("--discovery", "--config-dir", "/opt/config.d")
+				"LABEL_ONE_VALUE":            "actual.label.one.value.from.env.var",
+				"LABEL_TWO_VALUE":            "actual.label.two.value.from.env.var",
+			}).WithArgs(
+				"--discovery",
+				"--config-dir", "/opt/config.d",
+				"--set", "splunk.discovery.receivers.prometheus_simple.config.labels::label.three=actual.label.three.value.from.cmdline.property",
+				"--set", "splunk.discovery.extensions.host_observer.config.refresh_interval=1s",
+			)
 		},
 	)
 	defer shutdown()
@@ -137,8 +142,9 @@ func TestHostObserver(t *testing.T) {
 							"config": map[string]any{
 								"collection_interval": "1s",
 								"labels": map[string]any{
-									"label.one": "${LABEL_ONE_VALUE}",
-									"label.two": "${LABEL_TWO_VALUE}",
+									"label.one":   "${LABEL_ONE_VALUE}",
+									"label.two":   "${LABEL_TWO_VALUE}",
+									"label.three": "actual.label.three.value.from.cmdline.property",
 								},
 							},
 							"resource_attributes": map[string]any{},
@@ -157,6 +163,7 @@ func TestHostObserver(t *testing.T) {
 				},
 			},
 		},
+		"splunk.property": map[string]any{},
 	}
 	require.Equal(t, expectedInitial, cc.InitialConfig(t, 55554))
 
@@ -196,8 +203,9 @@ func TestHostObserver(t *testing.T) {
 						"config": map[string]any{
 							"collection_interval": "1s",
 							"labels": map[string]any{
-								"label.one": "actual.label.one.value",
-								"label.two": "actual.label.two.value",
+								"label.one":   "actual.label.one.value.from.env.var",
+								"label.two":   "actual.label.two.value.from.env.var",
+								"label.three": "actual.label.three.value.from.cmdline.property",
 							},
 						},
 						"resource_attributes": map[string]any{},
@@ -211,8 +219,12 @@ func TestHostObserver(t *testing.T) {
 	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, 55554))
 
 	sc, stdout, stderr := cc.Container.AssertExec(t, 15*time.Second,
-		"bash", "-c", "SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false /otelcol --config-dir /opt/config.d --discovery --dry-run",
-	)
+		"bash", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
+REFRESH_INTERVAL=1s \
+SPLUNK_DISCOVERY_DURATION=9s \
+SPLUNK_DISCOVERY_RECEIVERS_prometheus_simple_CONFIG_labels_x3a__x3a_label_x2e_three=actual.label.three.value.from.env.var.property \
+SPLUNK_DISCOVERY_EXTENSIONS_host_observer_CONFIG_refresh_interval=\$REFRESH_INTERVAL \
+/otelcol --config-dir /opt/config.d --discovery --dry-run`)
 	require.Equal(t, `exporters:
   otlp:
     endpoint: ${OTLP_ENDPOINT}
@@ -220,7 +232,7 @@ func TestHostObserver(t *testing.T) {
       insecure: true
 extensions:
   host_observer:
-    refresh_interval: 1s
+    refresh_interval: $REFRESH_INTERVAL
 receivers:
   receiver_creator/discovery:
     receivers:
@@ -229,6 +241,7 @@ receivers:
           collection_interval: 1s
           labels:
             label.one: ${LABEL_ONE_VALUE}
+            label.three: actual.label.three.value.from.env.var.property
             label.two: ${LABEL_TWO_VALUE}
         resource_attributes: {}
         rule: type == "hostport" and command contains "otelcol" and port == ${INTERNAL_PROMETHEUS_PORT}
@@ -247,7 +260,7 @@ service:
     metrics:
       address: ""
       level: none
-`, stdout)
-	require.Contains(t, stderr, "Discovering for next 10s...\nDiscovery complete.\n")
+`, stdout, fmt.Sprintf("unexpected --dry-run: %s", stderr))
+	require.Contains(t, stderr, "Discovering for next 9s...\nDiscovery complete.\n")
 	require.Zero(t, sc)
 }

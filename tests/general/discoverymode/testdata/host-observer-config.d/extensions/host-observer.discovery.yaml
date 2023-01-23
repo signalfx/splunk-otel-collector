@@ -1,2 +1,2 @@
 host_observer:
-  refresh_interval: 1s
+  refresh_interval: overrwritten by property

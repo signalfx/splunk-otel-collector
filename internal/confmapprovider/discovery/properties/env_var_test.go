@@ -1,0 +1,93 @@
+// Copyright  Splunk, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package properties
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestEnvVarPropertyEBNF(t *testing.T) {
+	require.Equal(t, `EnvVarProperty = "SPLUNK" <underscore> "DISCOVERY" <underscore> ("RECEIVERS" | "EXTENSIONS") <underscore> EnvVarComponentID <underscore> "CONFIG" <underscore> (<string> | <underscore>)+ .
+EnvVarComponentID = ~(<underscore> (?= "CONFIG"))+ (<underscore> "x2f" <underscore> (~(?= <underscore> (?= "CONFIG"))+ | ""))? .`, envVarParser.String())
+}
+
+func TestValidEnvVarProperties(t *testing.T) {
+	for _, tt := range []struct {
+		expected *Property
+		envVar   string
+	}{
+		{envVar: "SPLUNK_DISCOVERY_RECEIVERS_receiver_x2d_type_x2f__CONFIG_one",
+			expected: &Property{
+				stringMap: map[string]any{
+					"receivers": map[string]any{
+						"receiver-type": map[string]any{
+							"config": map[string]any{
+								"one": "val"},
+						},
+					},
+				},
+				ComponentType: "receivers",
+				Component:     ComponentID{Type: "receiver-type"},
+				Key:           "one",
+				Val:           "val",
+			},
+		},
+		{envVar: "SPLUNK_DISCOVERY_EXTENSIONS_extension_x2e_type_x2f_extension____name_CONFIG_one_x3a__x3a_two",
+			expected: &Property{
+				stringMap: map[string]any{
+					"extensions": map[string]any{
+						"extension.type/extension____name": map[string]any{
+							"one": map[string]any{
+								"two": "val",
+							},
+						},
+					},
+				},
+				ComponentType: "extensions",
+				Component:     ComponentID{Type: "extension.type", Name: "extension____name"},
+				Key:           "one::two",
+				Val:           "val",
+			},
+		},
+	} {
+		t.Run(tt.envVar, func(t *testing.T) {
+			p, ok, err := NewPropertyFromEnvVar(tt.envVar, "val")
+			require.True(t, ok)
+			require.NoError(t, err)
+			require.NotNil(t, p)
+			require.Equal(t, tt.expected, p)
+		})
+	}
+}
+
+func TestInvalidEnvVarProperties(t *testing.T) {
+	for _, tt := range []struct {
+		envVar, expectedError string
+	}{
+		{envVar: "SPLUNK_DISCOVERY_NOTVALIDCOMPONENT_TYPE_CONFIG_ONE", expectedError: "invalid env var property (parsing error): invalid property env var (parsing error): SPLUNK_DISCOVERY:1:18: unexpected token \"NOTVALIDCOMPONENT\" (expected (\"RECEIVERS\" | \"EXTENSIONS\") <underscore> EnvVarComponentID <underscore> \"CONFIG\" <underscore> (<string> | <underscore>)+)"},
+		{envVar: "SPLUNK_DISCOVERY_RECEIVERS_TYPE_NOTCONFIG_ONE", expectedError: "invalid env var property (parsing error): invalid property env var (parsing error): SPLUNK_DISCOVERY:1:46: unexpected token \"<EOF>\" (expected <underscore> \"CONFIG\" <underscore> (<string> | <underscore>)+)"},
+		{envVar: "SPLUNK_DISCOVERY_EXTENSIONS_TYPE_x2f_NAME_CONFIG_", expectedError: "invalid env var property (parsing error): invalid property env var (parsing error): SPLUNK_DISCOVERY:1:50: sub-expression (<string> | <underscore>)+ must match at least once"},
+	} {
+		t.Run(tt.envVar, func(t *testing.T) {
+			p, ok, err := NewPropertyFromEnvVar(tt.envVar, "val")
+			require.True(t, ok)
+			require.Error(t, err)
+			require.EqualError(t, err, tt.expectedError)
+			require.Nil(t, p)
+		})
+	}
+}

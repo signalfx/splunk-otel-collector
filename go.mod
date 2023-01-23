@@ -3,7 +3,7 @@ module github.com/signalfx/splunk-otel-collector
 go 1.19
 
 require (
-	github.com/antonmedv/expr v1.9.0
+	github.com/antonmedv/expr v1.10.3
 	github.com/apache/pulsar-client-go v0.9.0
 	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/fsnotify/fsnotify v1.6.0

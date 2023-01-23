@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/alecthomas/participle/v2 v2.0.0-beta.5
-	github.com/antonmedv/expr v1.9.0
+	github.com/antonmedv/expr v1.10.4
 	github.com/apache/pulsar-client-go v0.9.0
 	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/fsnotify/fsnotify v1.6.0

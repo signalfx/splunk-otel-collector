@@ -15,6 +15,7 @@
 package discovery
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -25,6 +26,8 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
+
+	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
 func TestDiscovererDurationFromEnv(t *testing.T) {
@@ -139,4 +142,24 @@ func TestMergeEntries(t *testing.T) {
 		},
 		"five.key": "five.val",
 	}, first)
+}
+
+func TestDetermineCurrentStatus(t *testing.T) {
+	for _, test := range []struct {
+		current, observed, expected discovery.StatusType
+	}{
+		{"failed", "failed", "failed"},
+		{"failed", "partial", "partial"},
+		{"failed", "successful", "successful"},
+		{"partial", "failed", "partial"},
+		{"partial", "partial", "partial"},
+		{"partial", "successful", "successful"},
+		{"successful", "failed", "successful"},
+		{"successful", "partial", "successful"},
+		{"successful", "successful", "successful"},
+	} {
+		t.Run(fmt.Sprintf("%s:%s->%s", test.current, test.observed, test.expected), func(t *testing.T) {
+			require.Equal(t, test.expected, determineCurrentStatus(test.current, test.observed))
+		})
+	}
 }

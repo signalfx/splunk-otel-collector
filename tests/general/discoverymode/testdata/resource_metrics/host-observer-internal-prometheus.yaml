@@ -10,8 +10,9 @@ resource_metrics:
             type: DoubleMonotonicCumulativeSum
             attributes:
               exporter: logging
-              label.one: actual.label.one.value
-              label.two: actual.label.two.value
+              label.one: actual.label.one.value.from.env.var
+              label.two: actual.label.two.value.from.env.var
+              label.three: actual.label.three.value.from.cmdline.property
               service_instance_id: <ANY>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>

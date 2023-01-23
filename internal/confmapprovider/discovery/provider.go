@@ -24,6 +24,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/properties"
 	"github.com/signalfx/splunk-otel-collector/internal/settings"
 )
 
@@ -34,6 +35,8 @@ type Provider interface {
 	ConfigDProvider() confmap.Provider
 	DiscoveryModeScheme() string
 	DiscoveryModeProvider() confmap.Provider
+	PropertyScheme() string
+	PropertyProvider() confmap.Provider
 }
 
 type providerShim struct {
@@ -63,7 +66,7 @@ func New() (Provider, error) {
 	m := &mapProvider{configs: map[string]*Config{}}
 	zapConfig := zap.NewProductionConfig()
 	logLevel := zap.WarnLevel
-	if ll, ok := os.LookupEnv("SPLUNK_DISCOVERY_LOG_LEVEL"); ok {
+	if ll, ok := os.LookupEnv(logLevelEnvVar); ok {
 		if l, err := zapcore.ParseLevel(ll); err == nil {
 			logLevel = l
 		}
@@ -94,16 +97,28 @@ func (m *mapProvider) DiscoveryModeProvider() confmap.Provider {
 	}
 }
 
+func (m *mapProvider) PropertyProvider() confmap.Provider {
+	return providerShim{
+		scheme:   m.PropertyScheme(),
+		retrieve: m.retrieve(m.PropertyScheme()),
+	}
+}
+
 func (m *mapProvider) retrieve(scheme string) func(context.Context, string, confmap.WatcherFunc) (*confmap.Retrieved, error) {
 	return func(ctx context.Context, uri string, _ confmap.WatcherFunc) (*confmap.Retrieved, error) {
 		schemePrefix := fmt.Sprintf("%s:", scheme)
 		if !strings.HasPrefix(uri, schemePrefix) {
 			return nil, fmt.Errorf("uri %q is not supported by %s provider", uri, scheme)
 		}
-		configDir := uri[len(schemePrefix):]
+
+		uriVal := uri[len(schemePrefix):]
+		if schemePrefix == fmt.Sprintf("%s:", settings.PropertyScheme) {
+			return m.parsedProperty(uriVal)
+		}
 
 		var cfg *Config
 		var ok bool
+		configDir := uriVal
 		if cfg, ok = m.configs[configDir]; !ok {
 			cfg = NewConfig(m.logger)
 			if err := cfg.Load(configDir); err != nil {
@@ -134,4 +149,23 @@ func (m *mapProvider) ConfigDScheme() string {
 
 func (m *mapProvider) DiscoveryModeScheme() string {
 	return settings.DiscoveryModeScheme
+}
+
+func (m *mapProvider) PropertyScheme() string {
+	return settings.PropertyScheme
+}
+
+func (m *mapProvider) parsedProperty(rawProperty string) (*confmap.Retrieved, error) {
+	// split property from value
+	equalsIdx := strings.Index(rawProperty, "=")
+	if equalsIdx == -1 || len(rawProperty) <= equalsIdx+1 {
+		return nil, fmt.Errorf("invalid discovery property %q not of form <property>=<value>", rawProperty)
+	}
+	prop, err := properties.NewProperty(rawProperty[:equalsIdx], rawProperty[equalsIdx+1:])
+	if err != nil {
+		return nil, fmt.Errorf("invalid discovery property: %w", err)
+	}
+	m.discoverer.propertiesConf.Merge(confmap.NewFromStringMap(prop.ToStringMap()))
+	// return nil confmap to satisfy signature
+	return confmap.NewRetrieved(nil)
 }

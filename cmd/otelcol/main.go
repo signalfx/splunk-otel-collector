@@ -80,6 +80,9 @@ func main() {
 			ResolverSettings: confmap.ResolverSettings{
 				URIs: collectorSettings.ResolverURIs(),
 				Providers: map[string]confmap.Provider{
+					discovery.PropertyScheme(): configprovider.NewConfigSourceConfigMapProvider(
+						discovery.PropertyProvider(), zap.NewNop(), info, hooks, configsources.Get()...,
+					),
 					discovery.ConfigDScheme(): configprovider.NewConfigSourceConfigMapProvider(
 						discovery.ConfigDProvider(),
 						zap.NewNop(), // The service logger is not available yet, setting it to Nop.

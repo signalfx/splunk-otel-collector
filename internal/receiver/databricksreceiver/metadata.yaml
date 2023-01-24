@@ -97,7 +97,7 @@ metrics:
 
   databricks.spark.codegenerator.compilationtime.mean:
     enabled: true
-    description: n/a
+    description: This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.
     unit:
     gauge:
       value_type: double
@@ -105,7 +105,7 @@ metrics:
       [cluster_id, spark_app_id, pipeline_id, pipeline_name]
   databricks.spark.codegenerator.generatedclasssize.mean:
     enabled: true
-    description: n/a
+    description: This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.
     unit:
     gauge:
       value_type: double
@@ -113,7 +113,7 @@ metrics:
       [cluster_id, spark_app_id, pipeline_id, pipeline_name]
   databricks.spark.codegenerator.generatedmethodsize.mean:
     enabled: true
-    description: n/a
+    description: This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.
     unit:
     gauge:
       value_type: double
@@ -121,7 +121,7 @@ metrics:
       [cluster_id, spark_app_id, pipeline_id, pipeline_name]
   databricks.spark.codegenerator.sourcecodesize.mean:
     enabled: true
-    description: n/a
+    description: This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.
     unit:
     gauge:
       value_type: double

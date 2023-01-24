@@ -1395,7 +1395,7 @@ type metricDatabricksSparkCodegeneratorCompilationtimeMean struct {
 // init fills databricks.spark.codegenerator.compilationtime.mean metric with initial data.
 func (m *metricDatabricksSparkCodegeneratorCompilationtimeMean) init() {
 	m.data.SetName("databricks.spark.codegenerator.compilationtime.mean")
-	m.data.SetDescription("n/a")
+	m.data.SetDescription("This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.")
 	m.data.SetUnit("")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
@@ -1449,7 +1449,7 @@ type metricDatabricksSparkCodegeneratorGeneratedclasssizeMean struct {
 // init fills databricks.spark.codegenerator.generatedclasssize.mean metric with initial data.
 func (m *metricDatabricksSparkCodegeneratorGeneratedclasssizeMean) init() {
 	m.data.SetName("databricks.spark.codegenerator.generatedclasssize.mean")
-	m.data.SetDescription("n/a")
+	m.data.SetDescription("This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.")
 	m.data.SetUnit("")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
@@ -1503,7 +1503,7 @@ type metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean struct {
 // init fills databricks.spark.codegenerator.generatedmethodsize.mean metric with initial data.
 func (m *metricDatabricksSparkCodegeneratorGeneratedmethodsizeMean) init() {
 	m.data.SetName("databricks.spark.codegenerator.generatedmethodsize.mean")
-	m.data.SetDescription("n/a")
+	m.data.SetDescription("This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.")
 	m.data.SetUnit("")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)
@@ -1557,7 +1557,7 @@ type metricDatabricksSparkCodegeneratorSourcecodesizeMean struct {
 // init fills databricks.spark.codegenerator.sourcecodesize.mean metric with initial data.
 func (m *metricDatabricksSparkCodegeneratorSourcecodesizeMean) init() {
 	m.data.SetName("databricks.spark.codegenerator.sourcecodesize.mean")
-	m.data.SetDescription("n/a")
+	m.data.SetDescription("This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint.")
 	m.data.SetUnit("")
 	m.data.SetEmptyGauge()
 	m.data.Gauge().DataPoints().EnsureCapacity(m.capacity)

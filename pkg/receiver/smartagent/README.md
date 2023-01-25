@@ -20,31 +20,33 @@ For each Smart Agent
 you want to put into the Collector, add a `smartagent` receiver configuration block. Once configured in the Collector, each
 `smartagent` receiver will act as a drop-in replacement for its corresponding Smart Agent monitor.
 
-1. Put any Smart Agent or collectd configuration into the
+1. Put any Smart Agent or collectd configuration into the global
 [Smart Agent Extension section](../../extension/smartagentextension/README.md)
 of your Collector configuration.
 1. Instead of using Smart Agent's `discoveryRule`s, use the Collector's
 [Receiver Creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/receivercreator/README.md)
 and [Observer extensions](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/README.md).
-1. Instead of using the [SignalFx Forwarder](https://github.com/signalfx/signalfx-agent/blob/main/docs/monitors/signalfx-forwarder.md)
-monitor, use a [Sapm exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/sapmexporter/README.md)
-in a `traces` pipeline, and make sure you have a
-[SignalFx exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/signalfxexporter/README.md)
-configured and in a `metrics` pipeline. (meta: add a sentence as to why)
+1. If using a [SignalFx Forwarder](https://github.com/signalfx/signalfx-agent/blob/main/docs/monitors/signalfx-forwarder.md)
+monitor, put it into both a `metrics` and `traces` pipeline, and use a
+[Sapm exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/sapmexporter/README.md)
+and a 
+[SignalFx exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/signalfxexporter/README.md),
+as each pipeline's exporter, respectively.
 1. To replace or modify metrics, use
 [Collector processors](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/README.md).
+1. If you have a monitor that sends [events](https://dev.splunk.com/observability/docs/datamodel/custom_events) (e.g. `kubernetes-events`,
+`nagios`, `processlist`, and some `telegraf` monitors like `telegraf/exec`), put it in a `logs` pipeline that uses a
+[SignalFx exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/signalfxexporter/README.md).
+It's recommended, and in the case of the Processlist monitor required, to put into the same pipeline a
+[Resource Detection processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md),
+which will add host information and other useful dimensions to the events. An example is provided below.
 1. If you have a monitor that updates [dimension properties or tags](https://dev.splunk.com/observability/docs/datamodel/metrics_metadata)
 (e.g. `ecs-metadata`, `heroku-metadata`, `kubernetes-cluster`, `openshift-cluster`, `postgresql`, or `sql`), put the name of
 your SignalFx exporter in its `dimensionClients` field in the Collector's SignalFx receiver configuration block.
 If you do not specify any exporters in this array field, the receiver will attempt to use the Collector pipeline to which it's connected. If
 the next element of the pipeline isn't compatible with updating dimensions, and if you configured a single SignalFx exporter,
 the reciever will use that SignalFx exporter. If you don't require dimension updates, you can specify the empty array `[]` to disable it.
-1. If you have a monitor that sends [events](https://dev.splunk.com/observability/docs/datamodel/custom_events) (e.g. `kubernetes-events`,
-`nagios`, `processlist`, and some `telegraf` monitors like `telegraf/exec`), put it in a `logs` pipeline that uses a
-[SignalFx exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/signalfxexporter/README.md).
-It's recommended, and in the case of the Processlist monitor required, to put into the same pipeline a
-[Resource Detection processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md),
-which will add host information and other useful dimension to the events. An example is provided below.
+
 
 Example:
 

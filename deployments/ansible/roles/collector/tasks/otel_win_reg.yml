@@ -1,4 +1,29 @@
 ---
+- name: Set default ingest url
+  set_fact:
+    splunk_ingest_url: https://ingest.{{splunk_realm}}.signalfx.com
+  when: splunk_ingest_url is not defined or (splunk_ingest_url | trim) == ""
+
+- name: Set default api url
+  set_fact:
+    splunk_api_url: https://api.{{splunk_realm}}.signalfx.com
+  when: splunk_api_url is not defined or (splunk_api_url | trim) == ""
+
+- name: Set default trace url
+  set_fact:
+    splunk_trace_url: "{{splunk_ingest_url}}/v2/trace"
+  when: splunk_trace_url is not defined or (splunk_trace_url | trim) == ""
+
+- name: Set default hec url
+  set_fact:
+    splunk_hec_url: "{{splunk_ingest_url}}/v1/log"
+  when: splunk_hec_url is not defined or (splunk_hec_url | trim) == ""
+
+- name: Set default hec token
+  set_fact:
+    splunk_hec_token: "{{splunk_access_token}}"
+  when: splunk_hec_token is not defined or (splunk_hec_token | trim) == ""
+
 - name: Create registry path for collector
   ansible.windows.win_regedit:
     path: "{{registry_key}}"
@@ -33,7 +58,7 @@
     path: "{{registry_key}}"
     state: present
     name: SPLUNK_API_URL
-    data: https://api.{{splunk_realm}}.signalfx.com
+    data: "{{splunk_api_url}}"
     type: string
 
 - name: Set registry values
@@ -65,7 +90,7 @@
     path: "{{registry_key}}"
     state: present
     name: SPLUNK_HEC_TOKEN
-    data: "{{splunk_access_token}}"
+    data: "{{splunk_hec_token}}"
     type: string
 
 - name: Set registry values
@@ -73,7 +98,7 @@
     path: "{{registry_key}}"
     state: present
     name: SPLUNK_HEC_URL
-    data: https://ingest.{{splunk_realm}}.signalfx.com/v1/log
+    data: "{{splunk_hec_url}}"
     type: string
 
 - name: Set registry values
@@ -81,7 +106,7 @@
     path: "{{registry_key}}"
     state: present
     name: SPLUNK_INGEST_URL
-    data: https://ingest.{{splunk_realm}}.signalfx.com
+    data: "{{splunk_ingest_url}}"
     type: string
 
 - name: Set registry values
@@ -97,5 +122,5 @@
     path: "{{registry_key}}"
     state: present
     name: SPLUNK_TRACE_URL
-    data: https://ingest.{{splunk_realm}}.signalfx.com/v2/trace
+    data: "{{splunk_trace_url}}"
     type: string

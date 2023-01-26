@@ -26,7 +26,7 @@ of your Collector configuration.
 1. Instead of using `discoveryRule`, use the Collector's
 [Receiver Creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/receivercreator/README.md)
 and [Observer extensions](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/README.md).
-1. If using a [SignalFx Forwarder](https://github.com/signalfx/signalfx-agent/blob/main/docs/monitors/signalfx-forwarder.md)
+1. If you're using a [SignalFx Forwarder](https://github.com/signalfx/signalfx-agent/blob/main/docs/monitors/signalfx-forwarder.md)
 monitor, put it into both a `traces` and a `metrics` pipeline, and use a
 [Sapm exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/sapmexporter/README.md)
 and a 

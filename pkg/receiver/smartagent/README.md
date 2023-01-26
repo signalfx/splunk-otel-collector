@@ -1,6 +1,6 @@
 # SignalFx Smart Agent Receiver
 
-> **Note:** The SignalFx Smart Agent receiver is only fully supported on x86_64/amd64 platforms.
+> **Note:** The SignalFx Smart Agent receiver is fully supported only on x86_64/amd64 platforms.
 
 The Smart Agent Receiver allows you to use [SignalFx Smart Agent monitors](https://github.com/signalfx/signalfx-agent#monitors)
 in the [Splunk Distribution of OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector). Many

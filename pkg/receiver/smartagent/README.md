@@ -40,12 +40,11 @@ as each pipeline's exporter, respectively.
 It's recommended, and in the case of the Processlist monitor required, to put into the same pipeline a
 [Resource Detection processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md),
 which will add host information and other useful dimensions to the events. An example is provided below.
-1. If you have a monitor that updates [dimension properties or tags](https://dev.splunk.com/observability/docs/datamodel/metrics_metadata)
-(e.g. `ecs-metadata`, `heroku-metadata`, `kubernetes-cluster`, `openshift-cluster`, `postgresql`, or `sql`), put the name of
+1. If you have a monitor that updates [dimension properties or tags](https://dev.splunk.com/observability/docs/datamodel/metrics_metadata), for example `ecs-metadata`, `heroku-metadata`, `kubernetes-cluster`, `openshift-cluster`, `postgresql`, or `sql`, put the name of
 your SignalFx exporter in its `dimensionClients` field in the Collector's SignalFx receiver configuration block.
-If you do not specify any exporters in this array field, the receiver will attempt to use the Collector pipeline to which it's connected. If
+If you don't specify any exporters in this array field, the receiver attempts to use the Collector pipeline to which it's connected. If
 the next element of the pipeline isn't compatible with updating dimensions, and if you configured a single SignalFx exporter,
-the reciever will use that SignalFx exporter. If you don't require dimension updates, you can specify the empty array `[]` to disable it.
+the receiver uses that SignalFx exporter. If you don't require dimension updates, you can specify the empty array `[]` to disable it.
 
 
 Example:

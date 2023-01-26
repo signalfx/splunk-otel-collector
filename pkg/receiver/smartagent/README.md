@@ -7,7 +7,7 @@ in the [Splunk Distribution of OpenTelemetry Collector](https://github.com/signa
 monitors also require a [Smart Agent release bundle](https://github.com/signalfx/signalfx-agent/releases/latest),
 which is installed by the Splunk Distribution of OpenTelemetry Collector on supported x86_64/amd64 platforms.
 
-While this document outlines some of the capabilities of the Smart Agent receiver, please see the
+See the
 [migration guide](../../../docs/signalfx-smart-agent-migration.md)
 for more information about migrating from the Smart Agent to the Splunk Distribution of the OpenTelemetry Collector.
 

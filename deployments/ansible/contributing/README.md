@@ -25,14 +25,17 @@ following software is installed:
   - molecule
   - molecule-vagrant
   - python-vagrant
+  - pywinrm
 
 Installation steps for MacOS:
 
 ```sh
 brew tap hashicorp/tap
-brew install virtualbox vagrant python3
+brew install virtualbox6 vagrant python3
 pip3 install -r requirements-dev-macos.txt
 ```
+
+#### Linux Testing
 
 Use the following arguments with every molecule command 
 `--base-config ./molecule/config/vagrant.yml`.
@@ -51,6 +54,43 @@ To run the full test suite:
 ```sh
 molecule --base-config ./molecule/config/vagrant.yml test --all
 ```
+
+#### Windows Testing
+
+Use the following arguments with every molecule command
+`--base-config ./molecule/config/windows.yml`.
+
+To run a test suite scenario for *all* supported Windows versions:
+```sh
+molecule --base-config ./molecule/config/windows.yml test -s <scenario>
+```
+
+To run a test scenario for a single Windows version, use the
+`--platform [2012|2016|2019|2022]` argument (requires `molecule` >= 4.0.0):
+```sh
+molecule --base-config ./molecule/config/windows.yml test -s <scenario> --platform <windows version>
+```
+
+To add a new test scenario for Windows:
+1. Create the subdirectory for the new scenario, e.g.
+   `mkdir ./molecule/new_scenario`.
+2. Create and populate the `./molecule/new_scenario/windows-converge.yml` and
+   `./molecule/new_scenario/windows-verify.yml` files.
+3. Test the new scenario, e.g.
+   `molecule --base-config ./molecule/config/windows.yml test -s new_scenario`.
+4. Add the new scenario name to the `windows-test` matrix in the
+   [ansible GitHub workflow](../../../.github/workflows/ansible.yml) when the
+   changes are ready for review.
+
+To add new Windows platform definitions or to modify/remove existing ones:
+1. Update the `platforms` list in
+   [windows.yml](../molecule/config/windows.yml).
+2. Test the new/modified platform, e.g.
+   `molecule --base-config ./molecule/config/windows.yml test -s <scenario> -p <platform_name>`.
+3. If adding/removing a Windows platform, add/remove the platform name for the
+   `windows-test` matrix in the
+   [ansible GitHub workflow](../../../.github/workflows/ansible.yml) when the
+   changes are ready for review.
 
 ### Linux setup
 

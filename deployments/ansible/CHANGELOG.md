@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## ansible-v0.14.0
+
+### 💡 Enhancements 💡
+
+- Add `splunk_otel_collector_no_proxy` var to update service NO_PROXY environment variable (Linux only) [(#2482)](https://github.com/signalfx/splunk-otel-collector/pull/2482)
+
 ## ansible-v0.13.0
 
 ### 💡 Enhancements 💡

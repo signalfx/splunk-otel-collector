@@ -17,7 +17,7 @@ for more information about migrating from the Smart Agent to the Splunk Distribu
 
 For each Smart Agent 
 [monitor](https://github.com/signalfx/signalfx-agent/blob/main/docs/monitor-config.md)
-you want to put into the Collector, add a `smartagent` receiver configuration block. Once configured in the Collector, each
+you want to add to the Collector, add a `smartagent` receiver configuration block. Once configured in the Collector, each
 `smartagent` receiver will act as a drop-in replacement for its corresponding Smart Agent monitor.
 
 1. Put any Smart Agent or collectd configuration into the global

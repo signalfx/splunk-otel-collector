@@ -1,6 +1,6 @@
 resource_metrics:
   - attributes:
-      oracledb.instance.name: localhost:1521
+      oracledb.instance.name: localhost:1521/XE
     scope_metrics:
       - instrumentation_scope:
           name: otelcol/oracledbreceiver

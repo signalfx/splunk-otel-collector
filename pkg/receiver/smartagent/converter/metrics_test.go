@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	sfx "github.com/signalfx/golib/v3/datapoint"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -83,7 +84,6 @@ func pdataMetrics(dataType pmetric.MetricType, value any, timeReceived time.Time
 	attributes.PutStr("k0", "v0")
 	attributes.PutStr("k1", "v1")
 	attributes.PutStr("k2", "v2")
-	attributes.Sort()
 	dp.SetTimestamp(pcommon.Timestamp(timeReceived.UnixNano()))
 	switch val := value.(type) {
 	case int:
@@ -98,7 +98,6 @@ func pdataMetrics(dataType pmetric.MetricType, value any, timeReceived time.Time
 		"k1": "v1",
 		"k2": "v2",
 	})
-	attributes.Sort()
 
 	return metrics
 }
@@ -252,9 +251,7 @@ func TestDatapointsToPDataMetrics(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
 			md := sfxDatapointsToPDataMetrics(test.datapoints, test.timeReceived, zap.NewNop())
-			sortLabels(tt, md)
-
-			assert.Equal(tt, test.expectedMetrics, md)
+			require.NoError(t, pmetrictest.CompareMetrics(test.expectedMetrics, md))
 		})
 	}
 }
@@ -299,29 +296,5 @@ func TestSetDataTypeWithInvalidDatapoints(t *testing.T) {
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), test.expectedError)
 		})
-	}
-}
-
-func sortLabels(t *testing.T, metrics pmetric.Metrics) {
-	for i := 0; i < metrics.ResourceMetrics().Len(); i++ {
-		rm := metrics.ResourceMetrics().At(i)
-		for j := 0; j < rm.ScopeMetrics().Len(); j++ {
-			ilm := rm.ScopeMetrics().At(j)
-			for k := 0; k < ilm.Metrics().Len(); k++ {
-				m := ilm.Metrics().At(k)
-				switch m.Type() {
-				case pmetric.MetricTypeGauge:
-					for l := 0; l < m.Gauge().DataPoints().Len(); l++ {
-						m.Gauge().DataPoints().At(l).Attributes().Sort()
-					}
-				case pmetric.MetricTypeSum:
-					for l := 0; l < m.Sum().DataPoints().Len(); l++ {
-						m.Sum().DataPoints().At(l).Attributes().Sort()
-					}
-				default:
-					t.Errorf("unexpected datatype: %v", m.Type())
-				}
-			}
-		}
 	}
 }

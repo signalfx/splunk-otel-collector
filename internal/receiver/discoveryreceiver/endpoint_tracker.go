@@ -155,9 +155,6 @@ func endpointToPLogs(observerID component.ID, eventType string, endpoints []obse
 		}
 		attrs.PutStr("endpoint", endpoint.Target)
 		attrs.PutStr("id", string(endpoint.ID))
-
-		// sorted log record attributes for determinism
-		attrs.Sort()
 	}
 	return
 }
@@ -174,7 +171,6 @@ func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer
 				for item, itemVal := range asMap {
 					mapVal.PutStr(item, itemVal)
 				}
-				mapVal.Sort()
 			} else {
 				return attrs, fmt.Errorf("failed parsing %v env attributes", endpointType)
 			}
@@ -201,7 +197,6 @@ func endpointEnvToAttrs(endpointType observer.EndpointType, endpointEnv observer
 			}
 		}
 	}
-	attrs.Sort()
 	return attrs, nil
 }
 

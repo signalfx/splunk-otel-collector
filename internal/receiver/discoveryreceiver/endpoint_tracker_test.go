@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/plogtest"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -177,7 +178,7 @@ func TestEndpointToPLogsHappyPath(t *testing.T) {
 			require.GreaterOrEqual(t, t2, lr.ObservedTimestamp().AsTime())
 			lr.SetObservedTimestamp(pcommon.NewTimestampFromTime(t0))
 
-			require.Equal(t, test.expectedPLogs, plogs, fmt.Sprintf("%s != %s", jsonify(t, test.expectedPLogs), jsonify(t, plogs)))
+			require.NoError(t, plogtest.CompareLogs(test.expectedPLogs, plogs))
 		})
 	}
 }
@@ -297,7 +298,7 @@ func TestEndpointToPLogsInvalidEndpoints(t *testing.T) {
 			require.Equal(t, 1, plogs.LogRecordCount())
 			lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 			lr.SetObservedTimestamp(pcommon.NewTimestampFromTime(t0))
-			require.Equal(t, test.expectedPLogs, plogs, fmt.Sprintf("%s != %s", jsonify(t, test.expectedPLogs), jsonify(t, plogs)))
+			require.NoError(t, plogtest.CompareLogs(test.expectedPLogs, plogs))
 		})
 	}
 }
@@ -359,11 +360,9 @@ func FuzzEndpointToPlogs(f *testing.F) {
 			annotationsMap := podEnvMap.PutEmptyMap("annotations")
 			annotationsMap.PutStr(annotationOne, annotationValueOne)
 			annotationsMap.PutStr(annotationTwo, annotationValueTwo)
-			annotationsMap.Sort()
 			labelsMap := podEnvMap.PutEmptyMap("labels")
 			labelsMap.PutStr(labelOne, labelValueOne)
 			labelsMap.PutStr(labelTwo, labelValueTwo)
-			labelsMap.Sort()
 			podEnvMap.PutStr("name", podName)
 			podEnvMap.PutStr("namespace", namespace)
 			podEnvMap.PutStr("uid", uid)
@@ -374,7 +373,8 @@ func FuzzEndpointToPlogs(f *testing.F) {
 
 			lr := plogs.ResourceLogs().At(0).ScopeLogs().At(0).LogRecords().At(0)
 			lr.SetObservedTimestamp(pcommon.NewTimestampFromTime(t0))
-			require.Equal(t, expectedLogs, plogs, fmt.Sprintf("%s != %s", jsonify(t, expectedLogs), jsonify(t, plogs)))
+
+			require.NoError(t, plogtest.CompareLogs(expectedLogs, plogs))
 			require.NoError(t, err)
 			require.Zero(t, failed)
 		})
@@ -383,8 +383,6 @@ func FuzzEndpointToPlogs(f *testing.F) {
 
 var (
 	t0 = time.Unix(0, 0)
-
-	logJSONMarshaler = &plog.JSONMarshaler{}
 
 	podEndpoint = observer.Endpoint{
 		ID:     observer.EndpointID("pod.endpoint.id"),
@@ -495,12 +493,6 @@ func expectedPLogs() plog.Logs {
 	lr.SetObservedTimestamp(pcommon.NewTimestampFromTime(t0))
 	lr.SetSeverityText("info")
 	return plogs
-}
-
-func jsonify(t testing.TB, plogs plog.Logs) string {
-	logBytes, err := logJSONMarshaler.MarshalLogs(plogs)
-	require.NoError(t, err)
-	return string(logBytes)
 }
 
 var (

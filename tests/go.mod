@@ -12,13 +12,13 @@ require (
 	github.com/signalfx/signalfx-go v1.25.0
 	github.com/stretchr/testify v1.8.1
 	github.com/testcontainers/testcontainers-go v0.15.0
-	go.opentelemetry.io/collector v0.69.1
-	go.opentelemetry.io/collector/component v0.69.1
-	go.opentelemetry.io/collector/confmap v0.69.1
-	go.opentelemetry.io/collector/consumer v0.69.1
-	go.opentelemetry.io/collector/exporter/otlpexporter v0.69.1
-	go.opentelemetry.io/collector/pdata v1.0.0-rc3.0.20230109164642-7d168dd20efd
-	go.opentelemetry.io/collector/receiver/otlpreceiver v0.69.1
+	go.opentelemetry.io/collector v0.70.0
+	go.opentelemetry.io/collector/component v0.70.0
+	go.opentelemetry.io/collector/confmap v0.70.0
+	go.opentelemetry.io/collector/consumer v0.70.0
+	go.opentelemetry.io/collector/exporter/otlpexporter v0.70.0
+	go.opentelemetry.io/collector/pdata v1.0.0-rc4
+	go.opentelemetry.io/collector/receiver/otlpreceiver v0.70.0
 	go.opentelemetry.io/otel/metric v0.34.0
 	go.opentelemetry.io/otel/trace v1.11.2
 	go.uber.org/atomic v1.10.0
@@ -35,7 +35,6 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.10.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/BurntSushi/toml v1.0.0 // indirect
 	github.com/MakeNowJust/heredoc v1.0.0 // indirect
@@ -84,8 +83,8 @@ require (
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.15.13 // indirect
-	github.com/knadh/koanf v1.4.4 // indirect
+	github.com/klauspost/compress v1.15.15 // indirect
+	github.com/knadh/koanf v1.5.0 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/lithammer/dedent v1.1.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
@@ -128,7 +127,7 @@ require (
 	github.com/xlab/treeprint v1.1.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	go.opentelemetry.io/collector/featuregate v0.69.1 // indirect
+	go.opentelemetry.io/collector/featuregate v0.70.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.37.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.37.0 // indirect
 	go.opentelemetry.io/otel v1.11.2 // indirect
@@ -141,8 +140,8 @@ require (
 	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c // indirect
-	google.golang.org/grpc v1.51.0 // indirect
+	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6 // indirect
+	google.golang.org/grpc v1.52.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

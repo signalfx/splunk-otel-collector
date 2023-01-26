@@ -3,8 +3,9 @@ module github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver
 go 1.19
 
 require (
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.69.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.69.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.70.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.70.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.70.0
 	github.com/openzipkin/zipkin-go v0.4.1
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
 	github.com/signalfx/golib/v3 v3.3.47
@@ -13,11 +14,11 @@ require (
 	github.com/signalfx/splunk-otel-collector/tests v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
-	go.opentelemetry.io/collector v0.69.1
-	go.opentelemetry.io/collector/component v0.69.1
-	go.opentelemetry.io/collector/confmap v0.69.1
-	go.opentelemetry.io/collector/consumer v0.69.1
-	go.opentelemetry.io/collector/pdata v1.0.0-rc3.0.20230109164642-7d168dd20efd
+	go.opentelemetry.io/collector v0.70.0
+	go.opentelemetry.io/collector/component v0.70.0
+	go.opentelemetry.io/collector/confmap v0.70.0
+	go.opentelemetry.io/collector/consumer v0.70.0
+	go.opentelemetry.io/collector/pdata v1.0.0-rc4
 	go.opentelemetry.io/otel/metric v0.34.0
 	go.opentelemetry.io/otel/trace v1.11.2
 	go.uber.org/zap v1.24.0
@@ -25,7 +26,8 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.10.0 // indirect
+	cloud.google.com/go/compute v1.12.1 // indirect
+	cloud.google.com/go/compute/metadata v0.2.1 // indirect
 	code.cloudfoundry.org/go-diodes v0.0.0-20211115184647-b584dd5df32c // indirect
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible // indirect
 	code.cloudfoundry.org/rfc5424 v0.0.0-20201103192249-000122071b78 // indirect
@@ -63,6 +65,7 @@ require (
 	github.com/beevik/ntp v0.3.0 // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e // indirect
 	github.com/containerd/cgroups v1.0.4 // indirect
 	github.com/containerd/containerd v1.6.12 // indirect
@@ -159,8 +162,8 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/klauspost/compress v1.15.13 // indirect
-	github.com/knadh/koanf v1.4.4 // indirect
+	github.com/klauspost/compress v1.15.15 // indirect
+	github.com/knadh/koanf v1.5.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lib/pq v1.10.7 // indirect
 	github.com/linode/linodego v1.8.0 // indirect
@@ -194,7 +197,8 @@ require (
 	github.com/mwielbut/pointy v1.1.0 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.69.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.70.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.70.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect
 	github.com/opencontainers/runc v1.1.4 // indirect
@@ -245,9 +249,9 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.6 // indirect
 	go.etcd.io/etcd/client/v2 v2.305.6 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	go.opentelemetry.io/collector/featuregate v0.69.1 // indirect
-	go.opentelemetry.io/collector/receiver/otlpreceiver v0.69.1 // indirect
-	go.opentelemetry.io/collector/semconv v0.69.1 // indirect
+	go.opentelemetry.io/collector/featuregate v0.70.0 // indirect
+	go.opentelemetry.io/collector/receiver/otlpreceiver v0.70.0 // indirect
+	go.opentelemetry.io/collector/semconv v0.70.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.37.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.37.0 // indirect
 	go.opentelemetry.io/otel v1.11.2 // indirect
@@ -265,11 +269,10 @@ require (
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
 	golang.org/x/tools v0.4.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	gonum.org/v1/gonum v0.12.0 // indirect
-	google.golang.org/api v0.99.0 // indirect
+	google.golang.org/api v0.100.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c // indirect
-	google.golang.org/grpc v1.51.0 // indirect
+	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6 // indirect
+	google.golang.org/grpc v1.52.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/fatih/set.v0 v0.1.0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
@@ -294,6 +297,9 @@ replace (
 	github.com/signalfx/splunk-otel-collector/extension/smartagentextension => ../../extension/smartagentextension
 	github.com/signalfx/splunk-otel-collector/tests => ../../../tests
 )
+
+// v1.10.x has breaking changes that need adoption in the smart agent
+replace github.com/antonmedv/expr => github.com/antonmedv/expr v1.9.0
 
 // To prevent attempted downgrading for agent deps, do not remove signalfx-agent or signalfx/pkg/apm replace directives
 replace (

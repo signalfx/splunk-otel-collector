@@ -11,7 +11,7 @@ See the
 [migration guide](../../../docs/signalfx-smart-agent-migration.md)
 for more information about migrating from the Smart Agent to the Splunk Distribution of the OpenTelemetry Collector.
 
-**Beta: All Smart Agent monitors are supported at this time. Configuration and behavior may change without notice.**
+**Beta: All Smart Agent monitors are supported by Splunk. Configuration and behavior may change without notice.**
 
 ## Configuration
 

@@ -23,7 +23,7 @@ you want to put into the Collector, add a `smartagent` receiver configuration bl
 1. Put any Smart Agent or collectd configuration into the global
 [Smart Agent Extension section](../../extension/smartagentextension/README.md)
 of your Collector configuration.
-1. Instead of using Smart Agent's `discoveryRule`s, use the Collector's
+1. Instead of using `discoveryRule`, use the Collector's
 [Receiver Creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/receivercreator/README.md)
 and [Observer extensions](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/README.md).
 1. If using a [SignalFx Forwarder](https://github.com/signalfx/signalfx-agent/blob/main/docs/monitors/signalfx-forwarder.md)

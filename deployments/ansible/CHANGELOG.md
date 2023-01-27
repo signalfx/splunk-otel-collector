@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix custom URLs and HEC token configuration on windows
+
 ## ansible-v0.14.0
 
 ### 💡 Enhancements 💡

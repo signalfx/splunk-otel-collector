@@ -402,7 +402,7 @@ require (
 	github.com/signalfx/ingest-protocols v0.1.14 // indirect
 	github.com/signalfx/sapm-proto v0.12.0 // indirect
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230117211433-9858481024e4 // indirect
-	github.com/signalfx/signalfx-go v1.25.0 // indirect
+	github.com/signalfx/signalfx-go v1.26.0 // indirect
 	github.com/sijms/go-ora/v2 v2.5.24 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/snowflakedb/gosnowflake v1.6.16 // indirect

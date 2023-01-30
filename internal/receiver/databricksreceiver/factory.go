@@ -50,7 +50,7 @@ func newReceiverFactory() receiver.CreateMetricsFunc {
 		}
 		dbrClient := newDatabricksRawClient(dbrcfg.Token, dbrcfg.Endpoint, httpClient, settings.Logger)
 		dbrsvc := newDatabricksService(dbrClient, dbrcfg.MaxResults)
-		ssvc := newSparkService(settings.Logger, dbrsvc, httpClient, dbrcfg.Token, dbrcfg.SparkAPIURL, dbrcfg.SparkOrgID, dbrcfg.SparkUIPort)
+		ssvc := newSparkService(settings.Logger, dbrsvc, httpClient, dbrcfg.Token, dbrcfg.SparkEndpoint, dbrcfg.SparkOrgID, dbrcfg.SparkUIPort)
 		dbrScraper := scraper{
 			dbrInstanceName: dbrcfg.InstanceName,
 			logger:          settings.Logger,

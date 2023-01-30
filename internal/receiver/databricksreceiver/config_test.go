@@ -18,23 +18,21 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-const testdataJobID = 288
-
-func TestDatabricksClient(t *testing.T) {
-	u := databricksClient{&testdataDBRawClient{}}
-	list, err := u.jobsList(25, 0)
-	require.NoError(t, err)
-	assert.Equal(t, 2, len(list.Jobs))
-	activeRuns, err := u.activeJobRuns(25, 0)
-	require.NoError(t, err)
-	assert.Equal(t, 2, len(activeRuns.Runs))
-	completedRuns, err := u.completedJobRuns(testdataJobID, 25, 0)
-	require.NoError(t, err)
-	assert.Equal(t, "SUCCESS", completedRuns.Runs[0].State.ResultState)
-	cl, err := u.clustersList()
-	require.NoError(t, err)
-	assert.Equal(t, 2, len(cl.Clusters))
+func TestConfig_Validate(t *testing.T) {
+	cfg := createDefaultConfig()
+	rc := cfg.(*Config)
+	assert.Error(t, rc.Validate())
+	rc.Endpoint = "foo"
+	assert.Error(t, rc.Validate())
+	rc.InstanceName = "my-instance"
+	assert.Error(t, rc.Validate())
+	rc.Token = "my-token"
+	assert.NoError(t, rc.Validate())
+	rc.MaxResults = 26
+	assert.Error(t, rc.Validate())
+	rc.MaxResults = -1
+	err := rc.Validate()
+	assert.EqualError(t, err, "max_results must be between 0 and 25, inclusive")
 }

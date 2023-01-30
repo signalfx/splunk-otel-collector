@@ -16,6 +16,7 @@ package databricksreceiver
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
@@ -25,13 +26,15 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
 
+const maxMaxResults = 25
+
 func createDefaultConfig() component.Config {
 	scs := scraperhelper.NewDefaultScraperControllerSettings(typeStr)
 	// set the default collection interval to 30 seconds which is half of the
 	// lowest job frequency of 1 minute
 	scs.CollectionInterval = time.Second * 30
 	return &Config{
-		MaxResults:                25, // 25 is the max the API supports
+		MaxResults:                maxMaxResults, // 25 is the max the API supports
 		ScraperControllerSettings: scs,
 		Metrics:                   metadata.DefaultMetricsSettings(),
 	}
@@ -42,7 +45,7 @@ type Config struct {
 	InstanceName                            string `mapstructure:"instance_name"`
 	Token                                   string `mapstructure:"token"`
 	SparkOrgID                              string `mapstructure:"spark_org_id"`
-	SparkAPIURL                             string `mapstructure:"spark_api_url"`
+	SparkEndpoint                           string `mapstructure:"spark_endpoint"`
 	scraperhelper.ScraperControllerSettings `mapstructure:",squash"`
 	MaxResults                              int                      `mapstructure:"max_results"`
 	SparkUIPort                             int                      `mapstructure:"spark_ui_port"`
@@ -58,6 +61,9 @@ func (c *Config) Validate() error {
 	}
 	if c.Token == "" {
 		return errors.New("`token` is empty")
+	}
+	if c.MaxResults < 0 || c.MaxResults > maxMaxResults {
+		return fmt.Errorf("max_results must be between 0 and %d, inclusive", maxMaxResults)
 	}
 	return nil
 }

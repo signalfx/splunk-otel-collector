@@ -18,7 +18,7 @@ The following fields are required:
 - `endpoint`: The URL containing a protocol (http or https), hostname, and (optional) port of the Databricks API, without a trailing slash.
 - `token`: An [access token](https://docs.databricks.com/dev-tools/api/latest/authentication.html) to authenticate to the Databricks API. 
 - `spark_org_id`: The Spark Org ID. See the Spark Subsystem Properties section below for how to get this value.
-- `spark_api_url`: The URL containing a protocol (http or https), hostname, and (optional) port of the Spark API. See the Spark Subsystem Properties section below for how to get this value.
+- `spark_endpoint`: The URL containing a protocol (http or https), hostname, and (optional) port of the Spark API. See the Spark Subsystem Properties section below for how to get this value.
 - `spark_ui_port`: A number representing the Spark UI Port (typically 40001). See the Spark Subsystem Configuration section below for how to get this value.
 
 The following fields are optional:
@@ -36,7 +36,7 @@ databricks:
   endpoint: https://dbr.example.net
   token: abc123
   spark_org_id: 1234567890
-  spark_api_url: https://spark.example.net
+  spark_endpoint: https://spark.example.net
   spark_ui_port: 40001
   collection_interval: 10s
 

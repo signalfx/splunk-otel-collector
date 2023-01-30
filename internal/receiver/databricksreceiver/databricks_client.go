@@ -56,7 +56,7 @@ func (c databricksClient) completedJobRuns(jobID int, limit int, offset int) (jo
 	return out, err
 }
 
-func (c databricksClient) clusterList() (clusterList, error) {
+func (c databricksClient) clustersList() (clusterList, error) {
 	bytes, err := c.rawClient.clustersList()
 	out := clusterList{}
 	if err != nil {

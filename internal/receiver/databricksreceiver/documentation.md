@@ -106,7 +106,7 @@ These are the metrics available for this scraper.
 | **databricks.spark.job.num_skipped_stages** | n/a | {stages} | Gauge(Int) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>spark_job_id</li> </ul> |
 | **databricks.spark.job.num_skipped_tasks** | n/a | {tasks} | Gauge(Int) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>spark_job_id</li> </ul> |
 | **databricks.spark.job.num_tasks** | n/a | {tasks} | Gauge(Int) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>spark_job_id</li> </ul> |
-| **databricks.spark.jvmcpu.jvmcputime** | n/a |  | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
+| **databricks.spark.jvmcpu.jvmcputime** | n/a |  | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
 | **databricks.spark.livelistenerbus.numeventsposted** | n/a |  | Sum(Int) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
 | **databricks.spark.livelistenerbus.queue.appstatus.numdroppedevents** | n/a |  | Sum(Int) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
 | **databricks.spark.livelistenerbus.queue.appstatus.size** | n/a |  | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |

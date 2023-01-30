@@ -90,7 +90,6 @@ func TestSparkMetricsBuilder_GeneratedMetrics(t *testing.T) {
 	assertDoubleGaugeEq(t, metricMap, "executormetrics.processtreeothervmemory", 66666)
 	assertDoubleGaugeEq(t, metricMap, "executormetrics.processtreepythonrssmemory", 77777)
 	assertDoubleGaugeEq(t, metricMap, "executormetrics.processtreepythonvmemory", 88888)
-	assertDoubleGaugeEq(t, metricMap, "jvmcpu.jvmcputime", 57690000000)
 	assertDoubleGaugeEq(t, metricMap, "livelistenerbus.queue.appstatus.size", 99999)
 	assertDoubleGaugeEq(t, metricMap, "livelistenerbus.queue.executormanagement.size", 111111)
 	assertDoubleGaugeEq(t, metricMap, "livelistenerbus.queue.shared.size", 222222)
@@ -143,6 +142,7 @@ func TestSparkMetricsBuilder_GeneratedMetrics(t *testing.T) {
 	assertIntSumEq(t, metricMap, "livelistenerbus.queue.shared.numdroppedevents", 44)
 	assertIntSumEq(t, metricMap, "livelistenerbus.queue.streams.numdroppedevents", 45)
 
+	assertDoubleSumEq(t, metricMap, "databricks.spark.jvmcpu.jvmcputime", 57690000000)
 	assertDoubleSumEq(t, metricMap, "databricks.spark.timer.dagscheduler.messageprocessingtime.mean", 1.1)
 	assertDoubleSumEq(t, metricMap, "databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dbceventlogginglistener.mean", 1.2)
 	assertDoubleSumEq(t, metricMap, "databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dataplaneeventlistener.mean", 1.3)

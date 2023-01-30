@@ -85,7 +85,7 @@ func (s databricksRestService) completedJobRuns(jobID int, prevStartTime int64) 
 }
 
 func (s databricksRestService) runningClusters() ([]cluster, error) {
-	cl, err := s.dbrc.clusterList()
+	cl, err := s.dbrc.clustersList()
 	if err != nil {
 		return nil, fmt.Errorf("databricksRestService.runningClusterIDs(): %w", err)
 	}

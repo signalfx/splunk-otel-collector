@@ -386,8 +386,10 @@ metrics:
   databricks.spark.jvmcpu.jvmcputime:
     enabled: true
     description: n/a
-    gauge:
+    sum:
       value_type: double
+      monotonic: false
+      aggregation: cumulative
     attributes:
       [cluster_id, spark_app_id, pipeline_id, pipeline_name]
   databricks.spark.livelistenerbus.queue.appstatus.size:

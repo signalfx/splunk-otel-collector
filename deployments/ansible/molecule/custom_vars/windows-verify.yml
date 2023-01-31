@@ -71,7 +71,7 @@
         path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
         state: present
         name: SPLUNK_INGEST_URL
-        data: https://fake-ingest.com
+        data: https://fake-splunk-ingest.com
         type: string
       check_mode: yes
       register: reg_value
@@ -85,7 +85,7 @@
         path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
         state: present
         name: SPLUNK_API_URL
-        data: https://fake-api.com
+        data: https://fake-splunk-api.com
         type: string
       check_mode: yes
       register: reg_value
@@ -99,7 +99,7 @@
         path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
         state: present
         name: SPLUNK_TRACE_URL
-        data: https://fake-ingest.com/v2/trace
+        data: https://fake-splunk-ingest.com/v2/trace
         type: string
       check_mode: yes
       register: reg_value
@@ -113,7 +113,7 @@
         path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
         state: present
         name: SPLUNK_HEC_URL
-        data: https://fake-hec.com
+        data: https://fake-splunk-hec.com
         type: string
       check_mode: yes
       register: reg_value

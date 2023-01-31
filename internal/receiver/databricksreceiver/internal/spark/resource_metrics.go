@@ -150,7 +150,7 @@ func buildGauge(
 	appID := rs.appID
 	switch partialMetricName {
 	case "blockmanager.memory.diskspaceused":
-		builder.RecordDatabricksSparkBlockmanagerMemoryDiskspaceusedDataPoint(
+		builder.RecordDatabricksSparkBlockManagerMemoryDiskSpaceUsedDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -159,7 +159,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "blockmanager.memory.maxmem":
-		builder.RecordDatabricksSparkBlockmanagerMemoryMaxmemDataPoint(
+		builder.RecordDatabricksSparkBlockManagerMemoryMaxDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -168,7 +168,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "blockmanager.memory.maxoffheapmem":
-		builder.RecordDatabricksSparkBlockmanagerMemoryMaxoffheapmemDataPoint(
+		builder.RecordDatabricksSparkBlockManagerMemoryOffHeapMaxDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -177,7 +177,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "blockmanager.memory.maxonheapmem":
-		builder.RecordDatabricksSparkBlockmanagerMemoryMaxonheapmemDataPoint(
+		builder.RecordDatabricksSparkBlockManagerMemoryOnHeapMaxDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -186,7 +186,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "blockmanager.memory.memused":
-		builder.RecordDatabricksSparkBlockmanagerMemoryMemusedDataPoint(
+		builder.RecordDatabricksSparkBlockManagerMemoryUsedDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -195,7 +195,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "blockmanager.memory.offheapmemused":
-		builder.RecordDatabricksSparkBlockmanagerMemoryOffheapmemusedDataPoint(
+		builder.RecordDatabricksSparkBlockManagerMemoryOffHeapUsedDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -204,7 +204,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "blockmanager.memory.onheapmemused":
-		builder.RecordDatabricksSparkBlockmanagerMemoryOnheapmemusedDataPoint(
+		builder.RecordDatabricksSparkBlockManagerMemoryOnHeapUsedDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -213,7 +213,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "blockmanager.memory.remainingmem":
-		builder.RecordDatabricksSparkBlockmanagerMemoryRemainingmemDataPoint(
+		builder.RecordDatabricksSparkBlockManagerMemoryRemainingDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -222,7 +222,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "blockmanager.memory.remainingoffheapmem":
-		builder.RecordDatabricksSparkBlockmanagerMemoryRemainingoffheapmemDataPoint(
+		builder.RecordDatabricksSparkBlockManagerMemoryRemainingOffHeapDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -231,7 +231,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "blockmanager.memory.remainingonheapmem":
-		builder.RecordDatabricksSparkBlockmanagerMemoryRemainingonheapmemDataPoint(
+		builder.RecordDatabricksSparkBlockManagerMemoryRemainingOnHeapDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -240,7 +240,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "dagscheduler.job.activejobs":
-		builder.RecordDatabricksSparkDagschedulerJobActivejobsDataPoint(
+		builder.RecordDatabricksSparkDagSchedulerJobsActiveDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -249,7 +249,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "dagscheduler.job.alljobs":
-		builder.RecordDatabricksSparkDagschedulerJobAlljobsDataPoint(
+		builder.RecordDatabricksSparkDagSchedulerJobsAllDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -258,7 +258,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "dagscheduler.stage.failedstages":
-		builder.RecordDatabricksSparkDagschedulerStageFailedstagesDataPoint(
+		builder.RecordDatabricksSparkDagSchedulerStagesFailedDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -267,7 +267,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "dagscheduler.stage.runningstages":
-		builder.RecordDatabricksSparkDagschedulerStageRunningstagesDataPoint(
+		builder.RecordDatabricksSparkDagSchedulerStagesRunningDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -276,7 +276,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "dagscheduler.stage.waitingstages":
-		builder.RecordDatabricksSparkDagschedulerStageWaitingstagesDataPoint(
+		builder.RecordDatabricksSparkDagSchedulerStagesWaitingDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -285,7 +285,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.directpoolmemory":
-		builder.RecordDatabricksSparkExecutormetricsDirectpoolmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsDirectPoolMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -294,7 +294,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.jvmheapmemory":
-		builder.RecordDatabricksSparkExecutormetricsJvmheapmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsJvmHeapMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -303,7 +303,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.jvmoffheapmemory":
-		builder.RecordDatabricksSparkExecutormetricsJvmoffheapmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsJvmOffHeapMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -312,7 +312,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.majorgccount":
-		builder.RecordDatabricksSparkExecutormetricsMajorgccountDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsMajorGcCountDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -321,7 +321,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.majorgctime":
-		builder.RecordDatabricksSparkExecutormetricsMajorgctimeDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsMajorGcTimeDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -330,7 +330,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.mappedpoolmemory":
-		builder.RecordDatabricksSparkExecutormetricsMappedpoolmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsMappedPoolMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -339,7 +339,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.minorgccount":
-		builder.RecordDatabricksSparkExecutormetricsMinorgccountDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsMinorGcCountDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -348,7 +348,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.minorgctime":
-		builder.RecordDatabricksSparkExecutormetricsMinorgctimeDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsMinorGcTimeDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -357,7 +357,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.offheapexecutionmemory":
-		builder.RecordDatabricksSparkExecutormetricsOffheapexecutionmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsOffHeapExecutionMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -366,7 +366,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.offheapstoragememory":
-		builder.RecordDatabricksSparkExecutormetricsOffheapstoragememoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsOffHeapStorageMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -375,7 +375,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.offheapunifiedmemory":
-		builder.RecordDatabricksSparkExecutormetricsOffheapunifiedmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsOffHeapUnifiedMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -384,7 +384,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.onheapexecutionmemory":
-		builder.RecordDatabricksSparkExecutormetricsOnheapexecutionmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsOnHeapExecutionMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -393,7 +393,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.onheapstoragememory":
-		builder.RecordDatabricksSparkExecutormetricsOnheapstoragememoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsOnHeapStorageMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -402,7 +402,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.onheapunifiedmemory":
-		builder.RecordDatabricksSparkExecutormetricsOnheapunifiedmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsOnHeapUnifiedMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -411,7 +411,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.processtreejvmrssmemory":
-		builder.RecordDatabricksSparkExecutormetricsProcesstreejvmrssmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsProcessTreeJvmRssMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -420,7 +420,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.processtreejvmvmemory":
-		builder.RecordDatabricksSparkExecutormetricsProcesstreejvmvmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsProcessTreeJvmVMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -429,7 +429,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.processtreeotherrssmemory":
-		builder.RecordDatabricksSparkExecutormetricsProcesstreeotherrssmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsProcessTreeOtherRssMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -438,7 +438,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.processtreeothervmemory":
-		builder.RecordDatabricksSparkExecutormetricsProcesstreeothervmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsProcessTreeOtherVMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -447,7 +447,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.processtreepythonrssmemory":
-		builder.RecordDatabricksSparkExecutormetricsProcesstreepythonrssmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsProcessTreePythonRssMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -456,7 +456,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "executormetrics.processtreepythonvmemory":
-		builder.RecordDatabricksSparkExecutormetricsProcesstreepythonvmemoryDataPoint(
+		builder.RecordDatabricksSparkExecutorMetricsProcessTreePythonVMemoryDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -465,7 +465,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "jvmcpu.jvmcputime":
-		builder.RecordDatabricksSparkJvmcpuJvmcputimeDataPoint(
+		builder.RecordDatabricksSparkJvmCPUTimeDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -474,7 +474,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "livelistenerbus.queue.appstatus.size":
-		builder.RecordDatabricksSparkLivelistenerbusQueueAppstatusSizeDataPoint(
+		builder.RecordDatabricksSparkLiveListenerBusQueueAppstatusSizeDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -483,7 +483,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "livelistenerbus.queue.executormanagement.size":
-		builder.RecordDatabricksSparkLivelistenerbusQueueExecutormanagementSizeDataPoint(
+		builder.RecordDatabricksSparkLiveListenerBusQueueExecutormanagementSizeDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -492,7 +492,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "livelistenerbus.queue.shared.size":
-		builder.RecordDatabricksSparkLivelistenerbusQueueSharedSizeDataPoint(
+		builder.RecordDatabricksSparkLiveListenerBusQueueSharedSizeDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -501,7 +501,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "livelistenerbus.queue.streams.size":
-		builder.RecordDatabricksSparkLivelistenerbusQueueStreamsSizeDataPoint(
+		builder.RecordDatabricksSparkLiveListenerBusQueueStreamsSizeDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -510,7 +510,7 @@ func buildGauge(
 			pipelineName,
 		)
 	case "sparksqloperationmanager.numhiveoperations":
-		builder.RecordDatabricksSparkSparksqloperationmanagerNumhiveoperationsDataPoint(
+		builder.RecordDatabricksSparkSparkSQLOperationManagerHiveOperationsCountDataPoint(
 			now,
 			gauge.Value,
 			clusterID,
@@ -534,7 +534,7 @@ func buildCounter(
 	appID := rs.appID
 	switch partialMetricName {
 	case "databricks.directorycommit.autovacuumcount":
-		builder.RecordDatabricksSparkDatabricksDirectorycommitAutovacuumcountDataPoint(
+		builder.RecordDatabricksSparkDatabricksDirectoryCommitAutoVacuumCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -543,7 +543,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.directorycommit.deletedfilesfiltered":
-		builder.RecordDatabricksSparkDatabricksDirectorycommitDeletedfilesfilteredDataPoint(
+		builder.RecordDatabricksSparkDatabricksDirectoryCommitDeletedFilesFilteredDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -552,7 +552,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.directorycommit.filterlistingcount":
-		builder.RecordDatabricksSparkDatabricksDirectorycommitFilterlistingcountDataPoint(
+		builder.RecordDatabricksSparkDatabricksDirectoryCommitFilterListingCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -561,7 +561,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.directorycommit.jobcommitcompleted":
-		builder.RecordDatabricksSparkDatabricksDirectorycommitJobcommitcompletedDataPoint(
+		builder.RecordDatabricksSparkDatabricksDirectoryCommitJobCommitCompletedDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -570,7 +570,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.directorycommit.markerreaderrors":
-		builder.RecordDatabricksSparkDatabricksDirectorycommitMarkerreaderrorsDataPoint(
+		builder.RecordDatabricksSparkDatabricksDirectoryCommitMarkerReadErrorsDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -579,7 +579,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.directorycommit.markerrefreshcount":
-		builder.RecordDatabricksSparkDatabricksDirectorycommitMarkerrefreshcountDataPoint(
+		builder.RecordDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -588,7 +588,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.directorycommit.markerrefresherrors":
-		builder.RecordDatabricksSparkDatabricksDirectorycommitMarkerrefresherrorsDataPoint(
+		builder.RecordDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrorsDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -597,7 +597,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.directorycommit.markersread":
-		builder.RecordDatabricksSparkDatabricksDirectorycommitMarkersreadDataPoint(
+		builder.RecordDatabricksSparkDatabricksDirectoryCommitMarkersReadDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -606,7 +606,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.directorycommit.repeatedlistcount":
-		builder.RecordDatabricksSparkDatabricksDirectorycommitRepeatedlistcountDataPoint(
+		builder.RecordDatabricksSparkDatabricksDirectoryCommitRepeatedListCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -615,7 +615,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.directorycommit.uncommittedfilesfiltered":
-		builder.RecordDatabricksSparkDatabricksDirectorycommitUncommittedfilesfilteredDataPoint(
+		builder.RecordDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFilteredDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -624,7 +624,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.directorycommit.untrackedfilesfound":
-		builder.RecordDatabricksSparkDatabricksDirectorycommitUntrackedfilesfoundDataPoint(
+		builder.RecordDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFoundDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -633,7 +633,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.directorycommit.vacuumcount":
-		builder.RecordDatabricksSparkDatabricksDirectorycommitVacuumcountDataPoint(
+		builder.RecordDatabricksSparkDatabricksDirectoryCommitVacuumCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -642,7 +642,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.directorycommit.vacuumerrors":
-		builder.RecordDatabricksSparkDatabricksDirectorycommitVacuumerrorsDataPoint(
+		builder.RecordDatabricksSparkDatabricksDirectoryCommitVacuumErrorsDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -651,7 +651,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.preemption.numchecks":
-		builder.RecordDatabricksSparkDatabricksPreemptionNumchecksDataPoint(
+		builder.RecordDatabricksSparkDatabricksPreemptionChecksCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -660,7 +660,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.preemption.numpoolsautoexpired":
-		builder.RecordDatabricksSparkDatabricksPreemptionNumpoolsautoexpiredDataPoint(
+		builder.RecordDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -669,7 +669,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.preemption.numtaskspreempted":
-		builder.RecordDatabricksSparkDatabricksPreemptionNumtaskspreemptedDataPoint(
+		builder.RecordDatabricksSparkDatabricksPreemptionTasksPreemptedCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -678,7 +678,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.preemption.poolstarvationmillis":
-		builder.RecordDatabricksSparkDatabricksPreemptionPoolstarvationmillisDataPoint(
+		builder.RecordDatabricksSparkDatabricksPreemptionPoolstarvationTimeDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -687,7 +687,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.preemption.scheduleroverheadnanos":
-		builder.RecordDatabricksSparkDatabricksPreemptionScheduleroverheadnanosDataPoint(
+		builder.RecordDatabricksSparkDatabricksPreemptionSchedulerOverheadTimeDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -696,7 +696,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.preemption.tasktimewastedmillis":
-		builder.RecordDatabricksSparkDatabricksPreemptionTasktimewastedmillisDataPoint(
+		builder.RecordDatabricksSparkDatabricksPreemptionTaskWastedTimeDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -705,7 +705,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.activepools":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesActivepoolsDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesActivePoolsDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -714,7 +714,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.bypasslaneactivepools":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesBypasslaneactivepoolsDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePoolsDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -723,7 +723,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.fastlaneactivepools":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesFastlaneactivepoolsDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePoolsDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -732,7 +732,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.finishedqueriestotaltasktimens":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesFinishedqueriestotaltasktimensDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTimeDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -741,7 +741,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.lanecleanup.markedpools":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupMarkedpoolsDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPoolsDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -750,7 +750,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.lanecleanup.twophasepoolscleaned":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupTwophasepoolscleanedDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleanedDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -759,7 +759,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.lanecleanup.zombiepoolscleaned":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesLanecleanupZombiepoolscleanedDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleanedDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -768,7 +768,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.preemption.slottransfernumsuccessfulpreemptioniterations":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumsuccessfulpreemptioniterationsDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -777,7 +777,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.preemption.slottransfernumtaskspreempted":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransfernumtaskspreemptedDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -786,7 +786,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.preemption.slottransferwastedtasktimens":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesPreemptionSlottransferwastedtasktimensDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTimeDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -795,7 +795,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.slotreservation.numgradualdecrease":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumgradualdecreaseDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -804,7 +804,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.slotreservation.numquickdrop":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickdropDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -813,7 +813,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.slotreservation.numquickjump":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationNumquickjumpDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -822,7 +822,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.slotreservation.slotsreserved":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesSlotreservationSlotsreservedDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReservedDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -831,7 +831,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.slowlaneactivepools":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesSlowlaneactivepoolsDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePoolsDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -840,7 +840,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "databricks.taskschedulinglanes.totalquerygroupsfinished":
-		builder.RecordDatabricksSparkDatabricksTaskschedulinglanesTotalquerygroupsfinishedDataPoint(
+		builder.RecordDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinishedDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -849,7 +849,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "hiveexternalcatalog.filecachehits":
-		builder.RecordDatabricksSparkHiveexternalcatalogFilecachehitsDataPoint(
+		builder.RecordDatabricksSparkHiveExternalCatalogFileCacheHitsDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -858,7 +858,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "hiveexternalcatalog.filesdiscovered":
-		builder.RecordDatabricksSparkHiveexternalcatalogFilesdiscoveredDataPoint(
+		builder.RecordDatabricksSparkHiveExternalCatalogFilesDiscoveredDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -867,7 +867,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "hiveexternalcatalog.hiveclientcalls":
-		builder.RecordDatabricksSparkHiveexternalcatalogHiveclientcallsDataPoint(
+		builder.RecordDatabricksSparkHiveExternalCatalogHiveClientCallsDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -876,7 +876,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "hiveexternalcatalog.parallellistingjobcount":
-		builder.RecordDatabricksSparkHiveexternalcatalogParallellistingjobcountDataPoint(
+		builder.RecordDatabricksSparkHiveExternalCatalogParallelListingJobsCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -885,7 +885,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "hiveexternalcatalog.partitionsfetched":
-		builder.RecordDatabricksSparkHiveexternalcatalogPartitionsfetchedDataPoint(
+		builder.RecordDatabricksSparkHiveExternalCatalogPartitionsFetchedDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -894,7 +894,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "livelistenerbus.numeventsposted":
-		builder.RecordDatabricksSparkLivelistenerbusNumeventspostedDataPoint(
+		builder.RecordDatabricksSparkLiveListenerBusEventsPostedCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -903,7 +903,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "livelistenerbus.queue.appstatus.numdroppedevents":
-		builder.RecordDatabricksSparkLivelistenerbusQueueAppstatusNumdroppedeventsDataPoint(
+		builder.RecordDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -912,7 +912,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "livelistenerbus.queue.executormanagement.numdroppedevents":
-		builder.RecordDatabricksSparkLivelistenerbusQueueExecutormanagementNumdroppedeventsDataPoint(
+		builder.RecordDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -921,7 +921,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "livelistenerbus.queue.shared.numdroppedevents":
-		builder.RecordDatabricksSparkLivelistenerbusQueueSharedNumdroppedeventsDataPoint(
+		builder.RecordDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -930,7 +930,7 @@ func buildCounter(
 			pipelineName,
 		)
 	case "livelistenerbus.queue.streams.numdroppedevents":
-		builder.RecordDatabricksSparkLivelistenerbusQueueStreamsNumdroppedeventsDataPoint(
+		builder.RecordDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCountDataPoint(
 			now,
 			int64(counter.Count),
 			clusterID,
@@ -952,154 +952,154 @@ func buildTimers(
 	clusterID := rs.cluster.ClusterID
 	switch partialMetricName {
 	case "dagscheduler.messageprocessingtime":
-		builder.RecordDatabricksSparkTimerDagschedulerMessageprocessingtimeDataPoint(
+		builder.RecordDatabricksSparkTimerDagSchedulerMessageProcessingTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.backend.daemon.driver.dbceventlogginglistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.backend.daemon.driver.dataplaneeventlistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.photon.photoncleanuplistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.spark.util.executortimelogginglistener$":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.spark.util.usagelogginglistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.sql.advice.advisorlistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.sql.debugger.querywatchdoglistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.sql.execution.ui.iocachelistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.sql.io.caching.repeatedreadsestimator$":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.sql.sparksession$$anon$1":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.sql.execution.sqlexecution$":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.sql.execution.streaming.streamingquerylistenerbus":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.sql.execution.ui.sqlappstatuslistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.sql.hive.thriftserver.ui.hivethriftserver2listener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.sql.util.executionlistenerbus":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.status.appstatuslistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.util.profilerenv$$anon$1":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.queue.appstatus.listenerprocessingtime":
-		builder.RecordDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.queue.executormanagement.listenerprocessingtime":
-		builder.RecordDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.queue.shared.listenerprocessingtime":
-		builder.RecordDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.queue.streams.listenerprocessingtime":
-		builder.RecordDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeDataPoint(
+		builder.RecordDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
@@ -1121,13 +1121,13 @@ func buildHistos(
 	clusterID := rs.cluster.ClusterID
 	switch partialMetricName {
 	case "codegenerator.compilationtime":
-		builder.RecordDatabricksSparkCodegeneratorCompilationtimeDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
+		builder.RecordDatabricksSparkCodeGeneratorCompilationTimeDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
 	case "codegenerator.generatedclasssize":
-		builder.RecordDatabricksSparkCodegeneratorGeneratedclasssizeDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
+		builder.RecordDatabricksSparkCodeGeneratorGeneratedClassSizeDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
 	case "codegenerator.generatedmethodsize":
-		builder.RecordDatabricksSparkCodegeneratorGeneratedmethodsizeDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
+		builder.RecordDatabricksSparkCodeGeneratorGeneratedMethodSizeDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
 	case "codegenerator.sourcecodesize":
-		builder.RecordDatabricksSparkCodegeneratorSourcecodesizeDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
+		builder.RecordDatabricksSparkCodeGeneratorSourcecodeSizeDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
 	}
 }
 

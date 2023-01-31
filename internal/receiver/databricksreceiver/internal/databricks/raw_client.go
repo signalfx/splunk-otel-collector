@@ -23,15 +23,6 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/httpauth"
 )
 
-const (
-	jobsListPath         = "/api/2.1/jobs/list?expand_tasks=true&limit=%d&offset=%d"
-	activeJobRunsPath    = "/api/2.1/jobs/runs/list?active_only=true&limit=%d&offset=%d"
-	completedJobRunsPath = "/api/2.1/jobs/runs/list?completed_only=true&expand_tasks=true&job_id=%d&limit=%d&offset=%d"
-	clustersListPath     = "/api/2.0/clusters/list"
-	pipelinesPath        = "/api/2.0/pipelines"
-	pipelinePath         = "/api/2.0/pipelines/%s"
-)
-
 // RawClient defines methods extracted from rawHTTPClient so
 // that it can be swapped for testing.
 type RawClient interface {
@@ -61,35 +52,37 @@ func NewRawClient(tok, endpoint string, httpClient *http.Client, logger *zap.Log
 }
 
 func (c rawHTTPClient) jobsList(limit int, offset int) (out []byte, err error) {
-	path := fmt.Sprintf(jobsListPath, limit, offset)
+	path := fmt.Sprintf("/api/2.1/jobs/list?expand_tasks=true&limit=%d&offset=%d", limit, offset)
 	c.logger.Debug("rawHTTPClient.jobsList", zap.String("path", path))
 	return c.authClient.Get(c.endpoint + path)
 }
 
 func (c rawHTTPClient) activeJobRuns(limit int, offset int) ([]byte, error) {
-	path := fmt.Sprintf(activeJobRunsPath, limit, offset)
+	path := fmt.Sprintf("/api/2.1/jobs/runs/list?active_only=true&limit=%d&offset=%d", limit, offset)
 	c.logger.Debug("rawHTTPClient.activeJobRuns", zap.String("path", path))
 	return c.authClient.Get(c.endpoint + path)
 }
 
 func (c rawHTTPClient) completedJobRuns(jobID int, limit int, offset int) ([]byte, error) {
-	path := fmt.Sprintf(completedJobRunsPath, jobID, limit, offset)
+	path := fmt.Sprintf("/api/2.1/jobs/runs/list?completed_only=true&expand_tasks=true&job_id=%d&limit=%d&offset=%d", jobID, limit, offset)
 	c.logger.Debug("rawHTTPClient.completedJobRuns", zap.String("path", path))
 	return c.authClient.Get(c.endpoint + path)
 }
 
 func (c rawHTTPClient) clustersList() ([]byte, error) {
+	const clustersListPath = "/api/2.0/clusters/list"
 	c.logger.Debug("rawHTTPClient.clustersList", zap.String("path", clustersListPath))
 	return c.authClient.Get(c.endpoint + clustersListPath)
 }
 
 func (c rawHTTPClient) pipelines() ([]byte, error) {
+	const pipelinesPath = "/api/2.0/pipelines"
 	c.logger.Debug("rawHTTPClient.pipelines", zap.String("path", pipelinesPath))
 	return c.authClient.Get(c.endpoint + pipelinesPath)
 }
 
 func (c rawHTTPClient) pipeline(s string) ([]byte, error) {
-	path := fmt.Sprintf(pipelinePath, s)
+	path := fmt.Sprintf("/api/2.0/pipelines/%s", s)
 	c.logger.Debug("rawHTTPClient.pipeline", zap.String("path", path))
 	return c.authClient.Get(c.endpoint + path)
 }

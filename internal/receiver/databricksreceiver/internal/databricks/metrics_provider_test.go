@@ -66,17 +66,17 @@ func TestDatabricksMetricsProvider(t *testing.T) {
 	{
 		pt := job7Tasks["user2test"]
 		taskAttrs := pt.Attributes()
-		jobIDAttr, _ := taskAttrs.Get("job_id")
+		jobIDAttr, _ := taskAttrs.Get("job.id")
 		assert.EqualValues(t, 7, jobIDAttr.Int())
-		taskIDAttr, _ := taskAttrs.Get("task_id")
+		taskIDAttr, _ := taskAttrs.Get("task.id")
 		assert.EqualValues(t, "user2test", taskIDAttr.Str())
-		taskTypeAttr, _ := taskAttrs.Get("task_type")
+		taskTypeAttr, _ := taskAttrs.Get("task.type")
 		assert.Equal(t, "NotebookTask", taskTypeAttr.Str())
 	}
 	{
 		pt := job7Tasks["multi"]
 		taskAttrs := pt.Attributes()
-		taskTypeAttr, _ := taskAttrs.Get("task_type")
+		taskTypeAttr, _ := taskAttrs.Get("task.type")
 		assert.Equal(t, "SparkPythonTask", taskTypeAttr.Str())
 	}
 
@@ -84,7 +84,7 @@ func TestDatabricksMetricsProvider(t *testing.T) {
 		job102Tasks := taskMap[102]
 		pt := job102Tasks["test"]
 		taskAttrs := pt.Attributes()
-		taskTypeAttr, _ := taskAttrs.Get("task_type")
+		taskTypeAttr, _ := taskAttrs.Get("task.type")
 		assert.Equal(t, "SparkJarTask", taskTypeAttr.Str())
 	}
 
@@ -92,7 +92,7 @@ func TestDatabricksMetricsProvider(t *testing.T) {
 		job179Tasks := taskMap[179]
 		pt := job179Tasks["singletask"]
 		taskAttrs := pt.Attributes()
-		taskTypeAttr, _ := taskAttrs.Get("task_type")
+		taskTypeAttr, _ := taskAttrs.Get("task.type")
 		assert.Equal(t, "PipelineTask", taskTypeAttr.Str())
 	}
 
@@ -100,13 +100,13 @@ func TestDatabricksMetricsProvider(t *testing.T) {
 	{
 		pt := job248Tasks["dash"]
 		taskAttrs := pt.Attributes()
-		taskTypeAttr, _ := taskAttrs.Get("task_type")
+		taskTypeAttr, _ := taskAttrs.Get("task.type")
 		assert.Equal(t, "PythonWheelTask", taskTypeAttr.Str())
 	}
 	{
 		pt := job248Tasks["user2test"]
 		taskAttrs := pt.Attributes()
-		taskTypeAttr, _ := taskAttrs.Get("task_type")
+		taskTypeAttr, _ := taskAttrs.Get("task.type")
 		assert.Equal(t, "SparkSubmitTask", taskTypeAttr.Str())
 	}
 
@@ -133,14 +133,14 @@ func tasksToMap(tasks pmetric.NumberDataPointSlice) map[int64]map[string]pmetric
 	for i := 0; i < tasks.Len(); i++ {
 		task := tasks.At(i)
 		attrs := task.Attributes()
-		jobIDAttr, _ := attrs.Get("job_id")
+		jobIDAttr, _ := attrs.Get("job.id")
 		jobID := jobIDAttr.Int()
 		taskMap, ok := jobMap[jobID]
 		if !ok {
 			taskMap = map[string]pmetric.NumberDataPoint{}
 			jobMap[jobID] = taskMap
 		}
-		taskIDAttr, _ := attrs.Get("task_id")
+		taskIDAttr, _ := attrs.Get("task.id")
 		taskMap[taskIDAttr.Str()] = task
 	}
 	return jobMap

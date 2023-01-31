@@ -65,7 +65,7 @@ func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	assert.Equal(t, 1, jobMetric.Gauge().DataPoints().Len())
 	jobPt := jobMetric.Gauge().DataPoints().At(0)
 	jobAttrs := jobPt.Attributes()
-	jobID, _ := jobAttrs.Get("job_id")
+	jobID, _ := jobAttrs.Get("job.id")
 	assert.EqualValues(t, testdataJobID, jobID.Int())
 	assert.EqualValues(t, 15000, jobPt.IntValue())
 
@@ -73,9 +73,9 @@ func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	assert.Equal(t, 1, taskMetric.Gauge().DataPoints().Len())
 	taskPt := taskMetric.Gauge().DataPoints().At(0)
 	taskAttrs := taskPt.Attributes()
-	jobID, _ = taskAttrs.Get("job_id")
+	jobID, _ = taskAttrs.Get("job.id")
 	assert.EqualValues(t, testdataJobID, jobID.Int())
-	taskKey, _ := taskAttrs.Get("task_id")
+	taskKey, _ := taskAttrs.Get("task.id")
 	assert.Equal(t, "user-task", taskKey.Str())
 	assert.EqualValues(t, 15000, taskPt.IntValue())
 }

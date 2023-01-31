@@ -214,3 +214,45 @@ def test_salt_with_instrumentation(distro):
                 run_container_cmd(container, "journalctl -u td-agent --no-pager")
                 if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
                     run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
+
+
+SERVICE_OWNER_CONFIG = f"""
+splunk-otel-collector:
+  splunk_access_token: '{SPLUNK_ACCESS_TOKEN}'
+  splunk_realm: '{SPLUNK_REALM}'
+  splunk_ingest_url: '{SPLUNK_INGEST_URL}'
+  splunk_api_url: '{SPLUNK_API_URL}'
+  splunk_service_user: 'test-user'
+  splunk_service_group: 'test-user'
+"""
+
+
+@pytest.mark.salt
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+    )
+def test_salt_service_owner(distro):
+    if distro in DEB_DISTROS:
+        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
+    else:
+        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
+
+    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR) as container:
+        try:
+            run_salt_apply(container, SERVICE_OWNER_CONFIG)
+            verify_env_file(container)
+            assert wait_for(lambda: service_is_running(container, service_owner="test-user"))
+            _, owner = run_container_cmd(container, f"stat -c '%U:%G' {SPLUNK_ENV_PATH}")
+            assert owner.decode("utf-8").strip() == "test-user:test-user"
+            if "opensuse" not in distro:
+                assert container.exec_run("systemctl status td-agent").exit_code == 0
+                _, owner = run_container_cmd(container, f"stat -c '%U:%G' {CONFIG_DIR}/fluentd/fluent.conf")
+                assert owner.decode("utf-8").strip() == "td-agent:td-agent"
+        finally:
+            run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
+            if "opensuse" not in distro:
+                run_container_cmd(container, "journalctl -u td-agent --no-pager")
+                if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
+                    run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")

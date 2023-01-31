@@ -43,7 +43,7 @@ jobs:
     strategy:
       matrix:
         PACKAGE_TYPE: [ "deb", "rpm" ]
-        TEST_CASE: [ "with_fluentd", "without_fluentd", "with_instrumentation" ]
+        TEST_CASE: [ "with_fluentd", "without_fluentd", "with_instrumentation", "service_owner" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3

@@ -42,20 +42,22 @@ func TestRunMetricProvider(t *testing.T) {
 }
 
 func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
-	const ignored = 25
-	mp := NewRunMetricsProvider(NewDatabricksService(&testdataDBRawClient{testDataDir: testdataDir}, ignored))
+	mp := NewRunMetricsProvider(NewService(
+		&testdataRawClient{testDataDir: commontest.TestdataDir},
+		25,
+	))
 	builder := commontest.NewTestMetricsBuilder()
-	err := mp.AddMultiJobRunMetrics([]int{TestdataJobID}, builder, 0)
+	err := mp.AddMultiJobRunMetrics([]int{testdataJobID}, builder, 0)
 	require.NoError(t, err)
 
 	emitted := builder.Emit()
 	assert.Equal(t, 0, emitted.MetricCount())
 	assert.Equal(t, 0, emitted.DataPointCount())
 
-	err = mp.AddMultiJobRunMetrics([]int{TestdataJobID}, builder, 0)
+	err = mp.AddMultiJobRunMetrics([]int{testdataJobID}, builder, 0)
 	require.NoError(t, err)
 	emitted = builder.Emit()
-	metricMap := MetricsByName(emitted)
+	metricMap := commontest.MetricsByName(emitted)
 	assert.Equal(t, 2, emitted.MetricCount())
 	assert.Equal(t, 2, emitted.DataPointCount())
 
@@ -64,7 +66,7 @@ func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	jobPt := jobMetric.Gauge().DataPoints().At(0)
 	jobAttrs := jobPt.Attributes()
 	jobID, _ := jobAttrs.Get("job_id")
-	assert.EqualValues(t, TestdataJobID, jobID.Int())
+	assert.EqualValues(t, testdataJobID, jobID.Int())
 	assert.EqualValues(t, 15000, jobPt.IntValue())
 
 	taskMetric := metricMap["databricks.tasks.run.duration"]
@@ -72,7 +74,7 @@ func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	taskPt := taskMetric.Gauge().DataPoints().At(0)
 	taskAttrs := taskPt.Attributes()
 	jobID, _ = taskAttrs.Get("job_id")
-	assert.EqualValues(t, TestdataJobID, jobID.Int())
+	assert.EqualValues(t, testdataJobID, jobID.Int())
 	taskKey, _ := taskAttrs.Get("task_id")
 	assert.Equal(t, "user-task", taskKey.Str())
 	assert.EqualValues(t, 15000, taskPt.IntValue())

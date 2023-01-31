@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dbrspark
+package spark
 
 import (
 	"fmt"
@@ -20,7 +20,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/httpauth"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
 type ExtraMetricsBuilder struct {
@@ -28,7 +27,7 @@ type ExtraMetricsBuilder struct {
 	Logger *zap.Logger
 }
 
-func (b ExtraMetricsBuilder) BuildExecutorMetrics(clusters []spark.Cluster) (*ResourceMetrics, error) {
+func (b ExtraMetricsBuilder) BuildExecutorMetrics(clusters []Cluster) (*ResourceMetrics, error) {
 	out := NewResourceMetrics()
 	for _, clstr := range clusters {
 		execInfosByApp, err := b.Ssvc.getSparkExecutorInfoSliceByApp(clstr.ClusterID)
@@ -52,7 +51,7 @@ func (b ExtraMetricsBuilder) BuildExecutorMetrics(clusters []spark.Cluster) (*Re
 	return out, nil
 }
 
-func (b ExtraMetricsBuilder) BuildJobMetrics(clusters []spark.Cluster) (*ResourceMetrics, error) {
+func (b ExtraMetricsBuilder) BuildJobMetrics(clusters []Cluster) (*ResourceMetrics, error) {
 	out := NewResourceMetrics()
 	for _, clstr := range clusters {
 		jobInfosByApp, err := b.Ssvc.getSparkJobInfoSliceByApp(clstr.ClusterID)
@@ -76,7 +75,7 @@ func (b ExtraMetricsBuilder) BuildJobMetrics(clusters []spark.Cluster) (*Resourc
 	return out, nil
 }
 
-func (b ExtraMetricsBuilder) BuildStageMetrics(clusters []spark.Cluster) (*ResourceMetrics, error) {
+func (b ExtraMetricsBuilder) BuildStageMetrics(clusters []Cluster) (*ResourceMetrics, error) {
 	out := NewResourceMetrics()
 	for _, clstr := range clusters {
 		stageInfosByApp, err := b.Ssvc.getSparkStageInfoSliceByApp(clstr.ClusterID)

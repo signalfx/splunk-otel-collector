@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dbrspark
+package spark
 
 import (
 	"testing"
@@ -23,15 +23,14 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
 func TestSparkDbrMetrics_Append(t *testing.T) {
 	outerRM := NewResourceMetrics()
-	c := spark.Cluster{ClusterID: "my-cluster-id", ClusterName: "my-cluster-name", State: "my-cluster-state"}
+	c := Cluster{ClusterID: "my-cluster-id", ClusterName: "my-cluster-name", State: "my-cluster-state"}
 
 	rmSub1 := NewResourceMetrics()
-	rmSub1.addCounter(c, "my-app-id", spark.Counter{Count: 42}, sparkMetricBase{
+	rmSub1.addCounter(c, "my-app-id", Counter{Count: 42}, sparkMetricBase{
 		partialMetricName: "databricks.directorycommit.autovacuumcount",
 		pipelineID:        "my-pipeline-id",
 		pipelineName:      "my-pipeline-name",
@@ -39,7 +38,7 @@ func TestSparkDbrMetrics_Append(t *testing.T) {
 	outerRM.Append(rmSub1)
 
 	rmSub2 := NewResourceMetrics()
-	rmSub2.addCounter(c, "my-app-id", spark.Counter{Count: 111}, sparkMetricBase{
+	rmSub2.addCounter(c, "my-app-id", Counter{Count: 111}, sparkMetricBase{
 		partialMetricName: "databricks.directorycommit.deletedfilesfiltered",
 		pipelineID:        "my-pipeline-id",
 		pipelineName:      "my-pipeline-name",

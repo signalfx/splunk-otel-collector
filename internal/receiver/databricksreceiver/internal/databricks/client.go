@@ -19,70 +19,68 @@ import (
 	"fmt"
 )
 
-const TestdataJobID = 288
-
-// databricksClient wraps a DatabricksRawClient implementation and unmarshals json byte
+// client wraps a RawClient implementation and unmarshals json byte
 // arrays to the types defined in json_types.go. Its method signatures mirror
 // those of the rawClient.
-type databricksClient struct {
-	rawClient DatabricksRawClient
+type client struct {
+	rawClient RawClient
 }
 
-func (c databricksClient) jobsList(limit int, offset int) (jobsList, error) {
+func (c client) jobsList(limit int, offset int) (jobsList, error) {
 	bytes, err := c.rawClient.jobsList(limit, offset)
 	out := jobsList{}
 	if err != nil {
-		return out, fmt.Errorf("databricksClient.jobsList(): %w", err)
+		return out, fmt.Errorf("jobsList failed to get jobs list: %w", err)
 	}
 	err = json.Unmarshal(bytes, &out)
 	return out, err
 }
 
-func (c databricksClient) activeJobRuns(limit int, offset int) (jobRuns, error) {
+func (c client) activeJobRuns(limit int, offset int) (jobRuns, error) {
 	bytes, err := c.rawClient.activeJobRuns(limit, offset)
 	out := jobRuns{}
 	if err != nil {
-		return out, fmt.Errorf("databricksClient.activeJobRuns(): %w", err)
+		return out, fmt.Errorf("activeJobRuns failed to get active job runs: %w", err)
 	}
 	err = json.Unmarshal(bytes, &out)
 	return out, err
 }
 
-func (c databricksClient) completedJobRuns(jobID int, limit int, offset int) (jobRuns, error) {
+func (c client) completedJobRuns(jobID int, limit int, offset int) (jobRuns, error) {
 	bytes, err := c.rawClient.completedJobRuns(jobID, limit, offset)
 	out := jobRuns{}
 	if err != nil {
-		return out, fmt.Errorf("databricksClient.completedJobRuns(): %w", err)
+		return out, fmt.Errorf("completedJobRuns failed to get completed job runs: %w", err)
 	}
 	err = json.Unmarshal(bytes, &out)
 	return out, err
 }
 
-func (c databricksClient) clustersList() (clusterList, error) {
+func (c client) clustersList() (clusterList, error) {
 	bytes, err := c.rawClient.clustersList()
 	out := clusterList{}
 	if err != nil {
-		return out, fmt.Errorf("databricksClient.clusterList(): %w", err)
+		return out, fmt.Errorf("clustersList failed to get cluster list: %w", err)
 	}
 	err = json.Unmarshal(bytes, &out)
 	return out, err
 }
 
-func (c databricksClient) pipelines() (pipelinesInfo, error) {
+func (c client) pipelines() (pipelinesInfo, error) {
 	bytes, err := c.rawClient.pipelines()
 	out := pipelinesInfo{}
 	if err != nil {
-		return out, fmt.Errorf("databricksClient.pipelines(): %w", err)
+		return out, fmt.Errorf("pipelines failed to get pipelines: %w", err)
 	}
 	err = json.Unmarshal(bytes, &out)
 	return out, err
 }
 
-func (c databricksClient) pipeline(id string) (pipelineInfo, error) {
+func (c client) pipeline(id string) (pipelineInfo, error) {
 	bytes, err := c.rawClient.pipeline(id)
 	out := pipelineInfo{}
 	if err != nil {
-		return out, fmt.Errorf("databricksClient.pipeline(): %w", err)
+		return out, fmt.Errorf("pipeline failed to get pipeline: id %s: %w", id, err)
 	}
 	err = json.Unmarshal(bytes, &out)
 	return out, err

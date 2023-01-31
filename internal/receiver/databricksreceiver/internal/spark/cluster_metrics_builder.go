@@ -12,20 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dbrspark
+package spark
 
 import (
 	"fmt"
 	"strings"
-
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
 type ClusterMetricsBuilder struct {
 	Ssvc Service
 }
 
-func (b ClusterMetricsBuilder) BuildCoreMetrics(clusters []spark.Cluster, pipelines []spark.PipelineSummary) (*ResourceMetrics, error) {
+func (b ClusterMetricsBuilder) BuildCoreMetrics(clusters []Cluster, pipelines []PipelineSummary) (*ResourceMetrics, error) {
 	out := NewResourceMetrics()
 
 	sparkMetricsForCluster, err := b.Ssvc.getSparkMetricsForClusters(clusters)
@@ -33,14 +31,14 @@ func (b ClusterMetricsBuilder) BuildCoreMetrics(clusters []spark.Cluster, pipeli
 		return nil, fmt.Errorf("error getting spark metrics for clusters: %w", err)
 	}
 
-	pipelinesByClusterID := map[string]spark.PipelineSummary{}
+	pipelinesByClusterID := map[string]PipelineSummary{}
 	for _, pipeline := range pipelines {
 		pipelinesByClusterID[pipeline.ClusterID] = pipeline
 	}
 
 	for clstr, sparkMetrics := range sparkMetricsForCluster {
 		pipeline, ok := pipelinesByClusterID[clstr.ClusterID]
-		var pipelineRef *spark.PipelineSummary
+		var pipelineRef *PipelineSummary
 		if ok {
 			pipelineRef = &pipeline
 		}
@@ -57,16 +55,7 @@ func (b ClusterMetricsBuilder) BuildCoreMetrics(clusters []spark.Cluster, pipeli
 	return out, nil
 }
 
-func (b ClusterMetricsBuilder) histoMetrics(m spark.ClusterMetrics, clstr spark.Cluster, pipeline *spark.PipelineSummary) *ResourceMetrics {
-	out := NewResourceMetrics()
-	for key, sparkHisto := range m.Histograms {
-		appID, partialMetricName := stripSparkMetricKey(key)
-		out.addHisto(clstr, appID, sparkHisto, newSparkMetricBase(partialMetricName, pipeline))
-	}
-	return out
-}
-
-func (b ClusterMetricsBuilder) clusterMetrics(m spark.ClusterMetrics, pipeline *spark.PipelineSummary, clstr spark.Cluster) *ResourceMetrics {
+func (b ClusterMetricsBuilder) clusterMetrics(m ClusterMetrics, pipeline *PipelineSummary, clstr Cluster) *ResourceMetrics {
 	out := NewResourceMetrics()
 	for key, gauge := range m.Gauges {
 		appID, partialMetricName := stripSparkMetricKey(key)
@@ -82,11 +71,20 @@ func (b ClusterMetricsBuilder) clusterMetrics(m spark.ClusterMetrics, pipeline *
 	return out
 }
 
-func (b ClusterMetricsBuilder) timerMetrics(m spark.ClusterMetrics, cluster spark.Cluster, pipeline *spark.PipelineSummary) *ResourceMetrics {
+func (b ClusterMetricsBuilder) timerMetrics(m ClusterMetrics, cluster Cluster, pipeline *PipelineSummary) *ResourceMetrics {
 	out := NewResourceMetrics()
 	for key, timer := range m.Timers {
 		appID, partialMetricName := stripSparkMetricKey(key)
 		out.addTimer(cluster, appID, timer, newSparkMetricBase(partialMetricName, pipeline))
+	}
+	return out
+}
+
+func (b ClusterMetricsBuilder) histoMetrics(m ClusterMetrics, clstr Cluster, pipeline *PipelineSummary) *ResourceMetrics {
+	out := NewResourceMetrics()
+	for key, sparkHisto := range m.Histograms {
+		appID, partialMetricName := stripSparkMetricKey(key)
+		out.addHisto(clstr, appID, sparkHisto, newSparkMetricBase(partialMetricName, pipeline))
 	}
 	return out
 }

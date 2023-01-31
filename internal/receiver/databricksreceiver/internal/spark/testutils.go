@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dbrspark
+package spark
 
 import (
 	"os"
@@ -22,7 +22,6 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/httpauth"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
 func NewTestSuccessSparkService(testdataDir string) Service {
@@ -36,7 +35,7 @@ func NewTestForbiddenSparkService(testdataDir, forbiddenClusterID string) Servic
 func newTestSparkService(testdataDir, forbiddenClusterID string) restService {
 	return restService{
 		logger: zap.New(zapcore.NewNopCore()),
-		sparkClient: spark.Client{RawClient: &testDataSparkRawClient{
+		sparkClient: client{rawClient: &testDataSparkRawClient{
 			testdataDir:        testdataDir,
 			forbiddenClusterID: forbiddenClusterID,
 		}},
@@ -48,37 +47,37 @@ type testDataSparkRawClient struct {
 	forbiddenClusterID string
 }
 
-func (c *testDataSparkRawClient) Metrics(clusterID string) ([]byte, error) {
+func (c *testDataSparkRawClient) metrics(clusterID string) ([]byte, error) {
 	if clusterID == c.forbiddenClusterID {
-		return nil, httpauth.ForbiddenErr()
+		return nil, httpauth.ErrForbidden
 	}
 	return os.ReadFile(filepath.Join(c.testdataDir, "spark", "metrics.json"))
 }
 
-func (c *testDataSparkRawClient) Applications(clusterID string) ([]byte, error) {
+func (c *testDataSparkRawClient) applications(clusterID string) ([]byte, error) {
 	if clusterID == c.forbiddenClusterID {
-		return nil, httpauth.ForbiddenErr()
+		return nil, httpauth.ErrForbidden
 	}
 	return os.ReadFile(filepath.Join(c.testdataDir, "spark", "applications.json"))
 }
 
-func (c *testDataSparkRawClient) AppExecutors(clusterID, appID string) ([]byte, error) {
+func (c *testDataSparkRawClient) appExecutors(clusterID, appID string) ([]byte, error) {
 	if clusterID == c.forbiddenClusterID {
-		return nil, httpauth.ForbiddenErr()
+		return nil, httpauth.ErrForbidden
 	}
 	return os.ReadFile(filepath.Join(c.testdataDir, "spark", "executors.json"))
 }
 
-func (c *testDataSparkRawClient) AppJobs(clusterID, appID string) ([]byte, error) {
+func (c *testDataSparkRawClient) appJobs(clusterID, appID string) ([]byte, error) {
 	if clusterID == c.forbiddenClusterID {
-		return nil, httpauth.ForbiddenErr()
+		return nil, httpauth.ErrForbidden
 	}
 	return os.ReadFile(filepath.Join(c.testdataDir, "spark", "jobs.json"))
 }
 
-func (c *testDataSparkRawClient) AppStages(clusterID, appID string) ([]byte, error) {
+func (c *testDataSparkRawClient) appStages(clusterID, appID string) ([]byte, error) {
 	if clusterID == c.forbiddenClusterID {
-		return nil, httpauth.ForbiddenErr()
+		return nil, httpauth.ErrForbidden
 	}
 	return os.ReadFile(filepath.Join(c.testdataDir, "spark", "stages.json"))
 }

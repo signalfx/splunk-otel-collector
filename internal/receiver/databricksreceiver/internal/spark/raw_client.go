@@ -29,17 +29,17 @@ const (
 	appStagesPathFmt    = applicationsPath + "/%s/stages"
 )
 
-// RawClient defines the methods that can be called against the Spark API. Its
+// rawClient defines the methods that can be called against the Spark API. Its
 // return values are byte arrays to be unmarshalled by the caller.
-type RawClient interface {
-	Metrics(clusterID string) ([]byte, error)
-	Applications(clusterID string) ([]byte, error)
-	AppExecutors(clusterID, appID string) ([]byte, error)
-	AppJobs(clusterID, appID string) ([]byte, error)
-	AppStages(clusterID, appID string) ([]byte, error)
+type rawClient interface {
+	metrics(clusterID string) ([]byte, error)
+	applications(clusterID string) ([]byte, error)
+	appExecutors(clusterID, appID string) ([]byte, error)
+	appJobs(clusterID, appID string) ([]byte, error)
+	appStages(clusterID, appID string) ([]byte, error)
 }
 
-// rawHTTPClient implements RawClient.
+// rawHTTPClient implements rawClient.
 type rawHTTPClient struct {
 	authClient     httpauth.Client
 	baseURLPattern string
@@ -52,23 +52,23 @@ func newRawHTTPClient(authClient httpauth.Client, sparkAPIURL string, orgID stri
 	}
 }
 
-func (c rawHTTPClient) Metrics(clusterID string) ([]byte, error) {
+func (c rawHTTPClient) metrics(clusterID string) ([]byte, error) {
 	return c.authClient.Get(c.baseURL(clusterID) + metricsPath)
 }
 
-func (c rawHTTPClient) Applications(clusterID string) ([]byte, error) {
+func (c rawHTTPClient) applications(clusterID string) ([]byte, error) {
 	return c.authClient.Get(c.baseURL(clusterID) + applicationsPath)
 }
 
-func (c rawHTTPClient) AppExecutors(clusterID, appID string) ([]byte, error) {
+func (c rawHTTPClient) appExecutors(clusterID, appID string) ([]byte, error) {
 	return c.authClient.Get(c.baseURL(clusterID) + fmt.Sprintf(appExecutorsPathFmt, appID))
 }
 
-func (c rawHTTPClient) AppJobs(clusterID, appID string) ([]byte, error) {
+func (c rawHTTPClient) appJobs(clusterID, appID string) ([]byte, error) {
 	return c.authClient.Get(c.baseURL(clusterID) + fmt.Sprintf(appJobsPathFmt, appID))
 }
 
-func (c rawHTTPClient) AppStages(clusterID, appID string) ([]byte, error) {
+func (c rawHTTPClient) appStages(clusterID, appID string) ([]byte, error) {
 	return c.authClient.Get(c.baseURL(clusterID) + fmt.Sprintf(appStagesPathFmt, appID))
 }
 

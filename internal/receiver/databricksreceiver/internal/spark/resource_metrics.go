@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dbrspark
+package spark
 
 import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
 func NewResourceMetrics() *ResourceMetrics {
@@ -37,7 +36,7 @@ type metricBuilder interface {
 }
 
 type resource struct {
-	cluster spark.Cluster
+	cluster Cluster
 	appID   string
 }
 
@@ -51,7 +50,7 @@ func (m *ResourceMetrics) Append(other *ResourceMetrics) {
 	}
 }
 
-func (m *ResourceMetrics) addGauge(cluster spark.Cluster, appID string, gauge spark.Gauge, mb sparkMetricBase) {
+func (m *ResourceMetrics) addGauge(cluster Cluster, appID string, gauge Gauge, mb sparkMetricBase) {
 	rs := resource{
 		cluster: cluster,
 		appID:   appID,
@@ -62,7 +61,7 @@ func (m *ResourceMetrics) addGauge(cluster spark.Cluster, appID string, gauge sp
 	})
 }
 
-func (m *ResourceMetrics) addCounter(cluster spark.Cluster, appID string, counter spark.Counter, mb sparkMetricBase) {
+func (m *ResourceMetrics) addCounter(cluster Cluster, appID string, counter Counter, mb sparkMetricBase) {
 	rs := resource{
 		cluster: cluster,
 		appID:   appID,
@@ -73,7 +72,7 @@ func (m *ResourceMetrics) addCounter(cluster spark.Cluster, appID string, counte
 	})
 }
 
-func (m *ResourceMetrics) addTimer(cluster spark.Cluster, appID string, timer spark.Timer, mb sparkMetricBase) {
+func (m *ResourceMetrics) addTimer(cluster Cluster, appID string, timer Timer, mb sparkMetricBase) {
 	rs := resource{
 		cluster: cluster,
 		appID:   appID,
@@ -84,7 +83,7 @@ func (m *ResourceMetrics) addTimer(cluster spark.Cluster, appID string, timer sp
 	})
 }
 
-func (m *ResourceMetrics) addHisto(cluster spark.Cluster, appID string, histo spark.Histogram, mb sparkMetricBase) {
+func (m *ResourceMetrics) addHisto(cluster Cluster, appID string, histo Histogram, mb sparkMetricBase) {
 	rs := resource{
 		cluster: cluster,
 		appID:   appID,
@@ -95,7 +94,7 @@ func (m *ResourceMetrics) addHisto(cluster spark.Cluster, appID string, histo sp
 	})
 }
 
-func (m *ResourceMetrics) addExecInfo(clstr spark.Cluster, appID string, info spark.ExecutorInfo) {
+func (m *ResourceMetrics) addExecInfo(clstr Cluster, appID string, info ExecutorInfo) {
 	resrc := resource{
 		cluster: clstr,
 		appID:   appID,
@@ -105,7 +104,7 @@ func (m *ResourceMetrics) addExecInfo(clstr spark.Cluster, appID string, info sp
 	})
 }
 
-func (m *ResourceMetrics) addJobInfos(clstr spark.Cluster, appID string, info spark.JobInfo) {
+func (m *ResourceMetrics) addJobInfos(clstr Cluster, appID string, info JobInfo) {
 	resrc := resource{
 		cluster: clstr,
 		appID:   appID,
@@ -115,7 +114,7 @@ func (m *ResourceMetrics) addJobInfos(clstr spark.Cluster, appID string, info sp
 	})
 }
 
-func (m *ResourceMetrics) addStageInfo(clstr spark.Cluster, appID string, info spark.StageInfo) {
+func (m *ResourceMetrics) addStageInfo(clstr Cluster, appID string, info StageInfo) {
 	resrc := resource{
 		cluster: clstr,
 		appID:   appID,
@@ -142,7 +141,7 @@ func buildGauge(
 	builder *metadata.MetricsBuilder,
 	partialMetricName string,
 	now pcommon.Timestamp,
-	gauge spark.Gauge,
+	gauge Gauge,
 	rs resource,
 	pipelineID string,
 	pipelineName string,
@@ -526,7 +525,7 @@ func buildCounter(
 	builder *metadata.MetricsBuilder,
 	partialMetricName string,
 	now pcommon.Timestamp,
-	counter spark.Counter,
+	counter Counter,
 	rs resource,
 	pipelineID string,
 	pipelineName string,
@@ -946,7 +945,7 @@ func buildTimers(
 	builder *metadata.MetricsBuilder,
 	partialMetricName string,
 	now pcommon.Timestamp,
-	timer spark.Timer,
+	timer Timer,
 	rs resource,
 ) {
 	appID := rs.appID
@@ -1113,7 +1112,7 @@ func buildHistos(
 	builder *metadata.MetricsBuilder,
 	partialMetricName string,
 	now pcommon.Timestamp,
-	histo spark.Histogram,
+	histo Histogram,
 	rs resource,
 	pipelineID string,
 	pipelineName string,
@@ -1132,7 +1131,7 @@ func buildHistos(
 	}
 }
 
-func buildExecMetrics(builder *metadata.MetricsBuilder, execInfo spark.ExecutorInfo, now pcommon.Timestamp, rs resource) {
+func buildExecMetrics(builder *metadata.MetricsBuilder, execInfo ExecutorInfo, now pcommon.Timestamp, rs resource) {
 	builder.RecordDatabricksSparkExecutorMemoryUsedDataPoint(now, int64(execInfo.MemoryUsed), rs.cluster.ClusterID, rs.appID, execInfo.ID)
 	builder.RecordDatabricksSparkExecutorDiskUsedDataPoint(now, int64(execInfo.DiskUsed), rs.cluster.ClusterID, rs.appID, execInfo.ID)
 	builder.RecordDatabricksSparkExecutorTotalInputBytesDataPoint(now, execInfo.TotalInputBytes, rs.cluster.ClusterID, rs.appID, execInfo.ID)
@@ -1141,7 +1140,7 @@ func buildExecMetrics(builder *metadata.MetricsBuilder, execInfo spark.ExecutorI
 	builder.RecordDatabricksSparkExecutorMaxMemoryDataPoint(now, execInfo.MaxMemory, rs.cluster.ClusterID, rs.appID, execInfo.ID)
 }
 
-func buildJobMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp, jobInfo spark.JobInfo, rs resource) {
+func buildJobMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp, jobInfo JobInfo, rs resource) {
 	builder.RecordDatabricksSparkJobNumTasksDataPoint(now, int64(jobInfo.NumTasks), rs.cluster.ClusterID, rs.appID, int64(jobInfo.JobID))
 	builder.RecordDatabricksSparkJobNumActiveTasksDataPoint(now, int64(jobInfo.NumActiveTasks), rs.cluster.ClusterID, rs.appID, int64(jobInfo.JobID))
 	builder.RecordDatabricksSparkJobNumCompletedTasksDataPoint(now, int64(jobInfo.NumCompletedTasks), rs.cluster.ClusterID, rs.appID, int64(jobInfo.JobID))
@@ -1153,7 +1152,7 @@ func buildJobMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp, jo
 	builder.RecordDatabricksSparkJobNumFailedStagesDataPoint(now, int64(jobInfo.NumFailedStages), rs.cluster.ClusterID, rs.appID, int64(jobInfo.JobID))
 }
 
-func buildStageMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp, stageInfo spark.StageInfo, rs resource) {
+func buildStageMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp, stageInfo StageInfo, rs resource) {
 	builder.RecordDatabricksSparkStageExecutorRunTimeDataPoint(now, int64(stageInfo.ExecutorRunTime), rs.cluster.ClusterID, rs.appID, int64(stageInfo.StageID))
 	builder.RecordDatabricksSparkStageInputBytesDataPoint(now, int64(stageInfo.InputBytes), rs.cluster.ClusterID, rs.appID, int64(stageInfo.StageID))
 	builder.RecordDatabricksSparkStageInputRecordsDataPoint(now, int64(stageInfo.InputRecords), rs.cluster.ClusterID, rs.appID, int64(stageInfo.StageID))
@@ -1163,7 +1162,7 @@ func buildStageMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp, 
 	builder.RecordDatabricksSparkStageDiskBytesSpilledDataPoint(now, int64(stageInfo.DiskBytesSpilled), rs.cluster.ClusterID, rs.appID, int64(stageInfo.StageID))
 }
 
-func newSparkMetricBase(partialMetricName string, pipeline *spark.PipelineSummary) sparkMetricBase {
+func newSparkMetricBase(partialMetricName string, pipeline *PipelineSummary) sparkMetricBase {
 	pipelineID := ""
 	pipelineName := ""
 	if pipeline != nil {
@@ -1185,7 +1184,7 @@ type sparkMetricBase struct {
 
 type gaugeInfo struct {
 	sparkMetricBase
-	gauge spark.Gauge
+	gauge Gauge
 }
 
 func (i gaugeInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {
@@ -1194,7 +1193,7 @@ func (i gaugeInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcom
 
 type counterInfo struct {
 	sparkMetricBase
-	counter spark.Counter
+	counter Counter
 }
 
 func (i counterInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {
@@ -1203,7 +1202,7 @@ func (i counterInfo) build(builder *metadata.MetricsBuilder, rs resource, now pc
 
 type timerInfo struct {
 	sparkMetricBase
-	timer spark.Timer
+	timer Timer
 }
 
 func (i timerInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {
@@ -1212,7 +1211,7 @@ func (i timerInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcom
 
 type histoInfo struct {
 	sparkMetricBase
-	histo spark.Histogram
+	histo Histogram
 }
 
 func (i histoInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {
@@ -1220,7 +1219,7 @@ func (i histoInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcom
 }
 
 type execInfo struct {
-	execInfo spark.ExecutorInfo
+	execInfo ExecutorInfo
 }
 
 func (i execInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {
@@ -1228,7 +1227,7 @@ func (i execInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcomm
 }
 
 type jobInfo struct {
-	jobInfo spark.JobInfo
+	jobInfo JobInfo
 }
 
 func (i jobInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {
@@ -1236,7 +1235,7 @@ func (i jobInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommo
 }
 
 type stageInfo struct {
-	stageInfo spark.StageInfo
+	stageInfo StageInfo
 }
 
 func (i stageInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {

@@ -15,27 +15,26 @@
 package databricks
 
 import (
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
 )
 
-var testdataDir = filepath.Join("..", "..", "testdata")
-
-func TestDatabricksClient(t *testing.T) {
-	u := databricksClient{&testdataDBRawClient{testDataDir: testdataDir}}
-	list, err := u.jobsList(25, 0)
+func TestClient(t *testing.T) {
+	c := client{&testdataRawClient{testDataDir: commontest.TestdataDir}}
+	list, err := c.jobsList(25, 0)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(list.Jobs))
-	activeRuns, err := u.activeJobRuns(25, 0)
+	activeRuns, err := c.activeJobRuns(25, 0)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(activeRuns.Runs))
-	completedRuns, err := u.completedJobRuns(TestdataJobID, 25, 0)
+	completedRuns, err := c.completedJobRuns(testdataJobID, 25, 0)
 	require.NoError(t, err)
 	assert.Equal(t, "SUCCESS", completedRuns.Runs[0].State.ResultState)
-	cl, err := u.clustersList()
+	cl, err := c.clustersList()
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(cl.Clusters))
 }

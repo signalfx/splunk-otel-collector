@@ -24,8 +24,8 @@ import (
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/databricks"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/dbrspark"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
 const typeStr = "databricks"
@@ -48,19 +48,19 @@ func newReceiverFactory() receiver.CreateMetricsFunc {
 		dbrcfg := cfg.(*Config)
 		httpClient, err := dbrcfg.ToClient(nil, settings.TelemetrySettings)
 		if err != nil {
-			return nil, fmt.Errorf("newReceiverFactory: failed to create client from config: %w", err)
+			return nil, fmt.Errorf("newReceiverFactory failed to create client from config: %w", err)
 		}
-		dbrClient := databricks.NewDatabricksRawClient(dbrcfg.Token, dbrcfg.Endpoint, httpClient, settings.Logger)
-		dbrsvc := databricks.NewDatabricksService(dbrClient, dbrcfg.MaxResults)
-		ssvc := dbrspark.NewService(settings.Logger, httpClient, dbrcfg.Token, dbrcfg.SparkEndpoint, dbrcfg.SparkOrgID, dbrcfg.SparkUIPort)
+		dbrClient := databricks.NewRawClient(dbrcfg.Token, dbrcfg.Endpoint, httpClient, settings.Logger)
+		dbrsvc := databricks.NewService(dbrClient, dbrcfg.MaxResults)
+		ssvc := spark.NewService(settings.Logger, httpClient, dbrcfg.Token, dbrcfg.SparkEndpoint, dbrcfg.SparkOrgID, dbrcfg.SparkUIPort)
 		dbrScraper := scraper{
 			dbrInstanceName: dbrcfg.InstanceName,
 			logger:          settings.Logger,
 			rmp:             databricks.NewRunMetricsProvider(dbrsvc),
-			dbrmp:           databricks.DbrMetricsProvider{Dbrsvc: dbrsvc},
+			dbrmp:           databricks.MetricsProvider{Svc: dbrsvc},
 			metricsBuilder:  metadata.NewMetricsBuilder(dbrcfg.Metrics, settings.BuildInfo),
-			scmb:            dbrspark.ClusterMetricsBuilder{Ssvc: ssvc},
-			semb: dbrspark.ExtraMetricsBuilder{
+			scmb:            spark.ClusterMetricsBuilder{Ssvc: ssvc},
+			semb: spark.ExtraMetricsBuilder{
 				Ssvc:   ssvc,
 				Logger: settings.Logger,
 			},
@@ -68,7 +68,7 @@ func newReceiverFactory() receiver.CreateMetricsFunc {
 		}
 		collectorScraper, err := scraperhelper.NewScraper(typeStr, dbrScraper.scrape)
 		if err != nil {
-			return nil, fmt.Errorf("newReceiverFactory: failed to create scraper: %w", err)
+			return nil, fmt.Errorf("newReceiverFactory failed to create scraper: %w", err)
 		}
 		return scraperhelper.NewScraperControllerReceiver(
 			&dbrcfg.ScraperControllerSettings,

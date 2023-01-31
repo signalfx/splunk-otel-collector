@@ -12,13 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package httpauth
-
-import "errors"
-
-var ErrForbidden = errors.New("403 Forbidden")
-
-// IsForbidden tests whether the passed-in error wraps errForbidden.
-func IsForbidden(err error) bool {
-	return errors.Is(err, ErrForbidden)
-}
+package spark

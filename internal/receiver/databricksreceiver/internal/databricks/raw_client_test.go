@@ -22,15 +22,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/httpauth"
 )
 
-func TestDBRawHTTPClient(t *testing.T) {
-	h := &commontest.FakeHandler{}
+func TestRawHTTPClient(t *testing.T) {
+	h := &httpauth.FakeHandler{}
 	svr := httptest.NewServer(h)
 	defer svr.Close()
-	c := databricksRawHTTPClient{
+	c := rawHTTPClient{
 		authClient: httpauth.NewClient(http.DefaultClient, "abc123"),
 		endpoint:   svr.URL,
 		logger:     zap.NewNop(),

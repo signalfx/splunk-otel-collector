@@ -39,28 +39,28 @@ type bearerClient struct {
 func (c bearerClient) Get(url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("bearerClient.Get: failed to create new request: %w", err)
+		return nil, fmt.Errorf("bearerCclient failed to create new request: %w", err)
 	}
 	req.Header.Add("Authorization", "Bearer "+c.tok)
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("bearerClient.Get: failed to send http request: %w", err)
+		return nil, fmt.Errorf("bearerClient failed to send http request: %w", err)
 	}
 
 	if resp.StatusCode == http.StatusForbidden {
-		return nil, errForbidden
+		return nil, ErrForbidden
 	}
 
 	// read response JSON even if the status code is not http.StatusOK
 	defer func() { _ = resp.Body.Close() }()
 	out, err := io.ReadAll(resp.Body)
 	if err != nil && resp.StatusCode == http.StatusOK {
-		return nil, fmt.Errorf("bearerClient.Get: failed to read response body: %w", err)
+		return nil, fmt.Errorf("bearerClient failed to read response body: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		text := http.StatusText(resp.StatusCode)
-		return out, fmt.Errorf("bearerClient.Get: got status code: %d: %s", resp.StatusCode, text)
+		return out, fmt.Errorf("bearerClient got status code: %d: %s", resp.StatusCode, text)
 	}
 
 	return out, nil

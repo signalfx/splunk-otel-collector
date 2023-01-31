@@ -24,8 +24,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/databricks"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/dbrspark"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
 // scraper provides a scrape method to a scraper controller receiver. The scrape
@@ -33,9 +33,9 @@ import (
 // timer.
 type scraper struct {
 	rmp             databricks.RunMetricsProvider
-	semb            dbrspark.ExtraMetricsBuilder
-	dbrmp           databricks.DbrMetricsProvider
-	scmb            dbrspark.ClusterMetricsBuilder
+	semb            spark.ExtraMetricsBuilder
+	dbrmp           databricks.MetricsProvider
+	scmb            spark.ClusterMetricsBuilder
 	dbrsvc          databricks.Service
 	logger          *zap.Logger
 	metricsBuilder  *metadata.MetricsBuilder
@@ -47,17 +47,17 @@ func (s scraper) scrape(_ context.Context) (pmetric.Metrics, error) {
 
 	jobIDs, err := s.dbrmp.AddJobStatusMetrics(s.metricsBuilder, now)
 	if err != nil {
-		return pmetric.Metrics{}, fmt.Errorf("srape: error adding job status metrics: %w", err)
+		return pmetric.Metrics{}, fmt.Errorf("srape failed to add job status metrics: %w", err)
 	}
 
 	err = s.dbrmp.AddNumActiveRunsMetric(s.metricsBuilder, now)
 	if err != nil {
-		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to add num active runs metric %w", err)
+		return pmetric.Metrics{}, fmt.Errorf("scrape failed to add num active runs metric %w", err)
 	}
 
 	err = s.rmp.AddMultiJobRunMetrics(jobIDs, s.metricsBuilder, now)
 	if err != nil {
-		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to add multi job run metrics: %w", err)
+		return pmetric.Metrics{}, fmt.Errorf("scrape failed to add multi job run metrics: %w", err)
 	}
 
 	dbrMetrics := s.metricsBuilder.Emit(metadata.WithDatabricksInstanceName(s.dbrInstanceName))
@@ -65,38 +65,38 @@ func (s scraper) scrape(_ context.Context) (pmetric.Metrics, error) {
 	// spark metrics
 	clusters, err := s.dbrsvc.RunningClusters()
 	if err != nil {
-		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to get running clusters: %w", err)
+		return pmetric.Metrics{}, fmt.Errorf("scrape failed to get running clusters: %w", err)
 	}
 	s.logger.Debug("found clusters", zap.Any("clusters", clusters))
 
 	pipelines, err := s.dbrsvc.RunningPipelines()
 	if err != nil {
-		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to get pipelines: %w", err)
+		return pmetric.Metrics{}, fmt.Errorf("scrape failed to get pipelines: %w", err)
 	}
 
-	allSparkDbrMetrics := dbrspark.NewResourceMetrics()
+	allSparkDbrMetrics := spark.NewResourceMetrics()
 
 	coreClusterMetrics, err := s.scmb.BuildCoreMetrics(clusters, pipelines)
 	if err != nil {
-		return pmetric.Metrics{}, fmt.Errorf("scrape: error building spark metrics: %w", err)
+		return pmetric.Metrics{}, fmt.Errorf("scrape failed to build spark metrics: %w", err)
 	}
 	allSparkDbrMetrics.Append(coreClusterMetrics)
 
 	execClusterMetrics, err := s.semb.BuildExecutorMetrics(clusters)
 	if err != nil {
-		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to build executor metrics: %w", err)
+		return pmetric.Metrics{}, fmt.Errorf("scrape failed to build executor metrics: %w", err)
 	}
 	allSparkDbrMetrics.Append(execClusterMetrics)
 
 	jobClusterMetrics, err := s.semb.BuildJobMetrics(clusters)
 	if err != nil {
-		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to build job metrics: %w", err)
+		return pmetric.Metrics{}, fmt.Errorf("scrape failed to build job metrics: %w", err)
 	}
 	allSparkDbrMetrics.Append(jobClusterMetrics)
 
 	stageClusterMetrics, err := s.semb.BuildStageMetrics(clusters)
 	if err != nil {
-		return pmetric.Metrics{}, fmt.Errorf("scrape: failed to build stage metrics: %w", err)
+		return pmetric.Metrics{}, fmt.Errorf("scrape failed to build stage metrics: %w", err)
 	}
 	allSparkDbrMetrics.Append(stageClusterMetrics)
 

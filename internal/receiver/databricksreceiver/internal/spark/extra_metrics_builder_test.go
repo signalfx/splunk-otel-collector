@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dbrspark
+package spark
 
 import (
 	"testing"
@@ -24,13 +24,11 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/databricks"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
-func TestSparkMetricsBuilder_Executors(t *testing.T) {
+func TestSparkExtraMetricsBuilder_Executors(t *testing.T) {
 	semb := newTestExtraMetricsBuilder()
-	execMetrics, err := semb.BuildExecutorMetrics([]spark.Cluster{{ClusterID: "foo"}})
+	execMetrics, err := semb.BuildExecutorMetrics([]Cluster{{ClusterID: "foo"}})
 	require.NoError(t, err)
 
 	builder := commontest.NewTestMetricsBuilder()
@@ -40,7 +38,7 @@ func TestSparkMetricsBuilder_Executors(t *testing.T) {
 		metrics.ResourceMetrics().MoveAndAppendTo(pm.ResourceMetrics())
 	}
 
-	metricMap := databricks.MetricsByName(pm)
+	metricMap := commontest.MetricsByName(pm)
 	assertSparkIntGaugeEq(t, metricMap, "executor.memory_used", 709517, 636121)
 	assertSparkIntGaugeEq(t, metricMap, "executor.disk_used", 1, 2)
 	assertSparkIntSumEq(t, metricMap, "executor.total_input_bytes", 3, 4)
@@ -49,9 +47,9 @@ func TestSparkMetricsBuilder_Executors(t *testing.T) {
 	assertSparkIntGaugeEq(t, metricMap, "executor.max_memory", 4544318668, 4773956812)
 }
 
-func TestSparkMetricsBuilder_Jobs(t *testing.T) {
+func TestSparkExtraMetricsBuilder_Jobs(t *testing.T) {
 	semb := newTestExtraMetricsBuilder()
-	jobMetrics, err := semb.BuildJobMetrics([]spark.Cluster{{ClusterID: "foo"}})
+	jobMetrics, err := semb.BuildJobMetrics([]Cluster{{ClusterID: "foo"}})
 	require.NoError(t, err)
 
 	builder := commontest.NewTestMetricsBuilder()
@@ -61,7 +59,7 @@ func TestSparkMetricsBuilder_Jobs(t *testing.T) {
 		metrics.ResourceMetrics().MoveAndAppendTo(pm.ResourceMetrics())
 	}
 
-	metricMap := databricks.MetricsByName(pm)
+	metricMap := commontest.MetricsByName(pm)
 	assertSparkIntGaugeEq(t, metricMap, "job.num_tasks", 9, 8)
 	assertSparkIntGaugeEq(t, metricMap, "job.num_active_tasks", 10, 11)
 	assertSparkIntGaugeEq(t, metricMap, "job.num_completed_tasks", 12, 13)
@@ -73,9 +71,9 @@ func TestSparkMetricsBuilder_Jobs(t *testing.T) {
 	assertSparkIntGaugeEq(t, metricMap, "job.num_failed_stages", 24, 25)
 }
 
-func TestSparkMetricsBuilder_Stages(t *testing.T) {
+func TestSparkExtraMetricsBuilder_Stages(t *testing.T) {
 	semb := newTestExtraMetricsBuilder()
-	stageMetrics, err := semb.BuildStageMetrics([]spark.Cluster{{ClusterID: "foo"}})
+	stageMetrics, err := semb.BuildStageMetrics([]Cluster{{ClusterID: "foo"}})
 	require.NoError(t, err)
 
 	builder := commontest.NewTestMetricsBuilder()
@@ -84,7 +82,7 @@ func TestSparkMetricsBuilder_Stages(t *testing.T) {
 	for _, metrics := range built {
 		metrics.ResourceMetrics().MoveAndAppendTo(pm.ResourceMetrics())
 	}
-	metricMap := databricks.MetricsByName(pm)
+	metricMap := commontest.MetricsByName(pm)
 	assertSparkIntGaugeEq(t, metricMap, "stage.executor_run_time", 1, 2)
 	assertSparkIntGaugeEq(t, metricMap, "stage.input_bytes", 3, 4)
 	assertSparkIntGaugeEq(t, metricMap, "stage.input_records", 5, 6)
@@ -96,7 +94,7 @@ func TestSparkMetricsBuilder_Stages(t *testing.T) {
 
 func newTestExtraMetricsBuilder() ExtraMetricsBuilder {
 	return ExtraMetricsBuilder{
-		Ssvc:   NewTestSuccessSparkService(testdataDir),
+		Ssvc:   NewTestSuccessSparkService(commontest.TestdataDir),
 		Logger: zap.NewNop(),
 	}
 }

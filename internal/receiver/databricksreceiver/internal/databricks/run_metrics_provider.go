@@ -40,7 +40,7 @@ func (p RunMetricsProvider) AddMultiJobRunMetrics(jobIDs []int, builder *metadat
 	for _, jobID := range jobIDs {
 		err := p.addSingleJobRunMetrics(jobID, builder, ts)
 		if err != nil {
-			return fmt.Errorf("runMetricsProvider.addMultiJobRunMetrics(): aborting: %w", err)
+			return fmt.Errorf("AddMultiJobRunMetrics failed to get single job run metrics: aborting: %w", err)
 		}
 	}
 	return nil
@@ -50,7 +50,7 @@ func (p RunMetricsProvider) addSingleJobRunMetrics(jobID int, builder *metadata.
 	startTime := p.tracker.getPrevStartTime(jobID)
 	runs, err := p.dbrsvc.CompletedJobRuns(jobID, startTime)
 	if err != nil {
-		return fmt.Errorf("runMetricsProvider.addSingleJobRunMetrics(): %w", err)
+		return fmt.Errorf("addSingleJobRunMetrics failed to get single job run metrics: %w", err)
 	}
 	newRuns := p.tracker.extractNewRuns(runs)
 	for _, run := range newRuns {

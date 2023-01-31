@@ -22,16 +22,15 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
 
-// DbrMetricsProvider wraps a Service and provides metrics for databricks
-// endpoints.
-type DbrMetricsProvider struct {
-	Dbrsvc Service
+// MetricsProvider wraps a Service and provides metrics for databricks endpoints.
+type MetricsProvider struct {
+	Svc Service
 }
 
-func (p DbrMetricsProvider) AddJobStatusMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp) ([]int, error) {
-	jobs, err := p.Dbrsvc.jobs()
+func (p MetricsProvider) AddJobStatusMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp) ([]int, error) {
+	jobs, err := p.Svc.jobs()
 	if err != nil {
-		return nil, fmt.Errorf("dbrMetricsProvider.addJobStatusMetrics(): %w", err)
+		return nil, fmt.Errorf("AddJobStatusMetrics failed to get jobs: %w", err)
 	}
 	builder.RecordDatabricksJobsTotalDataPoint(now, int64(len(jobs)))
 
@@ -53,10 +52,10 @@ func (p DbrMetricsProvider) AddJobStatusMetrics(builder *metadata.MetricsBuilder
 	return jobIDs, nil
 }
 
-func (p DbrMetricsProvider) AddNumActiveRunsMetric(builder *metadata.MetricsBuilder, now pcommon.Timestamp) error {
-	runs, err := p.Dbrsvc.activeJobRuns()
+func (p MetricsProvider) AddNumActiveRunsMetric(builder *metadata.MetricsBuilder, now pcommon.Timestamp) error {
+	runs, err := p.Svc.activeJobRuns()
 	if err != nil {
-		return fmt.Errorf("dbrMetricsProvider.addNumActiveJobsMetric(): %w", err)
+		return fmt.Errorf("AddNumActiveRunsMetric failed to get active job runs: %w", err)
 	}
 	builder.RecordDatabricksJobsActiveTotalDataPoint(now, int64(len(runs)))
 	return nil

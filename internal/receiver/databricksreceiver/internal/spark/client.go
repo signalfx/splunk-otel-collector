@@ -22,82 +22,82 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/httpauth"
 )
 
-// NewClient creates a Client, which is a REST client for a Spark API running
-// behind a Databricks proxy. It gets JSON bytes from its RawClient and
+// newClient creates a client, which is a REST client for a Spark API running
+// behind a Databricks proxy. It gets JSON bytes from its rawClient and
 // unmarshalls content into go types. Although it's focused on standalone Spark,
 // this document has some additional information:
 // https://spark.apache.org/docs/latest/monitoring.html
-func NewClient(httpClient *http.Client, tok, sparkEndpoint, orgID string, port int) Client {
-	return Client{
-		RawClient: newRawHTTPClient(httpauth.NewClient(httpClient, tok), sparkEndpoint, orgID, port),
+func newClient(httpClient *http.Client, tok, sparkEndpoint, orgID string, port int) client {
+	return client{
+		rawClient: newRawHTTPClient(httpauth.NewClient(httpClient, tok), sparkEndpoint, orgID, port),
 	}
 }
 
-type Client struct {
-	RawClient RawClient
+type client struct {
+	rawClient rawClient
 }
 
-func (c Client) Metrics(clusterID string) (ClusterMetrics, error) {
+func (c client) metrics(clusterID string) (ClusterMetrics, error) {
 	cm := ClusterMetrics{}
-	bytes, err := c.RawClient.Metrics(clusterID)
+	bytes, err := c.rawClient.metrics(clusterID)
 	if err != nil {
-		return cm, fmt.Errorf("failed to get metrics from spark: %w", err)
+		return cm, fmt.Errorf("metrics failed to get metrics from spark: %w", err)
 	}
 	err = json.Unmarshal(bytes, &cm)
 	if err != nil {
-		return cm, fmt.Errorf("failed to unmarshal spark metrics: %w", err)
+		return cm, fmt.Errorf("metricsfailed to unmarshal spark metrics: %w", err)
 	}
 	return cm, nil
 }
 
-func (c Client) Applications(clusterID string) ([]Application, error) {
+func (c client) applications(clusterID string) ([]Application, error) {
 	var apps []Application
-	bytes, err := c.RawClient.Applications(clusterID)
+	bytes, err := c.rawClient.applications(clusterID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get applications from spark: %w", err)
+		return nil, fmt.Errorf("applications failed to get applications from spark: %w", err)
 	}
 	err = json.Unmarshal(bytes, &apps)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal spark applications: %w", err)
+		return nil, fmt.Errorf("applications failed to unmarshal spark applications: %w", err)
 	}
 	return apps, nil
 }
 
-func (c Client) AppExecutors(clusterID, appID string) ([]ExecutorInfo, error) {
-	bytes, err := c.RawClient.AppExecutors(clusterID, appID)
+func (c client) appExecutors(clusterID, appID string) ([]ExecutorInfo, error) {
+	bytes, err := c.rawClient.appExecutors(clusterID, appID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get app executors from spark: %w", err)
+		return nil, fmt.Errorf("appExecutors failed to get app executors from spark: %w", err)
 	}
 	var ei []ExecutorInfo
 	err = json.Unmarshal(bytes, &ei)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal executor info: %w", err)
+		return nil, fmt.Errorf("appExecutors failed to unmarshal executor info: %w", err)
 	}
 	return ei, nil
 }
 
-func (c Client) AppJobs(clusterID, appID string) ([]JobInfo, error) {
-	bytes, err := c.RawClient.AppJobs(clusterID, appID)
+func (c client) appJobs(clusterID, appID string) ([]JobInfo, error) {
+	bytes, err := c.rawClient.appJobs(clusterID, appID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get jobs from spark: %w", err)
+		return nil, fmt.Errorf("appJobs failed to get jobs from spark: %w", err)
 	}
 	var jobs []JobInfo
 	err = json.Unmarshal(bytes, &jobs)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal job info: %w", err)
+		return nil, fmt.Errorf("appJobs failed to unmarshal job info: %w", err)
 	}
 	return jobs, nil
 }
 
-func (c Client) AppStages(clusterID, appID string) ([]StageInfo, error) {
-	bytes, err := c.RawClient.AppStages(clusterID, appID)
+func (c client) appStages(clusterID, appID string) ([]StageInfo, error) {
+	bytes, err := c.rawClient.appStages(clusterID, appID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get jobs from spark: %w", err)
+		return nil, fmt.Errorf("appStages failed to get jobs from spark: %w", err)
 	}
 	var stages []StageInfo
 	err = json.Unmarshal(bytes, &stages)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal job info: %w", err)
+		return nil, fmt.Errorf("appStages failed to unmarshal job info: %w", err)
 	}
 	return stages, nil
 }

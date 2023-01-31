@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dbrspark
+package spark
 
 import (
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -25,11 +24,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/databricks"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
-
-var testdataDir = filepath.Join("..", "..", "testdata")
 
 func TestStripSparkMetricKey(t *testing.T) {
 	key := "app-20221117221047-0000.driver.BlockManager.memory.diskSpaceUsed_MB"
@@ -40,9 +35,9 @@ func TestStripSparkMetricKey(t *testing.T) {
 
 func TestClusterMetricsBuilder_GeneratedMetrics(t *testing.T) {
 	mb := ClusterMetricsBuilder{
-		Ssvc: NewTestSuccessSparkService(testdataDir),
+		Ssvc: NewTestSuccessSparkService(commontest.TestdataDir),
 	}
-	coreMetrics, err := mb.BuildCoreMetrics([]spark.Cluster{{
+	coreMetrics, err := mb.BuildCoreMetrics([]Cluster{{
 		ClusterID:   "my-cluster-id",
 		ClusterName: "my-cluster-name",
 		State:       "my-cluster-state",
@@ -61,7 +56,7 @@ func TestClusterMetricsBuilder_GeneratedMetrics(t *testing.T) {
 	assert.Equal(t, expectedCount, pm.MetricCount())
 	assert.Equal(t, expectedCount, pm.DataPointCount())
 
-	metricMap := databricks.MetricsByName(pm)
+	metricMap := commontest.MetricsByName(pm)
 	assertSparkDoubleGaugeEq(t, metricMap, "blockmanager.memory.diskspaceused", 42)
 	assertSparkDoubleGaugeEq(t, metricMap, "blockmanager.memory.maxmem", 123)
 	assertSparkDoubleGaugeEq(t, metricMap, "blockmanager.memory.maxoffheapmem", 111)

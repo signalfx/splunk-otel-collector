@@ -12,4 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dbrspark
+package httpauth
+
+import "net/http"
+
+// FakeHandler implements http.Handler, and handles fake requests for testing,
+// appending requests to an array member for later inspection
+type FakeHandler struct {
+	Reqs []*http.Request
+}
+
+func (h *FakeHandler) ServeHTTP(_ http.ResponseWriter, req *http.Request) {
+	h.Reqs = append(h.Reqs, req)
+}

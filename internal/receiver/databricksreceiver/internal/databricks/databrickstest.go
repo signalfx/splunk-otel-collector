@@ -19,42 +19,41 @@ import (
 	"os"
 	"path/filepath"
 
-	"go.opentelemetry.io/collector/pdata/pmetric"
-
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
-func NewTestDatabricksSingleClusterService(testdataDir string) Service {
-	return NewDatabricksService(
-		&testdataDBRawClient{testDataDir: testdataDir},
-		25,
-	)
+const testdataJobID = 288
+
+func NewTestSingleClusterService(testdataDir string) Service {
+	return NewService(&testdataRawClient{
+		testDataDir: testdataDir,
+	}, 25)
 }
 
-func NewTestDatabricksMultiClusterService(testdataDir string) Service {
-	return NewDatabricksService(&testdataDBRawClient{
+func NewTestMultiClusterService(testdataDir string) Service {
+	return NewService(&testdataRawClient{
 		testDataDir:  testdataDir,
 		multiCluster: true,
 	}, 25)
 }
 
-// testdataDBRawClient implements DatabricksRawClient but is backed by json files in testdata.
-type testdataDBRawClient struct {
-	i            int
+// testdataRawClient implements RawClient but is backed by json files in testdata.
+type testdataRawClient struct {
 	testDataDir  string
+	i            int
 	multiCluster bool
 }
 
-func (c *testdataDBRawClient) jobsList(limit int, offset int) ([]byte, error) {
+func (c *testdataRawClient) jobsList(limit int, offset int) ([]byte, error) {
 	return os.ReadFile(filepath.Join(c.testDataDir, fmt.Sprintf("jobs-list-%d.json", offset/limit)))
 }
 
-func (c *testdataDBRawClient) activeJobRuns(limit int, offset int) ([]byte, error) {
+func (c *testdataRawClient) activeJobRuns(limit int, offset int) ([]byte, error) {
 	return os.ReadFile(filepath.Join(c.testDataDir, fmt.Sprintf("active-job-runs-%d.json", offset/limit)))
 }
 
-func (c *testdataDBRawClient) completedJobRuns(jobID int, limit int, offset int) ([]byte, error) {
-	if jobID != TestdataJobID {
+func (c *testdataRawClient) completedJobRuns(jobID int, limit int, offset int) ([]byte, error) {
+	if jobID != testdataJobID {
 		return []byte("{}"), nil
 	}
 	if offset == 0 {
@@ -63,34 +62,19 @@ func (c *testdataDBRawClient) completedJobRuns(jobID int, limit int, offset int)
 	return os.ReadFile(filepath.Join(c.testDataDir, fmt.Sprintf("completed-job-runs-%d-%d.json", c.i-1, offset/limit)))
 }
 
-func (c *testdataDBRawClient) clustersList() ([]byte, error) {
+func (c *testdataRawClient) clustersList() ([]byte, error) {
 	if c.multiCluster {
 		return os.ReadFile(filepath.Join(c.testDataDir, "clusters-list-multi.json"))
 	}
 	return os.ReadFile(filepath.Join(c.testDataDir, "clusters-list.json"))
 }
 
-func (c *testdataDBRawClient) pipelines() ([]byte, error) {
+func (c *testdataRawClient) pipelines() ([]byte, error) {
 	return os.ReadFile(filepath.Join(c.testDataDir, "pipelines.json"))
 }
 
-func (c *testdataDBRawClient) pipeline(s string) ([]byte, error) {
+func (c *testdataRawClient) pipeline(s string) ([]byte, error) {
 	return os.ReadFile(filepath.Join(c.testDataDir, "pipeline.json"))
-}
-
-func MetricsByName(pm pmetric.Metrics) map[string]pmetric.Metric {
-	out := map[string]pmetric.Metric{}
-	for i := 0; i < pm.ResourceMetrics().Len(); i++ {
-		sms := pm.ResourceMetrics().At(i).ScopeMetrics()
-		for j := 0; j < sms.Len(); j++ {
-			ms := sms.At(j).Metrics()
-			for k := 0; k < ms.Len(); k++ {
-				metric := ms.At(k)
-				out[metric.Name()] = metric
-			}
-		}
-	}
-	return out
 }
 
 type fakeDatabricksRestService struct {

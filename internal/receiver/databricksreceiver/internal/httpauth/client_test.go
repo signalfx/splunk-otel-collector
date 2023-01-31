@@ -23,12 +23,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
-
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
 )
 
 func TestBearerClient(t *testing.T) {
-	h := &commontest.FakeHandler{}
+	h := &FakeHandler{}
 	svr := httptest.NewServer(h)
 	defer svr.Close()
 	s := confighttp.HTTPClientSettings{}
@@ -43,6 +41,6 @@ func TestBearerClient(t *testing.T) {
 }
 
 func TestIsForbidden(t *testing.T) {
-	wrapper := fmt.Errorf("wrapping this error: %w", errForbidden)
+	wrapper := fmt.Errorf("wrapping this error: %w", ErrForbidden)
 	assert.True(t, IsForbidden(wrapper))
 }

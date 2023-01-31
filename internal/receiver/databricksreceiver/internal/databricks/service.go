@@ -20,7 +20,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
-// Service is extracted from databricksRestService for swapping out in unit tests
+// Service is extracted from restService for swapping out in unit tests
 type Service interface {
 	jobs() ([]Job, error)
 	activeJobRuns() ([]JobRun, error)
@@ -29,52 +29,26 @@ type Service interface {
 	RunningPipelines() ([]spark.PipelineSummary, error)
 }
 
-// databricksRestService handles pagination (responses specify hasMore=true/false) and
+// restService handles pagination (responses specify hasMore=true/false) and
 // combines the returned objects into one array.
-type databricksRestService struct {
-	dbrc  databricksClient
-	limit int
+type restService struct {
+	client client
+	limit  int
 }
 
-func NewDatabricksService(dbrc DatabricksRawClient, limit int) Service {
-	return databricksRestService{
-		dbrc:  databricksClient{rawClient: dbrc},
-		limit: limit,
+func NewService(dbrc RawClient, limit int) Service {
+	return restService{
+		client: client{rawClient: dbrc},
+		limit:  limit,
 	}
 }
 
-func (s databricksRestService) jobs() (out []Job, err error) {
+func (s restService) CompletedJobRuns(jobID int, prevStartTime int64) (out []JobRun, err error) {
 	hasMore := true
 	for i := 0; hasMore; i++ {
-		resp, err := s.dbrc.jobsList(s.limit, s.limit*i)
+		resp, err := s.client.completedJobRuns(jobID, s.limit, s.limit*i)
 		if err != nil {
-			return nil, fmt.Errorf("databricksRestService.jobs(): %w", err)
-		}
-		out = append(out, resp.Jobs...)
-		hasMore = resp.HasMore
-	}
-	return out, nil
-}
-
-func (s databricksRestService) activeJobRuns() (out []JobRun, err error) {
-	hasMore := true
-	for i := 0; hasMore; i++ {
-		resp, err := s.dbrc.activeJobRuns(s.limit, s.limit*i)
-		if err != nil {
-			return nil, fmt.Errorf("databricksRestService.activeJobRuns(): %w", err)
-		}
-		out = append(out, resp.Runs...)
-		hasMore = resp.HasMore
-	}
-	return out, nil
-}
-
-func (s databricksRestService) CompletedJobRuns(jobID int, prevStartTime int64) (out []JobRun, err error) {
-	hasMore := true
-	for i := 0; hasMore; i++ {
-		resp, err := s.dbrc.completedJobRuns(jobID, s.limit, s.limit*i)
-		if err != nil {
-			return nil, fmt.Errorf("databricksRestService.completedJobRuns(): %w", err)
+			return nil, fmt.Errorf("CompletedJobRuns failed to get completedJobRuns: %w", err)
 		}
 		out = append(out, resp.Runs...)
 		if prevStartTime == 0 || resp.Runs == nil || resp.Runs[len(resp.Runs)-1].StartTime < prevStartTime {
@@ -88,10 +62,10 @@ func (s databricksRestService) CompletedJobRuns(jobID int, prevStartTime int64) 
 	return out, nil
 }
 
-func (s databricksRestService) RunningClusters() ([]spark.Cluster, error) {
-	cl, err := s.dbrc.clustersList()
+func (s restService) RunningClusters() ([]spark.Cluster, error) {
+	cl, err := s.client.clustersList()
 	if err != nil {
-		return nil, fmt.Errorf("databricksRestService.runningClusterIDs(): %w", err)
+		return nil, fmt.Errorf("RunningClusters failed to get runningClusterIDs: %w", err)
 	}
 	var out []spark.Cluster
 	for _, c := range cl.Clusters {
@@ -103,20 +77,20 @@ func (s databricksRestService) RunningClusters() ([]spark.Cluster, error) {
 	return out, nil
 }
 
-func (s databricksRestService) RunningPipelines() ([]spark.PipelineSummary, error) {
-	pipelines, err := s.dbrc.pipelines()
+func (s restService) RunningPipelines() ([]spark.PipelineSummary, error) {
+	pipelines, err := s.client.pipelines()
 	if err != nil {
-		return nil, fmt.Errorf("databricksRestService.runningPipelines(): %w", err)
+		return nil, fmt.Errorf("RunningPipelines failed to get pipelines: %w", err)
 	}
 	var out []spark.PipelineSummary
 	for _, status := range pipelines.Statuses {
 		if status.State != "RUNNING" {
 			continue
 		}
-		pipeline, err := s.dbrc.pipeline(status.PipelineID)
+		pipeline, err := s.client.pipeline(status.PipelineID)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"databricksRestService.runningPipelines(): failed to get pipeline info: pipeline id: %s: %w",
+				"RunningPipelines failed to get single pipeline: id: %s: %w",
 				status.PipelineID,
 				err,
 			)
@@ -126,6 +100,32 @@ func (s databricksRestService) RunningPipelines() ([]spark.PipelineSummary, erro
 			Name:      status.Name,
 			ClusterID: pipeline.ClusterID,
 		})
+	}
+	return out, nil
+}
+
+func (s restService) jobs() (out []Job, err error) {
+	hasMore := true
+	for i := 0; hasMore; i++ {
+		resp, err := s.client.jobsList(s.limit, s.limit*i)
+		if err != nil {
+			return nil, fmt.Errorf("jobs failed to get job list: %w", err)
+		}
+		out = append(out, resp.Jobs...)
+		hasMore = resp.HasMore
+	}
+	return out, nil
+}
+
+func (s restService) activeJobRuns() (out []JobRun, err error) {
+	hasMore := true
+	for i := 0; hasMore; i++ {
+		resp, err := s.client.activeJobRuns(s.limit, s.limit*i)
+		if err != nil {
+			return nil, fmt.Errorf("activeJobRuns failed to get activeJobRuns: %w", err)
+		}
+		out = append(out, resp.Runs...)
+		hasMore = resp.HasMore
 	}
 	return out, nil
 }

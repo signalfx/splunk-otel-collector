@@ -25,8 +25,8 @@ import (
 )
 
 func TestDatabricksMetricsProvider(t *testing.T) {
-	var dbrsvc = NewDatabricksService(&testdataDBRawClient{testDataDir: testdataDir}, 25)
-	mp := DbrMetricsProvider{Dbrsvc: dbrsvc}
+	var dbrsvc = NewService(&testdataRawClient{testDataDir: commontest.TestdataDir}, 25)
+	mp := MetricsProvider{Svc: dbrsvc}
 
 	builder := commontest.NewTestMetricsBuilder()
 	_, err := mp.AddJobStatusMetrics(builder, 0)
@@ -34,7 +34,7 @@ func TestDatabricksMetricsProvider(t *testing.T) {
 	emitted := builder.Emit()
 	assert.Equal(t, 3, emitted.MetricCount())
 
-	metricMap := MetricsByName(emitted)
+	metricMap := commontest.MetricsByName(emitted)
 	rms := emitted.ResourceMetrics()
 	assert.Equal(t, 1, rms.Len())
 	rm := rms.At(0)

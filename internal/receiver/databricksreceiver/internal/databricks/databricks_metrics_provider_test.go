@@ -12,30 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package databricks
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
 )
 
 func TestDatabricksMetricsProvider(t *testing.T) {
-	var dbrsvc = newDatabricksService(&testdataDBRawClient{}, 25)
-	mp := dbrMetricsProvider{dbrsvc: dbrsvc}
+	var dbrsvc = NewDatabricksService(&testdataDBRawClient{testDataDir: testdataDir}, 25)
+	mp := DbrMetricsProvider{Dbrsvc: dbrsvc}
 
-	builder := newTestMetricsBuilder()
-	_, err := mp.addJobStatusMetrics(builder, 0)
+	builder := commontest.NewTestMetricsBuilder()
+	_, err := mp.AddJobStatusMetrics(builder, 0)
 	require.NoError(t, err)
 	emitted := builder.Emit()
 	assert.Equal(t, 3, emitted.MetricCount())
 
-	metricMap := metricsByName(emitted)
+	metricMap := MetricsByName(emitted)
 	rms := emitted.ResourceMetrics()
 	assert.Equal(t, 1, rms.Len())
 	rm := rms.At(0)
@@ -111,7 +110,7 @@ func TestDatabricksMetricsProvider(t *testing.T) {
 		assert.Equal(t, "SparkSubmitTask", taskTypeAttr.Str())
 	}
 
-	err = mp.addNumActiveRunsMetric(builder, 0)
+	err = mp.AddNumActiveRunsMetric(builder, 0)
 	require.NoError(t, err)
 
 	emitted = builder.Emit()
@@ -127,25 +126,6 @@ func TestDatabricksMetricsProvider(t *testing.T) {
 	activeRunsMetric := ms.At(0)
 	assert.Equal(t, "databricks.jobs.active.total", activeRunsMetric.Name())
 	assert.Equal(t, 1, activeRunsMetric.Gauge().DataPoints().Len())
-}
-
-func newTestMetricsBuilder() *metadata.MetricsBuilder {
-	return metadata.NewMetricsBuilder(metadata.DefaultMetricsSettings(), component.BuildInfo{})
-}
-
-func metricsByName(pm pmetric.Metrics) map[string]pmetric.Metric {
-	out := map[string]pmetric.Metric{}
-	for i := 0; i < pm.ResourceMetrics().Len(); i++ {
-		sms := pm.ResourceMetrics().At(i).ScopeMetrics()
-		for j := 0; j < sms.Len(); j++ {
-			ms := sms.At(j).Metrics()
-			for k := 0; k < ms.Len(); k++ {
-				metric := ms.At(k)
-				out[metric.Name()] = metric
-			}
-		}
-	}
-	return out
 }
 
 func tasksToMap(tasks pmetric.NumberDataPointSlice) map[int64]map[string]pmetric.NumberDataPoint {

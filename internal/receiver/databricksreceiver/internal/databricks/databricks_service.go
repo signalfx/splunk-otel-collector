@@ -12,17 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package databricks
 
-import "fmt"
+import (
+	"fmt"
 
-// databricksService is extracted from databricksRestService for swapping out in unit tests
-type databricksService interface {
-	jobs() ([]job, error)
-	activeJobRuns() ([]jobRun, error)
-	completedJobRuns(int, int64) ([]jobRun, error)
-	runningClusters() ([]cluster, error)
-	runningPipelines() ([]pipelineSummary, error)
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
+)
+
+// Service is extracted from databricksRestService for swapping out in unit tests
+type Service interface {
+	jobs() ([]Job, error)
+	activeJobRuns() ([]JobRun, error)
+	CompletedJobRuns(int, int64) ([]JobRun, error)
+	RunningClusters() ([]spark.Cluster, error)
+	RunningPipelines() ([]spark.PipelineSummary, error)
 }
 
 // databricksRestService handles pagination (responses specify hasMore=true/false) and
@@ -32,14 +36,14 @@ type databricksRestService struct {
 	limit int
 }
 
-func newDatabricksService(dbrc databricksRawClient, limit int) databricksService {
+func NewDatabricksService(dbrc DatabricksRawClient, limit int) Service {
 	return databricksRestService{
 		dbrc:  databricksClient{rawClient: dbrc},
 		limit: limit,
 	}
 }
 
-func (s databricksRestService) jobs() (out []job, err error) {
+func (s databricksRestService) jobs() (out []Job, err error) {
 	hasMore := true
 	for i := 0; hasMore; i++ {
 		resp, err := s.dbrc.jobsList(s.limit, s.limit*i)
@@ -52,7 +56,7 @@ func (s databricksRestService) jobs() (out []job, err error) {
 	return out, nil
 }
 
-func (s databricksRestService) activeJobRuns() (out []jobRun, err error) {
+func (s databricksRestService) activeJobRuns() (out []JobRun, err error) {
 	hasMore := true
 	for i := 0; hasMore; i++ {
 		resp, err := s.dbrc.activeJobRuns(s.limit, s.limit*i)
@@ -65,7 +69,7 @@ func (s databricksRestService) activeJobRuns() (out []jobRun, err error) {
 	return out, nil
 }
 
-func (s databricksRestService) completedJobRuns(jobID int, prevStartTime int64) (out []jobRun, err error) {
+func (s databricksRestService) CompletedJobRuns(jobID int, prevStartTime int64) (out []JobRun, err error) {
 	hasMore := true
 	for i := 0; hasMore; i++ {
 		resp, err := s.dbrc.completedJobRuns(jobID, s.limit, s.limit*i)
@@ -84,12 +88,12 @@ func (s databricksRestService) completedJobRuns(jobID int, prevStartTime int64) 
 	return out, nil
 }
 
-func (s databricksRestService) runningClusters() ([]cluster, error) {
+func (s databricksRestService) RunningClusters() ([]spark.Cluster, error) {
 	cl, err := s.dbrc.clustersList()
 	if err != nil {
 		return nil, fmt.Errorf("databricksRestService.runningClusterIDs(): %w", err)
 	}
-	var out []cluster
+	var out []spark.Cluster
 	for _, c := range cl.Clusters {
 		if c.State != "RUNNING" {
 			continue
@@ -99,18 +103,12 @@ func (s databricksRestService) runningClusters() ([]cluster, error) {
 	return out, nil
 }
 
-type pipelineSummary struct {
-	id        string
-	name      string
-	clusterID string
-}
-
-func (s databricksRestService) runningPipelines() ([]pipelineSummary, error) {
+func (s databricksRestService) RunningPipelines() ([]spark.PipelineSummary, error) {
 	pipelines, err := s.dbrc.pipelines()
 	if err != nil {
 		return nil, fmt.Errorf("databricksRestService.runningPipelines(): %w", err)
 	}
-	var out []pipelineSummary
+	var out []spark.PipelineSummary
 	for _, status := range pipelines.Statuses {
 		if status.State != "RUNNING" {
 			continue
@@ -123,10 +121,10 @@ func (s databricksRestService) runningPipelines() ([]pipelineSummary, error) {
 				err,
 			)
 		}
-		out = append(out, pipelineSummary{
-			id:        status.PipelineID,
-			name:      status.Name,
-			clusterID: pipeline.ClusterID,
+		out = append(out, spark.PipelineSummary{
+			ID:        status.PipelineID,
+			Name:      status.Name,
+			ClusterID: pipeline.ClusterID,
 		})
 	}
 	return out, nil

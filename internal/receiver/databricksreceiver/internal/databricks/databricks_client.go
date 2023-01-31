@@ -12,18 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package databricks
 
 import (
 	"encoding/json"
 	"fmt"
 )
 
-// databricksClient wraps a databricksRawClient implementation and unmarshals json byte
+const TestdataJobID = 288
+
+// databricksClient wraps a DatabricksRawClient implementation and unmarshals json byte
 // arrays to the types defined in json_types.go. Its method signatures mirror
 // those of the rawClient.
 type databricksClient struct {
-	rawClient databricksRawClient
+	rawClient DatabricksRawClient
 }
 
 func (c databricksClient) jobsList(limit int, offset int) (jobsList, error) {

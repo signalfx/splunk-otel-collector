@@ -12,37 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package httpauth
+package databricks
 
 import (
-	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/confighttp"
+	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/httpauth"
 )
 
-func TestBearerClient(t *testing.T) {
+func TestDBRawHTTPClient(t *testing.T) {
 	h := &commontest.FakeHandler{}
 	svr := httptest.NewServer(h)
 	defer svr.Close()
-	s := confighttp.HTTPClientSettings{}
-	httpClient, err := s.ToClient(nil, component.TelemetrySettings{})
-	require.NoError(t, err)
-	ac := NewClient(httpClient, "abc123")
-	_, _ = ac.Get(svr.URL + "/foo")
-	req := h.Reqs[0]
-	assert.Equal(t, "GET", req.Method)
-	assert.Equal(t, "Bearer abc123", req.Header.Get("Authorization"))
-	assert.Equal(t, "/foo", req.RequestURI)
-}
-
-func TestIsForbidden(t *testing.T) {
-	wrapper := fmt.Errorf("wrapping this error: %w", errForbidden)
-	assert.True(t, IsForbidden(wrapper))
+	c := databricksRawHTTPClient{
+		authClient: httpauth.NewClient(http.DefaultClient, "abc123"),
+		endpoint:   svr.URL,
+		logger:     zap.NewNop(),
+	}
+	_, _ = c.jobsList(2, 3)
+	path := "/api/2.1/jobs/list?expand_tasks=true&limit=2&offset=3"
+	assert.Equal(t, path, h.Reqs[0].RequestURI)
+	_, _ = c.activeJobRuns(2, 3)
+	path = "/api/2.1/jobs/runs/list?active_only=true&limit=2&offset=3"
+	assert.Equal(t, path, h.Reqs[1].RequestURI)
+	_, _ = c.completedJobRuns(42, 2, 3)
+	path = "/api/2.1/jobs/runs/list?completed_only=true&expand_tasks=true&job_id=42&limit=2&offset=3"
+	assert.Equal(t, path, h.Reqs[2].RequestURI)
 }

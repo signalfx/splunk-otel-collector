@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package databricks
 
 import (
 	"fmt"
@@ -22,14 +22,14 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
 
-// dbrMetricsProvider wraps a databricksService and provides metrics for databricks
+// DbrMetricsProvider wraps a Service and provides metrics for databricks
 // endpoints.
-type dbrMetricsProvider struct {
-	dbrsvc databricksService
+type DbrMetricsProvider struct {
+	Dbrsvc Service
 }
 
-func (p dbrMetricsProvider) addJobStatusMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp) ([]int, error) {
-	jobs, err := p.dbrsvc.jobs()
+func (p DbrMetricsProvider) AddJobStatusMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp) ([]int, error) {
+	jobs, err := p.Dbrsvc.jobs()
 	if err != nil {
 		return nil, fmt.Errorf("dbrMetricsProvider.addJobStatusMetrics(): %w", err)
 	}
@@ -53,8 +53,8 @@ func (p dbrMetricsProvider) addJobStatusMetrics(builder *metadata.MetricsBuilder
 	return jobIDs, nil
 }
 
-func (p dbrMetricsProvider) addNumActiveRunsMetric(builder *metadata.MetricsBuilder, now pcommon.Timestamp) error {
-	runs, err := p.dbrsvc.activeJobRuns()
+func (p DbrMetricsProvider) AddNumActiveRunsMetric(builder *metadata.MetricsBuilder, now pcommon.Timestamp) error {
+	runs, err := p.Dbrsvc.activeJobRuns()
 	if err != nil {
 		return fmt.Errorf("dbrMetricsProvider.addNumActiveJobsMetric(): %w", err)
 	}

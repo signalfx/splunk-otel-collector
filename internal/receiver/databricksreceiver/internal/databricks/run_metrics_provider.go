@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package databricks
 
 import (
 	"fmt"
@@ -22,21 +22,21 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
 
-// runMetricsProvider provides metrics for job and task runs. It uses a
+// RunMetricsProvider provides metrics for job and task runs. It uses a
 // runTracker to extract just the new runs returned from the API.
-type runMetricsProvider struct {
+type RunMetricsProvider struct {
 	tracker *runTracker
-	dbrsvc  databricksService
+	dbrsvc  Service
 }
 
-func newRunMetricsProvider(dbrsvc databricksService) runMetricsProvider {
-	return runMetricsProvider{
+func NewRunMetricsProvider(dbrsvc Service) RunMetricsProvider {
+	return RunMetricsProvider{
 		tracker: newRunTracker(),
 		dbrsvc:  dbrsvc,
 	}
 }
 
-func (p runMetricsProvider) addMultiJobRunMetrics(jobIDs []int, builder *metadata.MetricsBuilder, ts pcommon.Timestamp) error {
+func (p RunMetricsProvider) AddMultiJobRunMetrics(jobIDs []int, builder *metadata.MetricsBuilder, ts pcommon.Timestamp) error {
 	for _, jobID := range jobIDs {
 		err := p.addSingleJobRunMetrics(jobID, builder, ts)
 		if err != nil {
@@ -46,9 +46,9 @@ func (p runMetricsProvider) addMultiJobRunMetrics(jobIDs []int, builder *metadat
 	return nil
 }
 
-func (p runMetricsProvider) addSingleJobRunMetrics(jobID int, builder *metadata.MetricsBuilder, ts pcommon.Timestamp) error {
+func (p RunMetricsProvider) addSingleJobRunMetrics(jobID int, builder *metadata.MetricsBuilder, ts pcommon.Timestamp) error {
 	startTime := p.tracker.getPrevStartTime(jobID)
-	runs, err := p.dbrsvc.completedJobRuns(jobID, startTime)
+	runs, err := p.dbrsvc.CompletedJobRuns(jobID, startTime)
 	if err != nil {
 		return fmt.Errorf("runMetricsProvider.addSingleJobRunMetrics(): %w", err)
 	}

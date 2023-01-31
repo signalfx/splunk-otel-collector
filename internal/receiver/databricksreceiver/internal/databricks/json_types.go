@@ -12,20 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package databricks
 
-import "time"
+import (
+	"time"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
+)
 
 // This file defines types into which JSON responses from the Databricks and
 // Spark APIs are unmarshalled.
 
 // jobsList is a top level type
 type jobsList struct {
-	Jobs    []job `json:"jobs"`
+	Jobs    []Job `json:"jobs"`
 	HasMore bool  `json:"has_more"`
 }
 
-type job struct {
+type Job struct {
 	CreatorUserName string      `json:"creator_user_name"`
 	Settings        jobSettings `json:"settings"`
 	JobID           int         `json:"job_id"`
@@ -90,11 +94,11 @@ type azureAttributes struct {
 
 // jobRuns is a top-level type
 type jobRuns struct {
-	Runs    []jobRun `json:"runs"`
+	Runs    []JobRun `json:"runs"`
 	HasMore bool     `json:"has_more"`
 }
 
-type jobRun struct {
+type JobRun struct {
 	Schedule             schedule     `json:"schedule"`
 	Message              string       `json:"message"`
 	Format               string       `json:"format"`
@@ -157,13 +161,7 @@ type state struct {
 
 // clusterList is a top-level type
 type clusterList struct {
-	Clusters []cluster `json:"clusters"`
-}
-
-type cluster struct {
-	ClusterID   string `json:"cluster_id"`
-	ClusterName string `json:"cluster_name"`
-	State       string `json:"state"`
+	Clusters []spark.Cluster `json:"clusters"`
 }
 
 // pipelinesInfo is a top-level type

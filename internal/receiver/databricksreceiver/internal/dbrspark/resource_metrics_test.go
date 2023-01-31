@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package dbrspark
 
 import (
 	"testing"
@@ -22,33 +22,34 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
 func TestSparkDbrMetrics_Append(t *testing.T) {
-	outerSDM := newSparkDbrMetrics()
-	c := cluster{ClusterID: "my-cluster-id", ClusterName: "my-cluster-name", State: "my-cluster-state"}
+	outerRM := NewResourceMetrics()
+	c := spark.Cluster{ClusterID: "my-cluster-id", ClusterName: "my-cluster-name", State: "my-cluster-state"}
 
-	sdmSub1 := newSparkDbrMetrics()
-	sdmSub1.addCounter(c, "my-app-id", spark.Counter{Count: 42}, sparkMetricBase{
+	rmSub1 := NewResourceMetrics()
+	rmSub1.addCounter(c, "my-app-id", spark.Counter{Count: 42}, sparkMetricBase{
 		partialMetricName: "databricks.directorycommit.autovacuumcount",
 		pipelineID:        "my-pipeline-id",
 		pipelineName:      "my-pipeline-name",
 	})
-	outerSDM.append(sdmSub1)
+	outerRM.Append(rmSub1)
 
-	sdmSub2 := newSparkDbrMetrics()
-	sdmSub2.addCounter(c, "my-app-id", spark.Counter{Count: 111}, sparkMetricBase{
+	rmSub2 := NewResourceMetrics()
+	rmSub2.addCounter(c, "my-app-id", spark.Counter{Count: 111}, sparkMetricBase{
 		partialMetricName: "databricks.directorycommit.deletedfilesfiltered",
 		pipelineID:        "my-pipeline-id",
 		pipelineName:      "my-pipeline-name",
 	})
-	outerSDM.append(sdmSub2)
+	outerRM.Append(rmSub2)
 
-	builder := newTestMetricsBuilder()
-	emitted := outerSDM.build(builder, pcommon.NewTimestampFromTime(time.Now()))
+	builder := commontest.NewTestMetricsBuilder()
+	built := outerRM.Build(builder, pcommon.NewTimestampFromTime(time.Now()))
 	allMetrics := pmetric.NewMetrics()
-	for _, metrics := range emitted {
+	for _, metrics := range built {
 		metrics.ResourceMetrics().CopyTo(allMetrics.ResourceMetrics())
 	}
 	assert.Equal(t, 2, allMetrics.MetricCount())

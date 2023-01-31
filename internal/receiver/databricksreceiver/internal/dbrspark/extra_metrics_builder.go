@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package dbrspark
 
 import (
 	"fmt"
@@ -20,20 +20,21 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/httpauth"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
-type sparkExtraMetricsBuilder struct {
-	ssvc   sparkService
-	logger *zap.Logger
+type ExtraMetricsBuilder struct {
+	Ssvc   Service
+	Logger *zap.Logger
 }
 
-func (b sparkExtraMetricsBuilder) buildExecutorMetrics(clusters []cluster) (*sparkDbrMetrics, error) {
-	out := newSparkDbrMetrics()
+func (b ExtraMetricsBuilder) BuildExecutorMetrics(clusters []spark.Cluster) (*ResourceMetrics, error) {
+	out := NewResourceMetrics()
 	for _, clstr := range clusters {
-		execInfosByApp, err := b.ssvc.getSparkExecutorInfoSliceByApp(clstr.ClusterID)
+		execInfosByApp, err := b.Ssvc.getSparkExecutorInfoSliceByApp(clstr.ClusterID)
 		if err != nil {
 			if httpauth.IsForbidden(err) {
-				b.logger.Warn(
+				b.Logger.Warn(
 					"not authorized to get executor info for cluster, skipping",
 					zap.String("cluster name", clstr.ClusterName),
 					zap.String("cluster id", clstr.ClusterID),
@@ -51,13 +52,13 @@ func (b sparkExtraMetricsBuilder) buildExecutorMetrics(clusters []cluster) (*spa
 	return out, nil
 }
 
-func (b sparkExtraMetricsBuilder) buildJobMetrics(clusters []cluster) (*sparkDbrMetrics, error) {
-	out := newSparkDbrMetrics()
+func (b ExtraMetricsBuilder) BuildJobMetrics(clusters []spark.Cluster) (*ResourceMetrics, error) {
+	out := NewResourceMetrics()
 	for _, clstr := range clusters {
-		jobInfosByApp, err := b.ssvc.getSparkJobInfoSliceByApp(clstr.ClusterID)
+		jobInfosByApp, err := b.Ssvc.getSparkJobInfoSliceByApp(clstr.ClusterID)
 		if err != nil {
 			if httpauth.IsForbidden(err) {
-				b.logger.Warn(
+				b.Logger.Warn(
 					"not authorized to get spark job info for cluster, skipping",
 					zap.String("cluster name", clstr.ClusterName),
 					zap.String("cluster id", clstr.ClusterID),
@@ -75,13 +76,13 @@ func (b sparkExtraMetricsBuilder) buildJobMetrics(clusters []cluster) (*sparkDbr
 	return out, nil
 }
 
-func (b sparkExtraMetricsBuilder) buildStageMetrics(clusters []cluster) (*sparkDbrMetrics, error) {
-	out := newSparkDbrMetrics()
+func (b ExtraMetricsBuilder) BuildStageMetrics(clusters []spark.Cluster) (*ResourceMetrics, error) {
+	out := NewResourceMetrics()
 	for _, clstr := range clusters {
-		stageInfosByApp, err := b.ssvc.getSparkStageInfoSliceByApp(clstr.ClusterID)
+		stageInfosByApp, err := b.Ssvc.getSparkStageInfoSliceByApp(clstr.ClusterID)
 		if err != nil {
 			if httpauth.IsForbidden(err) {
-				b.logger.Warn(
+				b.Logger.Warn(
 					"not authorized to get spark stage info for cluster, skipping",
 					zap.String("cluster name", clstr.ClusterName),
 					zap.String("cluster id", clstr.ClusterID),

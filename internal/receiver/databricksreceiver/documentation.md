@@ -22,10 +22,10 @@ These are the metrics available for this scraper.
 | **databricks.spark.blockmanager.memory.remainingmem** | n/a | mb | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
 | **databricks.spark.blockmanager.memory.remainingoffheapmem** | n/a | mb | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
 | **databricks.spark.blockmanager.memory.remainingonheapmem** | n/a | mb | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
-| **databricks.spark.codegenerator.compilationtime.mean** | This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint. |  | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
-| **databricks.spark.codegenerator.generatedclasssize.mean** | This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint. |  | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
-| **databricks.spark.codegenerator.generatedmethodsize.mean** | This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint. |  | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
-| **databricks.spark.codegenerator.sourcecodesize.mean** | This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint. |  | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
+| **databricks.spark.codegenerator.compilationtime** | This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint. |  | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
+| **databricks.spark.codegenerator.generatedclasssize** | This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint. |  | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
+| **databricks.spark.codegenerator.generatedmethodsize** | This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint. |  | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
+| **databricks.spark.codegenerator.sourcecodesize** | This value comes from the 'mean' field in a histogram returned by the /metrics/json/ endpoint. |  | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
 | **databricks.spark.dagscheduler.job.activejobs** | n/a |  | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
 | **databricks.spark.dagscheduler.job.alljobs** | n/a |  | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
 | **databricks.spark.dagscheduler.stage.failedstages** | n/a |  | Gauge(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>pipeline_id</li> <li>pipeline_name</li> </ul> |
@@ -124,28 +124,28 @@ These are the metrics available for this scraper.
 | **databricks.spark.stage.memory_bytes_spilled** | n/a | By | Gauge(Int) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>spark_job_id</li> </ul> |
 | **databricks.spark.stage.output_bytes** | n/a | By | Gauge(Int) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>spark_job_id</li> </ul> |
 | **databricks.spark.stage.output_records** | n/a |  | Gauge(Int) | <ul> <li>cluster_id</li> <li>spark_app_id</li> <li>spark_job_id</li> </ul> |
-| **databricks.spark.timer.dagscheduler.messageprocessingtime.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.sqlexecution.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.streaming.streamingquerylistenerbus.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.ui.sqlappstatuslistener.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.hive.thriftserver.ui.hivethriftserver2listener.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.sparksession.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.util.executionlistenerbus.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.status.appstatuslistener.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.util.profilerenv.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dataplaneeventlistener.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dbceventlogginglistener.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.photon.photoncleanuplistener.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.executortimelogginglistener.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.usagelogginglistener.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.advice.advisorlistener.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.debugger.querywatchdoglistener.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.execution.ui.iocachelistener.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.io.caching.repeatedreadsestimator.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.queue.appstatus.listenerprocessingtime.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.queue.executormanagement.listenerprocessingtime.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.queue.shared.listenerprocessingtime.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
-| **databricks.spark.timer.livelistenerbus.queue.streams.listenerprocessingtime.mean** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.dagscheduler.messageprocessingtime** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.sqlexecution** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.streaming.streamingquerylistenerbus** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.execution.ui.sqlappstatuslistener** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.hive.thriftserver.ui.hivethriftserver2listener** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.sparksession** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.sql.util.executionlistenerbus** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.status.appstatuslistener** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.apache.spark.util.profilerenv** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dataplaneeventlistener** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.backend.daemon.driver.dbceventlogginglistener** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.photon.photoncleanuplistener** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.executortimelogginglistener** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.spark.util.usagelogginglistener** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.advice.advisorlistener** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.debugger.querywatchdoglistener** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.execution.ui.iocachelistener** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.listenerprocessingtime.databricks.sql.io.caching.repeatedreadsestimator** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.queue.appstatus.listenerprocessingtime** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.queue.executormanagement.listenerprocessingtime** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.queue.shared.listenerprocessingtime** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
+| **databricks.spark.timer.livelistenerbus.queue.streams.listenerprocessingtime** | n/a | ms | Sum(Double) | <ul> <li>cluster_id</li> <li>spark_app_id</li> </ul> |
 | **databricks.tasks.run.duration** | The execution duration in milliseconds per completed task | ms | Gauge(Int) | <ul> <li>job_id</li> <li>task_id</li> </ul> |
 | **databricks.tasks.schedule.status** | A snapshot of the pause/run status per task taken at each scrape 0=PAUSED, 1=UNPAUSED, 2=NOT_SCHEDULED | {status} | Gauge(Int) | <ul> <li>job_id</li> <li>task_id</li> <li>task_type</li> </ul> |
 

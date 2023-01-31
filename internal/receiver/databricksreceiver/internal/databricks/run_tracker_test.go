@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package databricks
 
 import (
 	"testing"
@@ -23,11 +23,11 @@ import (
 func TestRunTracker(t *testing.T) {
 	dbrsvc := &fakeDatabricksRestService{}
 	tracker := newRunTracker()
-	runs, _ := dbrsvc.completedJobRuns(42, 0)
+	runs, _ := dbrsvc.CompletedJobRuns(42, 0)
 	latest := tracker.extractNewRuns(runs)
 	assert.Equal(t, 0, len(latest))
 
-	runs, _ = dbrsvc.completedJobRuns(42, 0)
+	runs, _ = dbrsvc.CompletedJobRuns(42, 0)
 	latest = tracker.extractNewRuns(runs)
 	assert.Equal(t, 1, len(latest))
 
@@ -35,12 +35,12 @@ func TestRunTracker(t *testing.T) {
 	latest = tracker.extractNewRuns(runs)
 	assert.Nil(t, latest)
 
-	runs, _ = dbrsvc.completedJobRuns(42, 0)
+	runs, _ = dbrsvc.CompletedJobRuns(42, 0)
 	latest = tracker.extractNewRuns(runs)
 	assert.Equal(t, 1, len(latest))
 
 	dbrsvc.addCompletedRun(42)
-	runs, _ = dbrsvc.completedJobRuns(42, 0)
+	runs, _ = dbrsvc.CompletedJobRuns(42, 0)
 	latest = tracker.extractNewRuns(runs)
 	assert.Equal(t, 2, len(latest))
 }

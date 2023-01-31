@@ -12,26 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package databricks
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-const testdataJobID = 288
+var testdataDir = filepath.Join("..", "..", "testdata")
 
 func TestDatabricksClient(t *testing.T) {
-	u := databricksClient{&testdataDBRawClient{}}
+	u := databricksClient{&testdataDBRawClient{testDataDir: testdataDir}}
 	list, err := u.jobsList(25, 0)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(list.Jobs))
 	activeRuns, err := u.activeJobRuns(25, 0)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(activeRuns.Runs))
-	completedRuns, err := u.completedJobRuns(testdataJobID, 25, 0)
+	completedRuns, err := u.completedJobRuns(TestdataJobID, 25, 0)
 	require.NoError(t, err)
 	assert.Equal(t, "SUCCESS", completedRuns.Runs[0].State.ResultState)
 	cl, err := u.clustersList()

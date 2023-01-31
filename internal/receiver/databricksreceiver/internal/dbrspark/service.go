@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package dbrspark
 
 import (
 	"fmt"
@@ -24,38 +24,35 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
-type sparkService interface {
-	getSparkMetricsForClusters(clusters []cluster) (map[cluster]spark.ClusterMetrics, error)
+type Service interface {
+	getSparkMetricsForClusters(clusters []spark.Cluster) (map[spark.Cluster]spark.ClusterMetrics, error)
 	getSparkMetricsForCluster(clusterID string) (spark.ClusterMetrics, error)
 	getSparkExecutorInfoSliceByApp(clusterID string) (map[spark.Application][]spark.ExecutorInfo, error)
 	getSparkJobInfoSliceByApp(clusterID string) (map[spark.Application][]spark.JobInfo, error)
 	getSparkStageInfoSliceByApp(clusterID string) (map[spark.Application][]spark.StageInfo, error)
 }
 
-type sparkRestService struct {
+type restService struct {
 	logger      *zap.Logger
-	dbrsvc      databricksService
 	sparkClient spark.Client
 }
 
-func newSparkService(
+func NewService(
 	logger *zap.Logger,
-	dbrsvc databricksService,
 	httpClient *http.Client,
 	tok string,
-	sparkAPIURL string,
+	sparkEndpoint string,
 	orgID string,
 	sparkUIPort int,
-) sparkService {
-	return sparkRestService{
+) Service {
+	return restService{
 		logger:      logger,
-		dbrsvc:      dbrsvc,
-		sparkClient: spark.NewClient(httpClient, tok, sparkAPIURL, orgID, sparkUIPort),
+		sparkClient: spark.NewClient(httpClient, tok, sparkEndpoint, orgID, sparkUIPort),
 	}
 }
 
-func (s sparkRestService) getSparkMetricsForClusters(clusters []cluster) (map[cluster]spark.ClusterMetrics, error) {
-	out := map[cluster]spark.ClusterMetrics{}
+func (s restService) getSparkMetricsForClusters(clusters []spark.Cluster) (map[spark.Cluster]spark.ClusterMetrics, error) {
+	out := map[spark.Cluster]spark.ClusterMetrics{}
 	for _, clstr := range clusters {
 		metrics, err := s.getSparkMetricsForCluster(clstr.ClusterID)
 		if err != nil {
@@ -74,11 +71,11 @@ func (s sparkRestService) getSparkMetricsForClusters(clusters []cluster) (map[cl
 	return out, nil
 }
 
-func (s sparkRestService) getSparkMetricsForCluster(clusterID string) (spark.ClusterMetrics, error) {
+func (s restService) getSparkMetricsForCluster(clusterID string) (spark.ClusterMetrics, error) {
 	return s.sparkClient.Metrics(clusterID)
 }
 
-func (s sparkRestService) getSparkExecutorInfoSliceByApp(clusterID string) (map[spark.Application][]spark.ExecutorInfo, error) {
+func (s restService) getSparkExecutorInfoSliceByApp(clusterID string) (map[spark.Application][]spark.ExecutorInfo, error) {
 	out := map[spark.Application][]spark.ExecutorInfo{}
 	apps, err := s.sparkClient.Applications(clusterID)
 	if err != nil {
@@ -94,7 +91,7 @@ func (s sparkRestService) getSparkExecutorInfoSliceByApp(clusterID string) (map[
 	return out, nil
 }
 
-func (s sparkRestService) getSparkJobInfoSliceByApp(clusterID string) (map[spark.Application][]spark.JobInfo, error) {
+func (s restService) getSparkJobInfoSliceByApp(clusterID string) (map[spark.Application][]spark.JobInfo, error) {
 	out := map[spark.Application][]spark.JobInfo{}
 	apps, err := s.sparkClient.Applications(clusterID)
 	if err != nil {
@@ -110,7 +107,7 @@ func (s sparkRestService) getSparkJobInfoSliceByApp(clusterID string) (map[spark
 	return out, nil
 }
 
-func (s sparkRestService) getSparkStageInfoSliceByApp(clusterID string) (map[spark.Application][]spark.StageInfo, error) {
+func (s restService) getSparkStageInfoSliceByApp(clusterID string) (map[spark.Application][]spark.StageInfo, error) {
 	out := map[spark.Application][]spark.StageInfo{}
 	apps, err := s.sparkClient.Applications(clusterID)
 	if err != nil {

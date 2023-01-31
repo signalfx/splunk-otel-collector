@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package databricks
 
 import (
 	"testing"
@@ -23,29 +23,29 @@ import (
 
 func TestDatabricksService(t *testing.T) {
 	const ignored = 25
-	c := newDatabricksService(&testdataDBRawClient{}, ignored)
+	c := NewDatabricksService(&testdataDBRawClient{testDataDir: testdataDir}, ignored)
 	jobs, err := c.jobs()
 	require.NoError(t, err)
 	assert.Equal(t, 6, len(jobs))
 	active, err := c.activeJobRuns()
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(active))
-	completed, err := c.completedJobRuns(testdataJobID, -1)
+	completed, err := c.CompletedJobRuns(TestdataJobID, -1)
 	require.NoError(t, err)
 	assert.Equal(t, 98, len(completed))
 }
 
 func TestDatabricksService_CompletedRuns(t *testing.T) {
 	const ignored = 25
-	c := newDatabricksService(&testdataDBRawClient{}, ignored)
+	c := NewDatabricksService(&testdataDBRawClient{testDataDir: testdataDir}, ignored)
 
 	// 1642777677522 is from completed-job-runs-0-0.json
-	runs, err := c.completedJobRuns(testdataJobID, 1642777677522)
+	runs, err := c.CompletedJobRuns(TestdataJobID, 1642777677522)
 	require.NoError(t, err)
 	assert.Equal(t, 30, len(runs))
 
 	// 1642775877669 is from completed-job-runs-1-1.json
-	runs, err = c.completedJobRuns(testdataJobID, 1642775877669)
+	runs, err = c.CompletedJobRuns(TestdataJobID, 1642775877669)
 	require.NoError(t, err)
 	assert.Equal(t, 67, len(runs))
 }

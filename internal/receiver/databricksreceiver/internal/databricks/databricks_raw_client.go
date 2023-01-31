@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package databricks
 
 import (
 	"fmt"
@@ -32,9 +32,9 @@ const (
 	pipelinePath         = "/api/2.0/pipelines/%s"
 )
 
-// databricksRawClient defines methods extracted from databricksRawHTTPClient so
+// DatabricksRawClient defines methods extracted from databricksRawHTTPClient so
 // that it can be swapped for testing.
-type databricksRawClient interface {
+type DatabricksRawClient interface {
 	jobsList(limit int, offset int) ([]byte, error)
 	activeJobRuns(limit int, offset int) ([]byte, error)
 	completedJobRuns(id int, limit int, offset int) ([]byte, error)
@@ -44,7 +44,7 @@ type databricksRawClient interface {
 }
 
 // databricksRawHTTPClient wraps an authClient, encapsulates calls to the databricks API, and
-// implements databricksRawClient. Its methods return byte arrays to be unmarshalled
+// implements DatabricksRawClient. Its methods return byte arrays to be unmarshalled
 // by the caller.
 type databricksRawHTTPClient struct {
 	logger     *zap.Logger
@@ -52,7 +52,7 @@ type databricksRawHTTPClient struct {
 	endpoint   string
 }
 
-func newDatabricksRawClient(tok, endpoint string, httpClient *http.Client, logger *zap.Logger) databricksRawClient {
+func NewDatabricksRawClient(tok, endpoint string, httpClient *http.Client, logger *zap.Logger) DatabricksRawClient {
 	return &databricksRawHTTPClient{
 		authClient: httpauth.NewClient(httpClient, tok),
 		endpoint:   endpoint,

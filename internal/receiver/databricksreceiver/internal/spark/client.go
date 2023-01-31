@@ -27,9 +27,9 @@ import (
 // unmarshalls content into go types. Although it's focused on standalone Spark,
 // this document has some additional information:
 // https://spark.apache.org/docs/latest/monitoring.html
-func NewClient(httpClient *http.Client, tok, sparkAPIURL, orgID string, port int) Client {
+func NewClient(httpClient *http.Client, tok, sparkEndpoint, orgID string, port int) Client {
 	return Client{
-		RawClient: newRawHTTPClient(httpauth.NewClient(httpClient, tok), sparkAPIURL, orgID, port),
+		RawClient: newRawHTTPClient(httpauth.NewClient(httpClient, tok), sparkEndpoint, orgID, port),
 	}
 }
 

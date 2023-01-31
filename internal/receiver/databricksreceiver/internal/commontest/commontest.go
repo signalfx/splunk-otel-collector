@@ -12,9 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package handlertest
+package commontest
 
-import "net/http"
+import (
+	"net/http"
+
+	"go.opentelemetry.io/collector/component"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
+)
 
 // FakeHandler implements http.Handler, and handles fake requests for testing,
 // appending requests to an array member for later inspection
@@ -24,4 +30,8 @@ type FakeHandler struct {
 
 func (h *FakeHandler) ServeHTTP(_ http.ResponseWriter, req *http.Request) {
 	h.Reqs = append(h.Reqs, req)
+}
+
+func NewTestMetricsBuilder() *metadata.MetricsBuilder {
+	return metadata.NewMetricsBuilder(metadata.DefaultMetricsSettings(), component.BuildInfo{})
 }

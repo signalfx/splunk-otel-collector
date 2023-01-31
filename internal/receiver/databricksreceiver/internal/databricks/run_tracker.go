@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package databricks
 
 // runTracker keeps track of start times by job ID so that it can return just
 // the new runs when given a list of them.
@@ -26,7 +26,7 @@ func newRunTracker() *runTracker {
 	}
 }
 
-func (t *runTracker) extractNewRuns(runs []jobRun) []jobRun {
+func (t *runTracker) extractNewRuns(runs []JobRun) []JobRun {
 	if runs == nil {
 		return nil
 	}
@@ -47,7 +47,7 @@ func (t *runTracker) getPrevStartTime(jobID int) int64 {
 	return t.startTimesByJobID[jobID]
 }
 
-func collectNewRuns(runs []jobRun, prev int64) (out []jobRun) {
+func collectNewRuns(runs []JobRun, prev int64) (out []JobRun) {
 	for i := len(runs) - 1; i >= 0; i-- {
 		run := runs[i]
 		if run.StartTime <= prev {

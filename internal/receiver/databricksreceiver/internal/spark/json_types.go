@@ -197,3 +197,15 @@ type StageInfo struct {
 	StageID                      int    `json:"stageId"`
 	ResourceProfileID            int    `json:"resourceProfileId"`
 }
+
+type Cluster struct {
+	ClusterID   string `json:"cluster_id"`
+	ClusterName string `json:"cluster_name"`
+	State       string `json:"state"`
+}
+
+type PipelineSummary struct {
+	ID        string
+	Name      string
+	ClusterID string
+}

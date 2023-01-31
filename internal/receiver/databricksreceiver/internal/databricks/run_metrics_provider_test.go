@@ -12,18 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package databricks
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
 )
 
 func TestRunMetricProvider(t *testing.T) {
-	p := newRunMetricsProvider(&fakeDatabricksRestService{})
-	builder := newTestMetricsBuilder()
+	p := NewRunMetricsProvider(&fakeDatabricksRestService{})
+	builder := commontest.NewTestMetricsBuilder()
 	err := p.addSingleJobRunMetrics(42, builder, 0)
 	require.NoError(t, err)
 	emitted := builder.Emit()
@@ -41,19 +43,19 @@ func TestRunMetricProvider(t *testing.T) {
 
 func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	const ignored = 25
-	mp := newRunMetricsProvider(newDatabricksService(&testdataDBRawClient{}, ignored))
-	builder := newTestMetricsBuilder()
-	err := mp.addMultiJobRunMetrics([]int{testdataJobID}, builder, 0)
+	mp := NewRunMetricsProvider(NewDatabricksService(&testdataDBRawClient{testDataDir: testdataDir}, ignored))
+	builder := commontest.NewTestMetricsBuilder()
+	err := mp.AddMultiJobRunMetrics([]int{TestdataJobID}, builder, 0)
 	require.NoError(t, err)
 
 	emitted := builder.Emit()
 	assert.Equal(t, 0, emitted.MetricCount())
 	assert.Equal(t, 0, emitted.DataPointCount())
 
-	err = mp.addMultiJobRunMetrics([]int{testdataJobID}, builder, 0)
+	err = mp.AddMultiJobRunMetrics([]int{TestdataJobID}, builder, 0)
 	require.NoError(t, err)
 	emitted = builder.Emit()
-	metricMap := metricsByName(emitted)
+	metricMap := MetricsByName(emitted)
 	assert.Equal(t, 2, emitted.MetricCount())
 	assert.Equal(t, 2, emitted.DataPointCount())
 
@@ -62,7 +64,7 @@ func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	jobPt := jobMetric.Gauge().DataPoints().At(0)
 	jobAttrs := jobPt.Attributes()
 	jobID, _ := jobAttrs.Get("job_id")
-	assert.EqualValues(t, testdataJobID, jobID.Int())
+	assert.EqualValues(t, TestdataJobID, jobID.Int())
 	assert.EqualValues(t, 15000, jobPt.IntValue())
 
 	taskMetric := metricMap["databricks.tasks.run.duration"]
@@ -70,7 +72,7 @@ func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 	taskPt := taskMetric.Gauge().DataPoints().At(0)
 	taskAttrs := taskPt.Attributes()
 	jobID, _ = taskAttrs.Get("job_id")
-	assert.EqualValues(t, testdataJobID, jobID.Int())
+	assert.EqualValues(t, TestdataJobID, jobID.Int())
 	taskKey, _ := taskAttrs.Get("task_id")
 	assert.Equal(t, "user-task", taskKey.Str())
 	assert.EqualValues(t, 15000, taskPt.IntValue())
@@ -78,45 +80,10 @@ func TestRunMetricsProvider_AddJobRunDurationMetrics(t *testing.T) {
 
 func TestFakeDatabricksRestService(t *testing.T) {
 	p := &fakeDatabricksRestService{}
-	runs, _ := p.completedJobRuns(42, 0)
+	runs, _ := p.CompletedJobRuns(42, 0)
 	assert.Equal(t, 1, len(runs))
-	runs, _ = p.completedJobRuns(42, 0)
+	runs, _ = p.CompletedJobRuns(42, 0)
 	assert.Equal(t, 2, len(runs))
 	assert.True(t, runs[0].StartTime > runs[1].StartTime)
 	assert.True(t, runs[0].ExecutionDuration > runs[1].ExecutionDuration)
-}
-
-type fakeDatabricksRestService struct {
-	runs []jobRun
-	i    int
-}
-
-func (c *fakeDatabricksRestService) jobs() (out []job, err error) {
-	return nil, nil
-}
-
-func (c *fakeDatabricksRestService) activeJobRuns() (out []jobRun, err error) {
-	return nil, nil
-}
-
-func (c *fakeDatabricksRestService) completedJobRuns(jobID int, _ int64) ([]jobRun, error) {
-	c.addCompletedRun(jobID)
-	return c.runs, nil
-}
-
-func (c *fakeDatabricksRestService) addCompletedRun(jobID int) {
-	c.runs = append([]jobRun{{
-		JobID:             jobID,
-		StartTime:         1_600_000_000_000 + (1_000_000 * int64(c.i)),
-		ExecutionDuration: 15_000 + (1000 * c.i),
-	}}, c.runs...)
-	c.i++
-}
-
-func (c *fakeDatabricksRestService) runningClusters() ([]cluster, error) {
-	return nil, nil
-}
-
-func (c *fakeDatabricksRestService) runningPipelines() ([]pipelineSummary, error) {
-	return nil, nil
 }

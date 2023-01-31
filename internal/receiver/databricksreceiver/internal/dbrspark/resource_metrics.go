@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package dbrspark
 
 import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -22,26 +22,26 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
-func newSparkDbrMetrics() *sparkDbrMetrics {
-	return &sparkDbrMetrics{
-		m: map[sparkResource][]sparkMetricBuilder{},
+func NewResourceMetrics() *ResourceMetrics {
+	return &ResourceMetrics{
+		m: map[resource][]metricBuilder{},
 	}
 }
 
-type sparkDbrMetrics struct {
-	m map[sparkResource][]sparkMetricBuilder
+type ResourceMetrics struct {
+	m map[resource][]metricBuilder
 }
 
-type sparkMetricBuilder interface {
-	build(builder *metadata.MetricsBuilder, rs sparkResource, now pcommon.Timestamp)
+type metricBuilder interface {
+	build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp)
 }
 
-type sparkResource struct {
-	cluster cluster
+type resource struct {
+	cluster spark.Cluster
 	appID   string
 }
 
-func (m *sparkDbrMetrics) append(other *sparkDbrMetrics) {
+func (m *ResourceMetrics) Append(other *ResourceMetrics) {
 	for k, v := range other.m {
 		if _, found := m.m[k]; found {
 			m.m[k] = append(m.m[k], v...)
@@ -51,8 +51,8 @@ func (m *sparkDbrMetrics) append(other *sparkDbrMetrics) {
 	}
 }
 
-func (m *sparkDbrMetrics) addGauge(cluster cluster, appID string, gauge spark.Gauge, mb sparkMetricBase) {
-	rs := sparkResource{
+func (m *ResourceMetrics) addGauge(cluster spark.Cluster, appID string, gauge spark.Gauge, mb sparkMetricBase) {
+	rs := resource{
 		cluster: cluster,
 		appID:   appID,
 	}
@@ -62,8 +62,8 @@ func (m *sparkDbrMetrics) addGauge(cluster cluster, appID string, gauge spark.Ga
 	})
 }
 
-func (m *sparkDbrMetrics) addCounter(cluster cluster, appID string, counter spark.Counter, mb sparkMetricBase) {
-	rs := sparkResource{
+func (m *ResourceMetrics) addCounter(cluster spark.Cluster, appID string, counter spark.Counter, mb sparkMetricBase) {
+	rs := resource{
 		cluster: cluster,
 		appID:   appID,
 	}
@@ -73,8 +73,8 @@ func (m *sparkDbrMetrics) addCounter(cluster cluster, appID string, counter spar
 	})
 }
 
-func (m *sparkDbrMetrics) addTimer(cluster cluster, appID string, timer spark.Timer, mb sparkMetricBase) {
-	rs := sparkResource{
+func (m *ResourceMetrics) addTimer(cluster spark.Cluster, appID string, timer spark.Timer, mb sparkMetricBase) {
+	rs := resource{
 		cluster: cluster,
 		appID:   appID,
 	}
@@ -84,8 +84,8 @@ func (m *sparkDbrMetrics) addTimer(cluster cluster, appID string, timer spark.Ti
 	})
 }
 
-func (m *sparkDbrMetrics) addHisto(cluster cluster, appID string, histo spark.Histogram, mb sparkMetricBase) {
-	rs := sparkResource{
+func (m *ResourceMetrics) addHisto(cluster spark.Cluster, appID string, histo spark.Histogram, mb sparkMetricBase) {
+	rs := resource{
 		cluster: cluster,
 		appID:   appID,
 	}
@@ -95,8 +95,8 @@ func (m *sparkDbrMetrics) addHisto(cluster cluster, appID string, histo spark.Hi
 	})
 }
 
-func (m *sparkDbrMetrics) addExecInfo(clstr cluster, appID string, info spark.ExecutorInfo) {
-	resrc := sparkResource{
+func (m *ResourceMetrics) addExecInfo(clstr spark.Cluster, appID string, info spark.ExecutorInfo) {
+	resrc := resource{
 		cluster: clstr,
 		appID:   appID,
 	}
@@ -105,8 +105,8 @@ func (m *sparkDbrMetrics) addExecInfo(clstr cluster, appID string, info spark.Ex
 	})
 }
 
-func (m *sparkDbrMetrics) addJobInfos(clstr cluster, appID string, info spark.JobInfo) {
-	resrc := sparkResource{
+func (m *ResourceMetrics) addJobInfos(clstr spark.Cluster, appID string, info spark.JobInfo) {
+	resrc := resource{
 		cluster: clstr,
 		appID:   appID,
 	}
@@ -115,8 +115,8 @@ func (m *sparkDbrMetrics) addJobInfos(clstr cluster, appID string, info spark.Jo
 	})
 }
 
-func (m *sparkDbrMetrics) addStageInfo(clstr cluster, appID string, info spark.StageInfo) {
-	resrc := sparkResource{
+func (m *ResourceMetrics) addStageInfo(clstr spark.Cluster, appID string, info spark.StageInfo) {
+	resrc := resource{
 		cluster: clstr,
 		appID:   appID,
 	}
@@ -125,7 +125,7 @@ func (m *sparkDbrMetrics) addStageInfo(clstr cluster, appID string, info spark.S
 	})
 }
 
-func (m *sparkDbrMetrics) build(builder *metadata.MetricsBuilder, now pcommon.Timestamp, rmo ...metadata.ResourceMetricsOption) []pmetric.Metrics {
+func (m *ResourceMetrics) Build(builder *metadata.MetricsBuilder, now pcommon.Timestamp, rmo ...metadata.ResourceMetricsOption) []pmetric.Metrics {
 	var out []pmetric.Metrics
 	for rs, metricInfos := range m.m {
 		for _, mi := range metricInfos {
@@ -143,7 +143,7 @@ func buildGauge(
 	partialMetricName string,
 	now pcommon.Timestamp,
 	gauge spark.Gauge,
-	rs sparkResource,
+	rs resource,
 	pipelineID string,
 	pipelineName string,
 ) {
@@ -527,7 +527,7 @@ func buildCounter(
 	partialMetricName string,
 	now pcommon.Timestamp,
 	counter spark.Counter,
-	rs sparkResource,
+	rs resource,
 	pipelineID string,
 	pipelineName string,
 ) {
@@ -947,160 +947,160 @@ func buildTimers(
 	partialMetricName string,
 	now pcommon.Timestamp,
 	timer spark.Timer,
-	rs sparkResource,
+	rs resource,
 ) {
 	appID := rs.appID
 	clusterID := rs.cluster.ClusterID
 	switch partialMetricName {
 	case "dagscheduler.messageprocessingtime":
-		builder.RecordDatabricksSparkTimerDagschedulerMessageprocessingtimeMeanDataPoint(
+		builder.RecordDatabricksSparkTimerDagschedulerMessageprocessingtimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.backend.daemon.driver.dbceventlogginglistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDbceventlogginglistenerDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.backend.daemon.driver.dataplaneeventlistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksBackendDaemonDriverDataplaneeventlistenerDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.photon.photoncleanuplistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksPhotonPhotoncleanuplistenerDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.spark.util.executortimelogginglistener$":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilExecutortimelogginglistenerDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.spark.util.usagelogginglistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSparkUtilUsagelogginglistenerDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.sql.advice.advisorlistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLAdviceAdvisorlistenerDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.sql.debugger.querywatchdoglistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLDebuggerQuerywatchdoglistenerDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.sql.execution.ui.iocachelistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLExecutionUIIocachelistenerDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.com.databricks.sql.io.caching.repeatedreadsestimator$":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeDatabricksSQLIoCachingRepeatedreadsestimatorDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.sql.sparksession$$anon$1":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLSparksessionDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.sql.execution.sqlexecution$":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionSqlexecutionDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.sql.execution.streaming.streamingquerylistenerbus":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionStreamingStreamingquerylistenerbusDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.sql.execution.ui.sqlappstatuslistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLExecutionUISqlappstatuslistenerDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.sql.hive.thriftserver.ui.hivethriftserver2listener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLHiveThriftserverUIHivethriftserver2listenerDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.sql.util.executionlistenerbus":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkSQLUtilExecutionlistenerbusDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.status.appstatuslistener":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkStatusAppstatuslistenerDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.listenerprocessingtime.org.apache.spark.util.profilerenv$$anon$1":
-		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusListenerprocessingtimeApacheSparkUtilProfilerenvDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.queue.appstatus.listenerprocessingtime":
-		builder.RecordDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusQueueAppstatusListenerprocessingtimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.queue.executormanagement.listenerprocessingtime":
-		builder.RecordDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusQueueExecutormanagementListenerprocessingtimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.queue.shared.listenerprocessingtime":
-		builder.RecordDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusQueueSharedListenerprocessingtimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
 			appID,
 		)
 	case "livelistenerbus.queue.streams.listenerprocessingtime":
-		builder.RecordDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeMeanDataPoint(
+		builder.RecordDatabricksSparkTimerLivelistenerbusQueueStreamsListenerprocessingtimeDataPoint(
 			now,
 			timer.Mean,
 			clusterID,
@@ -1114,7 +1114,7 @@ func buildHistos(
 	partialMetricName string,
 	now pcommon.Timestamp,
 	histo spark.Histogram,
-	rs sparkResource,
+	rs resource,
 	pipelineID string,
 	pipelineName string,
 ) {
@@ -1122,17 +1122,17 @@ func buildHistos(
 	clusterID := rs.cluster.ClusterID
 	switch partialMetricName {
 	case "codegenerator.compilationtime":
-		builder.RecordDatabricksSparkCodegeneratorCompilationtimeMeanDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
+		builder.RecordDatabricksSparkCodegeneratorCompilationtimeDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
 	case "codegenerator.generatedclasssize":
-		builder.RecordDatabricksSparkCodegeneratorGeneratedclasssizeMeanDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
+		builder.RecordDatabricksSparkCodegeneratorGeneratedclasssizeDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
 	case "codegenerator.generatedmethodsize":
-		builder.RecordDatabricksSparkCodegeneratorGeneratedmethodsizeMeanDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
+		builder.RecordDatabricksSparkCodegeneratorGeneratedmethodsizeDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
 	case "codegenerator.sourcecodesize":
-		builder.RecordDatabricksSparkCodegeneratorSourcecodesizeMeanDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
+		builder.RecordDatabricksSparkCodegeneratorSourcecodesizeDataPoint(now, histo.Mean, clusterID, appID, pipelineID, pipelineName)
 	}
 }
 
-func buildExecMetrics(builder *metadata.MetricsBuilder, execInfo spark.ExecutorInfo, now pcommon.Timestamp, rs sparkResource) {
+func buildExecMetrics(builder *metadata.MetricsBuilder, execInfo spark.ExecutorInfo, now pcommon.Timestamp, rs resource) {
 	builder.RecordDatabricksSparkExecutorMemoryUsedDataPoint(now, int64(execInfo.MemoryUsed), rs.cluster.ClusterID, rs.appID, execInfo.ID)
 	builder.RecordDatabricksSparkExecutorDiskUsedDataPoint(now, int64(execInfo.DiskUsed), rs.cluster.ClusterID, rs.appID, execInfo.ID)
 	builder.RecordDatabricksSparkExecutorTotalInputBytesDataPoint(now, execInfo.TotalInputBytes, rs.cluster.ClusterID, rs.appID, execInfo.ID)
@@ -1141,7 +1141,7 @@ func buildExecMetrics(builder *metadata.MetricsBuilder, execInfo spark.ExecutorI
 	builder.RecordDatabricksSparkExecutorMaxMemoryDataPoint(now, execInfo.MaxMemory, rs.cluster.ClusterID, rs.appID, execInfo.ID)
 }
 
-func buildJobMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp, jobInfo spark.JobInfo, rs sparkResource) {
+func buildJobMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp, jobInfo spark.JobInfo, rs resource) {
 	builder.RecordDatabricksSparkJobNumTasksDataPoint(now, int64(jobInfo.NumTasks), rs.cluster.ClusterID, rs.appID, int64(jobInfo.JobID))
 	builder.RecordDatabricksSparkJobNumActiveTasksDataPoint(now, int64(jobInfo.NumActiveTasks), rs.cluster.ClusterID, rs.appID, int64(jobInfo.JobID))
 	builder.RecordDatabricksSparkJobNumCompletedTasksDataPoint(now, int64(jobInfo.NumCompletedTasks), rs.cluster.ClusterID, rs.appID, int64(jobInfo.JobID))
@@ -1153,7 +1153,7 @@ func buildJobMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp, jo
 	builder.RecordDatabricksSparkJobNumFailedStagesDataPoint(now, int64(jobInfo.NumFailedStages), rs.cluster.ClusterID, rs.appID, int64(jobInfo.JobID))
 }
 
-func buildStageMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp, stageInfo spark.StageInfo, rs sparkResource) {
+func buildStageMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp, stageInfo spark.StageInfo, rs resource) {
 	builder.RecordDatabricksSparkStageExecutorRunTimeDataPoint(now, int64(stageInfo.ExecutorRunTime), rs.cluster.ClusterID, rs.appID, int64(stageInfo.StageID))
 	builder.RecordDatabricksSparkStageInputBytesDataPoint(now, int64(stageInfo.InputBytes), rs.cluster.ClusterID, rs.appID, int64(stageInfo.StageID))
 	builder.RecordDatabricksSparkStageInputRecordsDataPoint(now, int64(stageInfo.InputRecords), rs.cluster.ClusterID, rs.appID, int64(stageInfo.StageID))
@@ -1163,12 +1163,12 @@ func buildStageMetrics(builder *metadata.MetricsBuilder, now pcommon.Timestamp, 
 	builder.RecordDatabricksSparkStageDiskBytesSpilledDataPoint(now, int64(stageInfo.DiskBytesSpilled), rs.cluster.ClusterID, rs.appID, int64(stageInfo.StageID))
 }
 
-func newSparkMetricBase(partialMetricName string, pipeline *pipelineSummary) sparkMetricBase {
+func newSparkMetricBase(partialMetricName string, pipeline *spark.PipelineSummary) sparkMetricBase {
 	pipelineID := ""
 	pipelineName := ""
 	if pipeline != nil {
-		pipelineID = pipeline.id
-		pipelineName = pipeline.name
+		pipelineID = pipeline.ID
+		pipelineName = pipeline.Name
 	}
 	return sparkMetricBase{
 		partialMetricName: partialMetricName,
@@ -1188,7 +1188,7 @@ type gaugeInfo struct {
 	gauge spark.Gauge
 }
 
-func (i gaugeInfo) build(builder *metadata.MetricsBuilder, rs sparkResource, now pcommon.Timestamp) {
+func (i gaugeInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {
 	buildGauge(builder, i.partialMetricName, now, i.gauge, rs, i.pipelineID, i.pipelineName)
 }
 
@@ -1197,7 +1197,7 @@ type counterInfo struct {
 	counter spark.Counter
 }
 
-func (i counterInfo) build(builder *metadata.MetricsBuilder, rs sparkResource, now pcommon.Timestamp) {
+func (i counterInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {
 	buildCounter(builder, i.partialMetricName, now, i.counter, rs, i.pipelineID, i.pipelineName)
 }
 
@@ -1206,7 +1206,7 @@ type timerInfo struct {
 	timer spark.Timer
 }
 
-func (i timerInfo) build(builder *metadata.MetricsBuilder, rs sparkResource, now pcommon.Timestamp) {
+func (i timerInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {
 	buildTimers(builder, i.partialMetricName, now, i.timer, rs)
 }
 
@@ -1215,7 +1215,7 @@ type histoInfo struct {
 	histo spark.Histogram
 }
 
-func (i histoInfo) build(builder *metadata.MetricsBuilder, rs sparkResource, now pcommon.Timestamp) {
+func (i histoInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {
 	buildHistos(builder, i.partialMetricName, now, i.histo, rs, i.pipelineID, i.pipelineName)
 }
 
@@ -1223,7 +1223,7 @@ type execInfo struct {
 	execInfo spark.ExecutorInfo
 }
 
-func (i execInfo) build(builder *metadata.MetricsBuilder, rs sparkResource, now pcommon.Timestamp) {
+func (i execInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {
 	buildExecMetrics(builder, i.execInfo, now, rs)
 }
 
@@ -1231,7 +1231,7 @@ type jobInfo struct {
 	jobInfo spark.JobInfo
 }
 
-func (i jobInfo) build(builder *metadata.MetricsBuilder, rs sparkResource, now pcommon.Timestamp) {
+func (i jobInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {
 	buildJobMetrics(builder, now, i.jobInfo, rs)
 }
 
@@ -1239,6 +1239,6 @@ type stageInfo struct {
 	stageInfo spark.StageInfo
 }
 
-func (i stageInfo) build(builder *metadata.MetricsBuilder, rs sparkResource, now pcommon.Timestamp) {
+func (i stageInfo) build(builder *metadata.MetricsBuilder, rs resource, now pcommon.Timestamp) {
 	buildStageMetrics(builder, now, i.stageInfo, rs)
 }

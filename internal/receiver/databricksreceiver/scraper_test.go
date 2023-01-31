@@ -21,25 +21,30 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/commontest"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/databricks"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/dbrspark"
 )
 
 const testdataMetricCount = 138
 const testdataDatapointCount = 172
+const testdataDir = "testdata"
 
 func TestScraper_Success(t *testing.T) {
-	dbrsvc := newTestDatabricksSingleClusterService()
-	ssvc := newTestSuccessSparkService(dbrsvc)
+	dbrsvc := databricks.NewTestDatabricksSingleClusterService(testdataDir)
+	ssvc := dbrspark.NewTestSuccessSparkService(testdataDir)
 	nopLogger := zap.NewNop()
 	scrpr := scraper{
 		logger:          nopLogger,
 		dbrInstanceName: "my-instance",
-		metricsBuilder:  newTestMetricsBuilder(),
-		rmp:             newRunMetricsProvider(dbrsvc),
-		dbrmp:           dbrMetricsProvider{dbrsvc},
-		scmb:            sparkClusterMetricsBuilder{ssvc},
-		semb: sparkExtraMetricsBuilder{
-			ssvc:   ssvc,
-			logger: nopLogger,
+		metricsBuilder:  commontest.NewTestMetricsBuilder(),
+		rmp:             databricks.NewRunMetricsProvider(dbrsvc),
+		dbrmp:           databricks.DbrMetricsProvider{Dbrsvc: dbrsvc},
+		scmb:            dbrspark.ClusterMetricsBuilder{Ssvc: ssvc},
+		semb: dbrspark.ExtraMetricsBuilder{
+			Ssvc:   ssvc,
+			Logger: nopLogger,
 		},
 		dbrsvc: dbrsvc,
 	}
@@ -59,19 +64,19 @@ func TestScraper_Success(t *testing.T) {
 func TestScraper_Forbidden(t *testing.T) {
 	// make sure an http 403 doesn't produce an error (possible if the token owner
 	// doesn't own a cluster)
-	dbrsvc := newTestDatabricksSingleClusterService()
-	ssvc := newTestForbiddenSparkService(dbrsvc, "11111")
+	dbrsvc := databricks.NewTestDatabricksSingleClusterService(testdataDir)
+	ssvc := dbrspark.NewTestForbiddenSparkService(testdataDir, "11111")
 	nopLogger := zap.NewNop()
 	scrpr := scraper{
 		logger:          nopLogger,
 		dbrInstanceName: "my-instance",
-		metricsBuilder:  newTestMetricsBuilder(),
-		rmp:             newRunMetricsProvider(dbrsvc),
-		dbrmp:           dbrMetricsProvider{dbrsvc},
-		scmb:            sparkClusterMetricsBuilder{ssvc},
-		semb: sparkExtraMetricsBuilder{
-			ssvc:   ssvc,
-			logger: nopLogger,
+		metricsBuilder:  commontest.NewTestMetricsBuilder(),
+		rmp:             databricks.NewRunMetricsProvider(dbrsvc),
+		dbrmp:           databricks.DbrMetricsProvider{Dbrsvc: dbrsvc},
+		scmb:            dbrspark.ClusterMetricsBuilder{Ssvc: ssvc},
+		semb: dbrspark.ExtraMetricsBuilder{
+			Ssvc:   ssvc,
+			Logger: nopLogger,
 		},
 		dbrsvc: dbrsvc,
 	}
@@ -82,19 +87,19 @@ func TestScraper_Forbidden(t *testing.T) {
 }
 
 func TestScraper_MultiCluster_Forbidden(t *testing.T) {
-	dbrsvc := newTestDatabricksMultiClusterService()
-	ssvc := newTestForbiddenSparkService(dbrsvc, "22222")
+	dbrsvc := databricks.NewTestDatabricksMultiClusterService(testdataDir)
+	ssvc := dbrspark.NewTestForbiddenSparkService(testdataDir, "22222")
 	nopLogger := zap.NewNop()
 	scrpr := scraper{
 		logger:          nopLogger,
 		dbrInstanceName: "my-instance",
-		metricsBuilder:  newTestMetricsBuilder(),
-		rmp:             newRunMetricsProvider(dbrsvc),
-		dbrmp:           dbrMetricsProvider{dbrsvc},
-		scmb:            sparkClusterMetricsBuilder{ssvc},
-		semb: sparkExtraMetricsBuilder{
-			ssvc:   ssvc,
-			logger: nopLogger,
+		metricsBuilder:  commontest.NewTestMetricsBuilder(),
+		rmp:             databricks.NewRunMetricsProvider(dbrsvc),
+		dbrmp:           databricks.DbrMetricsProvider{Dbrsvc: dbrsvc},
+		scmb:            dbrspark.ClusterMetricsBuilder{Ssvc: ssvc},
+		semb: dbrspark.ExtraMetricsBuilder{
+			Ssvc:   ssvc,
+			Logger: nopLogger,
 		},
 		dbrsvc: dbrsvc,
 	}

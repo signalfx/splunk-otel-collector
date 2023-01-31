@@ -23,6 +23,8 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
 
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/databricks"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/dbrspark"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
 
@@ -48,19 +50,19 @@ func newReceiverFactory() receiver.CreateMetricsFunc {
 		if err != nil {
 			return nil, fmt.Errorf("newReceiverFactory: failed to create client from config: %w", err)
 		}
-		dbrClient := newDatabricksRawClient(dbrcfg.Token, dbrcfg.Endpoint, httpClient, settings.Logger)
-		dbrsvc := newDatabricksService(dbrClient, dbrcfg.MaxResults)
-		ssvc := newSparkService(settings.Logger, dbrsvc, httpClient, dbrcfg.Token, dbrcfg.SparkEndpoint, dbrcfg.SparkOrgID, dbrcfg.SparkUIPort)
+		dbrClient := databricks.NewDatabricksRawClient(dbrcfg.Token, dbrcfg.Endpoint, httpClient, settings.Logger)
+		dbrsvc := databricks.NewDatabricksService(dbrClient, dbrcfg.MaxResults)
+		ssvc := dbrspark.NewService(settings.Logger, httpClient, dbrcfg.Token, dbrcfg.SparkEndpoint, dbrcfg.SparkOrgID, dbrcfg.SparkUIPort)
 		dbrScraper := scraper{
 			dbrInstanceName: dbrcfg.InstanceName,
 			logger:          settings.Logger,
-			rmp:             newRunMetricsProvider(dbrsvc),
-			dbrmp:           dbrMetricsProvider{dbrsvc: dbrsvc},
+			rmp:             databricks.NewRunMetricsProvider(dbrsvc),
+			dbrmp:           databricks.DbrMetricsProvider{Dbrsvc: dbrsvc},
 			metricsBuilder:  metadata.NewMetricsBuilder(dbrcfg.Metrics, settings.BuildInfo),
-			scmb:            sparkClusterMetricsBuilder{ssvc: ssvc},
-			semb: sparkExtraMetricsBuilder{
-				ssvc:   ssvc,
-				logger: settings.Logger,
+			scmb:            dbrspark.ClusterMetricsBuilder{Ssvc: ssvc},
+			semb: dbrspark.ExtraMetricsBuilder{
+				Ssvc:   ssvc,
+				Logger: settings.Logger,
 			},
 			dbrsvc: dbrsvc,
 		}

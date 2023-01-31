@@ -1,4 +1,6 @@
-ansible==3.4.0
-molecule==3.3.0
-molecule-vagrant==0.6.1
-python-vagrant==0.5.15
+ansible~=2.10.0
+ansible-compat==2.2.7
+ansible-lint==5.4.0
+molecule==4.0.4
+molecule-vagrant==2.0.0
+pywinrm==0.4.3

@@ -1,0 +1,12 @@
+---
+- name: Converge scenario without fluentd on Windows
+  hosts: all
+  become: no
+  vars:
+    splunk_access_token: fake-token
+    splunk_realm: fake-realm
+    install_fluentd: no
+  tasks:
+    - name: "Include signalfx.splunk_otel_collector.collector role"
+      include_role:
+        name: "collector"

@@ -139,6 +139,7 @@ jobs:
           path: "${{ github.workspace }}/requirements.txt"
           contents: |
             ${{ matrix.ansible }}
+            ansible-compat==2.2.7
             ansible-lint==5.4.0
             molecule==4.0.4
             molecule-vagrant==2.0.0

@@ -109,6 +109,9 @@ jobs:
   windows-test:
     name: Windows Test
     needs: lint
+    # Need to run on macos-12 since it is the only image with native support for ansible, vagrant, and virtualbox.
+    # https://docs.ansible.com/ansible/latest/os_guide/windows_faq.html#windows-faq-ansible
+    # https://github.com/actions/runner-images/blob/main/images/macos/macos-12-Readme.md
     runs-on: macos-12
     timeout-minutes: 60
     strategy:

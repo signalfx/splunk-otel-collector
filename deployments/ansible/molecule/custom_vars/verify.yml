@@ -25,28 +25,28 @@
 
     - name: Assert SPLUNK_INGEST_URL env var is set
       ansible.builtin.lineinfile:
-        line: SPLUNK_INGEST_URL=https://fake-ingest.com
+        line: SPLUNK_INGEST_URL=https://fake-splunk-ingest.com
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
 
     - name: Assert SPLUNK_API_URL env var is set
       ansible.builtin.lineinfile:
-        line: SPLUNK_INGEST_URL=https://fake-api.com
+        line: SPLUNK_INGEST_URL=https://fake-splunk-api.com
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
 
     - name: Assert SPLUNK_TRACE_URL env var is set
       ansible.builtin.lineinfile:
-        line: SPLUNK_TRACE_URL=https://fake-ingest.com/v2/trace
+        line: SPLUNK_TRACE_URL=https://fake-splunk-ingest.com/v2/trace
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes
 
     - name: Assert SPLUNK_HEC_URL env var is set
       ansible.builtin.lineinfile:
-        line: SPLUNK_HEC_URL=https://fake-ingest.com/v1/log
+        line: SPLUNK_HEC_URL=https://fake-splunk-ingest.com/v1/log
         dest: /etc/otel/collector/splunk-otel-collector.conf
         state: present
       check_mode: yes

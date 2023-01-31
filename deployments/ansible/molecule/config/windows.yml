@@ -1,0 +1,67 @@
+---
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ./molecule/requirements.yml
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+platforms:
+  - name: "2012"
+    box: devopsgroup-io/windows_server-2012r2-standard-amd64-nocm
+    box_version: 1.67.0
+    cpus: 2
+    memory: 4096
+    instance_raw_config_args: &vagrant_args
+      - "vm.boot_timeout = 1200"
+      - "vm.communicator = 'winrm'"
+      - "vm.network 'forwarded_port', guest: 5985, host: 55985"
+      - "winrm.basic_auth_only = true"
+      - "winrm.transport = 'plaintext'"
+      - "winrm.username = 'vagrant'"
+      - "winrm.password = 'vagrant'"
+      - "winrm.retry_limit = 50"
+      - "winrm.retry_delay = 10"
+  - name: "2016"
+    box: cdaf/WindowsServer
+    box_version: 2022.09.01
+    cpus: 2
+    memory: 4096
+    instance_raw_config_args: *vagrant_args
+  - name: "2019"
+    box: gusztavvargadr/windows-server-2019-standard
+    box_version: 1809.0.2211
+    cpus: 2
+    memory: 4096
+    instance_raw_config_args: *vagrant_args
+  - name: "2022"
+    box: gusztavvargadr/windows-server-2022-standard
+    box_version: 2102.0.2211
+    cpus: 2
+    memory: 4096
+    instance_raw_config_args: *vagrant_args
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_ROLES_PATH: ../../roles
+    OBJC_DISABLE_INITIALIZE_FORK_SAFETY: 'YES'
+  connection_options:
+    ansible_connection: winrm
+    ansible_host: 127.0.0.1
+    ansible_port: 55985
+    ansible_become_method: runas
+    ansible_become_user: vagrant
+    ansible_password: vagrant
+    ansible_user: vagrant
+    ansible_winrm_scheme: http
+    ansible_winrm_transport: basic
+    ansible_winrm_server_cert_validation: ignore
+    ansible_winrm_operation_timeout_sec: 60
+    ansible_winrm_read_timeout_sec: 90
+  playbooks:
+    converge: windows-converge.yml
+    prepare: ../default/windows-prepare.yml
+    verify: windows-verify.yml
+  options:
+    vvv: true

@@ -1,0 +1,125 @@
+---
+- name: Verify scenario with the default configuration
+  hosts: all
+  gather_facts: true
+  become: no
+  tasks:
+    - name: Check splunk-otel-collector service
+      ansible.windows.win_service:
+        name: splunk-otel-collector
+        state: started
+      check_mode: yes
+      register: service_status
+
+    - name: Assert splunk-otel-collector service status
+      assert:
+        that: not service_status.changed
+
+    - name: Check fluentdwinsvc service
+      ansible.windows.win_service:
+        name: fluentdwinsvc
+        state: started
+      check_mode: yes
+      register: service_status
+
+    - name: Assert fluentdwinsvc service status
+      assert:
+        that: not service_status.changed
+
+    - name: Check SPLUNK_ACCESS_TOKEN registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_ACCESS_TOKEN
+        data: fake-token
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_REALM registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_REALM
+        data: fake-realm
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_API_URL registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_API_URL
+        data: https://api.fake-realm.signalfx.com
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_HEC_TOKEN registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_HEC_TOKEN
+        data: fake-token
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_HEC_URL registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_HEC_URL
+        data: https://ingest.fake-realm.signalfx.com/v1/log
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_INGEST_URL registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_INGEST_URL
+        data: https://ingest.fake-realm.signalfx.com
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check SPLUNK_TRACE_URL registry value
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: SPLUNK_TRACE_URL
+        data: https://ingest.fake-realm.signalfx.com/v2/trace
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert registry value exists
+      assert:
+        that: not reg_value.changed

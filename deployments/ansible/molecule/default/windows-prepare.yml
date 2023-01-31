@@ -1,0 +1,10 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  become: no
+  tasks:
+    - name: Bypass prepare stage
+      debug:
+        msg: Bypassing the prepare stage since the client is a Windows box
+      changed_when: false

@@ -168,6 +168,6 @@ replace (
 	github.com/form3tech-oss/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.1.2
-	golang.org/x/crypto => golang.org/x/crypto v0.4.0
+	golang.org/x/crypto => golang.org/x/crypto v0.5.0
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0
 )

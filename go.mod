@@ -520,7 +520,7 @@ replace (
 	github.com/opencontainers/runc => github.com/opencontainers/runc v1.1.2
 	github.com/spf13/viper => github.com/spf13/viper v1.11.0 // required to drop dependency on deprecated github.com/coreos/etcd and github.com/coreos/go-etcd
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
-	golang.org/x/crypto => golang.org/x/crypto v0.4.0
+	golang.org/x/crypto => golang.org/x/crypto v0.5.0
 	k8s.io/apiserver => k8s.io/apiserver v0.24.1 // required to drop dependency on deprecated go.etcd.io/etcd
 )
 

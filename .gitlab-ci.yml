@@ -77,10 +77,9 @@ fossa:
     paths:
       - .cache/pip
   retry: 2
-  before_script:
+  script:
     - *get-artifactory-stage
     - *aws-releaser-role
-  script:
     - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
     - |
       if [ -n "${PATHS:-}" ]; then
@@ -464,6 +463,24 @@ sign-agent-bundles:
       - dist/signed/*.zip
       - dist/signed/*.zip.asc
 
+sign-ps-installer:
+  extends:
+    - .trigger-filter
+    - .submit-signing-request
+  stage: sign-packages
+  dependencies: []
+  variables:
+    ARTIFACT: dist/install.ps1
+    SIGN_TYPE: WIN
+    DOWNLOAD_DIR: dist/signed
+  before_script:
+    - mkdir -p dist
+    - cp internal/buildscripts/packaging/installer/install.ps1 dist/install.ps1
+  artifacts:
+    paths:
+      - dist/install.ps1
+      - dist/signed/install.ps1
+
 verify-signed-packages:
   extends: .trigger-filter
   stage: sign-packages
@@ -481,10 +498,11 @@ verify-signed-packages:
     - agent-bundle-linux
     - agent-bundle-windows
     - sign-agent-bundles
+    - sign-ps-installer
   script:
     - |
       set -ex
-      for pkg in dist/*.rpm dist/*.deb dist/*.msi dist/*.tar.gz dist/*.zip; do
+      for pkg in dist/*.rpm dist/*.deb dist/*.msi dist/*.tar.gz dist/*.zip dist/install.ps1; do
         if [[ ! -f dist/signed/$(basename $pkg) ]]; then
           echo "$pkg was not signed!" >&2
           exit 1
@@ -702,9 +720,12 @@ release-installers:
   extends:
     - .deploy-release
   stage: release
-  dependencies: []
+  dependencies:
+    - sign-ps-installer
   variables:
     INSTALLERS: "true"
+  before_script:
+    - cp -f dist/signed/install.ps1 internal/buildscripts/packaging/installer/install.ps1
 
 choco-release:
   extends: .trigger-filter

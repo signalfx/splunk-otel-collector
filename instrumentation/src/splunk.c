@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#define ENV_VAR_LEN 512
+#define MAX_ENV_VAR_LEN 512
 #define MAX_CONFIG_ATTR_LEN 256
 #define MAX_CMDLINE_LEN 16000
 #define MAX_ARGS 256
@@ -16,6 +16,9 @@
 #define JAVA_TOOL_OPTIONS_PREFIX "-javaagent:";
 
 static char *const conf_file = "/usr/lib/splunk-instrumentation/instrumentation.conf";
+static char *const prof_enabled_cmdline_switch = " -Dsplunk.profiler.enabled=true";
+static char *const prof_memory_enabled_cmdline_switch = " -Dsplunk.profiler.memory.enabled=true";
+static char *const metrics_enabled_cmdline_switch = " -Dsplunk.metrics.enabled=true";
 
 extern char *program_invocation_short_name;
 
@@ -73,7 +76,11 @@ void auto_instrument(
             .java_agent_jar = NULL,
             .resource_attributes = NULL,
             .service_name = NULL,
-            .disable_telemetry = NULL
+            .disable_telemetry = NULL,
+            .generate_service_name = NULL,
+            .enable_profiler = NULL,
+            .enable_profiler_memory = NULL,
+            .enable_metrics = NULL
     };
     load_config_func(log, &cfg, conf_file);
     if (cfg.java_agent_jar == NULL) {
@@ -87,22 +94,22 @@ void auto_instrument(
     }
 
     char service_name[MAX_CMDLINE_LEN] = "";
-    if (str_eq_false(cfg.generate_service_name)) {
-        log_debug(log, "service name generation disabled");
-    } else {
+    if (str_to_bool(cfg.generate_service_name, true)) {
         get_service_name(log, cr, &cfg, service_name);
         if (strlen(service_name) == 0) {
             log_info(log, "service name empty, quitting");
             return;
         }
         set_env_var(log, otel_service_name_var, service_name);
+    } else {
+        log_debug(log, "service name generation explicitly disabled");
     }
 
     set_java_tool_options(log, &cfg);
 
     set_env_var_from_attr(log, "resource_attributes", resource_attributes_var, cfg.resource_attributes);
 
-    if (str_eq_true(cfg.disable_telemetry)) {
+    if (str_to_bool(cfg.disable_telemetry, false)) {
         log_info(log, "disabling telemetry as per config");
     } else {
         send_otlp_metric_func(log, service_name);
@@ -148,7 +155,7 @@ void set_env_var(logger log, const char *var_name, const char *value) {
 }
 
 void set_java_tool_options(logger log, struct config *cfg) {
-    char java_tool_options[ENV_VAR_LEN] = JAVA_TOOL_OPTIONS_PREFIX;
+    char java_tool_options[MAX_ENV_VAR_LEN] = JAVA_TOOL_OPTIONS_PREFIX;
     char log_line[MAX_LOG_LINE_LEN] = "";
     size_t jar_path_len = strlen(cfg->java_agent_jar);
     if (jar_path_len > MAX_CONFIG_ATTR_LEN) {
@@ -156,7 +163,18 @@ void set_java_tool_options(logger log, struct config *cfg) {
         log_warning(log, log_line);
         return;
     }
-    strcat(java_tool_options, (*cfg).java_agent_jar);
+    strncat(java_tool_options, cfg->java_agent_jar, MAX_ENV_VAR_LEN - strlen(java_tool_options) - 1);
+
+    if (str_to_bool(cfg->enable_profiler, false)) {
+        strncat(java_tool_options, prof_enabled_cmdline_switch, MAX_ENV_VAR_LEN - strlen(java_tool_options) - 1);
+    }
+    if (str_to_bool(cfg->enable_profiler_memory, false)) {
+        strncat(java_tool_options, prof_memory_enabled_cmdline_switch, MAX_ENV_VAR_LEN - strlen(java_tool_options) - 1);
+    }
+    if (str_to_bool(cfg->enable_metrics, false)) {
+        strncat(java_tool_options, metrics_enabled_cmdline_switch, MAX_ENV_VAR_LEN - strlen(java_tool_options) - 1);
+    }
+
     sprintf(log_line, "setting JAVA_TOOL_OPTIONS='%s'", java_tool_options);
     log_debug(log, log_line);
     setenv(java_tool_options_var, java_tool_options, 0);

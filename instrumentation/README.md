@@ -58,6 +58,31 @@ Java instrumentation jar. Typically, it will be set to something like:
 
 to set the deployment environment for the Splunk backend.
 
+### disable_telemetry (optional)
+
+Set this value to `true` to disable the preloader from sending the `splunk.linux-autoinstr.executions` metric to the
+local collector. Default: `false`.
+
+### generate_service_name (optional)
+
+Set this value to `false` to prevent the preloader from setting the `OTEL_SERVICE_NAME` environment variable.
+Default: `true`.
+
+### enable_profiler (optional)
+
+Set this value to `true` to pass `-Dsplunk.profiler.enabled=true` to the starting Java executable, which will enable
+[AlwaysOn CPU Profiling](https://docs.splunk.com/Observability/apm/profiling/get-data-in-profiling.html). Default: `false`.
+
+### enable_profiler_memory (optional)
+
+Set this value to `true` to pass `-Dsplunk.profiler.memory.enabled=true` to the starting Java executable, which will enable
+[AlwaysOn Memory Profiling](https://docs.splunk.com/Observability/apm/profiling/get-data-in-profiling.html). Default: `false`.
+
+### enable_metrics (optional)
+
+Set this value to `true` to pass `-Dsplunk.metrics.enabled=true` to the starting Java executable, which will enable
+[exporting metrics](https://github.com/signalfx/splunk-otel-java/blob/main/docs/metrics.md). Default: `false`.
+
 ### Syntax
 
 To add a comment or comment out a line, start it with a `#`.
@@ -79,7 +104,8 @@ This environment variable contains a `-javaagent` flag set to the full path of t
 
 e.g. `JAVA_TOOL_OPTIONS='-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'`
 
-This variable is populated by the .so by concatenating the `java_agent_jar` attribute the config to a `-javaagent:` prefix.
+This variable is populated by the .so by concatenating the `java_agent_jar` attribute in the config to a `-javaagent:`
+prefix, and then appending any additional system properties specified in the configuration file.
 
 #### OTEL_SERVICE_NAME
 

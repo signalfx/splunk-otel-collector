@@ -11,13 +11,14 @@ struct config {
     char *resource_attributes;
     char *disable_telemetry;
     char *generate_service_name;
+    char *enable_profiler;
+    char *enable_profiler_memory;
+    char *enable_metrics;
 };
 
 void load_config(logger log, struct config *cfg, char *file_name);
 
-bool str_eq_true(char *v);
-
-bool str_eq_false(char *v);
+bool str_to_bool(char *v, bool);
 
 void free_config(struct config *cfg);
 

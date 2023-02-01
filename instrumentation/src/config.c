@@ -15,23 +15,28 @@ void read_lines(struct config *cfg, FILE *fp);
 
 void split_on_eq(char *string, struct kv *pair);
 
+void log_config_field(logger log, const char *field, const char *value);
+
 void load_config(logger log, struct config *cfg, char *file_name) {
     read_config_file(log, cfg, file_name);
-    if (cfg->service_name == NULL) {
-        log_debug(log, "service_name not specified in config");
+    log_config_field(log, "service_name", cfg->service_name);
+    log_config_field(log, "java_agent_jar", cfg->java_agent_jar);
+    log_config_field(log, "resource_attributes", cfg->resource_attributes);
+    log_config_field(log, "disable_telemetry", cfg->disable_telemetry);
+    log_config_field(log, "generate_service_name", cfg->generate_service_name);
+    log_config_field(log, "enable_profiler", cfg->enable_profiler);
+    log_config_field(log, "enable_profiler_memory", cfg->enable_profiler_memory);
+    log_config_field(log, "enable_metrics", cfg->enable_metrics);
+}
+
+void log_config_field(logger log, const char *field, const char *value) {
+    char msg[MAX_LOG_LINE_LEN] = "";
+    if (value == NULL) {
+        snprintf(msg, MAX_LOG_LINE_LEN, "config: %s not specified", field);
+    } else {
+        snprintf(msg, MAX_LOG_LINE_LEN, "config: %s=%s", field, value);
     }
-    if (cfg->java_agent_jar == NULL) {
-        log_debug(log, "java_agent_jar not specified in config");
-    }
-    if (cfg->resource_attributes == NULL) {
-        log_debug(log, "resource_attributes not specified in config");
-    }
-    if (cfg->disable_telemetry == NULL) {
-        log_debug(log, "disable_telemetry not specified in config");
-    }
-    if (cfg->generate_service_name == NULL) {
-        log_debug(log, "generate_service_name not specified in config");
-    }
+    log_debug(log, msg);
 }
 
 void read_config_file(logger log, struct config *cfg, char *file_name) {
@@ -68,6 +73,12 @@ void read_lines(struct config *cfg, FILE *fp) {
             cfg->disable_telemetry = strdup(pair.v);
         } else if (streq(pair.k, "generate_service_name")) {
             cfg->generate_service_name = strdup(pair.v);
+        } else if (streq(pair.k, "enable_profiler")) {
+            cfg->enable_profiler = strdup(pair.v);
+        } else if (streq(pair.k, "enable_profiler_memory")) {
+            cfg->enable_profiler_memory = strdup(pair.v);
+        } else if (streq(pair.k, "enable_metrics")) {
+            cfg->enable_metrics = strdup(pair.v);
         }
     }
 }
@@ -77,12 +88,14 @@ void split_on_eq(char *string, struct kv *pair) {
     pair->v = string;
 }
 
-bool str_eq_true(char *v) {
-    return v != NULL && !streq("false", v) && !streq("FALSE", v) && !streq("0", v);
-}
-
-bool str_eq_false(char *v) {
-    return v != NULL && (streq("false", v) || streq("FALSE", v) || streq("0", v));
+bool str_to_bool(char *v, bool defaultVal) {
+    if (v == NULL) {
+        return defaultVal;
+    }
+    if (streq("false", v) || streq("FALSE", v) || streq("0", v)) {
+        return false;
+    }
+    return true;
 }
 
 void free_config(struct config *cfg) {
@@ -100,5 +113,14 @@ void free_config(struct config *cfg) {
     }
     if (cfg->generate_service_name != NULL) {
         free(cfg->generate_service_name);
+    }
+    if (cfg->enable_profiler != NULL) {
+        free(cfg->enable_profiler);
+    }
+    if (cfg->enable_profiler_memory != NULL) {
+        free(cfg->enable_profiler_memory);
+    }
+    if (cfg->enable_metrics != NULL) {
+        free(cfg->enable_metrics);
     }
 }

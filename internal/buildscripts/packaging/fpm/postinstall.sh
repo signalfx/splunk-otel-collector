@@ -15,6 +15,12 @@
 # limitations under the License.
 
 if command -v setcap >/dev/null 2>&1; then
+    # By default, the Collector will be installed on Linux systems with the
+    # following capabilities below, this will allow the Collector to run with
+    # the least permissions to function properly regardless of what user runs
+    # it.
+    # See: https://man7.org/linux/man-pages/man7/capabilities.7.html
+    # Note: +eip gives the capability to the program regardless of who runs it.
     setcap CAP_SYS_PTRACE,CAP_DAC_READ_SEARCH=+eip /usr/bin/otelcol
 fi
 

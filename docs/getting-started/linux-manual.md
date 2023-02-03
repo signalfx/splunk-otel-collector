@@ -23,6 +23,29 @@ configurations](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/
 which can be configured via environment variables. How these variables are
 configured depends on the installation method leveraged.
 
+### Permissions
+
+The installers below rely on using the setcap command (installed with libcap2)
+to setup up granular permissions so the Collector doesn't have to be run with
+root permissions to collect telemetry data. When the setcap command is
+available on a Linux host, the Collector will be installed with the
+[capabilities](https://man7.org/linux/man-pages/man7/capabilities.7.html) used
+in the setcap command below. These capabilities are what are recommended to
+allow the Collector to run with the least permissions needed regardless of
+which user runs the Collector.
+```sh
+setcap CAP_SYS_PTRACE,CAP_DAC_READ_SEARCH=+eip /usr/bin/otelcol
+```
+**Note:** These permissions work well in most cases, however, a Collector
+could need higher or more custom permission depending on the systems you are
+monitoring.
+
+If a user wanted to set custom permissions after the Collector was installed,
+they could use the setcap command to do so.
+```sh
+setcap {CUSTOM_CAPABILITIES}=+eip /usr/bin/otelcol
+```
+
 ### DEB and RPM Packages
 
 #### Collector Package Repositories

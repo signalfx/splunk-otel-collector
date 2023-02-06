@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/vault v1.12.2
 	github.com/hashicorp/vault-plugin-auth-gcp v0.14.0
 	github.com/hashicorp/vault/api v1.8.3
-	github.com/jaegertracing/jaeger v1.41.0
+	github.com/jaegertracing/jaeger v1.42.0
 	github.com/knadh/koanf v1.5.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.70.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.70.0
@@ -460,7 +460,7 @@ require (
 	google.golang.org/api v0.108.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
-	google.golang.org/grpc v1.52.0 // indirect
+	google.golang.org/grpc v1.52.1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/fatih/set.v0 v0.1.0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect

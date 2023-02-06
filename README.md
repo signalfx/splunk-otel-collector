@@ -236,7 +236,7 @@ In order to use the upstream OpenTelemetry Collector:
 - Use the
   [contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib)
   distribution as commercial exporters must reside in contrib
-- Properly configuration the Collector
+- Properly configure the Collector for your particular metrics, traces, and logs use cases, as only a minimal default configuration is provided by the contrib release.
 
 An example configuration for upstream, that ensures [infrastructure
 correlation](https://github.com/signalfx/splunk-otel-collector/blob/main/docs/apm-infra-correlation.md)

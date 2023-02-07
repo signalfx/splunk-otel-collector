@@ -25,6 +25,9 @@ extensions:
     size_mib: ${SPLUNK_BALLAST_SIZE_MIB}
 
 receivers:
+  # The fluentforward receiver can be used to forward logs from the Docker fluentd logging driver.
+  fluentforward:	
+    endpoint: 0.0.0.0:8006
   hostmetrics:
     collection_interval: 10s
     scrapers:
@@ -153,7 +156,7 @@ service:
       processors: [memory_limiter, batch, filter, resourcedetection/internal]
       exporters: [signalfx]
     logs:
-      receivers: [otlp]
+      receivers: [otlp, fluentforward]
       processors:
         - memory_limiter
         - batch

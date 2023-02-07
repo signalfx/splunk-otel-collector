@@ -68,4 +68,4 @@ COPY --chown=999 config/collector/ecs_ec2_config.yaml /etc/otel/collector/ecs_ec
 
 USER splunk-otel-collector
 ENTRYPOINT ["/otelcol"]
-EXPOSE 13133 14250 14268 4317 4318 6060 8888 9411 9443 9080
+EXPOSE 13133 14250 14268 4317 4318 6060 8006 8888 9411 9443 9080

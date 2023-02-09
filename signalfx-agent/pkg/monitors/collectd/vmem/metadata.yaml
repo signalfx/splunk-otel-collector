@@ -1,0 +1,50 @@
+monitors:
+- dimensions:
+  doc: |
+    Collects information about the virtual memory
+    subsystem of the kernel using the [collectd vmem
+    plugin](https://collectd.org/wiki/index.php/Plugin:vmem).  There is no
+    configuration available for this plugin.
+
+    **This monitor is deprecated in favor of the `vmem` monitor.  The metrics
+    should be fully compatible with this monitor.** This monitor will be
+    removed in a future agent release.
+  metrics:
+    vmpage_faults.majflt:
+      description: Number of major page faults on the system
+      default: false
+      type: cumulative
+    vmpage_faults.minflt:
+      description: Number of minor page faults on the system
+      default: false
+      type: cumulative
+    vmpage_io.memory.in:
+      description: Page Ins for Memory
+      default: false
+      type: cumulative
+    vmpage_io.memory.out:
+      description: Page Outs for Memory
+      default: false
+      type: cumulative
+    vmpage_io.swap.in:
+      description: Page Ins for Swap
+      default: true
+      type: cumulative
+    vmpage_io.swap.out:
+      description: Page Outs for Swap
+      default: true
+      type: cumulative
+    vmpage_number.free_pages:
+      description: Number of free memory pages
+      default: false
+      type: cumulative
+    vmpage_number.mapped:
+      description: Number of mapped pages
+      default: false
+      type: cumulative
+    vmpage_number.shmem_pmdmapped:
+      description: The amount of shared (shmem/tmpfs) memory backed by huge pages
+      default: false
+      type: gauge
+  monitorType: collectd/vmem
+  properties:

@@ -1,0 +1,28 @@
+monitors:
+- dimensions:
+  doc: |
+    Monitors process load on the host. Process load is the average number of
+    running or waiting processes over a certain time period (1, 5, and 15
+    minutes).
+
+    See http://www.brendangregg.com/blog/2017-08-08/linux-load-averages.html
+    for a good explanation of load on Linux.
+
+    This monitor is only available on Linux.
+
+  metrics:
+    load.longterm:
+      description: Average CPU load of the system over the last 15 minutes.  If the `perCPU` config option is `true`, this will be the average load per CPU.
+      default: true
+      type: gauge
+    load.midterm:
+      description: Average CPU load of the system over the last 5 minutes.  If the `perCPU` config option is `true`, this will be the average load per CPU.
+      default: true
+      type: gauge
+    load.shortterm:
+      description: Average CPU load of the system over the last minute.  If the `perCPU` config option is `true`, this will be the average load per CPU.
+      default: true
+      type: gauge
+  monitorType: load
+  properties:
+

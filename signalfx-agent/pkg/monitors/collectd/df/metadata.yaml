@@ -1,0 +1,79 @@
+monitors:
+- dimensions:
+  doc: |
+    Tracks free disk space on the host using the collectd [df
+    plugin](https://collectd.org/wiki/index.php/Plugin:DF).
+
+    Note that on Linux a filesystem **must** be mounted in the same filesystem
+    namespace that the agent is running in for this monitor to be able to
+    collect statistics about that filesystem.  This is mostly an issue when
+    running the agent in a container.
+  metrics:
+    df_complex.free:
+      description: |-
+        Measures free disk space in bytes on this file system.
+      default: true
+      type: gauge
+    df_complex.reserved:
+      description: |-
+        Measures disk space in bytes reserved for the super-user on this file system.
+      default: false
+      type: gauge
+    df_complex.used:
+      description: |-
+        Measures used disk space in bytes on this file system.
+      default: true
+      type: gauge
+    df_inodes.free:
+      description: |-
+        Measures free inodes in the file system.  Inodes are structures used by Unix filesystems to store metadata about files.
+      default: false
+      type: gauge
+      group: inodes
+    df_inodes.reserved:
+      description: |-
+        Measures inodes reserved for the super user in the file system.  Inodes are structures used by Unix filesystems to store metadata about files.
+      default: false
+      type: gauge
+      group: inodes
+    df_inodes.used:
+      description: |-
+        Measures used inodes in the file system.  Inodes are structures used by Unix filesystems to store metadata about files.
+      default: false
+      type: gauge
+      group: inodes
+    percent_bytes.free:
+      description: |-
+        Measures free disk space as a percentage of total disk space on this file system.
+      default: false
+      type: gauge
+      group: percentage
+    percent_bytes.reserved:
+      description: |-
+        Measures disk space reserved for the super-user as a percentage of total disk space of this file system.
+      default: false
+      type: gauge
+      group: percentage
+    percent_bytes.used:
+      description: |-
+        Measures used disk space as a percentage of total disk space of this file system.
+      default: false
+      type: gauge
+      group: percentage
+    percent_inodes.free:
+      description: |-
+        Measures free inodes as a percentage of total inodes in the file system.  Inodes are structures used by file systems to store information about files (other than its content).
+      default: false
+      type: gauge
+    percent_inodes.reserved:
+      description: |-
+        Measures inodes reserved for the super-user as a percentage of total inodes in the file system.  Inodes are structures used by file systems to store information about files (other than its content).
+      default: false
+      type: gauge
+    percent_inodes.used:
+      description: |-
+        Measures used inodes as a percentage of total inodes in the file system.  Inodes are structures used by file systems to store information about files (other than its content).
+      default: false
+      type: gauge
+  monitorType: collectd/df
+  properties:

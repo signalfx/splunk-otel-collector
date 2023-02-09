@@ -1,0 +1,35 @@
+monitors:
+- doc: |
+    This is an embedded form of the [Telegraf NTPQ
+    plugin](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/ntpq).
+
+    This montior requires the `ntpq` executable available on the PATH of the agent.
+  dimensions:
+  sendUnknown: true
+  metrics:
+    ntpq.delay:
+      description:
+      default: true
+      type: gauge
+    ntpq.offset:
+      description:
+      default: true
+      type: gauge
+    ntpq.when:
+      description:
+      default: true
+      type: gauge
+    ntpq.poll:
+      description:
+      default: true
+      type: gauge
+    ntpq.reach:
+      description:
+      default: true
+      type: gauge
+    ntpq.jitter:
+      description:
+      default: true
+      type: gauge
+  monitorType: telegraf/ntpq
+  properties:

@@ -1,0 +1,113 @@
+monitors:
+ - monitorType: jmx
+   sendAll: true
+   doc: |
+     This montior allows you to run an arbitrary Groovy script to convert JMX
+     MBeans fetched from a remote Java application to SignalFx datapoints.
+     This is a much more powerful and flexible alternative to the
+     [collectd/genericjmx](./collectd-genericjmx.md) monitor.
+
+     The following utility helpers are available to use in the Groovy script
+     within the `util` variable that will be set in the script's context:
+
+     - `util.queryJMX(String objectName)`: This helper will
+       query the pre-configured JMX application for the given `objectName`,
+       which can include wildcards.  In any case, the return value will be a
+       `List` of zero or more `GroovyMBean` objects, which are a convenience
+       wrapper that Groovy provides to make accessing attribute on the MBean
+       simple. See http://groovy-lang.org/jmx.html for more information about
+       the `GroovyMBean` object.  You can use the Groovy `.first()` method on
+       the returned list to access the first MBean is you are only expecting
+       one.
+
+     - `util.makeGauge(String name, double val, Map<String, String>
+       dimensions)`: A convenience function to create a SignalFx gauge
+       datapoint. This creates a `DataPoint` instance that can be fed to
+       `output.sendDatapoint[s]`.  This **does not send** the datapoint, only
+       creates it.
+
+     - `util.makeCumulative(String name, double val, Map<String, String> dimensions)`:
+       A convenience function to create a SignalFx cumulative counter
+       datapoint.  This creates a `DataPoint` instance that can be fed to
+       `output.sendDatapoint[s]`.  This **does not send** the datapoint, only
+       creates it.
+
+     The `output` instance available in the script context is what is used to
+     send data to SignalFx.  It contains the following methods:
+
+     - `output.sendDatapoint(DataPoint dp)` - Emit the given datapoint to
+       SignalFx.  We recommend using the `util.make[Gauge|Cumulative]` helpers
+       to create the `DataPoint` instance.
+
+     - `output.sendDatapoints(List<DataPoint> dp)` - Emit the given datapoints
+       to SignalFx. We recommend using the `util.make[Gauge|Cumulative]`
+       helpers to create the `DataPoint` instance. It is slightly more
+       efficient to send multiple datapoints at once, but doesn't matter that
+       much unless sending very high volumes.
+
+     Here is an example Groovy script that replicates some of the data
+     presented by the Cassandra `nodetool status` utility:
+
+     ```groovy
+     // Query the JMX endpoint for a single MBean.
+     ss = util.queryJMX("org.apache.cassandra.db:type=StorageService").first()
+
+     // Copied and modified from https://github.com/apache/cassandra
+     def parseFileSize(String value) {
+     	if (!value.matches("\\d+(\\.\\d+)? (GiB|KiB|MiB|TiB|bytes)")) {
+     		throw new IllegalArgumentException(
+     			String.format("value %s is not a valid human-readable file size", value));
+     	}
+     	if (value.endsWith(" TiB")) {
+     		return Math.round(Double.valueOf(value.replace(" TiB", "")) * 1e12);
+     	}
+     	else if (value.endsWith(" GiB")) {
+     		return Math.round(Double.valueOf(value.replace(" GiB", "")) * 1e9);
+     	}
+     	else if (value.endsWith(" KiB")) {
+     		return Math.round(Double.valueOf(value.replace(" KiB", "")) * 1e3);
+     	}
+     	else if (value.endsWith(" MiB")) {
+     		return Math.round(Double.valueOf(value.replace(" MiB", "")) * 1e6);
+     	}
+     	else if (value.endsWith(" bytes")) {
+     		return Math.round(Double.valueOf(value.replace(" bytes", "")));
+     	}
+     	else {
+     		throw new IllegalStateException(String.format("FileUtils.parseFileSize() reached an illegal state parsing %s", value));
+     	}
+     }
+
+     localEndpoint = ss.HostIdToEndpoint.get(ss.LocalHostId)
+     dims = [host_id: ss.LocalHostId, cluster_name: ss.ClusterName]
+
+     output.sendDatapoints([
+     	// Equivalent of "Up/Down" in the `nodetool status` output.
+     	// 1 = Live; 0 = Dead; -1 = Unknown
+     	util.makeGauge(
+     		"cassandra.status",
+     		ss.LiveNodes.contains(localEndpoint) ? 1 : (ss.DeadNodes.contains(localEndpoint) ? 0 : -1),
+     		dims),
+
+     	util.makeGauge(
+     		"cassandra.state",
+     		ss.JoiningNodes.contains(localEndpoint) ? 3 : (ss.LeavingNodes.contains(localEndpoint) ? 2 : 1),
+     		dims),
+
+     	util.makeGauge(
+     		"cassandra.load",
+     		parseFileSize(ss.LoadString),
+     		dims),
+
+     	util.makeGauge(
+     		"cassandra.ownership",
+     		ss.Ownership.get(InetAddress.getByName(localEndpoint)),
+     		dims)
+     	])
+
+     ```
+
+     Be careful that your script is carefully tested before using it to monitor
+     a production JMX service.  The script can do anything exposed via JMX,
+     including writing attributes and running methods via JMX. In general
+     scripts should only read attributes, but nothing enforces that.

@@ -1,0 +1,774 @@
+monitors:
+- monitorType: gitlab
+  doc: |
+    GitLab is an open-source web-based git repository manager developed by
+    GitLab Inc. GitLab has built-in features for creating wiki pages,
+    issue-tracking and CI/CD pipelines. GitLab is bundled with [Prometheus
+    exporters](https://docs.gitlab.com/ee/administration/monitoring/prometheus/index.html)
+    that can be configured to export performance metrics of itself and that of
+    the bundled software that GitLab depends on. These exporters publish
+    Prometheus metrics at endpoints are scraped by this monitor.
+
+    ### REQUIREMENTS AND DEPENDENCIES
+
+    | Software | Version |
+    |----------|---------|
+    | GitLab   | 9.3+    |
+
+    ### INSTALLATION
+
+    ### CONFIGURATION
+    #### GitLab Configuration
+
+    Follow the instructions
+    [here](https://docs.gitlab.com/ee/administration/monitoring/prometheus/index.html)
+    to configure the GitLab's Prometheus exporters to expose metric endpoint
+    targets. For GitLab Runner monitoring configuration go
+    [here](https://docs.gitlab.com/runner/monitoring/index.html).
+
+    Note that configuring GitLab by editing `/etc/gitlab/gitlab.rb` should be
+    accompanied by running the command `gitlab-ctl reconfigure` in order for
+    the changes to take effect.
+
+    Also, configuring Nginx by editing the file
+    `/var/opt/gitlab/nginx/conf/nginx-status.conf`, for instance, should be
+    accompanied by running command `gitlab-ctl restart`. Note that changes to
+    the configuration file `/var/opt/gitlab/nginx/conf/nginx-status.conf` in
+    particular are erased by subsequent runs of command `gitlab-ctl
+    reconfigure` because `gitlab-ctl reconfigure` restores the original
+    configuration file.
+
+    Below is a list of some of the Prometheus endpoint targets with links to
+    their respective configuration pages. Note that target `gitlab_monitor`
+    metrics are just targets `gitlab_monitor_database`,
+    `gitlab_monitor_process` and `gitlab_monitor_sidekiq` metrics combined.
+
+    | Agent Monitor Type    |     Gitlab Doc                           | Standard Port | Standard Path |
+    |-----------------------|------------------------------------------|---------------|---------------|
+    | gitlab | [Gitlab doc](https://docs.gitlab.com/ee/administration/monitoring/prometheus/gitlab_exporter.html) | 9168 | /metrics |
+    | [gitlab-gitaly](./gitlab-gitaly.md) | [Gitlab doc](https://docs.gitlab.com/ee/administration/gitaly/#doc-nav) | 9236 | /metrics |
+    | [gitlab-sidekiq](./gitlab-sidekiq.md) | [Gitlab doc](https://docs.gitlab.com/ee/administration/monitoring/prometheus/index.html) | 8082 | /metrics |
+    | [gitlab-unicorn](./gitlab-unicorn.md) | [Gitlab doc](https://docs.gitlab.com/ee/administration/monitoring/prometheus/gitlab_metrics.html#unicorn-metrics-available) | 8080 | /-/metrics |
+    | [gitlab-workhorse](./gitlab-workhorse.md) | [Gitlab doc](https://docs.gitlab.com/ee/administration/monitoring/prometheus/index.html) | 9229 | /metrics |
+    | [prometheus/nginx-vts](./prometheus-nginx-vts.md) | [Gitlab doc](https://docs.gitlab.com/ee/administration/monitoring/prometheus/index.html) | 8060 | /metrics |
+    | [prometheus/node](./prometheus-node.md) | [Gitlab doc](https://docs.gitlab.com/ee/administration/monitoring/prometheus/node_exporter.html) | 9100 | /metrics |
+    | [promteheus/postgres](./prometheus-postgres.md) | [Gitlab doc](https://docs.gitlab.com/ee/administration/monitoring/prometheus/postgres_exporter.html) | 9187 | /metrics |
+    | [prometheus/prometheus](./prometheus-prometheus.md) | [Gitlab doc](https://docs.gitlab.com/ee/administration/monitoring/prometheus/index.html) | 9090 | /metrics |
+    | [prometheus/redis](./prometheus-redis.md) | [Gitlab doc](https://docs.gitlab.com/ee/administration/monitoring/prometheus/redis_exporter.html) | 9121 | /metrics |
+    | [gitlab-runner](./gitlab-runner.md) | [Gitlab doc](https://docs.gitlab.com/ee/administration/monitoring/prometheus/index.html) | 9252 | /metrics |
+
+    GitLab Prometheus exporters, Nginx and GitLab Runner must be configured to
+    listen to IP address(es) that include the IP address of the host or docker
+    container of the SignalFx Smart Agent. For example, the configuration below
+    in `/etc/gitlab/gitlab.rb` configures the GitLab Postgres Prometheus
+    exporter to allow network connections on port `9187` from any IP address.
+
+    ```
+    postgres_exporter['listen_address'] = '0.0.0.0:9187'
+    ```
+
+    The above configuration can also be written as:
+
+    ```
+    postgres_exporter['listen_address'] = ':9187'
+    ```
+
+    Below is part of file `/var/opt/gitlab/nginx/conf/nginx-status.conf`
+    showing the `location /metrics` block for metric related configuration.
+    This file configures Nginx. The statement `allow 172.17.0.0/16;` allows
+    network connection in the `172.17.0.0/16` IP range. The assumption is that
+    the IP address associated with the SignalFx Smart Agent is in that IP
+    range.
+
+    ```
+    server {
+        ...
+        location /metrics {
+        ...
+        allow 172.17.0.0/16;
+        deny all;
+        }
+    }
+    ```
+
+    Below is part of the global section of `/etc/gitlab-runner/config.toml`. This file configures GitLab Runner. The statement below configures GitLab Runner's Prometheus metrics HTTP server to allows network connection on port `9252` from any IP address.
+
+    ```
+    listen_address = "0.0.0.0:9252"
+    ...
+
+    ```
+
+    #### Sample Config
+
+    To monitor everything we support in Gitlab, use the following configuration in the Smart Agent config:
+
+    ```
+    monitors:
+     - type: gitlab-unicorn
+       host: localhost
+       port: 8080
+
+     - type: gitlab
+       host: localhost
+       port: 9168
+
+     - type: gitlab-runner
+       host: localhost
+       port: 9252
+
+     - type: gitlab-workhorse
+       host: localhost
+       port: 9229
+
+     - type: gitlab-sidekiq
+       host: localhost
+       port: 8082
+
+     - type: gitlab-gitaly
+       host: localhost
+       port: 9236
+
+     - type: prometheus/postgres
+       host: localhost
+       port: 9187
+
+     - type: prometheus/nginx-vts
+       host: localhost
+       port: 8060
+
+    ```
+
+    You can, of course, use auto-discovery by specifying a `discoveryRule` instead of `host` and `port`.
+
+  metrics:
+    ci_stale_builds:
+      default:
+      type: gauge
+    gitlab_database_rows:
+      default:
+      type: gauge
+    process_memory_bytes:
+      default:
+      type: gauge
+    process_age_seconds:
+      default:
+      type: gauge
+    process_count:
+      default: true
+      type: gauge
+    sidekiq_queue_size:
+      default: true
+      type: gauge
+    sidekiq_queue_latency:
+      default: true
+      type: gauge
+    sidekiq_dead_jobs_total:
+      default:
+      type: gauge
+    gitlab_projects_with_jid:
+      default:
+      type: gauge
+    gitlab_projects_without_jid:
+      default:
+      type: gauge
+    gitlab_stuck_import_jobs_worker_runs_total:
+      default:
+      type: cumulative
+    gitlab_cache_misses_total:
+      default:
+      type: cumulative
+    http_request_duration_seconds_bucket:
+      default:
+      type: cumulative
+    http_request_duration_seconds_count:
+      default:
+      type: cumulative
+    http_request_duration_seconds:
+      default:
+      type: cumulative
+    ruby_file_descriptors:
+      default:
+      type: gauge
+    ruby_gc_duration_seconds_total:
+      default:
+      type: cumulative
+    ruby_gc_stat_count:
+      default:
+      type: gauge
+    ruby_gc_stat_heap_allocatable_pages:
+      default:
+      type: gauge
+    ruby_gc_stat_heap_allocated_pages:
+      default:
+      type: gauge
+    ruby_gc_stat_heap_available_slots:
+      default:
+      type: gauge
+    ruby_gc_stat_heap_eden_pages:
+      default:
+      type: gauge
+    ruby_gc_stat_heap_final_slots:
+      default:
+      type: gauge
+    ruby_gc_stat_heap_free_slots:
+      default:
+      type: gauge
+    ruby_gc_stat_heap_live_slots:
+      default:
+      type: gauge
+    ruby_gc_stat_heap_marked_slots:
+      default:
+      type: gauge
+    ruby_gc_stat_heap_sorted_length:
+      default:
+      type: gauge
+    ruby_gc_stat_heap_tomb_pages:
+      default:
+      type: gauge
+    ruby_gc_stat_major_gc_count:
+      default:
+      type: gauge
+    ruby_gc_stat_malloc_increase_bytes:
+      default:
+      type: gauge
+    ruby_gc_stat_malloc_increase_bytes_limit:
+      default:
+      type: gauge
+    ruby_gc_stat_minor_gc_count:
+      default:
+      type: gauge
+    ruby_gc_stat_old_objects:
+      default:
+      type: gauge
+    ruby_gc_stat_old_objects_limit:
+      default:
+      type: gauge
+    ruby_gc_stat_oldmalloc_increase_bytes:
+      default:
+      type: gauge
+    ruby_gc_stat_oldmalloc_increase_bytes_limit:
+      default:
+      type: gauge
+    ruby_gc_stat_remembered_wb_unprotected_objects:
+      default:
+      type: gauge
+    ruby_gc_stat_remembered_wb_unprotected_objects_limit:
+      default:
+      type: gauge
+    ruby_gc_stat_total_allocated_objects:
+      default:
+      type: gauge
+    ruby_gc_stat_total_allocated_pages:
+      default:
+      type: gauge
+    ruby_gc_stat_total_freed_objects:
+      default:
+      type: gauge
+    ruby_gc_stat_total_freed_pages:
+      default:
+      type: gauge
+    ruby_memory_bytes:
+      default:
+      type: gauge
+    ruby_sampler_duration_seconds_total:
+      default:
+      type: cumulative
+    pg_stat_table_seq_tup_read:
+      default: true
+      type: gauge
+    pg_stat_table_idx_tup_fetch:
+      default: true
+      type: gauge
+    pg_stat_table_n_tup_ins:
+      default: true
+      type: gauge
+    pg_stat_table_n_tup_upd:
+      default: true
+      type: gauge
+    pg_stat_table_n_tup_del:
+      default: true
+      type: gauge
+    pg_stat_table_n_tup_hot_upd:
+      default:
+      type: gauge
+    pg_stat_table_n_dead_tup:
+      default:
+      type: gauge
+    pg_stat_table_seq_scan:
+      default:
+      type: gauge
+- monitorType: gitlab-workhorse
+  doc: |
+    This is a monitor for [GitLab
+    Workhorse](https://gitlab.com/gitlab-org/gitlab-workhorse), the GitLab
+    service that handles slow HTTP requests.  Workhorse includes a built-in
+    Prometheus exporter that this monitor will hit to gather metrics.  By
+    default, the exporter runs on port 9229.
+
+    To monitor Workhorse using its Prometheus exporter, use a monitor configuration similar to:
+
+    ```yaml
+    monitors:
+      - type: gitlab-workhorse
+        discoveryRule: port == 9229  # && <other expressions to avoid false-positives on port alone>
+    ```
+
+    See the [Gitlab monitor](gitlab.md) for more information.
+  metrics:
+    gitlab_workhorse_builds_register_handler_open:
+      description: Describes how many requests is currently open in given state
+      default:
+      type: gauge
+    gitlab_workhorse_builds_register_handler_requests:
+      description: Describes how many requests in different states hit a register
+        handler
+      default:
+      type: cumulative
+    gitlab_workhorse_git_http_sessions_active:
+      description: Number of Git HTTP request-response cycles currently being handled
+        by gitlab-workhorse
+      default: true
+      type: gauge
+    gitlab_workhorse_http_in_flight_requests:
+      description: A gauge of requests currently being served by workhorse
+      default:
+      type: gauge
+    gitlab_workhorse_http_request_duration_seconds_bucket:
+      description: A histogram of latencies for requests to workhorse
+      default:
+      type: cumulative
+    gitlab_workhorse_http_request_duration_seconds:
+      description: A histogram of latencies for requests to workhorse
+      default: true
+      type: cumulative
+    gitlab_workhorse_http_request_duration_seconds_count:
+      description: A histogram of latencies for requests to workhorse
+      default: true
+      type: cumulative
+    gitlab_workhorse_http_request_size_bytes_bucket:
+      description: A histogram of sizes of requests to workhorse
+      default:
+      type: cumulative
+    gitlab_workhorse_http_request_size_bytes:
+      description: A histogram of sizes of requests to workhorse
+      default: true
+      type: cumulative
+    gitlab_workhorse_http_request_size_bytes_count:
+      description: A histogram of sizes of requests to workhorse
+      default: true
+      type: cumulative
+    gitlab_workhorse_http_requests_total:
+      description: A counter for requests to workhorse
+      default:
+      type: cumulative
+    gitlab_workhorse_http_time_to_write_header_seconds_bucket:
+      description: A histogram of request durations until the response headers are
+        written
+      default:
+      type: cumulative
+    gitlab_workhorse_http_time_to_write_header_seconds:
+      description: A histogram of request durations until the response headers are
+        written
+      default:
+      type: cumulative
+    gitlab_workhorse_http_time_to_write_header_seconds_count:
+      description: A histogram of request durations until the response headers are
+        written
+      default:
+      type: cumulative
+    gitlab_workhorse_internal_api_failure_response_bytes:
+      description: How many bytes have been returned by upstream GitLab in API failure/rejection
+        response bodies
+      default:
+      type: cumulative
+    gitlab_workhorse_keywatcher_keywatchers:
+      description: The number of keys that is being watched by gitlab-workhorse
+      default:
+      type: gauge
+    gitlab_workhorse_keywather_total_messages:
+      description: How many messages gitlab-workhorse has received in total on pubsub
+      default:
+      type: cumulative
+    gitlab_workhorse_object_storage_upload_bytes:
+      description: How many bytes were sent to object storage
+      default:
+      type: cumulative
+    gitlab_workhorse_object_storage_upload_open:
+      description: Describes many object storage requests are open now
+      default:
+      type: gauge
+    gitlab_workhorse_object_storage_upload_requests:
+      description: How many object storage requests have been processed
+      default:
+      type: cumulative
+    gitlab_workhorse_redis_errors:
+      description: Counts different types of Redis errors encountered by workhorse,
+        by type and destination (redis, sentinel)
+      default:
+      type: cumulative
+    gitlab_workhorse_redis_total_connections:
+      description: How many connections gitlab-workhorse has opened in total. Can
+        be used to track Redis connection rate for this process
+      default:
+      type: cumulative
+    gitlab_workhorse_send_url_bytes:
+      description: How many bytes were passed with send URL
+      default:
+      type: cumulative
+    gitlab_workhorse_send_url_open_requests:
+      description: Describes how many send URL requests are open now
+      default:
+      type: gauge
+    gitlab_workhorse_send_url_requests:
+      description: How many send URL requests have been processed
+      default:
+      type: cumulative
+    gitlab_workhorse_static_error_responses:
+      description: How many HTTP responses have been changed to a static error page,
+        by HTTP status code.
+      default:
+      type: cumulative
+- monitorType: gitlab-unicorn
+  doc: |
+    This is a monitor for GitLab's Unicorn server.  The Unicorn server comes
+    with a Prometheus exporter that runs by default on port 8080 at the path
+    `/-/metrics`.  The IP address of the SignalFx Smart Agent container or
+    host, **needs to be allowed** as described
+    [here](https://docs.gitlab.com/ee/administration/monitoring/ip_whitelist.html)
+    in order for the agent to access the endpoint.
+
+    To monitor GitLab's Unicorn server using its Prometheus exporter, use a
+    monitor configuration similar to:
+
+    ```yaml
+    monitors:
+      - type: gitlab-unicorn
+        discoveryRule: port == 8080  # && <other expressions to avoid false-positives on port alone>
+        metricPath: /-/metrics
+    ```
+
+    The available metrics are [documented by GitLab](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/doc/administration/monitoring/prometheus/gitlab_metrics.md#unicorn-metrics-available).
+
+    See the [Gitlab monitor](gitlab.md) for more information.
+  metrics:
+    user_session_logins_total:
+      description:
+      default:
+      type: cumulative
+    unicorn_active_connections:
+      description:
+      default:
+      type: gauge
+    unicorn_queued_connections:
+      description:
+      default:
+      type: gauge
+    http_requests_total:
+      description:
+      default:
+      type: cumulative
+    gitlab_transaction_rails_queue_duration_total:
+      description:
+      default:
+      type: gauge
+    gitlab_rails_queue_duration_seconds_bucket:
+      description:
+      default:
+      type: cumulative
+    gitlab_rails_queue_duration_seconds_count:
+      description:
+      default:
+      type: cumulative
+    gitlab_rails_queue_duration_seconds:
+      description:
+      default:
+      type: cumulative
+    job_register_attempts_failed_total:
+      description:
+      default:
+      type: cumulative
+    job_register_attempts_total:
+      description:
+      default:
+      type: cumulative
+    gitlab_transaction_new_redis_connections_total:
+      description:
+      default:
+      type: cumulative
+    gitlab_transaction_view_duration_total:
+      description:
+      default:
+      type: cumulative
+    gitlab_transaction_cache_read_hit_count_total:
+      description:
+      default:
+      type: cumulative
+    gitlab_transaction_cache_read_miss_count_total:
+      description:
+      default:
+      type: cumulative
+    gitlab_auth_user_authenticated_total:
+      description:
+      default:
+      type: cumulative
+    gitlab_auth_user_unauthenticated_total:
+      description:
+      default:
+      type: cumulative
+    gitlab_banzai_cacheless_render_real_duration_seconds_bucket:
+      description:
+      default:
+      type: cumulative
+    gitlab_banzai_cacheless_render_real_duration_seconds_count:
+      description:
+      default:
+      type: cumulative
+    gitlab_banzai_cacheless_render_real_duration_seconds:
+      description:
+      default:
+      type: cumulative
+    gitlab_cache_misses_total:
+      description:
+      default:
+      type: cumulative
+    gitlab_cache_operation_duration_seconds_bucket:
+      description:
+      default:
+      type: cumulative
+    gitlab_cache_operation_duration_seconds_count:
+      description:
+      default:
+      type: cumulative
+    gitlab_cache_operation_duration_seconds:
+      description:
+      default:
+      type: cumulative
+    gitlab_sql_duration_seconds_bucket:
+      description:
+      default:
+      type: cumulative
+    gitlab_sql_duration_seconds_count:
+      description:
+      default:
+      type: cumulative
+    gitlab_sql_duration_seconds:
+      description:
+      default:
+      type: cumulative
+    gitlab_transaction_sidekiq_queue_duration_total:
+      description:
+      default: true
+      type: gauge
+    gitlab_transaction_duration_seconds_bucket:
+      description:
+      default:
+      type: cumulative
+    gitlab_transaction_duration_seconds_count:
+      description:
+      default:
+      type: cumulative
+    gitlab_transaction_duration_seconds:
+      description:
+      default:
+      type: cumulative
+- monitorType: gitlab-runner
+  doc: |
+    Monitor for the [Gitlab runner service](https://docs.gitlab.com/runner/).  This usually runs on port 9252, so to monitor an instance on the same host as the agent, you can do:
+
+    ```yaml
+    monitors:
+    - type: gitlab-runner
+      host: localhost
+      port: 9252
+    ```
+
+    For more information on configuring monitoring within Gitlab runner itself, see https://docs.gitlab.com/runner/monitoring/index.html.
+
+    See the [Gitlab monitor](gitlab.md) for more information.
+  metrics:
+    gitlab_runner_api_request_statuses_total:
+      description: The total number of API requests, partitioned by runner, endpoint
+        and status
+      default:
+      type: cumulative
+    gitlab_runner_autoscaling_machine_creation_duration_seconds_bucket:
+      description: Histogram of machine creation time
+      default:
+      type: cumulative
+    gitlab_runner_autoscaling_machine_creation_duration_seconds:
+      description: Histogram of machine creation time
+      default:
+      type: cumulative
+    gitlab_runner_autoscaling_machine_creation_duration_seconds_count:
+      description: Histogram of machine creation time
+      default:
+      type: cumulative
+    gitlab_runner_autoscaling_machine_states:
+      description: The current number of machines per state in this provider
+      default:
+      type: gauge
+    gitlab_runner_concurrent:
+      description: The current value of concurrent setting
+      default:
+      type: gauge
+    gitlab_runner_errors_total:
+      description: The number of catched errors
+      default: true
+      type: cumulative
+    gitlab_runner_limit:
+      description: The current value of concurrent setting
+      default:
+      type: gauge
+    gitlab_runner_request_concurrency:
+      description: The current number of concurrent requests for a new job
+      default: true
+      type: gauge
+    gitlab_runner_request_concurrency_exceeded_total:
+      description: Counter tracking exceeding of request concurrency
+      default:
+      type: cumulative
+    gitlab_runner_version_info:
+      description: A metric with a constant '1' value labeled by different build stats
+        fields
+      default:
+      type: gauge
+- monitorType: gitlab-sidekiq
+  doc: |
+    This monitor scrapes the Gitlab Sidekiq Prometheus Exporter.  See the [Gitlab monitor](gitlab.md) for more information.
+  metrics:
+    gitlab_cache_misses_total:
+      description:
+      default:
+      type: cumulative
+    gitaly_controller_action_duration_seconds_bucket:
+      description:
+      default:
+      type: cumulative
+    gitaly_controller_action_duration_seconds_count:
+      description:
+      default:
+      type: cumulative
+    gitaly_controller_action_duration_seconds:
+      description:
+      default:
+      type: cumulative
+    gitlab_cache_operation_duration_seconds_bucket:
+      description:
+      default:
+      type: cumulative
+    gitlab_cache_operation_duration_seconds_count:
+      description:
+      default:
+      type: cumulative
+    gitlab_cache_operation_duration_seconds:
+      description:
+      default:
+      type: cumulative
+    gitlab_repository_archive_clean_up_real_duration_seconds_bucket:
+      description:
+      default:
+      type: cumulative
+    gitlab_repository_archive_clean_up_real_duration_seconds_count:
+      description:
+      default:
+      type: cumulative
+    gitlab_repository_archive_clean_up_real_duration_seconds:
+      description:
+      default:
+      type: cumulative
+    gitlab_sql_duration_seconds_bucket:
+      description:
+      default:
+      type: cumulative
+    gitlab_sql_duration_seconds_count:
+      description:
+      default:
+      type: cumulative
+    gitlab_sql_duration_seconds:
+      description:
+      default:
+      type: cumulative
+    gitlab_transaction_sidekiq_queue_duration_total:
+      description:
+      default: true
+      type: gauge
+    gitlab_transaction_cache_read_hit_count_total:
+      description:
+      default:
+      type: cumulative
+    gitlab_transaction_cache_read_miss_count_total:
+      description:
+      default:
+      type: cumulative
+    gitlab_transaction_duration_seconds_bucket:
+      description:
+      default:
+      type: cumulative
+    gitlab_transaction_duration_seconds_count:
+      description:
+      default:
+      type: cumulative
+    gitlab_transaction_duration_seconds:
+      description:
+      default:
+      type: cumulative
+- monitorType: gitlab-gitaly
+  doc: |
+    This monitor scrapes the [Gitlab Gitaly GRPC server](https://docs.gitlab.com/ee/administration/gitaly/).  See the [Gitlab monitor](gitlab.md) for more information.
+  metrics:
+    gitaly_authentications:
+      description: Counts of of Gitaly request authentication attempts
+      default:
+      type: cumulative
+    gitaly_connections_total:
+      description: Total number of connections accepted by this Gitaly process
+      default:
+      type: cumulative
+    gitaly_service_client_requests:
+      description: Counter of client requests received by client, call_site, auth
+        version, and response code
+      default:
+      type: cumulative
+    gitaly_smarthttp_deepen_count:
+      description: Number of git-upload-pack requests processed that contained a 'deepen'
+        message
+      default:
+      type: cumulative
+    gitaly_spawn_timeout_count:
+      description: Number of process spawn timeouts
+      default:
+      type: cumulative
+    gitaly_supervisor_health_checks:
+      description: Count of Gitaly supervisor health checks
+      default: true
+      type: cumulative
+    gitaly_supervisor_rss_bytes:
+      description: Resident set size of supervised processes, in bytes
+      default:
+      type: gauge
+    gitaly_supervisor_starts_total:
+      description: Number of starts of supervised processes
+      default:
+      type: cumulative
+    gitlab_build_info:
+      description: Current build info for this GitLab Service
+      default:
+      type: gauge
+    grpc_server_handled_total:
+      description: Total number of RPCs completed on the server, regardless of success
+        or failure
+      default: true
+      type: cumulative
+    grpc_server_msg_received_total:
+      description: Total number of RPC stream messages received on the server
+      default:
+      type: cumulative
+    grpc_server_msg_sent_total:
+      description: Total number of gRPC stream messages sent by the server
+      default:
+      type: cumulative
+    grpc_server_started_total:
+      description: Total number of RPCs started on the server
+      default:
+      type: cumulative

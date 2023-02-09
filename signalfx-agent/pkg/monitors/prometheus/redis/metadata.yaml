@@ -1,0 +1,246 @@
+monitors:
+- monitorType: prometheus/redis
+  doc: |
+    This monitor scrapes [Prometheus Redis
+    Exporter](https://github.com/oliver006/redis_exporter) metrics and sends
+    them to SignalFx.  It is a wrapper around the
+    [prometheus-exporter](./prometheus-exporter.md) monitor that provides a
+    restricted but expandable set of metrics.
+  sendAll: true
+  metrics:
+    redis_aof_current_rewrite_duration_sec:
+      description: aof_current_rewrite_duration_sec metric
+      default:
+      type: gauge
+    redis_aof_enabled:
+      description: aof_enabled metric
+      default:
+      type: gauge
+    redis_aof_last_rewrite_duration_sec:
+      description: aof_last_rewrite_duration_sec metric
+      default:
+      type: gauge
+    redis_aof_rewrite_in_progress:
+      description: aof_rewrite_in_progress metric
+      default:
+      type: gauge
+    redis_aof_rewrite_scheduled:
+      description: aof_rewrite_scheduled metric
+      default:
+      type: gauge
+    redis_blocked_clients:
+      description: blocked_clients metric
+      default:
+      type: gauge
+    redis_client_biggest_input_buf:
+      description: client_biggest_input_buf metric
+      default:
+      type: gauge
+    redis_client_longest_output_list:
+      description: client_longest_output_list metric
+      default:
+      type: gauge
+    redis_cluster_enabled:
+      description: cluster_enabled metric
+      default:
+      type: gauge
+    redis_command_call_duration_seconds_count:
+      description: command_call_duration_seconds_count metric
+      default:
+      type: gauge
+    redis_command_call_duration_seconds_sum:
+      description: Total amount of time in seconds spent per command
+      default:
+      type: gauge
+    redis_commands_processed_total:
+      description: commands_processed_total metric
+      default:
+      type: gauge
+    redis_config_maxclients:
+      description: config_maxclients metric
+      default:
+      type: gauge
+    redis_config_maxmemory:
+      description: config_maxmemory metric
+      default:
+      type: gauge
+    redis_connected_clients:
+      description: connected_clients metric
+      default:
+      type: gauge
+    redis_connected_slaves:
+      description: connected_slaves metric
+      default:
+      type: gauge
+    redis_connections_received_total:
+      description: connections_received_total metric
+      default:
+      type: gauge
+    redis_db_avg_ttl_seconds:
+      description: Avg TTL in seconds
+      default:
+      type: gauge
+    redis_db_keys:
+      description: Total number of keys by DB
+      default:
+      type: gauge
+    redis_db_keys_expiring:
+      description: Total number of expiring keys by DB
+      default:
+      type: gauge
+    redis_evicted_keys_total:
+      description: evicted_keys_total metric
+      default:
+      type: gauge
+    redis_expired_keys_total:
+      description: expired_keys_total metric
+      default:
+      type: gauge
+    redis_exporter_build_info:
+      description: redis exporter build_info
+      default:
+      type: gauge
+    redis_exporter_last_scrape_duration_seconds:
+      description: The last scrape duration
+      default:
+      type: gauge
+    redis_exporter_last_scrape_error:
+      description: The last scrape error status
+      default:
+      type: gauge
+    redis_exporter_scrapes_total:
+      description: Current total redis scrapes
+      default:
+      type: gauge
+    redis_instance_info:
+      description: Information about the Redis instance
+      default:
+      type: gauge
+    redis_instantaneous_input_kbps:
+      description: instantaneous_input_kbps metric
+      default:
+      type: gauge
+    redis_instantaneous_ops_per_sec:
+      description: instantaneous_ops_per_sec metric
+      default:
+      type: gauge
+    redis_instantaneous_output_kbps:
+      description: instantaneous_output_kbps metric
+      default:
+      type: gauge
+    redis_keyspace_hits_total:
+      description: keyspace_hits_total metric
+      default:
+      type: gauge
+    redis_keyspace_misses_total:
+      description: keyspace_misses_total metric
+      default:
+      type: gauge
+    redis_latest_fork_usec:
+      description: latest_fork_usec metric
+      default:
+      type: gauge
+    redis_loading_dump_file:
+      description: loading_dump_file metric
+      default:
+      type: gauge
+    redis_master_repl_offset:
+      description: master_repl_offset metric
+      default:
+      type: gauge
+    redis_memory_fragmentation_ratio:
+      description: memory_fragmentation_ratio metric
+      default:
+      type: gauge
+    redis_memory_max_bytes:
+      description: memory_max_bytes metric
+      default:
+      type: gauge
+    redis_memory_used_bytes:
+      description: memory_used_bytes metric
+      default:
+      type: gauge
+    redis_memory_used_lua_bytes:
+      description: memory_used_lua_bytes metric
+      default:
+      type: gauge
+    redis_memory_used_peak_bytes:
+      description: memory_used_peak_bytes metric
+      default:
+      type: gauge
+    redis_memory_used_rss_bytes:
+      description: memory_used_rss_bytes metric
+      default:
+      type: gauge
+    redis_net_input_bytes_total:
+      description: net_input_bytes_total metric
+      default:
+      type: gauge
+    redis_net_output_bytes_total:
+      description: net_output_bytes_total metric
+      default:
+      type: gauge
+    redis_process_id:
+      description: process_id metric
+      default:
+      type: gauge
+    redis_pubsub_channels:
+      description: pubsub_channels metric
+      default:
+      type: gauge
+    redis_pubsub_patterns:
+      description: pubsub_patterns metric
+      default:
+      type: gauge
+    redis_rdb_changes_since_last_save:
+      description: rdb_changes_since_last_save metric
+      default:
+      type: gauge
+    redis_rdb_current_bgsave_duration_sec:
+      description: rdb_current_bgsave_duration_sec metric
+      default:
+      type: gauge
+    redis_rdb_last_bgsave_duration_sec:
+      description: rdb_last_bgsave_duration_sec metric
+      default:
+      type: gauge
+    redis_rejected_connections_total:
+      description: rejected_connections_total metric
+      default:
+      type: gauge
+    redis_replication_backlog_bytes:
+      description: replication_backlog_bytes metric
+      default:
+      type: gauge
+    redis_slowlog_length:
+      description: Total slowlog
+      default:
+      type: gauge
+    redis_start_time_seconds:
+      description: Start time of the Redis instance since unix epoch in seconds
+      default:
+      type: gauge
+    redis_up:
+      description: up metric
+      default:
+      type: gauge
+    redis_uptime_in_seconds:
+      description: uptime_in_seconds metric
+      default:
+      type: gauge
+    redis_used_cpu_sys:
+      description: used_cpu_sys metric
+      default:
+      type: gauge
+    redis_used_cpu_sys_children:
+      description: used_cpu_sys_children metric
+      default:
+      type: gauge
+    redis_used_cpu_user:
+      description: used_cpu_user metric
+      default:
+      type: gauge
+    redis_used_cpu_user_children:
+      description: used_cpu_user_children metric
+      default:
+      type: gauge

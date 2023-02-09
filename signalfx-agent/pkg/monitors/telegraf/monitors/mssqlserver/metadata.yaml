@@ -1,0 +1,533 @@
+monitors:
+- dimensions:
+  doc: |
+    This monitor reports metrics about Microsoft SQL servers.
+    This monitor is based on the telegraf sqlserver plugin.  More information about the telegraf plugin
+    can be found [here](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/sqlserver).
+
+    You will need to create a login on the SQL server for the monitor to use.  You can create this login by
+    executing the following commands in an a SQL client while logged in as an administrator.
+
+    ```
+    USE master;
+    GO
+    CREATE LOGIN [signalfxagent] WITH PASSWORD = N'<YOUR PASSWORD HERE>';
+    GO
+    GRANT VIEW SERVER STATE TO [signalfxagent];
+    GO
+    GRANT VIEW ANY DEFINITION TO [signalfxagent];
+    GO
+    ```
+
+    Troubleshooting:
+
+    On some Windows based SQL server distributions TCP/IP has been disabled by default.  This behavior
+    has been observed on Azure SQL server instances.  You may need to explicitly turn on TCP/IP for the
+    SQL server if you see error messages simillar to the following.
+
+    ```
+    Cannot read handshake packet: read tcp: wsarecv: An existing connection was forcibly closed by the remote host.
+    ```
+
+    1. Verify agent configurations are correct.
+    2. Ensure TCP/IP is enabled for the SQL server by going to `Start` -> `Administrative Tools` -> `Computer Management`
+    3. In the `Computer Management` side bar, drill down to `Services and Applications` -> `SQL Server Configuration Manager` -> `SQL Server Network Configuration`
+    4. Select `Protocols for <YOUR SQL SERVER NAME>`.
+    5. In the protocol list to the right, right-click on the `TCP/IP` protocol and `enable` it.
+
+    Sample YAML configuration:
+
+    ```yaml
+    monitors:
+     - type: telegraf/sqlserver
+       host: hostname
+       port: 1433
+       userID: sa
+       password: P@ssw0rd!
+       appName: signalfxagent
+    ```
+  metrics:
+    sqlserver_database_io.read_bytes:
+      description: Bytes read by the database.
+      default: true
+      type: gauge
+    sqlserver_database_io.read_latency_ms:
+      description: Latency in milliseconds reading from the database.
+      default: true
+      type: gauge
+    sqlserver_database_io.reads:
+      description: Number of reads from the database.
+      default: true
+      type: gauge
+    sqlserver_database_io.write_bytes:
+      description: Bytes written to the database.
+      default: true
+      type: gauge
+    sqlserver_database_io.write_latency_ms:
+      description: Latency in milliseconds writing to the database.
+      default: true
+      type: gauge
+    sqlserver_database_io.writes:
+      description: Number of writes to the database.
+      default: true
+      type: gauge
+    sqlserver_memory_clerks.size_kb.bound_trees:
+      description: Size in KB of bound trees memory clerk.
+      default: false
+      type: gauge
+    sqlserver_memory_clerks.size_kb.buffer_pool:
+      description: Size in KB of buffer pool memory clerk.
+      default: false
+      type: gauge
+    sqlserver_memory_clerks.size_kb.connection_pool:
+      description: Size in KB of connection pool memory clerk.
+      default: false
+      type: gauge
+    sqlserver_memory_clerks.size_kb.general:
+      description: Size in KB of general memory clerk.
+      default: false
+      type: gauge
+    sqlserver_memory_clerks.size_kb.in-memory_oltp:
+      description: Size in KB of in in-memoory oltp memory clerk.
+      default: false
+      type: gauge
+    sqlserver_memory_clerks.size_kb.log_pool:
+      description: Size in KB of log pool memory clerk.
+      default: false
+      type: gauge
+    sqlserver_memory_clerks.size_kb.memoryclerk_sqltrace:
+      description: Size in KB of sql trace memory clerk.
+      default: false
+      type: gauge
+    sqlserver_memory_clerks.size_kb.schema_manager_user_store:
+      description: Size in KB of user store schema manager memory clerk.
+      default: false
+      type: gauge
+    sqlserver_memory_clerks.size_kb.sos_node:
+      description: Size in KB of sos node memory clerk.
+      default: false
+      type: gauge
+    sqlserver_memory_clerks.size_kb.sql_optimizer:
+      description: Size in KB of SQL optimizer memory clerk.
+      default: false
+      type: gauge
+    sqlserver_memory_clerks.size_kb.sql_plans:
+      description: Size in KB of sql plans memory clerk.
+      default: false
+      type: gauge
+    sqlserver_memory_clerks.size_kb.sql_reservations:
+      description: Size in KB of sql reservations memory clerk.
+      default: false
+      type: gauge
+    sqlserver_memory_clerks.size_kb.sql_storage_engine:
+      description: Size in KB of sql storage engine memory clerk.
+      default: false
+      type: gauge
+    sqlserver_memory_clerks.size_kb.system_rowset_store:
+      description: Size in KB of system rowset store memory clerk.
+      default: false
+      type: gauge
+    sqlserver_performance.query:
+      description: >
+        [User settable](https://docs.microsoft.com/en-us/sql/relational-databases/performance-monitor/sql-server-user-settable-object?view=sql-server-2017)
+        performance counters
+      default: false
+      type: gauge
+    sqlserver_performance.active_memory_grant_amount_kb:
+      description: Amount of active memory in KB granted.
+      default: false
+      type: gauge
+    sqlserver_performance.active_temp_tables:
+      description: Number of active temporary tables.
+      default: false
+      type: gauge
+    sqlserver_performance.background_writer_pages_sec:
+      description: Rate per second of pages written in the background.
+      default: false
+      type: gauge
+    sqlserver_performance.backup_restore_throughput_sec:
+      description: Rate per second of backup/restore throughput.
+      default: false
+      type: gauge
+    sqlserver_performance.batch_requests_sec:
+      description: Rate per second of batch requests.
+      default: true
+      type: gauge
+    sqlserver_performance.blocked_tasks:
+      description: Number of blocked tasks.
+      default: false
+      type: gauge
+    sqlserver_performance.buffer_cache_hit_ratio:
+      description: Buffer cache hit ration.
+      default: true
+      type: gauge
+    sqlserver_performance.bytes_received_from_replica_sec:
+      description: Rate per second of bytes received from replicas.
+      default: false
+      type: gauge
+    sqlserver_performance.bytes_sent_to_replica_sec:
+      description: Rate per second of bytes sent to replicas.
+      default: false
+      type: gauge
+    sqlserver_performance.bytes_sent_to_transport_sec:
+      description: Rate per second of bytes sent to transports.
+      default: false
+      type: gauge
+    sqlserver_performance.checkpoint_pages_sec:
+      description: Rate per second of checkpoint pages.
+      default: false
+      type: gauge
+    sqlserver_performance.cpu_limit_violation_count:
+      description: Number of cpu limit violations.
+      default: false
+      type: gauge
+    sqlserver_performance.cpu_usage_pct:
+      description: CPU usage percentage.
+      default: false
+      type: gauge
+    sqlserver_performance.cpu_usage_time:
+      description: CPU usage time.
+      default: false
+      type: gauge
+    sqlserver_performance.data_file_size_kb:
+      description: Size in KB of data files.
+      default: false
+      type: gauge
+    sqlserver_performance.disk_read_bytes_sec:
+      description: Rate per second of bytes from disk.
+      default: false
+      type: gauge
+    sqlserver_performance.disk_read_io_sec:
+      description: Rate per second of read operations from disk.
+      default: false
+      type: gauge
+    sqlserver_performance.disk_read_io_throttled_sec:
+      description: Rate per second of throttled read operations.
+      default: true
+      type: gauge
+    sqlserver_performance.disk_write_bytes_sec:
+      description: Rate per second of bytes written to disk.
+      default: false
+      type: gauge
+    sqlserver_performance.disk_write_io_sec:
+      description: Rate per second of write operations to disk.
+      default: false
+      type: gauge
+    sqlserver_performance.disk_write_io_throttled_sec:
+      description: Rate per second of write operations throttled.
+      default: true
+      type: gauge
+    sqlserver_performance.errors_sec:
+      description: Rate of errors per second.
+      default: false
+      type: gauge
+    sqlserver_performance.flow_control_sec:
+      description: Rate per second of flow control.
+      default: false
+      type: gauge
+    sqlserver_performance.flow_control_time_ms_sec:
+      description: Rate per second of ms of flow control time.
+      default: false
+      type: gauge
+    sqlserver_performance.forwarded_records_sec:
+      description: Rate per second of record forwarding.
+      default: false
+      type: gauge
+    sqlserver_performance.free_list_stalls_sec:
+      description: Rate per second of stalled free list.
+      default: false
+      type: gauge
+    sqlserver_performance.free_space_in_tempdb_kb:
+      description: Free space in KB of tempdb.
+      default: false
+      type: gauge
+    sqlserver_performance.full_scans_sec:
+      description: Rate per second of full scans.
+      default: false
+      type: gauge
+    sqlserver_performance.index_searches_sec:
+      description: Rate per second of index searches.
+      default: false
+      type: gauge
+    sqlserver_performance.latch_waits_sec:
+      description: Rate per second of latch waits.
+      default: false
+      type: gauge
+    sqlserver_performance.lazy_writes_sec:
+      description: Rate per second of lazy writes.
+      default: false
+      type: gauge
+    sqlserver_performance.lock_timeouts_sec:
+      description: Rate per second of lock timeouts.
+      default: false
+      type: gauge
+    sqlserver_performance.lock_wait_count:
+      description: Number of lock waits.
+      default: true
+      type: gauge
+    sqlserver_performance.lock_wait_time:
+      description: Lock wait time.
+      default: false
+      type: gauge
+    sqlserver_performance.lock_waits_sec:
+      description: Rate per second of lock waits.
+      default: false
+      type: gauge
+    sqlserver_performance.log_apply_pending_queue:
+      description: Size of the log apply pending queue.
+      default: false
+      type: gauge
+    sqlserver_performance.log_apply_ready_queue:
+      description: Size of log apply ready queue.
+      default: false
+      type: gauge
+    sqlserver_performance.log_bytes_flushed_sec:
+      description: Rate per second of log bytes flushed.
+      default: false
+      type: gauge
+    sqlserver_performance.log_bytes_received_sec:
+      description: Rate per second of log bytes received.
+      default: false
+      type: gauge
+    sqlserver_performance.log_file_size_kb:
+      description: Size in KB of log file.
+      default: false
+      type: gauge
+    sqlserver_performance.log_file_used_size_kb:
+      description: Size in KB of log file used.
+      default: false
+      type: gauge
+    sqlserver_performance.log_flush_wait_time:
+      description: Time spent flushing the log.
+      default: false
+      type: gauge
+    sqlserver_performance.log_flushes_sec:
+      description: Rate per second of log flushes.
+      default: false
+      type: gauge
+    sqlserver_performance.log_send_queue:
+      description: Size of the log send queue.
+      default: false
+      type: gauge
+    sqlserver_performance.logins_sec:
+      description: Rate of logins per second.
+      default: false
+      type: gauge
+    sqlserver_performance.logouts_sec:
+      description: Rate of logouts per second.
+      default: false
+      type: gauge
+    sqlserver_performance.memory_broker_clerk_size:
+      description: Size of memory broker clerk.
+      default: false
+      type: gauge
+    sqlserver_performance.memory_grants_outstanding:
+      description: Number of outstanding memory grants.
+      default: false
+      type: gauge
+    sqlserver_performance.memory_grants_pending:
+      description: Number of pending memory grants.
+      default: false
+      type: gauge
+    sqlserver_performance.number_of_deadlocks_sec:
+      description: Rate of deadlocks per second.
+      default: false
+      type: gauge
+    sqlserver_performance.page_life_expectancy:
+      description: Page life expectancy.
+      default: false
+      type: gauge
+    sqlserver_performance.page_lookups_sec:
+      description: Rate of page look ups per second.
+      default: false
+      type: gauge
+    sqlserver_performance.page_reads_sec:
+      description: Rate of page reads per second.
+      default: false
+      type: gauge
+    sqlserver_performance.page_splits_sec:
+      description: Rate of page splits per second.
+      default: false
+      type: gauge
+    sqlserver_performance.page_writes_sec:
+      description: Rate of page writes per second.
+      default: false
+      type: gauge
+    sqlserver_performance.pct_log_used:
+      description: Percentage of log used.
+      default: false
+      type: gauge
+    sqlserver_performance.processes_blocked:
+      description: Number of blocked processes.
+      default: true
+      type: gauge
+    sqlserver_performance.queued_request_count:
+      description: Number of queued requests.
+      default: false
+      type: gauge
+    sqlserver_performance.queued_requests:
+      description: Average number of queued requests.
+      default: false
+      type: gauge
+    sqlserver_performance.readahead_pages_sec:
+      description: Rate per second of read ahead pages.
+      default: false
+      type: gauge
+    sqlserver_performance.receives_from_replica_sec:
+      description: Rate receives from replicas per second.
+      default: false
+      type: gauge
+    sqlserver_performance.recovery_queue:
+      description: Size of recovery queue.
+      default: false
+      type: gauge
+    sqlserver_performance.redone_bytes_sec:
+      description: Rate of redone bytes per second.
+      default: false
+      type: gauge
+    sqlserver_performance.reduced_memory_grant_count:
+      description: Number of reduced memory grants.
+      default: false
+      type: gauge
+    sqlserver_performance.request_count:
+      description: Number of requests.
+      default: false
+      type: gauge
+    sqlserver_performance.requests_completed_sec:
+      description: Rate of completed requests per second.
+      default: false
+      type: gauge
+    sqlserver_performance.resent_messages_sec:
+      description: Rate of resent messages per second.
+      default: false
+      type: gauge
+    sqlserver_performance.sends_to_replica_sec:
+      description: Rate of sends to replicas per second.
+      default: false
+      type: gauge
+    sqlserver_performance.sends_to_transport_sec:
+      description: Rate of sends to transports per second.
+      default: false
+      type: gauge
+    sqlserver_performance.sql_compilations_sec:
+      description: Rate of sql compilations per second.
+      default: true
+      type: gauge
+    sqlserver_performance.sql_re-compilations_sec:
+      description: Rate of sql recompilations per sec.
+      default: true
+      type: gauge
+    sqlserver_performance.target_server_memory_kb:
+      description: Size of target server memory in KB.
+      default: false
+      type: gauge
+    sqlserver_performance.temp_tables_creation_rate:
+      description: Rate of temporary table creations.
+      default: false
+      type: gauge
+    sqlserver_performance.temp_tables_for_destruction:
+      description: Number of temporary tables marked for destruction.
+      default: false
+      type: gauge
+    sqlserver_performance.total_server_memory_kb:
+      description: Total server memory in KB.
+      default: false
+      type: gauge
+    sqlserver_performance.transaction_delay:
+      description: Number of delayed transactions.
+      default: false
+      type: gauge
+    sqlserver_performance.transactions_sec:
+      description: Rate of transactions per second.
+      default: false
+      type: gauge
+    sqlserver_performance.used_memory_kb:
+      description: Used memory in KB.
+      default: false
+      type: gauge
+    sqlserver_performance.user_connections:
+      description: Number of user connections.
+      default: true
+      type: gauge
+    sqlserver_performance.version_store_size_kb:
+      description: Size of the version store in KB.
+      default: false
+      type: gauge
+    sqlserver_performance.write_transactions_sec:
+      description: Rate of write transactions per second.
+      default: false
+      type: gauge
+    sqlserver_performance.xtp_memory_used_kb:
+      description: Size of xtp memory used in KB.
+      default: false
+      type: gauge
+    sqlserver_server_properties.available_storage_mb:
+      description: Available storage in MB.
+      default: false
+      type: gauge
+    sqlserver_server_properties.cpu_count:
+      description: Number of cpus.
+      default: false
+      type: gauge
+    sqlserver_server_properties.db_offline:
+      description: Number of offline databases.
+      default: true
+      type: gauge
+    sqlserver_server_properties.db_online:
+      description: Number of online databases.
+      default: true
+      type: gauge
+    sqlserver_server_properties.db_recovering:
+      description: Number of databases recovering.
+      default: true
+      type: gauge
+    sqlserver_server_properties.db_recoverypending:
+      description: Number of databases pending recovery.
+      default: true
+      type: gauge
+    sqlserver_server_properties.db_restoring:
+      description: Number of databases restoring.
+      default: true
+      type: gauge
+    sqlserver_server_properties.db_suspect:
+      description: Number of suspect databases.
+      default: true
+      type: gauge
+    sqlserver_server_properties.engine_edition:
+      description: Sql server engine edition version.
+      default: false
+      type: gauge
+    sqlserver_server_properties.server_memory:
+      description: Amount of memory on the sql server.
+      default: false
+      type: gauge
+    sqlserver_server_properties.total_storage_mb:
+      description: Amount of storage in MB of the sql server.
+      default: false
+      type: gauge
+    sqlserver_server_properties.uptime:
+      description: Uptime of the sql server.
+      default: false
+      type: gauge
+    sqlserver_waitstats.max_wait_time_ms:
+      description: Maximum time in millisecond spent waiting.
+      default: false
+      type: gauge
+    sqlserver_waitstats.resource_wait_ms:
+      description: Time in milliseconds spent waiting on a resource.
+      default: false
+      type: gauge
+    sqlserver_waitstats.signal_wait_time_ms:
+      description: Time in milliseconds waiting on a signal.
+      default: false
+      type: gauge
+    sqlserver_waitstats.wait_time_ms:
+      description: Time in milliseconds waiting.
+      default: false
+      type: gauge
+    sqlserver_waitstats.waiting_tasks_count:
+      description: Time in milliseconds
+      default: false
+      type: gauge
+  monitorType: telegraf/sqlserver
+  properties:

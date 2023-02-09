@@ -1,0 +1,10 @@
+<LoadPlugin "memcached">
+  Interval {{.IntervalSeconds}}
+</LoadPlugin>
+<Plugin "memcached">
+  <Instance "{{.Name}}[monitorID={{.MonitorID}}]">
+    ReportHost {{toBool .ReportHost}}
+    Host "{{.Host}}"
+    Port "{{.Port}}"
+  </Instance>
+</Plugin>

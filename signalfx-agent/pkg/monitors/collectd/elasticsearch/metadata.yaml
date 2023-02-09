@@ -1,0 +1,704 @@
+monitors:
+- dimensions:
+  doc: |
+    Monitors ElasticSearch instances. We strongly recommend using the
+    [elasticsearch](./elasticsearch.md) monitor instead, as it will
+    scale much better.
+
+    You can also [view the source of the Python
+    plugin](https://github.com/signalfx/collectd-elasticsearch).
+  metrics:
+    counter.indices.get.total:
+      description: The total number of get requests since node startup
+      default: true
+      type: cumulative
+    counter.indices.indexing.index-total:
+      description: The total number of index requests since node startup
+      default: true
+      type: cumulative
+    counter.indices.merges.total:
+      description: Total number of merges since node startup
+      default: true
+      type: cumulative
+    counter.indices.search.query-time:
+      description: Total time spent in search queries (milliseconds)
+      default: true
+      type: cumulative
+    counter.indices.search.query-total:
+      description: The total number of search requests since node startup
+      default: true
+      type: cumulative
+    counter.indices.total.indexing.index-total:
+      description: The total number of index requests per cluster
+      default: true
+      type: cumulative
+    counter.indices.total.merges.total:
+      description: Total number of merges per cluster
+      default: true
+      type: cumulative
+    counter.indices.total.search.query-total:
+      description: The total number of search requests per cluster
+      default: true
+      type: cumulative
+    counter.jvm.gc.time:
+      description: Total garbage collection time (milliseconds)
+      default: true
+      type: cumulative
+    counter.thread_pool.rejected:
+      description: Number of rejected thread pool requests
+      default: true
+      type: cumulative
+    gauge.cluster.active-primary-shards:
+      description: The number of active primary shards
+      default: true
+      type: gauge
+    gauge.cluster.active-shards:
+      description: The number of active shards
+      default: true
+      type: gauge
+    gauge.cluster.initializing-shards:
+      description: The number of currently initializing shards
+      default: false
+      type: gauge
+    gauge.cluster.number-of-data_nodes:
+      description: The current number of data nodes in the cluster
+      default: true
+      type: gauge
+    gauge.cluster.number-of-nodes:
+      description: Total number of nodes in the cluster
+      default: true
+      type: gauge
+    gauge.cluster.relocating-shards:
+      description: The number of shards that are currently being relocated
+      default: true
+      type: gauge
+    gauge.cluster.status:
+      description: The health status of the cluster
+      default: false
+      type: gauge
+    gauge.cluster.unassigned-shards:
+      description: The number of shards that are currently unassigned
+      default: true
+      type: gauge
+    gauge.indices.cache.field.size:
+      description: Field data size (bytes)
+      default: true
+      type: gauge
+    gauge.indices.cache.filter.size:
+      description: Filter cache size (bytes)
+      default: true
+      type: gauge
+    gauge.indices.docs.count:
+      description: Number of documents on this node
+      default: true
+      type: gauge
+    gauge.indices.docs.deleted:
+      description: Number of deleted documents on this node
+      default: true
+      type: gauge
+    gauge.indices.merges.current:
+      description: Number of active merges
+      default: true
+      type: gauge
+    gauge.indices.segments.count:
+      description: Number of segments on this node
+      default: true
+      type: gauge
+    gauge.indices.total.docs.count:
+      description: Number of documents in the cluster
+      default: true
+      type: gauge
+    gauge.indices.total.fielddata.memory-size:
+      description: Field data size (bytes)
+      default: true
+      type: gauge
+    gauge.indices.total.filter-cache.memory-size:
+      description: Filter cache size (bytes)
+      default: true
+      type: gauge
+    gauge.jvm.mem.heap-committed:
+      description: Total heap committed by the process (bytes)
+      default: true
+      type: gauge
+    gauge.jvm.mem.heap-used:
+      description: Total heap used (bytes)
+      default: true
+      type: gauge
+    gauge.process.open_file_descriptors:
+      description: Number of currently open file descriptors
+      default: true
+      type: gauge
+    gauge.thread_pool.active:
+      description: Number of active threads
+      default: false
+      type: gauge
+    gauge.thread_pool.largest:
+      description: Highest active threads in thread pool
+      default: false
+      type: gauge
+    gauge.thread_pool.queue:
+      description: Number of Tasks in thread pool
+      default: false
+      type: gauge
+    gauge.thread_pool.threads:
+      description: Number of Threads in thread pool
+      default: false
+      type: gauge
+    bytes.indices.primaries.merges.total-size:
+      description:
+      type: gauge
+      default: false
+    bytes.indices.total.merges.total-size:
+      description:
+      type: gauge
+      default: false
+    counter.http.total_open:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.cache.field.eviction:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.cache.filter.cache-count:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.cache.filter.evictions:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.cache.filter.hit-count:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.cache.filter.miss-count:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.cache.filter.total-count:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.flush.time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.flush.total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.get.exists-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.get.exists-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.get.missing-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.get.missing-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.get.time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.indexing.delete-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.indexing.delete-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.indexing.index-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.merges.time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.merges.total-size:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.fielddata.evictions:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.flush.total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.flush.total-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.get.exists-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.get.exists-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.get.missing-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.get.missing-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.get.time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.indexing.delete-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.indexing.delete-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.indexing.index-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.indexing.index-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.merges.total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.merges.total-docs:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.merges.total-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.refresh.total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.refresh.total-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.search.fetch-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.search.fetch-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.search.query-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.search.query-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.segments.count:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.translog.operations:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.warmer.total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.primaries.warmer.total.primaries.warmer.total-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.refresh.time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.refresh.total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.search.fetch-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.search.fetch-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.search.scroll-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.search.scroll.total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.fielddata.evictions:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.flush.periodic:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.get.exists-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.get.exists-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.get.missing-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.get.missing-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.get.time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.get.total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.indexing.delete-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.indexing.delete-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.indexing.index-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.merges.total-docs:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.merges.total-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.search.fetch-total:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.search.query-time:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.translog.earliest_last_modified_age:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.translog.uncommitted_operations:
+      description:
+      type: cumulative
+      default: false
+    counter.indices.total.translog.uncommitted_size_in_bytes:
+      description:
+      type: cumulative
+      default: false
+    counter.jvm.gc.count:
+      description:
+      type: cumulative
+      default: false
+    counter.jvm.gc.old-count:
+      description:
+      type: cumulative
+      default: false
+    counter.jvm.gc.old-time:
+      description:
+      type: cumulative
+      default: false
+    counter.jvm.uptime:
+      description:
+      type: cumulative
+      default: false
+    counter.thread_pool.completed:
+      description:
+      type: cumulative
+      default: false
+    counter.transport.rx.count:
+      description:
+      type: cumulative
+      default: false
+    counter.transport.rx.size:
+      description:
+      type: cumulative
+      default: false
+    counter.transport.tx.count:
+      description:
+      type: cumulative
+      default: false
+    counter.transport.tx.size:
+      description:
+      type: cumulative
+      default: false
+    gauge.http.current_open:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.get.current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.indexing.delete-current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.indexing.index-current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.merges.current-docs:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.merges.current-size:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.merges.total-docs:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.completion.size:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.docs.count:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.docs.deleted:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.fielddata.memory-size:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.flush.periodic:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.get.current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.indexing.delete-current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.indexing.index-current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.merges.current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.merges.current-docs:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.merges.current-size:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.search.fetch-current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.search.open-contexts:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.search.query-current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.segments.index-writer-memory:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.segments.memory:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.segments.version-map-memory:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.store.size:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.translog.earliest_last_modified_age:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.translog.size:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.translog.uncommitted_operations:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.translog.uncommitted_size_in_bytes:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.primaries.warmer.current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.search.fetch-current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.search.open-contexts:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.search.query-current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.search.scroll.current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.segments.index-writer-size:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.segments.size:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.store.size:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.total.docs.deleted:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.total.get.current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.total.indexing.delete-current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.total.indexing.index-current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.total.merges.current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.total.merges.current-docs:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.total.merges.current-size:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.total.search.open-contexts:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.total.search.query-current:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.total.store.size:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.translog.uncommitted_operations:
+      description:
+      type: gauge
+      default: false
+    gauge.indices.translog.uncommitted_size_in_bytes:
+      description:
+      type: gauge
+      default: false
+    gauge.jvm.mem.non-heap-committed:
+      description:
+      type: gauge
+      default: false
+    gauge.jvm.mem.non-heap-used:
+      description:
+      type: gauge
+      default: false
+    gauge.jvm.mem.pools.old.max_in_bytes:
+      description:
+      type: gauge
+      default: false
+    gauge.jvm.mem.pools.old.used_in_bytes:
+      description:
+      type: gauge
+      default: false
+    gauge.jvm.mem.pools.young.max_in_bytes:
+      description:
+      type: gauge
+      default: false
+    gauge.jvm.mem.pools.young.used_in_bytes:
+      description:
+      type: gauge
+      default: false
+    gauge.jvm.threads.count:
+      description:
+      type: gauge
+      default: false
+    gauge.jvm.threads.peak:
+      description:
+      type: gauge
+      default: false
+    gauge.process.cpu.percent:
+      description:
+      type: gauge
+      default: false
+    gauge.transport.server_open:
+      description:
+      type: gauge
+      default: false
+    percent.jvm.mem.heap-used-percent:
+      description:
+      type: gauge
+      default: false
+  monitorType: collectd/elasticsearch
+  properties:

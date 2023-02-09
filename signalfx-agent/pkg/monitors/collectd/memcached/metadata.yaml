@@ -1,0 +1,118 @@
+monitors:
+- dimensions:
+  doc: |
+    Monitors an instance of memcached using the [collectd memcached
+    plugin](https://collectd.org/wiki/index.php/Plugin:memcached).  Requires
+    Memcached 1.1 or later.
+
+    The monitor collects the following information from Memcached nodes:
+
+    * request information (including hits, misses & evictions)
+    * current connections
+    * net input/output bytes
+    * number of items cached
+
+    Documentation for Memcached can be found at https://github.com/memcached/memcached/wiki.
+  metrics:
+    df.cache.free:
+      description: Unused storage bytes
+      default: true
+      type: gauge
+    df.cache.used:
+      description: Current number of bytes used to store items
+      default: true
+      type: gauge
+    memcached_command.meta:
+      description: Number of meta requests
+      default: false
+      type: cumulative
+    memcached_command.flush:
+      description: Number of flush requests
+      default: false
+      type: cumulative
+    memcached_command.get:
+      description: Number of retrieval requests
+      default: true
+      type: cumulative
+    memcached_command.set:
+      description: Number of storage requests
+      default: true
+      type: cumulative
+    memcached_command.touch:
+      description: Number of touch requests
+      default: false
+      type: cumulative
+    memcached_connections.current:
+      description: Current number of open connections
+      default: true
+      type: gauge
+    memcached_items.current:
+      description: Current number of items stored by this instance
+      default: true
+      type: gauge
+    memcached_octets.rx:
+      description: Total network bytes read by this server
+      default: true
+      type: cumulative
+    memcached_octets.tx:
+      description: Total network bytes written by this server
+      default: true
+      type: cumulative
+    memcached_ops.decr_hits:
+      description: Number of successful Decr requests
+      default: false
+      type: cumulative
+    memcached_ops.decr_misses:
+      description: Number of decr requests against missing keys
+      default: false
+      type: cumulative
+    memcached_ops.delete_hits:
+      description: Number of successful delete requests
+      default: false
+      type: cumulative
+    memcached_ops.delete_misses:
+      description: Number of delete requests against missing keys
+      default: false
+      type: cumulative
+    total_events.listen_disabled:
+      description: Number of times connection limit has been exceeded
+      default: false
+      type: cumulative
+    connections.opened:
+      description: Number of connections opened since server began running
+      default: false
+      type: cumulative
+    memcached_ops.evictions:
+      description: Number of valid items removed from cache
+      default: true
+      type: cumulative
+    memcached_ops.hits:
+      description: Number of keys that have been requested and found present
+      default: true
+      type: cumulative
+    memcached_ops.incr_hits:
+      description: Number of successful incr requests
+      default: false
+      type: cumulative
+    memcached_ops.incr_misses:
+      description: Number of incr requests against missing keys
+      default: false
+      type: cumulative
+    memcached_ops.misses:
+      description: Number of items that have been requested and not found
+      default: true
+      type: cumulative
+    ps_count.threads:
+      description: Number of worker threads requested
+      default: false
+      type: gauge
+    ps_cputime.syst:
+      description: Total system time for this instance
+      default: false
+      type: cumulative
+    ps_cputime.user:
+      description: Total user time for this instance
+      default: false
+      type: cumulative
+  monitorType: collectd/memcached
+  properties:

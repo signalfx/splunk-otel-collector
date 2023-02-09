@@ -1,0 +1,9 @@
+monitors:
+- dimensions:
+  doc: |
+    Collectd NTP data from a chronyd instance
+
+    See https://collectd.org/documentation/manpages/collectd.conf.5.shtml#plugin_chrony
+  metrics:
+  monitorType: collectd/chrony
+  properties:

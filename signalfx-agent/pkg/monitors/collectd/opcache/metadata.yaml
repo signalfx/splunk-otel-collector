@@ -1,0 +1,126 @@
+monitors:
+- dimensions:
+    plugin_instance:
+      description: Set to whatever you set in the `name` config option.
+  doc: |
+    Monitors Opcache using `opcache_get_status()`.
+
+    <!--- SETUP --->
+    ## Setup
+    You must install on your PHP webserver the following PHP script:
+
+    ```
+    <?php
+    header('Content-Type: application/json');
+    $status=opcache_get_status();
+    echo json_encode($status,JSON_PRETTY_PRINT);
+    ```
+
+    Example with nginx:
+
+    ```
+    location ~ /monitoring/.*\.php$ {
+        #access_log off;
+        allow 127.0.0.1;
+        allow ::1;
+        deny all;
+        include fastcgi_params;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        fastcgi_param  PHP_ADMIN_VALUE "open_basedir=/var/log:/usr/bin:/srv/http/monitoring";
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_pass php-handler;
+    }
+    ```
+
+    Put the script named `opcache_stat.php` into `/srv/http/monitoring` then:
+
+    ```
+    curl http://localhost/monitoring/opcache_stat.php
+    {
+    "opcache_enabled": true,
+    "cache_full": false,
+    "restart_pending": false,
+    "restart_in_progress": false,
+    "memory_usage": {
+        "used_memory": 82614848,
+        "free_memory": 183437232,
+        "wasted_memory": 2383376,
+        "current_wasted_percentage": 0.88787674903869629
+    },
+    #...
+    ```
+
+
+    <!--- SETUP --->
+    ## Config Examples
+
+    ```
+    monitors:
+     - type: collectd/opcache
+       host: localhost
+       port: 80
+    ```
+
+    If status script is exposed on an endpoint other than `/opcache_stat.php`,
+    you can use the `path` config option:
+
+    ```
+    monitors:
+     - type: collectd/opcache
+       host: localhost
+       port: 80
+       path: "/opcache"
+    ```
+
+    You can also define the entire URL yourself using `url` config
+    option but keep in mind `useHTTPS` will be ignored if so:
+    
+    ```
+    monitors:
+     - type: collectd/opcache
+       host: localhost
+       port: 80
+       useHTTPS: true # will be ignored
+       url: "http://{{.host}}:{{.port}}/opcache"
+    ```
+
+    For a full list of options, see [Configuration](#configuration).
+
+
+  metrics:
+    cache_size.memory_usage-used_memory:
+      description: Amount of memory used.
+      default: true
+      type: gauge
+    cache_size.memory_usage-free_memory:
+      description: Amount of memory free.
+      default: true
+      type: gauge
+    cache_ratio.opcache_statistics-opcache_hit_rate:
+      description: Hits / (Hits + Miss).
+      default: true
+      type: gauge
+    cache_result.opcache_statistics-misses:
+      description: Number of unsuccessful reads.
+      default: true
+      type: cumulative
+    cache_result.opcache_statistics-hits:
+      description: Number of successful reads.
+      default: true
+      type: cumulative
+    files.opcache_statistics-num_cached_keys:
+      description: Number of keys in cache.
+      default: true
+      type: gauge
+    files.opcache_statistics-max_cached_keys:
+      description: Maximum number of keys.
+      default: true
+      type: gauge
+    files.opcache_statistics-num_cached_scripts:
+      description: Number of cached scripts.
+      default: true
+      type: gauge
+  monitorType: collectd/opcache
+  noneIncluded: true
+  properties:
+

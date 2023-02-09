@@ -1,0 +1,5 @@
+monitors:
+- monitorType: java-monitor
+  doc: |
+    This monitor allows you to generate metrics from a Java application.
+  sendAll: true

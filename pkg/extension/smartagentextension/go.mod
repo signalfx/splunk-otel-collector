@@ -176,3 +176,6 @@ replace (
 	github.com/signalfx/signalfx-agent => github.com/signalfx/signalfx-agent v1.0.1-0.20230117211433-9858481024e4
 	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230117211433-9858481024e4 // indirect
 )
+
+// For CVE-2022-1996
+replace github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible

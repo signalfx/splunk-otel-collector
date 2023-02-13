@@ -17,7 +17,7 @@ require (
 	go.opentelemetry.io/collector/confmap v0.70.0
 	go.opentelemetry.io/collector/consumer v0.70.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.70.0
-	go.opentelemetry.io/collector/pdata v1.0.0-rc4
+	go.opentelemetry.io/collector/pdata v1.0.0-rc5
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.70.0
 	go.opentelemetry.io/otel/metric v0.34.0
 	go.opentelemetry.io/otel/trace v1.11.2
@@ -141,7 +141,7 @@ require (
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6 // indirect
-	google.golang.org/grpc v1.52.0 // indirect
+	google.golang.org/grpc v1.52.3 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

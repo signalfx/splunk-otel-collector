@@ -88,14 +88,14 @@ void split_on_eq(char *string, struct kv *pair) {
     pair->v = string;
 }
 
-bool str_to_bool(char *v, bool defaultVal) {
+int str_to_bool(char *v, int defaultVal) {
     if (v == NULL) {
         return defaultVal;
     }
     if (streq("false", v) || streq("FALSE", v) || streq("0", v)) {
-        return false;
+        return 0;
     }
-    return true;
+    return 1;
 }
 
 void free_config(struct config *cfg) {

@@ -9,14 +9,14 @@ void print_logs(char **logs, int n) {
     }
 }
 
-void require_true(char *funcname, bool actual) {
+void require_true(char *funcname, int actual) {
     if (!actual) {
         printf("%s: require_true: got false\n", funcname);
         fail();
     }
 }
 
-void require_false(char *funcname, bool actual) {
+void require_false(char *funcname, int actual) {
     if (actual) {
         printf("%s: require_false: got true\n", funcname);
         fail();

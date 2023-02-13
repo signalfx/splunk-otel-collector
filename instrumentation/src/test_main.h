@@ -4,7 +4,6 @@
 #include "logger.h"
 #include "config.h"
 #include "cmdline_reader.h"
-#include <stdbool.h>
 
 typedef void (test_func_t)(logger);
 
@@ -122,9 +121,9 @@ void fake_config_enable_metrics(logger log, struct config *cfg, char *path);
 
 cmdline_reader new_default_test_cmdline_reader();
 
-bool access_check_true(const char *s);
+int access_check_true(const char *s);
 
-bool access_check_false(const char *s);
+int access_check_false(const char *s);
 
 int tomcat_args(char *args[]);
 

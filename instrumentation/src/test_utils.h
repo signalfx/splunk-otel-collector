@@ -1,13 +1,11 @@
 #ifndef INSTRUMENTATION_TEST_UTILS_H
 #define INSTRUMENTATION_TEST_UTILS_H
 
-#include <stdbool.h>
-
 void print_logs(char **logs, int n);
 
-void require_true(char *funcname, bool actual);
+void require_true(char *funcname, int actual);
 
-void require_false(char *funcname, bool actual);
+void require_false(char *funcname, int actual);
 
 void require_equal_strings(char *funcname, char *expected, char *actual);
 

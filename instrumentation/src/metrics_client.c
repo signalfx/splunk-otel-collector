@@ -6,7 +6,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <stdbool.h>
 
 static const int RECV_BUF_LEN = 1024;
 
@@ -14,15 +13,15 @@ static const int METRIC_JSON_MAX_LEN = 1024;
 
 static char *const expected = "HTTP/1.1 200 OK";
 
-bool http_post(char *host, int port, char *method, char *path, char *postData, logger pImpl);
+int http_post(char *host, int port, char *method, char *path, char *postData, logger pImpl);
 
 int make_socket(int timeout_seconds);
 
-bool connect_http(const char *host, int port, int socket_descriptor);
+int connect_http(const char *host, int port, int socket_descriptor);
 
-bool post(int socket_descriptor, char *host, int port, char *method, char *path, char *postData);
+int post(int socket_descriptor, char *host, int port, char *method, char *path, char *postData);
 
-bool receive(int socket_descriptor);
+int receive(int socket_descriptor);
 
 int mk_metrics_json(char *dest, int max_len, char *service_name);
 
@@ -52,29 +51,29 @@ int mk_metrics_json(char *dest, int max_len, char *service_name) {
     return snprintf(dest, max_len, format, service_name);
 }
 
-bool http_post(char *host, int port, char *method, char *path, char *postData, logger log) {
+int http_post(char *host, int port, char *method, char *path, char *postData, logger log) {
     int socket_descriptor = make_socket(1);
     if (socket_descriptor == -1) {
         log_debug(log, "metrics client failed to open socket");
-        return false;
+        return 0;
     }
 
     if (!connect_http(host, port, socket_descriptor)) {
         log_debug(log, "metrics client failed to connect");
-        return false;
+        return 0;
     }
 
     if (!post(socket_descriptor, host, port, method, path, postData)) {
         log_debug(log, "metrics client failed to send");
-        return false;
+        return 0;
     }
 
     if (!receive(socket_descriptor)) {
         log_debug(log, "metrics client failed to receive response");
-        return false;
+        return 0;
     }
 
-    return true;
+    return 1;
 }
 
 int make_socket(int timeout_seconds) {
@@ -98,7 +97,7 @@ int make_socket(int timeout_seconds) {
     return socket_descriptor;
 }
 
-bool connect_http(const char *host, int port, int socket_descriptor) {
+int connect_http(const char *host, int port, int socket_descriptor) {
     struct sockaddr_in address;
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = inet_addr(host);
@@ -107,7 +106,7 @@ bool connect_http(const char *host, int port, int socket_descriptor) {
     return errno == 0;
 }
 
-bool post(int socket_descriptor, char *host, int port, char *method, char *path, char *postData) {
+int post(int socket_descriptor, char *host, int port, char *method, char *path, char *postData) {
     char *req_pattern = "%s %s HTTP/1.1\n"
                         "Host: %s:%d\n"
                         "Content-Type: application/json\n"
@@ -122,12 +121,12 @@ bool post(int socket_descriptor, char *host, int port, char *method, char *path,
     return num_bytes_sent == req_len;
 }
 
-bool receive(int socket_descriptor) {
+int receive(int socket_descriptor) {
     char buf[RECV_BUF_LEN];
     ssize_t recv_size = recv(socket_descriptor, buf, RECV_BUF_LEN, 0);
     size_t expected_len = strlen(expected);
     if (recv_size < expected_len) {
-        return false;
+        return 0;
     }
 
     return strncmp(expected, buf, expected_len) == 0;

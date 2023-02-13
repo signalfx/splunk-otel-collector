@@ -22,15 +22,15 @@ static char *const metrics_enabled_cmdline_switch = " -Dsplunk.metrics.enabled=t
 
 extern char *program_invocation_short_name;
 
-bool has_read_access(const char *s);
+int has_read_access(const char *s);
 
 void set_java_tool_options(logger log, struct config *cfg);
 
 void get_service_name_from_cmdline(logger log, char *dest, cmdline_reader cr);
 
-bool is_disable_env_set();
+int is_disable_env_set();
 
-bool is_java_tool_options_set();
+int is_java_tool_options_set();
 
 void set_env_var(logger log, const char *var_name, const char *value);
 
@@ -94,7 +94,7 @@ void auto_instrument(
     }
 
     char service_name[MAX_CMDLINE_LEN] = "";
-    if (str_to_bool(cfg.generate_service_name, true)) {
+    if (str_to_bool(cfg.generate_service_name, 1)) {
         get_service_name(log, cr, &cfg, service_name);
         if (strlen(service_name) == 0) {
             log_info(log, "service name empty, quitting");
@@ -109,7 +109,7 @@ void auto_instrument(
 
     set_env_var_from_attr(log, "resource_attributes", resource_attributes_var, cfg.resource_attributes);
 
-    if (str_to_bool(cfg.disable_telemetry, false)) {
+    if (str_to_bool(cfg.disable_telemetry, 0)) {
         log_info(log, "disabling telemetry as per config");
     } else {
         send_otlp_metric_func(log, service_name);
@@ -165,13 +165,13 @@ void set_java_tool_options(logger log, struct config *cfg) {
     }
     strncat(java_tool_options, cfg->java_agent_jar, MAX_ENV_VAR_LEN - strlen(java_tool_options) - 1);
 
-    if (str_to_bool(cfg->enable_profiler, false)) {
+    if (str_to_bool(cfg->enable_profiler, 0)) {
         strncat(java_tool_options, prof_enabled_cmdline_switch, MAX_ENV_VAR_LEN - strlen(java_tool_options) - 1);
     }
-    if (str_to_bool(cfg->enable_profiler_memory, false)) {
+    if (str_to_bool(cfg->enable_profiler_memory, 0)) {
         strncat(java_tool_options, prof_memory_enabled_cmdline_switch, MAX_ENV_VAR_LEN - strlen(java_tool_options) - 1);
     }
-    if (str_to_bool(cfg->enable_metrics, false)) {
+    if (str_to_bool(cfg->enable_metrics, 0)) {
         strncat(java_tool_options, metrics_enabled_cmdline_switch, MAX_ENV_VAR_LEN - strlen(java_tool_options) - 1);
     }
 
@@ -180,26 +180,26 @@ void set_java_tool_options(logger log, struct config *cfg) {
     setenv(java_tool_options_var, java_tool_options, 0);
 }
 
-bool is_disable_env_set() {
+int is_disable_env_set() {
     char *env = getenv(disable_env_var);
     return env && !streq("false", env) && !streq("FALSE", env) && !streq("0", env);
 }
 
-bool is_java_tool_options_set() {
+int is_java_tool_options_set() {
     char *env = getenv(java_tool_options_var);
     return env != NULL && strlen(env) > 0;
 }
 
-bool has_read_access(const char *s) {
+int has_read_access(const char *s) {
     return access(s, R_OK) == 0;
 }
 
-bool streq(const char *expected, const char *actual) {
+int streq(const char *expected, const char *actual) {
     if (expected == NULL && actual == NULL) {
-        return true;
+        return 1;
     }
     if (expected == NULL || actual == NULL) {
-        return false;
+        return 0;
     }
     return strcmp(expected, actual) == 0;
 }

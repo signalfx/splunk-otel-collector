@@ -527,13 +527,13 @@ void test_is_legal_module(logger l) {
 }
 
 void test_str_to_bool(logger l) {
-    require_false("test_str_bool", str_to_bool("false", false));
-    require_false("test_str_bool", str_to_bool("FALSE", false));
-    require_false("test_str_bool", str_to_bool("0", false));
-    require_false("test_str_bool", str_to_bool(NULL, false));
-    require_true("test_str_bool", str_to_bool("true", false));
-    require_true("test_str_bool", str_to_bool("42", false));
-    require_true("test_str_bool", str_to_bool(NULL, true));
+    require_false("test_str_bool", str_to_bool("false", 0));
+    require_false("test_str_bool", str_to_bool("FALSE", 0));
+    require_false("test_str_bool", str_to_bool("0", 0));
+    require_false("test_str_bool", str_to_bool(NULL, 0));
+    require_true("test_str_bool", str_to_bool("true", 0));
+    require_true("test_str_bool", str_to_bool("42", 0));
+    require_true("test_str_bool", str_to_bool(NULL, 1));
 }
 
 void test_enable_telemetry(logger l) {
@@ -631,12 +631,12 @@ cmdline_reader new_default_test_cmdline_reader() {
     return new_test_cmdline_reader(cmdline, sizeof(cmdline));
 }
 
-bool access_check_true(const char *s) {
-    return true;
+int access_check_true(const char *s) {
+    return 1;
 }
 
-bool access_check_false(const char *s) {
-    return false;
+int access_check_false(const char *s) {
+    return 0;
 }
 
 int tomcat_args(char *args[]) {

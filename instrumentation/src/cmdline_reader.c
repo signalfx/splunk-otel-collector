@@ -22,7 +22,7 @@ void cmdline_reader_open(cmdline_reader cr) {
     cr->f = fopen(fname, "r");
 }
 
-bool cmdline_reader_is_eof(cmdline_reader cr) {
+int cmdline_reader_is_eof(cmdline_reader cr) {
     return feof(cr->f) != 0;
 }
 

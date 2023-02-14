@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add `collector_custom_env_vars` option to allow passing custom environment variables to the collector service
+
 ## chef-v0.3.0
 
 - Update default `td-agent` version to 4.3.2 to support log collection with fluentd on Ubuntu 22.04

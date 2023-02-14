@@ -60,7 +60,13 @@ void run_tests() {
             test_enable_telemetry,
             test_enable_profiling,
             test_enable_profiling_memory,
-            test_enable_metrics
+            test_enable_metrics,
+            test_concat_string_to_empty_just_enough_room,
+            test_concat_string_to_empty_extra_room,
+            test_concat_string_to_empty_not_enough_room,
+            test_concat_string_to_nonempty_just_enough_room,
+            test_long_cfg_attributes,
+            test_auto_instrument_gen_svcname_disabled_but_specified
     };
     for (int i = 0; i < sizeof tests / sizeof tests[0]; ++i) {
         run_test(tests[i]);
@@ -113,6 +119,19 @@ void test_auto_instrument_gen_svc_name_explicitly_disabled(logger l) {
     char *funcname = "test_auto_instrument_gen_svc_name_explicitly_disabled";
     cmdline_reader cr = new_default_test_cmdline_reader();
     auto_instrument(l, access_check_true, "java", fake_config_generate_svcname_disabled, cr, fake_send_otlp_metric);
+    char *logs[256];
+    int n = get_logs(l, logs);
+    require_equal_strings(funcname, "service name generation explicitly disabled", logs[0]);
+    require_equal_strings(funcname, "setting JAVA_TOOL_OPTIONS='-javaagent:/foo/asdf.jar'", logs[1]);
+    require_equal_strings(funcname, "sending metric", logs[2]);
+    require_equal_ints(funcname, 3, n);
+    require_unset_env(funcname, otel_service_name_var);
+}
+
+void test_auto_instrument_gen_svcname_disabled_but_specified(logger l) {
+    char *funcname = "test_auto_instrument_gen_svcname_disabled_but_specified";
+    cmdline_reader cr = new_default_test_cmdline_reader();
+    auto_instrument(l, access_check_true, "java", fake_config_generate_svcname_disabled_but_explicitly_specified, cr, fake_send_otlp_metric);
     char *logs[256];
     int n = get_logs(l, logs);
     require_equal_strings(funcname, "service name generation explicitly disabled", logs[0]);
@@ -191,8 +210,7 @@ void test_auto_instrument_splunk_env_var_false_caps(logger l) {
 void test_auto_instrument_splunk_env_var_zero(logger l) {
     setenv(disable_env_var, "0", 0);
     cmdline_reader cr = new_default_test_cmdline_reader();
-    auto_instrument(l, access_check_true, "java", fake_config_svcname_explicitly_specified, cr,
-                    fake_send_otlp_metric);
+    auto_instrument(l, access_check_true, "java", fake_config_svcname_explicitly_specified, cr, fake_send_otlp_metric);
     require_env("test_auto_instrument_splunk_env_var_zero", "-javaagent:/foo/asdf.jar", "JAVA_TOOL_OPTIONS");
     cmdline_reader_close(cr);
 }
@@ -571,6 +589,46 @@ void test_enable_metrics(logger l) {
     require_env("test_enable_metrics", "-javaagent:/foo/asdf.jar -Dsplunk.metrics.enabled=true", "JAVA_TOOL_OPTIONS");
 }
 
+void test_concat_string_to_empty_just_enough_room(logger l) {
+    char *funcname = "test_concat_string_to_empty_just_enough_room";
+    char dest[4] = "";
+    int res = concat_strings(dest, "abc", 4);
+    require_equal_ints(funcname, 0, res);
+    require_equal_strings(funcname, "abc", dest);
+}
+
+void test_concat_string_to_empty_extra_room(logger l) {
+    char *funcname = "test_concat_string_to_empty_extra_room";
+    char dest[8] = "";
+    int res = concat_strings(dest, "abc", 8);
+    require_equal_ints(funcname, 4, res);
+    require_equal_strings(funcname, "abc", dest);
+}
+
+void test_concat_string_to_empty_not_enough_room(logger l) {
+    char *funcname = "test_concat_string_to_empty_not_enough_room";
+    char dest[2] = "";
+    int res = concat_strings(dest, "abc", 2);
+    require_equal_ints(funcname, -2, res);
+    require_equal_strings(funcname, "a", dest);
+}
+
+void test_concat_string_to_nonempty_just_enough_room(logger l) {
+    char *funcname = "test_concat_string_to_nonempty_just_enough_room";
+    char dest[4] = "ab";
+    int res = concat_strings(dest, "c", 4);
+    require_equal_ints(funcname, 0, res);
+    require_equal_strings(funcname, "abc", dest);
+}
+
+void test_long_cfg_attributes(logger l) {
+    cmdline_reader cr = new_default_test_cmdline_reader();
+    auto_instrument(l, access_check_true, "java", fake_config_max_attributes, cr, fake_send_otlp_metric);
+    require_env_len("test_long_cfg_attributes", 255, "OTEL_SERVICE_NAME");
+    require_env_len("test_long_cfg_attributes", 365, "JAVA_TOOL_OPTIONS");
+    require_env_len("test_long_cfg_attributes", 255, "OTEL_RESOURCE_ATTRIBUTES");
+}
+
 // fakes/testdata
 
 void fake_send_otlp_metric(logger log, char *service_name) {
@@ -594,7 +652,12 @@ void fake_config_generate_svcname_enabled(logger log, struct config *cfg, char *
 void fake_config_generate_svcname_disabled(logger log, struct config *cfg, char *path) {
     cfg->java_agent_jar = strdup("/foo/asdf.jar");
     cfg->generate_service_name = strdup("false");
-    cfg->disable_telemetry = NULL;
+}
+
+void fake_config_generate_svcname_disabled_but_explicitly_specified(logger log, struct config *cfg, char *path) {
+    cfg->java_agent_jar = strdup("/foo/asdf.jar");
+    cfg->generate_service_name = strdup("false");
+    cfg->service_name = strdup("my-explicit-servicename");
 }
 
 void fake_config_no_svcname(logger log, struct config *cfg, char *path) {
@@ -603,7 +666,6 @@ void fake_config_no_svcname(logger log, struct config *cfg, char *path) {
 
 void fake_config_disable_telemetry_not_specified(logger log, struct config *cfg, char *path) {
     cfg->java_agent_jar = strdup("/foo/asdf.jar");
-    cfg->disable_telemetry = NULL;
 }
 
 void fake_config_disable_telemetry_true(logger log, struct config *cfg, char *path) {
@@ -623,6 +685,18 @@ void fake_config_enable_profiler_memory(logger log, struct config *cfg, char *pa
 
 void fake_config_enable_metrics(logger log, struct config *cfg, char *path) {
     cfg->java_agent_jar = strdup("/foo/asdf.jar");
+    cfg->enable_metrics = strdup("true");
+}
+
+void fake_config_max_attributes(logger log, struct config *cfg, char *path) {
+    char *str_255 = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    "1234567890123456789012345678901234567890123456789012345";
+    cfg->java_agent_jar = strdup(str_255);
+    cfg->service_name = strdup(str_255);
+    cfg->resource_attributes = strdup(str_255);
+    cfg->enable_profiler = strdup("true");
+    cfg->enable_profiler_memory = strdup("true");
     cfg->enable_metrics = strdup("true");
 }
 

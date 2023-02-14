@@ -13,6 +13,8 @@ void require_equal_ints(char *funcname, int expected, int actual);
 
 void require_env(char *funcname, char *expected, char *env_var);
 
+void require_env_len(char *funcname, int expected_len, char *env_var);
+
 void require_unset_env(char *funcname, char *env_var);
 
 void fail();

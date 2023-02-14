@@ -97,6 +97,18 @@ void test_enable_profiling_memory(logger l);
 
 void test_enable_metrics(logger l);
 
+void test_concat_string_to_empty_just_enough_room(logger l);
+
+void test_concat_string_to_empty_extra_room(logger l);
+
+void test_concat_string_to_empty_not_enough_room(logger l);
+
+void test_concat_string_to_nonempty_just_enough_room(logger l);
+
+void test_long_cfg_attributes(logger l);
+
+void test_auto_instrument_gen_svcname_disabled_but_specified(logger l);
+
 // fakes/testdata
 
 void fake_send_otlp_metric(logger log, char *service_name);
@@ -106,6 +118,8 @@ void fake_config_svcname_explicitly_specified(logger log, struct config *cfg, ch
 void fake_config_generate_svcname_enabled(logger log, struct config *cfg, char *path);
 
 void fake_config_generate_svcname_disabled(logger log, struct config *cfg, char *path);
+
+void fake_config_generate_svcname_disabled_but_explicitly_specified(logger log, struct config *cfg, char *path);
 
 void fake_config_no_svcname(logger log, struct config *cfg, char *path);
 
@@ -118,6 +132,8 @@ void fake_config_enable_profiler(logger log, struct config *cfg, char *path);
 void fake_config_enable_profiler_memory(logger log, struct config *cfg, char *path);
 
 void fake_config_enable_metrics(logger log, struct config *cfg, char *path);
+
+void fake_config_max_attributes(logger log, struct config *cfg, char *path);
 
 cmdline_reader new_default_test_cmdline_reader();
 

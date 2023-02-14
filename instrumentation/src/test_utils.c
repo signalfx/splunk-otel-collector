@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "test_utils.h"
 #include "splunk.h"
 
@@ -41,6 +42,15 @@ void require_env(char *funcname, char *expected, char *env_var) {
     char *env = getenv(env_var);
     if (!streq(expected, env)) {
         printf("%s: require_env: %s: expected [%s] got [%s]\n", funcname, env_var, expected, env);
+        fail();
+    }
+}
+
+void require_env_len(char *funcname, int expected_len, char *env_var) {
+    char *env = getenv(env_var);
+    size_t env_len = strlen(env);
+    if (env_len != expected_len) {
+        printf("%s: require_env_len: %s expected len [%d] got [%d]\n", funcname, env_var, expected_len, (int) env_len);
         fail();
     }
 }

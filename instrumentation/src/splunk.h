@@ -26,4 +26,6 @@ void auto_instrument(
 
 int streq(const char *expected, const char *actual);
 
+int concat_strings(char *dest, char *src, int tot_dest_size);
+
 #endif //SPLUNK_INSTRUMENTATION_SPLUNK_H

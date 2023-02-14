@@ -38,6 +38,8 @@ void set_env_var_from_attr(logger log, const char *attr_name, const char *env_va
 
 void get_service_name(logger log, cmdline_reader cr, struct config *cfg, char *dest);
 
+void log_line_length_warning(logger log, char *log_line);
+
 // The entry point for all executables prior to their execution. If the executable is named "java", we
 // set the env vars JAVA_TOOL_OPTIONS to the path of the java agent jar and OTEL_SERVICE_NAME to the
 // service name based on the arguments to the java command.
@@ -163,21 +165,53 @@ void set_java_tool_options(logger log, struct config *cfg) {
         log_warning(log, log_line);
         return;
     }
-    strncat(java_tool_options, cfg->java_agent_jar, MAX_ENV_VAR_LEN - strlen(java_tool_options) - 1);
-
+    int remaining = concat_strings(java_tool_options, cfg->java_agent_jar, MAX_ENV_VAR_LEN);
+    // It's not possible (at time of writing) for `remaining` to be less than zero in this function because the sum of
+    // MAX_CONFIG_ATTR_LEN (256) and the lengths of the pre-defined command line switches will always be less than
+    // MAX_ENV_VAR_LEN (512), but check for truncation anyway to account for future additions.
+    if (remaining < 0) {
+        log_line_length_warning(log, log_line);
+        return;
+    }
     if (str_to_bool(cfg->enable_profiler, 0)) {
-        strncat(java_tool_options, prof_enabled_cmdline_switch, MAX_ENV_VAR_LEN - strlen(java_tool_options) - 1);
+        remaining = concat_strings(java_tool_options, prof_enabled_cmdline_switch, MAX_ENV_VAR_LEN);
+        if (remaining < 0) {
+            log_line_length_warning(log, log_line);
+            return;
+        }
     }
     if (str_to_bool(cfg->enable_profiler_memory, 0)) {
-        strncat(java_tool_options, prof_memory_enabled_cmdline_switch, MAX_ENV_VAR_LEN - strlen(java_tool_options) - 1);
+        remaining = concat_strings(java_tool_options, prof_memory_enabled_cmdline_switch, MAX_ENV_VAR_LEN);
+        if (remaining < 0) {
+            log_line_length_warning(log, log_line);
+            return;
+        }
     }
     if (str_to_bool(cfg->enable_metrics, 0)) {
-        strncat(java_tool_options, metrics_enabled_cmdline_switch, MAX_ENV_VAR_LEN - strlen(java_tool_options) - 1);
+        remaining = concat_strings(java_tool_options, metrics_enabled_cmdline_switch, MAX_ENV_VAR_LEN);
+        if (remaining < 0) {
+            log_line_length_warning(log, log_line);
+            return;
+        }
     }
-
     sprintf(log_line, "setting JAVA_TOOL_OPTIONS='%s'", java_tool_options);
     log_debug(log, log_line);
     setenv(java_tool_options_var, java_tool_options, 0);
+}
+
+void log_line_length_warning(logger log, char *log_line) {
+    sprintf(log_line, "excessive line length: not setting JAVA_TOOL_OPTIONS");
+    log_warning(log, log_line);
+}
+
+// concat_strings concatenates the string defined by src to the memory location pointed to by dest,
+// returning the number of characters remaining in the dest buffer. The return value may be negative
+// indicating the number of characters that were not concatenated because of a lack of space. The tot_dest_size
+// argument indicates the total number of bytes in the dest memory array. See unit tests for examples.
+int concat_strings(char *dest, char *src, int tot_dest_size) {
+    int orig_dest_len = (int) strlen(dest);
+    strncat(dest, src, tot_dest_size - 1);
+    return tot_dest_size - (int) orig_dest_len - (int) strlen(src) - 1;
 }
 
 int is_disable_env_set() {

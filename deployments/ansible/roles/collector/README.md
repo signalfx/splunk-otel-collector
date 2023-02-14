@@ -135,6 +135,22 @@ $> ansible-playbook playbook.yaml -e start_service=false
 
 - `start_service`: Whether to restart the services installed by the playbook. (**default:** true)
 
+- `splunk_otel_collector_custom_env_vars`: Hash of custom environment variables from the
+  collector configuration file for the collector service (**default:** `{}`).
+  For example, if the collector configuration file includes references to `${MY_CUSTOM_VAR1}`
+  and `${MY_CUSTOM_VAR2}`, specify the following to allow the collector service to expand these
+  variables:
+  ```yaml
+  splunk_otel_collector_custom_env_vars:
+    MY_CUSTOM_VAR1: value1
+    MY_CUSTOM_VAR2: value2
+  ```
+  On Linux, the variables/values will be added to the
+  `/etc/otel/collector/splunk-otel-collector.conf` systemd environment file.
+  On Windows, the variables/values will be added to the
+  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`
+  registry key.
+
 #### Windows Proxy
 
 The collector and fluentd installation on Windows relies on [win_get_url](https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_get_url_module.html),

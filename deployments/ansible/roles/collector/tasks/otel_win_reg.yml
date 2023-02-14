@@ -124,3 +124,12 @@
     name: SPLUNK_TRACE_URL
     data: "{{splunk_trace_url}}"
     type: string
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{registry_key}}"
+    state: present
+    name: "{{item.key}}"
+    data: "{{item.value}}"
+    type: string
+  loop: "{{ splunk_otel_collector_custom_env_vars | default({}) | dict2items }}"

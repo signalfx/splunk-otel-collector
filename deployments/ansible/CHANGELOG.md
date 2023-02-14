@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 💡 Enhancements 💡
+
+- Add `splunk_otel_collector_custom_env_vars` option to allow passing custom environment variables to the collector service
+
+### 🧰 Bug fixes 🧰
+
 - Fix custom URLs and HEC token configuration on windows
 
 ## ansible-v0.14.0

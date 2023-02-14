@@ -1,6 +1,6 @@
 module github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver
 
-go 1.19
+go 1.20
 
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.70.0

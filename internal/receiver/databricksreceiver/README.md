@@ -17,8 +17,8 @@ The following fields are required:
 - `instance_name`: A string representing the name of the instance. This value gets set as a `databricks.instance.name` resource attribute.
 - `endpoint`: The URL containing a protocol (http or https), hostname, and (optional) port of the Databricks API, without a trailing slash.
 - `token`: An [access token](https://docs.databricks.com/dev-tools/api/latest/authentication.html) to authenticate to the Databricks API. 
-- `spark_org_id`: The Spark Org ID. See the Spark Subsystem Properties section below for how to get this value.
-- `spark_endpoint`: The URL containing a protocol (http or https), hostname, and (optional) port of the Spark API. See the Spark Subsystem Properties section below for how to get this value.
+- `spark_org_id`: The Spark Org ID. See the Spark Subsystem Configuration section below for how to get this value.
+- `spark_endpoint`: The URL containing a protocol (http or https), hostname, and (optional) port of the Spark API. See the Spark Subsystem Configuration section below for how to get this value.
 - `spark_ui_port`: A number representing the Spark UI Port (typically 40001). See the Spark Subsystem Configuration section below for how to get this value.
 
 The following fields are optional:
@@ -39,7 +39,6 @@ databricks:
   spark_endpoint: https://spark.example.net
   spark_ui_port: 40001
   collection_interval: 10s
-
 ```
 
 ### Spark Subsystem Configuration

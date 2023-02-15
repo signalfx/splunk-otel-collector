@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## chef-v0.4.0
 
 - Add `collector_custom_env_vars` option to allow passing custom environment variables to the collector service
 

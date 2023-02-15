@@ -1,0 +1,17 @@
+SPLUNK_ACCESS_TOKEN=<%= @splunk_access_token %>
+SPLUNK_API_URL=<%= @splunk_api_url %>
+SPLUNK_BALLAST_SIZE_MIB=<%= @splunk_ballast_size_mib %>
+SPLUNK_BUNDLE_DIR=<%= @splunk_bundle_dir %>
+SPLUNK_COLLECTD_DIR=<%= @splunk_collectd_dir %>
+SPLUNK_CONFIG=<%= @collector_config_dest %>
+SPLUNK_HEC_TOKEN=<%= @splunk_hec_token %>
+SPLUNK_HEC_URL=<%= @splunk_hec_url %>
+SPLUNK_INGEST_URL=<%= @splunk_ingest_url %>
+SPLUNK_MEMORY_TOTAL_MIB=<%= @splunk_memory_total_mib %>
+SPLUNK_REALM=<%= @splunk_realm %>
+SPLUNK_TRACE_URL=<%= @splunk_trace_url %>
+
+# Custom environment variables.
+<% @collector_custom_env_vars.each do |key, value| %>
+<%= key %>=<%= value %>
+<% end %>

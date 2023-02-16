@@ -31,7 +31,7 @@ cmdline_reader new_test_cmdline_reader(char *cmdline, int size) {
 void cmdline_reader_open(cmdline_reader cr) {
 }
 
-bool cmdline_reader_is_eof(cmdline_reader cr) {
+int cmdline_reader_is_eof(cmdline_reader cr) {
     return cr->i >= cr->size;
 }
 

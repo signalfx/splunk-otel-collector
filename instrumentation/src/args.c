@@ -67,14 +67,14 @@ void add_token(struct tokenset *tks, char *token) {
     }
 }
 
-bool has_token(struct tokenset *tks, char *token) {
+int has_token(struct tokenset *tks, char *token) {
     // not doing a set implementation at this time since size of array is small
     for (int i = 0; i < tks->i; ++i) {
         if (strcmp(tks->tokens[i], token) == 0) {
-            return true;
+            return 1;
         }
     }
-    return false;
+    return 0;
 }
 
 void generate_servicename_from_args(char *dest, char **args, int num_args) {
@@ -154,9 +154,9 @@ void dedupe_hyphenated(char *out, char *str, struct tokenset *pTokenset) {
     }
 }
 
-bool is_unique_path_element(char *path_element) {
+int is_unique_path_element(char *path_element) {
     if (strlen(path_element) == 0) {
-        return false;
+        return 0;
     }
 
     static const char *standard_path_parts[] = {"usr", "local", "bin", "home", "etc", "lib", "opt", ".."};
@@ -164,10 +164,10 @@ bool is_unique_path_element(char *path_element) {
     for (int i = 0; i < num_standard_path_parts; ++i) {
         const char *part = standard_path_parts[i];
         if (strcmp(part, path_element) == 0) {
-            return false;
+            return 0;
         }
     }
-    return true;
+    return 1;
 }
 
 // removes a .jar suffix/extension from a string if it's long enough
@@ -181,7 +181,7 @@ void truncate_extension(char *str) {
     }
 }
 
-bool is_legal_java_main_class_with_module(const char *str) {
+int is_legal_java_main_class_with_module(const char *str) {
     int num_slashes = 0;
     int num_dots = 0;
     for (int i = 0; str[i] != 0; ++i) {
@@ -193,73 +193,73 @@ bool is_legal_java_main_class_with_module(const char *str) {
         }
     }
     if (num_dots == 0) {
-        return false;
+        return 0;
     }
     if (num_slashes == 0) {
         return is_legal_java_main_class(str);
     } else if (num_slashes > 1) {
-        return false;
+        return 0;
     }
     char *fq_main_package = strdup(str);
     char *module = strsep(&fq_main_package, "/");
 
     if (!is_legal_java_main_class(fq_main_package)) {
-        return false;
+        return 0;
     }
 
     if (!is_legal_module(module)) {
-        return false;
+        return 0;
     }
 
-    return true;
+    return 1;
 }
 
-bool is_legal_java_main_class(const char *str) {
+int is_legal_java_main_class(const char *str) {
     if (strstr(str, ".") == NULL) {
-        return false;
+        return 0;
     }
     char *dup = strdup(str);
     char *prev;
-    while (true) {
+    while (1) {
         char *token = strsep(&dup, ".");
         if (token == NULL) {
             return is_capital_letter(prev[0]);
         }
         if (!is_legal_java_package_element(token)) {
-            return false;
+            return 0;
         }
         prev = token;
     }
 }
 
-bool is_capital_letter(const char ch) {
+int is_capital_letter(const char ch) {
     return ch >= 'A' && ch <= 'Z';
 }
 
-bool is_legal_module(char *module) {
+int is_legal_module(char *module) {
     char *dup = strdup(module);
     char *token;
     while ((token = strsep(&dup, ".")) != NULL) {
         if (!is_legal_java_package_element(token)) {
-            return false;
+            return 0;
         }
     }
-    return true;
+    return 1;
 }
 
 // tests if the parts between the dots in e.g. some.package.MyMain are legal
-bool is_legal_java_package_element(const char *str) {
+int is_legal_java_package_element(const char *str) {
     for (int i = 0;; ++i) {
         char ch = str[i];
         if (ch == 0) {
             break;
         }
         if (i == 0 && ch >= '0' && ch <= '9') {
-            return false;
+            return 0;
         }
         if (ch < '0' || (ch > '9' && ch < 'A') || (ch > 'Z' && ch < '_') || ch == '`' || ch > 'z') {
-            return false;
+            return 0;
         }
     }
-    return true;
+    return 1;
 }

@@ -2,7 +2,7 @@
 class splunk_otel_collector::params {
   $fluentd_version_default = '4.3.2'
   $fluentd_version_stretch = '3.7.1-0'
-  $collector_custom_env_vars = {}
+  $collector_additional_env_vars = {}
 
   if $::osfamily == 'redhat' or $::osfamily == 'debian' or $::osfamily == 'suse' {
     $collector_version = 'latest'

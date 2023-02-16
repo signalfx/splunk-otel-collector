@@ -12,6 +12,6 @@ SPLUNK_REALM=<%= @splunk_realm %>
 SPLUNK_TRACE_URL=<%= @splunk_trace_url %>
 
 # Custom environment variables.
-<% @collector_custom_env_vars.each do |key, value| %>
+<% @collector_additional_env_vars.each do |key, value| %>
 <%= key %>=<%= value %>
 <% end %>

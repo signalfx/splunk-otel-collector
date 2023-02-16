@@ -38,7 +38,7 @@ class splunk_otel_collector (
   $auto_instrumentation_java_agent_jar      = $splunk_otel_collector::params::auto_instrumentation_java_agent_jar,  # linux only
   $auto_instrumentation_resource_attributes = '',  # linux only
   $auto_instrumentation_service_name        = '',  # linux only
-  $collector_custom_env_vars                = {}
+  $collector_additional_env_vars            = {}
 ) inherits splunk_otel_collector::params {
 
   $collector_service_name = 'splunk-otel-collector'

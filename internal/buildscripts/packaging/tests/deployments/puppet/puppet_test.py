@@ -231,7 +231,7 @@ class {{ splunk_otel_collector:
     splunk_hec_token => 'fake-hec-token',
     collector_version => '$version',
     with_fluentd => false,
-    collector_custom_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
+    collector_additional_env_vars => {{ 'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2' }},
 }}
 """
 )

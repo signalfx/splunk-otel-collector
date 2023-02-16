@@ -4,7 +4,7 @@
 
 ## puppet-v0.8.0
 
-- Add `collector_custom_env_vars` option to allow passing custom environment variables to the collector service
+- Add `collector_additional_env_vars` option to allow passing additional environment variables to the collector service
 - Add support for Windows 2022
 
 ## puppet-v0.7.0

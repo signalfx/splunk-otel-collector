@@ -164,6 +164,34 @@
       assert:
         that: not reg_value.changed
 
+    - name: Check MY_CUSTOM_VAR1 custom variable
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: MY_CUSTOM_VAR1
+        data: value1
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert custom value exists
+      assert:
+        that: not reg_value.changed
+
+    - name: Check MY_CUSTOM_VAR2 custom variable
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        state: present
+        name: MY_CUSTOM_VAR2
+        data: value2
+        type: string
+      check_mode: yes
+      register: reg_value
+
+    - name: Assert custom value exists
+      assert:
+        that: not reg_value.changed
+
     - name: Check fluentd custom_config.conf
       ansible.windows.win_stat:
         path: '{{ansible_env.ProgramFiles}}\Splunk\OpenTelemetry Collector\fluentd\custom_config.conf'

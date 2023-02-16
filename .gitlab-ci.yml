@@ -811,7 +811,7 @@ chef-release:
     - mkdir -p ~/.chef
     - cat "$CHEF_PEM" > ~/.chef/signalfx.pem
     - cat "$CHEF_KNIFE_RB" > ~/.chef/knife.rb
-    - gem install knife
+    - gem install knife -v 17.10.0
     - mkdir -p /tmp/cookbooks
     - cp -r deployments/chef /tmp/cookbooks/splunk_otel_collector
   script:

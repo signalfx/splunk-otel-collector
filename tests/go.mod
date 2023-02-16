@@ -41,7 +41,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
-	github.com/Microsoft/hcsshim v0.9.5 // indirect
+	github.com/Microsoft/hcsshim v0.9.6 // indirect
 	github.com/alessio/shellescape v1.4.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
@@ -109,7 +109,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect
 	github.com/opencontainers/runc v1.1.3 // indirect
-	github.com/pelletier/go-toml v1.9.4 // indirect
+	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -163,7 +163,7 @@ replace k8s.io/klog/v2 => k8s.io/klog/v2 v2.80.1
 
 // security updates
 replace (
-	github.com/containerd/containerd => github.com/containerd/containerd v1.6.12
+	github.com/containerd/containerd => github.com/containerd/containerd v1.6.18
 	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible
 	github.com/form3tech-oss/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2

@@ -48,6 +48,6 @@ To get the configuration parameters this receiver will need to get Spark metrics
 ```
 %scala
 val sparkOrgId = spark.conf.get("spark.databricks.clusterUsageTags.clusterOwnerOrgId")
-val sparkApiUrl = dbutils.notebook.getContext.apiUrl.get
+val sparkEndpoint = dbutils.notebook.getContext.apiUrl.get
 val sparkUiPort = spark.conf.get("spark.ui.port")
 ```

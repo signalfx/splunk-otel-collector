@@ -24,12 +24,12 @@ import (
 
 func TestSignalFxExporterTranslatesOTelCPUMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "cpu_translations.yaml", "cpu_translations_config.yaml", nil,
+		t, "cpu_translations.yaml", "cpu_translations_config.yaml", nil, nil,
 	)
 }
 
 func TestSignalFxExporterTranslatesOTelMemoryMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "memory_translations.yaml", "memory_translations_config.yaml", nil,
+		t, "memory_translations.yaml", "memory_translations_config.yaml", nil, nil,
 	)
 }

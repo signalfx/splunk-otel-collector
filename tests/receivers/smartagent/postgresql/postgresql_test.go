@@ -35,5 +35,5 @@ func TestPostgresReceiverProvidesAllMetrics(t *testing.T) {
 	).WithName("postgres-client").WithNetworks("postgres").WillWaitForLogs("Beginning psql requests")
 	containers := []testutils.Container{server, client}
 
-	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml", containers)
+	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml", containers, nil)
 }

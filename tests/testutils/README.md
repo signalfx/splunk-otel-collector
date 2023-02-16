@@ -181,6 +181,6 @@ func MyTest(t *testing.T) {
     // ./testdata/resource_metrics/my_resource_metrics.yaml ResourceMetrics instance, CollectorProcess with
     // ./testdata/my_collector_config.yaml config, and build and start all specified containers before calling
     // OTLPReceiverSink.AssertAllMetricsReceived() with a 30s wait duration.
-    testutils.AssertAllMetricsReceived(t, "my_resource_metrics.yaml", "my_collector_config.yaml", containers)
+    testutils.AssertAllMetricsReceived(t, "my_resource_metrics.yaml", "my_collector_config.yaml", containers, nil)
 }
 ```

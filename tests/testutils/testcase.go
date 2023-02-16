@@ -238,11 +238,14 @@ func GetCollectorImageOrSkipTest(t testing.TB) string {
 	return image
 }
 
-// AssertAllLogsReceived is a central helper, designed to avoid most boilerplate.  Using the desired
-// ResourceLogs and Collector Config filenames and a slice of Container builders, AssertAllLogsReceived
-// creates a Testcase, builds and starts all Container and CollectorProcess instances, and asserts that all
-// expected ResourceLogs are received before running validated cleanup functionality.
-func AssertAllLogsReceived(t testing.TB, resourceLogsFilename, collectorConfigFilename string, containers []Container) {
+// AssertAllLogsReceived is a central helper, designed to avoid most boilerplate. Using the desired
+// ResourceLogs and Collector Config filenames, a slice of Container builders, and a slice of CollectorBuilder
+// AssertAllLogsReceived creates a Testcase, builds and starts all Container and CollectorBuilder-determined Collector
+// instances, and asserts that all expected ResourceLogs are received before running validated cleanup functionality.
+func AssertAllLogsReceived(
+	t testing.TB, resourceLogsFilename, collectorConfigFilename string,
+	containers []Container, builders []CollectorBuilder,
+) {
 	tc := NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
@@ -252,17 +255,20 @@ func AssertAllLogsReceived(t testing.TB, resourceLogsFilename, collectorConfigFi
 	_, stop := tc.Containers(containers...)
 	defer stop()
 
-	_, shutdown := tc.SplunkOtelCollector(collectorConfigFilename)
+	_, shutdown := tc.SplunkOtelCollector(collectorConfigFilename, builders...)
 	defer shutdown()
 
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllLogsReceived(t, *expectedResourceLogs, 30*time.Second))
 }
 
-// AssertAllMetricsReceived is a central helper, designed to avoid most boilerplate.  Using the desired
-// ResourceMetrics and Collector Config filenames and a slice of Container builders, AssertAllMetricsReceived
-// creates a Testcase, builds and starts all Container and CollectorProcess instances, and asserts that all
-// expected ResourceMetrics are received before running validated cleanup functionality.
-func AssertAllMetricsReceived(t testing.TB, resourceMetricsFilename, collectorConfigFilename string, containers []Container) {
+// AssertAllMetricsReceived is a central helper, designed to avoid most boilerplate. Using the desired
+// ResourceMetrics and Collector Config filenames, a slice of Container builders, and a slice of CollectorBuilder
+// AssertAllMetricsReceived creates a Testcase, builds and starts all Container and CollectorBuilder-determined Collector
+// instances, and asserts that all expected ResourceMetrics are received before running validated cleanup functionality.
+func AssertAllMetricsReceived(
+	t testing.TB, resourceMetricsFilename, collectorConfigFilename string,
+	containers []Container, builders []CollectorBuilder,
+) {
 	tc := NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
@@ -272,7 +278,7 @@ func AssertAllMetricsReceived(t testing.TB, resourceMetricsFilename, collectorCo
 	_, stop := tc.Containers(containers...)
 	defer stop()
 
-	_, shutdown := tc.SplunkOtelCollector(collectorConfigFilename)
+	_, shutdown := tc.SplunkOtelCollector(collectorConfigFilename, builders...)
 	defer shutdown()
 
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))

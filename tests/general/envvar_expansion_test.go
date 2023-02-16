@@ -19,7 +19,6 @@ package tests
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -27,79 +26,54 @@ import (
 )
 
 func TestExpandedDollarSignsViaStandardEnvVar(t *testing.T) {
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, shutdown := tc.SplunkOtelCollectorContainer(
-		"envvar_labels.yaml",
-		func(collector testutils.Collector) testutils.Collector {
-			return collector.WithEnv(map[string]string{"AN_ENVVAR": "an-envvar-value"})
+	testutils.AssertAllMetricsReceived(
+		t, "envvar_labels.yaml", "envvar_labels.yaml",
+		nil, []testutils.CollectorBuilder{
+			func(collector testutils.Collector) testutils.Collector {
+				return collector.WithEnv(map[string]string{"AN_ENVVAR": "an-envvar-value"})
+			},
 		},
 	)
-	defer shutdown()
-
-	expectedResourceMetrics := tc.ResourceMetrics("envvar_labels.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
 
 func TestExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, shutdown := tc.SplunkOtelCollectorContainer(
-		"env_config_source_labels.yaml",
-		func(collector testutils.Collector) testutils.Collector {
-			return collector.WithEnv(map[string]string{"AN_ENVVAR": "an-envvar-value"})
+	testutils.AssertAllMetricsReceived(
+		t, "env_config_source_labels.yaml", "env_config_source_labels.yaml",
+		nil, []testutils.CollectorBuilder{
+			func(collector testutils.Collector) testutils.Collector {
+				return collector.WithEnv(map[string]string{"AN_ENVVAR": "an-envvar-value"})
+			},
 		},
 	)
-	defer shutdown()
-
-	expectedResourceMetrics := tc.ResourceMetrics("env_config_source_labels.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
 
 func TestIncompatibleExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, shutdown := tc.SplunkOtelCollectorContainer(
-		"env_config_source_labels.yaml",
-		func(collector testutils.Collector) testutils.Collector {
-			return collector.WithEnv(
-				map[string]string{
-					"SPLUNK_DOUBLE_DOLLAR_CONFIG_SOURCE_COMPATIBLE": "false",
-					"AN_ENVVAR": "an-envvar-value",
-				},
-			)
+	testutils.AssertAllMetricsReceived(
+		t, "incompat_env_config_source_labels.yaml", "env_config_source_labels.yaml",
+		nil, []testutils.CollectorBuilder{
+			func(collector testutils.Collector) testutils.Collector {
+				return collector.WithEnv(
+					map[string]string{
+						"SPLUNK_DOUBLE_DOLLAR_CONFIG_SOURCE_COMPATIBLE": "false",
+						"AN_ENVVAR": "an-envvar-value",
+					},
+				)
+			},
 		},
 	)
-	defer shutdown()
-
-	expectedResourceMetrics := tc.ResourceMetrics("incompat_env_config_source_labels.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
 
 func TestExpandedYamlViaEnvConfigSource(t *testing.T) {
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, shutdown := tc.SplunkOtelCollectorContainer(
-		"yaml_from_env.yaml",
-		func(collector testutils.Collector) testutils.Collector {
-			return collector.WithEnv(
-				map[string]string{"YAML": "[{action: update, include: .*, match_type: regexp, operations: [{action: add_label, new_label: yaml-from-env, new_value: value-from-env}]}]"},
-			)
-
+	testutils.AssertAllMetricsReceived(
+		t, "yaml_from_env.yaml", "yaml_from_env.yaml",
+		nil, []testutils.CollectorBuilder{
+			func(collector testutils.Collector) testutils.Collector {
+				return collector.WithEnv(
+					map[string]string{"YAML": "[{action: update, include: .*, match_type: regexp, operations: [{action: add_label, new_label: yaml-from-env, new_value: value-from-env}]}]"},
+				)
+			},
 		},
 	)
-	defer shutdown()
-
-	expectedResourceMetrics := tc.ResourceMetrics("yaml_from_env.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
 
 func TestEnvConfigSource(t *testing.T) {

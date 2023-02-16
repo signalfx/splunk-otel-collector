@@ -19,9 +19,6 @@ package tests
 import (
 	"path"
 	"testing"
-	"time"
-
-	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -71,13 +68,7 @@ func TestCollectdKafkaReceiversProvideAllMetrics(t *testing.T) {
 		{"consumer metrics", "all_consumer.yaml", "all_consumer_metrics_config.yaml"},
 	} {
 		t.Run(args.name, func(tt *testing.T) {
-			ttc := testutils.NewTestcase(tt)
-			expectedResourceMetrics := ttc.ResourceMetrics(args.resourceMetricsFilename)
-
-			_, shutdown := ttc.SplunkOtelCollector(args.collectorConfigFilename)
-			defer shutdown()
-
-			require.NoError(tt, ttc.OTLPReceiverSink.AssertAllMetricsReceived(tt, *expectedResourceMetrics, 30*time.Second))
+			testutils.AssertAllMetricsReceived(tt, args.resourceMetricsFilename, args.collectorConfigFilename, nil, nil)
 		})
 	}
 }

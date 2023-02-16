@@ -161,51 +161,34 @@ service:
 
 // This test also exercises collectd binary usage and managed config writing
 func TestNonDefaultGIDCanAccessJavaInAgentBundle(t *testing.T) {
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, stop := tc.Containers(testutils.NewContainer().WithContext(
-		filepath.Join("..", "receivers", "smartagent", "collectd-activemq", "testdata", "server"),
-	).WithExposedPorts("1099:1099").WithName("activemq").WillWaitForPorts("1099"))
-	defer stop()
-
-	_, shutdown := tc.SplunkOtelCollectorContainer(
-		"activemq_config.yaml",
-		func(collector testutils.Collector) testutils.Collector {
-			cc := collector.(*testutils.CollectorContainer)
-			cc.Container = cc.Container.WithUser("splunk-otel-collector:234567890")
-			return collector
+	testutils.AssertAllMetricsReceived(t, "activemq.yaml", "activemq_config.yaml",
+		[]testutils.Container{testutils.NewContainer().WithContext(
+			filepath.Join("..", "receivers", "smartagent", "collectd-activemq", "testdata", "server"),
+		).WithExposedPorts("1099:1099").WithName("activemq").WillWaitForPorts("1099")},
+		[]testutils.CollectorBuilder{
+			func(collector testutils.Collector) testutils.Collector {
+				cc := collector.(*testutils.CollectorContainer)
+				cc.Container = cc.Container.WithUser("splunk-otel-collector:234567890")
+				return collector
+			},
 		},
 	)
-	defer shutdown()
-
-	expectedResourceMetrics := tc.ResourceMetrics("activemq.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }
 
 func TestNonDefaultGIDCanAccessPythonInAgentBundle(t *testing.T) {
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, stop := tc.Containers(testutils.NewContainer().WithContext(
-		filepath.Join("..", "receivers", "smartagent", "collectd-solr", "testdata", "server"),
-	).WithExposedPorts("8983:8983").WithName(
-		"solr",
-	).WillWaitForPorts("8983").WillWaitForLogs("example launched successfully"))
-	defer stop()
-
-	_, shutdown := tc.SplunkOtelCollectorContainer(
-		"solr_config.yaml",
-		func(collector testutils.Collector) testutils.Collector {
-			cc := collector.(*testutils.CollectorContainer)
-			cc.Container = cc.Container.WithUser("splunk-otel-collector:234567890")
-			return collector
+	testutils.AssertAllMetricsReceived(t, "solr.yaml", "solr_config.yaml",
+		[]testutils.Container{
+			testutils.NewContainer().WithContext(
+				filepath.Join("..", "receivers", "smartagent", "collectd-solr", "testdata", "server"),
+			).WithExposedPorts("8983:8983").WithName(
+				"solr",
+			).WillWaitForPorts("8983").WillWaitForLogs("example launched successfully"),
+		}, []testutils.CollectorBuilder{
+			func(collector testutils.Collector) testutils.Collector {
+				cc := collector.(*testutils.CollectorContainer)
+				cc.Container = cc.Container.WithUser("splunk-otel-collector:234567890")
+				return collector
+			},
 		},
 	)
-	defer shutdown()
-
-	expectedResourceMetrics := tc.ResourceMetrics("solr.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }

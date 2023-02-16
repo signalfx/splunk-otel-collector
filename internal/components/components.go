@@ -61,6 +61,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kubeletstatsreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbatlasreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/receivercreator"
@@ -141,6 +142,7 @@ func Get() (otelcol.Factories, error) {
 		mongodbatlasreceiver.NewFactory(),
 		oracledbreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
+		postgresqlreceiver.NewFactory(),
 		prometheusexecreceiver.NewFactory(),
 		prometheusreceiver.NewFactory(),
 		receivercreator.NewFactory(),

@@ -1,0 +1,26 @@
+receivers:
+  postgresql:
+    endpoint: "${POSTGRESQLDB_ENDPOINT}"
+    username: "${POSTGRESQLDB_USERNAME}"
+    password: "${POSTGRESQLDB_PASSWORD}"
+    databases:
+      - otel
+      - otel2
+    tls:
+      insecure: true
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+
+service:
+  telemetry:
+    logs:
+      level: "debug"
+  pipelines:
+    metrics:
+      receivers:
+        - postgresql
+      exporters: [otlp]

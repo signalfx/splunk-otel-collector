@@ -1853,6 +1853,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbatlasr
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbatlasreceiver v0.70.0/go.mod h1:DmBckzGHUUi1qB2f7E7M9VQvtchzI1+DoXgKjIDJd0U=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.70.0 h1:17Ug4A2BoXjE9SJt67hte4PWY1anarQtxMXm+c2QuIg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/oracledbreceiver v0.70.0/go.mod h1:jINAWAwWVty1IxYZub4UB98Vsnoi2qfFK7r603zWkTg=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.70.0 h1:Ws4JdAGRDRVsF5+Gaod+m2VaMxNwF3cB77dKZFQ4BQs=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver v0.70.0/go.mod h1:O8Xv/zy8aFzHdb7TmWmGgTRxrOw6fTgSNcUx0LT2J64=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.70.0 h1:O249Az9ujYbN8qDUpif9XGXGsXJah/AH4PAp8vEN9nU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusexecreceiver v0.70.0/go.mod h1:YxlNYCwYY3SQjPmJlH7t/SeJEcURlTPcYFw0z3kkQvk=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.70.0 h1:XNEvkCcP3B/EXATT3GN9SlgUgvso8Pge9iNR8L45hnw=

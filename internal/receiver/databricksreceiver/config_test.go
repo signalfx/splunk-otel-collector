@@ -20,27 +20,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRunTracker(t *testing.T) {
-	c := &fakeCompletedJobRunClient{}
-	tracker := newRunTracker()
-	runs, _ := c.completedJobRuns(42, 0)
-	latest := tracker.extractNewRuns(runs)
-	assert.Equal(t, 0, len(latest))
-
-	runs, _ = c.completedJobRuns(42, 0)
-	latest = tracker.extractNewRuns(runs)
-	assert.Equal(t, 1, len(latest))
-
-	// simulate no new runs added
-	latest = tracker.extractNewRuns(runs)
-	assert.Nil(t, latest)
-
-	runs, _ = c.completedJobRuns(42, 0)
-	latest = tracker.extractNewRuns(runs)
-	assert.Equal(t, 1, len(latest))
-
-	c.addCompletedRun(42)
-	runs, _ = c.completedJobRuns(42, 0)
-	latest = tracker.extractNewRuns(runs)
-	assert.Equal(t, 2, len(latest))
+func TestConfig_Validate(t *testing.T) {
+	cfg := createDefaultConfig()
+	rc := cfg.(*Config)
+	assert.Error(t, rc.Validate())
+	rc.Endpoint = "foo"
+	assert.Error(t, rc.Validate())
+	rc.InstanceName = "my-instance"
+	assert.Error(t, rc.Validate())
+	rc.Token = "my-token"
+	assert.NoError(t, rc.Validate())
+	rc.MaxResults = 26
+	assert.Error(t, rc.Validate())
+	rc.MaxResults = -1
+	err := rc.Validate()
+	assert.EqualError(t, err, "max_results must be between 0 and 25, inclusive")
 }

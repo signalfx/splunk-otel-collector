@@ -12,24 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package httpauth
 
-import (
-	"testing"
+import "errors"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-)
+var ErrForbidden = errors.New("403 Forbidden")
 
-func TestUnmarshaller(t *testing.T) {
-	u := unmarshaller{&testdataClient{}}
-	list, err := u.jobsList(25, 0)
-	require.NoError(t, err)
-	assert.Equal(t, 2, len(list.Jobs))
-	activeRuns, err := u.activeJobRuns(25, 0)
-	require.NoError(t, err)
-	assert.Equal(t, 2, len(activeRuns.Runs))
-	completedRuns, err := u.completedJobRuns(288, 25, 0)
-	require.NoError(t, err)
-	assert.Equal(t, "SUCCESS", completedRuns.Runs[0].State.ResultState)
+// IsForbidden tests whether the passed-in error wraps errForbidden.
+func IsForbidden(err error) bool {
+	return errors.Is(err, ErrForbidden)
 }

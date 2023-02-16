@@ -1,0 +1,43 @@
+{
+  "pipeline_id": "11111",
+  "spec": {
+    "id": "11111",
+    "name": "my-pipeline",
+    "storage": "dbfs:/pipelines/11111",
+    "clusters": [
+      {
+        "label": "default",
+        "autoscale": {
+          "min_workers": 1,
+          "max_workers": 5,
+          "mode": "ENHANCED"
+        }
+      }
+    ],
+    "libraries": [
+      {
+        "notebook": {
+          "path": "/Users/user@example.com/Foo"
+        }
+      }
+    ],
+    "continuous": false,
+    "development": true,
+    "photon": false,
+    "edition": "ADVANCED",
+    "channel": "CURRENT"
+  },
+  "state": "RUNNING",
+  "cluster_id": "11111",
+  "name": "my-pipeline",
+  "creator_user_name": "user@example.com",
+  "latest_updates": [
+    {
+      "update_id": "abc123",
+      "state": "RUNNING",
+      "creation_time": "2023-01-01T00:00:00.000Z"
+    }
+  ],
+  "last_modified": 1668110000000,
+  "run_as_user_name": "user@example.com"
+}

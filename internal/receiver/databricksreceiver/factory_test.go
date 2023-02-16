@@ -16,7 +16,6 @@ package databricksreceiver
 
 import (
 	"context"
-	"net/http"
 	"path"
 	"testing"
 	"time"
@@ -30,7 +29,6 @@ import (
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 )
 
 func TestFactory(t *testing.T) {
@@ -44,7 +42,7 @@ func TestFactory(t *testing.T) {
 
 func TestCreateReceiver(t *testing.T) {
 	ctx := context.Background()
-	f := createReceiverFunc(func(string, string, *http.Client, *zap.Logger) apiClientInterface { return &testdataClient{} })
+	f := newReceiverFactory()
 	receiver, err := f(
 		ctx,
 		otelcolreceiver.CreateSettings{
@@ -73,7 +71,7 @@ func TestParseConfig(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "my-instance", rcfg.InstanceName)
 	assert.Equal(t, "abc123", rcfg.Token)
-	assert.Equal(t, "https://my.databricks.instance", rcfg.Endpoint)
+	assert.Equal(t, "https://dbr.example.net", rcfg.Endpoint)
 	duration, _ := time.ParseDuration("10s")
 	assert.Equal(t, duration, rcfg.CollectionInterval)
 }

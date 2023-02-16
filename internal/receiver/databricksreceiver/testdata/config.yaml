@@ -1,6 +1,8 @@
 databricks:
   instance_name: my-instance
-  endpoint: https://my.databricks.instance
+  endpoint: https://dbr.example.net
   token: abc123
+  spark_org_id: 1234567890
+  spark_endpoint: https://spark.example.net
+  spark_ui_port: 40001
   collection_interval: 10s
-  max_results: 25

@@ -29,12 +29,12 @@ var activemq = []testutils.Container{testutils.NewContainer().WithContext(
 
 func TestCollectdActiveMQReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", activemq,
+		t, "all.yaml", "all_metrics_config.yaml", activemq, nil,
 	)
 }
 
 func TestCollectdActiveMQReceiverProvidesDefaultMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "default.yaml", "default_metrics_config.yaml", activemq,
+		t, "default.yaml", "default_metrics_config.yaml", activemq, nil,
 	)
 }

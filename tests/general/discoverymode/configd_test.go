@@ -234,28 +234,22 @@ service:
 }
 
 func TestStandaloneConfigD(t *testing.T) {
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
+	testutils.AssertAllMetricsReceived(
+		t, "memory.yaml", "empty-config.yaml",
+		nil, []testutils.CollectorBuilder{
+			func(c testutils.Collector) testutils.Collector {
+				cc := c.(*testutils.CollectorContainer)
+				configd, err := filepath.Abs(filepath.Join(".", "testdata", "standalone-config.d"))
+				require.NoError(t, err)
+				cc.Container = cc.Container.WithMount(testcontainers.BindMount(configd, "/opt/config.d"))
 
-	_, shutdown := tc.SplunkOtelCollectorContainer(
-		"empty-config.yaml",
-		func(c testutils.Collector) testutils.Collector {
-			cc := c.(*testutils.CollectorContainer)
-			configd, err := filepath.Abs(filepath.Join(".", "testdata", "standalone-config.d"))
-			require.NoError(t, err)
-			cc.Container = cc.Container.WithMount(testcontainers.BindMount(configd, "/opt/config.d"))
-
-			return cc
-		},
-		func(c testutils.Collector) testutils.Collector {
-			return c.WithEnv(map[string]string{
-				"SPLUNK_CONFIG_DIR": "/opt/config.d",
-			}).WithArgs("--configd")
+				return cc
+			},
+			func(c testutils.Collector) testutils.Collector {
+				return c.WithEnv(map[string]string{
+					"SPLUNK_CONFIG_DIR": "/opt/config.d",
+				}).WithArgs("--configd")
+			},
 		},
 	)
-	defer shutdown()
-
-	expectedResourceMetrics := tc.ResourceMetrics("memory.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }

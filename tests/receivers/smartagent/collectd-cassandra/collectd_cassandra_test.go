@@ -31,12 +31,12 @@ var cassandra = []testutils.Container{
 
 func TestCollectdCassandraReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", cassandra,
+		t, "all.yaml", "all_metrics_config.yaml", cassandra, nil,
 	)
 }
 
 func TestCollectdCassandraReceiverProvidesDefaultMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "default.yaml", "default_metrics_config.yaml", cassandra,
+		t, "default.yaml", "default_metrics_config.yaml", cassandra, nil,
 	)
 }

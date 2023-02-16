@@ -49,6 +49,6 @@ func TestCollectdPostgresReceiverProvidesAllMetrics(t *testing.T) {
 	}
 
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", containers,
+		t, "all.yaml", "all_metrics_config.yaml", containers, nil,
 	)
 }

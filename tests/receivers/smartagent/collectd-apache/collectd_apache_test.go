@@ -31,12 +31,12 @@ var apache = []testutils.Container{
 
 func TestCollectdApacheReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", apache,
+		t, "all.yaml", "all_metrics_config.yaml", apache, nil,
 	)
 }
 
 func TestCollectdApacheReceiverProvidesDefaultMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "default.yaml", "default_metrics_config.yaml", apache,
+		t, "default.yaml", "default_metrics_config.yaml", apache, nil,
 	)
 }

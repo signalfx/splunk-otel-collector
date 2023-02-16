@@ -30,6 +30,6 @@ var apache = []testutils.Container{
 
 func TestCollectdTomcatReceiverProvidesDefaultMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "default.yaml", "default_metrics_config.yaml", apache,
+		t, "default.yaml", "default_metrics_config.yaml", apache, nil,
 	)
 }

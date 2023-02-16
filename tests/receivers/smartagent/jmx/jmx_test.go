@@ -31,6 +31,6 @@ var cassandra = []testutils.Container{
 
 func TestJmxReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", cassandra,
+		t, "all.yaml", "all_metrics_config.yaml", cassandra, nil,
 	)
 }

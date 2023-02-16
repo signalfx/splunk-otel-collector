@@ -135,13 +135,13 @@ $> ansible-playbook playbook.yaml -e start_service=false
 
 - `start_service`: Whether to restart the services installed by the playbook. (**default:** true)
 
-- `splunk_otel_collector_custom_env_vars`: Hash of custom environment variables from the
-  collector configuration file for the collector service (**default:** `{}`).
+- `splunk_otel_collector_additional_env_vars`: Dictionary of additional environment variables
+  from the collector configuration file for the collector service (**default:** `{}`).
   For example, if the collector configuration file includes references to `${MY_CUSTOM_VAR1}`
   and `${MY_CUSTOM_VAR2}`, specify the following to allow the collector service to expand these
   variables:
   ```yaml
-  splunk_otel_collector_custom_env_vars:
+  splunk_otel_collector_additional_env_vars:
     MY_CUSTOM_VAR1: value1
     MY_CUSTOM_VAR2: value2
   ```

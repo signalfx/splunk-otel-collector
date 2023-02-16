@@ -132,4 +132,4 @@
     name: "{{item.key}}"
     data: "{{item.value}}"
     type: string
-  loop: "{{ splunk_otel_collector_custom_env_vars | default({}) | dict2items }}"
+  loop: "{{ splunk_otel_collector_additional_env_vars | default({}) | dict2items }}"

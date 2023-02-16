@@ -68,4 +68,4 @@ splunk_otel_auto_instrumentation_resource_attributes: ""
 splunk_otel_auto_instrumentation_service_name: ""
 
 # Custom environment variables for the collector service
-splunk_otel_collector_custom_env_vars: {}
+splunk_otel_collector_additional_env_vars: {}

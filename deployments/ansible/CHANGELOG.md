@@ -4,7 +4,7 @@
 
 ### 💡 Enhancements 💡
 
-- Add `splunk_otel_collector_custom_env_vars` option to allow passing custom environment variables to the collector service
+- Add `splunk_otel_collector_additional_env_vars` option to allow passing additional environment variables to the collector service
 
 ### 🧰 Bug fixes 🧰
 

@@ -22,8 +22,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
@@ -36,21 +34,11 @@ var oracledb = []testutils.Container{testutils.NewContainer().WithContext(
 // This test ensures the collector can connect to an Oracle DB, and properly get metrics. It's not intended to
 // test the receiver itself.
 func TestOracleDBIntegration(t *testing.T) {
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, stop := tc.Containers(oracledb...)
-	defer stop()
-
-	_, shutdown := tc.SplunkOtelCollector(
-		"all_metrics_config.yaml",
-		func(collector testutils.Collector) testutils.Collector {
-			return collector.WithEnv(map[string]string{"ORACLEDB_URL": "oracle://otel:password@localhost:1521/XE"})
+	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml",
+		oracledb, []testutils.CollectorBuilder{
+			func(collector testutils.Collector) testutils.Collector {
+				return collector.WithEnv(map[string]string{"ORACLEDB_URL": "oracle://otel:password@localhost:1521/XE"})
+			},
 		},
 	)
-	defer shutdown()
-
-	expectedResourceMetrics := tc.ResourceMetrics("all.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }

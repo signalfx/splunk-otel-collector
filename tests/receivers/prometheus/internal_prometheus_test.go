@@ -25,6 +25,6 @@ import (
 
 func TestInternalPrometheusMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "internal.yaml", "internal_metrics_config.yaml", nil,
+		t, "internal.yaml", "internal_metrics_config.yaml", nil, nil,
 	)
 }

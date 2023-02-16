@@ -25,13 +25,13 @@ import (
 func TestDiscoveryReceiverWithHostObserverProvidesEndpointLogs(t *testing.T) {
 	testutils.AssertAllLogsReceived(
 		t, "host_observer_endpoints.yaml",
-		"host_observer_endpoints_config.yaml", nil,
+		"host_observer_endpoints_config.yaml", nil, nil,
 	)
 }
 
 func TestDiscoveryReceiverWithHostObserverAndSimplePrometheusReceiverProvideStatusLogs(t *testing.T) {
 	testutils.AssertAllLogsReceived(
 		t, "host_observer_simple_prometheus_statuses.yaml",
-		"host_observer_simple_prometheus_config.yaml", nil,
+		"host_observer_simple_prometheus_config.yaml", nil, nil,
 	)
 }

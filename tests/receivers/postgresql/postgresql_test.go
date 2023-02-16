@@ -20,9 +20,6 @@ package tests
 import (
 	"path"
 	"testing"
-	"time"
-
-	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -34,25 +31,15 @@ var postgresqldb = []testutils.Container{testutils.NewContainer().WithContext(
 // This test ensures the collector can connect to a PostgreSQL DB, and properly get metrics. It's not intended to
 // test the receiver itself.
 func TestPostgresqlDBIntegration(t *testing.T) {
-	tc := testutils.NewTestcase(t)
-	defer tc.PrintLogsOnFailure()
-	defer tc.ShutdownOTLPReceiverSink()
-
-	_, stop := tc.Containers(postgresqldb...)
-	defer stop()
-
-	_, shutdown := tc.SplunkOtelCollector(
-		"all_metrics_config.yaml",
-		func(collector testutils.Collector) testutils.Collector {
-			return collector.WithEnv(map[string]string{
-				"POSTGRESQLDB_ENDPOINT": "localhost:15432",
-				"POSTGRESQLDB_USERNAME": "otelu",
-				"POSTGRESQLDB_PASSWORD": "otelp",
-			})
+	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml",
+		postgresqldb, []testutils.CollectorBuilder{
+			func(collector testutils.Collector) testutils.Collector {
+				return collector.WithEnv(map[string]string{
+					"POSTGRESQLDB_ENDPOINT": "localhost:15432",
+					"POSTGRESQLDB_USERNAME": "otelu",
+					"POSTGRESQLDB_PASSWORD": "otelp",
+				})
+			},
 		},
 	)
-	defer shutdown()
-
-	expectedResourceMetrics := tc.ResourceMetrics("all.yaml")
-	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }

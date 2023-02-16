@@ -66,3 +66,6 @@ splunk_otel_auto_instrumentation_ld_so_preload: ""
 splunk_otel_auto_instrumentation_java_agent_jar: /usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar
 splunk_otel_auto_instrumentation_resource_attributes: ""
 splunk_otel_auto_instrumentation_service_name: ""
+
+# Custom environment variables for the collector service
+splunk_otel_collector_additional_env_vars: {}

@@ -53,7 +53,7 @@ suites:
         splunk_memory_total_mib: "256"
         splunk_hec_token: fake-hec-token
         collector_version: 0.48.0
-        collector_custom_env_vars:
+        collector_additional_env_vars:
           MY_CUSTOM_VAR1: value1
           MY_CUSTOM_VAR2: value2
     verifier:

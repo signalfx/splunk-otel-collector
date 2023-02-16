@@ -36,7 +36,7 @@ default['splunk_otel_collector']['fluentd_version'] = if platform_family?('debia
                                                       else
                                                         '4.3.2'
                                                       end
-default['splunk_otel_collector']['collector_custom_env_vars'] = {}
+default['splunk_otel_collector']['collector_additional_env_vars'] = {}
 
 if platform_family?('windows')
   default['splunk_otel_collector']['collector_version'] = 'latest'

@@ -209,13 +209,14 @@ required `splunk_access_token` attribute and some optional attributes:
   node. **Note:** The Java application on the node needs to be restarted
   separately in order for any change to take effect. (**default:** `''`)
 
-- `collector_custom_env_vars`: Hash of custom environment variables from the
-  collector configuration file for the collector service (**default:** `{}`).
+- `collector_additional_env_vars`: Hash of additional environment variables
+  from the collector configuration file for the collector service
+  (**default:** `{}`).
   For example, if the collector configuration file includes references to
   `${MY_CUSTOM_VAR1}` and `${MY_CUSTOM_VAR2}`, specify the following to allow
   the collector service to expand these variables:
   ```ruby
-  collector_custom_env_vars: {'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2'}
+  collector_additional_env_vars: {'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2'}
   ```
   On Linux, the variables/values will be added to the
   `/etc/otel/collector/splunk-otel-collector.conf` systemd environment file.

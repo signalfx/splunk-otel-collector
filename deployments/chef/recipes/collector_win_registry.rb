@@ -16,7 +16,7 @@ registry_values = [
   { name: 'SPLUNK_COLLECTD_DIR', type: :string, data: node['splunk_otel_collector']['splunk_collectd_dir'].to_s },
 ]
 
-node['splunk_otel_collector']['collector_custom_env_vars'].each do |key, value|
+node['splunk_otel_collector']['collector_additional_env_vars'].each do |key, value|
   registry_values.push({ name: key, type: :string, data: value.to_s })
 end
 

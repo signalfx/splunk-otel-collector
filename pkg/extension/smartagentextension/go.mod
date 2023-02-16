@@ -20,7 +20,7 @@ require (
 	github.com/Azure/go-autorest/autorest v0.11.27 // indirect
 	github.com/Azure/go-autorest/autorest/adal v0.9.20 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
-	github.com/Microsoft/hcsshim v0.9.5 // indirect
+	github.com/Microsoft/hcsshim v0.9.6 // indirect
 	github.com/armon/go-metrics v0.4.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.44.171 // indirect
@@ -165,6 +165,8 @@ require (
 replace github.com/signalfx/splunk-otel-collector/tests => ../../../tests
 
 replace (
+	github.com/containerd/containerd => github.com/containerd/containerd v1.6.18
+	github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.38.0
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
@@ -176,6 +178,3 @@ replace (
 	github.com/signalfx/signalfx-agent => github.com/signalfx/signalfx-agent v1.0.1-0.20230117211433-9858481024e4
 	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230117211433-9858481024e4 // indirect
 )
-
-// For CVE-2022-1996
-replace github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible

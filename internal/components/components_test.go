@@ -60,6 +60,7 @@ func TestDefaultComponents(t *testing.T) {
 		"mongodbatlas",
 		"oracledb",
 		"otlp",
+		"postgresql",
 		"prometheus",
 		"prometheus_exec",
 		"prometheus_simple",

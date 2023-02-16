@@ -4,14 +4,15 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 
 RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
-RUN choco install -y -f --no-progress chef-client
+RUN choco install -y -f --no-progress chef-client --version=17.6.18
 
 RUN $env:PATH += ';C:\opscode\chef\embedded\bin'; Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\' -Name Path -Value $env:PATH
 
-RUN gem install serverspec
+RUN gem install serverspec -v 2.42.0
 
 COPY test/integration C:/test
 COPY test/windows/spec_helper.rb C:/test/default/serverspec/spec_helper.rb
+COPY test/windows/spec_helper.rb C:/test/custom_vars/serverspec/spec_helper.rb
 COPY test/windows/spec_helper.rb C:/test/without_fluentd/serverspec/spec_helper.rb
 
 WORKDIR C:\\test

@@ -43,7 +43,7 @@ jobs:
     strategy:
       matrix:
         DISTRO: ['amazonlinux-2', 'centos-7', 'centos-8', 'debian-9', 'debian-10', 'debian-11', 'opensuse-12', 'opensuse-15', 'oraclelinux-7', 'oraclelinux-8', 'ubuntu-1804', 'ubuntu-2004', 'ubuntu-2204']
-        SUITE: ['default', 'without-fluentd', 'with-instrumentation']
+        SUITE: ['default', 'custom-vars', 'without-fluentd', 'with-instrumentation']
       fail-fast: false
     steps:
       - name: Check out code
@@ -51,6 +51,8 @@ jobs:
 
       - name: Install chef
         uses: actionshub/chef-install@2.0.4
+        with:
+          version: 21.12.720
 
       - run: kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
 
@@ -65,7 +67,7 @@ jobs:
     strategy:
       matrix:
         OS: ['windows-2019', 'windows-2022']
-        SUITE: ['default', 'without-fluentd']
+        SUITE: ['default', 'custom-vars', 'without-fluentd']
       fail-fast: false
     steps:
       - name: Check out code
@@ -73,11 +75,13 @@ jobs:
 
       - name: Install chef
         uses: actionshub/chef-install@2.0.4
+        with:
+          version: 21.12.720
 
       - name: gem install kitchen-docker
         run: |
           $env:PATH = 'C:\opscode\chef-workstation\embedded\bin;' + $env:PATH
-          gem install kitchen-docker
+          gem install kitchen-docker -v 2.12.0
 
       - name: kitchen test ${{ matrix.SUITE }}-${{ matrix.OS }}
         run: |

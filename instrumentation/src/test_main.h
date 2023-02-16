@@ -4,7 +4,6 @@
 #include "logger.h"
 #include "config.h"
 #include "cmdline_reader.h"
-#include <stdbool.h>
 
 typedef void (test_func_t)(logger);
 
@@ -32,9 +31,9 @@ void test_auto_instrument_splunk_env_var_false_caps(logger l);
 
 void test_auto_instrument_splunk_env_var_zero(logger l);
 
-void test_read_config(logger l);
+void test_read_config_default(logger l);
 
-void test_read_config_svcname(logger l);
+void test_read_config_all_options(logger l);
 
 void test_read_config_missing_file(logger l);
 
@@ -86,13 +85,29 @@ void test_is_legal_java_package_element(logger l);
 
 void test_is_legal_module(logger l);
 
-void test_eq_true(logger l);
-
-void test_eq_false(logger l);
+void test_str_to_bool(logger l);
 
 void test_enable_telemetry(logger l);
 
 void test_disable_telemetry(logger l);
+
+void test_enable_profiling(logger l);
+
+void test_enable_profiling_memory(logger l);
+
+void test_enable_metrics(logger l);
+
+void test_concat_string_to_empty_just_enough_room(logger l);
+
+void test_concat_string_to_empty_extra_room(logger l);
+
+void test_concat_string_to_empty_not_enough_room(logger l);
+
+void test_concat_string_to_nonempty_just_enough_room(logger l);
+
+void test_long_cfg_attributes(logger l);
+
+void test_auto_instrument_gen_svcname_disabled_but_specified(logger l);
 
 // fakes/testdata
 
@@ -104,17 +119,27 @@ void fake_config_generate_svcname_enabled(logger log, struct config *cfg, char *
 
 void fake_config_generate_svcname_disabled(logger log, struct config *cfg, char *path);
 
+void fake_config_generate_svcname_disabled_but_explicitly_specified(logger log, struct config *cfg, char *path);
+
 void fake_config_no_svcname(logger log, struct config *cfg, char *path);
 
 void fake_config_disable_telemetry_not_specified(logger log, struct config *cfg, char *path);
 
 void fake_config_disable_telemetry_true(logger log, struct config *cfg, char *path);
 
+void fake_config_enable_profiler(logger log, struct config *cfg, char *path);
+
+void fake_config_enable_profiler_memory(logger log, struct config *cfg, char *path);
+
+void fake_config_enable_metrics(logger log, struct config *cfg, char *path);
+
+void fake_config_max_attributes(logger log, struct config *cfg, char *path);
+
 cmdline_reader new_default_test_cmdline_reader();
 
-bool access_check_true(const char *s);
+int access_check_true(const char *s);
 
-bool access_check_false(const char *s);
+int access_check_false(const char *s);
 
 int tomcat_args(char *args[]);
 

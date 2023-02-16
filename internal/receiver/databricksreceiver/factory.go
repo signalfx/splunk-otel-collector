@@ -17,15 +17,15 @@ package databricksreceiver
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"time"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
-	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/databricks"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/spark"
 )
 
 const typeStr = "databricks"
@@ -34,61 +34,47 @@ func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
 		typeStr,
 		createDefaultConfig,
-		receiver.WithMetrics(createReceiverFunc(newAPIClient), component.StabilityLevelAlpha),
+		receiver.WithMetrics(newReceiverFactory(), component.StabilityLevelDevelopment),
 	)
 }
 
-type Config struct {
-	confighttp.HTTPClientSettings           `mapstructure:",squash"`
-	InstanceName                            string `mapstructure:"instance_name"`
-	Token                                   string
-	scraperhelper.ScraperControllerSettings `mapstructure:",squash"`
-	MaxResults                              int `mapstructure:"max_results"`
-}
-
-func createDefaultConfig() component.Config {
-	scs := scraperhelper.NewDefaultScraperControllerSettings(typeStr)
-	// we set the default collection interval to 30 seconds which is half of the
-	// lowest job frequency of 1 minute
-	scs.CollectionInterval = time.Second * 30
-	return &Config{
-		MaxResults:                25, // 25 is the max the API supports
-		ScraperControllerSettings: scs,
-	}
-}
-
-func createReceiverFunc(createAPIClient func(baseURL string, tok string, httpClient *http.Client, logger *zap.Logger) apiClientInterface) func(
-	_ context.Context,
-	settings receiver.CreateSettings,
-	cfg component.Config,
-	consumer consumer.Metrics,
-) (receiver.Metrics, error) {
+func newReceiverFactory() receiver.CreateMetricsFunc {
 	return func(
 		_ context.Context,
 		settings receiver.CreateSettings,
 		cfg component.Config,
 		consumer consumer.Metrics,
 	) (receiver.Metrics, error) {
-		dbcfg := cfg.(*Config)
-		httpClient, err := dbcfg.ToClient(nil, settings.TelemetrySettings)
+		dbrcfg := cfg.(*Config)
+		httpClient, err := dbrcfg.ToClient(nil, settings.TelemetrySettings)
 		if err != nil {
-			return nil, fmt.Errorf("%s: createReceiverFunc closure: %w", typeStr, err)
+			return nil, fmt.Errorf("newReceiverFactory failed to create client from config: %w", err)
 		}
-		c := newDatabricksClient(createAPIClient(dbcfg.Endpoint, dbcfg.Token, httpClient, settings.Logger), dbcfg.MaxResults)
-		s := scraper{
-			instanceName: dbcfg.InstanceName,
-			rmp:          newRunMetricsProvider(c),
-			mp:           newMetricsProvider(c),
+		dbrClient := databricks.NewRawClient(dbrcfg.Token, dbrcfg.Endpoint, httpClient, settings.Logger)
+		dbrsvc := databricks.NewService(dbrClient, dbrcfg.MaxResults)
+		ssvc := spark.NewService(settings.Logger, httpClient, dbrcfg.Token, dbrcfg.SparkEndpoint, dbrcfg.SparkOrgID, dbrcfg.SparkUIPort)
+		dbrScraper := scraper{
+			dbrInstanceName: dbrcfg.InstanceName,
+			logger:          settings.Logger,
+			rmp:             databricks.NewRunMetricsProvider(dbrsvc),
+			dbrmp:           databricks.MetricsProvider{Svc: dbrsvc},
+			metricsBuilder:  metadata.NewMetricsBuilder(dbrcfg.Metrics, settings.BuildInfo),
+			scmb:            spark.ClusterMetricsBuilder{Ssvc: ssvc},
+			semb: spark.ExtraMetricsBuilder{
+				Ssvc:   ssvc,
+				Logger: settings.Logger,
+			},
+			dbrsvc: dbrsvc,
 		}
-		scrpr, err := scraperhelper.NewScraper(typeStr, s.scrape)
+		collectorScraper, err := scraperhelper.NewScraper(typeStr, dbrScraper.scrape)
 		if err != nil {
-			return nil, fmt.Errorf("%s: createReceiverFunc closure: %w", typeStr, err)
+			return nil, fmt.Errorf("newReceiverFactory failed to create scraper: %w", err)
 		}
 		return scraperhelper.NewScraperControllerReceiver(
-			&dbcfg.ScraperControllerSettings,
+			&dbrcfg.ScraperControllerSettings,
 			settings,
 			consumer,
-			scraperhelper.AddScraper(scrpr),
+			scraperhelper.AddScraper(collectorScraper),
 		)
 	}
 }

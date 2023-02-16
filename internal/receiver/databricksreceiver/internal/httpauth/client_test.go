@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package databricksreceiver
+package httpauth
 
 import (
-	"net/http"
+	"fmt"
 	"net/http/httptest"
 	"testing"
 
@@ -25,32 +25,22 @@ import (
 	"go.opentelemetry.io/collector/config/confighttp"
 )
 
-func TestAuthClient(t *testing.T) {
-	h := &fakeHandler{}
+func TestBearerClient(t *testing.T) {
+	h := &FakeHandler{}
 	svr := httptest.NewServer(h)
 	defer svr.Close()
-
 	s := confighttp.HTTPClientSettings{}
 	httpClient, err := s.ToClient(nil, component.TelemetrySettings{})
 	require.NoError(t, err)
-	ac := authClient{
-		httpClient: httpClient,
-		endpoint:   svr.URL,
-		tok:        "abc123",
-	}
-	_, _ = ac.get("/foo")
-	req := h.reqs[0]
+	ac := NewClient(httpClient, "abc123")
+	_, _ = ac.Get(svr.URL + "/foo")
+	req := h.Reqs[0]
 	assert.Equal(t, "GET", req.Method)
 	assert.Equal(t, "Bearer abc123", req.Header.Get("Authorization"))
 	assert.Equal(t, "/foo", req.RequestURI)
 }
 
-// fakeHandler handles test reqests to a test server, appending requests to an
-// array member for later inspection
-type fakeHandler struct {
-	reqs []*http.Request
-}
-
-func (h *fakeHandler) ServeHTTP(_ http.ResponseWriter, req *http.Request) {
-	h.reqs = append(h.reqs, req)
+func TestIsForbidden(t *testing.T) {
+	wrapper := fmt.Errorf("wrapping this error: %w", ErrForbidden)
+	assert.True(t, IsForbidden(wrapper))
 }

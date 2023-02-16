@@ -41,6 +41,26 @@ suites:
       remote_exec: true
       command: rspec -Idefault/serverspec --format documentation default/serverspec/default_spec.rb
 
+  - name: custom_vars
+    run_list:
+      - recipe[splunk_otel_collector]
+    attributes:
+      splunk_otel_collector:
+        splunk_access_token: testing123
+        splunk_realm: test
+        splunk_ingest_url: https://fake-splunk-ingest.com
+        splunk_api_url: https://fake-splunk-api.com
+        splunk_memory_total_mib: "256"
+        splunk_hec_token: fake-hec-token
+        collector_version: 0.48.0
+        collector_additional_env_vars:
+          MY_CUSTOM_VAR1: value1
+          MY_CUSTOM_VAR2: value2
+    verifier:
+      name: shell
+      remote_exec: true
+      command: rspec -Idefault/serverspec --format documentation custom_vars/serverspec/custom_vars_spec.rb
+
   - name: without_fluentd
     run_list:
       - recipe[splunk_otel_collector]

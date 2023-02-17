@@ -66,6 +66,7 @@ func TestKindCluster(t *testing.T) {
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
   - role: control-plane
+    image: kindest/node:v1.26.0
     extraPortMappings:
       - containerPort: 12345
         hostPort: %d

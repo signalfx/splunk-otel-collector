@@ -16,7 +16,7 @@
 package testutils
 
 import (
-	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -35,28 +35,14 @@ func TestCollectorPath(t *testing.T) {
 }
 
 func TestCollectorProcessConfigSourced(t *testing.T) {
-	otlp, err := NewOTLPReceiverSink().WithEndpoint("localhost:23456").Build()
-	require.NoError(t, err)
-	require.NotNil(t, otlp)
+	tc := NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
+	defer tc.ShutdownOTLPReceiverSink()
 
-	err = otlp.Start()
-	require.NoError(t, err)
-	defer func() { require.NoError(t, otlp.Shutdown()) }()
+	_, shutdown := tc.SplunkOtelCollectorProcess("collector_process_config.yaml")
+	defer shutdown()
 
-	configPath := path.Join(".", "testdata", "collector_process_config.yaml")
-	collector, err := NewCollectorProcess().WithConfigPath(configPath).Build()
+	expectedMetrics, err := telemetry.LoadResourceMetrics(filepath.Join(".", "testdata", "expected_host_metrics.yaml"))
 	require.NoError(t, err)
-	require.NotNil(t, collector)
-
-	err = collector.Start()
-	require.NoError(t, err)
-	defer func() { require.NoError(t, collector.Shutdown()) }()
-
-	metricsPath := path.Join(".", "testdata", "expected_host_metrics.yaml")
-	expectedMetrics, err := telemetry.LoadResourceMetrics(metricsPath)
-	require.NoError(t, err)
-	require.NotNil(t, expectedMetrics)
-
-	err = otlp.AssertAllMetricsReceived(t, *expectedMetrics, 10*time.Second)
-	require.NoError(t, err)
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedMetrics, 10*time.Second))
 }

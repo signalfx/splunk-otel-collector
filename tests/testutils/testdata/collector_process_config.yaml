@@ -6,7 +6,7 @@ receivers:
 
 exporters:
   otlp:
-    endpoint: localhost:23456
+    endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
 

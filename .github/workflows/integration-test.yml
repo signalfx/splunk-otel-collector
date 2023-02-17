@@ -22,6 +22,7 @@ concurrency:
 
 env:
   GO_VERSION: "1.19.4"
+  GOTESPLIT_TOTAL: "10"
 
 jobs:
   docker-otelcol:
@@ -53,8 +54,8 @@ jobs:
           name: otelcol
           path: ./bin
 
-  integration-test:
-    name: integration-test
+  integration-vet:
+    name: integration-vet
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
     needs: [docker-otelcol]
@@ -80,6 +81,43 @@ jobs:
           path: ./bin
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
-      - run: make integration-test
+      - run: make integration-vet
         env:
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
+
+  integration-test:
+    name: integration-test
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    needs: [docker-otelcol]
+    strategy:
+      matrix:
+        GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - id: module-cache
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-go-modules
+        with:
+          path: |
+            /home/runner/go/pkg/mod
+            /home/runner/.cache/go-build
+          key: go-${{ github.job }}-${{ runner.os }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
+      - uses: actions/download-artifact@v3
+        with:
+          name: otelcol
+          path: ./bin
+      - run: docker load -i ./bin/image.tar
+      - run: chmod a+x ./bin/*
+      - run: make gotesplit
+        env:
+          SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
+          GOTESPLIT_TOTAL: "${{ env.GOTESPLIT_TOTAL }}"
+          GOTESPLIT_INDEX: "${{ matrix.GOTESPLIT_INDEX }}"

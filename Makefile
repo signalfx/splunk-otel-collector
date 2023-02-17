@@ -54,6 +54,9 @@ ALL_PYTHON_DEPS := $(shell find . -type f \( -name "setup.py" -o -name "requirem
 ALL_DOCKERFILES := $(shell find . -type f -name Dockerfile -exec dirname {} \; | grep -v '^./tests' | sort)
 DEPENDABOT_PATH=./.github/dependabot.yml
 
+GOTESPLIT_TOTAL?=1
+GOTESPLIT_INDEX?=0
+
 ### TARGETS
 
 .DEFAULT_GOAL := all
@@ -73,7 +76,7 @@ for-all:
 
 .PHONY: integration-vet
 integration-vet:
-	cd tests && go vet -tags integration,endtoend ./...
+	@set -e; cd tests && go vet -tags integration,endtoend,testutils ./... && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) -tags testutils -v -timeout 5m -count 1 ./...
 
 .PHONY: integration-test
 integration-test: integration-vet
@@ -225,3 +228,11 @@ endif
 .PHONY: update-examples
 update-examples:
 	cd examples && $(MAKE) update-examples
+
+.PHONY: install-test-tools
+install-test-tools:
+	cd ./tests/tools && go install github.com/Songmu/gotesplit/cmd/gotesplit
+
+.PHONY: gotesplit
+gotesplit: install-test-tools
+	@set -e; cd tests && gotesplit --total=$(GOTESPLIT_TOTAL) --index=$(GOTESPLIT_INDEX) ./... -- -p 1 $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1

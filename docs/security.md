@@ -3,7 +3,7 @@
 # Security
 
 Start by reviewing the [OpenTelemetry Collector security
-documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/security.md).
+documentation](https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/security-best-practices.md).
 
 ## Reporting Security Issues
 

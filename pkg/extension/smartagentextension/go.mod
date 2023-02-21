@@ -147,8 +147,8 @@ require (
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/oauth2 v0.3.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
 	golang.org/x/tools v0.4.0 // indirect
 	google.golang.org/api v0.100.0 // indirect
@@ -171,6 +171,7 @@ replace (
 	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.38.0
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
 	golang.org/x/crypto => golang.org/x/crypto v0.5.0
+	golang.org/x/net => golang.org/x/net v0.7.0
 )
 
 // To prevent attempted downgrading for agent deps, do not remove signalfx-agent or signalfx/pkg/apm replace directives

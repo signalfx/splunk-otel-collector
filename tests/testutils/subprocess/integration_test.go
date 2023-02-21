@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration && !windows
+//go:build testutils && !windows
 
 package subprocess
 

@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build integration
+//go:build testutils
 
 package kubeutils
 
@@ -66,6 +66,7 @@ func TestKindCluster(t *testing.T) {
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
   - role: control-plane
+    image: kindest/node:v1.26.0
     extraPortMappings:
       - containerPort: 12345
         hostPort: %d

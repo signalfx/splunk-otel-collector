@@ -233,6 +233,6 @@ update-examples:
 install-test-tools:
 	cd ./tests/tools && go install github.com/Songmu/gotesplit/cmd/gotesplit
 
-.PHONY: gotesplit
-gotesplit: install-test-tools
+.PHONY: integration-test-split
+integration-test-split: install-test-tools
 	@set -e; cd tests && gotesplit --total=$(GOTESPLIT_TOTAL) --index=$(GOTESPLIT_INDEX) ./... -- -p 1 $(BUILD_INFO_TESTS) --tags=integration -v -timeout 5m -count 1

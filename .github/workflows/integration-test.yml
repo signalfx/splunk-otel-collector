@@ -116,7 +116,7 @@ jobs:
           path: ./bin
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
-      - run: make gotesplit
+      - run: make integration-test-split
         env:
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
           GOTESPLIT_TOTAL: "${{ env.GOTESPLIT_TOTAL }}"

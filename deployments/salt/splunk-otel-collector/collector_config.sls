@@ -26,6 +26,8 @@
 
 {% set splunk_ballast_size_mib = salt['pillar.get']('splunk-otel-collector:splunk_ballast_size_mib', '') %}
 
+{% set collector_additional_env_vars = salt['pillar.get']('splunk-otel-collector:collector_additional_env_vars', {}) %}
+
 /etc/otel/collector/splunk-otel-collector.conf:
   file.managed:
     - contents: |
@@ -41,6 +43,9 @@
         SPLUNK_BALLAST_SIZE_MIB={{ splunk_ballast_size_mib }}
         SPLUNK_BUNDLE_DIR={{ splunk_bundle_dir }}
         SPLUNK_COLLECTD_DIR={{ splunk_collectd_dir }}
+{% for key, value in collector_additional_env_vars.items() %}
+        {{ key }}={{ value }}
+{% endfor %}
     - mode: '0600'
     - makedirs: True
     - user: {{ splunk_service_user }}

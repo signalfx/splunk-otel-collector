@@ -71,7 +71,10 @@ func TestStatementEvaluation(t *testing.T) {
 
 									plogs := make(chan plog.Logs)
 
-									logger := zaptest.NewLogger(t)
+									// If debugging tests, replace the Nop Logger with a test instance to see
+									// all statements. Not in regular use to avoid spamming output.
+									// logger := zaptest.NewLogger(t)
+									logger := zap.NewNop()
 									cStore := newCorrelationStore(logger, time.Hour)
 									cStore.UpdateEndpoint(
 										observer.Endpoint{ID: "endpoint.id"},

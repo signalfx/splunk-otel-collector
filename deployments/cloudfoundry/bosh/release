@@ -81,5 +81,6 @@ else
   # If we're doing an official release we want to delete dev releases, and create a tarball of the release
   # to be used by the tile.
   rm -rf $SCRIPT_DIR/.dev_builds $SCRIPT_DIR/dev_releases
-  bosh create-release --force  --version ${OTEL_VERSION}-${BOSH_RELEASE_VERSION} --tarball ./latest-release.tgz --name splunk-otel-collector
+  bosh create-release --force --version ${OTEL_VERSION}-${BOSH_RELEASE_VERSION} --tarball ./latest-release.tgz --name splunk-otel-collector
+  rm -rf $SCRIPT_DIR/splunk_otel_collector $SCRIPT_DIR/signalfx-agent.tar.gz
 fi

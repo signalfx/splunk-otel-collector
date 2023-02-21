@@ -6,18 +6,39 @@
 
 [Quick Start Guide](https://bosh.io/docs/bosh-lite/)
 
-### Supplementary Getting Started Checklist
+### Start the Bosh Director
 
-- Make sure director is running
-    - Quick start guide to run a BOSH Director can be found [here.](https://bosh.io/docs/quick-start/)
-- Need to upload right Ubuntu/OS blob
-    - Guide can be found [here.](https://bosh.io/docs/uploading-stemcells/)
-    - The following is an example command to upload the Warden (BOSH Lite) Ubuntu Bionic (18.04.6 LTS) stemcell:
+Quick start guide to run a BOSH Director can be found [here.](https://bosh.io/docs/quick-start/)
+
+Debugging for Bosh Director startup issues
+
+- The latest VirtualBox environment (v7.0.6) is incompatible with this
+functionality. Downgrade VirtualBox to [v6.1.42](https://www.virtualbox.org/wiki/Download_Old_Builds_6_1) to
+ensure it can work.
+
+- Error "Waiting for the agent on VM" timeouts
+
+    - Run the delete-env.sh script
+    ```shell
+    # The bosh-deployment repo is cloned in the director Quick Start instructions
+    $ ./bosh-deployment/virtualbox/delete-env.sh
+    - Delete directory of the bosh-deployment repo and re-create.
+    ```
 
     ```shell
-    $ bosh upload-stemcell --sha1 d44dc2d1b3f8415b41160ad4f82bc9d30b8dfdce \
-      https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-bionic-go_agent?v=1.71
+    $ rm -rf ~/workspaces/bosh-env
+    # Restart Quick Start guide
     ```
+
+### Upload Ubuntu/OS blob
+
+- Guide can be found [here.](https://bosh.io/docs/uploading-stemcells/)
+- The following is an example command to upload the Warden (BOSH Lite) Ubuntu Bionic (18.04.6 LTS) stemcell:
+
+```shell
+$ bosh upload-stemcell --sha1 d44dc2d1b3f8415b41160ad4f82bc9d30b8dfdce \
+https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-bionic-go_agent?v=1.71
+````
 
 ## Create Local BOSH Release
 

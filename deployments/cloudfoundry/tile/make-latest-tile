@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# This script will create a release of the bosh release of the collector,
+# and generate the tile with the bosh release as a dependency.
+
+set -euo pipefail
+set -x
+
+OTEL_VERSION=${OTEL_VERSION:-latest}
+OTEL_BINARY="splunk_otel_collector"
+OTEL_BASE_URL="https://github.com/signalfx/splunk-otel-collector/releases"
+
+if [ $OTEL_VERSION = "latest" ]; then
+        OTEL_VERSION=$( wget -qO- --header="Accept: application/json" "${OTEL_BASE_URL}/latest" | jq -r '.tag_name' )
+        if [ -z "$OTEL_VERSION" ]; then
+            echo "Failed to get tag_name for latest release from $OTEL_VERSION/latest" >&2
+            exit 1
+        fi
+fi
+
+# Export so bosh release is guaranteed to use the same version of the collector
+export OTEL_VERSION
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+mkdir -p $SCRIPT_DIR/resources
+
+# Create bosh release and move it to be accessible by tile
+(cd $SCRIPT_DIR/../bosh; ./release)
+mv $SCRIPT_DIR/../bosh/latest-release.tgz $SCRIPT_DIR/resources/
+
+# Tile version needs to be of the form "X.Y.Z", OTEL_VERSION is currently "vX.Y.Z"
+# This command removes the "v" from the beginning.
+OTEL_VERSION="${OTEL_VERSION:1}"
+
+# Build new version of tile
+rm -f $SCRIPT_DIR/tile-history.yml
+tile build ${OTEL_VERSION}

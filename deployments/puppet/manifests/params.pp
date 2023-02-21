@@ -2,6 +2,7 @@
 class splunk_otel_collector::params {
   $fluentd_version_default = '4.3.2'
   $fluentd_version_stretch = '3.7.1-0'
+  $collector_additional_env_vars = {}
 
   if $::osfamily == 'redhat' or $::osfamily == 'debian' or $::osfamily == 'suse' {
     $collector_version = 'latest'
@@ -35,6 +36,8 @@ class splunk_otel_collector::params {
     $fluentd_version = $fluentd_version_default
     $fluentd_config_source = "${collector_install_dir}\\fluentd\\td-agent.conf"
     $fluentd_config_dest = ''
+    $auto_instrumentation_version = ''
+    $auto_instrumentation_java_agent_jar = ''
   } else {
     fail("Your OS (${::osfamily}) is not supported by the Splunk OpenTelemetry Collector")
   }

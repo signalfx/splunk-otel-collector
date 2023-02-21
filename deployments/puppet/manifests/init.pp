@@ -37,7 +37,8 @@ class splunk_otel_collector (
   $auto_instrumentation_ld_so_preload       = '',  # linux only
   $auto_instrumentation_java_agent_jar      = $splunk_otel_collector::params::auto_instrumentation_java_agent_jar,  # linux only
   $auto_instrumentation_resource_attributes = '',  # linux only
-  $auto_instrumentation_service_name        = ''   # linux only
+  $auto_instrumentation_service_name        = '',  # linux only
+  $collector_additional_env_vars            = {}
 ) inherits splunk_otel_collector::params {
 
   $collector_service_name = 'splunk-otel-collector'
@@ -150,20 +151,6 @@ class splunk_otel_collector (
   if $::osfamily != 'windows' {
     $collector_config_dir = $collector_config_dest.split('/')[0, - 2].join('/')
     $env_file_path = '/etc/otel/collector/splunk-otel-collector.conf'
-    $env_file_content = @("EOH")
-      SPLUNK_ACCESS_TOKEN=${splunk_access_token}
-      SPLUNK_API_URL=${splunk_api_url}
-      SPLUNK_BALLAST_SIZE_MIB=${splunk_ballast_size_mib}
-      SPLUNK_BUNDLE_DIR=${splunk_bundle_dir}
-      SPLUNK_COLLECTD_DIR=${splunk_collectd_dir}
-      SPLUNK_CONFIG=${collector_config_dest}
-      SPLUNK_HEC_TOKEN=${splunk_hec_token}
-      SPLUNK_HEC_URL=${splunk_hec_url}
-      SPLUNK_INGEST_URL=${splunk_ingest_url}
-      SPLUNK_MEMORY_TOTAL_MIB=${splunk_memory_total_mib}
-      SPLUNK_REALM=${splunk_realm}
-      SPLUNK_TRACE_URL=${splunk_trace_url}
-      | EOH
 
     class { 'splunk_otel_collector::collector_service_owner':
       service_name  => $collector_service_name,
@@ -172,7 +159,8 @@ class splunk_otel_collector (
     }
 
     -> file { $env_file_path:
-      content => $env_file_content,
+      ensure  => file,
+      content => template('splunk_otel_collector/splunk-otel-collector.conf.erb'),
       mode    => '0600',
       owner   => $service_user,
       group   => $service_group,

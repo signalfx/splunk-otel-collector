@@ -1,6 +1,6 @@
 {
   "name": "signalfx-splunk_otel_collector",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "author": "Splunk, Inc.",
   "summary": "This module installs the Splunk OpenTelemetry Collector via distro packages and configures it.",
   "license": "Apache-2.0",
@@ -76,7 +76,8 @@
       "operatingsystemrelease": [
         "2012",
         "2016",
-        "2019"
+        "2019",
+        "2022"
       ]
     }
   ],

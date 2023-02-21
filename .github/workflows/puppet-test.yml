@@ -17,6 +17,11 @@ concurrency:
   group: puppet-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  PYTHON_VERSION: "3.10"
+  REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
+  RESULT_PATH: "testresults"
+
 jobs:
   puppet-lint:
     name: puppet-lint
@@ -53,11 +58,7 @@ jobs:
       matrix:
         PACKAGE_TYPE: [ "deb", "rpm" ]
         PUPPET_RELEASE: [ "6", "7" ]
-        TEST_CASE: [ "with_fluentd", "without_fluentd", "with_instrumentation" ]
-    env:
-      PYTHON_VERSION: '3.10'
-      REQUIREMENTS_PATH: "internal/buildscripts/packaging/tests/requirements.txt"
-      RESULT_PATH: "~/testresults"
+        TEST_CASE: [ "with_fluentd", "without_fluentd", "with_instrumentation", "custom_vars" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -65,14 +66,9 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ env.PYTHON_VERSION }} 
-      
-      - name: Caching dependency
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/pip
-          key: v1-pytest-${{ env.PYTHON_VERSION }}-${{ hashFiles(env.REQUIREMENTS_PATH) }}
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: ${{ env.REQUIREMENTS_PATH }}
 
       - name: Install pytest
         run: pip install -r "${{ env.REQUIREMENTS_PATH }}"
@@ -94,4 +90,47 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: puppet-${{ matrix.PUPPET_RELEASE }}-${{ matrix.PACKAGE_TYPE }}-${{ matrix.TEST_CASE }}-result
+          path: ${{ env.RESULT_PATH }}
+
+  puppet-test-windows:
+    name: puppet-test-windows
+    runs-on: ${{ matrix.OS }}
+    needs:
+      - puppet-lint
+      - puppet-rake-spec
+    strategy:
+      matrix:
+        OS: [ "windows-2019", "windows-2022" ]
+        PUPPET_RELEASE: [ "6.0.2", "7.21.0" ]
+        TEST_CASE: [ "default", "custom_vars" ]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: ${{ env.REQUIREMENTS_PATH }}
+
+      - name: Install pytest
+        run: pip install -r "${{ env.REQUIREMENTS_PATH }}"
+
+      - name: Test puppet deployment
+        timeout-minutes: 45
+        run: |
+          $env:PUPPET_RELEASE = "${{ matrix.PUPPET_RELEASE }}"
+          mkdir ${{ env.RESULT_PATH }}
+          pytest --verbose -m windows `
+            -k ${{ matrix.TEST_CASE }} `
+            --junitxml=${{ env.RESULT_PATH }}/results.xml `
+            --html=${{ env.RESULT_PATH }}/results.html `
+            --self-contained-html `
+            internal/buildscripts/packaging/tests/deployments/puppet/puppet_test.py
+
+      - name: Uploading artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: puppet-${{ matrix.PUPPET_RELEASE }}-${{ matrix.OS }}-${{ matrix.TEST_CASE }}-result
           path: ${{ env.RESULT_PATH }}

@@ -89,4 +89,13 @@ class splunk_otel_collector::collector_win_registry () {
     data    => $splunk_otel_collector::splunk_trace_url,
     require => Registry_key[$registry_key],
   }
+
+  $splunk_otel_collector::collector_additional_env_vars.each |$var, $value| {
+    registry_value { "${registry_key}\\${var}":
+      ensure  => 'present',
+      type    => 'string',
+      data    => $value,
+      require => Registry_key[$registry_key],
+    }
+  }
 }

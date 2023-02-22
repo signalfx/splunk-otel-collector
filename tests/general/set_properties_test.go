@@ -131,7 +131,7 @@ func TestSetProperties(t *testing.T) {
 		},
 		"exporters": map[string]any{
 			"otlp": map[string]any{
-				"endpoint": tc.OTLPEndpoint,
+				"endpoint": tc.OTLPEndpointForCollector,
 				"tls": map[string]any{
 					"insecure": true,
 				},

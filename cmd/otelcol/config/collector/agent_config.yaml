@@ -153,7 +153,7 @@ exporters:
     loglevel: debug
 
 service:
-  extensions: [health_check, http_forwarder, zpages, memory_ballast]
+  extensions: [health_check, http_forwarder, zpages, memory_ballast, smartagent]
   pipelines:
     traces:
       receivers: [jaeger, otlp, smartagent/signalfx-forwarder, zipkin]

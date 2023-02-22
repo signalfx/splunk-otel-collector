@@ -1,7 +1,7 @@
 version: "3"
 services:
   telemetrygen:
-    image: quay.io/atoulme/telemetrygen/telemetrygen
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.71.0
     container_name: telemetrygen
     command: ["metrics", "--otlp-endpoint", "otelcollector:4317", "--otlp-insecure", "--duration", "10m", "--rate", "100"]
     depends_on:
@@ -27,7 +27,7 @@ services:
       - /opt/splunk/etc
   # OpenTelemetry Collector
   otelcollector:
-    image:  quay.io/signalfx/splunk-otel-collector:0.69.0
+    image:  quay.io/signalfx/splunk-otel-collector:latest
     container_name: otelcollector
     command: ["--config=/etc/otel-collector-config.yml", "--set=service.telemetry.logs.level=debug"]
     volumes:

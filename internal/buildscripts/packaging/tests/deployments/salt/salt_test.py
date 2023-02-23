@@ -256,3 +256,37 @@ def test_salt_service_owner(distro):
                 run_container_cmd(container, "journalctl -u td-agent --no-pager")
                 if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
                     run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
+
+
+CUSTOM_ENV_VARS_CONFIG = f"""
+splunk-otel-collector:
+  splunk_access_token: '{SPLUNK_ACCESS_TOKEN}'
+  splunk_realm: '{SPLUNK_REALM}'
+  install_fluentd: False
+  collector_additional_env_vars:
+    MY_CUSTOM_VAR1: value1
+    MY_CUSTOM_VAR2: value2
+"""
+
+
+@pytest.mark.salt
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+    )
+def test_salt_custom_env_vars(distro):
+    if distro in DEB_DISTROS:
+        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
+    else:
+        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
+
+    with run_distro_container(distro, dockerfile=dockerfile, path=REPO_DIR) as container:
+        try:
+            run_salt_apply(container, CUSTOM_ENV_VARS_CONFIG)
+            verify_env_file(container)
+            run_container_cmd(container, f"grep '^MY_CUSTOM_VAR1=value1$' {SPLUNK_ENV_PATH}")
+            run_container_cmd(container, f"grep '^MY_CUSTOM_VAR2=value2$' {SPLUNK_ENV_PATH}")
+            assert wait_for(lambda: service_is_running(container))
+        finally:
+            run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")

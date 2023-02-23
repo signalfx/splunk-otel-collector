@@ -96,6 +96,19 @@ splunk-otel-collector:
 - `splunk_ballast_size_mib`: Memory ballast size in MiB that will be set to the Splunk 
   OTel Collector. (**default:** 1/3 of `splunk_memory_total_mib`)
 
+- `collector_additional_env_vars`: Dictionary of additional environment
+  variables from the collector configuration file for the collector service
+  (**default:** `{}`). For example, if the collector configuration file
+  includes references to `${MY_CUSTOM_VAR1}` and `${MY_CUSTOM_VAR2}`, specify
+  the following to allow the collector service to expand these variables:
+  ```yaml
+  collector_additional_env_vars:
+    MY_CUSTOM_VAR1: value1
+    MY_CUSTOM_VAR2: value2
+  ```
+  The variables/values will be added to the
+  `/etc/otel/collector/splunk-otel-collector.conf` systemd environment file.
+
 - `install_fluentd`: Whether to install/manage fluentd and dependencies for log
   collection. The dependencies include [capng_c](
   https://github.com/fluent-plugins-nursery/capng_c) for enabling

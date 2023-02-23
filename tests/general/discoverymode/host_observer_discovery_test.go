@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -167,10 +168,14 @@ func TestHostObserver(t *testing.T) {
 	}
 	require.Equal(t, expectedInitial, cc.InitialConfig(t, 55554))
 
+	if runtime.GOOS == "darwin" {
+		t.Skip("docker for mac")
+	}
+
 	expectedEffective := map[string]any{
 		"exporters": map[string]any{
 			"otlp": map[string]any{
-				"endpoint": tc.OTLPEndpoint,
+				"endpoint": tc.OTLPEndpointForCollector,
 				"tls": map[string]any{
 					"insecure": true,
 				},

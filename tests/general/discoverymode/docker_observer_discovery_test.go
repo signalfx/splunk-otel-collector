@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"syscall"
 	"testing"
 	"time"
@@ -34,6 +35,9 @@ import (
 // starting a collector with the daemon domain socket mounted and the container running with its group id
 // before starting a prometheus container with a label the receiver creator rule matches against.
 func TestDockerObserver(t *testing.T) {
+	if runtime.GOOS == "darwin" {
+		t.Skip("unable to share sockets between mac and d4m vm: https://github.com/docker/for-mac/issues/483#issuecomment-758836836")
+	}
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
@@ -148,7 +152,7 @@ func TestDockerObserver(t *testing.T) {
 	expectedEffective := map[string]any{
 		"exporters": map[string]any{
 			"otlp": map[string]any{
-				"endpoint": tc.OTLPEndpoint,
+				"endpoint": tc.OTLPEndpointForCollector,
 				"tls": map[string]any{
 					"insecure": true,
 				},

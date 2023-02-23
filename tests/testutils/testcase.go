@@ -61,7 +61,7 @@ type Testcase struct {
 	ObservedLogs                        *observer.ObservedLogs
 	OTLPReceiverSink                    *OTLPReceiverSink
 	OTLPEndpoint                        string
-	otlpEndpointForCollector            string
+	OTLPEndpointForCollector            string
 	ID                                  string
 	OTLPReceiverShouldBindAllInterfaces bool
 }
@@ -93,7 +93,7 @@ func (t *Testcase) setOTLPEndpoint(opts []TestOption) {
 		otlpHost = "0.0.0.0"
 	}
 	t.OTLPEndpoint = fmt.Sprintf("%s:%d", otlpHost, otlpPort)
-	t.otlpEndpointForCollector = t.OTLPEndpoint
+	t.OTLPEndpointForCollector = t.OTLPEndpoint
 }
 
 // Loads and validates a ResourceLogs instance, assuming it's located in ./testdata/resource_metrics
@@ -147,8 +147,8 @@ func (t *Testcase) SplunkOtelCollector(configFilename string, builders ...Collec
 func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders ...CollectorBuilder) (collector *CollectorContainer, shutdown func()) {
 	cc := NewCollectorContainer().WithImage(GetCollectorImageOrSkipTest(t))
 	if runtime.GOOS == "darwin" {
-		port := strings.Split(t.otlpEndpointForCollector, ":")[1]
-		t.otlpEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
+		port := strings.Split(t.OTLPEndpointForCollector, ":")[1]
+		t.OTLPEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
 	}
 
 	var c Collector
@@ -175,7 +175,7 @@ func (t *Testcase) splunkOtelCollector(configFilename string, builders ...Collec
 func (t *Testcase) newCollector(initial Collector, configFilename string, builders ...CollectorBuilder) (collector Collector, shutdown func()) {
 	collector = initial
 	envVars := map[string]string{
-		"OTLP_ENDPOINT":  t.otlpEndpointForCollector,
+		"OTLP_ENDPOINT":  t.OTLPEndpointForCollector,
 		"SPLUNK_TEST_ID": t.ID,
 	}
 

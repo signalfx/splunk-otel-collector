@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.19.4"
+  GO_VERSION: "1.19.6"
   GOTESPLIT_TOTAL: "10"
 
 jobs:

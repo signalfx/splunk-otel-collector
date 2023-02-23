@@ -71,7 +71,7 @@ exporters:
     ingest_url: https://ingest.${SPLUNK_REALM}.signalfx.com
     sync_host_metadata: true
   logging:
-    logLevel: debug
+    loglevel: debug
 service:
   extensions:
   - health_check

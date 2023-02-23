@@ -16,7 +16,7 @@ graph LR
     2 --> 2a1>otlp.yaml]
     2a1 --> 2b1[[otlp:<br>endpoint: 1.2.3.4:2345]]
     2 --> 2a2>logging.yaml]
-    2a2 --> 2b2[[logging:<br>logLevel: debug]]
+    2a2 --> 2b2[[logging:<br>loglevel: debug]]
   end
   config.d --> 3[/extensions/]
   subgraph 3a[extensions]

@@ -275,7 +275,7 @@ func TestStartupTimeoutDefault(t *testing.T) {
 	assert.NotSame(t, *container, builder)
 	assert.NotNil(t, container.req)
 	rs := reflect.ValueOf(container.req.WaitingFor).Elem()
-	rf := rs.FieldByName("timeout")
+	rf := rs.FieldByName("deadline")
 	rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
 	startupTimeout := rf.Interface().(*time.Duration)
 	assert.Equal(t, 5*time.Minute, *startupTimeout)

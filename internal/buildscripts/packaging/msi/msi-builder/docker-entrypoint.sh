@@ -23,7 +23,7 @@ if [ $# -eq 0 ]; then
     fi
 
     buildargs="--output /work/build/stage --smart-agent ${SMART_AGENT_RELEASE#v} ${VERSION#v}"
-    su wix -c "/project/internal/buildscripts/packaging/msi/msi-builder/build.sh $buildargs"
+    /project/internal/buildscripts/packaging/msi/msi-builder/build.sh $buildargs
     mkdir -p $OUTPUT_DIR
     echo "Copying MSI to $OUTPUT_DIR"
     cp /work/build/stage/*.msi $OUTPUT_DIR/

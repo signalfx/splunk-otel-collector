@@ -1,10 +1,10 @@
-# The quay.io/signalfx/wix-dev:latest base image is tagged and pushed from felfert/wix:latest
-# in order to pin the image in case the original image's latest tag is updated.
+# The quay.io/signalfx/wix-dev:fleetdm base image is tagged and pushed from fleetdm/wix:latest
+# in order to pin the image in case the original image's latest tag is updated or removed.
+# https://github.com/fleetdm/fleet/blob/main/LICENSE (MIT Expat)
 
-FROM quay.io/signalfx/wix-dev:latest
+FROM quay.io/signalfx/wix-dev:fleetdm
 
 USER root
-RUN sed -i s'|stable|buster|' /etc/apt/sources.list
 RUN apt-get update -y
 RUN apt-get install -y curl unzip
 

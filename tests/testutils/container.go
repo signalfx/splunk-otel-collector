@@ -374,11 +374,11 @@ func (container *Container) NetworkAliases(ctx context.Context) (map[string][]st
 	return (*container.container).NetworkAliases(ctx)
 }
 
-func (container *Container) Exec(ctx context.Context, cmd []string, _ ...exec.ProcessOption) (int, io.Reader, error) {
+func (container *Container) Exec(ctx context.Context, cmd []string, options ...exec.ProcessOption) (int, io.Reader, error) {
 	if err := container.assertStarted("Exec"); err != nil {
 		return 0, nil, err
 	}
-	return (*container.container).Exec(ctx, cmd, exec.Multiplexed())
+	return (*container.container).Exec(ctx, cmd, options...)
 }
 
 func (container *Container) ContainerIP(ctx context.Context) (string, error) {

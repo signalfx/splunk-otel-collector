@@ -2,6 +2,12 @@ job "otel-agent" {
   datacenters = ["dc1"]
   type        = "system"
 
+  constraint {
+    attribute = "${attr.nomad.version}"
+    operator  = "semver"
+    value     = "< 1.3.0"
+  }
+
   group "otel-agent" {
     network {
       port "metrics" {

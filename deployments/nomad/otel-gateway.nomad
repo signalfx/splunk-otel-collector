@@ -2,6 +2,12 @@ job "otel-gateway" {
   datacenters = ["dc1"]
   type        = "service"
 
+  constraint {
+    attribute = "${attr.nomad.version}"
+    operator  = "semver"
+    value     = "< 1.3.0"
+  }
+
   group "otel-gateway" {
     count = 1
 

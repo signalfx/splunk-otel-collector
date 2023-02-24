@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - 'deployments/nomad/**'
+      - '.github/workflows/nomad.yml'
 
 permissions:
   contents: write
@@ -21,6 +22,10 @@ jobs:
     name: Test
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        nomad: [ "1.1.0", "1.2.0" ]
+      fail-fast: false
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -30,8 +35,14 @@ jobs:
           curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add - 
           sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
           sudo apt-get update 
-          sudo apt-get install nomad
+          sudo apt-get install nomad=${{ matrix.nomad }}
           sudo apt-get install consul
+
+      - name: Validate otel-agent.nomad
+        run: nomad job validate otel-agent.nomad
+
+      - name: Validate otel-gateway.nomad
+        run: nomad job validate otel-gateway.nomad
 
       - name: Start Nomad Service.
         run: |

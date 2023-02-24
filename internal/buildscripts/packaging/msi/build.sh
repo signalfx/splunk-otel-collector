@@ -8,6 +8,7 @@ SMART_AGENT_RELEASE_PATH="${SCRIPT_DIR}/../smart-agent-release.txt"
 
 VERSION="${1:-}"
 SMART_AGENT_RELEASE="${2:-}"
+DOCKER_REPO="${3:-docker.io}"
 
 get_version() {
     commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
@@ -31,7 +32,7 @@ if [ -z "$VERSION" ]; then
     VERSION="$( get_version )"
 fi
 
-docker build -t msi-builder -f "${SCRIPT_DIR}/msi-builder/Dockerfile" "$REPO_DIR"
+docker build -t msi-builder --build-arg DOCKER_REPO="$DOCKER_REPO" -f "${SCRIPT_DIR}/msi-builder/Dockerfile" "$REPO_DIR"
 docker rm -fv msi-builder 2>/dev/null || true
 docker run -d --name msi-builder msi-builder sleep inf
 docker exec \

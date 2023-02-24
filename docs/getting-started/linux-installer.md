@@ -120,8 +120,24 @@ sudo sh /tmp/splunk-otel-collector.sh --realm SPLUNK_REALM --collector-config /e
     -- SPLUNK_ACCESS_TOKEN
 ```
 
-If the configuration file is modified after installation, the Collector
-service needs to be restarted for the changes to take effect:
+If the Collector configuration file includes references to custom environment
+variables, these variables and values will need to be manually added to the
+`/etc/otel/collector/splunk-otel-collector.conf` systemd environment file
+after installation in order for the `splunk-otel-collector` systemd service to
+expand these variables. For example, if the Collector configuration file
+references `${MY_CUSTOM_VAR1}` and `${MY_CUSTOM_VAR2}`, add the following to
+`/etc/otel/collector/splunk-otel-collector.conf`:
+```
+MY_CUSTOM_VAR1=my_custom_value1
+MY_CUSTOM_VAR2=my_custom_value2
+```
+See [EnvironmentFile](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#EnvironmentFile=)
+for more details about the systemd environment file.
+
+If the Collector configuration file or
+`/etc/otel/collector/splunk-otel-collector.conf` is modified after
+installation, the Collector service needs to be restarted for the changes to
+take effect:
 
 ```sh
 sudo systemctl restart splunk-otel-collector

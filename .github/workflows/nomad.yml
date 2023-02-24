@@ -7,7 +7,6 @@ on:
   pull_request:
     paths:
       - 'deployments/nomad/**'
-      - '.github/workflows/nomad.yml'
 
 permissions:
   contents: write

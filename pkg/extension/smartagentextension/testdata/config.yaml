@@ -12,7 +12,7 @@ smartagent/all_settings:
     writeThreads: 4
     writeQueueLimitHigh: 5
     writeQueueLimitLow: 1
-    loglevel: info
+    logLevel: info
     intervalSeconds: 5
     writeServerIPAddr: 10.100.12.1
     writeServerPort: 9090
@@ -25,4 +25,3 @@ smartagent/partial_settings:
     writeThreads: 4
     writeQueueLimitHigh: 5
     configDir: /var/run/signalfx-agent/collectd
-

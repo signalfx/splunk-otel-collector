@@ -23,7 +23,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestCollectdPostgresReceiverProvidesAllMetrics(t *testing.T) {
+func TestCollectdNginxReceiverProvidesAllMetrics(t *testing.T) {
 	containers := []testutils.Container{
 		testutils.NewContainer().WithContext(
 			path.Join(".", "testdata", "server"),

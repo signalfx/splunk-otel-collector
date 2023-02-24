@@ -266,7 +266,7 @@ func TestStartupTimeout(t *testing.T) {
 	rf := rs.FieldByName("deadline")
 	rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
 	startupTimeout := rf.Interface().(*time.Duration)
-	assert.Equal(t, 10*time.Minute, startupTimeout)
+	assert.Equal(t, 10*time.Minute, *startupTimeout)
 }
 
 func TestStartupTimeoutDefault(t *testing.T) {
@@ -278,7 +278,7 @@ func TestStartupTimeoutDefault(t *testing.T) {
 	rf := rs.FieldByName("timeout")
 	rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
 	startupTimeout := rf.Interface().(*time.Duration)
-	assert.Equal(t, 5*time.Minute, startupTimeout)
+	assert.Equal(t, 5*time.Minute, *startupTimeout)
 }
 
 func TestTestcontainersContainerMethodsRequireBuilding(t *testing.T) {

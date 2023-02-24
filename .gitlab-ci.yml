@@ -284,6 +284,7 @@ build-msi:
     - cp -f dist/signed/otelcol_windows_amd64.exe bin/otelcol_windows_amd64.exe
     - cp -f dist/signed/translatesfx_windows_amd64.exe bin/translatesfx_windows_amd64.exe
   script:
+    - *docker-reader-role
     - make msi SKIP_COMPILE=true VERSION=${CI_COMMIT_TAG:-} DOCKER_REPO=${DOCKER_HUB_REPO}
   artifacts:
     paths:

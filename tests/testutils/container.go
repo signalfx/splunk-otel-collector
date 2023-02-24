@@ -232,7 +232,7 @@ func (container Container) Build() *Container {
 		NetworkMode:    networkMode,
 		Labels:         container.Labels,
 		Privileged:     container.Privileged,
-		WaitingFor:     wait.ForAll(container.WaitingFor...).WithDeadline(startupTimeout),
+		WaitingFor:     wait.ForAll(container.WaitingFor...).WithStartupTimeoutDefault(startupTimeout),
 	}
 	return &container
 }

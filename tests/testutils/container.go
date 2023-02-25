@@ -217,6 +217,7 @@ func (container Container) Build() *Container {
 		startupTimeout = *container.startupTimeout
 	}
 
+	fmt.Println("Made it into build, startup timeout: ", startupTimeout)
 	container.req = &testcontainers.ContainerRequest{
 		Binds:          container.Binds,
 		User:           container.User,
@@ -241,17 +242,27 @@ func (container *Container) Start(ctx context.Context) error {
 	if container.req == nil {
 		return fmt.Errorf("cannot start a container that hasn't been built")
 	}
+
 	req := testcontainers.GenericContainerRequest{
 		ContainerRequest: *container.req,
 		Started:          true,
 	}
 
+	fmt.Println("Attempting to start container")
+	fmt.Println("Req: ", req.ContainerRequest)
+	fmt.Println("Req environment: ", req.ContainerRequest.Env)
+
 	err := container.createNetworksIfNecessary(req)
 	if err != nil {
+		fmt.Printf("Error creating networks")
 		return nil
 	}
 
+	fmt.Printf("Starting Generic container")
 	started, err := testcontainers.GenericContainer(ctx, req)
+
+	//fmt.Printf("Did we get an error starting the container? %v", err.Error())
+
 	container.container = &started
 	return err
 }
@@ -455,6 +466,7 @@ func (container *Container) AssertExec(t testing.TB, timeout time.Duration, cmd 
 func (container *Container) createNetworksIfNecessary(req testcontainers.GenericContainerRequest) error {
 	provider, err := req.ProviderType.GetProvider()
 	if err != nil {
+		fmt.Printf("Error getting provider")
 		return err
 	}
 	for _, networkName := range container.ContainerNetworks {
@@ -463,6 +475,7 @@ func (container *Container) createNetworksIfNecessary(req testcontainers.Generic
 		}
 		networkResource, err := provider.GetNetwork(context.Background(), query)
 		if err != nil && !errdefs.IsNotFound(err) {
+			fmt.Printf("Error netowrk not found")
 			return err
 		}
 		if networkResource.Name != networkName {
@@ -473,9 +486,11 @@ func (container *Container) createNetworksIfNecessary(req testcontainers.Generic
 			}
 			_, err := provider.CreateNetwork(context.Background(), create)
 			if err != nil {
+				fmt.Printf("Error creating network")
 				return nil
 			}
 		}
 	}
+	fmt.Printf("Network done successfully")
 	return nil
 }

@@ -147,10 +147,13 @@ func (t *Testcase) SplunkOtelCollector(configFilename string, builders ...Collec
 func (t *Testcase) SplunkOtelCollectorContainer(configFilename string, builders ...CollectorBuilder) (collector *CollectorContainer, shutdown func()) {
 	cc := NewCollectorContainer().WithImage(GetCollectorImageOrSkipTest(t))
 	if runtime.GOOS == "darwin" {
+		t.Logf("Darwin OS, collector container image: %v", cc.Image)
 		port := strings.Split(t.OTLPEndpointForCollector, ":")[1]
+		t.Logf("Darwin OS, collector container port: %v", port)
 		t.OTLPEndpointForCollector = fmt.Sprintf("host.docker.internal:%s", port)
 	}
 
+	t.Logf("Made it here, got collector container with image.")
 	var c Collector
 	c, shutdown = t.newCollector(&cc, configFilename, builders...)
 	return c.(*CollectorContainer), shutdown
@@ -185,6 +188,8 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		)
 	}
 
+	t.Logf("Collector config: %s", configFilename)
+	t.Logf("Env vars: %v", envVars)
 	collector = collector.WithEnv(envVars).WithLogLevel("debug").WithLogger(t.Logger)
 
 	for _, builder := range builders {
@@ -196,15 +201,17 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		split := strings.Split(s, "=")
 		if strings.HasPrefix(strings.ToUpper(split[0]), "SPLUNK_") {
 			splunkEnv[split[0]] = split[1]
-
+			t.Logf("Splunk key: %s, Splunk Value: %s", split[0], split[1])
 		}
 	}
+	t.Logf("Splunk env: %v", splunkEnv)
 	collector = collector.WithEnv(splunkEnv)
 
 	var err error
 	collector, err = collector.Build()
 	require.NoError(t, err)
 	require.NotNil(t, collector)
+	t.Logf("About to start collector")
 	require.NoError(t, collector.Start())
 
 	return collector, func() { require.NoError(t, collector.Shutdown()) }
@@ -275,9 +282,11 @@ func AssertAllMetricsReceived(
 
 	expectedResourceMetrics := tc.ResourceMetrics(resourceMetricsFilename)
 
+	t.Logf("How many containers? %v", len(containers))
 	_, stop := tc.Containers(containers...)
 	defer stop()
 
+	t.Logf("How many builders? %v", len(builders))
 	_, shutdown := tc.SplunkOtelCollector(collectorConfigFilename, builders...)
 	defer shutdown()
 

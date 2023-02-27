@@ -466,7 +466,6 @@ func (container *Container) AssertExec(t testing.TB, timeout time.Duration, cmd 
 func (container *Container) createNetworksIfNecessary(req testcontainers.GenericContainerRequest) error {
 	provider, err := req.ProviderType.GetProvider()
 	if err != nil {
-		fmt.Printf("Error getting provider")
 		return err
 	}
 	for _, networkName := range container.ContainerNetworks {
@@ -475,7 +474,6 @@ func (container *Container) createNetworksIfNecessary(req testcontainers.Generic
 		}
 		networkResource, err := provider.GetNetwork(context.Background(), query)
 		if err != nil && !errdefs.IsNotFound(err) {
-			fmt.Printf("Error netowrk not found")
 			return err
 		}
 		if networkResource.Name != networkName {
@@ -486,11 +484,9 @@ func (container *Container) createNetworksIfNecessary(req testcontainers.Generic
 			}
 			_, err := provider.CreateNetwork(context.Background(), create)
 			if err != nil {
-				fmt.Printf("Error creating network")
 				return nil
 			}
 		}
 	}
-	fmt.Printf("Network done successfully")
 	return nil
 }

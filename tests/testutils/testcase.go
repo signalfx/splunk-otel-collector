@@ -196,6 +196,7 @@ func (t *Testcase) newCollector(initial Collector, configFilename string, builde
 		split := strings.Split(s, "=")
 		if strings.HasPrefix(strings.ToUpper(split[0]), "SPLUNK_") {
 			splunkEnv[split[0]] = split[1]
+
 		}
 	}
 	collector = collector.WithEnv(splunkEnv)

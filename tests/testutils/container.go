@@ -217,7 +217,6 @@ func (container Container) Build() *Container {
 		startupTimeout = *container.startupTimeout
 	}
 
-	fmt.Println("Made it into build, startup timeout: ", startupTimeout)
 	container.req = &testcontainers.ContainerRequest{
 		Binds:          container.Binds,
 		User:           container.User,
@@ -242,27 +241,17 @@ func (container *Container) Start(ctx context.Context) error {
 	if container.req == nil {
 		return fmt.Errorf("cannot start a container that hasn't been built")
 	}
-
 	req := testcontainers.GenericContainerRequest{
 		ContainerRequest: *container.req,
 		Started:          true,
 	}
 
-	fmt.Println("Attempting to start container")
-	fmt.Println("Req: ", req.ContainerRequest)
-	fmt.Println("Req environment: ", req.ContainerRequest.Env)
-
 	err := container.createNetworksIfNecessary(req)
 	if err != nil {
-		fmt.Printf("Error creating networks")
 		return nil
 	}
 
-	fmt.Printf("Starting Generic container")
 	started, err := testcontainers.GenericContainer(ctx, req)
-
-	//fmt.Printf("Did we get an error starting the container? %v", err.Error())
-
 	container.container = &started
 	return err
 }

@@ -128,8 +128,8 @@ func TestConfigYamlEnvVar(t *testing.T) {
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
-    tls:
-      insecure: true
+    # This is purposefully misconfigured to ensure config converters properly address it.
+    insecure: true
 
 service:
   pipelines:

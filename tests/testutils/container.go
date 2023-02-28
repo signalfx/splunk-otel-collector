@@ -30,6 +30,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/exec"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
@@ -231,7 +232,7 @@ func (container Container) Build() *Container {
 		NetworkMode:    networkMode,
 		Labels:         container.Labels,
 		Privileged:     container.Privileged,
-		WaitingFor:     wait.ForAll(container.WaitingFor...).WithStartupTimeout(startupTimeout),
+		WaitingFor:     wait.ForAll(container.WaitingFor...).WithDeadline(startupTimeout),
 	}
 	return &container
 }
@@ -373,11 +374,11 @@ func (container *Container) NetworkAliases(ctx context.Context) (map[string][]st
 	return (*container.container).NetworkAliases(ctx)
 }
 
-func (container *Container) Exec(ctx context.Context, cmd []string) (int, io.Reader, error) {
+func (container *Container) Exec(ctx context.Context, cmd []string, options ...exec.ProcessOption) (int, io.Reader, error) {
 	if err := container.assertStarted("Exec"); err != nil {
 		return 0, nil, err
 	}
-	return (*container.container).Exec(ctx, cmd)
+	return (*container.container).Exec(ctx, cmd, options...)
 }
 
 func (container *Container) ContainerIP(ctx context.Context) (string, error) {

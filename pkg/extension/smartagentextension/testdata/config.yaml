@@ -25,4 +25,3 @@ smartagent/partial_settings:
     writeThreads: 4
     writeQueueLimitHigh: 5
     configDir: /var/run/signalfx-agent/collectd
-

@@ -38,7 +38,8 @@ func TestDryRunDoesntExpandEnvVars(t *testing.T) {
 exporters:
   otlp:
     endpoint: ${OTLP_ENDPOINT}
-    insecure: true
+    tls:
+      insecure: true
 receivers:
   hostmetrics:
     collection_interval: ${env:COLLECTION_INTERVAL}

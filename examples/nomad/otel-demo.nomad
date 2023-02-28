@@ -366,7 +366,8 @@ processors:
 exporters:
   otlp:
     endpoint: "{{ with service "otlp.otel-gateway" }}{{ with index . 0 }}{{ .Address }}:{{ .Port }}{{ end }}{{ end }}"
-    insecure: true
+    tls:
+      insecure: true
   logging:
     loglevel: debug
 service:

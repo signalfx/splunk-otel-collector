@@ -48,6 +48,7 @@ func TestExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
 }
 
 func TestIncompatibleExpandedDollarSignsViaEnvConfigSource(t *testing.T) {
+	t.Skip("Skip until issue https://github.com/signalfx/splunk-otel-collector/issues/2628 is resolved.")
 	testutils.AssertAllMetricsReceived(
 		t, "incompat_env_config_source_labels.yaml", "env_config_source_labels.yaml",
 		nil, []testutils.CollectorBuilder{

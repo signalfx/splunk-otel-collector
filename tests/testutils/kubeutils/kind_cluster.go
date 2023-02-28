@@ -120,6 +120,7 @@ func (k KindCluster) LoadLocalCollectorImageIfNecessary() {
 
 func (k KindCluster) GetDefaultGatewayIP() string {
 	client, err := docker.NewClientWithOpts(docker.FromEnv)
+	client.NegotiateAPIVersion(context.Background())
 	require.NoError(k.Testcase, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

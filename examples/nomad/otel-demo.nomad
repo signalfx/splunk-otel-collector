@@ -175,7 +175,7 @@ processors:
         key: deployment.environment
 exporters:
   logging:
-    logLevel: debug
+    loglevel: debug
   signalfx:
     access_token: ${SPLUNK_ACCESS_TOKEN}
     api_url: https://api.${SPLUNK_REALM}.signalfx.com
@@ -368,7 +368,7 @@ exporters:
     endpoint: "{{ with service "otlp.otel-gateway" }}{{ with index . 0 }}{{ .Address }}:{{ .Port }}{{ end }}{{ end }}"
     insecure: true
   logging:
-    logLevel: debug
+    loglevel: debug
 service:
   extensions:
   - health_check

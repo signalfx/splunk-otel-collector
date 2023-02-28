@@ -1,2 +1,2 @@
 logging:
-  logLevel: debug
+  loglevel: debug

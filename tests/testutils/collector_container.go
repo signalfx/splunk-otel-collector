@@ -22,10 +22,10 @@ import (
 	"io"
 	"os"
 	"regexp"
-	"strings"
 	"testing"
 	"time"
 
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"go.opentelemetry.io/collector/confmap"
@@ -277,12 +277,12 @@ func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri string)
 	}
 	require.NoError(t, err)
 	require.Zero(t, n)
-	out, err := io.ReadAll(r)
-	require.NoError(t, err)
-	// strip control character from curl output
-	require.True(t, len(out) >= 8, "invalid config server output")
-	initial := strings.TrimSpace(string(out[8 : len(out)-1]))
 
+	var sout, serr bytes.Buffer
+	_, err = stdcopy.StdCopy(&sout, &serr, r)
+	require.NoError(t, err)
+
+	initial := sout.String()
 	actual := map[string]any{}
 	require.NoError(t, yaml.Unmarshal([]byte(initial), &actual))
 	return confmap.NewFromStringMap(actual).ToStringMap()

@@ -298,7 +298,7 @@ func TestConfigPrecedence(t *testing.T) {
       cpu:
 exporters:
   logging:
-    logLevel: debug
+    loglevel: debug
 service:
   pipelines:
     metrics:

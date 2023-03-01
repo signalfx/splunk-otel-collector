@@ -266,6 +266,6 @@ service:
       address: ""
       level: none
 `, stdout, fmt.Sprintf("unexpected --dry-run: %s", stderr))
-	require.Contains(t, stderr, "Discovering for next 9s...\nDiscovery complete.\n")
+	require.Contains(t, stderr, "Discovering for next 9s...\nSuccessfully discovered \"prometheus_simple\" using \"host_observer\".\nDiscovery complete.\n")
 	require.Zero(t, sc)
 }

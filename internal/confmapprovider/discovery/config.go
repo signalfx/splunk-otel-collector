@@ -16,9 +16,9 @@ package discovery
 
 import (
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
-	"path/filepath"
 	"regexp"
 	"sort"
 
@@ -45,7 +45,7 @@ var (
 	defaultType = component.NewID("default")
 
 	discoveryDirRegex = fmt.Sprintf("[^%s]*", compilablePathSeparator)
-	serviceEntryRegex = regexp.MustCompile(fmt.Sprintf("%s%sservice\\.(yaml|yml)$", discoveryDirRegex, compilablePathSeparator))
+	serviceEntryRegex = regexp.MustCompile(fmt.Sprintf("%s%s*service\\.(yaml|yml)$", discoveryDirRegex, compilablePathSeparator))
 
 	_, exporterEntryRegex                   = dirAndEntryRegex("exporters")
 	extensionsDirRegex, extensionEntryRegex = dirAndEntryRegex("extensions")
@@ -100,7 +100,7 @@ func NewConfig(logger *zap.Logger) *Config {
 }
 
 func dirAndEntryRegex(dirName string) (*regexp.Regexp, *regexp.Regexp) {
-	dirRegex := regexp.MustCompile(fmt.Sprintf("%s%s%s", discoveryDirRegex, compilablePathSeparator, dirName))
+	dirRegex := regexp.MustCompile(fmt.Sprintf("%s%s*%s", discoveryDirRegex, compilablePathSeparator, dirName))
 	entryRegex := regexp.MustCompile(fmt.Sprintf("%s%s[^%s]*\\.(yaml|yml)$", dirRegex, compilablePathSeparator, compilablePathSeparator))
 	return dirRegex, entryRegex
 }
@@ -216,31 +216,41 @@ func (c *Config) Load(configDPath string) error {
 	if c == nil {
 		return fmt.Errorf("config must not be nil to be loaded (use NewConfig())")
 	}
-	err := filepath.WalkDir(configDPath, func(path string, d fs.DirEntry, err error) error {
+	return c.LoadFS(os.DirFS(configDPath))
+}
+
+// LoadFS will walk the provided filesystem, loading the component files as they are discovered,
+// determined by their parent directory and filename.
+func (c *Config) LoadFS(dirfs fs.FS) error {
+	if c == nil {
+		return fmt.Errorf("config must not be nil to be loaded (use NewConfig())")
+	}
+	err := fs.WalkDir(dirfs, ".", func(path string, d fs.DirEntry, err error) error {
 		c.logger.Debug("loading component", zap.String("path", path), zap.String("DirEntry", fmt.Sprintf("%#v", d)), zap.Error(err))
 		if err != nil {
 			return err
 		}
+
 		switch {
 		case isServiceEntryPath(path):
 			// c.Service is not a map[string]ServiceEntry, so we form a tmp
 			// and unmarshal to the underlying ServiceEntry
 			tmpSEMap := map[string]ServiceEntry{typeService: c.Service}
-			return loadEntry(typeService, path, tmpSEMap)
+			return loadEntry(typeService, dirfs, path, tmpSEMap)
 		case isExporterEntryPath(path):
-			return loadEntry(typeExporter, path, c.Exporters)
+			return loadEntry(typeExporter, dirfs, path, c.Exporters)
 		case isExtensionEntryPath(path):
 			if isDiscoveryObserverEntryPath(path) {
-				return loadEntry(typeDiscoveryObserver, path, c.DiscoveryObservers)
+				return loadEntry(typeDiscoveryObserver, dirfs, path, c.DiscoveryObservers)
 			}
-			return loadEntry(typeExtension, path, c.Extensions)
+			return loadEntry(typeExtension, dirfs, path, c.Extensions)
 		case isProcessorEntryPath(path):
-			return loadEntry(typeProcessor, path, c.Processors)
+			return loadEntry(typeProcessor, dirfs, path, c.Processors)
 		case isReceiverEntryPath(path):
 			if isReceiverToDiscoverEntryPath(path) {
-				return loadEntry(typeReceiverToDiscover, path, c.ReceiversToDiscover)
+				return loadEntry(typeReceiverToDiscover, dirfs, path, c.ReceiversToDiscover)
 			}
-			return loadEntry(typeReceiver, path, c.Receivers)
+			return loadEntry(typeReceiver, dirfs, path, c.Receivers)
 		default:
 			c.logger.Debug("Disregarding path", zap.String("path", path))
 		}
@@ -325,10 +335,10 @@ func isReceiverToDiscoverEntryPath(path string) bool {
 	return receiverToDiscoverEntryRegex.MatchString(path)
 }
 
-func loadEntry[K keyType, V entryType](componentType, path string, target map[K]V) error {
+func loadEntry[K keyType, V entryType](componentType string, fs fs.FS, path string, target map[K]V) error {
 	tmpDest := map[K]V{}
 
-	componentID, err := unmarshalEntry(componentType, path, &tmpDest)
+	componentID, err := unmarshalEntry(componentType, fs, path, &tmpDest)
 	noTypeK, err2 := stringToKeyType(discovery.NoType.String(), componentID)
 	if err2 != nil {
 		return err2
@@ -363,7 +373,7 @@ func loadEntry[K keyType, V entryType](componentType, path string, target map[K]
 	return nil
 }
 
-func unmarshalEntry[K keyType, V entryType](componentType, path string, dst *map[K]V) (componentID K, err error) {
+func unmarshalEntry[K keyType, V entryType](componentType string, fs fs.FS, path string, dst *map[K]V) (componentID K, err error) {
 	if dst == nil {
 		err = fmt.Errorf("cannot load %s into nil entry", componentType)
 		return
@@ -379,7 +389,7 @@ func unmarshalEntry[K keyType, V entryType](componentType, path string, dst *map
 		unmarshalDst = &se
 	}
 
-	if err = unmarshalYaml(path, unmarshalDst); err != nil {
+	if err = unmarshalYaml(fs, path, unmarshalDst); err != nil {
 		err = fmt.Errorf("failed unmarshalling component %s: %w", componentType, err)
 		return
 	}
@@ -422,8 +432,13 @@ func unmarshalEntry[K keyType, V entryType](componentType, path string, dst *map
 	return componentIDs[0], nil
 }
 
-func unmarshalYaml(path string, out any) error {
-	contents, err := os.ReadFile(filepath.Clean(path))
+func unmarshalYaml(fs fs.FS, path string, out any) error {
+	f, err := fs.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	contents, err := io.ReadAll(f)
 	if err != nil {
 		return fmt.Errorf("failed reading file %q: %w", path, err)
 	}
@@ -477,7 +492,53 @@ func keyTypeToString[K keyType](key K) string {
 
 var compilablePathSeparator = func() string {
 	if os.PathSeparator == '\\' {
-		return "\\\\"
+		// fs.Stat doesn't use os.PathSeparator so accept '/' as well.
+		// TODO: determine if we even need anything but "/"
+		return "(\\\\|/)"
 	}
 	return string(os.PathSeparator)
 }()
+
+func mergeConfigWithBundle(userCfg *Config, bundleCfg *Config) error {
+	for obs, bundledObs := range bundleCfg.DiscoveryObservers {
+		userObs, ok := userCfg.DiscoveryObservers[obs]
+		if !ok {
+			userCfg.DiscoveryObservers[obs] = bundledObs
+			continue
+		}
+		bundledConfMap := confmap.NewFromStringMap(bundledObs.ToStringMap())
+		userConfMap := confmap.NewFromStringMap(userObs.ToStringMap())
+		if err := bundledConfMap.Merge(userConfMap); err != nil {
+			return fmt.Errorf("failed merged user and bundled observer %q discovery configs: %w", obs, err)
+		}
+		userCfg.DiscoveryObservers[obs] = ExtensionEntry{Entry: bundledConfMap.ToStringMap()}
+	}
+	for rec, bundledRec := range bundleCfg.ReceiversToDiscover {
+		userRec, ok := userCfg.ReceiversToDiscover[rec]
+		if !ok {
+			userCfg.ReceiversToDiscover[rec] = bundledRec
+			continue
+		}
+		bundledConfMap := confmap.NewFromStringMap(bundledRec.ToStringMap())
+		userConfMap := confmap.NewFromStringMap(userRec.ToStringMap())
+		if err := bundledConfMap.Merge(userConfMap); err != nil {
+			return fmt.Errorf("failed merged user and bundled receiver %q discovery configs: %w", rec, err)
+		}
+		receiver := ReceiverToDiscoverEntry{
+			Rule: bundledRec.Rule, Config: bundledRec.Config, Entry: bundledConfMap.ToStringMap(),
+		}
+		for cid, rule := range userRec.Rule {
+			receiver.Rule[cid] = rule
+		}
+		for obs, config := range userRec.Config {
+			if bundledConfig, ok := bundledRec.Config[obs]; ok {
+				bundledConf := confmap.NewFromStringMap(bundledConfig)
+				bundledConf.Merge(confmap.NewFromStringMap(config))
+				config = bundledConf.ToStringMap()
+			}
+			receiver.Config[obs] = config
+		}
+		userCfg.ReceiversToDiscover[rec] = receiver
+	}
+	return nil
+}

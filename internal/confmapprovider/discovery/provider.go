@@ -24,6 +24,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/bundle"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/properties"
 	"github.com/signalfx/splunk-otel-collector/internal/settings"
 )
@@ -118,13 +119,20 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 
 		var cfg *Config
 		var ok bool
-		configDir := uriVal
-		if cfg, ok = m.configs[configDir]; !ok {
-			cfg = NewConfig(m.logger)
-			if err := cfg.Load(configDir); err != nil {
-				return nil, err
+		if uriVal != "" {
+			if cfg, ok = m.configs[uriVal]; !ok {
+				cfg = NewConfig(m.logger)
+				m.logger.Debug("loading config.d", zap.String("config-dir", uriVal))
+				if err := cfg.Load(uriVal); err != nil {
+					m.logger.Error("failed loading config.d", zap.String("config-dir", uriVal), zap.Error(err))
+					return nil, err
+				}
+				m.logger.Debug("successfully loaded config.d", zap.String("config-dir", uriVal))
+				m.configs[uriVal] = cfg
 			}
-			m.configs[configDir] = cfg
+		} else {
+			// empty config to be noop for config.d or base for bundle.d
+			cfg = NewConfig(m.logger)
 		}
 
 		if strings.HasPrefix(uri, settings.ConfigDScheme) {
@@ -132,6 +140,20 @@ func (m *mapProvider) retrieve(scheme string) func(context.Context, string, conf
 		}
 
 		if strings.HasPrefix(uri, settings.DiscoveryModeScheme) {
+			var bundledCfg *Config
+			if bundledCfg, ok = m.configs["<bundled>"]; !ok {
+				m.logger.Debug("loading bundle.d")
+				bundledCfg = NewConfig(m.logger)
+				if err := bundledCfg.LoadFS(bundle.BundledFS); err != nil {
+					m.logger.Error("failed loading bundle.d", zap.Error(err))
+					return nil, err
+				}
+				m.logger.Debug("successfully loaded bundle.d")
+				m.configs["<bundled>"] = bundledCfg
+			}
+			if err := mergeConfigWithBundle(cfg, bundledCfg); err != nil {
+				return nil, fmt.Errorf("failed merging user and bundled discovery configs: %w", err)
+			}
 			discoveryCfg, err := m.discoverer.discover(cfg)
 			if err != nil {
 				return nil, fmt.Errorf("failed to successfully discover target services: %w", err)

@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.uber.org/zap/zaptest"
+	"go.uber.org/zap"
 )
 
 func TestServiceEntryPath(t *testing.T) {
@@ -280,7 +280,7 @@ var expectedConfig = Config{
 
 func TestConfig(t *testing.T) {
 	configDir := filepath.Join(".", "testdata", "config.d")
-	cfg := NewConfig(zaptest.NewLogger(t))
+	cfg := NewConfig(zap.NewNop())
 	require.NotNil(t, cfg)
 	require.NoError(t, cfg.Load(configDir))
 	cfg.logger = nil // unset for equality check
@@ -323,7 +323,7 @@ var expectedServiceConfig = map[string]any{
 
 func TestToServiceConfig(t *testing.T) {
 	configDir := filepath.Join(".", "testdata", "config.d")
-	cfg := NewConfig(zaptest.NewLogger(t))
+	cfg := NewConfig(zap.NewNop())
 	require.NotNil(t, cfg)
 	require.NoError(t, cfg.Load(configDir))
 	sc := cfg.toServiceConfig()
@@ -332,7 +332,7 @@ func TestToServiceConfig(t *testing.T) {
 
 func TestConfigWithTwoReceiversInOneFile(t *testing.T) {
 	configDir := filepath.Join(".", "testdata", "double-receiver-item-config.d")
-	logger := zaptest.NewLogger(t)
+	logger := zap.NewNop()
 	cfg := NewConfig(logger)
 	require.NotNil(t, cfg)
 	err := cfg.Load(configDir)

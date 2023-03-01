@@ -239,6 +239,6 @@ service:
       address: ""
       level: none
 `, stdout)
-	require.Contains(t, stderr, "Discovering for next 20s...\nDiscovery complete.")
+	require.Contains(t, stderr, "Discovering for next 20s...\nSuccessfully discovered \"prometheus_simple\" using \"docker_observer\".\nDiscovery complete.\n")
 	require.Zero(t, sc)
 }

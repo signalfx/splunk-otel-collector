@@ -60,6 +60,7 @@ The distribution offers support for the following components.
 | [batch](https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor)                                       | [beta]                      |
 | [filter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/filterprocessor)                             | [alpha]                     |
 | [groupbyattrs](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/groupbyattrsprocessor)                 | [beta]                      |
+| [k8sattributes](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sattributesprocessor)               | [beta]                      |
 | [k8s_tagger](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sattributesprocessor)                  | [beta]                      |
 | [logstransform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/logstransformprocessor)               | [in development]            |
 | [memorylimiter](https://github.com/open-telemetry/opentelemetry-collector/blob/main/processor/memorylimiterprocessor)                       | [beta]                      |

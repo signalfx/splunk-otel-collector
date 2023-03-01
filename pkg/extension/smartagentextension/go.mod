@@ -131,7 +131,7 @@ require (
 	go.opentelemetry.io/collector/consumer v0.72.0 // indirect
 	go.opentelemetry.io/collector/featuregate v0.72.0 // indirect
 	go.opentelemetry.io/collector/pdata v1.0.0-rc6 // indirect
-	go.opentelemetry.io/collector/receiver/otlpreceiver v0.71.0 // indirect
+	go.opentelemetry.io/collector/receiver/otlpreceiver v0.72.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.39.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.39.0 // indirect
 	go.opentelemetry.io/otel v1.13.0 // indirect
@@ -166,7 +166,6 @@ replace (
 	github.com/containerd/containerd => github.com/containerd/containerd v1.6.18
 	github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87
-	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.38.0
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
 	golang.org/x/crypto => golang.org/x/crypto v0.5.0
 	golang.org/x/net => golang.org/x/net v0.7.0

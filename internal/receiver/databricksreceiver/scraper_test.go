@@ -16,6 +16,7 @@ package databricksreceiver
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -56,6 +57,7 @@ func TestScraper_Success(t *testing.T) {
 	for i := 0; i < metrics.ResourceMetrics().Len(); i++ {
 		dbrResourceMetrics := metrics.ResourceMetrics().At(i)
 		attrs := dbrResourceMetrics.Resource().Attributes()
+		fmt.Printf("attrs: %v\n", attrs.AsRaw())
 		v, _ := attrs.Get("databricks.instance.name")
 		assert.Equal(t, "my-instance", v.Str())
 	}

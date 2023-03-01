@@ -144,7 +144,7 @@ service:
       address: ""
       level: none
 `, stdout.String())
-	require.Contains(t, stderr.String(), "Discovering for next 10s...\nDiscovery complete.\n")
+	require.Contains(t, stderr.String(), "Discovering for next 10s...\nSuccessfully discovered \"smartagent\" using \"k8s_observer\".\nDiscovery complete.\n")
 }
 
 func createRedis(cluster *kubeutils.KindCluster, name, namespace, serviceAccount string) string {

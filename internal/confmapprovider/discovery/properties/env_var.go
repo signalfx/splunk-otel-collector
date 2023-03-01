@@ -37,14 +37,15 @@ var envVarParser = participle.MustBuild[EnvVarProperty](
 type EnvVarProperty struct {
 	ComponentType string            `parser:"'SPLUNK' Underscore 'DISCOVERY' Underscore @('RECEIVERS' | 'EXTENSIONS') Underscore"`
 	Component     EnvVarComponentID `parser:"@@"`
-	Key           string            `parser:"Underscore 'CONFIG' Underscore @(String|Underscore)+"`
+	Type          string            `parser:"Underscore @('CONFIG'|'ENABLED')"`
+	Key           string            `parser:"(Underscore @(String|Underscore)+)*"`
 	Val           string
 }
 
 type EnvVarComponentID struct {
-	Type string `parser:"@~(Underscore (?= 'CONFIG'))+"`
+	Type string `parser:"@~(Underscore (?= ('CONFIG'|'ENABLED')))+"`
 	// _x2f_ -> '/'
-	Name string `parser:"(Underscore 'x2f' Underscore @(~(?= Underscore (?= 'CONFIG'))+|''))?"`
+	Name string `parser:"(Underscore 'x2f' Underscore @(~(?= Underscore (?= ('CONFIG'|'ENABLED')))+|''))?"`
 }
 
 func NewEnvVarProperty(property, val string) (*EnvVarProperty, error) {

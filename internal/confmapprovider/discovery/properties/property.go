@@ -19,6 +19,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/alecthomas/participle/v2"
@@ -26,7 +27,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/multierr"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // Discovery properties are the method of configuring individual components for discovery mode.
@@ -58,14 +59,16 @@ var parser = participle.MustBuild[Property](
 type Property struct {
 	stringMap     map[string]any
 	ComponentType string      `parser:"'splunk' Dot 'discovery' Dot @('receivers' | 'extensions') Dot"`
-	Component     ComponentID `parser:"@@"`
-	Key           string      `parser:"Dot 'config' Dot @(String|Dot|ForwardSlash)+"`
+	Component     ComponentID `parser:"@@ Dot"`
+	Type          string      `parser:"((@'config' Dot)|@('enabled'))"`
+	Key           string      `parser:"@(String|Dot|ForwardSlash)*"`
 	Val           string
+	Input         string
 }
 
 type ComponentID struct {
-	Type string `parser:"@~(ForwardSlash | (Dot (?= 'config')))+"`
-	Name string `parser:"(ForwardSlash @(~(Dot (?= 'config'))+)*)?"`
+	Type string `parser:"@~(ForwardSlash | (Dot (?= ('config'|'enabled'))))+"`
+	Name string `parser:"(ForwardSlash @(~(Dot (?= ('config'|'enabled')))+)*)?"`
 }
 
 func NewProperty(property, val string) (*Property, error) {
@@ -74,20 +77,33 @@ func NewProperty(property, val string) (*Property, error) {
 		return nil, fmt.Errorf("invalid property (parsing error): %w", err)
 	}
 	p.Val = val
-	var dst map[string]any
-	cfgItem := []byte(fmt.Sprintf("%s: %s", p.Key, val))
-	if err = yaml.Unmarshal(cfgItem, &dst); err != nil {
-		return nil, fmt.Errorf("failed unmarshaling property %q: %w", p.Key, err)
-	}
-	config := confmap.NewFromStringMap(dst).ToStringMap()
-	if p.ComponentType == "receivers" {
-		config = map[string]any{"config": config}
+
+	var subStringMap map[string]any
+	switch p.Type {
+	case "enabled":
+		bVal, e := strconv.ParseBool(p.Val)
+		if e != nil {
+			return nil, fmt.Errorf("failed parsing %q bool: %w", property, e)
+		}
+		p.Val = fmt.Sprintf("%t", bVal)
+		subStringMap = map[string]any{"enabled": p.Val}
+	case "config":
+		var dst map[string]any
+		cfgItem := []byte(fmt.Sprintf("%s: %s", p.Key, val))
+		if err = yaml.Unmarshal(cfgItem, &dst); err != nil {
+			return nil, fmt.Errorf("failed unmarshaling property %q: %w", p.Key, err)
+		}
+		subStringMap = confmap.NewFromStringMap(dst).ToStringMap()
+		if p.ComponentType == "receivers" {
+			subStringMap = map[string]any{"config": subStringMap}
+		}
 	}
 	p.stringMap = map[string]any{
 		p.ComponentType: map[string]any{
-			component.NewIDWithName(component.Type(p.Component.Type), p.Component.Name).String(): config,
+			component.NewIDWithName(component.Type(p.Component.Type), p.Component.Name).String(): subStringMap,
 		},
 	}
+	p.Input = property
 	return p, nil
 }
 
@@ -96,11 +112,15 @@ func (p *Property) ToEnvVar() string {
 	envVar := envVarPrefixS
 	envVar = fmt.Sprintf("%s%s_", envVar, strings.ToUpper(p.ComponentType))
 	envVar = fmt.Sprintf("%s%s", envVar, wordify(p.Component.Type))
-	if p.Component.Name != "" {
+	// preserve input of `component.type/` with no name
+	if p.Component.Name != "" || strings.HasPrefix(p.Input, fmt.Sprintf("splunk.discovery.%s.%s/.", p.ComponentType, p.Component.Type)) {
 		envVar = fmt.Sprintf("%s%s", envVar, wordify(fmt.Sprintf("/%s", p.Component.Name)))
 	}
-	envVar = fmt.Sprintf("%s_CONFIG_", envVar)
-	return fmt.Sprintf("%s%s", envVar, wordify(p.Key))
+	envVar = fmt.Sprintf("%s_%s", envVar, strings.ToUpper(p.Type))
+	if p.Type == "config" {
+		envVar = fmt.Sprintf("%s_%s", envVar, wordify(p.Key))
+	}
+	return envVar
 }
 
 // ToStringMap() will return a map[string]any equivalent to the property's root-level confmap.ToStringMap()
@@ -147,7 +167,11 @@ func NewPropertyFromEnvVar(envVar, val string) (*Property, bool, error) {
 		return nil, true, fmt.Errorf("failed parsing env var property key: %w", err)
 	}
 
-	property := fmt.Sprintf("splunk.discovery.%s.%s.config.%s", strings.ToLower(evp.ComponentType), cid, key)
+	pType := strings.ToLower(evp.Type)
+	property := fmt.Sprintf("splunk.discovery.%s.%s.%s", strings.ToLower(evp.ComponentType), cid, pType)
+	if pType == "config" {
+		property = fmt.Sprintf("%s.%s", property, key)
+	}
 
 	prop, err := NewProperty(property, val)
 	return prop, true, err

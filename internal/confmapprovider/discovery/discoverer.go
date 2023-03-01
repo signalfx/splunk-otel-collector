@@ -143,6 +143,11 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 		return nil, err
 	}
 
+	if len(discoveryObservers) == 0 {
+		fmt.Fprintf(os.Stderr, "No discovery observers have been configured.\n")
+		return nil, nil
+	}
+
 	var cancels []context.CancelFunc
 
 	defer func() {
@@ -152,30 +157,30 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 	}()
 
 	for observerID, observer := range discoveryObservers {
-		d.logger.Debug(fmt.Sprintf("starting observer %s", observerID.String()))
+		d.logger.Debug(fmt.Sprintf("starting observer %q", observerID))
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		cancels = append(cancels, cancel)
 		if e := observer.Start(ctx, d); e != nil {
 			d.logger.Warn(
-				fmt.Sprintf("%s startup failed. Won't proceed with %s-based discovery", observerID.String(), observerID.Type()),
+				fmt.Sprintf("%q startup failed. Won't proceed with %q-based discovery", observerID, observerID.Type()),
 				zap.Error(e),
 			)
 		}
 	}
 
 	for receiverID, receiver := range discoveryReceivers {
-		d.logger.Debug(fmt.Sprintf("starting receiver %s", receiverID.String()))
+		d.logger.Debug(fmt.Sprintf("starting receiver %q", receiverID))
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		cancels = append(cancels, cancel)
 		if err = receiver.Start(ctx, d); err != nil {
 			d.logger.Warn(
-				fmt.Sprintf("%s startup failed.", receiverID.String()),
+				fmt.Sprintf("%q startup failed.", receiverID),
 				zap.Error(err),
 			)
 		}
 	}
 
-	_, _ = fmt.Fprintf(os.Stderr, "Discovering for next %s...\n", d.duration.String())
+	_, _ = fmt.Fprintf(os.Stderr, "Discovering for next %s...\n", d.duration)
 	select {
 	case <-time.After(d.duration):
 	case <-context.Background().Done():
@@ -186,14 +191,14 @@ func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		cancels = append(cancels, cancel)
 		if e := receiver.Shutdown(ctx); e != nil {
-			d.logger.Warn(fmt.Sprintf("error shutting down receiver %s", receiverID.String()), zap.Error(e))
+			d.logger.Warn(fmt.Sprintf("error shutting down receiver %q", receiverID), zap.Error(e))
 		}
 	}
 	for observerID, observer := range discoveryObservers {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		cancels = append(cancels, cancel)
 		if e := observer.Shutdown(ctx); e != nil {
-			d.logger.Warn(fmt.Sprintf("error shutting down observer %s", observerID.String()), zap.Error(e))
+			d.logger.Warn(fmt.Sprintf("error shutting down observer %q", observerID), zap.Error(e))
 		}
 	}
 
@@ -212,7 +217,12 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 	for _, observerID := range cfg.observersForDiscoveryMode() {
 		observer, err := d.createObserver(observerID, cfg)
 		if err != nil {
-			return nil, nil, err
+			d.logger.Info(fmt.Sprintf("failed creating %q extension. no service discovery possible on this platform", observerID), zap.Error(err))
+			continue
+		}
+		if observer == nil {
+			// disabled by property
+			continue
 		}
 		d.extensions[observerID] = observer
 		discoveryObservers[observerID] = observer
@@ -220,7 +230,7 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 		discoveryReceiverDefaultConfig := discoveryReceiverFactory.CreateDefaultConfig()
 		discoveryReceiverConfig, ok := discoveryReceiverDefaultConfig.(*discoveryreceiver.Config)
 		if !ok {
-			return nil, nil, fmt.Errorf("failed to coerce to receivercreator.Config")
+			return nil, nil, fmt.Errorf("failed to coerce to discoveryreceiver.Config")
 		}
 
 		discoveryReceiverRaw := map[string]any{}
@@ -246,8 +256,22 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 					return nil, nil, fmt.Errorf("failed obtaining receiver properties config: %w", e)
 				}
 				entryConf := confmap.NewFromStringMap(receiverEntry)
+
+				if receiverPropertiesConf.IsSet("enabled") {
+					enabled := true
+					if strings.ToLower(fmt.Sprintf("%v", receiverPropertiesConf.Get("enabled"))) == "false" {
+						enabled = false
+					}
+					if !enabled {
+						continue
+					}
+					pc := receiverPropertiesConf.ToStringMap()
+					delete(pc, "enabled")
+					receiverPropertiesConf = confmap.NewFromStringMap(pc)
+				}
+
 				if err = entryConf.Merge(receiverPropertiesConf); err != nil {
-					return nil, nil, fmt.Errorf("failed merging receiver properties config: %w", err)
+					return nil, nil, fmt.Errorf("failed merging receiver %q properties config: %w", receiverID, err)
 				}
 				receiverEntry = entryConf.ToStringMap()
 			}
@@ -300,6 +324,19 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 			if e != nil {
 				return nil, fmt.Errorf("failed obtaining observer properties config: %w", e)
 			}
+			if propertiesConf.IsSet("enabled") {
+				enabled := true
+				if strings.ToLower(fmt.Sprintf("%v", propertiesConf.Get("enabled"))) == "false" {
+					enabled = false
+				}
+				if !enabled {
+					return nil, nil
+				}
+				// delete enabled property since it's not valid config field
+				pc := propertiesConf.ToStringMap()
+				delete(pc, "enabled")
+				propertiesConf = confmap.NewFromStringMap(pc)
+			}
 			if err = observerCfgMap.Merge(propertiesConf); err != nil {
 				return nil, fmt.Errorf("failed merging observer properties config: %w", err)
 			}
@@ -308,11 +345,11 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 	}
 
 	if err = d.expandConverter.Convert(context.Background(), observerCfgMap); err != nil {
-		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID.String(), err)
+		return nil, fmt.Errorf("error converting environment variables in %q config: %w", observerID, err)
 	}
 
 	if err = component.UnmarshalConfig(observerCfgMap, observerConfig); err != nil {
-		return nil, fmt.Errorf("failed unmarshaling %s config: %w", observerID.String(), err)
+		return nil, fmt.Errorf("failed unmarshaling %q config: %w", observerID, err)
 	}
 
 	if ce := d.logger.Check(zap.DebugLevel, "unmarshalled observer config"); ce != nil {
@@ -322,7 +359,7 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 	observerSettings := d.createExtensionCreateSettings(observerID.String())
 	observer, err := observerFactory.CreateExtension(context.Background(), observerSettings, observerConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed creating %s extension: %w", observerID.String(), err)
+		return nil, fmt.Errorf("failed creating %q extension: %w", observerID, err)
 	}
 	return observer, nil
 }
@@ -330,7 +367,7 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver ReceiverToDiscoverEntry, observerID component.ID) (bool, error) {
 	observerRule, hasRule := receiver.Rule[observerID]
 	if !hasRule {
-		d.logger.Debug(fmt.Sprintf("disregarding %s without a %s rule", receiverID.String(), observerID.String()))
+		d.logger.Debug(fmt.Sprintf("disregarding %q without a %q rule", receiverID, observerID))
 		return false, nil
 	}
 	receiver.Entry["rule"] = observerRule
@@ -342,13 +379,13 @@ func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver
 	}
 	observerConfigBlock, hasObserverConfigBlock := receiver.Config[observerID]
 	if !hasObserverConfigBlock && !hasDefault {
-		d.logger.Debug(fmt.Sprintf("disregarding %s without a default and %s config", receiverID.String(), observerID.String()))
+		d.logger.Debug(fmt.Sprintf("disregarding %q without a default and %q config", receiverID, observerID))
 		return false, nil
 	}
 	if hasObserverConfigBlock {
 		if hasDefault {
 			if err := mergeMaps(defaultConfig, observerConfigBlock); err != nil {
-				return false, fmt.Errorf("failed merging %s config for %s: %w", receiverID.String(), observerID.String(), err)
+				return false, fmt.Errorf("failed merging %q config for %q: %w", receiverID, observerID, err)
 			}
 		} else {
 			receiver.Entry["config"] = observerConfigBlock
@@ -375,7 +412,7 @@ func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
 	dCfg := confmap.New()
 	receiverAdded := false
 	for receiverID, receiverStatus := range d.discoveredReceivers {
-		if receiverStatus == discovery.Failed {
+		if receiverStatus != discovery.Successful {
 			continue
 		}
 		if receiverCfgMap, ok := d.discoveredConfig[receiverID]; ok {
@@ -415,7 +452,7 @@ func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
 				},
 			}
 			if err := extensions.Merge(confmap.NewFromStringMap(obsMap)); err != nil {
-				return nil, fmt.Errorf("failure merging %q with suggested config: %w", observerID.String(), err)
+				return nil, fmt.Errorf("failure merging %q with suggested config: %w", observerID, err)
 			}
 			observers = append(observers, observerID.String())
 		}
@@ -474,7 +511,7 @@ func (c *Config) observersForDiscoveryMode() []component.ID {
 }
 
 func (d *discoverer) addUnexpandedReceiverConfig(receiverID, observerID component.ID, cfg map[string]any) {
-	d.logger.Debug(fmt.Sprintf("adding unexpanded config[%s][%s]: %v\n", receiverID.String(), observerID.String(), cfg))
+	d.logger.Debug(fmt.Sprintf("adding unexpanded config[%q][%q]: %v\n", receiverID, observerID, cfg))
 	observerMap, ok := d.unexpandedReceiverEntries[receiverID]
 	if !ok {
 		observerMap = map[component.ID]map[string]any{}
@@ -490,7 +527,7 @@ func (d *discoverer) getUnexpandedReceiverConfig(receiverID, observerID componen
 	if hasReceiver {
 		cfg, found = observerMap[observerID]
 	}
-	d.logger.Debug(fmt.Sprintf("getting unexpanded config[%s][%s](%v): %v\n", receiverID.String(), observerID.String(), found, cfg))
+	d.logger.Debug(fmt.Sprintf("getting unexpanded config[%q][%q](%v): %v\n", receiverID, observerID, found, cfg))
 	return cfg, found
 }
 
@@ -628,7 +665,13 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 							d.logger.Debug("invalid status from log record", zap.Error(err), zap.Any("lr", lr.Body().AsRaw()))
 							continue
 						}
-						d.discoveredReceivers[receiverID] = determineCurrentStatus(currentReceiverStatus, rStatus)
+						receiverStatus := determineCurrentStatus(currentReceiverStatus, rStatus)
+						if receiverStatus == discovery.Partial {
+							fmt.Fprintf(os.Stderr, "Partially discovered %q using %q: %s\n", receiverID, observerID, lr.Body().AsString())
+						} else if receiverStatus == discovery.Successful {
+							fmt.Fprintf(os.Stderr, "Successfully discovered %q using %q.\n", receiverID, observerID)
+						}
+						d.discoveredReceivers[receiverID] = receiverStatus
 						d.discoveredObservers[observerID] = determineCurrentStatus(currentObserverStatus, rStatus)
 					}
 				}

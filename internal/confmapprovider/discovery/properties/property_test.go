@@ -26,8 +26,8 @@ import (
 )
 
 func TestPropertyEBNF(t *testing.T) {
-	require.Equal(t, `Property = "splunk" <dot> "discovery" <dot> ("receivers" | "extensions") <dot> ComponentID <dot> "config" <dot> (<string> | <dot> | <forwardslash>)+ .
-ComponentID = ~(<forwardslash> | (<dot> (?= "config")))+ (<forwardslash> ~(<dot> (?= "config"))+*)? .`, parser.String())
+	require.Equal(t, `Property = "splunk" <dot> "discovery" <dot> ("receivers" | "extensions") <dot> ComponentID <dot> (("config" <dot>) | "enabled") (<string> | <dot> | <forwardslash>)* .
+ComponentID = ~(<forwardslash> | (<dot> (?= ("config" | "enabled"))))+ (<forwardslash> ~(<dot> (?= ("config" | "enabled")))+*)? .`, parser.String())
 }
 
 func TestWordifyHappyPath(t *testing.T) {
@@ -70,6 +70,7 @@ func TestValidProperties(t *testing.T) {
 			expected: &Property{
 				ComponentType: "receivers",
 				Component:     ComponentID{Type: "receivertype"},
+				Type:          "config",
 				Key:           "key",
 				Val:           "val",
 				stringMap: map[string]any{
@@ -81,12 +82,14 @@ func TestValidProperties(t *testing.T) {
 						},
 					},
 				},
+				Input: "splunk.discovery.receivers.receivertype.config.key",
 			},
 		},
 		{key: "splunk.discovery.extensions.extension-type/extensionname.config.key", val: "val",
 			expected: &Property{
 				ComponentType: "extensions",
 				Component:     ComponentID{Type: "extension-type", Name: "extensionname"},
+				Type:          "config",
 				Key:           "key",
 				Val:           "val",
 				stringMap: map[string]any{
@@ -96,12 +99,14 @@ func TestValidProperties(t *testing.T) {
 						},
 					},
 				},
+				Input: "splunk.discovery.extensions.extension-type/extensionname.config.key",
 			},
 		},
 		{key: "splunk.discovery.receivers.receivertype/.config.key", val: "val",
 			expected: &Property{
 				ComponentType: "receivers",
 				Component:     ComponentID{Type: "receivertype"},
+				Type:          "config",
 				Key:           "key",
 				Val:           "val",
 				stringMap: map[string]any{
@@ -113,12 +118,14 @@ func TestValidProperties(t *testing.T) {
 						},
 					},
 				},
+				Input: "splunk.discovery.receivers.receivertype/.config.key",
 			},
 		},
 		{key: "splunk.discovery.receivers.receiver_type/config.config.one::two::three", val: "val",
 			expected: &Property{
 				ComponentType: "receivers",
 				Component:     ComponentID{Type: "receiver_type", Name: "config"},
+				Type:          "config",
 				Key:           "one::two::three",
 				Val:           "val",
 				stringMap: map[string]any{
@@ -130,12 +137,14 @@ func TestValidProperties(t *testing.T) {
 						},
 					},
 				},
+				Input: "splunk.discovery.receivers.receiver_type/config.config.one::two::three",
 			},
 		},
 		{key: "splunk.discovery.receivers.receiver.type////.config.one::config", val: "val",
 			expected: &Property{
 				ComponentType: "receivers",
 				Component:     ComponentID{Type: "receiver.type", Name: "///"},
+				Type:          "config",
 				Key:           "one::config",
 				Val:           "val",
 				stringMap: map[string]any{
@@ -146,12 +155,14 @@ func TestValidProperties(t *testing.T) {
 						},
 					},
 				},
+				Input: "splunk.discovery.receivers.receiver.type////.config.one::config",
 			},
 		},
 		{key: "splunk.discovery.extensions.extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type/e/x/t/e%ns<i>o<=n=>nam/e-with-config.config.o::n::e.config", val: "val",
 			expected: &Property{
 				ComponentType: "extensions",
 				Component:     ComponentID{Type: "extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type", Name: "e/x/t/e%ns<i>o<=n=>nam/e-with-config"},
+				Type:          "config",
 				Key:           "o::n::e.config",
 				Val:           "val",
 				stringMap: map[string]any{
@@ -160,6 +171,41 @@ func TestValidProperties(t *testing.T) {
 							"o": map[string]any{"n": map[string]any{"e.config": "val"}}},
 					},
 				},
+				Input: "splunk.discovery.extensions.extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type/e/x/t/e%ns<i>o<=n=>nam/e-with-config.config.o::n::e.config",
+			},
+		},
+		{key: "splunk.discovery.receivers.receiver.type////.enabled", val: "false",
+			expected: &Property{
+				stringMap: map[string]any{
+					"receivers": map[string]any{
+						"receiver.type////": map[string]any{
+							"enabled": "false",
+						},
+					},
+				},
+				ComponentType: "receivers",
+				Component:     ComponentID{Type: "receiver.type", Name: "///"},
+				Type:          "enabled",
+				Key:           "",
+				Val:           "false",
+				Input:         "splunk.discovery.receivers.receiver.type////.enabled",
+			},
+		},
+		{key: "splunk.discovery.receivers.receiver.type////.enabled", val: "T",
+			expected: &Property{
+				stringMap: map[string]any{
+					"receivers": map[string]any{
+						"receiver.type////": map[string]any{
+							"enabled": "true",
+						},
+					},
+				},
+				ComponentType: "receivers",
+				Component:     ComponentID{Type: "receiver.type", Name: "///"},
+				Type:          "enabled",
+				Key:           "",
+				Val:           "true",
+				Input:         "splunk.discovery.receivers.receiver.type////.enabled",
 			},
 		},
 	} {
@@ -186,9 +232,9 @@ func TestInvalidProperties(t *testing.T) {
 	for _, tt := range []struct {
 		property, expectedError string
 	}{
-		{property: "splunk.discovery.invalid", expectedError: "invalid property (parsing error): splunk.discovery:1:18: unexpected token \"invalid\" (expected (\"receivers\" | \"extensions\") <dot> ComponentID <dot> \"config\" <dot> (<string> | <dot> | <forwardslash>)+)"},
-		{property: "splunk.discovery.extensions.config.one.two", expectedError: "invalid property (parsing error): splunk.discovery:1:43: unexpected token \"<EOF>\" (expected <dot> \"config\" <dot> (<string> | <dot> | <forwardslash>)+)"},
-		{property: "splunk.discovery.receivers.type/name.config", expectedError: "invalid property (parsing error): splunk.discovery:1:44: unexpected token \"<EOF>\" (expected <dot> (<string> | <dot> | <forwardslash>)+)"},
+		{property: "splunk.discovery.invalid", expectedError: "invalid property (parsing error): splunk.discovery:1:18: unexpected token \"invalid\" (expected (\"receivers\" | \"extensions\") <dot> ComponentID <dot> ((\"config\" <dot>) | \"enabled\") (<string> | <dot> | <forwardslash>)*)"},
+		{property: "splunk.discovery.extensions.config.one.two", expectedError: "invalid property (parsing error): splunk.discovery:1:43: unexpected token \"<EOF>\" (expected <dot> ((\"config\" <dot>) | \"enabled\") (<string> | <dot> | <forwardslash>)*)"},
+		{property: "splunk.discovery.receivers.type/name.config", expectedError: "invalid property (parsing error): splunk.discovery:1:44: unexpected token \"<EOF>\" (expected <dot>)"},
 	} {
 		t.Run(tt.property, func(t *testing.T) {
 			p, err := NewProperty(tt.property, "val")

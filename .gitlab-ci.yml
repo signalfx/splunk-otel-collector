@@ -545,6 +545,7 @@ build-push-windows2022-image:
     - docker inspect --format='{{.RepoDigests}}' ${IMAGE_NAME}:${IMAGE_TAG} | Tee-Object -FilePath dist/windows_2022_digest.txt
   after_script:
     - docker image prune --all --force
+    - C:\Users\Administrator\Desktop\ops-scripts\docker-leak-check.exe -remove
   artifacts:
     paths:
       - dist/windows_2022_digest.txt

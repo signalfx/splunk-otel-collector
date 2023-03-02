@@ -121,7 +121,7 @@ Flags: 0
 
 The following Collector configuration will create a Discovery receiver instance that receives
 endpoints from a [Docker Observer](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/observer/dockerobserver/README.md)
-that reports log records denoting the status of a [Smart Agent receiver](https://github.com/signalfx/splunk-otel-collector/blob/main/internal/receiver/smartagentreceiver/README.md)
+that reports log records denoting the status of a [Smart Agent receiver](https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/receiver/smartagentreceiver/README.md)
 configured to use the `collectd/redis` monitor. The `status` mapping comprises entries that signal the Smart Agent
 receiver has been instantiated with a `successful`, `partial`, or `failed` status, based on reported `metrics` or
 recorded application log `statements`.

@@ -46,22 +46,20 @@ type Config struct {
 
 // Producer defines configuration for producer
 type Producer struct {
-	// Deprecated: properties are not used in creating the producer
 	Properties                      map[string]string `mapstructure:"producer_properties"`
 	MaxReconnectToBroker            *uint             `mapstructure:"max_reconnect_broker"`
-	HashingScheme                   string            `mapstructure:"hashing_scheme"`
-	CompressionLevel                string            `mapstructure:"compression_level"`
-	CompressionType                 string            `mapstructure:"compression_type"`
-	MaxPendingMessages              int               `mapstructure:"max_pending_messages"`
+	SendTimeout                     *time.Duration    `mapstructure:"send_timeout"`
 	BatcherBuilderType              string            `mapstructure:"batch_builder_type"`
+	CompressionType                 string            `mapstructure:"compression_type"`
+	CompressionLevel                string            `mapstructure:"compression_level"`
+	HashingScheme                   string            `mapstructure:"hashing_scheme"`
+	MaxPendingMessages              int               `mapstructure:"max_pending_messages"`
 	PartitionsAutoDiscoveryInterval time.Duration     `mapstructure:"partitions_auto_discovery_interval"`
 	BatchingMaxPublishDelay         time.Duration     `mapstructure:"batching_max_publish_delay"`
 	BatchingMaxMessages             uint              `mapstructure:"batching_max_messages"`
 	BatchingMaxSize                 uint              `mapstructure:"batching_max_size"`
-	// Deprecated: this setting is moved to the main Config struct to reflect the OpenTelemetry contrib exporter.
-	SendTimeout             *time.Duration `mapstructure:"send_timeout"`
-	DisableBlockIfQueueFull bool           `mapstructure:"disable_block_if_queue_full"`
-	DisableBatching         bool           `mapstructure:"disable_batching"`
+	DisableBlockIfQueueFull         bool              `mapstructure:"disable_block_if_queue_full"`
+	DisableBatching                 bool              `mapstructure:"disable_batching"`
 }
 
 var _ component.Config = (*Config)(nil)

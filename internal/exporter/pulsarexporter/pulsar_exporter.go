@@ -41,7 +41,7 @@ func newMetricsExporter(config Config, set exporter.CreateSettings, marshalers m
 	if marshaler == nil {
 		return nil, errUnrecognizedEncoding
 	}
-	producer, err := newPulsarProducer(config)
+	producer, err := newPulsarProducer(config, set.Logger)
 
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func newMetricsExporter(config Config, set exporter.CreateSettings, marshalers m
 	}, nil
 }
 
-func newPulsarProducer(config Config) (pulsar.Producer, error) {
+func newPulsarProducer(config Config, logger *zap.Logger) (pulsar.Producer, error) {
 	// Get pulsar client options
 	clientOptions, clientOptionsErr := config.getClientOptions()
 	if clientOptionsErr != nil {
@@ -68,8 +68,8 @@ func newPulsarProducer(config Config) (pulsar.Producer, error) {
 		return nil, clientErr
 	}
 
-	// Get pulsar pruducer options
-	producerOptions, producerOptionsErr := config.getProducerOptions()
+	// Get pulsar producer options
+	producerOptions, producerOptionsErr := config.getProducerOptions(logger)
 	if producerOptionsErr != nil {
 		return nil, producerOptionsErr
 	}

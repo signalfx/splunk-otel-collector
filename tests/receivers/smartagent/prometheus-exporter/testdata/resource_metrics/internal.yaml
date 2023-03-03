@@ -1,0 +1,111 @@
+resource_metrics:
+  - scope_metrics:
+      - metrics:
+          - name: otelcol_process_runtime_total_sys_memory_bytes
+            type: DoubleGauge
+            attributes:
+              system.type: prometheus-exporter
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_process_memory_rss
+            type: DoubleGauge
+            attributes:
+              system.type: prometheus-exporter
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_process_cpu_seconds
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              system.type: prometheus-exporter
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_process_uptime
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              system.type: prometheus-exporter
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_process_runtime_total_alloc_bytes
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              system.type: prometheus-exporter
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_process_runtime_heap_alloc_bytes
+            type: DoubleGauge
+            attributes:
+              system.type: prometheus-exporter
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_enqueue_failed_log_records
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              system.type: prometheus-exporter
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_enqueue_failed_metric_points
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              system.type: prometheus-exporter
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_enqueue_failed_spans
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              system.type: prometheus-exporter
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_queue_capacity
+            type: DoubleGauge
+            attributes:
+              system.type: prometheus-exporter
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_queue_size
+            type: DoubleGauge
+            attributes:
+              system.type: prometheus-exporter
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_exporter_sent_metric_points
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              system.type: prometheus-exporter
+              exporter: otlp
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_receiver_accepted_metric_points
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              system.type: prometheus-exporter
+              receiver: smartagent/prometheus-exporter
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+              transport: internal
+          - name: otelcol_receiver_refused_metric_points
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              system.type: prometheus-exporter
+              receiver: smartagent/prometheus-exporter
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+              transport: internal

@@ -8,6 +8,7 @@ exporters:
   pulsar:
     topic: otlp_metrics
     broker: pulsar+ssl://localhost:6651
+    timeout: 0
     auth:
       tls:
         ca_file: "/path/to/cacert"
@@ -15,13 +16,12 @@ exporters:
         key_file: "/path/to/key"
         insecure_skip_verify: true
     producer:
-      send_timeout: 0
       disable_block_if_queue_full: false
       max_pending_messages: 100
       hashing_scheme: java_string_hash
       compression_type: zstd
       compression_level: default
-      batch_builder_type: 1
+      batch_builder_type: key_based
       disable_batching: false
       # unit is nanoseconds (10^-9), set to 10 milliseconds in nanoseconds
       batching_max_publish_delay: 10000000

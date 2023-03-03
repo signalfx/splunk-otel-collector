@@ -81,10 +81,10 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.72.0
 	github.com/signalfx/golib/v3 v3.3.48
 	github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b
-	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.71.0
-	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.71.0
-	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.71.0
-	github.com/signalfx/splunk-otel-collector/tests v0.71.0
+	github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension v0.72.0
+	github.com/signalfx/splunk-otel-collector/pkg/processor/timestampprocessor v0.72.0
+	github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver v0.72.0
+	github.com/signalfx/splunk-otel-collector/tests v0.72.0
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1

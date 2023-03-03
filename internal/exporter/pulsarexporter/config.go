@@ -23,6 +23,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtls"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
+	"go.uber.org/zap"
 )
 
 type Authentication struct {
@@ -45,20 +46,22 @@ type Config struct {
 
 // Producer defines configuration for producer
 type Producer struct {
+	// Deprecated: properties are not used in creating the producer
 	Properties                      map[string]string `mapstructure:"producer_properties"`
 	MaxReconnectToBroker            *uint             `mapstructure:"max_reconnect_broker"`
 	HashingScheme                   string            `mapstructure:"hashing_scheme"`
 	CompressionLevel                string            `mapstructure:"compression_level"`
 	CompressionType                 string            `mapstructure:"compression_type"`
 	MaxPendingMessages              int               `mapstructure:"max_pending_messages"`
-	BatcherBuilderType              int               `mapstructure:"batch_builder_type"`
+	BatcherBuilderType              string            `mapstructure:"batch_builder_type"`
 	PartitionsAutoDiscoveryInterval time.Duration     `mapstructure:"partitions_auto_discovery_interval"`
 	BatchingMaxPublishDelay         time.Duration     `mapstructure:"batching_max_publish_delay"`
 	BatchingMaxMessages             uint              `mapstructure:"batching_max_messages"`
 	BatchingMaxSize                 uint              `mapstructure:"batching_max_size"`
-	SendTimeout                     time.Duration     `mapstructure:"send_timeout"`
-	DisableBlockIfQueueFull         bool              `mapstructure:"disable_block_if_queue_full"`
-	DisableBatching                 bool              `mapstructure:"disable_batching"`
+	// Deprecated: this setting is moved to the main Config struct to reflect the OpenTelemetry contrib exporter.
+	SendTimeout             *time.Duration `mapstructure:"send_timeout"`
+	DisableBlockIfQueueFull bool           `mapstructure:"disable_block_if_queue_full"`
+	DisableBatching         bool           `mapstructure:"disable_batching"`
 }
 
 var _ component.Config = (*Config)(nil)
@@ -92,12 +95,27 @@ func (cfg *Config) getClientOptions() (pulsar.ClientOptions, error) {
 	return options, nil
 }
 
-func (cfg *Config) getProducerOptions() (pulsar.ProducerOptions, error) {
+func (cfg *Config) getProducerOptions(logger *zap.Logger) (pulsar.ProducerOptions, error) {
+	// Properties are not used. Issue a warning that these are no longer used.
+	if cfg.Producer.Properties != nil {
+		logger.Warn("`producer.properties` is no longer used and will be removed in a subsequent release. Please remove this property from the configuration.")
+	}
+	if cfg.Producer.BatcherBuilderType == "1" {
+		logger.Warn("`producer.batch_builder_type` value 1 is deprecated and should use the value `key_based` instead.")
+	}
+	if cfg.Producer.BatcherBuilderType == "0" {
+		logger.Warn("`producer.batch_builder_type` value 0 is deprecated and should use the value `default` instead.")
+	}
+	timeout := cfg.Timeout
+	if cfg.Producer.SendTimeout != nil {
+		logger.Warn("`producer.send_timeout` is deprecated and will be removed in a subsequent release. Please use `timeout` instead")
+		timeout = *cfg.Producer.SendTimeout
+	}
 
 	producerOptions := pulsar.ProducerOptions{
 		Topic:                           cfg.Topic,
 		DisableBatching:                 cfg.Producer.DisableBatching,
-		SendTimeout:                     cfg.Producer.SendTimeout,
+		SendTimeout:                     timeout,
 		DisableBlockIfQueueFull:         cfg.Producer.DisableBlockIfQueueFull,
 		MaxPendingMessages:              cfg.Producer.MaxPendingMessages,
 		BatchingMaxPublishDelay:         cfg.Producer.BatchingMaxPublishDelay,
@@ -106,6 +124,12 @@ func (cfg *Config) getProducerOptions() (pulsar.ProducerOptions, error) {
 		PartitionsAutoDiscoveryInterval: cfg.Producer.PartitionsAutoDiscoveryInterval,
 		MaxReconnectToBroker:            cfg.Producer.MaxReconnectToBroker,
 	}
+
+	batchBuilderType, err := stringToBatchBuilderType(cfg.Producer.BatcherBuilderType)
+	if err != nil {
+		return producerOptions, err
+	}
+	producerOptions.BatcherBuilderType = batchBuilderType
 
 	compressionType, err := stringToCompressionType(cfg.Producer.CompressionType)
 	if err != nil {
@@ -139,7 +163,7 @@ func stringToCompressionType(compressionType string) (pulsar.CompressionType, er
 	case "zstd":
 		return pulsar.ZSTD, nil
 	default:
-		return pulsar.NoCompression, fmt.Errorf("producer.compressionType should be one of 'none', 'lz4', 'zlib', or 'zstd'. configured value %v. Assiging default value as nocompression", compressionType)
+		return pulsar.NoCompression, fmt.Errorf("producer.compressionType should be one of 'none', 'lz4', 'zlib', or 'zstd'. configured value %v. Assigning default value as none", compressionType)
 	}
 }
 
@@ -152,7 +176,7 @@ func stringToCompressionLevel(compressionLevel string) (pulsar.CompressionLevel,
 	case "better":
 		return pulsar.Better, nil
 	default:
-		return pulsar.Default, fmt.Errorf("producer.compressionLevel should be one of 'none', 'lz4', 'zlib', or 'zstd'. configured value %v. Assiging default value as default", compressionLevel)
+		return pulsar.Default, fmt.Errorf("producer.compressionLevel should be one of 'default', 'faster', or 'better'. configured value %v. Assigning default value as default", compressionLevel)
 	}
 }
 
@@ -163,6 +187,21 @@ func stringToHashingScheme(hashingScheme string) (pulsar.HashingScheme, error) {
 	case "murmur3_32hash":
 		return pulsar.Murmur3_32Hash, nil
 	default:
-		return pulsar.JavaStringHash, fmt.Errorf("producer.hashingScheme should be one of 'none', 'lz4', 'zlib', or 'zstd'. configured value %v, Assiging default value as java_string_hash", hashingScheme)
+		return pulsar.JavaStringHash, fmt.Errorf("producer.hashingScheme should be one of 'java_string_hash' or 'murmur3_32hash'. configured value %v, Assigning default value as java_string_hash", hashingScheme)
+	}
+}
+
+func stringToBatchBuilderType(builderType string) (pulsar.BatcherBuilderType, error) {
+	switch builderType {
+	case "0":
+		return pulsar.DefaultBatchBuilder, nil
+	case "1":
+		return pulsar.KeyBasedBatchBuilder, nil
+	case "default":
+		return pulsar.DefaultBatchBuilder, nil
+	case "key_based":
+		return pulsar.KeyBasedBatchBuilder, nil
+	default:
+		return pulsar.DefaultBatchBuilder, fmt.Errorf("producer.batchBuilderType should be one of 'default' or 'key_based'. configured value %v. Assigning default value as default", builderType)
 	}
 }

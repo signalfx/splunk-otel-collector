@@ -9,18 +9,14 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/receiver"
 )
 
 // MetricSettings provides common settings for a particular metric.
 type MetricSettings struct {
 	Enabled bool `mapstructure:"enabled"`
 
-	enabledProvidedByUser bool
-}
-
-// IsEnabledProvidedByUser returns true if `enabled` option is explicitly set in user settings to any value.
-func (ms *MetricSettings) IsEnabledProvidedByUser() bool {
-	return ms.enabledProvidedByUser
+	enabledSetByUser bool
 }
 
 func (ms *MetricSettings) Unmarshal(parser *confmap.Conf) error {
@@ -31,7 +27,7 @@ func (ms *MetricSettings) Unmarshal(parser *confmap.Conf) error {
 	if err != nil {
 		return err
 	}
-	ms.enabledProvidedByUser = parser.IsSet("enabled")
+	ms.enabledSetByUser = parser.IsSet("enabled")
 	return nil
 }
 
@@ -599,6 +595,50 @@ func DefaultMetricsSettings() MetricsSettings {
 			Enabled: true,
 		},
 		DatabricksTasksScheduleStatus: MetricSettings{
+			Enabled: true,
+		},
+	}
+}
+
+// ResourceAttributeSettings provides common settings for a particular metric.
+type ResourceAttributeSettings struct {
+	Enabled bool `mapstructure:"enabled"`
+
+	enabledProvidedByUser bool
+}
+
+func (ras *ResourceAttributeSettings) Unmarshal(parser *confmap.Conf) error {
+	if parser == nil {
+		return nil
+	}
+	err := parser.Unmarshal(ras, confmap.WithErrorUnused())
+	if err != nil {
+		return err
+	}
+	ras.enabledProvidedByUser = parser.IsSet("enabled")
+	return nil
+}
+
+// ResourceAttributesSettings provides settings for databricksreceiver metrics.
+type ResourceAttributesSettings struct {
+	DatabricksInstanceName ResourceAttributeSettings `mapstructure:"databricks.instance.name"`
+	SparkAppID             ResourceAttributeSettings `mapstructure:"spark.app.id"`
+	SparkClusterID         ResourceAttributeSettings `mapstructure:"spark.cluster.id"`
+	SparkClusterName       ResourceAttributeSettings `mapstructure:"spark.cluster.name"`
+}
+
+func DefaultResourceAttributesSettings() ResourceAttributesSettings {
+	return ResourceAttributesSettings{
+		DatabricksInstanceName: ResourceAttributeSettings{
+			Enabled: true,
+		},
+		SparkAppID: ResourceAttributeSettings{
+			Enabled: true,
+		},
+		SparkClusterID: ResourceAttributeSettings{
+			Enabled: true,
+		},
+		SparkClusterName: ResourceAttributeSettings{
 			Enabled: true,
 		},
 	}
@@ -8268,15 +8308,16 @@ func newMetricDatabricksTasksScheduleStatus(settings MetricSettings) metricDatab
 type MetricsBuilder struct {
 	metricsBuffer                                                                                                            pmetric.Metrics
 	buildInfo                                                                                                                component.BuildInfo
-	metricDatabricksJobsActiveTotal                                                                                          metricDatabricksJobsActiveTotal
-	metricDatabricksJobsRunDuration                                                                                          metricDatabricksJobsRunDuration
+	metricDatabricksSparkExecutorMetricsMappedPoolMemory                                                                     metricDatabricksSparkExecutorMetricsMappedPoolMemory
+	metricDatabricksSparkBlockManagerMemoryOnHeapMax                                                                         metricDatabricksSparkBlockManagerMemoryOnHeapMax
 	metricDatabricksJobsScheduleStatus                                                                                       metricDatabricksJobsScheduleStatus
+	metricDatabricksTasksScheduleStatus                                                                                      metricDatabricksTasksScheduleStatus
 	metricDatabricksJobsTotal                                                                                                metricDatabricksJobsTotal
 	metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed                                                                     metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed
 	metricDatabricksSparkBlockManagerMemoryMax                                                                               metricDatabricksSparkBlockManagerMemoryMax
 	metricDatabricksSparkBlockManagerMemoryOffHeapMax                                                                        metricDatabricksSparkBlockManagerMemoryOffHeapMax
 	metricDatabricksSparkBlockManagerMemoryOffHeapUsed                                                                       metricDatabricksSparkBlockManagerMemoryOffHeapUsed
-	metricDatabricksSparkBlockManagerMemoryOnHeapMax                                                                         metricDatabricksSparkBlockManagerMemoryOnHeapMax
+	metricDatabricksSparkExecutorMetricsMinorGcCount                                                                         metricDatabricksSparkExecutorMetricsMinorGcCount
 	metricDatabricksSparkBlockManagerMemoryOnHeapUsed                                                                        metricDatabricksSparkBlockManagerMemoryOnHeapUsed
 	metricDatabricksSparkBlockManagerMemoryRemaining                                                                         metricDatabricksSparkBlockManagerMemoryRemaining
 	metricDatabricksSparkBlockManagerMemoryRemainingOffHeap                                                                  metricDatabricksSparkBlockManagerMemoryRemainingOffHeap
@@ -8320,7 +8361,7 @@ type MetricsBuilder struct {
 	metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount              metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount
 	metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount                              metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount
 	metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime                                   metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime
-	metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount                                    metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount
+	metricDatabricksSparkExecutorMetricsMinorGcTime                                                                          metricDatabricksSparkExecutorMetricsMinorGcTime
 	metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount                                          metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount
 	metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount                                          metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount
 	metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved                                           metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved
@@ -8337,9 +8378,9 @@ type MetricsBuilder struct {
 	metricDatabricksSparkExecutorMetricsJvmOffHeapMemory                                                                     metricDatabricksSparkExecutorMetricsJvmOffHeapMemory
 	metricDatabricksSparkExecutorMetricsMajorGcCount                                                                         metricDatabricksSparkExecutorMetricsMajorGcCount
 	metricDatabricksSparkExecutorMetricsMajorGcTime                                                                          metricDatabricksSparkExecutorMetricsMajorGcTime
-	metricDatabricksSparkExecutorMetricsMappedPoolMemory                                                                     metricDatabricksSparkExecutorMetricsMappedPoolMemory
-	metricDatabricksSparkExecutorMetricsMinorGcCount                                                                         metricDatabricksSparkExecutorMetricsMinorGcCount
-	metricDatabricksSparkExecutorMetricsMinorGcTime                                                                          metricDatabricksSparkExecutorMetricsMinorGcTime
+	metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize                                                          metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize
+	metricDatabricksJobsRunDuration                                                                                          metricDatabricksJobsRunDuration
+	metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount                                    metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount
 	metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory                                                               metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory
 	metricDatabricksSparkExecutorMetricsOffHeapStorageMemory                                                                 metricDatabricksSparkExecutorMetricsOffHeapStorageMemory
 	metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory                                                                 metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory
@@ -8371,7 +8412,7 @@ type MetricsBuilder struct {
 	metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount                                                     metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount
 	metricDatabricksSparkLiveListenerBusQueueAppstatusSize                                                                   metricDatabricksSparkLiveListenerBusQueueAppstatusSize
 	metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount                                            metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount
-	metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize                                                          metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize
+	metricDatabricksJobsActiveTotal                                                                                          metricDatabricksJobsActiveTotal
 	metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount                                                        metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount
 	metricDatabricksSparkLiveListenerBusQueueSharedSize                                                                      metricDatabricksSparkLiveListenerBusQueueSharedSize
 	metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount                                                       metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount
@@ -8407,10 +8448,10 @@ type MetricsBuilder struct {
 	metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime                                               metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime
 	metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime                                              metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime
 	metricDatabricksTasksRunDuration                                                                                         metricDatabricksTasksRunDuration
-	metricDatabricksTasksScheduleStatus                                                                                      metricDatabricksTasksScheduleStatus
 	startTime                                                                                                                pcommon.Timestamp
 	metricsCapacity                                                                                                          int
 	resourceCapacity                                                                                                         int
+	resourceAttributesSettings                                                                                               ResourceAttributesSettings
 }
 
 // metricBuilderOption applies changes to default metrics builder.
@@ -8423,151 +8464,159 @@ func WithStartTime(startTime pcommon.Timestamp) metricBuilderOption {
 	}
 }
 
-func NewMetricsBuilder(settings MetricsSettings, buildInfo component.BuildInfo, options ...metricBuilderOption) *MetricsBuilder {
+// WithResourceAttributesSettings sets ResourceAttributeSettings on the metrics builder.
+func WithResourceAttributesSettings(ras ResourceAttributesSettings) metricBuilderOption {
+	return func(mb *MetricsBuilder) {
+		mb.resourceAttributesSettings = ras
+	}
+}
+
+func NewMetricsBuilder(ms MetricsSettings, settings receiver.CreateSettings, options ...metricBuilderOption) *MetricsBuilder {
 	mb := &MetricsBuilder{
 		startTime:                          pcommon.NewTimestampFromTime(time.Now()),
 		metricsBuffer:                      pmetric.NewMetrics(),
-		buildInfo:                          buildInfo,
-		metricDatabricksJobsActiveTotal:    newMetricDatabricksJobsActiveTotal(settings.DatabricksJobsActiveTotal),
-		metricDatabricksJobsRunDuration:    newMetricDatabricksJobsRunDuration(settings.DatabricksJobsRunDuration),
-		metricDatabricksJobsScheduleStatus: newMetricDatabricksJobsScheduleStatus(settings.DatabricksJobsScheduleStatus),
-		metricDatabricksJobsTotal:          newMetricDatabricksJobsTotal(settings.DatabricksJobsTotal),
-		metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed:                                                                     newMetricDatabricksSparkBlockManagerMemoryDiskSpaceUsed(settings.DatabricksSparkBlockManagerMemoryDiskSpaceUsed),
-		metricDatabricksSparkBlockManagerMemoryMax:                                                                               newMetricDatabricksSparkBlockManagerMemoryMax(settings.DatabricksSparkBlockManagerMemoryMax),
-		metricDatabricksSparkBlockManagerMemoryOffHeapMax:                                                                        newMetricDatabricksSparkBlockManagerMemoryOffHeapMax(settings.DatabricksSparkBlockManagerMemoryOffHeapMax),
-		metricDatabricksSparkBlockManagerMemoryOffHeapUsed:                                                                       newMetricDatabricksSparkBlockManagerMemoryOffHeapUsed(settings.DatabricksSparkBlockManagerMemoryOffHeapUsed),
-		metricDatabricksSparkBlockManagerMemoryOnHeapMax:                                                                         newMetricDatabricksSparkBlockManagerMemoryOnHeapMax(settings.DatabricksSparkBlockManagerMemoryOnHeapMax),
-		metricDatabricksSparkBlockManagerMemoryOnHeapUsed:                                                                        newMetricDatabricksSparkBlockManagerMemoryOnHeapUsed(settings.DatabricksSparkBlockManagerMemoryOnHeapUsed),
-		metricDatabricksSparkBlockManagerMemoryRemaining:                                                                         newMetricDatabricksSparkBlockManagerMemoryRemaining(settings.DatabricksSparkBlockManagerMemoryRemaining),
-		metricDatabricksSparkBlockManagerMemoryRemainingOffHeap:                                                                  newMetricDatabricksSparkBlockManagerMemoryRemainingOffHeap(settings.DatabricksSparkBlockManagerMemoryRemainingOffHeap),
-		metricDatabricksSparkBlockManagerMemoryRemainingOnHeap:                                                                   newMetricDatabricksSparkBlockManagerMemoryRemainingOnHeap(settings.DatabricksSparkBlockManagerMemoryRemainingOnHeap),
-		metricDatabricksSparkBlockManagerMemoryUsed:                                                                              newMetricDatabricksSparkBlockManagerMemoryUsed(settings.DatabricksSparkBlockManagerMemoryUsed),
-		metricDatabricksSparkCodeGeneratorCompilationTime:                                                                        newMetricDatabricksSparkCodeGeneratorCompilationTime(settings.DatabricksSparkCodeGeneratorCompilationTime),
-		metricDatabricksSparkCodeGeneratorGeneratedClassSize:                                                                     newMetricDatabricksSparkCodeGeneratorGeneratedClassSize(settings.DatabricksSparkCodeGeneratorGeneratedClassSize),
-		metricDatabricksSparkCodeGeneratorGeneratedMethodSize:                                                                    newMetricDatabricksSparkCodeGeneratorGeneratedMethodSize(settings.DatabricksSparkCodeGeneratorGeneratedMethodSize),
-		metricDatabricksSparkCodeGeneratorSourcecodeSize:                                                                         newMetricDatabricksSparkCodeGeneratorSourcecodeSize(settings.DatabricksSparkCodeGeneratorSourcecodeSize),
-		metricDatabricksSparkDagSchedulerJobsActive:                                                                              newMetricDatabricksSparkDagSchedulerJobsActive(settings.DatabricksSparkDagSchedulerJobsActive),
-		metricDatabricksSparkDagSchedulerJobsAll:                                                                                 newMetricDatabricksSparkDagSchedulerJobsAll(settings.DatabricksSparkDagSchedulerJobsAll),
-		metricDatabricksSparkDagSchedulerStagesFailed:                                                                            newMetricDatabricksSparkDagSchedulerStagesFailed(settings.DatabricksSparkDagSchedulerStagesFailed),
-		metricDatabricksSparkDagSchedulerStagesRunning:                                                                           newMetricDatabricksSparkDagSchedulerStagesRunning(settings.DatabricksSparkDagSchedulerStagesRunning),
-		metricDatabricksSparkDagSchedulerStagesWaiting:                                                                           newMetricDatabricksSparkDagSchedulerStagesWaiting(settings.DatabricksSparkDagSchedulerStagesWaiting),
-		metricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount:                                                            newMetricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount(settings.DatabricksSparkDatabricksDirectoryCommitAutoVacuumCount),
-		metricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered:                                                       newMetricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered(settings.DatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered),
-		metricDatabricksSparkDatabricksDirectoryCommitFilterListingCount:                                                         newMetricDatabricksSparkDatabricksDirectoryCommitFilterListingCount(settings.DatabricksSparkDatabricksDirectoryCommitFilterListingCount),
-		metricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted:                                                         newMetricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted(settings.DatabricksSparkDatabricksDirectoryCommitJobCommitCompleted),
-		metricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors:                                                           newMetricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors(settings.DatabricksSparkDatabricksDirectoryCommitMarkerReadErrors),
-		metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount:                                                         newMetricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount(settings.DatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount),
-		metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors:                                                        newMetricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors(settings.DatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors),
-		metricDatabricksSparkDatabricksDirectoryCommitMarkersRead:                                                                newMetricDatabricksSparkDatabricksDirectoryCommitMarkersRead(settings.DatabricksSparkDatabricksDirectoryCommitMarkersRead),
-		metricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount:                                                          newMetricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount(settings.DatabricksSparkDatabricksDirectoryCommitRepeatedListCount),
-		metricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered:                                                   newMetricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered(settings.DatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered),
-		metricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound:                                                        newMetricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound(settings.DatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound),
-		metricDatabricksSparkDatabricksDirectoryCommitVacuumCount:                                                                newMetricDatabricksSparkDatabricksDirectoryCommitVacuumCount(settings.DatabricksSparkDatabricksDirectoryCommitVacuumCount),
-		metricDatabricksSparkDatabricksDirectoryCommitVacuumErrors:                                                               newMetricDatabricksSparkDatabricksDirectoryCommitVacuumErrors(settings.DatabricksSparkDatabricksDirectoryCommitVacuumErrors),
-		metricDatabricksSparkDatabricksPreemptionChecksCount:                                                                     newMetricDatabricksSparkDatabricksPreemptionChecksCount(settings.DatabricksSparkDatabricksPreemptionChecksCount),
-		metricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount:                                                           newMetricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount(settings.DatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount),
-		metricDatabricksSparkDatabricksPreemptionPoolstarvationTime:                                                              newMetricDatabricksSparkDatabricksPreemptionPoolstarvationTime(settings.DatabricksSparkDatabricksPreemptionPoolstarvationTime),
-		metricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime:                                                           newMetricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime(settings.DatabricksSparkDatabricksPreemptionSchedulerOverheadTime),
-		metricDatabricksSparkDatabricksPreemptionTaskWastedTime:                                                                  newMetricDatabricksSparkDatabricksPreemptionTaskWastedTime(settings.DatabricksSparkDatabricksPreemptionTaskWastedTime),
-		metricDatabricksSparkDatabricksPreemptionTasksPreemptedCount:                                                             newMetricDatabricksSparkDatabricksPreemptionTasksPreemptedCount(settings.DatabricksSparkDatabricksPreemptionTasksPreemptedCount),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesActivePools:                                                            newMetricDatabricksSparkDatabricksTaskSchedulingLanesActivePools(settings.DatabricksSparkDatabricksTaskSchedulingLanesActivePools),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools:                                                  newMetricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools(settings.DatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools:                                                    newMetricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools(settings.DatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime:                                           newMetricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime(settings.DatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools:                                                 newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools(settings.DatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned:                                        newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned(settings.DatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned:                                          newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned(settings.DatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount:              newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount(settings.DatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount:                              newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount(settings.DatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime:                                   newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime(settings.DatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount:                                    newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount(settings.DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount:                                          newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount(settings.DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount:                                          newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount(settings.DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved:                                           newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved(settings.DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools:                                                    newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools(settings.DatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools),
-		metricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished:                                               newMetricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished(settings.DatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished),
-		metricDatabricksSparkExecutorDiskUsed:                                                                                    newMetricDatabricksSparkExecutorDiskUsed(settings.DatabricksSparkExecutorDiskUsed),
-		metricDatabricksSparkExecutorMaxMemory:                                                                                   newMetricDatabricksSparkExecutorMaxMemory(settings.DatabricksSparkExecutorMaxMemory),
-		metricDatabricksSparkExecutorMemoryUsed:                                                                                  newMetricDatabricksSparkExecutorMemoryUsed(settings.DatabricksSparkExecutorMemoryUsed),
-		metricDatabricksSparkExecutorTotalInputBytes:                                                                             newMetricDatabricksSparkExecutorTotalInputBytes(settings.DatabricksSparkExecutorTotalInputBytes),
-		metricDatabricksSparkExecutorTotalShuffleRead:                                                                            newMetricDatabricksSparkExecutorTotalShuffleRead(settings.DatabricksSparkExecutorTotalShuffleRead),
-		metricDatabricksSparkExecutorTotalShuffleWrite:                                                                           newMetricDatabricksSparkExecutorTotalShuffleWrite(settings.DatabricksSparkExecutorTotalShuffleWrite),
-		metricDatabricksSparkExecutorMetricsDirectPoolMemory:                                                                     newMetricDatabricksSparkExecutorMetricsDirectPoolMemory(settings.DatabricksSparkExecutorMetricsDirectPoolMemory),
-		metricDatabricksSparkExecutorMetricsJvmHeapMemory:                                                                        newMetricDatabricksSparkExecutorMetricsJvmHeapMemory(settings.DatabricksSparkExecutorMetricsJvmHeapMemory),
-		metricDatabricksSparkExecutorMetricsJvmOffHeapMemory:                                                                     newMetricDatabricksSparkExecutorMetricsJvmOffHeapMemory(settings.DatabricksSparkExecutorMetricsJvmOffHeapMemory),
-		metricDatabricksSparkExecutorMetricsMajorGcCount:                                                                         newMetricDatabricksSparkExecutorMetricsMajorGcCount(settings.DatabricksSparkExecutorMetricsMajorGcCount),
-		metricDatabricksSparkExecutorMetricsMajorGcTime:                                                                          newMetricDatabricksSparkExecutorMetricsMajorGcTime(settings.DatabricksSparkExecutorMetricsMajorGcTime),
-		metricDatabricksSparkExecutorMetricsMappedPoolMemory:                                                                     newMetricDatabricksSparkExecutorMetricsMappedPoolMemory(settings.DatabricksSparkExecutorMetricsMappedPoolMemory),
-		metricDatabricksSparkExecutorMetricsMinorGcCount:                                                                         newMetricDatabricksSparkExecutorMetricsMinorGcCount(settings.DatabricksSparkExecutorMetricsMinorGcCount),
-		metricDatabricksSparkExecutorMetricsMinorGcTime:                                                                          newMetricDatabricksSparkExecutorMetricsMinorGcTime(settings.DatabricksSparkExecutorMetricsMinorGcTime),
-		metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory:                                                               newMetricDatabricksSparkExecutorMetricsOffHeapExecutionMemory(settings.DatabricksSparkExecutorMetricsOffHeapExecutionMemory),
-		metricDatabricksSparkExecutorMetricsOffHeapStorageMemory:                                                                 newMetricDatabricksSparkExecutorMetricsOffHeapStorageMemory(settings.DatabricksSparkExecutorMetricsOffHeapStorageMemory),
-		metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory:                                                                 newMetricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory(settings.DatabricksSparkExecutorMetricsOffHeapUnifiedMemory),
-		metricDatabricksSparkExecutorMetricsOnHeapExecutionMemory:                                                                newMetricDatabricksSparkExecutorMetricsOnHeapExecutionMemory(settings.DatabricksSparkExecutorMetricsOnHeapExecutionMemory),
-		metricDatabricksSparkExecutorMetricsOnHeapStorageMemory:                                                                  newMetricDatabricksSparkExecutorMetricsOnHeapStorageMemory(settings.DatabricksSparkExecutorMetricsOnHeapStorageMemory),
-		metricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory:                                                                  newMetricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory(settings.DatabricksSparkExecutorMetricsOnHeapUnifiedMemory),
-		metricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory:                                                              newMetricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory(settings.DatabricksSparkExecutorMetricsProcessTreeJvmRssMemory),
-		metricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory:                                                                newMetricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory(settings.DatabricksSparkExecutorMetricsProcessTreeJvmVMemory),
-		metricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory:                                                            newMetricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory(settings.DatabricksSparkExecutorMetricsProcessTreeOtherRssMemory),
-		metricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory:                                                              newMetricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory(settings.DatabricksSparkExecutorMetricsProcessTreeOtherVMemory),
-		metricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory:                                                           newMetricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory(settings.DatabricksSparkExecutorMetricsProcessTreePythonRssMemory),
-		metricDatabricksSparkExecutorMetricsProcessTreePythonVMemory:                                                             newMetricDatabricksSparkExecutorMetricsProcessTreePythonVMemory(settings.DatabricksSparkExecutorMetricsProcessTreePythonVMemory),
-		metricDatabricksSparkHiveExternalCatalogFileCacheHits:                                                                    newMetricDatabricksSparkHiveExternalCatalogFileCacheHits(settings.DatabricksSparkHiveExternalCatalogFileCacheHits),
-		metricDatabricksSparkHiveExternalCatalogFilesDiscovered:                                                                  newMetricDatabricksSparkHiveExternalCatalogFilesDiscovered(settings.DatabricksSparkHiveExternalCatalogFilesDiscovered),
-		metricDatabricksSparkHiveExternalCatalogHiveClientCalls:                                                                  newMetricDatabricksSparkHiveExternalCatalogHiveClientCalls(settings.DatabricksSparkHiveExternalCatalogHiveClientCalls),
-		metricDatabricksSparkHiveExternalCatalogParallelListingJobsCount:                                                         newMetricDatabricksSparkHiveExternalCatalogParallelListingJobsCount(settings.DatabricksSparkHiveExternalCatalogParallelListingJobsCount),
-		metricDatabricksSparkHiveExternalCatalogPartitionsFetched:                                                                newMetricDatabricksSparkHiveExternalCatalogPartitionsFetched(settings.DatabricksSparkHiveExternalCatalogPartitionsFetched),
-		metricDatabricksSparkJobNumActiveStages:                                                                                  newMetricDatabricksSparkJobNumActiveStages(settings.DatabricksSparkJobNumActiveStages),
-		metricDatabricksSparkJobNumActiveTasks:                                                                                   newMetricDatabricksSparkJobNumActiveTasks(settings.DatabricksSparkJobNumActiveTasks),
-		metricDatabricksSparkJobNumCompletedStages:                                                                               newMetricDatabricksSparkJobNumCompletedStages(settings.DatabricksSparkJobNumCompletedStages),
-		metricDatabricksSparkJobNumCompletedTasks:                                                                                newMetricDatabricksSparkJobNumCompletedTasks(settings.DatabricksSparkJobNumCompletedTasks),
-		metricDatabricksSparkJobNumFailedStages:                                                                                  newMetricDatabricksSparkJobNumFailedStages(settings.DatabricksSparkJobNumFailedStages),
-		metricDatabricksSparkJobNumFailedTasks:                                                                                   newMetricDatabricksSparkJobNumFailedTasks(settings.DatabricksSparkJobNumFailedTasks),
-		metricDatabricksSparkJobNumSkippedStages:                                                                                 newMetricDatabricksSparkJobNumSkippedStages(settings.DatabricksSparkJobNumSkippedStages),
-		metricDatabricksSparkJobNumSkippedTasks:                                                                                  newMetricDatabricksSparkJobNumSkippedTasks(settings.DatabricksSparkJobNumSkippedTasks),
-		metricDatabricksSparkJobNumTasks:                                                                                         newMetricDatabricksSparkJobNumTasks(settings.DatabricksSparkJobNumTasks),
-		metricDatabricksSparkJvmCPUTime:                                                                                          newMetricDatabricksSparkJvmCPUTime(settings.DatabricksSparkJvmCPUTime),
-		metricDatabricksSparkLiveListenerBusEventsPostedCount:                                                                    newMetricDatabricksSparkLiveListenerBusEventsPostedCount(settings.DatabricksSparkLiveListenerBusEventsPostedCount),
-		metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount:                                                     newMetricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount(settings.DatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount),
-		metricDatabricksSparkLiveListenerBusQueueAppstatusSize:                                                                   newMetricDatabricksSparkLiveListenerBusQueueAppstatusSize(settings.DatabricksSparkLiveListenerBusQueueAppstatusSize),
-		metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount:                                            newMetricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount(settings.DatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount),
-		metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize:                                                          newMetricDatabricksSparkLiveListenerBusQueueExecutormanagementSize(settings.DatabricksSparkLiveListenerBusQueueExecutormanagementSize),
-		metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount:                                                        newMetricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount(settings.DatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount),
-		metricDatabricksSparkLiveListenerBusQueueSharedSize:                                                                      newMetricDatabricksSparkLiveListenerBusQueueSharedSize(settings.DatabricksSparkLiveListenerBusQueueSharedSize),
-		metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount:                                                       newMetricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount(settings.DatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount),
-		metricDatabricksSparkLiveListenerBusQueueStreamsSize:                                                                     newMetricDatabricksSparkLiveListenerBusQueueStreamsSize(settings.DatabricksSparkLiveListenerBusQueueStreamsSize),
-		metricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount:                                                         newMetricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount(settings.DatabricksSparkSparkSQLOperationManagerHiveOperationsCount),
-		metricDatabricksSparkStageDiskBytesSpilled:                                                                               newMetricDatabricksSparkStageDiskBytesSpilled(settings.DatabricksSparkStageDiskBytesSpilled),
-		metricDatabricksSparkStageExecutorRunTime:                                                                                newMetricDatabricksSparkStageExecutorRunTime(settings.DatabricksSparkStageExecutorRunTime),
-		metricDatabricksSparkStageInputBytes:                                                                                     newMetricDatabricksSparkStageInputBytes(settings.DatabricksSparkStageInputBytes),
-		metricDatabricksSparkStageInputRecords:                                                                                   newMetricDatabricksSparkStageInputRecords(settings.DatabricksSparkStageInputRecords),
-		metricDatabricksSparkStageMemoryBytesSpilled:                                                                             newMetricDatabricksSparkStageMemoryBytesSpilled(settings.DatabricksSparkStageMemoryBytesSpilled),
-		metricDatabricksSparkStageOutputBytes:                                                                                    newMetricDatabricksSparkStageOutputBytes(settings.DatabricksSparkStageOutputBytes),
-		metricDatabricksSparkStageOutputRecords:                                                                                  newMetricDatabricksSparkStageOutputRecords(settings.DatabricksSparkStageOutputRecords),
-		metricDatabricksSparkTimerDagSchedulerMessageProcessingTime:                                                              newMetricDatabricksSparkTimerDagSchedulerMessageProcessingTime(settings.DatabricksSparkTimerDagSchedulerMessageProcessingTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime:          newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime:                                   newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime:             newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime: newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime:                                newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime:                    newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime:                        newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime:                                newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime:       newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime:      newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime:                     newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime:            newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime:                   newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime:                        newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime:                newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime:                   newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime),
-		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime:              newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime(settings.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime),
-		metricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime:                                            newMetricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime(settings.DatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime),
-		metricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime:                                   newMetricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime(settings.DatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime),
-		metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime:                                               newMetricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime(settings.DatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime),
-		metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime:                                              newMetricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime(settings.DatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime),
-		metricDatabricksTasksRunDuration:                                                                                         newMetricDatabricksTasksRunDuration(settings.DatabricksTasksRunDuration),
-		metricDatabricksTasksScheduleStatus:                                                                                      newMetricDatabricksTasksScheduleStatus(settings.DatabricksTasksScheduleStatus),
+		buildInfo:                          settings.BuildInfo,
+		resourceAttributesSettings:         DefaultResourceAttributesSettings(),
+		metricDatabricksJobsActiveTotal:    newMetricDatabricksJobsActiveTotal(ms.DatabricksJobsActiveTotal),
+		metricDatabricksJobsRunDuration:    newMetricDatabricksJobsRunDuration(ms.DatabricksJobsRunDuration),
+		metricDatabricksJobsScheduleStatus: newMetricDatabricksJobsScheduleStatus(ms.DatabricksJobsScheduleStatus),
+		metricDatabricksJobsTotal:          newMetricDatabricksJobsTotal(ms.DatabricksJobsTotal),
+		metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed:                                                                     newMetricDatabricksSparkBlockManagerMemoryDiskSpaceUsed(ms.DatabricksSparkBlockManagerMemoryDiskSpaceUsed),
+		metricDatabricksSparkBlockManagerMemoryMax:                                                                               newMetricDatabricksSparkBlockManagerMemoryMax(ms.DatabricksSparkBlockManagerMemoryMax),
+		metricDatabricksSparkBlockManagerMemoryOffHeapMax:                                                                        newMetricDatabricksSparkBlockManagerMemoryOffHeapMax(ms.DatabricksSparkBlockManagerMemoryOffHeapMax),
+		metricDatabricksSparkBlockManagerMemoryOffHeapUsed:                                                                       newMetricDatabricksSparkBlockManagerMemoryOffHeapUsed(ms.DatabricksSparkBlockManagerMemoryOffHeapUsed),
+		metricDatabricksSparkBlockManagerMemoryOnHeapMax:                                                                         newMetricDatabricksSparkBlockManagerMemoryOnHeapMax(ms.DatabricksSparkBlockManagerMemoryOnHeapMax),
+		metricDatabricksSparkBlockManagerMemoryOnHeapUsed:                                                                        newMetricDatabricksSparkBlockManagerMemoryOnHeapUsed(ms.DatabricksSparkBlockManagerMemoryOnHeapUsed),
+		metricDatabricksSparkBlockManagerMemoryRemaining:                                                                         newMetricDatabricksSparkBlockManagerMemoryRemaining(ms.DatabricksSparkBlockManagerMemoryRemaining),
+		metricDatabricksSparkBlockManagerMemoryRemainingOffHeap:                                                                  newMetricDatabricksSparkBlockManagerMemoryRemainingOffHeap(ms.DatabricksSparkBlockManagerMemoryRemainingOffHeap),
+		metricDatabricksSparkBlockManagerMemoryRemainingOnHeap:                                                                   newMetricDatabricksSparkBlockManagerMemoryRemainingOnHeap(ms.DatabricksSparkBlockManagerMemoryRemainingOnHeap),
+		metricDatabricksSparkBlockManagerMemoryUsed:                                                                              newMetricDatabricksSparkBlockManagerMemoryUsed(ms.DatabricksSparkBlockManagerMemoryUsed),
+		metricDatabricksSparkCodeGeneratorCompilationTime:                                                                        newMetricDatabricksSparkCodeGeneratorCompilationTime(ms.DatabricksSparkCodeGeneratorCompilationTime),
+		metricDatabricksSparkCodeGeneratorGeneratedClassSize:                                                                     newMetricDatabricksSparkCodeGeneratorGeneratedClassSize(ms.DatabricksSparkCodeGeneratorGeneratedClassSize),
+		metricDatabricksSparkCodeGeneratorGeneratedMethodSize:                                                                    newMetricDatabricksSparkCodeGeneratorGeneratedMethodSize(ms.DatabricksSparkCodeGeneratorGeneratedMethodSize),
+		metricDatabricksSparkCodeGeneratorSourcecodeSize:                                                                         newMetricDatabricksSparkCodeGeneratorSourcecodeSize(ms.DatabricksSparkCodeGeneratorSourcecodeSize),
+		metricDatabricksSparkDagSchedulerJobsActive:                                                                              newMetricDatabricksSparkDagSchedulerJobsActive(ms.DatabricksSparkDagSchedulerJobsActive),
+		metricDatabricksSparkDagSchedulerJobsAll:                                                                                 newMetricDatabricksSparkDagSchedulerJobsAll(ms.DatabricksSparkDagSchedulerJobsAll),
+		metricDatabricksSparkDagSchedulerStagesFailed:                                                                            newMetricDatabricksSparkDagSchedulerStagesFailed(ms.DatabricksSparkDagSchedulerStagesFailed),
+		metricDatabricksSparkDagSchedulerStagesRunning:                                                                           newMetricDatabricksSparkDagSchedulerStagesRunning(ms.DatabricksSparkDagSchedulerStagesRunning),
+		metricDatabricksSparkDagSchedulerStagesWaiting:                                                                           newMetricDatabricksSparkDagSchedulerStagesWaiting(ms.DatabricksSparkDagSchedulerStagesWaiting),
+		metricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount:                                                            newMetricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount(ms.DatabricksSparkDatabricksDirectoryCommitAutoVacuumCount),
+		metricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered:                                                       newMetricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered(ms.DatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered),
+		metricDatabricksSparkDatabricksDirectoryCommitFilterListingCount:                                                         newMetricDatabricksSparkDatabricksDirectoryCommitFilterListingCount(ms.DatabricksSparkDatabricksDirectoryCommitFilterListingCount),
+		metricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted:                                                         newMetricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted(ms.DatabricksSparkDatabricksDirectoryCommitJobCommitCompleted),
+		metricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors:                                                           newMetricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors(ms.DatabricksSparkDatabricksDirectoryCommitMarkerReadErrors),
+		metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount:                                                         newMetricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount(ms.DatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount),
+		metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors:                                                        newMetricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors(ms.DatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors),
+		metricDatabricksSparkDatabricksDirectoryCommitMarkersRead:                                                                newMetricDatabricksSparkDatabricksDirectoryCommitMarkersRead(ms.DatabricksSparkDatabricksDirectoryCommitMarkersRead),
+		metricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount:                                                          newMetricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount(ms.DatabricksSparkDatabricksDirectoryCommitRepeatedListCount),
+		metricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered:                                                   newMetricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered(ms.DatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered),
+		metricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound:                                                        newMetricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound(ms.DatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound),
+		metricDatabricksSparkDatabricksDirectoryCommitVacuumCount:                                                                newMetricDatabricksSparkDatabricksDirectoryCommitVacuumCount(ms.DatabricksSparkDatabricksDirectoryCommitVacuumCount),
+		metricDatabricksSparkDatabricksDirectoryCommitVacuumErrors:                                                               newMetricDatabricksSparkDatabricksDirectoryCommitVacuumErrors(ms.DatabricksSparkDatabricksDirectoryCommitVacuumErrors),
+		metricDatabricksSparkDatabricksPreemptionChecksCount:                                                                     newMetricDatabricksSparkDatabricksPreemptionChecksCount(ms.DatabricksSparkDatabricksPreemptionChecksCount),
+		metricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount:                                                           newMetricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount(ms.DatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount),
+		metricDatabricksSparkDatabricksPreemptionPoolstarvationTime:                                                              newMetricDatabricksSparkDatabricksPreemptionPoolstarvationTime(ms.DatabricksSparkDatabricksPreemptionPoolstarvationTime),
+		metricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime:                                                           newMetricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime(ms.DatabricksSparkDatabricksPreemptionSchedulerOverheadTime),
+		metricDatabricksSparkDatabricksPreemptionTaskWastedTime:                                                                  newMetricDatabricksSparkDatabricksPreemptionTaskWastedTime(ms.DatabricksSparkDatabricksPreemptionTaskWastedTime),
+		metricDatabricksSparkDatabricksPreemptionTasksPreemptedCount:                                                             newMetricDatabricksSparkDatabricksPreemptionTasksPreemptedCount(ms.DatabricksSparkDatabricksPreemptionTasksPreemptedCount),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesActivePools:                                                            newMetricDatabricksSparkDatabricksTaskSchedulingLanesActivePools(ms.DatabricksSparkDatabricksTaskSchedulingLanesActivePools),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools:                                                  newMetricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools(ms.DatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools:                                                    newMetricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools(ms.DatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime:                                           newMetricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime(ms.DatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools:                                                 newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools(ms.DatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned:                                        newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned(ms.DatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned:                                          newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned(ms.DatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount:              newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount(ms.DatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount:                              newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount(ms.DatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime:                                   newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime(ms.DatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount:                                    newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount(ms.DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount:                                          newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount(ms.DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount:                                          newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount(ms.DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved:                                           newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved(ms.DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools:                                                    newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools(ms.DatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools),
+		metricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished:                                               newMetricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished(ms.DatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished),
+		metricDatabricksSparkExecutorDiskUsed:                                                                                    newMetricDatabricksSparkExecutorDiskUsed(ms.DatabricksSparkExecutorDiskUsed),
+		metricDatabricksSparkExecutorMaxMemory:                                                                                   newMetricDatabricksSparkExecutorMaxMemory(ms.DatabricksSparkExecutorMaxMemory),
+		metricDatabricksSparkExecutorMemoryUsed:                                                                                  newMetricDatabricksSparkExecutorMemoryUsed(ms.DatabricksSparkExecutorMemoryUsed),
+		metricDatabricksSparkExecutorTotalInputBytes:                                                                             newMetricDatabricksSparkExecutorTotalInputBytes(ms.DatabricksSparkExecutorTotalInputBytes),
+		metricDatabricksSparkExecutorTotalShuffleRead:                                                                            newMetricDatabricksSparkExecutorTotalShuffleRead(ms.DatabricksSparkExecutorTotalShuffleRead),
+		metricDatabricksSparkExecutorTotalShuffleWrite:                                                                           newMetricDatabricksSparkExecutorTotalShuffleWrite(ms.DatabricksSparkExecutorTotalShuffleWrite),
+		metricDatabricksSparkExecutorMetricsDirectPoolMemory:                                                                     newMetricDatabricksSparkExecutorMetricsDirectPoolMemory(ms.DatabricksSparkExecutorMetricsDirectPoolMemory),
+		metricDatabricksSparkExecutorMetricsJvmHeapMemory:                                                                        newMetricDatabricksSparkExecutorMetricsJvmHeapMemory(ms.DatabricksSparkExecutorMetricsJvmHeapMemory),
+		metricDatabricksSparkExecutorMetricsJvmOffHeapMemory:                                                                     newMetricDatabricksSparkExecutorMetricsJvmOffHeapMemory(ms.DatabricksSparkExecutorMetricsJvmOffHeapMemory),
+		metricDatabricksSparkExecutorMetricsMajorGcCount:                                                                         newMetricDatabricksSparkExecutorMetricsMajorGcCount(ms.DatabricksSparkExecutorMetricsMajorGcCount),
+		metricDatabricksSparkExecutorMetricsMajorGcTime:                                                                          newMetricDatabricksSparkExecutorMetricsMajorGcTime(ms.DatabricksSparkExecutorMetricsMajorGcTime),
+		metricDatabricksSparkExecutorMetricsMappedPoolMemory:                                                                     newMetricDatabricksSparkExecutorMetricsMappedPoolMemory(ms.DatabricksSparkExecutorMetricsMappedPoolMemory),
+		metricDatabricksSparkExecutorMetricsMinorGcCount:                                                                         newMetricDatabricksSparkExecutorMetricsMinorGcCount(ms.DatabricksSparkExecutorMetricsMinorGcCount),
+		metricDatabricksSparkExecutorMetricsMinorGcTime:                                                                          newMetricDatabricksSparkExecutorMetricsMinorGcTime(ms.DatabricksSparkExecutorMetricsMinorGcTime),
+		metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory:                                                               newMetricDatabricksSparkExecutorMetricsOffHeapExecutionMemory(ms.DatabricksSparkExecutorMetricsOffHeapExecutionMemory),
+		metricDatabricksSparkExecutorMetricsOffHeapStorageMemory:                                                                 newMetricDatabricksSparkExecutorMetricsOffHeapStorageMemory(ms.DatabricksSparkExecutorMetricsOffHeapStorageMemory),
+		metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory:                                                                 newMetricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory(ms.DatabricksSparkExecutorMetricsOffHeapUnifiedMemory),
+		metricDatabricksSparkExecutorMetricsOnHeapExecutionMemory:                                                                newMetricDatabricksSparkExecutorMetricsOnHeapExecutionMemory(ms.DatabricksSparkExecutorMetricsOnHeapExecutionMemory),
+		metricDatabricksSparkExecutorMetricsOnHeapStorageMemory:                                                                  newMetricDatabricksSparkExecutorMetricsOnHeapStorageMemory(ms.DatabricksSparkExecutorMetricsOnHeapStorageMemory),
+		metricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory:                                                                  newMetricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory(ms.DatabricksSparkExecutorMetricsOnHeapUnifiedMemory),
+		metricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory:                                                              newMetricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory(ms.DatabricksSparkExecutorMetricsProcessTreeJvmRssMemory),
+		metricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory:                                                                newMetricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory(ms.DatabricksSparkExecutorMetricsProcessTreeJvmVMemory),
+		metricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory:                                                            newMetricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory(ms.DatabricksSparkExecutorMetricsProcessTreeOtherRssMemory),
+		metricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory:                                                              newMetricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory(ms.DatabricksSparkExecutorMetricsProcessTreeOtherVMemory),
+		metricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory:                                                           newMetricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory(ms.DatabricksSparkExecutorMetricsProcessTreePythonRssMemory),
+		metricDatabricksSparkExecutorMetricsProcessTreePythonVMemory:                                                             newMetricDatabricksSparkExecutorMetricsProcessTreePythonVMemory(ms.DatabricksSparkExecutorMetricsProcessTreePythonVMemory),
+		metricDatabricksSparkHiveExternalCatalogFileCacheHits:                                                                    newMetricDatabricksSparkHiveExternalCatalogFileCacheHits(ms.DatabricksSparkHiveExternalCatalogFileCacheHits),
+		metricDatabricksSparkHiveExternalCatalogFilesDiscovered:                                                                  newMetricDatabricksSparkHiveExternalCatalogFilesDiscovered(ms.DatabricksSparkHiveExternalCatalogFilesDiscovered),
+		metricDatabricksSparkHiveExternalCatalogHiveClientCalls:                                                                  newMetricDatabricksSparkHiveExternalCatalogHiveClientCalls(ms.DatabricksSparkHiveExternalCatalogHiveClientCalls),
+		metricDatabricksSparkHiveExternalCatalogParallelListingJobsCount:                                                         newMetricDatabricksSparkHiveExternalCatalogParallelListingJobsCount(ms.DatabricksSparkHiveExternalCatalogParallelListingJobsCount),
+		metricDatabricksSparkHiveExternalCatalogPartitionsFetched:                                                                newMetricDatabricksSparkHiveExternalCatalogPartitionsFetched(ms.DatabricksSparkHiveExternalCatalogPartitionsFetched),
+		metricDatabricksSparkJobNumActiveStages:                                                                                  newMetricDatabricksSparkJobNumActiveStages(ms.DatabricksSparkJobNumActiveStages),
+		metricDatabricksSparkJobNumActiveTasks:                                                                                   newMetricDatabricksSparkJobNumActiveTasks(ms.DatabricksSparkJobNumActiveTasks),
+		metricDatabricksSparkJobNumCompletedStages:                                                                               newMetricDatabricksSparkJobNumCompletedStages(ms.DatabricksSparkJobNumCompletedStages),
+		metricDatabricksSparkJobNumCompletedTasks:                                                                                newMetricDatabricksSparkJobNumCompletedTasks(ms.DatabricksSparkJobNumCompletedTasks),
+		metricDatabricksSparkJobNumFailedStages:                                                                                  newMetricDatabricksSparkJobNumFailedStages(ms.DatabricksSparkJobNumFailedStages),
+		metricDatabricksSparkJobNumFailedTasks:                                                                                   newMetricDatabricksSparkJobNumFailedTasks(ms.DatabricksSparkJobNumFailedTasks),
+		metricDatabricksSparkJobNumSkippedStages:                                                                                 newMetricDatabricksSparkJobNumSkippedStages(ms.DatabricksSparkJobNumSkippedStages),
+		metricDatabricksSparkJobNumSkippedTasks:                                                                                  newMetricDatabricksSparkJobNumSkippedTasks(ms.DatabricksSparkJobNumSkippedTasks),
+		metricDatabricksSparkJobNumTasks:                                                                                         newMetricDatabricksSparkJobNumTasks(ms.DatabricksSparkJobNumTasks),
+		metricDatabricksSparkJvmCPUTime:                                                                                          newMetricDatabricksSparkJvmCPUTime(ms.DatabricksSparkJvmCPUTime),
+		metricDatabricksSparkLiveListenerBusEventsPostedCount:                                                                    newMetricDatabricksSparkLiveListenerBusEventsPostedCount(ms.DatabricksSparkLiveListenerBusEventsPostedCount),
+		metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount:                                                     newMetricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount(ms.DatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount),
+		metricDatabricksSparkLiveListenerBusQueueAppstatusSize:                                                                   newMetricDatabricksSparkLiveListenerBusQueueAppstatusSize(ms.DatabricksSparkLiveListenerBusQueueAppstatusSize),
+		metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount:                                            newMetricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount(ms.DatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount),
+		metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize:                                                          newMetricDatabricksSparkLiveListenerBusQueueExecutormanagementSize(ms.DatabricksSparkLiveListenerBusQueueExecutormanagementSize),
+		metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount:                                                        newMetricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount(ms.DatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount),
+		metricDatabricksSparkLiveListenerBusQueueSharedSize:                                                                      newMetricDatabricksSparkLiveListenerBusQueueSharedSize(ms.DatabricksSparkLiveListenerBusQueueSharedSize),
+		metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount:                                                       newMetricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount(ms.DatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount),
+		metricDatabricksSparkLiveListenerBusQueueStreamsSize:                                                                     newMetricDatabricksSparkLiveListenerBusQueueStreamsSize(ms.DatabricksSparkLiveListenerBusQueueStreamsSize),
+		metricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount:                                                         newMetricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount(ms.DatabricksSparkSparkSQLOperationManagerHiveOperationsCount),
+		metricDatabricksSparkStageDiskBytesSpilled:                                                                               newMetricDatabricksSparkStageDiskBytesSpilled(ms.DatabricksSparkStageDiskBytesSpilled),
+		metricDatabricksSparkStageExecutorRunTime:                                                                                newMetricDatabricksSparkStageExecutorRunTime(ms.DatabricksSparkStageExecutorRunTime),
+		metricDatabricksSparkStageInputBytes:                                                                                     newMetricDatabricksSparkStageInputBytes(ms.DatabricksSparkStageInputBytes),
+		metricDatabricksSparkStageInputRecords:                                                                                   newMetricDatabricksSparkStageInputRecords(ms.DatabricksSparkStageInputRecords),
+		metricDatabricksSparkStageMemoryBytesSpilled:                                                                             newMetricDatabricksSparkStageMemoryBytesSpilled(ms.DatabricksSparkStageMemoryBytesSpilled),
+		metricDatabricksSparkStageOutputBytes:                                                                                    newMetricDatabricksSparkStageOutputBytes(ms.DatabricksSparkStageOutputBytes),
+		metricDatabricksSparkStageOutputRecords:                                                                                  newMetricDatabricksSparkStageOutputRecords(ms.DatabricksSparkStageOutputRecords),
+		metricDatabricksSparkTimerDagSchedulerMessageProcessingTime:                                                              newMetricDatabricksSparkTimerDagSchedulerMessageProcessingTime(ms.DatabricksSparkTimerDagSchedulerMessageProcessingTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime:          newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime:                                   newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime:             newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime: newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime:                                newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime:                    newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime:                        newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime:                                newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime:       newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime:      newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime:                     newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime:            newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime:                   newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime:                        newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime:                newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime:                   newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime),
+		metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime:              newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime(ms.DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime),
+		metricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime:                                            newMetricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime(ms.DatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime),
+		metricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime:                                   newMetricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime(ms.DatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime),
+		metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime:                                               newMetricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime(ms.DatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime),
+		metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime:                                              newMetricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime(ms.DatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime),
+		metricDatabricksTasksRunDuration:                                                                                         newMetricDatabricksTasksRunDuration(ms.DatabricksTasksRunDuration),
+		metricDatabricksTasksScheduleStatus:                                                                                      newMetricDatabricksTasksScheduleStatus(ms.DatabricksTasksScheduleStatus),
 	}
 	for _, op := range options {
 		op(mb)
@@ -8586,40 +8635,48 @@ func (mb *MetricsBuilder) updateCapacity(rm pmetric.ResourceMetrics) {
 }
 
 // ResourceMetricsOption applies changes to provided resource metrics.
-type ResourceMetricsOption func(pmetric.ResourceMetrics)
+type ResourceMetricsOption func(ResourceAttributesSettings, pmetric.ResourceMetrics)
 
 // WithDatabricksInstanceName sets provided value as "databricks.instance.name" attribute for current resource.
 func WithDatabricksInstanceName(val string) ResourceMetricsOption {
-	return func(rm pmetric.ResourceMetrics) {
-		rm.Resource().Attributes().PutStr("databricks.instance.name", val)
+	return func(ras ResourceAttributesSettings, rm pmetric.ResourceMetrics) {
+		if ras.DatabricksInstanceName.Enabled {
+			rm.Resource().Attributes().PutStr("databricks.instance.name", val)
+		}
 	}
 }
 
 // WithSparkAppID sets provided value as "spark.app.id" attribute for current resource.
 func WithSparkAppID(val string) ResourceMetricsOption {
-	return func(rm pmetric.ResourceMetrics) {
-		rm.Resource().Attributes().PutStr("spark.app.id", val)
+	return func(ras ResourceAttributesSettings, rm pmetric.ResourceMetrics) {
+		if ras.SparkAppID.Enabled {
+			rm.Resource().Attributes().PutStr("spark.app.id", val)
+		}
 	}
 }
 
 // WithSparkClusterID sets provided value as "spark.cluster.id" attribute for current resource.
 func WithSparkClusterID(val string) ResourceMetricsOption {
-	return func(rm pmetric.ResourceMetrics) {
-		rm.Resource().Attributes().PutStr("spark.cluster.id", val)
+	return func(ras ResourceAttributesSettings, rm pmetric.ResourceMetrics) {
+		if ras.SparkClusterID.Enabled {
+			rm.Resource().Attributes().PutStr("spark.cluster.id", val)
+		}
 	}
 }
 
 // WithSparkClusterName sets provided value as "spark.cluster.name" attribute for current resource.
 func WithSparkClusterName(val string) ResourceMetricsOption {
-	return func(rm pmetric.ResourceMetrics) {
-		rm.Resource().Attributes().PutStr("spark.cluster.name", val)
+	return func(ras ResourceAttributesSettings, rm pmetric.ResourceMetrics) {
+		if ras.SparkClusterName.Enabled {
+			rm.Resource().Attributes().PutStr("spark.cluster.name", val)
+		}
 	}
 }
 
 // WithStartTimeOverride overrides start time for all the resource metrics data points.
 // This option should be only used if different start time has to be set on metrics coming from different resources.
 func WithStartTimeOverride(start pcommon.Timestamp) ResourceMetricsOption {
-	return func(rm pmetric.ResourceMetrics) {
+	return func(ras ResourceAttributesSettings, rm pmetric.ResourceMetrics) {
 		var dps pmetric.NumberDataPointSlice
 		metrics := rm.ScopeMetrics().At(0).Metrics()
 		for i := 0; i < metrics.Len(); i++ {
@@ -8788,8 +8845,9 @@ func (mb *MetricsBuilder) EmitForResource(rmo ...ResourceMetricsOption) {
 	mb.metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime.emit(ils.Metrics())
 	mb.metricDatabricksTasksRunDuration.emit(ils.Metrics())
 	mb.metricDatabricksTasksScheduleStatus.emit(ils.Metrics())
+
 	for _, op := range rmo {
-		op(rm)
+		op(mb.resourceAttributesSettings, rm)
 	}
 	if ils.Metrics().Len() > 0 {
 		mb.updateCapacity(rm)
@@ -8802,8 +8860,8 @@ func (mb *MetricsBuilder) EmitForResource(rmo ...ResourceMetricsOption) {
 // produce metric representation defined in metadata and user settings, e.g. delta or cumulative.
 func (mb *MetricsBuilder) Emit(rmo ...ResourceMetricsOption) pmetric.Metrics {
 	mb.EmitForResource(rmo...)
-	metrics := pmetric.NewMetrics()
-	mb.metricsBuffer.MoveTo(metrics)
+	metrics := mb.metricsBuffer
+	mb.metricsBuffer = pmetric.NewMetrics()
 	return metrics
 }
 

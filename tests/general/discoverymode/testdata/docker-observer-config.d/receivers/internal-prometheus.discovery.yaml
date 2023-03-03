@@ -5,11 +5,11 @@ prometheus_simple:
     default:
       collection_interval: invalid
       labels:
-        label.one: ${LABEL_ONE_VALUE}
+        label_one: ${LABEL_ONE_VALUE}
     docker_observer:
       collection_interval: 1s
       labels:
-        label.two: ${LABEL_TWO_VALUE}
+        label_two: ${LABEL_TWO_VALUE}
   status:
     metrics:
       successful:

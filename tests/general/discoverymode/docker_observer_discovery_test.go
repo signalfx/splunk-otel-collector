@@ -125,8 +125,8 @@ func TestDockerObserver(t *testing.T) {
 							"config": map[string]any{
 								"collection_interval": "1s",
 								"labels": map[string]any{
-									"label.one": "${LABEL_ONE_VALUE}",
-									"label.two": "${LABEL_TWO_VALUE}",
+									"label_one": "${LABEL_ONE_VALUE}",
+									"label_two": "${LABEL_TWO_VALUE}",
 								},
 							},
 							"resource_attributes": map[string]any{},
@@ -185,8 +185,8 @@ func TestDockerObserver(t *testing.T) {
 						"config": map[string]any{
 							"collection_interval": "1s",
 							"labels": map[string]any{
-								"label.one": "actual.label.one.value",
-								"label.two": "actual.label.two.value",
+								"label_one": "actual.label.one.value",
+								"label_two": "actual.label.two.value",
 							},
 						},
 						"resource_attributes": map[string]any{},
@@ -218,8 +218,8 @@ receivers:
         config:
           collection_interval: 1s
           labels:
-            label.one: ${LABEL_ONE_VALUE}
-            label.two: ${LABEL_TWO_VALUE}
+            label_one: ${LABEL_ONE_VALUE}
+            label_two: ${LABEL_TWO_VALUE}
         resource_attributes: {}
         rule: type == "container" and labels['test.id'] == '${SPLUNK_TEST_ID}' and
           port == 9090

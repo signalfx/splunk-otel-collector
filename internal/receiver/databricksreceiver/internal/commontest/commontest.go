@@ -17,8 +17,8 @@ package commontest
 import (
 	"path/filepath"
 
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/receiver/receivertest"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver/internal/metadata"
 )
@@ -26,7 +26,7 @@ import (
 var TestdataDir = filepath.Join("..", "..", "testdata")
 
 func NewTestMetricsBuilder() *metadata.MetricsBuilder {
-	return metadata.NewMetricsBuilder(metadata.DefaultMetricsSettings(), component.BuildInfo{})
+	return metadata.NewMetricsBuilder(metadata.DefaultMetricsSettings(), receivertest.NewNopCreateSettings())
 }
 
 func MetricsByName(pm pmetric.Metrics) map[string]pmetric.Metric {

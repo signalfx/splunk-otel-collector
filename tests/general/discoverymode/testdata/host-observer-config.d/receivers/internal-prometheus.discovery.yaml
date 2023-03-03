@@ -5,12 +5,12 @@ prometheus_simple:
     default:
       collection_interval: invalid
       labels:
-        label.one: ${LABEL_ONE_VALUE}
-        label.three: overwritten by discovery property
+        label_one: ${LABEL_ONE_VALUE}
+        label_three: overwritten by discovery property
     host_observer:
       collection_interval: 1s
       labels:
-        label.two: ${LABEL_TWO_VALUE}
+        label_two: ${LABEL_TWO_VALUE}
   status:
     metrics:
       successful:

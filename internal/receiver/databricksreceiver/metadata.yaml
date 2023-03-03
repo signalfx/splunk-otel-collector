@@ -2,15 +2,19 @@ name: databricksreceiver
 resource_attributes:
   databricks.instance.name:
     description: The name of the Databricks instance as defined by the value of the "instance_name" field in the config
+    enabled: true
     type: string
   spark.cluster.id:
     description: The ID of the Spark cluster
+    enabled: true
     type: string
   spark.cluster.name:
     description: The name of the Spark cluster
+    enabled: true
     type: string
   spark.app.id:
     description: The ID of the Spark cluster app
+    enabled: true
     type: string
 attributes:
   job.id:

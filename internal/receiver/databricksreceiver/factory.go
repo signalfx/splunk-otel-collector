@@ -58,7 +58,7 @@ func newReceiverFactory() receiver.CreateMetricsFunc {
 			logger:          settings.Logger,
 			rmp:             databricks.NewRunMetricsProvider(dbrsvc),
 			dbrmp:           databricks.MetricsProvider{Svc: dbrsvc},
-			metricsBuilder:  metadata.NewMetricsBuilder(dbrcfg.Metrics, settings.BuildInfo),
+			metricsBuilder:  metadata.NewMetricsBuilder(dbrcfg.Metrics, settings),
 			scmb:            spark.ClusterMetricsBuilder{Ssvc: ssvc},
 			semb: spark.ExtraMetricsBuilder{
 				Ssvc:   ssvc,

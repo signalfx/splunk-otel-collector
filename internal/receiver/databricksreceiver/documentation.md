@@ -2307,7 +2307,7 @@ A snapshot of the pause/run status per task taken at each scrape
 
 | Name | Description | Values | Enabled |
 | ---- | ----------- | ------ | ------- |
-| databricks.instance.name | The name of the Databricks instance as defined by the value of the "instance_name" field in the config | Any Str | false |
-| spark.app.id | The ID of the Spark cluster app | Any Str | false |
-| spark.cluster.id | The ID of the Spark cluster | Any Str | false |
-| spark.cluster.name | The name of the Spark cluster | Any Str | false |
+| databricks.instance.name | The name of the Databricks instance as defined by the value of the "instance_name" field in the config | Any Str | true |
+| spark.app.id | The ID of the Spark cluster app | Any Str | true |
+| spark.cluster.id | The ID of the Spark cluster | Any Str | true |
+| spark.cluster.name | The name of the Spark cluster | Any Str | true |

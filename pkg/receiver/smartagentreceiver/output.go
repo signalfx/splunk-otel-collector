@@ -30,7 +30,7 @@ import (
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/receiver/smartagentreceiver/converter"
+	"github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver/converter"
 )
 
 const internalTransport = "internal"

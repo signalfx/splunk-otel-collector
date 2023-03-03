@@ -38,7 +38,7 @@ import (
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/extension/smartagentextension"
+	"github.com/signalfx/splunk-otel-collector/pkg/extension/smartagentextension"
 )
 
 const setOutputErrMsg = "unable to set output field of monitor"

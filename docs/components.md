@@ -71,7 +71,7 @@ The distribution offers support for the following components.
 | [span_metrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanmetricsprocessor)                  | [in development]            |
 | [span](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanprocessor)                                 | [alpha]                     |
 | [tail_sampling](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)                | [beta]                      |
-| [timestamp](../pkg/processor/timestamp)                                                                                                     | [in development]            |
+| [timestamp](../pkg/processor/timestampprocessor)                                                                                                     | [in development]            |
 | [transform](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor)                       | [alpha]                     |
 
 </div>

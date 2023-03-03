@@ -10,6 +10,10 @@ on:
 env:
   OTEL_VERSION: latest
 
+concurrency:
+  group: deps-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deps-test:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
@@ -47,26 +51,33 @@ jobs:
       - name: Compile
         shell: bash
         if: success() && (steps.update-deps.outputs.has_changes == 'true')
-        run: make binaries-all-sys 2>&1 | tee -a output.txt
+        run: make binaries-all-sys 2>&1 | tee -a /tmp/output.txt
       - name: Run Unit Tests
         shell: bash
         if: success() && (steps.update-deps.outputs.has_changes == 'true')
         run: make test 2>&1 | tee -a /tmp/output.txt
+      - uses: actions/cache@v3
+        if: success() && (steps.update-deps.outputs.has_changes == 'true')
+        with:
+          path: .cache/buildx/agent-bundle-amd64
+          key: agent-bundle-buildx-amd64-${{ hashFiles('agent-bundle/**') }}
+          restore-keys: |
+            agent-bundle-buildx-amd64-
       - name: Build Image
         shell: bash
         if: success() && (steps.update-deps.outputs.has_changes == 'true')
         env:
           DOCKER_BUILDKIT: '1'
-          SKIP_COMPILE: "true"
-        run: make docker-otelcol 2>&1 | tee -a /tmp/output.txt
+        run: |
+          make docker-otelcol SKIP_COMPILE=true 2>&1 | tee -a /tmp/output.txt
       - name: Run Integration Tests
         shell: bash
         if: success() && (steps.update-deps.outputs.has_changes == 'true')
         env:
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
-        run: make integration-test 2>&1 | tee -a output.txt
+        run: make integration-test 2>&1 | tee -a /tmp/output.txt
       - name: Generate Report
-        if: failure() && (steps.update-deps.outputs.has_changes == 'true')
+        if: (github.event_name == 'schedule') && failure() && (steps.update-deps.outputs.has_changes == 'true')
         run: |
           run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           echo "[$run_url]($run_url)" > deps-test.md
@@ -77,7 +88,7 @@ jobs:
           fi
       - name: Create Issue
         uses: peter-evans/create-issue-from-file@v4
-        if: failure() && (steps.update-deps.outputs.has_changes == 'true')
+        if: (github.event_name == 'schedule') && failure() && (steps.update-deps.outputs.has_changes == 'true')
         with:
           title: Dependency Test Report
           content-filepath: ./deps-test.md

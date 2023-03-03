@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Copyright Splunk Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Script to be used in the k8s container to unmount filesystems that we don't
+# need for calculating free disk space, but that seem to cause problems with
+# certain k8s clusters if left mounted.
+
+# Must only use tools that are present in the final k8s image.
+
+# Also the pod must be run with the SYS_ADMIN capability to be able to unmount
+# stuff.
+
+set -x
+
+# Ignore errors with unmounting because some paths may not exist
+set +e
+
+umount_all_under_dir() {
+  for d in $(cat /proc/mounts | grep -Eo "$1[[:alnum:]/~\.-]*"); do
+    umount -R $d > /dev/null 2>&1
+  done
+}
+
+umount_all_under_dir /hostfs/var/lib/docker/aufs/mnt
+umount_all_under_dir /hostfs/var/lib/docker/containers
+umount_all_under_dir /hostfs/var/lib/kubelet
+umount_all_under_dir /hostfs/run/docker/netns
+umount_all_under_dir /hostfs/var/lib/rkt
+
+# Take in args for additional paths to unmount
+for d in $@; do
+  umount_all_under_dir $d
+done

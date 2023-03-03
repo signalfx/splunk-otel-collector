@@ -9,6 +9,7 @@ on:
       - '.github/workflows/integration-test.yml'
       - 'go.mod'
       - 'go.sum'
+      - 'agent-bundle/**'
       - 'cmd/otelcol/**'
       - 'internal/**'
       - '!internal/buildscripts/*'
@@ -29,6 +30,11 @@ jobs:
     name: docker-otelcol
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        # TODO: add support for arm64
+        # ARCH: [ "amd64", "arm64" ]
+        ARCH: [ "amd64" ]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -45,19 +51,36 @@ jobs:
             /home/runner/go/pkg/mod
             /home/runner/.cache/go-build
           key: v1-go-pkg-mod-${{ runner.os }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
-      - run: make docker-otelcol
+      - uses: actions/cache@v3
+        with:
+          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
+          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('agent-bundle/**') }}
+          restore-keys: |
+            agent-bundle-buildx-${{ matrix.ARCH }}-
+      - uses: docker/setup-qemu-action@v2
+        if: ${{ matrix.ARCH != 'amd64' }}
+        with:
+          platforms: ${{ matrix.ARCH }}
+      - run: |
+          make docker-otelcol ARCH=${{ matrix.ARCH }}
         env:
           DOCKER_BUILDKIT: '1'
       - run: docker save -o ./bin/image.tar otelcol:latest
       - uses: actions/upload-artifact@v3
         with:
-          name: otelcol
+          name: otelcol-${{ matrix.ARCH }}
           path: ./bin
 
   integration-vet:
     name: integration-vet
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        # TODO: add support for arm64
+        # ARCH: [ "amd64", "arm64" ]
+        ARCH: [ "amd64" ]
+      fail-fast: false
     needs: [docker-otelcol]
     steps:
       - uses: actions/checkout@v3
@@ -77,8 +100,12 @@ jobs:
           key: v1-go-pkg-mod-${{ runner.os }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
       - uses: actions/download-artifact@v3
         with:
-          name: otelcol
+          name: otelcol-${{ matrix.ARCH }}
           path: ./bin
+      - uses: docker/setup-qemu-action@v2
+        if: ${{ matrix.ARCH != 'amd64' }}
+        with:
+          platforms: ${{ matrix.ARCH }}
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
       - run: make integration-vet
@@ -93,6 +120,9 @@ jobs:
     strategy:
       matrix:
         GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]
+        # TODO: add support for arm64
+        # ARCH: [ "amd64", "arm64" ]
+        ARCH: [ "amd64" ]
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
@@ -112,8 +142,12 @@ jobs:
           key: go-${{ github.job }}-${{ runner.os }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
       - uses: actions/download-artifact@v3
         with:
-          name: otelcol
+          name: otelcol-${{ matrix.ARCH }}
           path: ./bin
+      - uses: docker/setup-qemu-action@v2
+        if: ${{ matrix.ARCH != 'amd64' }}
+        with:
+          platforms: ${{ matrix.ARCH }}
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
       - run: make integration-test-split

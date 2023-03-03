@@ -140,6 +140,51 @@ libsplunk:
     paths:
       - instrumentation/dist/libsplunk_*.so
 
+agent-bundle-linux:
+  extends: .trigger-filter
+  stage: build
+  parallel:
+    matrix:
+      - ARCH: amd64
+        TAG: main
+      # TODO: add support for arm64
+      # - ARCH: arm64
+      #   TAG: arm
+  tags:
+    - $TAG
+  cache:
+    key:
+      files:
+        - agent-bundle/**
+    paths:
+      - .cache/buildx/agent-bundle-${ARCH}
+  script:
+    - *docker-reader-role
+    - make -C agent-bundle agent-bundle-linux ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
+  artifacts:
+    paths:
+      - dist/agent-bundle_linux_${ARCH}.tar.gz
+
+agent-bundle-windows:
+  extends: .trigger-filter
+  stage: build
+  tags:
+    - windows
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  cache:
+    key:
+      files:
+        - agent-bundle/collectd-plugins.yaml
+        - agent-bundle/scripts/windows/requirements.txt
+    paths:
+      - .cache/pip
+  script:
+    - ./agent-bundle/scripts/windows/make.ps1 bundle
+  artifacts:
+    paths:
+      - dist/agent-bundle_windows_amd64.zip
+
 .instrumentation-deb-rpm:
   extends: .trigger-filter
   stage: package
@@ -215,13 +260,14 @@ build-linux-image:
   stage: package
   needs:
     - compile
+    - agent-bundle-linux
   parallel:
     matrix:
       - ARCH: [amd64, arm64, ppc64le]
   retry: 2
   script:
     - *docker-reader-role
-    - make docker-otelcol ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO} SKIP_COMPILE=true
+    - make docker-otelcol ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO} SKIP_COMPILE=true SKIP_BUNDLE=true
     - arch=$( docker inspect --format='{{.Architecture}}' otelcol:${ARCH} )
     - if [[ "$arch" != "$ARCH" ]]; then exit 1; fi
   after_script:
@@ -235,6 +281,7 @@ build-linux-image:
   stage: package
   needs:
     - compile
+    - agent-bundle-linux
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
@@ -271,13 +318,14 @@ build-tar:
     PKG_TYPE: tar
   artifacts:
     paths:
-      - dist/*.tar.gz
+      - dist/splunk-otel-collector*.tar.gz
 
 build-msi:
   extends: .trigger-filter
   stage: package
   needs:
     - sign-exe
+    - agent-bundle-windows
   before_script:
     # build the MSI with the signed exe
     - mkdir -p bin
@@ -347,7 +395,7 @@ sign-tar:
     OPTIONS: archive
     DOWNLOAD_DIR: dist/signed
   before_script:
-    - pushd dist && tar -czvf packages.tar.gz *.tar.gz && popd
+    - pushd dist && tar -czvf packages.tar.gz splunk-otel-collector*.tar.gz && popd
   after_script:
     - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
     - mv dist/splunk-otel-collector*.tar.gz dist/signed/
@@ -378,6 +426,33 @@ sign-msi:
     paths:
       - dist/signed/*.msi
 
+sign-agent-bundles:
+  extends:
+    - .trigger-filter
+    - .submit-signing-request
+  stage: sign-packages
+  needs:
+    - agent-bundle-linux
+    - agent-bundle-windows
+  variables:
+    ARTIFACT: dist/packages.tar.gz
+    SIGN_TYPE: GPG
+    OPTIONS: archive
+    DOWNLOAD_DIR: dist/signed
+  before_script:
+    - pushd dist && tar -czvf packages.tar.gz *.tar.gz *.zip && popd
+  after_script:
+    - tar -xzvf dist/signed/packages.tar.gz -C dist/signed/
+    - mv dist/*.tar.gz dist/signed/
+    - mv dist/*.zip dist/signed/
+    - rm dist/signed/packages.tar.gz
+  artifacts:
+    paths:
+      - dist/signed/*.tar.gz
+      - dist/signed/*.tar.gz.asc
+      - dist/signed/*.zip
+      - dist/signed/*.zip.asc
+
 verify-signed-packages:
   extends: .trigger-filter
   stage: sign-packages
@@ -392,15 +467,18 @@ verify-signed-packages:
     - sign-rpms
     - sign-msi
     - sign-tar
+    - agent-bundle-linux
+    - agent-bundle-windows
+    - sign-agent-bundles
   script:
     - |
       set -ex
-      for pkg in dist/*.rpm dist/*.deb dist/*.msi dist/*.tar.gz; do
+      for pkg in dist/*.rpm dist/*.deb dist/*.msi dist/*.tar.gz dist/*.zip; do
         if [[ ! -f dist/signed/$(basename $pkg) ]]; then
           echo "$pkg was not signed!" >&2
           exit 1
         fi
-        if [[ "${pkg##*.}" = "gz" && ! -f dist/signed/$(basename $pkg).asc ]]; then
+        if [[ "${pkg##*.}" =~ gz|zip ]] && [[ ! -f dist/signed/$(basename $pkg).asc ]]; then
           echo "$pkg was not signed!" >&2
           exit 1
         fi
@@ -473,12 +551,14 @@ build-push-windows-image:
   stage: release
   dependencies:
     - sign-exe
+    - agent-bundle-windows
   tags:
     - windows
   retry: 2
   before_script:
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
     - Copy-Item .\dist\signed\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
+    - Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
   script:
     - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
     - |
@@ -490,9 +570,8 @@ build-push-windows-image:
         $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows-dev"
         $IMAGE_TAG = $env:CI_COMMIT_SHA
       }
-      $SMART_AGENT_RELEASE = $((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v"))
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 --build-arg SMART_AGENT_RELEASE=${SMART_AGENT_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
       docker push ${IMAGE_NAME}:${IMAGE_TAG}
       if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
@@ -513,12 +592,14 @@ build-push-windows2022-image:
   stage: release
   dependencies:
     - sign-exe
+    - agent-bundle-windows
   tags:
     - windows2022
   retry: 2
   before_script:
     - Copy-Item .\dist\signed\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
     - Copy-Item .\dist\signed\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
+    - Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
   script:
     - docker login -u $env:CIRCLECI_QUAY_USERNAME -p $env:CIRCLECI_QUAY_PASSWORD quay.io
     - |
@@ -531,9 +612,8 @@ build-push-windows2022-image:
         $IMAGE_NAME = "quay.io/signalfx/splunk-otel-collector-windows-dev"
         $IMAGE_TAG = "${env:CI_COMMIT_SHA}-2022"
       }
-      $SMART_AGENT_RELEASE = $((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v"))
       echo "Building ${IMAGE_NAME}:${IMAGE_TAG}"
-      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg SMART_AGENT_RELEASE=${SMART_AGENT_RELEASE} -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+      docker build -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
       echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG}"
       docker push ${IMAGE_NAME}:${IMAGE_TAG}
       if ($env:CI_COMMIT_BRANCH -eq "main" -or $env:CI_COMMIT_TAG -match '^v\d+\.\d+\.\d+$') {
@@ -697,6 +777,7 @@ github-release:
     - build-push-windows-image
     - build-push-windows2022-image
     - choco-release
+    - sign-agent-bundles
   script:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/

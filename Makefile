@@ -34,9 +34,12 @@ BUILD_X2=-X $(BUILD_INFO_IMPORT_PATH_CORE).Version=$(VERSION)
 BUILD_INFO=-ldflags "${BUILD_X1} ${BUILD_X2}"
 BUILD_INFO_TESTS=-ldflags "-X $(BUILD_INFO_IMPORT_PATH_TESTS).Version=$(VERSION)"
 
-SMART_AGENT_RELEASE=$(shell cat internal/buildscripts/packaging/smart-agent-release.txt)
 SKIP_COMPILE=false
 ARCH=amd64
+# TODO: add support for arm64
+# BUNDLE_SUPPORTED_ARCHS := amd64 arm64
+BUNDLE_SUPPORTED_ARCHS := amd64
+SKIP_BUNDLE=false
 
 # For integration testing against local changes you can run
 # SPLUNK_OTEL_COLLECTOR_IMAGE='otelcol:latest' make -e docker-otelcol integration-test
@@ -170,16 +173,23 @@ docker-otelcol:
 ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-linux_$(ARCH)
 endif
-	cp ./bin/otelcol_linux_$(ARCH) ./cmd/otelcol/otelcol
-	cp ./bin/translatesfx_linux_$(ARCH) ./cmd/otelcol/translatesfx
-	cp ./bin/migratecheckpoint_linux_$(ARCH) ./cmd/otelcol/migratecheckpoint
-	cp ./internal/buildscripts/packaging/collect-libs.sh ./cmd/otelcol/collect-libs.sh
-	docker buildx build --platform linux/$(ARCH) -o type=image,name=otelcol:$(ARCH),push=false --build-arg ARCH=$(ARCH) --build-arg SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) --build-arg DOCKER_REPO=$(DOCKER_REPO) ./cmd/otelcol/
+ifneq ($(filter $(ARCH), $(BUNDLE_SUPPORTED_ARCHS)),)
+ifneq ($(SKIP_BUNDLE), true)
+	$(MAKE) -C agent-bundle agent-bundle-linux ARCH=$(ARCH) DOCKER_REPO=$(DOCKER_REPO)
+endif
+endif
+	rm -rf ./cmd/otelcol/dist
+	mkdir -p ./cmd/otelcol/dist
+	cp ./bin/otelcol_linux_$(ARCH) ./cmd/otelcol/dist/otelcol
+	cp ./bin/translatesfx_linux_$(ARCH) ./cmd/otelcol/dist/translatesfx
+	cp ./bin/migratecheckpoint_linux_$(ARCH) ./cmd/otelcol/dist/migratecheckpoint
+	cp ./internal/buildscripts/packaging/collect-libs.sh ./cmd/otelcol/dist/collect-libs.sh
+ifneq ($(filter $(ARCH), $(BUNDLE_SUPPORTED_ARCHS)),)
+	cp ./dist/agent-bundle_linux_$(ARCH).tar.gz ./cmd/otelcol/dist/agent-bundle.tar.gz
+endif
+	docker buildx build --platform linux/$(ARCH) -o type=image,name=otelcol:$(ARCH),push=false --build-arg ARCH=$(ARCH) --build-arg DOCKER_REPO=$(DOCKER_REPO) ./cmd/otelcol/
 	docker tag otelcol:$(ARCH) otelcol:latest
-	rm ./cmd/otelcol/otelcol
-	rm ./cmd/otelcol/translatesfx
-	rm ./cmd/otelcol/migratecheckpoint
-	rm ./cmd/otelcol/collect-libs.sh
+	rm -rf ./cmd/otelcol/dist
 
 .PHONY: binaries-all-sys
 binaries-all-sys: binaries-darwin_amd64 binaries-linux_amd64 binaries-linux_arm64 binaries-windows_amd64 binaries-linux_ppc64le
@@ -219,15 +229,21 @@ binaries-linux_ppc64le:
 ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-linux_$(ARCH)
 endif
+ifneq ($(filter $(ARCH), $(BUNDLE_SUPPORTED_ARCHS)),)
+ifneq ($(SKIP_BUNDLE), true)
+	$(MAKE) -C agent-bundle agent-bundle-linux ARCH=$(ARCH) DOCKER_REPO=$(DOCKER_REPO)
+endif
+endif
 	docker build -t otelcol-fpm internal/buildscripts/packaging/fpm
-	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) -e SMART_AGENT_RELEASE=$(SMART_AGENT_RELEASE) otelcol-fpm
+	docker run --rm -v $(CURDIR):/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) otelcol-fpm
 
 .PHONY: msi
 msi:
 ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-windows_amd64
 endif
-	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(SMART_AGENT_RELEASE)" "$(DOCKER_REPO)"
+	test -f ./dist/agent-bundle_windows_amd64.zip || (echo "./dist/agent-bundle_windows_amd64.zip not found!" && exit 1)
+	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(DOCKER_REPO)"
 
 .PHONY: update-examples
 update-examples:

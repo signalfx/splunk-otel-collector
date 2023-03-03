@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/build-and-test.yml'
       - '.github/workflows/scripts/**'
+      - 'agent-bundle/**'
       - 'cmd/**'
       - 'internal/**'
       - 'pkg/**'
@@ -227,15 +228,66 @@ jobs:
           name: ${{ matrix.SYS_BINARIES }}
           path: |
             ./bin/*
-  
+
+  agent-bundle-linux:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        # TODO: add support for arm64
+        # ARCH: ["amd64", "arm64"]
+        ARCH: [ "amd64" ]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/cache@v3
+        with:
+          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
+          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('agent-bundle/**') }}
+          restore-keys: |
+            agent-bundle-buildx-${{ matrix.ARCH }}-
+
+      - uses: docker/setup-qemu-action@v2
+        if: ${{ matrix.ARCH != 'amd64' }}
+        with:
+          platforms: ${{ matrix.ARCH }}
+
+      - run: make -C agent-bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: agent-bundle-linux-${{ matrix.ARCH }}
+          path: ./dist/agent-bundle_linux_${{ matrix.ARCH }}.tar.gz
+
+  agent-bundle-windows:
+    runs-on: windows-2019
+    env:
+      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/cache@v3
+        with:
+          path: ${{ env.PIP_CACHE_DIR }}
+          key: agent-bundle-windows-pip-${{ hashFiles('agent-bundle/collectd-plugins.yaml', 'agent-bundle/scripts/windows/requirements.txt') }}
+
+      - run: ./agent-bundle/scripts/windows/make.ps1 bundle
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: agent-bundle-windows
+          path: ./dist/agent-bundle_windows_amd64.zip
+
   build-package:
     name: build-package
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
-    needs: [cross-compile]
+    needs: [cross-compile, agent-bundle-linux]
     strategy:
       matrix:
         SYS_PACKAGE: [ "deb", "rpm", "tar" ]
+        ARCH: [ "amd64", "arm64" ]
+      fail-fast: false
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -251,44 +303,61 @@ jobs:
             ~/go/bin
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
-      - name: Downloading binaries-linux_amd64
+      - name: Downloading binaries-linux_${{ matrix.ARCH }}
         uses: actions/download-artifact@v3
         with:
-          name: binaries-linux_amd64
+          name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
 
-      - name: Downloading binaries-linux_arm64
-        uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v3
+        if: ${{ matrix.ARCH == 'amd64' }}
         with:
-          name: binaries-linux_arm64
-          path: ./bin
+          name: agent-bundle-linux-${{ matrix.ARCH }}
+          path: ./dist
 
-      - name: Build ${{ matrix.SYS_PACKAGE }} amd64 package
-        run: |
-          gitRef=(${GITHUB_REF//// })
-          if [[ "${gitRef[1]}" = "tags" ]] ;
-          then
-            echo "TAG_NAME=${gitRef[2]}" >> $GITHUB_ENV
-          else
-            echo "TAG_NAME=" >> $GITHUB_ENV
-          fi
-          make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true VERSION="${TAG_NAME:-}" ARCH="amd64"
-      
-      - name: Build ${{ matrix.SYS_PACKAGE }} arm64 package
-        run: |
-          make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true VERSION="${TAG_NAME:-}" ARCH="arm64"
-      
+      - name: Build ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package
+        run: make ${{ matrix.SYS_PACKAGE }}-package SKIP_COMPILE=true SKIP_BUNDLE=true VERSION="" ARCH="${{ matrix.ARCH }}"
+
+      - name: Uploading ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
+          path: ./dist/splunk-otel-collector*
+
+  test-package:
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    timeout-minutes: 60
+    needs: [build-package]
+    strategy:
+      matrix:
+        SYS_PACKAGE: [ "deb", "rpm", "tar" ]
+        ARCH: [ "amd64", "arm64" ]
+        TEST_CASE: [ "install", "upgrade" ]
+        exclude:
+          - SYS_PACKAGE: "tar"
+            TEST_CASE: "upgrade"
+      fail-fast: false
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: ${{ matrix.SYS_PACKAGE }}-${{ matrix.ARCH }}-package
+          path: ./dist
+
+      - uses: docker/setup-qemu-action@v2
+        if: ${{ matrix.ARCH != 'amd64' }}
+        with:
+          platforms: ${{ matrix.ARCH }}
+
       - name: Setup python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Caching dependency
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/pip
-          key: v1-pytest-${{ env.PYTHON_VERSION }}-${{ hashFiles(env.REQUIREMENTS_PATH) }}
+          cache: 'pip'
+          cache-dependency-path: ${{ env.REQUIREMENTS_PATH }}
 
       - name: Install pytest
         run: |
@@ -299,34 +368,28 @@ jobs:
               python get-pip.py 'pip==${{ env.PIP_VERSION }}'
           fi
           pip install -r "${{ env.REQUIREMENTS_PATH }}"
-      
-      - name: Test ${{ matrix.SYS_PACKAGE }} package installation
-        timeout-minutes: 30
+
+      - name: Test ${{ matrix.SYS_PACKAGE }} ${{ matrix.ARCH }} package ${{ matrix.TEST_CASE }}
         run: |
           mkdir -p ${{ env.RESULT_PATH }}
           pytest -n2 --verbose -m ${{ matrix.SYS_PACKAGE }} \
+            -k "${{ matrix.ARCH }} and ${{ matrix.TEST_CASE }}" \
             --junitxml=${{ env.RESULT_PATH }}/results.xml \
             --html=${{ env.RESULT_PATH }}/results.html \
             --self-contained-html \
             internal/buildscripts/packaging/tests/package_test.py
-      
-      - name: Uploading ${{ matrix.SYS_PACKAGE }} package artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.SYS_PACKAGE }}-package
-          path: ./dist
 
       - name: Uploading test result artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.SYS_PACKAGE }}-package-installation-test-result
+          name: ${{ matrix.SYS_PACKAGE }}-${{ matrix.ARCH }}-${{ matrix.TEST_CASE }}-test-result
           path: ${{ env.RESULT_PATH }}
 
   windows-msi:
     name: windows-msi
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
-    needs: [cross-compile]
+    needs: [cross-compile, agent-bundle-windows]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -347,21 +410,21 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - id: latest
-        uses: gregziegan/fetch-latest-release@v2.0.0
+        uses: pozetroninc/github-action-get-latest-release@v0.7.0
         with:
-          repo_path: signalfx/splunk-otel-collector
+          repository: signalfx/splunk-otel-collector
+          excludes: prerelease, draft
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: agent-bundle-windows
+          path: ./dist
 
       - name: Build MSI
         run: |
           mkdir -p dist
-          gitRef=(${GITHUB_REF//// })
-          if [[ "${gitRef[1]}" = "tags" ]] ;
-          then
-            echo "TAG_NAME=${gitRef[2]}" >> $GITHUB_ENV
-          else
-            echo "TAG_NAME=" >> $GITHUB_ENV
-          fi
-          VERSION_TAG="${TAG_NAME:-${{ steps.latest.outputs.tag_name }}.${{ github.run_number }}}"
+          VERSION_TAG="${TAG_NAME:-${{ steps.latest.outputs.release }}.${{ github.run_number }}}"
           make msi SKIP_COMPILE=true VERSION="${VERSION_TAG#v}"
       
       - name: Uploading msi build artifacts
@@ -399,6 +462,8 @@ jobs:
           Start-Sleep -s 30
           powershell.exe -File .github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
           powershell.exe -File .github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
+          Test-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
+          Test-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
 
   windows-choco:
     name: windows-choco
@@ -482,7 +547,7 @@ jobs:
     name: docker-otelcol
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
-    needs: [cross-compile]
+    needs: [cross-compile, agent-bundle-linux]
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64", "ppc64le" ]
@@ -505,7 +570,7 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Set up QEMU
-        if: ${{ matrix.ARCH != 'amd64'}}
+        if: ${{ matrix.ARCH != 'amd64' }}
         uses: docker/setup-qemu-action@v2
         with:
           platforms: ${{ matrix.ARCH }}
@@ -515,10 +580,16 @@ jobs:
         with:
           name: binaries-linux_${{ matrix.ARCH }}
           path: ./bin
-      
+
+      - uses: actions/download-artifact@v3
+        if: ${{ matrix.ARCH == 'amd64' }}
+        with:
+          name: agent-bundle-linux-${{ matrix.ARCH }}
+          path: ./dist
+
       - name: Build ${{ matrix.ARCH }} docker image
         run: |
-          make docker-otelcol SKIP_COMPILE=true ARCH=${{ matrix.ARCH }}
+          make docker-otelcol SKIP_COMPILE=true SKIP_BUNDLE=true ARCH=${{ matrix.ARCH }}
 
       - name: Check image arch
         run: |
@@ -563,11 +634,27 @@ jobs:
           # ensure journalctl can run with the collected libraries
           docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
           docker exec otelcol /bin/journalctl
+          docker rm -f otelcol
+
+      - name: Check python and java
+        if: ${{ matrix.ARCH == 'amd64' }}
+        run: |
+          # ensure python and java can run with the collected libraries
+          docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}
+          docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/bin/python --version
+          docker exec otelcol /usr/lib/splunk-otel-collector/agent-bundle/jre/bin/java -version
+          # ensure collectd-python plugins were installed
+          docker exec otelcol bash -c 'test -d /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/'
+          if [[ "$(docker exec otelcol ls /usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ | wc -l)" -eq 0 ]]; then
+            echo "/usr/lib/splunk-otel-collector/agent-bundle/collectd-python/ is empty!" >&2
+            exit 1
+          fi
+          docker rm -f otelcol
 
   docker-otelcol-windows:
     name: docker-otelcol-windows
     runs-on: windows-2019
-    needs: [cross-compile]
+    needs: [cross-compile, agent-bundle-windows]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -578,14 +665,21 @@ jobs:
           name: binaries-windows_amd64
           path: ./bin
 
+      - uses: actions/download-artifact@v3
+        with:
+          name: agent-bundle-windows
+          path: ./dist
+
       - name: Build docker image
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
           Copy-Item .\bin\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
-          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 --build-arg SMART_AGENT_RELEASE=$((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v")) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
+          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:1809 -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\translatesfx.exe
+          Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
       
       - name: Run docker image
         run: |
@@ -602,7 +696,7 @@ jobs:
   docker-otelcol-windows-2022:
     name: docker-otelcol-windows-2022
     runs-on: windows-2022
-    needs: [cross-compile]
+    needs: [cross-compile, agent-bundle-windows]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -613,14 +707,21 @@ jobs:
           name: binaries-windows_amd64
           path: ./bin
 
+      - uses: actions/download-artifact@v3
+        with:
+          name: agent-bundle-windows
+          path: ./dist
+
       - name: Build docker image
         run: |
           $ErrorActionPreference = 'Stop'
           Copy-Item .\bin\otelcol_windows_amd64.exe .\cmd\otelcol\otelcol.exe
           Copy-Item .\bin\translatesfx_windows_amd64.exe .\cmd\otelcol\translatesfx.exe
-          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 --build-arg SMART_AGENT_RELEASE=$((Get-Content internal\buildscripts\packaging\smart-agent-release.txt).TrimStart("v")) -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
+          Copy-Item .\dist\agent-bundle_windows_amd64.zip .\cmd\otelcol\agent-bundle_windows_amd64.zip
+          docker build -t otelcol-windows --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022 -f .\cmd\otelcol\Dockerfile.windows .\cmd\otelcol\
           Remove-Item .\cmd\otelcol\otelcol.exe
           Remove-Item .\cmd\otelcol\translatesfx.exe
+          Remove-Item .\cmd\otelcol\agent-bundle_windows_amd64.zip
 
       - name: Run docker image
         run: |

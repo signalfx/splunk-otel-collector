@@ -12,6 +12,10 @@ on:
 env:
   GO_VERSION: '1.19.6'
 
+concurrency:
+  group: trivy-scans-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   trivy-fs-scan:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
@@ -32,6 +36,12 @@ jobs:
   trivy-image-scan:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        # TODO: add support for arm64
+        # ARCH: [ "amd64", "arm64" ]
+        ARCH: [ "amd64" ]
+      fail-fast: false
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -46,7 +56,18 @@ jobs:
             /home/runner/go/pkg/mod
             /home/runner/.cache/go-build
           key: v1-go-pkg-mod-${{ runner.os }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
-      - run: make docker-otelcol
+      - uses: actions/cache@v3
+        with:
+          path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
+          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('agent-bundle/**') }}
+          restore-keys: |
+            agent-bundle-buildx-${{ matrix.ARCH }}-
+      - uses: docker/setup-qemu-action@v2
+        if: ${{ matrix.ARCH != 'amd64' }}
+        with:
+          platforms: ${{ matrix.ARCH }}
+      - run: |
+          make docker-otelcol ARCH=${{ matrix.ARCH }}
         env:
           DOCKER_BUILDKIT: '1'
       - name: Run trivy image scan

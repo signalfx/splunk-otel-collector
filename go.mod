@@ -11,7 +11,7 @@ require (
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/vault v1.12.2
-	github.com/hashicorp/vault-plugin-auth-gcp v0.14.0
+	github.com/hashicorp/vault-plugin-auth-gcp v0.15.0
 	github.com/hashicorp/vault/api v1.8.3
 	github.com/jaegertracing/jaeger v1.41.0
 	github.com/knadh/koanf v1.5.0
@@ -274,7 +274,7 @@ require (
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/go-secure-stdlib/awsutil v0.1.6 // indirect
 	github.com/hashicorp/go-secure-stdlib/mlock v0.1.2 // indirect
-	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.6 // indirect
+	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.7 // indirect
 	github.com/hashicorp/go-secure-stdlib/strutil v0.1.2 // indirect
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect

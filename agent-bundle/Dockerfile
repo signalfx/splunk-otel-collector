@@ -275,28 +275,25 @@ FROM collectd as python-plugins
 
 ARG PIP_VERSION
 
-RUN python3 -m pip install --upgrade pip==$PIP_VERSION
-
-# rust is required for compiling cryptography on ppc64le
-RUN if [ "$ARCH" = "ppc64le" ]; then apt-get install -y cargo rustc; fi
+RUN /usr/local/bin/python3 -m pip install --upgrade pip==$PIP_VERSION
 
 # Mirror the same dir structure that exists in the original source
 COPY scripts/get-collectd-plugins.py /opt/scripts/
 COPY scripts/requirements.txt /opt/
 COPY collectd-plugins.yaml /opt/
 
-RUN python3 -m pip install -r /opt/requirements.txt
+RUN /usr/local/bin/python3 -m pip install -r /opt/requirements.txt
 
 RUN mkdir -p /opt/collectd-python &&\
-    python3 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python
+    /usr/local/bin/python3 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python
 
 COPY python/ /opt/sfxpython/
-RUN cd /opt/sfxpython && python3 -m pip install .
+RUN cd /opt/sfxpython && /usr/local/bin/python3 -m pip install .
 
-RUN python3 -m pip list
+RUN /usr/local/bin/python3 -m pip list
 
 # Remove pip to avoid usage in python monitor and in exec'd container
-RUN python3 -m pip uninstall pip -y
+RUN /usr/local/bin/python3 -m pip uninstall pip -y
 # Delete all bundled wheels
 RUN find /usr/local/lib/python3.8 -name "*.whl" -delete
 

@@ -242,7 +242,7 @@ msi:
 ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-windows_amd64
 endif
-	test -f ./dist/agent-bundle_windows_amd64.zip || (echo "./dist/agent-bundle_windows_amd64.zip not found!" && exit 1)
+	test -f ./dist/agent-bundle_windows_amd64.zip || (echo "./dist/agent-bundle_windows_amd64.zip not found! Either download a pre-built bundle to ./dist/, or run './agent-bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to ./dist/." && exit 1)
 	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(DOCKER_REPO)"
 
 .PHONY: update-examples

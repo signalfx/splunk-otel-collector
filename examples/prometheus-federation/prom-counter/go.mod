@@ -1,4 +1,4 @@
-module app
+module github.com/signalfx/splunk-otel-collector/examples/prometheus-federation/prom-counter
 
 go 1.19
 

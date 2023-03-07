@@ -60,9 +60,9 @@ https://github.com/signalfx/splunk-otel-collector/releases).
    ```yaml
    extensions:
      smartagent:
-       bundleDir: "C:\path\to\extracted\folder\agent-bundle"
+       bundleDir: "C:\\path\\to\\extracted\\folder\\agent-bundle"
        collectd:
-         configDir: "C:\path\to\extracted\folder\agent-bundle\run\collectd"
+         configDir: "C:\\path\\to\\extracted\\folder\\agent-bundle\\run\\collectd"
    ```
 
 ## Development

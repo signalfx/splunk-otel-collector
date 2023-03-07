@@ -75,7 +75,9 @@ jobs:
         if: success() && (steps.update-deps.outputs.has_changes == 'true')
         env:
           SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
-        run: make integration-test 2>&1 | tee -a /tmp/output.txt
+        run: |
+          ln -sf otelcol_linux_amd64 bin/otelcol
+          make integration-test 2>&1 | tee -a /tmp/output.txt
       - name: Generate Report
         if: (github.event_name == 'schedule') && failure() && (steps.update-deps.outputs.has_changes == 'true')
         run: |

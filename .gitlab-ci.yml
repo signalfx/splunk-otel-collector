@@ -58,7 +58,6 @@ fossa:
   only:
     variables:
       - $CI_COMMIT_BRANCH == "main"
-      - $CI_COMMIT_BRANCH == "agent-bundle-amd64"
       - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   except:
     - schedules

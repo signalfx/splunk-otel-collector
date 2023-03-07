@@ -9,13 +9,13 @@ on:
       - '.github/workflows/windows-test.yml'
       - 'cmd/**'
       - 'internal/**'
+      - 'pkg/**'
       - 'tests/**'
       - 'Makefile'
       - 'go.mod'
       - 'go.sum'
       - '!**.md'
-      - '!internal/buildscripts/packaging/tests/deployments/**'
-      - '!internal/buildscripts/packaging/release/**'
+      - '!internal/buildscripts/**'
 
 concurrency:
   group: windows-test-${{ github.event.pull_request.number || github.ref }}

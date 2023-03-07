@@ -7,14 +7,15 @@ on:
   pull_request:
     paths:
       - '.github/workflows/integration-test.yml'
-      - 'go.mod'
-      - 'go.sum'
-      - 'cmd/otelcol/**'
+      - 'cmd/**'
       - 'internal/**'
-      - '!internal/buildscripts/*'
-      - '!internal/buildscripts/packaging/*/**'
       - 'pkg/**'
       - 'tests/**'
+      - 'Makefile'
+      - 'go.mod'
+      - 'go.sum'
+      - '!**.md'
+      - '!internal/buildscripts/**'
 
 concurrency:
   group: integration-test-${{ github.event.pull_request.number || github.ref }}

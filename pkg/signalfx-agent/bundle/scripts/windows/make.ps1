@@ -29,7 +29,7 @@ $COLLECTD_COMMIT = "4d3327b14cf4359029613baf4f90c4952702105e"
 $ErrorActionPreference = "Stop"
 
 $scriptDir = split-path -parent $MyInvocation.MyCommand.Definition
-$repoDir = "$scriptDir\..\..\.."
+$repoDir = "$scriptDir\..\..\..\..\.."
 
 . "$scriptDir\common.ps1"
 . "$scriptDir\bundle.ps1"

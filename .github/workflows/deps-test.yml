@@ -60,7 +60,7 @@ jobs:
         if: success() && (steps.update-deps.outputs.has_changes == 'true')
         with:
           path: .cache/buildx/agent-bundle-amd64
-          key: agent-bundle-buildx-amd64-${{ hashFiles('agent-bundle/**') }}
+          key: agent-bundle-buildx-amd64-${{ hashFiles('pkg/signalfx-agent/bundle/**') }}
           restore-keys: |
             agent-bundle-buildx-amd64-
       - name: Build Image

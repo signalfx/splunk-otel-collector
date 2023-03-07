@@ -175,7 +175,7 @@ ifneq ($(SKIP_COMPILE), true)
 endif
 ifneq ($(filter $(ARCH), $(BUNDLE_SUPPORTED_ARCHS)),)
 ifneq ($(SKIP_BUNDLE), true)
-	$(MAKE) -C agent-bundle agent-bundle-linux ARCH=$(ARCH) DOCKER_REPO=$(DOCKER_REPO)
+	$(MAKE) -C pkg/signalfx-agent/bundle agent-bundle-linux ARCH=$(ARCH) DOCKER_REPO=$(DOCKER_REPO)
 endif
 endif
 	rm -rf ./cmd/otelcol/dist
@@ -231,7 +231,7 @@ ifneq ($(SKIP_COMPILE), true)
 endif
 ifneq ($(filter $(ARCH), $(BUNDLE_SUPPORTED_ARCHS)),)
 ifneq ($(SKIP_BUNDLE), true)
-	$(MAKE) -C agent-bundle agent-bundle-linux ARCH=$(ARCH) DOCKER_REPO=$(DOCKER_REPO)
+	$(MAKE) -C pkg/signalfx-agent/bundle agent-bundle-linux ARCH=$(ARCH) DOCKER_REPO=$(DOCKER_REPO)
 endif
 endif
 	docker build -t otelcol-fpm internal/buildscripts/packaging/fpm

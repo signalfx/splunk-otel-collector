@@ -14,7 +14,7 @@
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $scriptDir = split-path -parent $MyInvocation.MyCommand.Definition
-$repoDir = "$scriptDir\..\..\.."
+$repoDir = "$scriptDir\..\..\..\..\.."
 . $scriptDir\common.ps1
 
 $BUILD_DIR="$repoDir\build"

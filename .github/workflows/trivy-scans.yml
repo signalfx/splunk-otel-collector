@@ -59,7 +59,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('agent-bundle/**') }}
+          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('pkg/signalfx-agent/bundle/**') }}
           restore-keys: |
             agent-bundle-buildx-${{ matrix.ARCH }}-
       - uses: docker/setup-qemu-action@v2

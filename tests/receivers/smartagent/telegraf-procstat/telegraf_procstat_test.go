@@ -17,14 +17,7 @@
 package tests
 
 import (
-	"context"
-	"os"
-	"strings"
 	"testing"
-	"time"
-
-	docker "github.com/docker/docker/client"
-	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -32,19 +25,8 @@ import (
 func TestTelegrafProcstatReceiverProvidesAllMetrics(t *testing.T) {
 	expectedMetrics := "all.yaml"
 	// telegraf/procstat is missing cpu metrics on arm64 as an apparently unsupported platform.
-	// This arch check should be made available to a helper as similar differences are discovered
-	image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE")
-	if strings.TrimSpace(image) != "" {
-		client, err := docker.NewClientWithOpts(docker.FromEnv)
-		require.NoError(t, err)
-		client.NegotiateAPIVersion(context.Background())
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		inspect, _, err := client.ImageInspectWithRaw(ctx, image)
-		require.NoError(t, err)
-		if inspect.Architecture == "arm64" {
-			expectedMetrics = "arm64.yaml"
-		}
+	if testutils.CollectorImageIsForArm(t) {
+		expectedMetrics = "arm64.yaml"
 	}
 	testutils.AssertAllMetricsReceived(t, expectedMetrics, "all_metrics_config.yaml", nil, nil)
 }

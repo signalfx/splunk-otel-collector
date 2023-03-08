@@ -9,36 +9,27 @@ on:
 
 env:
   OTEL_VERSION: latest
+  GO_VERSION: 1.19.6
+  GOTESPLIT_TOTAL: "10"
 
 concurrency:
   group: deps-test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  deps-test:
+  # Update the core/contrib dependencies to ${{ env.OTEL_VERSION }}.
+  # If there are any changes to the go.mod and go.sum files, cache them and the downloaded dependencies.
+  # Only run the steps in the downstream build/test jobs if the cache exists (i.e. when there are actual updates).
+  update-deps:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
-      - name: Setup Go
-        uses: actions/setup-go@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
         with:
-          go-version: 1.19.6
-      - name: Setup Go Environment
-        run: |
-          echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-      - name: Caching dependency
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/go/bin
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          go-version: ${{ env.GO_VERSION }}
       - name: Update Core/Contrib Dependencies to ${{ env.OTEL_VERSION }}
         id: update-deps
-        shell: bash
         run: |
           OTEL_VERSION=${{ env.OTEL_VERSION }} ./internal/buildscripts/update-deps 2>&1 | tee -a /tmp/output.txt
           if git diff --exit-code; then
@@ -46,36 +37,15 @@ jobs:
           else
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
-      - name: Compile
-        shell: bash
+      - name: Cache updated dependencies
         if: success() && (steps.update-deps.outputs.has_changes == 'true')
-        run: make binaries-all-sys 2>&1 | tee -a /tmp/output.txt
-      - name: Run Unit Tests
-        shell: bash
-        if: success() && (steps.update-deps.outputs.has_changes == 'true')
-        run: make test 2>&1 | tee -a /tmp/output.txt
-      - uses: actions/cache@v3
-        if: success() && (steps.update-deps.outputs.has_changes == 'true')
+        uses: actions/cache/save@v3
         with:
-          path: .cache/buildx/agent-bundle-amd64
-          key: agent-bundle-buildx-amd64-${{ hashFiles('pkg/signalfx-agent/bundle/**') }}
-          restore-keys: |
-            agent-bundle-buildx-amd64-
-      - name: Build Image
-        shell: bash
-        if: success() && (steps.update-deps.outputs.has_changes == 'true')
-        env:
-          DOCKER_BUILDKIT: '1'
-        run: |
-          make docker-otelcol SKIP_COMPILE=true 2>&1 | tee -a /tmp/output.txt
-      - name: Run Integration Tests
-        shell: bash
-        if: success() && (steps.update-deps.outputs.has_changes == 'true')
-        env:
-          SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
-        run: |
-          ln -sf otelcol_linux_amd64 bin/otelcol
-          make integration-test 2>&1 | tee -a /tmp/output.txt
+          path: |
+            **/go.mod
+            **/go.sum
+            ~/go/pkg/mod
+          key: update-deps-${{ github.run_id }}
       - name: Generate Report
         if: (github.event_name == 'schedule') && failure() && (steps.update-deps.outputs.has_changes == 'true')
         run: |
@@ -93,3 +63,181 @@ jobs:
           title: Dependency Test Report
           content-filepath: ./deps-test.md
           labels: report, automated issue
+
+  compile:
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    needs: [ update-deps ]
+    strategy:
+      matrix:
+        SYS_BINARIES: [ "binaries-darwin_amd64", "binaries-linux_amd64", "binaries-linux_arm64", "binaries-windows_amd64", "binaries-linux_ppc64le" ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Restore cache from update-deps
+        id: restore-cache
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            **/go.mod
+            **/go.sum
+            ~/go/pkg/mod
+          key: update-deps-${{ github.run_id }}
+      - uses: actions/setup-go@v3
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - run: make ${{ matrix.SYS_BINARIES }}
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+      - uses: actions/upload-artifact@v3
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        with:
+          name: ${{ matrix.SYS_BINARIES }}
+          path: bin/
+
+  unit-tests:
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    needs: [ update-deps ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Restore cache from update-deps
+        id: restore-cache
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            **/go.mod
+            **/go.sum
+            ~/go/pkg/mod
+          key: update-deps-${{ github.run_id }}
+      - uses: actions/setup-go@v3
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - run: make test
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+
+  docker-otelcol:
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    needs: [ compile ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Restore cache from update-deps
+        id: restore-cache
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            **/go.mod
+            **/go.sum
+            ~/go/pkg/mod
+          key: update-deps-${{ github.run_id }}
+      - uses: actions/setup-go@v3
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v3
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        with:
+          path: .cache/buildx/agent-bundle-amd64
+          key: agent-bundle-buildx-amd64-${{ hashFiles('pkg/signalfx-agent/bundle/**') }}
+          restore-keys: |
+            agent-bundle-buildx-amd64-
+      - uses: actions/download-artifact@v3
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        with:
+          name: binaries-linux_amd64
+          path: bin/
+      - name: Build and save otelcol image
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        run: |
+          make docker-otelcol SKIP_COMPILE=true
+          docker save -o ./bin/image.tar otelcol:latest
+      - uses: actions/upload-artifact@v3
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        with:
+          name: docker-otelcol
+          path: bin/image.tar
+
+  integration-vet:
+    name: integration-vet
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    needs: [ docker-otelcol ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Restore cache from update-deps
+        id: restore-cache
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            **/go.mod
+            **/go.sum
+            ~/go/pkg/mod
+          key: update-deps-${{ github.run_id }}
+      - uses: actions/setup-go@v3
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/download-artifact@v3
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        with:
+          name: binaries-linux_amd64
+          path: bin/
+      - uses: actions/download-artifact@v3
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        with:
+          name: docker-otelcol
+          path: bin/
+      - name: make integration-vet
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        run: |
+          docker load -i ./bin/image.tar
+          chmod a+x ./bin/*
+          make integration-vet
+        env:
+          SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
+
+  integration-test:
+    name: integration-test
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    needs: [ docker-otelcol ]
+    strategy:
+      matrix:
+        GOTESPLIT_INDEX: [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+      - name: Restore cache from update-deps
+        id: restore-cache
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            **/go.mod
+            **/go.sum
+            ~/go/pkg/mod
+          key: update-deps-${{ github.run_id }}
+      - uses: actions/setup-go@v3
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/download-artifact@v3
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        with:
+          name: binaries-linux_amd64
+          path: bin/
+      - uses: actions/download-artifact@v3
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        with:
+          name: docker-otelcol
+          path: bin/
+      - name: make integration-test-split
+        if: steps.restore-cache.outputs.cache-hit == 'true'
+        run: |
+          docker load -i ./bin/image.tar
+          chmod a+x ./bin/*
+          make integration-test-split
+        env:
+          SPLUNK_OTEL_COLLECTOR_IMAGE: 'otelcol:latest'
+          GOTESPLIT_TOTAL: "${{ env.GOTESPLIT_TOTAL }}"
+          GOTESPLIT_INDEX: "${{ matrix.GOTESPLIT_INDEX }}"

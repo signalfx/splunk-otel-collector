@@ -105,6 +105,8 @@ func TestK8sObserver(t *testing.T) {
 	stdout, stderr, err := cluster.Kubectl(
 		"exec", "-n", namespace, collectorPodName, "--", "bash", "-c",
 		`SPLUNK_DEBUG_CONFIG_SERVER=false \
+SPLUNK_DISCOVERY_EXTENSIONS_host_observer_ENABLED=false \
+SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_ENABLED=false \
 SPLUNK_DISCOVERY_RECEIVERS_smartagent_CONFIG_extraDimensions_x3a__x3a_three_x2e_key='three.value.from.env.var.property' \
 /otelcol --config=/config/config.yaml --config-dir=/config.d --discovery --dry-run`)
 	require.NoError(t, err)
@@ -326,6 +328,8 @@ func daemonSetManifest(cluster *kubeutils.KindCluster, namespace, serviceAccount
 					"/otelcol", "--config=/config/config.yaml", "--config-dir=/config.d", "--discovery",
 					// TODO update w/ resource_attributes when supported
 					"--set", "splunk.discovery.receivers.smartagent.config.extraDimensions::three.key='three.value.from.cmdline.property'",
+					"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
+					"--set", `splunk.discovery.extensions.docker_observer.enabled=false`,
 				},
 				Env: []corev1.EnvVar{
 					{Name: "OTLP_ENDPOINT", Value: otlpEndpoint},

@@ -2,6 +2,8 @@
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
 FROM debian:buster
 
+ENV DEBIAN_FRONTEND noninteractive
+
 RUN apt-get update &&\
     apt-get install -yq ca-certificates curl procps systemd wget
 

@@ -14,4 +14,4 @@ RUN /install-deps.sh
 
 RUN git config --global --add safe.directory /repo
 
-CMD ./internal/buildscripts/packaging/fpm/$PACKAGE/build.sh "$VERSION" "$ARCH" "$OUTPUT_DIR" "$SMART_AGENT_RELEASE"
+CMD ./internal/buildscripts/packaging/fpm/$PACKAGE/build.sh "$VERSION" "$ARCH" "$OUTPUT_DIR"

@@ -22,47 +22,16 @@ SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 VERSION="${1:-}"
 ARCH="${2:-amd64}"
 OUTPUT_DIR="${3:-$REPO_DIR/dist}"
-SMART_AGENT_RELEASE="${4:-}"
 BUNDLE_BASE_DIR="/splunk-otel-collector"
-AGENT_BUNDLE_INSTALL_DIR="$BUNDLE_BASE_DIR/agent-bundle"
 OTELCOL_INSTALL_PATH="$BUNDLE_BASE_DIR/bin/otelcol"
 TRANSLATESFX_INSTALL_PATH="$BUNDLE_BASE_DIR/bin/translatesfx"
-
-tar_download_smart_agent() {
-    local tag="$1"
-    local buildroot="$2"
-    local api_url=""
-    local dl_url=""
-
-    if [ "$tag" = "latest" ]; then
-        tag=$( curl -sfL "$SMART_AGENT_RELEASE_URL/latest" | jq -r '.tag_name' )
-        if [ -z "$tag" ]; then
-            echo "Failed to get tag_name for latest release from $SMART_AGENT_RELEASE_URL/latest" >&2
-            exit 1
-        fi
-    fi
-
-    api_url="$SMART_AGENT_RELEASE_URL/tags/$tag"
-    dl_url="$SMART_AGENT_DOWNLOAD_URL/$tag/signalfx-agent-${tag#v}.tar.gz"
-
-
-    echo "Downloading $dl_url ..."
-    curl -sfL "$dl_url" -o "$buildroot/signalfx-agent.tar.gz"
-
-    mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
-    tar -xzf "$buildroot/signalfx-agent.tar.gz" -C "$buildroot/"
-    mv "$buildroot/signalfx-agent" "$buildroot/$AGENT_BUNDLE_INSTALL_DIR"
-    find "$buildroot/$AGENT_BUNDLE_INSTALL_DIR" -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
-    rm -f "$buildroot/$AGENT_BUNDLE_INSTALL_DIR/bin/signalfx-agent"
-    rm -f "$buildroot/$AGENT_BUNDLE_INSTALL_DIR/bin/agent-status"
-    rm -f "$buildroot/signalfx-agent.tar.gz"
-}
 
 tar_setup_files_and_permissions() {
     local otelcol="$1"
     local translatesfx="$2"
     local config_folder="$3"
     local buildroot="$4"
+    local bundle_path="$5"
 
     create_user_group
 
@@ -79,6 +48,13 @@ tar_setup_files_and_permissions() {
     cp -f "$translatesfx" "$buildroot/$TRANSLATESFX_INSTALL_PATH"
     sudo chown root:root "$buildroot/$TRANSLATESFX_INSTALL_PATH"
     sudo chmod 755 "$buildroot/$TRANSLATESFX_INSTALL_PATH"
+
+    if [[ -n "$bundle_path" ]]; then
+        mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
+        tar -xzf "$bundle_path" -C "$buildroot/$BUNDLE_BASE_DIR"
+        sudo chown -R root:root "$buildroot/$BUNDLE_BASE_DIR"
+        sudo chmod -R 755 "$buildroot/$BUNDLE_BASE_DIR"
+    fi
 }
 
 if [[ -z "$VERSION" ]]; then
@@ -86,21 +62,18 @@ if [[ -z "$VERSION" ]]; then
 fi
 VERSION="${VERSION#v}"
 
-if [[ -z "$SMART_AGENT_RELEASE" ]]; then
-    SMART_AGENT_RELEASE="$(cat $SMART_AGENT_RELEASE_PATH)"
-fi
-
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
 translatesfx_path="$REPO_DIR/bin/translatesfx_linux_${ARCH}"
 config_folder_path="$REPO_DIR/cmd/otelcol/config/collector"
+agent_bundle_path="$REPO_DIR/dist/agent-bundle_linux_${ARCH}.tar.gz"
 
 buildroot="$(mktemp -d)"
 
-if [ "$ARCH" = "amd64" ]; then
-    tar_download_smart_agent "$SMART_AGENT_RELEASE" "$buildroot"
+if [[ "$ARCH" != "amd64" ]]; then
+    agent_bundle_path=""
 fi
 
-tar_setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$config_folder_path" "$buildroot"
+tar_setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$config_folder_path" "$buildroot" "$agent_bundle_path"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -113,4 +86,5 @@ sudo fpm -s dir -t tar -n "${PKG_NAME}_${VERSION}_${ARCH}" -v "$VERSION" -f -p "
     "$buildroot/"=/
 
 cd "$OUTPUT_DIR"
-gzip "${PKG_NAME}_${VERSION}_${ARCH}.tar"
+gzip -f "${PKG_NAME}_${VERSION}_${ARCH}.tar"
+rm -f "${PKG_NAME}_${VERSION}_${ARCH}.tar"

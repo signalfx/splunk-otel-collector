@@ -22,7 +22,6 @@ SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 VERSION="${1:-}"
 ARCH="${2:-amd64}"
 OUTPUT_DIR="${3:-$REPO_DIR/dist}"
-SMART_AGENT_RELEASE="${4:-}"
 
 if [[ -z "$VERSION" ]]; then
     VERSION="$( get_version )"
@@ -32,23 +31,20 @@ fi
 VERSION="${VERSION/'-'/'~'}"
 VERSION="${VERSION#v}"
 
-if [[ -z "$SMART_AGENT_RELEASE" ]]; then
-    SMART_AGENT_RELEASE="$(cat $SMART_AGENT_RELEASE_PATH)"
-fi
-
 otelcol_path="$REPO_DIR/bin/otelcol_linux_${ARCH}"
 translatesfx_path="$REPO_DIR/bin/translatesfx_linux_${ARCH}"
+agent_bundle_path="$REPO_DIR/dist/agent-bundle_linux_${ARCH}.tar.gz"
 
 buildroot="$(mktemp -d)"
 
 if [[ "$ARCH" = "arm64" ]]; then
     ARCH="aarch64"
+    agent_bundle_path=""
 elif [[ "$ARCH" = "amd64" ]]; then
     ARCH="x86_64"
-    download_smart_agent "$SMART_AGENT_RELEASE" "$buildroot"
 fi
 
-setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$buildroot"
+setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$buildroot" "$agent_bundle_path"
 
 mkdir -p "$OUTPUT_DIR"
 

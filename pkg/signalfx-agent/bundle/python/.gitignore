@@ -1,0 +1,4 @@
+virtualenv/
+.mypy_cache/
+*.egg-info/
+dist/

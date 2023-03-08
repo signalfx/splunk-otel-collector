@@ -47,12 +47,12 @@ COPY bin/translatesfx_windows_amd64.exe /project/bin/translatesfx_windows_amd64.
 COPY cmd/ /project/cmd
 COPY internal/buildscripts/packaging/fpm/ /project/internal/buildscripts/packaging/fpm
 COPY internal/buildscripts/packaging/msi/ /project/internal/buildscripts/packaging/msi
+COPY dist/agent-bundle_windows_amd64.zip /project/dist/agent-bundle_windows_amd64.zip
 
 RUN cp /project/internal/buildscripts/packaging/msi/msi-builder/docker-entrypoint.sh /docker-entrypoint.sh && \
     chmod a+x /docker-entrypoint.sh
 
 ENV OUTPUT_DIR=/project/dist
-ENV SMART_AGENT_RELEASE=latest
 ENV VERSION=""
 
 WORKDIR /work

@@ -39,9 +39,6 @@ SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"
 
 FLUENTD_CONFIG_INSTALL_DIR="/etc/otel/collector/fluentd"
 
-SMART_AGENT_RELEASE_PATH="${FPM_DIR}/../smart-agent-release.txt"
-SMART_AGENT_RELEASE_URL="https://api.github.com/repos/signalfx/signalfx-agent/releases"
-SMART_AGENT_DOWNLOAD_URL="https://github.com/signalfx/signalfx-agent/releases/download/"
 BUNDLE_BASE_DIR="/usr/lib/splunk-otel-collector"
 AGENT_BUNDLE_INSTALL_DIR="$BUNDLE_BASE_DIR/agent-bundle"
 
@@ -68,38 +65,11 @@ create_user_group() {
         sudo useradd --system --user-group --no-create-home --shell /sbin/nologin $SERVICE_USER
 }
 
-download_smart_agent() {
-    local tag="$1"
-    local buildroot="$2"
-    local api_url=""
-    local dl_url=""
-
-    if [ "$tag" = "latest" ]; then
-        tag=$( curl -sfL "$SMART_AGENT_RELEASE_URL/latest" | jq -r '.tag_name' )
-        if [ -z "$tag" ]; then
-            echo "Failed to get tag_name for latest release from $SMART_AGENT_RELEASE_URL/latest" >&2
-            exit 1
-        fi
-    fi
-
-    dl_url="$SMART_AGENT_DOWNLOAD_URL/$tag/signalfx-agent-${tag#v}.tar.gz"
-
-    echo "Downloading $dl_url ..."
-    curl -sfL "$dl_url" -o "$buildroot/signalfx-agent.tar.gz"
-
-    mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
-    tar -xzf "$buildroot/signalfx-agent.tar.gz" -C "$buildroot/$BUNDLE_BASE_DIR"
-    mv "$buildroot/$BUNDLE_BASE_DIR/signalfx-agent" "$buildroot/$AGENT_BUNDLE_INSTALL_DIR"
-    find "$buildroot/$AGENT_BUNDLE_INSTALL_DIR" -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
-    rm -f "$buildroot/$AGENT_BUNDLE_INSTALL_DIR/bin/signalfx-agent"
-    rm -f "$buildroot/$AGENT_BUNDLE_INSTALL_DIR/bin/agent-status"
-    rm -f "$buildroot/signalfx-agent.tar.gz"
-}
-
 setup_files_and_permissions() {
     local otelcol="$1"
     local translatesfx="$2"
     local buildroot="$3"
+    local bundle_path="$4"
 
     create_user_group
 
@@ -125,7 +95,9 @@ setup_files_and_permissions() {
     sudo chown root:root "$buildroot/$SERVICE_INSTALL_PATH"
     sudo chmod 644 "$buildroot/$SERVICE_INSTALL_PATH"
 
-    if [ -d "$buildroot/$BUNDLE_BASE_DIR" ]; then
+    if [[ -n "$bundle_path" ]]; then
+        mkdir -p "$buildroot/$BUNDLE_BASE_DIR"
+        tar -xzf "$bundle_path" -C "$buildroot/$BUNDLE_BASE_DIR"
         sudo chown -R $SERVICE_USER:$SERVICE_GROUP "$buildroot/$BUNDLE_BASE_DIR"
         sudo chmod -R 755 "$buildroot/$BUNDLE_BASE_DIR"
     fi

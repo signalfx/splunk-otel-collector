@@ -20,20 +20,12 @@ COPY config/collector/fargate_config.yaml ./
 COPY config/collector/ecs_ec2_config.yaml ./
 
 WORKDIR "C:\\Program Files\Splunk\OpenTelemetry Collector"
-ARG SMART_AGENT_RELEASE
 
-# Download and extract the smart agent bundle
-RUN Invoke-WebRequest -Uri "https://dl.signalfx.com/windows/release/zip/SignalFxAgent-$env:SMART_AGENT_RELEASE-win64.zip" -Outfile "SignalFxAgent-win64.zip"
+# Copy and extract the agent bundle
+COPY agent-bundle_windows_amd64.zip ./agent-bundle_windows_amd64.zip
 RUN Add-Type -AssemblyName System.IO.Compression.FileSystem ;\
-    [System.IO.Compression.ZipFile]::ExtractToDirectory('SignalFxAgent-win64.zip', '.')
-RUN Rename-Item -Path "SignalFxAgent" -NewName "agent-bundle"
-
-# Delete unnecessary files.
-RUN Remove-Item "SignalFxAgent-win64.zip" -force
-RUN Remove-Item "agent-bundle\bin" -force -Recurse
-RUN Remove-Item "agent-bundle\etc" -force -Recurse
-RUN Get-ChildItem -include __pycache__ -recurse -force | Remove-Item -force -Recurse
-RUN Get-ChildItem -recurse -path agent-bundle\* -include *.key,*.pem | Where-Object { $_.Directory -match 'test' } | Remove-Item -force
+    [System.IO.Compression.ZipFile]::ExtractToDirectory('agent-bundle_windows_amd64.zip', '.')
+RUN Remove-Item agent-bundle_windows_amd64.zip -force
 
 # Setting environment variables
 ENV SPLUNK_BUNDLE_DIR="C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle"

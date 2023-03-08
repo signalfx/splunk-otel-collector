@@ -43,7 +43,7 @@ def retry(function, exception, max_attempts=5, interval=5):
 
 
 @contextmanager
-def run_distro_container(distro, dockerfile=None, path=TESTS_DIR, buildargs=None, timeout=DEFAULT_TIMEOUT):
+def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, buildargs=None, timeout=DEFAULT_TIMEOUT):
     client = docker.from_env()
 
     if not dockerfile:
@@ -57,12 +57,25 @@ def run_distro_container(distro, dockerfile=None, path=TESTS_DIR, buildargs=None
     assert os.path.isfile(str(dockerfile)), f"{dockerfile} not found!"
 
     image, _ = retry(
-        lambda: client.images.build(path=str(path), dockerfile=str(dockerfile), pull=True, rm=True, forcerm=True, buildargs=buildargs),
+        lambda: client.images.build(
+            path=str(path),
+            dockerfile=str(dockerfile),
+            pull=True,
+            rm=True,
+            forcerm=True,
+            platform=f"linux/{arch}",
+            buildargs=buildargs,
+        ),
         docker.errors.BuildError,
     )
 
     container = client.containers.create(
-        image.id, detach=True, privileged=True, volumes={"/sys/fs/cgroup": {"bind": "/sys/fs/cgroup", "mode": "ro"}}
+        image.id,
+        detach=True,
+        privileged=True,
+        volumes={"/sys/fs/cgroup": {"bind": "/sys/fs/cgroup", "mode": "rw"}},
+        platform=f"linux/{arch}",
+        cgroupns="host",
     )
 
     try:

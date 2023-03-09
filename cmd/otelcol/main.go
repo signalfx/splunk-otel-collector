@@ -22,6 +22,7 @@ import (
 	"log"
 	"os"
 
+	_ "github.com/joho/godotenv/autoload"
 	flag "github.com/spf13/pflag"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"

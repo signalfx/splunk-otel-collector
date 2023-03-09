@@ -790,8 +790,8 @@ github-release:
       if [[ "${CI_COMMIT_TAG:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         mv dist/assets/agent-bundle_linux_amd64.tar.gz dist/assets/agent-bundle_${CI_COMMIT_TAG#v}_linux_amd64.tar.gz
         mv dist/assets/agent-bundle_linux_amd64.tar.gz.asc dist/assets/agent-bundle_${CI_COMMIT_TAG#v}_linux_amd64.tar.gz.asc
-        mv dist/signed/agent-bundle_windows_amd64.zip dist/signed/agent-bundle_${CI_COMMIT_TAG#v}_windows_amd64.zip
-        mv dist/signed/agent-bundle_windows_amd64.zip.asc dist/signed/agent-bundle_${CI_COMMIT_TAG#v}_windows_amd64.zip.asc
+        mv dist/assets/agent-bundle_windows_amd64.zip dist/assets/agent-bundle_${CI_COMMIT_TAG#v}_windows_amd64.zip
+        mv dist/assets/agent-bundle_windows_amd64.zip.asc dist/assets/agent-bundle_${CI_COMMIT_TAG#v}_windows_amd64.zip.asc
       fi
     - pushd dist/assets && shasum -a 256 * > checksums.txt && popd
     - |

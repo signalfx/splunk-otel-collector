@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## v0.72.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.72.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.72.0) and the [opentelemetry-collector-contrib v0.72.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.72.0) releases where appropriate.
+
+### 💡 Enhancements 💡
+- Add discoverybundler, initial embedded bundle.d, and enabled properties (#2601)
+- Changes to the pulsarexporter configuration to prepare with using upstream (#2650)
+- Correct module names for directory locations in examples (#2665)
+- Build linux and windows amd64 agent bundles (#2649)
+- Third party dependency updates.
+
+### 🧰 Bug fixes 🧰
+- Add k8sattributes to components.md (#2636)
+- Remove the k8s_tagger from components list (#2638)
+
 ## v0.71.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.71.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.71.0) and the [opentelemetry-collector-contrib v0.71.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.71.0) releases where appropriate.

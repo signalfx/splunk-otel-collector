@@ -10,7 +10,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 - [Added discoverybundler, initial embedded bundle.d and enabled properties for discovery mode](https://github.com/signalfx/splunk-otel-collector/pull/2601)
 - [Updated pulsarexporter configuration to prepare for using exporter from contrib](https://github.com/signalfx/splunk-otel-collector/pull/2650) 
 - [Corrected module names for directory locations in examples](https://github.com/signalfx/splunk-otel-collector/pull/2665)
-- Built linux and windows amd64 agent bundles (#2649)
+- [Built linux and windows amd64 agent bundles](https://github.com/signalfx/splunk-otel-collector/pull/2649)
 - Third party dependency updates
 
 ## v0.71.0

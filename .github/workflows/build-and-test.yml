@@ -48,14 +48,14 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
             ~/go/bin
+            ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Installing dependency
         run: |
           make install-tools
+
   gofmt:
     name: gofmt
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
@@ -74,9 +74,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
             ~/go/bin
+            ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: gofmt
@@ -106,9 +105,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
             ~/go/bin
+            ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Lint
@@ -134,9 +132,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
             ~/go/bin
+            ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Unit tests
@@ -170,9 +167,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
             ~/go/bin
+            ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
       
       - name: Coverage tests
@@ -212,9 +208,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
             ~/go/bin
+            ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Build Collector
@@ -297,9 +292,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
             ~/go/bin
+            ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Downloading binaries-linux_${{ matrix.ARCH }}
@@ -403,9 +397,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
             ~/go/bin
+            ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - id: latest
@@ -563,9 +556,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
             ~/go/bin
+            ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Set up QEMU

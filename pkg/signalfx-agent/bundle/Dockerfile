@@ -15,14 +15,13 @@
 ARG ARCH=amd64
 ARG JDK_VERSION=11.0.18_10
 ARG MAVEN_VERSION=3.6.0
-ARG PYTHON_VERSION=3.8.10
-ARG PIP_VERSION=21.0.1
+ARG PIP_VERSION=23.0.1
 ARG COLLECTD_VERSION=5.8.0-sfx0
 ARG COLLECTD_COMMIT=4d3327b14cf4359029613baf4f90c4952702105e
 ARG DOCKER_REPO=docker.io
 
 ######### Java monitor dependencies and monitor jar compilation
-FROM ${DOCKER_REPO}/ubuntu:18.04 as java
+FROM ${DOCKER_REPO}/ubuntu:20.04 as java
 
 ARG ARCH
 ARG JDK_VERSION
@@ -76,17 +75,18 @@ RUN cd /usr/src/agent-java/jmx &&\
 RUN rm -rf /tmp/apache-maven*
 
 
-###### Python bundle builder image ######
-FROM ${DOCKER_REPO}/ubuntu:18.04 as python
+###### Collectd builder image ######
+FROM ${DOCKER_REPO}/ubuntu:20.04 as collectd
 
 ARG ARCH
-ARG PYTHON_VERSION
+ARG COLLECTD_VERSION
+ARG COLLECTD_COMMIT
 
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
     apt-get update &&\
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
       curl \
       dpkg \
       net-tools \
@@ -97,17 +97,12 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
       autotools-dev \
       bison \
       build-essential \
-      debhelper \
       debian-archive-keyring \
       debootstrap \
       devscripts \
-      dh-make \
-      dpatch \
-      fakeroot \
       flex \
       gcc \
-      git-core \
-      iptables-dev \
+      libiptc-dev \
       libatasmart-dev \
       libcurl4-openssl-dev \
       libdbi0-dev \
@@ -118,7 +113,7 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
       libexpat1-dev \
       libffi-dev \
       libganglia1-dev \
-      libgcrypt11-dev \
+      libgcrypt20-dev \
       libglib2.0-dev \
       libldap2-dev \
       libltdl-dev \
@@ -132,11 +127,10 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
       libpcap-dev \
       libperl-dev \
       libpq-dev \
-      libprotobuf-c0-dev \
+      libprotobuf-c-dev \
       librabbitmq-dev \
       librdkafka-dev \
       librrd-dev \
-      libsensors4-dev \
       libsnmp-dev \
       libssl-dev \
       libtool \
@@ -150,6 +144,8 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
       pkg-config \
       po-debconf \
       protobuf-c-compiler \
+      python3.8 \
+      python3.8-dev \
       quilt \
       zlib1g-dev
 
@@ -159,23 +155,14 @@ RUN wget https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
     rm -f mysql-apt-config_0.8.12-1_all.deb && \
     apt-get update && apt-get install -y libmysqlclient-dev libcurl4-gnutls-dev
 
-RUN wget -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
+# Ubuntu 20.04 only provides lm-sensors 3.6, but collectd 5.8 needs lm-sensors 3.4.
+RUN cd /tmp &&\
+    wget -O lm-sensors.tar.gz https://github.com/lm-sensors/lm-sensors/archive/refs/tags/V3-4-0.tar.gz &&\
+    tar -xf lm-sensors.tar.gz &&\
+    cd lm-sensors-3-4-0 &&\
+    make install PREFIX=/usr &&\
     cd /tmp &&\
-    tar xzf Python-${PYTHON_VERSION}.tgz && \
-    cd Python-${PYTHON_VERSION} && \
-    ./configure --enable-shared --enable-ipv6 --with-system-ffi --with-system-expat && \
-    make -j`nproc` && make install libinstall && \
-    ldconfig
-
-RUN rm -rf /tmp/Python*
-
-
-###### Collectd builder image ######
-FROM python as collectd
-
-ARG ARCH
-ARG COLLECTD_VERSION
-ARG COLLECTD_COMMIT
+    rm -rf lm-sensors*
 
 RUN cd /tmp &&\
     wget https://github.com/signalfx/collectd/archive/${COLLECTD_COMMIT}.tar.gz &&\
@@ -205,6 +192,7 @@ ENV JAVA_LDFLAGS "-Wl,-rpath -Wl,\$\$\ORIGIN/../../jre/lib/server"
 RUN DISABLE_XENCPU=""; if [ "$ARCH" = "ppc64le" ]; then DISABLE_XENCPU="--disable-xencpu"; fi; \
     autoreconf -vif &&\
     ./configure $DISABLE_XENCPU \
+        --disable-werror \
         --prefix="/usr" \
         --localstatedir="/var" \
         --sysconfdir="/etc/collectd" \
@@ -267,7 +255,7 @@ RUN rm -rf /tmp/patchelf*
 
 # For some reason libvarnishapi doesn't properly depend on libm, so make it
 # right.
-RUN patchelf --add-needed libm-2.23.so /opt/deps/libvarnishapi.so.1.0.6
+RUN patchelf --add-needed libm-2.31.so /opt/deps/libvarnishapi.so.2.0.0
 
 
 ###### Python Plugin Image ######
@@ -275,39 +263,53 @@ FROM collectd as python-plugins
 
 ARG PIP_VERSION
 
-RUN /usr/local/bin/python3 -m pip install --upgrade pip==$PIP_VERSION
+RUN wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
+    python3.8 /tmp/get-pip.py "pip==$PIP_VERSION"
 
 # Mirror the same dir structure that exists in the original source
 COPY scripts/get-collectd-plugins.py /opt/scripts/
 COPY scripts/requirements.txt /opt/
 COPY collectd-plugins.yaml /opt/
 
-RUN /usr/local/bin/python3 -m pip install -r /opt/requirements.txt
+RUN python3.8 -m pip install -r /opt/requirements.txt
 
 RUN mkdir -p /opt/collectd-python &&\
-    /usr/local/bin/python3 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python
+    python3.8 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python
 
 COPY python/ /opt/sfxpython/
-RUN cd /opt/sfxpython && /usr/local/bin/python3 -m pip install .
+RUN cd /opt/sfxpython && python3.8 -m pip install .
 
-RUN /usr/local/bin/python3 -m pip list
+RUN python3.8 -m pip list
 
 # Remove pip to avoid usage in python monitor and in exec'd container
-RUN /usr/local/bin/python3 -m pip uninstall pip -y
+RUN python3.8 -m pip uninstall pip -y
+
 # Delete all bundled wheels
+RUN find /usr/lib/python3 -name "*.whl" -delete
+RUN find /usr/lib/python3.8 -name "*.whl" -delete
 RUN find /usr/local/lib/python3.8 -name "*.whl" -delete
 
 # Delete all compiled python to save space
+RUN find /usr/lib/python3 -name "*.pyc" -o -name "*.pyo" | xargs rm
+RUN find /usr/lib/python3.8 -name "*.pyc" -o -name "*.pyo" | xargs rm
 RUN find /usr/local/lib/python3.8 -name "*.pyc" -o -name "*.pyo" | xargs rm
-# We don't support compiling extension modules so don't need this directory
-RUN rm -rf /usr/local/lib/python3.8/config-*-linux-gnu
 
+# We don't support compiling extension modules so don't need this directory
+RUN rm -rf /usr/lib/python3.8/config-*-linux-gnu
+
+# Delete __pycache_ directories
+RUN find /usr/lib/python3 -type d -name __pycache__ | xargs rm -rf {} \;
+RUN find /usr/lib/python3.8 -type d -name __pycache__ | xargs rm -rf {} \;
 RUN find /usr/local/lib/python3.8 -type d -name __pycache__ | xargs rm -rf {} \;
+
+# Delete test keys/certificates
+RUN find /usr/lib/python3 -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
+RUN find /usr/lib/python3.8 -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 RUN find /usr/local/lib/python3.8 -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 
 
 ####### Extra packages that don't make sense to pull down in any other stage ########
-FROM ${DOCKER_REPO}/ubuntu:18.04 as extra-packages
+FROM ${DOCKER_REPO}/ubuntu:20.04 as extra-packages
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -317,7 +319,7 @@ RUN apt update &&\
         host \
         iproute2 \
         netcat \
-        netcat.openbsd
+        netcat-openbsd
 
 COPY scripts/collect-libs /opt/collect-libs
 
@@ -358,9 +360,11 @@ RUN mkdir -p /opt/root/bin &&\
 COPY --from=collectd /usr/local/bin/patchelf /usr/bin/
 
 # Gather Python dependencies
-COPY --from=python-plugins /usr/local/lib/python3.8 /opt/root/lib/python3.8
-COPY --from=python-plugins /usr/local/lib/libpython3.8.so.1.0 /opt/root/lib
-COPY --from=python-plugins /usr/local/bin/python3.8 /opt/root/bin/python
+COPY --from=python-plugins /usr/lib/python3.8 /opt/root/lib/python3.8
+COPY --from=python-plugins /usr/lib/python3/dist-packages /opt/root/lib/python3.8/dist-packages
+COPY --from=python-plugins /usr/local/lib/python3.8/dist-packages /opt/root/lib/python3.8/dist-packages
+COPY --from=python-plugins /usr/lib/*-linux-gnu/libpython3.8.so.1.0 /opt/root/lib
+COPY --from=python-plugins /usr/bin/python3.8 /opt/root/bin/python
 
 # Gather compiled collectd plugin libraries
 COPY --from=collectd /usr/sbin/collectd /opt/root/bin/collectd
@@ -371,6 +375,11 @@ COPY --from=java /opt/root/jre/ /opt/root/jre/
 
 COPY scripts/patch-rpath /usr/bin/
 RUN patch-rpath /opt/root
+
+# Pull in the Linux dynamic link loader at a fixed path across all
+# architectures.  Binaries will later be patched to use this interpreter
+# natively.
+RUN cp /lib/*-linux-gnu/ld-*.so /opt/root/bin/ld-linux.so
 
 
 ###### Final Agent Image #######
@@ -384,11 +393,6 @@ ENV SSL_CERT_FILE /etc/ssl/certs/ca-certificates.crt
 
 COPY --from=collectd /etc/nsswitch.conf /etc/nsswitch.conf
 COPY --from=collectd /usr/local/bin/patchelf /bin/
-
-# Pull in the Linux dynamic link loader at a fixed path across all
-# architectures.  Binaries will later be patched to use this interpreter
-# natively.
-COPY --from=extra-packages /lib/*-linux-gnu/ld-2.27.so /bin/ld-linux.so
 
 # Java dependencies
 COPY --from=extra-packages /opt/root/jre/ /jre

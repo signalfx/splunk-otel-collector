@@ -19,7 +19,7 @@ $repoDir = "$scriptDir\..\..\..\..\.."
 
 $BUILD_DIR="$repoDir\build"
 $PYTHON_VERSION="3.8.10"
-$PIP_VERSION="21.0.1"
+$PIP_VERSION="23.0.1"
 $NUGET_URL="https://aka.ms/nugetclidl"
 $NUGET_EXE="nuget.exe"
 

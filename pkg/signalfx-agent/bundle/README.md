@@ -18,6 +18,8 @@ installed to:
 - Windows msi/nupkg/choco packages and docker images:
   - `C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle`
 
+> **Note:** Support for the Linux arm64 bundle is currently **experimental**.
+
 ## Manual Installation
 
 The Linux (`agent-bundle_<VERSION>_linux_<amd64|arm64>.tar.gz`) and Windows

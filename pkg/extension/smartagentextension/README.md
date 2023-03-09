@@ -1,6 +1,7 @@
 # SignalFx Smart Agent Extension
 
-> **Note:** The SignalFx Smart Agent extension is only supported on x86_64/amd64 platforms.
+> **Note:** The SignalFx Smart Agent extension is only supported on x86_64/amd64 platforms.  Support for arm64
+> platforms is currently **experimental**.
 
 The `smartagent` extension provides a mechanism to specify config options that are not
 just specific to a single instance of the [Smart Agent Receiver](../../receiver/smartagentreceiver/README.md) but are applicable to

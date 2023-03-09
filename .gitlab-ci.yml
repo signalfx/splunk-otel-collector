@@ -147,9 +147,8 @@ agent-bundle-linux:
     matrix:
       - ARCH: amd64
         TAG: main
-      # TODO: add support for arm64
-      # - ARCH: arm64
-      #   TAG: arm
+      - ARCH: arm64
+        TAG: arm
   tags:
     - $TAG
   cache:
@@ -792,6 +791,8 @@ github-release:
         mv dist/assets/agent-bundle_linux_amd64.tar.gz.asc dist/assets/agent-bundle_${CI_COMMIT_TAG#v}_linux_amd64.tar.gz.asc
         mv dist/assets/agent-bundle_windows_amd64.zip dist/assets/agent-bundle_${CI_COMMIT_TAG#v}_windows_amd64.zip
         mv dist/assets/agent-bundle_windows_amd64.zip.asc dist/assets/agent-bundle_${CI_COMMIT_TAG#v}_windows_amd64.zip.asc
+        mv dist/assets/agent-bundle_linux_arm64.tar.gz dist/assets/agent-bundle_${CI_COMMIT_TAG#v}_linux_arm64.tar.gz
+        mv dist/assets/agent-bundle_linux_arm64.tar.gz.asc dist/assets/agent-bundle_${CI_COMMIT_TAG#v}_linux_arm64.tar.gz.asc
       fi
     - pushd dist/assets && shasum -a 256 * > checksums.txt && popd
     - |

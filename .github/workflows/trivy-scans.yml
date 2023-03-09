@@ -38,9 +38,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        # TODO: add support for arm64
-        # ARCH: [ "amd64", "arm64" ]
-        ARCH: [ "amd64" ]
+        ARCH: [ "amd64", "arm64" ]
       fail-fast: false
     steps:
       - uses: actions/checkout@v3

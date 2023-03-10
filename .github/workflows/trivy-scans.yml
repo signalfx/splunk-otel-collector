@@ -47,15 +47,13 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: ${{ env.GO_VERSION }}
-      - id: module-cache
+      - name: Caching dependency
         uses: actions/cache@v3
-        env:
-          cache-name: cache-go-modules
         with:
           path: |
-            /home/runner/go/pkg/mod
-            /home/runner/.cache/go-build
-          key: v1-go-pkg-mod-${{ runner.os }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
+            ~/go/bin
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
       - uses: actions/cache@v3
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}

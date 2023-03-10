@@ -32,18 +32,18 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v3
 
-      - name: Caching dependency
-        uses: actions/cache@v3
-        with:
-          path: |
-            %LocalAppData%\go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version: 1.19.6
+
+      - name: Caching dependency
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/go/bin
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Install golang dependency
         run: |

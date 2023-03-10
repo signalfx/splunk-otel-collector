@@ -1,0 +1,26 @@
+# escape=`
+
+ARG windowscontainer_version=ltsc2022
+FROM mcr.microsoft.com/dotnet/framework/aspnet:4.8-windowsservercore-${windowscontainer_version}
+
+# On ltsc2019 RUN defaults to "powershell -Command {0}", while ltsc2022 RUN defaults to "cmd /S /C"
+# set the SHELL so it is consistent between both versions.
+SHELL [ "powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';" ]
+
+COPY docker-setup/ /setup
+
+# WARNING: Passing access token as a build argument is to facilitate manual validation of this Dockerfile. It shouldn't be used in production.
+ARG verify_access_token=false
+ARG access_token=some_token
+ENV VERIFY_ACCESS_TOKEN=$verify_access_token
+ENV ACCESS_TOKEN_TMP=$access_token
+RUN `
+    $token = $Env:ACCESS_TOKEN_TMP; `
+    $collector_msi_path = (dir "c:\setup\*.msi").FullName; `
+    c:\setup\install.ps1 -access_token $token -msi_path $collector_msi_path -with_dotnet_instrumentation $true -deployment_env zc-iis-test -ingest_url "http://splunk-otel-collector:9943"
+ENV ACCESS_TOKEN_TMP=
+
+COPY apps/bin/_PublishedWebsites/AspNet.WebApi.NetFramework/ /apps/aspnetfx
+
+# Add test application to the Default Web Site
+RUN \Windows\System32\inetsrv\appcmd add app /site.name:\"Default Web Site\" /path:/aspnetfxapp /physicalPath:\"c:\apps\aspnetfx\"

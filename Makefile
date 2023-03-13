@@ -54,7 +54,8 @@ DOCKER_REPO?=docker.io
 # ALL_MODULES includes ./* dirs (excludes . dir)
 ALL_GO_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
 ALL_PYTHON_DEPS := $(shell find . -type f \( -name "setup.py" -o -name "requirements.txt" \) -exec dirname {} \; | sort | egrep  '^./')
-ALL_DOCKERFILES := $(shell find . -type f -name Dockerfile -exec dirname {} \; | grep -v '^./tests' | sort)
+ALL_DOCKERFILES := $(shell find . -type f -name Dockerfile -exec dirname {} \; | grep -v '^./tests' | grep -v './deployments' | sort)
+ALL_MAVEN_DEPS := $(shell find . -type f -name pom.xml -exec dirname {} \; | grep -v '^./tests' | sort)
 DEPENDABOT_PATH=./.github/dependabot.yml
 
 GOTESPLIT_TOTAL?=1
@@ -104,18 +105,22 @@ gendependabot:
 	@echo "version: 2" >> ${DEPENDABOT_PATH}
 	@echo "updates:" >> ${DEPENDABOT_PATH}
 	@echo "Add entry for \"/\""
-	@echo "  - package-ecosystem: \"gomod\"\n    directory: \"/\"\n    schedule:\n      interval: \"daily\"" >> ${DEPENDABOT_PATH}
+	@echo "  - package-ecosystem: \"gomod\"\n    directory: \"/\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH}
 	@set -e; for dir in $(ALL_GO_MODULES); do \
 		(echo "Add entry for \"$${dir:1}\"" && \
-		  echo "  - package-ecosystem: \"gomod\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"daily\"" >> ${DEPENDABOT_PATH} ); \
+		  echo "  - package-ecosystem: \"gomod\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH} ); \
 	done
 	@set -e; for dir in $(ALL_PYTHON_DEPS); do \
 		(echo "Add entry for \"$${dir:1}\"" && \
-		  echo "  - package-ecosystem: \"pip\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"daily\"" >> ${DEPENDABOT_PATH} ); \
+		  echo "  - package-ecosystem: \"pip\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH} ); \
 	done
 	@set -e; for dir in $(ALL_DOCKERFILES); do \
 		(echo "Add entry for \"$${dir:1}\"" && \
-		  echo "  - package-ecosystem: \"docker\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"daily\"" >> ${DEPENDABOT_PATH} ); \
+		  echo "  - package-ecosystem: \"docker\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH} ); \
+	done
+	@set -e; for dir in $(ALL_MAVEN_DEPS); do \
+		(echo "Add entry for \"$${dir:1}\"" && \
+		  echo "  - package-ecosystem: \"maven\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH} ); \
 	done
 
 .PHONY: tidy-all

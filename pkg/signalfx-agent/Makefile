@@ -50,3 +50,16 @@ test-race-detector:
 
 .PHONY: check
 check: lint vet test
+
+.PHONY: %-noop
+%-noop:
+	@echo 'Intentionally not requiring $* for initial agent relocation'
+
+.PHONY: checklicense
+checklicense: checklicense-noop
+
+.PHONY: impi
+impi: impi-noop
+
+.PHONY: misspell
+misspell: misspell-noop

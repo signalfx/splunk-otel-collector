@@ -191,7 +191,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupDataNode: []string{
+	groupDataNode: {
 		counterHadoopDatanodeBlocksRead,
 		counterHadoopDatanodeBlocksWritten,
 		counterHadoopDatanodeBytesRead,
@@ -207,7 +207,7 @@ var groupMetricsMap = map[string][]string{
 		gaugeHadoopDatanodeRPCProcessingAvg,
 		gaugeHadoopDatanodeRPCQueueTimeAvg,
 	},
-	groupJvm: []string{
+	groupJvm: {
 		gaugeJvmThreadsCount,
 		gaugeLoadedClasses,
 		invocations,
@@ -217,7 +217,7 @@ var groupMetricsMap = map[string][]string{
 		jmxMemoryUsed,
 		totalTimeInMsCollectionTime,
 	},
-	groupNameNode: []string{
+	groupNameNode: {
 		counterHadoopNamenodeFilesTotal,
 		counterHadoopNamenodeGcCount,
 		counterHadoopNamenodeGcTime,
@@ -242,7 +242,7 @@ var groupMetricsMap = map[string][]string{
 		gaugeHadoopNamenodeStaleDatanodes,
 		gaugeHadoopNamenodeUnderReplicatedBlocks,
 	},
-	groupNodeManager: []string{
+	groupNodeManager: {
 		counterHadoopNodeManagerContainersFailed,
 		counterHadoopNodeManagerContainersLaunched,
 		gaugeHadoopNodeManagerAllocatedMemory,
@@ -250,7 +250,7 @@ var groupMetricsMap = map[string][]string{
 		gaugeHadoopNodeManagerAvailableMemory,
 		gaugeHadoopNodeManagerAvailableVcores,
 	},
-	groupResourceManager: []string{
+	groupResourceManager: {
 		gaugeHadoopResourceManagerActiveApps,
 		gaugeHadoopResourceManagerActiveNms,
 		gaugeHadoopResourceManagerActiveUsers,

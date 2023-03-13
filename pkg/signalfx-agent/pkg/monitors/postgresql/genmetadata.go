@@ -88,12 +88,12 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupQueries: []string{
+	groupQueries: {
 		postgresQueriesAverageTime,
 		postgresQueriesCalls,
 		postgresQueriesTotalTime,
 	},
-	groupReplication: []string{
+	groupReplication: {
 		postgresReplicationLag,
 		postgresReplicationState,
 	},

@@ -144,7 +144,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupJvm: []string{
+	groupJvm: {
 		gaugeJvmThreadsCount,
 		gaugeLoadedClasses,
 		invocations,

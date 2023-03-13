@@ -68,7 +68,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupPodEphemeralStats: []string{
+	groupPodEphemeralStats: {
 		podEphemeralStorageCapacityBytes,
 		podEphemeralStorageUsedBytes,
 	},

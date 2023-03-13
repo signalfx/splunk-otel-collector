@@ -586,7 +586,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupAdmissionQuotaController: []string{
+	groupAdmissionQuotaController: {
 		admissionQuotaControllerAdds,
 		admissionQuotaControllerDepth,
 		admissionQuotaControllerLongestRunningProcessorMicroseconds,
@@ -598,7 +598,7 @@ var groupMetricsMap = map[string][]string{
 		admissionQuotaControllerWorkDurationCount,
 		admissionQuotaControllerWorkDurationQuantile,
 	},
-	groupAPIServiceOpenAPIAggregationController: []string{
+	groupAPIServiceOpenAPIAggregationController: {
 		aPIServiceOpenAPIAggregationControllerQueue1Adds,
 		aPIServiceOpenAPIAggregationControllerQueue1Depth,
 		aPIServiceOpenAPIAggregationControllerQueue1LongestRunningProcessorMicroseconds,
@@ -611,7 +611,7 @@ var groupMetricsMap = map[string][]string{
 		aPIServiceOpenAPIAggregationControllerQueue1WorkDurationCount,
 		aPIServiceOpenAPIAggregationControllerQueue1WorkDurationQuantile,
 	},
-	groupAPIServiceRegistrationController: []string{
+	groupAPIServiceRegistrationController: {
 		aPIServiceRegistrationControllerAdds,
 		aPIServiceRegistrationControllerDepth,
 		aPIServiceRegistrationControllerLongestRunningProcessorMicroseconds,
@@ -624,7 +624,7 @@ var groupMetricsMap = map[string][]string{
 		aPIServiceRegistrationControllerWorkDurationCount,
 		aPIServiceRegistrationControllerWorkDurationQuantile,
 	},
-	groupApiserverAdmissionController: []string{
+	groupApiserverAdmissionController: {
 		apiserverAdmissionControllerAdmissionDurationSeconds,
 		apiserverAdmissionControllerAdmissionDurationSecondsBucket,
 		apiserverAdmissionControllerAdmissionDurationSecondsCount,
@@ -632,7 +632,7 @@ var groupMetricsMap = map[string][]string{
 		apiserverAdmissionControllerAdmissionLatenciesMillisecondsBucket,
 		apiserverAdmissionControllerAdmissionLatenciesMillisecondsCount,
 	},
-	groupApiserverAdmissionStepAdmission: []string{
+	groupApiserverAdmissionStepAdmission: {
 		apiserverAdmissionStepAdmissionDurationSeconds,
 		apiserverAdmissionStepAdmissionDurationSecondsBucket,
 		apiserverAdmissionStepAdmissionDurationSecondsCount,
@@ -646,16 +646,16 @@ var groupMetricsMap = map[string][]string{
 		apiserverAdmissionStepAdmissionLatenciesMillisecondsSummaryCount,
 		apiserverAdmissionStepAdmissionLatenciesMillisecondsSummaryQuantile,
 	},
-	groupApiserverAudit: []string{
+	groupApiserverAudit: {
 		apiserverAuditEventTotal,
 		apiserverAuditRequestsRejectedTotal,
 	},
-	groupApiserverClient: []string{
+	groupApiserverClient: {
 		apiserverClientCertificateExpirationSeconds,
 		apiserverClientCertificateExpirationSecondsBucket,
 		apiserverClientCertificateExpirationSecondsCount,
 	},
-	groupApiserverRequest: []string{
+	groupApiserverRequest: {
 		apiserverRequestCount,
 		apiserverRequestDurationSeconds,
 		apiserverRequestDurationSecondsBucket,
@@ -668,12 +668,12 @@ var groupMetricsMap = map[string][]string{
 		apiserverRequestLatenciesSummaryQuantile,
 		apiserverRequestTotal,
 	},
-	groupApiserverResponse: []string{
+	groupApiserverResponse: {
 		apiserverResponseSizes,
 		apiserverResponseSizesBucket,
 		apiserverResponseSizesCount,
 	},
-	groupApiserverStorage: []string{
+	groupApiserverStorage: {
 		apiserverStorageDataKeyGenerationDurationSeconds,
 		apiserverStorageDataKeyGenerationDurationSecondsBucket,
 		apiserverStorageDataKeyGenerationDurationSecondsCount,
@@ -683,7 +683,7 @@ var groupMetricsMap = map[string][]string{
 		apiserverStorageDataKeyGenerationLatenciesMicrosecondsCount,
 		apiserverStorageEnvelopeTransformationCacheMissesTotal,
 	},
-	groupAutoregister: []string{
+	groupAutoregister: {
 		autoregisterAdds,
 		autoregisterDepth,
 		autoregisterLongestRunningProcessorMicroseconds,
@@ -696,7 +696,7 @@ var groupMetricsMap = map[string][]string{
 		autoregisterWorkDurationCount,
 		autoregisterWorkDurationQuantile,
 	},
-	groupAvailableConditionController: []string{
+	groupAvailableConditionController: {
 		availableConditionControllerAdds,
 		availableConditionControllerDepth,
 		availableConditionControllerLongestRunningProcessorMicroseconds,
@@ -709,7 +709,7 @@ var groupMetricsMap = map[string][]string{
 		availableConditionControllerWorkDurationCount,
 		availableConditionControllerWorkDurationQuantile,
 	},
-	groupCrdAutoregistrationController: []string{
+	groupCrdAutoregistrationController: {
 		crdAutoregistrationControllerAdds,
 		crdAutoregistrationControllerDepth,
 		crdAutoregistrationControllerLongestRunningProcessorMicroseconds,
@@ -722,7 +722,7 @@ var groupMetricsMap = map[string][]string{
 		crdAutoregistrationControllerWorkDurationCount,
 		crdAutoregistrationControllerWorkDurationQuantile,
 	},
-	groupCrdEstablishing: []string{
+	groupCrdEstablishing: {
 		crdEstablishingAdds,
 		crdEstablishingDepth,
 		crdEstablishingLongestRunningProcessorMicroseconds,
@@ -735,7 +735,7 @@ var groupMetricsMap = map[string][]string{
 		crdEstablishingWorkDurationCount,
 		crdEstablishingWorkDurationQuantile,
 	},
-	groupCrdFinalizer: []string{
+	groupCrdFinalizer: {
 		crdFinalizerAdds,
 		crdFinalizerDepth,
 		crdFinalizerLongestRunningProcessorMicroseconds,
@@ -748,7 +748,7 @@ var groupMetricsMap = map[string][]string{
 		crdFinalizerWorkDurationCount,
 		crdFinalizerWorkDurationQuantile,
 	},
-	groupCrdNamingConditionController: []string{
+	groupCrdNamingConditionController: {
 		crdNamingConditionControllerAdds,
 		crdNamingConditionControllerDepth,
 		crdNamingConditionControllerLongestRunningProcessorMicroseconds,
@@ -761,7 +761,7 @@ var groupMetricsMap = map[string][]string{
 		crdNamingConditionControllerWorkDurationCount,
 		crdNamingConditionControllerWorkDurationQuantile,
 	},
-	groupDiscoveryController: []string{
+	groupDiscoveryController: {
 		discoveryControllerAdds,
 		discoveryControllerDepth,
 		discoveryControllerLongestRunningProcessorMicroseconds,
@@ -774,7 +774,7 @@ var groupMetricsMap = map[string][]string{
 		discoveryControllerWorkDurationCount,
 		discoveryControllerWorkDurationQuantile,
 	},
-	groupEtcd: []string{
+	groupEtcd: {
 		etcdHelperCacheEntry,
 		etcdHelperCacheEntryCount,
 		etcdHelperCacheHit,
@@ -795,13 +795,13 @@ var groupMetricsMap = map[string][]string{
 		etcdRequestCacheGetLatenciesSummaryCount,
 		etcdRequestCacheGetLatenciesSummaryQuantile,
 	},
-	groupGrpcClient: []string{
+	groupGrpcClient: {
 		grpcClientHandledTotal,
 		grpcClientMsgReceivedTotal,
 		grpcClientMsgSentTotal,
 		grpcClientStartedTotal,
 	},
-	groupHTTPRequest: []string{
+	groupHTTPRequest: {
 		httpRequestDurationMicroseconds,
 		httpRequestDurationMicrosecondsCount,
 		httpRequestDurationMicrosecondsQuantile,
@@ -810,12 +810,12 @@ var groupMetricsMap = map[string][]string{
 		httpRequestSizeBytesQuantile,
 		httpRequests,
 	},
-	groupHTTPResponse: []string{
+	groupHTTPResponse: {
 		httpResponseSizeBytes,
 		httpResponseSizeBytesCount,
 		httpResponseSizeBytesQuantile,
 	},
-	groupPrometheusGo: []string{
+	groupPrometheusGo: {
 		goGcDurationSeconds,
 		goGcDurationSecondsCount,
 		goGcDurationSecondsQuantile,
@@ -846,7 +846,7 @@ var groupMetricsMap = map[string][]string{
 		goMemstatsSysBytes,
 		goThreads,
 	},
-	groupPrometheusProcess: []string{
+	groupPrometheusProcess: {
 		processCPUSecondsTotal,
 		processMaxFds,
 		processOpenFds,
@@ -855,7 +855,7 @@ var groupMetricsMap = map[string][]string{
 		processVirtualMemoryBytes,
 		processVirtualMemoryMaxBytes,
 	},
-	groupRestClient: []string{
+	groupRestClient: {
 		restClientRequestDurationSeconds,
 		restClientRequestDurationSecondsBucket,
 		restClientRequestDurationSecondsCount,
@@ -864,15 +864,15 @@ var groupMetricsMap = map[string][]string{
 		restClientRequestLatencySecondsCount,
 		restClientRequestsTotal,
 	},
-	groupSSHTunnel: []string{
+	groupSSHTunnel: {
 		sshTunnelOpenCount,
 		sshTunnelOpenFailCount,
 	},
-	groupToken: []string{
+	groupToken: {
 		getTokenCount,
 		getTokenFailCount,
 	},
-	groupWorkqueue: []string{
+	groupWorkqueue: {
 		workqueueAddsTotal,
 		workqueueDepth,
 		workqueueLongestRunningProcessorSeconds,

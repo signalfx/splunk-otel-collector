@@ -221,7 +221,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupHardware: []string{
+	groupHardware: {
 		diskPartitionIopsRead,
 		diskPartitionIopsTotal,
 		diskPartitionIopsWrite,
@@ -255,7 +255,7 @@ var groupMetricsMap = map[string][]string{
 		systemNormalizedCPUSteal,
 		systemNormalizedCPUUser,
 	},
-	groupMongodb: []string{
+	groupMongodb: {
 		assertsMsg,
 		assertsRegular,
 		assertsUser,

@@ -556,7 +556,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupBucket: []string{
+	groupBucket: {
 		gaugeBucketBasicDataUsed,
 		gaugeBucketBasicDiskFetches,
 		gaugeBucketBasicDiskUsed,
@@ -770,7 +770,7 @@ var groupMetricsMap = map[string][]string{
 		gaugeBucketQuotaRAM,
 		gaugeBucketQuotaRawRAM,
 	},
-	groupNodes: []string{
+	groupNodes: {
 		gaugeNodesCmdGet,
 		gaugeNodesCouchDocsActualDiskSize,
 		gaugeNodesCouchDocsDataSize,
@@ -795,7 +795,7 @@ var groupMetricsMap = map[string][]string{
 		gaugeNodesSystemSwapUsed,
 		gaugeNodesVbReplicaCurrItems,
 	},
-	groupStorage: []string{
+	groupStorage: {
 		gaugeStorageHddFree,
 		gaugeStorageHddQuotaTotal,
 		gaugeStorageHddTotal,

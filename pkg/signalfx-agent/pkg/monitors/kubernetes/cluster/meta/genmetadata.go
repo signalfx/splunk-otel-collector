@@ -220,7 +220,7 @@ var DefaultMetrics = map[string]bool{
 }
 
 var GroupMetricsMap = map[string][]string{
-	GroupHpa: []string{
+	GroupHpa: {
 		KubernetesHpaSpecMaxReplicas,
 		KubernetesHpaSpecMaxReplicas,
 		KubernetesHpaSpecMinReplicas,

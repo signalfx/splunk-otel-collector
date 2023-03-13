@@ -402,7 +402,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupApplications: []string{
+	groupApplications: {
 		hadoopResourceManagerAppsAllocatedMB,
 		hadoopResourceManagerAppsAllocatedVCores,
 		hadoopResourceManagerAppsClusterUsagePercentage,
@@ -417,7 +417,7 @@ var groupMetricsMap = map[string][]string{
 		hadoopResourceManagerAppsRunningContainers,
 		hadoopResourceManagerAppsVcoreSeconds,
 	},
-	groupCluster: []string{
+	groupCluster: {
 		hadoopClusterMetricsActiveNodes,
 		hadoopClusterMetricsAllocatedMb,
 		hadoopClusterMetricsAllocatedVirtualCores,
@@ -442,7 +442,7 @@ var groupMetricsMap = map[string][]string{
 		hadoopClusterMetricsTotalVirtualCores,
 		hadoopClusterMetricsUnhealthyNodes,
 	},
-	groupFifoScheduler: []string{
+	groupFifoScheduler: {
 		hadoopResourceManagerSchedulerFifoAvailNodeCapacity,
 		hadoopResourceManagerSchedulerFifoCapacity,
 		hadoopResourceManagerSchedulerFifoMaxQueueMemoryCapacity,
@@ -453,7 +453,7 @@ var groupMetricsMap = map[string][]string{
 		hadoopResourceManagerSchedulerFifoUsedCapacity,
 		hadoopResourceManagerSchedulerFifoUsedNodeCapacity,
 	},
-	groupLeafQueue: []string{
+	groupLeafQueue: {
 		hadoopResourceManagerSchedulerLeafQueueAbsoluteCapacity,
 		hadoopResourceManagerSchedulerLeafQueueAbsoluteMaxCapacity,
 		hadoopResourceManagerSchedulerLeafQueueAbsoluteUsedCapacity,
@@ -474,7 +474,7 @@ var groupMetricsMap = map[string][]string{
 		hadoopResourceManagerSchedulerLeafQueueUserLimit,
 		hadoopResourceManagerSchedulerLeafQueueUserLimitFactor,
 	},
-	groupMapreduceJobs: []string{
+	groupMapreduceJobs: {
 		hadoopMapreduceJobElapsedTime,
 		hadoopMapreduceJobFailedMapAttempts,
 		hadoopMapreduceJobFailedReduceAttempts,
@@ -494,27 +494,27 @@ var groupMetricsMap = map[string][]string{
 		hadoopMapreduceJobSuccessfulMapAttempts,
 		hadoopMapreduceJobSuccessfulReduceAttempts,
 	},
-	groupNodeResources: []string{
+	groupNodeResources: {
 		hadoopResourceManagerNodeNodeCPUUsage,
 		hadoopResourceManagerNodeNodePhysicalMemoryMB,
 		hadoopResourceManagerNodeNodeVirtualMemoryMB,
 	},
-	groupNodes: []string{
+	groupNodes: {
 		hadoopResourceManagerNodesAvailMemoryMB,
 		hadoopResourceManagerNodesAvailableVirtualCores,
 		hadoopResourceManagerNodesNumContainers,
 		hadoopResourceManagerNodesUsedMemoryMB,
 		hadoopResourceManagerNodesUsedVirtualCores,
 	},
-	groupQueueUsers: []string{
+	groupQueueUsers: {
 		hadoopResourceManagerSchedulerQueueUsersNumActiveApplications,
 		hadoopResourceManagerSchedulerQueueUsersNumPendingApplications,
 	},
-	groupResourceObjects: []string{
+	groupResourceObjects: {
 		hadoopResourceManagerSchedulerQueueResourceMemory,
 		hadoopResourceManagerSchedulerQueueResourceVCores,
 	},
-	groupRootQueue: []string{
+	groupRootQueue: {
 		hadoopResourceManagerSchedulerRootQueueCapacity,
 		hadoopResourceManagerSchedulerRootQueueMaxCapacity,
 		hadoopResourceManagerSchedulerRootQueueUsedCapacity,

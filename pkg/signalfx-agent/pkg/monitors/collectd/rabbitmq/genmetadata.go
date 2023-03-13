@@ -269,7 +269,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupChannel: []string{
+	groupChannel: {
 		counterChannelMessageStatsAck,
 		counterChannelMessageStatsConfirm,
 		counterChannelMessageStatsDeliver,
@@ -289,7 +289,7 @@ var groupMetricsMap = map[string][]string{
 		gaugeChannelNumber,
 		gaugeChannelPrefetchCount,
 	},
-	groupConnection: []string{
+	groupConnection: {
 		counterConnectionChannelMax,
 		counterConnectionRecvCnt,
 		counterConnectionRecvOct,
@@ -305,7 +305,7 @@ var groupMetricsMap = map[string][]string{
 		gaugeConnectionSendPend,
 		gaugeConnectionTimeout,
 	},
-	groupExchange: []string{
+	groupExchange: {
 		counterExchangeMessageStatsConfirm,
 		counterExchangeMessageStatsPublishIn,
 		counterExchangeMessageStatsPublishOut,
@@ -313,7 +313,7 @@ var groupMetricsMap = map[string][]string{
 		gaugeExchangeMessageStatsPublishInDetailsRate,
 		gaugeExchangeMessageStatsPublishOutDetailsRate,
 	},
-	groupNode: []string{
+	groupNode: {
 		counterNodeIoReadBytes,
 		counterNodeIoReadCount,
 		counterNodeMnesiaDiskTxCount,
@@ -348,7 +348,7 @@ var groupMetricsMap = map[string][]string{
 		gaugeNodeSocketsUsedDetailsRate,
 		gaugeNodeUptime,
 	},
-	groupQueue: []string{
+	groupQueue: {
 		counterQueueDiskReads,
 		counterQueueDiskWrites,
 		counterQueueMessageStatsAck,

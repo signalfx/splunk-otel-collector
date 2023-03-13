@@ -57,13 +57,13 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupInodes: []string{
+	groupInodes: {
 		dfInodesFree,
 		dfInodesUsed,
 		percentInodesFree,
 		percentInodesUsed,
 	},
-	groupPercentage: []string{
+	groupPercentage: {
 		percentBytesFree,
 		percentBytesReserved,
 		percentBytesUsed,

@@ -216,7 +216,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupCollection: []string{
+	groupCollection: {
 		counterCollectionIndexAccessesOps,
 		gaugeCollectionAvgObjSize,
 		gaugeCollectionCount,
@@ -224,7 +224,7 @@ var groupMetricsMap = map[string][]string{
 		gaugeCollectionSize,
 		gaugeCollectionStorageSize,
 	},
-	groupCollectionTop: []string{
+	groupCollectionTop: {
 		counterCollectionCommandsCount,
 		counterCollectionCommandsTime,
 		counterCollectionGetmoreCount,

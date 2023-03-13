@@ -459,7 +459,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupCPU: []string{
+	groupCPU: {
 		vsphereCPUCoreUtilizationPercent,
 		vsphereCPUCostopMs,
 		vsphereCPUDemandEntitlementRatioPercent,
@@ -482,7 +482,7 @@ var groupMetricsMap = map[string][]string{
 		vsphereCPUUtilizationPercent,
 		vsphereCPUWaitMs,
 	},
-	groupDatastore: []string{
+	groupDatastore: {
 		vsphereDatastoreDatastoreIops,
 		vsphereDatastoreMaxTotalLatencyMs,
 		vsphereDatastoreReadKbs,
@@ -494,7 +494,7 @@ var groupMetricsMap = map[string][]string{
 		vsphereDatastoreWriteKbs,
 		vsphereDatastoreWriteLoadMetric,
 	},
-	groupDisk: []string{
+	groupDisk: {
 		vsphereDiskBusResets,
 		vsphereDiskCommands,
 		vsphereDiskCommandsAborted,
@@ -521,12 +521,12 @@ var groupMetricsMap = map[string][]string{
 		vsphereDiskUsageKbs,
 		vsphereDiskWriteKbs,
 	},
-	groupHbr: []string{
+	groupHbr: {
 		vsphereHbrNetRxKbs,
 		vsphereHbrNetTxKbs,
 		vsphereHbrNumVms,
 	},
-	groupMem: []string{
+	groupMem: {
 		vsphereMemActiveKb,
 		vsphereMemActivewriteKb,
 		vsphereMemCompressedKb,
@@ -574,7 +574,7 @@ var groupMetricsMap = map[string][]string{
 		vsphereMemZipSavedKb,
 		vsphereMemZippedKb,
 	},
-	groupNet: []string{
+	groupNet: {
 		vsphereNetBroadcastRx,
 		vsphereNetBroadcastTx,
 		vsphereNetBytesRxKbs,
@@ -592,12 +592,12 @@ var groupMetricsMap = map[string][]string{
 		vsphereNetUnknownProtos,
 		vsphereNetUsageKbs,
 	},
-	groupPower: []string{
+	groupPower: {
 		vspherePowerCapWatts,
 		vspherePowerEnergyJoules,
 		vspherePowerWatts,
 	},
-	groupRescpu: []string{
+	groupRescpu: {
 		vsphereRescpuActav1,
 		vsphereRescpuActav15Percent,
 		vsphereRescpuActav5Percent,
@@ -616,7 +616,7 @@ var groupMetricsMap = map[string][]string{
 		vsphereRescpuSampleCount,
 		vsphereRescpuSamplePeriodMs,
 	},
-	groupStorageAdapter: []string{
+	groupStorageAdapter: {
 		vsphereStorageAdapterCommandsAveraged,
 		vsphereStorageAdapterMaxTotalLatencyMs,
 		vsphereStorageAdapterNumberReadAveraged,
@@ -626,7 +626,7 @@ var groupMetricsMap = map[string][]string{
 		vsphereStorageAdapterTotalWriteLatencyMs,
 		vsphereStorageAdapterWriteKbs,
 	},
-	groupStoragePath: []string{
+	groupStoragePath: {
 		vsphereStoragePathCommandsAveraged,
 		vsphereStoragePathMaxTotalLatencyMs,
 		vsphereStoragePathNumberReadAveraged,
@@ -636,7 +636,7 @@ var groupMetricsMap = map[string][]string{
 		vsphereStoragePathTotalWriteLatencyMs,
 		vsphereStoragePathWriteKbs,
 	},
-	groupSys: []string{
+	groupSys: {
 		vsphereSysHeartbeat,
 		vsphereSysOsUptimeSeconds,
 		vsphereSysResourceCPUAct1Percent,
@@ -662,7 +662,7 @@ var groupMetricsMap = map[string][]string{
 		vsphereSysResourceMemZeroKb,
 		vsphereSysUptimeSeconds,
 	},
-	groupVirtualDisk: []string{
+	groupVirtualDisk: {
 		vsphereVirtualDiskLargeSeeks,
 		vsphereVirtualDiskMediumSeeks,
 		vsphereVirtualDiskNumberReadAveraged,

@@ -204,51 +204,51 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupAttempts: []string{
+	groupAttempts: {
 		convivaAttempts,
 	},
-	groupAudienceMetriclens: []string{
+	groupAudienceMetriclens: {
 		convivaAudienceMetriclensConcurrentPlays,
 		convivaAudienceMetriclensEndedPlays,
 		convivaAudienceMetriclensPlays,
 	},
-	groupAvgBitrate: []string{
+	groupAvgBitrate: {
 		convivaAvgBitrate,
 	},
-	groupConcurrentPlays: []string{
+	groupConcurrentPlays: {
 		convivaConcurrentPlays,
 	},
-	groupConnectionInducedRebufferingRatio: []string{
+	groupConnectionInducedRebufferingRatio: {
 		convivaConnectionInducedRebufferingRatio,
 	},
-	groupConnectionInducedRebufferingRatioTimeseries: []string{
+	groupConnectionInducedRebufferingRatioTimeseries: {
 		convivaConnectionInducedRebufferingRatioTimeseries,
 	},
-	groupDurationConnectionInducedRebufferingRatioDistribution: []string{
+	groupDurationConnectionInducedRebufferingRatioDistribution: {
 		convivaDurationConnectionInducedRebufferingRatioDistribution,
 	},
-	groupEndedPlays: []string{
+	groupEndedPlays: {
 		convivaEndedPlays,
 	},
-	groupEndedPlaysTimeseries: []string{
+	groupEndedPlaysTimeseries: {
 		convivaEndedPlaysTimeseries,
 	},
-	groupExitsBeforeVideoStart: []string{
+	groupExitsBeforeVideoStart: {
 		convivaExitsBeforeVideoStart,
 	},
-	groupPlayBitrateDistribution: []string{
+	groupPlayBitrateDistribution: {
 		convivaPlayBitrateDistribution,
 	},
-	groupPlayBufferingRatioDistribution: []string{
+	groupPlayBufferingRatioDistribution: {
 		convivaPlayBufferingRatioDistribution,
 	},
-	groupPlayConnectionInducedRebufferingRatioDistribution: []string{
+	groupPlayConnectionInducedRebufferingRatioDistribution: {
 		convivaPlayConnectionInducedRebufferingRatioDistribution,
 	},
-	groupPlays: []string{
+	groupPlays: {
 		convivaPlays,
 	},
-	groupQualityMetriclens: []string{
+	groupQualityMetriclens: {
 		convivaQualityMetriclensAverageBitrateKbps,
 		convivaQualityMetriclensConnectionInducedRebufferingRatioPercent,
 		convivaQualityMetriclensEndedPlays,
@@ -261,43 +261,43 @@ var groupMetricsMap = map[string][]string{
 		convivaQualityMetriclensVideoStartFailuresPercent,
 		convivaQualityMetriclensVideoStartupTimeSec,
 	},
-	groupQualitySummary: []string{
+	groupQualitySummary: {
 		convivaQualitySummary,
 	},
-	groupRebufferedPlays: []string{
+	groupRebufferedPlays: {
 		convivaRebufferedPlays,
 	},
-	groupRebufferingRatio: []string{
+	groupRebufferingRatio: {
 		convivaRebufferingRatio,
 	},
-	groupTopAssets15Mins: []string{
+	groupTopAssets15Mins: {
 		convivaTopAssets15Mins,
 	},
-	groupTopAssetsSummary: []string{
+	groupTopAssetsSummary: {
 		convivaTopAssetsSummary,
 	},
-	groupVideoPlaybackFailures: []string{
+	groupVideoPlaybackFailures: {
 		convivaVideoPlaybackFailures,
 	},
-	groupVideoPlaybackFailuresDistribution: []string{
+	groupVideoPlaybackFailuresDistribution: {
 		convivaVideoPlaybackFailuresDistribution,
 	},
-	groupVideoPlaybackFailuresTimeseries: []string{
+	groupVideoPlaybackFailuresTimeseries: {
 		convivaVideoPlaybackFailuresTimeseries,
 	},
-	groupVideoRestartTime: []string{
+	groupVideoRestartTime: {
 		convivaVideoRestartTime,
 	},
-	groupVideoRestartTimeDistribution: []string{
+	groupVideoRestartTimeDistribution: {
 		convivaVideoRestartTimeDistribution,
 	},
-	groupVideoRestartTimeTimeseries: []string{
+	groupVideoRestartTimeTimeseries: {
 		convivaVideoRestartTimeTimeseries,
 	},
-	groupVideoStartFailures: []string{
+	groupVideoStartFailures: {
 		convivaVideoStartFailures,
 	},
-	groupVideoStartFailuresErrornames: []string{
+	groupVideoStartFailuresErrornames: {
 		convivaVideoStartFailuresErrornames,
 	},
 }

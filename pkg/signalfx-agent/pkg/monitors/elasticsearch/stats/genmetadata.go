@@ -419,7 +419,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupCluster: []string{
+	groupCluster: {
 		elasticsearchClusterActivePrimaryShards,
 		elasticsearchClusterActiveShards,
 		elasticsearchClusterActiveShardsPercent,
@@ -434,27 +434,27 @@ var groupMetricsMap = map[string][]string{
 		elasticsearchClusterTaskMaxWaitTime,
 		elasticsearchClusterUnassignedShards,
 	},
-	groupIndicesCompletion: []string{
+	groupIndicesCompletion: {
 		elasticsearchIndicesCompletionSize,
 	},
-	groupIndicesDocs: []string{
+	groupIndicesDocs: {
 		elasticsearchIndicesDocsCount,
 		elasticsearchIndicesDocsDeleted,
 	},
-	groupIndicesFielddata: []string{
+	groupIndicesFielddata: {
 		elasticsearchIndicesFielddataEvictions,
 		elasticsearchIndicesFielddataMemorySize,
 	},
-	groupIndicesFilterCache: []string{
+	groupIndicesFilterCache: {
 		elasticsearchIndicesFilterCacheEvictions,
 		elasticsearchIndicesFilterCacheMemorySize,
 	},
-	groupIndicesFlush: []string{
+	groupIndicesFlush: {
 		elasticsearchIndicesFlushPeriodic,
 		elasticsearchIndicesFlushTotal,
 		elasticsearchIndicesFlushTotalTime,
 	},
-	groupIndicesGet: []string{
+	groupIndicesGet: {
 		elasticsearchIndicesGetCurrent,
 		elasticsearchIndicesGetExistsTime,
 		elasticsearchIndicesGetExistsTotal,
@@ -463,10 +463,10 @@ var groupMetricsMap = map[string][]string{
 		elasticsearchIndicesGetTime,
 		elasticsearchIndicesGetTotal,
 	},
-	groupIndicesIDCache: []string{
+	groupIndicesIDCache: {
 		elasticsearchIndicesIDCacheMemorySize,
 	},
-	groupIndicesIndexing: []string{
+	groupIndicesIndexing: {
 		elasticsearchIndicesIndexingDeleteCurrent,
 		elasticsearchIndicesIndexingDeleteTime,
 		elasticsearchIndicesIndexingDeleteTotal,
@@ -477,7 +477,7 @@ var groupMetricsMap = map[string][]string{
 		elasticsearchIndicesIndexingNoopUpdateTotal,
 		elasticsearchIndicesIndexingThrottleTime,
 	},
-	groupIndicesMerges: []string{
+	groupIndicesMerges: {
 		elasticsearchIndicesMergesAutoThrottleSize,
 		elasticsearchIndicesMergesCurrent,
 		elasticsearchIndicesMergesCurrentDocs,
@@ -489,13 +489,13 @@ var groupMetricsMap = map[string][]string{
 		elasticsearchIndicesMergesTotalSize,
 		elasticsearchIndicesMergesTotalTime,
 	},
-	groupIndicesPercolate: []string{
+	groupIndicesPercolate: {
 		elasticsearchIndicesPercolateCurrent,
 		elasticsearchIndicesPercolateQueries,
 		elasticsearchIndicesPercolateTime,
 		elasticsearchIndicesPercolateTotal,
 	},
-	groupIndicesQueryCache: []string{
+	groupIndicesQueryCache: {
 		elasticsearchIndicesQueryCacheCacheCount,
 		elasticsearchIndicesQueryCacheCacheSize,
 		elasticsearchIndicesQueryCacheEvictions,
@@ -503,24 +503,24 @@ var groupMetricsMap = map[string][]string{
 		elasticsearchIndicesQueryCacheMemorySize,
 		elasticsearchIndicesQueryCacheTotalCount,
 	},
-	groupIndicesRecovery: []string{
+	groupIndicesRecovery: {
 		elasticsearchIndicesRecoveryCurrentAsSource,
 		elasticsearchIndicesRecoveryCurrentAsTarget,
 		elasticsearchIndicesRecoveryThrottleTime,
 	},
-	groupIndicesRefresh: []string{
+	groupIndicesRefresh: {
 		elasticsearchIndicesRefreshListeners,
 		elasticsearchIndicesRefreshTotal,
 		elasticsearchIndicesRefreshTotalTime,
 	},
-	groupIndicesRequestCache: []string{
+	groupIndicesRequestCache: {
 		elasticsearchIndicesQueryCacheMissCount,
 		elasticsearchIndicesRequestCacheEvictions,
 		elasticsearchIndicesRequestCacheHitCount,
 		elasticsearchIndicesRequestCacheMemorySize,
 		elasticsearchIndicesRequestCacheMissCount,
 	},
-	groupIndicesSearch: []string{
+	groupIndicesSearch: {
 		elasticsearchIndicesSearchFetchCurrent,
 		elasticsearchIndicesSearchFetchTime,
 		elasticsearchIndicesSearchFetchTotal,
@@ -535,7 +535,7 @@ var groupMetricsMap = map[string][]string{
 		elasticsearchIndicesSearchSuggestTime,
 		elasticsearchIndicesSearchSuggestTotal,
 	},
-	groupIndicesSegments: []string{
+	groupIndicesSegments: {
 		elasticsearchIndicesSegmentsCount,
 		elasticsearchIndicesSegmentsDocValuesMemorySize,
 		elasticsearchIndicesSegmentsFixedBitSetMemorySize,
@@ -549,32 +549,32 @@ var groupMetricsMap = map[string][]string{
 		elasticsearchIndicesSegmentsTermsMemorySize,
 		elasticsearchIndicesSegmentsVersionMapMemorySize,
 	},
-	groupIndicesStore: []string{
+	groupIndicesStore: {
 		elasticsearchIndicesStoreSize,
 		elasticsearchIndicesStoreThrottleTime,
 	},
-	groupIndicesSuggest: []string{
+	groupIndicesSuggest: {
 		elasticsearchIndicesSuggestCurrent,
 		elasticsearchIndicesSuggestTime,
 		elasticsearchIndicesSuggestTotal,
 	},
-	groupIndicesTranslog: []string{
+	groupIndicesTranslog: {
 		elasticsearchIndicesTranslogEarliestLastModifiedAge,
 		elasticsearchIndicesTranslogOperations,
 		elasticsearchIndicesTranslogSize,
 		elasticsearchIndicesTranslogUncommittedOperations,
 		elasticsearchIndicesTranslogUncommittedSizeInBytes,
 	},
-	groupIndicesWarmer: []string{
+	groupIndicesWarmer: {
 		elasticsearchIndicesWarmerCurrent,
 		elasticsearchIndicesWarmerTotal,
 		elasticsearchIndicesWarmerTotalTime,
 	},
-	groupNodeHTTP: []string{
+	groupNodeHTTP: {
 		elasticsearchHTTPCurrentOpen,
 		elasticsearchHTTPTotalOpen,
 	},
-	groupNodeJvm: []string{
+	groupNodeJvm: {
 		elasticsearchJvmClassesCurrentLoadedCount,
 		elasticsearchJvmClassesTotalLoadedCount,
 		elasticsearchJvmClassesTotalUnloadedCount,
@@ -610,14 +610,14 @@ var groupMetricsMap = map[string][]string{
 		elasticsearchJvmThreadsPeak,
 		elasticsearchJvmUptime,
 	},
-	groupNodeProcess: []string{
+	groupNodeProcess: {
 		elasticsearchProcessCPUPercent,
 		elasticsearchProcessCPUTime,
 		elasticsearchProcessMaxFileDescriptors,
 		elasticsearchProcessMemTotalVirtualSize,
 		elasticsearchProcessOpenFileDescriptors,
 	},
-	groupNodeThreadPool: []string{
+	groupNodeThreadPool: {
 		elasticsearchThreadPoolActive,
 		elasticsearchThreadPoolCompleted,
 		elasticsearchThreadPoolLargest,
@@ -625,7 +625,7 @@ var groupMetricsMap = map[string][]string{
 		elasticsearchThreadPoolRejected,
 		elasticsearchThreadPoolThreads,
 	},
-	groupNodeTransport: []string{
+	groupNodeTransport: {
 		elasticsearchTransportRxCount,
 		elasticsearchTransportRxSize,
 		elasticsearchTransportServerOpen,

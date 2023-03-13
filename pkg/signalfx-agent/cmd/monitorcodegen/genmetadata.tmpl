@@ -61,7 +61,7 @@ var {{"defaultMetrics" | formatVariable}} = map[string]bool {
 
 var {{"groupMetricsMap" | formatVariable}} = map[string][]string {
 {{- range $group, $metrics := .groupMetricsMap}}
-	{{(printf "group.%s" $group) | formatVariable}}: []string {
+	{{(printf "group.%s" $group) | formatVariable}}: {
 		{{- range $metrics}}
 		{{. | formatVariable}},
 		{{- end}}

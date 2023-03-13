@@ -75,7 +75,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupLeader: []string{
+	groupLeader: {
 		gaugeZkFollowers,
 		gaugeZkPendingSyncs,
 		gaugeZkSyncedFollowers,

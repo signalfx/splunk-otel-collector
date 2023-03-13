@@ -107,7 +107,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupBlkio: []string{
+	groupBlkio: {
 		blkioIoServiceBytesRecursiveAsync,
 		blkioIoServiceBytesRecursiveRead,
 		blkioIoServiceBytesRecursiveSync,
@@ -119,7 +119,7 @@ var groupMetricsMap = map[string][]string{
 		blkioIoServicedRecursiveTotal,
 		blkioIoServicedRecursiveWrite,
 	},
-	groupCPU: []string{
+	groupCPU: {
 		cpuLimit,
 		cpuPercent,
 		cpuPercpuUsage,
@@ -131,14 +131,14 @@ var groupMetricsMap = map[string][]string{
 		cpuUsageTotal,
 		cpuUsageUsermode,
 	},
-	groupMemory: []string{
+	groupMemory: {
 		memoryPercent,
 		memoryStatsSwap,
 		memoryUsageLimit,
 		memoryUsageMax,
 		memoryUsageTotal,
 	},
-	groupNetwork: []string{
+	groupNetwork: {
 		networkUsageRxBytes,
 		networkUsageRxDropped,
 		networkUsageRxErrors,

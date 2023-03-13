@@ -225,18 +225,18 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupEvents: []string{
+	groupEvents: {
 		nodeStatsEventsEventsDurationInMillis,
 		nodeStatsEventsEventsFiltered,
 		nodeStatsEventsEventsIn,
 		nodeStatsEventsEventsOut,
 		nodeStatsEventsEventsQueuePushDurationInMillis,
 	},
-	groupHotThreads: []string{
+	groupHotThreads: {
 		nodeHotThreadsHotThreadsBusiestThreads,
 		nodeHotThreadsHotThreadsThreadsPercentOfCPUTime,
 	},
-	groupJvm: []string{
+	groupJvm: {
 		nodeStatsJvmJvmGcCollectorsOldCollectionCount,
 		nodeStatsJvmJvmGcCollectorsOldCollectionTimeInMillis,
 		nodeStatsJvmJvmGcCollectorsYoungCollectionCount,
@@ -266,7 +266,7 @@ var groupMetricsMap = map[string][]string{
 		nodeStatsJvmJvmThreadsPeakCount,
 		nodeStatsJvmJvmUptimeInMillis,
 	},
-	groupOs: []string{
+	groupOs: {
 		nodeOsOsAvailableProcessors,
 		nodeStatsOsOsCgroupCPUCfsPeriodMicros,
 		nodeStatsOsOsCgroupCPUCfsQuotaMicros,
@@ -275,7 +275,7 @@ var groupMetricsMap = map[string][]string{
 		nodeStatsOsOsCgroupCPUStatTimeThrottledNanos,
 		nodeStatsOsOsCgroupCpuacctUsageNanos,
 	},
-	groupPipeline: []string{
+	groupPipeline: {
 		nodePipelinesBatchDelay,
 		nodePipelinesBatchSize,
 		nodePipelinesWorkers,
@@ -303,10 +303,10 @@ var groupMetricsMap = map[string][]string{
 		nodeStatsPipelinesReloadsFailures,
 		nodeStatsPipelinesReloadsSuccesses,
 	},
-	groupPlugins: []string{
+	groupPlugins: {
 		nodePluginsTotal,
 	},
-	groupProcess: []string{
+	groupProcess: {
 		nodeStatsProcessProcessCPULoadAverage15m,
 		nodeStatsProcessProcessCPULoadAverage1m,
 		nodeStatsProcessProcessCPULoadAverage5m,
@@ -317,7 +317,7 @@ var groupMetricsMap = map[string][]string{
 		nodeStatsProcessProcessOpenFileDescriptors,
 		nodeStatsProcessProcessPeakOpenFileDescriptors,
 	},
-	groupReloads: []string{
+	groupReloads: {
 		nodeStatsReloadsReloadsFailures,
 		nodeStatsReloadsReloadsSuccesses,
 	},

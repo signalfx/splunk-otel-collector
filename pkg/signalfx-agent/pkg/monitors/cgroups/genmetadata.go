@@ -144,7 +144,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupCPU: []string{
+	groupCPU: {
 		cgroupCPUCfsPeriodUs,
 		cgroupCPUCfsQuotaUs,
 		cgroupCPUShares,
@@ -152,17 +152,17 @@ var groupMetricsMap = map[string][]string{
 		cgroupCPUStatNrThrottled,
 		cgroupCPUStatThrottledTime,
 	},
-	groupCpuacct: []string{
+	groupCpuacct: {
 		cgroupCpuacctUsageNs,
 		cgroupCpuacctUsageSystemNs,
 		cgroupCpuacctUsageUserNs,
 	},
-	groupCpuacctPerCPU: []string{
+	groupCpuacctPerCPU: {
 		cgroupCpuacctUsageNsPerCPU,
 		cgroupCpuacctUsageSystemNsPerCPU,
 		cgroupCpuacctUsageUserNsPerCPU,
 	},
-	groupMemory: []string{
+	groupMemory: {
 		cgroupMemoryFailcnt,
 		cgroupMemoryLimitInBytes,
 		cgroupMemoryMaxUsageInBytes,

@@ -774,7 +774,7 @@ var defaultMetrics = map[string]bool{
 }
 
 var groupMetricsMap = map[string][]string{
-	groupContainer: []string{
+	groupContainer: {
 		repAbsoluteEntitlement,
 		repAbsoluteUsage,
 		repContainerAge,

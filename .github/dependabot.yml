@@ -50,3 +50,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/pkg/signalfx-agent/bundle"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "maven"
+    directory: "/pkg/signalfx-agent/bundle/java"
+    schedule:
+      interval: "weekly"

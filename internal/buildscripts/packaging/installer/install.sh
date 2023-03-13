@@ -106,6 +106,12 @@ default_deployment_environment=""
 instrumentation_config_path="/usr/lib/splunk-instrumentation/instrumentation.conf"
 instrumentation_so_path="/usr/lib/splunk-instrumentation/libsplunk.so"
 instrumentation_jar_path="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
+generate_service_name="true"
+service_name=""
+disable_telemetry="false"
+enable_profiler="false"
+enable_profiler_memory="false"
+enable_metrics="false"
 
 repo_for_stage() {
   local repo_url=$1
@@ -403,17 +409,12 @@ configure_fluentd() {
   fi
 }
 
-update_instrumentation_config() {
+update_deployment_environment() {
   local deployment_environment="$1"
 
-  if [ -f "$instrumentation_config_path" ]; then
-    if grep -q -E "^resource_attributes=.*deployment\.environment=${deployment_environment}(,|$)" "$instrumentation_config_path"; then
-      echo "The 'deployment.environment=${deployment_environment}' resource attribute already exists in ${instrumentation_config_path}"
-      return 0
-    fi
-    ts="$(date '+%Y%m%d-%H%M%S')"
-    echo "Backing up $instrumentation_config_path as ${instrumentation_config_path}.bak.${ts}"
-    cp "$instrumentation_config_path" "${instrumentation_config_path}.bak.${ts}"
+  if grep -q -E "^resource_attributes=.*deployment\.environment=${deployment_environment}(,|$)" "$instrumentation_config_path"; then
+    echo "The 'deployment.environment=${deployment_environment}' resource attribute already exists in ${instrumentation_config_path}"
+  else
     echo "Adding 'deployment.environment=${deployment_environment}' resource attribute to $instrumentation_config_path"
     if grep -q '^resource_attributes=' "$instrumentation_config_path"; then
       # traverse through existing resource attributes to add/update deployment.environment
@@ -436,6 +437,40 @@ update_instrumentation_config() {
       # "resource_attributes=" line not found, simply append the line to the config file
       echo "resource_attributes=deployment.environment=${deployment_environment}" >> "$instrumentation_config_path"
     fi
+  fi
+}
+
+update_instrumentation_option() {
+  local option="$1"
+  local value="$2"
+
+  if grep -q -E "^${option}=.*" "$instrumentation_config_path"; then
+    # overwrite existing option=value
+    sed -i "s|^${option}=.*|${option}=${value}|" "$instrumentation_config_path"
+  else
+    # append option=value
+    echo "${option}=${value}" >> "$instrumentation_config_path"
+  fi
+}
+
+update_instrumentation_config() {
+  local deployment_environment="$1"
+
+  if [ -f "$instrumentation_config_path" ]; then
+    ts="$(date '+%Y%m%d-%H%M%S')"
+    echo "Backing up $instrumentation_config_path as ${instrumentation_config_path}.bak.${ts}"
+    cp "$instrumentation_config_path" "${instrumentation_config_path}.bak.${ts}"
+    if [ -n "$deployment_environment" ]; then
+      update_deployment_environment "$deployment_environment"
+    fi
+    if [ -n "$service_name" ]; then
+      update_instrumentation_option "service_name" "$service_name"
+    fi
+    update_instrumentation_option "generate_service_name" "$generate_service_name"
+    update_instrumentation_option "disable_telemetry" "$disable_telemetry"
+    update_instrumentation_option "enable_profiler" "$enable_profiler"
+    update_instrumentation_option "enable_profiler_memory" "$enable_profiler_memory"
+    update_instrumentation_option "enable_metrics" "$enable_metrics"
   else
     echo "$instrumentation_config_path not found!" >&2
     exit 1
@@ -589,53 +624,84 @@ If access_token is not provided, it will be prompted for on stdin.
 
 Options:
 
-  --api-url <url>                   Set the api endpoint URL explicitly instead of the endpoint inferred from the specified realm
-                                    (default: https://api.REALM.signalfx.com)
-  --ballast <ballast size>          Set the ballast size explicitly instead of the value calculated from the --memory option
-                                    This should be set to 1/3 to 1/2 of configured memory
-  --beta                            Use the beta package repo instead of the primary
-  --collector-config <path>         Set the path to an existing custom config file for the collector service instead of the default
-                                    config file provided by the collector package based on the '--mode <agent|gateway>' option.
-                                    *Note*: If the specified config file requires custom environment variables, the variables and
-                                    values can be manually added to $collector_env_path after installation.
-                                    Restart the collector service with the 'sudo systemctl restart splunk-otel-collector' command
-                                    for the changes to take effect.
-  --collector-version <version>     The splunk-otel-collector package version to install (default: "$default_collector_version")
-  --hec-token <token>               Set the HEC token if different than the specified Splunk access_token
-  --hec-url <url>                   Set the HEC endpoint URL explicitly instead of the endpoint inferred from the specified realm
-                                    (default: https://ingest.REALM.signalfx.com/v1/log)
-  --ingest-url <url>                Set the ingest endpoint URL explicitly instead of the endpoint inferred from the specified realm
-                                    (default: https://ingest.REALM.signalfx.com)
-  --memory <memory size>            Total memory in MIB to allocate to the collector; automatically calculates the ballast size
-                                    (default: "$default_memory_size")
-  --mode <agent|gateway>            Configure the collector service to run in agent or gateway mode (default: "agent")
-  --realm <us0|us1|eu0|...>         The Splunk realm to use (default: "$default_realm")
-                                    The ingest, api, trace, and HEC endpoint URLs will automatically be inferred by this value
-  --service-group <group>           Set the group for the splunk-otel-collector service (default: "$default_service_group")
-                                    The group will be created if it does not exist
-  --service-user <user>             Set the user for the splunk-otel-collector service (default: "$default_service_user")
-                                    The user will be created if it does not exist
-  --skip-collector-repo             By default, a apt/yum/zypper repo definition file will be created to download the
-                                    collector deb/rpm package from $repo_base.  Specify this option to skip this step
-                                    and use a pre-configured repo on the target system that provides the
-                                    'splunk-otel-collector' deb/rpm package.
-  --skip-fluentd-repo               By default, a apt/yum repo definition file will be created to download the fluentd
-                                    deb/rpm package from $td_agent_repo_base.  Specify this option to skip this step
-                                    and use a pre-configured repo on the target system that provides the
-                                    'td-agent' deb/rpm package.
-  --test                            Use the test package repo instead of the primary
-  --trace-url <url>                 Set the trace endpoint URL explicitly instead of the endpoint inferred from the specified realm
-                                    (default: https://ingest.REALM.signalfx.com/v2/trace)
-  --uninstall                       Removes the Splunk OpenTelemetry Collector for Linux
-  --with[out]-fluentd               Whether to install and configure fluentd to forward log events to the collector
-                                    (default: --with-fluentd)
-  --with[out]-instrumentation       Whether to install and configure the splunk-otel-auto-instrumentation package
-                                    (default: --without-instrumentation)
-  --deployment-environment <value>  Set the 'deployment.environment' resource attribute to the specified value.
-                                    Only applicable if the '--with-instrumentation' option is also specified.
-                                    (default: empty)
-  --instrumentation-version         The splunk-otel-auto-instrumentation package version to install (default: $default_instrumentation_version)
-  --                                Use -- if access_token starts with -
+  --api-url <url>                       Set the api endpoint URL explicitly instead of the endpoint inferred from the
+                                        specified realm.
+                                        (default: https://api.REALM.signalfx.com)
+  --ballast <ballast size>              Set the ballast size explicitly instead of the value calculated from the
+                                        '--memory' option. This should be set to 1/3 to 1/2 of configured memory.
+  --beta                                Use the beta package repo instead of the primary.
+  --collector-config <path>             Set the path to an existing custom config file for the collector service instead
+                                        of the default config file provided by the collector package based on the
+                                        '--mode <agent|gateway>' option.
+                                        *Note*: If the specified config file requires custom environment variables, the
+                                        variables and values can be manually added to $collector_env_path
+                                        after installation. Restart the collector service with the
+                                        'sudo systemctl restart splunk-otel-collector' command for the changes to take
+                                        effect.
+  --collector-version <version>         The splunk-otel-collector package version to install.
+                                        (default: "$default_collector_version")
+  --hec-token <token>                   Set the HEC token if different than the specified access_token.
+  --hec-url <url>                       Set the HEC endpoint URL explicitly instead of the endpoint inferred from the
+                                        specified realm.
+                                        (default: https://ingest.REALM.signalfx.com/v1/log)
+  --ingest-url <url>                    Set the ingest endpoint URL explicitly instead of the endpoint inferred from the
+                                        specified realm.
+                                        (default: https://ingest.REALM.signalfx.com)
+  --memory <memory size>                Total memory in MIB to allocate to the collector; automatically calculates the
+                                        ballast size.
+                                        (default: "$default_memory_size")
+  --mode <agent|gateway>                Configure the collector service to run in agent or gateway mode.
+                                        (default: "agent")
+  --realm <us0|us1|eu0|...>             The Splunk realm to use. The ingest, api, trace, and HEC endpoint URLs will
+                                        automatically be inferred by this value.
+                                        (default: "$default_realm")
+  --service-group <group>               Set the group for the splunk-otel-collector service. The group will be created
+                                        if it does not exist.
+                                        (default: "$default_service_group")
+  --service-user <user>                 Set the user for the splunk-otel-collector service. The user will be created if
+                                        it does not exist.
+                                        (default: "$default_service_user")
+  --skip-collector-repo                 By default, a apt/yum/zypper repo definition file will be created to download
+                                        the collector deb/rpm package from $repo_base.
+                                        Specify this option to skip this step and use a pre-configured repo on the
+                                        target system that provides the 'splunk-otel-collector' deb/rpm package.
+  --skip-fluentd-repo                   By default, a apt/yum repo definition file will be created to download the
+                                        fluentd deb/rpm package from $td_agent_repo_base.
+                                        Specify this option to skip this step and use a pre-configured repo on the
+                                        target system that provides the 'td-agent' deb/rpm package.
+  --test                                Use the test package repo instead of the primary.
+  --trace-url <url>                     Set the trace endpoint URL explicitly instead of the endpoint inferred from the
+                                        specified realm.
+                                        (default: https://ingest.REALM.signalfx.com/v2/trace)
+  --uninstall                           Removes the Splunk OpenTelemetry Collector for Linux.
+  --with[out]-fluentd                   Whether to install and configure fluentd to forward log events to the collector.
+                                        (default: --with-fluentd)
+  --with[out]-instrumentation           Whether to install and configure the splunk-otel-auto-instrumentation package.
+                                        (default: --without-instrumentation)
+  --deployment-environment <value>      Set the 'deployment.environment' resource attribute to the specified value.
+                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        (default: empty)
+  --service-name <name>                 Override the auto-generated service names for all instrumented Java applications
+                                        on this host with '<name>'.
+                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        (default: empty)
+  --[enable|disable]-telemetry          Enable or disable the instrumentation preloader from sending the
+                                        'splunk.linux-autoinstr.executions' metric to the collector.
+                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        (default: --enable-telemetry)
+  --[enable|disable]-profiler           Enable or disable AlwaysOn CPU Profiling.
+                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        (default: --disable-profiler)
+  --[enable|disable]-profiler-memory    Enable or disable AlwaysOn Memory Profiling.
+                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        (default: --disable-profiler-memory)
+  --[enable|disable]-metrics            Enable or disable exporting Micrometer metrics.
+                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        (default: --disable-metrics)
+  --instrumentation-version             The splunk-otel-auto-instrumentation package version to install.
+                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        (default: $default_instrumentation_version)
+  --                                    Use '--' if access_token starts with '-'.
 
 EOH
   exit 0
@@ -812,6 +878,35 @@ parse_args_and_install() {
         deployment_environment="$2"
         shift 1
         ;;
+      --service-name)
+        service_name="$2"
+        generate_service_name="false"
+        shift 1
+        ;;
+      --enable-telemetry)
+        disable_telemetry="false"
+        ;;
+      --disable-telemetry)
+        disable_telemetry="true"
+        ;;
+      --enable-profiler)
+        enable_profiler="true"
+        ;;
+      --disable-profiler)
+        enable_profiler="false"
+        ;;
+      --enable-profiler-memory)
+        enable_profiler_memory="true"
+        ;;
+      --disable-profiler-memory)
+        enable_profiler_memory="false"
+        ;;
+      --enable-metrics)
+        enable_metrics="true"
+        ;;
+      --disable-metrics)
+        enable_metrics="false"
+        ;;
       --)
         access_token="$2"
         shift 1
@@ -936,7 +1031,7 @@ parse_args_and_install() {
 
   install "$stage" "$collector_version" "$td_agent_version" "$skip_collector_repo" "$skip_fluentd_repo" "$instrumentation_version"
 
-  if [ "$with_instrumentation" = "true" ] && [ -n "$deployment_environment" ]; then
+  if [ "$with_instrumentation" = "true" ]; then
     update_instrumentation_config "$deployment_environment"
   fi
 

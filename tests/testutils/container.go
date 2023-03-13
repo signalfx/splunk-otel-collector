@@ -473,7 +473,7 @@ func (container *Container) createNetworksIfNecessary(req testcontainers.Generic
 			}
 			_, err := provider.CreateNetwork(context.Background(), create)
 			if err != nil {
-				return nil
+				return err
 			}
 		}
 	}

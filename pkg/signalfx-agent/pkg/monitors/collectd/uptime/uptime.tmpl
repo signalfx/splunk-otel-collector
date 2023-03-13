@@ -1,0 +1,12 @@
+LoadPlugin uptime
+
+<Chain "PostCache"> 
+  <Rule "set_uptime_monitor_id"> 
+    <Match "regex"> 
+      Plugin "^uptime$" 
+    </Match> 
+    <Target "set"> 
+      MetaData "monitorID" "{{.MonitorID}}" 
+    </Target> 
+  </Rule> 
+</Chain>

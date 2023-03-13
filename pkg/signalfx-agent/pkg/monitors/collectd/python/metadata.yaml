@@ -1,0 +1,10 @@
+monitors:
+- dimensions:
+  doc: |
+    This monitor runs arbitrary collectd Python
+    plugins directly, apart from collectd.  It implements a mock collectd Python
+    interface that supports most, but not all, of the real collectd.
+  metrics:
+  monitorType: collectd/python
+  properties:
+  sendAll: true

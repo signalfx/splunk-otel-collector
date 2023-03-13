@@ -1,0 +1,26 @@
+<LoadPlugin "processes">
+  Interval {{.IntervalSeconds}}
+</LoadPlugin>
+<Plugin processes>
+  {{range .Processes -}}
+  Process "{{.}}"
+  {{end}}
+  {{range $name, $regex := .ProcessMatch -}}
+  ProcessMatch "{{$name}}" "{{$regex}}"
+  {{end}}
+  CollectContextSwitch {{.CollectContextSwitch}}
+  {{with .ProcFSPath -}}
+  ProcFSPath "{{.}}"
+  {{- end}}
+</Plugin>
+
+<Chain "PostCache"> 
+  <Rule "set_processes_monitor_id"> 
+    <Match "regex"> 
+      Plugin "^processes$" 
+    </Match> 
+    <Target "set"> 
+      MetaData "monitorID" "{{.MonitorID}}" 
+    </Target> 
+  </Rule> 
+</Chain>

@@ -1,0 +1,1068 @@
+monitors:
+- monitorType: prometheus/postgres
+  doc: |
+    This monitor scrapes [Prometheus PostgreSQL Server
+    Exporter](https://github.com/wrouesnel/postgres_exporter) metrics and sends
+    them to SignalFx.  It is a wrapper around the
+    [prometheus-exporter](./prometheus-exporter.md) monitor that provides a
+    restricted but expandable set of metrics.
+  metrics:
+    pg_exporter_last_scrape_duration_seconds:
+      description: Duration of the last scrape of metrics from PostgresSQL.
+      default:
+      type: gauge
+    pg_exporter_last_scrape_error:
+      description: Whether the last scrape of metrics from PostgreSQL resulted in
+        an error (1 for error, 0 for success).
+      default:
+      type: gauge
+    pg_exporter_scrapes_total:
+      description: Total number of times PostgresSQL was scraped for metrics.
+      default:
+      type: cumulative
+    pg_exporter_user_queries_load_error:
+      description: Whether the user queries file was loaded and parsed successfully
+        (1 for error, 0 for success).
+      default:
+      type: gauge
+    pg_locks_count:
+      description: Number of locks
+      default:
+      type: gauge
+    pg_postmaster_start_time_seconds:
+      description: Time at which postmaster started
+      default:
+      type: gauge
+    pg_replication_is_replica:
+      description: Indicates if this host is a slave
+      default:
+      type: gauge
+    pg_replication_lag:
+      description: Replication lag behind master in seconds
+      default:
+      type: gauge
+    pg_settings_allow_system_table_mods:
+      description: Allows modifications of the structure of system tables.
+      default:
+      type: gauge
+    pg_settings_archive_timeout_seconds:
+      description: Forces a switch to the next xlog file if a new file has not been
+        started within N seconds. [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_array_nulls:
+      description: Enable input of NULL elements in arrays.
+      default:
+      type: gauge
+    pg_settings_authentication_timeout_seconds:
+      description: Sets the maximum allowed time to complete client authentication.
+        [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_autovacuum:
+      description: Starts the autovacuum subprocess.
+      default:
+      type: gauge
+    pg_settings_autovacuum_analyze_scale_factor:
+      description: Number of tuple inserts, updates, or deletes prior to analyze as
+        a fraction of reltuples.
+      default:
+      type: gauge
+    pg_settings_autovacuum_analyze_threshold:
+      description: Minimum number of tuple inserts, updates, or deletes prior to analyze.
+      default:
+      type: gauge
+    pg_settings_autovacuum_freeze_max_age:
+      description: Age at which to autovacuum a table to prevent transaction ID wraparound.
+      default:
+      type: gauge
+    pg_settings_autovacuum_max_workers:
+      description: Sets the maximum number of simultaneously running autovacuum worker
+        processes.
+      default:
+      type: gauge
+    pg_settings_autovacuum_multixact_freeze_max_age:
+      description: Multixact age at which to autovacuum a table to prevent multixact
+        wraparound.
+      default:
+      type: gauge
+    pg_settings_autovacuum_naptime_seconds:
+      description: Time to sleep between autovacuum runs. [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_autovacuum_vacuum_cost_delay_seconds:
+      description: Vacuum cost delay in milliseconds, for autovacuum. [Units converted
+        to seconds.]
+      default:
+      type: gauge
+    pg_settings_autovacuum_vacuum_cost_limit:
+      description: Vacuum cost amount available before napping, for autovacuum.
+      default:
+      type: gauge
+    pg_settings_autovacuum_vacuum_scale_factor:
+      description: Number of tuple updates or deletes prior to vacuum as a fraction
+        of reltuples.
+      default:
+      type: gauge
+    pg_settings_autovacuum_vacuum_threshold:
+      description: Minimum number of tuple updates or deletes prior to vacuum.
+      default:
+      type: gauge
+    pg_settings_autovacuum_work_mem_bytes:
+      description: Sets the maximum memory to be used by each autovacuum worker process.
+        [Units converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_backend_flush_after_bytes:
+      description: Number of pages after which previously performed writes are flushed
+        to disk. [Units converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_bgwriter_delay_seconds:
+      description: Background writer sleep time between rounds. [Units converted to
+        seconds.]
+      default:
+      type: gauge
+    pg_settings_bgwriter_flush_after_bytes:
+      description: Number of pages after which previously performed writes are flushed
+        to disk. [Units converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_bgwriter_lru_maxpages:
+      description: Background writer maximum number of LRU pages to flush per round.
+      default:
+      type: gauge
+    pg_settings_bgwriter_lru_multiplier:
+      description: Multiple of the average buffer usage to free per round.
+      default:
+      type: gauge
+    pg_settings_block_size:
+      description: Shows the size of a disk block.
+      default:
+      type: gauge
+    pg_settings_bonjour:
+      description: Enables advertising the server via Bonjour.
+      default:
+      type: gauge
+    pg_settings_check_function_bodies:
+      description: Check function bodies during CREATE FUNCTION.
+      default:
+      type: gauge
+    pg_settings_checkpoint_completion_target:
+      description: Time spent flushing dirty buffers during checkpoint, as fraction
+        of checkpoint interval.
+      default:
+      type: gauge
+    pg_settings_checkpoint_flush_after_bytes:
+      description: Number of pages after which previously performed writes are flushed
+        to disk. [Units converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_checkpoint_timeout_seconds:
+      description: Sets the maximum time between automatic WAL checkpoints. [Units
+        converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_checkpoint_warning_seconds:
+      description: Enables warnings if checkpoint segments are filled more frequently
+        than this. [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_commit_delay:
+      description: Sets the delay in microseconds between transaction commit and flushing
+        WAL to disk.
+      default:
+      type: gauge
+    pg_settings_commit_siblings:
+      description: Sets the minimum concurrent open transactions before performing
+        commit_delay.
+      default:
+      type: gauge
+    pg_settings_cpu_index_tuple_cost:
+      description: Sets the planner's estimate of the cost of processing each index
+        entry during an index scan.
+      default:
+      type: gauge
+    pg_settings_cpu_operator_cost:
+      description: Sets the planner's estimate of the cost of processing each operator
+        or function call.
+      default:
+      type: gauge
+    pg_settings_cpu_tuple_cost:
+      description: Sets the planner's estimate of the cost of processing each tuple
+        (row).
+      default:
+      type: gauge
+    pg_settings_cursor_tuple_fraction:
+      description: Sets the planner's estimate of the fraction of a cursor's rows
+        that will be retrieved.
+      default:
+      type: gauge
+    pg_settings_data_checksums:
+      description: Shows whether data checksums are turned on for this cluster.
+      default:
+      type: gauge
+    pg_settings_db_user_namespace:
+      description: Enables per-database user names.
+      default:
+      type: gauge
+    pg_settings_deadlock_timeout_seconds:
+      description: Sets the time to wait on a lock before checking for deadlock. [Units
+        converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_debug_assertions:
+      description: Shows whether the running server has assertion checks enabled.
+      default:
+      type: gauge
+    pg_settings_debug_pretty_print:
+      description: Indents parse and plan tree displays.
+      default:
+      type: gauge
+    pg_settings_debug_print_parse:
+      description: Logs each query's parse tree.
+      default:
+      type: gauge
+    pg_settings_debug_print_plan:
+      description: Logs each query's execution plan.
+      default:
+      type: gauge
+    pg_settings_debug_print_rewritten:
+      description: Logs each query's rewritten parse tree.
+      default:
+      type: gauge
+    pg_settings_default_statistics_target:
+      description: Sets the default statistics target.
+      default:
+      type: gauge
+    pg_settings_default_transaction_deferrable:
+      description: Sets the default deferrable status of new transactions.
+      default:
+      type: gauge
+    pg_settings_default_transaction_read_only:
+      description: Sets the default read-only status of new transactions.
+      default:
+      type: gauge
+    pg_settings_default_with_oids:
+      description: Create new tables with OIDs by default.
+      default:
+      type: gauge
+    pg_settings_effective_cache_size_bytes:
+      description: Sets the planner's assumption about the size of the data cache.
+        [Units converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_effective_io_concurrency:
+      description: Number of simultaneous requests that can be handled efficiently
+        by the disk subsystem.
+      default:
+      type: gauge
+    pg_settings_enable_bitmapscan:
+      description: Enables the planner's use of bitmap-scan plans.
+      default:
+      type: gauge
+    pg_settings_enable_hashagg:
+      description: Enables the planner's use of hashed aggregation plans.
+      default:
+      type: gauge
+    pg_settings_enable_hashjoin:
+      description: Enables the planner's use of hash join plans.
+      default:
+      type: gauge
+    pg_settings_enable_indexonlyscan:
+      description: Enables the planner's use of index-only-scan plans.
+      default:
+      type: gauge
+    pg_settings_enable_indexscan:
+      description: Enables the planner's use of index-scan plans.
+      default:
+      type: gauge
+    pg_settings_enable_material:
+      description: Enables the planner's use of materialization.
+      default:
+      type: gauge
+    pg_settings_enable_mergejoin:
+      description: Enables the planner's use of merge join plans.
+      default:
+      type: gauge
+    pg_settings_enable_nestloop:
+      description: Enables the planner's use of nested-loop join plans.
+      default:
+      type: gauge
+    pg_settings_enable_seqscan:
+      description: Enables the planner's use of sequential-scan plans.
+      default:
+      type: gauge
+    pg_settings_enable_sort:
+      description: Enables the planner's use of explicit sort steps.
+      default:
+      type: gauge
+    pg_settings_enable_tidscan:
+      description: Enables the planner's use of TID scan plans.
+      default:
+      type: gauge
+    pg_settings_escape_string_warning:
+      description: Warn about backslash escapes in ordinary string literals.
+      default:
+      type: gauge
+    pg_settings_exit_on_error:
+      description: Terminate session on any error.
+      default:
+      type: gauge
+    pg_settings_extra_float_digits:
+      description: Sets the number of digits displayed for floating-point values.
+      default:
+      type: gauge
+    pg_settings_from_collapse_limit:
+      description: Sets the FROM-list size beyond which subqueries are not collapsed.
+      default:
+      type: gauge
+    pg_settings_fsync:
+      description: Forces synchronization of updates to disk.
+      default:
+      type: gauge
+    pg_settings_full_page_writes:
+      description: Writes full pages to WAL when first modified after a checkpoint.
+      default:
+      type: gauge
+    pg_settings_geqo:
+      description: Enables genetic query optimization.
+      default:
+      type: gauge
+    pg_settings_geqo_effort:
+      description: 'GEQO: effort is used to set the default for other GEQO parameters.'
+      default:
+      type: gauge
+    pg_settings_geqo_generations:
+      description: 'GEQO: number of iterations of the algorithm.'
+      default:
+      type: gauge
+    pg_settings_geqo_pool_size:
+      description: 'GEQO: number of individuals in the population.'
+      default:
+      type: gauge
+    pg_settings_geqo_seed:
+      description: 'GEQO: seed for random path selection.'
+      default:
+      type: gauge
+    pg_settings_geqo_selection_bias:
+      description: 'GEQO: selective pressure within the population.'
+      default:
+      type: gauge
+    pg_settings_geqo_threshold:
+      description: Sets the threshold of FROM items beyond which GEQO is used.
+      default:
+      type: gauge
+    pg_settings_gin_fuzzy_search_limit:
+      description: Sets the maximum allowed result for exact search by GIN.
+      default:
+      type: gauge
+    pg_settings_gin_pending_list_limit_bytes:
+      description: Sets the maximum size of the pending list for GIN index. [Units
+        converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_hot_standby:
+      description: Allows connections and queries during recovery.
+      default:
+      type: gauge
+    pg_settings_hot_standby_feedback:
+      description: Allows feedback from a hot standby to the primary that will avoid
+        query conflicts.
+      default:
+      type: gauge
+    pg_settings_idle_in_transaction_session_timeout_seconds:
+      description: Sets the maximum allowed duration of any idling transaction. [Units
+        converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_ignore_checksum_failure:
+      description: Continues processing after a checksum failure.
+      default:
+      type: gauge
+    pg_settings_ignore_system_indexes:
+      description: Disables reading from system indexes.
+      default:
+      type: gauge
+    pg_settings_integer_datetimes:
+      description: Datetimes are integer based.
+      default:
+      type: gauge
+    pg_settings_join_collapse_limit:
+      description: Sets the FROM-list size beyond which JOIN constructs are not flattened.
+      default:
+      type: gauge
+    pg_settings_krb_caseins_users:
+      description: Sets whether Kerberos and GSSAPI user names should be treated as
+        case-insensitive.
+      default:
+      type: gauge
+    pg_settings_lo_compat_privileges:
+      description: Enables backward compatibility mode for privilege checks on large
+        objects.
+      default:
+      type: gauge
+    pg_settings_lock_timeout_seconds:
+      description: Sets the maximum allowed duration of any wait for a lock. [Units
+        converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_log_autovacuum_min_duration_seconds:
+      description: Sets the minimum execution time above which autovacuum actions
+        will be logged. [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_log_checkpoints:
+      description: Logs each checkpoint.
+      default:
+      type: gauge
+    pg_settings_log_connections:
+      description: Logs each successful connection.
+      default:
+      type: gauge
+    pg_settings_log_disconnections:
+      description: Logs end of a session, including duration.
+      default:
+      type: gauge
+    pg_settings_log_duration:
+      description: Logs the duration of each completed SQL statement.
+      default:
+      type: gauge
+    pg_settings_log_executor_stats:
+      description: Writes executor performance statistics to the server log.
+      default:
+      type: gauge
+    pg_settings_log_file_mode:
+      description: Sets the file permissions for log files.
+      default:
+      type: gauge
+    pg_settings_log_hostname:
+      description: Logs the host name in the connection logs.
+      default:
+      type: gauge
+    pg_settings_log_lock_waits:
+      description: Logs long lock waits.
+      default:
+      type: gauge
+    pg_settings_log_min_duration_statement_seconds:
+      description: Sets the minimum execution time above which statements will be
+        logged. [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_log_parser_stats:
+      description: Writes parser performance statistics to the server log.
+      default:
+      type: gauge
+    pg_settings_log_planner_stats:
+      description: Writes planner performance statistics to the server log.
+      default:
+      type: gauge
+    pg_settings_log_replication_commands:
+      description: Logs each replication command.
+      default:
+      type: gauge
+    pg_settings_log_rotation_age_seconds:
+      description: Automatic log file rotation will occur after N minutes. [Units
+        converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_log_rotation_size_bytes:
+      description: Automatic log file rotation will occur after N kilobytes. [Units
+        converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_log_statement_stats:
+      description: Writes cumulative performance statistics to the server log.
+      default:
+      type: gauge
+    pg_settings_log_temp_files_bytes:
+      description: Log the use of temporary files larger than this number of kilobytes.
+        [Units converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_log_truncate_on_rotation:
+      description: Truncate existing log files of same name during log rotation.
+      default:
+      type: gauge
+    pg_settings_logging_collector:
+      description: Start a subprocess to capture stderr output and/or csvlogs into
+        log files.
+      default:
+      type: gauge
+    pg_settings_maintenance_work_mem_bytes:
+      description: Sets the maximum memory to be used for maintenance operations.
+        [Units converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_max_connections:
+      description: Sets the maximum number of concurrent connections.
+      default:
+      type: gauge
+    pg_settings_max_files_per_process:
+      description: Sets the maximum number of simultaneously open files for each server
+        process.
+      default:
+      type: gauge
+    pg_settings_max_function_args:
+      description: Shows the maximum number of function arguments.
+      default:
+      type: gauge
+    pg_settings_max_identifier_length:
+      description: Shows the maximum identifier length.
+      default:
+      type: gauge
+    pg_settings_max_index_keys:
+      description: Shows the maximum number of index keys.
+      default:
+      type: gauge
+    pg_settings_max_locks_per_transaction:
+      description: Sets the maximum number of locks per transaction.
+      default:
+      type: gauge
+    pg_settings_max_parallel_workers_per_gather:
+      description: Sets the maximum number of parallel processes per executor node.
+      default:
+      type: gauge
+    pg_settings_max_pred_locks_per_transaction:
+      description: Sets the maximum number of predicate locks per transaction.
+      default:
+      type: gauge
+    pg_settings_max_prepared_transactions:
+      description: Sets the maximum number of simultaneously prepared transactions.
+      default:
+      type: gauge
+    pg_settings_max_replication_slots:
+      description: Sets the maximum number of simultaneously defined replication slots.
+      default:
+      type: gauge
+    pg_settings_max_stack_depth_bytes:
+      description: Sets the maximum stack depth, in kilobytes. [Units converted to
+        bytes.]
+      default:
+      type: gauge
+    pg_settings_max_standby_archive_delay_seconds:
+      description: Sets the maximum delay before canceling queries when a hot standby
+        server is processing archived WAL data. [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_max_standby_streaming_delay_seconds:
+      description: Sets the maximum delay before canceling queries when a hot standby
+        server is processing streamed WAL data. [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_max_wal_senders:
+      description: Sets the maximum number of simultaneously running WAL sender processes.
+      default:
+      type: gauge
+    pg_settings_max_wal_size_bytes:
+      description: Sets the WAL size that triggers a checkpoint. [Units converted
+        to bytes.]
+      default:
+      type: gauge
+    pg_settings_max_worker_processes:
+      description: Maximum number of concurrent worker processes.
+      default:
+      type: gauge
+    pg_settings_min_parallel_relation_size_bytes:
+      description: Sets the minimum size of relations to be considered for parallel
+        scan. [Units converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_min_wal_size_bytes:
+      description: Sets the minimum size to shrink the WAL to. [Units converted to
+        bytes.]
+      default:
+      type: gauge
+    pg_settings_old_snapshot_threshold_seconds:
+      description: Time before a snapshot is too old to read pages changed after the
+        snapshot was taken. [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_operator_precedence_warning:
+      description: Emit a warning for constructs that changed meaning since PostgreSQL
+        9.4.
+      default:
+      type: gauge
+    pg_settings_parallel_setup_cost:
+      description: Sets the planner's estimate of the cost of starting up worker processes
+        for parallel query.
+      default:
+      type: gauge
+    pg_settings_parallel_tuple_cost:
+      description: Sets the planner's estimate of the cost of passing each tuple (row)
+        from worker to master backend.
+      default:
+      type: gauge
+    pg_settings_password_encryption:
+      description: Encrypt passwords.
+      default:
+      type: gauge
+    pg_settings_port:
+      description: Sets the TCP port the server listens on.
+      default:
+      type: gauge
+    pg_settings_post_auth_delay_seconds:
+      description: Waits N seconds on connection startup after authentication. [Units
+        converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_pre_auth_delay_seconds:
+      description: Waits N seconds on connection startup before authentication. [Units
+        converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_quote_all_identifiers:
+      description: When generating SQL fragments, quote all identifiers.
+      default:
+      type: gauge
+    pg_settings_random_page_cost:
+      description: Sets the planner's estimate of the cost of a nonsequentially fetched
+        disk page.
+      default:
+      type: gauge
+    pg_settings_replacement_sort_tuples:
+      description: Sets the maximum number of tuples to be sorted using replacement
+        selection.
+      default:
+      type: gauge
+    pg_settings_restart_after_crash:
+      description: Reinitialize server after backend crash.
+      default:
+      type: gauge
+    pg_settings_row_security:
+      description: Enable row security.
+      default:
+      type: gauge
+    pg_settings_segment_size_bytes:
+      description: Shows the number of pages per disk file. [Units converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_seq_page_cost:
+      description: Sets the planner's estimate of the cost of a sequentially fetched
+        disk page.
+      default:
+      type: gauge
+    pg_settings_server_version_num:
+      description: Shows the server version as an integer.
+      default:
+      type: gauge
+    pg_settings_shared_buffers_bytes:
+      description: Sets the number of shared memory buffers used by the server. [Units
+        converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_sql_inheritance:
+      description: Causes subtables to be included by default in various commands.
+      default:
+      type: gauge
+    pg_settings_ssl:
+      description: Enables SSL connections.
+      default:
+      type: gauge
+    pg_settings_ssl_prefer_server_ciphers:
+      description: Give priority to server ciphersuite order.
+      default:
+      type: gauge
+    pg_settings_standard_conforming_strings:
+      description: Causes '...' strings to treat backslashes literally.
+      default:
+      type: gauge
+    pg_settings_statement_timeout_seconds:
+      description: Sets the maximum allowed duration of any statement. [Units converted
+        to seconds.]
+      default:
+      type: gauge
+    pg_settings_superuser_reserved_connections:
+      description: Sets the number of connection slots reserved for superusers.
+      default:
+      type: gauge
+    pg_settings_synchronize_seqscans:
+      description: Enable synchronized sequential scans.
+      default:
+      type: gauge
+    pg_settings_syslog_sequence_numbers:
+      description: Add sequence number to syslog messages to avoid duplicate suppression.
+      default:
+      type: gauge
+    pg_settings_syslog_split_messages:
+      description: Split messages sent to syslog by lines and to fit into 1024 bytes.
+      default:
+      type: gauge
+    pg_settings_tcp_keepalives_count:
+      description: Maximum number of TCP keepalive retransmits.
+      default:
+      type: gauge
+    pg_settings_tcp_keepalives_idle_seconds:
+      description: Time between issuing TCP keepalives. [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_tcp_keepalives_interval_seconds:
+      description: Time between TCP keepalive retransmits. [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_temp_buffers_bytes:
+      description: Sets the maximum number of temporary buffers used by each session.
+        [Units converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_temp_file_limit_bytes:
+      description: Limits the total size of all temporary files used by each process.
+        [Units converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_trace_notify:
+      description: Generates debugging output for LISTEN and NOTIFY.
+      default:
+      type: gauge
+    pg_settings_trace_sort:
+      description: Emit information about resource usage in sorting.
+      default:
+      type: gauge
+    pg_settings_track_activities:
+      description: Collects information about executing commands.
+      default:
+      type: gauge
+    pg_settings_track_activity_query_size:
+      description: Sets the size reserved for pg_stat_activity.query, in bytes.
+      default:
+      type: gauge
+    pg_settings_track_commit_timestamp:
+      description: Collects transaction commit time.
+      default:
+      type: gauge
+    pg_settings_track_counts:
+      description: Collects statistics on database activity.
+      default:
+      type: gauge
+    pg_settings_track_io_timing:
+      description: Collects timing statistics for database I/O activity.
+      default:
+      type: gauge
+    pg_settings_transaction_deferrable:
+      description: Whether to defer a read-only serializable transaction until it
+        can be executed with no possible serialization failures.
+      default:
+      type: gauge
+    pg_settings_transaction_read_only:
+      description: Sets the current transaction's read-only status.
+      default:
+      type: gauge
+    pg_settings_transform_null_equals:
+      description: Treats "expr=NULL" as "expr IS NULL".
+      default:
+      type: gauge
+    pg_settings_unix_socket_permissions:
+      description: Sets the access permissions of the Unix-domain socket.
+      default:
+      type: gauge
+    pg_settings_update_process_title:
+      description: Updates the process title to show the active SQL command.
+      default:
+      type: gauge
+    pg_settings_vacuum_cost_delay_seconds:
+      description: Vacuum cost delay in milliseconds. [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_vacuum_cost_limit:
+      description: Vacuum cost amount available before napping.
+      default:
+      type: gauge
+    pg_settings_vacuum_cost_page_dirty:
+      description: Vacuum cost for a page dirtied by vacuum.
+      default:
+      type: gauge
+    pg_settings_vacuum_cost_page_hit:
+      description: Vacuum cost for a page found in the buffer cache.
+      default:
+      type: gauge
+    pg_settings_vacuum_cost_page_miss:
+      description: Vacuum cost for a page not found in the buffer cache.
+      default:
+      type: gauge
+    pg_settings_vacuum_defer_cleanup_age:
+      description: Number of transactions by which VACUUM and HOT cleanup should be
+        deferred, if any.
+      default:
+      type: gauge
+    pg_settings_vacuum_freeze_min_age:
+      description: Minimum age at which VACUUM should freeze a table row.
+      default:
+      type: gauge
+    pg_settings_vacuum_freeze_table_age:
+      description: Age at which VACUUM should scan whole table to freeze tuples.
+      default:
+      type: gauge
+    pg_settings_vacuum_multixact_freeze_min_age:
+      description: Minimum age at which VACUUM should freeze a MultiXactId in a table
+        row.
+      default:
+      type: gauge
+    pg_settings_vacuum_multixact_freeze_table_age:
+      description: Multixact age at which VACUUM should scan whole table to freeze
+        tuples.
+      default:
+      type: gauge
+    pg_settings_wal_block_size:
+      description: Shows the block size in the write ahead log.
+      default:
+      type: gauge
+    pg_settings_wal_buffers_bytes:
+      description: Sets the number of disk-page buffers in shared memory for WAL.
+        [Units converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_wal_compression:
+      description: Compresses full-page writes written in WAL file.
+      default:
+      type: gauge
+    pg_settings_wal_keep_segments:
+      description: Sets the number of WAL files held for standby servers.
+      default:
+      type: gauge
+    pg_settings_wal_log_hints:
+      description: Writes full pages to WAL when first modified after a checkpoint,
+        even for a non-critical modifications.
+      default:
+      type: gauge
+    pg_settings_wal_receiver_status_interval_seconds:
+      description: Sets the maximum interval between WAL receiver status reports to
+        the primary. [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_wal_receiver_timeout_seconds:
+      description: Sets the maximum wait time to receive data from the primary. [Units
+        converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_wal_retrieve_retry_interval_seconds:
+      description: Sets the time to wait before retrying to retrieve WAL after a failed
+        attempt. [Units converted to seconds.]
+      default:
+      type: gauge
+    pg_settings_wal_segment_size_bytes:
+      description: Shows the number of pages per write ahead log segment. [Units converted
+        to bytes.]
+      default:
+      type: gauge
+    pg_settings_wal_sender_timeout_seconds:
+      description: Sets the maximum time to wait for WAL replication. [Units converted
+        to seconds.]
+      default:
+      type: gauge
+    pg_settings_wal_writer_delay_seconds:
+      description: Time between WAL flushes performed in the WAL writer. [Units converted
+        to seconds.]
+      default:
+      type: gauge
+    pg_settings_wal_writer_flush_after_bytes:
+      description: Amount of WAL written out by WAL writer that triggers a flush.
+        [Units converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_work_mem_bytes:
+      description: Sets the maximum memory to be used for query workspaces. [Units
+        converted to bytes.]
+      default:
+      type: gauge
+    pg_settings_zero_damaged_pages:
+      description: Continues processing past damaged page headers.
+      default:
+      type: gauge
+    pg_slow_queries:
+      description: Current number of slow queries
+      default:
+      type: gauge
+    pg_stat_activity_count:
+      description: Number of connections in this state
+      default: true
+      type: gauge
+    pg_stat_activity_max_tx_duration:
+      description: Max duration in seconds any active transaction has been running
+      default: true
+      type: gauge
+    pg_stat_bgwriter_buffers_alloc:
+      description: Number of buffers allocated
+      default:
+      type: cumulative
+    pg_stat_bgwriter_buffers_backend:
+      description: Number of buffers written directly by a backend
+      default:
+      type: cumulative
+    pg_stat_bgwriter_buffers_backend_fsync:
+      description: Number of times a backend had to execute its own fsync call (normally
+        the background writer handles those even when the backend does its own write)
+      default:
+      type: cumulative
+    pg_stat_bgwriter_buffers_checkpoint:
+      description: Number of buffers written during checkpoints
+      default:
+      type: cumulative
+    pg_stat_bgwriter_buffers_clean:
+      description: Number of buffers written by the background writer
+      default:
+      type: cumulative
+    pg_stat_bgwriter_checkpoint_sync_time:
+      description: Total amount of time that has been spent in the portion of checkpoint
+        processing where files are synchronized to disk, in milliseconds
+      default:
+      type: cumulative
+    pg_stat_bgwriter_checkpoint_write_time:
+      description: Total amount of time that has been spent in the portion of checkpoint
+        processing where files are written to disk, in milliseconds
+      default:
+      type: cumulative
+    pg_stat_bgwriter_checkpoints_req:
+      description: Number of requested checkpoints that have been performed
+      default:
+      type: cumulative
+    pg_stat_bgwriter_checkpoints_timed:
+      description: Number of scheduled checkpoints that have been performed
+      default:
+      type: cumulative
+    pg_stat_bgwriter_maxwritten_clean:
+      description: Number of times the background writer stopped a cleaning scan because
+        it had written too many buffers
+      default:
+      type: cumulative
+    pg_stat_bgwriter_stats_reset:
+      description: Time at which these statistics were last reset
+      default:
+      type: cumulative
+    pg_stat_database_blk_read_time:
+      description: Time spent reading data file blocks by backends in this database,
+        in milliseconds
+      default: true
+      type: cumulative
+    pg_stat_database_blk_write_time:
+      description: Time spent writing data file blocks by backends in this database,
+        in milliseconds
+      default: true
+      type: cumulative
+    pg_stat_database_blks_hit:
+      description: Number of times disk blocks were found already in the buffer cache,
+        so that a read was not necessary (this only includes hits in the PostgreSQL
+        buffer cache, not the operating system's file system cache)
+      default: true
+      type: cumulative
+    pg_stat_database_blks_read:
+      description: Number of disk blocks read in this database
+      default: true
+      type: cumulative
+    pg_stat_database_conflicts:
+      description: Number of queries canceled due to conflicts with recovery in this
+        database. (Conflicts occur only on standby servers; see pg_stat_database_conflicts
+        for details.)
+      default:
+      type: cumulative
+    pg_stat_database_conflicts_confl_bufferpin:
+      description: Number of queries in this database that have been canceled due
+        to pinned buffers
+      default: true
+      type: cumulative
+    pg_stat_database_conflicts_confl_deadlock:
+      description: Number of queries in this database that have been canceled due
+        to deadlocks
+      default: true
+      type: cumulative
+    pg_stat_database_conflicts_confl_lock:
+      description: Number of queries in this database that have been canceled due
+        to lock timeouts
+      default: true
+      type: cumulative
+    pg_stat_database_conflicts_confl_snapshot:
+      description: Number of queries in this database that have been canceled due
+        to old snapshots
+      default: true
+      type: cumulative
+    pg_stat_database_conflicts_confl_tablespace:
+      description: Number of queries in this database that have been canceled due
+        to dropped tablespaces
+      default: true
+      type: cumulative
+    pg_stat_database_deadlocks:
+      description: Number of deadlocks detected in this database
+      default:
+      type: cumulative
+    pg_stat_database_numbackends:
+      description: Number of backends currently connected to this database. This is
+        the only column in this view that returns a value reflecting current state;
+        all other columns return the accumulated values since the last reset.
+      default: true
+      type: gauge
+    pg_stat_database_stats_reset:
+      description: Time at which these statistics were last reset
+      default:
+      type: cumulative
+    pg_stat_database_temp_bytes:
+      description: Total amount of data written to temporary files by queries in this
+        database. All temporary files are counted, regardless of why the temporary
+        file was created, and regardless of the log_temp_files setting.
+      default: true
+      type: cumulative
+    pg_stat_database_temp_files:
+      description: Number of temporary files created by queries in this database.
+        All temporary files are counted, regardless of why the temporary file was
+        created (e.g., sorting or hashing), and regardless of the log_temp_files setting.
+      default: true
+      type: cumulative
+    pg_stat_database_tup_deleted:
+      description: Number of rows deleted by queries in this database
+      default: true
+      type: cumulative
+    pg_stat_database_tup_fetched:
+      description: Number of rows fetched by queries in this database
+      default: true
+      type: cumulative
+    pg_stat_database_tup_inserted:
+      description: Number of rows inserted by queries in this database
+      default: true
+      type: cumulative
+    pg_stat_database_tup_returned:
+      description: Number of rows returned by queries in this database
+      default: true
+      type: cumulative
+    pg_stat_database_tup_updated:
+      description: Number of rows updated by queries in this database
+      default: true
+      type: cumulative
+    pg_stat_database_xact_commit:
+      description: Number of transactions in this database that have been committed
+      default: true
+      type: cumulative
+    pg_stat_database_xact_rollback:
+      description: Number of transactions in this database that have been rolled back
+      default: true
+      type: cumulative
+    pg_static:
+      description: Version string as reported by postgres
+      default:
+      type: gauge
+    pg_stuck_idle_in_transaction_queries:
+      description: Current number of queries that are stuck being idle in transactions
+      default:
+      type: gauge
+    pg_total_relation_size_bytes:
+      description: Total disk space usage for the specified table and associated indexes
+      default: true
+      type: gauge
+    pg_up:
+      description: Whether the last scrape of metrics from PostgreSQL was able to
+        connect to the server (1 for yes, 0 for no).
+      default:
+      type: gauge
+    pg_vacuum_age_in_seconds:
+      description: The current maximum VACUUM query age in seconds
+      default:
+      type: gauge
+    pg_vacuum_analyze_age_in_seconds:
+      description: The current maximum VACUUM ANALYZE query age in seconds
+      default:
+      type: gauge
+    pg_vacuum_analyze_queries:
+      description: The current number of VACUUM ANALYZE queries
+      default:
+      type: gauge
+    pg_vacuum_queries:
+      description: The current number of VACUUM queries
+      default:
+      type: gauge

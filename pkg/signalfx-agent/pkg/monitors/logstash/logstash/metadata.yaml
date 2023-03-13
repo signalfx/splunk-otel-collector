@@ -1,0 +1,427 @@
+monitors:
+- dimensions:
+  doc: |
+    Monitors the health and performance of Logstash deployments through 
+    Logstash's [Monitoring APIs](https://www.elastic.co/guide/en/logstash/current/monitoring-logstash.html).
+    
+
+  groups:
+    hot_threads:
+      description: Hot Threads metrics
+    jvm:
+      description: JVM metrics
+    os:
+      description: OS metrics
+    pipelines:
+      description: Pipelines metrics
+    events:
+      description: Events metrics
+    plugins:
+      description: Plugins metrics
+    process:
+      description: Process metrics
+    reloads:
+      description: Reloads metrics
+  metrics:
+    node.hot_threads.hot_threads.busiest_threads:
+      description:
+      default: false
+      type: gauge
+      group: hot_threads
+    node.hot_threads.hot_threads.threads.percent_of_cpu_time:
+      description:
+      default: false
+      type: gauge
+      group: hot_threads
+    node.stats.jvm.jvm.gc.collectors.old.collection_count:
+      description: Total number of garbage collection events
+      default: false
+      type: cumulative
+      group: jvm
+    node.stats.jvm.jvm.gc.collectors.old.collection_time_in_millis:
+      description: Amount of time spent garbage collecting in milliseconds
+      default: false
+      type: cumulative
+      group: jvm
+    node.stats.jvm.jvm.gc.collectors.young.collection_count:
+      description: Total number of garbage collection events
+      default: false
+      type: cumulative
+      group: jvm
+    node.stats.jvm.jvm.gc.collectors.young.collection_time_in_millis:
+      description: Amount of time spent garbage collecting in milliseconds
+      default: false
+      type: cumulative
+      group: jvm
+    node.stats.jvm.jvm.mem.heap_committed_in_bytes:
+      description: Total heap committed by the process
+      default: true
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.heap_max_in_bytes:
+      description: Max memory being used
+      default: true
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.heap_used_in_bytes:
+      description: Total heap used
+      default: true
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.heap_used_percent:
+      description: Total heap used in percentage
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.non_heap_committed_in_bytes:
+      description: Total non-heap memory committed by the process
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.non_heap_used_in_bytes:
+      description: Total non-heap memory used
+      default: true
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.old.committed_in_bytes:
+      description: Memory guaranteed to be available to JVM non-heap by Old gen
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.old.max_in_bytes:
+      description: Max memory being used by Old Gen
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.old.peak_max_in_bytes:
+      description: Memory used by Old gen
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.old.peak_used_in_bytes:
+      description: Peak memory used by Old gen
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.old.used_in_bytes:
+      description: Memory being used by Old Gen
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.survivor.committed_in_bytes:
+      description: Memory guaranteed to be available to JVM non-heap by Survivor space
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.survivor.max_in_bytes:
+      description: Max memory being used by Survivor space
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.survivor.peak_max_in_bytes:
+      description: Memory used by Survivor space
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.survivor.peak_used_in_bytes:
+      description: Peak memory used by Survivor space
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.survivor.used_in_bytes:
+      description: Memory being used by Survivor space
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.young.committed_in_bytes:
+      description: Memory guaranteed to be available to JVM non-heap by Young gen
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.young.max_in_bytes:
+      description: Max memory being used by Young Gen
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.young.peak_max_in_bytes:
+      description: Memory used by Young gen
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.young.peak_used_in_bytes:
+      description: Peak memory used by Young gen
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.mem.pools.young.used_in_bytes:
+      description: Memory being used by Young Gen
+      default: false
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.threads.count:
+      description: Number of JVM threads
+      default: true
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.threads.peak_count:
+      description: Highest number of JVM threads
+      default: true
+      type: gauge
+      group: jvm
+    node.stats.jvm.jvm.uptime_in_millis:
+      description: Uptime length of JVM
+      default: false
+      type: gauge
+      group: jvm
+    node.os.os.available_processors:
+      description: Number of available processors
+      default: false
+      type: gauge
+      group: os
+    node.stats.os.os.cgroup.cpu.cfs_period_micros:
+      description: 
+      default: false
+      type: gauge
+      group: os
+    node.stats.os.os.cgroup.cpu.cfs_quota_micros:
+      description: 
+      default: false
+      type: gauge
+      group: os
+    node.stats.os.os.cgroup.cpu.stat.number_of_elapsed_periods:
+      description: 
+      default: false
+      type: cumulative
+      group: os
+    node.stats.os.os.cgroup.cpu.stat.number_of_times_throttled:
+      description: 
+      default: false
+      type: cumulative
+      group: os
+    node.stats.os.os.cgroup.cpu.stat.time_throttled_nanos:
+      description: 
+      default: false
+      type: cumulative
+      group: os
+    node.stats.os.os.cgroup.cpuacct.usage_nanos:
+      description: 
+      default: false
+      type: gauge
+      group: os
+    node.pipelines.batch_delay:
+      description: 
+      default: false
+      type: gauge
+      group: pipeline
+    node.pipelines.batch_size:
+      description: 
+      default: false
+      type: gauge
+      group: pipeline
+    node.pipelines.workers:
+      description: Number of workers in pipelines
+      default: false
+      type: gauge
+      group: pipeline
+    node.stats.pipelines.events.duration_in_millis:
+      description: Duration of events in pipelines
+      default: true
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.events.filtered:
+      description: Number of filtered events in pipelines
+      default: true
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.events.in:
+      description: Number of received events in pipelines
+      default: true
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.events.out:
+      description: Number of events sent out from pipelines
+      default: true
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.events.queue_push_duration_in_millis:
+      description: Duration that events waited in queue before being processed in pipelines
+      default: false
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.plugins.codecs.decode.duration_in_millis:
+      description: Duration of decode events in codec plugins
+      default: false
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.plugins.codecs.decode.out:
+      description: Number of decode events sent out from codecs
+      default: false
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.plugins.codecs.decode.writes_in:
+      description: Number of received decode events in codecs
+      default: false
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.plugins.codecs.encode.duration_in_millis:
+      description: Duration of encode events in codec plugins
+      default: false
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.plugins.codecs.encode.writes_in:
+      description: Number of received encode events in codecs
+      default: false
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.plugins.filters.events.duration_in_millis:
+      description: Duration of events in filter plugins
+      default: true
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.plugins.filters.events.in:
+      description: Number of received events in filters
+      default: true
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.plugins.filters.events.out:
+      description: Number of events sent out from filters
+      default: true
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.plugins.inputs.events.out:
+      description: Number of events sent out from inputs
+      default: true
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.plugins.inputs.events.queue_push_duration_in_millis:
+      description: Duration that events waited in queue before being processed in inputs
+      default: false
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.plugins.outputs.events.duration_in_millis:
+      description: Duration of events in output plugins
+      default: true
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.plugins.outputs.events.in:
+      description: Number of received events in output plugins
+      default: true
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.plugins.outputs.events.out:
+      description: Number of events sent out from output plugins
+      default: true
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.queue.events_count:
+      description: Number of events waiting in queue
+      default: false
+      type: gauge
+      group: pipeline
+    node.stats.pipelines.queue.max_queue_size_in_bytes:
+      description: Max queue size in pipelines
+      default: false
+      type: gauge
+      group: pipeline
+    node.stats.pipelines.queue.queue_size_in_bytes:
+      description: Queue size in pipelines
+      default: false
+      type: gauge
+      group: pipeline
+    node.stats.pipelines.reloads.failures:
+      description: Number of failed reloads
+      default: false
+      type: cumulative
+      group: pipeline
+    node.stats.pipelines.reloads.successes:
+      description: Number of successful reloads
+      default: false
+      type: cumulative
+      group: pipeline
+    node.stats.events.events.duration_in_millis:
+      description: Duration of events
+      default: true
+      type: cumulative
+      group: events
+    node.stats.events.events.filtered:
+      description: Number of filtered events
+      default: true
+      type: cumulative
+      group: events
+    node.stats.events.events.in:
+      description: Number of received events
+      default: true
+      type: cumulative
+      group: events
+    node.stats.events.events.out:
+      description: Number of events sent out
+      default: true
+      type: cumulative
+      group: events
+    node.stats.events.events.queue_push_duration_in_millis:
+      description: Duration that events waited in queue before being processed
+      default: true
+      type: cumulative
+      group: events
+    node.plugins.total:
+      description: Number of plugins
+      default: true
+      type: gauge
+      group: plugins
+    node.stats.process.process.cpu.load_average.1m:
+      description: CPU Load average in 1 minute
+      default: false
+      type: gauge
+      group: process
+    node.stats.process.process.cpu.load_average.5m:
+      description: CPU Load average in 5 minutes
+      default: false
+      type: gauge
+      group: process
+    node.stats.process.process.cpu.load_average.15m:
+      description: CPU Load average in 15 minutes
+      default: false
+      type: gauge
+      group: process
+    node.stats.process.process.cpu.percent:
+      description: CPU usage in percent
+      default: true
+      type: gauge
+      group: process
+    node.stats.process.process.cpu.total_in_millis:
+      description: Total CPU time (in milliseconds) used by the process on which the process is running
+      default: false
+      type: cumulative
+      group: process
+    node.stats.process.process.max_file_descriptors:
+      description: Number of opened file descriptors associated with the current process
+      default: false
+      type: gauge
+      group: process
+    node.stats.process.process.mem.total_virtual_in_bytes:
+      description: Size of the virtual memory of this process
+      default: false
+      type: gauge
+      group: process
+    node.stats.process.process.open_file_descriptors:
+      description: Number of currently open file descriptors
+      default: false
+      type: gauge
+      group: process
+    node.stats.process.process.peak_open_file_descriptors:
+      description: Peak number of currently open file descriptors
+      default: false
+      type: gauge
+      group: process
+    node.stats.reloads.reloads.failures:
+      description: Number of failed reloads
+      default: false
+      type: cumulative
+      group: reloads
+    node.stats.reloads.reloads.successes:
+      description: Number of successful reloads
+      default: false
+      type: cumulative
+      group: reloads
+  monitorType: logstash
+  properties:

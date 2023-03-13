@@ -1,0 +1,29 @@
+monitors:
+- dimensions:
+  doc: |
+    This monitor reads Windows performance
+    counters
+
+    Sample YAML configuration:
+
+    ```yaml
+    monitors:
+     - type: telegraf/win_perf_counters
+       printValid: true
+       objects:
+        - objectName: "Processor"
+          instances:
+           - "*"
+          counters:
+           - "% Idle Time"
+           - "% Interrupt Time"
+           - "% Privileged Time"
+           - "% User Time"
+           - "% Processor Time"
+          includeTotal: true
+          measurement: "win_cpu"
+    ```
+  metrics:
+  monitorType: telegraf/win_perf_counters
+  properties:
+  sendAll: true

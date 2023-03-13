@@ -176,6 +176,6 @@ replace (
 
 // To prevent attempted downgrading for agent deps, do not remove signalfx-agent or signalfx/pkg/apm replace directives
 replace (
-	github.com/signalfx/signalfx-agent => github.com/signalfx/signalfx-agent v1.0.1-0.20230222185249-54e5d1064c5b
-	github.com/signalfx/signalfx-agent/pkg/apm => github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20230222185249-54e5d1064c5b // indirect
+	github.com/signalfx/signalfx-agent => ../../signalfx-agent
+	github.com/signalfx/signalfx-agent/pkg/apm => ../../signalfx-agent/pkg/apm
 )

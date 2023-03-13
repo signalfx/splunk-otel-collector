@@ -1,0 +1,16 @@
+monitors:
+- dimensions:
+  doc: |
+    Monitors the actual clock speed of each CPU on a
+    host.  Useful for systems that vary the clock speed to conserve energy.
+
+    See https://collectd.org/wiki/index.php/Plugin:CPUFreq
+  sendAll: true
+  metrics:
+    cpufreq.<N>:
+      description: The processor frequency in Hertz for the <N>th processor on the
+        system.
+      default: false
+      type: gauge
+  monitorType: collectd/cpufreq
+  properties:

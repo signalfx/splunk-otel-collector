@@ -1,0 +1,55 @@
+monitors:
+- dimensions:
+    interface:
+      description: The name of the network interface (e.g. `eth0`)
+  doc: |
+    This monitor reports I/O metrics about network interfaces.
+
+    On Linux hosts, this monitor relies on the `/proc` filesystem.
+    If the underlying host's `/proc` file system is mounted somewhere other than
+    /proc please specify the path using the top level configuration `procPath`.
+
+    ```yaml
+    procPath: /proc
+    monitors:
+     - type: net-io
+    ```
+  metrics:
+    if_errors.rx:
+      description: Count of receive errors on the interface
+      default: true
+      type: cumulative
+    if_errors.tx:
+      description: Count of transmit errors on the interface
+      default: true
+      type: cumulative
+    if_octets.rx:
+      description: Count of bytes (octets) received on the interface
+      default: true
+      type: cumulative
+    if_octets.tx:
+      description: Count of bytes (octets) transmitted by the interface
+      default: true
+      type: cumulative
+    if_packets.rx:
+      description: Count of packets received on the interface
+      default: false
+      type: cumulative
+    if_packets.tx:
+      description: Count of packets transmitted by the interface
+      default: false
+      type: cumulative
+    if_dropped.rx:
+      description: Count of received packets dropped by the interface
+      default: false
+      type: cumulative
+    if_dropped.tx:
+      description: Count of transmitted packets dropped by the interface
+      default: false
+      type: cumulative
+    network.total:
+      description: Total amount of inbound and outbound network traffic on this host, in bytes.
+      default: true
+      type: cumulative
+  monitorType: net-io
+  properties:

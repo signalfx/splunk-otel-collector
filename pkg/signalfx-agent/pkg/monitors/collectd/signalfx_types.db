@@ -1,0 +1,5 @@
+jmx_memory      value:GAUGE:0:U
+phpfpm_listen_queue  value:GAUGE:0:65535
+phpfpm_processes     value:GAUGE:0:65535
+phpfpm_requests      value:DERIVE:0:U
+phpfpm_slow_requests value:DERIVE:0:U

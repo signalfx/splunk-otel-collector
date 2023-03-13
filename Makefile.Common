@@ -25,6 +25,7 @@ ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | sort)
 ALL_SRC := $(shell find $(ALL_PKG_DIRS) -name '*.go' \
                                 -not -path '*/third_party/*' \
                                 -not -path '*/local/*' \
+                                -not -path '*/pkg/signalfx-agent/*' \
                                 -type f | sort)
 
 # All source code and documents. Used in spell check.
@@ -108,7 +109,7 @@ misspell-correction:
 
 .PHONY: impi
 impi:
-	@$(IMPI) --local github.com/signalfx/splunk-otel-collector --scheme stdThirdPartyLocal ./...
+	@$(IMPI) --local github.com/signalfx/splunk-otel-collector --skip pkg/signalfx-agent --scheme stdThirdPartyLocal ./...
 
 .PHONY: moddownload
 moddownload:

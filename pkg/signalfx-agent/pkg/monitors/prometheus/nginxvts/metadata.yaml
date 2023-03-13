@@ -1,0 +1,81 @@
+monitors:
+- monitorType: prometheus/nginx-vts
+  doc: |
+    This monitor scrapes [Prometheus Nginx VTS
+    exporter](https://github.com/hnlq715/nginx-vts-exporter) metrics from a
+    Prometheus exporter and sends them to SignalFx.  It is a wrapper around the
+    [prometheus-exporter](./prometheus-exporter.md) monitor that provides a
+    restricted but expandable set of metrics.
+  metrics:
+    nginx_vts_info:
+      description: Nginx info
+      default:
+      type: gauge
+    nginx_vts_start_time_seconds:
+      description: Nginx start time
+      default:
+      type: gauge
+    nginx_vts_main_connections:
+      description: connections
+      default: true
+      type: gauge
+    nginx_vts_main_shm_usage_bytes:
+      description: Shared memory [ngx_http_vhost_traffic_status] info
+      default:
+      type: gauge
+    nginx_vts_server_bytes_total:
+      description: The request/response bytes
+      default:
+      type: cumulative
+    nginx_vts_server_requests_total:
+      description: The requests counter
+      default: true
+      type: cumulative
+    nginx_vts_server_request_seconds_total:
+      description: The request processing time in seconds
+      default:
+      type: cumulative
+    nginx_vts_server_cache_total:
+      description: The requests cache counter
+      default:
+      type: cumulative
+    nginx_vts_server_request_seconds:
+      description: The average of request processing times in seconds
+      default: true
+      type: gauge
+    nginx_vts_server_request_duration_seconds:
+      description: The histogram of request processing time
+      default:
+      type: cumulative
+    nginx_vts_upstream_bytes_total:
+      description: The request/response bytes
+      default:
+      type: cumulative
+    nginx_vts_upstream_requests_total:
+      description: The upstream requests counter
+      default:
+      type: cumulative
+    nginx_vts_upstream_request_seconds_total:
+      description: The request Processing time including upstream in seconds
+      default:
+      type: cumulative
+    nginx_vts_upstream_request_seconds:
+      description: The average of request processing times including upstream in seconds
+      default: true
+      type: gauge
+    nginx_vts_upstream_response_seconds_total:
+      description: The only upstream response processing time in seconds
+      default:
+      type: cumulative
+    nginx_vts_upstream_response_seconds:
+      description: The average of only upstream response processing times in seconds
+      default:
+      type: gauge
+    nginx_vts_upstream_request_duration_seconds:
+      description: The histogram of request processing time including upstream
+      default:
+      type: cumulative
+    nginx_vts_upstream_response_duration_seconds:
+      description: The histogram of only upstream response processing time
+      default:
+      type: cumulative

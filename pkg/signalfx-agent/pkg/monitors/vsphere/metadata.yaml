@@ -1,0 +1,1127 @@
+monitors:
+  - monitorType: vsphere
+    doc: |
+      A VMware vSphere deployment includes physical hosts, ESXi hypervisors, virtual machines, and a vCenter Server.
+      
+      To report metrics for a vSphere deployment, this monitor logs into a vCenter Server 
+      and retrieves data about the deployment and its real-time performance data on a regular interval.
+
+      When the monitor first runs, it logs into the vCenter Server and traverses the inventory, gathering and caching all of
+      the hosts and virtual machines, and their available metrics.
+
+      After this initial sweep, the monitor will query the vCenter for performance data and metrics. 
+      This query takes place every 20 seconds, which is the interval at which the vCenter makes real-time performance data available.
+      As a result, regardless of the `intervalSeconds` value in the agent config, this monitor will run every 20 seconds.
+      
+      The monitor also refreshes, at a configurable interval, the cache of hosts, virtual machines, and metrics. 
+      By default, this refresh takes place every 60 seconds; however, this interval can be changed by updating the configuration field
+      `InventoryRefreshInterval`.
+
+      Compatibility:
+      This monitor uses VMware's govmomi SDK, which officially supports vCenter 6.5, 6.7, and 7.0.
+      While this monitor may work with vCenter 5.1, 5.5, and 6.0, these versions are not officially supported.
+
+      Sample YAML configuration:
+      ```yaml
+      monitors:
+        - type: vsphere
+          host: "172.16.248.140"
+          username: "administrator@vsphere.local"
+          password: "S3cr3t"
+          insecureSkipVerify: true
+      ```
+    dimensions:
+      ref_id:
+        description: The unique vCenter identifier for the resource to which the metric pertains.
+      object_type:
+        description: The type of the resource to which the metric pertains. Values can be 'VirtualMachine' for a VM, or
+          'HostSystem' for an ESX host.
+      vcenter:
+        description: The hostname of the vCenter server to which the monitor is connected.
+      cluster:
+        description: If the metric's host or virtual machine is attached to a cluster, the name of the cluster.
+      datacenter:
+        description: The name of the datacenter to which the metric pertains.
+      esx_ip:
+        description: The IP address of the ESX host to which the metric pertains.
+      vm_ip:
+        description: For virtual machine metrics, the IP address of the virtual machine to which this metric pertains.
+      vm_name:
+        description: For virtual machine metrics, the name of the virtual machine to which the metric pertains.
+      guest_id:
+        description: For virtual machine metrics, the guest identifier of the virtual machine to which the metric pertains.
+      guest_family:
+        description: For virtual machine metrics, the guest operating system family for the virtual machine to which this metric
+          pertains. For example 'linuxGuest'.
+      guest_fullname:
+        description: For virtual machine metrics, the full name of the guest operating system for the virtual machine to which
+          the metric pertains. For example 'Windows 2000 Professional'.
+      host:
+        description: For virtual machine metrics, the host dimension will be set to the VM IP instead of the running agent hostname.
+          This behavior is configurable; check the `vmHostDimension` option for details.
+      object:
+        description: For some metrics, the source of the metric. For example, the identifier of a NIC for a network metric, or
+          the processor number for a CPU metric.
+    groups:
+      cpu:
+        description: CPU utilization
+      datastore:
+        description: I/O operations on datastores
+      disk:
+        description: I/O performance (such as latency and read- and write-speeds), and utilization
+      hbr:
+        description: Host-based replication
+      mem:
+        description: Guest physical memory for VMs and machine memory for hosts
+      net:
+        description: Physical and virtual NICs and other network devices, such as virtual switches
+      power:
+        description: Power resources
+      rescpu:
+        description: CPU-load-history statistics about resource pools and virtual machines
+      storage_adapter:
+        description: I/O operations on storage adapters
+      storage_path:
+        description: I/O operations on a storage path
+      sys:
+        description: Overall system availability
+      virtual_disk:
+        description: I/O operations on virtual disks
+    metrics:
+      vsphere.cpu_core_utilization_percent:
+        description: CPU utilization of the corresponding core as a percentage during the interval.
+        type: gauge
+        default: false
+        group: cpu
+      vsphere.cpu_costop_ms:
+        description: Time the virtual machine is ready to run, but is unable to run due to co-scheduling constraints.
+        type: counter
+        default: false
+        group: cpu
+      vsphere.cpu_demand_mhz:
+        description: The amount of CPU resources a virtual machine would use if there were no CPU contention or CPU
+          limit.
+        type: counter
+        default: false
+        group: cpu
+      vsphere.cpu_demand_entitlement_ratio_percent:
+        description: CPU resource entitlement to CPU demand ratio.
+        type: gauge
+        default: false
+        group: cpu
+      vsphere.cpu_entitlement_mhz:
+        description: CPU resources devoted by the ESXi scheduler.
+        type: gauge
+        default: false
+        group: cpu
+      vsphere.cpu_idle_ms:
+        description: Total time that the CPU spent in an idle state.
+        type: counter
+        default: false
+        group: cpu
+      vsphere.cpu_latency_percent:
+        description: Percent of time the virtual machine is unable to run because it is contending for access to the
+          physical CPU(s).
+        type: gauge
+        default: false
+        group: cpu
+      vsphere.cpu_maxlimited_ms:
+        description: Time the virtual machine is ready to run, but is not running because it has reached its maximum CPU
+          limit setting.
+        type: counter
+        default: false
+        group: cpu
+      vsphere.cpu_overlap_ms:
+        description: Time the virtual machine was interrupted to perform system services on behalf of itself or other
+          virtual machines.
+        type: counter
+        default: false
+        group: cpu
+      vsphere.cpu_readiness_percent:
+        description: Percentage of time that the virtual machine was ready, but could not get scheduled to run on the
+          physical CPU.
+        type: gauge
+        default: false
+        group: cpu
+      vsphere.cpu_ready_ms:
+        description: Time that the virtual machine was ready, but could not get scheduled to run on the physical CPU
+          during last measurement interval. CPU ready time is dependent on the number of virtual machines on the host
+          and their CPU loads.
+        type: counter
+        default: false
+        group: cpu
+      vsphere.cpu_reservedCapacity_mhz:
+        description: Total CPU capacity reserved by virtual machines.
+        type: gauge
+        default: false
+        group: cpu
+      vsphere.cpu_run_ms:
+        description: Time the virtual machine is scheduled to run
+        type: counter
+        default: false
+        group: cpu
+      vsphere.cpu_swapwait_ms:
+        description: CPU time spent waiting for swap-in.
+        type: gauge
+        default: false
+        group: cpu
+      vsphere.cpu_system_ms:
+        description: Amount of time spent on system processes on each virtual CPU in the virtual machine.
+        type: counter
+        default: false
+        group: cpu
+      vsphere.cpu_totalCapacity_mhz:
+        description: Total CPU capacity reserved by and available for virtual machines
+        type: gauge
+        default: false
+        group: cpu
+      vsphere.cpu_usage_percent:
+        description: CPU usage as a percentage during the interval.
+        type: gauge
+        default: true
+        group: cpu
+      vsphere.cpu_usagemhz:
+        description: CPU usage, as measured in megahertz, during the interval.
+        type: gauge
+        default: false
+        group: cpu
+      vsphere.cpu_used_percent:
+        description: Time accounted to the virtual machine.
+        type: counter
+        default: false
+        group: cpu
+      vsphere.cpu_utilization_percent:
+        description: CPU utilization as a percentage during the interval. CPU usage and CPU utilization might be
+          different due to power management technologies or hyper-threading.
+        type: gauge
+        default: false
+        group: cpu
+      vsphere.cpu_wait_ms:
+        description: Total CPU time spent in wait state. The wait total includes time spent the CPU Idle, CPU Swap Wait,
+            and CPU I/O Wait states.
+        type: counter
+        default: false
+        group: cpu
+      vsphere.datastore_datastore_iops:
+        description: Average amount of time for an I/O operation to the datastore or LUN across all ESX hosts accessing
+          it.
+        type: gauge
+        default: false
+        group: datastore
+      vsphere.datastore_read_load_metric:
+        description: Storage DRS datastore metric for read workload model.
+        type: gauge
+        default: false
+        group: datastore
+      vsphere.datastore_vmobserved_latency_ms:
+        description: The average datastore latency as seen by virtual machines.
+        type: gauge
+        default: false
+        group: datastore
+      vsphere.datastore_write_load_metric:
+        description: Storage DRS datastore metric for write workload model.
+        type: gauge
+        default: false
+        group: datastore
+      vsphere.datastore_max_total_latency_ms:
+        description: Highest latency value across all datastores used by the host.
+        type: gauge
+        default: false
+        group: datastore
+      vsphere.datastore_read_kbs:
+        description: Rate of reading data from the datastore (kilobytes per second)
+        type: gauge
+        default: false
+        group: datastore
+      vsphere.datastore_size_normalized_datastore_latency_ms:
+        description: Storage I/O Control size-normalized I/O latency.
+        type: gauge
+        default: false
+        group: datastore
+      vsphere.datastore_total_read_latency_ms:
+        description: Average amount of time for a read operation from the vsphere datastore.
+          Total latency = kernel latency + device latency.
+        type: gauge
+        default: false
+        group: datastore
+      vsphere.datastore_total_write_latency_ms:
+        description: Average amount of time for a write operation to the vsphere datastore.
+          Total latency = kernel latency + device latency.
+        type: gauge
+        default: false
+        group: datastore
+      vsphere.datastore_write_kbs:
+        description: Rate of writing data to the datastore.
+        type: gauge
+        default: false
+        group: datastore
+      vsphere.disk_bus_resets:
+        description: Number of SCSI-bus reset commands issued during the collection interval.
+        type: counter
+        default: false
+        group: disk
+      vsphere.disk_commands:
+        description: Number of SCSI commands issued during the collection interval.
+        type: counter
+        default: false
+        group: disk
+      vsphere.disk_commands_aborted:
+        description: Number of SCSI commands aborted during the collection interval.
+        type: counter
+        default: false
+        group: disk
+      vsphere.disk_commands_averaged:
+        description: Average number of SCSI commands issued per second during the collection interval.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_device_latency_ms:
+        description: Average amount of time, in milliseconds, to complete a SCSI command from the physical device.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_device_read_latency_ms:
+        description: Average amount of time, in milliseconds, to read from the physical device.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_device_write_latency_ms:
+        description: Average amount of time, in milliseconds, to write to the physical device.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_kernel_latency_ms:
+        description: Average amount of time, in milliseconds, spent by VMkernel to process each SCSI command.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_kernel_read_latency_ms:
+        description: Average amount of time, in milliseconds, spent by VMkernel to process each SCSI read command.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_kernel_write_latency_ms:
+        description: Average amount of time, in milliseconds, spent by VMkernel to process each SCSI write command.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_max_queue_depth:
+        description: Maximum queue depth.
+        type: gauge
+        default: true
+        group: disk
+      vsphere.disk_max_total_latency_ms:
+        description: Highest latency value across all disks used by the host.
+        type: gauge
+        default: true
+        group: disk
+      vsphere.disk_number_read:
+        description: Number of disk reads during the collection interval.
+        type: counter
+        default: false
+        group: disk
+      vsphere.disk_number_read_averaged:
+        description: Average number of read commands issued per second to the datastore during the collection interval.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_number_write:
+        description: Number of disk writes during the collection interval.
+        type: counter
+        default: false
+        group: disk
+      vsphere.disk_number_write_averaged:
+        description: Average number of write commands issued per second to the datastore during the collection interval.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_queue_latency_ms:
+        description: Average amount of time spent in the VMkernel queue, per SCSI command, during the collection
+          interval.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_queue_read_latency_ms:
+        description: Average amount of time spent in the VMkernel queue, per SCSI read command, during the collection
+          interval.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_queue_write_latency_ms:
+        description: Average amount of time spent in the VMkernel queue, per SCSI write command, during the collection
+          interval.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_read_kbs:
+        description: Average number of kilobytes read from the disk each second during the collection interval.
+        type: gauge
+        default: true
+        group: disk
+      vsphere.disk_total_latency_ms:
+        description: Average amount of time taken during the collection interval to process a SCSI command issued by the
+          guest OS to the virtual machine.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_total_read_latency_ms:
+        description: Average amount of time taken during the collection interval to process a SCSI read command issued
+          from the guest OS to the virtual machine.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_total_write_latency_ms:
+        description: Average amount of time taken during the collection interval to process a SCSI write command issued
+          by the guest OS to the virtual machine.
+        type: gauge
+        default: false
+        group: disk
+      vsphere.disk_usage_kbs:
+        description: Aggregated disk I/O rate.
+        type: gauge
+        default: true
+        group: disk
+      vsphere.disk_write_kbs:
+        description: Average number of kilobytes written to disk each second during the collection interval.
+        type: gauge
+        default: true
+        group: disk
+      vsphere.hbr_net_rx_kbs:
+        description: Kilobytes per second of outgoing host-based replication network traffic (for this virtual machine
+          or host).
+        type: gauge
+        default: false
+        group: hbr
+      vsphere.hbr_net_tx_kbs:
+        description: Average amount of data transmitted per second.
+        type: gauge
+        default: false
+        group: hbr
+      vsphere.hbr_num_vms:
+        description: Number of powered-on virtual machines running on this host that currently have host-based
+          replication protection enabled.
+        type: gauge
+        default: false
+        group: hbr
+      vsphere.mem_active_kb:
+        description: Amount of memory that is actively used, as estimated by VMkernel based on recently touched
+          memory pages.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_activewrite_kb:
+        description: Estimate for the amount of memory actively being written to by the virtual machine.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_compressed_kb:
+        description: Amount of memory reserved by userworlds.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_compression_rate_kbs:
+        description: Rate of memory compression for the virtual machine.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_consumed_kb:
+        description: Amount of host physical memory consumed by a virtual machine, host, or cluster.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_decompression_rate_kbs:
+        description: Rate of memory decompression for the virtual machine.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_entitlement_kb:
+        description: Amount of host physical memory the virtual machine is entitled to, as determined by the ESX
+          scheduler.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_granted_kb:
+        description: Amount of host physical memory or physical memory that is mapped for a virtual machine or a host.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_heap_kb:
+        description: VMkernel virtual address space dedicated to VMkernel main heap and related data.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_heapfree_kb:
+        description: Free address space in the VMkernel main heap.Varies based on number of physical devices and
+          configuration options.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_latency_percent:
+        description: Percentage of time the virtual machine is waiting to access swapped or compressed memory.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_ll_swap_in_kb:
+        description: Amount of memory swapped-in from host cache.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_ll_swap_in_rate_kbs:
+        description: Rate at which memory is being swapped from host cache into active memory.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_ll_swap_out_kb:
+        description: Amount of memory swapped-out to host cache.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_ll_swap_out_rate_kbs:
+        description: Rate at which memory is being swapped from active memory to host cache.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_ll_swap_used_kb:
+        description: Space used for caching swapped pages in the host cache.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_lowfreethreshold_kb:
+        description: Threshold of free host physical memory below which ESX/ESXi will begin reclaiming memory from
+          virtual machines through ballooning and swapping.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_overhead_kb:
+        description: Host physical memory (KB) consumed by the virtualization infrastructure for running the virtual
+          machine.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_overhead_max_kb:
+        description: Host physical memory (KB) reserved for use as the virtualization overhead for the virtual machine.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_overhead_touched_kb:
+        description: Actively touched overhead host physical memory (KB) reserved for use as the virtualization overhead
+          for the virtual machine.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_reserved_capacity_mb:
+        description: Total amount of memory reservation used by powered-on virtual machines and vSphere services on the
+          host.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_shared_kb:
+        description: Amount of guest physical memory that is shared with other virtual machines, relative to a single
+          virtual machine or to all powered-on virtual machines on a host.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_sharedcommon_kb:
+        description: Amount of machine memory that is shared by all powered-on virtual machines and vSphere services on
+          the host.Subtract this metric from the shared metric to gauge how much machine memory is saved due to
+          sharing -- shared - sharedcommon = machine memory (host memory) savings (KB).
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_state:
+        description: One of four threshold levels representing the percentage of free memory on the host. The counter
+          value determines swapping and ballooning behavior for memory reclamation.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_swapin_kb:
+        description: Amount swapped-in to memory from disk.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_swapin_rate_kbs:
+        description: Rate at which memory is swapped from disk into active memory during the interval.
+        type: gauge
+        default: true
+        group: mem
+      vsphere.mem_swapout_kb:
+        description: Amount of memory swapped-out to disk.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_swapout_rate_kbs:
+        description: Rate at which memory is being swapped from active memory to disk during the current interval.
+        type: gauge
+        default: true
+        group: mem
+      vsphere.mem_swapped_kb:
+        description: Current amount of guest physical memory swapped out to the virtual machine swap file by the
+          VMkernel.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_swaptarget_kb:
+        description: Target size for the virtual machine swap file.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_swapused_kb:
+        description: Amount of memory that is used by swap.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_sys_usage_kb:
+        description: Amount of host physical memory used by VMkernel for core functionality, such as device drivers and
+          other internal uses.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_total_capacity_mb:
+        description: Total amount of memory reservation used by and available for powered-on virtual machines and
+          vSphere services on the host.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_unreserved_kb:
+        description: Amount of memory that is unreserved.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_usage_percent:
+        description: Percentage of host physical memory that has been consumed.
+        type: gauge
+        default: true
+        group: mem
+      vsphere.mem_vmfs_pbc_cap_miss_ratio_percent:
+        description: Trailing average of the ratio of capacity misses to compulsory misses for the VMFS PB Cache.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_vmfs_pbc_overhead_kb:
+        description: Amount of VMFS heap used by the VMFS PB Cache.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_vmfs_pbc_size_mb:
+        description: Space used for holding VMFS Pointer Blocks in memory.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_vmfs_pbc_size_max_mb:
+        description: Maximum size the VMFS Pointer Block Cache can grow to.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_vmfs_pbc_working_set_tb:
+        description: Amount of file blocks whose addresses are cached in the VMFS PB Cache.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_vmfs_pbc_working_set_max_tb:
+        description: Maximum amount of file blocks whose addresses are cached in the VMFS PB Cache.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_vmmemctl_kb:
+        description: Amount of memory allocated by the virtual machine memory control driver.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_vmmemctltarget_kb:
+        description: Target value set by VMkernal for the virtual machine's memory balloon size.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_zero_kb:
+        description: Memory that contains 0s only.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_zip_saved_kb:
+        description: Memory (KB) saved due to memory zipping.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.mem_zipped_kb:
+        description: Memory (KB) zipped.
+        type: gauge
+        default: false
+        group: mem
+      vsphere.net_broadcast_rx:
+        description: Number of broadcast packets received during the sampling interval.
+        type: counter
+        default: false
+        group: net
+      vsphere.net_broadcast_tx:
+        description: Number of broadcast packets transmitted during the sampling interval.
+        type: counter
+        default: false
+        group: net
+      vsphere.net_bytes_rx_kbs:
+        description: Average amount of data received per second.
+        type: gauge
+        default: false
+        group: net
+      vsphere.net_bytes_tx_kbs:
+        description: Average amount of data transmitted per second.
+        type: gauge
+        default: false
+        group: net
+      vsphere.net_dropped_rx:
+        description: Number of received packets dropped during the collection interval.
+        type: counter
+        default: false
+        group: net
+      vsphere.net_dropped_tx:
+        description: Number of transmitted packets dropped during the collection interval.
+        type: counter
+        default: false
+        group: net
+      vsphere.net_errors_rx:
+        description: Number of packets with errors received during the sampling interval.
+        type: counter
+        default: false
+        group: net
+      vsphere.net_errors_tx:
+        description: Number of packets with errors transmitted during the sampling interval.
+        type: counter
+        default: false
+        group: net
+      vsphere.net_multicast_rx:
+        description: Number of multicast packets received during the sampling interval.
+        type: counter
+        default: false
+        group: net
+      vsphere.net_multicast_tx:
+        description: Number of multicast packets transmitted during the sampling interval.
+        type: counter
+        default: false
+        group: net
+      vsphere.net_packets_rx:
+        description: Number of packets received during the interval.
+        type: counter
+        default: false
+        group: net
+      vsphere.net_packets_tx:
+        description: Number of packets transmitted during the interval.
+        type: counter
+        default: false
+        group: net
+      vsphere.net_received_kbs:
+        description: Average rate at which data was received during the interval.
+        type: gauge
+        default: true
+        group: net
+      vsphere.net_transmitted_kbs:
+        description: Average rate at which data was transmitted during the interval. This represents the bandwidth of
+          the network.
+        type: gauge
+        default: true
+        group: net
+      vsphere.net_unknown_protos:
+        description: Number of frames with unknown protocol received during the sampling interval
+        type: counter
+        default: false
+        group: net
+      vsphere.net_usage_kbs:
+        description: Network utilization (combined transmit- and receive-rates) during the interval.
+        type: gauge
+        default: true
+        group: net
+      vsphere.power_energy_joules:
+        description: Total energy used since last stats reset.
+        type: counter
+        default: false
+        group: power
+      vsphere.power_watts:
+        description: Current power usage.
+        type: gauge
+        default: false
+        group: power
+      vsphere.power_cap_watts:
+        description: Maximum allowed power usage.
+        type: gauge
+        default: false
+        group: power
+      vsphere.rescpu_actav1:
+        description: CPU active average over 1 minute.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_actav15_percent:
+        description: CPU active average over 15 minutes.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_actav5_percent:
+        description: CPU active average over 5 minutes.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_actpk1_percent:
+        description: CPU active peak over 1 minute.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_actpk15_percent:
+        description: CPU active peak over 15 minutes.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_actpk5_percent:
+        description: CPU active peak over 5 minutes.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_max_limited1_percent:
+        description: Amount of CPU resources over the limit that were refused, average over 1 minute.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_max_limited15_percent:
+        description: Amount of CPU resources over the limit that were refused, average over 15 minutes.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_max_limited5_percent:
+        description: Amount of CPU resources over the limit that were refused, average over 5 minutes.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_runav1_percent:
+        description: CPU running average over 1 minute.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_runav15_percent:
+        description: CPU running average over 15 minutes.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_runav5_percent:
+        description: CPU running average over 5 minutes.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_runpk1_percent:
+        description: CPU running peak over 1 minute.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_runpk15_percent:
+        description: CPU running peak over 15 minutes.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_runpk5_percent:
+        description: CPU running peak over 5 minutes.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_sample_count:
+        description: Group CPU sample count.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.rescpu_sample_period_ms:
+        description: Group CPU sample period.
+        type: gauge
+        default: false
+        group: rescpu
+      vsphere.storage_adapter_commands_averaged:
+        description: Average number of commands issued per second by the storage adapter during the collection
+          interval.
+        type: gauge
+        default: false
+        group: storage_adapter
+      vsphere.storage_adapter_max_total_latency_ms:
+        description: Highest latency value across all storage adapters used by the host.
+        type: gauge
+        default: false
+        group: storage_adapter
+      vsphere.storage_adapter_number_read_averaged:
+        description: Average number of read commands issued per second by the storage adapter during the collection
+          interval.
+        type: gauge
+        default: false
+        group: storage_adapter
+      vsphere.storage_adapter_number_write_averaged:
+        description: Average number of write commands issued per second by the storage adapter during the collection
+          interval.
+        type: gauge
+        default: false
+        group: storage_adapter
+      vsphere.storage_adapter_read_kbs:
+        description: Rate of reading data by the storage adapter.
+        type: gauge
+        default: false
+        group: storage_adapter
+      vsphere.storage_adapter_total_read_latency_ms:
+        description: Average amount of time for a read operation by the storage adapter. Total latency = kernel
+          latency + device latency.
+        type: gauge
+        default: false
+        group: storage_adapter
+      vsphere.storage_adapter_total_write_latency_ms:
+        description: Average amount of time for a write operation by the storage adapter. Total latency = kernel
+          latency + device latency.
+        type: gauge
+        default: false
+        group: storage_adapter
+      vsphere.storage_adapter_write_kbs:
+        description: Rate of writing data by the storage adapter.
+        type: gauge
+        default: false
+        group: storage_adapter
+      vsphere.storage_path_commands_averaged:
+        description: Average number of commands issued per second on the storage path during the collection interval.
+        type: gauge
+        default: false
+        group: storage_path
+      vsphere.storage_path_max_total_latency_ms:
+        description: Highest latency value across all storage paths used by the host.
+        type: gauge
+        default: false
+        group: storage_path
+      vsphere.storage_path_number_read_averaged:
+        description: Average number of read commands issued per second on the storage path during the collection
+          interval.
+        type: gauge
+        default: false
+        group: storage_path
+      vsphere.storage_path_number_write_averaged:
+        description: Average number of write commands issued per second on the storage path during the collection
+          interval.
+        type: gauge
+        default: false
+        group: storage_path
+      vsphere.storage_path_read_kbs:
+        description: Rate of reading data on the storage path.
+        type: gauge
+        default: false
+        group: storage_path
+      vsphere.storage_path_total_read_latency_ms:
+        description: The average time a read issued on the storage path takes.
+        type: gauge
+        default: false
+        group: storage_path
+      vsphere.storage_path_total_write_latency_ms:
+        description: Average amount of time for a write issued on the storage path.
+          Total latency = kernel latency + device latency.
+        type: gauge
+        default: false
+        group: storage_path
+      vsphere.storage_path_write_kbs:
+        description: Rate of writing data on the storage path.
+        type: gauge
+        default: false
+        group: storage_path
+      vsphere.sys_heartbeat:
+        description: Number of heartbeats issued per virtual machine during the interval.
+        type: counter
+        default: false
+        group: sys
+      vsphere.sys_os_uptime_seconds:
+        description: Total time elapsed, in seconds, since last operating system boot-up.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_cpu_act1_percent:
+        description: CPU active average over 1 minute of the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_cpu_act5:
+        description: CPU active average over 5 minutes of the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_cpu_alloc_min_mhz:
+        description: CPU allocation reservation (in MHz) of the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_cpu_alloc_shares:
+        description: CPU allocation shares of the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_cpu_max_limited1_percent:
+        description: CPU maximum limited over 1 minute of the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_cpu_max_limited5_percent:
+        description: CPU maximum limited over 5 minutes of the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_cpu_run1_percent:
+        description: CPU running average over 1 minute of the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_cpu_run5_percent:
+        description: CPU running average over 5 minutes of the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_cpu_usage_mhz:
+        description: Amount of CPU used by the Service Console and other applications during the interval by the
+          Service Console and other applications.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_fd_usage:
+        description: Number of file descriptors used by the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_mem_alloc_max_kb:
+        description: Memory allocation limit (in KB) of the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_mem_alloc_min_kb:
+        description: Memory allocation reservation (in KB) of the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_mem_alloc_shares:
+        description: Memory allocation shares of the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_mem_consumed_kb:
+        description: Memory consumed by the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_mem_cow_kb:
+        description: Memory shared by the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_mem_mapped_kb:
+        description: Memory mapped by the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_mem_overhead_kb:
+        description: Overhead memory consumed by the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_mem_shared_kb:
+        description: Memory saved due to sharing by the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_mem_swapped_kb:
+        description: Memory swapped out by the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_mem_touched_kb:
+        description: Memory touched by the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_resource_mem_zero_kb:
+        description: Zero filled memory used by the system resource group.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.sys_uptime_seconds:
+        description: Total time elapsed, in seconds, since last system startup.
+        type: gauge
+        default: false
+        group: sys
+      vsphere.virtual_disk_large_seeks:
+        description: Number of seeks during the interval that were greater than 8192 LBNs apart.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_medium_seeks:
+        description: Number of seeks during the interval that were between 64 and 8192 LBNs apart.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_number_read_averaged:
+        description: Average number of read commands issued per second to the virtual disk during the collection
+          interval.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_number_write_averaged:
+        description: Average number of write commands issued per second to the virtual disk during the collection
+          interval.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_read_kbs:
+        description: Rate of reading data from the virtual disk.
+        type: gauge
+        default: true
+        group: virtual_disk
+      vsphere.virtual_disk_read_iosize:
+        description: Average read request size in bytes.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_read_latency_us:
+        description: Read latency in microseconds.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_read_load_metric:
+        description: Storage DRS virtual disk metric for the read workload model.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_read_oio:
+        description: Average number of outstanding read requests to the virtual disk during the collection interval.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_small_seeks:
+        description: Number of seeks during the interval that were less than 64 LBNs apart.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_total_read_latency_ms:
+        description: Average amount of time for a read operation from the virtual disk.
+          Total latency = kernel latency + device latency.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_total_write_latency_ms:
+        description: The average time a write to the virtual disk takes.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_write_kbs:
+        description: Rate of writing data to the virtual disk.
+        type: gauge
+        default: true
+        group: virtual_disk
+      vsphere.virtual_disk_write_iosize:
+        description: Average write request size in bytes.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_write_latency_us:
+        description: Write latency in microseconds.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_write_load_metric:
+        description: Storage DRS virtual disk metric for the write workload model.
+        type: gauge
+        default: false
+        group: virtual_disk
+      vsphere.virtual_disk_write_oio:
+        description: Average number of outstanding write requests to the virtual disk during the collection interval.
+        type: gauge
+        default: false
+        group: virtual_disk

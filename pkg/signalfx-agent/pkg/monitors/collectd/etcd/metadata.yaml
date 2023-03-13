@@ -1,0 +1,125 @@
+monitors:
+- dimensions:
+  doc: |
+    Monitors an etcd key/value store using the [collectd etcd Python plugin](https://github.com/signalfx/collectd-etcd).
+
+    Requires etcd 2.0.8 or later.
+  metrics:
+    counter.etcd.leader.counts.fail:
+      description: Total number of failed rpc requests to with a follower
+      default: true
+      type: counter
+    counter.etcd.leader.counts.success:
+      description: Total number of successful rpc requests to with a follower
+      default: true
+      type: counter
+    counter.etcd.self.recvappendreq.cnt:
+      description: Total number of append requests received by a member
+      default: true
+      type: counter
+    counter.etcd.self.sendappendreq.cnt:
+      description: Total number of append requests sent by a member
+      default: true
+      type: counter
+    counter.etcd.store.compareanddelete.fail:
+      description: Total number of failed compare-and-delete operations
+      default: true
+      type: counter
+    counter.etcd.store.compareanddelete.success:
+      description: Total number of successful compare-and-delete operations
+      default: true
+      type: counter
+    counter.etcd.store.compareandswap.fail:
+      description: Total number of failed compare-and-swap operations
+      default: true
+      type: counter
+    counter.etcd.store.compareandswap.success:
+      description: Total number of successful compare-and-swap operations
+      default: true
+      type: counter
+    counter.etcd.store.create.fail:
+      description: Total number of failed create operations
+      default: true
+      type: counter
+    counter.etcd.store.create.success:
+      description: Total number of successful create operations
+      default: true
+      type: counter
+    counter.etcd.store.delete.fail:
+      description: Total number of failed delete operations
+      default: true
+      type: counter
+    counter.etcd.store.delete.success:
+      description: Total number of successful delete operations
+      default: true
+      type: counter
+    counter.etcd.store.expire.count:
+      description: Total number of items expired due to TTL
+      default: true
+      type: counter
+    counter.etcd.store.gets.fail:
+      description: Total number of failed get operations
+      default: true
+      type: counter
+    counter.etcd.store.gets.success:
+      description: Total number of successful get operations
+      default: true
+      type: counter
+    counter.etcd.store.sets.fail:
+      description: Total number of failed set operations
+      default: true
+      type: counter
+    counter.etcd.store.sets.success:
+      description: Total number of successful set operations
+      default: true
+      type: counter
+    counter.etcd.store.update.fail:
+      description: Total number of failed update operations
+      default: true
+      type: counter
+    counter.etcd.store.update.success:
+      description: Total number of successful update operations
+      default: true
+      type: counter
+    gauge.etcd.leader.latency.average:
+      description: Average latency of a follower with respect to the leader
+      default: false
+      type: gauge
+    gauge.etcd.leader.latency.current:
+      description: Current latency of a follower with respect to the leader
+      default: true
+      type: gauge
+    gauge.etcd.leader.latency.max:
+      description: Max latency of a follower with respect to the leader
+      default: false
+      type: gauge
+    gauge.etcd.leader.latency.min:
+      description: Min latency of a follower with respect to the leader
+      default: false
+      type: gauge
+    gauge.etcd.leader.latency.stddev:
+      description: Std dev latency of a follower with respect to the leader
+      default: false
+      type: gauge
+    gauge.etcd.self.recvbandwidth.rate:
+      description: Bandwidth rate of a follower
+      default: true
+      type: gauge
+    gauge.etcd.self.recvpkg.rate:
+      description: Rate at which a follower receives packages
+      default: true
+      type: gauge
+    gauge.etcd.self.sendbandwidth.rate:
+      description: Bandwidth rate of a leader
+      default: true
+      type: gauge
+    gauge.etcd.self.sendpkg.rate:
+      description: Rate at which a leader sends packages
+      default: true
+      type: gauge
+    gauge.etcd.store.watchers:
+      description: Number of watchers
+      default: true
+      type: gauge
+  monitorType: collectd/etcd
+  properties:

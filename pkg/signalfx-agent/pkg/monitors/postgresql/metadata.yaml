@@ -1,0 +1,205 @@
+monitors:
+- monitorType: postgresql
+  doc: |
+    This monitor pulls metrics from all PostgreSQL databases from a specific
+    Postgres server instance.  It pulls basic information that is applicable
+    to any database.  It gathers these metrics via SQL queries.
+
+    <!--- OVERVIEW --->
+    ## Metrics about Queries
+
+    In order to get metrics about query execution time, you must enable the
+    `pg_stat_statements` extension.  This extension must be specified in the
+    `shared_preload_libraries` config option in the main PostgreSQL
+    configuration at server start up.  Then the extension must be enabled for
+    each database by running `CREATE EXTENSION IF NOT EXISTS
+    pg_stat_statements;` on each database.
+
+    Note that in order to get consistent and accurate query execution time
+    metrics, you must set the [pg_stat_statements.max config
+    option](https://www.postgresql.org/docs/9.3/pgstatstatements.html#AEN160631)
+    to larger than the number of distinct queries on the server.
+
+    Here is a [sample configuration of Postgres to enable statement tracking](https://www.postgresql.org/docs/9.3/pgstatstatements.html#AEN160631).
+
+    Tested with PostgreSQL `9.2+`.
+
+    If you want to collect additional metrics about PostgreSQL, use the [sql monitor](./sql.md).
+
+    ## Metrics about Replication
+
+    Replication metrics could not be available on some PostgreSQL servers. For now, this monitor 
+    automatically disable `replication` metrics group if it detects Aurora to avoid following error:
+      
+    > Function pg_last_xlog_receive_location() is currently not supported for Aurora
+
+    The metric `postgres_replication_state` will only be reported for `master` and 
+    `postgres_replication_lag` only for `standby` role (replica).
+
+    <!--- SETUP --->
+    ## Example Configuration
+
+    This example uses the [Vault remote config
+    source](https://github.com/signalfx/signalfx-agent/blob/main/docs/remote-config.md#nested-values-vault-only)
+    to connect to PostgreSQL using the `params` map that allows you to pull
+    out the username and password individually from Vault and interpolate
+    them into the `connectionString` config option.
+
+    ```yaml
+    monitors:
+     - type: postgresql
+       connectionString: 'sslmode=disable user={{.username}} password={{.password}}'
+       params: &psqlParams
+         username: {"#from": "vault:secret/my-database[username]"}
+         password: {"#from": "vault:secret/my-database[password]"}
+       discoveryRule: 'container_image =~ "postgres" && port == 5432'
+
+     # This monitor will monitor additional queries from PostgreSQL using the
+     # provided SQL queries.
+     - type: sql
+       dbDriver: postgres
+       connectionString: 'sslmode=disable user={{.username}} password={{.password}}'
+       # This is a YAML reference to avoid duplicating the above config.
+       params: *psqlParams
+       queries:
+         - query: 'SELECT COUNT(*) as count, country, status FROM customers GROUP BY country, status;'
+           metrics:
+             - metricName: "customers"
+               valueColumn: "count"
+               dimensionColumns: ["country", "status"]
+    ```
+
+  dimensions:
+    type:
+      description: Whether the object (table, index, function, etc.) belongs to the
+        `system` or `user`.
+    table:
+      description: The name of the table to which the metric pertains.
+    database:
+      description: The name of the database within a PostgreSQL server to which the
+        metric pertains.
+    schemaname:
+      description: The name of the schema within which the object being monitored
+        resides (e.g. `public`).
+    index:
+      description: For index metrics, the name of the index
+    user:
+      description: For query metrics, the user name of the user that executed the
+        queries.
+    tablespace:
+      description: For table metrics, the tablespace in which the table belongs, if
+        not null.
+    replication_role:
+      description: For "replication_lag" metric only, could be "master" or "standby".
+    slot_name:
+      description: For "replication_state" metric only, the name of replication slot.
+    slot_type:
+      description: For "replication_state" metric only, the type of replication.
+  metrics:
+    postgres_sessions:
+      description: >
+        Number of sessions currently on the server instance.  The `state`
+        dimension will specify which type of session (see `state` row of
+        [pg_stat_activity](https://www.postgresql.org/docs/9.2/monitoring-stats.html#PG-STAT-ACTIVITY-VIEW)).
+      default: true
+      type: gauge
+    postgres_block_hit_ratio:
+      description: The proportion (between 0 and 1, inclusive) of block reads that
+        used the cache and did not have to go to the disk.  Is sent for `table`, `index`,
+        and the `database` as a whole.
+      default: true
+      type: gauge
+    postgres_database_size:
+      description: Size in bytes of the database on disk
+      default: true
+      type: gauge
+    postgres_deadlocks:
+      description: Total number of deadlocks detected by the system
+      default: true
+      type: cumulative
+    postgres_query_count:
+      description: >
+        Total number of queries executed on the `database`, broken down by `user`.  Note
+        that the accuracy of this metric depends on the PostgreSQL
+        [pg_stat_statements.max config option](https://www.postgresql.org/docs/9.3/pgstatstatements.html#AEN160631)
+        being large enough to hold all queries.
+      default: true
+      type: cumulative
+    postgres_query_time:
+      description: Total time taken to execute queries on the `database`, broken down
+        by `user`. Measured in ms unless otherwise indicated.
+      default: true
+      type: cumulative
+    postgres_rows_inserted:
+      description: Number of rows inserted into the `table`.
+      default: true
+      type: cumulative
+    postgres_rows_updated:
+      description: Number of rows updated in the `table`.
+      default: true
+      type: cumulative
+    postgres_rows_deleted:
+      description: Number of rows deleted from the `table`.
+      default: true
+      type: cumulative
+    postgres_sequential_scans:
+      description: Total number of sequential scans on the `table`.
+      default: true
+      type: cumulative
+    postgres_index_scans:
+      description: Total number of index scans on the `table`.
+      default: true
+      type: cumulative
+    postgres_table_size:
+      description: The size in bytes of the `table` on disk.
+      default: true
+      type: gauge
+    postgres_live_rows:
+      description: Number of rows live (not deleted) in the `table`.
+      default: true
+      type: gauge
+    postgres_pct_connections:
+      description: The number of connections to this database as a fraction of the maximum number of allowed connections.
+      default: false
+      type: gauge
+    postgres_locks:
+      description: The number of locks active.
+      default: false
+      type: gauge
+    postgres_conflicts:
+      description: The number of conflicts.
+      default: false
+      type: cumulative
+    postgres_xact_commits:
+      description: The number of transactions that have been committed in this database.
+      default: false
+      type: cumulative
+    postgres_xact_rollbacks:
+      description: The number of transactions that have been rolled back in this database.
+      default: false
+      type: cumulative
+    postgres_queries_calls:
+      description: Top N most frequently executed queries broken down by `database`
+      default: false
+      type: cumulative
+      group: queries
+    postgres_queries_total_time:
+      description: Top N queries based on the total execution time broken down by `database`
+      default: false
+      type: cumulative
+      group: queries
+    postgres_queries_average_time:
+      description: Top N queries based on the average execution time broken down by `database`
+      default: false
+      type: cumulative
+      group: queries
+    postgres_replication_lag:
+      description: The current replication delay in seconds. Always = 0 on master.
+      default: false
+      type: gauge
+      group: replication
+    postgres_replication_state:
+      description: The current replication state.
+      default: false
+      type: gauge
+      group: replication

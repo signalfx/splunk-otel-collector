@@ -1,0 +1,1561 @@
+monitors:
+- dimensions:
+    origin:
+      description: Origin name of the metric. Equal to the prefix of the metric name.
+    source_id:
+      description: For application container metrics, this is the GUID of the application (equal to `app_id`), for system metrics, this is the origin name (equal to `origin`).
+    deployment:
+      description: Name of the BOSH deployment.
+    job:
+      description: Name of the BOSH job.
+    index:
+      description: ID of the BOSH instance.
+    ip:
+      description: IP address of the BOSH instance.
+    process_id:
+      description: Process ID. Only present for applications (`rep.` metrics). For a process of type "web" (main process of an application), this is equal to `source_id` and `app_id`.
+    process_type:
+      description: Type of the process (each application has one process with type "web"). Only present for applications (`rep.` metrics).
+    instance_id:
+      description: Numerical index of the application instance for applications (`rep.` metrics). Also present for `bbs.` metrics, where it is the BOSH instance ID (equal to `index`).
+    process_instance_id:
+      description: Unique ID for the application process instance. Only present for applications (`rep.` metrics).
+    app_id:
+      description: Application ID (GUID). This is equal to the value of `source_id` dimension. Only available for applications on TAS/PCF 2.8.0+ (cf-deployment v11.1.0+).
+    app_name:
+      description: Application name. Only available for applications on TAS/PCF 2.8.0+ (cf-deployment v11.1.0+). Name change does not take effect until process is restarted on TAS 2.8.
+    organization_id:
+      description: Organization ID (GUID). Only available for applications on TAS/PCF 2.8.0+ (cf-deployment v11.1.0+).
+    organization_name:
+      description: Organization name. Only available for applications on TAS/PCF 2.8.0+ (cf-deployment v11.1.0+). Name change does not take effect until process is restarted on TAS 2.8.
+    space_id:
+      description: Space ID (GUID). Only available for applications on TAS/PCF 2.8.0+ (cf-deployment v11.1.0+).
+    space_name:
+      description: Space name. Only available for applications on TAS/PCF 2.8.0+ (cf-deployment v11.1.0+). Name change does not take effect until process is restarted on TAS 2.8.
+  monitorType: cloudfoundry-firehose-nozzle
+  doc: |
+    This is a CloudFoundry [firehose
+    nozzle](https://docs.pivotal.io/tiledev/2-8/nozzle.html) by connecting to
+    the Cloud Foundry Reverse Log Proxy (RLP) Gateway that feeds metrics from
+    the Loggregator. This uses the new RLP Gateway model that was [introduced
+    in Pivotal Cloud Foundry (PCF)
+    2.4](https://docs.pivotal.io/tiledev/2-4/release-notes.html#log-api), so it
+    will not work with older releases.
+
+    Pivotal has a helpful guide for [Key Performance Indicators
+    (KPIs)](https://docs.pivotal.io/platform/2-8/monitoring/kpi.html) to
+    monitor.  Most of these metrics come through the firehose.  They also have
+    a guide for [Key Capacity Scaling
+    Indicators](https://docs.pivotal.io/platform/2-8/monitoring/key-cap-scaling.html)
+    that will help determine when to scale up or down your cluster.
+
+    This supports `gauge` and `counter` metrics at this time.  Firehose `gauge`
+    metrics gets converted to SignalFx gauges, an firehose `counter` metrics
+    get converted to SignalFx cumulative counters metrics.  All of the `tags`
+    in the firehose envelopes will be converted to dimensions when sending to
+    SignalFx.
+
+    To create a UAA user with the proper permissions to access the RLP Gateway,
+    run the following:
+
+    ```sh
+    $ uaac client add my-v2-nozzle \
+        --name signalfx-nozzle \
+        --secret <signalfx-nozzle client secret> \
+        --authorized_grant_types client_credentials,refresh_token \
+        --authorities logs.admin
+    ```
+
+    Then set the `uaaUsername` config value to `signalfx-nozzle` and the
+    `uaaPassword` field to the `<signalfx-nozzle client secret>` that you
+    select.
+  metrics:
+    rep.absolute_entitlement:
+      group: container
+      type: cumulative
+      description: The total number of nanoseconds the container is entitled to spend using CPU
+    rep.absolute_usage:
+      group: container
+      type: cumulative
+      description: The total number of nanoseconds the container has used CPU
+    rep.container_age:
+      group: container
+      type: cumulative
+      description: The total number of nanoseconds the Diego-managed container has been alive
+    rep.cpu:
+      description: Percentage of time container spent using CPU.
+      default: true
+      group: container
+      type: gauge
+    rep.disk:
+      description: Disk space (bytes) in use by this container.
+      default: true
+      group: container
+      type: gauge
+    rep.disk_quota:
+      description: User requested disk quota (bytes) set on the DesiredLRP for this container
+      default: true
+      group: container
+      type: gauge
+    rep.memory:
+      description: |
+        Memory in use by this container (bytes). If the per-instance proxy is
+        enabled, memory usage is scaled set based on the additional memory
+        allocation for the proxy.
+      default: true
+      group: container
+      type: gauge
+    rep.memory_quota:
+      description: User requested memory quota (bytes) set on the DesiredLRP for this container
+      default: true
+      group: container
+      type: gauge
+    auctioneer.AuctioneerFetchStatesDuration:
+      default: true
+      description: Time in nanoseconds that the auctioneer took to fetch state from all
+        the cells when running its auction. Emitted every 30 seconds during each auction.
+      type: gauge
+    auctioneer.AuctioneerLRPAuctionsFailed:
+      default: true
+      description: Cumulative number of LRP instances that the auctioneer failed to place
+        on Diego cells. Emitted every 30 seconds during each auction.
+      type: cumulative
+    auctioneer.AuctioneerLRPAuctionsStarted:
+      default: true
+      description: Cumulative number of LRP instances that the auctioneer successfully
+        placed on Diego cells. Emitted every 30 seconds during each auction.
+      type: cumulative
+    auctioneer.AuctioneerTaskAuctionsFailed:
+      default: true
+      description: Cumulative number of Tasks that the auctioneer failed to place on Diego
+        cells. Emitted every 30 seconds during each auction.
+      type: cumulative
+    auctioneer.AuctioneerTaskAuctionsStarted:
+      default: false
+      description: Cumulative number of Tasks that the auctioneer successfully placed
+        on Diego cells. Emitted every 30 seconds during each auction.
+      type: cumulative
+    auctioneer.LockHeld.v1-locks-auctioneer_lock:
+      default: false
+      description: 'Whether an auctioneer holds the auctioneer lock: 1 means the lock
+        is held, and 0 means the lock was lost. Emitted every 30 seconds by the active
+        auctioneer.'
+      type: gauge
+    auctioneer.LockHeldDuration.v1-locks-auctioneer_lock:
+      default: false
+      description: Time in nanoseconds that the active auctioneer has held the auctioneer
+        lock. Emitted every 30 seconds by the active auctioneer.
+      type: gauge
+    auctioneer.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration in nanoseconds of the last garbage collector pause.
+      type: gauge
+    auctioneer.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    auctioneer.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    auctioneer.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    auctioneer.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    auctioneer.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    auctioneer.numCPUS:
+      default: false
+      description: Number of CPUs on the machine.
+      type: gauge
+    auctioneer.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the process.
+      type: gauge
+    bbs.BBSMasterElected:
+      default: false
+      description: Emitted once when the BBS is elected as master.
+      type: gauge
+    bbs.ConvergenceLRPDuration:
+      default: true
+      description: Time in nanoseconds that the BBS took to run its LRP convergence pass.
+        Emitted every 30 seconds when LRP convergence runs.
+      type: gauge
+    bbs.ConvergenceLRPPreProcessingActualLRPsDeleted:
+      default: false
+      description: Cumulative number of times the BBS has detected and deleted a malformed
+        ActualLRP in its LRP convergence pass. Emitted every 30 seconds.
+      type: gauge
+    bbs.ConvergenceLRPPreProcessingMalformedRunInfos:
+      default: false
+      description: Cumulative number of times the BBS has detected a malformed DesiredLRP
+        RunInfo in its LRP convergence pass. Emitted every 30 seconds.
+      type: gauge
+    bbs.ConvergenceLRPPreProcessingMalformedSchedulingInfos:
+      default: false
+      description: Cumulative number of times the BBS has detected a malformed DesiredLRP
+        SchedulingInfo in its LRP convergence pass. Emitted every 30 seconds.
+      type: gauge
+    bbs.ConvergenceLRPRuns:
+      default: false
+      description: Cumulative number of times BBS has run its LRP convergence pass. Emitted
+        every 30 seconds.
+      type: cumulative
+    bbs.ConvergenceTaskDuration:
+      default: false
+      description: Time in nanoseconds that the BBS took to run its Task convergence pass.
+        Emitted every 30 seconds when Task convergence runs.
+      type: gauge
+    bbs.ConvergenceTaskRuns:
+      default: false
+      description: Cumulative number of times the BBS has run its Task convergence pass.
+        Emitted every 30 seconds.
+      type: cumulative
+    bbs.ConvergenceTasksKicked:
+      default: false
+      description: Cumulative number of times the BBS has updated a Task during its Task
+        convergence pass. Emitted every 30 seconds.
+      type: cumulative
+    bbs.ConvergenceTasksPruned:
+      default: false
+      description: Cumulative number of times the BBS has deleted a malformed Task during
+        its Task convergence pass. Emitted every 30 seconds.
+      type: cumulative
+    bbs.CrashedActualLRPs:
+      default: true
+      description: Total number of LRP instances that have crashed. Emitted every 30 seconds.
+      type: gauge
+    bbs.CrashingDesiredLRPs:
+      default: false
+      description: Total number of DesiredLRPs that have at least one crashed instance.
+        Emitted every 30 seconds.
+      type: gauge
+    bbs.Domain.cf-apps:
+      default: true
+      description: "Whether the \u2018cf-apps\u2019 domain is up-to-date, so that CF apps\
+        \ from CC have been synchronized with DesiredLRPs for Diego to run. 1 means the\
+        \ domain is up-to-date, no data means it is not. Emitted every 30 seconds."
+      type: gauge
+    bbs.Domain.cf-tasks:
+      default: false
+      description: "Whether the \u2018cf-tasks\u2019 domain is up-to-date, so that CF\
+        \ tasks from CC have been synchronized with tasks for Diego to run. 1 means the\
+        \ domain is up-to-date, no data means it is not. Emitted every 30 seconds."
+      type: gauge
+    bbs.ETCDLeader:
+      default: false
+      description: Index of the leader node in the etcd cluster. Emitted every 30 seconds.
+      type: gauge
+    bbs.ETCDRaftTerm:
+      default: false
+      description: Raft term of the etcd cluster. Emitted every 30 seconds.
+      type: gauge
+    bbs.ETCDReceivedBandwidthRate:
+      default: false
+      description: Number of bytes per second received by the follower etcd node. Emitted
+        every 30 seconds.
+      type: gauge
+    bbs.ETCDReceivedRequestRate:
+      default: false
+      description: Number of requests per second received by the follower etcd node. Emitted
+        every 30 seconds.
+      type: gauge
+    bbs.ETCDSentBandwidthRate:
+      default: false
+      description: Number of bytes per second sent by the leader etcd node. Emitted every
+        30 seconds.
+      type: gauge
+    bbs.ETCDSentRequestRate:
+      default: false
+      description: Number of requests per second sent by the leader etcd node. Emitted
+        every 30 seconds.
+      type: gauge
+    bbs.ETCDWatchers:
+      default: false
+      description: Number of watches set against the etcd cluster. Emitted every 30 seconds.
+      type: gauge
+    bbs.LRPsClaimed:
+      default: false
+      description: Total number of LRP instances that have been claimed by some cell.
+        Emitted every 30 seconds.
+      type: gauge
+    bbs.LRPsDesired:
+      default: false
+      description: Total number of LRP instances desired across all LRPs. Emitted periodically.
+      type: gauge
+    bbs.LRPsExtra:
+      default: true
+      description: Total number of LRP instances that are no longer desired but still
+        have a BBS record. Emitted every 30 seconds.
+      type: gauge
+    bbs.LRPsMissing:
+      default: true
+      description: Total number of LRP instances that are desired but have no record in
+        the BBS. Emitted every 30 seconds.
+      type: gauge
+    bbs.LRPsRunning:
+      default: true
+      description: Total number of LRP instances that are running on cells. Emitted every
+        30 seconds.
+      type: gauge
+    bbs.LRPsUnclaimed:
+      default: false
+      description: Total number of LRP instances that have not yet been claimed by a cell.
+        Emitted every 30 seconds.
+      type: gauge
+    bbs.LockHeld.v1-locks-bbs_lock:
+      default: false
+      description: 'Whether a BBS holds the BBS lock: 1 means the lock is held, and 0
+        means the lock was lost. Emitted every 30 seconds by the active BBS server.'
+      type: gauge
+    bbs.LockHeldDuration.v1-locks-bbs_lock:
+      default: false
+      description: Time in nanoseconds that the active BBS has held the BBS lock. Emitted
+        every 30 seconds by the active BBS server.
+      type: gauge
+    bbs.MetricsReportingDuration:
+      default: false
+      description: Time in nanoseconds that the BBS took to emit metrics about etcd. Emitted
+        every 30 seconds.
+      type: gauge
+    bbs.MigrationDuration:
+      default: false
+      description: Time in nanoseconds that the BBS took to run migrations against its
+        persistence store. Emitted each time a BBS becomes the active master.
+      type: gauge
+    bbs.RequestCount:
+      default: false
+      description: Cumulative number of requests the BBS has handled through its API.
+        Emitted for each BBS request.
+      type: cumulative
+    bbs.RequestLatency:
+      default: true
+      description: Time in nanoseconds that the BBS took to handle requests to its API
+        endpoints. Emitted when the BBS API handles requests.
+      type: gauge
+    bbs.TasksCompleted:
+      default: false
+      description: Total number of Tasks that have completed. Emitted every 30 seconds.
+      type: gauge
+    bbs.TasksPending:
+      default: false
+      description: Total number of Tasks that have not yet been placed on a cell. Emitted
+        every 30 seconds.
+      type: gauge
+    bbs.TasksResolving:
+      default: false
+      description: Total number of Tasks locked for deletion. Emitted every 30 seconds.
+      type: gauge
+    bbs.TasksRunning:
+      default: false
+      description: Total number of Tasks running on cells. Emitted every 30 seconds.
+      type: gauge
+    bbs.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration in nanoseconds of the last garbage collector pause.
+      type: gauge
+    bbs.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    bbs.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    bbs.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    bbs.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    bbs.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    bbs.numCPUS:
+      default: false
+      description: Number of CPUs on the machine.
+      type: gauge
+    bbs.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the process.
+      type: gauge
+    cc.failed_job_count.VM_NAME-VM_INDEX:
+      default: false
+      description: Number of failed jobs in the <VM_NAME>-<VM_INDEX> queue. This is the
+        number of delayed jobs where the failed at column is populated with the time of
+        the most recently failed attempt at the job. The failed job count is not specific
+        to the jobs run by the Cloud Controller worker. By default, Cloud Controller deletes
+        failed jobs after 31 days. Emitted every 30 seconds per VM.
+      type: cumulative
+    cc.failed_job_count.cc-generic:
+      default: false
+      description: Number of failed jobs in the cc-generic queue. By default, Cloud Controller
+        deletes failed jobs after 31 days. Emitted every 30 seconds per VM.
+      type: cumulative
+    cc.failed_job_count.total:
+      default: false
+      description: Number of failed jobs in all queues. By default, Cloud Controller deletes
+        failed jobs after 31 days. Emitted every 30 seconds per VM.
+      type: gauge
+    cc.http_status.1XX:
+      default: false
+      description: Number of HTTP response status codes of type 1xx (informational). This
+        resets when the Cloud Controller process is restarted and is incremented at the
+        end of each request cycle.
+      type: cumulative
+    cc.http_status.2XX:
+      default: false
+      description: Number of HTTP response status codes of type 2xx (success). This resets
+        when the Cloud Controller process is restarted and is incremented at the end of
+        each request cycle. Emitted for each Cloud Controller request.
+      type: cumulative
+    cc.http_status.3XX:
+      default: false
+      description: Number of HTTP response status codes of type 3xx (redirection). This
+        resets when the Cloud Controller process is restarted and is incremented at the
+        end of each request cycle. Emitted for each Cloud Controller request.
+      type: cumulative
+    cc.http_status.4XX:
+      default: false
+      description: Number of HTTP response status codes of type 4xx (client error). This
+        resets when the Cloud Controller process is restarted and is incremented at the
+        end of each request cycle. Emitted for each Cloud Controller request.
+      type: cumulative
+    cc.http_status.5XX:
+      default: false
+      description: Number of HTTP response status codes of type 5xx (server error). This
+        resets when the Cloud Controller process is restarted and is incremented at the
+        end of each request cycle.
+      type: cumulative
+    cc.job_queue_length.cc-VM_NAME-VM_INDEX:
+      default: false
+      description: Number of background jobs in the <VM_NAME>-<VM_INDEX> queue that have
+        yet to run for the first time. Emitted every 30 seconds per VM.
+      type: gauge
+    cc.job_queue_length.cc-generic:
+      default: false
+      description: Number of background jobs in the cc-generic queue that have yet to
+        run for the first time. Emitted every 30 seconds per VM.
+      type: gauge
+    cc.job_queue_length.total:
+      default: false
+      description: Total number of background jobs in the queues that have yet to run
+        for the first time. Emitted every 30 seconds per VM.
+      type: gauge
+    cc.log_count.all:
+      default: false
+      description: Total number of log messages, sum of messages of all severity levels.
+        The count resets when the Cloud Controller process is restarted. Emitted every
+        30 seconds per VM.
+      type: gauge
+    cc.log_count.debug:
+      default: false
+      description: "Number of log messages of severity \u201Cdebug.\u201D The count resets\
+        \ when the Cloud Controller process is restarted. Emitted every 30 seconds per\
+        \ VM."
+      type: gauge
+    cc.log_count.debug1:
+      default: false
+      description: Not used.
+      type: gauge
+    cc.log_count.debug2:
+      default: false
+      description: "Number of log messages of severity \u201Cdebug2.\u201D The count resets\
+        \ when the Cloud Controller process is restarted. Emitted every 30 seconds per\
+        \ VM."
+      type: gauge
+    cc.log_count.error:
+      default: true
+      description: Number of error log messages.
+      type: cumulative
+    cc.log_count.fatal:
+      default: true
+      description: Number of fatal log messages.
+      type: cumulative
+    cc.log_count.info:
+      default: false
+      description: "Number of log messages of severity \u201Cinfo.\u201D Examples of info\
+        \ messages are droplet created, copying package, uploading package, access denied\
+        \ due to insufficient scope, job logging, blobstore actions, staging requests,\
+        \ and app running requests. The count resets when the Cloud Controller process\
+        \ is restarted. Emitted every 30 seconds per VM."
+      type: gauge
+    cc.log_count.off:
+      default: false
+      description: "Number of log messages of severity \u201Coff.\u201D The count resets\
+        \ when the Cloud Controller process is restarted. Emitted every 30 seconds per\
+        \ VM."
+      type: gauge
+    cc.log_count.warn:
+      default: true
+      description: Number of warn log messages.
+      type: cumulative
+    cc.requests.completed:
+      default: true
+      description: Number of Cloud Controller API requests completed.
+      type: cumulative
+    cc.requests.outstanding:
+      default: true
+      description: Number of Cloud Controller requests made but not completed.
+      type: cumulative
+    cc.tasks_running.count:
+      default: true
+      description: Number of tasks currently running.
+      type: gauge
+    cc.tasks_running.memory_in_mb:
+      default: false
+      description: Memory being consumed by all currently running tasks. Emitted every
+        30 seconds per VM. This metric is only seen in version 3 of the Cloud Foundry
+        API.
+      type: gauge
+    cc.thread_info.event_machine.connection_count:
+      default: false
+      description: Number of open connections to event machine. Emitted every 30 seconds
+        per VM.
+      type: gauge
+    cc.thread_info.event_machine.resultqueue.num_waiting:
+      default: false
+      description: Number of scheduled tasks in the result. Emitted every 30 seconds per
+        VM.
+      type: gauge
+    cc.thread_info.event_machine.resultqueue.size:
+      default: false
+      description: Number of unscheduled tasks in the result. Emitted every 30 seconds
+        per VM.
+      type: gauge
+    cc.thread_info.event_machine.threadqueue.num_waiting:
+      default: false
+      description: Number of scheduled tasks in the threadqueue. Emitted every 30 seconds
+        per VM.
+      type: gauge
+    cc.thread_info.event_machine.threadqueue.size:
+      default: false
+      description: Number of unscheduled tasks in the threadqueue. Emitted every 30 seconds
+        per VM.
+      type: gauge
+    cc.thread_info.thread_count:
+      default: false
+      description: Total number of threads that are either runnable or stopped. Emitted
+        every 30 seconds per VM.
+      type: gauge
+    cc.total_users:
+      default: false
+      description: Total number of users ever created, including inactive users. Emitted
+        every 10 minutes per VM.
+      type: gauge
+    cc.vitals.cpu:
+      default: false
+      description: Percentage of CPU used by the Cloud Controller process. Emitted every
+        30 seconds per VM.
+      type: gauge
+    cc.vitals.cpu_load_avg:
+      default: false
+      description: System CPU load averaged over the last 1 minute according to the OS.
+        Emitted every 30 seconds per VM.
+      type: gauge
+    cc.vitals.mem_bytes:
+      default: false
+      description: The RSS bytes (resident set size) or real memory of the Cloud Controller
+        process. Emitted every 30 seconds per VM.
+      type: gauge
+    cc.vitals.mem_free_bytes:
+      default: false
+      description: Total memory available according to the OS. Emitted every 30 seconds
+        per VM.
+      type: gauge
+    cc.vitals.mem_used_bytes:
+      default: false
+      description: Total memory used (active + wired) according to the OS. Emitted every
+        30 seconds per VM.
+      type: gauge
+    cc.vitals.num_cores:
+      default: false
+      description: The number of CPUs of a host machine. Emitted every 30 seconds per
+        VM.
+      type: gauge
+    cc.vitals.uptime:
+      default: false
+      description: The uptime of the Cloud Controller process in seconds. Emitted every
+        30 seconds per VM.
+      type: gauge
+    cc_uploader.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration in nanoseconds of the last garbage collector pause.
+      type: gauge
+    cc_uploader.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    cc_uploader.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    cc_uploader.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    cc_uploader.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    cc_uploader.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    cc_uploader.numCPUS:
+      default: false
+      description: Number of CPUs on the machine.
+      type: gauge
+    cc_uploader.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the process.
+      type: gauge
+    container.cpu_percentage:
+      default: false
+      description: Percentage of CPU used by this container
+      type: gauge
+    container.disk_bytes:
+      default: false
+      description: Number of bytes of disk used by this container
+      type: gauge
+    container.disk_bytes_quota:
+      default: false
+      description: Number of bytes of disk allowed for this container
+      type: gauge
+    container.memory_bytes:
+      default: false
+      description: Number of bytes of RAM used by this container
+      type: gauge
+    container.memory_bytes_quota:
+      default: false
+      description: Number of bytes of RAM allocated to this container
+      type: gauge
+    etcd.CompareAndDeleteFail:
+      default: false
+      description: CompareAndDeleteFail operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.CompareAndDeleteSuccess:
+      default: false
+      description: CompareAndDeleteSuccess operation countEmitted every 30 seconds.
+      type: gauge
+    etcd.CompareAndSwapFail:
+      default: false
+      description: CompareAndSwapFail operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.CompareAndSwapSuccess:
+      default: false
+      description: CompareAndSwapSuccess operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.CreateFail:
+      default: false
+      description: CreateFail operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.CreateSuccess:
+      default: false
+      description: CreateSuccess operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.DeleteFail:
+      default: false
+      description: DeleteFail operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.DeleteSuccess:
+      default: false
+      description: DeleteSuccess operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.EtcdIndex:
+      default: false
+      description: X-Etcd-Index value from the /stats/store endpoint. Emitted every 30
+        seconds.
+      type: gauge
+    etcd.ExpireCount:
+      default: false
+      description: ExpireCount operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.Followers:
+      default: false
+      description: Number of etcd followers. Emitted every 30 seconds.
+      type: gauge
+    etcd.GetsFail:
+      default: false
+      description: GetsFail operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.GetsSuccess:
+      default: false
+      description: GetsSuccess operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.IsLeader:
+      default: false
+      description: 1 if the current server is the leader, 0 if it is a follower. Emitted
+        every 30 seconds.
+      type: gauge
+    etcd.Latency:
+      default: false
+      description: Current latency in milliseconds from leader to a specific follower.
+        Emitted every 30 seconds.
+      type: gauge
+    etcd.RaftIndex:
+      default: false
+      description: X-Raft-Index value from the /stats/store endpoint. Emitted every 30
+        seconds.
+      type: gauge
+    etcd.RaftTerm:
+      default: false
+      description: X-Raft-Term value from the /stats/store endpoint. Emitted every 30
+        seconds.
+      type: gauge
+    etcd.ReceivedAppendRequests:
+      default: false
+      description: Number of append requests this node has processed. Emitted every 30
+        seconds.
+      type: gauge
+    etcd.ReceivingBandwidthRate:
+      default: false
+      description: Number of bytes per second this node is receiving (follower only).
+        Emitted every 30 seconds.
+      type: gauge
+    etcd.ReceivingRequestRate:
+      default: false
+      description: Number of requests per second this node is receiving (follower only).
+        Emitted every 30 seconds.
+      type: gauge
+    etcd.SendingBandwidthRate:
+      default: false
+      description: Number of bytes per second this node is sending (leader only). This
+        value is undefined on single member clusters. Emitted every 30 seconds.
+      type: gauge
+    etcd.SendingRequestRate:
+      default: false
+      description: Number of requests per second this node is sending (leader only). This
+        value is undefined on single member clusters. Emitted every 30 seconds.
+      type: gauge
+    etcd.SentAppendRequests:
+      default: false
+      description: Number of requests that this node has sent. Emitted every 30 seconds.
+      type: gauge
+    etcd.SetsFail:
+      default: false
+      description: SetsFail operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.SetsSuccess:
+      default: false
+      description: SetsSuccess operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.UpdateFail:
+      default: false
+      description: UpdateFail operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.UpdateSuccess:
+      default: false
+      description: UpdateSuccess operation count. Emitted every 30 seconds.
+      type: gauge
+    etcd.Watchers:
+      default: false
+      description: Watchers operation count. Emitted every 30 seconds.
+      type: gauge
+    file_server.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration in nanoseconds of the last garbage collector pause.
+      type: gauge
+    file_server.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    file_server.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    file_server.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    file_server.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    file_server.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    file_server.numCPUS:
+      default: false
+      description: Number of CPUs on the machine.
+      type: gauge
+    file_server.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the process.
+      type: gauge
+    garden_linux.BackingStores:
+      default: false
+      description: Number of container backing store files. Emitted every 30 seconds.
+      type: gauge
+    garden_linux.DepotDirs:
+      default: false
+      description: Number of directories in the Garden depot. Emitted every 30 seconds.
+      type: gauge
+    garden_linux.LoopDevices:
+      default: false
+      description: Number of attached loop devices. Emitted every 30 seconds.
+      type: gauge
+    garden_linux.MetricsReporting:
+      default: false
+      description: How long it took to emit the BackingStores, DepotDirs, and LoopDevices
+        metrics. Emitted every 30 seconds.
+      type: gauge
+    garden_linux.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration in nanoseconds of the last garbage collector pause.
+      type: gauge
+    garden_linux.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    garden_linux.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    garden_linux.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    garden_linux.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    garden_linux.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    garden_linux.numCPUS:
+      default: false
+      description: Number of CPUs on the machine.
+      type: gauge
+    garden_linux.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the process.
+      type: gauge
+    gorouter.backend_exhausted_conns:
+      default: true
+      type: cumulative
+    gorouter.bad_gateways:
+      default: true
+      description: Number of bad gateway events.
+      type: cumulative
+    gorouter.responses:
+      default: true
+      description: Number of router responses.
+      type: cumulative
+    gorouter.total_requests:
+      default: true
+      description: Number of router requests received
+      type: cumulative
+    gorouter.total_routes:
+      default: true
+      description: Number of registered routes
+      type: gauge
+    nsync_bulker.DesiredLRPSyncDuration:
+      default: false
+      description: Time in nanoseconds that the nsync-bulker took to synchronize CF apps
+        and Diego DesiredLRPs. Emitted every 30 seconds.
+      type: gauge
+    nsync_bulker.LRPsDesired:
+      default: false
+      description: Cumulative number of LRPs desired through the nsync API. Emitted on
+        each request desiring a new LRP, every 30 seconds.
+      type: gauge
+    nsync_bulker.LockHeld.v1-locks-nsync_bulker_lock:
+      default: false
+      description: 'Whether an nsync-bulker holds the nsync-bulker lock: 1 means the lock
+        is held, and 0 means the lock was lost. Emitted every 30 seconds by the active
+        nsync-bulker.'
+      type: gauge
+    nsync_bulker.LockHeldDuration.v1-locks-nsync_bulker_lock:
+      default: false
+      description: Time in nanoseconds that the active nsync-bulker has held the convergence
+        lock. Emitted every 30 seconds by the active nsync-bulker.
+      type: gauge
+    nsync_bulker.NsyncInvalidDesiredLRPsFound:
+      default: false
+      description: Number of invalid DesiredLRPs found during nsync-bulker periodic synchronization.
+        Emitted every 30 seconds.
+      type: gauge
+    nsync_bulker.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration in nanoseconds of the last garbage collector pause.
+      type: gauge
+    nsync_bulker.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    nsync_bulker.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    nsync_bulker.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    nsync_bulker.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    nsync_bulker.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    nsync_bulker.numCPUS:
+      default: false
+      description: Number of CPUs on the machine.
+      type: gauge
+    nsync_bulker.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the process.
+      type: gauge
+    nsync_listener.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration in nanoseconds of the last garbage collector pause.
+      type: gauge
+    nsync_listener.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    nsync_listener.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    nsync_listener.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    nsync_listener.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    nsync_listener.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    nsync_listener.numCPUS:
+      default: false
+      description: Number of CPUs on the machine.
+      type: gauge
+    nsync_listener.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the process.
+      type: gauge
+    rep.CM:
+      default: false
+      description: Emitted every 30 seconds.
+      type: gauge
+    rep.CapacityRemainingContainers:
+      default: true
+      description: Remaining number of containers this cell can host. Emitted every 60
+        seconds.
+      type: gauge
+    rep.CapacityRemainingDisk:
+      default: true
+      description: Amount of disk available to allocate in the cell, in megabytes.
+      type: gauge
+    rep.CapacityRemainingMemory:
+      default: true
+      description: Amount of memory available to allocate in the cell, in megabytes.
+      type: gauge
+    rep.CapacityTotalContainers:
+      default: true
+      description: Total number of containers this cell can host. Emitted every 60 seconds.
+      type: gauge
+    rep.CapacityTotalDisk:
+      default: true
+      description: Total amount of disk in a cell, in megabytes.
+      type: gauge
+    rep.CapacityTotalMemory:
+      default: true
+      description: Total amount of memory in a cell, in megabytes.
+      type: gauge
+    rep.ContainerCount:
+      default: true
+      description: Number of Diego containers currently running.
+      type: gauge
+    rep.GardenContainerCreationDuration:
+      default: false
+      description: Time in nanoseconds that the rep Garden backend took to create a container.
+        Emitted after every successful container creation.
+      type: gauge
+    rep.LogMessage:
+      default: false
+      description: Emitted every 30 seconds.
+      type: gauge
+    rep.RepBulkSyncDuration:
+      default: true
+      description: Time in nanoseconds that the cell rep took to synchronize the ActualLRPs
+        it has claimed with its actual garden containers. Emitted every 30 seconds by
+        each rep.
+      type: gauge
+    rep.UnhealthyCell:
+      default: true
+      description: Number of unhealthy Diego cells
+      type: gauge
+    rep.logSenderTotalMessagesRead:
+      default: false
+      description: Count of application log messages sent by Diego Executor. Emitted every
+        30 seconds.
+      type: cumulative
+    rep.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration in nanoseconds of the last garbage collector pause.
+      type: gauge
+    rep.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    rep.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    rep.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    rep.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    rep.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    rep.numCPUS:
+      default: false
+      description: Number of CPUs on the machine.
+      type: gauge
+    rep.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the process.
+      type: gauge
+    route_emitter.LockHeld.v1-locks-route_emitter_lock:
+      default: false
+      description: 'Whether a route-emitter holds the route-emitter lock: 1 means the
+        lock is held, and 0 means the lock was lost. Emitted every 30 seconds by the active
+        route-emitter.'
+      type: gauge
+    route_emitter.LockHeldDuration.v1-locks-route_emitter_lock:
+      default: false
+      description: Time in nanoseconds that the active route-emitter has held the route-emitter
+        lock. Emitted every 30 seconds by the active route-emitter.
+      type: gauge
+    route_emitter.MessagesEmitted:
+      default: false
+      description: The cumulative number of registration messages that this process has
+        sent. Emitted every 30 seconds.
+      type: cumulative
+    route_emitter.RouteEmitterSyncDuration:
+      default: true
+      description: Time in nanoseconds that the active route-emitter took to perform its
+        synchronization pass. Emitted every 60 seconds.
+      type: gauge
+    route_emitter.RoutesRegistered:
+      default: false
+      description: Cumulative number of route registrations emitted from the route-emitter
+        as it reacts to changes to LRPs. Emitted every 30 seconds.
+      type: cumulative
+    route_emitter.RoutesSynced:
+      default: false
+      description: Cumulative number of route registrations emitted from the route-emitter
+        during its periodic route-table synchronization. Emitted every 30 seconds.
+      type: cumulative
+    route_emitter.RoutesTotal:
+      default: false
+      description: "Number of routes in the route-emitter\u2019s routing table. Emitted\
+        \ every 30 seconds."
+      type: gauge
+    route_emitter.RoutesUnregistered:
+      default: false
+      description: Cumulative number of route unregistrations emitted from the route-emitter
+        as it reacts to changes to LRPs. Emitted every 30 seconds.
+      type: cumulative
+    route_emitter.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration in nanoseconds of the last garbage collector pause.
+      type: gauge
+    route_emitter.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    route_emitter.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    route_emitter.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    route_emitter.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    route_emitter.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    route_emitter.numCPUS:
+      default: false
+      description: Number of CPUs on the machine.
+      type: gauge
+    route_emitter.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the process.
+      type: gauge
+    ssh_proxy.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration in nanoseconds of the last garbage collector pause.
+      type: gauge
+    ssh_proxy.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    ssh_proxy.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    ssh_proxy.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    ssh_proxy.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    ssh_proxy.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    ssh_proxy.numCPUS:
+      default: false
+      description: Number of CPUs on the machine.
+      type: gauge
+    ssh_proxy.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the process .
+      type: gauge
+    stager.StagingRequestFailedDuration:
+      default: false
+      description: Time in nanoseconds that the failed staging task took to run. Emitted
+        each time a staging task fails.
+      type: gauge
+    stager.StagingRequestSucceededDuration:
+      default: false
+      description: Time in nanoseconds that the successful staging task took to run. Emitted
+        each time a staging task completes successfully.
+      type: gauge
+    stager.StagingRequestsFailed:
+      default: false
+      description: Cumulative number of failed staging tasks handled by each stager. Emitted
+        every time a staging task fails.
+      type: gauge
+    stager.StagingRequestsSucceeded:
+      default: false
+      description: Cumulative number of successful staging tasks handled by each stager.
+        Emitted every time a staging task completes successfully.
+      type: gauge
+    stager.StagingStartRequestsReceived:
+      default: false
+      description: Cumulative number of requests to start a staging task. Emitted by a
+        stager each time it handles a request.
+      type: gauge
+    stager.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration in nanoseconds of the last garbage collector pause.
+      type: gauge
+    stager.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    stager.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    stager.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    stager.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    stager.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    stager.numCPUS:
+      default: false
+      description: Number of CPUs on the machine.
+      type: gauge
+    stager.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the process.
+      type: gauge
+    syslog_drain_binder.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration of the last Garbage Collector pause in nanoseconds.
+      type: gauge
+    syslog_drain_binder.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    syslog_drain_binder.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    syslog_drain_binder.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    syslog_drain_binder.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    syslog_drain_binder.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    syslog_drain_binder.numCPUS:
+      default: false
+      description: Number of CPUs on the machine.
+      type: gauge
+    syslog_drain_binder.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the Doppler process.
+      type: gauge
+    syslog_drain_binder.pollCount:
+      default: false
+      description: Number of times the syslog drain binder has polled the cloud controller
+        for syslog drain bindings. Emitted every 30 seconds.
+      type: cumulative
+    syslog_drain_binder.totalDrains:
+      default: false
+      description: Number of syslog drains returned by cloud controller. Emitted every
+        30 seconds.
+      type: gauge
+    bosh-system-metrics-forwarder.system.cpu.sys:
+      default: true
+      description: CPU load consumed by the kernel.
+      type: gauge
+    bosh-system-metrics-forwarder.system.cpu.user:
+      default: true
+      description: CPU load consumed by userspace.
+      type: gauge
+    bosh-system-metrics-forwarder.system.cpu.wait:
+      default: true
+      description: Time CPU spent waiting for IO.
+      type: gauge
+    bosh-system-metrics-forwarder.system.disk.ephemeral.percent:
+      default: true
+      description: Percentage of the ephemeral disk used.
+      type: gauge
+    bosh-system-metrics-forwarder.system.disk.system.percent:
+      default: true
+      description: Percentage of the system disk used.
+      type: gauge
+    bosh-system-metrics-forwarder.system.healthy:
+      default: true
+      description: Overall status of system health.
+      type: gauge
+    bosh-system-metrics-forwarder.system.mem.percent:
+      default: true
+      description: Percentage of RAM used.
+      type: gauge
+    bosh-system-metrics-forwarder.system.swap.percent:
+      default: true
+      description: Percentage of swap space used.
+      type: gauge
+    tps_listener.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration in nanoseconds of the last garbage collector pause.
+      type: gauge
+    tps_listener.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    tps_listener.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    tps_listener.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    tps_listener.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    tps_listener.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    tps_listener.numCPUS:
+      default: false
+      description: Number of CPUs on the machine.
+      type: gauge
+    tps_listener.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the process.
+      type: gauge
+    tps_watcher.LockHeld.v1-locks-tps_watcher_lock:
+      default: false
+      description: 'Whether a tps-watcher holds the tps-watcher lock: 1 means the lock
+        is held, and 0 means the lock was lost. Emitted every 30 seconds by the active
+        tps-watcher.'
+      type: gauge
+    tps_watcher.LockHeldDuration.v1-locks-tps_watcher_lock:
+      default: false
+      description: Time in nanoseconds that the active tps-watcher has held the convergence
+        lock. Emitted every 30 seconds by the active tps-watcher.
+      type: gauge
+    tps_watcher.memoryStats.lastGCPauseTimeNS:
+      default: false
+      description: Duration in nanoseconds of the last garbage collector pause.
+      type: gauge
+    tps_watcher.memoryStats.numBytesAllocated:
+      default: false
+      description: Instantaneous count of bytes allocated and still in use.
+      type: gauge
+    tps_watcher.memoryStats.numBytesAllocatedHeap:
+      default: false
+      description: Instantaneous count of bytes allocated on the main heap and still in
+        use.
+      type: gauge
+    tps_watcher.memoryStats.numBytesAllocatedStack:
+      default: false
+      description: Instantaneous count of bytes used by the stack allocator.
+      type: gauge
+    tps_watcher.memoryStats.numFrees:
+      default: false
+      description: Lifetime number of memory deallocations.
+      type: gauge
+    tps_watcher.memoryStats.numMallocs:
+      default: false
+      description: Lifetime number of memory allocations.
+      type: gauge
+    tps_watcher.numCPUS:
+      default: false
+      description: Number of CPUs on the machine. Emitted every 30 seconds.
+      type: gauge
+    tps_watcher.numGoRoutines:
+      default: false
+      description: Instantaneous number of active goroutines in the process.
+      type: gauge
+    uaa.audit_service.client_authentication_count:
+      default: false
+      description: Number of client authentication attempts.
+      type: cumulative
+    uaa.audit_service.client_authentication_failure_count:
+      default: true
+      description: Number of failed client authentication attempts.
+      type: cumulative
+    uaa.audit_service.principal_authentication_failure_count:
+      default: true
+      description: Number of failed principal authentication attempts.
+      type: cumulative
+    uaa.audit_service.principal_not_found_count:
+      default: true
+      description: Number of times a non-user was not found.
+      type: cumulative
+    uaa.audit_service.user_authentication_count:
+      default: false
+      description: Number of times a user has successfully authenticated.
+      type: cumulative
+    uaa.audit_service.user_authentication_failure_count:
+      default: true
+      description: Number of failed user authentication attempts.
+      type: cumulative
+    uaa.audit_service.user_not_found_count:
+      default: true
+      description: Number of times a user was not found.
+      type: cumulative
+    uaa.audit_service.user_password_changes:
+      default: false
+      description: Number of times a user password has changed.
+      type: cumulative
+    uaa.audit_service.user_password_failures:
+      default: true
+      description: Number of times a user password change has failed.
+      type: cumulative
+    system_metrics_agent.system_mem_kb:
+      default: false
+      type: gauge
+    system_metrics_agent.system_mem_percent:
+      default: false
+      type: gauge
+    system_metrics_agent.system_swap_kb:
+      default: false
+      type: gauge
+    system_metrics_agent.system_swap_percent:
+      default: false
+      type: gauge
+    system_metrics_agent.system_load_1m:
+      default: false
+      type: gauge
+    system_metrics_agent.system_load_5m:
+      default: false
+      type: gauge
+    system_metrics_agent.system_load_15m:
+      default: false
+      type: gauge
+    system_metrics_agent.system_cpu_user:
+      default: false
+      type: gauge
+    system_metrics_agent.system_cpu_sys:
+      default: false
+      type: gauge
+    system_metrics_agent.system_cpu_idle:
+      default: false
+      type: gauge
+    system_metrics_agent.system_cpu_wait:
+      default: false
+      type: gauge
+    system_metrics_agent.system_cpu_core_user:
+      default: false
+      type: gauge
+    system_metrics_agent.system_cpu_core_sys:
+      default: false
+      type: gauge
+    system_metrics_agent.system_cpu_core_idle:
+      default: false
+      type: gauge
+    system_metrics_agent.system_cpu_core_wait:
+      default: false
+      type: gauge
+    system_metrics_agent.system_disk_system_percent:
+      default: false
+      type: gauge
+    system_metrics_agent.system_disk_system_inode_percent:
+      default: false
+      type: gauge
+    system_metrics_agent.system_disk_system_read_bytes:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_system_write_bytes:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_system_read_time:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_system_write_time:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_system_io_time:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_ephemeral_percent:
+      default: false
+      type: gauge
+    system_metrics_agent.system_disk_ephemeral_inode_percent:
+      default: false
+      type: gauge
+    system_metrics_agent.system_disk_ephemeral_read_bytes:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_ephemeral_write_bytes:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_ephemeral_read_time:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_ephemeral_write_time:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_ephemeral_io_time:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_persistent_percent:
+      default: false
+      type: gauge
+    system_metrics_agent.system_disk_persistent_inode_percent:
+      default: false
+      type: gauge
+    system_metrics_agent.system_disk_persistent_read_bytes:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_persistent_write_bytes:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_persistent_read_time:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_persistent_write_time:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_disk_persistent_io_time:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_healthy:
+      default: false
+      type: gauge
+    system_metrics_agent.system_network_ip_forwarding:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_udp_no_ports:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_udp_in_errors:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_udp_lite_in_errors:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_tcp_active_opens:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_tcp_curr_estab:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_tcp_retrans_segs:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_bytes_sent:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_bytes_received:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_packets_sent:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_packets_received:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_error_in:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_error_out:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_drop_in:
+      default: false
+      type: cumulative
+    system_metrics_agent.system_network_drop_out:
+      default: false
+      type: cumulative
+  properties:
+

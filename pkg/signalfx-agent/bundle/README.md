@@ -22,7 +22,7 @@ installed to:
 
 ## Manual Installation
 
-The Linux (`agent-bundle_<VERSION>_linux_<amd64|arm64>.tar.gz`) and Windows
+The Linux (`agent-bundle_<VERSION>_linux_amd64.tar.gz`) and Windows
 (`agent-bundle_<VERSION>_windows_amd64.zip`) bundles can be manually downloaded
 and installed from [GitHub Releases](
 https://github.com/signalfx/splunk-otel-collector/releases).
@@ -33,7 +33,7 @@ https://github.com/signalfx/splunk-otel-collector/releases).
    extract the bundle and ensure that the binaries in the bundle have the right
    loader set on them since your host's loader may not be compatible.
    ```sh
-   $ tar -xzf agent-bundle_<VERSION>_linux_<amd64|arm64>.tar.gz
+   $ tar -xzf agent-bundle_<VERSION>_linux_amd64.tar.gz
    $ cd agent-bundle
    $ bin/patch-interpreter $(pwd)
    ```
@@ -81,6 +81,8 @@ $ make -C pkg/signalfx-agent/bundle agent-bundle-linux ARCH=<amd64|arm64>
 ```
 
 The bundle will be saved to `dist/agent-bundle_linux_<amd64|arm64>.tar.gz`.
+
+> **Note:** Support for the Linux arm64 bundle is currently **experimental**.
 
 ### Windows
 

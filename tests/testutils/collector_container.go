@@ -49,11 +49,12 @@ type CollectorContainer struct {
 	Ports          []string
 	Container      Container
 	Fail           bool
+	Mounts         map[string]string
 }
 
 // To be used as a builder whose Build() method provides the actual instance capable of launching the process.
 func NewCollectorContainer() CollectorContainer {
-	return CollectorContainer{Args: []string{}, Container: NewContainer()}
+	return CollectorContainer{Args: []string{}, Container: NewContainer(), Mounts: map[string]string{}}
 }
 
 // quay.io/signalfx/splunk-otel-collector:latest by default
@@ -101,6 +102,10 @@ func (collector CollectorContainer) WillFail(fail bool) Collector {
 	collector.Fail = fail
 	return &collector
 }
+func (collector CollectorContainer) WithBoundDirectory(path string, mountPoint string) (Collector, error) {
+	collector.Mounts[path] = mountPoint
+	return &collector, nil
+}
 
 func (collector CollectorContainer) Build() (Collector, error) {
 	if collector.Image == "" {
@@ -140,6 +145,9 @@ func (collector CollectorContainer) Build() (Collector, error) {
 
 	if len(collector.Args) > 0 {
 		collector.Container = collector.Container.WithCmd(collector.Args...)
+	}
+	for path, mountPoint := range collector.Mounts {
+		collector.Container = collector.Container.WithMount(testcontainers.BindMount(path, testcontainers.ContainerMountTarget(mountPoint)))
 	}
 
 	collector.Container = *(collector.Container.Build())

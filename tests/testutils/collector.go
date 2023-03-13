@@ -15,9 +15,14 @@
 package testutils
 
 import (
+	"errors"
 	"testing"
 
 	"go.uber.org/zap"
+)
+
+var (
+	UnsupportedErr = errors.New("unsupported feature")
 )
 
 type Collector interface {
@@ -27,6 +32,7 @@ type Collector interface {
 	WithLogger(logger *zap.Logger) Collector
 	WithLogLevel(level string) Collector
 	WillFail(fail bool) Collector
+	WithBoundDirectory(path string, mountPoint string) (Collector, error)
 	Build() (Collector, error)
 	Start() error
 	Shutdown() error

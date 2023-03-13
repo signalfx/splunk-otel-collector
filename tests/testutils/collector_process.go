@@ -49,6 +49,10 @@ type CollectorProcess struct {
 	Fail             bool
 }
 
+func (collector CollectorProcess) WithBoundDirectory(path string, mountPoint string) (Collector, error) {
+	return &collector, UnsupportedErr
+}
+
 // To be used as a builder whose Build() method provides the actual instance capable of launching the process.
 func NewCollectorProcess() CollectorProcess {
 	return CollectorProcess{Env: map[string]string{}}

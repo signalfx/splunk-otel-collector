@@ -55,6 +55,10 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "maven"
-    directory: "/pkg/signalfx-agent/bundle/java"
+    directory: "/pkg/signalfx-agent/bundle/java/jmx"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "maven"
+    directory: "/pkg/signalfx-agent/bundle/java/runner"
     schedule:
       interval: "weekly"

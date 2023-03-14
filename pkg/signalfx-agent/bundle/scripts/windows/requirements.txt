@@ -1,3 +1,0 @@
-PyYAML~=5.0
-WMI==1.5.1
-setuptools==67.6.0

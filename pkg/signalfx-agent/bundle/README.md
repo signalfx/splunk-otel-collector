@@ -8,7 +8,8 @@ and [Receiver](
 https://github.com/signalfx/splunk-otel-collector/tree/main/pkg/receiver/smartagentreceiver).
 
 This bundle is included by default in the `splunk-otel-collector`
-Linux and Windows amd64/x86_64 packages and docker images, and is installed to:
+Linux amd64/x86_64/arm64 and Windows amd64 packages and docker images, and is
+installed to:
 
 - Linux deb/rpm packages and docker images:
   - `/usr/lib/splunk-otel-collector/agent-bundle`
@@ -16,6 +17,8 @@ Linux and Windows amd64/x86_64 packages and docker images, and is installed to:
   - `<extracted directory>/splunk-otel-collector/agent-bundle`
 - Windows msi/nupkg/choco packages and docker images:
   - `C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle`
+
+> **Note:** Support for the Linux arm64 bundle is currently **experimental**.
 
 ## Manual Installation
 
@@ -74,10 +77,12 @@ Run the following commands to build the bundle for Linux (requires `git`,
 ```sh
 $ git clone https://github.com/signalfx/splunk-otel-collector
 $ cd splunk-otel-collector
-$ DOCKER_BUILDKIT=1 make -C pkg/signalfx-agent/bundle agent-bundle-linux
+$ make -C pkg/signalfx-agent/bundle agent-bundle-linux ARCH=<amd64|arm64>
 ```
 
-The bundle will be saved to `dist/agent-bundle_linux_amd64.tar.gz`.
+The bundle will be saved to `dist/agent-bundle_linux_<amd64|arm64>.tar.gz`.
+
+> **Note:** Support for the Linux arm64 bundle is currently **experimental**.
 
 ### Windows
 

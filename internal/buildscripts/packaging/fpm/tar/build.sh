@@ -69,10 +69,6 @@ agent_bundle_path="$REPO_DIR/dist/agent-bundle_linux_${ARCH}.tar.gz"
 
 buildroot="$(mktemp -d)"
 
-if [[ "$ARCH" != "amd64" ]]; then
-    agent_bundle_path=""
-fi
-
 tar_setup_files_and_permissions "$otelcol_path" "$translatesfx_path" "$config_folder_path" "$buildroot" "$agent_bundle_path"
 
 mkdir -p "$OUTPUT_DIR"

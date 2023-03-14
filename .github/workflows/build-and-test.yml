@@ -227,9 +227,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        # TODO: add support for arm64
-        # ARCH: ["amd64", "arm64"]
-        ARCH: [ "amd64" ]
+        ARCH: ["amd64", "arm64"]
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
@@ -303,7 +301,6 @@ jobs:
           path: ./bin
 
       - uses: actions/download-artifact@v3
-        if: ${{ matrix.ARCH == 'amd64' }}
         with:
           name: agent-bundle-linux-${{ matrix.ARCH }}
           path: ./dist
@@ -573,7 +570,7 @@ jobs:
           path: ./bin
 
       - uses: actions/download-artifact@v3
-        if: ${{ matrix.ARCH == 'amd64' }}
+        if: ${{ matrix.ARCH != 'ppc64le' }}
         with:
           name: agent-bundle-linux-${{ matrix.ARCH }}
           path: ./dist
@@ -628,7 +625,7 @@ jobs:
           docker rm -f otelcol
 
       - name: Check python and java
-        if: ${{ matrix.ARCH == 'amd64' }}
+        if: ${{ matrix.ARCH != 'ppc64le' }}
         run: |
           # ensure python and java can run with the collected libraries
           docker run --platform linux/${{ matrix.ARCH }} -d -e SPLUNK_ACCESS_TOKEN=12345 -e SPLUNK_REALM=fake-realm --name otelcol otelcol:${{ matrix.ARCH }}

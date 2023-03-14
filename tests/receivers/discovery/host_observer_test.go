@@ -23,6 +23,9 @@ import (
 )
 
 func TestDiscoveryReceiverWithHostObserverProvidesEndpointLogs(t *testing.T) {
+	if testutils.CollectorImageIsForArm(t) {
+		t.Skip("host_observer missing process info on arm")
+	}
 	testutils.AssertAllLogsReceived(
 		t, "host_observer_endpoints.yaml",
 		"host_observer_endpoints_config.yaml", nil, nil,
@@ -30,6 +33,9 @@ func TestDiscoveryReceiverWithHostObserverProvidesEndpointLogs(t *testing.T) {
 }
 
 func TestDiscoveryReceiverWithHostObserverAndSimplePrometheusReceiverProvideStatusLogs(t *testing.T) {
+	if testutils.CollectorImageIsForArm(t) {
+		t.Skip("host_observer missing process info on arm")
+	}
 	testutils.AssertAllLogsReceived(
 		t, "host_observer_simple_prometheus_statuses.yaml",
 		"host_observer_simple_prometheus_config.yaml", nil, nil,

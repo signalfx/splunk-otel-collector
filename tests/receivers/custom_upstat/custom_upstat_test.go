@@ -18,6 +18,7 @@
 package tests
 
 import (
+	"errors"
 	"path"
 	"path/filepath"
 	"testing"
@@ -33,7 +34,7 @@ func TestCustomUpstatIntegration(t *testing.T) {
 	testutils.AssertAllMetricsReceived(t, "all.yaml", "custom_upstat.yaml",
 		nil, []testutils.CollectorBuilder{func(collector testutils.Collector) testutils.Collector {
 			collector, err := collector.WithBoundDirectory(path, "/var/collectd-python/upstat")
-			if err != nil {
+			if errors.Is(testutils.ErrUnsupportedFeature, err) {
 				// we are running in process
 				collector = collector.WithEnv(map[string]string{"PLUGIN_FOLDER": path})
 			} else {

@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	UnsupportedErr = errors.New("unsupported feature")
+	ErrUnsupportedFeature = errors.New("unsupported feature")
 )
 
 type Collector interface {

@@ -42,6 +42,7 @@ type CollectorContainer struct {
 	contextArchive io.Reader
 	Logger         *zap.Logger
 	logConsumer    collectorLogConsumer
+	Mounts         map[string]string
 	Image          string
 	ConfigPath     string
 	LogLevel       string
@@ -49,7 +50,6 @@ type CollectorContainer struct {
 	Ports          []string
 	Container      Container
 	Fail           bool
-	Mounts         map[string]string
 }
 
 // To be used as a builder whose Build() method provides the actual instance capable of launching the process.

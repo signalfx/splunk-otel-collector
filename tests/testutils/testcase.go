@@ -25,6 +25,7 @@ import (
 	"testing"
 	"time"
 
+	docker "github.com/docker/docker/client"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -236,6 +237,21 @@ func GetCollectorImageOrSkipTest(t testing.TB) string {
 		return ""
 	}
 	return image
+}
+
+func CollectorImageIsForArm(t testing.TB) bool {
+	image := os.Getenv("SPLUNK_OTEL_COLLECTOR_IMAGE")
+	if strings.TrimSpace(image) != "" {
+		client, err := docker.NewClientWithOpts(docker.FromEnv)
+		require.NoError(t, err)
+		client.NegotiateAPIVersion(context.Background())
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		inspect, _, err := client.ImageInspectWithRaw(ctx, image)
+		require.NoError(t, err)
+		return inspect.Architecture == "arm64"
+	}
+	return false
 }
 
 // AssertAllLogsReceived is a central helper, designed to avoid most boilerplate. Using the desired

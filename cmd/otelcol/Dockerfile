@@ -24,7 +24,7 @@ RUN cat /etc_passwd >> /etc/passwd
 COPY --from=otelcol --chown=999 /splunk-otel-collector /usr/lib/splunk-otel-collector
 COPY --from=otelcol --chown=999 /dist/* /dist/
 USER splunk-otel-collector
-RUN if [[ "$ARCH" = "amd64" ]]; then \
+RUN if [[ "$ARCH" = "amd64" || "$ARCH" = "arm64" ]]; then \
         mv /dist/agent-bundle.tar.gz /usr/lib/splunk-otel-collector && \
         cd /usr/lib/splunk-otel-collector && tar -xzf agent-bundle.tar.gz && \
         # Absolute path of interpreter in smart agent dir is set in dependent binaries

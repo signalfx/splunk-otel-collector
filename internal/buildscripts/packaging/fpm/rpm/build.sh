@@ -39,7 +39,6 @@ buildroot="$(mktemp -d)"
 
 if [[ "$ARCH" = "arm64" ]]; then
     ARCH="aarch64"
-    agent_bundle_path=""
 elif [[ "$ARCH" = "amd64" ]]; then
     ARCH="x86_64"
 fi

@@ -84,12 +84,11 @@ def test_tar_collector_package_install(distro, arch):
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
         run_container_cmd(container, f"tar xzf /test/{pkg_base} -C /tmp")
         bundle_dir = "/tmp/splunk-otel-collector"
-        if arch == "amd64":
-            run_container_cmd(container, f"test -d {bundle_dir}/agent-bundle")
-            run_container_cmd(container, f"test -d {bundle_dir}/agent-bundle/collectd-python")
-            run_container_cmd(container, f"{bundle_dir}/agent-bundle/bin/patch-interpreter {bundle_dir}/agent-bundle")
-            run_container_cmd(container, f"{bundle_dir}/agent-bundle/jre/bin/java -version")
-            run_container_cmd(container, f"{bundle_dir}/agent-bundle/bin/python --version")
+        run_container_cmd(container, f"test -d {bundle_dir}/agent-bundle")
+        run_container_cmd(container, f"test -d {bundle_dir}/agent-bundle/collectd-python")
+        run_container_cmd(container, f"{bundle_dir}/agent-bundle/bin/patch-interpreter {bundle_dir}/agent-bundle")
+        run_container_cmd(container, f"{bundle_dir}/agent-bundle/jre/bin/java -version")
+        run_container_cmd(container, f"{bundle_dir}/agent-bundle/bin/python --version")
         run_container_cmd(container, f"test -d {bundle_dir}/bin")
         run_container_cmd(container, f"test -f {bundle_dir}/bin/otelcol")
         run_container_cmd(container, f"test -f {bundle_dir}/bin/translatesfx")
@@ -130,12 +129,11 @@ def test_collector_package_install(distro, arch):
             elif distro in RPM_DISTROS:
                 run_container_cmd(container, f"rpm -i /test/{pkg_base}")
 
-            if arch == "amd64":
-                run_container_cmd(container, f"test -d {BUNDLE_DIR}")
-                run_container_cmd(container, f"test -d {BUNDLE_DIR}/run/collectd")
-                run_container_cmd(container, f"{BUNDLE_DIR}/jre/bin/java -version")
-                run_container_cmd(container, f"{BUNDLE_DIR}/bin/python --version")
-                run_container_cmd(container, f"test -d {BUNDLE_DIR}/collectd-python")
+            run_container_cmd(container, f"test -d {BUNDLE_DIR}")
+            run_container_cmd(container, f"test -d {BUNDLE_DIR}/run/collectd")
+            run_container_cmd(container, f"{BUNDLE_DIR}/jre/bin/java -version")
+            run_container_cmd(container, f"{BUNDLE_DIR}/bin/python --version")
+            run_container_cmd(container, f"test -d {BUNDLE_DIR}/collectd-python")
 
             run_container_cmd(container, f"test -f {AGENT_CONFIG_PATH}")
             run_container_cmd(container, f"test -f {GATEWAY_CONFIG_PATH}")
@@ -223,12 +221,11 @@ def test_collector_package_upgrade(distro, arch):
 
             time.sleep(5)
 
-            if arch == "amd64":
-                run_container_cmd(container, f"test -d {BUNDLE_DIR}")
-                run_container_cmd(container, f"test -d {BUNDLE_DIR}/run/collectd")
-                run_container_cmd(container, f"{BUNDLE_DIR}/jre/bin/java -version")
-                run_container_cmd(container, f"{BUNDLE_DIR}/bin/python --version")
-                run_container_cmd(container, f"test -d {BUNDLE_DIR}/collectd-python")
+            run_container_cmd(container, f"test -d {BUNDLE_DIR}")
+            run_container_cmd(container, f"test -d {BUNDLE_DIR}/run/collectd")
+            run_container_cmd(container, f"{BUNDLE_DIR}/jre/bin/java -version")
+            run_container_cmd(container, f"{BUNDLE_DIR}/bin/python --version")
+            run_container_cmd(container, f"test -d {BUNDLE_DIR}/collectd-python")
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))

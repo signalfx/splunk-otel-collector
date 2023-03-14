@@ -29,6 +29,8 @@ output_tar=$(basename "$OUTPUT" .gz)
 CACHE_DIR="${REPO_DIR}/.cache/buildx/${IMAGE_NAME}-${ARCH}"
 CACHE_OPTS=""
 
+export DOCKER_BUILDKIT=1
+
 if [[ "$CI" = "true" ]]; then
     # create and use the docker-container builder for local caching when running in github or gitlab
     mkdir -p "$CACHE_DIR"

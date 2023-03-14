@@ -23,5 +23,10 @@ import (
 )
 
 func TestTelegrafProcstatReceiverProvidesAllMetrics(t *testing.T) {
-	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml", nil, nil)
+	expectedMetrics := "all.yaml"
+	// telegraf/procstat is missing cpu metrics on arm64 as an apparently unsupported platform.
+	if testutils.CollectorImageIsForArm(t) {
+		expectedMetrics = "arm64.yaml"
+	}
+	testutils.AssertAllMetricsReceived(t, expectedMetrics, "all_metrics_config.yaml", nil, nil)
 }

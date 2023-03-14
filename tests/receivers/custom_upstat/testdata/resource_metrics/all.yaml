@@ -1,0 +1,6 @@
+resource_metrics:
+  - attributes:
+    scope_metrics:
+      - metrics:
+          - name: up
+            type: IntGauge

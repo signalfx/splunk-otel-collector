@@ -1,0 +1,28 @@
+receivers:
+  smartagent/collectd/custom:
+    type: collectd/custom
+    template: |
+      LoadPlugin "python"
+      TypesDB "${PLUGIN_FOLDER}/upstat_types.db"
+      <Plugin python>
+        ModulePath "${PLUGIN_FOLDER}"
+        Import "collectd-upstat"
+        <Module "collectd-upstat">
+        </Module>
+      </Plugin>
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: "debug"
+  pipelines:
+    metrics:
+      receivers:
+        - smartagent/collectd/custom
+      exporters: [otlp]

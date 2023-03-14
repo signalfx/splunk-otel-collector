@@ -1,0 +1,56 @@
+name: Tanzu Tile
+
+# The workflow triggered by any change in deployments/cloudfoundry/bosh/
+# or /deployments/cloudfoundry/tile
+
+on:
+  pull_request:
+    paths:
+      - 'deployments/cloudfoundry/bosh/**'
+      - 'deployments/cloudfoundry/tile/**'
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: 'deployments/cloudfoundry/tile'
+
+jobs:
+
+  test:
+    name: Test Tanzu Tile creation
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+      - name: Install BOSH CLI
+        shell: bash
+        run: |
+          brew install cloudfoundry/tap/bosh-cli
+          bosh -v
+      - name: Install PCF CLI
+        shell: bash
+        run: |
+          pip install tile-generator
+      - name: Run release script
+        shell: bash
+        run: |
+          ./make-latest-tile
+          FILE=""
+          # The tile will be in the product directory, named
+          # splunk-opentelemetry-collector-VERSION.pivotal
+          for f in $(find product -maxdepth 1 -regex "product\/splunk-opentelemetry-collector\-.*pivotal")
+          do
+            FILE=$f
+          done
+
+          # Confirm tile exists, is a regular file, and non-zero size.
+          if [ ! -f "$FILE" ] || [ ! -s "$FILE" ]; then
+            echo "$FILE does not exist."
+            exit 1
+          fi

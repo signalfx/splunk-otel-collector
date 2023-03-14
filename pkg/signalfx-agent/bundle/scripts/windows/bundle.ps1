@@ -32,7 +32,7 @@ function download_collectd([string]$collectdCommit, [string]$outputDir="$BUILD_D
 function get_collectd_plugins ([string]$buildDir=$BUILD_DIR) {
     mkdir "$buildDir\collectd-python" -ErrorAction Ignore
     $collectdPlugins = Resolve-Path "$buildDir\collectd-python"
-    $requirements = Resolve-Path "$scriptDir\requirements.txt"
+    $requirements = Resolve-Path "$scriptDir\..\requirements.txt"
     $script = Resolve-Path "$scriptDir\..\get-collectd-plugins.py"
     $python = Resolve-Path "$buildDir\python\python.exe"
     & $python -m pip install -qq -r $requirements

@@ -62,10 +62,6 @@ updates:
     directory: "/pkg/signalfx-agent/bundle/scripts"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "pip"
-    directory: "/pkg/signalfx-agent/bundle/scripts/windows"
-    schedule:
-      interval: "weekly"
   - package-ecosystem: "docker"
     directory: "/cmd/otelcol"
     schedule:

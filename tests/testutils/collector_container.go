@@ -102,9 +102,9 @@ func (collector CollectorContainer) WillFail(fail bool) Collector {
 	collector.Fail = fail
 	return &collector
 }
-func (collector CollectorContainer) WithBoundDirectory(path string, mountPoint string) (Collector, error) {
+func (collector CollectorContainer) WithMount(path string, mountPoint string) Collector {
 	collector.Mounts[path] = mountPoint
-	return &collector, nil
+	return &collector
 }
 
 func (collector CollectorContainer) Build() (Collector, error) {

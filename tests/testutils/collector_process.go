@@ -49,8 +49,8 @@ type CollectorProcess struct {
 	Fail             bool
 }
 
-func (collector CollectorProcess) WithBoundDirectory(path string, mountPoint string) (Collector, error) {
-	return &collector, ErrUnsupportedFeature
+func (collector CollectorProcess) WithMount(path string, mountPoint string) Collector {
+	return &collector
 }
 
 // To be used as a builder whose Build() method provides the actual instance capable of launching the process.

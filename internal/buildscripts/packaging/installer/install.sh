@@ -685,6 +685,10 @@ Options:
                                         on this host with '<name>'.
                                         Only applicable if the '--with-instrumentation' option is also specified.
                                         (default: empty)
+  --[no-]generate-service-name          Specify '--no-generate-service-name' to prevent the preloader from setting the
+                                        OTEL_SERVICE_NAME environment variable.
+                                        Only applicable if the '--with-instrumentation' option is also specified.
+                                        (default: --generate-service-name)
   --[enable|disable]-telemetry          Enable or disable the instrumentation preloader from sending the
                                         'splunk.linux-autoinstr.executions' metric to the collector.
                                         Only applicable if the '--with-instrumentation' option is also specified.
@@ -880,8 +884,13 @@ parse_args_and_install() {
         ;;
       --service-name)
         service_name="$2"
-        generate_service_name="false"
         shift 1
+        ;;
+      --generate-service-name)
+        generate_service_name="true"
+        ;;
+      --no-generate-service-name)
+        generate_service_name="false"
         ;;
       --enable-telemetry)
         disable_telemetry="false"

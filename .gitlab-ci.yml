@@ -175,7 +175,7 @@ agent-bundle-windows:
     key:
       files:
         - pkg/signalfx-agent/bundle/collectd-plugins.yaml
-        - pkg/signalfx-agent/bundle/scripts/windows/requirements.txt
+        - pkg/signalfx-agent/bundle/scripts/requirements.txt
     paths:
       - .cache/pip
   script:

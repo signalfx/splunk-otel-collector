@@ -368,6 +368,7 @@ def test_installer_with_instrumentation_options(distro, version):
     install_cmd = f"{install_cmd} --deployment-environment test"
     install_cmd = f"{install_cmd} --disable-telemetry"
     install_cmd = f"{install_cmd} --service-name test"
+    install_cmd = f"{install_cmd} --no-generate-service-name"
     install_cmd = f"{install_cmd} --enable-profiler"
     install_cmd = f"{install_cmd} --enable-profiler-memory"
     install_cmd = f"{install_cmd} --enable-metrics"

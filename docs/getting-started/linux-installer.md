@@ -276,6 +276,12 @@ applicable for `td-agent` versions 4.1 or newer):
 
 ### Auto Instrumentation
 
+>To see all supported options and defaults **before** installation, run:
+>```sh
+>curl -sSL https://dl.signalfx.com/splunk-otel-collector.sh > /tmp/splunk-otel-collector.sh && \
+>sh /tmp/splunk-otel-collector.sh -h
+>```
+
 #### Installation
 
 To install the Collector and the Splunk OpenTelemetry Auto Instrumentation for

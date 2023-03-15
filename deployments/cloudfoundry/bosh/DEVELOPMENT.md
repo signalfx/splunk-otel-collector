@@ -127,6 +127,9 @@ $ bosh deployments
 # View all bosh VMs. This will show if a deployment's VM is running or failed.
 $ bosh vms
 
+# View debug logs for a task (e.g. upload or deploy) that failed
+$ bosh task task_number --debug
+
 # View logs for a given deployment. Downloads a TAR file from the deployment.
 $ bosh logs -d <deployment-name>
 

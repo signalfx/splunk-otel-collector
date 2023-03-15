@@ -8,7 +8,6 @@ templates:
 
 packages:
 - splunk_otel_collector
-- signalfx_agent
 
 properties:
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## ansible-v0.16.0
+
+### 💡 Enhancements 💡
+
+- Add support for additional options for Splunk OpenTelemetry Auto Instrumentation for Java (Linux only)
+
 ## ansible-v0.15.0
 
 ### 💡 Enhancements 💡

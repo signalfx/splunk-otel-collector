@@ -189,20 +189,19 @@ which allows setting up a proxy to download the collector binaries.
 
 ### Auto Instrumentation
 
+**Note:** The Java application(s) on the node need to be restarted separately
+after installation/configuration in order for any change to take effect.
+
 - `install_splunk_otel_auto_instrumentation` (Linux only): Whether to
   install/manage [Splunk OpenTelemetry Auto Instrumentation for Java](
   https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation).
   When set to `true`, the `splunk-otel-auto-instrumentation` deb/rpm package
-  will be downloaded and installed from the Collector repository. **Note:** The
-  Java application on the node needs to be started/restarted separately after
-  installation in order for auto instrumentation to take effect.
-  (**default:** `false`)
+  will be downloaded and installed from the Collector repository. (**default:**
+  `false`)
 
 - `splunk_otel_auto_instrumentation_version` (Linux only): Version of the
   `splunk-otel-auto-instrumentation` package to install, e.g. `0.50.0`.
-  The minimum supported version is `0.48.0`. **Note:** The Java application on
-  the node needs to be restarted separately in order for any change to take
-  effect. (**default:** `latest`)
+  The minimum supported version is `0.48.0`. (**default:** `latest`)
 
 - `splunk_otel_auto_instrumentation_ld_so_preload` (Linux only): By default,
   the `/etc/ld.so.preload` file on the node will be configured for the
@@ -210,9 +209,7 @@ which allows setting up a proxy to download the collector binaries.
   https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#operation)
   provided by the `splunk-otel-auto-instrumentation` package and is required
   for auto instrumentation. Configure this variable to include additional
-  library paths, e.g. `/path/to/my.library.so`. **Note:** The Java
-  application on the node needs to be restarted separately in order for any
-  change to take effect. (**default:** ``)
+  library paths, e.g. `/path/to/my.library.so`. (**default:** ``)
 
 - `splunk_otel_auto_instrumentation_java_agent_jar` (Linux only): Path to the
   [Splunk OpenTelemetry Java agent](
@@ -221,8 +218,7 @@ which allows setting up a proxy to download the collector binaries.
   from the default value, the path should be an existing file on the node. The
   specified path will be added to the
   `/usr/lib/splunk-instrumentation/instrumentation.conf` config file on the
-  node. **Note:** The Java application on the node needs to be restarted
-  separately in order for any change to take effect. (**default:**
+  node. (**default:**
   `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`)
 
 - `splunk_otel_auto_instrumentation_resource_attributes` (Linux only):
@@ -230,9 +226,7 @@ which allows setting up a proxy to download the collector binaries.
   https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#configuration-file),
   e.g. `deployment.environment=prod`. The specified resource attribute(s) will
   be added to the `/usr/lib/splunk-instrumentation/instrumentation.conf` config
-  file on the node. **Note:** The Java application on the node needs to be
-  restarted separately in order for any change to take effect.
-  (**default:** ``)
+  file on the node. (**default:** ``)
 
 - `splunk_otel_auto_instrumentation_service_name` (Linux only): Explicitly set
   the [service name](
@@ -241,5 +235,21 @@ which allows setting up a proxy to download the collector binaries.
   service name is automatically derived from the arguments of the Java
   executable on the node. The specified service name will be added to the
   `/usr/lib/splunk-instrumentation/instrumentation.conf` config file on the
-  node, overriding any generated service name. **Note:** The Java application on the node needs to be restarted
-  separately in order for any change to take effect. (**default:** ``)
+  node, overriding any generated service name. (**default:** ``)
+
+- `splunk_otel_auto_instrumentation_generate_service_name` (Linux only): Set
+  this option to `false` to prevent the preloader from setting the
+  `OTEL_SERVICE_NAME` environment variable. (**default:** `true`)
+
+- `splunk_otel_auto_instrumentation_disable_telemetry` (Linux only): Enable or
+  disable the preloader from sending the `splunk.linux-autoinstr.executions`
+  metric to the local collector. (**default:** `false`)
+
+- `splunk_otel_auto_instrumentation_enable_profiler` (Linux only): Enable or
+  disable AlwaysOn CPU Profiling. (**default**: `false`)
+
+- `splunk_otel_auto_instrumentation_enable_profiler_memory` (Linux only):
+  Enable or disable AlwaysOn Memory Profiling. (**default:** `false`)
+
+- `splunk_otel_auto_instrumentation_enable_metrics` (Linux only): Enable or
+  disable exporting Micrometer metrics. (**default**: `false`)

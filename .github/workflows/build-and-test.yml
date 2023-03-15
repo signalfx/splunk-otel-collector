@@ -261,7 +261,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: ${{ env.PIP_CACHE_DIR }}
-          key: agent-bundle-windows-pip-${{ hashFiles('pkg/signalfx-agent/bundle/collectd-plugins.yaml', 'pkg/signalfx-agent/bundle/scripts/windows/requirements.txt') }}
+          key: agent-bundle-windows-pip-${{ hashFiles('pkg/signalfx-agent/bundle/collectd-plugins.yaml', 'pkg/signalfx-agent/bundle/scripts/requirements.txt') }}
 
       - run: ./pkg/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
 

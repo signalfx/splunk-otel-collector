@@ -39,6 +39,14 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
+    directory: "/pkg/signalfx-agent"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "gomod"
+    directory: "/pkg/signalfx-agent/pkg/apm"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "gomod"
     directory: "/tests"
     schedule:
       interval: "weekly"

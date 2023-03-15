@@ -333,6 +333,14 @@ def test_installer_with_instrumentation(distro, version):
             # verify deployment.environment attribute is not set
             run_container_cmd(container, f"grep -v '^resource_attributes=deployment.environment=.*$' {INSTR_CONF_PATH}")
 
+            # verify default options
+            run_container_cmd(container, f"grep '^disable_telemetry=false$' {INSTR_CONF_PATH}")
+            run_container_cmd(container, f"grep '^generate_service_name=true$' {INSTR_CONF_PATH}")
+            run_container_cmd(container, f"grep -v '^service_name=.*$' {INSTR_CONF_PATH}")
+            run_container_cmd(container, f"grep '^enable_profiler=false$' {INSTR_CONF_PATH}")
+            run_container_cmd(container, f"grep '^enable_profiler_memory=false$' {INSTR_CONF_PATH}")
+            run_container_cmd(container, f"grep '^enable_metrics=false$' {INSTR_CONF_PATH}")
+
             verify_uninstall(container, distro)
 
         finally:
@@ -347,7 +355,7 @@ def test_installer_with_instrumentation(distro, version):
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
 @pytest.mark.parametrize("version", VERSIONS)
-def test_installer_with_deployment_environment(distro, version):
+def test_installer_with_instrumentation_options(distro, version):
     install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --with-instrumentation"
 
     if version != "latest":
@@ -358,6 +366,11 @@ def test_installer_with_deployment_environment(distro, version):
         install_cmd = f"{install_cmd} --{STAGE}"
 
     install_cmd = f"{install_cmd} --deployment-environment test"
+    install_cmd = f"{install_cmd} --disable-telemetry"
+    install_cmd = f"{install_cmd} --service-name test"
+    install_cmd = f"{install_cmd} --enable-profiler"
+    install_cmd = f"{install_cmd} --enable-profiler-memory"
+    install_cmd = f"{install_cmd} --enable-metrics"
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
     with run_distro_container(distro) as container:
@@ -385,6 +398,14 @@ def test_installer_with_deployment_environment(distro, version):
 
             # verify deployment.environment is set
             run_container_cmd(container, f"grep '^resource_attributes=deployment.environment=test$' {INSTR_CONF_PATH}")
+
+            # verify custom options
+            run_container_cmd(container, f"grep '^disable_telemetry=true$' {INSTR_CONF_PATH}")
+            run_container_cmd(container, f"grep '^generate_service_name=false$' {INSTR_CONF_PATH}")
+            run_container_cmd(container, f"grep '^service_name=test$' {INSTR_CONF_PATH}")
+            run_container_cmd(container, f"grep '^enable_profiler=true$' {INSTR_CONF_PATH}")
+            run_container_cmd(container, f"grep '^enable_profiler_memory=true$' {INSTR_CONF_PATH}")
+            run_container_cmd(container, f"grep '^enable_metrics=true$' {INSTR_CONF_PATH}")
 
             verify_uninstall(container, distro)
 

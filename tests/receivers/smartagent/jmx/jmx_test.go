@@ -18,7 +18,10 @@ package tests
 
 import (
 	"path"
+	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
@@ -31,6 +34,13 @@ var cassandra = []testutils.Container{
 
 func TestJmxReceiverProvidesAllMetrics(t *testing.T) {
 	testutils.AssertAllMetricsReceived(
-		t, "all.yaml", "all_metrics_config.yaml", cassandra, nil,
+		t, "all.yaml", "all_metrics_config.yaml", cassandra,
+		[]testutils.CollectorBuilder{
+			func(collector testutils.Collector) testutils.Collector {
+				p, err := filepath.Abs(filepath.Join(".", "testdata", "script.groovy"))
+				require.NoError(t, err)
+				return collector.WithMount(p, "/opt/script.groovy")
+			},
+		},
 	)
 }

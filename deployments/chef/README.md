@@ -48,6 +48,8 @@ required `splunk_access_token` attribute and some optional attributes:
 
 # This cookbook accepts the following attributes
 
+### Collector
+
 - `splunk_access_token` (**Required**): The [Splunk access token](
   https://docs.splunk.com/Observability/admin/authentication-tokens/org-tokens.html)
   to authenticate requests.
@@ -109,6 +111,41 @@ required `splunk_access_token` attribute and some optional attributes:
 - `package_stage`: The Collector package repository stage to use.  Can be
   `release`, `beta`, or `test`. (**default:** `release`)
 
+- `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
+  https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/extension/smartagentextension/README.md).
+  The default path is provided by the Collector package. If the specified path
+  is changed from the default value, the path should be an existing directory
+  on the node. The `SPLUNK_BUNDLE_DIR` environment variable will be set to
+  this value for the Collector service. (**default:**
+  `/usr/lib/splunk-otel-collector/agent-bundle` on Linux,
+  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle` on Windows)
+
+- `splunk_collectd_dir`: The path to the collectd config directory for the
+  Smart Agent bundle. The default path is provided by the Collector package.
+  If the specified path is changed from the default value, the path should be
+  an existing directory on the node. The `SPLUNK_COLLECTD_DIR` environment
+  variable will be set to this value for the Collector service.
+  (**default:** `/usr/lib/splunk-otel-collector/agent-bundle` on Linux,
+  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd`
+  on Windows)
+
+- `collector_additional_env_vars`: Hash of additional environment variables
+  from the collector configuration file for the collector service
+  (**default:** `{}`).
+  For example, if the collector configuration file includes references to
+  `${MY_CUSTOM_VAR1}` and `${MY_CUSTOM_VAR2}`, specify the following to allow
+  the collector service to expand these variables:
+  ```ruby
+  collector_additional_env_vars: {'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2'}
+  ```
+  On Linux, the variables/values will be added to the
+  `/etc/otel/collector/splunk-otel-collector.conf` systemd environment file.
+  On Windows, the variables/values will be added to the
+  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`
+  registry key.
+
+### Fluentd
+
 - `with_fluentd`: Whether to install/manage Fluentd and dependencies for log
   collection. On Linux, the dependencies include [capng_c](
   https://github.com/fluent-plugins-nursery/capng_c) for enabling
@@ -137,38 +174,21 @@ required `splunk_access_token` attribute and some optional attributes:
   `%SYSTEMDRIVE%\opt\td-agent\etc\td-agent\td-agent.conf`. (**default:**
   `/etc/otel/collector/fluentd/fluent.conf`)
 
-- `splunk_bundle_dir`: The path to the [Smart Agent bundle directory](
-  https://github.com/signalfx/splunk-otel-collector/blob/main/pkg/extension/smartagentextension/README.md).
-  The default path is provided by the Collector package. If the specified path
-  is changed from the default value, the path should be an existing directory
-  on the node. The `SPLUNK_BUNDLE_DIR` environment variable will be set to
-  this value for the Collector service. (**default:**
-  `/usr/lib/splunk-otel-collector/agent-bundle` on Linux,
-  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle` on Windows)
+### Auto Instrumentation
 
-- `splunk_collectd_dir`: The path to the collectd config directory for the
-  Smart Agent bundle. The default path is provided by the Collector package.
-  If the specified path is changed from the default value, the path should be
-  an existing directory on the node. The `SPLUNK_COLLECTD_DIR` environment
-  variable will be set to this value for the Collector service.
-  (**default:** `/usr/lib/splunk-otel-collector/agent-bundle` on Linux,
-  `%ProgramFiles%\Splunk\OpenTelemetry Collector\agent-bundle\run\collectd`
-  on Windows)
+**Note:** The Java application(s) on the node need to be restarted separately
+after installation/configuration in order for any change to take effect.
 
 - `with_auto_instrumentation`: Whether to install/manage [Splunk OpenTelemetry
   Auto Instrumentation for Java](
   https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation).
   When set to `true`, the `splunk-otel-auto-instrumentation` deb/rpm package
-  will be downloaded and installed from the Collector repository. **Note:** The
-  Java application on the node needs to be started/restarted separately after
-  installation in order for auto instrumentation to take effect. (**default:**
-  `false`)
+  will be downloaded and installed from the Collector repository.
+  (**default:** `false`)
 
 - `auto_instrumentation_version`: Version of the
   `splunk-otel-auto-instrumentation` package to install, e.g. `0.50.0`. The
-  minimum supported version is `0.48.0`. **Note:** The Java application on the
-  node needs to be restarted separately in order for any change to take effect.
-  (**default:** `latest`)
+  minimum supported version is `0.48.0`. (**default:** `latest`)
 
 - `auto_instrumentation_ld_so_preload`: By default, the `/etc/ld.so.preload`
   file on the node will be configured for the
@@ -176,9 +196,7 @@ required `splunk_access_token` attribute and some optional attributes:
   https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#operation)
   provided by the `splunk-otel-auto-instrumentation` package and is required
   for auto instrumentation. Configure this variable to include additional
-  library paths, e.g. `/path/to/my.library.so`. **Note:** The Java application
-  on the node needs to be restarted separately in order for any change to take
-  effect. (**default:** `''`)
+  library paths, e.g. `/path/to/my.library.so`. (**default:** `''`)
 
 - `auto_instrumentation_java_agent_path`: Path to the [Splunk OpenTelemetry
   Java agent](https://github.com/signalfx/splunk-otel-java). The default path
@@ -186,8 +204,7 @@ required `splunk_access_token` attribute and some optional attributes:
   changed from the default value, the path should be an existing file on the
   node. The specified path will be added to the
   `/usr/lib/splunk-instrumentation/instrumentation.conf` config file on the
-  node. **Note:** The Java application on the node needs to be restarted
-  separately in order for any change to take effect. (**default:**
+  node. (**default:**
   `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`)
 
 - `auto_instrumentation_resource_attributes`: Configure the OpenTelemetry
@@ -195,9 +212,7 @@ required `splunk_access_token` attribute and some optional attributes:
   https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#configuration-file),
   e.g. `deployment.environment=prod`. The specified resource attribute(s) will
   be added to the `/usr/lib/splunk-instrumentation/instrumentation.conf` config
-  file on the node. **Note:** The Java application on the node needs to be
-  restarted separately in order for any change to take effect. (**default:**
-  `''`)
+  file on the node. (**default:** `''`)
 
 - `auto_instrumentation_service_name`: Explicitly set the [service name](
   https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#configuration-file)
@@ -206,20 +221,21 @@ required `splunk_access_token` attribute and some optional attributes:
   executable on the node. However, if this variable is set to a non-empty
   value, the value will override the derived service name and be added to the
   `/usr/lib/splunk-instrumentation/instrumentation.conf` config file on the
-  node. **Note:** The Java application on the node needs to be restarted
-  separately in order for any change to take effect. (**default:** `''`)
+  node. (**default:** `''`)
 
-- `collector_additional_env_vars`: Hash of additional environment variables
-  from the collector configuration file for the collector service
-  (**default:** `{}`).
-  For example, if the collector configuration file includes references to
-  `${MY_CUSTOM_VAR1}` and `${MY_CUSTOM_VAR2}`, specify the following to allow
-  the collector service to expand these variables:
-  ```ruby
-  collector_additional_env_vars: {'MY_CUSTOM_VAR1' => 'value1', 'MY_CUSTOM_VAR2' => 'value2'}
-  ```
-  On Linux, the variables/values will be added to the
-  `/etc/otel/collector/splunk-otel-collector.conf` systemd environment file.
-  On Windows, the variables/values will be added to the
-  `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`
-  registry key.
+- `auto_instrumentation_generate_service_name`: Set this option to `false` to
+  prevent the preloader from setting the `OTEL_SERVICE_NAME` environment
+  variable. (**default:** `true`)
+
+- `auto_instrumentation_disable_telemetry` (Linux only): Enable or disable the
+  preloader from sending the `splunk.linux-autoinstr.executions` metric to the
+  local collector. (**default:** `false`)
+
+- `auto_instrumentation_enable_profiler` (Linux only): Enable or disable
+  AlwaysOn CPU Profiling. (**default**: `false`)
+
+- `auto_instrumentation_enable_profiler_memory` (Linux only): Enable or disable
+  AlwaysOn Memory Profiling. (**default:** `false`)
+
+- `auto_instrumentation_enable_metrics` (Linux only): Enable or disable
+  exporting Micrometer metrics. (**default**: `false`)

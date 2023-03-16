@@ -37,13 +37,35 @@ jobs:
         run: |
           make rake-spec
 
+  chef-kitchen-matrix:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Get linux distros and suites
+        id: get-linux-matrix
+        run: |
+          distros=$(yq '[.platforms[] | "\"" + (.name | sub("_", "-") | sub("\.", "")) + "\""] | join(", ")' kitchen.yml)
+          suites=$(yq '[.suites[] | "\"" + (.name | sub("_", "-") | sub("\.", "")) + "\""] | join(", ")' kitchen.yml)
+          echo "matrix={'DISTRO': [${distros}], 'SUITE': [${suites}]}" >> $GITHUB_OUTPUT
+
+      - name: Get windows distros and suites
+        id: get-win-matrix
+        run: |
+          distros=$(yq '[.platforms[] | "\"" + (.name | sub("_", "-") | sub("\.", "")) + "\""] | join(", ")' kitchen.windows.yml)
+          suites=$(yq '[.suites[] | "\"" + (.name | sub("_", "-") | sub("\.", "")) + "\""] | join(", ")' kitchen.windows.yml)
+          echo "matrix={'DISTRO': [${distros}], 'SUITE': [${suites}]}" >> $GITHUB_OUTPUT
+    outputs:
+      linux-matrix: ${{ steps.get-linux-matrix.outputs.matrix }}
+      win-matrix: ${{ steps.get-win-matrix.outputs.matrix }}
+
   chef-kitchen-linux:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
+    needs: chef-kitchen-matrix
     strategy:
-      matrix:
-        DISTRO: ['amazonlinux-2', 'centos-7', 'centos-8', 'debian-9', 'debian-10', 'debian-11', 'opensuse-12', 'opensuse-15', 'oraclelinux-7', 'oraclelinux-8', 'ubuntu-1804', 'ubuntu-2004', 'ubuntu-2204']
-        SUITE: ['default', 'custom-vars', 'without-fluentd', 'with-instrumentation']
+      matrix: ${{ fromJSON(needs.chef-kitchen-matrix.outputs.linux-matrix) }}
       fail-fast: false
     steps:
       - name: Check out code
@@ -63,11 +85,10 @@ jobs:
           path: deployments/chef/.kitchen/logs/*
 
   chef-kitchen-windows:
-    runs-on: ${{ matrix.OS }}
+    runs-on: ${{ matrix.DISTRO }}
+    needs: chef-kitchen-matrix
     strategy:
-      matrix:
-        OS: ['windows-2019', 'windows-2022']
-        SUITE: ['default', 'custom-vars', 'without-fluentd']
+      matrix: ${{ fromJSON(needs.chef-kitchen-matrix.outputs.win-matrix) }}
       fail-fast: false
     steps:
       - name: Check out code
@@ -83,9 +104,9 @@ jobs:
           $env:PATH = 'C:\opscode\chef-workstation\embedded\bin;' + $env:PATH
           gem install kitchen-docker -v 2.12.0
 
-      - name: kitchen test ${{ matrix.SUITE }}-${{ matrix.OS }}
+      - name: kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
         run: |
-          kitchen test ${{ matrix.SUITE }}-${{ matrix.OS }}
+          kitchen test ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
           # For some reason, kitchen returns 0 here even if there are test failures, so check the log instead.
           grep -q '0 failures' .kitchen/logs/kitchen.log || exit 1
         shell: bash
@@ -95,5 +116,5 @@ jobs:
       - uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: ${{ matrix.SUITE }}-${{ matrix.OS }}
+          name: ${{ matrix.SUITE }}-${{ matrix.DISTRO }}
           path: deployments/chef/.kitchen/logs/*

@@ -162,6 +162,11 @@ splunk-otel-collector:
   auto_instrumentation_version: '$version'
   auto_instrumentation_resource_attributes: 'deployment.environment=test'
   auto_instrumentation_service_name: 'test'
+  auto_instrumentation_generate_service_name: False
+  auto_instrumentation_disable_telemetry: True
+  auto_instrumentation_enable_profiler: True
+  auto_instrumentation_enable_profiler_memory: True
+  auto_instrumentation_enable_metrics: True
   """
 )
 
@@ -173,9 +178,14 @@ def verify_instrumentation_config(container):
 
     try:
         run_container_cmd(container, f"grep '^{libsplunk_path}' /etc/ld.so.preload")
-        run_container_cmd(container, f"grep '^java_agent_jar={java_agent_path}' {config_path}")
-        run_container_cmd(container, f"grep '^resource_attributes=deployment.environment=test' {config_path}")
-        run_container_cmd(container, f"grep '^service_name=test' {config_path}")
+        run_container_cmd(container, f"grep '^java_agent_jar={java_agent_path}$' {config_path}")
+        run_container_cmd(container, f"grep '^resource_attributes=deployment.environment=test$' {config_path}")
+        run_container_cmd(container, f"grep '^service_name=test$' {config_path}")
+        run_container_cmd(container, f"grep '^generate_service_name=false$' {config_path}")
+        run_container_cmd(container, f"grep '^disable_telemetry=true$' {config_path}")
+        run_container_cmd(container, f"grep '^enable_profiler=true$' {config_path}")
+        run_container_cmd(container, f"grep '^enable_profiler_memory=true$' {config_path}")
+        run_container_cmd(container, f"grep '^enable_metrics=true$' {config_path}")
     finally:
         run_container_cmd(container, "cat /etc/ld.so.preload")
         run_container_cmd(container, f"cat {config_path}")

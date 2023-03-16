@@ -3,3 +3,4 @@ splunk_otel_collector
 .dev_builds
 blobs
 dev_releases
+bosh-env

@@ -2,56 +2,65 @@
 
 ## Getting Started
 
-[Bosh Release Documentation (Overview)](https://bosh.io/docs/create-release/)
+### Start the BOSH Director
 
-[Quick Start Guide](https://bosh.io/docs/bosh-lite/)
+[Local machine prerequisites](https://bosh.io/docs/quick-start/#prerequisites)
+- The latest VirtualBox environment v7 is incompatible with this
+  functionality. Downgrade VirtualBox to [v6](https://www.virtualbox.org/wiki/Download_Old_Builds_6_1) to
+  ensure it can work. Tested successfully on `v6.1.42`
 
-### Start the Bosh Director
 
-Quick start guide to run a BOSH Director can be found [here.](https://bosh.io/docs/quick-start/)
+Automated start process:
+```shell
+# Sets up BOSH Director locally
+make
+# Makes sure local shell gets proper credentials to access director
+source bosh-env/virtualbox/.envrc
+```
 
-Debugging for Bosh Director startup issues
+Manual start process:
+[Follow the quick start guide to run a BOSH Director.](https://bosh.io/docs/quick-start/)
 
-- The latest VirtualBox environment (v7.0.6) is incompatible with this
-functionality. Downgrade VirtualBox to [v6.1.42](https://www.virtualbox.org/wiki/Download_Old_Builds_6_1) to
-ensure it can work.
+Common Errors:
+- "Waiting for the agent on VM" timeouts
 
-- Error "Waiting for the agent on VM" timeouts
+  - Run ```make reinstall-director```
 
-    - Run the delete-env.sh script
-    ```shell
-    # The bosh-deployment repo is cloned in the director Quick Start instructions
-    $ ./bosh-deployment/virtualbox/delete-env.sh
-    - Delete directory of the bosh-deployment repo and re-create.
-    ```
-
-    ```shell
-    $ rm -rf ~/workspaces/bosh-env
-    # Restart Quick Start guide
-    ```
-
+Delete director:
+```shell
+make delete-director
+```
 ### Upload Ubuntu/OS blob
 
-- Guide can be found [here.](https://bosh.io/docs/uploading-stemcells/)
+Note: If you ran ```make``` successfully, you can skip this step.
+
+- [Uploading stemcells guide](https://bosh.io/docs/uploading-stemcells/)
+- [Official BOSH stemcells references (including SHAs)](https://bosh.io/stemcells).
 - The following is an example command to upload the Warden (BOSH Lite) Ubuntu Bionic (18.04.6 LTS) stemcell:
 
 ```shell
-$ bosh upload-stemcell --sha1 d44dc2d1b3f8415b41160ad4f82bc9d30b8dfdce \
+bosh upload-stemcell --sha1 d44dc2d1b3f8415b41160ad4f82bc9d30b8dfdce \
 https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-bionic-go_agent?v=1.71
 ````
+
+### Supplemental Documentation Links
+
+[BOSH Release Documentation (Overview)](https://bosh.io/docs/create-release/)
+
+[Quick Start Guide](https://bosh.io/docs/bosh-lite/)
 
 ## Create Local BOSH Release
 
 ```shell
-$ # Check release script for more environment variables that can be set.
-$ export IS_DEV_RELEASE=1
-$ ./release
+# Check release script for more environment variables that can be set.
+export IS_DEV_RELEASE=1
+./release
 ```
 
 ## BOSH Release Usage
 
 ```shell
-$ bosh -d splunk-otel-collector deploy deployment.yaml
+bosh -d splunk-otel-collector deploy deployment.yaml
 ```
 Further explanation of the `deployment.yaml` file is found [here.](#deployment-config)
 

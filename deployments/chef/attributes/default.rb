@@ -76,4 +76,9 @@ elsif platform_family?('debian', 'rhel', 'amazon', 'suse')
   default['splunk_otel_collector']['auto_instrumentation_java_agent_jar'] = '/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar'
   default['splunk_otel_collector']['auto_instrumentation_resource_attributes'] = ''
   default['splunk_otel_collector']['auto_instrumentation_service_name'] = ''
+  default['splunk_otel_collector']['auto_instrumentation_generate_service_name'] = true
+  default['splunk_otel_collector']['auto_instrumentation_disable_telemetry'] = false
+  default['splunk_otel_collector']['auto_instrumentation_enable_profiler'] = false
+  default['splunk_otel_collector']['auto_instrumentation_enable_profiler_memory'] = false
+  default['splunk_otel_collector']['auto_instrumentation_enable_metrics'] = false
 end

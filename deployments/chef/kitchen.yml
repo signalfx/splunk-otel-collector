@@ -168,3 +168,8 @@ suites:
         with_auto_instrumentation: true
         auto_instrumentation_resource_attributes: deployment.environment=test
         auto_instrumentation_service_name: test
+        auto_instrumentation_generate_service_name: false
+        auto_instrumentation_disable_telemetry: true
+        auto_instrumentation_enable_profiler: true
+        auto_instrumentation_enable_profiler_memory: true
+        auto_instrumentation_enable_metrics: true

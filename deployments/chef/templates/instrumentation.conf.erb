@@ -5,3 +5,8 @@ resource_attributes=<%= node['splunk_otel_collector']['auto_instrumentation_reso
 <% if defined?(node['splunk_otel_collector']['auto_instrumentation_service_name']) && node['splunk_otel_collector']['auto_instrumentation_service_name'] != "" -%>
 service_name=<%= node['splunk_otel_collector']['auto_instrumentation_service_name'] %>
 <% end -%>
+generate_service_name=<%= node['splunk_otel_collector']['auto_instrumentation_generate_service_name'].to_s.downcase %>
+disable_telemetry=<%= node['splunk_otel_collector']['auto_instrumentation_disable_telemetry'].to_s.downcase %>
+enable_profiler=<%= node['splunk_otel_collector']['auto_instrumentation_enable_profiler'].to_s.downcase %>
+enable_profiler_memory=<%= node['splunk_otel_collector']['auto_instrumentation_enable_profiler_memory'].to_s.downcase %>
+enable_metrics=<%= node['splunk_otel_collector']['auto_instrumentation_enable_metrics'].to_s.downcase %>

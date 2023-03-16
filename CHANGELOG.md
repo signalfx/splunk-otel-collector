@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v0.73.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.73.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.73.0) and the [opentelemetry-collector-contrib v0.73.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.73.0) releases where appropriate.
+
+### 💡 Enhancements 💡
+- [Add java zc options to linux installer script](https://github.com/signalfx/splunk-otel-collector/pull/2718)
+- [Update installer script for generate_service_name option](https://github.com/signalfx/splunk-otel-collector/pull/2730)
+- [Build linux arm64 bundle](https://github.com/signalfx/splunk-otel-collector/pull/2671)
+
 ## v0.72.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.72.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.72.0) and the [opentelemetry-collector-contrib v0.72.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.72.0) releases where appropriate.

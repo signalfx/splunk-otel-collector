@@ -5,3 +5,8 @@ resource_attributes=<%= @auto_instrumentation_resource_attributes %>
 <% if defined?(@auto_instrumentation_service_name) && @auto_instrumentation_service_name != "" -%>
 service_name=<%= @auto_instrumentation_service_name %>
 <% end -%>
+generate_service_name=<%= @auto_instrumentation_generate_service_name.to_s.downcase %>
+disable_telemetry=<%= @auto_instrumentation_disable_telemetry.to_s.downcase %>
+enable_profiler=<%= @auto_instrumentation_enable_profiler.to_s.downcase %>
+enable_profiler_memory=<%= @auto_instrumentation_enable_profiler_memory.to_s.downcase %>
+enable_metrics=<%= @auto_instrumentation_enable_metrics.to_s.downcase %>

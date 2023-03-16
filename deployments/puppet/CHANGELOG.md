@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## puppet-v0.9.0
+
+- Add support for additional options for Splunk OpenTelemetry Auto Instrumentation for Java (Linux only)
+
 ## puppet-v0.8.0
 
 - Add `collector_additional_env_vars` option to allow passing additional environment variables to the collector service

@@ -9,7 +9,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 ### 💡 Enhancements 💡
 - [Add java zc options to linux installer script](https://github.com/signalfx/splunk-otel-collector/pull/2718)
 - [Update installer script for generate_service_name option](https://github.com/signalfx/splunk-otel-collector/pull/2730)
-- [Build linux arm64 bundle](https://github.com/signalfx/splunk-otel-collector/pull/2671)
+- [Build experimental linux arm64 agent-bundle](https://github.com/signalfx/splunk-otel-collector/pull/2671)
 
 ## v0.72.0
 

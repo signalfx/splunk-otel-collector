@@ -47,14 +47,30 @@ jobs:
         id: get-linux-matrix
         run: |
           distros=$(yq '[.platforms[] | "\"" + (.name | sub("_", "-") | sub("\.", "")) + "\""] | join(", ")' kitchen.yml)
+          if [ -z "$distros" ]; then
+            echo "Failed to get platforms from kitchen.yml!" >&2
+            exit 1
+          fi
           suites=$(yq '[.suites[] | "\"" + (.name | sub("_", "-") | sub("\.", "")) + "\""] | join(", ")' kitchen.yml)
+          if [ -z "$suites" ]; then
+            echo "Failed to get suites from kitchen.yml!" >&2
+            exit 1
+          fi
           echo "matrix={'DISTRO': [${distros}], 'SUITE': [${suites}]}" >> $GITHUB_OUTPUT
 
       - name: Get windows distros and suites
         id: get-win-matrix
         run: |
           distros=$(yq '[.platforms[] | "\"" + (.name | sub("_", "-") | sub("\.", "")) + "\""] | join(", ")' kitchen.windows.yml)
+          if [ -z "$distros" ]; then
+            echo "Failed to get platforms from kitchen.windows.yml!" >&2
+            exit 1
+          fi
           suites=$(yq '[.suites[] | "\"" + (.name | sub("_", "-") | sub("\.", "")) + "\""] | join(", ")' kitchen.windows.yml)
+          if [ -z "$suites" ]; then
+            echo "Failed to get suites from kitchen.windows.yml!" >&2
+            exit 1
+          fi
           echo "matrix={'DISTRO': [${distros}], 'SUITE': [${suites}]}" >> $GITHUB_OUTPUT
     outputs:
       linux-matrix: ${{ steps.get-linux-matrix.outputs.matrix }}

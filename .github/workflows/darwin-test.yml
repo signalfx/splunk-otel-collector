@@ -1,0 +1,58 @@
+name: darwin-test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '.github/workflows/darwin-test.yml'
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'tests/**'
+      - 'Makefile'
+      - 'go.mod'
+      - 'go.sum'
+      - '!**.md'
+      - '!internal/buildscripts/**'
+
+concurrency:
+  group: darwin-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  darwin-test:
+    name: darwin-test
+    runs-on: ${{ matrix.OS }}
+    strategy:
+      matrix:
+        OS: [ "macos-11", "macos-12" ]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19.6
+
+      - name: Caching dependency
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/go/bin
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
+      - name: Install golang dependency
+        run: make install-tools
+
+      - name: Unit tests with coverage
+        run: make test-with-cover
+
+      - name: Uploading artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-results-${{ matrix.OS }}
+          path: ./coverage.html

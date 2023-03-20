@@ -518,6 +518,7 @@ replace (
 	github.com/containernetworking/plugins => github.com/containernetworking/plugins v1.1.1
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
 	github.com/go-kit/kit => github.com/go-kit/kit v0.12.0 // required to drop dependency on deprecated go.etcd.io/etcd
+	github.com/hashicorp/consul/sdk => github.com/hashicorp/consul/sdk v0.13.1
 	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.8.1
 	github.com/nats-io/nats.go => github.com/nats-io/nats.go v1.14.0

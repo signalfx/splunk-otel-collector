@@ -27,6 +27,7 @@ jobs:
       matrix:
         PACKAGE_TYPE: [ "deb", "rpm" ]
         INSTRUMENTATION: [ "true", "false" ]
+        ARCH: [ "amd64", "arm64" ]
     env:
       PYTHON_VERSION: '3.10'
       PIP_VERSION: '22.0.4'
@@ -35,6 +36,11 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
+
+      - uses: docker/setup-qemu-action@v2
+        if: ${{ matrix.ARCH != 'amd64' }}
+        with:
+          platforms: ${{ matrix.ARCH }}
 
       - name: Setup python
         uses: actions/setup-python@v4
@@ -54,7 +60,7 @@ jobs:
           pip install -r "${{ env.REQUIREMENTS_PATH }}"
 
       - name: Test installer script
-        timeout-minutes: 45
+        timeout-minutes: 90
         run: |
           mkdir -p ${{ env.RESULT_PATH }}
           if [ "${{ matrix.INSTRUMENTATION }}" = "true" ]; then
@@ -63,11 +69,12 @@ jobs:
             markers="${{ matrix.PACKAGE_TYPE }} and not instrumentation"
           fi
           pytest -n2 --verbose -m "$markers" \
+            -k "${{ matrix.ARCH }}" \
             --junitxml=${{ env.RESULT_PATH }}/results.xml \
             --html=${{ env.RESULT_PATH }}/results.html \
             --self-contained-html \
             internal/buildscripts/packaging/tests/installer_test.py
-      
+
       - name: Uploading artifacts
         uses: actions/upload-artifact@v3
         with:

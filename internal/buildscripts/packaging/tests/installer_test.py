@@ -100,6 +100,13 @@ def verify_uninstall(container, distro):
             assert container.exec_run(f"rpm -q {pkg}").exit_code != 0
 
 
+def fluentd_supported(distro, arch):
+    if "opensuse" in distro or (distro in ("debian-stretch", "ubuntu-xenial") and arch == "arm64"):
+        return False
+
+    return True
+
+
 @pytest.mark.installer
 @pytest.mark.parametrize(
     "distro",
@@ -108,7 +115,11 @@ def verify_uninstall(container, distro):
     )
 @pytest.mark.parametrize("version", VERSIONS)
 @pytest.mark.parametrize("mode", ["agent", "gateway"])
-def test_installer_mode(distro, version, mode):
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_mode(distro, version, mode, arch):
+    if distro == "opensuse-12" and arch == "arm64":
+        pytest.skip("opensuse-12 arm64 no longer supported")
+
     install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --mode {mode}"
 
     if version != "latest":
@@ -119,7 +130,7 @@ def test_installer_mode(distro, version, mode):
         install_cmd = f"{install_cmd} --{STAGE}"
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
+    with run_distro_container(distro, arch) as container:
         # run installer script
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
 
@@ -139,7 +150,7 @@ def test_installer_mode(distro, version, mode):
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
-            if "opensuse" not in distro:
+            if fluentd_supported(distro, arch):
                 assert container.exec_run("systemctl status td-agent").exit_code == 0
 
             # test support bundle script
@@ -148,7 +159,7 @@ def test_installer_mode(distro, version, mode):
             verify_uninstall(container, distro)
 
         finally:
-            if "opensuse" not in distro:
+            if fluentd_supported(distro, arch):
                 run_container_cmd(container, "journalctl -u td-agent --no-pager")
                 if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
                     run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
@@ -162,7 +173,11 @@ def test_installer_mode(distro, version, mode):
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
 @pytest.mark.parametrize("version", VERSIONS)
-def test_installer_ballast(distro, version):
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_ballast(distro, version, arch):
+    if distro == "opensuse-12" and arch == "arm64":
+        pytest.skip("opensuse-12 arm64 no longer supported")
+
     install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --ballast {BALLAST}"
 
     if version != "latest":
@@ -173,7 +188,7 @@ def test_installer_ballast(distro, version):
         install_cmd = f"{install_cmd} --{STAGE}"
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
+    with run_distro_container(distro, arch) as container:
         # run installer script
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
 
@@ -187,13 +202,13 @@ def test_installer_ballast(distro, version):
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
-            if "opensuse" not in distro:
+            if fluentd_supported(distro, arch):
                 assert container.exec_run("systemctl status td-agent").exit_code == 0
 
             verify_uninstall(container, distro)
 
         finally:
-            if "opensuse" not in distro:
+            if fluentd_supported(distro, arch):
                 run_container_cmd(container, "journalctl -u td-agent --no-pager")
                 if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
                     run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
@@ -207,7 +222,11 @@ def test_installer_ballast(distro, version):
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
 )
 @pytest.mark.parametrize("version", VERSIONS)
-def test_installer_service_owner(distro, version):
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_service_owner(distro, version, arch):
+    if distro == "opensuse-12" and arch == "arm64":
+        pytest.skip("opensuse-12 arm64 no longer supported")
+
     service_owner = "test-user"
     install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY}"
     install_cmd = f"{install_cmd} --service-user {service_owner} --service-group {service_owner}"
@@ -220,7 +239,7 @@ def test_installer_service_owner(distro, version):
         install_cmd = f"{install_cmd} --{STAGE}"
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
+    with run_distro_container(distro, arch) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
 
         try:
@@ -244,13 +263,13 @@ def test_installer_service_owner(distro, version):
             config_owner = container.exec_run("stat -c '%U:%G' /etc/otel").output.decode("utf-8")
             assert config_owner.strip() == f"{service_owner}:{service_owner}"
 
-            if "opensuse" not in distro:
+            if fluentd_supported(distro, arch):
                 assert container.exec_run("systemctl status td-agent").exit_code == 0
 
             verify_uninstall(container, distro)
 
         finally:
-            if "opensuse" not in distro:
+            if fluentd_supported(distro, arch):
                 run_container_cmd(container, "journalctl -u td-agent --no-pager")
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
 
@@ -262,7 +281,11 @@ def test_installer_service_owner(distro, version):
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
 @pytest.mark.parametrize("version", VERSIONS)
-def test_installer_without_fluentd(distro, version):
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_without_fluentd(distro, version, arch):
+    if distro == "opensuse-12" and arch == "arm64":
+        pytest.skip("opensuse-12 arm64 no longer supported")
+
     install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --without-fluentd"
 
     if version != "latest":
@@ -273,7 +296,7 @@ def test_installer_without_fluentd(distro, version):
         install_cmd = f"{install_cmd} --{STAGE}"
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
+    with run_distro_container(distro, arch) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
 
         try:
@@ -306,7 +329,11 @@ def test_installer_without_fluentd(distro, version):
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
 @pytest.mark.parametrize("version", VERSIONS)
-def test_installer_with_instrumentation(distro, version):
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_with_instrumentation(distro, version, arch):
+    if distro == "opensuse-12" and arch == "arm64":
+        pytest.skip("opensuse-12 arm64 no longer supported")
+
     install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --with-instrumentation"
 
     if version != "latest":
@@ -317,7 +344,7 @@ def test_installer_with_instrumentation(distro, version):
         install_cmd = f"{install_cmd} --{STAGE}"
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
+    with run_distro_container(distro, arch) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
 
         try:
@@ -365,7 +392,11 @@ def test_installer_with_instrumentation(distro, version):
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
 @pytest.mark.parametrize("version", VERSIONS)
-def test_installer_with_instrumentation_options(distro, version):
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_with_instrumentation_options(distro, version, arch):
+    if distro == "opensuse-12" and arch == "arm64":
+        pytest.skip("opensuse-12 arm64 no longer supported")
+
     install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --with-instrumentation"
 
     if version != "latest":
@@ -384,7 +415,7 @@ def test_installer_with_instrumentation_options(distro, version):
     install_cmd = f"{install_cmd} --enable-metrics"
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
+    with run_distro_container(distro, arch) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
 
         try:
@@ -430,7 +461,11 @@ def test_installer_with_instrumentation_options(distro, version):
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
-def test_installer_custom_config(distro):
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_custom_config(distro, arch):
+    if distro == "opensuse-12" and arch == "arm64":
+        pytest.skip("opensuse-12 arm64 no longer supported")
+
     custom_config = "/etc/my-config.yaml"
     install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --without-fluentd"
 
@@ -441,7 +476,7 @@ def test_installer_custom_config(distro):
     install_cmd = f"{install_cmd} --collector-config {custom_config}"
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
+    with run_distro_container(distro, arch) as container:
         local_config = REPO_DIR / "cmd" / "otelcol" / "config" / "collector" / "agent_config.yaml"
         copy_file_into_container(container, local_config, custom_config)
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")

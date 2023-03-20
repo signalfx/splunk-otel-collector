@@ -43,6 +43,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
 
       - name: Installing dependency
         run: |
@@ -61,6 +62,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
 
       - name: gofmt
         run: |
@@ -84,6 +86,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
 
       - name: Lint
         run: |
@@ -103,6 +106,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
 
       - name: Unit tests
         run: |
@@ -130,6 +134,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
 
       - name: Coverage tests
         run: |
@@ -163,6 +168,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
 
       - name: Build Collector
         run: |
@@ -238,13 +244,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Caching dependency
-        uses: actions/cache@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          path: |
-            ~/go/bin
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
 
       - name: Downloading binaries-linux_${{ matrix.ARCH }}
         uses: actions/download-artifact@v3
@@ -342,13 +346,11 @@ jobs:
           name: binaries-windows_amd64
           path: ./bin
 
-      - name: Caching dependency
-        uses: actions/cache@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          path: |
-            ~/go/bin
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
 
       - id: latest
         uses: pozetroninc/github-action-get-latest-release@v0.7.0
@@ -500,6 +502,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
 
       - name: Set up QEMU
         if: ${{ matrix.ARCH != 'amd64' }}

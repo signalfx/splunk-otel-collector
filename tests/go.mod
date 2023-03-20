@@ -27,10 +27,10 @@ require (
 	go.uber.org/multierr v1.10.0
 	go.uber.org/zap v1.24.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.26.2
-	k8s.io/apimachinery v0.26.2
-	k8s.io/cli-runtime v0.26.2
-	k8s.io/client-go v0.26.2
+	k8s.io/api v0.26.3
+	k8s.io/apimachinery v0.26.3
+	k8s.io/cli-runtime v0.26.3
+	k8s.io/client-go v0.26.3
 	k8s.io/kubectl v0.26.2
 	sigs.k8s.io/kind v0.18.0-alpha.0.20221215194558-3c286967842c
 	sigs.k8s.io/yaml v1.3.0

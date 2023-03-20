@@ -1105,19 +1105,27 @@ parse_args_and_install() {
   if [ -d "$collector_bundle_dir" ]; then
     configure_env_file "SPLUNK_BUNDLE_DIR" "$collector_bundle_dir" "$collector_env_path"
     # ensure the collector service owner has access to the bundle dir
-    chown -R $service_user:$service_group "$collector_bundle_dir"
+    chown -R $service_user:$service_group "$(dirname $collector_bundle_dir)"
   fi
   if [ -d "$collectd_config_dir" ]; then
     configure_env_file "SPLUNK_COLLECTD_DIR" "$collectd_config_dir" "$collector_env_path"
     # ensure the collector service owner has access to the collectd dir
-    chown -R $service_user:$service_group "$collectd_config_dir"
+    chown -R $service_user:$service_group "$(dirname $collectd_config_dir)"
   fi
 
   # ensure the collector service owner has access to the config dir
-  chown -R $service_user:$service_group "$collector_config_dir"
+  chown -R $service_user:$service_group "$(dirname $collector_config_dir)"
 
   # ensure only the collector service owner has access to the env file
   chmod 600 "$collector_env_path"
+
+  # delete the default user/group if a custom service user/group was specified
+  if [ "$service_user" != "$default_service_user" ] && getent passwd "$default_service_user" >/dev/null 2>&1; then
+    userdel "$default_service_user"
+  fi
+  if [ "$service_group" != "$default_service_group" ] && getent group "$default_service_group" >/dev/null 2>&1; then
+    groupdel "$default_service_group"
+  fi
 
   systemctl daemon-reload
   systemctl restart splunk-otel-collector

@@ -234,6 +234,16 @@ def test_installer_service_owner(distro, version):
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=service_owner))
 
+            # verify the default user/group was deleted
+            assert container.exec_run("getent passwd splunk-otel-collector").exit_code != 0
+            assert container.exec_run("getent group splunk-otel-collector").exit_code != 0
+
+            # verify the installed directories are owned by test-user
+            bundle_owner = container.exec_run("stat -c '%U:%G' /usr/lib/splunk-otel-collector").output.decode("utf-8")
+            assert bundle_owner.strip() == f"{service_owner}:{service_owner}"
+            config_owner = container.exec_run("stat -c '%U:%G' /etc/otel").output.decode("utf-8")
+            assert config_owner.strip() == f"{service_owner}:{service_owner}"
+
             if "opensuse" not in distro:
                 assert container.exec_run("systemctl status td-agent").exit_code == 0
 

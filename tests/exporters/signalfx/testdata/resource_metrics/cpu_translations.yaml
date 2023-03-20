@@ -1,6 +1,11 @@
 resource_metrics:
   - scope_metrics:
       - metrics:
+          - name: system.cpu.time
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              cpu: cpu0
+              state: user
           - name: cpu.utilization
             type: DoubleGauge
           - name: cpu.num_processors

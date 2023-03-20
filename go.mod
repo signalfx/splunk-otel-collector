@@ -18,7 +18,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter v0.73.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.73.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.73.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.73.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.73.1-0.20230318040901-6b0c2cca999c
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.73.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.73.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.73.0
@@ -247,7 +247,7 @@ require (
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/cadvisor v0.46.0 // indirect
 	github.com/google/flatbuffers v2.0.8+incompatible // indirect
@@ -318,7 +318,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/klauspost/compress v1.16.0 // indirect
+	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/kolo/xmlrpc v0.0.0-20220921171641-a4b6fa1dd06b // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/leodido/ragel-machinery v0.0.0-20181214104525-299bdde78165 // indirect
@@ -465,7 +465,7 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923 // indirect
 	google.golang.org/grpc v1.53.0 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
+	google.golang.org/protobuf v1.29.1 // indirect
 	gopkg.in/fatih/set.v0 v0.1.0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect

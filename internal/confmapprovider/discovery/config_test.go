@@ -31,10 +31,14 @@ func TestServiceEntryPath(t *testing.T) {
 	assert.True(t, isServiceEntryPath(fmt.Sprintf("%cservice.yaml", os.PathSeparator)))
 	assert.True(t, isServiceEntryPath(fmt.Sprintf(".%cservice.yml", os.PathSeparator)))
 	assert.True(t, isServiceEntryPath(fmt.Sprintf(".%cservice.yaml", os.PathSeparator)))
-	assert.True(t, isServiceEntryPath(fmt.Sprintf("dir%cservice.yml", os.PathSeparator)))
-	assert.True(t, isServiceEntryPath(fmt.Sprintf("dir%cservice.yaml", os.PathSeparator)))
+	assert.True(t, isServiceEntryPath(fmt.Sprintf("config.d%cservice.yml", os.PathSeparator)))
+	assert.True(t, isServiceEntryPath(fmt.Sprintf("config.d%cservice.yaml", os.PathSeparator)))
+	assert.False(t, isServiceEntryPath(fmt.Sprintf("%cnot-service.yml", os.PathSeparator)))
+	assert.False(t, isServiceEntryPath(fmt.Sprintf("%cnot-service.yaml", os.PathSeparator)))
 	assert.False(t, isServiceEntryPath(fmt.Sprintf("%cs.yml", os.PathSeparator)))
 	assert.False(t, isServiceEntryPath(fmt.Sprintf("%cs.yaml", os.PathSeparator)))
+	assert.False(t, isServiceEntryPath(fmt.Sprintf("config.d%cdir%cservice.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isServiceEntryPath(fmt.Sprintf("config.d%cdic%cservice.yaml", os.PathSeparator, os.PathSeparator)))
 }
 
 func TestExporterEntryPaths(t *testing.T) {
@@ -42,10 +46,14 @@ func TestExporterEntryPaths(t *testing.T) {
 	assert.True(t, isExporterEntryPath(fmt.Sprintf("%cexporters%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isExporterEntryPath(fmt.Sprintf(".%cexporters%cany.yml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isExporterEntryPath(fmt.Sprintf(".%cexporters%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isExporterEntryPath(fmt.Sprintf("config.d%cexporters%cany.yml", os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isExporterEntryPath(fmt.Sprintf("config.d%cexporters%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isExporterEntryPath(fmt.Sprintf("%cservice.yml", os.PathSeparator)))
 	assert.False(t, isExporterEntryPath(fmt.Sprintf("%cextensions%cs.yml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isExporterEntryPath(fmt.Sprintf("%cprocessors%cs.yml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isExporterEntryPath(fmt.Sprintf("%creceivers%cs.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isExporterEntryPath(fmt.Sprintf("config.d%cdir%cexporters%cany.yml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isExporterEntryPath(fmt.Sprintf("config.d%cdir%cexporters%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
 }
 
 func TestExtensionEntryPaths(t *testing.T) {
@@ -53,10 +61,14 @@ func TestExtensionEntryPaths(t *testing.T) {
 	assert.True(t, isExtensionEntryPath(fmt.Sprintf("%cextensions%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isExtensionEntryPath(fmt.Sprintf(".%cextensions%cany.yml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isExtensionEntryPath(fmt.Sprintf(".%cextensions%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isExtensionEntryPath(fmt.Sprintf("config.d%cextensions%cany.yml", os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isExtensionEntryPath(fmt.Sprintf("config.d%cextensions%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isExtensionEntryPath(fmt.Sprintf("%cservice.yml", os.PathSeparator)))
 	assert.False(t, isExtensionEntryPath(fmt.Sprintf("%cexporters%cs.yml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isExtensionEntryPath(fmt.Sprintf("%cprocessors%cs.yml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isExtensionEntryPath(fmt.Sprintf("%creceivers%cs.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isExtensionEntryPath(fmt.Sprintf("config.d%cdir%cextensions%cany.yml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isExtensionEntryPath(fmt.Sprintf("config.d%cdir%cextensions%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
 }
 
 func TestProcessorEntryPaths(t *testing.T) {
@@ -64,10 +76,14 @@ func TestProcessorEntryPaths(t *testing.T) {
 	assert.True(t, isProcessorEntryPath(fmt.Sprintf("%cprocessors%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isProcessorEntryPath(fmt.Sprintf(".%cprocessors%cany.yml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isProcessorEntryPath(fmt.Sprintf(".%cprocessors%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isProcessorEntryPath(fmt.Sprintf("config.d%cprocessors%cany.yml", os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isProcessorEntryPath(fmt.Sprintf("config.d%cprocessors%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isProcessorEntryPath(fmt.Sprintf("%cservice.yml", os.PathSeparator)))
 	assert.False(t, isProcessorEntryPath(fmt.Sprintf("%cexporters%cs.yml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isProcessorEntryPath(fmt.Sprintf("%cextensions%cs.yml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isProcessorEntryPath(fmt.Sprintf("%creceivers%cs.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isProcessorEntryPath(fmt.Sprintf("config.d%cdir%cprocessors%cany.yml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isProcessorEntryPath(fmt.Sprintf("config.d%cdir%cprocessors%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
 }
 
 func TestReceiverEntryPaths(t *testing.T) {
@@ -75,12 +91,31 @@ func TestReceiverEntryPaths(t *testing.T) {
 	assert.True(t, isReceiverEntryPath(fmt.Sprintf("%creceivers%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isReceiverEntryPath(fmt.Sprintf(".%creceivers%cany.yml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isReceiverEntryPath(fmt.Sprintf(".%creceivers%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isReceiverEntryPath(fmt.Sprintf("config.d%creceivers%cany.yml", os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isReceiverEntryPath(fmt.Sprintf("config.d%creceivers%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isReceiverEntryPath(fmt.Sprintf("%cservice.yml", os.PathSeparator)))
 	assert.False(t, isReceiverEntryPath(fmt.Sprintf("%cexporters%cs.yml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isReceiverEntryPath(fmt.Sprintf("%cextensions%cs.yml", os.PathSeparator, os.PathSeparator)))
 	assert.False(t, isReceiverEntryPath(fmt.Sprintf("%cprocessors%cs.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isReceiverEntryPath(fmt.Sprintf("config.d%cdir%creceivers%cany.yml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isReceiverEntryPath(fmt.Sprintf("config.d%cdir%creceivers%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isReceiverEntryPath(fmt.Sprintf(".%creceivers%cany.thing.at.all.discovery.yml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isReceiverEntryPath(fmt.Sprintf(".%creceivers%cany.thing.at.all.discovery.yaml", os.PathSeparator, os.PathSeparator)))
+}
+func TestDiscoveryObserverEntryPaths(t *testing.T) {
+	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cany.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf(".%cextensions%cany.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf(".%cextensions%cany.thing.at.all.yaml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cservice.yml", os.PathSeparator)))
+	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cexporters%cs.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cs.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cprocessors%cs.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cdir%cany.thing.at.all.discovery.yml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cdir%cany.thing.at.all.discovery.yaml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cany.thing.at.all.discovery.yml", os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isDiscoveryObserverEntryPath(fmt.Sprintf("%cextensions%cany.thing.at.all.discovery.yaml", os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isDiscoveryObserverEntryPath(fmt.Sprintf("bundle.d%cextensions%ck8s-observer.discovery.yaml", os.PathSeparator, os.PathSeparator)))
 }
 
 func TestReceiverToDiscoverEntryPaths(t *testing.T) {
@@ -94,6 +129,26 @@ func TestReceiverToDiscoverEntryPaths(t *testing.T) {
 	assert.False(t, isReceiverToDiscoverEntryPath(fmt.Sprintf("%cprocessors%cs.yml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isReceiverToDiscoverEntryPath(fmt.Sprintf(".%creceivers%cany.thing.at.all.discovery.yml", os.PathSeparator, os.PathSeparator)))
 	assert.True(t, isReceiverToDiscoverEntryPath(fmt.Sprintf(".%creceivers%cany.thing.at.all.discovery.yaml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isReceiverToDiscoverEntryPath(fmt.Sprintf(".%cdir%creceivers%cany.thing.at.all.discovery.yml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isReceiverToDiscoverEntryPath(fmt.Sprintf(".%cdir%creceivers%cany.thing.at.all.discovery.yaml", os.PathSeparator, os.PathSeparator, os.PathSeparator)))
+	assert.True(t, isReceiverToDiscoverEntryPath(fmt.Sprintf("bundle.d%creceivers%csmartagent-postgresql.discovery.yaml", os.PathSeparator, os.PathSeparator)))
+}
+
+func TestDiscoveryPropertiesEntryPath(t *testing.T) {
+	assert.True(t, isDiscoveryPropertiesEntryPath("properties.discovery.yml"))
+	assert.True(t, isDiscoveryPropertiesEntryPath("properties.discovery.yaml"))
+	assert.True(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("%cproperties.discovery.yml", os.PathSeparator)))
+	assert.True(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("%cproperties.discovery.yaml", os.PathSeparator)))
+	assert.True(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("config.d%cproperties.discovery.yml", os.PathSeparator)))
+	assert.True(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("config.d%cproperties.discovery.yaml", os.PathSeparator)))
+	assert.False(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("config.d%cdir%cproperties.discovery.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("config.d%cdir%cproperties.discovery.yaml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("%cnot-properties.discovery.yml", os.PathSeparator)))
+	assert.False(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("%cnot-properties.discovery.yaml", os.PathSeparator)))
+	assert.False(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("%creceivers%cproperties.discovery.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("%cextensions%cproperties.discovery.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("%cexporters%cproperties.discovery.yml", os.PathSeparator, os.PathSeparator)))
+	assert.False(t, isDiscoveryPropertiesEntryPath(fmt.Sprintf("%cprocessors%cproperties.discovery.yml", os.PathSeparator, os.PathSeparator)))
 }
 
 var expectedConfig = Config{
@@ -276,6 +331,12 @@ var expectedConfig = Config{
 			},
 		},
 	},
+	DiscoveryProperties: PropertiesEntry{
+		Entry: map[string]any{
+			"splunk.discovery.receivers.smartagent/postgresql.config.params.unused_param": "param_value",
+			"splunk.discovery.extensions.docker_observer.config.timeout":                  "1s",
+		},
+	},
 }
 
 func TestConfig(t *testing.T) {
@@ -330,13 +391,29 @@ func TestToServiceConfig(t *testing.T) {
 	require.Equal(t, expectedServiceConfig, sc)
 }
 
-func TestConfigWithTwoReceiversInOneFile(t *testing.T) {
-	configDir := filepath.Join(".", "testdata", "double-receiver-item-config.d")
-	logger := zap.NewNop()
-	cfg := NewConfig(logger)
-	require.NotNil(t, cfg)
-	err := cfg.Load(configDir)
-	require.Contains(t, err.Error(), "must contain a single mapping of ComponentID to component but contained [otlp otlp/disallowed]")
-	cfg.logger = nil // unset for equality check
-	require.Equal(t, Config{}, *cfg)
+func TestInvalidConfigDirContents(t *testing.T) {
+	for _, test := range []struct {
+		configDir     string
+		expectedError string
+	}{
+		{
+			configDir:     "double-receiver-item-config.d",
+			expectedError: "must contain a single mapping of ComponentID to component but contained [otlp otlp/disallowed]",
+		},
+		{
+			configDir:     "invalid-properties.d",
+			expectedError: "failed loading discovery.properties from properties.discovery.yaml: failed unmarshalling component discovery.properties: failed parsing \"properties.discovery.yaml\" as yaml",
+		},
+	} {
+		t.Run(test.configDir, func(t *testing.T) {
+			configDir := filepath.Join(".", "testdata", test.configDir)
+			logger := zap.NewNop()
+			cfg := NewConfig(logger)
+			require.NotNil(t, cfg)
+			err := cfg.Load(configDir)
+			require.Contains(t, err.Error(), test.expectedError)
+			cfg.logger = nil // unset for equality check
+			require.Equal(t, Config{}, *cfg)
+		})
+	}
 }

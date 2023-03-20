@@ -137,6 +137,9 @@ func (d *discoverer) propertiesConfFromEnv() *confmap.Conf {
 // discover will create all .discovery.yaml components, start them, wait the configured
 // duration, and tear them down before returning the discovery config.
 func (d *discoverer) discover(cfg *Config) (map[string]any, error) {
+	if err := d.mergeDiscoveryPropertiesEntry(cfg); err != nil {
+		return nil, fmt.Errorf("failed reconciling properties.discovery: %w", err)
+	}
 	discoveryReceivers, discoveryObservers, err := d.createDiscoveryReceiversAndObservers(cfg)
 	if err != nil {
 		d.logger.Error("failed preparing discovery components", zap.Error(err))
@@ -679,6 +682,26 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 		}
 	}
 
+	return nil
+}
+
+// mergeDiscoveryPropertiesEntry validates and merges properties.discovery.yaml content with existing sources.
+// Priority is discovery.properties.yaml < env var properties < --set properties. --set and env var properties
+// are already resolved at this point.
+func (d *discoverer) mergeDiscoveryPropertiesEntry(cfg *Config) error {
+	props := map[string]any{}
+	for k, v := range cfg.DiscoveryProperties.Entry {
+		if prop, err := properties.NewProperty(k, fmt.Sprintf("%s", v)); err != nil {
+			d.logger.Warn(fmt.Sprintf("invalid discovery property %q", k), zap.Error(err))
+		} else {
+			mergeMaps(props, prop.ToStringMap())
+		}
+	}
+	fileProps := confmap.NewFromStringMap(props)
+	if err := fileProps.Merge(d.propertiesConf); err != nil {
+		return err
+	}
+	d.propertiesConf = fileProps
 	return nil
 }
 

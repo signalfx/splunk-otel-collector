@@ -92,8 +92,8 @@ end-to-end-test:
 test-with-cover:
 	@echo Verifying that all packages have test files to count in coverage
 	@echo pre-compiling tests
-	@time go test -p $(NUM_CORES) -i $(ALL_PKG_DIRS)
-	$(GO_ACC) $(ALL_PKG_DIRS)
+	@time go test -p $(NUM_CORES) ./...
+	$(GO_ACC) ./...
 	go tool cover -html=coverage.txt -o coverage.html
 
 .PHONY: gendependabot

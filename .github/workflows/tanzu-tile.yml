@@ -43,8 +43,8 @@ jobs:
           ./make-latest-tile
           FILE=""
           # The tile will be in the product directory, named
-          # splunk-opentelemetry-collector-VERSION.pivotal
-          for f in $(find product -maxdepth 1 -regex "product\/splunk-opentelemetry-collector\-.*pivotal")
+          # splunk-otel-collector-VERSION.pivotal
+          for f in $(find product -maxdepth 1 -regex "product\/splunk-otel-collector\-.*pivotal")
           do
             FILE=$f
           done

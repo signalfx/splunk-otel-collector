@@ -19,7 +19,7 @@ $ ./make-latest-tile
 ```
 This command will create the BOSH release, and package it as a dependency for the tile. It will then generate the
 tile with the same version as the collector. If successful, the tile will be found here: 
-`./product/splunk-opentelemetry-collector-<VERSION>.pivotal`
+`./product/splunk-otel-collector-<VERSION>.pivotal`
 
 ## Development and Configuration
 

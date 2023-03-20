@@ -1,7 +1,7 @@
 ---
 # The high-level description of the tile.
 #
-name: splunk-opentelemetry-collector # By convention lowercase with dashes
+name: splunk-otel-collector # By convention lowercase with dashes
 icon_file: resources/icon.png
 label: Splunk Collector for Tanzu Network
 description: |

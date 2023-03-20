@@ -35,11 +35,11 @@ $ ./make-latest-tile
 # Alternatively, if just making changes to the tile config without touching the BOSH release, you can just run "tile build"
 # instead of the whole make-latest-tile script
 
-$ pcf import product/splunk-opentelemetry-collector-<TILE_VERSION>.pivotal
-$ pcf install splunk-opentelemetry-collector <TILE_VERSION>
+$ pcf import product/splunk-otel-collector-<TILE_VERSION>.pivotal
+$ pcf install splunk-otel-collector <TILE_VERSION>
 
 # Optional: Use a configuration file to set tile variables instead of manually in the Ops Manager UI
-$ pcf configure splunk-opentelemetry-collector tile_config.yaml
+$ pcf configure splunk-otel-collector tile_config.yaml
 ```
 
 Sample `tile_config.yaml` file contents:

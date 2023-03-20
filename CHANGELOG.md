@@ -8,7 +8,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 💡 Enhancements 💡
 - [Build experimental linux arm64 agent-bundle](https://github.com/signalfx/splunk-otel-collector/pull/2671)
-- Added profiling and JVM metrics options for zero configuration auto instrumentation of Java apps (Linux only):
+- Added profiling, JVM metrics, and service name generation options for zero configuration auto instrumentation of Java apps (Linux only):
   - [Installer script](https://github.com/signalfx/splunk-otel-collector/pull/2718)
   - [Ansible v0.16.0](https://github.com/signalfx/splunk-otel-collector/pull/2729)
   - [Chef v0.5.0](https://github.com/signalfx/splunk-otel-collector/pull/2733)

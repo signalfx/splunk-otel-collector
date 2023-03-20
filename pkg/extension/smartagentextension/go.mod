@@ -168,6 +168,7 @@ replace github.com/signalfx/splunk-otel-collector/tests => ../../../tests
 replace (
 	github.com/containerd/containerd => github.com/containerd/containerd v1.6.18
 	github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible
+	github.com/hashicorp/consul/sdk => github.com/hashicorp/consul/sdk v0.13.1
 	github.com/influxdata/telegraf => github.com/signalfx/telegraf v0.10.2-0.20210820123244-82265917ca87
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
 	golang.org/x/crypto => golang.org/x/crypto v0.5.0

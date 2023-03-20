@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## v0.73.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.73.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.73.0) and the [opentelemetry-collector-contrib v0.73.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.73.0) releases where appropriate.
+
+### 💡 Enhancements 💡
+- [Build experimental linux arm64 agent-bundle](https://github.com/signalfx/splunk-otel-collector/pull/2671)
+- Added profiling, JVM metrics, and service name generation options for zero configuration auto instrumentation of Java apps (Linux only):
+  - [Installer script](https://github.com/signalfx/splunk-otel-collector/pull/2718)
+  - [Ansible v0.16.0](https://github.com/signalfx/splunk-otel-collector/pull/2729)
+  - [Chef v0.5.0](https://github.com/signalfx/splunk-otel-collector/pull/2733)
+  - [Puppet v0.9.0](https://github.com/signalfx/splunk-otel-collector/pull/2734)
+  - [Salt](https://github.com/signalfx/splunk-otel-collector/pull/2735)
+- [Add java zc options to linux installer script](https://github.com/signalfx/splunk-otel-collector/pull/2718)
+- [Update installer script for generate_service_name option](https://github.com/signalfx/splunk-otel-collector/pull/2730)
+- [Build linux arm64 bundle](https://github.com/signalfx/splunk-otel-collector/pull/2671)
+- [update translation rule to use a copy of system.cpu.time and leave the original one intact](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/19743)
+
 ## v0.72.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.72.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.72.0) and the [opentelemetry-collector-contrib v0.72.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.72.0) releases where appropriate.

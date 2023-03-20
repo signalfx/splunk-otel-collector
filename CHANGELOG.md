@@ -17,7 +17,6 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
   - [Puppet v0.9.0](https://github.com/signalfx/splunk-otel-collector/pull/2734)
   - [Salt](https://github.com/signalfx/splunk-otel-collector/pull/2735)
 - [Add java zc options to linux installer script](https://github.com/signalfx/splunk-otel-collector/pull/2718)
-- [Update installer script for generate_service_name option](https://github.com/signalfx/splunk-otel-collector/pull/2730)
 - [Build linux arm64 bundle](https://github.com/signalfx/splunk-otel-collector/pull/2671)
 - [update translation rule to use a copy of system.cpu.time and leave the original one intact](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/19743)
 

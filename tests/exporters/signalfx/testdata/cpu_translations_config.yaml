@@ -11,6 +11,10 @@ exporters:
     access_token: token
     ingest_url: http://127.0.0.1:9943
     api_url: http://127.0.0.1:9943
+    include_metrics:
+      - metric_name: system.cpu.time
+        dimensions:
+          state: [user]
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
     tls:

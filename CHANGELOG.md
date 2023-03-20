@@ -7,8 +7,8 @@
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.73.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.73.0) and the [opentelemetry-collector-contrib v0.73.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.73.0) releases where appropriate.
 
 ### 💡 Enhancements 💡
-- [Add java zc options to linux installer script](https://github.com/signalfx/splunk-otel-collector/pull/2718)
-- [Update installer script for generate_service_name option](https://github.com/signalfx/splunk-otel-collector/pull/2730)
+- [Added profiling and JVM metrics options to linux installer script for zero configuration auto instrumentation of Java apps](https://github.com/signalfx/splunk-otel-collector/pull/2718)
+- [Update installer script with option to generate service name with zero configuration auto instrumentation of Java apps](https://github.com/signalfx/splunk-otel-collector/pull/2730)
 - [Build experimental linux arm64 agent-bundle](https://github.com/signalfx/splunk-otel-collector/pull/2671)
 - Added profiling and JVM metrics options for zero configuration auto instrumentation of Java apps (Linux only):
   - [Installer script](https://github.com/signalfx/splunk-otel-collector/pull/2718)

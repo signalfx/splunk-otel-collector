@@ -19,15 +19,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  installer-test-matrix:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Get distros
+        id: get-matrix
+        run: |
+          dockerfiles=$(ls internal/buildscripts/packaging/tests/images/deb/Dockerfile.* internal/buildscripts/packaging/tests/images/rpm/Dockerfile.* | cut -d '.' -f2- | sort -u)
+          if [ -z "$dockerfiles" ]; then
+            echo "Failed to get dockerfiles from internal/buildscripts/packaging/tests/images!" >&2
+            exit 1
+          fi
+          distro=$(for d in $dockerfiles; do echo -n "'$d', "; done)
+          arch="'amd64', 'arm64'"
+          exclude="{'DISTRO': 'opensuse-12', 'ARCH': 'arm64'}"  # opensuse-12 image does not support arm64
+          echo "matrix={'DISTRO': [${distro%, }], 'ARCH': [${arch}], 'exclude': [${exclude}]}" >> $GITHUB_OUTPUT
+          echo "head_ref=${{ github.head_ref }}"
+          echo "base_ref=${{ github.base_ref }}"
+    outputs:
+      matrix: ${{ steps.get-matrix.outputs.matrix }}
+
   linux-installer-script-test:
     name: linux-installer-script-test
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ubuntu-20.04
+    needs: installer-test-matrix
     strategy:
-      matrix:
-        PACKAGE_TYPE: [ "deb", "rpm" ]
-        INSTRUMENTATION: [ "true", "false" ]
-        ARCH: [ "amd64", "arm64" ]
+      matrix: ${{ fromJSON(needs.installer-test-matrix.outputs.matrix) }}
     env:
       PYTHON_VERSION: '3.10'
       PIP_VERSION: '22.0.4'
@@ -60,16 +81,11 @@ jobs:
           pip install -r "${{ env.REQUIREMENTS_PATH }}"
 
       - name: Test installer script
-        timeout-minutes: 90
+        timeout-minutes: 60
         run: |
           mkdir -p ${{ env.RESULT_PATH }}
-          if [ "${{ matrix.INSTRUMENTATION }}" = "true" ]; then
-            markers="${{ matrix.PACKAGE_TYPE }} and instrumentation"
-          else
-            markers="${{ matrix.PACKAGE_TYPE }} and not instrumentation"
-          fi
-          pytest -n2 --verbose -m "$markers" \
-            -k "${{ matrix.ARCH }}" \
+          pytest -n2 --verbose \
+            -k "${{ matrix.DISTRO }} and ${{ matrix.ARCH }}" \
             --junitxml=${{ env.RESULT_PATH }}/results.xml \
             --html=${{ env.RESULT_PATH }}/results.html \
             --self-contained-html \
@@ -78,5 +94,5 @@ jobs:
       - name: Uploading artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: linux-installer-script-test-${{ matrix.PACKAGE_TYPE }}-${{ matrix.INSTRUMENTATION }}-result
+          name: linux-installer-script-test-${{ matrix.DISTRO }}-${{ matrix.ARCH }}-result
           path: ${{ env.RESULT_PATH }}

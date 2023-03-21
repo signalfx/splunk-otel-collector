@@ -28,6 +28,13 @@ get_distro() {
   echo "$distro"
 }
 
+get_distro_like() {
+  local distro_like="$(. /etc/os-release 2>/dev/null && echo ${ID_LIKE:-} || true)"
+
+  echo "$distro_like"
+}
+
+
 get_distro_version() {
   local version="$(. /etc/os-release 2>/dev/null && echo ${VERSION_ID:-} || true)"
 
@@ -67,6 +74,7 @@ collector_env_old_path="${collector_config_dir}/splunk_env"
 collector_bundle_dir="/usr/lib/splunk-otel-collector/agent-bundle"
 collectd_config_dir="${collector_bundle_dir}/run/collectd"
 distro="$( get_distro )"
+distro_like="$( get_distro_like )"
 distro_codename="$( get_distro_codename )"
 distro_version="$( get_distro_version )"
 repo_base="https://splunk.jfrog.io/splunk"
@@ -556,6 +564,37 @@ install() {
       fi
       ;;
     *)
+      case "$distro_like" in
+      *rhel*)
+        if [ -z "$distro_version" ]; then
+          echo "The distribution version could not be determined" >&2
+          exit 1
+        fi
+        install_yum_package "libcap"
+        if [ "$skip_collector_repo" = "false" ]; then
+          install_collector_yum_repo "$stage"
+        fi
+        install_yum_package "splunk-otel-collector" "$collector_version"
+        if [ -n "$td_agent_version" ]; then
+          if [ "$skip_fluentd_repo" = "false" ]; then
+            install_td_agent_yum_repo "$td_agent_version"
+          fi
+          install_yum_package "td-agent" "$td_agent_version"
+          if command -v yum >/dev/null 2>&1; then
+            yum group install -y 'Development Tools'
+          else
+            dnf group install -y 'Development Tools'
+          fi
+          for pkg in libcap-ng libcap-ng-devel pkgconfig; do
+            install_yum_package "$pkg" ""
+          done
+          systemctl stop td-agent
+        fi
+        if [ -n "$instrumentation_version" ]; then
+          install_yum_package "splunk-otel-auto-instrumentation" "$instrumentation_version"
+        fi
+        ;;
+      esac
       echo "Your distro ($distro) is not supported or could not be determined" >&2
       exit 1
       ;;
@@ -607,6 +646,28 @@ uninstall() {
           fi
           ;;
         *)
+          case "$distro_like" in
+          *rhel*)
+            if rpm -q $pkg >/dev/null 2>&1; then
+              if [ "$pkg" != "splunk-otel-auto-instrumentation" ]; then
+                systemctl stop $pkg || true
+              fi
+              if command -v yum >/dev/null 2>&1; then
+                yum remove -y $pkg 2>&1
+              elif command -v dnf >/dev/null 2>&1; then
+                dnf remove -y $pkg 2>&1
+              else
+                zypper remove -y $pkg
+              fi
+              echo "Successfully removed the $pkg package"
+            else
+              agent_path="$( command -v agent )"
+              echo "$agent_path exists but the $pkg package is not installed" >&2
+              echo "$agent_path needs to be manually removed/uninstalled" >&2
+              exit 1
+            fi
+            ;;
+          esac
           echo "Your distro ($distro) is not supported or could not be determined" >&2
           exit 1
           ;;
@@ -748,6 +809,15 @@ distro_is_supported() {
           ;;
       esac
       ;;
+    *)
+      case "$distro_like" in
+      *rhel*)
+        case "$distro_version" in
+        7*|8*)
+          return 0
+          ;;
+        esac
+      esac
   esac
   return 1
 }

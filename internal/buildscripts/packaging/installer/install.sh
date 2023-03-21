@@ -69,6 +69,7 @@ collectd_config_dir="${collector_bundle_dir}/run/collectd"
 distro="$( get_distro )"
 distro_codename="$( get_distro_codename )"
 distro_version="$( get_distro_version )"
+distro_arch="$( uname -m )"
 repo_base="https://splunk.jfrog.io/splunk"
 
 deb_repo_base="${repo_base}/otel-collector-deb"
@@ -752,6 +753,37 @@ distro_is_supported() {
   return 1
 }
 
+arch_supported() {
+  case "$distro_arch" in
+    amd64|x86_64|aarch64|arm64)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+fluentd_supported() {
+  case "$distro" in
+    sles|opensuse*)
+      return 1
+      ;;
+    debian)
+      if [ "$distro_version" = "9" ] && [ "$distro_arch" = "aarch64" ]; then
+        return 1
+      fi
+      ;;
+    ubuntu)
+      if [ "$distro_version" = "16.04" ] && [ "$distro_arch" = "aarch64" ]; then
+        return 1
+      fi
+      ;;
+  esac
+
+  return 0
+}
+
 parse_args_and_install() {
   local access_token=
   local api_url=
@@ -863,6 +895,11 @@ parse_args_and_install() {
         uninstall="true"
         ;;
       --with-fluentd)
+        # Fail immediately if the --with-fluentd was explicitly specified but is unsupported
+        if ! fluentd_supported; then
+          echo "Fluentd is currently not supported for ${distro}:${distro_version} $distro_arch" >&2
+          exit 1
+        fi
         with_fluentd="true"
         ;;
       --without-fluentd)
@@ -967,16 +1004,19 @@ parse_args_and_install() {
     exit 1
   fi
 
+  if ! arch_supported; then
+    echo "Your system's architecture '${distro_arch}' is not supported." >&2
+    exit 1
+  fi
+
   if ! command -v systemctl >/dev/null 2>&1; then
     echo "The systemctl command is required but was not found." >&2
     exit 1
   fi
 
-  case "$distro" in
-    sles|opensuse*)
-      with_fluentd="false"
-      ;;
-  esac
+  if ! fluentd_supported; then
+    with_fluentd="false"
+  fi
 
   ensure_not_installed "$with_fluentd" "$with_instrumentation"
 

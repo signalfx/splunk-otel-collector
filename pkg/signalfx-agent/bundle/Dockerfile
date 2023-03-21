@@ -21,17 +21,25 @@ ARG COLLECTD_VERSION=5.8.0-sfx0
 ARG COLLECTD_COMMIT=4d3327b14cf4359029613baf4f90c4952702105e
 ARG DOCKER_REPO=docker.io
 
-######### Java monitor dependencies and monitor jar compilation
-FROM ${DOCKER_REPO}/ubuntu:18.04 as java
+######## Base image used by all builder stages ########
+FROM ${DOCKER_REPO}/python:${PYTHON_VERSION}-buster as base
 
 ARG ARCH
-ARG JDK_VERSION
-ARG MAVEN_VERSION
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt update &&\
-    apt install -y wget
+RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
+    apt-get update
+
+
+######## Java monitor dependencies and monitor jar compilation ########
+FROM base as java
+
+ARG JDK_VERSION
+ARG MAVEN_VERSION
+
+RUN apt-get install -y --no-install-recommends \
+      wget
 
 ENV OPENJDK_BASE_URL="https://github.com/adoptium/temurin11-binaries/releases/download"
 
@@ -43,7 +51,7 @@ RUN ENCODED_VER=$(echo $JDK_VERSION | sed 's/_/%2B/g') && \
     else \
     OPENJDK_URL="${OPENJDK_BASE_URL}/jdk-${ENCODED_VER}/OpenJDK11U-jdk_${ARCH}_linux_hotspot_${JDK_VERSION}.tar.gz"; \
     fi && \
-    wget -O /tmp/openjdk.tar.gz "$OPENJDK_URL"
+    wget -nv -O /tmp/openjdk.tar.gz "$OPENJDK_URL"
 
 RUN mkdir -p /opt/root && \
     tar -C /opt/root -xzf /tmp/openjdk.tar.gz && \
@@ -60,7 +68,7 @@ RUN mkdir -p /opt/root/jre && \
 
 ENV MAVEN_BASE_URL="https://archive.apache.org/dist/maven/maven-3"
 
-RUN wget -O /tmp/maven.tar.gz ${MAVEN_BASE_URL}/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
+RUN wget -nv -O /tmp/maven.tar.gz ${MAVEN_BASE_URL}/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
     tar -C /tmp -xzf /tmp/maven.tar.gz && \
     rm -f /tmp/maven.tar.gz
 
@@ -76,17 +84,13 @@ RUN cd /usr/src/agent-java/jmx &&\
 RUN rm -rf /tmp/apache-maven*
 
 
-###### Python bundle builder image ######
-FROM ${DOCKER_REPO}/ubuntu:18.04 as python
+######## Collectd builder image ########
+FROM base as collectd
 
-ARG ARCH
-ARG PYTHON_VERSION
+ARG COLLECTD_VERSION
+ARG COLLECTD_COMMIT
 
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
-    apt-get update &&\
-    apt-get install -y \
+RUN apt-get install -y --no-install-recommends \
       curl \
       dpkg \
       net-tools \
@@ -97,16 +101,13 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
       autotools-dev \
       bison \
       build-essential \
-      debhelper \
+      dbus \
       debian-archive-keyring \
       debootstrap \
+      default-libmysqlclient-dev \
       devscripts \
-      dh-make \
-      dpatch \
-      fakeroot \
       flex \
       gcc \
-      git-core \
       iptables-dev \
       libatasmart-dev \
       libcurl4-openssl-dev \
@@ -118,7 +119,7 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
       libexpat1-dev \
       libffi-dev \
       libganglia1-dev \
-      libgcrypt11-dev \
+      libgcrypt20-dev \
       libglib2.0-dev \
       libldap2-dev \
       libltdl-dev \
@@ -132,11 +133,10 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
       libpcap-dev \
       libperl-dev \
       libpq-dev \
-      libprotobuf-c0-dev \
+      libprotobuf-c-dev \
       librabbitmq-dev \
       librdkafka-dev \
       librrd-dev \
-      libsensors4-dev \
       libsnmp-dev \
       libssl-dev \
       libtool \
@@ -153,33 +153,18 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
       quilt \
       zlib1g-dev
 
-RUN wget https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29 && \
-    dpkg -i mysql-apt-config_0.8.12-1_all.deb && \
-    rm -f mysql-apt-config_0.8.12-1_all.deb && \
-    apt-get update && apt-get install -y libmysqlclient-dev libcurl4-gnutls-dev
-
-RUN wget -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
+# Debian Buster only provides lm-sensors 3.5, but collectd 5.8 needs lm-sensors 3.4.
+RUN cd /tmp &&\
+    wget -nv -O lm-sensors.tar.gz https://github.com/lm-sensors/lm-sensors/archive/refs/tags/V3-4-0.tar.gz &&\
+    tar -xzf lm-sensors.tar.gz &&\
+    cd lm-sensors-3-4-0 &&\
+    make install PREFIX=/usr &&\
     cd /tmp &&\
-    tar xzf Python-${PYTHON_VERSION}.tgz && \
-    cd Python-${PYTHON_VERSION} && \
-    ./configure --enable-shared --enable-ipv6 --with-system-ffi --with-system-expat && \
-    make -j`nproc` && make install libinstall && \
-    ldconfig
-
-RUN rm -rf /tmp/Python*
-
-
-###### Collectd builder image ######
-FROM python as collectd
-
-ARG ARCH
-ARG COLLECTD_VERSION
-ARG COLLECTD_COMMIT
+    rm -rf lm-sensors*
 
 RUN cd /tmp &&\
-    wget https://github.com/signalfx/collectd/archive/${COLLECTD_COMMIT}.tar.gz &&\
-    tar -xvf ${COLLECTD_COMMIT}.tar.gz &&\
+    wget -nv https://github.com/signalfx/collectd/archive/${COLLECTD_COMMIT}.tar.gz &&\
+    tar -xzf ${COLLECTD_COMMIT}.tar.gz &&\
     mkdir -p /usr/src/ &&\
     mv collectd-${COLLECTD_COMMIT}* /usr/src/collectd &&\
     rm -f ${COLLECTD_COMMIT}.tar.gz
@@ -193,7 +178,7 @@ COPY --from=java /opt/root/jdk/ /opt/root/jdk/
 WORKDIR /usr/src/collectd
 
 ARG extra_cflags="-O2"
-ENV CFLAGS "-Wno-deprecated-declarations -Wno-format-truncation -fPIC $extra_cflags"
+ENV CFLAGS "-Wno-deprecated-declarations -Wno-format-truncation -Wno-stringop-truncation -Wno-unused-variable -Wno-unused-function -Wno-stringop-overflow -fPIC $extra_cflags"
 ENV CXXFLAGS $CFLAGS
 ENV JAVA_HOME /opt/root/jdk
 
@@ -256,8 +241,8 @@ RUN /opt/collect-libs /opt/deps /usr/sbin/collectd /usr/lib/collectd/
 
 # Compile patchelf statically from source
 RUN cd /tmp &&\
-    wget https://nixos.org/releases/patchelf/patchelf-0.11/patchelf-0.11.tar.gz &&\
-    tar -xf patchelf*.tar.gz &&\
+    wget -nv https://nixos.org/releases/patchelf/patchelf-0.11/patchelf-0.11.tar.gz &&\
+    tar -xzf patchelf*.tar.gz &&\
     cd patchelf-0.11* &&\
     ./configure LDFLAGS="-static" &&\
     make &&\
@@ -267,33 +252,33 @@ RUN rm -rf /tmp/patchelf*
 
 # For some reason libvarnishapi doesn't properly depend on libm, so make it
 # right.
-RUN patchelf --add-needed libm-2.23.so /opt/deps/libvarnishapi.so.1.0.6
+RUN patchelf --add-needed libm-2.28.so /opt/deps/libvarnishapi.so.2.0.0
 
 
-###### Python Plugin Image ######
+######## Python Plugin Image ########
 FROM collectd as python-plugins
 
 ARG PIP_VERSION
 
-RUN /usr/local/bin/python3 -m pip install --upgrade pip==$PIP_VERSION
+RUN /usr/local/bin/python3.8 -m pip install --upgrade pip==$PIP_VERSION
 
 # Mirror the same dir structure that exists in the original source
 COPY scripts/get-collectd-plugins.py /opt/scripts/
 COPY scripts/requirements.txt /opt/
 COPY collectd-plugins.yaml /opt/
 
-RUN /usr/local/bin/python3 -m pip install -r /opt/requirements.txt
+RUN /usr/local/bin/python3.8 -m pip install -r /opt/requirements.txt
 
 RUN mkdir -p /opt/collectd-python &&\
-    /usr/local/bin/python3 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python
+    /usr/local/bin/python3.8 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python
 
 COPY python/ /opt/sfxpython/
-RUN cd /opt/sfxpython && /usr/local/bin/python3 -m pip install .
+RUN cd /opt/sfxpython && /usr/local/bin/python3.8 -m pip install .
 
-RUN /usr/local/bin/python3 -m pip list
+RUN /usr/local/bin/python3.8 -m pip list
 
 # Remove pip to avoid usage in python monitor and in exec'd container
-RUN /usr/local/bin/python3 -m pip uninstall pip -y
+RUN /usr/local/bin/python3.8 -m pip uninstall pip wheel -y
 # Delete all bundled wheels
 RUN find /usr/local/lib/python3.8 -name "*.whl" -delete
 
@@ -306,18 +291,16 @@ RUN find /usr/local/lib/python3.8 -type d -name __pycache__ | xargs rm -rf {} \;
 RUN find /usr/local/lib/python3.8 -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 
 
-####### Extra packages that don't make sense to pull down in any other stage ########
-FROM ${DOCKER_REPO}/ubuntu:18.04 as extra-packages
+######## Extra packages that don't make sense to pull down in any other stage ########
+FROM base as extra-packages
 
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN apt update &&\
-    apt install -y \
-        curl \
-        host \
-        iproute2 \
-        netcat \
-        netcat.openbsd
+RUN apt-get install -y --no-install-recommends \
+      curl \
+      host \
+      iproute2 \
+      netcat \
+      netcat.openbsd \
+      procps
 
 COPY scripts/collect-libs /opt/collect-libs
 
@@ -373,10 +356,10 @@ COPY scripts/patch-rpath /usr/bin/
 RUN patch-rpath /opt/root
 
 
-###### Final Agent Image #######
-# This build stage is meant as the final target when running the agent in a
-# container environment (e.g. directly with Docker or on K8s).  The stages
-# below this are special-purpose.
+######## Final Agent Bundle Image ########
+# This build stage is meant as the final target for preparing the agent-bundle
+# components from the previous stages.
+# The final image should not be run directly, but only extracted and packaged.
 FROM scratch as final-image
 
 COPY --from=collectd /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
@@ -388,7 +371,7 @@ COPY --from=collectd /usr/local/bin/patchelf /bin/
 # Pull in the Linux dynamic link loader at a fixed path across all
 # architectures.  Binaries will later be patched to use this interpreter
 # natively.
-COPY --from=extra-packages /lib/*-linux-gnu/ld-2.27.so /bin/ld-linux.so
+COPY --from=extra-packages /lib/*-linux-gnu/ld-2.28.so /bin/ld-linux.so
 
 # Java dependencies
 COPY --from=extra-packages /opt/root/jre/ /jre

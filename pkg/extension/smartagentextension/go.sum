@@ -750,8 +750,8 @@ github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657 h1:2B5haF9erda
 github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657/go.mod h1:mUgf0Go14xjLxNZFSGSK9m+GT7jCHyECuCjPh1zadUc=
 github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 h1:WsShHmu12ZztYPfh9b+I+VjYD1o8iOHhB67WZCMEEE8=
 github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083/go.mod h1:adPDS6s7WaajdFBV9mQ7i0dKfQ8xiDnF9ZNETVPpp7c=
-github.com/signalfx/golib/v3 v3.3.48 h1:EXoqCXYcoQ2AIPYXDklZM5oHwQZRYbuctm1Iu6sEEu4=
-github.com/signalfx/golib/v3 v3.3.48/go.mod h1:/jx5myRkObUBS4EVNQqv2J1mCxcVO9qVGa36pqyYTic=
+github.com/signalfx/golib/v3 v3.3.49 h1:VILz6AshpESJANkY0vKccfWjtIs0TXuX5AMdRERvA28=
+github.com/signalfx/golib/v3 v3.3.49/go.mod h1:/jx5myRkObUBS4EVNQqv2J1mCxcVO9qVGa36pqyYTic=
 github.com/signalfx/sapm-proto v0.12.0 h1:OtOe+Jm8L61Ml8K6X8a89zc8/RlaaMRElCImeGKR/Ew=
 github.com/signalfx/sapm-proto v0.12.0/go.mod h1:wQEki8RNCYjkv19jw5aWDcmDMTQru0ckfUbgHI69U2E=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=

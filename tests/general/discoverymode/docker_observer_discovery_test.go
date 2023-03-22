@@ -72,11 +72,14 @@ func TestDockerObserver(t *testing.T) {
 				"DOCKER_DOMAIN_SOCKET":       "unix:///var/run/dock.e.r.sock",
 				"LABEL_ONE_VALUE":            "actual.label.one.value",
 				"LABEL_TWO_VALUE":            "actual.label.two.value",
+				"SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_three": "overwritten by --set property",
+				"SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_four":  "actual.label.four.value",
 			}).WithArgs(
 				"--discovery", "--config-dir", "/opt/config.d",
 				"--set", `splunk.discovery.extensions.host_observer.enabled=false`,
 				"--set", `splunk.discovery.extensions.k8s_observer.enabled=false`,
 				"--set", `splunk.discovery.extensions.docker_observer.config.endpoint=${DOCKER_DOMAIN_SOCKET}`,
+				"--set", `splunk.discovery.receivers.prometheus_simple.config.labels::label_three=actual.label.three.value`,
 			)
 		},
 	)
@@ -127,8 +130,11 @@ func TestDockerObserver(t *testing.T) {
 							"config": map[string]any{
 								"collection_interval": "1s",
 								"labels": map[string]any{
-									"label_one": "${LABEL_ONE_VALUE}",
-									"label_two": "${LABEL_TWO_VALUE}",
+									"label_five":  "actual.label.five.value",
+									"label_four":  "actual.label.four.value",
+									"label_one":   "${LABEL_ONE_VALUE}",
+									"label_three": "actual.label.three.value",
+									"label_two":   "${LABEL_TWO_VALUE}",
 								},
 							},
 							"resource_attributes": map[string]any{},
@@ -187,8 +193,11 @@ func TestDockerObserver(t *testing.T) {
 						"config": map[string]any{
 							"collection_interval": "1s",
 							"labels": map[string]any{
-								"label_one": "actual.label.one.value",
-								"label_two": "actual.label.two.value",
+								"label_one":   "actual.label.one.value",
+								"label_two":   "actual.label.two.value",
+								"label_three": "actual.label.three.value",
+								"label_four":  "actual.label.four.value",
+								"label_five":  "actual.label.five.value",
 							},
 						},
 						"resource_attributes": map[string]any{},
@@ -206,7 +215,10 @@ func TestDockerObserver(t *testing.T) {
 SPLUNK_DISCOVERY_EXTENSIONS_host_observer_ENABLED=false \
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false \
 SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint=\${DOCKER_DOMAIN_SOCKET} \
-/otelcol --config-dir /opt/config.d --discovery --dry-run`)
+SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_three=="overwritten by --set property" \
+SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5f_four="actual.label.four.value" \
+/otelcol --config-dir /opt/config.d --discovery --dry-run \
+--set splunk.discovery.receivers.prometheus_simple.config.labels::label_three=actual.label.three.value`)
 	require.Equal(t, `exporters:
   otlp:
     endpoint: ${OTLP_ENDPOINT}
@@ -222,7 +234,10 @@ receivers:
         config:
           collection_interval: 1s
           labels:
+            label_five: actual.label.five.value
+            label_four: actual.label.four.value
             label_one: ${LABEL_ONE_VALUE}
+            label_three: actual.label.three.value
             label_two: ${LABEL_TWO_VALUE}
         resource_attributes: {}
         rule: type == "container" and labels['test.id'] == '${SPLUNK_TEST_ID}' and

@@ -102,3 +102,49 @@ successfully started observers.
 
 
 By default, the Discovery mode is provided with pre-made discovery config components in [`bundle.d`](./bundle/README.md).
+
+
+### Discovery properties
+
+Configuring discovery components is performed by merging discovery properties with the config.d receivers
+and extensions `*.discovery.yaml` files. Discovery properties are of the form:
+
+```yaml
+splunk.discovery.receivers.<receiver-type(/name)>.config.<field>(<::subfield>)*: <value>
+splunk.discovery.extensions.<observer-type(/name)>.config.<field>(<::subfield>)*: <value>
+splunk.discovery.receivers.<receiver-type(/name)>.enabled: <true or false>
+splunk.discovery.extensions.<observer-type(/name)>.enabled: <true or false>
+
+# Examples
+splunk.discovery.receivers.prometheus_simple.config.labels::my_label: my_label_value
+splunk.discovery.receivers.prometheus_simple.enabled: true
+
+splunk.discovery.extensions.docker_observer.config.endpoint: tcp://localhost:8080
+splunk.discovery.extensions.k8s_observer.enabled: false
+```
+
+These properties can be in `config.d/properties.discovery.yaml` or specified at run time with `--set` command line options.
+
+Each discovery property also has an equivalent environment variable form using `_x<hex pair>_` encoded delimiters for
+non-word characters `[^a-zA-Z0-9_]`:
+
+```bash
+SPLUNK_DISCOVERY_RECEIVERS_receiver_x2d_type_x2f_receiver_x2d_name_CONFIG_field_x3a__x3a_subfield=value
+SPLUNK_DISCOVERY_EXTENSIONS_observer_x2d_type_x2f_observer_x2d_name_CONFIG_field_x3a__x3a_subfield=value
+SPLUNK_DISCOVERY_RECEIVERS_receiver_x2d_type_x2f_receiver_x2d_name_ENABLED=<true or false>
+SPLUNK_DISCOVERY_EXTENSIONS_observer_x2d_type_x2f_observer_x2d_name_ENABLED=<true or false>
+
+# Examples
+SPLUNK_DISCOVERY_RECEIVERS_prometheus_simple_CONFIG_labels_x3a__x3a_my_label="my_username"
+SPLUNK_DISCOVERY_RECEIVERS_prometheus_simple_ENABLED=true
+
+SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint="tcp://localhost:8080"
+SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false
+```
+
+The priority order for discovery config content from lowest to highest is:
+
+1. `config.d/<receivers or extensions>/*.discovery.yaml` file content (lowest).
+2. `config.d/properties.discovery.yaml` file content.
+3. `SPLUNK_DISCOVERY_<xyz>` environment variables available to the collector process.
+4. `--set splunk.discovery.<xyz>` commandline options (highest).

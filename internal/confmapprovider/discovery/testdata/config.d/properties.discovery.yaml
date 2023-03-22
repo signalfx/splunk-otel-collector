@@ -1,0 +1,2 @@
+splunk.discovery.receivers.smartagent/postgresql.config.params.unused_param: param_value
+splunk.discovery.extensions.docker_observer.config.timeout: 1s

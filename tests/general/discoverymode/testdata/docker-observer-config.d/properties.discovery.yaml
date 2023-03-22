@@ -1,0 +1,3 @@
+splunk.discovery.receivers.prometheus_simple.config.labels::label_three: overwritten by --set property
+splunk.discovery.receivers.prometheus_simple.config.labels::label_four: overwritten by env var property
+splunk.discovery.receivers.prometheus_simple.config.labels::label_five: actual.label.five.value

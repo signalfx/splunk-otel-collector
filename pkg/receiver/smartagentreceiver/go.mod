@@ -3,7 +3,7 @@ module github.com/signalfx/splunk-otel-collector/pkg/receiver/smartagentreceiver
 go 1.19
 
 require (
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.73.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.74.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.73.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.73.0
 	github.com/openzipkin/zipkin-go v0.4.1

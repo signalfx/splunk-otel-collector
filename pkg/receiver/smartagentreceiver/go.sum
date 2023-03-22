@@ -1006,8 +1006,8 @@ github.com/onsi/gomega v1.13.0/go.mod h1:lRk9szgn8TxENtWd0Tp4c3wjlRfMTMH27I+3Je4
 github.com/onsi/gomega v1.26.0 h1:03cDLK28U6hWvCAns6NeydX3zIm4SF3ci69ulidS32Q=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.73.0 h1:1WpzAuX9TOKBUWZjJv/iDNcU59jKKc6/Ev+l03u4syU=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.73.0/go.mod h1:WD0hPhMuyROSaxL7mtY5NBK3uK5x+UP5UCaLpnF0mHc=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.73.0 h1:OifqsAG6665rh/IOR5PL0Ie9y2M4MN6FbjWUODrnKTI=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.73.0/go.mod h1:kLKdaPGMwQo/3UPB7xekmtzlk7sk2+DxIjxMn5vcUZk=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.74.0 h1:ADJ6Lcfu2qfe5qEETxg3RvbwLa9/6l6oghEMxA7XAtc=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.74.0/go.mod h1:kLKdaPGMwQo/3UPB7xekmtzlk7sk2+DxIjxMn5vcUZk=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.73.0 h1:OSzBQJtz311E32x8NiQ64TVtjKBuRZPHykYtDFq65Z4=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.73.0/go.mod h1:xBqrccmJNnfYnZgEmOJah654bEjHi0iw4IDJsuS6g/8=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.73.0 h1:b62Oq3dniQm3eg8OcnBnlZCyZ4O85iyKPFuCIeYNCKk=

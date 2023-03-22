@@ -38,3 +38,4 @@ jobs:
           commit-message: Update Bundled OpenJDK to latest
           base: main
           draft: true
+          branch: create-pull-request/update-openjdk

@@ -1,0 +1,55 @@
+
+<LoadPlugin vmem>
+  Interval {{.IntervalSeconds}}
+</LoadPlugin>
+<Plugin vmem>
+  Verbose false
+</Plugin>
+
+<Chain "PostCache">
+  <Rule "FilterOutExcessiveVmemData">
+    <Match "regex">
+      Plugin '^vmem$'
+    </Match>
+    <Target "jump">
+      Chain "VmemFilters"
+    </Target>
+    <Target "set"> 
+      MetaData "monitorID" "{{.MonitorID}}" 
+    </Target> 
+  </Rule>
+</Chain>
+
+<Chain "VmemFilters">
+  <Rule "vmem_filtering_accept_whitelisted_vmpage_faults">
+    <Match "regex">
+      Type 'vmpage_faults'
+    </Match>
+    Target "return"
+  </Rule>
+
+  <Rule "vmem_filtering_accept_whitelisted_vmpage_io">
+    <Match "regex">
+      Type 'vmpage_io'
+    </Match>
+    Target "return"
+  </Rule>
+
+  <Rule "vmem_filtering_accept_whitelisted_vmpage_number_free_pages">
+    <Match "regex">
+      Type 'vmpage_number'
+      TypeInstance 'free_pages'
+    </Match>
+  Target "return"
+  </Rule>
+
+  <Rule "vmem_filtering_accept_whitelisted_vmpage_number_mapped">
+    <Match "regex">
+      Type 'vmpage_number'
+      TypeInstance 'mapped'
+    </Match>
+    Target "return"
+  </Rule>
+
+  Target "stop"
+</Chain>

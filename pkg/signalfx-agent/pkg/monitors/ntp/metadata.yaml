@@ -1,0 +1,16 @@
+monitors:
+- doc: |
+    This monitor will retrieve clock offset from ntp server.
+
+    It enforces a minimum interval of 30m.
+
+  dimensions:
+    ntp:
+      description: NTP server used. Corresponds to configured `host`.
+  metrics:
+    ntp.offset_seconds:
+      description: Time difference between local and NTP server clocks in seconds.
+      default: true
+      type: gauge
+  monitorType: ntp
+  properties:

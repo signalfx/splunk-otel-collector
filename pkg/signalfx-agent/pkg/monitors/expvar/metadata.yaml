@@ -1,0 +1,357 @@
+monitors:
+- dimensions:
+  doc: |
+    The expvar monitor is a SignalFx Smart Agent monitor that scrapes metrics from variables exposed in JSON
+    format at an HTTP endpoint by [expvar](https://golang.org/pkg/expvar/). The monitor uses configured paths
+    to get metric and dimension values from fetched JSON objects.
+
+    The Metrics section in this document shows metrics derived from expvar variable
+    [memstats](https://golang.org/pkg/runtime/). The memstat variable is exposed by default. These memstat
+    metrics are referred to as standard or default metrics. The configuration examples shown are excerpts
+    limited to the monitor configuration section of the SignalFx Smart Agent configuration file `agent.yml`.
+
+    Below is an example showing the minimal required expvar monitor configuration for exporting
+    the default metrics from endpoint `http://172.17.0.3:8000/debug/vars`. `/debug/vars` is the default path.
+    ```
+    monitors:
+    - type: expvar
+      host: 172.17.0.3
+      path: /debug/vars
+      port: 8000
+    ```
+    We recommend you include the extra dimension `metric_source` with a meaningful value in order to facilitate
+    filtering in the SignalFx app. See below.
+    ```
+    monitors:
+    - type: expvar
+      host: 172.17.0.3
+      path: /debug/vars
+      port: 8000
+      extraDimensions:
+        metric_source: expvar
+    ```
+    Below is an example showing part of a JSON payload containing the exposed variable `requestsPerSecond` containing
+    requests per second metric information.
+    ```
+    {
+      ...
+      "requestsPerSecond": 919,
+      ...
+    }
+    ```
+    Suppose that the payload is emanating from endpoint `http://172.17.0.4:6000/appmetrics`. The monitor can be
+    configured as shown below in order to scrape `requestsPerSecond`. The metric name is optional. If not provided,
+    the JSONPath value `requestsPerSecond` snake cased to `requests_per_second` will be used instead.
+    ```
+    monitors:
+    - type: expvar
+      host: 172.17.0.4
+      path: /debug/vars
+      port: 6000
+      metrics:
+        - name: requests.sec
+          JSONPath: requestsPerSecond
+          type: gauge
+      extraDimensions:
+        metric_source: expvar-aws
+    ```
+    The expvar monitor can be configured to extract metric values from complex JSON objects such as the one shown
+    below. Suppose the `memstats` variable shown below is exposed at endpoint `http://172.17.0.5:5000/debug/vars`
+    and you want to extract the cumulative `Mallocs` values.
+    ```
+    {
+      ...
+      "memstats": {
+                    ...
+                    "GCCPUFraction": 0.0000032707490586459204,
+                    "BySize": [
+                      {
+                          "Size": 32,
+                          "Mallocs": 35387,
+                          "Frees": 35021
+                      },
+                      {
+                          "Size": 48,
+                          "Mallocs": 35387,
+                          "Frees": 63283
+                      }
+                    ]
+                    "HeapAlloc": 2138088,
+                    ...
+                  }
+      ...
+    }
+    ```
+    To fetch the first cumulative `Mallocs` value in the `BySize` array configure the monitor as shown below. The
+    configured path (JSONPath) contains character delimited keys of metric values in the JSON object. The path must
+    be defined fully, terminating on primitive values or array of primitive values. The path should not terminated
+    on embedded object(s). No metric name was provided for this configuration so the metric name defaults to
+    `memstats.by_size.mallocs`. Also, a dimension named `memstats_by_size_index` containing the array index 0 is
+    created.
+    ```
+    monitors:
+    - type: expvar
+      host: 172.12.0.5
+      path: /debug/vars
+      port: 5000
+      metrics:
+        - JSONPath: memstats.BySize.0.Mallocs
+          type: cumulative
+      extraDimensions:
+        metric_source: expvar
+    ```
+    `.` is the default path separator character and thus no need to specify. Below is the same configuration using
+     `/` as the path separator character.
+    ```
+    monitors:
+    - type: expvar
+      host: 172.12.0.5
+      path: /debug/vars
+      port: 5000
+      metrics:
+        - JSONPath: memstats/BySize/0/Mallocs
+          pathSeparator: /
+          type: cumulative
+      extraDimensions:
+        metric_source: expvar
+    ```
+    To fetch all `Mallocs` values or a combination thereof, configure JSONPath with regular expression. The
+    configuration below configures the monitor to fetch all 2 `Mallocs` values (35387 and 35387). Two data points
+    for metric `memstats.by_size.mallocs` containing the values will be fetched. The datapoints will have dimension
+    `memstats_by_size_index` containing their respective array index. Note that the escape character `\` is used to
+    escape character `.` of regex `.*` in order take `.` literally as opposed to a path separator character.
+    ```
+    monitors:
+    - type: expvar
+      host: 172.12.0.5
+      path: /debug/vars
+      port: 5000
+      metrics:
+        - JSONPath: memstats.BySize.\\.*.Mallocs
+          type: cumulative
+      extraDimensions:
+        metric_source: expvar
+    ```
+    The configuration below will fetch all the `BySize` values.
+    ```
+    monitors:
+    - type: expvar
+      host: 172.12.0.5
+      path: /debug/vars
+      port: 5000
+      metrics:
+        - JSONPath: memstats.BySize.\\.*.\\.*
+          type: cumulative
+      extraDimensions:
+        metric_source: expvar
+    ```
+    The configuration below will also fetch all the `BySize` values.
+    ```
+    monitors:
+    - type: expvar
+      host: 172.12.0.5
+      path: /debug/vars
+      port: 5000
+      metrics:
+        - JSONPath: memstats.BySize.\\d+.\\.*
+          type: cumulative
+      extraDimensions:
+        metric_source: expvar
+    ```
+    Custom dimensions can be added to metrics as shown below. The dimension name is required if a dimension
+    value is provided. The dimension name is optional when JSONPath for the dimension is provided.
+    ```
+    monitors:
+    - type: expvar
+      host: 172.12.0.5
+      path: /debug/vars
+      port: 5000
+      metrics:
+        - JSONPath: memstats.BySize.\\.*.Mallocs
+          type: cumulative
+          - dimensions:
+            name: physical_memory
+            value: 4GiB
+          - name: app_mem
+            value: "10 MiB"
+      extraDimensions:
+        metric_source: expvar
+    ```
+    The dimension JSONPathcan be configured as shown below. If the dimension name is not provided the dimension
+    name is constructed from snake casing the JSONPath. The dimension JSONPath must be shorter than the metric JSONPath
+    and start at same root. So, for the configuration below, dimensions `memory_stats` and `memstats_by_size` will
+    contain values `BySize` and `0` respectively.
+    ```
+    monitors:
+    - type: expvar
+      host: 172.12.0.5
+      path: /debug/vars
+      port: 5000
+      metrics:
+        - JSONPath: memstats.BySize.0.Mallocs
+          type: cumulative
+          - dimensions:
+            name: memory_stats
+            JSONPath: memstats
+          - dimensions:
+            JSONPath: memstats/BySize
+      extraDimensions:
+        metric_source: expvar
+    ```
+     DO NOT
+    configure the monitor for memstats metrics because they are standard metrics provided by default. We use memstats
+    here to provide a realistic example.
+
+  metrics:
+    memstats.alloc:
+      description: Bytes of allocated heap objects. Same as memstats.heap_alloc
+      default: false
+      type: gauge
+    memstats.heap_alloc:
+      description: Bytes of allocated heap objects
+      default: true
+      type: gauge
+    memstats.heap_sys:
+      description: Bytes of heap memory obtained from the OS
+      default: true
+      type: gauge
+    memstats.heap_idle:
+      description: Bytes in idle (unused) spans
+      default: true
+      type: gauge
+    memstats.heap_inuse:
+      description: Bytes in in-use spans
+      default: true
+      type: gauge
+    memstats.heap_released:
+      description: Bytes of physical memory returned to the OS
+      default: true
+      type: gauge
+    memstats.heap_objects:
+      description: Number of allocated heap objects
+      default: true
+      type: gauge
+    memstats.stack_inuse:
+      description: Bytes in stack spans
+      default: true
+      type: gauge
+    memstats.stack_sys:
+      description: Bytes of stack memory obtained from the OS
+      default: true
+      type: gauge
+    memstats.m_span_inuse:
+      description: Bytes of allocated mspan structures
+      default: true
+      type: gauge
+    memstats.m_span_sys:
+      description: Bytes of memory obtained from the OS for mspan
+      default: true
+      type: gauge
+    memstats.m_cache_inuse:
+      description: Bytes of allocated mcache structures
+      default: true
+      type: gauge
+    memstats.m_cache_sys:
+      description: Bytes of memory obtained from the OS for mcache structures
+      default: true
+      type: gauge
+    memstats.buck_hash_sys:
+      description: Bytes of memory in profiling bucket hash tables
+      default: true
+      type: gauge
+    memstats.gc_sys:
+      description: Bytes of memory in garbage collection metadata
+      default: true
+      type: gauge
+    memstats.other_sys:
+      description: Bytes of memory in miscellaneous off-heap runtime allocations
+      default: true
+      type: gauge
+    memstats.sys:
+      description: total bytes of memory obtained from the OS
+      default: true
+      type: gauge
+    memstats.next_gc:
+      description: Target heap size of the next GC cycle
+      default: true
+      type: gauge
+    memstats.last_gc:
+      description: The time the last garbage collection finished, as nanoseconds since
+        1970 (the UNIX epoch)
+      default: false
+      type: gauge
+    memstats.gccpu_fraction:
+      description: The fraction of this program's available CPU time used by the GC
+        since the program started
+      default: true
+      type: gauge
+    memstats.enable_gc:
+      description: Boolean that indicates that GC is enabled. It is always true, even
+        if GOGC=off
+      default: false
+      type: gauge
+    memstats.debug_gc:
+      description: memstats.debug_gc is currently unused
+      default: false
+      type: gauge
+    memstats.most_recent_gc_pause_ns:
+      description: Most recent GC stop-the-world pause time in nanoseconds
+      default: true
+      type: gauge
+    memstats.most_recent_gc_pause_end:
+      description: Most recent GC pause end time, as nanoseconds since 1970 (the UNIX
+        epoch)
+      default: false
+      type: gauge
+    memstats.total_alloc:
+      description: Cumulative bytes allocated for heap objects
+      default: false
+      type: counter
+    memstats.lookups:
+      description: Number of pointer lookups performed by the runtime
+      default: false
+      type: counter
+    memstats.mallocs:
+      description: Cumulative count of heap objects allocated
+      default: true
+      type: counter
+    memstats.frees:
+      description: Cumulative count of heap objects freed
+      default: true
+      type: counter
+    memstats.pause_total_ns:
+      description: Cumulative nanoseconds in GC stop-the-world pauses since the program
+        started
+      default: false
+      type: counter
+    memstats.num_gc:
+      description: Number of completed GC cycles
+      default: true
+      type: counter
+    memstats.num_forced_gc:
+      description: Number of GC cycles that were forced by the application calling
+        the GC function
+      default: true
+      type: counter
+    memstats.by_size.size:
+      description: The maximum byte size of a class as identified by dimension class.
+        It is the class interval upper limit. The values of dimension class are numbers
+        between 0 and 60 inclusive. Consecutive classes are of consecutive dimension
+        class values. The lower limit of a class is the upper limit of the consecutive
+        class below. Metrics memstats.by_size.size, memstats.by_size.mallocs and memstats.by_size.frees
+        of the same class are related
+      default: false
+      type: counter
+    memstats.by_size.mallocs:
+      description: Cumulative count of heap objects allocated in a class. The class
+        is identified by dimension class and it is as described for metric memstats.by_size.size
+      default: false
+      type: counter
+    memstats.by_size.frees:
+      description: Cumulative count of heap objects freed in a class. The class is
+        identified by dimension class and it is as described for metric memstats.by_size.size
+      default: false
+      type: counter
+  monitorType: expvar
+  sendUnknown: true
+  properties:

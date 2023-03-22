@@ -1,0 +1,12 @@
+LoadPlugin load
+
+<Chain "PostCache"> 
+  <Rule "set_load_monitor_id"> 
+    <Match "regex"> 
+      Plugin "^load$" 
+    </Match> 
+    <Target "set"> 
+      MetaData "monitorID" "{{.MonitorID}}" 
+    </Target> 
+  </Rule> 
+</Chain>

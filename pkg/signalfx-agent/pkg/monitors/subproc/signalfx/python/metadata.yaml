@@ -1,0 +1,64 @@
+monitors:
+- monitorType: python-monitor
+  doc: |
+    This monitor allows you to generate metrics from a Python script.
+
+    Your Python code should be Python 2.7+ *AND* 3.0+ compatible.  The Python
+    runtime bundled with the agent is currently version 2.7 but this could be
+    upgraded at anytime to Python 3.  If you want to use Python 3 at this time,
+    you can specify a custom Python binary with the `pythonBinary` config
+    option.
+
+    ## Module Loading
+    The full file path to the Python script that you want to run should be
+    specified in the `scriptFilePath` config option.  This file will be loaded in
+    Python by adding the directory containing the file to the front of the Python
+    path (`sys.path`) and then dynamically importing the file as a module.  For
+    a hypothetical script at `/opt/scripts/mymonitor.py`, this is roughly
+    equivalent to the following Python code:
+
+    ```
+    import sys
+    sys.path.insert(0, "/opt/scripts")
+
+    import mymodule
+    ```
+
+    There are two ways you can implement a monitor in Python, a simple way or a
+    complex, but more powerful way.  
+
+    ## Simple monitor 
+    The simple way is to write a script that has a `run` function in it.  This
+    function should accept two parameters: `config` and `output`.  The `run`
+    function will be called on a regular interval, specified by the common
+    `intervalSeconds` config option on the monitor config.
+
+    Here is [an example of a simple monitor](https://github.com/signalfx/signalfx-agent/tree/main/python/sample/monitor_simple.py).
+
+    ## Complex monitor
+
+    If you need more power and flexibility in defining your monitor, you can
+    use the complex monitor format.  With this, you define a class called
+    `Monitor` in a Python module. Here is [a documented example of a complex
+    monitor](https://github.com/signalfx/signalfx-agent/tree/main/python/sample/monitor_complex.py).
+
+    ## Auto-discovery
+
+    This monitor works with auto-discovery just like other monitors.  If you
+    set a `discoveryRule` on the monitor config, a new instance of the monitor
+    will be created for each matching endpoint and the `host` and `port` config
+    fields will be populated with the appropriate values and passed to the
+    Python script in the `config` dictionary.
+
+    ## Example Config
+
+    This shows loading a Python module from the agent repo using a single custom config value (`myconfig`):
+
+    ```yaml
+    monitors:
+     - type: python-monitor
+       # pythonBinary: /usr/bin/python
+       scriptFilePath: /usr/src/signalfx-agent/python/sample/monitor_complex.py
+       myconfig: [1,2,3]
+    ```
+  sendAll: true

@@ -1,0 +1,183 @@
+- query: "SELECT STORAGE_BYTES, STAGE_BYTES, FAILSAFE_BYTES from STORAGE_USAGE ORDER BY USAGE_DATE DESC LIMIT 1;"
+  metrics:
+    - metricName: "snowflake.storage.storage_bytes.total"
+      valueColumn: "STORAGE_BYTES"
+    - metricName: "snowflake.storage.stage_bytes.total"
+      valueColumn: "STAGE_BYTES"
+    - metricName: "snowflake.storage.failsafe_bytes.total"
+      valueColumn: "FAILSAFE_BYTES"
+- query: "SELECT DATABASE_NAME, AVERAGE_DATABASE_BYTES, AVERAGE_FAILSAFE_BYTES from DATABASE_STORAGE_USAGE_HISTORY ORDER BY USAGE_DATE DESC LIMIT 1;"
+  metrics:
+    - metricName: "snowflake.storage.database.storage_bytes"
+      valueColumn: "AVERAGE_DATABASE_BYTES"
+      dimensionColumns: ["DATABASE_NAME"]
+    - metricName: "snowflake.storage.database.failsafe_bytes"
+      valueColumn: "AVERAGE_FAILSAFE_BYTES"
+      dimensionColumns: ["DATABASE_NAME"]
+- query: "select SERVICE_TYPE, NAME, sum(CREDITS_USED_COMPUTE), avg(CREDITS_USED_COMPUTE), sum(CREDITS_USED_CLOUD_SERVICES), avg(CREDITS_USED_CLOUD_SERVICES), sum(CREDITS_USED), avg(CREDITS_USED) from METERING_HISTORY where start_time >= date_trunc(day, current_date) group by 1, 2;"
+  metrics:
+    - metricName: "snowflake.billing.virtual_warehouse.sum"
+      valueColumn: "SUM(CREDITS_USED_COMPUTE)"
+      dimensionColumns: ["SERVICE_TYPE", "NAME"]
+    - metricName: "snowflake.billing.virtual_warehouse.avg"
+      valueColumn: "AVG(CREDITS_USED_COMPUTE)"
+      dimensionColumns: ["SERVICE_TYPE", "NAME"]
+    - metricName: "snowflake.billing.cloud_service.sum"
+      valueColumn: "SUM(CREDITS_USED_CLOUD_SERVICES)"
+      dimensionColumns: ["SERVICE_TYPE", "NAME"]
+    - metricName: "snowflake.billing.cloud_service.avg"
+      valueColumn: "AVG(CREDITS_USED_CLOUD_SERVICES)"
+      dimensionColumns: ["SERVICE_TYPE", "NAME"]
+    - metricName: "snowflake.billing.total_credit.sum"
+      valueColumn: "SUM(CREDITS_USED)"
+      dimensionColumns: ["SERVICE_TYPE", "NAME"]
+    - metricName: "snowflake.billing.total_credit.avg"
+      valueColumn: "AVG(CREDITS_USED)"
+      dimensionColumns: ["SERVICE_TYPE", "NAME"]
+- query: "select WAREHOUSE_NAME, sum(CREDITS_USED_COMPUTE), avg(CREDITS_USED_COMPUTE), sum(CREDITS_USED_CLOUD_SERVICES), avg(CREDITS_USED_CLOUD_SERVICES), sum(CREDITS_USED), avg(CREDITS_USED) from WAREHOUSE_METERING_HISTORY where start_time >= date_trunc(day, current_date) group by 1;"
+  metrics:
+    - metricName: "snowflake.billing.warehouse.virtual_warehouse.sum"
+      valueColumn: "SUM(CREDITS_USED_COMPUTE)"
+      dimensionColumns: ["WAREHOUSE_NAME"]
+    - metricName: "snowflake.billing.warehouse.virtual_warehouse.avg"
+      valueColumn: "AVG(CREDITS_USED_COMPUTE)"
+      dimensionColumns: ["WAREHOUSE_NAME"]
+    - metricName: "snowflake.billing.warehouse.cloud_service.sum"
+      valueColumn: "SUM(CREDITS_USED_CLOUD_SERVICES)"
+      dimensionColumns: ["WAREHOUSE_NAME"]
+    - metricName: "snowflake.billing.warehouse.cloud_service.avg"
+      valueColumn: "AVG(CREDITS_USED_CLOUD_SERVICES)"
+      dimensionColumns: ["WAREHOUSE_NAME"]
+    - metricName: "snowflake.billing.warehouse.total_credit.sum"
+      valueColumn: "SUM(CREDITS_USED)"
+      dimensionColumns: ["WAREHOUSE_NAME"]
+    - metricName: "snowflake.billing.warehouse.total_credit.avg"
+      valueColumn: "AVG(CREDITS_USED)"
+      dimensionColumns: ["WAREHOUSE_NAME"]
+- query: "select REPORTED_CLIENT_TYPE, sum(iff(IS_SUCCESS = 'NO', 1, 0)), sum(iff(IS_SUCCESS = 'YES', 1, 0)), count(*) from LOGIN_HISTORY group by REPORTED_CLIENT_TYPE;"
+  metrics:
+    - metricName: "snowflake.logins.fail.count"
+      valueColumn: "SUM(IFF(IS_SUCCESS = 'NO', 1, 0))"
+      isCumulative: true
+      dimensionColumns: ["REPORTED_CLIENT_TYPE"]
+    - metricName: "snowflake.logins.success.count"
+      valueColumn: "SUM(IFF(IS_SUCCESS = 'YES', 1, 0))"
+      isCumulative: true
+      dimensionColumns: ["REPORTED_CLIENT_TYPE"]
+    - metricName: "snowflake.logins.total"
+      valueColumn: "COUNT(*)"
+      isCumulative: true
+      dimensionColumns: ["REPORTED_CLIENT_TYPE"]
+- query: "select WAREHOUSE_NAME, AVG(AVG_RUNNING), AVG(AVG_QUEUED_LOAD), AVG(AVG_QUEUED_PROVISIONING), AVG(AVG_BLOCKED) from WAREHOUSE_LOAD_HISTORY where start_time >= date_trunc(day, current_date) group by 1;"
+  metrics:
+    - metricName: "snowflake.query.executed"
+      valueColumn: "AVG(AVG_RUNNING)"
+      dimensionColumns: ["WAREHOUSE_NAME"]
+    - metricName: "snowflake.query.queued_overload"
+      valueColumn: "AVG(AVG_QUEUED_LOAD)"
+      dimensionColumns: ["WAREHOUSE_NAME"]
+    - metricName: "snowflake.query.queued_provision"
+      valueColumn: "AVG(AVG_QUEUED_PROVISIONING)"
+      dimensionColumns: ["WAREHOUSE_NAME"]
+    - metricName: "snowflake.query.blocked"
+      valueColumn: "AVG(AVG_BLOCKED)"
+      dimensionColumns: ["WAREHOUSE_NAME"]
+- query: "select QUERY_TYPE, WAREHOUSE_NAME, DATABASE_NAME, SCHEMA_NAME, AVG(EXECUTION_TIME), AVG(COMPILATION_TIME), AVG(BYTES_SCANNED), AVG(BYTES_WRITTEN), AVG(BYTES_DELETED), AVG(BYTES_SPILLED_TO_LOCAL_STORAGE), AVG(BYTES_SPILLED_TO_REMOTE_STORAGE) from QUERY_HISTORY where start_time >= date_trunc(day, current_date) group by 1, 2, 3, 4;"
+  metrics:
+    - metricName: "snowflake.query.execution_time"
+      valueColumn: "AVG(EXECUTION_TIME)"
+      dimensionColumns: ["QUERY_TYPE", "WAREHOUSE_NAME", "DATABASE_NAME", "SCHEMA_NAME"]
+    - metricName: "snowflake.query.compilation_time"
+      valueColumn: "AVG(COMPILATION_TIME)"
+      dimensionColumns: ["QUERY_TYPE", "WAREHOUSE_NAME", "DATABASE_NAME", "SCHEMA_NAME"]
+    - metricName: "snowflake.query.bytes_scanned"
+      valueColumn: "AVG(BYTES_SCANNED)"
+      dimensionColumns: ["QUERY_TYPE", "WAREHOUSE_NAME", "DATABASE_NAME", "SCHEMA_NAME"]
+    - metricName: "snowflake.query.bytes_written"
+      valueColumn: "AVG(BYTES_WRITTEN)"
+      dimensionColumns: ["QUERY_TYPE", "WAREHOUSE_NAME", "DATABASE_NAME", "SCHEMA_NAME"]
+    - metricName: "snowflake.query.bytes_deleted"
+      valueColumn: "AVG(BYTES_DELETED)"
+      dimensionColumns: ["QUERY_TYPE", "WAREHOUSE_NAME", "DATABASE_NAME", "SCHEMA_NAME"]
+    - metricName: "snowflake.query.bytes_spilled.local"
+      valueColumn: "AVG(BYTES_SPILLED_TO_LOCAL_STORAGE)"
+      dimensionColumns: ["QUERY_TYPE", "WAREHOUSE_NAME", "DATABASE_NAME", "SCHEMA_NAME"]
+    - metricName: "snowflake.query.bytes_spilled.remote"
+      valueColumn: "AVG(BYTES_SPILLED_TO_REMOTE_STORAGE)"
+      dimensionColumns: ["QUERY_TYPE", "WAREHOUSE_NAME", "DATABASE_NAME", "SCHEMA_NAME"]
+- query: "select source_cloud, source_region, target_cloud, target_region, transfer_type, avg(bytes_transferred), sum(bytes_transferred) from DATA_TRANSFER_HISTORY where start_time >= date_trunc(day, current_date) group by 1, 2, 3, 4, 5;"
+  metrics:
+    - metricName: "snowflake.data_transfer.bytes.avg"
+      valueColumn: "AVG(BYTES_TRANSFERRED)"
+      dimensionColumns: ["SOURCE_CLOUD", "SOURCE_REGION", "TARGET_CLOUD", "TARGET_REGION", "TRANSFER_TYPE"]
+    - metricName: "snowflake.data_transfer.bytes.sum"
+      valueColumn: "SUM(BYTES_TRANSFERRED)"
+      dimensionColumns: ["SOURCE_CLOUD", "SOURCE_REGION", "TARGET_CLOUD", "TARGET_REGION", "TRANSFER_TYPE"]
+- query: "select table_name, database_name, schema_name, avg(credits_used), sum(credits_used), avg(num_bytes_reclustered), sum(num_bytes_reclustered), avg(num_rows_reclustered), sum(num_rows_reclustered) from automatic_clustering_history where start_time >= date_trunc(day, current_date) group by 1, 2, 3;"
+  metrics:
+    - metricName: "snowflake.auto_recluster.credits_used.avg"
+      valueColumn: "AVG(CREDITS_USED)"
+      dimensionColumns: ["TABLE_NAME", "DATABASE_NAME", "SCHEMA_NAME"]
+    - metricName: "snowflake.auto_recluster.credits_used.sum"
+      valueColumn: "SUM(CREDITS_USED)"
+      dimensionColumns: ["TABLE_NAME", "DATABASE_NAME", "SCHEMA_NAME"]
+    - metricName: "snowflake.auto_recluster.bytes_reclustered.avg"
+      valueColumn: "AVG(NUM_BYTES_RECLUSTERED)"
+      dimensionColumns: ["TABLE_NAME", "DATABASE_NAME", "SCHEMA_NAME"]
+    - metricName: "snowflake.auto_recluster.bytes_reclustered.sum"
+      valueColumn: "SUM(NUM_BYTES_RECLUSTERED)"
+      dimensionColumns: ["TABLE_NAME", "DATABASE_NAME", "SCHEMA_NAME"]
+    - metricName: "snowflake.auto_recluster.rows_reclustered.avg"
+      valueColumn: "AVG(NUM_ROWS_RECLUSTERED)"
+      dimensionColumns: ["TABLE_NAME", "DATABASE_NAME", "SCHEMA_NAME"]
+    - metricName: "snowflake.auto_recluster.rows_reclustered.sum"
+      valueColumn: "SUM(NUM_ROWS_RECLUSTERED)"
+      dimensionColumns: ["TABLE_NAME", "DATABASE_NAME", "SCHEMA_NAME"]
+- query: "select table_name, table_schema, avg(ACTIVE_BYTES), avg(TIME_TRAVEL_BYTES), avg(FAILSAFE_BYTES), avg(RETAINED_FOR_CLONE_BYTES) from table_storage_metrics group by 1, 2;"
+  metrics:
+    - metricName: "snowflake.storage.table.active_bytes.avg"
+      valueColumn: "AVG(ACTIVE_BYTES)"
+      dimensionColumns: ["TABLE_NAME", "TABLE_SCHEMA"]
+    - metricName: "snowflake.storage.table.time_travel_bytes.avg"
+      valueColumn: "AVG(TIME_TRAVEL_BYTES)"
+      dimensionColumns: ["TABLE_NAME", "TABLE_SCHEMA"]
+    - metricName: "snowflake.storage.table.failsafe_bytes.avg"
+      valueColumn: "AVG(FAILSAFE_BYTES)"
+      dimensionColumns: ["TABLE_NAME", "TABLE_SCHEMA"]
+    - metricName: "snowflake.storage.table.retained_bytes.avg"
+      valueColumn: "AVG(RETAINED_FOR_CLONE_BYTES)"
+      dimensionColumns: ["TABLE_NAME", "TABLE_SCHEMA"]
+- query: "select pipe_name, avg(credits_used), sum(credits_used), avg(bytes_inserted), sum(bytes_inserted), avg(files_inserted), sum(files_inserted) from pipe_usage_history where start_time >= date_trunc(day, current_date) group by 1;"
+  metrics:
+    - metricName: "snowflake.pipe.credits_used.avg"
+      valueColumn: "AVG(CREDITS_USED)"
+      dimensionColumns: ["PIPE_NAME"]
+    - metricName: "snowflake.pipe.credits_used.sum"
+      valueColumn: "SUM(CREDITS_USED)"
+      dimensionColumns: ["PIPE_NAME"]
+    - metricName: "snowflake.pipe.bytes_inserted.avg"
+      valueColumn: "AVG(BYTES_INSERTED)"
+      dimensionColumns: ["PIPE_NAME"]
+    - metricName: "snowflake.pipe.bytes_inserted.sum"
+      valueColumn: "SUM(BYTES_INSERTED"
+      dimensionColumns: ["PIPE_NAME"]
+    - metricName: "snowflake.pipe.files_inserted.avg"
+      valueColumn: "AVG(FILES_INSERTED)"
+      dimensionColumns: ["PIPE_NAME"]
+    - metricName: "snowflake.pipe.files_inserted.sum"
+      valueColumn: "SUM(FILES_INSERTED)"
+      dimensionColumns: ["PIPE_NAME"]
+- query: "select database_name, avg(credits_used), sum(credits_used), avg(bytes_transferred), sum(bytes_transferred) from replication_usage_history where start_time >= date_trunc(day, current_date) group by 1;"
+  metrics:
+    - metricName: "snowflake.replication.credits_used.avg"
+      valueColumn: "AVG(CREDITS_USED)"
+      dimensionColumns: ["DATABASE_NAME"]
+    - metricName: "snowflake.replication.credits_used.sum"
+      valueColumn: "SUM(CREDITS_USED)"
+      dimensionColumns: ["DATABASE_NAME"]
+    - metricName: "snowflake.replication.bytes_transferred.avg"
+      valueColumn: "AVG(BYTES_TRANSFERRED)"
+      dimensionColumns: ["DATABASE_NAME"]
+    - metricName: "snowflake.replication.bytes_transferred.sum"
+      valueColumn: "SUM(BYTES_TRANSFERRED)"
+      dimensionColumns: ["DATABASE_NAME"]

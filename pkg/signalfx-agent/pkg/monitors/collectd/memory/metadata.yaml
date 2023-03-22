@@ -1,0 +1,34 @@
+monitors:
+- dimensions:
+  doc: |
+    Sends memory usage stats for the underlying host.
+    See https://collectd.org/wiki/index.php/Plugin:Memory
+  metrics:
+    memory.buffered:
+      description: Bytes of memory used for buffering I/O
+      default: true
+      type: gauge
+    memory.cached:
+      description: Bytes of memory used for disk caching
+      default: true
+      type: gauge
+    memory.free:
+      description: Bytes of memory available for use
+      default: true
+      type: gauge
+    memory.slab_recl:
+      description: Bytes of memory, used for SLAB-allocation of kernel objects, that
+        can be reclaimed.
+      default: true
+      type: gauge
+    memory.slab_unrecl:
+      description: Bytes of memory, used for SLAB-allocation of kernel objects, that
+        can't be reclaimed
+      default: true
+      type: gauge
+    memory.used:
+      description: Bytes of memory in use by the system.
+      default: true
+      type: gauge
+  monitorType: collectd/memory
+  properties:

@@ -1,0 +1,45 @@
+monitors:
+- dimensions:
+  doc: |
+    Collectd Python plugin that aggregates various metrics from other collectd
+    plugins.
+
+    It has deprecated functionality to send host metadata and process "top"
+    info, but this has been replaced by the `host-metadata` and `processlist`
+    monitors, respectively.
+
+    You can also [view the Python plugin
+    code](https://github.com/signalfx/collectd-signalfx/).
+  metrics:
+    cpu.utilization:
+      description: Percent of CPU used on this host.
+      default: true
+      type: gauge
+    cpu.utilization_per_core:
+      description: Percent of CPU used on each core. `perCoreCPUUtil` config must
+        be set to true.
+      default: false
+      type: gauge
+    disk.summary_utilization:
+      description: Percent of disk space utilized on all volumes on this host.
+      default: true
+      type: gauge
+    disk.utilization:
+      description: Percent of disk used on this volume.
+      default: true
+      type: gauge
+    disk_ops.total:
+      description: Total number of disk read and write operations on this host.
+      default: true
+      type: cumulative
+    memory.utilization:
+      description: Percent of memory in use on this host.
+      default: true
+      type: gauge
+    network.total:
+      description: Total amount of inbound and outbound network traffic on this host,
+        in bytes.
+      default: true
+      type: cumulative
+  monitorType: collectd/signalfx-metadata
+  properties:

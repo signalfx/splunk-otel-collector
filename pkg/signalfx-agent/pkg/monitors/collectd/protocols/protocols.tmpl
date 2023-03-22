@@ -1,0 +1,22 @@
+LoadPlugin protocols
+<Plugin "protocols">
+  Value "Icmp:InDestUnreachs"
+  Value "Tcp:CurrEstab"
+  Value "Tcp:OutSegs"
+  Value "Tcp:RetransSegs"
+  Value "TcpExt:DelayedACKs"
+  Value "/Tcp:.*Opens/"
+  Value "/^TcpExt:.*Octets/"
+  IgnoreSelected false
+</Plugin>
+
+<Chain "PostCache"> 
+  <Rule "set_protocols_monitor_id"> 
+    <Match "regex"> 
+      Plugin "^protocols$" 
+    </Match> 
+    <Target "set"> 
+      MetaData "monitorID" "{{.MonitorID}}" 
+    </Target> 
+  </Rule> 
+</Chain>

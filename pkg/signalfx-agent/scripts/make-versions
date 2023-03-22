@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# Renders a file that is compiled into the agent so it can identify its own
+# versions and the version of collectd it is using.
+
+# Caller must set the envvars used in the template.
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+target_file=${1-"$SCRIPT_DIR/../pkg/core/common/constants/versions.go"}
+
+AGENT_VERSION=${AGENT_VERSION-latest}
+COLLECTD_VERSION=${COLLECTD_VERSION-"5.8.0-sfx0"}
+
+old_content=$(cat $target_file 2>/dev/null || echo -n "")
+new_content=$(eval "cat <<EOF
+$(<${target_file}.tmpl)
+EOF
+")
+
+# Don't write content if it's the same so we don't trigger a recompilation.
+[[ $old_content == $new_content ]] || echo -n "$new_content" | gofmt > $target_file

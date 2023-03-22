@@ -1,0 +1,12 @@
+LoadPlugin cpufreq
+
+<Chain "PostCache"> 
+  <Rule "set_cpufreq_monitor_id"> 
+    <Match "regex"> 
+      Plugin "^cpufreq$" 
+    </Match> 
+    <Target "set"> 
+      MetaData "monitorID" "{{.MonitorID}}" 
+    </Target> 
+  </Rule> 
+</Chain>

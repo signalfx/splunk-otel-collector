@@ -1,0 +1,159 @@
+monitors:
+- dimensions:
+  doc: |
+    **This monitor is deprecated in favor of the [postgresql monitor](./postgresql.md).**
+
+    Monitors a PostgreSQL database server using collectd's
+    [PostgreSQL plugin](https://collectd.org/wiki/index.php/Plugin:PostgreSQL).
+
+    You have to specify each database you want to monitor individually under the
+    `databases` key.  If you have a common authentication to all databases being
+    monitored, you can specify that in the top-level `username`/`password`
+    options, otherwise they can be specified at the database level.
+
+    Sample YAML configuration:
+
+    ```yaml
+    monitors:
+    - type: collectd/postgresql
+      host: 127.0.0.1
+      port: 5432
+      username: "username1"
+      password: "password1"
+      databases:
+      - name: "testdb"
+        username: "test_user"
+        password: "test_pwd"
+    ```
+
+    Sample YAML configuration with custom query:
+
+    ```yaml
+    monitors:
+    - type: collectd/postgresql
+      host: 127.0.0.1
+      port: 5432
+      username: "username1"
+      password: "password1"
+      queries:
+      - name: "exampleQuery"
+        params:
+        - "hostname"
+        statement: "Select * From test Where host = $1;"
+        results:
+        - type: "gauge"
+          valuesFrom:
+          - "test"
+          instancePrefix: "test"
+     databases:
+     - name: "test"
+       username: "username2"
+       password: "password2"
+       queries:
+       - "exampleQuery"
+
+    metricsToInclude:
+       - metricNames:
+         - gauge.test
+         monitorType: collectd/postgresql
+    ```
+    Note that the metric names for the additional metrics picked up from the
+    queries provided depend on the type, instancePrefix and/or instancesFrom
+    parameters being passed in.
+    See [PostgreSQL plugin](https://collectd.org/wiki/index.php/Plugin:PostgreSQL)
+    for details.
+  metrics:
+    pg_blks.heap_hit:
+      description: Number of buffer hits
+      default: true
+      type: gauge
+    pg_blks.heap_read:
+      description: Number of disk blocks read
+      default: true
+      type: gauge
+    pg_blks.idx_hit:
+      description: Number of index buffer hits
+      default: true
+      type: gauge
+    pg_blks.idx_read:
+      description: Number of index blocks read
+      default: true
+      type: gauge
+    pg_blks.tidx_hit:
+      description: Number of TOAST index buffer hits
+      default: false
+      type: gauge
+    pg_blks.tidx_read:
+      description: Number of TOAST index blocks read
+      default: false
+      type: gauge
+    pg_blks.toast_hit:
+      description: Number of TOAST buffer hits
+      default: false
+      type: gauge
+    pg_blks.toast_read:
+      description: Number of disk blocks read
+      default: false
+      type: gauge
+    pg_db_size:
+      description: Size of the database on disk, in bytes
+      default: true
+      type: gauge
+    pg_n_tup_c.del:
+      description: Number of delete operations
+      default: true
+      type: gauge
+    pg_n_tup_c.hot_upd:
+      description: Number of update operations not requiring index update
+      default: false
+      type: gauge
+    pg_n_tup_c.ins:
+      description: Number of insert operations
+      default: true
+      type: gauge
+    pg_n_tup_c.upd:
+      description: Number of update operations
+      default: true
+      type: gauge
+    pg_n_tup_g.dead:
+      description: Number of dead rows in the database
+      default: false
+      type: gauge
+    pg_n_tup_g.live:
+      description: Number of live rows in the database
+      default: true
+      type: gauge
+    pg_numbackends:
+      description: Number of server processes
+      default: true
+      type: gauge
+    pg_scan.idx:
+      description: Number of index scans
+      default: true
+      type: gauge
+    pg_scan.idx_tup_fetch:
+      description: Number of rows read from index scans
+      default: true
+      type: gauge
+    pg_scan.seq:
+      description: Number of sequential scans
+      default: true
+      type: gauge
+    pg_scan.seq_tup_read:
+      description: Number of rows read from sequential scans
+      default: true
+      type: gauge
+    pg_xact.commit:
+      description: Number of commits
+      default: true
+      type: gauge
+    pg_xact.num_deadlocks:
+      description: Number of deadlocks detected by the database
+      default: false
+      type: gauge
+    pg_xact.rollback:
+      description: Number of rollbacks
+      default: true
+      type: gauge
+  monitorType: collectd/postgresql
+  properties:

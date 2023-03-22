@@ -1,0 +1,94 @@
+monitors:
+- dimensions:
+  doc: |
+    Fetches events from the [logstash tcp output
+    plugin](https://www.elastic.co/guide/en/logstash/current/plugins-outputs-tcp.html)
+    operating in either `server` or `client` mode and converts them to SignalFx
+    datapoints.  It is meant to be used in conjunction with the Logstash
+    [Metrics filter
+    plugin](https://www.elastic.co/guide/en/logstash/current/plugins-filters-metrics.html)
+    that turns events into metrics.
+
+    You can only use auto-discovery when this monitor is in `client` mode.
+
+    ### Example Logstash Config
+
+    This is a somewhat contrived example that shows the use of both `timer` and
+    `meter` metrics from the Logstash Metrics filter plugin:
+
+    ```
+    input {
+      file {
+        path => "/var/log/auth.log"
+        start_position => "beginning"
+        tags => ["auth_log"]
+      }
+
+      # A contrived file that contains timing messages
+      file {
+        path => "/var/log/durations.log"
+        tags => ["duration_log"]
+        start_position => "beginning"
+      }
+    }
+
+    filter {
+      if "duration_log" in [tags] {
+        dissect {
+          mapping => {
+            "message" => "Processing took %{duration} seconds"
+          }
+          convert_datatype => {
+            "duration" => "float"
+          }
+        }
+        if "_dissectfailure" not in [tags] { # Filter out bad events
+          metrics {
+            timer => { "process_time" => "%{duration}" }
+            flush_interval => 10
+            # This makes the timing stats pertain to only the previous 5 minutes
+            # instead of since Logstash last started.
+            clear_interval => 300
+            add_field => {"type" => "processing"}
+            add_tag => "metric"
+          }
+        }
+      }
+      # Count the number of logins via SSH from /var/log/auth.log
+      if "auth_log" in [tags] and [message] =~ /sshd.*session opened/ {
+        metrics {
+          # This determines how often metric events will be sent to the agent, and
+          # thus how often datapoints will be emitted.
+          flush_interval => 10
+          # The name of the meter will be used to construct the name of the metric
+          # in SignalFx.  For this example, a datapoint called `logins.count` would
+          # be generated.
+          meter => "logins"
+          add_tag => "metric"
+        }
+      }
+    }
+
+    output {
+      # This can be helpful to debug
+      stdout { codec => rubydebug }
+
+      if "metric" in [tags] {
+        tcp {
+          port => 8900
+          # The agent will connect to Logstash
+          mode => "server"
+          # Needs to be '0.0.0.0' if running in a container.
+          host => "127.0.0.1"
+        }
+      }
+    }
+    ```
+    Once Logstash is configured with the above configuration. The logstash-tcp monitor
+    will collect `logins.count` and `process_time.<timer_field>`. See config options
+    for default values.
+
+  metrics:
+  sendAll: true
+  monitorType: logstash-tcp
+  properties:

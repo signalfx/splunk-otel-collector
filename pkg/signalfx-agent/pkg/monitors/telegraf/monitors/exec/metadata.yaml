@@ -1,0 +1,38 @@
+monitors:
+- dimensions:
+  doc: |
+    This is an embedded form of the [Telegraf Exec
+    plugin](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/exec).
+    The plugin-specific config options are the same as that plugin, but parser
+    config related to the format of the subprocess output (e.g. `data_format`)
+    is managed via the `telegrafParser` nested config object.
+
+    Here is an example of using the `influx` data format:
+
+    ```yaml
+    monitors:
+     - type: telegraf/exec
+       command: /usr/local/bin/my-script.sh
+       telegrafParser:
+         dataFormat: influx
+    ```
+
+    By default, all metrics are emitted as gauges.  If you have some cumulative
+    counter metrics that you want properly typed in Signalfx, you have two
+    options:
+
+      - Set the config option `signalFxCumulativeCounters` to the list of
+        metric names that should be considered counters. Note that these names
+        are the full name as it will be sent to SignalFx (e.g.
+        `<metric>.<field>`)
+
+      - Set a tag called `signalfx_type` on the metric emitted by the exec
+        script to `cumulative`.  All other values are ignored.  Note that you
+        **must allow this tag value through in your parser configuration** if the
+        parser ignores certain fields (e.g. the JSON parser requires adding
+        `signalfx_type` to the `JSONTagKeys` config option).
+
+  metrics:
+  monitorType: telegraf/exec
+  properties:
+  sendAll: true

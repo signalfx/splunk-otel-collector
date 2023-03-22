@@ -1,0 +1,16 @@
+monitors:
+- doc: |
+    This monitor will retrieve state of processes running by Supervisor.
+
+  dimensions:
+    name:
+      description: Name of the process.
+    group:
+      description: Name of the process group.
+  metrics:
+    supervisor.state:
+      description: State code, see [Supervisor process states](http://supervisord.org/subprocess.html#process-states).
+      default: true
+      type: gauge
+  monitorType: supervisor
+  properties:

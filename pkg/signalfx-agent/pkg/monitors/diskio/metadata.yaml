@@ -1,0 +1,85 @@
+monitors:
+- dimensions:
+    disk:
+      description: The name of the disk that the metric describes
+  doc: |
+    This monitor reports I/O metrics about disks.
+
+    On Linux hosts, this monitor relies on the `/proc` filesystem.
+    If the underlying host's `/proc` file system is mounted somewhere other than
+    /proc please specify the path using the top level configuration `procPath`.
+
+    ```yaml
+    procPath: /proc
+    monitors:
+     - type: disk-io
+    ```
+  metrics:
+    disk_merged.read:
+      description: (Linux Only) The number of disk reads merged into single physical
+        disk access operations.
+      default: false
+      type: cumulative
+    disk_merged.write:
+      description: (Linux Only) The number of disk writes merged into single physical
+        disk access operations.
+      default: false
+      type: cumulative
+    disk_octets.avg_read:
+      description: (Windows Only) The average number of octets (bytes) read.
+      default: false
+      type: gauge
+    disk_octets.avg_write:
+      description: (Windows Only) The average number of octets (bytes) written.
+      default: false
+      type: gauge
+    disk_octets.read:
+      description: (Linux Only) The number of bytes (octets) read from a disk.
+      default: false
+      type: cumulative
+    disk_octets.write:
+      description: (Linux Only) The number of bytes (octets) written to a disk.
+      default: false
+      type: cumulative
+    disk_ops.avg_read:
+      description: (Windows Only) The average disk read queue length.
+      default: true
+      type: gauge
+    disk_ops.avg_write:
+      description: (Windows Only) The average disk write queue length.
+      default: true
+      type: gauge
+    disk_ops.read:
+      description: (Linux Only) The number of disk read operations.
+      default: true
+      type: cumulative
+    disk_ops.write:
+      description: (Linux Only) The number of disk write operations.
+      default: true
+      type: cumulative
+    disk_ops.total:
+      description: (Linux Only) The number of both read and write disk operations across all disks in the last reporting interval.
+      default: true
+      type: gauge
+    disk_time.avg_read:
+      description: (Windows Only) The average time spent reading from the disk.
+      default: false
+      type: gauge
+    disk_time.avg_write:
+      description: (Windows Only) The average time spent writing to the disk
+      default: false
+      type: gauge
+    disk_time.read:
+      description: (Linux Only) The average amount of time it took to do a read operation.
+      default: false
+      type: cumulative
+    disk_time.write:
+      description: (Linux Only) The average amount of time it took to do a write operation.
+      default: false
+      type: cumulative
+    disk_ops.pending:
+      description: Number of pending operations
+      default: false
+      type: gauge
+  monitorType: disk-io
+  properties:

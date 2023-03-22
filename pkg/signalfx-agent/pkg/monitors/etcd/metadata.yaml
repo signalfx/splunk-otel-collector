@@ -1,0 +1,889 @@
+monitors:
+- monitorType: etcd
+  dimensions:
+  doc: |-
+    This monitor reports etcd server metrics under the `/metrics` path on its
+    client port and optionally on locations given by `--listen-metrics-urls`.
+    Note that this monitor collects metrics solely from the prometheus endpoint,
+    unlike the `collectd/etcd` monitor which collects  metrics from the `/stats`
+    endpoint.
+
+    An example configuration for this monitor:
+
+    ```yaml
+    monitors:
+    - type: etcd
+      discoveryRule: kubernetes_pod_name =~ "etcd" && target == "pod"
+      port: 2379
+      useHTTPS: true
+      skipVerify: true
+      sendAllMetrics: true
+      clientCertPath: /var/lib/minikube/certs/etcd/server.crt
+      clientKeyPath: /var/lib/minikube/certs/etcd/server.key
+      extraDimensions:
+        metric_source: etcd
+    ```
+
+    Note that the above config assumes that the client certificate and key are accessible
+    by the SignalFx Agent in the specified path.
+  metrics:
+    etcd_server_file_descriptors_used_total:
+      default: false
+      description: The total number of file descriptors used.
+      type: gauge
+    etcd_server_pending_proposal_total:
+      default: false
+      description: The total number of pending proposals.
+      type: gauge
+    etcd_server_proposal_durations_seconds_count:
+      default: false
+      description: The latency distributions of committing proposal. (count)
+      type: cumulative
+    etcd_server_proposal_durations_seconds:
+      default: false
+      description: The latency distributions of committing proposal. (sum)
+      type: cumulative
+    etcd_server_proposal_durations_seconds_bucket:
+      default: false
+      description: The latency distributions of committing proposal. (bucket)
+      type: cumulative
+    etcd_server_proposal_failed_total:
+      default: false
+      description: The total number of failed proposals.
+      type: cumulative
+    etcd_snapshot_save_marshalling_durations_seconds_count:
+      default: false
+      description: The marshalling cost distributions of save called by snapshot.
+        (count)
+      type: cumulative
+    etcd_snapshot_save_marshalling_durations_seconds:
+      default: false
+      description: The marshalling cost distributions of save called by snapshot.
+        (sum)
+      type: cumulative
+    etcd_snapshot_save_marshalling_durations_seconds_bucket:
+      default: false
+      description: The marshalling cost distributions of save called by snapshot.
+        (bucket)
+      type: cumulative
+    etcd_snapshot_save_total_durations_seconds_count:
+      default: false
+      description: The total latency distributions of save called by snapshot. (count)
+      type: cumulative
+    etcd_snapshot_save_total_durations_seconds:
+      default: false
+      description: The total latency distributions of save called by snapshot. (sum)
+      type: cumulative
+    etcd_snapshot_save_total_durations_seconds_bucket:
+      default: false
+      description: The total latency distributions of save called by snapshot. (bucket)
+      type: cumulative
+    etcd_storage_db_compaction_pause_duration_milliseconds_count:
+      default: false
+      description: Bucketed histogram of db compaction pause duration. (count)
+      type: cumulative
+    etcd_storage_db_compaction_pause_duration_milliseconds:
+      default: false
+      description: Bucketed histogram of db compaction pause duration. (sum)
+      type: cumulative
+    etcd_storage_db_compaction_pause_duration_milliseconds_bucket:
+      default: false
+      description: Bucketed histogram of db compaction pause duration. (bucket)
+      type: cumulative
+    etcd_storage_db_compaction_total_duration_milliseconds_count:
+      default: false
+      description: Bucketed histogram of db compaction total duration. (count)
+      type: cumulative
+    etcd_storage_db_compaction_total_duration_milliseconds:
+      default: false
+      description: Bucketed histogram of db compaction total duration. (sum)
+      type: cumulative
+    etcd_storage_db_compaction_total_duration_milliseconds_bucket:
+      default: false
+      description: Bucketed histogram of db compaction total duration. (bucket)
+      type: cumulative
+    etcd_storage_db_total_size_in_bytes:
+      default: false
+      description: Total size of the underlying database in bytes.
+      type: gauge
+    etcd_storage_delete_total:
+      default: false
+      description: Total number of deletes seen by this member.
+      type: cumulative
+    etcd_storage_events_total:
+      default: false
+      description: Total number of events sent by this member.
+      type: cumulative
+    etcd_storage_index_compaction_pause_duration_milliseconds_count:
+      default: false
+      description: Bucketed histogram of index compaction pause duration. (count)
+      type: cumulative
+    etcd_storage_index_compaction_pause_duration_milliseconds:
+      default: false
+      description: Bucketed histogram of index compaction pause duration. (sum)
+      type: cumulative
+    etcd_storage_index_compaction_pause_duration_milliseconds_bucket:
+      default: false
+      description: Bucketed histogram of index compaction pause duration. (bucket)
+      type: cumulative
+    etcd_storage_keys_total:
+      default: false
+      description: Total number of keys.
+      type: gauge
+    etcd_storage_pending_events_total:
+      default: false
+      description: Total number of pending events to be sent.
+      type: gauge
+    etcd_storage_put_total:
+      default: false
+      description: Total number of puts seen by this member.
+      type: cumulative
+    etcd_storage_range_total:
+      default: false
+      description: Total number of ranges seen by this member.
+      type: cumulative
+    etcd_storage_slow_watcher_total:
+      default: false
+      description: Total number of unsynced slow watchers.
+      type: gauge
+    etcd_storage_txn_total:
+      default: false
+      description: Total number of txns seen by this member.
+      type: cumulative
+    etcd_storage_watch_stream_total:
+      default: false
+      description: Total number of watch streams.
+      type: gauge
+    etcd_storage_watcher_total:
+      default: false
+      description: Total number of watchers.
+      type: gauge
+    etcd_store_expires_total:
+      default: false
+      description: Total number of expired keys.
+      type: cumulative
+    etcd_store_reads_total:
+      default: false
+      description: Total number of reads action by (get/getRecursive), local to this
+        member.
+      type: cumulative
+    etcd_store_watch_requests_total:
+      default: false
+      description: Total number of incoming watch requests (new or reestablished).
+      type: cumulative
+    etcd_store_watchers:
+      default: false
+      description: Count of currently active watchers.
+      type: gauge
+    etcd_store_writes_total:
+      default: false
+      description: Total number of writes (e.g. set/compareAndDelete) seen by this
+        member.
+      type: cumulative
+    etcd_wal_fsync_durations_seconds_count:
+      default: false
+      description: The latency distributions of fsync called by wal. (count)
+      type: cumulative
+    etcd_wal_fsync_durations_seconds:
+      default: false
+      description: The latency distributions of fsync called by wal. (sum)
+      type: cumulative
+    etcd_wal_fsync_durations_seconds_bucket:
+      default: false
+      description: The latency distributions of fsync called by wal. (bucket)
+      type: cumulative
+    etcd_wal_last_index_saved:
+      default: false
+      description: The index of the last entry saved by wal.
+      type: gauge
+    go_gc_duration_seconds_count:
+      default: false
+      description: A summary of the GC invocation durations. (count)
+      type: cumulative
+    go_gc_duration_seconds:
+      default: false
+      description: A summary of the GC invocation durations. (sum)
+      type: cumulative
+    go_gc_duration_seconds_quantile:
+      default: false
+      description: A summary of the GC invocation durations. (quantized)
+      type: gauge
+    go_goroutines:
+      default: false
+      description: Number of goroutines that currently exist.
+      type: gauge
+    go_memstats_alloc_bytes:
+      default: false
+      description: Number of bytes allocated and still in use.
+      type: gauge
+    go_memstats_alloc_bytes_total:
+      default: false
+      description: Total number of bytes allocated, even if freed.
+      type: cumulative
+    go_memstats_buck_hash_sys_bytes:
+      default: false
+      description: Number of bytes used by the profiling bucket hash table.
+      type: gauge
+    go_memstats_frees_total:
+      default: false
+      description: Total number of frees.
+      type: cumulative
+    go_memstats_gc_sys_bytes:
+      default: false
+      description: Number of bytes used for garbage collection system metadata.
+      type: gauge
+    go_memstats_heap_alloc_bytes:
+      default: false
+      description: Number of heap bytes allocated and still in use.
+      type: gauge
+    go_memstats_heap_idle_bytes:
+      default: false
+      description: Number of heap bytes waiting to be used.
+      type: gauge
+    go_memstats_heap_inuse_bytes:
+      default: false
+      description: Number of heap bytes that are in use.
+      type: gauge
+    go_memstats_heap_objects:
+      default: false
+      description: Number of allocated objects.
+      type: gauge
+    go_memstats_heap_released_bytes_total:
+      default: false
+      description: Total number of heap bytes released to OS.
+      type: cumulative
+    go_memstats_heap_sys_bytes:
+      default: false
+      description: Number of heap bytes obtained from system.
+      type: gauge
+    go_memstats_last_gc_time_seconds:
+      default: false
+      description: Number of seconds since 1970 of last garbage collection.
+      type: gauge
+    go_memstats_lookups_total:
+      default: false
+      description: Total number of pointer lookups.
+      type: cumulative
+    go_memstats_mallocs_total:
+      default: false
+      description: Total number of mallocs.
+      type: cumulative
+    go_memstats_mcache_inuse_bytes:
+      default: false
+      description: Number of bytes in use by mcache structures.
+      type: gauge
+    go_memstats_mcache_sys_bytes:
+      default: false
+      description: Number of bytes used for mcache structures obtained from system.
+      type: gauge
+    go_memstats_mspan_inuse_bytes:
+      default: false
+      description: Number of bytes in use by mspan structures.
+      type: gauge
+    go_memstats_mspan_sys_bytes:
+      default: false
+      description: Number of bytes used for mspan structures obtained from system.
+      type: gauge
+    go_memstats_next_gc_bytes:
+      default: false
+      description: Number of heap bytes when next garbage collection will take place.
+      type: gauge
+    go_memstats_other_sys_bytes:
+      default: false
+      description: Number of bytes used for other system allocations.
+      type: gauge
+    go_memstats_stack_inuse_bytes:
+      default: false
+      description: Number of bytes in use by the stack allocator.
+      type: gauge
+    go_memstats_stack_sys_bytes:
+      default: false
+      description: Number of bytes obtained from system for stack allocator.
+      type: gauge
+    go_memstats_sys_bytes:
+      default: false
+      description: Number of bytes obtained from system.
+      type: gauge
+    http_request_duration_microseconds_count:
+      default: false
+      description: The HTTP request latencies in microseconds. (count)
+      type: cumulative
+    http_request_duration_microseconds:
+      default: false
+      description: The HTTP request latencies in microseconds. (sum)
+      type: cumulative
+    http_request_duration_microseconds_quantile:
+      default: false
+      description: The HTTP request latencies in microseconds. (quantized)
+      type: gauge
+    http_request_size_bytes_count:
+      default: false
+      description: The HTTP request sizes in bytes. (count)
+      type: cumulative
+    http_request_size_bytes:
+      default: false
+      description: The HTTP request sizes in bytes. (sum)
+      type: cumulative
+    http_request_size_bytes_quantile:
+      default: false
+      description: The HTTP request sizes in bytes. (quantized)
+      type: gauge
+    http_requests_total:
+      default: false
+      description: Total number of HTTP requests made.
+      type: cumulative
+    http_response_size_bytes_count:
+      default: false
+      description: The HTTP response sizes in bytes. (count)
+      type: cumulative
+    http_response_size_bytes:
+      default: false
+      description: The HTTP response sizes in bytes. (sum)
+      type: cumulative
+    http_response_size_bytes_quantile:
+      default: false
+      description: The HTTP response sizes in bytes. (quantized)
+      type: gauge
+    process_cpu_seconds_total:
+      default: false
+      description: Total user and system CPU time spent in seconds.
+      type: cumulative
+    process_max_fds:
+      default: false
+      description: Maximum number of open file descriptors.
+      type: gauge
+    process_open_fds:
+      default: false
+      description: Number of open file descriptors.
+      type: gauge
+    process_resident_memory_bytes:
+      default: false
+      description: Resident memory size in bytes.
+      type: gauge
+    process_start_time_seconds:
+      default: false
+      description: Start time of the process since unix epoch in seconds.
+      type: gauge
+    process_virtual_memory_bytes:
+      default: false
+      description: Virtual memory size in bytes.
+      type: gauge
+    etcd_debugging_mvcc_db_compaction_pause_duration_milliseconds_count:
+      default: false
+      description: Bucketed histogram of db compaction pause duration. (count)
+      type: cumulative
+    etcd_debugging_mvcc_db_compaction_pause_duration_milliseconds:
+      default: false
+      description: Bucketed histogram of db compaction pause duration. (sum)
+      type: cumulative
+    etcd_debugging_mvcc_db_compaction_pause_duration_milliseconds_bucket:
+      default: false
+      description: Bucketed histogram of db compaction pause duration. (bucket)
+      type: cumulative
+    etcd_debugging_mvcc_db_compaction_total_duration_milliseconds_count:
+      default: false
+      description: Bucketed histogram of db compaction total duration. (count)
+      type: cumulative
+    etcd_debugging_mvcc_db_compaction_total_duration_milliseconds:
+      default: false
+      description: Bucketed histogram of db compaction total duration. (sum)
+      type: cumulative
+    etcd_debugging_mvcc_db_compaction_total_duration_milliseconds_bucket:
+      default: false
+      description: Bucketed histogram of db compaction total duration. (bucket)
+      type: cumulative
+    etcd_debugging_mvcc_db_total_size_in_bytes:
+      default: false
+      description: Total size of the underlying database physically allocated in bytes.
+      type: gauge
+    etcd_debugging_mvcc_delete_total:
+      default: false
+      description: Total number of deletes seen by this member.
+      type: cumulative
+    etcd_debugging_mvcc_events_total:
+      default: false
+      description: Total number of events sent by this member.
+      type: cumulative
+    etcd_debugging_mvcc_index_compaction_pause_duration_milliseconds_count:
+      default: false
+      description: Bucketed histogram of index compaction pause duration. (count)
+      type: cumulative
+    etcd_debugging_mvcc_index_compaction_pause_duration_milliseconds:
+      default: false
+      description: Bucketed histogram of index compaction pause duration. (sum)
+      type: cumulative
+    etcd_debugging_mvcc_index_compaction_pause_duration_milliseconds_bucket:
+      default: false
+      description: Bucketed histogram of index compaction pause duration. (bucket)
+      type: cumulative
+    etcd_debugging_mvcc_keys_total:
+      default: false
+      description: Total number of keys.
+      type: gauge
+    etcd_debugging_mvcc_pending_events_total:
+      default: false
+      description: Total number of pending events to be sent.
+      type: gauge
+    etcd_debugging_mvcc_put_total:
+      default: false
+      description: Total number of puts seen by this member.
+      type: cumulative
+    etcd_debugging_mvcc_range_total:
+      default: false
+      description: Total number of ranges seen by this member.
+      type: cumulative
+    etcd_debugging_mvcc_slow_watcher_total:
+      default: false
+      description: Total number of unsynced slow watchers.
+      type: gauge
+    etcd_debugging_mvcc_txn_total:
+      default: false
+      description: Total number of txns seen by this member.
+      type: cumulative
+    etcd_debugging_mvcc_watch_stream_total:
+      default: false
+      description: Total number of watch streams.
+      type: gauge
+    etcd_debugging_mvcc_watcher_total:
+      default: false
+      description: Total number of watchers.
+      type: gauge
+    etcd_debugging_snap_save_marshalling_duration_seconds_count:
+      default: false
+      description: The marshalling cost distributions of save called by snapshot.
+        (count)
+      type: cumulative
+    etcd_debugging_snap_save_marshalling_duration_seconds:
+      default: false
+      description: The marshalling cost distributions of save called by snapshot.
+        (sum)
+      type: cumulative
+    etcd_debugging_snap_save_marshalling_duration_seconds_bucket:
+      default: false
+      description: The marshalling cost distributions of save called by snapshot.
+        (bucket)
+      type: cumulative
+    etcd_debugging_snap_save_total_duration_seconds_count:
+      default: false
+      description: The total latency distributions of save called by snapshot. (count)
+      type: cumulative
+    etcd_debugging_snap_save_total_duration_seconds:
+      default: false
+      description: The total latency distributions of save called by snapshot. (sum)
+      type: cumulative
+    etcd_debugging_snap_save_total_duration_seconds_bucket:
+      default: false
+      description: The total latency distributions of save called by snapshot. (bucket)
+      type: cumulative
+    etcd_debugging_store_expires_total:
+      default: false
+      description: Total number of expired keys.
+      type: cumulative
+    etcd_debugging_store_reads_total:
+      default: false
+      description: Total number of reads action by (get/getRecursive), local to this
+        member.
+      type: cumulative
+    etcd_debugging_store_watch_requests_total:
+      default: false
+      description: Total number of incoming watch requests (new or reestablished).
+      type: cumulative
+    etcd_debugging_store_watchers:
+      default: false
+      description: Count of currently active watchers.
+      type: gauge
+    etcd_debugging_store_writes_total:
+      default: false
+      description: Total number of writes (e.g. set/compareAndDelete) seen by this
+        member.
+      type: cumulative
+    etcd_disk_backend_commit_duration_seconds_count:
+      default: false
+      description: The latency distributions of commit called by backend. (count)
+      type: cumulative
+    etcd_disk_backend_commit_duration_seconds:
+      default: false
+      description: The latency distributions of commit called by backend. (sum)
+      type: cumulative
+    etcd_disk_backend_commit_duration_seconds_bucket:
+      default: false
+      description: The latency distributions of commit called by backend. (bucket)
+      type: cumulative
+    etcd_disk_wal_fsync_duration_seconds_count:
+      default: false
+      description: The latency distributions of fsync called by WAL. (count)
+      type: cumulative
+    etcd_disk_wal_fsync_duration_seconds:
+      default: false
+      description: The latency distributions of fsync called by WAL. (sum)
+      type: cumulative
+    etcd_disk_wal_fsync_duration_seconds_bucket:
+      default: false
+      description: The latency distributions of fsync called by WAL. (bucket)
+      type: cumulative
+    etcd_grpc_proxy_cache_hits_total:
+      default: false
+      description: Total number of cache hits
+      type: gauge
+    etcd_grpc_proxy_cache_misses_total:
+      default: false
+      description: Total number of cache misses
+      type: gauge
+    etcd_grpc_proxy_events_coalescing_total:
+      default: false
+      description: Total number of events coalescing
+      type: cumulative
+    etcd_grpc_proxy_watchers_coalescing_total:
+      default: false
+      description: Total number of current watchers coalescing
+      type: gauge
+    etcd_network_client_grpc_received_bytes_total:
+      default: false
+      description: The total number of bytes received from grpc clients.
+      type: cumulative
+    etcd_network_client_grpc_sent_bytes_total:
+      default: false
+      description: The total number of bytes sent to grpc clients.
+      type: cumulative
+    etcd_server_has_leader:
+      default: true
+      description: Whether or not a leader exists. 1 is existence, 0 is not.
+      type: gauge
+    etcd_server_leader_changes_seen_total:
+      default: true
+      description: The number of leader changes seen.
+      type: cumulative
+    etcd_server_proposals_applied_total:
+      default: false
+      description: The total number of consensus proposals applied.
+      type: gauge
+    etcd_server_proposals_committed_total:
+      default: false
+      description: The total number of consensus proposals committed.
+      type: gauge
+    etcd_server_proposals_failed_total:
+      default: true
+      description: The total number of failed proposals seen.
+      type: cumulative
+    etcd_server_proposals_pending:
+      default: false
+      description: The current number of pending proposals to commit.
+      type: gauge
+    etcd_cluster_version:
+      default: false
+      description: Which version is running. 1 for 'cluster_version' label with current
+        cluster version
+      type: gauge
+    etcd_debugging_disk_backend_commit_rebalance_duration_seconds_count:
+      default: false
+      description: The latency distributions of commit.rebalance called by bboltdb
+        backend. (count)
+      type: cumulative
+    etcd_debugging_disk_backend_commit_rebalance_duration_seconds:
+      default: false
+      description: The latency distributions of commit.rebalance called by bboltdb
+        backend. (sum)
+      type: cumulative
+    etcd_debugging_disk_backend_commit_rebalance_duration_seconds_bucket:
+      default: false
+      description: The latency distributions of commit.rebalance called by bboltdb
+        backend. (bucket)
+      type: cumulative
+    etcd_debugging_disk_backend_commit_spill_duration_seconds_count:
+      default: false
+      description: The latency distributions of commit.spill called by bboltdb backend.
+        (count)
+      type: cumulative
+    etcd_debugging_disk_backend_commit_spill_duration_seconds:
+      default: false
+      description: The latency distributions of commit.spill called by bboltdb backend.
+        (sum)
+      type: cumulative
+    etcd_debugging_disk_backend_commit_spill_duration_seconds_bucket:
+      default: false
+      description: The latency distributions of commit.spill called by bboltdb backend.
+        (bucket)
+      type: cumulative
+    etcd_debugging_disk_backend_commit_write_duration_seconds_count:
+      default: false
+      description: The latency distributions of commit.write called by bboltdb backend.
+        (count)
+      type: cumulative
+    etcd_debugging_disk_backend_commit_write_duration_seconds:
+      default: false
+      description: The latency distributions of commit.write called by bboltdb backend.
+        (sum)
+      type: cumulative
+    etcd_debugging_disk_backend_commit_write_duration_seconds_bucket:
+      default: false
+      description: The latency distributions of commit.write called by bboltdb backend.
+        (bucket)
+      type: cumulative
+    etcd_debugging_lease_granted_total:
+      default: false
+      description: The total number of granted leases.
+      type: cumulative
+    etcd_debugging_lease_renewed_total:
+      default: false
+      description: The number of renewed leases seen by the leader.
+      type: cumulative
+    etcd_debugging_lease_revoked_total:
+      default: false
+      description: The total number of revoked leases.
+      type: cumulative
+    etcd_debugging_lease_ttl_total_count:
+      default: false
+      description: Bucketed histogram of lease TTLs. (count)
+      type: cumulative
+    etcd_debugging_lease_ttl_total:
+      default: false
+      description: Bucketed histogram of lease TTLs. (sum)
+      type: cumulative
+    etcd_debugging_lease_ttl_total_bucket:
+      default: false
+      description: Bucketed histogram of lease TTLs. (bucket)
+      type: cumulative
+    etcd_debugging_mvcc_compact_revision:
+      default: false
+      description: The revision of the last compaction in store.
+      type: gauge
+    etcd_debugging_mvcc_current_revision:
+      default: false
+      description: The current revision of store.
+      type: gauge
+    etcd_debugging_mvcc_db_compaction_keys_total:
+      default: false
+      description: Total number of db keys compacted.
+      type: cumulative
+    etcd_debugging_server_lease_expired_total:
+      default: false
+      description: The total number of expired leases.
+      type: cumulative
+    etcd_disk_backend_defrag_duration_seconds_count:
+      default: false
+      description: The latency distribution of backend defragmentation. (count)
+      type: cumulative
+    etcd_disk_backend_defrag_duration_seconds:
+      default: false
+      description: The latency distribution of backend defragmentation. (sum)
+      type: cumulative
+    etcd_disk_backend_defrag_duration_seconds_bucket:
+      default: false
+      description: The latency distribution of backend defragmentation. (bucket)
+      type: cumulative
+    etcd_disk_backend_snapshot_duration_seconds_count:
+      default: false
+      description: The latency distribution of backend snapshots. (count)
+      type: cumulative
+    etcd_disk_backend_snapshot_duration_seconds:
+      default: false
+      description: The latency distribution of backend snapshots. (sum)
+      type: cumulative
+    etcd_disk_backend_snapshot_duration_seconds_bucket:
+      default: false
+      description: The latency distribution of backend snapshots. (bucket)
+      type: cumulative
+    etcd_grpc_proxy_cache_keys_total:
+      default: false
+      description: Total number of keys/ranges cached
+      type: gauge
+    etcd_mvcc_db_open_read_transactions:
+      default: false
+      description: The number of currently open read transactions
+      type: gauge
+    etcd_mvcc_db_total_size_in_bytes:
+      default: false
+      description: Total size of the underlying database physically allocated in bytes.
+      type: gauge
+    etcd_mvcc_db_total_size_in_use_in_bytes:
+      default: false
+      description: Total size of the underlying database logically in use in bytes.
+      type: gauge
+    etcd_mvcc_delete_total:
+      default: false
+      description: Total number of deletes seen by this member.
+      type: cumulative
+    etcd_mvcc_hash_duration_seconds_count:
+      default: false
+      description: The latency distribution of storage hash operation. (count)
+      type: cumulative
+    etcd_mvcc_hash_duration_seconds:
+      default: false
+      description: The latency distribution of storage hash operation. (sum)
+      type: cumulative
+    etcd_mvcc_hash_duration_seconds_bucket:
+      default: false
+      description: The latency distribution of storage hash operation. (bucket)
+      type: cumulative
+    etcd_mvcc_hash_rev_duration_seconds_count:
+      default: false
+      description: The latency distribution of storage hash by revision operation.
+        (count)
+      type: cumulative
+    etcd_mvcc_hash_rev_duration_seconds:
+      default: false
+      description: The latency distribution of storage hash by revision operation.
+        (sum)
+      type: cumulative
+    etcd_mvcc_hash_rev_duration_seconds_bucket:
+      default: false
+      description: The latency distribution of storage hash by revision operation.
+        (bucket)
+      type: cumulative
+    etcd_mvcc_put_total:
+      default: false
+      description: Total number of puts seen by this member.
+      type: cumulative
+    etcd_mvcc_range_total:
+      default: false
+      description: Total number of ranges seen by this member.
+      type: cumulative
+    etcd_mvcc_txn_total:
+      default: false
+      description: Total number of txns seen by this member.
+      type: cumulative
+    etcd_server_go_version:
+      default: false
+      description: Which Go version server is running with. 1 for 'server_go_version'
+        label with current version.
+      type: gauge
+    etcd_server_health_failures_total:
+      default: false
+      description: The total number of failed health checks
+      type: cumulative
+    etcd_server_health_success_total:
+      default: false
+      description: The total number of successful health checks
+      type: cumulative
+    etcd_server_heartbeat_send_failures_total:
+      default: false
+      description: The total number of leader heartbeat send failures (likely overloaded
+        from slow disk).
+      type: cumulative
+    etcd_server_id:
+      default: false
+      description: Server or member ID in hexadecimal format. 1 for 'server_id' label
+        with current ID.
+      type: gauge
+    etcd_server_is_leader:
+      default: false
+      description: Whether or not this member is a leader. 1 if is, 0 otherwise.
+      type: gauge
+    etcd_server_is_learner:
+      default: false
+      description: Whether or not this member is a learner. 1 if is, 0 otherwise.
+      type: gauge
+    etcd_server_learner_promote_successes_total:
+      default: false
+      description: The total number of successful learner promotions while this member
+        is leader.
+      type: cumulative
+    etcd_server_quota_backend_bytes:
+      default: false
+      description: Current backend storage quota size in bytes.
+      type: gauge
+    etcd_server_read_indexes_failed_total:
+      default: false
+      description: The total number of failed read indexes seen.
+      type: cumulative
+    etcd_server_slow_apply_total:
+      default: false
+      description: The total number of slow apply requests (likely overloaded from
+        slow disk).
+      type: cumulative
+    etcd_server_slow_read_indexes_total:
+      default: false
+      description: The total number of pending read indexes not in sync with leader's
+        or timed out read index requests.
+      type: cumulative
+    etcd_server_snapshot_apply_in_progress_total:
+      default: false
+      description: 1 if the server is applying the incoming snapshot. 0 if none.
+      type: gauge
+    etcd_server_version:
+      default: false
+      description: Which version is running. 1 for 'server_version' label with current
+        version.
+      type: gauge
+    etcd_snap_db_fsync_duration_seconds_count:
+      default: false
+      description: The latency distributions of fsyncing .snap.db file (count)
+      type: cumulative
+    etcd_snap_db_fsync_duration_seconds:
+      default: false
+      description: The latency distributions of fsyncing .snap.db file (sum)
+      type: cumulative
+    etcd_snap_db_fsync_duration_seconds_bucket:
+      default: false
+      description: The latency distributions of fsyncing .snap.db file (bucket)
+      type: cumulative
+    etcd_snap_db_save_total_duration_seconds_count:
+      default: false
+      description: The total latency distributions of v3 snapshot save (count)
+      type: cumulative
+    etcd_snap_db_save_total_duration_seconds:
+      default: false
+      description: The total latency distributions of v3 snapshot save (sum)
+      type: cumulative
+    etcd_snap_db_save_total_duration_seconds_bucket:
+      default: false
+      description: The total latency distributions of v3 snapshot save (bucket)
+      type: cumulative
+    etcd_snap_fsync_duration_seconds_count:
+      default: false
+      description: The latency distributions of fsync called by snap. (count)
+      type: cumulative
+    etcd_snap_fsync_duration_seconds:
+      default: false
+      description: The latency distributions of fsync called by snap. (sum)
+      type: cumulative
+    etcd_snap_fsync_duration_seconds_bucket:
+      default: false
+      description: The latency distributions of fsync called by snap. (bucket)
+      type: cumulative
+    go_info:
+      default: false
+      description: Information about the Go environment.
+      type: gauge
+    go_memstats_gc_cpu_fraction:
+      default: false
+      description: The fraction of this program's available CPU time used by the GC
+        since the program started.
+      type: gauge
+    go_memstats_heap_released_bytes:
+      default: false
+      description: Number of heap bytes released to OS.
+      type: gauge
+    go_threads:
+      default: false
+      description: Number of OS threads created.
+      type: gauge
+    grpc_server_handled_total:
+      default: true
+      description: Total number of RPCs completed on the server, regardless of success
+        or failure.
+      type: cumulative
+    grpc_server_msg_received_total:
+      default: false
+      description: Total number of RPC stream messages received on the server.
+      type: cumulative
+    grpc_server_msg_sent_total:
+      default: false
+      description: Total number of gRPC stream messages sent by the server.
+      type: cumulative
+    grpc_server_started_total:
+      default: true
+      description: Total number of RPCs started on the server.
+      type: cumulative
+    process_virtual_memory_max_bytes:
+      default: false
+      description: Maximum amount of virtual memory available in bytes.
+      type: gauge
+    promhttp_metric_handler_requests_in_flight:
+      default: false
+      description: Current number of scrapes being served.
+      type: gauge
+    promhttp_metric_handler_requests_total:
+      default: false
+      description: Total number of scrapes by HTTP status code.
+      type: cumulative

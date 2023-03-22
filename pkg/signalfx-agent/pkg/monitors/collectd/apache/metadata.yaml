@@ -1,0 +1,167 @@
+monitors:
+- dimensions:
+    plugin_instance:
+      description: Set to whatever you set in the `name` config option.
+  doc: |
+    Monitors Apache webservice instances using the information provided by
+    `mod_status`.
+
+    ### Worker states
+    Apache worker threads can be in one of the following states:
+
+    | State        | Remark                                  |
+    |--------------|-----------------------------------------|
+    | Open         | Open (unused) slot - no process         |
+    | Waiting      | Idle and waiting for request            |
+    | Sending      | Serving response                        |
+    | KeepAlive    | Kept alive for possible next request    |
+    | Idle_cleanup | Idle and marked for cleanup             |
+    | Closing      | Closing connection                      |
+    | Logging      | Writing to log file                     |
+    | Reading      | Reading request                         |
+    | Finishing    | Finishing as part of graceful shutdown  |
+    | Starting     | Starting up to serve                    |
+
+    <!--- SETUP --->
+    ## Apache Setup
+    To configure the Apache webserver itself to expose status metrics:
+
+    1. Enable the <a target="_blank" href="http://httpd.apache.org/docs/2.4/mod/mod_status.html">mod_status</a> module in your Apache server.
+    2. Add the following configuration to your Apache server:
+
+       ```
+        ExtendedStatus on
+        <Location /mod_status>
+        SetHandler server-status
+        </Location>
+       ```
+    3. Restart Apache.
+
+    _Note_: Make sure that the URL you provide for your `mod_status` module
+    ends in `?auto`. This returns the status page as `text/plain`, which this
+    plugin requires.
+
+    <!--- SETUP --->
+    ## Config Examples
+
+    ```
+    monitors:
+     - type: collectd/apache
+       host: localhost
+       port: 80
+    ```
+
+    If `mod_status` is exposed on an endpoint other than `/mod_status`, you can
+    use the `url` config option to specify the path:
+
+    ```
+    monitors:
+     - type: collectd/apache
+       host: localhost
+       port: 80
+       url: "http://{{.Host}}:{{.Port}}/server-status?auto"
+    ```
+
+    For a full list of options, see [Configuration](#configuration).
+
+  metrics:
+    apache_bytes:
+      description: Amount of data served by Apache, in bytes.
+      default: true
+      type: cumulative
+    apache_connections:
+      description: >
+        The number of connections that are being served by Apache.  This is
+        also equal to the number of busy worker threads, where 'busy' means any
+        worker thread which has been started successfully and is not slated for
+        idle cleanup.
+      default: true
+      type: gauge
+    apache_idle_workers:
+      description: >
+        The number of Apache workers that are idling. If this number is
+        consistently low, then your server may be too busy and you may have to
+        increase the number of threads.  If it is consistently high, then the
+        system may be under-utilized.
+      default: true
+      type: gauge
+    apache_requests:
+      description: >
+        The number of requests that have been served by Apache. This metric is
+        useful to know total requests and the rate at which Apache is able to
+        serve them.
+      default: true
+      type: cumulative
+    apache_scoreboard.closing:
+      description: >
+        This metric shows how many worker threads are in the process of closing
+        TCP connections after serving a response. If this number is
+        consistently high, then there might be a network issue or errant client
+        preventing TCP tear-down.
+      default: false
+      type: gauge
+    apache_scoreboard.dnslookup:
+      description: >
+        This metric counts the number of worker threads that are performing a
+        DNS lookup. If this number is too high, check if there is a DNS
+        resolution problem at your server. This can affect Apache server
+        performance.
+      default: false
+      type: gauge
+    apache_scoreboard.finishing:
+      description: The number of worker threads that are finishing as part of graceful server shutdown.
+      default: false
+      type: gauge
+    apache_scoreboard.idle_cleanup:
+      description: The number of worker threads that are idle and ready for clean-up.
+      default: false
+      type: gauge
+    apache_scoreboard.keepalive:
+      description: >
+        The number of worker threads that are maintaining keep-alive
+        connections: keeping the connection "alive" after serving a response, in
+        the expectation that another HTTP request will come on the same
+        connection. At the end of the keep-alive interval, the connection is
+        closed.
+      default: false
+      type: gauge
+    apache_scoreboard.logging:
+      description: >
+        This metric shows how many worker threads are busy writing to the log
+        file.  If this number is consistently high, your logging level may be
+        too high or one or more modules may be too verbose.
+      default: false
+      type: gauge
+    apache_scoreboard.open:
+      description: >
+        This metric shows how many worker slots are open.  The slots do not
+        have a worker thread yet, but they can be spun up based on incoming
+        requests.
+      default: true
+      type: gauge
+    apache_scoreboard.reading:
+      description: >
+        This metric shows how many workers are in the process of receiving
+        requests (headers or body).  If this number is consistently high,
+        clients may be sending large headers or uploading large files.
+      default: false
+      type: gauge
+    apache_scoreboard.sending:
+      description: >
+        This metric shows how many workers are sending responses.  It is normal
+        for this to be a large number when measuring sites that serve large
+        downloads.
+      default: false
+      type: gauge
+    apache_scoreboard.starting:
+      description: >
+        This metric shows how many workers are being started up.  If this
+        number is consistently high, then the system may be overloaded.
+      default: false
+      type: gauge
+    apache_scoreboard.waiting:
+      description: This metric shows how many worker threads are ready and waiting for requests to come in.
+      default: false
+      type: gauge
+  monitorType: collectd/apache
+  properties:

@@ -1,0 +1,200 @@
+monitors:
+- dimensions:
+  doc: |
+    This monitor reports metrics about processes.
+    This monitor is based on the Telegraf procstat plugin.  More information about the Telegraf plugin
+    can be found [here](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/procstat).
+
+    Please note that the Smart Agent only supports the `native` pid finder and the options
+    `cgroup` and `systemd unit` are not supported at this time.
+
+    On Linux hosts, this monitor relies on the `/proc` filesystem.
+    If the underlying host's `/proc` file system is mounted somewhere other than
+    /proc please specify the path using the top level configuration `procPath`.
+
+    Sample Yaml Configuration
+
+    ```yaml
+    procPath: /proc
+    monitors:
+     - type: telegraf/procstat
+       exe: "signalfx-agent*"
+    ```
+  sendAll: true
+  metrics:
+    procstat.cpu_time:
+      description: Amount of cpu time consumed by the process.
+      default: false
+      type: gauge
+    procstat.cpu_usage:
+      description: CPU percentage used by the process.
+      default: false
+      type: gauge
+    procstat.involuntary_context_switches:
+      description: Number of involuntary context switches.
+      default: false
+      type: gauge
+    procstat.memory_data:
+      description: VMData memory used by the process.
+      default: false
+      type: gauge
+    procstat.memory_locked:
+      description: VMLocked memory used by the process.
+      default: false
+      type: gauge
+    procstat.memory_rss:
+      description: VMRSS memory used by the process.
+      default: false
+      type: gauge
+    procstat.memory_stack:
+      description: VMStack memory used by the process.
+      default: false
+      type: gauge
+    procstat.memory_swap:
+      description: VMSwap memory used by the process.
+      default: false
+      type: gauge
+    procstat.memory_usage:
+      description: Memory percentage used by the process.
+      default: false
+      type: gauge
+    procstat.memory_vms:
+      description: VMS memory used by the process.
+      default: false
+      type: gauge
+    procstat.nice_priority:
+      description: Nice priority number of the process.
+      default: false
+      type: gauge
+    procstat.num_fds:
+      description: Number of file descriptors.  This may require the agent to be running
+        as root.
+      default: false
+      type: gauge
+    procstat.num_threads:
+      description: Number of threads used by the process.
+      default: false
+      type: gauge
+    procstat.read_bytes:
+      description: Number of bytes read by the process.  This may require the agent
+        to be running as root.
+      default: false
+      type: gauge
+    procstat.read_count:
+      description: Number of read operations by the process.  This may require the
+        agent to be running as root.
+      default: false
+      type: gauge
+    procstat.realtime_priority:
+      description: Real time priority of the process.
+      default: false
+      type: gauge
+    procstat.rlimit_cpu_time_hard:
+      description: The hard cpu rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_cpu_time_soft:
+      description: The soft cpu rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_file_locks_hard:
+      description: The hard file lock rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_file_locks_soft:
+      description: The soft file lock rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_memory_data_hard:
+      description: The hard data memory rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_memory_data_soft:
+      description: The soft data memory rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_memory_locked_hard:
+      description: The hard locked memory rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_memory_locked_soft:
+      description: The soft locked memory rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_memory_rss_hard:
+      description: The hard rss memory rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_memory_rss_soft:
+      description: The soft rss memory rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_memory_stack_hard:
+      description: The hard stack memory rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_memory_stack_soft:
+      description: The soft stack memory rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_memory_vms_hard:
+      description: The hard vms memory rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_memory_vms_soft:
+      description: The soft vms memory rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_nice_priority_hard:
+      description: The hard nice priority rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_nice_priority_soft:
+      description: The soft nice priority rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_num_fds_hard:
+      description: The hard file descriptor rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_num_fds_soft:
+      description: The soft file descriptor rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_realtime_priority_hard:
+      description: The hard realtime priority rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_realtime_priority_soft:
+      description: The soft realtime priority rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_signals_pending_hard:
+      description: The hard pending signal rlimit.
+      default: false
+      type: gauge
+    procstat.rlimit_signals_pending_soft:
+      description: The soft pendidng signal rlimit.
+      default: false
+      type: gauge
+    procstat.signals_pending:
+      description: The number of signals pending.
+      default: false
+      type: gauge
+    procstat.write_bytes:
+      description: Number of bytes written by the process.  This may require the agent
+        to be running as root.
+      default: false
+      type: gauge
+    procstat.write_count:
+      description: Number of write operations by the process.  This may require the
+        agent to be running as root.
+      default: false
+      type: gauge
+    procstat_lookup.pid_count:
+      description: The number of pids. This metric emits with the plugin dimension
+        set to "procstat_lookup".
+      default: false
+      type: gauge
+  monitorType: telegraf/procstat
+  properties:

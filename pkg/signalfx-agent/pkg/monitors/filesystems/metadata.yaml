@@ -1,0 +1,97 @@
+monitors:
+- dimensions:
+  doc: |
+    This monitor reports metrics about free disk space on mounted devices.
+
+    On Linux hosts, this monitor relies on the `/proc` filesystem.
+    If the underlying host's `/proc` file system is mounted somewhere other than
+    /proc please specify the path using the top level configuration `procPath`.
+
+    ```yaml
+    procPath: /hostfs/proc
+    monitors:
+     - type: filesystems
+       hostFSPath: /hostfs
+    ```
+
+    ## Migrating from collectd/df
+    The `collectd/df` monitor is being deprecated in favor of the `filesystems`
+    monitor.  While the `collectd/df` monitor will still be available in
+    5.0, it is recommended that you switch to the `filesystems` monitor soon
+    after upgrading.  There are a few incompatibilities to be aware of between
+    the two monitors:
+
+     - `collectd/df` used a dimension called `plugin_instance` to identify the
+       mount point or device of the filesystem.  This dimension is completely
+       removed in the `filesystems` monitor and replaced by the `mountpoint`
+       and `device` dimensions.  You no longer have to select between the two
+       (the `reportByDevice` option on `collectd/df`) as both are always
+       reported.
+
+     - The mountpoints in the `plugin_instance` dimension of `collectd/df`
+       were reported with `-` instead of the more conventional `/` separated
+       path segments.  The `filesystems` monitor always reports mountpoints in
+       the `mountpoint` dimension and uses the conventional `/` separator.
+
+     - The `collectd/df` plugin set a dimension `plugin: df` on all datapoints,
+       but `filesystems` has no such comparable dimension.
+  metrics:
+    df_complex.free:
+      description: Free disk space in bytes
+      default: true
+      type: gauge
+    df_complex.reserved:
+      description: |-
+        Measures disk space in bytes reserved for the super-user on this file system.
+      default: false
+      type: gauge
+    df_complex.used:
+      description: Used disk space in bytes
+      default: true
+      type: gauge
+    df_inodes.free:
+      description: (Linux Only) Number of inodes that are free.
+      default: false
+      type: gauge
+      group: inodes
+    df_inodes.used:
+      description: (Linux Only) Number of inodes that are used.
+      default: false
+      type: gauge
+      group: inodes
+    disk.summary_utilization:
+      description: Percent of disk space utilized on all volumes on this host.
+      default: true
+      type: gauge
+    disk.utilization:
+      description: Percent of disk used on this volume.
+      default: true
+      type: gauge
+    percent_bytes.free:
+      description: Free disk space on the file system, expressed as a percentage.
+      default: false
+      type: gauge
+      group: percentage
+    percent_bytes.used:
+      description: Used disk space on the file system, expressed as a percentage.
+      default: false
+      type: gauge
+      group: percentage
+    percent_inodes.free:
+      description: (Linux Only) Free inodes on the file system, expressed as a percentage.
+      default: false
+      type: gauge
+      group: inodes
+    percent_inodes.used:
+      description: (Linux Only) Used inodes on the file system, expressed as a percentage.
+      default: false
+      type: gauge
+      group: inodes
+    percent_bytes.reserved:
+      description: |-
+        Measures disk space reserved for the super-user as a percentage of total disk space of this file system.
+      default: false
+      type: gauge
+      group: percentage
+  monitorType: filesystems
+  properties:

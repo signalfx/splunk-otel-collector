@@ -1,0 +1,113 @@
+monitors:
+- dimensions:
+    cpu:
+      description: "The number/id of the core/cpu on the system.  Only present if `reportPerCPU: true`."
+  doc: |
+    This monitor reports cpu metrics.
+
+    On Linux hosts, this monitor relies on the `/proc` filesystem.
+    If the underlying host's `/proc` file system is mounted somewhere other than
+    /proc please specify the path using the top level configuration `procPath`.
+
+    ```yaml
+    procPath: /proc
+    monitors:
+     - type: cpu
+    ```
+  metrics:
+    cpu.utilization:
+      description: Percent of CPU used on this host.
+      default: true
+      type: gauge
+    cpu.utilization_per_core:
+      description: Percent of CPU used on each core
+      default: false
+      type: gauge
+    cpu.idle:
+      description: >
+        CPU time spent not in any other state. In order to get a percentage
+        this value must be compared against the sum of all CPU states.
+      default: true
+      type: cumulative
+    cpu.interrupt:
+      description: >
+        CPU time spent while servicing hardware interrupts. A hardware
+        interrupt happens at the physical layer. When this occurs, the CPU will
+        stop whatever else it is doing and service the interrupt. This metric
+        measures how many jiffies were spent handling these interrupts. In
+        order to get a percentage this value must be compared against the sum
+        of all CPU states. A sustained high value for this metric may be caused
+        by faulty hardware such as a broken peripheral.
+      default: false
+      type: cumulative
+    cpu.nice:
+      description: >
+        CPU time spent in userspace running 'nice'-ed processes. In order to
+        get a percentage this value must be compared against the sum of all CPU
+        states. A sustained high value for this metric may be caused by: 1) The
+        server not having enough CPU capacity for a process, 2) A programming
+        error which causes a process to use an unexpected amount of CPU
+      default: false
+      type: cumulative
+    cpu.softirq:
+      description: >
+        CPU time spent while servicing software interrupts. Unlike a hardware
+        interrupt, a software interrupt happens at the sofware layer. Usually
+        it is a userspace program requesting a service of the kernel. This
+        metric measures how many jiffies were spent by the CPU handling these
+        interrupts. In order to get a percentage this value must be compared
+        against the sum of all CPU states. A sustained high value for this
+        metric may be caused by a programming error which causes a process to
+        unexpectedly request too many services from the kernel.
+      default: false
+      type: cumulative
+    cpu.steal:
+      description: >
+        CPU time spent waiting for a hypervisor to service requests from other
+        virtual machines. This metric is only present on virtual machines. This
+        metric records how much time this virtual machine had to wait to have the
+        hypervisor kernel service a request. In order to get a percentage this
+        value must be compared against the sum of all CPU states. A sustained
+        high value for this metric may be caused by: 1) Another VM on the same
+        hypervisor using too many resources, or 2) An underpowered hypervisor
+      group:
+      default: false
+      type: cumulative
+    cpu.system:
+      description: >
+        CPU time spent running in the kernel. This value reflects how often
+        processes are calling into the kernel for services (e.g to log to the
+        console). In order to get a percentage this value must be compared
+        against the sum of all CPU states. A sustained high value for this metric
+        may be caused by: 1) A process that needs to be re-written to use kernel
+        resources more efficiently, or 2) A userspace driver that is broken
+      group:
+      default: false
+      type: cumulative
+    cpu.user:
+      description: >
+        CPU time spent running in userspace. In order to get a percentage
+        this value must be compared against the sum of all CPU states. If this value is
+        high: 1) A process requires more CPU to run than is available on the server, or
+        2) There is an application programming error which is causing the CPU to be
+        used unexpectedly.
+      group:
+      default: false
+      type: cumulative
+    cpu.wait:
+      description: >
+        Amount of total CPU time spent idle while waiting for an I/O operation
+        to complete. In order to get a percentage this value must be compared
+        against the sum of all CPU states. A high value for a sustained period
+        may be caused by: 1) A slow hardware device that is taking too long to
+        service requests, or 2) Too many requests being sent to an I/O device
+      group:
+      default: false
+      type: cumulative
+
+    cpu.num_processors:
+      description: The number of logical processors on the host.
+      default: true
+      type: gauge
+  monitorType: cpu
+  properties:

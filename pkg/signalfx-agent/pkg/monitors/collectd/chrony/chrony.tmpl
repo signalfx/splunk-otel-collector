@@ -1,0 +1,21 @@
+LoadPlugin chrony
+<Plugin chrony>
+  Host "{{.Host}}"
+{{with .Port}}
+  Port "{{.}}"
+{{end}}
+{{with .Timeout}}
+  Timeout "{{.}}"
+{{end}}
+</Plugin>
+
+<Chain "PostCache">
+  <Rule "set_chrony_monitor_id">
+    <Match "regex">
+      Plugin "^chrony$"
+    </Match>
+    <Target "set">
+      MetaData "monitorID" "{{.MonitorID}}"
+    </Target>
+  </Rule>
+</Chain>

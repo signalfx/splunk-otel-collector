@@ -1,0 +1,62 @@
+monitors:
+- dimensions:
+  doc: |
+    This monitor collects information about the usage of
+    physical disks and logical disks (partitions).
+
+    See https://collectd.org/wiki/index.php/Plugin:Disk.
+
+    **This monitor has been deprecated in favor of the `disk-io` monitor.
+    Please migrate to that monitor as this collectd-based monitor will be
+    removed in a future release of the agent.**  Note that the `disk-io`
+    monitor has a different dimension (`disk` instead of `plugin_instance`) to
+    specify the disk.
+  metrics:
+    disk_merged.read:
+      description: The number of disk reads merged into single physical disk access
+        operations.
+      default: false
+      type: cumulative
+    disk_merged.write:
+      description: The number of disk writes merged into single physical disk access
+        operations.
+      default: false
+      type: cumulative
+    disk_octets.read:
+      description: The number of bytes (octets) read from a disk.
+      default: false
+      type: cumulative
+    disk_octets.write:
+      description: The number of bytes (octets) written to a disk.
+      default: false
+      type: cumulative
+    disk_ops.read:
+      description: The number of disk read operations.
+      default: true
+      type: cumulative
+    disk_ops.write:
+      description: The number of disk write operations.
+      default: true
+      type: cumulative
+    disk_time.read:
+      description: The average amount of time it took to do a read operation.
+      default: false
+      type: cumulative
+    disk_time.write:
+      description: The average amount of time it took to do a write operation.
+      default: false
+      type: cumulative
+    disk_io_time.weighted_io_time:
+      description: Amount of time spent doing IO in ms multiplied by the queue length
+      default: false
+      type: cumulative
+    disk_io_time.io_time:
+      description: Amount of time spent doing IO in ms
+      default: false
+      type: cumulative
+    pending_operations:
+      description: Number of pending operations
+      default: false
+      type: gauge
+  monitorType: collectd/disk
+  properties:

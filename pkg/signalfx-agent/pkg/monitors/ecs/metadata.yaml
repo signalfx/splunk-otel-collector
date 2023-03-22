@@ -1,0 +1,185 @@
+monitors:
+- dimensions:
+  doc: |
+    This monitor reads container stats from a
+    [ECS Task Metadata Endpoint version 2](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint-v2.html).
+
+    This currently does not support CPU share/quota metrics.
+  groups:
+    blkio:
+      description: BlockIO metrics
+    cpu:
+      description: CPU metrics
+    memory:
+      description: Memory metrics
+    network:
+      description: Network metrics
+  metrics:
+    blkio.io_service_bytes_recursive.async:
+      description: Volume, in bytes, of asynchronous block I/O
+      default: false
+      type: cumulative
+      group: blkio
+    blkio.io_service_bytes_recursive.read:
+      description: Volume, in bytes, of reads from block devices
+      default: true
+      type: cumulative
+      group: blkio
+    blkio.io_service_bytes_recursive.sync:
+      description: Volume, in bytes, of synchronous block I/O
+      default: false
+      type: cumulative
+      group: blkio
+    blkio.io_service_bytes_recursive.total:
+      description: Total volume, in bytes, of all block I/O
+      default: false
+      type: cumulative
+      group: blkio
+    blkio.io_service_bytes_recursive.write:
+      description: Volume, in bytes, of writes to block devices
+      default: true
+      type: cumulative
+      group: blkio
+    blkio.io_serviced_recursive.async:
+      description: Number of asynchronous block I/O requests
+      default: false
+      type: cumulative
+      group: blkio
+    blkio.io_serviced_recursive.read:
+      description: Number of reads requests from block devices
+      default: false
+      type: cumulative
+      group: blkio
+    blkio.io_serviced_recursive.sync:
+      description: Number of synchronous block I/O requests
+      default: false
+      type: cumulative
+      group: blkio
+    blkio.io_serviced_recursive.total:
+      description: Total number of block I/O requests
+      default: false
+      type: cumulative
+      group: blkio
+    blkio.io_serviced_recursive.write:
+      description: Number of write requests to block devices
+      default: false
+      type: cumulative
+      group: blkio
+    cpu.limit:
+      description: CPU usage limit of the container, in ECS vCPU units
+      default: false
+      type: gauge
+      group: cpu
+    cpu.percent:
+      description: Percentage of host CPU resources used by the container
+      default: false
+      type: gauge
+      group: cpu
+    cpu.percpu.usage:
+      description: Jiffies of CPU time spent by the container, per CPU core
+      default: false
+      type: cumulative
+      group: cpu
+    cpu.throttling_data.periods:
+      description: Number of periods
+      default: false
+      type: cumulative
+      group: cpu
+    cpu.throttling_data.throttled_periods:
+      description: Number of periods throttled
+      default: false
+      type: cumulative
+      group: cpu
+    cpu.throttling_data.throttled_time:
+      description: Throttling time in nano seconds
+      default: false
+      type: cumulative
+      group: cpu
+    cpu.usage.kernelmode:
+      description: Jiffies of CPU time spent in kernel mode by the container
+      default: false
+      type: cumulative
+      group: cpu
+    cpu.usage.system:
+      description: Jiffies of CPU time used by the system
+      default: true
+      type: cumulative
+      group: cpu
+    cpu.usage.total:
+      description: Jiffies of CPU time used by the container
+      default: true
+      type: cumulative
+      group: cpu
+    cpu.usage.usermode:
+      description: Jiffies of CPU time spent in user mode by the container
+      default: false
+      type: cumulative
+      group: cpu
+    memory.percent:
+      description: Percent of memory (0-100) used by the container relative to its
+        limit (excludes page cache usage)
+      default: false
+      type: gauge
+      group: memory
+    memory.stats.swap:
+      description: Bytes of swap memory used by container
+      default: false
+      type: gauge
+      group: memory
+    memory.usage.limit:
+      description: Memory usage limit of the container, in bytes
+      default: true
+      type: gauge
+      group: memory
+    memory.usage.max:
+      description: Maximum measured memory usage of the container, in bytes
+      default: false
+      type: gauge
+      group: memory
+    memory.usage.total:
+      description: Bytes of memory used by the container
+      default: true
+      type: gauge
+      group: memory
+    network.usage.rx_bytes:
+      description: Bytes received by the container via its network interface
+      default: true
+      type: cumulative
+      group: network
+    network.usage.rx_dropped:
+      description: Number of inbound network packets dropped by the container
+      default: false
+      type: cumulative
+      group: network
+    network.usage.rx_errors:
+      description: Errors receiving network packets
+      default: false
+      type: cumulative
+      group: network
+    network.usage.rx_packets:
+      description: Network packets received by the container via its network interface
+      default: false
+      type: cumulative
+      group: network
+    network.usage.tx_bytes:
+      description: Bytes sent by the container via its network interface
+      default: true
+      type: cumulative
+      group: network
+    network.usage.tx_dropped:
+      description: Number of outbound network packets dropped by the container
+      default: false
+      type: cumulative
+      group: network
+    network.usage.tx_errors:
+      description: Errors sending network packets
+      default: false
+      type: cumulative
+      group: network
+    network.usage.tx_packets:
+      description: Network packets sent by the container via its network interface
+      default: false
+      type: cumulative
+      group: network
+  monitorType: ecs-metadata
+  properties:

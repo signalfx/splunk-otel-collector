@@ -1,0 +1,966 @@
+monitors:
+- dimensions:
+    plugin_instance:
+      description: Name of the Elasticsearch cluster. For compatibility with collectd/elasticsearch
+        built-in content
+    cluster:
+      description: Name of Elasticsearch the cluster.
+    node_id:
+      description: ID of a Elasticsearch node (only on node mertics)
+    node_name:
+      description: Human readable name of a node (only on node mertics)
+    thread_pool:
+      description: Name of thread pool (only on thread pool mertics)
+    index:
+      description: Name of index (only on per index mertics)
+    aggregation:
+      description: Aggregation of index metrics. Whether the value of the metric is
+        from the primary shard only or across all shards. Valid values - primaries,
+        total respectively (only on index stats)
+  doc: |
+    This monitor collects stats from Elasticsearch. It collects node, cluster
+    and index level stats.
+
+    This monitor collects cluster level and index level stats only from the current master
+    in an Elasticsearch cluster by default. It is possible to override this with the
+    `clusterHealthStatsMasterOnly` and `indexStatsMasterOnly` config options respectively.
+
+    A simple configuration that collects only default (non-custom) metrics
+    looks like the following:
+
+    ```yaml
+    monitors:
+    - type: elasticsearch
+      host: localhost
+      port: 9200
+    ```
+
+    ## Enhanced (custom) metrics
+
+    The monitor collects a subset of node stats of JVM, process, HTTP,
+    transport, indices and thread pool stats. It is possible to enable
+    enhanced stats for each stat group separately.  Note that these metrics
+    get categorized under the _custom_ group if you are on host-based
+    pricing. Here's an example:
+
+    ```yaml
+    monitors:
+    - type: elasticsearch
+      host: localhost
+      port: 9200
+      enableEnhancedHTTPStats: true
+      enableEnhancedJVMStats: true
+      enableEnhancedProcessStats: true
+      enableEnhancedThreadPoolStats: true
+      enableEnhancedTransportStats: true
+      enableEnhancedNodeIndicesStats:
+       - indexing
+       - warmer
+       - get
+
+    ```
+
+    The `enableEnhancedNodeIndicesStats` option takes a list of index stats groups
+    for which enhanced stats will be collected. A comprehensive list of all
+    such available groups can be found [here](https://www.elastic.co/guide/en/elasticsearch/reference/current/cluster-nodes-stats.html#node-indices-stats).
+
+    Note that the `enableEnhancedIndexStatsForIndexGroups` is similar to
+    `enableEnhancedNodeIndicesStats`, but for index level stats.
+
+    ## Thread Pools
+
+    By default thread pool stats from the "search" and "index" thread pools are collected. To collect
+    stats from other thread pools specify the `threadPools` config option:
+
+    ```yaml
+    monitors:
+    - type: elasticsearch
+      host: localhost
+      port: 9200
+      threadPools:
+      - bulk
+      - warmer
+      - listener
+    ```
+
+    Here is a list of valid thread pools by Elasticsearch version:
+
+    | thread pool name | ES 1.x | ES 2.0 | ES 2.1+ |
+    |------------------|--------|--------|--------|
+    | merge            | &#x2713;      |        |        |
+    | optimize         |&#x2713;     |        |        |
+    | bulk             |&#x2713;     |&#x2713;     |&#x2713;     |
+    | flush            |&#x2713;     |&#x2713;     |&#x2713;     |
+    | generic          |&#x2713;     |&#x2713;     |&#x2713;     |
+    | get              |&#x2713;     |&#x2713;     |&#x2713;     |
+    | snapshot         |&#x2713;     |&#x2713;     |&#x2713;     |
+    | warmer           |&#x2713;     |&#x2713;     |&#x2713;     |
+    | refresh          |&#x2713;     |&#x2713;     |&#x2713;     |
+    | fetch\_shard\_started|      |&#x2713;     |&#x2713;     |
+    | fetch\_shard\_store|        |&#x2713;     |&#x2713;     |
+    | listener         |        |&#x2713;     |&#x2713;     |
+    | management       |        |&#x2713;     |&#x2713;     |
+    | percolate        |        |&#x2713;     |&#x2713;     |
+    | suggest          |        |&#x2713;     |&#x2713;     |
+    | force\_merge      |        |        |&#x2713;     |
+
+
+    ## Collecting index statistics
+
+    By default, the configuration parameter `indexes` is empty, which means
+    collect stats on all indexes. To collect statistics from a subset of
+    indexes, set the configuration parameter `indexes` to a list of the index
+    names you want to collect stats for.
+
+    The call to collect index statistics can be CPU-intensive. For this reason
+    SignalFx recommends using the `indexStatsIntervalSeconds` configuration
+    parameter to decrease the reporting interval for nodes that report index
+    statistics.
+
+    ### Primaries vs total
+    By default the monitor collects a subset of index stats of total aggregation
+    type (see docs for details). It is possible to enable index stats of primaries
+    aggregation type too. Total for an index stat aggregates across all shards.
+    Whereas, Primaries only reflect the stats from primary shards. An example
+    configuration to enable index stats from Primary shards too:
+
+    ```yaml
+    monitors:
+    - type: elasticsearch
+      host: localhost
+      port: 9200
+      enableIndexStatsPrimaries: true
+    ```
+  monitorType: elasticsearch
+  metrics:
+    elasticsearch.cluster.initializing-shards:
+      description: Number of shards being initialized
+      default: false
+      type: gauge
+      group: cluster
+    elasticsearch.cluster.pending-tasks:
+      description: Number of pending tasks
+      default: false
+      type: gauge
+      group: cluster
+    elasticsearch.cluster.number-of-nodes:
+      description: Number of nodes
+      default: true
+      type: gauge
+      group: cluster
+    elasticsearch.cluster.task-max-wait-time:
+      description: Max time a task has to wait
+      default: false
+      type: gauge
+      group: cluster
+    elasticsearch.cluster.delayed-unassigned-shards:
+      description: Number of delayed unassigned shards
+      default: false
+      type: gauge
+      group: cluster
+    elasticsearch.cluster.active-shards:
+      description: Number of active shards
+      default: true
+      type: gauge
+      group: cluster
+    elasticsearch.cluster.in-flight-fetches:
+      description: Number of fetches in-flight
+      default: false
+      type: gauge
+      group: cluster
+    elasticsearch.cluster.unassigned-shards:
+      description: Number of unassigned shards
+      default: true
+      type: gauge
+      group: cluster
+    elasticsearch.cluster.number-of-data_nodes:
+      description: Number of data nodes
+      default: true
+      type: gauge
+      group: cluster
+    elasticsearch.cluster.active-primary-shards:
+      description: Number of active primary shards
+      default: true
+      type: gauge
+      group: cluster
+    elasticsearch.cluster.active-shards-percent:
+      description: Percentaage of shards active
+      default: false
+      type: gauge
+      group: cluster
+    elasticsearch.cluster.status:
+      description: Cluster stats (0, 1, 2 for green, yellow and red respectively)
+      default: false
+      type: gauge
+      group: cluster
+    elasticsearch.cluster.relocating-shards:
+      description: Number of shards being relocated
+      default: true
+      type: gauge
+      group: cluster
+    elasticsearch.jvm.mem.pools.old.peak_max_in_bytes:
+      description: Memory pool Old Gen peak max (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.buffer_pools.direct.count:
+      description: Number of direct buffer pools
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.pools.young.max_in_bytes:
+      description: Max memory (in bytes) that can be used by Young Gen
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.classes.current-loaded-count:
+      description: Number of classes currently loaded
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.threads.peak:
+      description: Peak number of threads used
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.classes.total-unloaded-count:
+      description: Total number of classes unloaded
+      default: false
+      type: cumulative
+      group: node/jvm
+    elasticsearch.jvm.uptime:
+      description: Uptime of JVM
+      default: false
+      type: cumulative
+      group: node/jvm
+    elasticsearch.jvm.mem.pools.young.used_in_bytes:
+      description: Memory used by Young Gen (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.heap-used-percent:
+      description: Percent of heap being used
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.buffer_pools.direct.total_capacity_in_bytes:
+      description: Total capacity of direct buffer pools
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.gc.time:
+      description: Total time spent on GC
+      default: true
+      type: cumulative
+      group: node/jvm
+    elasticsearch.jvm.classes.total-loaded-count:
+      description: Number of classes loaded
+      default: false
+      type: cumulative
+      group: node/jvm
+    elasticsearch.jvm.mem.pools.young.peak_used_in_bytes:
+      description: Memory pool Young Gen peak used (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.pools.old.max_in_bytes:
+      description: Memory used by Old Gen (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.pools.young.peak_max_in_bytes:
+      description: Memory pool Young Gen peak max (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.heap-used:
+      description: Memory current being used by JVM heap (in bytes)
+      default: true
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.buffer_pools.direct.used_in_bytes:
+      description: Memory used by direct buffer pools (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.buffer_pools.mapped.used_in_bytes:
+      description: Memory used by mapped buffer pools (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.non-heap-used:
+      description: Memory current being used by JVM non-heap (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.heap-max:
+      description: Max memory that can be used by JVM heap (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.pools.survivor.peak_used_in_bytes:
+      description: Peak memory used by Survivor space (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.pools.old.peak_used_in_bytes:
+      description: Peak memory used by Old Gen (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.non-heap-committed:
+      description: Memory guaranteed to be available to JVM non-heap
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.pools.survivor.peak_max_in_bytes:
+      description: Memory used by Survivor space (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.buffer_pools.mapped.count:
+      description: Number of buffers in the mapped pool
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.pools.old.used_in_bytes:
+      description: Memory being used by Old Gen (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.pools.survivor.max_in_bytes:
+      description: Max memory that can be used by Survivor space (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.gc.old-count:
+      description: Total number of garbage collections on Old Gen
+      default: false
+      type: cumulative
+      group: node/jvm
+    elasticsearch.jvm.mem.pools.survivor.used_in_bytes:
+      description: Memory being used currently by Survivor space (in bytes)
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.gc.count:
+      description: Total number of garbage collections
+      default: false
+      type: cumulative
+      group: node/jvm
+    elasticsearch.jvm.gc.old-time:
+      description: Total time spent in garbage collections on Old Gen
+      default: false
+      type: cumulative
+      group: node/jvm
+    elasticsearch.jvm.mem.heap-committed:
+      description: Memory guaranteed to be available to JVM heap
+      default: true
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.threads.count:
+      description: Number of active threads in the JVM
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.jvm.mem.buffer_pools.mapped.total_capacity_in_bytes:
+      description: Total capacity of the buffers in the mapped pool
+      default: false
+      type: gauge
+      group: node/jvm
+    elasticsearch.process.max_file_descriptors:
+      description: Number of opened file descriptors associated with the current process
+      default: false
+      type: gauge
+      group: node/process
+    elasticsearch.process.mem.total-virtual-size:
+      description: Size in bytes of virtual memory that is guaranteed to be available
+        to the running process
+      default: false
+      type: cumulative
+      group: node/process
+    elasticsearch.process.cpu.percent:
+      description: CPU usage in percent
+      default: false
+      type: gauge
+      group: node/process
+    elasticsearch.process.cpu.time:
+      description: CPU time (in milliseconds) used by the process on which the Java
+        virtual machine is running
+      default: false
+      type: cumulative
+      group: node/process
+    elasticsearch.process.open_file_descriptors:
+      description: Number of currently open file descriptors
+      default: true
+      type: gauge
+      group: node/process
+    elasticsearch.http.total_open:
+      description: Total number of opened HTTP connections
+      default: false
+      type: cumulative
+      group: node/http
+    elasticsearch.http.current_open:
+      description: Number of currently open HTTP connections
+      default: false
+      type: gauge
+      group: node/http
+    elasticsearch.transport.server_open:
+      description: Total number of connections opened for cluster communication
+      default: false
+      type: gauge
+      group: node/transport
+    elasticsearch.transport.rx.count:
+      description: Total size of data received in cluster communication (in bytes)
+      default: false
+      type: cumulative
+      group: node/transport
+    elasticsearch.thread_pool.queue:
+      description: Number of Tasks in thread pool
+      default: false
+      type: gauge
+      group: node/thread-pool
+    elasticsearch.thread_pool.completed:
+      description: Number of threads completed in thread pool
+      default: false
+      type: cumulative
+      group: node/thread-pool
+    elasticsearch.thread_pool.threads:
+      description: Number of Threads in thread pool
+      default: false
+      type: cumulative
+      group: node/thread-pool
+    elasticsearch.thread_pool.active:
+      description: Number of active threads
+      default: false
+      type: gauge
+      group: node/thread-pool
+    elasticsearch.thread_pool.rejected:
+      description: Number of rejected threads in thread pool
+      default: true
+      type: cumulative
+      group: node/thread-pool
+    elasticsearch.indices.merges.current:
+      description: Number of currently active segment merges
+      default: true
+      type: gauge
+      group: indices/merges
+    elasticsearch.thread_pool.largest:
+      description: Highest active threads in thread pool
+      default: false
+      type: gauge
+      group: node/thread-pool
+    elasticsearch.indices.query-cache.miss-count:
+      description: Number of query cache misses
+      default: false
+      type: cumulative
+      group: indices/request-cache
+    elasticsearch.indices.refresh.total:
+      description: Total number of index refreshes
+      default: false
+      type: cumulative
+      group: indices/refresh
+#    elasticsearch.indices.refresh.time:
+#      description: Total time spent on index refreshes
+#      default: false
+#      type: cumulative
+#      group: indices/refresh
+    elasticsearch.indices.refresh.total-time:
+      description: Total time spent on index refreshes
+      default: false
+      type: cumulative
+      group: indices/refresh
+    elasticsearch.indices.request-cache.evictions:
+      description: Number of request cache evictions
+      default: false
+      type: cumulative
+      group: indices/request-cache
+    elasticsearch.indices.search.fetch-time:
+      description: Total time spent on query fetches
+      default: false
+      type: cumulative
+      group: indices/search
+    elasticsearch.indices.merges.stopped-time:
+      description: Total time merges were stopped for
+      default: false
+      type: cumulative
+      group: indices/merges
+    elasticsearch.indices.translog.uncommitted_size_in_bytes:
+      description: Size of uncommitted transaction logs (in bytes)
+      default: false
+      type: gauge
+      group: indices/translog
+    elasticsearch.transport.tx.count:
+      description: Total number of packets sent in cluster communication
+      default: false
+      type: cumulative
+      group: node/transport
+    elasticsearch.indices.filter-cache.evictions:
+      description: Number of evicttions from filter cache
+      default: false
+      type: cumulative
+      group: indices/filter-cache
+    elasticsearch.indices.indexing.delete-time:
+      description: Time spent deleting documents from an index
+      default: false
+      type: cumulative
+      group: indices/indexing
+    elasticsearch.indices.completion.size:
+      description: Size used by suggest completion (in bytes)
+      default: false
+      type: gauge
+      group: indices/completion
+    elasticsearch.indices.recovery.current-as-target:
+      description: Number of ongoing recoveries for which a shard serves as a target
+      default: false
+      type: gauge
+      group: indices/recovery
+    elasticsearch.indices.refresh.listeners:
+      description: Number of listeners waiting for a refresh
+      default: false
+      type: gauge
+      group: indices/refresh
+    elasticsearch.indices.segments.count:
+      description: Number of segments in an index shard
+      default: true
+      type: gauge
+      group: indices/segments
+    elasticsearch.indices.search.query-time:
+      description: Total time spent querying on the primary
+      default: true
+      type: cumulative
+      group: indices/search
+#    elasticsearch.indices.segments.version-map-memory:
+#      description: Memory used by segment version map (in bytes)
+#      default: false
+#      type: gauge
+#      group: indices/segments
+    elasticsearch.indices.segments.version-map-memory-size:
+      description: Memory used by segment version map (in bytes)
+      default: false
+      type: gauge
+      group: indices/segments
+    elasticsearch.indices.search.suggest-current:
+      description: Number of suggest requests currently active
+      default: false
+      type: gauge
+      group: indices/search
+    elasticsearch.indices.indexing.delete-total:
+      description: Number of documents deleted from an index
+      default: false
+      type: cumulative
+      group: indices/indexing
+    elasticsearch.indices.recovery.throttle-time:
+      description: Total time recoveries waited due to throttling
+      default: false
+      type: cumulative
+      group: indices/recovery
+    elasticsearch.transport.rx.size:
+      description: Total size of data received in cluster communication
+      default: false
+      type: cumulative
+      group: node/transport
+    elasticsearch.transport.tx.size:
+      description: Total size of data sent in cluster communication
+      default: false
+      type: cumulative
+      group: node/transport
+    elasticsearch.indices.merges.throttle-time:
+      description: Total time merges spent waiting due to throttling
+      default: false
+      type: cumulative
+      group: indices/merges
+    elasticsearch.indices.indexing.delete-current:
+      description: Number of documents currently being deleted from an index
+      default: false
+      type: gauge
+      group: indices/indexing
+    elasticsearch.indices.flush.total:
+      description: Number of index flushes to disk
+      default: false
+      type: cumulative
+      group: indices/flush
+    elasticsearch.indices.merges.current-size:
+      description: Size of the segments currently being merged
+      default: false
+      type: gauge
+      group: indices/merges
+    elasticsearch.indices.id-cache.memory-size:
+      description: Size of id cache (in bytes)
+      default: false
+      type: gauge
+      group: indices/id-cache
+    elasticsearch.indices.query-cache.memory-size:
+      description: Size of query cache (in bytes)
+      default: false
+      type: gauge
+      group: indices/query-cache
+    elasticsearch.indices.fielddata.evictions:
+      description: Number of evictions from fielddata cache
+      default: false
+      type: cumulative
+      group: indices/fielddata
+    elasticsearch.indices.percolate.queries:
+      description: Number of percolator queries
+      default: false
+      type: cumulative
+      group: indices/percolate
+    elasticsearch.indices.warmer.total-time:
+      description: Total time spent by warmers
+      default: false
+      type: cumulative
+      group: indices/warmer
+    elasticsearch.indices.indexing.index-current:
+      description: Number of documents currently being indexed to an index
+      default: false
+      type: gauge
+      group: indices/indexing
+    elasticsearch.indices.query-cache.evictions:
+      description: Number of query cache evictions
+      default: false
+      type: cumulative
+      group: indices/query-cache
+    elasticsearch.indices.query-cache.total-count:
+      description: Total number of items in the query cache
+      default: false
+      type: cumulative
+      group: indices/query-cache
+    elasticsearch.indices.docs.count:
+      description: Number of docs
+      default: true
+      type: gauge
+      group: indices/docs
+    elasticsearch.indices.translog.operations:
+      description: Number of operations in the transaction log
+      default: false
+      type: gauge
+      group: indices/translog
+    elasticsearch.indices.percolate.current:
+      description: Number of percolator queries currently running
+      default: false
+      type: gauge
+      group: indices/percolate
+    elasticsearch.indices.search.query-total:
+      description: Total number of queries
+      default: true
+      type: cumulative
+      group: indices/search
+    elasticsearch.indices.get.time:
+      description: Time spent on get requests
+      default: false
+      type: cumulative
+      group: indices/get
+    elasticsearch.indices.indexing.index-total:
+      description: Total number of documents indexed to an index
+      default: true
+      type: cumulative
+      group: indices/indexing
+    elasticsearch.indices.filter-cache.memory-size:
+      description: Filter cache size (in bytes)
+      default: false
+      type: gauge
+      group: indices/filter-cache
+    elasticsearch.indices.get.total:
+      description: Total number of get requests
+      default: true
+      type: cumulative
+      group: indices/get
+    elasticsearch.indices.warmer.total:
+      description: Total number of warmers
+      default: false
+      type: cumulative
+      group: indices/warmer
+    elasticsearch.indices.docs.deleted:
+      description: Number of docs deleted
+      default: true
+      type: gauge
+      group: indices/docs
+    elasticsearch.indices.get.exists-total:
+      description: Number of get requests where the document existed
+      default: false
+      type: cumulative
+      group: indices/get
+    elasticsearch.indices.search.scroll-total:
+      description: Total number of scroll queries
+      default: false
+      type: cumulative
+      group: indices/search
+    elasticsearch.indices.request-cache.memory-size:
+      description: Memory used by request cache (in bytes)
+      default: false
+      type: gauge
+      group: indices/request-cache
+    elasticsearch.indices.suggest.time:
+      description: Total time spent in suggest requests
+      default: false
+      type: cumulative
+      group: indices/suggest
+    elasticsearch.indices.warmer.current:
+      description: Number of currently active warmers
+      default: false
+      type: gauge
+      group: indices/warmer
+    elasticsearch.indices.indexing.index-time:
+      description: Time spent indexing documents to an index
+      default: false
+      type: cumulative
+      group: indices/indexing
+    elasticsearch.indices.translog.uncommitted_operations:
+      description: Number of uncommitted operations in the transaction log
+      default: false
+      type: gauge
+      group: indices/translog
+    elasticsearch.indices.segments.index-writer-max-memory-size:
+      description: Maximum memory used by the index writer
+      default: false
+      type: gauge
+      group: indices/segments
+    elasticsearch.indices.segments.index-writer-memory-size:
+      description: Memory used by the index writer
+      default: false
+      type: gauge
+      group: indices/segments
+    elasticsearch.indices.get.exists-time:
+      description: Time spent on get requests where the document existed
+      default: false
+      type: cumulative
+      group: indices/get
+#    elasticsearch.indices.segments.size:
+#      description: Memory used by index segments (in bytes)
+#      default: false
+#      type: gauge
+#      group: indices/segments
+    elasticsearch.indices.segments.memory-size:
+      description: Memory used by index segments (in bytes)
+      default: false
+      type: gauge
+      group: indices/segments
+    elasticsearch.indices.request-cache.miss-count:
+      description: Number of request cache misses
+      default: false
+      type: cumulative
+      group: indices/request-cache
+    elasticsearch.indices.search.query-current:
+      description: Number of currently active queries
+      default: false
+      type: gauge
+      group: indices/search
+    elasticsearch.indices.merges.auto-throttle-size:
+      description: Merging throttled due to auto-throttling (in bytes)
+      default: false
+      type: cumulative
+      group: indices/merges
+    elasticsearch.indices.get.missing-total:
+      description: Number of get requests where the document was missing
+      default: false
+      type: cumulative
+      group: indices/get
+    elasticsearch.indices.recovery.current-as-source:
+      description: Number of ongoing recoveries for which a shard serves as a source
+      default: false
+      type: gauge
+      group: indices/recovery
+    elasticsearch.indices.segments.term-vectors-memory-size:
+      description: Memory used by term vectors (in bytes)
+      default: false
+      type: gauge
+      group: indices/segments
+    elasticsearch.indices.segments.stored-field-memory-size:
+      description: Memory used by stored fields (in bytes)
+      default: false
+      type: gauge
+      group: indices/segments
+    elasticsearch.indices.store.throttle-time:
+      description: Total time requests are throttled for
+      default: false
+      type: cumulative
+      group: indices/store
+    elasticsearch.indices.request-cache.hit-count:
+      description: Number of request cache hits
+      default: false
+      type: cumulative
+      group: indices/request-cache
+    elasticsearch.indices.query-cache.cache-count:
+      description: Number of items in query cache
+      default: false
+      type: gauge
+      group: indices/query-cache
+    elasticsearch.indices.suggest.total:
+      description: Total number of suggest requests
+      default: false
+      type: cumulative
+      group: indices/suggest
+    elasticsearch.indices.query-cache.cache-size:
+      description: Size of query cache (in bytes)
+      default: false
+      type: gauge
+      group: indices/query-cache
+    elasticsearch.indices.segments.points-memory-size:
+      description: Memory used by points
+      default: false
+      type: gauge
+      group: indices/segments
+    elasticsearch.indices.store.size:
+      description: Total size (in bytes)
+      default: false
+      type: gauge
+      group: indices/store
+    elasticsearch.indices.search.fetch-current:
+      description: Number of query fetches currently running
+      default: false
+      type: gauge
+      group: indices/search
+    elasticsearch.indices.merges.total:
+      description: Number of segment merges
+      default: true
+      type: cumulative
+      group: indices/merges
+    elasticsearch.indices.translog.size:
+      description: Size of the transaction log
+      default: false
+      type: gauge
+      group: indices/translog
+#    elasticsearch.indices.segments.index-writer-size:
+#      description: Memory used by the index writer
+#      default: false
+#      type: gauge
+#      group: indices/segments
+    elasticsearch.indices.percolate.total:
+      description: Total number of suggest requests
+      default: false
+      type: cumulative
+      group: indices/percolate
+    elasticsearch.indices.suggest.current:
+      description: Number of currently active suggest requests
+      default: false
+      type: gauge
+      group: indices/suggest
+    elasticsearch.indices.segments.norms-memory-size:
+      description: Memory used by norms (in bytes)
+      default: false
+      type: gauge
+      group: indices/segments
+    elasticsearch.indices.search.suggest-total:
+      description: Total number of suggest requests
+      default: false
+      type: cumulative
+      group: indices/search
+    elasticsearch.indices.search.scroll-time:
+      description: Total time spent on scroll queries
+      default: false
+      type: cumulative
+      group: indices/search
+    elasticsearch.indices.percolate.time:
+      description: Total time spent on percolate requests
+      default: false
+      type: cumulative
+      group: indices/percolate
+    elasticsearch.indices.fielddata.memory-size:
+      description: Size of fielddata cache (in bytes)
+      default: false
+      type: gauge
+      group: indices/fielddata
+    elasticsearch.indices.query-cache.hit-count:
+      description: Number of query cache hits
+      default: false
+      type: cumulative
+      group: indices/query-cache
+    elasticsearch.indices.segments.terms-memory-size:
+      description: Memory used by terms (in bytes)
+      default: false
+      type: gauge
+      group: indices/segments
+    elasticsearch.indices.segments.doc-values-memory-size:
+      description: Memory used by doc values
+      default: false
+      type: gauge
+      group: indices/segments
+    elasticsearch.indices.get.missing-time:
+      description: Time spent on get requests where the document was missing
+      default: false
+      type: cumulative
+      group: indices/get
+    elasticsearch.indices.translog.earliest_last_modified_age:
+      description: Earliest last modified age on transaction logs
+      default: false
+      type: gauge
+      group: indices/translog
+    elasticsearch.indices.merges.total-size:
+      description: Total size of merged segments
+      default: false
+      type: cumulative
+      group: indices/merges
+    elasticsearch.indices.search.fetch-total:
+      description: Total number of query feches
+      default: false
+      type: cumulative
+      group: indices/search
+    elasticsearch.indices.flush.total-time:
+      description: Time spent flushing the index to disk
+      default: false
+      type: cumulative
+      group: indices/flush
+    elasticsearch.indices.get.current:
+      description: Number of get requests running
+      default: false
+      type: gauge
+      group: indices/get
+    elasticsearch.indices.search.suggest-time:
+      description: Total time spent on search suggest
+      default: false
+      type: cumulative
+      group: indices/search
+    elasticsearch.indices.merges.total-docs:
+      description: Number of merged docs across merged segments
+      default: false
+      type: cumulative
+      group: indices/merges
+    elasticsearch.indices.merges.total-time:
+      description: Total time spent on merging
+      default: false
+      type: cumulative
+      group: indices/merges
+    elasticsearch.indices.flush.periodic:
+      description: How long to wait before triggering a flush regardless of translog
+        size
+      default: false
+      type: gauge
+      group: indices/flush
+    elasticsearch.indices.search.scroll-current:
+      description: Currently active scroll queries count
+      default: false
+      type: gauge
+      group: indices/search
+    elasticsearch.indices.segments.fixed-bit-set-memory-size:
+      description: Memory used by fixed bit set
+      default: false
+      type: gauge
+      group: indices/segments
+    elasticsearch.indices.merges.current-docs:
+      description: Number of docs currently being merged
+      default: false
+      type: gauge
+      group: indices/merges
+    elasticsearch.indices.indexing.index-failed:
+      description: Number of failed indices
+      default: false
+      type: gauge
+      group: indices/indexing
+    elasticsearch.indices.indexing.noop-update-total:
+      description: Number of noop updates
+      default: false
+      type: cumulative
+      group: indices/indexing
+    elasticsearch.indices.indexing.throttle-time:
+      description: Throttle time
+      default: false
+      type: cumulative
+      group: indices/indexing
+    elasticsearch.indices.search.open-contexts:
+      description: Number of open contexts
+      default: false
+      type: gauge
+      group: indices/search
+  properties:
+
+

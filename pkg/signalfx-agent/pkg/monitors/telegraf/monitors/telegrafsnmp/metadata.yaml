@@ -1,0 +1,39 @@
+monitors:
+- dimensions:
+  doc: |
+    This monitor reports metrics from snmp agents.
+    This monitor is based on the Telegraf SNMP plugin.  More information about the Telegraf plugin
+    can be found [here](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/snmp).
+
+    **NOTE:** This snmp monitor does not currently support MIB look ups because of a dependency on `net-snmp`
+    and specifically the commands `snmptranslate` and `snmptable`.
+
+    Sample YAML configuration:
+
+    ```yaml
+    monitors:
+     - type: telegraf/snmp
+       agents:
+         - "127.0.0.1:161"
+       version: 2
+       community: "public"
+       fields:
+         - name: "uptime"
+           oid: ".1.3.6.1.2.1.1.3.0"
+    ```
+
+    Using a discovery rule to discover and configure for a specific snmp agent
+    ```yaml
+    monitors:
+     - type: telegraf/snmp
+       discoveryRule: container_name =~ "snmp" && port == 161
+       version: 2
+       community: "public"
+       fields:
+         - name: "uptime"
+           oid: ".1.3.6.1.2.1.1.3.0"
+    ```
+  metrics:
+  monitorType: telegraf/snmp
+  properties:
+  sendAll: true

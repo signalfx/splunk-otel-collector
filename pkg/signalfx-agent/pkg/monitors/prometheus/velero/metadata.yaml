@@ -1,0 +1,47 @@
+monitors:
+- monitorType: prometheus/velero
+  doc: |
+    This monitor gets metrics from 
+    [Velero](https://github.com/vmware-tanzu/velero).
+    It is a wrapper around the [prometheus-exporter](./prometheus-exporter.md) 
+    monitor that provides a restricted but expandable set of metrics.
+
+    <!--- SETUP --->
+    ### Velero configuration
+
+    The Helm chart automatically enable prometheus metrics
+    for Velero (see [this PR](https://github.com/helm/charts/pull/19595/files))
+    So there is nothing to do.
+
+    ### Agent configuration
+
+    This is recommended to use service discovery:
+
+    ```yaml
+    monitors:
+    - type: prometheus/velero
+      discoveryRule: container_image =~ "velero" && port == 8085
+      port: 8085
+    ```
+
+  metrics:
+    velero_backup_partial_failure_total:
+      description: Total number of partially failed backups.
+      default: true
+      type: cumulative
+    velero_backup_deletion_failure_total:
+      description: Total number of failed backup deletions.
+      default: true
+      type: cumulative
+    velero_backup_failure_total:
+      description: Total number of failed backups.
+      default: true
+      type: cumulative
+    velero_volume_snapshot_failure_total:
+      description: Total number of failed volume snapshots.
+      default: true
+      type: cumulative
+    velero_backup_success_total:
+      description: Total number of successful backups.
+      default: true
+      type: cumulative

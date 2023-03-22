@@ -1,0 +1,12 @@
+LoadPlugin memory
+
+<Chain "PostCache"> 
+  <Rule "set_memory_monitor_id"> 
+    <Match "regex"> 
+      Plugin "^memory$" 
+    </Match> 
+    <Target "set"> 
+      MetaData "monitorID" "{{.MonitorID}}" 
+    </Target> 
+  </Rule> 
+</Chain>

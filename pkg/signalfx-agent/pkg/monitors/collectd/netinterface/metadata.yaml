@@ -1,0 +1,47 @@
+monitors:
+- dimensions:
+  doc: |
+    Collectd stats about network interfaces on the
+    system by using the [collectd interface
+    plugin](https://collectd.org/wiki/index.php/Plugin:Interface).
+
+    **This monitor is deprecated in favor of the `net-io` monitor. Please
+    switch to that monitor as this monitor will be removed in a future release
+    of the agent.**  Note that the `net-io` monitor uses the `interface`
+    dimension to identify the network card instead of the `plugin_instance`
+    dimension, but otherwise the metrics are the same.
+  metrics:
+    if_errors.rx:
+      description: Count of receive errors on the interface
+      default: true
+      type: cumulative
+    if_errors.tx:
+      description: Count of transmit errors on the interface
+      default: true
+      type: cumulative
+    if_octets.rx:
+      description: Count of bytes (octets) received on the interface
+      default: true
+      type: cumulative
+    if_octets.tx:
+      description: Count of bytes (octets) transmitted by the interface
+      default: true
+      type: cumulative
+    if_packets.rx:
+      description: Count of packets received on the interface
+      default: false
+      type: cumulative
+    if_packets.tx:
+      description: Count of packets transmitted by the interface
+      default: false
+      type: cumulative
+    if_dropped.rx:
+      description: Count of received packets dropped by the interface
+      default: false
+      type: cumulative
+    if_dropped.tx:
+      description: Count of transmitted packets dropped by the interface
+      default: false
+      type: cumulative
+  monitorType: collectd/interface
+  properties:

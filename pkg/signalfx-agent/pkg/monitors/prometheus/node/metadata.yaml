@@ -1,0 +1,644 @@
+monitors:
+- monitorType: prometheus/node
+  doc: |
+    This monitor scrapes [Prometheus Node
+    Exporter](https://github.com/prometheus/node_exporter) metrics and sends
+    them to SignalFx.  It is a wrapper around the
+    [prometheus-exporter](./prometheus-exporter.md) monitor that provides a
+    restricted but expandable set of metrics.
+  sendAll: true
+  metrics:
+    node_arp_entries:
+      description: ARP entries by device
+      default: false
+      type: gauge
+    node_boot_time_seconds:
+      description: Node boot time, in unixtime
+      default: false
+      type: gauge
+    node_context_switches_total:
+      description: Total number of context switches
+      default: false
+      type: cumulative
+    node_cpu_guest_seconds_total:
+      description: Seconds the cpus spent in guests (VMs) for each mode
+      default: false
+      type: cumulative
+    node_cpu_seconds_total:
+      description: Seconds the cpus spent in each mode
+      default: false
+      type: cumulative
+    node_disk_io_now:
+      description: The number of I/Os currently in progress
+      default: false
+      type: gauge
+    node_disk_io_time_seconds_total:
+      description: Total seconds spent doing I/Os
+      default: false
+      type: cumulative
+    node_disk_io_time_weighted_seconds_total:
+      description: The weighted number of seconds spent doing I/Os. See https://www.kernel.org/doc/Documentation/iostats.txt
+      default: false
+      type: cumulative
+    node_disk_read_bytes_total:
+      description: The total number of bytes read successfully
+      default: false
+      type: cumulative
+    node_disk_read_time_seconds_total:
+      description: The total number of milliseconds spent by all reads
+      default: false
+      type: cumulative
+    node_disk_reads_completed_total:
+      description: The total number of reads completed successfully
+      default: false
+      type: cumulative
+    node_disk_reads_merged_total:
+      description: The total number of reads merged. See https://www.kernel.org/doc/Documentation/iostats.txt
+      default: false
+      type: cumulative
+    node_disk_write_time_seconds_total:
+      description: This is the total number of seconds spent by all writes
+      default: false
+      type: cumulative
+    node_disk_writes_completed_total:
+      description: The total number of writes completed successfully
+      default: false
+      type: cumulative
+    node_disk_writes_merged_total:
+      description: The number of writes merged. See https://www.kernel.org/doc/Documentation/iostats.txt
+      default: false
+      type: cumulative
+    node_disk_written_bytes_total:
+      description: The total number of bytes written successfully
+      default: false
+      type: cumulative
+    node_entropy_available_bits:
+      description: Bits of available entropy
+      default: false
+      type: gauge
+    node_exporter_build_info:
+      description: A metric with a constant '1' value labeled by version, revision,
+        branch, and goversion from which node_exporter was built
+      default: false
+      type: gauge
+    node_filefd_allocated:
+      description: 'File descriptor statistics: allocated'
+      default: false
+      type: gauge
+    node_filefd_maximum:
+      description: 'File descriptor statistics: maximum'
+      default: false
+      type: gauge
+    node_filesystem_avail_bytes:
+      description: Filesystem space available to non-root users in bytes
+      default: false
+      type: gauge
+    node_filesystem_device_error:
+      description: Whether an error occurred while getting statistics for the given
+        device
+      default: false
+      type: gauge
+    node_filesystem_files:
+      description: Filesystem total file nodes
+      default: false
+      type: gauge
+    node_filesystem_files_free:
+      description: Filesystem total free file nodes
+      default: false
+      type: gauge
+    node_filesystem_free_bytes:
+      description: Filesystem free space in bytes
+      default: false
+      type: gauge
+    node_filesystem_readonly:
+      description: Filesystem read-only status
+      default: false
+      type: gauge
+    node_filesystem_size_bytes:
+      description: Filesystem size in bytes
+      default: false
+      type: gauge
+    node_forks_total:
+      description: Total number of forks
+      default: false
+      type: cumulative
+    node_intr_total:
+      description: Total number of interrupts serviced
+      default: false
+      type: cumulative
+    node_ipvs_connections_total:
+      description: The total number of connections made
+      default: false
+      type: cumulative
+    node_ipvs_incoming_bytes_total:
+      description: The total amount of incoming data
+      default: false
+      type: cumulative
+    node_ipvs_incoming_packets_total:
+      description: The total number of incoming packets
+      default: false
+      type: cumulative
+    node_ipvs_outgoing_bytes_total:
+      description: The total amount of outgoing data
+      default: false
+      type: cumulative
+    node_ipvs_outgoing_packets_total:
+      description: The total number of outgoing packets
+      default: false
+      type: cumulative
+    node_load1:
+      description: 1m load average
+      default: false
+      type: gauge
+    node_load15:
+      description: 15m load average
+      default: false
+      type: gauge
+    node_load5:
+      description: 5m load average
+      default: false
+      type: gauge
+    node_memory_Active_anon_bytes:
+      description: Memory information field Active_anon_bytes
+      default: false
+      type: gauge
+    node_memory_Active_bytes:
+      description: Memory information field Active_bytes
+      default: false
+      type: gauge
+    node_memory_Active_file_bytes:
+      description: Memory information field Active_file_bytes
+      default: false
+      type: gauge
+    node_memory_AnonHugePages_bytes:
+      description: Memory information field AnonHugePages_bytes
+      default: false
+      type: gauge
+    node_memory_AnonPages_bytes:
+      description: Memory information field AnonPages_bytes
+      default: false
+      type: gauge
+    node_memory_Bounce_bytes:
+      description: Memory information field Bounce_bytes
+      default: false
+      type: gauge
+    node_memory_Buffers_bytes:
+      description: Memory information field Buffers_bytes
+      default: false
+      type: gauge
+    node_memory_Cached_bytes:
+      description: Memory information field Cached_bytes
+      default: false
+      type: gauge
+    node_memory_CommitLimit_bytes:
+      description: Memory information field CommitLimit_bytes
+      default: false
+      type: gauge
+    node_memory_Committed_AS_bytes:
+      description: Memory information field Committed_AS_bytes
+      default: false
+      type: gauge
+    node_memory_DirectMap1G_bytes:
+      description: Memory information field DirectMap1G_bytes
+      default: false
+      type: gauge
+    node_memory_DirectMap2M_bytes:
+      description: Memory information field DirectMap2M_bytes
+      default: false
+      type: gauge
+    node_memory_DirectMap4k_bytes:
+      description: Memory information field DirectMap4k_bytes
+      default: false
+      type: gauge
+    node_memory_Dirty_bytes:
+      description: Memory information field Dirty_bytes
+      default: false
+      type: gauge
+    node_memory_HugePages_Free:
+      description: Memory information field HugePages_Free
+      default: false
+      type: gauge
+    node_memory_HugePages_Rsvd:
+      description: Memory information field HugePages_Rsvd
+      default: false
+      type: gauge
+    node_memory_HugePages_Surp:
+      description: Memory information field HugePages_Surp
+      default: false
+      type: gauge
+    node_memory_HugePages_Total:
+      description: Memory information field HugePages_Total
+      default: false
+      type: gauge
+    node_memory_Hugepagesize_bytes:
+      description: Memory information field Hugepagesize_bytes
+      default: false
+      type: gauge
+    node_memory_Inactive_anon_bytes:
+      description: Memory information field Inactive_anon_bytes
+      default: false
+      type: gauge
+    node_memory_Inactive_bytes:
+      description: Memory information field Inactive_bytes
+      default: false
+      type: gauge
+    node_memory_Inactive_file_bytes:
+      description: Memory information field Inactive_file_bytes
+      default: false
+      type: gauge
+    node_memory_KernelStack_bytes:
+      description: Memory information field KernelStack_bytes
+      default: false
+      type: gauge
+    node_memory_Mapped_bytes:
+      description: Memory information field Mapped_bytes
+      default: false
+      type: gauge
+    node_memory_MemAvailable_bytes:
+      description: Memory information field MemAvailable_bytes
+      default: false
+      type: gauge
+    node_memory_MemFree_bytes:
+      description: Memory information field MemFree_bytes
+      default: false
+      type: gauge
+    node_memory_MemTotal_bytes:
+      description: Memory information field MemTotal_bytes
+      default: false
+      type: gauge
+    node_memory_Mlocked_bytes:
+      description: Memory information field Mlocked_bytes
+      default: false
+      type: gauge
+    node_memory_NFS_Unstable_bytes:
+      description: Memory information field NFS_Unstable_bytes
+      default: false
+      type: gauge
+    node_memory_PageTables_bytes:
+      description: Memory information field PageTables_bytes
+      default: false
+      type: gauge
+    node_memory_SReclaimable_bytes:
+      description: Memory information field SReclaimable_bytes
+      default: false
+      type: gauge
+    node_memory_SUnreclaim_bytes:
+      description: Memory information field SUnreclaim_bytes
+      default: false
+      type: gauge
+    node_memory_ShmemHugePages_bytes:
+      description: Memory information field ShmemHugePages_bytes
+      default: false
+      type: gauge
+    node_memory_ShmemPmdMapped_bytes:
+      description: Memory information field ShmemPmdMapped_bytes
+      default: false
+      type: gauge
+    node_memory_Shmem_bytes:
+      description: Memory information field Shmem_bytes
+      default: false
+      type: gauge
+    node_memory_Slab_bytes:
+      description: Memory information field Slab_bytes
+      default: false
+      type: gauge
+    node_memory_SwapCached_bytes:
+      description: Memory information field SwapCached_bytes
+      default: false
+      type: gauge
+    node_memory_SwapFree_bytes:
+      description: Memory information field SwapFree_bytes
+      default: false
+      type: gauge
+    node_memory_SwapTotal_bytes:
+      description: Memory information field SwapTotal_bytes
+      default: false
+      type: gauge
+    node_memory_Unevictable_bytes:
+      description: Memory information field Unevictable_bytes
+      default: false
+      type: gauge
+    node_memory_VmallocChunk_bytes:
+      description: Memory information field VmallocChunk_bytes
+      default: false
+      type: gauge
+    node_memory_VmallocTotal_bytes:
+      description: Memory information field VmallocTotal_bytes
+      default: false
+      type: gauge
+    node_memory_VmallocUsed_bytes:
+      description: Memory information field VmallocUsed_bytes
+      default: false
+      type: gauge
+    node_memory_WritebackTmp_bytes:
+      description: Memory information field WritebackTmp_bytes
+      default: false
+      type: gauge
+    node_memory_Writeback_bytes:
+      description: Memory information field Writeback_bytes
+      default: false
+      type: gauge
+    node_netstat_Icmp6_InErrors:
+      description: Statistic Icmp6InErrors
+      default: false
+      type: gauge
+    node_netstat_Icmp6_InMsgs:
+      description: Statistic Icmp6InMsgs
+      default: false
+      type: gauge
+    node_netstat_Icmp6_OutMsgs:
+      description: Statistic Icmp6OutMsgs
+      default: false
+      type: gauge
+    node_netstat_Icmp_InErrors:
+      description: Statistic IcmpInErrors
+      default: false
+      type: gauge
+    node_netstat_Icmp_InMsgs:
+      description: Statistic IcmpInMsgs
+      default: false
+      type: gauge
+    node_netstat_Icmp_OutMsgs:
+      description: Statistic IcmpOutMsgs
+      default: false
+      type: gauge
+    node_netstat_Ip6_InOctets:
+      description: Statistic Ip6InOctets
+      default: false
+      type: gauge
+    node_netstat_Ip6_OutOctets:
+      description: Statistic Ip6OutOctets
+      default: false
+      type: gauge
+    node_netstat_IpExt_InOctets:
+      description: Statistic IpExtInOctets
+      default: false
+      type: gauge
+    node_netstat_IpExt_OutOctets:
+      description: Statistic IpExtOutOctets
+      default: false
+      type: gauge
+    node_netstat_Ip_Forwarding:
+      description: Statistic IpForwarding
+      default: false
+      type: gauge
+    node_netstat_TcpExt_ListenDrops:
+      description: Statistic TcpExtListenDrops
+      default: false
+      type: gauge
+    node_netstat_TcpExt_ListenOverflows:
+      description: Statistic TcpExtListenOverflows
+      default: false
+      type: gauge
+    node_netstat_TcpExt_SyncookiesFailed:
+      description: Statistic TcpExtSyncookiesFailed
+      default: false
+      type: gauge
+    node_netstat_TcpExt_SyncookiesRecv:
+      description: Statistic TcpExtSyncookiesRecv
+      default: false
+      type: gauge
+    node_netstat_TcpExt_SyncookiesSent:
+      description: Statistic TcpExtSyncookiesSent
+      default: false
+      type: gauge
+    node_netstat_Tcp_ActiveOpens:
+      description: Statistic TcpActiveOpens
+      default: false
+      type: gauge
+    node_netstat_Tcp_CurrEstab:
+      description: Statistic TcpCurrEstab
+      default: false
+      type: gauge
+    node_netstat_Tcp_InErrs:
+      description: Statistic TcpInErrs
+      default: false
+      type: gauge
+    node_netstat_Tcp_PassiveOpens:
+      description: Statistic TcpPassiveOpens
+      default: false
+      type: gauge
+    node_netstat_Tcp_RetransSegs:
+      description: Statistic TcpRetransSegs
+      default: false
+      type: gauge
+    node_netstat_Udp6_InDatagrams:
+      description: Statistic Udp6InDatagrams
+      default: false
+      type: gauge
+    node_netstat_Udp6_InErrors:
+      description: Statistic Udp6InErrors
+      default: false
+      type: gauge
+    node_netstat_Udp6_NoPorts:
+      description: Statistic Udp6NoPorts
+      default: false
+      type: gauge
+    node_netstat_Udp6_OutDatagrams:
+      description: Statistic Udp6OutDatagrams
+      default: false
+      type: gauge
+    node_netstat_UdpLite6_InErrors:
+      description: Statistic UdpLite6InErrors
+      default: false
+      type: gauge
+    node_netstat_UdpLite_InErrors:
+      description: Statistic UdpLiteInErrors
+      default: false
+      type: gauge
+    node_netstat_Udp_InDatagrams:
+      description: Statistic UdpInDatagrams
+      default: false
+      type: gauge
+    node_netstat_Udp_InErrors:
+      description: Statistic UdpInErrors
+      default: false
+      type: gauge
+    node_netstat_Udp_NoPorts:
+      description: Statistic UdpNoPorts
+      default: false
+      type: gauge
+    node_netstat_Udp_OutDatagrams:
+      description: Statistic UdpOutDatagrams
+      default: false
+      type: gauge
+    node_network_receive_bytes_total:
+      description: Network device statistic receive_bytes
+      default: false
+      type: cumulative
+    node_network_receive_compressed_total:
+      description: Network device statistic receive_compressed
+      default: false
+      type: cumulative
+    node_network_receive_drop_total:
+      description: Network device statistic receive_drop
+      default: false
+      type: cumulative
+    node_network_receive_errs_total:
+      description: Network device statistic receive_errs
+      default: false
+      type: cumulative
+    node_network_receive_fifo_total:
+      description: Network device statistic receive_fifo
+      default: false
+      type: cumulative
+    node_network_receive_frame_total:
+      description: Network device statistic receive_frame
+      default: false
+      type: cumulative
+    node_network_receive_multicast_total:
+      description: Network device statistic receive_multicast
+      default: false
+      type: cumulative
+    node_network_receive_packets_total:
+      description: Network device statistic receive_packets
+      default: false
+      type: cumulative
+    node_network_transmit_bytes_total:
+      description: Network device statistic transmit_bytes
+      default: false
+      type: cumulative
+    node_network_transmit_carrier_total:
+      description: Network device statistic transmit_carrier
+      default: false
+      type: cumulative
+    node_network_transmit_colls_total:
+      description: Network device statistic transmit_colls
+      default: false
+      type: cumulative
+    node_network_transmit_compressed_total:
+      description: Network device statistic transmit_compressed
+      default: false
+      type: cumulative
+    node_network_transmit_drop_total:
+      description: Network device statistic transmit_drop
+      default: false
+      type: cumulative
+    node_network_transmit_errs_total:
+      description: Network device statistic transmit_errs
+      default: false
+      type: cumulative
+    node_network_transmit_fifo_total:
+      description: Network device statistic transmit_fifo
+      default: false
+      type: cumulative
+    node_network_transmit_packets_total:
+      description: Network device statistic transmit_packets
+      default: false
+      type: cumulative
+    node_nf_conntrack_entries:
+      description: Number of currently allocated flow entries for connection tracking
+      default: false
+      type: gauge
+    node_nf_conntrack_entries_limit:
+      description: Maximum size of connection tracking table
+      default: false
+      type: gauge
+    node_procs_blocked:
+      description: Number of processes blocked waiting for I/O to complete
+      default: false
+      type: gauge
+    node_procs_running:
+      description: Number of processes in runnable state
+      default: false
+      type: gauge
+    node_scrape_collector_duration_seconds:
+      description: Duration of a collector scrape
+      default: false
+      type: gauge
+    node_scrape_collector_success:
+      description: Whether a collector succeeded
+      default: false
+      type: gauge
+    node_sockstat_FRAG_inuse:
+      description: Number of FRAG sockets in state inuse
+      default: false
+      type: gauge
+    node_sockstat_FRAG_memory:
+      description: Number of FRAG sockets in state memory
+      default: false
+      type: gauge
+    node_sockstat_RAW_inuse:
+      description: Number of RAW sockets in state inuse
+      default: false
+      type: gauge
+    node_sockstat_TCP_alloc:
+      description: Number of TCP sockets in state alloc
+      default: false
+      type: gauge
+    node_sockstat_TCP_inuse:
+      description: Number of TCP sockets in state inuse
+      default: false
+      type: gauge
+    node_sockstat_TCP_mem:
+      description: Number of TCP sockets in state mem
+      default: false
+      type: gauge
+    node_sockstat_TCP_mem_bytes:
+      description: Number of TCP sockets in state mem_bytes
+      default: false
+      type: gauge
+    node_sockstat_TCP_orphan:
+      description: Number of TCP sockets in state orphan
+      default: false
+      type: gauge
+    node_sockstat_TCP_tw:
+      description: Number of TCP sockets in state tw
+      default: false
+      type: gauge
+    node_sockstat_UDPLITE_inuse:
+      description: Number of UDPLITE sockets in state inuse
+      default: false
+      type: gauge
+    node_sockstat_UDP_inuse:
+      description: Number of UDP sockets in state inuse
+      default: false
+      type: gauge
+    node_sockstat_UDP_mem:
+      description: Number of UDP sockets in state mem
+      default: false
+      type: gauge
+    node_sockstat_UDP_mem_bytes:
+      description: Number of UDP sockets in state mem_bytes
+      default: false
+      type: gauge
+    node_sockstat_sockets_used:
+      description: Number of sockets sockets in state used
+      default: false
+      type: gauge
+    node_textfile_scrape_error:
+      description: 1 if there was an error opening or reading a file, 0 otherwise
+      default: false
+      type: gauge
+    node_time_seconds:
+      description: System time in seconds since epoch (1970)
+      default: false
+      type: gauge
+    node_uname_info:
+      description: Labeled system information as provided by the uname system call
+      default: false
+      type: gauge
+    node_vmstat_pgfault:
+      description: /proc/vmstat information field pgfault
+      default: false
+      type: gauge
+    node_vmstat_pgmajfault:
+      description: /proc/vmstat information field pgmajfault
+      default: false
+      type: gauge
+    node_vmstat_pgpgin:
+      description: /proc/vmstat information field pgpgin
+      default: false
+      type: gauge
+    node_vmstat_pgpgout:
+      description: /proc/vmstat information field pgpgout
+      default: false
+      type: gauge
+    node_vmstat_pswpin:
+      description: /proc/vmstat information field pswpin
+      default: false
+      type: gauge
+    node_vmstat_pswpout:
+      description: /proc/vmstat information field pswpout
+      default: false
+      type: gauge

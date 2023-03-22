@@ -105,10 +105,10 @@ gendependabot:
 	@echo "Add github-actions entry for \"/\""
 	@echo "  - package-ecosystem: \"github-actions\"\n    directory: \"/\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH}
 	@echo "Add gomod entry for \"/\""
-	@echo "  - package-ecosystem: \"gomod\"\n    directory: \"/\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH}
+	@echo "  - package-ecosystem: \"gomod\"\n    directory: \"/\"\n    ignore:\n      - dependency-name: \"go.opentelemetry.io/*\"\n      - dependency-name: \"github.com/open-telemetry/*\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH}
 	@set -e; for dir in $(ALL_GO_MODULES); do \
 		(echo "Add gomod entry for \"$${dir:1}\"" && \
-		  echo "  - package-ecosystem: \"gomod\"\n    directory: \"$${dir:1}\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH} ); \
+		  echo "  - package-ecosystem: \"gomod\"\n    directory: \"$${dir:1}\"\n    ignore:\n      - dependency-name: \"go.opentelemetry.io/*\"\n      - dependency-name: \"github.com/open-telemetry/*\"\n    schedule:\n      interval: \"weekly\"" >> ${DEPENDABOT_PATH} ); \
 	done
 	@set -e; for dir in $(ALL_PYTHON_DEPS); do \
 		(echo "Add pip entry for \"$${dir:1}\"" && \

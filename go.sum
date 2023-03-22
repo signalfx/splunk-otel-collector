@@ -1211,8 +1211,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthchecke
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/healthcheckextension v0.73.0/go.mod h1:cwAu++FXIR56ep+W50pqbGuYAkNFBQ4Fjrb37ROE/z4=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.73.0 h1:H0Ud+Ehp641X7WTFXEX0oHHn3MlWJJvifxBOWjFqHT8=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/httpforwarder v0.73.0/go.mod h1:oJSR5pZkWjENqBZ72BgO6fGDe5LyQ0gdVY6Nf07MqvU=
-github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.73.0 h1:6mXtNCf/3M7sYd3tWsw2qu2M+nnrNJr7LUqwIjGcRUc=
-github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.73.0/go.mod h1:AutKP/6MzIKtnbLj1wGftCkoUK41LCIUJualtOlLYNI=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.74.0 h1:IXjWP75KMALF5N+bCFEkHtM4a69pWQDoThno0i2Cu0k=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.74.0/go.mod h1:z3x0eZIKiFj3yOiQwdPHTV+hXolyUQ1iOImTtWvgDuk=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.73.0 h1:5PSjJzMClxz7rHIFn/rLXeLabcdzWNKRRgi36HOYVJU=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/dockerobserver v0.73.0/go.mod h1:Dt5Yj1NWmhyCc+MmasZlb2TBtHxVzyI7lX6gtTAlnaI=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer/ecsobserver v0.73.0 h1:y8GflTA4IPzwvGOnRxz+0jvUo5wPudIp4VWKlz/89MM=

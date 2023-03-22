@@ -2039,8 +2039,8 @@ github.com/vishvananda/netlink v1.1.0/go.mod h1:cTgwzPIzzgDAYoQrMm0EdrjRUBkTqKYp
 github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df/go.mod h1:JP3t17pCcGlemwknint6hfoeCVQrEMVwxRLRjXpq+BU=
 github.com/vjeantet/grok v1.0.0 h1:uxMqatJP6MOFXsj6C1tZBnqqAThQEeqnizUZ48gSJQQ=
 github.com/vjeantet/grok v1.0.0/go.mod h1:/FWYEVYekkm+2VjcFmO9PufDU5FgXHUz9oy2EGqmQBo=
-github.com/vmware/govmomi v0.30.2 h1:zPMmLTtAfBgOVsTgwKOzVVahQIOC4A2oyFQFSsn/0ag=
-github.com/vmware/govmomi v0.30.2/go.mod h1:F7adsVewLNHsW/IIm7ziFURaXDaHEwcc+ym4r3INMdY=
+github.com/vmware/govmomi v0.30.4 h1:BCKLoTmiBYRuplv3GxKEMBLtBaJm8PA56vo9bddIpYQ=
+github.com/vmware/govmomi v0.30.4/go.mod h1:F7adsVewLNHsW/IIm7ziFURaXDaHEwcc+ym4r3INMdY=
 github.com/vultr/govultr/v2 v2.17.2 h1:gej/rwr91Puc/tgh+j33p/BLR16UrIPnSr+AIwYWZQs=
 github.com/vultr/govultr/v2 v2.17.2/go.mod h1:ZFOKGWmgjytfyjeyAdhQlSWwTjh2ig+X49cAp50dzXI=
 github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad/go.mod h1:Hy8o65+MXnS6EwGElrSRjUzQDLXreJlzYLlWiHtt8hM=

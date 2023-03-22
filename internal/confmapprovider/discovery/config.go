@@ -32,37 +32,40 @@ import (
 )
 
 const (
-	typeService            = "service"
-	typeReceiver           = "receiver"
-	typeExporter           = "exporter"
-	typeExtension          = "extension"
-	typeProcessor          = "processor"
-	typeDiscoveryObserver  = "discovery.extension"
-	typeReceiverToDiscover = "discovery.receiver"
+	typeService             = "service"
+	typeReceiver            = "receiver"
+	typeExporter            = "exporter"
+	typeExtension           = "extension"
+	typeProcessor           = "processor"
+	typeDiscoveryObserver   = "discovery.extension"
+	typeReceiverToDiscover  = "discovery.receiver"
+	typeDiscoveryProperties = "discovery.properties"
 )
 
 var (
 	defaultType = component.NewID("default")
 
-	discoveryDirRegex = fmt.Sprintf("[^%s]*", compilablePathSeparator)
-	serviceEntryRegex = regexp.MustCompile(fmt.Sprintf("%s%s*service\\.(yaml|yml)$", discoveryDirRegex, compilablePathSeparator))
+	configDirRootRegex            = fmt.Sprintf("^[^%s]*", pathSeparatorForCharacterRange)
+	serviceEntryRegex             = regexp.MustCompile(fmt.Sprintf("%s[%s]?service\\.(yaml|yml)$", configDirRootRegex, pathSeparatorForCharacterRange))
+	discoveryPropertiesEntryRegex = regexp.MustCompile(fmt.Sprintf("%s[%s]?properties\\.discovery\\.(yaml|yml)$", configDirRootRegex, pathSeparatorForCharacterRange))
 
 	_, exporterEntryRegex                   = dirAndEntryRegex("exporters")
 	extensionsDirRegex, extensionEntryRegex = dirAndEntryRegex("extensions")
-	discoveryObserverEntryRegex             = regexp.MustCompile(fmt.Sprintf("%s%s[^%s]*\\.discovery\\.(yaml|yml)$", extensionsDirRegex, compilablePathSeparator, compilablePathSeparator))
+	discoveryObserverEntryRegex             = regexp.MustCompile(fmt.Sprintf("%s[%s][^%s]*\\.discovery\\.(yaml|yml)$", extensionsDirRegex, pathSeparatorForCharacterRange, pathSeparatorForCharacterRange))
 
 	_, processorEntryRegex                = dirAndEntryRegex("processors")
 	receiversDirRegex, receiverEntryRegex = dirAndEntryRegex("receivers")
-	receiverToDiscoverEntryRegex          = regexp.MustCompile(fmt.Sprintf("%s%s[^%s]*\\.discovery\\.(yaml|yml)$", receiversDirRegex, compilablePathSeparator, compilablePathSeparator))
+	receiverToDiscoverEntryRegex          = regexp.MustCompile(fmt.Sprintf("%s[%s][^%s]*\\.discovery\\.(yaml|yml)$", receiversDirRegex, pathSeparatorForCharacterRange, pathSeparatorForCharacterRange))
 )
 
 // Config is a model for stitching together the final Collector configuration with additional discovery component
-// fields for use w/ discovery mode (not yet implemented). It allows individual yaml files to be added to a config.d
-// directory and be sourced in the final config such that small changes don't require a central configuration file,
-// and possible eliminates the need for one overall (still in design).
+// fields for use w/ discovery mode. It allows individual yaml files to be added to a config.d directory and
+// be sourced in the final config such that small changes don't apply to a central configuration file,
+// and possibly eliminates the need for one overall (still in design and dependent on aliasing and array insertion operators).
 type Config struct {
 	logger *zap.Logger
-	// Service is for pipelines and final settings
+	// Service is for pipelines and final settings.
+	// It must be in the root config directory and named "service.yaml"
 	Service ServiceEntry
 	// Exporters is a map of exporters to use in final config.
 	// They must be in `config.d/exporters` directory.
@@ -70,9 +73,8 @@ type Config struct {
 	// Extensions is a map of extensions to use in final config.
 	// They must be in `config.d/extensions` directory.
 	Extensions map[component.ID]ExtensionEntry
-	// DiscoveryObservers is a map of observer extensions to use in discovery,
-	// overriding the default settings. They must be in `config.d/extensions` directory
-	// and end with ".discovery.yaml".
+	// DiscoveryObservers is a map of observer extensions to use in discovery.
+	// They must be in `config.d/extensions` directory and end with ".discovery.yaml".
 	DiscoveryObservers map[component.ID]ExtensionEntry
 	// Processors is a map of extensions to use in final config.
 	// They must be in `config.d/processors` directory.
@@ -84,6 +86,10 @@ type Config struct {
 	// underlying discovery receiver. They must be in `config.d/receivers` directory and
 	// end with ".discovery.yaml".
 	ReceiversToDiscover map[component.ID]ReceiverToDiscoverEntry
+	// DiscoveryProperties is a mapping of discovery properties to their values for
+	// configuring discovery mode components.
+	// It must be in the root config directory and named "properties.discovery.yaml".
+	DiscoveryProperties PropertiesEntry
 }
 
 func NewConfig(logger *zap.Logger) *Config {
@@ -96,12 +102,13 @@ func NewConfig(logger *zap.Logger) *Config {
 		Processors:          map[component.ID]ProcessorEntry{},
 		Receivers:           map[component.ID]ReceiverEntry{},
 		ReceiversToDiscover: map[component.ID]ReceiverToDiscoverEntry{},
+		DiscoveryProperties: PropertiesEntry{Entry{}},
 	}
 }
 
 func dirAndEntryRegex(dirName string) (*regexp.Regexp, *regexp.Regexp) {
-	dirRegex := regexp.MustCompile(fmt.Sprintf("%s%s*%s", discoveryDirRegex, compilablePathSeparator, dirName))
-	entryRegex := regexp.MustCompile(fmt.Sprintf("%s%s[^%s]*\\.(yaml|yml)$", dirRegex, compilablePathSeparator, compilablePathSeparator))
+	dirRegex := regexp.MustCompile(fmt.Sprintf("%s[%s]*%s", configDirRootRegex, pathSeparatorForCharacterRange, dirName))
+	entryRegex := regexp.MustCompile(fmt.Sprintf("%s[%s][^%s]*\\.(yaml|yml)$", dirRegex, pathSeparatorForCharacterRange, pathSeparatorForCharacterRange))
 	return dirRegex, entryRegex
 }
 
@@ -210,6 +217,16 @@ func (ReceiverToDiscoverEntry) ErrorF(path string, err error) error {
 	return errorF(typeReceiverToDiscover, path, err)
 }
 
+var _ entryType = (*PropertiesEntry)(nil)
+
+type PropertiesEntry struct {
+	Entry `yaml:",inline"`
+}
+
+func (PropertiesEntry) ErrorF(path string, err error) error {
+	return errorF(typeDiscoveryProperties, path, err)
+}
+
 // Load will walk the file tree from the configDPath root, loading the component
 // files as they are discovered, determined by their parent directory and filename.
 func (c *Config) Load(configDPath string) error {
@@ -237,6 +254,11 @@ func (c *Config) LoadFS(dirfs fs.FS) error {
 			// and unmarshal to the underlying ServiceEntry
 			tmpSEMap := map[string]ServiceEntry{typeService: c.Service}
 			return loadEntry(typeService, dirfs, path, tmpSEMap)
+		case isDiscoveryPropertiesEntryPath(path):
+			// c.DiscoveryProperties is not a map[string]PropertiesEntry, so we form a tmp
+			// and unmarshal to the underlying PropertiesEntry
+			tmpDPMap := map[string]PropertiesEntry{typeDiscoveryProperties: c.DiscoveryProperties}
+			return loadEntry(typeDiscoveryProperties, dirfs, path, tmpDPMap)
 		case isExporterEntryPath(path):
 			return loadEntry(typeExporter, dirfs, path, c.Exporters)
 		case isExtensionEntryPath(path):
@@ -265,6 +287,7 @@ func (c *Config) LoadFS(dirfs fs.FS) error {
 		c.Exporters = nil
 		c.Processors = nil
 		c.Extensions = nil
+		c.DiscoveryProperties = PropertiesEntry{nil}
 	}
 	return err
 }
@@ -335,6 +358,10 @@ func isReceiverToDiscoverEntryPath(path string) bool {
 	return receiverToDiscoverEntryRegex.MatchString(path)
 }
 
+func isDiscoveryPropertiesEntryPath(path string) bool {
+	return discoveryPropertiesEntryRegex.MatchString(path)
+}
+
 func loadEntry[K keyType, V entryType](componentType string, fs fs.FS, path string, target map[K]V) error {
 	tmpDest := map[K]V{}
 
@@ -351,16 +378,17 @@ func loadEntry[K keyType, V entryType](componentType string, fs fs.FS, path stri
 		return nil
 	}
 
-	if componentType == typeService {
+	// Shallow entry case where resulting entry is not a map[component.ID]Entry
+	if componentType == typeService || componentType == typeDiscoveryProperties {
 		// set directly on target and exit
-		typeServiceK, err := stringToKeyType(componentType, componentID)
+		typeShallowK, err := stringToKeyType(componentType, componentID)
 		if err != nil {
 			return err
 		}
-		serviceEntry := target[typeServiceK].Self()
-		tmpDstSM := tmpDest[typeServiceK].ToStringMap()
+		shallowEntry := target[typeShallowK].Self()
+		tmpDstSM := tmpDest[typeShallowK].ToStringMap()
 		for k, v := range tmpDstSM {
-			serviceEntry[keyTypeToString(k)] = v
+			shallowEntry[keyTypeToString(k)] = v
 		}
 		return nil
 	}
@@ -381,11 +409,14 @@ func unmarshalEntry[K keyType, V entryType](componentType string, fs fs.FS, path
 
 	var unmarshalDst any = dst
 
-	// service is map[string]ServiceEntry{typeService: ServiceEntry} and we want dst to be &ServiceEntry
-	if componentType == typeService {
-		var s any = typeService
-		// service key is always string so this type assertion is safe
-		se := (*dst)[s.(K)]
+	// shallow cases where dst is map[string]Entry{<typeEntry>: <Entry>} but we want it to be &<Entry>
+	if componentType == typeService || componentType == typeDiscoveryProperties {
+		var shallowType any = typeService
+		if componentType == typeDiscoveryProperties {
+			shallowType = typeDiscoveryProperties
+		}
+		// key is always string so this type assertion is safe
+		se := (*dst)[shallowType.(K)]
 		unmarshalDst = &se
 	}
 
@@ -394,12 +425,20 @@ func unmarshalEntry[K keyType, V entryType](componentType string, fs fs.FS, path
 		return
 	}
 
-	if componentType == typeService {
-		// reset map[string]ServiceEntry dst w/ unmarshalled ServiceEntry and return
-		var tService any = typeService
-		var serviceEntry any = *(unmarshalDst.(*ServiceEntry))
-		(*dst)[tService.(K)] = serviceEntry.(V)
-		return tService.(K), nil
+	if componentType == typeService || componentType == typeDiscoveryProperties {
+		var shallowType any
+		var entry any
+		// reset map[string]<EntryType> dst w/ unmarshalled Entry and return
+		switch componentType {
+		case typeService:
+			shallowType = typeService
+			entry = *(unmarshalDst.(*ServiceEntry))
+		case typeDiscoveryProperties:
+			shallowType = typeDiscoveryProperties
+			entry = *(unmarshalDst.(*PropertiesEntry))
+		}
+		(*dst)[shallowType.(K)] = entry.(V)
+		return shallowType.(K), nil
 	}
 
 	entry := *(unmarshalDst.(*map[K]V))
@@ -490,11 +529,13 @@ func keyTypeToString[K keyType](key K) string {
 	return ret
 }
 
-var compilablePathSeparator = func() string {
+// pathSeparatorForCharacterRange will return the platform specific path separator for use in [%s] or [^%s]
+// range template string.
+var pathSeparatorForCharacterRange = func() string {
 	if os.PathSeparator == '\\' {
 		// fs.Stat doesn't use os.PathSeparator so accept '/' as well.
 		// TODO: determine if we even need anything but "/"
-		return "(\\\\|/)"
+		return "\\\\/"
 	}
 	return string(os.PathSeparator)
 }()

@@ -51,7 +51,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/cadvisor v0.46.0
 	github.com/gorilla/mux v1.8.0
-	github.com/hashicorp/consul/api v1.18.0
+	github.com/hashicorp/consul/api v1.20.0
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/hashicorp/vault v1.12.2 // required for newer google.golang.org/api compatibility
 	github.com/hashicorp/vault-plugin-auth-gcp v0.14.0

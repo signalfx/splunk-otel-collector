@@ -1,0 +1,24 @@
+monitors:
+- dimensions:
+  doc: |
+    Monitors process load on the host using the collectd
+    [Load plugin](https://collectd.org/wiki/index.php/Plugin:Load).
+
+    **This monitor has been deprecated in favor of the `load` monitor. That
+    monitor emits the same metrics and is fully compatible.  This
+    `collectd/load` monitor will be removed in a future release of the agent."
+  metrics:
+    load.longterm:
+      description: Average CPU load for the whole system over the last 15 minutes
+      default: true
+      type: gauge
+    load.midterm:
+      description: Average CPU load for the whole system over the last five minutes
+      default: true
+      type: gauge
+    load.shortterm:
+      description: Average CPU load for the whole system over the last one minute
+      default: true
+      type: gauge
+  monitorType: collectd/load
+  properties:

@@ -1,0 +1,91 @@
+monitors:
+  - dimensions:
+    doc: |
+      Monitors an Apache Zookeeper instance using the [Zookeeper collectd
+      plugin](https://github.com/signalfx/collectd-zookeeper). This plugin is
+      installed with the Smart Agent so no additional installation is required to
+      use this monitor.  Supports Zookeeper 3.4.0 or later.
+    metrics:
+      counter.zk_packets_received:
+        description: Count of the number of ZooKeeper packets received by a server
+        default: true
+        type: cumulative
+      counter.zk_packets_sent:
+        description: Count of the number of ZooKeeper packets sent from a server
+        default: true
+        type: cumulative
+      gauge.zk_approximate_data_size:
+        description: Size of data in bytes that a ZooKeeper server has in its data tree
+        default: true
+        type: gauge
+      gauge.zk_avg_latency:
+        description: Average time in milliseconds for requests to be processed
+        default: true
+        type: gauge
+      gauge.zk_ephemerals_count:
+        description: Number of ephemeral nodes that a ZooKeeper server has in its data
+          tree
+        default: true
+        type: gauge
+      gauge.zk_max_file_descriptor_count:
+        description: Maximum number of file descriptors that a ZooKeeper server can
+          open
+        default: true
+        type: gauge
+      gauge.zk_max_latency:
+        description: Maximum time in milliseconds for a request to be processed
+        default: false
+        type: gauge
+      gauge.zk_min_latency:
+        description: Minimum time in milliseconds for a request to be processed
+        default: false
+        type: gauge
+      gauge.zk_num_alive_connections:
+        description: Number of active clients connected to a ZooKeeper server
+        default: true
+        type: gauge
+      gauge.zk_open_file_descriptor_count:
+        description: Number of file descriptors that a ZooKeeper server has open
+        default: true
+        type: gauge
+      gauge.zk_is_leader:
+        description: 1 if the node is a leader, 0 if the node is a follower
+        default: false
+        type: gauge
+      gauge.zk_outstanding_requests:
+        description: Number of currently executing requests
+        default: false
+        type: gauge
+      counter.zk_fsync_threshold_exceed_count:
+        description: Number of times fsync duration has exceeded warning threshold
+        default: false
+        type: cumulative
+      gauge.zk_service_health:
+        description: 1 if server is running, otherwise 0
+        default: false
+        type: gauge
+      gauge.zk_watch_count:
+        description: Number of watches placed on Z-Nodes on a ZooKeeper server
+        default: true
+        type: gauge
+      gauge.zk_znode_count:
+        description: Number of z-nodes that a ZooKeeper server has in its data tree
+        default: true
+        type: gauge
+      gauge.zk_pending_syncs:
+        description: Number of pending syncs from the followers. Only exposed by the leader.
+        default: false
+        group: leader
+        type: gauge
+      gauge.zk_followers:
+        description: Number of followers within the ensemble. Only exposed by the leader.
+        default: false
+        group: leader
+        type: gauge
+      gauge.zk_synced_followers:
+        description: Number of synced followers. Only exposed by the leader.
+        default: false
+        group: leader
+        type: gauge
+    monitorType: collectd/zookeeper
+    properties:

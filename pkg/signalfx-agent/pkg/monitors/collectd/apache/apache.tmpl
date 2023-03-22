@@ -1,0 +1,16 @@
+<LoadPlugin "apache">
+  Interval {{.IntervalSeconds}}
+</LoadPlugin>
+<Plugin "apache">
+  <Instance "{{.Name}}[monitorID={{.MonitorID}}]">
+    {{with .URL}}
+    URL "{{renderValue . $ }}"
+    {{end}}
+    {{with .Username -}}
+    User "{{.}}"
+    {{end}}
+    {{with .Password}}
+    Password "{{.}}"
+    {{end}}
+  </Instance>
+</Plugin>

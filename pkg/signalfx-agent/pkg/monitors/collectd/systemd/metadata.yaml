@@ -1,0 +1,124 @@
+monitors:
+- dimensions:
+    systemd_service:
+      description: The name of the systemd service that the reported metric applies
+        to
+    plugin:
+      description: The name of the collectd plugin. Facilitates filtering operations
+        in the SignalFx app
+  doc: |
+    This [SignalFx Smart Agent](https://github.com/signalfx/signalfx-agent) monitor collects metrics about the state of
+    configured systemd services using the [collectd-systemd](https://github.com/signalfx/collectd-systemd)
+    plugin. A service is in the state that a metric represents if the metric value is 1 and not in that state if the
+    metric value is 0. The name of the service that the metric is reporiting about is assigned to dimension
+    `systemd_service`.
+
+    The collectd-systemd plugin reads the status of systemd services from host location `/var/run/dbus/system_bus_socket`.
+    This means that the host location must be mounted to the container in which the SignalFx Smart Agent is running.
+    The agent container must also run in privilege mode. Below is an excerpt of the docker run command.
+    ```yaml
+    docker run ...\
+      --privileged \
+      -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro \
+    ...
+    ```
+    Below is a sample SignalFx Smart Agent YAML configuration for monitoring the state of `docker` and `ubuntu-fan`
+    services. See [here](https://github.com/signalfx/signalfx-agent#configuration) for SignalFx Smart Agent
+    configuration details.
+    ```yaml
+    monitors:
+    - type: collectd/systemd
+      intervalSeconds: 10
+      services:
+        - docker
+        - ubuntu-fan
+    ```
+    Only the metric `gauge.substate.running`, which indicates whether a service is running or not, gets reported by default.
+    The other metrics must be configure explicitly using the `sendActiveState`, `sendSubState` and `sendLoadState`
+    configuration flags (see below). The metrics are grouped into `ActiveState`, `SubState` and `LoadState` groups.
+    ```
+    monitors:
+    - type: collectd/systemd
+      intervalSeconds: 10
+      services:
+        - docker
+        - ubuntu-fan
+      sendActiveState: true
+    ```
+  groups:
+    ActiveState:
+      description: Metrics which indicate whether a service is currently active or
+        not
+    SubState:
+      description: Metrics which provide further clarification of a service's active
+        state
+    LoadState:
+      description: Metrics which indicate whether a service's unit configuration file
+        has been loaded
+  metrics:
+    gauge.active_state.active:
+      description: Indicates that the systemd unit/service is active
+      default: false
+      type: gauge
+    gauge.active_state.inactive:
+      description: Indicates that the systemd unit/service is inactive and the previous
+        run was successful or no previous run has taken place yet
+      default: false
+      type: gauge
+    gauge.active_state.activating:
+      description: Indicates that the systemd unit/service has previously been inactive
+        but is currently in the process of entering an active state
+      default: false
+      type: gauge
+    gauge.active_state.deactivating:
+      description: Indicates that the systemd unit/service is currently in the process
+        of deactivation
+      default: false
+      type: gauge
+    gauge.active_state.reloading:
+      description: Indicates that the systemd unit/service is active and currently
+        reloading its configuration
+      default: false
+      type: gauge
+    gauge.active_state.failed:
+      description: Indicates that the systemd unit/service is inactive the previous
+        run was not successful
+      default: false
+      type: gauge
+    gauge.substate.running:
+      description: Indicates that the systemd unit/service is running
+      default: true
+      type: gauge
+    gauge.substate.exited:
+      description: Indicates that the systemd unit/service exited
+      default: false
+      type: gauge
+    gauge.substate.failed:
+      description: Indicates that the systemd unit/service failed
+      default: false
+      type: gauge
+    gauge.substate.dead:
+      description: Indicates that the systemd unit/service died
+      default: false
+      type: gauge
+    gauge.load_state.loaded:
+      description: Indicates that the systemd unit/service configuration was loaded
+        and parsed successfully
+      default: false
+      type: gauge
+    gauge.load_state.not-found:
+      description: Indicates that the systemd unit/service configuration was not found
+      default: false
+      type: gauge
+    gauge.load_state.error:
+      description: Indicates that the systemd unit/service configuration failed to
+        load
+      default: false
+      type: gauge
+    gauge.load_state.masked:
+      description: Indicates that the systemd unit/service is currently masked out
+        (i.e. symlinked to /dev/null etc)
+      default: false
+      type: gauge
+  monitorType: collectd/systemd
+  properties:

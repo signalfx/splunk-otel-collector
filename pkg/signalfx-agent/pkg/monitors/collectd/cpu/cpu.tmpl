@@ -1,0 +1,38 @@
+LoadPlugin cpu
+LoadPlugin aggregation
+
+<Plugin "aggregation">
+  <Aggregation>
+    Plugin "cpu"
+    Type "cpu"
+
+    GroupBy "Host"
+    GroupBy "TypeInstance"
+
+    CalculateSum true
+    CalculateAverage true
+  </Aggregation>
+</Plugin>
+
+<Chain "PostCache">
+  <Rule "aggregate_cpu">
+    <Match regex>
+      Plugin "^cpu$"
+    </Match>
+    <Target write>
+      Plugin "aggregation"
+      Plugin "python.signalfx_metadata"
+    </Target>
+    Target stop
+  </Rule>
+  <Rule "set_cpu_aggr_monitor_id">
+    <Match regex>
+      Plugin "^aggregation$"
+      PluginInstance "^cpu-.*"
+    </Match>
+    <Target "set">
+      MetaData "monitorID" "{{.MonitorID}}"
+    </Target>
+  </Rule>
+</Chain>
+

@@ -1,0 +1,106 @@
+monitors:
+- doc: |
+    This is an embedded form of the [Telegraf Varnish
+    plugin](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/varnish).
+
+    Keep in mind this monitor will use `varnishstat` command so the signalfx-agent needs
+    to be run on the same host as the varnish server.
+
+    Also, signalfx-agent should have permission to run this command properly:
+
+    ```bash
+    usermod -a -G varnish signalfx-agent
+    ```
+
+    For more information check [telegraf official documentation](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/varnish#permissions)
+    but do not forget to adapt commands using `signalfx-agent` instead of `telegraf`.
+
+  dimensions:
+    plugin:
+      description: The plugin name "telegraf/varnish".
+    section:
+      description: Varnish section ("MAIN", "MGT", "MEMPOOL", "SMA", "VBE", "LCK").
+  metrics:
+    varnish.cache_hit:
+      description: Requests served from the cache.
+      default: true
+      type: cumulative
+    varnish.cache_miss:
+      description: Requests fetched from a backend server.
+      default: true
+      type: cumulative
+    varnish.cache_hitpass:
+      description: Requests passed to a backend where the decision to pass them found in the cache..
+      default: false
+      type: cumulative
+    varnish.client_req:
+      description: Good client requests.
+      default: true
+      type: cumulative
+    varnish.sess_dropped:
+      description: Sessions dropped due to a full queue.
+      default: true
+      type: gauge
+    varnish.sess_queued:
+      description: Client connections queued to wait for a thread..
+      default: true
+      type: gauge
+    varnish.n_lru_nuked:
+      description: Objects forcefully evicted from the cache because of a lack of space.
+      default: false
+      type: cumulative
+    varnish.threads:
+      description: Number of threads in all pools.
+      default: true
+      type: gauge
+    varnish.threads_created:
+      description: Number of times a thread has been created.
+      default: true
+      type: gauge
+    varnish.threads_failed:
+      description: Number of times that Varnish unsuccessfully tried to create a thread.
+      default: true
+      type: gauge
+    varnish.threads_limited:
+      description: Threads that were needed but couldn't be created because of a thread pool limit.
+      default: true
+      type: gauge
+    varnish.thread_queue_len:
+      description: Length of session queue waiting for threads.
+      default: true
+      type: gauge
+    varnish.backend_conn:
+      description: Successful connections to a given backend.
+      default: false
+      type: cumulative
+    varnish.backend_recycle:
+      description: Backend connections with keep-alive that are returned to the pool of connections.
+      default: false
+      type: cumulative
+    varnish.backend_reuse:
+      description: Recycled connections that has were reused.
+      default: false
+      type: cumulative
+    varnish.backend_toolate:
+      description: Backend connections closed because they were idle too long.
+      default: false
+      type: cumulative
+    varnish.backend_fail:
+      description: Failed connections for a given backend.
+      default: true
+      type: cumulative
+    varnish.backend_unhealthy:
+      description: Backend connections not tried because the backend was unhealthy.
+      default: true
+      type: cumulative
+    varnish.backend_busy:
+      description: Maximum number of connections to a given backend.
+      default: false
+      type: cumulative
+    varnish.backend_req:
+      description: Number of requests to the backend.
+      default: true
+      type: cumulative
+  monitorType: telegraf/varnish
+  sendAll: false
+  properties:

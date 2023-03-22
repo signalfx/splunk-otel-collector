@@ -1,0 +1,42 @@
+monitors:
+- dimensions:
+  doc: |
+    Gathers metrics about the network protocol
+    stacks running on the system by using the [collectd protocols
+    plugin](https://collectd.org/wiki/index.php/Plugin:Protocols).
+  metrics:
+    protocol_counter.ActiveOpens:
+      description: The number of times TCP connections transitioned from the CLOSED
+        state to the SYN-SENT state.
+      default: true
+      type: cumulative
+    protocol_counter.CurrEstab:
+      description: The number of TCP connections currently in either ESTABLISHED or
+        CLOSE-WAIT state.
+      default: false
+      type: cumulative
+    protocol_counter.DelayedACKs:
+      description: The number of acknowledgements delayed by TCP Delayed Acknowledgement
+      default: false
+      type: cumulative
+    protocol_counter.InDestUnreachs:
+      description: The number of ICMP Destination Unreachable messages received
+      default: false
+      type: cumulative
+    protocol_counter.PassiveOpens:
+      description: The number of times that a server opened a connection, due to receiving
+        a TCP SYN packet.
+      default: false
+      type: cumulative
+    protocol_counter.RetransSegs:
+      description: The total number of segments retransmitted
+      default: false
+      type: cumulative
+    protocol_counter.OutSegs:
+      description: >
+        The total number of segments that have been sent, including those on current
+        connections but excluding those containing only retransmitted octets.
+      default: false
+      type: cumulative
+  monitorType: collectd/protocols
+  properties:

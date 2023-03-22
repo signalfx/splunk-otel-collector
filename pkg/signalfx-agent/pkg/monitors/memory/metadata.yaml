@@ -1,0 +1,69 @@
+monitors:
+- dimensions:
+  doc: |
+    This monitor reports memory and memory utilization metrics.
+
+    On Linux hosts, this monitor relies on the `/proc` filesystem.
+    If the underlying host's `/proc` file system is mounted somewhere other than
+    /proc please specify the path using the top level configuration `procPath`.
+
+    ```yaml
+    procPath: /proc
+    monitors:
+     - type: memory
+    ```
+  metrics:
+    memory.available:
+      description: (Windows Only) Bytes of memory available for use.
+      default: false
+      type: gauge
+    memory.buffered:
+      description: (Linux Only) Bytes of memory used for buffering I/O.
+      default: true
+      type: gauge
+    memory.cached:
+      description: (Linux Only) Bytes of memory used for disk caching.
+      default: true
+      type: gauge
+    memory.free:
+      description: (Linux Only) Bytes of memory available for use.
+      default: true
+      type: gauge
+    memory.swap_free:
+      description: Bytes of swap memory available for use.
+      default: false
+      type: gauge
+    memory.swap_total:
+      description: Total bytes of swap memory on the system.
+      default: false
+      type: gauge
+    memory.swap_used:
+      description: Bytes of swap memory in use by the system.
+      default: false
+      type: gauge
+    memory.slab_recl:
+      description: (Linux Only) Bytes of memory, used for SLAB-allocation of kernel
+        objects, that can be reclaimed.
+      default: true
+      type: gauge
+    memory.slab_unrecl:
+      description: (Linux Only) Bytes of memory, used for SLAB-allocation of kernel
+        objects, that can't be reclaimed.
+      default: true
+      type: gauge
+    memory.used:
+      description: Bytes of memory in use by the system.
+      default: true
+      type: gauge
+    memory.utilization:
+      description: Percent of memory in use on this host.  This does NOT
+        include buffer or cache memory on Linux.
+      default: true
+      type: gauge
+    memory.total:
+      description: Total bytes of system memory on the system.
+      default: true
+      type: gauge
+
+  monitorType: memory
+  properties:

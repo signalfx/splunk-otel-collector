@@ -1,0 +1,63 @@
+monitors:
+- monitorType: prometheus/nginx-ingress
+  doc: |
+    This monitor gets metrics from [Ingress 
+    Nginx](https://github.com/kubernetes/ingress-nginx).
+    It is a wrapper around the [prometheus-exporter](./prometheus-exporter.md) 
+    monitor that provides a restricted but expandable set of metrics.
+
+    It relies on the new prometheus metric implementation replacing VTS 
+    from version `0.16.0` of Ingress Nginx (see [official release 
+    notes](https://github.com/kubernetes/ingress-nginx/releases/tag/nginx-0.16.0)).
+    If you use previous version, please use the `prometheus/nginx-vts` 
+    monitor instead.
+
+    <!--- SETUP --->
+    ### Ingress Nginx configuration
+
+    Enable the `controller.stats.enabled=true` and `controller.metrics.enabled=true` 
+    flags in the Nginx Ingress Controller chart.
+
+    ### Agent configuration
+    
+    This is recommended to use service discovery:
+    ```yaml
+    monitors:
+    - type: prometheus/nginx-ingress
+      discoveryRule: container_image =~ "nginx-ingress-controller" && port == 10254
+      port: 10254
+    ```
+
+  metrics:
+    nginx_ingress_controller_requests:
+      description: The total number of client requests.
+      default: true
+      type: cumulative
+    nginx_ingress_controller_request_duration_seconds:
+      description: The request processing time in milliseconds.
+      default: true
+      type: cumulative
+    nginx_ingress_controller_ingress_upstream_latency_seconds:
+      description: Upstream service latency per Ingress.
+      default: true
+      type: cumulative
+    nginx_ingress_controller_nginx_process_connections:
+      description: Current number of client connections with state {reading, writing, waiting}.
+      default: false
+      type: gauge
+    nginx_ingress_controller_nginx_process_connections_total:
+      description: Total number of connections with state {active, accepted, handled}.
+      default: false
+      type: cumulative
+    nginx_ingress_controller_nginx_process_cpu_seconds_total:
+      description: Cpu usage in seconds.
+      default: true
+      type: cumulative
+    nginx_ingress_controller_nginx_process_resident_memory_bytes:
+      description: Number of bytes of memory in use for RSS.
+      default: true
+      type: gauge
+    nginx_ingress_controller_nginx_process_virtual_memory_bytes:
+      description: Number of bytes of memory in use for VSZ.
+      default: false
+      type: gauge

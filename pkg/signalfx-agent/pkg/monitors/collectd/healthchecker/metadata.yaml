@@ -1,0 +1,10 @@
+monitors:
+- dimensions:
+  doc: |
+    A simple Collectd Python-based monitor
+    that hits an endpoint and checks if the configured JSON value is returned in
+    the response body.
+  metrics:
+  monitorType: collectd/health-checker
+  properties:
+  sendAll: true

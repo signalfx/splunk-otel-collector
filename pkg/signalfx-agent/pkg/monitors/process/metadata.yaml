@@ -1,0 +1,14 @@
+monitors:
+- dimensions:
+  doc: |
+  metrics:
+    process.cpu_time_seconds:
+      description: Total CPU usage of the process in seconds.  If you analyze this metric as a rate/second, it tells you how many CPU cores the process is using.
+      default: true
+      type: cumulative
+    process.rss_memory_bytes:
+      description: Current RSS Memory usage of the process, in bytes
+      default: true
+      type: gauge
+  monitorType: process
+  properties:

@@ -1,0 +1,88 @@
+monitors:
+- dimensions:
+    plugin_instance:
+      description: Set to whatever you set in the `name` config option.
+  doc: |
+    Monitors PHP-FPM using pool status URL.
+
+    <!--- SETUP --->
+    ## PHP-FPM Setup
+    To configure the PHP-FPM service itself to expose status metrics:
+
+    1. Enable status https://www.php.net/manual/en/install.fpm.configuration.php#pm.status-path
+    2. Then, configure access through the webserver, i.e. nginx:
+
+       ```
+        location ~ ^/(status|ping)$ {
+          access_log off;
+          fastcgi_pass unix:/run/php/php-fpm.sock;
+          include fastcgi_params;
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        }
+       ```
+    3. Restart Webserver (i.e. Nginx) and PHP-FPM.
+
+    _Note_: Make sure that the URL you provide to reach fpm status
+    page through your webserver ends in `?json`. This returns the 
+    metrics as `json`, which this plugin requires.
+
+    <!--- SETUP --->
+    ## Config Examples
+
+    ```
+    monitors:
+     - type: collectd/php-fpm
+       host: localhost
+       port: 80
+    ```
+
+    If fpm status page is exposed on an endpoint other than `/status`,
+    you can use the `path` config option:
+
+    ```
+    monitors:
+     - type: collectd/php-fpm
+       host: localhost
+       port: 80
+       path: "/status"
+    ```
+
+    You can also define the entire URL yourself using `url` config
+    option but keep in mind `useHTTPS` will be ignored if so:
+    
+    ```
+    monitors:
+     - type: collectd/php-fpm
+       host: localhost
+       port: 80
+       useHTTPS: true # will be ignored
+       url: "http://{{.host}}:{{.port}}/fpm-status?json"
+    ```
+
+    For a full list of options, see [Configuration](#configuration).
+
+
+  metrics:
+    phpfpm_requests.accepted:
+      description: Total number of accepted requests.
+      default: true
+      type: counter
+    phpfpm_requests.slow:
+      description: Total number of slow requests.
+      default: true
+      type: counter
+    phpfpm_processes.active:
+      description: Total number of active processes.
+      default: true
+      type: gauge
+    phpfpm_processes.idle:
+      description: Total number of idle processes.
+      default: true
+      type: gauge
+    phpfpm_processes.max_reached:
+      description: The number of times the process limit has been reached.
+      default: true
+      type: counter
+  monitorType: collectd/php-fpm
+  properties:
+

@@ -1,0 +1,106 @@
+monitors:
+- dimensions:
+  doc: |
+    Monitors a Mesos Marathon instance using the
+    [collectd Marathon Python plugin](https://github.com/signalfx/collectd-marathon).
+
+    See the [integrations
+    doc](https://docs.splunk.com/observability/gdi/marathon/marathon.html)
+    for more information on configuration.
+
+    Sample YAML configuration:
+
+    ```yaml
+    monitors:
+      - type: collectd/marathon
+        host: 127.0.0.1
+        port: 8080
+        scheme: http
+    ```
+
+    Sample YAML configuration for DC/OS:
+
+    ```yaml
+    monitors:
+      - type: collectd/marathon
+        host: 127.0.0.1
+        port: 8080
+        scheme: https
+        dcosAuthURL: https://leader.mesos/acs/api/v1/auth/login
+    ```
+  sendAll: true
+  metrics:
+    gauge.service.mesosphere.marathon.app.cpu.allocated:
+      description: Number of CPUs allocated to an application
+      default: true
+      type: gauge
+    gauge.service.mesosphere.marathon.app.cpu.allocated.per.instance:
+      description: Configured number of CPUs allocated to each application instance
+      default: true
+      type: gauge
+    gauge.service.mesosphere.marathon.app.delayed:
+      description: Indicates if the application is delayed or not
+      default: false
+      type: gauge
+    gauge.service.mesosphere.marathon.app.deployments.total:
+      description: Number of application deployments
+      default: false
+      type: gauge
+    gauge.service.mesosphere.marathon.app.disk.allocated:
+      description: Storage allocated to a Marathon application
+      default: true
+      type: gauge
+    gauge.service.mesosphere.marathon.app.disk.allocated.per.instance:
+      description: Configured storage allocated each to application instance
+      default: true
+      type: gauge
+    gauge.service.mesosphere.marathon.app.gpu.allocated:
+      description: GPU Allocated to a Marathon application
+      default: false
+      type: gauge
+    gauge.service.mesosphere.marathon.app.gpu.allocated.per.instance:
+      description: Configured number of GPUs allocated to each application instance
+      default: false
+      type: gauge
+    gauge.service.mesosphere.marathon.app.instances.total:
+      description: Number of application instances
+      default: true
+      type: gauge
+    gauge.service.mesosphere.marathon.app.memory.allocated:
+      description: Memory Allocated to a Marathon application
+      default: true
+      type: gauge
+    gauge.service.mesosphere.marathon.app.memory.allocated.per.instance:
+      description: Configured amount of memory allocated to each application instance
+      default: true
+      type: gauge
+    gauge.service.mesosphere.marathon.app.tasks.running:
+      description: Number tasks running for an application
+      default: true
+      type: gauge
+    gauge.service.mesosphere.marathon.app.tasks.staged:
+      description: Number tasks staged for an application
+      default: true
+      type: gauge
+    gauge.service.mesosphere.marathon.app.tasks.unhealthy:
+      description: Number unhealthy tasks for an application
+      default: true
+      type: gauge
+    gauge.service.mesosphere.marathon.task.healthchecks.failing.total:
+      description: The number of failing health checks for a task
+      default: true
+      type: gauge
+    gauge.service.mesosphere.marathon.task.healthchecks.passing.total:
+      description: The number of passing health checks for a task
+      default: true
+      type: gauge
+    gauge.service.mesosphere.marathon.task.staged.time.elapsed:
+      description: The amount of time the task spent in staging
+      default: false
+      type: gauge
+    gauge.service.mesosphere.marathon.task.start.time.elapsed:
+      description: Time elapsed since the task started
+      default: false
+      type: gauge
+  monitorType: collectd/marathon
+  properties:

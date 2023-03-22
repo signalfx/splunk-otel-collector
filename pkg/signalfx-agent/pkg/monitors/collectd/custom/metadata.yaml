@@ -1,0 +1,70 @@
+monitors:
+- dimensions:
+  doc: |
+    This monitor lets you provide custom collectd
+    configuration to be run by the managed collectd instance.  You can provide
+    configuration for as many plugins as you want in a single instance of this
+    monitor configuration by either putting multiple `<Plugin>` blocks in a
+    single `template` option, or specifying multiple `templates`.
+
+    Note that a distinct instance of collectd is run for each instance of this
+    monitor, so it is more efficient to group plugin configurations into a
+    single monitor configuration (either in one big `template` text blob, or
+    split into multiple `templates`).  You should not group configurations if
+    using a discoveryRule since that would result in duplicate config for each
+    instance of the service endpoint discovered.
+
+    You can also use your own Python plugins in conjunction with the
+    `ModulePath` option in
+    [collectd-python](https://collectd.org/documentation/manpages/collectd-python.5.shtml).
+    If your Python plugin has dependencies of its own, you can specify the path
+    to them by specifying multiple `ModulePath` options with those paths.
+
+    Here is an example of a configuration with a custom Python plugin:
+
+    ```yaml
+      - type: collectd/custom
+        discoveryRule: container_image =~ "myservice"
+        template: |
+          LoadPlugin "python"
+          <Plugin python>
+            ModulePath "/usr/lib/python2.7/dist-packages/health_checker"
+            Import "health_checker"
+            <Module health_checker>
+              URL "http://{{.Host}}:{{.Port}}"
+              JSONKey "isRunning"
+              JSONVal "1"
+            </Module>
+          </Plugin>
+    ```
+
+    We have many collectd plugins included in the image that are not exposed as
+    monitors.  You can see the plugins in the `<AGENT_BUNDLE>/lib/collectd`
+    directory, where `<AGENT_BUNDLE>` is the root of the filesystem in the
+    containerized version, and is normally `/usr/lib/signalfx-agent` in the
+    non-containerized agent.
+
+    ## Running the collectd/exec plugin
+    You can use the collectd/custom monitor to run the collectd/exec plugin.
+    If you are not running the Smart Agent in the container, you can use any appropriate user
+    on your system.
+    If you are running the Smart Agent in a container, 
+    then you need to use a non-root user when you run your script:
+
+    ```yaml
+      - type: collectd/custom
+        template: |
+          LoadPlugin exec
+          <Plugin exec>
+            Exec "`non-root user`" "/path/to/script.sh"
+          </Plugin>
+    ```
+    (replace `non-root user` with an actual non-root user on your host)
+
+    To learn how to use the collectd/exec plugin, see [the collectd-exec](https://collectd.org/documentation/manpages/collectd.conf.5.shtml#plugin_exec)
+    documentation.
+
+  metrics:
+  monitorType: collectd/custom
+  properties:
+  sendAll: true

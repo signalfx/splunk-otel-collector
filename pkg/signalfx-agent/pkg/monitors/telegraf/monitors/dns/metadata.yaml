@@ -1,0 +1,29 @@
+monitors:
+- doc: |
+    This is an embedded form of the [Telegraf DNS Query
+    plugin](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/dns_query).
+
+  dimensions:
+    plugin:
+      description: The plugin name "telegraf/dns".
+    domain:
+      description: The DNS domain queried.
+    server:
+      description: The DNS server queried.
+    record_type:
+      description: The DNS record type queried.
+  metrics:
+    dns.query_time_ms:
+      description: Reponse time of the query in ms.
+      default: true
+      type: gauge
+    dns.result_code:
+      description: Resolution result code (success = 0, timeout = 1, error = 2).
+      default: true
+      type: gauge
+    dns.rcode_value:
+      description: Error code. See [this tab](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/dns_query#rcode-descriptions) for detailled descriptions.
+      default: true
+      type: gauge
+  monitorType: telegraf/dns
+  properties:

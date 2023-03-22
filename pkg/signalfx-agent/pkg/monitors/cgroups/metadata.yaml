@@ -1,0 +1,358 @@
+monitors:
+- doc: |
+    Reports statistics about cgroups on Linux.  This only supports cgroups v1
+    and not the newer v2 unified implementation.
+
+    For general information on cgroups, see http://man7.org/linux/man-pages/man7/cgroups.7.html.
+
+    For detailed information on `cpu` cgroup metrics, see [Red Hat's guide to CPU management](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/resource_management_guide/sec-cpu). Many of the metric descriptions come from that document. Note that the `cpuacct` cgroup is primarily an informational cgroup that gives detailed information on how long processes in a cgroup used the CPU.
+
+    For detailed information on `memory` cgroup metrics, see [Red Hat's guide to the Memory cgroup](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/resource_management_guide/sec-memory). Many of the metric description come from that document.  Also refer to the Linux Kernel's [memory cgroup document](https://www.kernel.org/doc/Documentation/cgroup-v1/memory.txt).
+
+    ### Filtering
+    You can limit the cgroups for which metrics are generated with the
+    `cgroups` config option to the monitor.
+
+    For example, the following will only monitor docker generated cgroups:
+
+    ```yaml
+    monitors:
+     - type: cgroups
+       cgroups:
+        - "/docker/*"
+    ```
+  metrics:
+    cgroup.cpu_shares:
+      default: true
+      type: gauge
+      group: cpu
+      description: >
+        The relative share of CPU that this cgroup gets.  This number is
+        divided into the sum total of all cpu share values to determine the
+        share any individual cgroup is entitled to.
+
+    cgroup.cpu_cfs_period_us:
+      default: true
+      type: gauge
+      group: cpu
+      description: The period of time in microseconds for how regularly a cgroup's access to CPU resources should be reallocated
+
+    cgroup.cpu_cfs_quota_us:
+      default: true
+      type: gauge
+      group: cpu
+      description: The total amount of time in microseconds for which all tasks in a cgroup can run during one period.  The period is in the metric `cgroup.cpu_cfs_period_us`.
+
+    cgroup.cpu_stat_nr_periods:
+      default: false
+      group: cpu
+      type: cumulative
+      description: Number of period intervals that have elapsed (the period length is in the metric `cgroup.cpu_cfs_period_us`)
+
+    cgroup.cpu_stat_nr_throttled:
+      default: false
+      group: cpu
+      type: cumulative
+      description: Number of times tasks in a cgroup have been throttled
+
+    cgroup.cpu_stat_throttled_time:
+      default: true
+      group: cpu
+      type: cumulative
+      description: The total time in nanoseconds for which tasks in a cgroup have been throttled
+
+    cgroup.cpuacct_usage_ns:
+      default: true
+      type: cumulative
+      group: cpuacct
+      description: Total time in nanoseconds spent using any CPU by tasks in this cgroup 
+    cgroup.cpuacct_usage_ns_per_cpu:
+      default: false
+      type: cumulative
+      group: cpuacct-per-cpu
+      description: >
+        Total time in nanoseconds spent using a specific CPU (core) by tasks in
+        this cgroup.  This metric will have the `cpu` dimension that specifies
+        the specific cpu/core.
+
+    cgroup.cpuacct_usage_user_ns:
+      default: false
+      type: cumulative
+      group: cpuacct
+      description: Total time in nanoseconds spent in user mode on any CPU by tasks in this cgroup
+
+    cgroup.cpuacct_usage_user_ns_per_cpu:
+      default: false
+      type: cumulative
+      group: cpuacct-per-cpu
+      description: >
+        Total time in nanoseconds spent in user mode on a specific CPU (core)
+        by tasks in this cgroup.  This metric will have the `cpu` dimension
+        that specifies the specific cpu/core.
+
+    cgroup.cpuacct_usage_system_ns:
+      default: false
+      type: cumulative
+      group: cpuacct
+      description: Total time in nanoseconds spent in system (kernel) mode on any CPU by tasks in this cgroup
+
+    cgroup.cpuacct_usage_system_ns_per_cpu:
+      default: false
+      type: cumulative
+      group: cpuacct-per-cpu
+      description: >
+        Total time in nanoseconds spent in system (kernel) mode on a specific
+        CPU (core) by tasks in this cgroup.  This metric will have the `cpu`
+        dimension that specifies the specific cpu/core.
+
+    cgroup.memory_stat_cache:
+      default: true
+      group: memory
+      type: gauge
+      description: Page cache, including tmpfs (shmem), in bytes
+
+    cgroup.memory_stat_rss:
+      default: true
+      group: memory
+      type: gauge
+      description: Anonymous and swap cache, not including tmpfs (shmem), in bytes
+
+    cgroup.memory_stat_rss_huge:
+      default: false
+      group: memory
+      type: gauge
+      description: Bytes of anonymous transparent hugepages
+
+    cgroup.memory_stat_shmem:
+      default: false
+      group: memory
+      type: gauge
+      description: Bytes of shared memory
+
+    cgroup.memory_stat_mapped_file:
+      default: false
+      group: memory
+      type: gauge
+      description: Bytes of mapped file (includes tmpfs/shmem)
+
+    cgroup.memory_stat_dirty:
+      default: false
+      group: memory
+      type: gauge
+      description: Bytes that are waiting to get written back to the disk
+
+    cgroup.memory_stat_writeback:
+      default: false
+      group: memory
+      type: gauge
+      description: Bytes of file/anon cache that are queued for syncing to disk
+
+    cgroup.memory_stat_pgpgin:
+      default: false
+      group: memory
+      type: cumulative
+      description: >
+        Number of charging events to the memory cgroup. The charging event
+        happens each time a page is accounted as either mapped anon page(RSS)
+        or cache page(Page Cache) to the cgroup.
+
+    cgroup.memory_stat_pgpgout:
+      default: false
+      group: memory
+      type: cumulative
+      description: >
+        Number of uncharging events to the memory cgroup. The uncharging event
+        happens each time a page is unaccounted from the cgroup.
+
+    cgroup.memory_stat_pgfault:
+      default: false
+      group: memory
+      type: cumulative
+      description: Total number of page faults incurred
+
+    cgroup.memory_stat_pgmajfault:
+      default: false
+      group: memory
+      type: cumulative
+      description: Number of major page faults incurred
+
+    cgroup.memory_stat_inactive_anon:
+      default: false
+      group: memory
+      type: gauge
+      description: Bytes of anonymous and swap cache memory on inactive LRU list
+
+    cgroup.memory_stat_active_anon:
+      default: false
+      group: memory
+      type: gauge
+      description: Bytes of anonymous and swap cache memory on active LRU list
+
+    cgroup.memory_stat_inactive_file:
+      default: false
+      group: memory
+      type: gauge
+      description: Bytes of file-backed memory on inactive LRU list
+
+    cgroup.memory_stat_active_file:
+      default: false
+      group: memory
+      type: gauge
+      description: Bytes of file-backed memory on active LRU list
+
+    cgroup.memory_stat_unevictable:
+      default: false
+      group: memory
+      type: gauge
+      description: Bytes of memory that cannot be reclaimed (mlocked, etc).
+
+    cgroup.memory_stat_hierarchical_memory_limit:
+      default: false
+      group: memory
+      type: gauge
+      description: Bytes of memory limit with regard to hierarchy under which the memory cgroup is
+
+    cgroup.memory_stat_hierarchical_memsw_limit:
+      default: false
+      group: memory
+      type: gauge
+      description: The memory+swap limit in place by the hierarchy cgroup
+
+    cgroup.memory_stat_swap:
+      default: false
+      group: memory
+      type: gauge
+      description: Bytes of swap memory used by the cgroup
+
+    cgroup.memory_stat_total_cache:
+      default: false
+      group: memory
+      type: gauge
+      description: The equivalent of `cgroup.memory_stat_cache` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_rss:
+      default: false
+      group: memory
+      type: gauge
+      description: The equivalent of `cgroup.memory_stat_rss` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_rss_huge:
+      default: false
+      group: memory
+      type: gauge
+      description: The equivalent of `cgroup.memory_stat_rss_huge` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_shmem:
+      default: false
+      group: memory
+      type: gauge
+      description: The equivalent of `cgroup.memory_stat_shmem` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_swap:
+      default: false
+      group: memory
+      type: gauge
+      description: Total amount of swap memory available to this cgroup
+
+    cgroup.memory_stat_total_mapped_file:
+      default: false
+      group: memory
+      type: gauge
+      description: The equivalent of `cgroup.memory_stat_mapped_file` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_dirty:
+      default: false
+      group: memory
+      type: gauge
+      description: The equivalent of `cgroup.memory_stat_dirty` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_writeback:
+      default: false
+      group: memory
+      type: gauge
+      description: The equivalent of `cgroup.memory_stat_writeback` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_pgpgin:
+      default: false
+      group: memory
+      type: cumulative
+      description: The equivalent of `cgroup.memory_stat_pgpgin` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_pgpgout:
+      default: false
+      group: memory
+      type: cumulative
+      description: The equivalent of `cgroup.memory_stat_pgpgout` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_pgfault:
+      default: false
+      group: memory
+      type: cumulative
+      description: The equivalent of `cgroup.memory_stat_pgfault` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_pgmajfault:
+      default: false
+      group: memory
+      type: cumulative
+      description: The equivalent of `cgroup.memory_stat_pgmajfault` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_inactive_anon:
+      default: false
+      group: memory
+      type: gauge
+      description: The equivalent of `cgroup.memory_stat_inactive_anon` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_active_anon:
+      default: false
+      group: memory
+      type: gauge
+      description: The equivalent of `cgroup.memory_stat_active_anon` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_inactive_file:
+      default: false
+      group: memory
+      type: gauge
+      description: The equivalent of `cgroup.memory_stat_inactive_file` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_active_file:
+      default: false
+      group: memory
+      type: gauge
+      description: The equivalent of `cgroup.memory_stat_active_file` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_stat_total_unevictable:
+      default: false
+      group: memory
+      type: gauge
+      description: The equivalent of `cgroup.memory_stat_unevictable` that also includes the sum total of that metric for all descendant cgroups
+
+    cgroup.memory_limit_in_bytes:
+      default: true
+      group: memory
+      type: gauge
+      description: >
+        The maximum amount of user memory (including file cache).  A value of
+        `9223372036854771712` (the max 64-bit int aligned to the nearest memory
+        page) indicates no limit and is the default.
+
+    cgroup.memory_failcnt:
+      default: true
+      group: memory
+      type: cumulative
+      description: >
+        The number of times that the memory limit has reached the
+        `limit_in_bytes` (reported in metric `cgroup.memory_limit_in_bytes`).
+
+    cgroup.memory_max_usage_in_bytes:
+      default: false
+      group: memory
+      type: gauge
+      description: The maximum memory used by processes in the cgroup (in bytes)
+
+  monitorType: cgroups
+  dimensions:
+    cpu:
+      description: For metrics that end with `_per_cpu`, this dimension will indicate which cpu the time series refers to.
+    cgroup:
+      description: The name of the cgroup being described.  The name of a cgroup is the full relative path of the cgroup based on the cgroup controller's root directory.
+  properties:

@@ -1,0 +1,19 @@
+LoadPlugin disk
+<Plugin "disk">
+{{range .Disks -}}
+  Disk "{{.}}"
+{{end}}
+  IgnoreSelected {{if .IgnoreSelected}}true{{else}}false{{end}}
+</Plugin>
+
+
+<Chain "PostCache"> 
+  <Rule "set_disk_monitor_id"> 
+    <Match "regex"> 
+      Plugin "^disk$" 
+    </Match> 
+    <Target "set"> 
+      MetaData "monitorID" "{{.MonitorID}}" 
+    </Target> 
+  </Rule> 
+</Chain>

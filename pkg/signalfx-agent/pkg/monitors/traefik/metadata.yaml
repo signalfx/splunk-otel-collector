@@ -1,0 +1,258 @@
+monitors:
+- monitorType: traefik
+  doc: |
+    Traefik is an open-source HTTP reverse proxy and load balancer. Traefik exports Prometheus metrics that can be
+    scraped by the SignalFx Smart Agent. These metrics can be categorized into Traefik-related, entrypoint-related and
+    backend-related metrics. The Traefik-related metrics are prefixed by `go_` and `process_`. The entrypoint-related
+    metrics are prefixed by `traefik_entrypoint_` and the backend-related metrics prefixed by `traefik_backend_`.
+
+    The Traefik-related metrics are for monitoring Traefik itself. For instance, the `go_memstats_sys_bytes` metric can
+    be used to plot Traefik memory usage. The entrypoint-related and backend-related metrics are the number and duration
+    of requests measured at entrypoints and backends. These metrics are used to compute measurements such as the average
+    request duration.
+
+    ## Requirements and Dependencies
+
+    | Software          | Version        |
+    |-------------------|----------------|
+    | signalfx-agent    |     4.7.0+     |
+
+    ## Traefik Configuration
+
+    Edit the Traefik configuration file, typically `traefik.toml`, to enable Traefik to expose prometheus metrics at an
+    endpoint. The endpoint is on path `/metrics` by default. When running the Traefik binary, the configuration file is
+    typically passed in as a command line argument. For example,
+
+    `./traefik -c traefik.toml`
+
+    However, when running the Traefik Docker image, the configuration file is mounted to volume
+    `/etc/traefik/traefik.toml`. For example,
+
+    `docker run -d -p 8080:8080 -p 80:80 -v $PWD/traefik.toml:/etc/traefik/traefik.toml`
+
+    If the Traefik configuration file is not available use the sample configuration file
+    <a target="_blank" href="https://raw.githubusercontent.com/containous/traefik/master/traefik.sample.toml">here</a>
+    to get started.
+
+    See <a target="_blank" href="https://docs.traefik.io/">here</a> for complete Traefik docs.
+
+    ## Smart Agent Configuration
+
+    SignalFx Smart Agent docs can be found <a target="_blank" href="https://github.com/signalfx/signalfx-agent">here</a>.
+    Choose deployment specific configuration instruction
+    <a target="_blank" href="https://github.com/signalfx/signalfx-agent/tree/main/deployments">here</a>. The
+    SignalFx Smart Agent must have network access to Traefik.
+
+    Below is an example configuration that enables the traefik monitor. For the given configuration below, the monitor
+    will scrape Prometheus metrics in the default path `/metrics` on port 8080, add dimension
+    `metric_source=traefik` to the metrics and export them to SignalFx.
+
+    ```
+    monitors:
+    - type: traefik
+      discoveryRule: port == 8080
+      extraDimensions:
+        metric_source: traefik
+    ```
+
+  metrics:
+    go_gc_duration_seconds:
+      description: A summary of the GC invocation durations.
+      default: false
+      type: cumulative
+    go_gc_duration_seconds_count:
+      description: A count of the GC invocation durations.
+      default: false
+      type: cumulative
+    go_gc_duration_seconds_sum:
+      description: The sum of the GC invocation durations, in seconds.
+      default: false
+      type: cumulative
+    go_memstats_alloc_bytes_total:
+      description: Total number of bytes allocated, even if freed.
+      default: false
+      type: cumulative
+    go_memstats_frees_total:
+      description: Total number of frees.
+      default: false
+      type: cumulative
+    go_memstats_lookups_total:
+      description: Total number of pointer lookups.
+      default: false
+      type: cumulative
+    go_memstats_mallocs_total:
+      description: Total number of mallocs.
+      default: false
+      type: cumulative
+    process_cpu_seconds_total:
+      description: Total user and system CPU time spent, in seconds.
+      default: false
+      type: cumulative
+    traefik_backend_request_duration_seconds_bucket:
+      description: The sum of request durations that are within a configured time interval. The request durations are measured at a backend in seconds. This value is partitioned by status code, protocol, and method.
+      default: false
+      type: cumulative
+    traefik_backend_request_duration_seconds_count:
+      description: The number of request durations that were measured on a backend. The values are partitioned by status code, protocol, and method.
+      default: false
+      type: cumulative
+    traefik_backend_request_duration_seconds_sum:
+      description: The sum of the request durations in seconds, measured on a backend, partitioned by status code, protocol, and method.
+      default: true
+      type: cumulative
+    traefik_backend_requests_total:
+      description: How many HTTP requests were processed on a backend, partitioned by status code, protocol, and method.
+      default: true
+      type: cumulative
+    traefik_config_reloads_failure_total:
+      description: Total number of config reloads that failed
+      default: false
+      type: cumulative
+    traefik_config_reloads_total:
+      description: Config reloads
+      default: false
+      type: cumulative
+    traefik_entrypoint_request_duration_seconds_bucket:
+      description: The sum of request durations that are within a configured time interval. The request durations are measured at an entrypoint in seconds. This value is partitioned by status code, protocol, and method.
+      default: false
+      type: cumulative
+    traefik_entrypoint_request_duration_seconds_count:
+      description: The number of request durations that were measured on an entrypoint. The values are partitioned by status code, protocol, and method.
+      default: true
+      type: cumulative
+    traefik_entrypoint_request_duration_seconds_sum:
+      description: The sum of the request durations in seconds measured on an entrypoint, partitioned by status code, protocol, and method.
+      default: true
+      type: cumulative
+    traefik_entrypoint_requests_total:
+      description: How many HTTP requests processed on an entrypoint, partitioned by status code, protocol, and method.
+      default: true
+      type: cumulative
+    go_goroutines:
+      description: Number of goroutines that currently exist.
+      default: false
+      type: cumulative
+    go_memstats_alloc_bytes:
+      description: Number of bytes allocated and still in use.
+      default: false
+      type: gauge
+    go_memstats_buck_hash_sys_bytes:
+      description: Number of bytes used by the profiling bucket hash table.
+      default: false
+      type: gauge
+    go_memstats_gc_cpu_fraction:
+      description: The fraction of this program's available CPU time used by the GC since the program started.
+      default: false
+      type: gauge
+    go_memstats_gc_sys_bytes:
+      description: Number of bytes used for garbage collection system metadata.
+      default: false
+      type: gauge
+    go_memstats_heap_alloc_bytes:
+      description: Number of heap bytes allocated and still in use.
+      default: false
+      type: gauge
+    go_memstats_heap_idle_bytes:
+      description: Number of heap bytes waiting to be used.
+      default: false
+      type: gauge
+    go_memstats_heap_inuse_bytes:
+      description: Number of heap bytes that are in use.
+      default: false
+      type: gauge
+    go_memstats_heap_objects:
+      description: Number of allocated objects.
+      default: false
+      type: gauge
+    go_memstats_heap_released_bytes:
+      description: Number of heap bytes released to OS.
+      default: false
+      type: gauge
+    go_memstats_heap_sys_bytes:
+      description: Number of heap bytes obtained from system.
+      default: false
+      type: gauge
+    go_memstats_last_gc_time_seconds:
+      description: Length of time since last garbage collection, in seconds since unix epoch.
+      default: false
+      type: gauge
+    go_memstats_mcache_inuse_bytes:
+      description: Number of bytes in use by mcache structures.
+      default: false
+      type: gauge
+    go_memstats_mcache_sys_bytes:
+      description: Number of bytes used for mcache structures obtained from system.
+      default: false
+      type: gauge
+    go_memstats_mspan_inuse_bytes:
+      description: Number of bytes in use by mspan structures.
+      default: false
+      type: gauge
+    go_memstats_mspan_sys_bytes:
+      description: Number of bytes used for mspan structures obtained from system.
+      default: false
+      type: gauge
+    go_memstats_next_gc_bytes:
+      description: Number of heap bytes when next garbage collection will take place.
+      default: false
+      type: gauge
+    go_memstats_other_sys_bytes:
+      description: Number of bytes used for other system allocations.
+      default: false
+      type: gauge
+    go_memstats_stack_inuse_bytes:
+      description: Number of bytes in use by the stack allocator.
+      default: false
+      type: gauge
+    go_memstats_stack_sys_bytes:
+      description: Number of bytes obtained from system for stack allocator.
+      default: false
+      type: gauge
+    go_memstats_sys_bytes:
+      description: Number of bytes obtained from system.
+      default: false
+      type: gauge
+    go_threads:
+      description: Number of OS threads created
+      default: false
+      type: gauge
+    process_max_fds:
+      description: Maximum number of open file descriptors.
+      default: false
+      type: gauge
+    process_open_fds:
+      description: Number of open file descriptors.
+      default: false
+      type: gauge
+    process_resident_memory_bytes:
+      description: Resident memory size in bytes.
+      default: false
+      type: gauge
+    process_start_time_seconds:
+      description: Start time of the process since unix epoch in seconds.
+      default: false
+      type: gauge
+    process_virtual_memory_bytes:
+      description: Virtual memory size in bytes.
+      default: false
+      type: gauge
+    traefik_backend_open_connections:
+      description: How many open connections exist on a backend, partitioned by method and protocol.
+      default: true
+      type: gauge
+    traefik_backend_server_up:
+      description: Backend server is up, described by gauge value of 0 (down) or 1 (up).
+      default: true
+      type: gauge
+    traefik_config_last_reload_failure:
+      description: Last config reload failure
+      default: false
+      type: gauge
+    traefik_config_last_reload_success:
+      description: Last config reload success
+      default: false
+      type: gauge
+    traefik_entrypoint_open_connections:
+      description: How many open connections exist on an entrypoint, partitioned by method and protocol.
+      default: true
+      type: gauge

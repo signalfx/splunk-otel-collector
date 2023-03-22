@@ -1,0 +1,265 @@
+monitors:
+- monitorType: coredns
+  dimensions:
+  doc: |-
+      This monitor scrapes prometheus metrics exposed by CoreDNS. The default port for these metrics
+      are exposed on port 9153, at the /metrics path. For more information about CoreDNS prometheus
+      metrics, check out their [documentation](https://coredns.io/plugins/metrics/).
+
+      The following is an example configuration for a Kubernetes environment:
+      
+      ```
+      monitors:
+      - type: coredns
+        discoveryRule: kubernetes_pod_name =~ "coredns" && port == 9153
+        extraDimensions:
+          metric_source: "k8s-coredns"
+      ```
+
+  metrics:
+    coredns_build_info:
+      default: false
+      description: A metric with a constant '1' value labeled by version, revision,
+        and goversion from which CoreDNS was built.
+      type: gauge
+    coredns_cache_entries:
+      default: true
+      description: Size of DNS cache.
+      type: cumulative
+    coredns_cache_hits_total:
+      default: false
+      description: The count of cache misses.
+      type: cumulative
+    coredns_cache_misses_total:
+      default: false
+      description: The count of cache misses.
+      type: cumulative
+    coredns_cache_size:
+      default: true
+      description: Deprecated in coredns version 1.7.0. Size of DNS cache.
+      type: cumulative
+    coredns_dns_request_count_total:
+      default: true
+      description: Deprecated in coredns version 1.7.0. Counter of DNS requests made per zone, protocol and family.
+      type: cumulative
+    coredns_dns_requests_total:
+      default: true
+      description: Counter of DNS requests made per zone, protocol and family.
+      type: cumulative
+    coredns_dns_request_duration_seconds_count:
+      default: false
+      description: Histogram of the time (in seconds) each request took. (count)
+      type: cumulative
+    coredns_dns_request_duration_seconds:
+      default: false
+      description: Histogram of the time (in seconds) each request took. (sum)
+      type: cumulative
+    coredns_dns_request_duration_seconds_bucket:
+      default: false
+      description: Histogram of the time (in seconds) each request took. (bucket)
+      type: cumulative
+    coredns_dns_request_size_bytes_count:
+      default: false
+      description: Size of the EDNS0 UDP buffer in bytes (64K for TCP). (count)
+      type: cumulative
+    coredns_dns_request_size_bytes:
+      default: true
+      description: Size of the EDNS0 UDP buffer in bytes (64K for TCP). (sum)
+      type: cumulative
+    coredns_dns_request_size_bytes_bucket:
+      default: false
+      description: Size of the EDNS0 UDP buffer in bytes (64K for TCP). (bucket)
+      type: cumulative
+    coredns_dns_request_type_count_total:
+      default: true
+      description: Counter of DNS requests per type, per zone.
+      type: cumulative
+    coredns_dns_response_rcode_count_total:
+      default: true
+      description: Deprecated in coredns version 1.7.0. Counter of response status codes.
+      type: cumulative
+    coredns_dns_responses_total:
+      default: true
+      description: Counter of response status codes.
+      type: cumulative
+    coredns_dns_response_size_bytes_count:
+      default: false
+      description: Size of the returned response in bytes. (count)
+      type: cumulative
+    coredns_dns_response_size_bytes:
+      default: false
+      description: Size of the returned response in bytes. (sum)
+      type: cumulative
+    coredns_dns_response_size_bytes_bucket:
+      default: false
+      description: Size of the returned response in bytes. (bucket)
+      type: cumulative
+    coredns_health_request_duration_seconds_count:
+      default: false
+      description: Histogram of the time (in seconds) each request took. (count)
+      type: cumulative
+    coredns_health_request_duration_seconds:
+      default: false
+      description: Histogram of the time (in seconds) each request took. (sum)
+      type: cumulative
+    coredns_health_request_duration_seconds_bucket:
+      default: false
+      description: Histogram of the time (in seconds) each request took. (bucket)
+      type: cumulative
+    coredns_panic_count_total:
+      default: false
+      description: Deprecated in coredns version 1.7.0. A metrics that counts the number of panics.
+      type: cumulative
+    coredns_panics_total:
+      default: false
+      description: A metrics that counts the number of panics.
+      type: cumulative
+    coredns_proxy_request_count_total:
+      default: false
+      description: Counter of requests made per protocol, proxy protocol, family and
+        upstream.
+      type: cumulative
+    coredns_proxy_request_duration_seconds_count:
+      default: false
+      description: Histogram of the time (in seconds) each request took. (count)
+      type: cumulative
+    coredns_proxy_request_duration_seconds:
+      default: false
+      description: Histogram of the time (in seconds) each request took. (sum)
+      type: cumulative
+    coredns_proxy_request_duration_seconds_bucket:
+      default: false
+      description: Histogram of the time (in seconds) each request took. (bucket)
+      type: cumulative
+    go_gc_duration_seconds_count:
+      default: false
+      description: A summary of the GC invocation durations. (count)
+      type: cumulative
+    go_gc_duration_seconds:
+      default: false
+      description: A summary of the GC invocation durations. (sum)
+      type: cumulative
+    go_gc_duration_seconds_quantile:
+      default: false
+      description: A summary of the GC invocation durations. (quantized)
+      type: gauge
+    go_goroutines:
+      default: false
+      description: Number of goroutines that currently exist.
+      type: gauge
+    go_memstats_alloc_bytes:
+      default: false
+      description: Number of bytes allocated and still in use.
+      type: gauge
+    go_memstats_alloc_bytes_total:
+      default: false
+      description: Total number of bytes allocated, even if freed.
+      type: cumulative
+    go_memstats_buck_hash_sys_bytes:
+      default: false
+      description: Number of bytes used by the profiling bucket hash table.
+      type: gauge
+    go_memstats_frees_total:
+      default: false
+      description: Total number of frees.
+      type: cumulative
+    go_memstats_gc_sys_bytes:
+      default: false
+      description: Number of bytes used for garbage collection system metadata.
+      type: gauge
+    go_memstats_heap_alloc_bytes:
+      default: false
+      description: Number of heap bytes allocated and still in use.
+      type: gauge
+    go_memstats_heap_idle_bytes:
+      default: false
+      description: Number of heap bytes waiting to be used.
+      type: gauge
+    go_memstats_heap_inuse_bytes:
+      default: false
+      description: Number of heap bytes that are in use.
+      type: gauge
+    go_memstats_heap_objects:
+      default: false
+      description: Number of allocated objects.
+      type: gauge
+    go_memstats_heap_released_bytes_total:
+      default: false
+      description: Total number of heap bytes released to OS.
+      type: cumulative
+    go_memstats_heap_sys_bytes:
+      default: false
+      description: Number of heap bytes obtained from system.
+      type: gauge
+    go_memstats_last_gc_time_seconds:
+      default: false
+      description: Number of seconds since 1970 of last garbage collection.
+      type: gauge
+    go_memstats_lookups_total:
+      default: false
+      description: Total number of pointer lookups.
+      type: cumulative
+    go_memstats_mallocs_total:
+      default: false
+      description: Total number of mallocs.
+      type: cumulative
+    go_memstats_mcache_inuse_bytes:
+      default: false
+      description: Number of bytes in use by mcache structures.
+      type: gauge
+    go_memstats_mcache_sys_bytes:
+      default: false
+      description: Number of bytes used for mcache structures obtained from system.
+      type: gauge
+    go_memstats_mspan_inuse_bytes:
+      default: false
+      description: Number of bytes in use by mspan structures.
+      type: gauge
+    go_memstats_mspan_sys_bytes:
+      default: false
+      description: Number of bytes used for mspan structures obtained from system.
+      type: gauge
+    go_memstats_next_gc_bytes:
+      default: false
+      description: Number of heap bytes when next garbage collection will take place.
+      type: gauge
+    go_memstats_other_sys_bytes:
+      default: false
+      description: Number of bytes used for other system allocations.
+      type: gauge
+    go_memstats_stack_inuse_bytes:
+      default: false
+      description: Number of bytes in use by the stack allocator.
+      type: gauge
+    go_memstats_stack_sys_bytes:
+      default: false
+      description: Number of bytes obtained from system for stack allocator.
+      type: gauge
+    go_memstats_sys_bytes:
+      default: false
+      description: Number of bytes obtained by system. Sum of all system allocations.
+      type: gauge
+    process_cpu_seconds_total:
+      default: false
+      description: Total user and system CPU time spent in seconds.
+      type: cumulative
+    process_max_fds:
+      default: false
+      description: Maximum number of open file descriptors.
+      type: gauge
+    process_open_fds:
+      default: false
+      description: Number of open file descriptors.
+      type: gauge
+    process_resident_memory_bytes:
+      default: false
+      description: Resident memory size in bytes.
+      type: gauge
+    process_start_time_seconds:
+      default: false
+      description: Start time of the process since unix epoch in seconds.
+      type: gauge
+    process_virtual_memory_bytes:
+      default: false
+      description: Virtual memory size in bytes.
+      type: gauge

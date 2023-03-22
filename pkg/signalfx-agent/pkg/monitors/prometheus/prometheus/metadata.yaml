@@ -1,0 +1,591 @@
+monitors:
+- monitorType: prometheus/prometheus
+  doc: |
+    This monitor scrapes [Prometheus server's own internal
+    collector](https://prometheus.io/docs/prometheus/latest/getting_started/#configuring-prometheus-to-monitor-itself)
+    metrics from a Prometheus exporter and sends them to SignalFx.  It is a
+    wrapper around the [prometheus-exporter](./prometheus-exporter.md) monitor
+    that provides a restricted but expandable set of metrics.
+  sendAll: true
+  metrics:
+    prometheus_api_remote_read_queries:
+      description: The current number of remote read queries being executed or waiting
+      default:
+      type: gauge
+    prometheus_build_info:
+      description: A metric with a constant '1' value labeled by version, revision,
+        branch, and goversion from which prometheus was built
+      default:
+      type: gauge
+    prometheus_config_last_reload_success_timestamp_seconds:
+      description: Timestamp of the last successful configuration reload
+      default:
+      type: gauge
+    prometheus_config_last_reload_successful:
+      description: Whether the last configuration reload attempt was successful
+      default:
+      type: gauge
+    prometheus_engine_queries:
+      description: The current number of queries being executed or waiting
+      default:
+      type: gauge
+    prometheus_engine_queries_concurrent_max:
+      description: The max number of concurrent queries
+      default:
+      type: gauge
+    prometheus_engine_query_duration_seconds:
+      description: Query timings
+      default:
+      type: cumulative
+    prometheus_engine_query_duration_seconds_count:
+      description: Query timings (count)
+      default:
+      type: cumulative
+    prometheus_http_request_duration_seconds_bucket:
+      description: Histogram of latencies for HTTP requests in the respective bucket
+      default:
+      type: cumulative
+    prometheus_http_request_duration_seconds:
+      description: Histogram of latencies for HTTP requests
+      default:
+      type: cumulative
+    prometheus_http_request_duration_seconds_count:
+      description: Histogram of latencies for HTTP requests (count)
+      default:
+      type: cumulative
+    prometheus_http_response_size_bytes_bucket:
+      description: Histogram of response size for HTTP requests in the respective bucket
+      default:
+      type: cumulative
+    prometheus_http_response_size_bytes:
+      description: Histogram of response size for HTTP requests
+      default:
+      type: cumulative
+    prometheus_http_response_size_bytes_count:
+      description: Histogram of response size for HTTP requests
+      default:
+      type: cumulative
+    prometheus_notifications_alertmanagers_discovered:
+      description: The number of alertmanagers discovered and active
+      default:
+      type: gauge
+    prometheus_notifications_dropped_total:
+      description: Total number of alerts dropped due to errors when sending to Alertmanager
+      default:
+      type: cumulative
+    prometheus_notifications_queue_capacity:
+      description: The capacity of the alert notifications queue
+      default:
+      type: gauge
+    prometheus_notifications_queue_length:
+      description: The number of alert notifications in the queue
+      default:
+      type: gauge
+    prometheus_rule_evaluation_duration_seconds:
+      description: The duration for a rule to execute
+      default:
+      type: cumulative
+    prometheus_rule_evaluation_duration_seconds_count:
+      description: The duration for a rule to execute (count)
+      default:
+      type: cumulative
+    prometheus_rule_evaluation_failures_total:
+      description: The total number of rule evaluation failures
+      default:
+      type: cumulative
+    prometheus_rule_group_duration_seconds:
+      description: The duration of rule group evaluations
+      default:
+      type: cumulative
+    prometheus_rule_group_duration_seconds_count:
+      description: The duration of rule group evaluations (count)
+      default:
+      type: cumulative
+    prometheus_rule_group_interval_seconds:
+      description: The interval of a rule group
+      default:
+      type: gauge
+    prometheus_rule_group_iterations_missed_total:
+      description: The total number of rule group evaluations missed due to slow rule
+        group evaluation
+      default:
+      type: cumulative
+    prometheus_rule_group_iterations_total:
+      description: The total number of scheduled rule group evaluations, whether executed
+        or missed
+      default:
+      type: cumulative
+    prometheus_rule_group_last_duration_seconds:
+      description: The duration of the last rule group evaluation
+      default:
+      type: gauge
+    prometheus_sd_azure_refresh_duration_seconds:
+      description: The duration of a Azure-SD refresh in seconds
+      default:
+      type: cumulative
+    prometheus_sd_azure_refresh_duration_seconds_count:
+      description: The duration of a Azure-SD refresh in seconds (count)
+      default:
+      type: cumulative
+    prometheus_sd_azure_refresh_failures_total:
+      description: Number of Azure-SD refresh failures
+      default:
+      type: cumulative
+    prometheus_sd_configs_failed_total:
+      description: Total number of service discovery configurations that failed to
+        load
+      default:
+      type: cumulative
+    prometheus_sd_consul_rpc_duration_seconds:
+      description: The duration of a Consul RPC call in seconds
+      default:
+      type: cumulative
+    prometheus_sd_consul_rpc_duration_seconds_count:
+      description: The duration of a Consul RPC call in seconds (count)
+      default:
+      type: cumulative
+    prometheus_sd_consul_rpc_failures_total:
+      description: The number of Consul RPC call failures
+      default:
+      type: cumulative
+    prometheus_sd_discovered_targets:
+      description: Current number of discovered targets
+      default:
+      type: gauge
+    prometheus_sd_dns_lookup_failures_total:
+      description: The number of DNS-SD lookup failures
+      default:
+      type: cumulative
+    prometheus_sd_dns_lookups_total:
+      description: The number of DNS-SD lookups
+      default:
+      type: cumulative
+    prometheus_sd_ec2_refresh_duration_seconds:
+      description: The duration of a EC2-SD refresh in seconds
+      default:
+      type: cumulative
+    prometheus_sd_ec2_refresh_duration_seconds_count:
+      description: The duration of a EC2-SD refresh in seconds (count)
+      default:
+      type: cumulative
+    prometheus_sd_ec2_refresh_failures_total:
+      description: The number of EC2-SD scrape failures
+      default:
+      type: cumulative
+    prometheus_sd_file_read_errors_total:
+      description: The number of File-SD read errors
+      default:
+      type: cumulative
+    prometheus_sd_file_scan_duration_seconds:
+      description: The duration of the File-SD scan in seconds
+      default:
+      type: cumulative
+    prometheus_sd_file_scan_duration_seconds_count:
+      description: The duration of the File-SD scan in seconds (count)
+      default:
+      type: cumulative
+    prometheus_sd_gce_refresh_duration:
+      description: The duration of a GCE-SD refresh in seconds
+      default:
+      type: cumulative
+    prometheus_sd_gce_refresh_duration_count:
+      description: The duration of a GCE-SD refresh in seconds (count)
+      default:
+      type: cumulative
+    prometheus_sd_gce_refresh_failures_total:
+      description: The number of GCE-SD refresh failures
+      default:
+      type: cumulative
+    prometheus_sd_kubernetes_cache_last_resource_version:
+      description: Last resource version from the Kubernetes API
+      default:
+      type: gauge
+    prometheus_sd_kubernetes_cache_list_duration_seconds:
+      description: Duration of a Kubernetes API call in seconds
+      default:
+      type: cumulative
+    prometheus_sd_kubernetes_cache_list_duration_seconds_count:
+      description: Duration of a Kubernetes API call in seconds (count)
+      default:
+      type: cumulative
+    prometheus_sd_kubernetes_cache_list_items:
+      description: Count of items in a list from the Kubernetes API
+      default:
+      type: cumulative
+    prometheus_sd_kubernetes_cache_list_items_count:
+      description: Count of items in a list from the Kubernetes API (count)
+      default:
+      type: cumulative
+    prometheus_sd_kubernetes_cache_list_total:
+      description: Total number of list operations
+      default:
+      type: cumulative
+    prometheus_sd_kubernetes_cache_short_watches_total:
+      description: Total number of short watch operations
+      default:
+      type: cumulative
+    prometheus_sd_kubernetes_cache_watch_duration_seconds:
+      description: Duration of watches on the Kubernetes API
+      default:
+      type: cumulative
+    prometheus_sd_kubernetes_cache_watch_duration_seconds_count:
+      description: Duration of watches on the Kubernetes API (count)
+      default:
+      type: cumulative
+    prometheus_sd_kubernetes_cache_watch_events:
+      description: Number of items in watches on the Kubernetes API
+      default:
+      type: cumulative
+    prometheus_sd_kubernetes_cache_watch_events_count:
+      description: Number of items in watches on the Kubernetes API (count)
+      default:
+      type: cumulative
+    prometheus_sd_kubernetes_cache_watches_total:
+      description: Total number of watch operations
+      default:
+      type: cumulative
+    prometheus_sd_kubernetes_events_total:
+      description: The number of Kubernetes events handled
+      default:
+      type: cumulative
+    prometheus_sd_marathon_refresh_duration_seconds:
+      description: The duration of a Marathon-SD refresh in seconds
+      default:
+      type: cumulative
+    prometheus_sd_marathon_refresh_duration_seconds_count:
+      description: The duration of a Marathon-SD refresh in seconds
+      default:
+      type: cumulative
+    prometheus_sd_marathon_refresh_failures_total:
+      description: The number of Marathon-SD refresh failures
+      default:
+      type: cumulative
+    prometheus_sd_openstack_refresh_duration_seconds:
+      description: The duration of an OpenStack-SD refresh in seconds
+      default:
+      type: cumulative
+    prometheus_sd_openstack_refresh_duration_seconds_count:
+      description: The duration of an OpenStack-SD refresh in seconds
+      default:
+      type: cumulative
+    prometheus_sd_openstack_refresh_failures_total:
+      description: The number of OpenStack-SD scrape failures
+      default:
+      type: cumulative
+    prometheus_sd_received_updates_total:
+      description: Total number of update events received from the SD providers
+      default:
+      type: cumulative
+    prometheus_sd_triton_refresh_duration_seconds:
+      description: The duration of a Triton-SD refresh in seconds
+      default:
+      type: cumulative
+    prometheus_sd_triton_refresh_duration_seconds_count:
+      description: The duration of a Triton-SD refresh in seconds
+      default:
+      type: cumulative
+    prometheus_sd_triton_refresh_failures_total:
+      description: The number of Triton-SD scrape failures
+      default:
+      type: cumulative
+    prometheus_sd_updates_delayed_total:
+      description: Total number of update events that couldn't be sent immediately
+      default:
+      type: cumulative
+    prometheus_sd_updates_total:
+      description: Total number of update events sent to the SD consumers
+      default:
+      type: cumulative
+    prometheus_target_interval_length_seconds:
+      description: Actual intervals between scrapes
+      default:
+      type: cumulative
+    prometheus_target_interval_length_seconds_count:
+      description: Actual intervals between scrapes
+      default:
+      type: cumulative
+    prometheus_target_scrape_pool_sync_total:
+      description: Total number of syncs that were executed on a scrape pool
+      default:
+      type: cumulative
+    prometheus_target_scrapes_exceeded_sample_limit_total:
+      description: Total number of scrapes that hit the sample limit and were rejected
+      default:
+      type: cumulative
+    prometheus_target_scrapes_sample_duplicate_timestamp_total:
+      description: Total number of samples rejected due to duplicate timestamps but
+        different values
+      default:
+      type: cumulative
+    prometheus_target_scrapes_sample_out_of_bounds_total:
+      description: Total number of samples rejected due to timestamp falling outside
+        of the time bounds
+      default:
+      type: cumulative
+    prometheus_target_scrapes_sample_out_of_order_total:
+      description: Total number of samples rejected due to not being out of the expected
+        order
+      default:
+      type: cumulative
+    prometheus_target_sync_length_seconds:
+      description: Actual interval to sync the scrape pool
+      default:
+      type: cumulative
+    prometheus_target_sync_length_seconds_count:
+      description: Actual interval to sync the scrape pool
+      default:
+      type: cumulative
+    prometheus_treecache_watcher_goroutines:
+      description: The current number of watcher goroutines
+      default:
+      type: gauge
+    prometheus_treecache_zookeeper_failures_total:
+      description: The total number of ZooKeeper failures
+      default:
+      type: cumulative
+    prometheus_tsdb_blocks_loaded:
+      description: Number of currently loaded data blocks
+      default:
+      type: gauge
+    prometheus_tsdb_checkpoint_creations_failed_total:
+      description: Total number of checkpoint creations that failed
+      default:
+      type: cumulative
+    prometheus_tsdb_checkpoint_creations_total:
+      description: Total number of checkpoint creations attempted
+      default:
+      type: cumulative
+    prometheus_tsdb_checkpoint_deletions_failed_total:
+      description: Total number of checkpoint deletions that failed
+      default:
+      type: cumulative
+    prometheus_tsdb_checkpoint_deletions_total:
+      description: Total number of checkpoint deletions attempted
+      default:
+      type: cumulative
+    prometheus_tsdb_compaction_chunk_range_seconds_bucket:
+      description: Final time range of chunks on their first compaction in the respective bucket
+      default:
+      type: cumulative
+    prometheus_tsdb_compaction_chunk_range_seconds:
+      description: Final time range of chunks on their first compaction
+      default:
+      type: cumulative
+    prometheus_tsdb_compaction_chunk_range_seconds_count:
+      description: Final time range of chunks on their first compaction (count)
+      default:
+      type: cumulative
+    prometheus_tsdb_compaction_chunk_samples_bucket:
+      description: Final number of samples on their first compaction in the respective bucket
+      default:
+      type: cumulative
+    prometheus_tsdb_compaction_chunk_samples:
+      description: Final number of samples on their first compaction
+      default:
+      type: cumulative
+    prometheus_tsdb_compaction_chunk_samples_count:
+      description: Final number of samples on their first compaction (count)
+      default:
+      type: cumulative
+    prometheus_tsdb_compaction_chunk_size_bytes_bucket:
+      description: Final size of chunks on their first compaction in the respective bucket
+      default:
+      type: cumulative
+    prometheus_tsdb_compaction_chunk_size_bytes:
+      description: Final size of chunks on their first compaction
+      default:
+      type: cumulative
+    prometheus_tsdb_compaction_chunk_size_bytes_count:
+      description: Final size of chunks on their first compaction
+      default:
+      type: cumulative
+    prometheus_tsdb_compaction_duration_seconds_bucket:
+      description: Duration of compaction runs in the respective bucket
+      default:
+      type: cumulative
+    prometheus_tsdb_compaction_duration_seconds:
+      description: Duration of compaction runs
+      default:
+      type: cumulative
+    prometheus_tsdb_compaction_duration_seconds_count:
+      description: Duration of compaction runs (count)
+      default:
+      type: cumulative
+    prometheus_tsdb_compactions_failed_total:
+      description: Total number of compactions that failed for the partition
+      default:
+      type: cumulative
+    prometheus_tsdb_compactions_total:
+      description: Total number of compactions that were executed for the partition
+      default:
+      type: cumulative
+    prometheus_tsdb_compactions_triggered_total:
+      description: Total number of triggered compactions for the partition
+      default:
+      type: cumulative
+    prometheus_tsdb_head_active_appenders:
+      description: Number of currently active appender transactions
+      default:
+      type: gauge
+    prometheus_tsdb_head_chunks:
+      description: Total number of chunks in the head block
+      default:
+      type: gauge
+    prometheus_tsdb_head_chunks_created_total:
+      description: Total number of chunks created in the head
+      default:
+      type: cumulative
+    prometheus_tsdb_head_chunks_removed_total:
+      description: Total number of chunks removed in the head
+      default:
+      type: cumulative
+    prometheus_tsdb_head_gc_duration_seconds:
+      description: Runtime of garbage collection in the head block
+      default:
+      type: cumulative
+    prometheus_tsdb_head_gc_duration_seconds_count:
+      description: Runtime of garbage collection in the head block (count)
+      default:
+      type: cumulative
+    prometheus_tsdb_head_max_time:
+      description: Maximum timestamp of the head block
+      default:
+      type: gauge
+    prometheus_tsdb_head_min_time:
+      description: Minimum time bound of the head block
+      default:
+      type: gauge
+    prometheus_tsdb_head_samples_appended_total:
+      description: Total number of appended samples
+      default:
+      type: cumulative
+    prometheus_tsdb_head_series:
+      description: Total number of series in the head block
+      default:
+      type: gauge
+    prometheus_tsdb_head_series_created_total:
+      description: Total number of series created in the head
+      default:
+      type: cumulative
+    prometheus_tsdb_head_series_not_found_total:
+      description: Total number of requests for series that were not found
+      default:
+      type: cumulative
+    prometheus_tsdb_head_series_removed_total:
+      description: Total number of series removed in the head
+      default:
+      type: cumulative
+    prometheus_tsdb_head_truncations_failed_total:
+      description: Total number of head truncations that failed
+      default:
+      type: cumulative
+    prometheus_tsdb_head_truncations_total:
+      description: Total number of head truncations attempted
+      default:
+      type: cumulative
+    prometheus_tsdb_lowest_timestamp:
+      description: Lowest timestamp value stored in the database
+      default:
+      type: gauge
+    prometheus_tsdb_reloads_failures_total:
+      description: Number of times the database failed to reload block data from disk
+      default:
+      type: cumulative
+    prometheus_tsdb_reloads_total:
+      description: Number of times the database reloaded block data from disk
+      default:
+      type: cumulative
+    prometheus_tsdb_retention_cutoffs_failures_total:
+      description: Number of times the database failed to cut off block data from
+        disk
+      default:
+      type: cumulative
+    prometheus_tsdb_retention_cutoffs_total:
+      description: Number of times the database cut off block data from disk
+      default:
+      type: cumulative
+    prometheus_tsdb_symbol_table_size_bytes:
+      description: Size of symbol table on disk (in bytes)
+      default:
+      type: gauge
+    prometheus_tsdb_tombstone_cleanup_seconds_bucket:
+      description: The time taken to recompact blocks to remove tombstones in the respective bucket
+      default:
+      type: cumulative
+    prometheus_tsdb_tombstone_cleanup_seconds:
+      description: The time taken to recompact blocks to remove tombstones
+      default:
+      type: cumulative
+    prometheus_tsdb_tombstone_cleanup_seconds_count:
+      description: The time taken to recompact blocks to remove tombstones (count)
+      default:
+      type: cumulative
+    prometheus_tsdb_wal_completed_pages_total:
+      description: Total number of completed pages
+      default:
+      type: cumulative
+    prometheus_tsdb_wal_fsync_duration_seconds:
+      description: Duration of WAL fsync
+      default:
+      type: cumulative
+    prometheus_tsdb_wal_fsync_duration_seconds_count:
+      description: Duration of WAL fsync (count)
+      default:
+      type: cumulative
+    prometheus_tsdb_wal_page_flushes_total:
+      description: Total number of page flushes
+      default:
+      type: cumulative
+    prometheus_tsdb_wal_truncate_duration_seconds:
+      description: Duration of WAL truncation
+      default:
+      type: cumulative
+    prometheus_tsdb_wal_truncate_duration_seconds_count:
+      description: Duration of WAL truncation (count)
+      default:
+      type: cumulative
+    prometheus_tsdb_wal_truncations_failed_total:
+      description: Total number of WAL truncations that failed
+      default:
+      type: cumulative
+    prometheus_tsdb_wal_truncations_total:
+      description: Total number of WAL truncations attempted
+      default:
+      type: cumulative
+    promhttp_metric_handler_requests_in_flight:
+      description: Current number of scrapes being served
+      default:
+      type: gauge
+    promhttp_metric_handler_requests_total:
+      description: Total number of scrapes by HTTP status code
+      default:
+      type: cumulative
+    net_conntrack_dialer_conn_attempted_total:
+      description: Total number of connections attempted by the given dialer a given
+        name
+      default:
+      type: cumulative
+    net_conntrack_dialer_conn_closed_total:
+      description: Total number of connections closed which originated from the dialer
+        of a given name
+      default:
+      type: cumulative
+    net_conntrack_dialer_conn_established_total:
+      description: Total number of connections successfully established by the given
+        dialer a given name
+      default:
+      type: cumulative
+    net_conntrack_dialer_conn_failed_total:
+      description: Total number of connections failed to dial by the dialer a given
+        name
+      default:
+      type: cumulative
+    net_conntrack_listener_conn_accepted_total:
+      description: Total number of connections opened to the listener of a given name
+      default:
+      type: cumulative
+    net_conntrack_listener_conn_closed_total:
+      description: Total number of connections closed that were made to the listener
+        of a given name
+      default:
+      type: cumulative

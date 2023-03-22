@@ -28,15 +28,14 @@ import (
 )
 
 func TestCustomUpstatIntegration(t *testing.T) {
-	testutils.GetCollectorImageOrSkipTest(t)
-	path, err := filepath.Abs(path.Join(".", "testdata", "custom"))
+	path, err := filepath.Abs(path.Join(".", "testdata", "upstat"))
 	require.NoError(t, err)
 	testutils.AssertAllMetricsReceived(t, "all.yaml", "custom_upstat.yaml",
 		nil, []testutils.CollectorBuilder{func(collector testutils.Collector) testutils.Collector {
 			if cc, ok := collector.(*testutils.CollectorContainer); ok {
 				collector = cc.WithMount(path, "/var/collectd-python/upstat")
+				return collector.WithEnv(map[string]string{"PLUGIN_FOLDER": "/var/collectd-python/upstat"})
 			}
-			collector = collector.WithEnv(map[string]string{"PLUGIN_FOLDER": "/var/collectd-python/upstat"})
-			return collector
+			return collector.WithEnv(map[string]string{"PLUGIN_FOLDER": path})
 		}})
 }

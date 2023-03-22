@@ -39,3 +39,4 @@ jobs:
           commit-message: Update OpenTelemetry Dependencies to ${{ env.OTEL_VERSION }}
           base: main
           draft: true
+          branch: create-pull-request/update-deps

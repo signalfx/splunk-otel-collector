@@ -90,7 +90,7 @@ require (
 	github.com/signalfx/signalfx-go v1.6.38-0.20200518153434-ceee8d2570d5
 	github.com/sirupsen/logrus v1.9.0
 	github.com/snowflakedb/gosnowflake v1.6.17
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
 	github.com/vmware/govmomi v0.30.4
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0

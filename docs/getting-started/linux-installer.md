@@ -5,10 +5,10 @@
 For non-containerized Linux environments, an installer script is available. The
 script deploys and configures:
 
-- Splunk OpenTelemetry Collector for Linux
+- Splunk OpenTelemetry Collector for Linux (**x86_64/amd64 and aarch64/arm64 platforms only**)
 - [SignalFx Smart Agent and collectd bundle](https://github.com/signalfx/signalfx-agent/releases) (**x86_64/amd64 platforms only**)
 - [Fluentd (via the TD Agent)](https://www.fluentd.org/)
-  - Optional, **enabled** by default
+  - Optional, **enabled** by default for supported Linux distributions
   - See the [Fluentd Configuration](#fluentd-configuration) section for additional information, including how to skip installation.
 - [Splunk OpenTelemetry Auto Instrumentation for Java](https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation#linux-java-auto-instrumentation)
   - Optional, **disabled** by default
@@ -18,8 +18,8 @@ script deploys and configures:
 
 Currently, the following Linux distributions and versions are supported:
 
-- Amazon Linux: 2
-- CentOS / Red Hat / Oracle: 7, 8
+- Amazon Linux: 2, 2023 (**Note:** Log collection with Fluentd not currently supported for Amazon Linux 2023.)
+- CentOS / Red Hat / Oracle: 7, 8, 9
 - Debian: 9, 10, 11
 - SUSE: 12, 15 (**Note:** Only for Collector versions v0.34.0 or higher.  Log collection with Fluentd not currently supported.)
 - Ubuntu: 16.04, 18.04, 20.04, 22.04

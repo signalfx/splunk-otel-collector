@@ -124,6 +124,7 @@ require (
 
 require (
 	github.com/go-errors/errors v1.4.1
+	github.com/hashicorp/golang-lru v0.6.0
 	github.com/kr/pretty v0.3.1
 	github.com/smartystreets/goconvey v1.7.2
 	gotest.tools v2.2.0+incompatible

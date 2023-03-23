@@ -42,15 +42,8 @@ jobs:
         run: |
           ./make-latest-tile
           FILE=""
-          # The tile will be in the product directory, named
-          # splunk-otel-collector-VERSION.pivotal
-          for f in $(find product -maxdepth 1 -regex "product\/splunk-otel-collector\-.*pivotal")
-          do
-            FILE=$f
-          done
-
-          # Confirm tile exists, is a regular file, and non-zero size.
-          if [ ! -f "$FILE" ] || [ ! -s "$FILE" ]; then
-            echo "$FILE does not exist."
+          size="$(stat -c '%s' product/splunk-otel-collector-*.pivotal)"
+          if [[ $size -eq 0 ]]; then
+            echo "File is empty!" >&2
             exit 1
           fi

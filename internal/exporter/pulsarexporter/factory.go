@@ -37,6 +37,7 @@ const (
 // FactoryOption applies changes to pulsarExporterFactory.
 type FactoryOption func(factory *pulsarExporterFactory)
 
+// Deprecated: This exporter will be replaced by github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter
 // NewFactory creates pulsar exporter factory.
 func NewFactory(options ...FactoryOption) exporter.Factory {
 	f := &pulsarExporterFactory{

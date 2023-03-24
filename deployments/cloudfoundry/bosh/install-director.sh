@@ -14,7 +14,7 @@
 
 #!/bin/bash
 
-set -exuo pipefail
+set -euo pipefail
 
 BOSH_DIRECTOR_DIR="./bosh-env/virtualbox"
 BOSH_DIRECTOR_DEPLOYMENT_DIR="bosh-deployment"

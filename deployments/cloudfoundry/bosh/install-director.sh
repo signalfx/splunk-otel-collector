@@ -11,7 +11,7 @@ fi
 mkdir -p $BOSH_DIRECTOR_DIR
 cd $BOSH_DIRECTOR_DIR
 
-git clone https://github.com/cloudfoundry/bosh-deployment.git
+git clone --depth 1 https://github.com/cloudfoundry/bosh-deployment.git
 
 ./$BOSH_DIRECTOR_DEPLOYMENT_DIR/virtualbox/create-env.sh
 

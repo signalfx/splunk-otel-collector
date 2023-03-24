@@ -13,7 +13,7 @@ description: |
   `cloudfoundry` receiver from the Splunk Opentelemetry Collector under the
   hood.
 
-  This also includes a BOSH release of the Splunk Collector, called "splunk-otel-collector"
+  This also includes a BOSH release of the Splunk OpenTelemetry Collector, called "splunk-otel-collector"
   that can be used in deployments to put the collector on individual VMs.
 
 # Specify the packages to be included in the tile.
@@ -55,7 +55,7 @@ packages:
 forms:
 - name: nozzle_form
   label: Nozzle Config
-  description: Splunk collector nozzle configuration values
+  description: Splunk OpenTelemetry Collector nozzle configuration values
   properties:
   - name: cloudfoundry_rlp_gateway_shard_id
     type: string

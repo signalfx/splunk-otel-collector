@@ -3,10 +3,10 @@
 #
 name: splunk-otel-collector # By convention lowercase with dashes
 icon_file: resources/icon.png
-label: Splunk Collector for Tanzu Network
+label: Splunk OpenTelemetry Collector for Tanzu Network
 description: |
-  This tile contains a Splunk Collector BOSH Release, and a firehose nozzle job
-  that sends metrics to the Splunk Observability Cloud.
+  This tile contains a BOSH Release of the Splunk distribution of OpenTelemetry Collector,
+  and a firehose nozzle job that sends metrics to the Splunk Observability Cloud.
 
   The firehose nozzle pulls events off of the Loggregator Firehose via the RLP
   Gateway and sends them to the Splunk Observability Cloud. This uses the

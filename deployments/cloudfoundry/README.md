@@ -11,12 +11,12 @@ In this configuration, the Collector will run in the same container as the app.
 
 ### Bosh Release
 
-This is a Bosh release of the Splunk Collector. This deploys the Collector to the PCF
+This is a Bosh release of the Collector. This deploys the Collector to the PCF
 environment as a standalone deployment.
 
 ### Tanzu Tile
 
-This is a Tanzu Tile of the Splunk Collector, which is a packaged release of the collector
+This is a Tanzu Tile of the Collector, which is a packaged release of the collector
 that can be integrated into the Ops Manager. The Tanzu Tile enables users to download, install,
 run, configure, and update the collector all from the Ops Manager.
 

@@ -204,9 +204,22 @@ func (w *LogEntryWriter) processInput(ctx context.Context, insts []logEntry) {
 
 // Start the writer processing loop
 func (w *LogEntryWriter) Start(ctx context.Context) {
-	// Initialize the shutdownFlag in the same goroutine as the one calling
+	// Initialize the writer fields in the same goroutine as the one calling
 	// start to avoid data races when calling WaitForShutdown.
 	w.shutdownFlag = make(chan struct{})
+
+	if w.MaxBuffered == 0 {
+		w.MaxBuffered = DefaultLogEntryMaxBuffered
+	}
+	if w.MaxRequests == 0 {
+		w.MaxRequests = DefaultLogEntryMaxRequests
+	}
+	if w.MaxBatchSize == 0 {
+		w.MaxBatchSize = DefaultLogEntryMaxBatchSize
+	}
+
+	w.buff = NewLogEntryRingBuffer(w.MaxBuffered)
+
 	go func() {
 		w.run(ctx)
 		close(w.shutdownFlag)
@@ -227,18 +240,6 @@ func (w *LogEntryWriter) handleRequestDone(ctx context.Context, count int64) {
 // canceled.
 // nolint: dupl
 func (w *LogEntryWriter) run(ctx context.Context) {
-	if w.MaxBuffered == 0 {
-		w.MaxBuffered = DefaultLogEntryMaxBuffered
-	}
-	if w.MaxRequests == 0 {
-		w.MaxRequests = DefaultLogEntryMaxRequests
-	}
-	if w.MaxBatchSize == 0 {
-		w.MaxBatchSize = DefaultLogEntryMaxBatchSize
-	}
-
-	w.buff = NewLogEntryRingBuffer(w.MaxBuffered)
-
 	// Make the slice copy cache and prime it with preallocated slices
 	w.chunkSliceCache = make(chan []logEntry, w.MaxRequests)
 	for i := 0; i < w.MaxRequests; i++ {

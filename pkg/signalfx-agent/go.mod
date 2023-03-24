@@ -87,7 +87,7 @@ require (
 	github.com/signalfx/golib/v3 v3.3.49
 	github.com/signalfx/ingest-protocols v0.1.14
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-00010101000000-000000000000
-	github.com/signalfx/signalfx-go v1.6.38-0.20200518153434-ceee8d2570d5
+	github.com/signalfx/signalfx-go v1.30.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/snowflakedb/gosnowflake v1.6.17
 	github.com/stretchr/testify v1.8.2

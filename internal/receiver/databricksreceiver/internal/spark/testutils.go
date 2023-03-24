@@ -61,21 +61,21 @@ func (c *testDataSparkRawClient) applications(clusterID string) ([]byte, error) 
 	return os.ReadFile(filepath.Join(c.testdataDir, "spark", "applications.json"))
 }
 
-func (c *testDataSparkRawClient) appExecutors(clusterID, appID string) ([]byte, error) {
+func (c *testDataSparkRawClient) appExecutors(clusterID, _ string) ([]byte, error) {
 	if clusterID == c.forbiddenClusterID {
 		return nil, httpauth.ErrForbidden
 	}
 	return os.ReadFile(filepath.Join(c.testdataDir, "spark", "executors.json"))
 }
 
-func (c *testDataSparkRawClient) appJobs(clusterID, appID string) ([]byte, error) {
+func (c *testDataSparkRawClient) appJobs(clusterID, _ string) ([]byte, error) {
 	if clusterID == c.forbiddenClusterID {
 		return nil, httpauth.ErrForbidden
 	}
 	return os.ReadFile(filepath.Join(c.testdataDir, "spark", "jobs.json"))
 }
 
-func (c *testDataSparkRawClient) appStages(clusterID, appID string) ([]byte, error) {
+func (c *testDataSparkRawClient) appStages(clusterID, _ string) ([]byte, error) {
 	if clusterID == c.forbiddenClusterID {
 		return nil, httpauth.ErrForbidden
 	}

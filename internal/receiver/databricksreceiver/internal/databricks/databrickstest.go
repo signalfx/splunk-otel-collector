@@ -73,7 +73,7 @@ func (c *testdataRawClient) pipelines() ([]byte, error) {
 	return os.ReadFile(filepath.Join(c.testDataDir, "pipelines.json"))
 }
 
-func (c *testdataRawClient) pipeline(s string) ([]byte, error) {
+func (c *testdataRawClient) pipeline(_ string) ([]byte, error) {
 	return os.ReadFile(filepath.Join(c.testDataDir, "pipeline.json"))
 }
 

@@ -58,7 +58,7 @@ type MockKeysAPI struct {
 	activeWatcher *MockWatcher
 }
 
-func (k *MockKeysAPI) Get(ctx context.Context, key string, opts *client.GetOptions) (*client.Response, error) {
+func (k *MockKeysAPI) Get(_ context.Context, key string, _ *client.GetOptions) (*client.Response, error) {
 	if v, ok := k.db[key]; ok {
 		return &client.Response{
 			Node: &client.Node{
@@ -69,26 +69,26 @@ func (k *MockKeysAPI) Get(ctx context.Context, key string, opts *client.GetOptio
 	return nil, errors.New("not found")
 }
 
-func (k *MockKeysAPI) Watcher(key string, opts *client.WatcherOptions) client.Watcher {
+func (k *MockKeysAPI) Watcher(_ string, _ *client.WatcherOptions) client.Watcher {
 	return k.activeWatcher
 }
 
-func (k *MockKeysAPI) Set(ctx context.Context, key, value string, opts *client.SetOptions) (*client.Response, error) {
+func (k *MockKeysAPI) Set(_ context.Context, _, _ string, _ *client.SetOptions) (*client.Response, error) {
 	return nil, nil
 }
 
-func (k *MockKeysAPI) Delete(ctx context.Context, key string, opts *client.DeleteOptions) (*client.Response, error) {
+func (k *MockKeysAPI) Delete(_ context.Context, _ string, _ *client.DeleteOptions) (*client.Response, error) {
 	return nil, nil
 }
 
-func (k *MockKeysAPI) Create(ctx context.Context, key, value string) (*client.Response, error) {
+func (k *MockKeysAPI) Create(_ context.Context, _, _ string) (*client.Response, error) {
 	return nil, nil
 }
 
-func (k *MockKeysAPI) CreateInOrder(ctx context.Context, dir, value string, opts *client.CreateInOrderOptions) (*client.Response, error) {
+func (k *MockKeysAPI) CreateInOrder(_ context.Context, _, _ string, _ *client.CreateInOrderOptions) (*client.Response, error) {
 	return nil, nil
 }
 
-func (k *MockKeysAPI) Update(ctx context.Context, key, value string) (*client.Response, error) {
+func (k *MockKeysAPI) Update(_ context.Context, _, _ string) (*client.Response, error) {
 	return nil, nil
 }

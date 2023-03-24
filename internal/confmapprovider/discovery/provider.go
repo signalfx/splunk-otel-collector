@@ -53,7 +53,7 @@ func (p providerShim) Scheme() string {
 	return p.scheme
 }
 
-func (p providerShim) Shutdown(ctx context.Context) error {
+func (p providerShim) Shutdown(_ context.Context) error {
 	return nil // nolint:unparam
 }
 

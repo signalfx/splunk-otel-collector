@@ -29,7 +29,7 @@ const (
 	TraceExportFormatZipkin = "zipkin"
 )
 
-// Config is the top level config struct for configurations that are common to all platoforms
+// Config is the top level config struct for configurations that are common to all platforms
 type Config struct {
 	// The access token for the org that should receive the metrics emitted by
 	// the agent.

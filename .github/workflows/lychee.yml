@@ -22,7 +22,7 @@ jobs:
         id: lychee
         uses: lycheeverse/lychee-action@v1.6.1
         with:
-          args: --max-concurrency 20 --accept 200 --exclude "my.host" --exclude "file://*" --exclude "api.*.signalfx.com" --exclude "ingest.*.signalfx.com" --exclude "splunk.jfrog.io.*basearch" --exclude "localhost:*" --exclude "127.*:*" --exclude "splunk_gateway_url" --exclude ".*.cf-app.com" -v -n './*.md' './**/*.md'
+          args: -v -n --config .lychee.toml './*.md' './**/*.md'
           fail: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

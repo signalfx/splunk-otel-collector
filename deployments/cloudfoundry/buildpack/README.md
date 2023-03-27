@@ -1,6 +1,6 @@
 # Splunk OpenTelemetry Collector Pivotal Cloud Foundry (PCF) Buildpack
 
-A [Cloud Foundry buildpack](https://docs.pivotal.io/application-service/2-11/buildpacks/) to install
+A [Cloud Foundry buildpack](https://docs.vmware.com/en/VMware-Tanzu-Application-Service/2.11/tas-for-vms/toc-buildpacks-index.html) to install
 the Splunk OpenTelemetry Collector for use with PCF apps.
 
 The buildpack's default functionality, as described in this document, is to deploy the OpenTelemetry Collector

@@ -60,3 +60,9 @@ jobs:
         with:
           name: tanzu-tile-latest
           path: ${{ env.tanzu_tile_path }}
+
+      - name: debugging again
+        run: |
+          ls -al
+          ls -al product/
+          ls -al ${{ env.tanzu_tile_path}}

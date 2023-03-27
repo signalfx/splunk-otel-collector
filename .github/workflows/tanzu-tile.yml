@@ -41,15 +41,14 @@ jobs:
         shell: bash
         run: |
           ./make-latest-tile
-          FILE=$(ls product/ | grep "splunk")
-          size="$(stat -c '%s' product/$FILE)"
+          size="$(stat -c '%s' product/splunk-otel-collector-*.pivotal)"
           if [[ $size -eq 0 ]]; then
             echo "File is empty!" >&2
             exit 1
           fi
-        
+
       - name: Uploading artifacts
         uses: actions/upload-artifact@v3
         with:
           name: tanzu-tile-latest
-          path: ./product/$FILE
+          path: product/splunk-otel-collector-*.pivotal

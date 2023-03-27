@@ -1,7 +1,7 @@
 # Docker Component Requirements
 
 This distribution includes the [Docker container stats monitor](https://docs.splunk.com/Observability/gdi/docker/docker.html)
-via the [Smart Agent Receiver](../pkg/receiver/smartagent/README.md) to provide the ability to report metrics from containers running on your system.
+via the [Smart Agent Receiver](../pkg/receiver/smartagentreceiver/README.md) to provide the ability to report metrics from containers running on your system.
 It also includes the [Docker Observer Extension](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/observer/dockerobserver) to enable dynamically
 instantiating your receivers using the [Receiver Creator](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/receivercreator/README.md) as target service containers
 are reported by the [Docker daemon](https://docs.docker.com/config/daemon/). Both of these components use a client

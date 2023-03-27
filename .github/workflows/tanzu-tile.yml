@@ -50,6 +50,11 @@ jobs:
           TANZU_TILE_PATH=product/$(ls product | grep "splunk-otel-collector")
           echo "tanzu_tile_path=$TANZU_TILE_PATH" >> $GITHUB_ENV
 
+      - name: debugging
+        run: |
+          ls -al
+          ls -al product/
+
       - name: Uploading artifacts
         uses: actions/upload-artifact@v3
         with:

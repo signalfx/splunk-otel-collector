@@ -82,6 +82,7 @@ func (f *pulsarExporterFactory) createMetricsExporter(
 	settings exporter.CreateSettings,
 	cfg component.Config,
 ) (exporter.Metrics, error) {
+	settings.Logger.Warn("the pulsarexporter component is deprecated and will be replaced by github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter")
 	oCfg := cfg.(*Config)
 	if oCfg.Encoding == "otlp_json" {
 		settings.Logger.Info("otlp_json is considered experimental and should not be used in a production environment")

@@ -17,7 +17,7 @@
   <a href="https://github.com/signalfx/splunk-otel-collector/actions/workflows/build-and-test.yml?query=branch%3Amain">
     <img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/signalfx/splunk-otel-collector/build-and-test.yml?branch=main&style=for-the-badge">
   </a>
-  <a href="https://codecov.io/gh/signalfx/splunk-otel-collector/branch/main/">
+  <a href="https://app.codecov.io/gh/signalfx/splunk-otel-collector/branch/main/">
     <img alt="Codecov Status" src="https://img.shields.io/codecov/c/github/signalfx/splunk-otel-collector?style=for-the-badge">
   </a>
   <a href="https://github.com/signalfx/splunk-otel-collector/releases">
@@ -112,7 +112,7 @@ This distribution is supported on and packaged for a variety of platforms includ
 - Kubernetes
   - [Helm (recommended)](https://github.com/signalfx/splunk-otel-collector-chart)
   - [Operator (in alpha)](https://github.com/signalfx/splunk-otel-collector-operator)
-  - [YAML](https://github.com/signalfx/splunk-otel-collector-chart/tree/main/rendered)
+  - [YAML](https://github.com/signalfx/splunk-otel-collector-chart/tree/main/examples)
 - [HashiCorp Nomad](./deployments/nomad)
 - Linux
   - [Installer script](./docs/getting-started/linux-installer.md) (recommended for single-host demo/test environments)

@@ -1,0 +1,17 @@
+max-concurrency = 20
+accept = [
+    200,
+    429,
+]
+exclude = [
+    "my.host",
+    "file://*",
+    "api.*.signalfx.com",
+    "ingest.*.signalfx.com",
+    "splunk.jfrog.io.*basearch",
+    "localhost:*",
+    "127.*:*",
+    "splunk_gateway_url",
+    ".*.cf-app.com",
+    "https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.63.1",  # release was deleted
+]

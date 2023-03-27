@@ -729,7 +729,7 @@ distro_is_supported() {
       ;;
     amzn)
       case "$distro_version" in
-        2)
+        2|2023)
           return 0
           ;;
       esac
@@ -743,13 +743,28 @@ distro_is_supported() {
       ;;
     centos|ol|rhel)
       case "$distro_version" in
-        7*|8*)
+        7*|8*|9*)
           return 0
           ;;
       esac
       ;;
   esac
   return 1
+}
+
+fluentd_supported() {
+  case "$distro" in
+    amzn)
+      if [ "$distro_version" != "2" ]; then
+        return 1
+      fi
+      ;;
+    sles|opensuse*)
+      return 1
+      ;;
+  esac
+
+  return 0
 }
 
 parse_args_and_install() {
@@ -863,7 +878,12 @@ parse_args_and_install() {
         uninstall="true"
         ;;
       --with-fluentd)
-        with_fluentd="true"
+        if ! fluentd_supported; then
+          echo "WARNING: Ignoring the --with-fluentd option since fluentd is currently not supported for ${distro}:${distro_version}." >&2
+          with_fluentd="false"
+        else
+          with_fluentd="true"
+        fi
         ;;
       --without-fluentd)
         with_fluentd="false"
@@ -972,11 +992,9 @@ parse_args_and_install() {
     exit 1
   fi
 
-  case "$distro" in
-    sles|opensuse*)
-      with_fluentd="false"
-      ;;
-  esac
+  if ! fluentd_supported; then
+    with_fluentd="false"
+  fi
 
   ensure_not_installed "$with_fluentd" "$with_instrumentation"
 

@@ -59,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: tanzu-tile-latest
-          path: ${{ env.tanzu_tile_path }}
+          path: /home/runner/work/splunk-otel-collector/splunk-otel-collector/deployments/cloudfoundry/tile/${{ env.tanzu_tile_path }}
 
       - name: debugging again
         run: |

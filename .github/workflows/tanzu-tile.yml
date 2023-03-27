@@ -41,28 +41,18 @@ jobs:
         shell: bash
         run: |
           ./make-latest-tile
-          size="$(stat -c '%s' product/splunk-otel-collector-*.pivotal)"
+          tanzu_tile_regex="product/splunk-otel-collector-*.pivotal"
+          size="$(stat -c '%s' $tanzu_tile_regex)"
           if [[ $size -eq 0 ]]; then
             echo "File is empty!" >&2
             exit 1
           fi
 
-          TANZU_TILE_PATH=product/$(ls product | grep "splunk-otel-collector")
-          echo "tanzu_tile_path=$TANZU_TILE_PATH" >> $GITHUB_ENV
-
-      - name: debugging
-        run: |
-          ls -al
-          ls -al product/
+          tanzu_tile_path=$(pwd)/$tanzu_tile_regex
+          echo "tanzu_tile_path=$tanzu_tile_path" >> $GITHUB_ENV
 
       - name: Uploading artifacts
         uses: actions/upload-artifact@v3
         with:
           name: tanzu-tile-latest
-          path: /home/runner/work/splunk-otel-collector/splunk-otel-collector/deployments/cloudfoundry/tile/${{ env.tanzu_tile_path }}
-
-      - name: debugging again
-        run: |
-          ls -al
-          ls -al product/
-          ls -al ${{ env.tanzu_tile_path}}
+          path: ${{ env.tanzu_tile_path }}

@@ -54,5 +54,5 @@ jobs:
       - name: Uploading artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: tanzu-tile-latest
+          name: tanzu-tile-latest.pivotal
           path: ${{ env.tanzu_tile_path }}

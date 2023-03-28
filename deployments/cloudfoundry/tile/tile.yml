@@ -1,0 +1,132 @@
+---
+# The high-level description of the tile.
+#
+name: splunk-otel-collector # By convention lowercase with dashes
+icon_file: resources/icon.png
+label: Splunk OpenTelemetry Collector for Tanzu Network
+description: |
+  This tile contains a BOSH Release of the Splunk distribution of OpenTelemetry Collector,
+  and a firehose nozzle job that sends metrics to the Splunk Observability Cloud.
+
+  The firehose nozzle pulls events off of the Loggregator Firehose via the RLP
+  Gateway and sends them to the Splunk Observability Cloud. This uses the
+  `cloudfoundry` receiver from the Splunk Opentelemetry Collector under the
+  hood.
+
+  This also includes a BOSH release of the Splunk OpenTelemetry Collector, called "splunk-otel-collector"
+  that can be used in deployments to put the collector on individual VMs.
+
+# Specify the packages to be included in the tile.
+packages:
+  - name: splunk_collector_firehose_nozzle
+    type: bosh-release
+    path: resources/latest-release.tgz
+    jobs:
+      - name: splunk-otel-collector
+        instances: 1
+        templates:
+          - name: splunk-otel-collector
+            release: splunk-otel-collector
+        properties:
+          cloudfoundry:
+            rlp_gateway:
+              endpoint: https://log-stream.(( ..cf.cloud_controller.system_domain.value ))
+              shard_id: (( .properties.cloudfoundry_rlp_gateway_shard_id.value ))
+              tls:
+                insecure_skip_verify: (( .properties.cloudfoundry_rlp_gateway_tls_insecure_skip_verify.value ))
+            uaa:
+              endpoint: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
+              password: (( .properties.cloudfoundry_uaa_password.value ))
+              username: (( .properties.cloudfoundry_uaa_username.value ))
+              tls:
+                insecure_skip_verify: (( .properties.cloudfoundry_uaa_tls_insecure_skip_verify.value ))
+          otel:
+            proxy:
+              http: (( .properties.otel_proxy_http.value ))
+              https: (( .properties.otel_proxy_https.value ))
+              no: (( .properties.otel_proxy_no.value ))
+          splunk:
+            access_token: (( .properties.splunk_access_token.value ))
+            api_url: (( .properties.splunk_api_url.value ))
+            ingest_url: (( .properties.splunk_ingest_url.value ))
+            realm: (( .properties.splunk_realm.value ))
+
+# Forms allow users to input variable values for Splunk Collector Bosh Release and nozzle job
+forms:
+- name: nozzle_form
+  label: Nozzle Config
+  description: Splunk OpenTelemetry Collector nozzle configuration values
+  properties:
+  - name: cloudfoundry_rlp_gateway_shard_id
+    type: string
+    label: RLP gateway shard ID
+    description: Metrics are load balanced between receivers that use the same shard ID. Only use if multiple receivers must receive all metrics instead of balancing metrics between them.
+
+  - name: cloudfoundry_rlp_gateway_tls_insecure_skip_verify
+    type: boolean
+    label: Skip TLS validation for RLP
+    description: Whether to skip TLS verification for the RLP gateway endpoint
+    default: false
+
+  - name: cloudfoundry_uaa_username
+    type: string
+    label: UAA username
+    description: Name of the UAA user. This UAA user must have the client_credentials and refresh_token authorized grant types, and logs.admin authority.
+    optional: false
+
+  - name: cloudfoundry_uaa_password
+    type: secret
+    label: UAA password
+    description: Password of the UAA user
+    optional: false
+
+  - name: cloudfoundry_uaa_tls_insecure_skip_verify
+    type: boolean
+    label: Skip TLS validation for UAA
+    description: Whether to skip TLS verification for the UAA endpoint
+    default: false
+
+  - name: otel_proxy_http
+    type: string
+    label: HTTP proxy URL
+    description: URL used as the proxy URL for HTTP requests unless overridden by otel_proxy_no
+    optional: true
+
+  - name: otel_proxy_https
+    type: string
+    label: HTTPS proxy URL
+    description: URL used as the proxy for HTTPS requests unless overridden by otel_proxy_no
+    optional: true
+
+  - name: otel_proxy_no
+    type: string
+    label: Proxy exclusions
+    description: Comma-separated hosts that should be excluded from proxying. Hosts should be in the form of an IP address prefix (regular or CIDR notation), a domain name, or a special DNS label (*).
+    optional: true
+
+- name: splunk_form
+  label: Splunk Observability Cloud
+  description: Splunk Observability Cloud configuration values
+  properties:
+  - name: splunk_access_token
+    type: string
+    label: Access token
+    optional: false
+
+  - name: splunk_realm
+    type: string
+    label: Realm
+    description: Realm (e.g. 'us0', 'ap0'). This option will implicitly set the 'Ingest base URL' and 'API server base URL' config below. If 'Ingest base URL' and 'API server base URL' are explicitly set below, this option is ignored.
+    optional: true
+
+  - name: splunk_api_url
+    type: string
+    label: API server base URL
+    description:  The API server's base URL for Splunk Observability Cloud. This option takes precedence over the realm.
+    optional: true
+
+  - name: splunk_ingest_url
+    type: string
+    label: Ingest base URL
+    description: The base URL for ingest to Splunk Observability Cloud. This option takes precedence over the realm.
+    optional: true

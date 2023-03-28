@@ -1,0 +1,58 @@
+name: Tanzu Tile
+
+# The workflow triggered by any change in deployments/cloudfoundry/bosh/
+# or /deployments/cloudfoundry/tile
+
+on:
+  pull_request:
+    paths:
+      - 'deployments/cloudfoundry/bosh/**'
+      - 'deployments/cloudfoundry/tile/**'
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: 'deployments/cloudfoundry/tile'
+
+jobs:
+
+  test:
+    name: Test Tanzu Tile creation
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+      - name: Install BOSH CLI
+        shell: bash
+        run: |
+          brew install cloudfoundry/tap/bosh-cli
+          bosh -v
+      - name: Install PCF CLI
+        shell: bash
+        run: |
+          pip install tile-generator
+      - name: Run release script
+        shell: bash
+        run: |
+          ./make-latest-tile
+          tanzu_tile_regex="product/splunk-otel-collector-*.pivotal"
+          size="$(stat -c '%s' $tanzu_tile_regex)"
+          if [[ $size -eq 0 ]]; then
+            echo "File is empty!" >&2
+            exit 1
+          fi
+
+          tanzu_tile_path=$(pwd)/$tanzu_tile_regex
+          echo "tanzu_tile_path=$tanzu_tile_path" >> $GITHUB_ENV
+
+      - name: Uploading artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: tanzu-tile-latest.pivotal
+          path: ${{ env.tanzu_tile_path }}

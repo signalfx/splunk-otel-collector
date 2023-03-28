@@ -66,7 +66,7 @@ forms:
     type: boolean
     label: Skip TLS validation for RLP
     description: Whether to skip TLS verification for the RLP gateway endpoint
-    default: true
+    default: false
 
   - name: cloudfoundry_uaa_username
     type: string
@@ -84,7 +84,7 @@ forms:
     type: boolean
     label: Skip TLS validation for UAA
     description: Whether to skip TLS verification for the UAA endpoint
-    default: true
+    default: false
 
   - name: otel_proxy_http
     type: string

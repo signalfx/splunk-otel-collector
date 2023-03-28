@@ -13,7 +13,9 @@ case $1 in
 
         echo $$ > $PIDFILE
 
-        exec /var/vcap/packages/splunk_otel_collector/splunk_otel_collector \
+        # Collector needs to be run as user that has permissions to get metrics from RLP
+        # gateway
+        exec chpst -u vcap:vcap /var/vcap/packages/splunk_otel_collector/splunk_otel_collector \
             --config /var/vcap/jobs/splunk-otel-collector/bin/config/otel-collector-config.yaml \
             >>  $LOG_DIR/splunk-otel-collector.stdout.log \
             2>> $LOG_DIR/splunk-otel-collector.stderr.log

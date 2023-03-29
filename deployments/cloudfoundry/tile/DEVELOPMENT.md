@@ -45,7 +45,6 @@ $ pcf configure splunk-otel-collector tile_config.yaml
 Sample `tile_config.yaml` file contents:
 ```yaml
 ---
-cloudfoundry_rlp_gateway_shard_id: "opentelemetry"
 cloudfoundry_rlp_gateway_tls_insecure_skip_verify: true
 # Note: UAA credentials are from the UAA user created in the Tanzu service setup referenced
 cloudfoundry_uaa_password: { 'secret': <UAA_PASSWORD> }

@@ -61,6 +61,7 @@ forms:
     type: string
     label: RLP gateway shard ID
     description: Metrics are load balanced between receivers that use the same shard ID. Only use if multiple receivers must receive all metrics instead of balancing metrics between them.
+    default: opentelemetry
 
   - name: cloudfoundry_rlp_gateway_tls_insecure_skip_verify
     type: boolean

@@ -32,7 +32,7 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"gopkg.in/yaml.v2"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
 )
 
 const (
@@ -51,7 +51,7 @@ const (
 )
 
 var _ confmap.Converter = (*ConfigServer)(nil)
-var _ configprovider.Hook = (*ConfigServer)(nil)
+var _ configsource.Hook = (*ConfigServer)(nil)
 
 type ConfigServer struct {
 	// Use get/set methods instead of direct usage

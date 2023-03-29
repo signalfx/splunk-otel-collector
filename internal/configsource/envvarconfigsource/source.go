@@ -22,7 +22,7 @@ import (
 
 	"go.opentelemetry.io/collector/confmap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
 // Private error types to help with testability.
@@ -39,12 +39,11 @@ type retrieveParams struct {
 	Optional bool `mapstructure:"optional"`
 }
 
-// envVarConfigSource implements the configprovider.Session interface.
 type envVarConfigSource struct {
 	defaults map[string]any
 }
 
-func newConfigSource(_ configprovider.CreateParams, cfg *Config) configprovider.ConfigSource {
+func newConfigSource(cfg *Config) configsource.ConfigSource {
 	defaults := make(map[string]any)
 	if cfg.Defaults != nil {
 		defaults = cfg.Defaults
@@ -78,8 +77,4 @@ func (e *envVarConfigSource) Retrieve(_ context.Context, selector string, params
 	}
 
 	return confmap.NewRetrieved(defaultValue)
-}
-
-func (e *envVarConfigSource) Shutdown(context.Context) error {
-	return nil
 }

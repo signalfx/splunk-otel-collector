@@ -26,7 +26,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"go.opentelemetry.io/collector/confmap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
 // Private error types to help with testability.
@@ -41,7 +41,7 @@ type includeConfigSource struct {
 	watchedFiles map[string]struct{}
 }
 
-func newConfigSource(_ configprovider.CreateParams, config *Config) (configprovider.ConfigSource, error) {
+func newConfigSource(config *Config) (configsource.ConfigSource, error) {
 	if config.DeleteFiles && config.WatchFiles {
 		return nil, errors.New(`cannot be configured with "delete_files" and "watch_files" at the same time`)
 	}
@@ -84,10 +84,6 @@ func (is *includeConfigSource) Retrieve(_ context.Context, selector string, para
 		return nil, err
 	}
 	return confmap.NewRetrieved(buf.String(), confmap.WithRetrievedClose(closeFunc))
-}
-
-func (is *includeConfigSource) Shutdown(context.Context) error {
-	return nil
 }
 
 func (is *includeConfigSource) watchFile(file string, watcherFunc confmap.WatcherFunc) (confmap.CloseFunc, error) {

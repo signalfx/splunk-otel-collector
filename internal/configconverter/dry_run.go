@@ -23,11 +23,11 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"gopkg.in/yaml.v2"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
 )
 
 var _ confmap.Converter = (*DryRun)(nil)
-var _ configprovider.Hook = (*DryRun)(nil)
+var _ configsource.Hook = (*DryRun)(nil)
 
 type DryRun struct {
 	*sync.Mutex

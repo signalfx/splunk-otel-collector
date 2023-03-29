@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configprovider
+package configsource
 
 import (
 	"context"
@@ -31,27 +31,28 @@ func TestConfigSourceParser(t *testing.T) {
 	ctx := context.Background()
 
 	testFactories := Factories{
-		"tstcfgsrc": &mockCfgSrcFactory{},
+		"tstcfgsrc": &MockCfgSrcFactory{},
 	}
 	tests := []struct {
-		factories Factories
-		expected  map[string]Source
-		envvars   map[string]string
-		wantErr   string
-		name      string
-		file      string
+		factories        Factories
+		expectedSettings map[string]Settings
+		expectedConf     map[string]any
+		envvars          map[string]string
+		wantErr          string
+		name             string
+		file             string
 	}{
 		{
 			name:      "basic_config",
 			file:      "basic_config",
 			factories: testFactories,
-			expected: map[string]Source{
-				"tstcfgsrc": &mockCfgSrcSettings{
+			expectedSettings: map[string]Settings{
+				"tstcfgsrc": &MockCfgSrcSettings{
 					SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
 					Endpoint:       "some_endpoint",
 					Token:          "some_token",
 				},
-				"tstcfgsrc/named": &mockCfgSrcSettings{
+				"tstcfgsrc/named": &MockCfgSrcSettings{
 					SourceSettings: NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
 					Endpoint:       "default_endpoint",
 				},
@@ -65,13 +66,14 @@ func TestConfigSourceParser(t *testing.T) {
 				"ENV_VAR_ENDPOINT": "env_var_endpoint",
 				"ENV_VAR_TOKEN":    "env_var_token",
 			},
-			expected: map[string]Source{
-				"tstcfgsrc": &mockCfgSrcSettings{
+			expectedSettings: map[string]Settings{
+				"tstcfgsrc": &MockCfgSrcSettings{
 					SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
 					Endpoint:       "https://env_var_endpoint:8200",
 					Token:          "env_var_token",
 				},
 			},
+			expectedConf: map[string]any{"ignored_by_parser": map[string]any{"some_field": "$ENV_VAR_TOKEN"}},
 		},
 		{
 			name:      "cfgsrc_load_cannot_use_cfgsrc",
@@ -89,7 +91,7 @@ func TestConfigSourceParser(t *testing.T) {
 			name: "missing_factory",
 			file: "basic_config",
 			factories: Factories{
-				"not_in_basic_config": &mockCfgSrcFactory{},
+				"not_in_basic_config": &MockCfgSrcFactory{},
 			},
 			wantErr: "unknown config_sources type \"tstcfgsrc\"",
 		},
@@ -120,55 +122,20 @@ func TestConfigSourceParser(t *testing.T) {
 				}()
 			}
 
-			cfgSrcSettings, err := Load(ctx, v, tt.factories)
+			cfgSrcSettings, splitConf, err := SettingsFromConf(ctx, v, tt.factories)
 			if tt.wantErr != "" {
 				require.ErrorContains(t, err, tt.wantErr)
+				require.Nil(t, splitConf)
 			} else {
 				require.NoError(t, err)
+				expectedConf := tt.expectedConf
+				if expectedConf == nil {
+					expectedConf = map[string]any{}
+
+				}
+				require.Equal(t, expectedConf, splitConf.ToStringMap())
 			}
-			assert.Equal(t, tt.expected, cfgSrcSettings)
+			assert.Equal(t, tt.expectedSettings, cfgSrcSettings)
 		})
 	}
-}
-
-type mockCfgSrcSettings struct {
-	SourceSettings
-	Endpoint string `mapstructure:"endpoint"`
-	Token    string `mapstructure:"token"`
-}
-
-func (m mockCfgSrcSettings) Validate() error {
-	return nil
-}
-
-var _ Source = (*mockCfgSrcSettings)(nil)
-
-type mockCfgSrcFactory struct {
-	ErrOnCreateConfigSource error
-}
-
-var _ Factory = (*mockCfgSrcFactory)(nil)
-
-func (m *mockCfgSrcFactory) Type() component.Type {
-	return "tstcfgsrc"
-}
-
-func (m *mockCfgSrcFactory) CreateDefaultConfig() Source {
-	return &mockCfgSrcSettings{
-		SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
-		Endpoint:       "default_endpoint",
-	}
-}
-
-func (m *mockCfgSrcFactory) CreateConfigSource(_ context.Context, _ CreateParams, cfg Source) (ConfigSource, error) {
-	if m.ErrOnCreateConfigSource != nil {
-		return nil, m.ErrOnCreateConfigSource
-	}
-	return &testConfigSource{
-		ValueMap: map[string]valueEntry{
-			cfg.ID().String(): {
-				Value: cfg,
-			},
-		},
-	}, nil
 }

@@ -22,16 +22,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 func TestEnvVarConfigSourceFactory_CreateConfigSource(t *testing.T) {
 	factory := NewFactory()
 	assert.Equal(t, component.Type("env"), factory.Type())
-	createParams := configprovider.CreateParams{
-		Logger: zap.NewNop(),
-	}
 	tests := []struct {
 		config *Config
 		name   string
@@ -51,7 +46,7 @@ func TestEnvVarConfigSourceFactory_CreateConfigSource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := factory.CreateConfigSource(context.Background(), createParams, tt.config)
+			actual, err := factory.CreateConfigSource(context.Background(), tt.config, zap.NewNop())
 			assert.NoError(t, err)
 			assert.NotNil(t, actual)
 		})

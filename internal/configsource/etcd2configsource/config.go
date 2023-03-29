@@ -15,11 +15,13 @@
 
 package etcd2configsource
 
-import "github.com/signalfx/splunk-otel-collector/internal/configprovider"
+import (
+	"github.com/signalfx/splunk-otel-collector/internal/configsource"
+)
 
 // Config defines etcd2configsource configuration
 type Config struct {
-	configprovider.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
+	configsource.SourceSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
 
 	// Authentication defines the authentication method to be used.
 	Authentication *Authentication `mapstructure:"auth"`
@@ -36,8 +38,4 @@ type Authentication struct {
 
 	// Password can be optionally used to authenticate with etcd2 cluster.
 	Password string `mapstructure:"password"`
-}
-
-func (*Config) Validate() error {
-	return nil
 }

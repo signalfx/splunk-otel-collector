@@ -93,7 +93,6 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 			if tt.wantErr != nil {
 				assert.Nil(t, r)
 				require.IsType(t, tt.wantErr, err)
-				assert.NoError(t, source.Shutdown(ctx))
 				return
 			}
 			require.NoError(t, err)
@@ -104,7 +103,6 @@ func TestEnvVarConfigSource_Session(t *testing.T) {
 			assert.Equal(t, tt.expected, val)
 
 			assert.NoError(t, r.Close(ctx))
-			assert.NoError(t, source.Shutdown(ctx))
 		})
 	}
 }

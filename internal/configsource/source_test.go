@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configprovider
+package configsource
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"testing"
 
-	"github.com/knadh/koanf/maps"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
@@ -43,7 +43,7 @@ func TestConfigSourceManagerNewManager(t *testing.T) {
 			name: "basic_config",
 			file: "basic_config",
 			factories: Factories{
-				"tstcfgsrc": &mockCfgSrcFactory{},
+				"tstcfgsrc": &MockCfgSrcFactory{},
 			},
 		},
 		{
@@ -56,7 +56,7 @@ func TestConfigSourceManagerNewManager(t *testing.T) {
 			name: "build_error",
 			file: "basic_config",
 			factories: Factories{
-				"tstcfgsrc": &mockCfgSrcFactory{
+				"tstcfgsrc": &MockCfgSrcFactory{
 					ErrOnCreateConfigSource: errors.New("forced test error"),
 				},
 			},
@@ -70,7 +70,7 @@ func TestConfigSourceManagerNewManager(t *testing.T) {
 			parser, err := confmaptest.LoadConf(filename)
 			require.NoError(t, err)
 
-			_, _, err = Resolve(context.Background(), parser, zap.NewNop(), component.NewDefaultBuildInfo(), tt.factories, nil)
+			_, _, err = BuildConfigSourcesAndResolve(context.Background(), parser, zap.NewNop(), tt.factories, nil)
 			if tt.wantErr != "" {
 				require.ErrorContains(t, err, tt.wantErr)
 			} else {
@@ -82,7 +82,7 @@ func TestConfigSourceManagerNewManager(t *testing.T) {
 
 func TestConfigSourceManagerSimple(t *testing.T) {
 	cfgSources := map[string]ConfigSource{
-		"tstcfgsrc": &testConfigSource{
+		"tstcfgsrc": &TestConfigSource{
 			ValueMap: map[string]valueEntry{
 				"test_selector": {Value: "test_value"},
 			},
@@ -104,36 +104,33 @@ func TestConfigSourceManagerSimple(t *testing.T) {
 
 	cp := confmap.NewFromStringMap(originalCfg)
 
-	res, closeFunc, err := resolve(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
-	assert.Equal(t, expectedCfg, maps.Unflatten(res, confmap.KeyDelimiter))
+	assert.Equal(t, expectedCfg, res.ToStringMap())
 	assert.NoError(t, closeFunc(context.Background()))
 }
 
 func TestConfigSourceManagerResolveRemoveConfigSourceSection(t *testing.T) {
 	cfg := map[string]any{
-		"config_sources": map[string]any{
-			"testcfgsrc": nil,
-		},
 		"another_section": map[string]any{
 			"int": 42,
 		},
 	}
 
 	cfgSources := map[string]ConfigSource{
-		"tstcfgsrc": &testConfigSource{},
+		"tstcfgsrc": &TestConfigSource{},
 	}
 
-	res, closeFunc, err := resolve(context.Background(), cfgSources, confmap.NewFromStringMap(cfg), func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, confmap.NewFromStringMap(cfg), func(event *confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
 	delete(cfg, "config_sources")
-	assert.Equal(t, cfg, maps.Unflatten(res, confmap.KeyDelimiter))
+	assert.Equal(t, cfg, res.ToStringMap())
 	assert.NoError(t, callClose(closeFunc))
 }
 
@@ -151,7 +148,7 @@ func TestConfigSourceManagerResolveErrors(t *testing.T) {
 				"cfgsrc": "$tstcfgsrc:selector?{invalid}",
 			},
 			configSourceMap: map[string]ConfigSource{
-				"tstcfgsrc": &testConfigSource{},
+				"tstcfgsrc": &TestConfigSource{},
 			},
 		},
 		{
@@ -160,13 +157,13 @@ func TestConfigSourceManagerResolveErrors(t *testing.T) {
 				"cfgsrc": "$tstcfgsrc:selector",
 			},
 			configSourceMap: map[string]ConfigSource{
-				"tstcfgsrc": &testConfigSource{ErrOnRetrieve: testErr},
+				"tstcfgsrc": &TestConfigSource{ErrOnRetrieve: testErr},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res, closeFunc, err := resolve(context.Background(), tt.configSourceMap, confmap.NewFromStringMap(tt.config), func(event *confmap.ChangeEvent) {
+			res, closeFunc, err := ResolveWithConfigSources(context.Background(), tt.configSourceMap, confmap.NewFromStringMap(tt.config), func(event *confmap.ChangeEvent) {
 				panic("must not be called")
 			})
 			require.Error(t, err)
@@ -178,7 +175,7 @@ func TestConfigSourceManagerResolveErrors(t *testing.T) {
 
 func TestConfigSourceManagerYAMLInjection(t *testing.T) {
 	cfgSources := map[string]ConfigSource{
-		"tstcfgsrc": &testConfigSource{
+		"tstcfgsrc": &TestConfigSource{
 			ValueMap: map[string]valueEntry{
 				"valid_yaml_str": {Value: `
 bool: true
@@ -202,17 +199,17 @@ map:
 	require.NoError(t, err)
 	expectedCfg := expectedParser.ToStringMap()
 
-	res, closeFunc, err := resolve(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
-	assert.Equal(t, expectedCfg, maps.Unflatten(res, confmap.KeyDelimiter))
+	assert.Equal(t, expectedCfg, res.ToStringMap())
 	assert.NoError(t, callClose(closeFunc))
 }
 
 func TestConfigSourceManagerArraysAndMaps(t *testing.T) {
 	cfgSources := map[string]ConfigSource{
-		"tstcfgsrc": &testConfigSource{
+		"tstcfgsrc": &TestConfigSource{
 			ValueMap: map[string]valueEntry{
 				"elem0": {Value: "elem0_value"},
 				"elem1": {Value: "elem1_value"},
@@ -230,16 +227,16 @@ func TestConfigSourceManagerArraysAndMaps(t *testing.T) {
 	expectedParser, err := confmaptest.LoadConf(expectedFile)
 	require.NoError(t, err)
 
-	res, closeFunc, err := resolve(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
-	assert.Equal(t, expectedParser.ToStringMap(), maps.Unflatten(res, confmap.KeyDelimiter))
+	assert.Equal(t, expectedParser.ToStringMap(), res.ToStringMap())
 	assert.NoError(t, callClose(closeFunc))
 }
 
 func TestConfigSourceManagerParamsHandling(t *testing.T) {
-	tstCfgSrc := testConfigSource{
+	tstCfgSrc := TestConfigSource{
 		ValueMap: map[string]valueEntry{
 			"elem0": {Value: nil},
 			"elem1": {
@@ -263,7 +260,7 @@ func TestConfigSourceManagerParamsHandling(t *testing.T) {
 		},
 	}
 
-	// Set OnRetrieve to check if the parameters were parsed as expected.
+	// Set OnRetrieve to check if the parameters were parsed as expectedSettings.
 	tstCfgSrc.OnRetrieve = func(ctx context.Context, selector string, paramsConfigMap *confmap.Conf) error {
 		var val any
 		if paramsConfigMap != nil {
@@ -281,11 +278,11 @@ func TestConfigSourceManagerParamsHandling(t *testing.T) {
 	expectedParser, err := confmaptest.LoadConf(expectedFile)
 	require.NoError(t, err)
 
-	res, closeFunc, err := resolve(context.Background(), map[string]ConfigSource{"tstcfgsrc": &tstCfgSrc}, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), map[string]ConfigSource{"tstcfgsrc": &tstCfgSrc}, cp, func(event *confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
-	assert.Equal(t, expectedParser.ToStringMap(), maps.Unflatten(res, confmap.KeyDelimiter))
+	assert.Equal(t, expectedParser.ToStringMap(), res.ToStringMap())
 	assert.NoError(t, callClose(closeFunc))
 }
 
@@ -293,7 +290,7 @@ func TestConfigSourceManagerWatchForUpdate(t *testing.T) {
 	watchForUpdateCh := make(chan error, 1)
 
 	cfgSources := map[string]ConfigSource{
-		"tstcfgsrc": &testConfigSource{
+		"tstcfgsrc": &TestConfigSource{
 			ValueMap: map[string]valueEntry{
 				"test_selector": {
 					Value:            "test_value",
@@ -311,7 +308,7 @@ func TestConfigSourceManagerWatchForUpdate(t *testing.T) {
 
 	cp := confmap.NewFromStringMap(originalCfg)
 	watchCh := make(chan *confmap.ChangeEvent)
-	_, closeFunc, err := resolve(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
+	_, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
 		watchCh <- event
 	})
 	require.NoError(t, err)
@@ -326,7 +323,7 @@ func TestConfigSourceManagerWatchForUpdate(t *testing.T) {
 func TestConfigSourceManagerMultipleWatchForUpdate(t *testing.T) {
 	watchForUpdateCh := make(chan error, 2)
 	cfgSources := map[string]ConfigSource{
-		"tstcfgsrc": &testConfigSource{
+		"tstcfgsrc": &TestConfigSource{
 			ValueMap: map[string]valueEntry{
 				"test_selector": {
 					Value:            "test_value",
@@ -347,7 +344,7 @@ func TestConfigSourceManagerMultipleWatchForUpdate(t *testing.T) {
 
 	cp := confmap.NewFromStringMap(originalCfg)
 	watchCh := make(chan *confmap.ChangeEvent)
-	_, closeFunc, err := resolve(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
+	_, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
 		watchCh <- event
 	})
 	require.NoError(t, err)
@@ -367,7 +364,7 @@ func TestConfigSourceManagerEnvVarHandling(t *testing.T) {
 		assert.NoError(t, os.Unsetenv("envvar"))
 	}()
 
-	tstCfgSrc := testConfigSource{
+	tstCfgSrc := TestConfigSource{
 		ValueMap: map[string]valueEntry{
 			"int_key": {Value: 42},
 		},
@@ -393,25 +390,25 @@ func TestConfigSourceManagerEnvVarHandling(t *testing.T) {
 	expectedParser, err := confmaptest.LoadConf(expectedFile)
 	require.NoError(t, err)
 
-	res, closeFunc, err := resolve(context.Background(), map[string]ConfigSource{"tstcfgsrc": &tstCfgSrc}, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), map[string]ConfigSource{"tstcfgsrc": &tstCfgSrc}, cp, func(event *confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
-	assert.Equal(t, expectedParser.ToStringMap(), res)
+	assert.Equal(t, expectedParser.ToStringMap(), res.ToStringMap())
 	assert.NoError(t, callClose(closeFunc))
 }
 
 func TestManagerExpandString(t *testing.T) {
 	ctx := context.Background()
 	cfgSources := map[string]ConfigSource{
-		"tstcfgsrc": &testConfigSource{
+		"tstcfgsrc": &TestConfigSource{
 			ValueMap: map[string]valueEntry{
 				"str_key": {Value: "test_value"},
 				"int_key": {Value: 1},
 				"nil_key": {Value: nil},
 			},
 		},
-		"tstcfgsrc/named": &testConfigSource{
+		"tstcfgsrc/named": &TestConfigSource{
 			ValueMap: map[string]valueEntry{
 				"int_key": {Value: 42},
 			},
@@ -535,7 +532,7 @@ func TestManagerExpandString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, closeFunc, err := parseStringValue(ctx, cfgSources, tt.input, func(event *confmap.ChangeEvent) {
+			got, closeFunc, err := resolveStringValue(ctx, cfgSources, tt.input, func(event *confmap.ChangeEvent) {
 				panic("must not be called")
 			})
 			if tt.wantErr != nil {
@@ -646,4 +643,211 @@ func callClose(closeFunc confmap.CloseFunc) error {
 		return nil
 	}
 	return closeFunc(context.Background())
+}
+
+func TestConfigSourceBuild(t *testing.T) {
+	ctx := context.Background()
+	testFactories := Factories{
+		"tstcfgsrc": &MockCfgSrcFactory{},
+	}
+
+	tests := []struct {
+		configSettings     map[string]Settings
+		factories          Factories
+		expectedCfgSources map[string]ConfigSource
+		wantErr            string
+		name               string
+	}{
+		{
+			name: "unknown_config_source",
+			configSettings: map[string]Settings{
+				"tstcfgsrc": &MockCfgSrcSettings{
+					SourceSettings: NewSourceSettings(component.NewIDWithName("unknown_config_source", "tstcfgsrc")),
+				},
+			},
+			factories: testFactories,
+			wantErr:   "unknown unknown_config_source config source type for tstcfgsrc",
+		},
+		{
+			name: "creation_error",
+			configSettings: map[string]Settings{
+				"tstcfgsrc": &MockCfgSrcSettings{
+					SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
+				},
+			},
+			factories: Factories{
+				"tstcfgsrc": &MockCfgSrcFactory{
+					ErrOnCreateConfigSource: errors.New("forced test error"),
+				},
+			},
+			wantErr: "failed to create config source tstcfgsrc: forced test error",
+		},
+		{
+			name: "factory_return_nil",
+			configSettings: map[string]Settings{
+				"tstcfgsrc": &MockCfgSrcSettings{
+					SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
+				},
+			},
+			factories: Factories{
+				"tstcfgsrc": &mockNilCfgSrcFactory{},
+			},
+			wantErr: "factory for \"tstcfgsrc\" produced a nil extension",
+		},
+		{
+			name: "base_case",
+			configSettings: map[string]Settings{
+				"tstcfgsrc/named": &MockCfgSrcSettings{
+					SourceSettings: NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
+					Endpoint:       "some_endpoint",
+					Token:          "some_token",
+				},
+			},
+			factories: testFactories,
+			expectedCfgSources: map[string]ConfigSource{
+				"tstcfgsrc/named": &TestConfigSource{
+					ValueMap: map[string]valueEntry{
+						"tstcfgsrc/named": {
+							Value: &MockCfgSrcSettings{
+								SourceSettings: NewSourceSettings(component.NewIDWithName("tstcfgsrc", "named")),
+								Endpoint:       "some_endpoint",
+								Token:          "some_token",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			builtCfgSources, err := BuildConfigSources(ctx, tt.configSettings, zap.NewNop(), tt.factories)
+			if tt.wantErr != "" {
+				require.EqualError(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, tt.expectedCfgSources, builtCfgSources)
+		})
+	}
+}
+
+type mockNilCfgSrcFactory struct{}
+
+func (m *mockNilCfgSrcFactory) Type() component.Type {
+	return "tstcfgsrc"
+}
+
+var _ (Factory) = (*mockNilCfgSrcFactory)(nil)
+
+func (m *mockNilCfgSrcFactory) CreateDefaultConfig() Settings {
+	return &MockCfgSrcSettings{
+		SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
+		Endpoint:       "default_endpoint",
+	}
+}
+
+func (m *mockNilCfgSrcFactory) CreateConfigSource(context.Context, Settings, *zap.Logger) (ConfigSource, error) {
+	return nil, nil
+}
+
+type MockCfgSrcFactory struct {
+	ErrOnCreateConfigSource error
+}
+
+type MockCfgSrcSettings struct {
+	SourceSettings
+	Endpoint string `mapstructure:"endpoint"`
+	Token    string `mapstructure:"token"`
+}
+
+var _ Settings = (*MockCfgSrcSettings)(nil)
+
+var _ Factory = (*MockCfgSrcFactory)(nil)
+
+func (m *MockCfgSrcFactory) Type() component.Type {
+	return "tstcfgsrc"
+}
+
+func (m *MockCfgSrcFactory) CreateDefaultConfig() Settings {
+	return &MockCfgSrcSettings{
+		SourceSettings: NewSourceSettings(component.NewID("tstcfgsrc")),
+		Endpoint:       "default_endpoint",
+	}
+}
+
+func (m *MockCfgSrcFactory) CreateConfigSource(_ context.Context, cfg Settings, _ *zap.Logger) (ConfigSource, error) {
+	if m.ErrOnCreateConfigSource != nil {
+		return nil, m.ErrOnCreateConfigSource
+	}
+	return &TestConfigSource{
+		ValueMap: map[string]valueEntry{
+			cfg.ID().String(): {
+				Value: cfg,
+			},
+		},
+	}, nil
+}
+
+// TestConfigSource a ConfigSource to be used in tests.
+type TestConfigSource struct {
+	ValueMap map[string]valueEntry
+
+	ErrOnRetrieve    error
+	ErrOnRetrieveEnd error
+	ErrOnClose       error
+
+	OnRetrieve func(ctx context.Context, selector string, paramsConfigMap *confmap.Conf) error
+}
+
+type valueEntry struct {
+	Value            any
+	WatchForUpdateCh chan error
+}
+
+var _ ConfigSource = (*TestConfigSource)(nil)
+
+func (t *TestConfigSource) Retrieve(ctx context.Context, selector string, paramsConfigMap *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Retrieved, error) {
+	if t.OnRetrieve != nil {
+		if err := t.OnRetrieve(ctx, selector, paramsConfigMap); err != nil {
+			return nil, err
+		}
+	}
+
+	if t.ErrOnRetrieve != nil {
+		return nil, t.ErrOnRetrieve
+	}
+
+	entry, ok := t.ValueMap[selector]
+	if !ok {
+		return nil, fmt.Errorf("no value for selector %q", selector)
+	}
+
+	if entry.WatchForUpdateCh != nil {
+		doneCh := make(chan struct{})
+		startWatch(entry.WatchForUpdateCh, doneCh, watcher)
+		return confmap.NewRetrieved(entry.Value, confmap.WithRetrievedClose(func(ctx context.Context) error {
+			close(doneCh)
+			return nil
+		}))
+	}
+
+	return confmap.NewRetrieved(entry.Value)
+}
+
+func (t *TestConfigSource) Shutdown(context.Context) error {
+	return t.ErrOnClose
+}
+
+func startWatch(watchForUpdateCh chan error, doneCh chan struct{}, watcher confmap.WatcherFunc) {
+	go func() {
+		select {
+		case err := <-watchForUpdateCh:
+			watcher(&confmap.ChangeEvent{Error: err})
+			return
+		case <-doneCh:
+			return
+		}
+	}()
 }

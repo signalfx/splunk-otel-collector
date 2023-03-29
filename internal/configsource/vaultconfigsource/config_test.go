@@ -26,7 +26,7 @@ import (
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
 func TestVaultLoadConfig(t *testing.T) {
@@ -34,18 +34,19 @@ func TestVaultLoadConfig(t *testing.T) {
 	v, err := confmaptest.LoadConf(fileName)
 	require.NoError(t, err)
 
-	factories := map[component.Type]configprovider.Factory{
+	factories := map[component.Type]configsource.Factory{
 		typeStr: NewFactory(),
 	}
 
-	actualSettings, err := configprovider.Load(context.Background(), v, factories)
+	actualSettings, splitConf, err := configsource.SettingsFromConf(context.Background(), v, factories)
 	require.NoError(t, err)
+	require.NotNil(t, splitConf)
 
 	devToken := "dev_token"
 	otherToken := "other_token"
-	expectedSettings := map[string]configprovider.Source{
+	expectedSettings := map[string]configsource.Settings{
 		"vault": &Config{
-			SourceSettings: configprovider.NewSourceSettings(component.NewID(typeStr)),
+			SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
 			Endpoint:       "http://localhost:8200",
 			Path:           "secret/kv",
 			PollInterval:   1 * time.Minute,
@@ -54,7 +55,7 @@ func TestVaultLoadConfig(t *testing.T) {
 			},
 		},
 		"vault/poll_interval": &Config{
-			SourceSettings: configprovider.NewSourceSettings(component.NewIDWithName(typeStr, "poll_interval")),
+			SourceSettings: configsource.NewSourceSettings(component.NewIDWithName(typeStr, "poll_interval")),
 			Endpoint:       "https://localhost:8200",
 			Path:           "other/path/kv",
 			PollInterval:   10 * time.Second,
@@ -65,10 +66,8 @@ func TestVaultLoadConfig(t *testing.T) {
 	}
 
 	require.Equal(t, expectedSettings, actualSettings)
+	require.Empty(t, splitConf.ToStringMap())
 
-	params := configprovider.CreateParams{
-		Logger: zap.NewNop(),
-	}
-	_, err = configprovider.Build(context.Background(), actualSettings, params, factories)
+	_, err = configsource.BuildConfigSources(context.Background(), actualSettings, zap.NewNop(), factories)
 	require.NoError(t, err)
 }

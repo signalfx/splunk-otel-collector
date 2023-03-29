@@ -32,7 +32,7 @@ instance_groups:
           cloudfoundry:
             rlp_gateway:
               endpoint: "https://log-stream.sys.<TAS environment name>.cf-app.com"
-              shard_id: "otelcol"
+              shard_id: "opentelemetry"
               tls:
                 insecure_skip_verify: false
             uaa:

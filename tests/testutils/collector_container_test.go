@@ -17,6 +17,7 @@
 package testutils
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -137,4 +138,32 @@ func TestCollectorContainerLogging(t *testing.T) {
 	assert.NotNil(t, collector.Logger)
 	assert.Equal(t, "info", collector.LogLevel)
 	assert.Equal(t, []string{}, collector.Args)
+}
+
+func clearEnvVar(t testing.TB) {
+	if currentVal, ok := os.LookupEnv(CollectorImageEnvVar); ok {
+		t.Cleanup(func() {
+			os.Setenv(CollectorImageEnvVar, currentVal)
+		})
+	}
+	os.Unsetenv(CollectorImageEnvVar)
+}
+
+func TestGetCollectorImage(t *testing.T) {
+	clearEnvVar(t)
+	require.False(t, CollectorImageIsSet())
+	require.Empty(t, GetCollectorImage())
+	os.Setenv(CollectorImageEnvVar, "    some.image\t")
+	require.True(t, CollectorImageIsSet())
+	require.Equal(t, "some.image", GetCollectorImage())
+}
+
+func TestGetCollectorImageOrSkipTest(t *testing.T) {
+	clearEnvVar(t)
+	var skipped bool
+	t.Run("should.skip", func(subT *testing.T) {
+		defer func() { skipped = subT.Skipped() }()
+		require.Empty(t, GetCollectorImageOrSkipTest(subT))
+	})
+	require.True(t, skipped)
 }

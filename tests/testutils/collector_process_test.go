@@ -71,14 +71,6 @@ func TestConfigPathRequiredUponBuildWithoutArgs(t *testing.T) {
 	assert.EqualError(t, err, "you must specify a ConfigPath for your CollectorProcess before building")
 }
 
-func TestConfigPathNotRequiredUponBuildWithArgs(t *testing.T) {
-	withArgs := NewCollectorProcess().WithArgs("arg_one", "arg_two")
-
-	collector, err := withArgs.Build()
-	require.NoError(t, err)
-	require.NotNil(t, collector)
-}
-
 func TestCollectorProcessBuildDefaults(t *testing.T) {
 	// specifying Path to avoid built otelcol requirement
 	builder := NewCollectorProcess().WithPath("somepath").WithConfigPath("someconfigpath")

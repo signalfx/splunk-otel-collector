@@ -22,9 +22,11 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
+	docker "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -32,6 +34,8 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
+
+const CollectorImageEnvVar = "SPLUNK_OTEL_COLLECTOR_IMAGE"
 
 var configFromArgsPattern = regexp.MustCompile("--config($|[^d-]+)")
 
@@ -294,4 +298,35 @@ func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri string)
 	actual := map[string]any{}
 	require.NoError(t, yaml.Unmarshal([]byte(initial), &actual))
 	return confmap.NewFromStringMap(actual).ToStringMap()
+}
+
+func GetCollectorImage() string {
+	return strings.TrimSpace(os.Getenv(CollectorImageEnvVar))
+}
+
+func CollectorImageIsSet() bool {
+	return GetCollectorImage() != ""
+}
+
+func GetCollectorImageOrSkipTest(t testing.TB) string {
+	image := GetCollectorImage()
+	if image == "" {
+		t.Skipf("skipping container-only test (set SPLUNK_OTEL_COLLECTOR_IMAGE env var).")
+	}
+	return image
+}
+
+func CollectorImageIsForArm(t testing.TB) bool {
+	image := GetCollectorImage()
+	if image == "" {
+		return false
+	}
+	client, err := docker.NewClientWithOpts(docker.FromEnv)
+	require.NoError(t, err)
+	client.NegotiateAPIVersion(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	inspect, _, err := client.ImageInspectWithRaw(ctx, image)
+	require.NoError(t, err)
+	return inspect.Architecture == "arm64"
 }

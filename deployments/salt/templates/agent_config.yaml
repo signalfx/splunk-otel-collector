@@ -26,9 +26,9 @@ processors:
 
 exporters:
   logging/debug:
-    loglevel: debug
+    verbosity: detailed
   logging/info:
-    loglevel: info
+    verbosity: normal
 
 service:
   extensions: [memory_ballast]

@@ -386,7 +386,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/winperfcounters v0.74.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
-	github.com/opencontainers/runc v1.1.4 // indirect
+	github.com/opencontainers/runc v1.1.5 // indirect
 	github.com/openlyinc/pointy v1.2.0 // indirect
 	github.com/openshift/api v3.9.0+incompatible // indirect
 	github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142 // indirect
@@ -528,7 +528,6 @@ replace (
 	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.8.1
 	github.com/nats-io/nats.go => github.com/nats-io/nats.go v1.14.0
-	github.com/opencontainers/runc => github.com/opencontainers/runc v1.1.2
 	github.com/spf13/viper => github.com/spf13/viper v1.11.0 // required to drop dependency on deprecated github.com/coreos/etcd and github.com/coreos/go-etcd
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.36.0
 	golang.org/x/crypto => golang.org/x/crypto v0.5.0

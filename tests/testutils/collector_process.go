@@ -172,7 +172,7 @@ func requestConfig(t testing.TB, uri string) map[string]any {
 		if err == nil {
 			break
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 	require.NoError(t, err)
 

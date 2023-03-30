@@ -37,6 +37,7 @@ const (
 // FactoryOption applies changes to pulsarExporterFactory.
 type FactoryOption func(factory *pulsarExporterFactory)
 
+// Deprecated: This exporter will be replaced by github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter
 // NewFactory creates pulsar exporter factory.
 func NewFactory(options ...FactoryOption) exporter.Factory {
 	f := &pulsarExporterFactory{
@@ -81,6 +82,7 @@ func (f *pulsarExporterFactory) createMetricsExporter(
 	settings exporter.CreateSettings,
 	cfg component.Config,
 ) (exporter.Metrics, error) {
+	settings.Logger.Warn("the pulsarexporter component is deprecated and will be replaced by github.com/open-telemetry/opentelemetry-collector-contrib/exporter/pulsarexporter")
 	oCfg := cfg.(*Config)
 	if oCfg.Encoding == "otlp_json" {
 		settings.Logger.Info("otlp_json is considered experimental and should not be used in a production environment")

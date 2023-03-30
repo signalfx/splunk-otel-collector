@@ -42,6 +42,7 @@ func TestBasicSecretAccess(t *testing.T) {
 		}).WillWaitForLogs("Development mode should NOT be used in production installations!")
 
 	if !testutils.CollectorImageIsSet() {
+		// otelcol subprocess needs vault to be exposed and resolvable
 		vault = vault.WithExposedPorts("8200:8200")
 		vaultHostname = "localhost"
 	}

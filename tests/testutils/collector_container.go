@@ -35,7 +35,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const CollectorImageEnvVar = "SPLUNK_OTEL_COLLECTOR_IMAGE"
+const collectorImageEnvVar = "SPLUNK_OTEL_COLLECTOR_IMAGE"
 
 var configFromArgsPattern = regexp.MustCompile("--config($|[^d-]+)")
 
@@ -301,7 +301,7 @@ func (collector *CollectorContainer) execConfigRequest(t testing.TB, uri string)
 }
 
 func GetCollectorImage() string {
-	return strings.TrimSpace(os.Getenv(CollectorImageEnvVar))
+	return strings.TrimSpace(os.Getenv(collectorImageEnvVar))
 }
 
 func CollectorImageIsSet() bool {

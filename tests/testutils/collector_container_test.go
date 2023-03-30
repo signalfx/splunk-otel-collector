@@ -141,19 +141,19 @@ func TestCollectorContainerLogging(t *testing.T) {
 }
 
 func clearEnvVar(t testing.TB) {
-	if currentVal, ok := os.LookupEnv(CollectorImageEnvVar); ok {
+	if currentVal, ok := os.LookupEnv(collectorImageEnvVar); ok {
 		t.Cleanup(func() {
-			os.Setenv(CollectorImageEnvVar, currentVal)
+			os.Setenv(collectorImageEnvVar, currentVal)
 		})
 	}
-	os.Unsetenv(CollectorImageEnvVar)
+	os.Unsetenv(collectorImageEnvVar)
 }
 
 func TestGetCollectorImage(t *testing.T) {
 	clearEnvVar(t)
 	require.False(t, CollectorImageIsSet())
 	require.Empty(t, GetCollectorImage())
-	os.Setenv(CollectorImageEnvVar, "    some.image\t")
+	os.Setenv(collectorImageEnvVar, "    some.image\t")
 	require.True(t, CollectorImageIsSet())
 	require.Equal(t, "some.image", GetCollectorImage())
 }

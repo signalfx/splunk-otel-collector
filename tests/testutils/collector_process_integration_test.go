@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//go:build testutils
+//go:build testutils && testutilsintegration
 
 package testutils
 
@@ -32,6 +32,14 @@ func TestCollectorPath(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, p)
 	assert.True(t, strings.HasSuffix(p, "/bin/otelcol"))
+}
+
+func TestConfigPathNotRequiredUponBuildWithArgs(t *testing.T) {
+	withArgs := NewCollectorProcess().WithArgs("arg_one", "arg_two")
+
+	collector, err := withArgs.Build()
+	require.NoError(t, err)
+	require.NotNil(t, collector)
 }
 
 func TestCollectorProcessConfigSourced(t *testing.T) {

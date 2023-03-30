@@ -31,15 +31,22 @@ import (
 
 func TestBasicSecretAccess(t *testing.T) {
 	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
 
-	ctrs, shutdown := tc.Containers(
-		testutils.NewContainer().WithImage("vault:latest").WithNetworks("vault").WithName("vault").WithEnv(
-			map[string]string{
-				"VAULT_DEV_ROOT_TOKEN_ID": "token",
-				"VAULT_TOKEN":             "token",
-				"VAULT_ADDR":              "http://0.0.0.0:8200",
-			}).WillWaitForLogs("Development mode should NOT be used in production installations!"),
-	)
+	vaultHostname := "vault"
+	vault := testutils.NewContainer().WithImage("vault:latest").WithNetworks("vault").WithName("vault").WithEnv(
+		map[string]string{
+			"VAULT_DEV_ROOT_TOKEN_ID": "token",
+			"VAULT_TOKEN":             "token",
+			"VAULT_ADDR":              "http://0.0.0.0:8200",
+		}).WillWaitForLogs("Development mode should NOT be used in production installations!")
+
+	if !testutils.CollectorImageIsSet() {
+		vault = vault.WithExposedPorts("8200:8200")
+		vaultHostname = "localhost"
+	}
+
+	ctrs, shutdown := tc.Containers(vault)
 	defer shutdown()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -57,17 +64,27 @@ func TestBasicSecretAccess(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, sc)
 
-	collector, stop := tc.SplunkOtelCollectorContainer(
+	collector, stop := tc.SplunkOtelCollector(
 		"vault_config.yaml",
 		func(collector testutils.Collector) testutils.Collector {
-			cc := collector.(*testutils.CollectorContainer)
-			cc.Container = cc.Container.WithNetworks("vault").WithNetworkMode("bridge")
-			return cc
+			collector = collector.WithEnv(map[string]string{
+				"INSERT_ACTION":  "insert",
+				"VAULT_HOSTNAME": vaultHostname,
+			})
+			if cc, ok := collector.(*testutils.CollectorContainer); ok {
+				cc.Container = cc.Container.WithNetworks("vault").WithNetworkMode("bridge")
+				return cc
+			}
+			return collector
 		},
 	)
 	defer stop()
 
 	effective := collector.EffectiveConfig(tc, 55554)
+	if !testutils.CollectorImageIsSet() {
+		// default collector process uses --set service.telemetry args
+		delete(effective["service"].(map[string]any), "telemetry")
+	}
 	require.Equal(t, map[string]any{
 		"exporters": map[string]any{"logging/noop": nil},
 		"processors": map[string]any{

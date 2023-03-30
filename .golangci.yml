@@ -107,3 +107,11 @@ linters:
     - staticcheck
     - unconvert
     - unparam
+
+issues:
+  exclude:
+    - ^G104
+  exclude-rules:
+    - linters:
+        - staticcheck
+      text: "SA1019:"

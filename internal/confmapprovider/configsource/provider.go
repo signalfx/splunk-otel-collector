@@ -79,9 +79,8 @@ type ProviderWrapper struct {
 var _ confmap.Provider = (*wrappedProvider)(nil)
 
 type wrappedProvider struct {
-	wrapper       *ProviderWrapper
-	provider      confmap.Provider
-	lastRetrieved *confmap.Retrieved
+	wrapper  *ProviderWrapper
+	provider confmap.Provider
 }
 
 func (w *wrappedProvider) Retrieve(ctx context.Context, uri string, watcher confmap.WatcherFunc) (*confmap.Retrieved, error) {
@@ -102,93 +101,65 @@ func (w *wrappedProvider) Shutdown(ctx context.Context) error {
 	return w.provider.Shutdown(ctx)
 }
 
-func (c *ProviderWrapper) Provider(provider confmap.Provider) confmap.Provider {
-	for _, h := range c.hooks {
+func (pw *ProviderWrapper) Provider(provider confmap.Provider) confmap.Provider {
+	for _, h := range pw.hooks {
 		h.OnNew()
 	}
-	c.providersLock.Lock()
-	defer c.providersLock.Unlock()
-	c.providers[provider.Scheme()] = provider
-	return &wrappedProvider{provider: provider, wrapper: c, lastRetrieved: &confmap.Retrieved{}}
+	pw.providersLock.Lock()
+	defer pw.providersLock.Unlock()
+	pw.providers[provider.Scheme()] = provider
+	return &wrappedProvider{provider: provider, wrapper: pw}
 }
 
-// ResolveForWrapped will retrieve from the wrappedProvider provider and merge the result w/ a previous retrieved instance (if any) as latestConf.
-// It will then "configsource.BuildConfigSourcesAndResolve(latestConf)" and return the resolved map as a confmap.Retrieved w/ resolve closer and the wrappedProvider provider closer.
-func (c *ProviderWrapper) ResolveForWrapped(ctx context.Context, uri string, onChange confmap.WatcherFunc, w *wrappedProvider) (*confmap.Retrieved, error) {
-	provider := w.provider
-	retrieved := &confmap.Retrieved{}
-
-	var tmpRetrieved *confmap.Retrieved
-	var err error
-	// Here we are getting the value directly from the provider, which
-	// is what the core's resolver intends (invokes this parent method).
-	if tmpRetrieved, err = provider.Retrieve(ctx, uri, onChange); err != nil {
-		return nil, fmt.Errorf("configsource provider failed retrieving: %w", err)
-	} else if tmpRetrieved != nil {
-		retrieved = tmpRetrieved
-	}
-
-	var previousConf *confmap.Conf
-	var rawRetrieved *confmap.Retrieved
-	if previousConf, err = w.lastRetrieved.AsConf(); err != nil {
-		return nil, fmt.Errorf("configsource provider failed updated retrieval: %w", err)
-	} else if previousConf != nil {
-		// Need to merge config maps that we've encountered so far
-		if latestConf, e := retrieved.AsConf(); e != nil {
-			// raw fallback
-			if raw, ee := retrieved.AsRaw(); ee == nil {
-				if rawRetrieved, ee = confmap.NewRetrieved(raw); ee != nil {
-					return nil, fmt.Errorf("failed resolving wrappedProvider retrieve: %w", e)
-				}
-			}
-		} else if e = latestConf.Merge(previousConf); e != nil {
-			return nil, fmt.Errorf("failed merging previous wrappedProvider retrieve: %w", e)
-		} else if tmpRetrieved, e = confmap.NewRetrieved(latestConf.ToStringMap()); e != nil {
-			return nil, err
-		} else if tmpRetrieved != nil {
-			retrieved = tmpRetrieved
-		}
-	}
-
-	// raw confmap.Retrieved values cannot be coerced AsConf() so we return here to not update lastRetrieved
-	// or attempt subsequent config source value resolution.
-	if rawRetrieved != nil {
-		return rawRetrieved, nil
-	}
-
-	w.lastRetrieved = retrieved
-
-	latestConf, err := w.lastRetrieved.AsConf()
+// ResolveForWrapped will retrieve from the wrappedProvider and, if possible, resolve all config source directives with their resolved values.
+// If the wrappedProvider's retrieved value is only valid AsRaw() (scalar/array) then that will be returned without further evaluation.
+func (pw *ProviderWrapper) ResolveForWrapped(ctx context.Context, uri string, onChange confmap.WatcherFunc, w *wrappedProvider) (*confmap.Retrieved, error) {
+	retrieved, err := w.provider.Retrieve(ctx, uri, onChange)
 	if err != nil {
-		return nil, err
-	} else if latestConf == nil {
-		return nil, fmt.Errorf("latest retrieved confmap.Conf is nil")
+		return nil, fmt.Errorf("configsource provider failed retrieving: %w", err)
 	}
 
-	scheme, stringMap := provider.Scheme(), latestConf.ToStringMap()
-	for _, h := range c.hooks {
+	conf, err := retrieved.AsConf()
+	if err != nil {
+		// raw fallback attempt, or return AsConf() error
+		if raw, e := retrieved.AsRaw(); e == nil {
+			if rawRetrieved, ee := confmap.NewRetrieved(raw); ee == nil {
+				// raw confmap.Retrieved values shouldn't be further processed so return here
+				return rawRetrieved, nil
+			}
+		}
+		return nil, fmt.Errorf("failed retrieving from wrappedProvider: %w", err)
+	}
+
+	if conf == nil {
+		return nil, fmt.Errorf("retrieved confmap.Conf is unexpectedly nil")
+	}
+
+	scheme, stringMap := w.provider.Scheme(), conf.ToStringMap()
+	for _, h := range pw.hooks {
 		h.OnRetrieve(scheme, stringMap)
 	}
 
-	c.providersLock.Lock()
+	// copy providers map for downstream resolution
+	pw.providersLock.Lock()
 	providers := map[string]confmap.Provider{}
-	for s, p := range c.providers {
+	for s, p := range pw.providers {
 		providers[s] = p
 	}
-	c.providersLock.Unlock()
-	configSources, conf, err := configsource.BuildConfigSourcesAndSettings(ctx, latestConf, c.logger, c.factories, providers)
+	pw.providersLock.Unlock()
+	configSources, confToResolve, err := configsource.BuildConfigSourcesFromConf(ctx, conf, pw.logger, pw.factories, providers)
 	if err != nil {
 		return nil, fmt.Errorf("failed resolving latestConf: %w", err)
 	}
 
-	resolved, closeFunc, err := configsource.ResolveWithConfigSources(ctx, configSources, providers, conf, onChange)
+	resolved, closeFunc, err := configsource.ResolveWithConfigSources(ctx, configSources, providers, confToResolve, onChange)
 	if err != nil {
 		return nil, fmt.Errorf("failed resolving with config sources: %w", err)
 	}
 
 	return confmap.NewRetrieved(
 		resolved.ToStringMap(), confmap.WithRetrievedClose(
-			configsource.MergeCloseFuncs([]confmap.CloseFunc{closeFunc, w.lastRetrieved.Close}),
+			configsource.MergeCloseFuncs([]confmap.CloseFunc{closeFunc, retrieved.Close}),
 		),
 	)
 }

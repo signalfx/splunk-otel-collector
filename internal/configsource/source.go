@@ -92,11 +92,49 @@ type Factory interface {
 // Factories maps the type of a ConfigSource to the respective factory object.
 type Factories map[component.Type]Factory
 
-// BuildConfigSourcesAndResolve inspects the given confmap.Conf and resolves all config sources referenced
-// in the configuration, returning a confmap.Conf in which all env vars and config sources on
+// BuildConfigSourcesFromConf inspects the given confmap.Conf and builds all config sources referenced
+// in the configuration intended to be used with ResolveWithConfigSources().
+func BuildConfigSourcesFromConf(ctx context.Context, confToFurtherResolve *confmap.Conf, logger *zap.Logger, factories Factories, confmapProviders map[string]confmap.Provider) (map[string]ConfigSource, *confmap.Conf, error) {
+	configSourceSettings, confWithoutSettings, err := SettingsFromConf(ctx, confToFurtherResolve, factories, confmapProviders)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse settings from conf: %w", err)
+	}
+
+	configSources, err := BuildConfigSources(context.Background(), configSourceSettings, logger, factories)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to build config sources: %w", err)
+	}
+	return configSources, confWithoutSettings, nil
+}
+
+func BuildConfigSources(ctx context.Context, configSourcesSettings map[string]Settings, logger *zap.Logger, factories Factories) (map[string]ConfigSource, error) {
+	cfgSources := make(map[string]ConfigSource, len(configSourcesSettings))
+	for fullName, cfgSrcSettings := range configSourcesSettings {
+		// If we have the setting we also have the factory.
+		factory, ok := factories[cfgSrcSettings.ID().Type()]
+		if !ok {
+			return nil, fmt.Errorf("unknown %s config source type for %s", cfgSrcSettings.ID().Type(), fullName)
+		}
+
+		cfgSrc, err := factory.CreateConfigSource(ctx, cfgSrcSettings, logger.With(zap.String("config_source", fullName)))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create config source %s: %w", fullName, err)
+		}
+
+		if cfgSrc == nil {
+			return nil, fmt.Errorf("factory for %q produced a nil extension", fullName)
+		}
+
+		cfgSources[fullName] = cfgSrc
+	}
+
+	return cfgSources, nil
+}
+
+// ResolveWithConfigSources returns a confmap.Conf in which all env vars and config sources on
 // the given input config map are resolved to actual literal values of the env vars or config sources.
 //
-// 1. BuildConfigSourcesAndResolve to inject the data from config sources into a configuration;
+// 1. ResolveWithConfigSources to inject the data from config sources into a configuration;
 // 2. Wait for an update on "watcher" func.
 // 3. Close the confmap.Retrieved instance;
 //
@@ -202,45 +240,6 @@ type Factories map[component.Type]Factory
 // results.
 //
 // For an overview about the internals of the Manager refer to the package README.md.
-
-func BuildConfigSourcesAndSettings(ctx context.Context, confToFurtherResolve *confmap.Conf, logger *zap.Logger, factories Factories, confmapProviders map[string]confmap.Provider) (map[string]ConfigSource, *confmap.Conf, error) {
-	configSourceSettings, confWithoutSettings, err := SettingsFromConf(ctx, confToFurtherResolve, factories, confmapProviders)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse settings from conf: %w", err)
-	}
-
-	configSources, err := BuildConfigSources(context.Background(), configSourceSettings, logger, factories)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to build config sources: %w", err)
-	}
-	return configSources, confWithoutSettings, nil
-}
-
-// BuildConfigSources builds the ConfigSource objects according to the given ConfigSettings.
-func BuildConfigSources(ctx context.Context, configSourcesSettings map[string]Settings, logger *zap.Logger, factories Factories) (map[string]ConfigSource, error) {
-	cfgSources := make(map[string]ConfigSource, len(configSourcesSettings))
-	for fullName, cfgSrcSettings := range configSourcesSettings {
-		// If we have the setting we also have the factory.
-		factory, ok := factories[cfgSrcSettings.ID().Type()]
-		if !ok {
-			return nil, fmt.Errorf("unknown %s config source type for %s", cfgSrcSettings.ID().Type(), fullName)
-		}
-
-		cfgSrc, err := factory.CreateConfigSource(ctx, cfgSrcSettings, logger.With(zap.String("config_source", fullName)))
-		if err != nil {
-			return nil, fmt.Errorf("failed to create config source %s: %w", fullName, err)
-		}
-
-		if cfgSrc == nil {
-			return nil, fmt.Errorf("factory for %q produced a nil extension", fullName)
-		}
-
-		cfgSources[fullName] = cfgSrc
-	}
-
-	return cfgSources, nil
-}
-
 func ResolveWithConfigSources(ctx context.Context, configSources map[string]ConfigSource, confmapProviders map[string]confmap.Provider, conf *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Conf, confmap.CloseFunc, error) {
 	resolved := map[string]any{}
 	var closeFuncs []confmap.CloseFunc

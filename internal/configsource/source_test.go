@@ -33,7 +33,7 @@ import (
 var errValueUpdated = errors.New("configuration must retrieve the updated value")
 
 func BuildConfigSourcesAndResolve(ctx context.Context, confToFurtherResolve *confmap.Conf, logger *zap.Logger, factories Factories, watcher confmap.WatcherFunc) (*confmap.Conf, confmap.CloseFunc, error) {
-	cfgSources, conf, err := BuildConfigSourcesAndSettings(ctx, confToFurtherResolve, logger, factories, nil)
+	cfgSources, conf, err := BuildConfigSourcesFromConf(ctx, confToFurtherResolve, logger, factories, nil)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -24,9 +24,9 @@ processors:
 
 exporters:
   logging/debug:
-    verbosity: detailed
+    loglevel: debug
   logging/info:
-    verbosity: normal
+    loglevel: info
 
 service:
   pipelines:

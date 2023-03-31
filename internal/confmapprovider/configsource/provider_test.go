@@ -113,7 +113,6 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 
 			expectedScheme := provider.Scheme()
 
-			// Need to run ResolveForWrapped method no matter what, so we can't just iterate passed in config locations
 			i := 0
 			for ok := true; ok; {
 				var uri string

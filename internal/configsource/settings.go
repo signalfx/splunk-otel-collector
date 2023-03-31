@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	ConfigSourcesKey = "config_sources"
+	configSourcesKey = "config_sources"
 )
 
 // Settings is the configuration of a config source. Specific config sources must implement this
@@ -62,34 +62,34 @@ func NewSourceSettings(id component.ID) SourceSettings {
 
 // SettingsFromConf reads the configuration for ConfigSource objects from the given confmap.Conf
 // and returns a map of Settings and the remaining Conf without the `config_sources` mapping
-func SettingsFromConf(ctx context.Context, conf *confmap.Conf, factories Factories) (map[string]Settings, *confmap.Conf, error) {
-	settings, err := sourceSettings(ctx, conf, factories)
+func SettingsFromConf(ctx context.Context, conf *confmap.Conf, factories Factories, confmapProviders map[string]confmap.Provider) (map[string]Settings, *confmap.Conf, error) {
+	settings, err := sourceSettings(ctx, conf, factories, confmapProviders)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed resolving config sources settings: %w", err)
 	}
 
-	splatMap := map[string]any{}
+	splitMap := map[string]any{}
 	for _, k := range conf.AllKeys() {
-		if !strings.HasPrefix(k, ConfigSourcesKey) {
-			splatMap[k] = conf.Get(k)
+		if !strings.HasPrefix(k, configSourcesKey) {
+			splitMap[k] = conf.Get(k)
 		}
 	}
 
-	return settings, confmap.NewFromStringMap(splatMap), nil
+	return settings, confmap.NewFromStringMap(splitMap), nil
 }
 
-func sourceSettings(ctx context.Context, v *confmap.Conf, factories Factories) (map[string]Settings, error) {
+func sourceSettings(ctx context.Context, v *confmap.Conf, factories Factories, confmapProviders map[string]confmap.Provider) (map[string]Settings, error) {
 	splitMap := map[string]any{}
 	for _, key := range v.AllKeys() {
-		if strings.HasPrefix(key, ConfigSourcesKey) {
-			value, _, err := resolveConfigValue(ctx, make(map[string]ConfigSource), v.Get(key), nil)
+		if strings.HasPrefix(key, configSourcesKey) {
+			value, _, err := resolveConfigValue(ctx, make(map[string]ConfigSource), confmapProviders, v.Get(key), nil)
 			if err != nil {
 				return nil, err
 			}
 			splitMap[key] = value
 		}
 	}
-	settingsMap, err := confmap.NewFromStringMap(splitMap).Sub(ConfigSourcesKey)
+	settingsMap, err := confmap.NewFromStringMap(splitMap).Sub(configSourcesKey)
 	if err != nil {
 		return nil, fmt.Errorf("invalid settings sub map content: %w", err)
 	}
@@ -98,43 +98,39 @@ func sourceSettings(ctx context.Context, v *confmap.Conf, factories Factories) (
 }
 
 func loadSettings(settingsMap map[string]any, factories Factories) (map[string]Settings, error) {
-	// Prepare resulting map.
-	cfgSrcToSettings := make(map[string]Settings)
+	settings := make(map[string]Settings)
 
-	// Iterate over extensions and create a config for each.
 	for key, value := range settingsMap {
-		settingsParser := confmap.NewFromStringMap(cast.ToStringMap(value))
+		settingsValue := confmap.NewFromStringMap(cast.ToStringMap(value))
 
 		// Decode the key into type and fullName components.
 		componentID := component.ID{}
 		if err := componentID.UnmarshalText([]byte(key)); err != nil {
-			return nil, fmt.Errorf("invalid %s type and name key %q: %w", ConfigSourcesKey, key, err)
+			return nil, fmt.Errorf("invalid %s type and name key %q: %w", configSourcesKey, key, err)
 		}
 
 		// Find the factory based on "type" that we read from config source.
 		factory, ok := factories[componentID.Type()]
 		if !ok || factory == nil {
-			fmt.Printf("factories: %#v\n", factories)
-			return nil, fmt.Errorf("unknown %s type %q for %q", ConfigSourcesKey, componentID.Type(), componentID)
+			return nil, fmt.Errorf("unknown %s type %q for %q", configSourcesKey, componentID.Type(), componentID)
 		}
 
-		// Create the default config.
 		cfgSrcSettings := factory.CreateDefaultConfig()
 		cfgSrcSettings.SetIDName(componentID.Name())
 
 		// Now that the default settings struct is created we can Unmarshal into it
 		// and it will apply user-defined config on top of the default.
-		if err := settingsParser.Unmarshal(&cfgSrcSettings, confmap.WithErrorUnused()); err != nil {
-			return nil, fmt.Errorf("error reading %s configuration for %q: %w", ConfigSourcesKey, componentID, err)
+		if err := settingsValue.Unmarshal(&cfgSrcSettings, confmap.WithErrorUnused()); err != nil {
+			return nil, fmt.Errorf("error reading %s configuration for %q: %w", configSourcesKey, componentID, err)
 		}
 
 		fullName := componentID.String()
-		if cfgSrcToSettings[fullName] != nil {
-			return nil, fmt.Errorf("duplicate %s name %s", ConfigSourcesKey, fullName)
+		if _, ok = settings[fullName]; ok {
+			return nil, fmt.Errorf("duplicate %s name %s", configSourcesKey, fullName)
 		}
 
-		cfgSrcToSettings[fullName] = cfgSrcSettings
+		settings[fullName] = cfgSrcSettings
 	}
 
-	return cfgSrcToSettings, nil
+	return settings, nil
 }

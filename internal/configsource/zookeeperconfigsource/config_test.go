@@ -38,7 +38,7 @@ func TestZookeeperLoadConfig(t *testing.T) {
 		typeStr: NewFactory(),
 	}
 
-	actualSettings, splitConf, err := configsource.SettingsFromConf(context.Background(), v, factories)
+	actualSettings, splitConf, err := configsource.SettingsFromConf(context.Background(), v, factories, nil)
 	require.NoError(t, err)
 	require.NotNil(t, splitConf)
 

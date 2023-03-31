@@ -79,7 +79,7 @@ func TestConfigSourceParser(t *testing.T) {
 			name:      "cfgsrc_load_cannot_use_cfgsrc",
 			file:      "cfgsrc_load_use_cfgsrc",
 			factories: testFactories,
-			wantErr:   "config source \"tstcfgsrc\" not found if this was intended to be an environment variable use \"${tstcfgsrc}\" instead\"",
+			wantErr:   "config source \"tstcfgsrc\" not found",
 		},
 		{
 			name:      "bad_name",
@@ -122,7 +122,7 @@ func TestConfigSourceParser(t *testing.T) {
 				}()
 			}
 
-			cfgSrcSettings, splitConf, err := SettingsFromConf(ctx, v, tt.factories)
+			cfgSrcSettings, splitConf, err := SettingsFromConf(ctx, v, tt.factories, nil)
 			if tt.wantErr != "" {
 				require.ErrorContains(t, err, tt.wantErr)
 				require.Nil(t, splitConf)

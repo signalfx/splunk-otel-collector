@@ -93,14 +93,12 @@ func (w *wrappedProvider) Scheme() string {
 }
 
 func (w *wrappedProvider) Shutdown(ctx context.Context) error {
-	w.wrapper.providersLock.Lock()
-	defer w.wrapper.providersLock.Unlock()
-	delete(w.wrapper.providers, w.Scheme())
-	if len(w.wrapper.providers) == 0 {
-		for _, h := range w.wrapper.hooks {
-			h.OnShutdown()
-		}
+	for _, h := range w.wrapper.hooks {
+		h.OnShutdown()
 	}
+	w.wrapper.providersLock.Lock()
+	delete(w.wrapper.providers, w.Scheme())
+	w.wrapper.providersLock.Unlock()
 	return w.provider.Shutdown(ctx)
 }
 
@@ -160,12 +158,18 @@ func (c *ProviderWrapper) ResolveForWrapped(ctx context.Context, uri string, onC
 		h.OnRetrieve(scheme, stringMap)
 	}
 
-	configSources, conf, err := configsource.BuildConfigSourcesAndSettings(ctx, latestConf, c.logger, c.factories)
+	c.providersLock.Lock()
+	providers := map[string]confmap.Provider{}
+	for s, p := range c.providers {
+		providers[s] = p
+	}
+	c.providersLock.Unlock()
+	configSources, conf, err := configsource.BuildConfigSourcesAndSettings(ctx, latestConf, c.logger, c.factories, providers)
 	if err != nil {
 		return nil, fmt.Errorf("failed resolving latestConf: %w", err)
 	}
 
-	resolved, closeFunc, err := configsource.ResolveWithConfigSources(ctx, configSources, conf, onChange)
+	resolved, closeFunc, err := configsource.ResolveWithConfigSources(ctx, configSources, providers, conf, onChange)
 	if err != nil {
 		return nil, fmt.Errorf("failed resolving with config sources: %w", err)
 	}

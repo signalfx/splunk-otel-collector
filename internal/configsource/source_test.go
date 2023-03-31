@@ -32,6 +32,15 @@ import (
 
 var errValueUpdated = errors.New("configuration must retrieve the updated value")
 
+func BuildConfigSourcesAndResolve(ctx context.Context, confToFurtherResolve *confmap.Conf, logger *zap.Logger, factories Factories, watcher confmap.WatcherFunc) (*confmap.Conf, confmap.CloseFunc, error) {
+	cfgSources, conf, err := BuildConfigSourcesAndSettings(ctx, confToFurtherResolve, logger, factories, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return ResolveWithConfigSources(ctx, cfgSources, nil, conf, watcher)
+}
+
 func TestConfigSourceManagerNewManager(t *testing.T) {
 	tests := []struct {
 		factories Factories
@@ -80,7 +89,7 @@ func TestConfigSourceManagerNewManager(t *testing.T) {
 	}
 }
 
-func TestConfigSourceManagerSimple(t *testing.T) {
+func TestConfigSourceResolved(t *testing.T) {
 	cfgSources := map[string]ConfigSource{
 		"tstcfgsrc": &TestConfigSource{
 			ValueMap: map[string]valueEntry{
@@ -104,7 +113,7 @@ func TestConfigSourceManagerSimple(t *testing.T) {
 
 	cp := confmap.NewFromStringMap(originalCfg)
 
-	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, cp, func(event *confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
@@ -123,7 +132,7 @@ func TestConfigSourceManagerResolveRemoveConfigSourceSection(t *testing.T) {
 		"tstcfgsrc": &TestConfigSource{},
 	}
 
-	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, confmap.NewFromStringMap(cfg), func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, confmap.NewFromStringMap(cfg), func(event *confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
@@ -163,7 +172,7 @@ func TestConfigSourceManagerResolveErrors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res, closeFunc, err := ResolveWithConfigSources(context.Background(), tt.configSourceMap, confmap.NewFromStringMap(tt.config), func(event *confmap.ChangeEvent) {
+			res, closeFunc, err := ResolveWithConfigSources(context.Background(), tt.configSourceMap, nil, confmap.NewFromStringMap(tt.config), func(event *confmap.ChangeEvent) {
 				panic("must not be called")
 			})
 			require.Error(t, err)
@@ -199,7 +208,7 @@ map:
 	require.NoError(t, err)
 	expectedCfg := expectedParser.ToStringMap()
 
-	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, cp, func(event *confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
@@ -227,7 +236,7 @@ func TestConfigSourceManagerArraysAndMaps(t *testing.T) {
 	expectedParser, err := confmaptest.LoadConf(expectedFile)
 	require.NoError(t, err)
 
-	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, cp, func(event *confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
@@ -278,7 +287,7 @@ func TestConfigSourceManagerParamsHandling(t *testing.T) {
 	expectedParser, err := confmaptest.LoadConf(expectedFile)
 	require.NoError(t, err)
 
-	res, closeFunc, err := ResolveWithConfigSources(context.Background(), map[string]ConfigSource{"tstcfgsrc": &tstCfgSrc}, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), map[string]ConfigSource{"tstcfgsrc": &tstCfgSrc}, nil, cp, func(event *confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
@@ -308,7 +317,7 @@ func TestConfigSourceManagerWatchForUpdate(t *testing.T) {
 
 	cp := confmap.NewFromStringMap(originalCfg)
 	watchCh := make(chan *confmap.ChangeEvent)
-	_, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
+	_, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, cp, func(event *confmap.ChangeEvent) {
 		watchCh <- event
 	})
 	require.NoError(t, err)
@@ -344,7 +353,7 @@ func TestConfigSourceManagerMultipleWatchForUpdate(t *testing.T) {
 
 	cp := confmap.NewFromStringMap(originalCfg)
 	watchCh := make(chan *confmap.ChangeEvent)
-	_, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, cp, func(event *confmap.ChangeEvent) {
+	_, closeFunc, err := ResolveWithConfigSources(context.Background(), cfgSources, nil, cp, func(event *confmap.ChangeEvent) {
 		watchCh <- event
 	})
 	require.NoError(t, err)
@@ -390,7 +399,7 @@ func TestConfigSourceManagerEnvVarHandling(t *testing.T) {
 	expectedParser, err := confmaptest.LoadConf(expectedFile)
 	require.NoError(t, err)
 
-	res, closeFunc, err := ResolveWithConfigSources(context.Background(), map[string]ConfigSource{"tstcfgsrc": &tstCfgSrc}, cp, func(event *confmap.ChangeEvent) {
+	res, closeFunc, err := ResolveWithConfigSources(context.Background(), map[string]ConfigSource{"tstcfgsrc": &tstCfgSrc}, nil, cp, func(event *confmap.ChangeEvent) {
 		panic("must not be called")
 	})
 	require.NoError(t, err)
@@ -532,7 +541,7 @@ func TestManagerExpandString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, closeFunc, err := resolveStringValue(ctx, cfgSources, tt.input, func(event *confmap.ChangeEvent) {
+			got, closeFunc, err := resolveStringValue(ctx, cfgSources, nil, tt.input, func(event *confmap.ChangeEvent) {
 				panic("must not be called")
 			})
 			if tt.wantErr != nil {
@@ -850,4 +859,104 @@ func startWatch(watchForUpdateCh chan error, doneCh chan struct{}, watcher confm
 			return
 		}
 	}()
+}
+
+var _ confmap.Provider = (*confmapProvider)(nil)
+
+type confmapProvider struct {
+	scheme      string
+	shouldError bool
+}
+
+func (c confmapProvider) Scheme() string {
+	return c.scheme
+}
+
+func (c confmapProvider) Retrieve(context.Context, string, confmap.WatcherFunc) (*confmap.Retrieved, error) {
+	if c.shouldError {
+		return nil, fmt.Errorf("confmap provider error")
+	}
+	return confmap.NewRetrieved("value from confmap provider")
+}
+
+func (confmapProvider) Shutdown(ctx context.Context) error {
+	return nil
+}
+
+func TestConfigSourceConfmapProviderFallbackResolved(t *testing.T) {
+	configSources := map[string]ConfigSource{
+		"config_source": &TestConfigSource{
+			ValueMap: map[string]valueEntry{
+				"test_selector": {Value: "value from config source"},
+			},
+		},
+		"conflicting_name": &TestConfigSource{
+			ValueMap: map[string]valueEntry{
+				"used_selector": {Value: "value from conflicting config source"},
+			},
+		},
+	}
+
+	confmapProviders := map[string]confmap.Provider{
+		"confmap_provider": confmapProvider{scheme: "confmap_provider"},
+		"conflicting_name": confmapProvider{scheme: "conflicting_name"},
+	}
+
+	originalCfg := map[string]any{
+		"top0": map[string]any{
+			"fromConfigSource":            "${config_source:test_selector}",
+			"fromConflictingConfigSource": "${conflicting_name:used_selector}",
+			"fromConfmapProvider":         "${confmap_provider:confmap_provider_selector}",
+		},
+	}
+	expectedCfg := map[string]any{
+		"top0": map[string]any{
+			"fromConfigSource":            "value from config source",
+			"fromConflictingConfigSource": "value from conflicting config source",
+			"fromConfmapProvider":         "value from confmap provider",
+		},
+	}
+
+	cp := confmap.NewFromStringMap(originalCfg)
+
+	res, closeFunc, err := ResolveWithConfigSources(
+		context.Background(), configSources, confmapProviders, cp,
+		func(event *confmap.ChangeEvent) {
+			t.Fatal("shouldn't be called")
+		},
+	)
+	require.NoError(t, err)
+	assert.Equal(t, expectedCfg, res.ToStringMap())
+	assert.NoError(t, closeFunc(context.Background()))
+}
+
+func TestConfigSourceConfmapProviderFallbackWithError(t *testing.T) {
+	configSources := map[string]ConfigSource{
+		"config_source": &TestConfigSource{
+			ValueMap: map[string]valueEntry{
+				"test_selector": {Value: "value from config source"},
+			},
+		},
+	}
+
+	confmapProviders := map[string]confmap.Provider{
+		"confmap_provider": confmapProvider{scheme: "confmap_provider", shouldError: true},
+	}
+
+	cfg := confmap.NewFromStringMap(map[string]any{
+		"top0": map[string]any{
+			"fromConfigSource":    "${config_source:test_selector}",
+			"fromConfmapProvider": "${confmap_provider:confmap_provider_selector}",
+		},
+	})
+
+	res, closeFunc, err := ResolveWithConfigSources(
+		context.Background(), configSources, confmapProviders, cfg,
+		func(event *confmap.ChangeEvent) {
+			t.Fatal("shouldn't be called")
+		},
+	)
+	require.EqualError(t, err, `retrieve error from confmap provider "confmap_provider": confmap provider error`)
+	assert.Nil(t, res)
+	assert.Nil(t, closeFunc)
 }

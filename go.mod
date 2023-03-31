@@ -10,7 +10,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gogo/protobuf v1.3.2
-	github.com/hashicorp/vault v1.13.0
+	github.com/hashicorp/vault v1.13.1
 	github.com/hashicorp/vault-plugin-auth-gcp v0.15.0
 	github.com/hashicorp/vault/api v1.9.0
 	github.com/jaegertracing/jaeger v1.41.0

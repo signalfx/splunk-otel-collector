@@ -123,18 +123,24 @@ func (c *ProviderWrapper) ResolveForWrapped(ctx context.Context, uri string, onC
 	// Here we are getting the value directly from the provider, which
 	// is what the core's resolver intends (invokes this parent method).
 	if tmpRetrieved, err = provider.Retrieve(ctx, uri, onChange); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("configsource provider failed retrieving: %w", err)
 	} else if tmpRetrieved != nil {
 		retrieved = tmpRetrieved
 	}
 
 	var previousConf *confmap.Conf
+	var rawRetrieved *confmap.Retrieved
 	if previousConf, err = w.lastRetrieved.AsConf(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("configsource provider failed updated retrieval: %w", err)
 	} else if previousConf != nil {
 		// Need to merge config maps that we've encountered so far
 		if latestConf, e := retrieved.AsConf(); e != nil {
-			return nil, fmt.Errorf("failed resolving wrappedProvider retrieve: %w", e)
+			// raw fallback
+			if raw, ee := retrieved.AsRaw(); ee == nil {
+				if rawRetrieved, ee = confmap.NewRetrieved(raw); ee != nil {
+					return nil, fmt.Errorf("failed resolving wrappedProvider retrieve: %w", e)
+				}
+			}
 		} else if e = latestConf.Merge(previousConf); e != nil {
 			return nil, fmt.Errorf("failed merging previous wrappedProvider retrieve: %w", e)
 		} else if tmpRetrieved, e = confmap.NewRetrieved(latestConf.ToStringMap()); e != nil {
@@ -142,6 +148,12 @@ func (c *ProviderWrapper) ResolveForWrapped(ctx context.Context, uri string, onC
 		} else if tmpRetrieved != nil {
 			retrieved = tmpRetrieved
 		}
+	}
+
+	// raw confmap.Retrieved values cannot be coerced AsConf() so we return here to not update lastRetrieved
+	// or attempt subsequent config source value resolution.
+	if rawRetrieved != nil {
+		return rawRetrieved, nil
 	}
 
 	w.lastRetrieved = retrieved

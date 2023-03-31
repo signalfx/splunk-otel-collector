@@ -297,7 +297,7 @@ func resolveConfigValue(ctx context.Context, configSources map[string]ConfigSour
 		return nslice, MergeCloseFuncs(closeFuncs), nil
 	case map[string]any:
 		// The valueToResolve is of type map[string]any when an array in the configuration is populated with map
-		// elements. From the case above (for type []any) each element of "array1" is going to hit the
+		// elements. From the case above (for type []any) each element of "array1" is going to hit
 		// the current case block.
 		nmap := make(map[any]any, len(v))
 		var closeFuncs []confmap.CloseFunc

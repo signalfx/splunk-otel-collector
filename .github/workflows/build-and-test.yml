@@ -532,12 +532,12 @@ jobs:
       - name: Build Docker compose
         working-directory: tests/zeroconfig/windows/testdata/
         run: |
-           docker compose build
+          docker compose build
 
       - name: Run the test
         working-directory: tests/zeroconfig/windows/
         run: |
-           go test -timeout 5m -run ^TestWindowsIISInstrumentation$ -tags zeroconfig -v
+          go test -timeout 5m -run ^TestWindowsIISInstrumentation$ -tags zeroconfig -v
 
       - name: Remove the firewall rule for the testutils OTLP sink
         run: |

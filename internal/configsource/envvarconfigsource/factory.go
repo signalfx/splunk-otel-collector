@@ -19,8 +19,9 @@ import (
 	"context"
 
 	"go.opentelemetry.io/collector/component"
+	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
 const (
@@ -34,17 +35,17 @@ func (e *envVarFactory) Type() component.Type {
 	return typeStr
 }
 
-func (e *envVarFactory) CreateDefaultConfig() configprovider.Source {
+func (e *envVarFactory) CreateDefaultConfig() configsource.Settings {
 	return &Config{
-		SourceSettings: configprovider.NewSourceSettings(component.NewID(typeStr)),
+		SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
 	}
 }
 
-func (e *envVarFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.Source) (configprovider.ConfigSource, error) {
-	return newConfigSource(params, cfg.(*Config)), nil
+func (e *envVarFactory) CreateConfigSource(_ context.Context, settings configsource.Settings, _ *zap.Logger) (configsource.ConfigSource, error) {
+	return newConfigSource(settings.(*Config)), nil
 }
 
 // NewFactory creates a factory for Vault ConfigSource objects.
-func NewFactory() configprovider.Factory {
+func NewFactory() configsource.Factory {
 	return &envVarFactory{}
 }

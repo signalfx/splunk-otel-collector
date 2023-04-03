@@ -24,9 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
-	"go.uber.org/zap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 func sPtr(s string) *string {
@@ -38,7 +35,7 @@ func TestSessionRetrieve(t *testing.T) {
 		"k1":       "v1",
 		"d1/d2/k1": "v5",
 	})
-	source := newZkConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, newMockConnectFunc(conn))
+	source := newZkConfigSource(newMockConnectFunc(conn))
 
 	testsCases := []struct {
 		expect *string
@@ -57,14 +54,12 @@ func TestSessionRetrieve(t *testing.T) {
 			if c.expect != nil {
 				assert.NoError(t, err)
 				assert.NoError(t, retrieved.Close(context.Background()))
-				assert.NoError(t, source.Shutdown(context.Background()))
 				return
 			}
 			assert.Error(t, err)
 			assert.Nil(t, retrieved)
 		})
 	}
-	assert.NoError(t, source.Shutdown(context.Background()))
 }
 
 func TestWatcher(t *testing.T) {
@@ -83,7 +78,7 @@ func TestWatcher(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			conn := newMockConnection(map[string]string{"k1": "v1"})
 			connect := newMockConnectFunc(conn)
-			source := newZkConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, connect)
+			source := newZkConfigSource(connect)
 
 			assert.Nil(t, conn.watcherCh)
 			watchChannel := make(chan *confmap.ChangeEvent, 1)
@@ -118,7 +113,6 @@ func TestWatcher(t *testing.T) {
 				assert.NoError(t, retrieved.Close(context.Background()))
 				assert.Nil(t, conn.watcherCh)
 			}
-			assert.NoError(t, source.Shutdown(context.Background()))
 		})
 	}
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configprovider
+package configsource
 
 import (
 	"context"
@@ -58,11 +58,83 @@ var ddBackwardCompatible = func() bool {
 	return true
 }()
 
-// Resolve inspects the given confmap.Conf and resolves all config sources referenced
-// in the configuration, returning a confmap.Conf in which all env vars and config sources on
+type ConfigSource interface {
+	// Retrieve goes to the configuration source and retrieves the selected data which
+	// contains the value to be injected in the configuration and the corresponding watcher that
+	// will be used to monitor for updates of the retrieved value. The retrieved value is selected
+	// according to the selector and the params arguments.
+	//
+	// The selector is a string that is required on all invocations, the params are optional. Each
+	// implementation handles the generic params according to their requirements.
+	Retrieve(ctx context.Context, selector string, params *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Retrieved, error)
+}
+
+// Factory is a factory interface for configuration sources.  Given it's not an accepted component and
+// because of the direct Factory usage restriction from https://github.com/open-telemetry/opentelemetry-collector/commit/9631ceabb7dc4ca5cc187bab26d8319783bcc562
+// it's not a proper Collector config.Factory.
+type Factory interface {
+	// CreateDefaultConfig creates the default configuration settings for the ConfigSource.
+	// This method can be called multiple times depending on the pipeline
+	// configuration and should not cause side-effects that prevent the creation
+	// of multiple instances of the ConfigSource.
+	// The object returned by this method needs to pass the checks implemented by
+	// 'configcheck.ValidateConfig'. It is recommended to have such check in the
+	// tests of any implementation of the Factory interface.
+	CreateDefaultConfig() Settings
+
+	// CreateConfigSource creates a configuration source based on the given config.
+	CreateConfigSource(context.Context, Settings, *zap.Logger) (ConfigSource, error)
+
+	// Type gets the type of the component created by this factory.
+	Type() component.Type
+}
+
+// Factories maps the type of a ConfigSource to the respective factory object.
+type Factories map[component.Type]Factory
+
+// BuildConfigSourcesFromConf inspects the given confmap.Conf and builds all config sources referenced
+// in the configuration intended to be used with ResolveWithConfigSources().
+func BuildConfigSourcesFromConf(ctx context.Context, confToFurtherResolve *confmap.Conf, logger *zap.Logger, factories Factories, confmapProviders map[string]confmap.Provider) (map[string]ConfigSource, *confmap.Conf, error) {
+	configSourceSettings, confWithoutSettings, err := SettingsFromConf(ctx, confToFurtherResolve, factories, confmapProviders)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse settings from conf: %w", err)
+	}
+
+	configSources, err := BuildConfigSources(context.Background(), configSourceSettings, logger, factories)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to build config sources: %w", err)
+	}
+	return configSources, confWithoutSettings, nil
+}
+
+func BuildConfigSources(ctx context.Context, configSourcesSettings map[string]Settings, logger *zap.Logger, factories Factories) (map[string]ConfigSource, error) {
+	cfgSources := make(map[string]ConfigSource, len(configSourcesSettings))
+	for fullName, cfgSrcSettings := range configSourcesSettings {
+		// If we have the setting we also have the factory.
+		factory, ok := factories[cfgSrcSettings.ID().Type()]
+		if !ok {
+			return nil, fmt.Errorf("unknown %s config source type for %s", cfgSrcSettings.ID().Type(), fullName)
+		}
+
+		cfgSrc, err := factory.CreateConfigSource(ctx, cfgSrcSettings, logger.With(zap.String("config_source", fullName)))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create config source %s: %w", fullName, err)
+		}
+
+		if cfgSrc == nil {
+			return nil, fmt.Errorf("factory for %q produced a nil extension", fullName)
+		}
+
+		cfgSources[fullName] = cfgSrc
+	}
+
+	return cfgSources, nil
+}
+
+// ResolveWithConfigSources returns a confmap.Conf in which all env vars and config sources on
 // the given input config map are resolved to actual literal values of the env vars or config sources.
 //
-// 1. Resolve to inject the data from config sources into a configuration;
+// 1. ResolveWithConfigSources to inject the data from config sources into a configuration;
 // 2. Wait for an update on "watcher" func.
 // 3. Close the confmap.Retrieved instance;
 //
@@ -168,61 +240,36 @@ var ddBackwardCompatible = func() bool {
 // results.
 //
 // For an overview about the internals of the Manager refer to the package README.md.
-func Resolve(ctx context.Context, configMap *confmap.Conf, logger *zap.Logger, buildInfo component.BuildInfo, factories Factories, watcher confmap.WatcherFunc) (map[string]any, confmap.CloseFunc, error) {
-	configSourcesSettings, err := Load(context.Background(), configMap, factories)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	params := CreateParams{
-		Logger:    logger,
-		BuildInfo: buildInfo,
-	}
-	cfgSources, err := Build(context.Background(), configSourcesSettings, params, factories)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return resolve(ctx, cfgSources, configMap, watcher)
-}
-
-func resolve(ctx context.Context, configSources map[string]ConfigSource, configMap *confmap.Conf, watcher confmap.WatcherFunc) (map[string]any, confmap.CloseFunc, error) {
-	res := map[string]any{}
-	allKeys := configMap.AllKeys()
+func ResolveWithConfigSources(ctx context.Context, configSources map[string]ConfigSource, confmapProviders map[string]confmap.Provider, conf *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Conf, confmap.CloseFunc, error) {
+	resolved := map[string]any{}
 	var closeFuncs []confmap.CloseFunc
-	for _, k := range allKeys {
-		if strings.HasPrefix(k, configSourcesKey) {
-			// Remove everything under the config_sources section. The `config_sources` section
-			// is read when loading the config sources used in the configuration, but it is not
-			// part of the resulting configuration returned via *confmap.Conf.
-			continue
-		}
-
-		value, closeFunc, err := parseConfigValue(ctx, configSources, configMap.Get(k), watcher)
+	for _, k := range conf.AllKeys() {
+		v := conf.Get(k)
+		value, closeFunc, err := resolveConfigValue(ctx, configSources, confmapProviders, v, watcher)
 		if err != nil {
 			return nil, nil, err
 		}
-		res[k] = value
+		resolved[k] = value
 		if closeFunc != nil {
 			closeFuncs = append(closeFuncs, closeFunc)
 		}
 	}
 
-	maps.IntfaceKeysToStrings(res)
-	return res, mergeCloseFuncs(closeFuncs), nil
+	maps.IntfaceKeysToStrings(resolved)
+	return confmap.NewFromStringMap(resolved), MergeCloseFuncs(closeFuncs), nil
 }
 
-// parseConfigValue takes the value of a "config node" and process it recursively. The processing consists
+// resolveConfigValue takes the value of a "config node" and process it recursively. The processing consists
 // in transforming invocations of config sources and/or environment variables into literal data that can be
 // used directly from a `confmap.Conf` object.
-func parseConfigValue(ctx context.Context, configSources map[string]ConfigSource, value any, watcher confmap.WatcherFunc) (any, confmap.CloseFunc, error) {
-	switch v := value.(type) {
+func resolveConfigValue(ctx context.Context, configSources map[string]ConfigSource, confmapProviders map[string]confmap.Provider, valueToResolve any, watcher confmap.WatcherFunc) (any, confmap.CloseFunc, error) {
+	switch v := valueToResolve.(type) {
 	case string:
-		// Only if the value of the node is a string it can contain an env var or config source
+		// Only if the valueToResolve of the node is a string it can contain an env var or config source
 		// invocation that requires transformation.
-		return parseStringValue(ctx, configSources, v, watcher)
+		return resolveStringValue(ctx, configSources, confmapProviders, v, watcher)
 	case []any:
-		// The value is of type []any when an array is used in the configuration, YAML example:
+		// The valueToResolve is of type []any when an array is used in the configuration, YAML example:
 		//
 		//  array0:
 		//    - elem0
@@ -237,7 +284,7 @@ func parseConfigValue(ctx context.Context, configSources map[string]ConfigSource
 		nslice := make([]any, 0, len(v))
 		var closeFuncs []confmap.CloseFunc
 		for _, vint := range v {
-			value, closeFunc, err := parseConfigValue(ctx, configSources, vint, watcher)
+			value, closeFunc, err := resolveConfigValue(ctx, configSources, confmapProviders, vint, watcher)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -246,15 +293,15 @@ func parseConfigValue(ctx context.Context, configSources map[string]ConfigSource
 			}
 			nslice = append(nslice, value)
 		}
-		return nslice, mergeCloseFuncs(closeFuncs), nil
+		return nslice, MergeCloseFuncs(closeFuncs), nil
 	case map[string]any:
-		// The value is of type map[string]any when an array in the configuration is populated with map
-		// elements. From the case above (for type []any) each element of "array1" is going to hit the
+		// The valueToResolve is of type map[string]any when an array in the configuration is populated with map
+		// elements. From the case above (for type []any) each element of "array1" is going to hit
 		// the current case block.
 		nmap := make(map[any]any, len(v))
 		var closeFuncs []confmap.CloseFunc
 		for k, vint := range v {
-			value, closeFunc, err := parseConfigValue(ctx, configSources, vint, watcher)
+			value, closeFunc, err := resolveConfigValue(ctx, configSources, confmapProviders, vint, watcher)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -263,16 +310,16 @@ func parseConfigValue(ctx context.Context, configSources map[string]ConfigSource
 			}
 			nmap[k] = value
 		}
-		return nmap, mergeCloseFuncs(closeFuncs), nil
+		return nmap, MergeCloseFuncs(closeFuncs), nil
 	default:
 		// All other literals (int, boolean, etc) can't be further expanded so just return them as they are.
 		return v, nil, nil
 	}
 }
 
-// parseStringValue transforms environment variables and config sources, if any are present, on
+// resolveStringValue transforms environment variables and config sources, if any are present, on
 // the given string in the configuration into an object to be inserted into the resulting configuration.
-func parseStringValue(ctx context.Context, configSources map[string]ConfigSource, s string, watcher confmap.WatcherFunc) (any, confmap.CloseFunc, error) {
+func resolveStringValue(ctx context.Context, configSources map[string]ConfigSource, confmapProviders map[string]confmap.Provider, s string, watcher confmap.WatcherFunc) (any, confmap.CloseFunc, error) {
 	var closeFuncs []confmap.CloseFunc
 
 	// Code based on os.Expand function. All delimiters that are checked against are
@@ -353,7 +400,7 @@ func parseStringValue(ctx context.Context, configSources map[string]ConfigSource
 
 			default:
 				// A config source, retrieve and apply results.
-				retrieved, closeFunc, err := retrieveConfigSourceData(ctx, configSources, cfgSrcName, expandableContent, watcher)
+				retrieved, closeFunc, err := retrieveConfigSourceData(ctx, configSources, confmapProviders, cfgSrcName, expandableContent, watcher)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -385,7 +432,7 @@ func parseStringValue(ctx context.Context, configSources map[string]ConfigSource
 						retrieved = cast.ToStringMap(mapIFace)
 					}
 
-					return retrieved, mergeCloseFuncs(closeFuncs), nil
+					return retrieved, MergeCloseFuncs(closeFuncs), nil
 				}
 
 				// Either there was a prefix already or there are still characters to be processed.
@@ -405,11 +452,11 @@ func parseStringValue(ctx context.Context, configSources map[string]ConfigSource
 
 	if buf == nil {
 		// No changes to original string, just return it.
-		return s, mergeCloseFuncs(closeFuncs), nil
+		return s, MergeCloseFuncs(closeFuncs), nil
 	}
 
 	// Return whatever was accumulated on the buffer plus the remaining of the original string.
-	return string(buf) + s[i:], mergeCloseFuncs(closeFuncs), nil
+	return string(buf) + s[i:], MergeCloseFuncs(closeFuncs), nil
 }
 
 func getBracketedExpandableContent(s string, i int) (expandableContent string, consumed int, cfgSrcName string) {
@@ -445,11 +492,15 @@ func getBareExpandableContent(s string, i int) (expandableContent string, consum
 
 // retrieveConfigSourceData retrieves data from the specified config source and injects them into
 // the configuration. The Manager tracks sessions and watcher objects as needed.
-func retrieveConfigSourceData(ctx context.Context, configSources map[string]ConfigSource, cfgSrcName, cfgSrcInvocation string, watcher confmap.WatcherFunc) (any, confmap.CloseFunc, error) {
+func retrieveConfigSourceData(ctx context.Context, configSources map[string]ConfigSource, confmapProviders map[string]confmap.Provider, cfgSrcName, cfgSrcInvocation string, watcher confmap.WatcherFunc) (any, confmap.CloseFunc, error) {
 	var closeFuncs []confmap.CloseFunc
 	cfgSrc, ok := configSources[cfgSrcName]
+	var provider confmap.Provider
+	var providerFound bool
 	if !ok {
-		return nil, nil, newErrUnknownConfigSource(cfgSrcName)
+		if provider, providerFound = confmapProviders[cfgSrcName]; !providerFound {
+			return nil, nil, newErrUnknownConfigSource(cfgSrcName)
+		}
 	}
 
 	cfgSrcName, selector, paramsConfigMap, err := parseCfgSrcInvocation(cfgSrcInvocation)
@@ -457,8 +508,23 @@ func retrieveConfigSourceData(ctx context.Context, configSources map[string]Conf
 		return nil, nil, err
 	}
 
+	if providerFound {
+		if provider == nil {
+			return nil, nil, fmt.Errorf("resolving confmap.Provider %q with config sources failed", cfgSrcName)
+		}
+		retrieved, e := provider.Retrieve(ctx, fmt.Sprintf("%s:%s", cfgSrcName, selector), watcher)
+		if e != nil {
+			return nil, nil, fmt.Errorf("retrieve error from confmap provider %q: %w", cfgSrcName, e)
+		}
+		raw, e := retrieved.AsRaw()
+		if e != nil {
+			return nil, nil, e
+		}
+		return raw, retrieved.Close, nil
+	}
+
 	// Recursively expand the selector.
-	expandedSelector, closeFunc, err := parseStringValue(ctx, configSources, selector, watcher)
+	expandedSelector, closeFunc, err := resolveStringValue(ctx, configSources, confmapProviders, selector, watcher)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to process selector for config source %q selector %q: %w", cfgSrcName, selector, err)
 	}
@@ -469,16 +535,16 @@ func retrieveConfigSourceData(ctx context.Context, configSources map[string]Conf
 		closeFuncs = append(closeFuncs, closeFunc)
 	}
 
-	// Recursively resolve/parse any config source on the parameters.
+	// Recursively ResolveWithConfigSources/parse any config source on the parameters.
 	if paramsConfigMap != nil {
-		paramsConfigMapRet, closeFunc, errResolve := resolve(ctx, configSources, paramsConfigMap, watcher)
+		paramsConfigMapRet, closeFunc, errResolve := ResolveWithConfigSources(ctx, configSources, confmapProviders, paramsConfigMap, watcher)
 		if errResolve != nil {
 			return nil, nil, fmt.Errorf("failed to process parameters for config source %q invocation %q: %w", cfgSrcName, cfgSrcInvocation, errResolve)
 		}
 		if closeFunc != nil {
 			closeFuncs = append(closeFuncs, closeFunc)
 		}
-		paramsConfigMap = confmap.NewFromStringMap(paramsConfigMapRet)
+		paramsConfigMap = confmap.NewFromStringMap(paramsConfigMapRet.ToStringMap())
 	}
 
 	retrieved, err := cfgSrc.Retrieve(ctx, selector, paramsConfigMap, watcher)
@@ -488,12 +554,12 @@ func retrieveConfigSourceData(ctx context.Context, configSources map[string]Conf
 
 	closeFuncs = append(closeFuncs, retrieved.Close)
 	val, err := retrieved.AsRaw()
-	return val, mergeCloseFuncs(closeFuncs), err
+	return val, MergeCloseFuncs(closeFuncs), err
 }
 
 func newErrUnknownConfigSource(cfgSrcName string) error {
 	return &errUnknownConfigSource{
-		fmt.Errorf(`config source %q not found if this was intended to be an environment variable use "${%s}" instead"`, cfgSrcName, cfgSrcName),
+		fmt.Errorf("config source %q not found", cfgSrcName),
 	}
 }
 
@@ -671,7 +737,7 @@ func isAlphaNum(c uint8) bool {
 	return c == '_' || '0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z'
 }
 
-func mergeCloseFuncs(closeFuncs []confmap.CloseFunc) confmap.CloseFunc {
+func MergeCloseFuncs(closeFuncs []confmap.CloseFunc) confmap.CloseFunc {
 	if len(closeFuncs) == 0 {
 		return nil
 	}

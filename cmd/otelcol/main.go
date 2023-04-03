@@ -32,8 +32,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
-	"github.com/signalfx/splunk-otel-collector/internal/configsources"
+	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery"
 	"github.com/signalfx/splunk-otel-collector/internal/settings"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
@@ -72,31 +71,20 @@ func main() {
 		log.Fatalf("failed to create discovery provider: %v", err)
 	}
 
-	hooks := []configprovider.Hook{configServer, dryRun}
+	hooks := []configsource.Hook{configServer, dryRun}
 	envProvider := envprovider.New()
 	fileProvider := fileprovider.New()
+	configSourceProvider := configsource.New(zap.NewNop(), hooks)
 	serviceConfigProvider, err := otelcol.NewConfigProvider(
 		otelcol.ConfigProviderSettings{
 			ResolverSettings: confmap.ResolverSettings{
 				URIs: collectorSettings.ResolverURIs(),
 				Providers: map[string]confmap.Provider{
-					discovery.PropertyScheme(): configprovider.NewConfigSourceConfigMapProvider(
-						discovery.PropertyProvider(), zap.NewNop(), info, hooks, configsources.Get()...,
-					),
-					discovery.ConfigDScheme(): configprovider.NewConfigSourceConfigMapProvider(
-						discovery.ConfigDProvider(),
-						zap.NewNop(), // The service logger is not available yet, setting it to Nop.
-						info, hooks, configsources.Get()...,
-					),
-					discovery.DiscoveryModeScheme(): configprovider.NewConfigSourceConfigMapProvider(
-						discovery.DiscoveryModeProvider(), zap.NewNop(), info, hooks, configsources.Get()...,
-					),
-					envProvider.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
-						envProvider, zap.NewNop(), info, hooks, configsources.Get()...,
-					),
-					fileProvider.Scheme(): configprovider.NewConfigSourceConfigMapProvider(
-						fileProvider, zap.NewNop(), info, hooks, configsources.Get()...,
-					),
+					discovery.PropertyScheme():      configSourceProvider.Wrap(discovery.PropertyProvider()),
+					discovery.ConfigDScheme():       configSourceProvider.Wrap(discovery.ConfigDProvider()),
+					discovery.DiscoveryModeScheme(): configSourceProvider.Wrap(discovery.DiscoveryModeProvider()),
+					envProvider.Scheme():            configSourceProvider.Wrap(envProvider),
+					fileProvider.Scheme():           configSourceProvider.Wrap(fileProvider),
 				}, Converters: confMapConverters,
 			},
 		})

@@ -13,11 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configprovider
+package configsource
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path"
 	"testing"
 
@@ -28,15 +29,17 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
 func TestConfigSourceConfigMapProvider(t *testing.T) {
 	tests := []struct {
 		parserProvider confmap.Provider
-		configLocation []string
+		factories      configsource.Factories
 		wantErr        string
 		name           string
-		factories      []Factory
+		uris           []string
 	}{
 		{
 			name: "success",
@@ -49,44 +52,35 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 			wantErr: "mockParserProvider.Get() forced test error",
 		},
 		{
-			name: "duplicated_factory_type",
-			factories: []Factory{
-				&mockCfgSrcFactory{},
-				&mockCfgSrcFactory{},
-			},
-			wantErr: "duplicate config source factory \"tstcfgsrc\"",
-		},
-		{
 			name: "new_manager_builder_error",
-			factories: []Factory{
-				&mockCfgSrcFactory{
+			factories: configsource.Factories{
+				"tstcfgsrc": &MockCfgSrcFactory{
 					ErrOnCreateConfigSource: errors.New("new_manager_builder_error forced error"),
 				},
 			},
 			parserProvider: fileprovider.New(),
-			configLocation: []string{"file:" + path.Join("testdata", "basic_config.yaml")},
+			uris:           []string{"file:" + path.Join("testdata", "basic_config.yaml")},
 			wantErr:        "failed to create config source tstcfgsrc",
 		},
 		{
 			name:           "manager_resolve_error",
 			parserProvider: fileprovider.New(),
-			configLocation: []string{"file:" + path.Join("testdata", "manager_resolve_error.yaml")},
+			uris:           []string{"file:" + path.Join("testdata", "manager_resolve_error.yaml")},
 			wantErr:        "config source \"tstcfgsrc\" failed to retrieve value: no value for selector \"selector\"",
 		},
 		{
 			name:           "multiple_config_success",
 			parserProvider: fileprovider.New(),
-			configLocation: []string{"file:" + path.Join("testdata", "arrays_and_maps_expected.yaml"),
+			uris: []string{"file:" + path.Join("testdata", "arrays_and_maps_expected.yaml"),
 				"file:" + path.Join("testdata", "yaml_injection_expected.yaml")},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			factories := tt.factories
-			if factories == nil {
-				factories = []Factory{
-					&mockCfgSrcFactory{},
+			if tt.factories == nil {
+				tt.factories = configsource.Factories{
+					"tstcfgsrc": &MockCfgSrcFactory{},
 				}
 			}
 
@@ -99,14 +93,17 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				h.On("OnShutdown")
 			}
 
-			pp := NewConfigSourceConfigMapProvider(
-				&mockParserProvider{},
-				zap.NewNop(),
-				component.NewDefaultBuildInfo(),
-				[]Hook{hookOne, hookTwo},
-				factories...,
-			)
-			require.NotNil(t, pp)
+			var provider confmap.Provider
+			if tt.parserProvider == nil {
+				provider = &mockParserProvider{}
+			} else {
+				provider = tt.parserProvider
+			}
+			p := New(zap.NewNop(), []Hook{hookOne, hookTwo})
+			require.NotNil(t, p)
+
+			p.(*providerWrapper).factories = tt.factories
+			pp := p.Wrap(provider)
 
 			for _, h := range hooks {
 				h.AssertCalled(t, "OnNew")
@@ -114,24 +111,18 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				h.AssertNotCalled(t, "OnShutdown")
 			}
 
-			var expectedScheme string
-			// Do not use the config.Default() to simplify the test setup.
-			cspp := pp.(*configSourceConfigMapProvider)
-			if tt.parserProvider != nil {
-				cspp.wrappedProvider = tt.parserProvider
-				expectedScheme = tt.parserProvider.Scheme()
-			}
+			expectedScheme := provider.Scheme()
 
-			// Need to run Retrieve method no matter what, so we can't just iterate passed in config locations
 			i := 0
 			for ok := true; ok; {
-				var configLocation string
-				if tt.configLocation != nil {
-					configLocation = tt.configLocation[i]
+				var uri string
+				if tt.uris != nil {
+					uri = tt.uris[i]
 				} else {
-					configLocation = ""
+					uri = fmt.Sprintf("%s:", provider.Scheme())
 				}
-				r, err := pp.Retrieve(context.Background(), configLocation, nil)
+
+				r, err := pp.Retrieve(context.Background(), uri, nil)
 
 				if tt.wantErr == "" {
 					require.NoError(t, err)
@@ -146,7 +137,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 					break
 				}
 				i++
-				ok = i < len(tt.configLocation)
+				ok = i < len(tt.uris)
 			}
 
 			for _, h := range hooks {
@@ -158,7 +149,7 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 				h.AssertNotCalled(t, "OnShutdown")
 			}
 
-			assert.NoError(t, cspp.Shutdown(context.Background()))
+			assert.NoError(t, pp.Shutdown(context.Background()))
 
 			for _, h := range hooks {
 				h.AssertCalled(t, "OnShutdown")
@@ -185,7 +176,7 @@ func (mpp *mockParserProvider) Shutdown(context.Context) error {
 }
 
 func (mpp *mockParserProvider) Scheme() string {
-	return ""
+	return "mock"
 }
 
 type mockHook struct {
@@ -204,4 +195,104 @@ func (m *mockHook) OnRetrieve(scheme string, _ map[string]any) {
 
 func (m *mockHook) OnShutdown() {
 	m.Called()
+}
+
+type MockCfgSrcFactory struct {
+	ErrOnCreateConfigSource error
+}
+
+type MockCfgSrcSettings struct {
+	configsource.SourceSettings
+	Endpoint string `mapstructure:"endpoint"`
+	Token    string `mapstructure:"token"`
+}
+
+var _ configsource.Settings = (*MockCfgSrcSettings)(nil)
+
+var _ configsource.Factory = (*MockCfgSrcFactory)(nil)
+
+func (m *MockCfgSrcFactory) Type() component.Type {
+	return "tstcfgsrc"
+}
+
+func (m *MockCfgSrcFactory) CreateDefaultConfig() configsource.Settings {
+	return &MockCfgSrcSettings{
+		SourceSettings: configsource.NewSourceSettings(component.NewID("tstcfgsrc")),
+		Endpoint:       "default_endpoint",
+	}
+}
+
+func (m *MockCfgSrcFactory) CreateConfigSource(_ context.Context, cfg configsource.Settings, _ *zap.Logger) (configsource.ConfigSource, error) {
+	if m.ErrOnCreateConfigSource != nil {
+		return nil, m.ErrOnCreateConfigSource
+	}
+	return &TestConfigSource{
+		ValueMap: map[string]valueEntry{
+			cfg.ID().String(): {
+				Value: cfg,
+			},
+		},
+	}, nil
+}
+
+// TestConfigSource a ConfigSource to be used in tests.
+type TestConfigSource struct {
+	ValueMap map[string]valueEntry
+
+	ErrOnRetrieve    error
+	ErrOnRetrieveEnd error
+	ErrOnClose       error
+
+	OnRetrieve func(ctx context.Context, selector string, paramsConfigMap *confmap.Conf) error
+}
+
+type valueEntry struct {
+	Value            any
+	WatchForUpdateCh chan error
+}
+
+var _ configsource.ConfigSource = (*TestConfigSource)(nil)
+
+func (t *TestConfigSource) Retrieve(ctx context.Context, selector string, paramsConfigMap *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Retrieved, error) {
+	if t.OnRetrieve != nil {
+		if err := t.OnRetrieve(ctx, selector, paramsConfigMap); err != nil {
+			return nil, err
+		}
+	}
+
+	if t.ErrOnRetrieve != nil {
+		return nil, t.ErrOnRetrieve
+	}
+
+	entry, ok := t.ValueMap[selector]
+	if !ok {
+		return nil, fmt.Errorf("no value for selector %q", selector)
+	}
+
+	if entry.WatchForUpdateCh != nil {
+		doneCh := make(chan struct{})
+		startWatch(entry.WatchForUpdateCh, doneCh, watcher)
+		return confmap.NewRetrieved(entry.Value, confmap.WithRetrievedClose(func(ctx context.Context) error {
+			close(doneCh)
+			return nil
+		}))
+	}
+
+	return confmap.NewRetrieved(entry.Value)
+}
+
+func (t *TestConfigSource) Shutdown(context.Context) error {
+	return t.ErrOnClose
+}
+
+func startWatch(watchForUpdateCh chan error, doneCh chan struct{}, watcher confmap.WatcherFunc) {
+	go func() {
+		select {
+		case err := <-watchForUpdateCh:
+			watcher(&confmap.ChangeEvent{Error: err})
+			return
+		case <-doneCh:
+			return
+		}
+	}()
 }

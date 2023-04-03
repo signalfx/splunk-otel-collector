@@ -22,16 +22,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/component"
 	"go.uber.org/zap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 func TestIncludeConfigSourceFactory_CreateConfigSource(t *testing.T) {
 	factory := NewFactory()
 	assert.Equal(t, component.Type("include"), factory.Type())
-	createParams := configprovider.CreateParams{
-		Logger: zap.NewNop(),
-	}
 
 	tests := []struct {
 		expected *includeConfigSource
@@ -74,7 +69,7 @@ func TestIncludeConfigSourceFactory_CreateConfigSource(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := factory.CreateConfigSource(context.Background(), createParams, &tt.config)
+			actual, err := factory.CreateConfigSource(context.Background(), &tt.config, zap.NewNop())
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, actual)

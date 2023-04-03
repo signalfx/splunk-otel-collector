@@ -19,8 +19,9 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/component"
+	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
 const (
@@ -40,19 +41,19 @@ func (v *zkFactory) Type() component.Type {
 	return typeStr
 }
 
-func (v *zkFactory) CreateDefaultConfig() configprovider.Source {
+func (v *zkFactory) CreateDefaultConfig() configsource.Settings {
 	return &Config{
-		SourceSettings: configprovider.NewSourceSettings(component.NewID(typeStr)),
+		SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
 		Endpoints:      []string{defaultEndpoint},
 		Timeout:        defaultTimeout,
 	}
 }
 
-func (v *zkFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.Source) (configprovider.ConfigSource, error) {
-	return newConfigSource(params, cfg.(*Config))
+func (v *zkFactory) CreateConfigSource(_ context.Context, settings configsource.Settings, _ *zap.Logger) (configsource.ConfigSource, error) {
+	return newConfigSource(settings.(*Config))
 }
 
 // NewFactory returns a new zookeekeper config source factory
-func NewFactory() configprovider.Factory {
+func NewFactory() configsource.Factory {
 	return &zkFactory{}
 }

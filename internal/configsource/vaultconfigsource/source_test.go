@@ -30,8 +30,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 const (
@@ -75,7 +73,7 @@ func TestVaultSessionForKV(t *testing.T) {
 		PollInterval: 2 * time.Second,
 	}
 
-	source, err := newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
+	source, err := newConfigSource(&config, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, source)
 
@@ -97,8 +95,6 @@ func TestVaultSessionForKV(t *testing.T) {
 
 	require.NoError(t, retrieved.Close(context.Background()))
 	require.NoError(t, retrievedMetadata.Close(context.Background()))
-
-	require.NoError(t, source.Shutdown(context.Background()))
 }
 
 func TestVaultPollingKVUpdate(t *testing.T) {
@@ -115,7 +111,7 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 		PollInterval: 2 * time.Second,
 	}
 
-	source, err := newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
+	source, err := newConfigSource(&config, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, source)
 
@@ -147,10 +143,9 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 	// Close current source.
 	require.NoError(t, retrievedK0.Close(context.Background()))
 	require.NoError(t, retrievedK1.Close(context.Background()))
-	require.NoError(t, source.Shutdown(context.Background()))
 
 	// Create a new source and repeat the process.
-	source, err = newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
+	source, err = newConfigSource(&config, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, source)
 
@@ -164,7 +159,6 @@ func TestVaultPollingKVUpdate(t *testing.T) {
 	require.Equal(t, "v1.1", valUpdatedK1)
 
 	require.NoError(t, retrievedUpdatedK1.Close(context.Background()))
-	require.NoError(t, source.Shutdown(context.Background()))
 }
 
 func TestVaultRenewableSecret(t *testing.T) {
@@ -186,7 +180,7 @@ func TestVaultRenewableSecret(t *testing.T) {
 		PollInterval: 2 * time.Second,
 	}
 
-	source, err := newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
+	source, err := newConfigSource(&config, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, source)
 
@@ -213,10 +207,9 @@ func TestVaultRenewableSecret(t *testing.T) {
 	// Close current source.
 	require.NoError(t, retrievedUser.Close(context.Background()))
 	require.NoError(t, retrievedPwd.Close(context.Background()))
-	require.NoError(t, source.Shutdown(context.Background()))
 
 	// Create a new source and repeat the process.
-	source, err = newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
+	source, err = newConfigSource(&config, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, source)
 
@@ -240,7 +233,6 @@ func TestVaultRenewableSecret(t *testing.T) {
 
 	require.NoError(t, retrievedUpdatedUser.Close(context.Background()))
 	require.NoError(t, retrievedUpdatedPwd.Close(context.Background()))
-	require.NoError(t, source.Shutdown(context.Background()))
 }
 
 func TestVaultV1SecretWithTTL(t *testing.T) {
@@ -259,7 +251,7 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 		PollInterval: 2 * time.Second,
 	}
 
-	source, err := newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
+	source, err := newConfigSource(&config, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, source)
 
@@ -280,10 +272,9 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 
 	// Close current source.
 	require.NoError(t, retrievedValue.Close(context.Background()))
-	require.NoError(t, source.Shutdown(context.Background()))
 
 	// Create a new source and repeat the process.
-	source, err = newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
+	source, err = newConfigSource(&config, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, source)
 
@@ -297,7 +288,6 @@ func TestVaultV1SecretWithTTL(t *testing.T) {
 	require.Equal(t, "s3cr3t", retrievedVal)
 
 	require.NoError(t, retrievedValue.Close(context.Background()))
-	require.NoError(t, source.Shutdown(context.Background()))
 }
 
 func TestVaultV1NonWatchableSecret(t *testing.T) {
@@ -316,7 +306,7 @@ func TestVaultV1NonWatchableSecret(t *testing.T) {
 		PollInterval: 2 * time.Second,
 	}
 
-	source, err := newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
+	source, err := newConfigSource(&config, zap.NewNop())
 	require.NoError(t, err)
 	require.NotNil(t, source)
 
@@ -331,7 +321,6 @@ func TestVaultV1NonWatchableSecret(t *testing.T) {
 
 	// Close current source.
 	require.NoError(t, retrievedValue.Close(context.Background()))
-	require.NoError(t, source.Shutdown(context.Background()))
 }
 
 func TestVaultRetrieveErrors(t *testing.T) {
@@ -388,7 +377,7 @@ func TestVaultRetrieveErrors(t *testing.T) {
 				PollInterval: 2 * time.Second,
 			}
 
-			source, err := newConfigSource(configprovider.CreateParams{Logger: zap.NewNop()}, &config)
+			source, err := newConfigSource(&config, zap.NewNop())
 			require.NoError(t, err)
 			require.NotNil(t, source)
 
@@ -396,7 +385,6 @@ func TestVaultRetrieveErrors(t *testing.T) {
 			require.Error(t, err)
 			assert.IsType(t, tt.err, err)
 			assert.Nil(t, r)
-			assert.NoError(t, source.Shutdown(ctx))
 		})
 	}
 }

@@ -27,7 +27,7 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
 var errInvalidPollInterval = errors.New("poll interval must be greater than zero")
@@ -51,7 +51,7 @@ type vaultConfigSource struct {
 	pollInterval time.Duration
 }
 
-func newConfigSource(params configprovider.CreateParams, cfg *Config) (configprovider.ConfigSource, error) {
+func newConfigSource(cfg *Config, logger *zap.Logger) (configsource.ConfigSource, error) {
 	// Client doesn't connect on creation and can't be closed. Keeping the same instance
 	// for all sessions is ok.
 	client, err := api.NewClient(&api.Config{
@@ -73,7 +73,7 @@ func newConfigSource(params configprovider.CreateParams, cfg *Config) (configpro
 	}
 
 	return &vaultConfigSource{
-		logger:       params.Logger,
+		logger:       logger,
 		client:       client,
 		path:         cfg.Path,
 		pollInterval: cfg.PollInterval,
@@ -121,11 +121,6 @@ func (v *vaultConfigSource) Retrieve(_ context.Context, selector string, _ *conf
 	}
 
 	return confmap.NewRetrieved(value, confmap.WithRetrievedClose(closeFunc))
-}
-
-func (v *vaultConfigSource) Shutdown(context.Context) error {
-	// Vault doesn't have a close for its client, close is completed.
-	return nil
 }
 
 // readSecret reads the secret from the vaultConfigSource path and if successful

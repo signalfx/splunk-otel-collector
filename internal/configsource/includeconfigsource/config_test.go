@@ -26,7 +26,7 @@ import (
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
 func TestIncludeConfigSourceLoadConfig(t *testing.T) {
@@ -34,33 +34,32 @@ func TestIncludeConfigSourceLoadConfig(t *testing.T) {
 	v, err := confmaptest.LoadConf(fileName)
 	require.NoError(t, err)
 
-	factories := map[component.Type]configprovider.Factory{
+	factories := map[component.Type]configsource.Factory{
 		typeStr: NewFactory(),
 	}
 
-	actualSettings, err := configprovider.Load(context.Background(), v, factories)
+	actualSettings, splitConf, err := configsource.SettingsFromConf(context.Background(), v, factories, nil)
 	require.NoError(t, err)
+	require.NotNil(t, splitConf)
 
-	expectedSettings := map[string]configprovider.Source{
+	expectedSettings := map[string]configsource.Settings{
 		"include": &Config{
-			SourceSettings: configprovider.NewSourceSettings(component.NewID(typeStr)),
+			SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
 		},
 		"include/delete_files": &Config{
-			SourceSettings: configprovider.NewSourceSettings(component.NewIDWithName(typeStr, "delete_files")),
+			SourceSettings: configsource.NewSourceSettings(component.NewIDWithName(typeStr, "delete_files")),
 			DeleteFiles:    true,
 		},
 		"include/watch_files": &Config{
-			SourceSettings: configprovider.NewSourceSettings(component.NewIDWithName(typeStr, "watch_files")),
+			SourceSettings: configsource.NewSourceSettings(component.NewIDWithName(typeStr, "watch_files")),
 			WatchFiles:     true,
 		},
 	}
 
 	require.Equal(t, expectedSettings, actualSettings)
+	require.Empty(t, splitConf.ToStringMap())
 
-	params := configprovider.CreateParams{
-		Logger: zap.NewNop(),
-	}
-	cfgSrcs, err := configprovider.Build(context.Background(), actualSettings, params, factories)
+	cfgSrcs, err := configsource.BuildConfigSources(context.Background(), actualSettings, zap.NewNop(), factories)
 	require.NoError(t, err)
 	for k := range expectedSettings {
 		assert.Contains(t, cfgSrcs, k)

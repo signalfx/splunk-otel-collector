@@ -23,28 +23,25 @@ import (
 
 	"github.com/go-zookeeper/zk"
 	"go.opentelemetry.io/collector/confmap"
-	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
 // zkConfigSource implements the configprovider.Session interface.
 type zkConfigSource struct {
-	logger  *zap.Logger
 	connect connectFunc
 }
 
-func newConfigSource(params configprovider.CreateParams, cfg *Config) (configprovider.ConfigSource, error) {
+func newConfigSource(cfg *Config) (configsource.ConfigSource, error) {
 	if len(cfg.Endpoints) == 0 {
 		return nil, &errMissingEndpoint{errors.New("cannot connect to zk without any endpoints")}
 	}
 
-	return newZkConfigSource(params, newConnectFunc(cfg.Endpoints, cfg.Timeout)), nil
+	return newZkConfigSource(newConnectFunc(cfg.Endpoints, cfg.Timeout)), nil
 }
 
-func newZkConfigSource(params configprovider.CreateParams, connect connectFunc) *zkConfigSource {
+func newZkConfigSource(connect connectFunc) *zkConfigSource {
 	return &zkConfigSource{
-		logger:  params.Logger,
 		connect: connect,
 	}
 }
@@ -66,10 +63,6 @@ func (s *zkConfigSource) Retrieve(ctx context.Context, selector string, _ *confm
 		conn.Close()
 		return nil
 	}))
-}
-
-func (s *zkConfigSource) Shutdown(context.Context) error {
-	return nil
 }
 
 func startWatcher(watchCh <-chan zk.Event, closeCh <-chan struct{}, watcher confmap.WatcherFunc) {

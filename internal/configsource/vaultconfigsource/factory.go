@@ -22,8 +22,9 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/component"
+	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
 const (
@@ -51,15 +52,15 @@ func (v *vaultFactory) Type() component.Type {
 	return typeStr
 }
 
-func (v *vaultFactory) CreateDefaultConfig() configprovider.Source {
+func (v *vaultFactory) CreateDefaultConfig() configsource.Settings {
 	return &Config{
-		SourceSettings: configprovider.NewSourceSettings(component.NewID(typeStr)),
+		SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
 		PollInterval:   defaultPollInterval,
 	}
 }
 
-func (v *vaultFactory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.Source) (configprovider.ConfigSource, error) {
-	vaultCfg := cfg.(*Config)
+func (v *vaultFactory) CreateConfigSource(_ context.Context, settings configsource.Settings, logger *zap.Logger) (configsource.ConfigSource, error) {
+	vaultCfg := settings.(*Config)
 
 	if vaultCfg.Endpoint == "" {
 		return nil, &errMissingEndpoint{errors.New("cannot connect to vault with an empty endpoint")}
@@ -81,11 +82,11 @@ func (v *vaultFactory) CreateConfigSource(_ context.Context, params configprovid
 		return nil, &errNonPositivePollInterval{errors.New("poll_interval must to be positive")}
 	}
 
-	return newConfigSource(params, vaultCfg)
+	return newConfigSource(vaultCfg, logger)
 }
 
 // NewFactory creates a factory for Vault ConfigSource objects.
-func NewFactory() configprovider.Factory {
+func NewFactory() configsource.Factory {
 	return &vaultFactory{}
 }
 

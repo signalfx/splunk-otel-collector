@@ -25,8 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/confmap"
-
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
 )
 
 func TestIncludeConfigSource_Session(t *testing.T) {
@@ -65,7 +63,7 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s, err := newConfigSource(configprovider.CreateParams{}, &Config{})
+			s, err := newConfigSource(&Config{})
 			require.NoError(t, err)
 
 			ctx := context.Background()
@@ -74,7 +72,6 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 			if tt.wantErr != nil {
 				assert.Nil(t, r)
 				require.IsType(t, tt.wantErr, err)
-				assert.NoError(t, s.Shutdown(ctx))
 				return
 			}
 			require.NoError(t, err)
@@ -84,13 +81,12 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, val)
 			require.NoError(t, r.Close(context.Background()))
-			require.NoError(t, s.Shutdown(ctx))
 		})
 	}
 }
 
 func TestIncludeConfigSourceWatchFileClose(t *testing.T) {
-	s, err := newConfigSource(configprovider.CreateParams{}, &Config{WatchFiles: true})
+	s, err := newConfigSource(&Config{WatchFiles: true})
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -117,11 +113,10 @@ func TestIncludeConfigSourceWatchFileClose(t *testing.T) {
 	assert.Equal(t, "val1", val)
 
 	require.NoError(t, r.Close(context.Background()))
-	require.NoError(t, s.Shutdown(ctx))
 }
 
 func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
-	s, err := newConfigSource(configprovider.CreateParams{}, &Config{WatchFiles: true})
+	s, err := newConfigSource(&Config{WatchFiles: true})
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -158,11 +153,10 @@ func TestIncludeConfigSource_WatchFileUpdate(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "val2", val)
 	require.NoError(t, r.Close(context.Background()))
-	require.NoError(t, s.Shutdown(ctx))
 }
 
 func TestIncludeConfigSourceDeleteFile(t *testing.T) {
-	s, err := newConfigSource(configprovider.CreateParams{}, &Config{DeleteFiles: true})
+	s, err := newConfigSource(&Config{DeleteFiles: true})
 	require.NoError(t, err)
 	require.NotNil(t, s)
 
@@ -184,7 +178,6 @@ func TestIncludeConfigSourceDeleteFile(t *testing.T) {
 	assert.Equal(t, "42", val)
 
 	require.NoError(t, r.Close(context.Background()))
-	require.NoError(t, s.Shutdown(ctx))
 }
 
 func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
@@ -194,7 +187,7 @@ func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
 		t.Skip("Windows only test")
 	}
 
-	s, err := newConfigSource(configprovider.CreateParams{}, &Config{DeleteFiles: true})
+	s, err := newConfigSource(&Config{DeleteFiles: true})
 	require.NoError(t, err)
 
 	// Copy test file
@@ -213,6 +206,4 @@ func TestIncludeConfigSource_DeleteFileError(t *testing.T) {
 	r, err := s.Retrieve(ctx, dst, nil, nil)
 	assert.IsType(t, &errFailedToDeleteFile{}, err)
 	assert.Nil(t, r)
-
-	require.NoError(t, s.Shutdown(ctx))
 }

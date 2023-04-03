@@ -25,7 +25,7 @@ import (
 	"go.opentelemetry.io/collector/confmap"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
 const maxBackoffTime = time.Second * 60
@@ -36,7 +36,7 @@ type etcd2ConfigSource struct {
 	kapi   client.KeysAPI
 }
 
-func newConfigSource(params configprovider.CreateParams, cfg *Config) (configprovider.ConfigSource, error) {
+func newConfigSource(cfg *Config, logger *zap.Logger) (configsource.ConfigSource, error) {
 	var username, password string
 	if cfg.Authentication != nil {
 		username = cfg.Authentication.Username
@@ -54,7 +54,7 @@ func newConfigSource(params configprovider.CreateParams, cfg *Config) (configpro
 	kapi := client.NewKeysAPI(etcdClient)
 
 	return &etcd2ConfigSource{
-		logger: params.Logger,
+		logger: logger,
 		kapi:   kapi,
 	}, nil
 }
@@ -68,10 +68,6 @@ func (s *etcd2ConfigSource) Retrieve(ctx context.Context, selector string, _ *co
 		return confmap.NewRetrieved(resp.Node.Value)
 	}
 	return confmap.NewRetrieved(resp.Node.Value, confmap.WithRetrievedClose(s.newWatcher(selector, resp.Node.ModifiedIndex, watcher)))
-}
-
-func (s *etcd2ConfigSource) Shutdown(context.Context) error {
-	return nil
 }
 
 func (s *etcd2ConfigSource) newWatcher(selector string, index uint64, watcherFunc confmap.WatcherFunc) confmap.CloseFunc {

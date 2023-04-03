@@ -21,8 +21,9 @@ import (
 	"net/url"
 
 	"go.opentelemetry.io/collector/component"
+	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/configprovider"
+	"github.com/signalfx/splunk-otel-collector/internal/configsource"
 )
 
 const (
@@ -44,15 +45,15 @@ func (v *etcd2Factory) Type() component.Type {
 	return typeStr
 }
 
-func (v *etcd2Factory) CreateDefaultConfig() configprovider.Source {
+func (v *etcd2Factory) CreateDefaultConfig() configsource.Settings {
 	return &Config{
-		SourceSettings: configprovider.NewSourceSettings(component.NewID(typeStr)),
+		SourceSettings: configsource.NewSourceSettings(component.NewID(typeStr)),
 		Endpoints:      []string{defaultEndpoints},
 	}
 }
 
-func (v *etcd2Factory) CreateConfigSource(_ context.Context, params configprovider.CreateParams, cfg configprovider.Source) (configprovider.ConfigSource, error) {
-	etcd2Cfg := cfg.(*Config)
+func (v *etcd2Factory) CreateConfigSource(_ context.Context, settings configsource.Settings, logger *zap.Logger) (configsource.ConfigSource, error) {
+	etcd2Cfg := settings.(*Config)
 
 	if len(etcd2Cfg.Endpoints) == 0 {
 		return nil, &errMissingEndpoint{errors.New("cannot connect to etcd2 without any endpoints")}
@@ -64,10 +65,10 @@ func (v *etcd2Factory) CreateConfigSource(_ context.Context, params configprovid
 		}
 	}
 
-	return newConfigSource(params, etcd2Cfg)
+	return newConfigSource(etcd2Cfg, logger)
 }
 
 // NewFactory creates a new etcd2Factory instance
-func NewFactory() configprovider.Factory {
+func NewFactory() configsource.Factory {
 	return &etcd2Factory{}
 }

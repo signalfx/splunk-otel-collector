@@ -1,4 +1,7 @@
 config_sources:
+  env/with-name:
+    defaults:
+      INSERT_ACTION: to.be.overridden
   vault:
     endpoint: http://${env:VAULT_HOSTNAME}:8200
     path: secret/data/kv
@@ -19,10 +22,10 @@ processors:
     attributes:
       - key: expands-vault-path-value
         value: ${vault:data.k0}
-        action: $INSERT_ACTION
+        action: ${env:INSERT_ACTION}
       - key: also-expands-vault-path-value
         value: ${vault:data.k1}
-        action: ${env:INSERT_ACTION}
+        action: ${env/with-name:INSERT_ACTION}
 
 service:
   pipelines:

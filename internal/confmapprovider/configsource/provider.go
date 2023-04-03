@@ -48,18 +48,25 @@ var configSourceFactories = func() configsource.Factories {
 	return factories
 }()
 
+// Hook is a means of providing introspection to a confmap.Provider's lifecycle,
+// useful for evaluating Retrieve()'ed content.
 type Hook interface {
 	OnNew()
 	OnRetrieve(scheme string, retrieved map[string]any)
 	OnShutdown()
 }
 
+// Provider is the entrypoint for existing confmap.Providers to be provided with
+// configsource.ConfigSource retrieval functionality. Once Wrap()'ed, their
+// Retrieve() method as invoked by the service's confmap.Resolver will be
+// further resolved by any applicable ConfigSource directives (including
+// any initial `config_sources:` settings declarations).
 type Provider interface {
-	Provider(provider confmap.Provider) confmap.Provider
+	Wrap(provider confmap.Provider) confmap.Provider
 }
 
 func New(logger *zap.Logger, hooks []Hook) Provider {
-	return &ProviderWrapper{
+	return &providerWrapper{
 		hooks:         hooks,
 		providers:     map[string]confmap.Provider{},
 		providersLock: &sync.Mutex{},
@@ -68,7 +75,7 @@ func New(logger *zap.Logger, hooks []Hook) Provider {
 	}
 }
 
-type ProviderWrapper struct {
+type providerWrapper struct {
 	providers     map[string]confmap.Provider
 	providersLock *sync.Mutex
 	logger        *zap.Logger
@@ -79,7 +86,7 @@ type ProviderWrapper struct {
 var _ confmap.Provider = (*wrappedProvider)(nil)
 
 type wrappedProvider struct {
-	wrapper  *ProviderWrapper
+	wrapper  *providerWrapper
 	provider confmap.Provider
 }
 
@@ -101,7 +108,9 @@ func (w *wrappedProvider) Shutdown(ctx context.Context) error {
 	return w.provider.Shutdown(ctx)
 }
 
-func (pw *ProviderWrapper) Provider(provider confmap.Provider) confmap.Provider {
+// Wrap registers the provided confmap.Provider in a provider store to proxy
+// its methods and expose ConfigSource content resolution capabilities.
+func (pw *providerWrapper) Wrap(provider confmap.Provider) confmap.Provider {
 	for _, h := range pw.hooks {
 		h.OnNew()
 	}
@@ -113,7 +122,7 @@ func (pw *ProviderWrapper) Provider(provider confmap.Provider) confmap.Provider 
 
 // ResolveForWrapped will retrieve from the wrappedProvider and, if possible, resolve all config source directives with their resolved values.
 // If the wrappedProvider's retrieved value is only valid AsRaw() (scalar/array) then that will be returned without further evaluation.
-func (pw *ProviderWrapper) ResolveForWrapped(ctx context.Context, uri string, onChange confmap.WatcherFunc, w *wrappedProvider) (*confmap.Retrieved, error) {
+func (pw *providerWrapper) ResolveForWrapped(ctx context.Context, uri string, onChange confmap.WatcherFunc, w *wrappedProvider) (*confmap.Retrieved, error) {
 	retrieved, err := w.provider.Retrieve(ctx, uri, onChange)
 	if err != nil {
 		return nil, fmt.Errorf("configsource provider failed retrieving: %w", err)

@@ -102,8 +102,8 @@ func TestConfigSourceConfigMapProvider(t *testing.T) {
 			p := New(zap.NewNop(), []Hook{hookOne, hookTwo})
 			require.NotNil(t, p)
 
-			p.(*ProviderWrapper).factories = tt.factories
-			pp := p.Provider(provider)
+			p.(*providerWrapper).factories = tt.factories
+			pp := p.Wrap(provider)
 
 			for _, h := range hooks {
 				h.AssertCalled(t, "OnNew")

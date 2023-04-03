@@ -80,11 +80,11 @@ func main() {
 			ResolverSettings: confmap.ResolverSettings{
 				URIs: collectorSettings.ResolverURIs(),
 				Providers: map[string]confmap.Provider{
-					discovery.PropertyScheme():      configSourceProvider.Provider(discovery.PropertyProvider()),
-					discovery.ConfigDScheme():       configSourceProvider.Provider(discovery.ConfigDProvider()),
-					discovery.DiscoveryModeScheme(): configSourceProvider.Provider(discovery.DiscoveryModeProvider()),
-					envProvider.Scheme():            configSourceProvider.Provider(envProvider),
-					fileProvider.Scheme():           configSourceProvider.Provider(fileProvider),
+					discovery.PropertyScheme():      configSourceProvider.Wrap(discovery.PropertyProvider()),
+					discovery.ConfigDScheme():       configSourceProvider.Wrap(discovery.ConfigDProvider()),
+					discovery.DiscoveryModeScheme(): configSourceProvider.Wrap(discovery.DiscoveryModeProvider()),
+					envProvider.Scheme():            configSourceProvider.Wrap(envProvider),
+					fileProvider.Scheme():           configSourceProvider.Wrap(fileProvider),
 				}, Converters: confMapConverters,
 			},
 		})

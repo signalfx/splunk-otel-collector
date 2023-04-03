@@ -35,7 +35,7 @@ require (
 	github.com/Showmax/go-fqdn v1.0.0
 	github.com/StackExchange/wmi v1.2.1
 	github.com/antonmedv/expr v1.9.0
-	github.com/aws/aws-sdk-go v1.44.184
+	github.com/aws/aws-sdk-go v1.44.191
 	github.com/beevik/ntp v0.3.0
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
@@ -52,9 +52,9 @@ require (
 	github.com/google/cadvisor v0.46.0
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/consul/api v1.20.0
-	github.com/hashicorp/vault v1.12.5 // required for newer google.golang.org/api compatibility
-	github.com/hashicorp/vault-plugin-auth-gcp v0.14.0
-	github.com/hashicorp/vault/api v1.8.2
+	github.com/hashicorp/vault v1.13.1 // required for newer google.golang.org/api compatibility
+	github.com/hashicorp/vault-plugin-auth-gcp v0.15.0
+	github.com/hashicorp/vault/api v1.9.0
 	github.com/iancoleman/strcase v0.2.0
 	github.com/influxdata/telegraf v0.0.0-00010101000000-000000000000
 	github.com/jackc/pgx/v4 v4.18.1
@@ -72,7 +72,7 @@ require (
 	github.com/onsi/gomega v1.26.0
 	github.com/openshift/api v3.9.0+incompatible
 	github.com/openshift/client-go v0.0.0-20201020071134-e303d21b3e32 // to make compatible w/ k8s.io/client-go v0.19.4
-	github.com/opentracing/opentracing-go v1.2.0
+	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_model v0.3.0
@@ -131,7 +131,8 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.10.0 // indirect
+	cloud.google.com/go/compute v1.14.0 // indirect
+	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	code.cloudfoundry.org/go-diodes v0.0.0-20180905200951-72629b5276e3 // indirect
 	code.cloudfoundry.org/rfc5424 v0.0.0-20180905210152-236a6d29298a // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -143,7 +144,7 @@ require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apache/arrow/go/v10 v10.0.1 // indirect
 	github.com/apache/thrift v0.17.0 // indirect
-	github.com/armon/go-metrics v0.4.0 // indirect
+	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.16.16 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.8 // indirect
@@ -194,8 +195,8 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.2.0 // indirect
-	github.com/googleapis/gax-go/v2 v2.6.0 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.2.1 // indirect
+	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
 	github.com/gophercloud/gophercloud v0.16.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
@@ -205,6 +206,7 @@ require (
 	github.com/hashicorp/go-hclog v1.4.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-kms-wrapping/entropy/v2 v2.0.0 // indirect
+	github.com/hashicorp/go-kms-wrapping/v2 v2.0.8 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-plugin v1.4.8 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
@@ -218,7 +220,7 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
-	github.com/hashicorp/vault/sdk v0.6.1-0.20230302210543-38f40f637f4f // indirect
+	github.com/hashicorp/vault/sdk v0.8.1 // indirect
 	github.com/hashicorp/yamux v0.0.0-20211028200310-0bc27b27de87 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
@@ -236,12 +238,12 @@ require (
 	github.com/juju/errors v0.0.0-20200330140219-3fe23663418f // indirect
 	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/klauspost/asmfmt v1.3.2 // indirect
-	github.com/klauspost/compress v1.15.13 // indirect
+	github.com/klauspost/compress v1.15.15 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
-	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.16 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/miekg/dns v1.1.43 // indirect
@@ -292,14 +294,14 @@ require (
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a // indirect
 	golang.org/x/mod v0.8.0 // indirect
-	golang.org/x/oauth2 v0.3.0 // indirect
+	golang.org/x/oauth2 v0.4.0 // indirect
 	golang.org/x/term v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/api v0.100.0 // indirect
+	google.golang.org/api v0.109.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c // indirect
+	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect

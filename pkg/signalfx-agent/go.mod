@@ -123,6 +123,7 @@ require (
 
 require (
 	github.com/go-errors/errors v1.4.1
+	github.com/hashicorp/golang-lru v0.5.4
 	github.com/kr/pretty v0.3.1
 	github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-00010101000000-000000000000
 	github.com/smartystreets/goconvey v1.7.2

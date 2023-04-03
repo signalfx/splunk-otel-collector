@@ -1,0 +1,815 @@
+{
+  "resourceMetrics": [
+    {
+      "resource": {},
+      "scopeMetrics": [
+        {
+          "scope": {},
+          "metrics": [
+            {
+              "name": "istio_agent_cert_expiry_seconds",
+              "description": "The time remaining, in seconds, before the certificate chain will expire. A negative    value indicates the cert is expired.",
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "resource_name",
+                        "value": {
+                          "stringValue": "default"
+                        }
+                      }
+                    ],
+                    "timeUnixNano": "1680652414533114000",
+                    "asDouble": 7449418.022755001
+                  }
+                ]
+              }
+            },
+            {
+              "name": "istio_agent_go_gc_cycles_forced_gc_cycles_total",
+              "description": "Count of completed GC cycles forced by the application.",
+              "sum": {
+                "dataPoints": [
+                  {
+                    "timeUnixNano": "1680652414533114000",
+                    "asDouble": 0
+                  }
+                ],
+                "isMonotonic": true
+              }
+            },
+            {
+              "name": "istio_agent_endpoint_no_pod",
+              "description": "Endpoints without an associated pod.",
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "timeUnixNano": "1680652414533114000",
+                    "asDouble": 0
+                  }
+                ]
+              }
+            },
+            {
+              "name": "istio_agent_go_gc_cycles_total_gc_cycles_total",
+              "description": "Count of all completed GC cycles.",
+              "sum": {
+                "dataPoints": [
+                  {
+                    "timeUnixNano": "1680652414533114000",
+                    "asDouble": 5355
+                  }
+                ],
+                "isMonotonic": true
+              }
+            },
+            {
+              "name": "istio_agent_go_gc_duration_seconds",
+              "description": "A summary of the pause duration of garbage collection cycles.",
+              "summary": {
+                "dataPoints": [
+                  {
+                    "timeUnixNano": "1680652414533114000",
+                    "count": "5355",
+                    "sum": 3.420650096,
+                    "quantileValues": [
+                      {
+                        "value": 7.6654e-05
+                      },
+                      {
+                        "quantile": 0.25,
+                        "value": 0.000134994
+                      },
+                      {
+                        "quantile": 0.5,
+                        "value": 0.000204339
+                      },
+                      {
+                        "quantile": 0.75,
+                        "value": 0.000471661
+                      },
+                      {
+                        "quantile": 1,
+                        "value": 0.097528526
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "istio_request_bytes",
+              "histogram": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "response_code",
+                        "value": {
+                          "stringValue": "200"
+                        }
+                      },
+                      {
+                        "key": "reporter",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_workload",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_workload_namespace",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_principal",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_app",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_version",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_cluster",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_workload",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_workload_namespace",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_principal",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_app",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_version",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_service",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_service_name",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_service_namespace",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_cluster",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "request_protocol",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "response_flags",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "grpc_response_status",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "connection_security_policy",
+                        "value": {
+                          "stringValue": "unknown"
+                        }
+                      },
+                      {
+                        "key": "source_canonical_service",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_canonical_service",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_canonical_revision",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_canonical_revision",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      }
+                    ],
+                    "timeUnixNano": "1680652414533114000",
+                    "sum": 0,
+                    "bucketCounts": [
+                      "0",
+                      "0",
+                      "0",
+                      "0",
+                      "0",
+                      "0"
+                    ],
+                    "explicitBounds": [
+                      0.5,
+                      1,
+                      2,
+                      3,
+                      4,
+                      5
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": "istio_agent_go_gc_cycles_automatic_gc_cycles_total",
+              "description": "Count of completed GC cycles generated by the Go runtime.",
+              "sum": {
+                "dataPoints": [
+                  {
+                    "timeUnixNano": "1680652414533114000",
+                    "asDouble": 5355
+                  }
+                ],
+                "isMonotonic": true
+              }
+            },
+            {
+              "name": "istio_requests_total",
+              "sum": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "response_code",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "reporter",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_workload",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_workload_namespace",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_principal",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_app",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_version",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_cluster",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_workload",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_workload_namespace",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_principal",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_app",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_version",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_service",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_service_name",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_service_namespace",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_cluster",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "request_protocol",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "response_flags",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "grpc_response_status",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "connection_security_policy",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_canonical_service",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_canonical_service",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_canonical_revision",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_canonical_revision",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      }
+                    ],
+                    "timeUnixNano": "1680652414533114000",
+                    "asDouble": 1
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "response_code",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "reporter",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_workload",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_workload_namespace",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_principal",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_app",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_version",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_cluster",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_workload",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_workload_namespace",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_principal",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_app",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_version",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_service",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_service_name",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_service_namespace",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_cluster",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "request_protocol",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "response_flags",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "grpc_response_status",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "connection_security_policy",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_canonical_service",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_canonical_service",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_canonical_revision",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_canonical_revision",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      }
+                    ],
+                    "timeUnixNano": "1680652414533114000",
+                    "asDouble": 2
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "response_code",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "reporter",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_workload",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_workload_namespace",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_principal",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_app",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_version",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_cluster",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_workload",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_workload_namespace",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_principal",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_app",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_version",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_service",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_service_name",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_service_namespace",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_cluster",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "request_protocol",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "response_flags",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "grpc_response_status",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "connection_security_policy",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_canonical_service",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_canonical_service",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "source_canonical_revision",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      },
+                      {
+                        "key": "destination_canonical_revision",
+                        "value": {
+                          "stringValue": "foo-bar-value"
+                        }
+                      }
+                    ],
+                    "timeUnixNano": "1680652414533114000",
+                    "asDouble": 1
+                  }
+                ],
+                "isMonotonic": true
+              }
+            },
+            {
+              "name": "istio_agent_go_gc_heap_allocs_by_size_bytes_total",
+              "description": "Distribution of heap allocations by approximate size. Note that this  does not include tiny objects as defined by /gc/heap/tiny/allocs:objects, only tiny blocks.",
+              "histogram": {
+                "dataPoints": [
+                  {
+                    "timeUnixNano": "1680652414533114000",
+                    "count": "219116234",
+                    "sum": 310449604208,
+                    "bucketCounts": [
+                      "69482",
+                      "3331236",
+                      "34379917",
+                      "157242824",
+                      "174101606",
+                      "189289766",
+                      "218787074",
+                      "218855996",
+                      "218891888",
+                      "218921794",
+                      "219043605",
+                      "219116234"
+                    ],
+                    "explicitBounds": [
+                      8.999999999999998,
+                      24.999999999999996,
+                      64.99999999999999,
+                      144.99999999999997,
+                      320.99999999999994,
+                      704.9999999999999,
+                      1536.9999999999998,
+                      3200.9999999999995,
+                      6528.999999999999,
+                      13568.999999999998,
+                      27264.999999999996,
+                      "Infinity"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

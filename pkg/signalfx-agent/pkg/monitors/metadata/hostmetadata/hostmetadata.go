@@ -154,3 +154,8 @@ func (m *Monitor) ReportUptimeMetric() {
 		),
 	)
 }
+func (m *Monitor) Shutdown() {
+	if m.cancel != nil {
+		m.cancel()
+	}
+}

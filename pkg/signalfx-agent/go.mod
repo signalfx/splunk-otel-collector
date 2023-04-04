@@ -99,7 +99,6 @@ require (
 	golang.org/x/sys v0.5.0
 	golang.org/x/tools v0.5.0 // indirect
 	google.golang.org/grpc v1.51.0
-	gopkg.in/fatih/set.v0 v0.2.1
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.26.3

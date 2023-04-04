@@ -13,6 +13,7 @@ This Splunk OpenTelemetry Collector release includes changes from the [opentelem
 
 ### 🧰 Bug fixes 🧰
 - [Add shutdown method to hostmetadata monitor](https://github.com/signalfx/splunk-otel-collector/pull/2917)
+- [Support core file and env config provider directive resolution](https://github.com/signalfx/splunk-otel-collector/pull/2893)
 
 ## v0.73.0
 

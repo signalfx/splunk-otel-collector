@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
@@ -29,6 +30,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver/receivertest"
+	conventions "go.opentelemetry.io/collector/semconv/v1.6.1"
 )
 
 func TestScraper(t *testing.T) {
@@ -48,6 +50,11 @@ func TestScraper(t *testing.T) {
 	expectedFile := filepath.Join("testdata", "scraper", "expected.json")
 	expectedMetrics, err := readMetrics(expectedFile)
 	require.NoError(t, err)
+	attrs := expectedMetrics.ResourceMetrics().At(0).Resource().Attributes()
+	u, err := url.Parse(promMock.URL)
+	require.NoError(t, err)
+	attrs.PutStr(conventions.AttributeNetHostPort, u.Port())
+	attrs.PutStr(conventions.AttributeNetHostName, u.Host)
 
 	require.NoError(t, pmetrictest.CompareMetrics(expectedMetrics, actualMetrics,
 		pmetrictest.IgnoreMetricDataPointsOrder(), pmetrictest.IgnoreStartTimestamp(),

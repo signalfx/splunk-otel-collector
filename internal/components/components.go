@@ -77,7 +77,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
@@ -94,6 +93,7 @@ import (
 	"go.uber.org/multierr"
 
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/httpsinkexporter"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver"
 	//lint:ignore SA1019 We will replace the exporter in future versions
 	"github.com/signalfx/splunk-otel-collector/internal/exporter/pulsarexporter"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/databricksreceiver"

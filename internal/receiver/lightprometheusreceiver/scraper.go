@@ -149,7 +149,7 @@ func convertMetricFamilies(metricFamilies []*dto.MetricFamily, metrics pmetric.M
 					dp.Attributes().PutStr(l.GetName(), l.GetValue())
 				}
 			}
-		case dto.MetricType_HISTOGRAM:
+		case dto.MetricType_HISTOGRAM, dto.MetricType_GAUGE_HISTOGRAM:
 			histogram := newMetric.SetEmptyHistogram()
 			for _, fm := range family.Metric {
 				dp := histogram.DataPoints().AppendEmpty()

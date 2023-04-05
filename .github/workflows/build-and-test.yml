@@ -500,49 +500,23 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
 
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v1.1.1
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+
       - name: Download Splunk OTel Collector msi
         uses: actions/download-artifact@v3
         with:
           name: msi-build
           path: ./tests/zeroconfig/windows/testdata/docker-setup/
 
-      - name: Copy install.ps1 to docker-setup folder
-        run: |
-          cp ./internal/buildscripts/packaging/installer/install.ps1 ./tests/zeroconfig/windows/testdata/docker-setup/
-
-      - name: Setup NuGet
-        uses: nuget/setup-nuget@v1.1.1
-
-      - name: Restore NuGet packages
-        working-directory: tests/zeroconfig/windows/testdata/apps/
-        run: |
-          nuget restore
-
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
-
-      - name: Build test application
-        working-directory: tests/zeroconfig/windows/testdata/apps/
-        run: |
-          msbuild .\AspNet.WebApi.NetFramework\AspNet.WebApi.NetFramework.csproj /p:Configuration=Release /p:Platform=AnyCPU /p:OutputPath=..\bin
-
-      - name: Create the firewall rule for the testutils OTLP sink
-        run: |
-          New-NetFirewallRule -DisplayName 'zc-iis-test' -Direction Inbound -LocalAddress 10.1.1.1 -LocalPort 4318 -Protocol TCP -Action Allow -Profile Any
-
-      - name: Build Docker compose
-        working-directory: tests/zeroconfig/windows/testdata/
-        run: |
-          docker compose build
-
-      - name: Run the test
+      - name: Run the test script
         working-directory: tests/zeroconfig/windows/
         run: |
-          go test -timeout 5m -run ^TestWindowsIISInstrumentation$ -tags zeroconfig -v
+          .\run-tests.ps1
 
-      - name: Remove the firewall rule for the testutils OTLP sink
-        run: |
-          Remove-NetFirewallRule -DisplayName 'zc-iis-test'
 
   docker-otelcol:
     name: docker-otelcol

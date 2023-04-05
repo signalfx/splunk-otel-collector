@@ -13,7 +13,6 @@
 // limitations under the License.
 
 //go:build windows && zeroconfig
-// +build windows
 
 package zeroconfig
 

@@ -13,6 +13,5 @@
 // limitations under the License.
 
 //go:build zeroconfig
-// +build zeroconfig
 
 package zeroconfig

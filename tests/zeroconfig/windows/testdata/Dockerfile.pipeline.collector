@@ -17,7 +17,7 @@ ENV VERIFY_ACCESS_TOKEN=$verify_access_token
 ENV ACCESS_TOKEN_TMP=$access_token
 RUN `
     $token = $Env:ACCESS_TOKEN_TMP; `
-    $collector_msi_path = (dir "c:\setup\*.msi").FullName; `
+    $collector_msi_path = (dir "c:\setup\splunk-otel-collector-*.msi").FullName; `
     c:\setup\install.ps1 -access_token $token -msi_path $collector_msi_path -with_fluentd $false -ingest_url "http://10.1.1.1:4318"
 ENV ACCESS_TOKEN_TMP=
 RUN `

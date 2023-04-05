@@ -19,22 +19,25 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
-
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver"
+	conventions "go.opentelemetry.io/collector/semconv/v1.6.1"
+	"go.uber.org/zap"
 )
 
 type scraper struct {
 	client   *http.Client
 	settings component.TelemetrySettings
 	cfg      *Config
+	name     string
 }
 
 func newScraper(
@@ -44,6 +47,7 @@ func newScraper(
 	e := &scraper{
 		settings: settings.TelemetrySettings,
 		cfg:      cfg,
+		name:     settings.ID.Name(),
 	}
 
 	return e
@@ -75,20 +79,32 @@ func (s *scraper) scrape(context.Context) (pmetric.Metrics, error) {
 		}
 		return resp.Body, expfmt.ResponseFormat(resp.Header), nil
 	}
-	return fetchPrometheusMetrics(fetch)
+	return s.fetchPrometheusMetrics(fetch)
 }
 
-func fetchPrometheusMetrics(fetch fetcher) (pmetric.Metrics, error) {
-	metricFamilies, err := doFetch(fetch)
+func (s *scraper) fetchPrometheusMetrics(fetch fetcher) (pmetric.Metrics, error) {
+	metricFamilies, err := s.doFetch(fetch)
 	m := pmetric.NewMetrics()
 	if err != nil {
 		return m, err
 	}
-	convertMetricFamilies(metricFamilies, m)
+
+	u, err := url.Parse(s.cfg.Endpoint)
+	if err != nil {
+		return m, err
+	}
+	rm := m.ResourceMetrics().AppendEmpty()
+	res := rm.Resource()
+	res.Attributes().PutStr(conventions.AttributeServiceName, s.name)
+	res.Attributes().PutStr(conventions.AttributeNetHostName, u.Host)
+	res.Attributes().PutStr(conventions.AttributeServiceInstanceID, s.name)
+	res.Attributes().PutStr(conventions.AttributeNetHostPort, u.Port())
+	res.Attributes().PutStr(conventions.AttributeHTTPScheme, u.Scheme)
+	s.convertMetricFamilies(metricFamilies, rm)
 	return m, nil
 }
 
-func doFetch(fetch fetcher) ([]*dto.MetricFamily, error) {
+func (s *scraper) doFetch(fetch fetcher) ([]*dto.MetricFamily, error) {
 	body, expformat, err := fetch()
 	if err != nil {
 		return nil, err
@@ -118,9 +134,9 @@ func doFetch(fetch fetcher) ([]*dto.MetricFamily, error) {
 	}
 }
 
-func convertMetricFamilies(metricFamilies []*dto.MetricFamily, metrics pmetric.Metrics) {
+func (s *scraper) convertMetricFamilies(metricFamilies []*dto.MetricFamily, rm pmetric.ResourceMetrics) {
 	now := pcommon.NewTimestampFromTime(time.Now())
-	rm := metrics.ResourceMetrics().AppendEmpty()
+
 	sm := rm.ScopeMetrics().AppendEmpty()
 	for _, family := range metricFamilies {
 		newMetric := sm.Metrics().AppendEmpty()
@@ -131,12 +147,15 @@ func convertMetricFamilies(metricFamilies []*dto.MetricFamily, metrics pmetric.M
 		case dto.MetricType_COUNTER:
 			sum := newMetric.SetEmptySum()
 			sum.SetIsMonotonic(true)
+			sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 			for _, fm := range family.GetMetric() {
 				dp := sum.DataPoints().AppendEmpty()
 				dp.SetTimestamp(now)
 				dp.SetDoubleValue(fm.GetCounter().GetValue())
 				for _, l := range fm.GetLabel() {
-					dp.Attributes().PutStr(l.GetName(), l.GetValue())
+					if l.GetValue() != "" {
+						dp.Attributes().PutStr(l.GetName(), l.GetValue())
+					}
 				}
 			}
 		case dto.MetricType_GAUGE:
@@ -146,7 +165,9 @@ func convertMetricFamilies(metricFamilies []*dto.MetricFamily, metrics pmetric.M
 				dp.SetDoubleValue(fm.GetGauge().GetValue())
 				dp.SetTimestamp(now)
 				for _, l := range fm.GetLabel() {
-					dp.Attributes().PutStr(l.GetName(), l.GetValue())
+					if l.GetValue() != "" {
+						dp.Attributes().PutStr(l.GetName(), l.GetValue())
+					}
 				}
 			}
 		case dto.MetricType_HISTOGRAM, dto.MetricType_GAUGE_HISTOGRAM:
@@ -161,7 +182,9 @@ func convertMetricFamilies(metricFamilies []*dto.MetricFamily, metrics pmetric.M
 				dp.SetSum(fm.GetHistogram().GetSampleSum())
 				dp.SetCount(fm.GetHistogram().GetSampleCount())
 				for _, l := range fm.GetLabel() {
-					dp.Attributes().PutStr(l.GetName(), l.GetValue())
+					if l.GetValue() != "" {
+						dp.Attributes().PutStr(l.GetName(), l.GetValue())
+					}
 				}
 			}
 		case dto.MetricType_SUMMARY:
@@ -177,7 +200,9 @@ func convertMetricFamilies(metricFamilies []*dto.MetricFamily, metrics pmetric.M
 				dp.SetSum(fm.GetSummary().GetSampleSum())
 				dp.SetCount(fm.GetSummary().GetSampleCount())
 				for _, l := range fm.GetLabel() {
-					dp.Attributes().PutStr(l.GetName(), l.GetValue())
+					if l.GetValue() != "" {
+						dp.Attributes().PutStr(l.GetName(), l.GetValue())
+					}
 				}
 			}
 		case dto.MetricType_UNTYPED:
@@ -187,10 +212,13 @@ func convertMetricFamilies(metricFamilies []*dto.MetricFamily, metrics pmetric.M
 				dp.SetDoubleValue(fm.GetUntyped().GetValue())
 				dp.SetTimestamp(now)
 				for _, l := range fm.GetLabel() {
-					dp.Attributes().PutStr(l.GetName(), l.GetValue())
+					if l.GetValue() != "" {
+						dp.Attributes().PutStr(l.GetName(), l.GetValue())
+					}
 				}
 			}
 		default:
+			s.settings.Logger.Warn("Unknown metric family", zap.Any("family", family.Type))
 		}
 	}
 }

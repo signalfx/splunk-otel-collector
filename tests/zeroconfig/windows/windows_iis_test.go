@@ -39,7 +39,7 @@ func TestWindowsIISInstrumentation(t *testing.T) {
 	// 1. Testcontainers for Go doesn't support Windows containers, see https://github.com/testcontainers/testcontainers-go/issues/948
 	//    In light of that will issue docker commands via exec.Command.
 	//
-	// 2. The test uses the default configuration fo the collector that uses signalfx to export metrics.
+	// 2. The test uses the default configuration of the collector that uses signalfx to export metrics.
 	//    To avoid building an (expected to be) short lived signalfx sink the test launches a Docker compose
 	//    configuration that runs a splunk-otel-collector that receives the O11y signals from the instrumented container.
 	//    This way the test can leverage the existing testutils OTLP sink.

@@ -142,7 +142,6 @@ func (s *scraper) convertMetricFamilies(metricFamilies []*dto.MetricFamily, rm p
 		newMetric := sm.Metrics().AppendEmpty()
 		newMetric.SetName(family.GetName())
 		newMetric.SetDescription(family.GetHelp())
-		//set unit is not available in the dto, is this a showstopper, can we compute it?
 		switch *family.Type {
 		case dto.MetricType_COUNTER:
 			sum := newMetric.SetEmptySum()

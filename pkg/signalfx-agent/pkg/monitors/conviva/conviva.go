@@ -100,7 +100,7 @@ func (m *Monitor) fetchMetrics(contextTimeout time.Duration, semaphore chan stru
 		var urls []*string
 		low, high, numFilters := 0, 0, len(metricConf.filterIDs())
 		for i := 1; high < numFilters; i++ {
-			if low, high = (i-1)*numFiltersPerRequest, i*numFiltersPerRequest; high > numFilters {
+			if _, high = (i-1)*numFiltersPerRequest, i*numFiltersPerRequest; high > numFilters {
 				high = numFilters
 			}
 			url := fmt.Sprintf(metricURLFormat, metricConf.MetricParameter, metricConf.accountID, strings.Join(metricConf.filterIDs()[low:high], ","))
@@ -170,7 +170,7 @@ func (m *Monitor) fetchMetricLensMetrics(contextTimeout time.Duration, semaphore
 			var urls []*string
 			low, high, numFilters := 0, 0, len(metricConf.filterIDs())
 			for i := 1; high < numFilters; i++ {
-				if low, high = (i-1)*numFiltersPerRequest, i*numFiltersPerRequest; high > numFilters {
+				if _, high = (i-1)*numFiltersPerRequest, i*numFiltersPerRequest; high > numFilters {
 					high = numFilters
 				}
 				url := fmt.Sprintf(metricLensURLFormat, metricConf.MetricParameter, metricConf.accountID, strings.Join(metricConf.filterIDs()[low:high], ","), int(dimID))

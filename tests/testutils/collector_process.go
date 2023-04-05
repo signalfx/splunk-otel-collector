@@ -49,7 +49,7 @@ type CollectorProcess struct {
 	Fail             bool
 }
 
-func (collector CollectorProcess) WithMount(path string, mountPoint string) Collector {
+func (collector CollectorProcess) WithMount(_ string, _ string) Collector {
 	return &collector
 }
 
@@ -140,7 +140,8 @@ func (collector *CollectorProcess) Start() error {
 	}
 	go func() {
 		// drain stdout/err buffer (already logged for us)
-		for range collector.Process.Stdout {
+		for len(collector.Process.Stdout) > 0 {
+			<-collector.Process.Stdout
 		}
 	}()
 

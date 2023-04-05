@@ -138,7 +138,6 @@ func (sl *statsDListener) parseMetrics(raw []string) []*statsDMetric {
 		secondPipeIdx := pipeIdx + strings.Index(m[pipeIdx+1:], "|")
 
 		rawMetricName := m[0:colonIdx]
-		metricName := ""
 
 		var metricType string
 		if secondPipeIdx > pipeIdx {
@@ -147,6 +146,7 @@ func (sl *statsDListener) parseMetrics(raw []string) []*statsDMetric {
 			metricType = m[pipeIdx+1:]
 		}
 
+		var metricName string
 		if sl.prefix != "" {
 			metricName = strings.TrimPrefix(rawMetricName, sl.prefix+".")
 		} else {

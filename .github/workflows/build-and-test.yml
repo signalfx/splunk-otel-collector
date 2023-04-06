@@ -504,6 +504,7 @@ jobs:
             - 'internal/buildscripts/packaging/installer/install.ps1'
             - 'internal/buildscripts/packaging/msi/**'
             - 'pkg/signalfx-agent/bundle/**'
+            - 'tests/zeroconfig/windows/**'
 
   windows-zeroconfig-e2e-test:
     needs: [ windows-zeroconfig-sources, windows-msi ]

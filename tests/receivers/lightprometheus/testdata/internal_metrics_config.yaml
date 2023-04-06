@@ -1,0 +1,18 @@
+receivers:
+  lightprometheus/myjob:
+    collection_interval: 1s
+    endpoint: "http://localhost:8889/metrics"
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    metrics:
+      address: 0.0.0.0:8889
+  pipelines:
+    metrics:
+      receivers: [ lightprometheus/myjob ]
+      exporters: [ otlp ]

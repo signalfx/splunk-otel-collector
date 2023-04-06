@@ -12,8 +12,6 @@ import (
 
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 
-	set "gopkg.in/fatih/set.v0"
-
 	"github.com/mitchellh/hashstructure"
 	"github.com/pkg/errors"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
@@ -336,8 +334,6 @@ func (lc *LogConfig) LogrusFormatter() log.Formatter {
 	}
 }
 
-var validCollectdLogLevels = set.NewNonTS("debug", "info", "notice", "warning", "err")
-
 // CollectdConfig high-level configurations
 type CollectdConfig struct {
 	// If you won't be using any collectd monitors, this can be set to true to
@@ -398,9 +394,11 @@ type CollectdConfig struct {
 
 // Validate the collectd specific config
 func (cc *CollectdConfig) Validate() error {
-	if !validCollectdLogLevels.Has(cc.LogLevel) {
-		return fmt.Errorf("invalid collectd log level %s, valid choices are %v",
-			cc.LogLevel, validCollectdLogLevels)
+	switch cc.LogLevel {
+	case "debug", "info", "notice", "warning", "err":
+	default:
+		return fmt.Errorf("invalid collectd log level %s, valid choices are \"debug\", \"info\", \"notice\", \"warning\", \"err\"",
+			cc.LogLevel)
 	}
 
 	return nil

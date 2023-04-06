@@ -507,7 +507,7 @@ jobs:
 
   windows-zeroconfig-e2e-test:
     needs: [ windows-zeroconfig-sources, windows-msi ]
-    if: $$ {{ github.ref_name == 'main' || needs.windows-zeroconfig-sources.outputs.changed == 'true' }}
+    if: ${{ github.ref_name == 'main' || needs.windows-zeroconfig-sources.outputs.changed == 'true' }}
     runs-on: windows-2022
     steps:
       - name: Check out the codebase.

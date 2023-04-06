@@ -195,7 +195,7 @@ func (m *Monitor) fetchPluginMetrics(client *http.Client, endpoint string, prefi
 	}
 	metricValue, castErr := datapoint.CastMetricValueWithBool(total)
 	if castErr != nil {
-		return nil, fmt.Errorf("Couldn't not cast `total` metric value: %w", castErr)
+		return nil, fmt.Errorf("Couldn't cast `total` metric value: %w", castErr)
 	}
 
 	return []*datapoint.Datapoint{

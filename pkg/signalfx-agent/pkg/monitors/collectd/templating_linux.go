@@ -15,7 +15,6 @@ import (
 	"text/template"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/services"
@@ -26,23 +25,23 @@ import (
 // containing directory exists.
 func WriteConfFile(content, filePath string) error {
 	if err := os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
-		return errors.Wrapf(err, "failed to create collectd config dir at %s", filepath.Dir(filePath))
+		return fmt.Errorf("failed to create collectd config dir at %s: %w", filepath.Dir(filePath), err)
 	}
 
 	f, err := os.Create(filePath)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create/truncate collectd config file at %s", filePath)
+		return fmt.Errorf("failed to create/truncate collectd config file at %s: %w", filePath, err)
 	}
 	defer f.Close()
 
 	// Lock the file down since it could contain credentials
 	if err := f.Chmod(0600); err != nil {
-		return errors.Wrapf(err, "failed to restrict permissions on collectd config file at %s", filePath)
+		return fmt.Errorf("failed to restrict permissions on collectd config file at %s: %w", filePath, err)
 	}
 
 	_, err = f.Write([]byte(content))
 	if err != nil {
-		return errors.Wrapf(err, "failed to write collectd config file at %s", filePath)
+		return fmt.Errorf("failed to write collectd config file at %s: %w", filePath, err)
 	}
 
 	log.Debugf("Wrote file %s", filePath)

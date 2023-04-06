@@ -1,11 +1,11 @@
 package sources
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pkg/errors"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	log "github.com/sirupsen/logrus"
 
@@ -113,7 +113,7 @@ func (w *walker) injectDynamicValuesInMap(m map[interface{}]interface{}) (map[in
 		if isDynamicValue(v) {
 			values, spec, err := w.doResolution(RawDynamicValueSpec(v))
 			if err != nil {
-				return nil, errors.WithMessage(err, fmt.Sprintf("could not process key '%s'", k))
+				return nil, fmt.Errorf("could not process key '%s': %w", k, err)
 			}
 			if spec.Flatten {
 				if !strings.HasPrefix(k.(string), "_") {

@@ -11,7 +11,6 @@ import (
 	"sync"
 	"text/template"
 
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
@@ -92,8 +91,8 @@ func (bm *MonitorCore) WriteConfigForPlugin() error {
 
 	err := bm.Template.Execute(&pluginConfigText, bm.config)
 	if err != nil {
-		return errors.Wrapf(err, "Could not render collectd config file for %s.  Context was %#v",
-			bm.Template.Name(), bm.config)
+		return fmt.Errorf("Could not render collectd config file for %s.  Context was %#v %w",
+			bm.Template.Name(), bm.config, err)
 	}
 
 	log.WithFields(log.Fields{

@@ -5,6 +5,7 @@ package docker
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 	"sync"
@@ -12,7 +13,6 @@ import (
 
 	dtypes "github.com/docker/docker/api/types"
 	docker "github.com/docker/docker/client"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	dockercommon "github.com/signalfx/signalfx-agent/pkg/core/common/docker"
@@ -98,7 +98,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	var err error
 	m.client, err = docker.NewClient(conf.DockerURL, dockerAPIVersion, nil, defaultHeaders)
 	if err != nil {
-		return errors.Wrapf(err, "Could not create docker client")
+		return fmt.Errorf("could not create docker client: %w", err)
 	}
 
 	m.timeout = time.Duration(conf.TimeoutSeconds) * time.Second

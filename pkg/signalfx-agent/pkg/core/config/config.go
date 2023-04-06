@@ -3,6 +3,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -15,7 +16,6 @@ import (
 	set "gopkg.in/fatih/set.v0"
 
 	"github.com/mitchellh/hashstructure"
-	"github.com/pkg/errors"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/sources"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"

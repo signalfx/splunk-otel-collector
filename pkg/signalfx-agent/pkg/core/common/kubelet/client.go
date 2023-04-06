@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	k8sTransport "k8s.io/client-go/transport"
 
@@ -95,13 +94,13 @@ func NewClient(kubeletAPI *APIConfig, logger log.FieldLogger) (*Client, error) {
 		tokenPath := "/var/run/secrets/kubernetes.io/serviceaccount/token"
 		token, err := ioutil.ReadFile(tokenPath)
 		if err != nil {
-			return nil, errors.Wrap(err, "Could not read service account token at default location, are "+
-				"you sure service account tokens are mounted into your containers by default?")
+			return nil, fmt.Errorf("could not read service account token at default location, are "+
+				"you sure service account tokens are mounted into your containers by default?: %w", err)
 		}
 
 		rootCAFile := "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 		if err := auth.AugmentCertPoolFromCAFile(certs, rootCAFile); err != nil {
-			return nil, errors.WithMessage(err, fmt.Sprintf("Could not load root CA config from %s", rootCAFile))
+			return nil, fmt.Errorf("could not load root CA config from %s: %w", rootCAFile, err)
 		}
 
 		tlsConfig.RootCAs = certs
@@ -109,7 +108,7 @@ func NewClient(kubeletAPI *APIConfig, logger log.FieldLogger) (*Client, error) {
 		t.TLSClientConfig = tlsConfig
 		transport, err = k8sTransport.NewBearerAuthWithRefreshRoundTripper(string(token), tokenPath, t)
 		if err != nil {
-			return nil, errors.Wrap(err, "Could not set up refreshable context for kubernetes AuthTypeService")
+			return nil, fmt.Errorf("could not set up refreshable context for kubernetes AuthTypeService: %w", err)
 		}
 		logger.Debug("Using service account authentication for Kubelet")
 	default:

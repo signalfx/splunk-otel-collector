@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/signalfx/golib/v3/datapoint"
 	log "github.com/sirupsen/logrus"
 
@@ -158,11 +156,11 @@ func (m *Monitor) fetchPipelineMetrics(client *http.Client, endpoint string, pre
 
 	pipelines, exists := metricsJSON["pipelines"]
 	if !exists {
-		return nil, errors.Errorf("`pipelines` object doesn't exist in response from %s", endpoint)
+		return nil, fmt.Errorf("`pipelines` object doesn't exist in response from %s", endpoint)
 	}
 	pipelinesObj, isObject := pipelines.(map[string]interface{})
 	if !isObject {
-		return nil, errors.Errorf("`pipelines` is not an object in response from %s", endpoint)
+		return nil, fmt.Errorf("`pipelines` is not an object in response from %s", endpoint)
 	}
 	for pipelineName, pipelineObj := range pipelinesObj {
 		pipeline, converted := pipelineObj.(map[string]interface{})
@@ -187,7 +185,7 @@ func (m *Monitor) fetchPluginMetrics(client *http.Client, endpoint string, prefi
 
 	total, exists := metricsJSON["total"]
 	if !exists {
-		return nil, errors.Errorf("`total` object doesn't exist in response from %s", endpoint)
+		return nil, fmt.Errorf("`total` object doesn't exist in response from %s", endpoint)
 	}
 
 	metricName := prefix + ".total"
@@ -197,7 +195,7 @@ func (m *Monitor) fetchPluginMetrics(client *http.Client, endpoint string, prefi
 	}
 	metricValue, castErr := datapoint.CastMetricValueWithBool(total)
 	if castErr != nil {
-		return nil, errors.New("Couldn't not cast `total` metric value")
+		return nil, fmt.Errorf("Couldn't not cast `total` metric value: %w", castErr)
 	}
 
 	return []*datapoint.Datapoint{
@@ -265,12 +263,12 @@ func (m *Monitor) Shutdown() {
 func getJSON(client *http.Client, endpoint string) (map[string]interface{}, error) {
 	response, err := client.Get(endpoint)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Could not connect to %s", endpoint)
+		return nil, fmt.Errorf("could not connect to %s: %w", endpoint, err)
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, errors.New(fmt.Sprintf("Could not connect to %s : %s ", endpoint, http.StatusText(response.StatusCode)))
+		return nil, fmt.Errorf("could not connect to %s : %s ", endpoint, http.StatusText(response.StatusCode))
 	}
 
 	body, err := ioutil.ReadAll(response.Body)

@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pkg/errors"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
 	"github.com/signalfx/golib/v3/trace"
@@ -346,7 +345,7 @@ func (mm *MonitorManager) createAndConfigureNewMonitor(config config.MonitorCust
 
 	instance := newMonitor(config.MonitorConfigCore().Type)
 	if instance == nil {
-		return errors.Errorf("Could not create new monitor of type %s", monitorType)
+		return fmt.Errorf("Could not create new monitor of type %s", monitorType)
 	}
 
 	// Make metadata nil if we aren't using built in filtering and then none of

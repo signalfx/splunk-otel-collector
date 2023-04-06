@@ -7,7 +7,7 @@ RUN apt-get install -y software-properties-common ca-certificates wget curl apt-
 
 # salt packages not yet supported for jammy, so install from pypi instead.
 #RUN curl -L https://repo.saltproject.io/py3/ubuntu/22.04/amd64/latest/SALTSTACK-GPG-KEY.pub | apt-key add -
-#RUN echo 'deb http://repo.saltproject.io/py3/ubuntu/22.04/amd64/latest focal main' > /etc/apt/sources.list.d/saltstack.list && \
+#RUN echo 'deb https://repo.saltproject.io/py3/ubuntu/22.04/amd64/latest focal main' > /etc/apt/sources.list.d/saltstack.list && \
 #    apt-get update && \
 #    apt-get install -y salt-minion
 RUN pip install 'Jinja2<3.1' salt

@@ -487,9 +487,28 @@ jobs:
             throw "Failed to uninstall fluentdwinsvc."
           }
 
+  windows-zeroconfig-sources:
+    runs-on: ubuntu-latest
+    # Required permissions
+    permissions:
+      pull-requests: read
+    # Set job outputs to values from filter step
+    outputs:
+      changed: ${{ steps.filter.outputs.changed }}
+    steps:
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          changed:
+            - 'internal/buildscripts/packaging/installer/install.ps1'
+            - 'internal/buildscripts/packaging/msi/**'
+            - 'pkg/signalfx-agent/bundle/**'
+
   windows-zeroconfig-e2e-test:
+    needs: [ windows-zeroconfig-sources, windows-msi ]
+    if: $$ {{ github.ref_name == 'main' || needs.windows-zeroconfig-sources.outputs.changed == 'true' }}
     runs-on: windows-2022
-    needs: [ windows-msi ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -516,7 +535,6 @@ jobs:
         working-directory: tests/zeroconfig/windows/
         run: |
           .\run-tests.ps1
-
 
   docker-otelcol:
     name: docker-otelcol

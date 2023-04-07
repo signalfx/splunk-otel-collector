@@ -7,18 +7,17 @@ import (
 	"io/ioutil"
 	"runtime"
 
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
 func AugmentCertPoolFromCAFile(basePool *x509.CertPool, caCertPath string) error {
 	bytes, err := ioutil.ReadFile(caCertPath)
 	if err != nil {
-		return errors.Wrapf(err, "CA cert path %s could not be read", caCertPath)
+		return fmt.Errorf("CA cert path %s could not be read: %w", caCertPath, err)
 	}
 
 	if !basePool.AppendCertsFromPEM(bytes) {
-		return errors.Errorf("CA cert file %s is not the right format", caCertPath)
+		return fmt.Errorf("CA cert file %s is not the right format", caCertPath)
 	}
 
 	return nil
@@ -43,9 +42,9 @@ func TLSConfig(tlsConfig *tls.Config, caCertPath string, clientCertPath string, 
 	if clientCertPath != "" && clientKeyPath != "" {
 		cert, err := tls.LoadX509KeyPair(clientCertPath, clientKeyPath)
 		if err != nil {
-			return nil, errors.WithMessage(err,
-				fmt.Sprintf("Client cert/key could not be loaded from %s/%s",
-					clientKeyPath, clientCertPath))
+			return nil,
+				fmt.Errorf("Client cert/key could not be loaded from %s/%s: %w",
+					clientKeyPath, clientCertPath, err)
 		}
 		clientCerts = append(clientCerts, cert)
 		log.Infof("Configured TLS client cert in %s with key %s", clientCertPath, clientKeyPath)
@@ -65,7 +64,7 @@ func CertPool() (*x509.CertPool, error) {
 
 	certs, err := x509.SystemCertPool()
 	if err != nil {
-		return nil, errors.WithMessage(err, "Could not load system x509 cert pool")
+		return nil, fmt.Errorf("Could not load system x509 cert pool: %w", err)
 	}
 	return certs, nil
 }

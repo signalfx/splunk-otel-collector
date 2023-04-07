@@ -1,11 +1,11 @@
 package selfdescribe
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -80,9 +80,9 @@ func CollectMetadata(root string) ([]PackageMetadata, error) {
 		var pkg PackageMetadata
 
 		if bytes, err := ioutil.ReadFile(path); err != nil {
-			return errors.Wrapf(err, "unable to read metadata file %s", path)
+			return fmt.Errorf("unable to read metadata file %s: %w", path, err)
 		} else if err := yaml.UnmarshalStrict(bytes, &pkg); err != nil {
-			return errors.Wrapf(err, "unable to unmarshal file %s", path)
+			return fmt.Errorf("unable to unmarshal file %s: %w", path, err)
 		}
 
 		pkg.PackagePath = filepath.Dir(path)

@@ -4,13 +4,13 @@ package docker
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
 
 	dtypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	dockercommon "github.com/signalfx/signalfx-agent/pkg/core/common/docker"
@@ -182,7 +182,7 @@ func (docker *Docker) Configure(config *Config) error {
 
 	client, err := client.NewClient(config.DockerURL, dockerAPIVersion, nil, defaultHeaders)
 	if err != nil {
-		return errors.Wrapf(err, "Could not create docker client")
+		return fmt.Errorf("Could not create docker client: %w", err)
 	}
 
 	docker.config = config

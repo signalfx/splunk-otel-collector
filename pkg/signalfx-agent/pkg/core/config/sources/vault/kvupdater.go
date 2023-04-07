@@ -3,11 +3,12 @@ package vault
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/vault/api"
-	"github.com/pkg/errors"
 )
 
 type customWatcher interface {
@@ -50,7 +51,7 @@ func newPollingKVV2Watcher(vaultPath string, secret *api.Secret, client *api.Cli
 			if vInt, err := v.Int64(); err == nil {
 				latest.Version = vInt
 			} else {
-				return nil, errors.WithMessage(err, "vault secret metadata.version field is not an integer")
+				return nil, fmt.Errorf("vault secret metadata.version field is not an integer: %w", err)
 			}
 		} else {
 			return nil, errors.New("kv v2-like secret is missing the version field")

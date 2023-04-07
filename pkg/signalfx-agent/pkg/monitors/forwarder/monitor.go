@@ -2,9 +2,9 @@ package forwarder
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
 	goliblog "github.com/signalfx/golib/v3/log"
 	"github.com/sirupsen/logrus"
 
@@ -53,7 +53,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	sink := &outputSink{Output: m.Output}
 	listenerMetrics, err := m.startListening(ctx, conf.ListenAddress, conf.ServerTimeout.AsDuration(), sink)
 	if err != nil {
-		return errors.WithMessage(err, "could not start forwarder listener")
+		return fmt.Errorf("could not start forwarder listener: %w", err)
 	}
 
 	if *conf.SendInternalMetrics {

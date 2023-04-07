@@ -5,6 +5,7 @@ package ecs
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 
 	dtypes "github.com/docker/docker/api/types"
 	dcontainer "github.com/docker/docker/api/types/container"
-	"github.com/pkg/errors"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/sfxclient"
 	log "github.com/sirupsen/logrus"
@@ -79,7 +79,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	var err error
 	m.imageFilter, err = filter.NewOverridableStringFilter(conf.ExcludedImages)
 	if err != nil {
-		return errors.Wrapf(err, "Could not load excluded image filter")
+		return fmt.Errorf("could not load excluded image filter: %w", err)
 	}
 
 	m.conf = conf
@@ -125,7 +125,7 @@ func (m *Monitor) fetchContainer(dockerID string) (ecs.Container, error) {
 	var container ecs.Container
 
 	if err := json.Unmarshal(body, &container); err != nil {
-		return ecs.Container{}, errors.Wrapf(err, "Could not parse ecs container json")
+		return ecs.Container{}, fmt.Errorf("could not parse ecs container json: %w", err)
 	}
 
 	if (m.imageFilter != nil && m.imageFilter.Matches(container.Image)) ||
@@ -245,12 +245,12 @@ func (c *Config) GetExtraMetrics() []string {
 func getMetadata(client *http.Client, endpoint string) ([]byte, error) {
 	response, err := client.Get(endpoint)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Could not connect to %s", endpoint)
+		return nil, fmt.Errorf("could not connect to %s: %w", endpoint, err)
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, errors.New(fmt.Sprintf("Could not connect to %s : %s ", endpoint, http.StatusText(response.StatusCode)))
+		return nil, fmt.Errorf("could not connect to %s : %s ", endpoint, http.StatusText(response.StatusCode))
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
@@ -260,12 +260,12 @@ func getMetadata(client *http.Client, endpoint string) ([]byte, error) {
 func fetchTaskMetadata(client *http.Client, metadataEndpoint string) (ecs.TaskMetadata, error) {
 	body, err := getMetadata(client, metadataEndpoint)
 	if err != nil {
-		return ecs.TaskMetadata{}, errors.Wrapf(err, "Failed to read ECS container data")
+		return ecs.TaskMetadata{}, fmt.Errorf("failed to read ECS container data: %w", err)
 	}
 
 	task := ecs.TaskMetadata{}
 	if err := json.Unmarshal(body, &task); err != nil {
-		return ecs.TaskMetadata{}, errors.Wrapf(err, "Could not parse ecs metadata json")
+		return ecs.TaskMetadata{}, fmt.Errorf("could not parse ecs metadata json: %w", err)
 	}
 
 	return task, nil

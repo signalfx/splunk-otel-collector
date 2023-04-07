@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/pkg/errors"
 	"github.com/signalfx/defaults"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
@@ -39,7 +38,7 @@ func renderConfig(monConfig config.MonitorCustomConfig, endpoint services.Endpoi
 	if endpoint != nil {
 		err := config.DecodeExtraConfig(endpoint, monConfig, false)
 		if err != nil {
-			return nil, errors.Wrap(err, "Could not inject endpoint config into monitor config")
+			return nil, fmt.Errorf("could not inject endpoint config into monitor config: %w", err)
 		}
 
 		for configKey, rule := range monConfig.MonitorConfigCore().ConfigEndpointMappings {

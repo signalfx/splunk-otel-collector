@@ -1,10 +1,10 @@
 package sources
 
 import (
+	"errors"
 	"runtime"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	yaml "gopkg.in/yaml.v2"
 )

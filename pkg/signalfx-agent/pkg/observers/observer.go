@@ -10,7 +10,8 @@
 package observers
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+
 	log "github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
@@ -68,7 +69,7 @@ func configureObserver(observer interface{}, conf *config.ObserverConfig) error 
 	}
 
 	if err := validation.ValidateCustomConfig(finalConfig); err != nil {
-		return errors.Wrap(err, "Observer config is invalid")
+		return fmt.Errorf("observer config is invalid: %w", err)
 	}
 
 	return config.CallConfigure(observer, finalConfig)

@@ -4,11 +4,11 @@
 package filesystems
 
 import (
+	"fmt"
 	"strings"
 	"syscall"
 	"unicode/utf16"
 
-	"github.com/pkg/errors"
 	gopsutil "github.com/shirou/gopsutil/disk"
 	"golang.org/x/sys/windows"
 )
@@ -36,13 +36,13 @@ func getPartitionsWin(
 
 	handle, err := findFirstVolume(&volNameBuf[0])
 	if err != nil {
-		return stats, errors.WithMessagef(err, "cannot find first-volume")
+		return stats, fmt.Errorf("cannot find first-volume: %w", err)
 	}
 	defer findVolumeClose(handle)
 
 	var volPaths []string
 	if volPaths, err = getVolumePaths(volNameBuf); err != nil {
-		return stats, errors.WithMessagef(err, "find paths error for first-volume %s", windows.UTF16ToString(volNameBuf))
+		return stats, fmt.Errorf("find paths error for first-volume %s: %w", windows.UTF16ToString(volNameBuf), err)
 	}
 
 	var partitionStats []gopsutil.PartitionStat
@@ -50,7 +50,7 @@ func getPartitionsWin(
 	if len(volPaths) > 0 {
 		partitionStats, err = getPartitionStats(getDriveType(volPaths[0]), volPaths, getFsNameAndFlags)
 		if err != nil {
-			return stats, errors.WithMessagef(err, "cannot find partition-stats for first-volume %s", windows.UTF16ToString(volNameBuf))
+			return stats, fmt.Errorf("cannot find partition-stats for first-volume %s: %w", windows.UTF16ToString(volNameBuf), err)
 		}
 		stats = append(stats, partitionStats...)
 	}
@@ -62,20 +62,20 @@ func getPartitionsWin(
 			if errno, ok := err.(syscall.Errno); ok && errno == windows.ERROR_NO_MORE_FILES {
 				break
 			}
-			lastError = errors.WithMessagef(err, "find next-volume last-error")
+			lastError = fmt.Errorf("find next-volume last-error: %w", err)
 			continue
 		}
 
 		volPaths, err = getVolumePaths(volNameBuf)
 		if err != nil {
-			lastError = errors.WithMessagef(err, "find paths last-error for volume %s", windows.UTF16ToString(volNameBuf))
+			lastError = fmt.Errorf("find paths last-error for volume %s: %w", windows.UTF16ToString(volNameBuf), err)
 			continue
 		}
 
 		if len(volPaths) > 0 {
 			partitionStats, err = getPartitionStats(getDriveType(volPaths[0]), volPaths, getFsNameAndFlags)
 			if err != nil {
-				lastError = errors.WithMessagef(err, "find partition-stats last-error for volume %s", windows.UTF16ToString(volNameBuf))
+				lastError = fmt.Errorf("find partition-stats last-error for volume %s:q %w", windows.UTF16ToString(volNameBuf), err)
 				continue
 			}
 			stats = append(stats, partitionStats...)
@@ -171,7 +171,7 @@ func getPartitionStats(
 				// Similar to gopsutil, we avoid setting the likely device-is-not-ready error
 				// which happens if there is no disk in the drive.
 				if driveType != windows.DRIVE_CDROM && driveType != windows.DRIVE_REMOVABLE {
-					lastError = errors.WithMessagef(err, "get volume information last-error")
+					lastError = fmt.Errorf("get volume information last-error: %w", err)
 				}
 				continue
 			}

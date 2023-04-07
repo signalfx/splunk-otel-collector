@@ -1,11 +1,11 @@
 package cadvisor
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/cadvisor/client"
 	info "github.com/google/cadvisor/info/v1"
-	"github.com/pkg/errors"
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
@@ -34,7 +34,7 @@ type Cadvisor struct {
 func (c *Cadvisor) Configure(conf *CHTTPConfig) error {
 	cadvisorClient, err := client.NewClient(conf.CAdvisorURL)
 	if err != nil {
-		return errors.Wrap(err, "Could not create cAdvisor client")
+		return fmt.Errorf("could not create cAdvisor client: %w", err)
 	}
 
 	return c.Monitor.Configure(&conf.MonitorConfig, c.Output.SendDatapoints, newCadvisorInfoProvider(cadvisorClient), false)

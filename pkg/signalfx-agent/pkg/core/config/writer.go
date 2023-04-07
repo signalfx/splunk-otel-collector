@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -8,7 +9,6 @@ import (
 	"golang.org/x/net/http/httpguts"
 
 	"github.com/mitchellh/hashstructure"
-	"github.com/pkg/errors"
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/core/propfilters"
 	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"

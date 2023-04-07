@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/mitchellh/hashstructure"
-	"github.com/pkg/errors"
 	"github.com/signalfx/defaults"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/sources/consul"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/sources/env"
@@ -92,16 +91,16 @@ func (sc *SourceConfig) SourceInstances() (map[string]types.ConfigSource, error)
 			}
 
 			if err := validation.ValidateStruct(csc); err != nil {
-				return nil, errors.WithMessage(err, "error validating remote config sources")
+				return nil, fmt.Errorf("error validating remote config sources: %w", err)
 			}
 
 			if err := csc.Validate(); err != nil {
-				return nil, errors.WithMessage(err, fmt.Sprintf("error validating remote config sources"))
+				return nil, fmt.Errorf("error validating remote config sources: %w", err)
 			}
 
 			s, err := csc.New()
 			if err != nil {
-				return nil, errors.WithMessage(err, "error initializing remote config source")
+				return nil, fmt.Errorf("error initializing remote config source: %w", err)
 			}
 			sources[s.Name()] = s
 		}

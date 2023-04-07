@@ -6,9 +6,10 @@
 package custom
 
 import (
+	"errors"
+	"fmt"
 	"text/template"
 
-	"github.com/pkg/errors"
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd"
@@ -89,7 +90,7 @@ func (c *Config) Validate() error {
 func templateFromText(templateText string) (*template.Template, error) {
 	template, err := collectd.InjectTemplateFuncs(template.New("custom")).Parse(templateText)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Template text failed to parse: \n%s", templateText)
+		return nil, fmt.Errorf("Template text failed to parse: \n%s\n%w", templateText, err)
 	}
 	return template, nil
 }

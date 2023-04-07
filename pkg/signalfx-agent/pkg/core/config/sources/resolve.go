@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/yalp/jsonpath"
 
 	yaml "gopkg.in/yaml.v2"
@@ -40,8 +39,8 @@ func (r *resolver) Resolve(raw RawDynamicValueSpec) ([]interface{}, string, *dyn
 
 	contentMap, err := source.Get(spec.From.Path(), spec.Optional)
 	if err != nil {
-		return nil, "", nil, errors.WithMessage(err,
-			"could not resolve path "+spec.From.String())
+		return nil, "", nil, fmt.Errorf(
+			"could not resolve path %s: %w", spec.From.String(), err)
 	}
 
 	var value []interface{}
@@ -81,7 +80,7 @@ func convertFileBytesToValues(content map[string][]byte, raw bool, jsonPath stri
 		default:
 			err := yaml.Unmarshal(content[path], &v)
 			if err != nil {
-				return nil, errors.WithMessage(err, "deserialization error at path "+path)
+				return nil, fmt.Errorf("deserialization error at path %s: %w", path, err)
 			}
 		}
 

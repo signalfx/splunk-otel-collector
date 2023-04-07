@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	k8s "k8s.io/client-go/kubernetes"
@@ -162,7 +161,7 @@ func configFromAnnotations(
 
 			secret, err := k8sutil.FetchSecretValue(client, parts[0], parts[1], pod.Namespace)
 			if err != nil {
-				return "", nil, errors.Wrap(err, "Could not fetch k8s secret")
+				return "", nil, fmt.Errorf("could not fetch k8s secret: %w", err)
 			}
 			// Always treat secret values as strings
 			extraConfig[ac.ConfigKey] = secret

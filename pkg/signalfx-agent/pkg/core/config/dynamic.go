@@ -1,13 +1,13 @@
 package config
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pkg/errors"
 	"github.com/signalfx/defaults"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	log "github.com/sirupsen/logrus"
@@ -78,13 +78,13 @@ func FillInConfigTemplate(embeddedFieldName string, configTemplate interface{}, 
 	pkg := templateValue.Type().PkgPath()
 
 	if templateValue.Kind() != reflect.Ptr || templateValue.Elem().Kind() != reflect.Struct {
-		return errors.Errorf("Config template must be a pointer to a struct, got %s of kind/type %s/%s",
+		return fmt.Errorf("config template must be a pointer to a struct, got %s of kind/type %s/%s",
 			pkg, templateValue.Kind(), templateValue.Type())
 	}
 
 	embeddedField := templateValue.Elem().FieldByName(embeddedFieldName)
 	if !embeddedField.IsValid() {
-		return errors.Errorf("Could not find field %s in config.  Available fields: %v",
+		return fmt.Errorf("could not find field %s in config.  Available fields: %v",
 			embeddedFieldName, utils.GetStructFieldNames(templateValue))
 	}
 	embeddedField.Set(reflect.Indirect(reflect.ValueOf(conf)))
@@ -104,18 +104,18 @@ func CallConfigure(instance, conf interface{}) error {
 
 	method := instanceVal.MethodByName("Configure")
 	if !method.IsValid() {
-		return errors.Errorf("No Configure method found for type %s", _type)
+		return fmt.Errorf("no Configure method found for type %s", _type)
 	}
 
 	if method.Type().NumIn() != 1 {
-		return errors.Errorf("Configure method of %s should take exactly one argument that matches "+
+		return fmt.Errorf("configure method of %s should take exactly one argument that matches "+
 			"the type of the config template provided in the Register function! It has %d arguments.",
 			_type, method.Type().NumIn())
 	}
 
 	errorIntf := reflect.TypeOf((*error)(nil)).Elem()
 	if method.Type().NumOut() != 1 || !method.Type().Out(0).Implements(errorIntf) {
-		return errors.Errorf("Configure method for type %s should return an error", _type)
+		return fmt.Errorf("configure method for type %s should return an error", _type)
 	}
 
 	ret := method.Call([]reflect.Value{confVal})[0]

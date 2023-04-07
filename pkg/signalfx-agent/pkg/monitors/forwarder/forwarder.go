@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 	"github.com/signalfx/golib/v3/datapoint/dpsink"
 	"github.com/signalfx/golib/v3/sfxclient"
 	"github.com/signalfx/golib/v3/web"
@@ -20,7 +19,7 @@ type pathSetupFunc = func(*mux.Router, http.Handler)
 func (m *Monitor) startListening(ctx context.Context, listenAddr string, timeout time.Duration, sink signalfx.Sink) (sfxclient.Collector, error) {
 	listener, err := net.Listen("tcp", listenAddr)
 	if err != nil {
-		return nil, errors.WithMessage(err, "cannot open listening address "+listenAddr)
+		return nil, fmt.Errorf("cannot open listening address %s: %w", listenAddr, err)
 	}
 	router := mux.NewRouter()
 

@@ -9,7 +9,6 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/pkg/errors"
 	"github.com/signalfx/defaults"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/sources"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
@@ -25,7 +24,7 @@ import (
 func LoadConfig(ctx context.Context, configPath string) (<-chan *Config, error) {
 	configYAML, configFileChanges, err := sources.ReadConfig(configPath, ctx.Done())
 	if err != nil {
-		return nil, errors.WithMessage(err, "Could not read config file "+configPath)
+		return nil, fmt.Errorf("could not read config file %s: %w", configPath, err)
 	}
 
 	dynamicProvider := sources.DynamicValueProvider{}

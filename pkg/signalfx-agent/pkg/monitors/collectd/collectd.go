@@ -7,6 +7,7 @@ package collectd
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -16,7 +17,6 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/signalfx/golib/v3/datapoint"
@@ -461,7 +461,7 @@ func (cm *Manager) rerenderConf(writeHTTPPort int) error {
 	conf.WriteServerPort = uint16(writeHTTPPort)
 
 	if err := CollectdTemplate.Execute(&output, &conf); err != nil {
-		return errors.Wrapf(err, "Failed to render collectd template")
+		return fmt.Errorf("failed to render collectd template: %w", err)
 	}
 
 	return WriteConfFile(output.String(), cm.conf.ConfigFilePath())

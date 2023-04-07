@@ -22,16 +22,7 @@ ARTIFACTORY_DEB_REPO_URL = f"{ARTIFACTORY_URL}/{ARTIFACTORY_DEB_REPO}"
 ARTIFACTORY_RPM_REPO = "otel-collector-rpm"
 ARTIFACTORY_RPM_REPO_URL = f"{ARTIFACTORY_URL}/{ARTIFACTORY_RPM_REPO}"
 DEFAULT_ARTIFACTORY_USERNAME = "otel-collector"
-
-# Signing
-CHAPERONE_API_URL = "https://chaperone.re.splunkdev.com/api-service"
-DEFAULT_STAGING_USERNAME = "srv-otel-collector"
 DEFAULT_TIMEOUT = 1200
-SIGN_TYPES = ("GPG", "RPM", "WIN", "OSX")
-SIGNED_ARTIFACTS_REPO_URL = "https://repo.splunk.com/artifactory/signed-artifacts"
-STAGING_URL = "https://repo.splunk.com/artifactory"
-STAGING_REPO = "otel-collector-local"
-STAGING_REPO_URL = f"{STAGING_URL}/{STAGING_REPO}"
 
 # Package/Release
 REPO_DIR = Path(__file__).parent.parent.parent.parent.parent.parent.resolve()

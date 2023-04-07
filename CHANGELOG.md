@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 🧰 Bug fixes 🧰
+
+- Cherry-pick [fluentforward receiver fix](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/20721)
+  from upstream which fixes a performance regression introduced in v0.73.0.
+
 ## v0.74.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.74.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.74.0) and the [opentelemetry-collector-contrib v0.74.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.74.0) releases where appropriate.

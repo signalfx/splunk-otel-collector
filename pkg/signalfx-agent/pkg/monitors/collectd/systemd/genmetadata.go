@@ -9,7 +9,17 @@ import (
 
 const monitorType = "collectd/systemd"
 
-var groupSet = map[string]bool{}
+const (
+	groupActiveState = "ActiveState"
+	groupLoadState   = "LoadState"
+	groupSubState    = "SubState"
+)
+
+var groupSet = map[string]bool{
+	groupActiveState: true,
+	groupLoadState:   true,
+	groupSubState:    true,
+}
 
 const (
 	gaugeActiveStateActivating   = "gauge.active_state.activating"
@@ -29,19 +39,19 @@ const (
 )
 
 var metricSet = map[string]monitors.MetricInfo{
-	gaugeActiveStateActivating:   {Type: datapoint.Gauge},
-	gaugeActiveStateActive:       {Type: datapoint.Gauge},
-	gaugeActiveStateDeactivating: {Type: datapoint.Gauge},
-	gaugeActiveStateFailed:       {Type: datapoint.Gauge},
-	gaugeActiveStateInactive:     {Type: datapoint.Gauge},
-	gaugeActiveStateReloading:    {Type: datapoint.Gauge},
-	gaugeLoadStateError:          {Type: datapoint.Gauge},
-	gaugeLoadStateLoaded:         {Type: datapoint.Gauge},
-	gaugeLoadStateMasked:         {Type: datapoint.Gauge},
-	gaugeLoadStateNotFound:       {Type: datapoint.Gauge},
-	gaugeSubstateDead:            {Type: datapoint.Gauge},
-	gaugeSubstateExited:          {Type: datapoint.Gauge},
-	gaugeSubstateFailed:          {Type: datapoint.Gauge},
+	gaugeActiveStateActivating:   {Type: datapoint.Gauge, Group: groupActiveState},
+	gaugeActiveStateActive:       {Type: datapoint.Gauge, Group: groupActiveState},
+	gaugeActiveStateDeactivating: {Type: datapoint.Gauge, Group: groupActiveState},
+	gaugeActiveStateFailed:       {Type: datapoint.Gauge, Group: groupActiveState},
+	gaugeActiveStateInactive:     {Type: datapoint.Gauge, Group: groupActiveState},
+	gaugeActiveStateReloading:    {Type: datapoint.Gauge, Group: groupActiveState},
+	gaugeLoadStateError:          {Type: datapoint.Gauge, Group: groupLoadState},
+	gaugeLoadStateLoaded:         {Type: datapoint.Gauge, Group: groupLoadState},
+	gaugeLoadStateMasked:         {Type: datapoint.Gauge, Group: groupLoadState},
+	gaugeLoadStateNotFound:       {Type: datapoint.Gauge, Group: groupLoadState},
+	gaugeSubstateDead:            {Type: datapoint.Gauge, Group: groupSubState},
+	gaugeSubstateExited:          {Type: datapoint.Gauge, Group: groupSubState},
+	gaugeSubstateFailed:          {Type: datapoint.Gauge, Group: groupSubState},
 	gaugeSubstateRunning:         {Type: datapoint.Gauge},
 }
 
@@ -49,7 +59,27 @@ var defaultMetrics = map[string]bool{
 	gaugeSubstateRunning: true,
 }
 
-var groupMetricsMap = map[string][]string{}
+var groupMetricsMap = map[string][]string{
+	groupActiveState: {
+		gaugeActiveStateActivating,
+		gaugeActiveStateActive,
+		gaugeActiveStateDeactivating,
+		gaugeActiveStateFailed,
+		gaugeActiveStateInactive,
+		gaugeActiveStateReloading,
+	},
+	groupLoadState: {
+		gaugeLoadStateError,
+		gaugeLoadStateLoaded,
+		gaugeLoadStateMasked,
+		gaugeLoadStateNotFound,
+	},
+	groupSubState: {
+		gaugeSubstateDead,
+		gaugeSubstateExited,
+		gaugeSubstateFailed,
+	},
+}
 
 var monitorMetadata = monitors.Metadata{
 	MonitorType:     "collectd/systemd",

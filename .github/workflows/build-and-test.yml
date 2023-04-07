@@ -487,6 +487,56 @@ jobs:
             throw "Failed to uninstall fluentdwinsvc."
           }
 
+  windows-zeroconfig-sources:
+    runs-on: ubuntu-latest
+    # Required permissions
+    permissions:
+      pull-requests: read
+    # Set job outputs to values from filter step
+    outputs:
+      changed: ${{ steps.filter.outputs.changed }}
+    steps:
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          changed:
+            - 'internal/buildscripts/packaging/installer/install.ps1'
+            - 'internal/buildscripts/packaging/msi/**'
+            - 'pkg/signalfx-agent/bundle/**'
+            - 'tests/zeroconfig/windows/**'
+
+  windows-zeroconfig-e2e-test:
+    needs: [ windows-zeroconfig-sources, windows-msi ]
+    if: ${{ github.ref_name == 'main' || needs.windows-zeroconfig-sources.outputs.changed == 'true' }}
+    runs-on: windows-2022
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v1.1.1
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+
+      - name: Download Splunk OTel Collector msi
+        uses: actions/download-artifact@v3
+        with:
+          name: msi-build
+          path: ./tests/zeroconfig/windows/testdata/docker-setup/
+
+      - name: Run the test script
+        working-directory: tests/zeroconfig/windows/
+        run: |
+          .\run-tests.ps1
+
   docker-otelcol:
     name: docker-otelcol
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved

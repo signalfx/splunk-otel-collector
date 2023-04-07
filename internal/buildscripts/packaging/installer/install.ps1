@@ -396,7 +396,7 @@ if ($with_dotnet_instrumentation) {
     $download = "https://github.com/signalfx/signalfx-dotnet-tracing/releases/latest/download/Splunk.SignalFx.DotNet.psm1"
     $dotnet_autoinstr_path = Join-Path $tempdir $module_name
     echo "Downloading .NET Instrumentation installer ..."
-    Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path
+    Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path -UseBasicParsing
     Import-Module $dotnet_autoinstr_path
     if (Get-IsSignalFxInstalled) {
         throw "SignalFx Instrumentation for .NET is already installed. Remove/Uninstall SignalFx Instrumentation for .NET and re-run this script."

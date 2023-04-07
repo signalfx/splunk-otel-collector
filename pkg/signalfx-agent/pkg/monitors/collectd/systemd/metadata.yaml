@@ -60,31 +60,37 @@ monitors:
       description: Indicates that the systemd unit/service is active
       default: false
       type: gauge
+      group: ActiveState
     gauge.active_state.inactive:
       description: Indicates that the systemd unit/service is inactive and the previous
         run was successful or no previous run has taken place yet
       default: false
       type: gauge
+      group: ActiveState
     gauge.active_state.activating:
       description: Indicates that the systemd unit/service has previously been inactive
         but is currently in the process of entering an active state
       default: false
       type: gauge
+      group: ActiveState
     gauge.active_state.deactivating:
       description: Indicates that the systemd unit/service is currently in the process
         of deactivation
       default: false
       type: gauge
+      group: ActiveState
     gauge.active_state.reloading:
       description: Indicates that the systemd unit/service is active and currently
         reloading its configuration
       default: false
       type: gauge
+      group: ActiveState
     gauge.active_state.failed:
       description: Indicates that the systemd unit/service is inactive the previous
         run was not successful
       default: false
       type: gauge
+      group: ActiveState
     gauge.substate.running:
       description: Indicates that the systemd unit/service is running
       default: true
@@ -93,32 +99,39 @@ monitors:
       description: Indicates that the systemd unit/service exited
       default: false
       type: gauge
+      group: SubState
     gauge.substate.failed:
       description: Indicates that the systemd unit/service failed
       default: false
       type: gauge
+      group: SubState
     gauge.substate.dead:
       description: Indicates that the systemd unit/service died
       default: false
       type: gauge
+      group: SubState
     gauge.load_state.loaded:
       description: Indicates that the systemd unit/service configuration was loaded
         and parsed successfully
       default: false
       type: gauge
+      group: LoadState
     gauge.load_state.not-found:
       description: Indicates that the systemd unit/service configuration was not found
       default: false
       type: gauge
+      group: LoadState
     gauge.load_state.error:
       description: Indicates that the systemd unit/service configuration failed to
         load
       default: false
       type: gauge
+      group: LoadState
     gauge.load_state.masked:
       description: Indicates that the systemd unit/service is currently masked out
         (i.e. symlinked to /dev/null etc)
       default: false
       type: gauge
+      group: LoadState
   monitorType: collectd/systemd
   properties:

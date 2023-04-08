@@ -14,18 +14,13 @@
 
 import hashlib
 import os
-import random
 import re
-import shutil
-import string
 import sys
 import tempfile
 import time
 
 import boto3
-import docker
 import requests
-from github import Github
 
 from .constants import (
     ARTIFACTORY_API_URL,
@@ -33,7 +28,6 @@ from .constants import (
     ARTIFACTORY_DEB_REPO_URL,
     ARTIFACTORY_RPM_REPO,
     ARTIFACTORY_RPM_REPO_URL,
-    CHAPERONE_API_URL,
     CLOUDFRONT_DISTRIBUTION_ID,
     DEFAULT_TIMEOUT,
     EXTENSIONS,
@@ -42,11 +36,6 @@ from .constants import (
     REPO_DIR,
     S3_BUCKET,
     S3_MSI_BASE_DIR,
-    SIGN_TYPES,
-    SIGNED_ARTIFACTS_REPO_URL,
-    SMART_AGENT_RELEASE_PATH,
-    STAGING_REPO_URL,
-    STAGING_URL,
 )
 
 
@@ -196,7 +185,6 @@ def release_deb_to_artifactory(asset, args):
     deb_url = f"{ARTIFACTORY_DEB_REPO_URL}/pool/{args.stage}/{arch}/{asset.name}"
     dest_opts = f"deb.distribution={args.stage};deb.component=main;deb.architecture={arch}"
     dest_url = f"{deb_url};{dest_opts}"
-    staging_url = f"{STAGING_URL}/otel-collector-deb/pool/{args.stage}/{arch}/{asset.name};{dest_opts}"
 
     if not args.force and artifactory_file_exists(deb_url, user, token):
         resp = input(f"{deb_url} already exists.\nOverwrite? [y/N]: ")
@@ -214,7 +202,6 @@ def release_deb_to_artifactory(asset, args):
         timeout=args.timeout,
     )
 
-    upload_file_to_artifactory(asset.path, staging_url, args.staging_user, args.staging_token)
 
 
 def release_rpm_to_artifactory(asset, args):
@@ -228,7 +215,6 @@ def release_rpm_to_artifactory(asset, args):
     metadata_api_url = f"{ARTIFACTORY_API_URL}/storage/{ARTIFACTORY_RPM_REPO}/{args.stage}/{arch}/repodata/repomd.xml"
     metadata_url = f"{ARTIFACTORY_RPM_REPO_URL}/{args.stage}/{arch}/repodata/repomd.xml"
     dest_url = f"{ARTIFACTORY_RPM_REPO_URL}/{args.stage}/{arch}/{asset.name}"
-    staging_url = f"{STAGING_URL}/otel-collector-rpm/{args.stage}/{arch}/{asset.name}"
 
     if not args.force and artifactory_file_exists(dest_url, user, token):
         resp = input(f"{dest_url} already exists.\nOverwrite? [y/N]: ")
@@ -245,7 +231,6 @@ def release_rpm_to_artifactory(asset, args):
         sign_metadata=True,
         timeout=args.timeout,
     )
-    upload_file_to_artifactory(asset.path, staging_url, args.staging_user, args.staging_token)
 
 
 def s3_file_exists(s3_client, path):

@@ -32,13 +32,11 @@ require (
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/SAP/go-hdb v0.111.7
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
-	github.com/Showmax/go-fqdn v1.0.0
 	github.com/StackExchange/wmi v1.2.1
 	github.com/antonmedv/expr v1.9.0
-	github.com/aws/aws-sdk-go v1.44.235
+	github.com/aws/aws-sdk-go v1.44.235 // indirect
 	github.com/beevik/ntp v0.3.0
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e
-	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/docker/docker v23.0.3+incompatible
@@ -63,7 +61,6 @@ require (
 	github.com/lib/pq v1.10.7
 	github.com/mailru/easyjson v0.7.7
 	github.com/mattn/go-xmlrpc v0.0.3
-	github.com/mauricelam/genny v0.0.0-20190320071652-0800202903e5 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mongodb/go-client-mongodb-atlas v0.2.0
@@ -85,7 +82,6 @@ require (
 	github.com/signalfx/gateway v1.2.23
 	github.com/signalfx/golib/v3 v3.3.49
 	github.com/signalfx/ingest-protocols v0.1.14
-	github.com/signalfx/signalfx-go v1.30.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/snowflakedb/gosnowflake v1.6.19
 	github.com/stretchr/testify v1.8.2
@@ -170,6 +166,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible // indirect
+	github.com/frankban/quicktest v1.14.3 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect

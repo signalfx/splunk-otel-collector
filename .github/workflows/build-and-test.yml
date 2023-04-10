@@ -498,6 +498,8 @@ jobs:
     steps:
     - uses: dorny/paths-filter@v2
       id: filter
+      env:
+        GITHUB_REF_NAME: ${{ github.ref_name }}
       with:
         filters: |
           changed:
@@ -508,7 +510,7 @@ jobs:
 
   windows-zeroconfig-e2e-test:
     needs: [ windows-zeroconfig-sources, windows-msi ]
-    if: ${{ github.ref_name == 'main' || needs.windows-zeroconfig-sources.outputs.changed == 'true' }}
+    if: ${{ needs.windows-zeroconfig-sources.env.GITHUB_REF_NAME == 'main' || needs.windows-zeroconfig-sources.outputs.changed == 'true' }}
     runs-on: windows-2022
     steps:
       - name: Check out the codebase.

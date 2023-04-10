@@ -51,7 +51,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/cloudfoundryreceiver v0.75.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.75.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.75.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.75.1-0.20230405204547-23c6e57b5d78
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.75.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.75.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.75.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.75.0

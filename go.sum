@@ -1594,8 +1594,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdrecei
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/collectdreceiver v0.75.0/go.mod h1:Eu2reTIOo3iKPiX6J0oi4eoaihHK3mz8LaagNQJpH1k=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.75.0 h1:y/oz4+USvnaxeKDwtxa/XXgGKb+txWXVxNW7wd743pA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.75.0/go.mod h1:HnxMZFJaRQKW6liorsvLThsc5qqkqMpal6R3kABz4TA=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.75.1-0.20230405204547-23c6e57b5d78 h1:mN/XDejfF7277ZgEYsshMUY1gs5j/TqLV11nORTQ4IE=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.75.1-0.20230405204547-23c6e57b5d78/go.mod h1:XrYGUm9G04WgGfP2mtUIWXv9ZDnLAZ4A2VgLjJLLH78=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.75.0 h1:ZQIarx2B2CDbzvcvMsI2Oo753qS5Xj4dCT0mb8cvc5w=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.75.0/go.mod h1:3TAJLKO1hBwmL3XFmqHEAU7LL4u9grfhmPRFb0JyaUA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.75.0 h1:3pVqXvWLjksmZhWUyiWUKqcZpoxhCjXTGArP3KNqfk8=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.75.0/go.mod h1:JjUsuCj2MY98IiRpRWyBORa0X9hcJt0Br1oosWdfIG4=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.75.0 h1:yjFdQHXoKeLuJcfBtt3LJ3g8h/U/DQRrwki7/RRyqTM=

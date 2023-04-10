@@ -527,7 +527,7 @@ jobs:
         uses: nuget/setup-nuget@v1.1.1
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v1.3
 
       - name: Download Splunk OTel Collector msi
         uses: actions/download-artifact@v3

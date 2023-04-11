@@ -157,7 +157,7 @@ To upgrade the Collector, run the following commands on your system (requires
 - Debian:
   ```sh
   sudo apt-get update
-  sudo apt-get --only-upgrade splunk-otel-collector
+  sudo apt-get install --only-upgrade splunk-otel-collector
   ```
   **Note:** If the default configuration files in `/etc/otel/collector` have
   been modified after initial installation, you may be prompted to keep the
@@ -335,7 +335,7 @@ system (requires `root` privileges):
 - Debian:
   ```sh
   sudo apt-get update
-  sudo apt-get --only-upgrade splunk-otel-auto-instrumentation
+  sudo apt-get install --only-upgrade splunk-otel-auto-instrumentation
   ```
   **Note:** You may be prompted to keep or overwrite the configuration file at
   `/usr/lib/splunk-instrumentation/instrumentation.conf`.  Choosing to

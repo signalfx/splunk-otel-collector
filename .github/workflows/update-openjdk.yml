@@ -32,7 +32,7 @@ jobs:
           fi
       - name: Create Pull Request
         if: success() && (github.event_name == 'schedule')
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v5
         with:
           title: Update Bundled OpenJDK to latest
           commit-message: Update Bundled OpenJDK to latest

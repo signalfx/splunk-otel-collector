@@ -504,6 +504,7 @@ jobs:
         with:
           filters: |
             changed:
+              - '.github/workflows/build-and-test.yml'
               - 'internal/buildscripts/packaging/installer/install.ps1'
               - 'internal/buildscripts/packaging/msi/**'
               - 'pkg/signalfx-agent/bundle/**'
@@ -527,7 +528,7 @@ jobs:
         uses: nuget/setup-nuget@v1.1.1
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v1.3
 
       - name: Download Splunk OTel Collector msi
         uses: actions/download-artifact@v3

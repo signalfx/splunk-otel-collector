@@ -504,6 +504,7 @@ jobs:
         with:
           filters: |
             changed:
+              - '.github/workflows/build-and-test.yml'
               - 'internal/buildscripts/packaging/installer/install.ps1'
               - 'internal/buildscripts/packaging/msi/**'
               - 'pkg/signalfx-agent/bundle/**'

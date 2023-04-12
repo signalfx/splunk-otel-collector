@@ -46,7 +46,7 @@ var pads = []string{
 // The way IDs get converted to strings in some of the jaeger code, leading 0s
 // can be dropped, which will cause the ids to fail validation on our backend.
 func padID(id string) string {
-	expectedLen := 0
+	var expectedLen int
 	switch {
 	case len(id) < 16:
 		expectedLen = 16

@@ -7,8 +7,6 @@ import (
 	"regexp"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
@@ -18,17 +16,18 @@ var logRE = regexp.MustCompile(
 		`(?:\[(?P<level>\w+?)\] )?` +
 		`(?P<message>(?:(?P<plugin>[\w-]+?): )?.*)`)
 
-func logLine(line string, logger log.FieldLogger) {
+func (cm *Manager) logLine(line string) {
 	groups := utils.RegexpGroupMap(logRE, line)
 
+	logger := cm.logger
 	var level string
 	var message string
 	if groups == nil {
 		level = "info"
 		message = line
 	} else {
-		if groups["plugin"] != "" {
-			logger = logger.WithField("plugin", groups["plugin"])
+		if plugin := groups["plugin"]; plugin != "" {
+			logger = logger.WithField("plugin", plugin)
 		}
 
 		level = groups["level"]

@@ -13,7 +13,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd"
-	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
 func init() {
@@ -120,19 +119,7 @@ func (cm *Monitor) Configure(conf *Config) error {
 	if err != nil {
 		return err
 	}
-
-	collectdConf := *collectd.MainInstance().Config()
-
-	collectdConf.WriteServerPort = 0
-	collectdConf.WriteServerQuery = "?monitorID=" + string(conf.MonitorID)
-	collectdConf.InstanceName = "monitor-" + string(conf.MonitorID)
-	collectdConf.ReadThreads = utils.FirstNonZero(conf.CollectdReadThreads, utils.MinInt(len(conf.allTemplates()), 10))
-	collectdConf.WriteThreads = 1
-	collectdConf.WriteQueueLimitHigh = 10000
-	collectdConf.WriteQueueLimitLow = 10000
-	collectdConf.IntervalSeconds = conf.IntervalSeconds
-
-	cm.MonitorCore.SetCollectdInstance(collectd.InitCollectd(&collectdConf))
-
+	// always run an isolated collectd instance per monitor instance
+	conf.IsolatedCollectd = true
 	return cm.SetConfigurationAndRun(conf)
 }

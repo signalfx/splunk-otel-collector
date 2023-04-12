@@ -98,7 +98,8 @@ func (m *Monitor) fetchMetrics(contextTimeout time.Duration, semaphore chan stru
 			numFiltersPerRequest = metricConf.MaxFiltersPerRequest
 		}
 		var urls []*string
-		low, high, numFilters := 0, 0, len(metricConf.filterIDs())
+		var low, high int
+		numFilters := len(metricConf.filterIDs())
 		for i := 1; high < numFilters; i++ {
 			if low, high = (i-1)*numFiltersPerRequest, i*numFiltersPerRequest; high > numFilters {
 				high = numFilters
@@ -168,7 +169,8 @@ func (m *Monitor) fetchMetricLensMetrics(contextTimeout time.Duration, semaphore
 				numFiltersPerRequest = metricConf.MaxFiltersPerRequest
 			}
 			var urls []*string
-			low, high, numFilters := 0, 0, len(metricConf.filterIDs())
+			var low, high int
+			numFilters := len(metricConf.filterIDs())
 			for i := 1; high < numFilters; i++ {
 				if low, high = (i-1)*numFiltersPerRequest, i*numFiltersPerRequest; high > numFilters {
 					high = numFilters

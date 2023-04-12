@@ -363,16 +363,15 @@ func (resourceMetrics ResourceMetrics) ContainsAll(expected ResourceMetrics) (bo
 							missingInstrumentationScopes[k] = v
 						}
 						continue
-					} else {
-						var missingIS []string
-						for k := range innerMissingInstrumentationScopes {
-							missingIS = append(missingIS, k)
-						}
-						return false, fmt.Errorf(
-							"%v doesn't contain all of %v. Missing InstrumentationScopes: %s",
-							resourceMetric.ScopeMetrics, expectedResourceMetric.ScopeMetrics, missingIS,
-						)
 					}
+					var missingIS []string
+					for k := range innerMissingInstrumentationScopes {
+						missingIS = append(missingIS, k)
+					}
+					return false, fmt.Errorf(
+						"%v doesn't contain all of %v. Missing InstrumentationScopes: %s",
+						resourceMetric.ScopeMetrics, expectedResourceMetric.ScopeMetrics, missingIS,
+					)
 				}
 			}
 		}

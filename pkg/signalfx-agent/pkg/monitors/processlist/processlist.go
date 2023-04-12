@@ -165,7 +165,7 @@ func (m *Monitor) encodeProcess(proc *TopProcess, sampleInterval time.Duration) 
 
 	cpuPercent := float64(proc.TotalCPUTime-lastCPUCount) * 100.0 / float64(lastSampleInterval)
 
-	nice := ""
+	var nice string
 	if proc.Nice == nil {
 		nice = "unknown"
 	} else {

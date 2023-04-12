@@ -879,7 +879,7 @@ func (c confmapProvider) Retrieve(context.Context, string, confmap.WatcherFunc) 
 	return confmap.NewRetrieved("value from confmap provider")
 }
 
-func (confmapProvider) Shutdown(ctx context.Context) error {
+func (confmapProvider) Shutdown(context.Context) error {
 	return nil
 }
 

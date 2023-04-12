@@ -53,8 +53,8 @@ func (p providerShim) Scheme() string {
 	return p.scheme
 }
 
-func (p providerShim) Shutdown(ctx context.Context) error {
-	return nil // nolint:unparam
+func (p providerShim) Shutdown(context.Context) error {
+	return nil
 }
 
 type mapProvider struct {

@@ -137,6 +137,7 @@ install-tools:
 	cd ./internal/tools && go install github.com/ory/go-acc
 	cd ./internal/tools && go install github.com/pavius/impi/cmd/impi
 	cd ./internal/tools && go install github.com/tcnksm/ghr
+	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
 
 .PHONY: otelcol

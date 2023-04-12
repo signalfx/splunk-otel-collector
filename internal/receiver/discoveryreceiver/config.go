@@ -122,10 +122,7 @@ func (cfg *Config) Validate() error {
 }
 
 func (re *ReceiverEntry) validate() error {
-	if err := re.Status.validate(); err != nil {
-		return err
-	}
-	return nil
+	return re.Status.validate()
 }
 
 func (s *Status) validate() error {

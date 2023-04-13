@@ -399,7 +399,7 @@ if ($with_dotnet_instrumentation) {
     Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path -UseBasicParsing
     Import-Module $dotnet_autoinstr_path
     if (Get-IsSignalFxInstalled) {
-        throw "SignalFx Instrumentation for .NET is already installed. Remove or uninstall the SignalFx Instrumentation for .NET and rerun this script."
+        throw "SignalFx Instrumentation for .NET is already installed. Remove or uninstall SignalFx Instrumentation for .NET and rerun this script."
     }
 }
 

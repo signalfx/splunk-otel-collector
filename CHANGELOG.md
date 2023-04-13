@@ -2,10 +2,20 @@
 
 ## Unreleased
 
+## v0.75.0
+
+This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.75.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.75.0) and the [opentelemetry-collector-contrib v0.75.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.75.0) releases where appropriate.
+
+### 💡 Enhancements 💡
+
+- New [light prometheus receiver](https://github.com/signalfx/splunk-otel-collector/pull/2921) we're prototyping
+
 ### 🧰 Bug fixes 🧰
 
 - Cherry-pick [fluentforward receiver fix](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/20721)
   from upstream which fixes a performance regression introduced in v0.73.0.
+- Fixed sendLoadState, sendSubState and sendActiveState options for [systemd metadata](https://github.com/signalfx/splunk-otel-collector/pull/2929)
+  
 
 ## v0.74.0
 

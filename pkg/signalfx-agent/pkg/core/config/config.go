@@ -11,10 +11,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
-
 	"github.com/mitchellh/hashstructure"
-
 	log "github.com/sirupsen/logrus"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
@@ -22,6 +19,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
+	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 )
 
 const (

@@ -312,6 +312,11 @@ func TestRedirectMonitorLogsWithMissingMapEntryUsesDefaultLogger(t *testing.T) {
 			assert.Equal(t, 0, zap1Logs.Len())
 			require.Equal(t, 1, defaultZapLogs.Len())
 			require.Equal(t, msg1, defaultZapLogs.All()[0].Message)
+			require.Equal(t, []zapcore.Field{
+				{Key: "monitorID", Type: zapcore.StringType, String: "id1"},
+				{Key: "monitorType", Type: zapcore.StringType, String: "monitor1"},
+			}, defaultZapLogs.All()[0].Context)
+
 		})
 	}
 }
@@ -348,6 +353,14 @@ func TestRedirectSameMonitorManyInstancesLogs(t *testing.T) {
 			require.Equal(t, msg1, zap1Logs.All()[0].Message)
 			require.Equal(t, 1, zap2Logs.Len())
 			require.Equal(t, msg2, zap2Logs.All()[0].Message)
+			require.Equal(t, []zapcore.Field{
+				{Key: "monitorID", Type: zapcore.StringType, String: "id1"},
+				{Key: "monitorType", Type: zapcore.StringType, String: "monitor1"},
+			}, zap1Logs.All()[0].Context)
+			require.Equal(t, []zapcore.Field{
+				{Key: "monitorID", Type: zapcore.StringType, String: "id2"},
+				{Key: "monitorType", Type: zapcore.StringType, String: "monitor1"},
+			}, zap2Logs.All()[0].Context)
 		})
 	}
 }

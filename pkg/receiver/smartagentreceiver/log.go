@@ -17,6 +17,7 @@ package smartagentreceiver
 import (
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"sync"
 
@@ -134,6 +135,11 @@ func (l *logrusToZap) Fire(entry *logrus.Entry) error {
 		Logger:      entry.Logger,
 		monitorType: monitorType,
 		monitorID:   monitorID,
+	})
+
+	sort.Slice(fields, func(i, j int) bool {
+		fI, fJ := fields[i], fields[j]
+		return fI.Key < fJ.Key
 	})
 
 	if ce := zapLogger.Check(logrusToZapLevel[entry.Level], entry.Message); ce != nil {

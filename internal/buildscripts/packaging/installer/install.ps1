@@ -176,7 +176,7 @@ function check_policy() {
     if ($executionRestricted) {
         throw @"
 You can't import or run scripts with execution policy $executionPolicy.
-Change you execution policy to RemoteSigned or similar:
+Change your execution policy to RemoteSigned or similar:
         PS> Set-ExecutionPolicy RemoteSigned
 For more information, run the following command:
         PS> Get-Help about_execution_policies

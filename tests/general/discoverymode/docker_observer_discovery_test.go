@@ -85,10 +85,11 @@ func TestDockerObserver(t *testing.T) {
 	)
 	defer shutdown()
 
-	_, shutdownPrometheus := tc.Containers(
+	cntrs, shutdownPrometheus := tc.Containers(
 		testutils.NewContainer().WithImage("bitnami/prometheus").WithLabel("test.id", tc.ID).WillWaitForLogs("Server is ready to receive web requests."),
 	)
 	defer shutdownPrometheus()
+	prometheus := cntrs[0]
 
 	expectedResourceMetrics := tc.ResourceMetrics("docker-observer-internal-prometheus.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
@@ -258,6 +259,12 @@ service:
       address: ""
       level: none
 `, stdout)
-	require.Contains(t, stderr, "Discovering for next 20s...\nSuccessfully discovered \"prometheus_simple\" using \"docker_observer\".\nDiscovery complete.\n")
+	require.Contains(
+		t, stderr,
+		fmt.Sprintf(`Discovering for next 20s...
+Successfully discovered "prometheus_simple" using "docker_observer" endpoint "%s:9090".
+Discovery complete.
+`, prometheus.GetContainerID()),
+	)
 	require.Zero(t, sc)
 }

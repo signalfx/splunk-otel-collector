@@ -22,6 +22,7 @@ import (
 	"io"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -43,6 +44,9 @@ import (
 // one and that the first collector process's initial and effective configs from the config server
 // are as expected.
 func TestHostObserver(t *testing.T) {
+	if testutils.CollectorImageIsForArm(t) {
+		t.Skip("host_observer missing process info on arm")
+	}
 	tc := testutils.NewTestcase(t)
 	defer tc.PrintLogsOnFailure()
 	defer tc.ShutdownOTLPReceiverSink()
@@ -104,6 +108,13 @@ func TestHostObserver(t *testing.T) {
 	}
 	require.NoError(t, err)
 	require.Zero(t, sc)
+
+	// get the pid of the collector for endpoint ID verification
+	sc, stdout, stderr := cc.Container.AssertExec(
+		t, 5*time.Second, "bash", "-c", "ps -C otelcol | tail -n 1 | grep -oE '^\\s*[0-9]+'",
+	)
+	promPid := strings.TrimSpace(stdout)
+	require.Zero(t, sc, stderr)
 
 	expectedResourceMetrics := tc.ResourceMetrics("host-observer-internal-prometheus.yaml")
 	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
@@ -225,7 +236,7 @@ func TestHostObserver(t *testing.T) {
 	}
 	require.Equal(t, expectedEffective, cc.EffectiveConfig(t, 55554))
 
-	sc, stdout, stderr := cc.Container.AssertExec(t, 15*time.Second,
+	sc, stdout, stderr = cc.Container.AssertExec(t, 15*time.Second,
 		"bash", "-c", `SPLUNK_DISCOVERY_LOG_LEVEL=error SPLUNK_DEBUG_CONFIG_SERVER=false \
 REFRESH_INTERVAL=1s \
 SPLUNK_DISCOVERY_DURATION=9s \
@@ -270,6 +281,11 @@ service:
       address: ""
       level: none
 `, stdout, fmt.Sprintf("unexpected --dry-run: %s", stderr))
-	require.Contains(t, stderr, "Discovering for next 9s...\nSuccessfully discovered \"prometheus_simple\" using \"host_observer\".\nDiscovery complete.\n")
+	require.Contains(
+		t, stderr,
+		fmt.Sprintf(`Discovering for next 9s...
+Successfully discovered "prometheus_simple" using "host_observer" endpoint "(host_observer)127.0.0.1-%d-TCP-%s".
+Discovery complete.
+`, promPort, promPid))
 	require.Zero(t, sc)
 }

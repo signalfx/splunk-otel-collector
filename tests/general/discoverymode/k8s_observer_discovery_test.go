@@ -55,7 +55,7 @@ func TestK8sObserver(t *testing.T) {
 	tc.Logger.Debug("applying ConfigMap", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
 	require.NoError(t, err)
 
-	redis := createRedis(cluster, "target.redis", namespace, serviceAccount)
+	redisName, redisUID := createRedis(cluster, "target.redis", namespace, serviceAccount)
 
 	crManifest, crbManifest := clusterRoleAndBindingManifests(t, namespace, serviceAccount)
 	sout, serr, err = cluster.Apply(crManifest)
@@ -74,7 +74,7 @@ func TestK8sObserver(t *testing.T) {
 	require.Eventually(t, func() bool {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		rPod, err := cluster.Clientset.CoreV1().Pods(namespace).Get(ctx, redis, metav1.GetOptions{})
+		rPod, err := cluster.Clientset.CoreV1().Pods(namespace).Get(ctx, redisName, metav1.GetOptions{})
 		require.NoError(t, err)
 		tc.Logger.Debug(fmt.Sprintf("redis is: %s\n", rPod.Status.Phase))
 		return rPod.Status.Phase == corev1.PodRunning
@@ -146,10 +146,16 @@ service:
       address: ""
       level: none
 `, stdout.String())
-	require.Contains(t, stderr.String(), "Discovering for next 10s...\nSuccessfully discovered \"smartagent\" using \"k8s_observer\".\nDiscovery complete.\n")
+	require.Contains(
+		t, stderr.String(),
+		fmt.Sprintf(`Discovering for next 10s...
+Successfully discovered "smartagent" using "k8s_observer" endpoint "k8s_observer/%s/(6379)".
+Discovery complete.
+`, redisUID),
+	)
 }
 
-func createRedis(cluster *kubeutils.KindCluster, name, namespace, serviceAccount string) string {
+func createRedis(cluster *kubeutils.KindCluster, name, namespace, serviceAccount string) (string, string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	redis, err := cluster.Clientset.CoreV1().Pods(namespace).Create(
@@ -178,7 +184,7 @@ func createRedis(cluster *kubeutils.KindCluster, name, namespace, serviceAccount
 		}, metav1.CreateOptions{},
 	)
 	require.NoError(cluster.Testcase, err)
-	return redis.Name
+	return redis.Name, string(redis.UID)
 }
 
 func createNamespaceAndServiceAccount(cluster *kubeutils.KindCluster) (string, string) {

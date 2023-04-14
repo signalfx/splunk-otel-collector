@@ -15,7 +15,7 @@ replace (
 // security updates
 replace (
 	github.com/Azure/go-autorest/autorest/adal => github.com/Azure/go-autorest/autorest/adal v0.9.18
-	github.com/containerd/containerd => github.com/containerd/containerd v1.5.13
+	github.com/containerd/containerd => github.com/containerd/containerd v1.5.18
 	github.com/go-kit/kit => github.com/go-kit/kit v0.12.0
 	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2

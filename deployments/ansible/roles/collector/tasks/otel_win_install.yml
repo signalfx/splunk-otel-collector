@@ -51,7 +51,7 @@
   notify: "restart windows splunk-otel-collector"
 
 - name: Push Custom Config file for splunk-otel-collector, If provided
-  ansible.windows.win_copy:
+  ansible.windows.win_template:
     src: "{{splunk_otel_collector_config_source}}"
     dest: "{{splunk_otel_collector_config}}"
   when: splunk_otel_collector_config_source != ""

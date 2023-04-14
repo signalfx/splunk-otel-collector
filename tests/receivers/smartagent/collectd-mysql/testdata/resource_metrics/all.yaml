@@ -1,0 +1,637 @@
+resource_metrics:
+  - scope_metrics:
+      - metrics:
+# Most of the metrics aren't evaluated because they are only generated w/ applicable interaction.
+# TODO: revisit this w/ updated receiver
+#         - name: cache_result.cache_size
+#         - name: cache_result.qcache-hits
+#         - name: cache_result.qcache-inserts
+#         - name: cache_result.qcache-not_cached
+#         - name: cache_result.qcache-prunes
+#         - name: cache_size.qcache
+          - name: mysql_commands.admin_commands
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+#         - name: mysql_commands.alter_db
+#         - name: mysql_commands.alter_db_upgrade
+#         - name: mysql_commands.alter_event
+#         - name: mysql_commands.alter_function
+#         - name: mysql_commands.alter_procedure
+#         - name: mysql_commands.alter_server
+          - name: mysql_commands.alter_table
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+#         - name: mysql_commands.alter_tablespace
+#         - name: mysql_commands.alter_user
+#         - name: mysql_commands.analyze
+#         - name: mysql_commands.assign_to_keycache
+#         - name: mysql_commands.begin
+#         - name: mysql_commands.binlog
+#         - name: mysql_commands.call_procedure
+          - name: mysql_commands.change_db
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+#         - name: mysql_commands.change_master
+#         - name: mysql_commands.check
+#         - name: mysql_commands.checksum
+#         - name: mysql_commands.commit
+          - name: mysql_commands.create_db
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+#         - name: mysql_commands.create_event
+#         - name: mysql_commands.create_function
+#         - name: mysql_commands.create_index
+#         - name: mysql_commands.create_procedure
+#         - name: mysql_commands.create_server
+          - name: mysql_commands.create_table
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+#         - name: mysql_commands.create_trigger
+#         - name: mysql_commands.create_udf
+#         - name: mysql_commands.create_user
+#         - name: mysql_commands.create_view
+#         - name: mysql_commands.dealloc_sql
+          - name: mysql_commands.delete
+            type: IntMonotonicCumulativeSum
+#         - name: mysql_commands.delete_multi
+#         - name: mysql_commands.do
+#         - name: mysql_commands.drop_db
+#         - name: mysql_commands.drop_event
+#         - name: mysql_commands.drop_function
+#         - name: mysql_commands.drop_index
+#         - name: mysql_commands.drop_procedure
+#         - name: mysql_commands.drop_server
+#         - name: mysql_commands.drop_table
+#         - name: mysql_commands.drop_trigger
+#         - name: mysql_commands.drop_user
+#         - name: mysql_commands.drop_view
+#         - name: mysql_commands.empty_query
+#         - name: mysql_commands.execute_sql
+          - name: mysql_commands.flush
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+#         - name: mysql_commands.get_diagnostics
+          - name: mysql_commands.grant
+            type: IntMonotonicCumulativeSum
+#         - name: mysql_commands.ha_close
+#         - name: mysql_commands.ha_open
+#         - name: mysql_commands.ha_read
+#         - name: mysql_commands.help
+          - name: mysql_commands.insert
+            type: IntMonotonicCumulativeSum
+#         - name: mysql_commands.insert_select
+#         - name: mysql_commands.install_plugin
+#         - name: mysql_commands.kill
+#         - name: mysql_commands.load
+#         - name: mysql_commands.lock_tables
+#         - name: mysql_commands.optimize
+#         - name: mysql_commands.preload_keys
+#         - name: mysql_commands.prepare_sql
+#         - name: mysql_commands.purge
+#         - name: mysql_commands.purge_before_date
+#         - name: mysql_commands.release_savepoint
+#         - name: mysql_commands.rename_table
+#         - name: mysql_commands.rename_user
+#         - name: mysql_commands.repair
+#         - name: mysql_commands.replace
+#         - name: mysql_commands.replace_select
+#         - name: mysql_commands.reset
+#         - name: mysql_commands.resignal
+#         - name: mysql_commands.revoke
+#         - name: mysql_commands.revoke_all
+#         - name: mysql_commands.rollback
+#         - name: mysql_commands.rollback_to_savepoint
+#         - name: mysql_commands.savepoint
+          - name: mysql_commands.select
+            type: IntMonotonicCumulativeSum
+          - name: mysql_commands.set_option
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+#         - name: mysql_commands.show_binlog_events
+#         - name: mysql_commands.show_binlogs
+#         - name: mysql_commands.show_charsets
+#         - name: mysql_commands.show_collations
+#         - name: mysql_commands.show_create_db
+#         - name: mysql_commands.show_create_event
+#         - name: mysql_commands.show_create_func
+#         - name: mysql_commands.show_create_proc
+#         - name: mysql_commands.show_create_table
+#         - name: mysql_commands.show_create_trigger
+#         - name: mysql_commands.show_databases
+#         - name: mysql_commands.show_engine_logs
+#         - name: mysql_commands.show_engine_mutex
+#         - name: mysql_commands.show_engine_status
+#         - name: mysql_commands.show_errors
+#         - name: mysql_commands.show_events
+#         - name: mysql_commands.show_fields
+#         - name: mysql_commands.show_function_code
+#         - name: mysql_commands.show_function_status
+#         - name: mysql_commands.show_grants
+#         - name: mysql_commands.show_keys
+#         - name: mysql_commands.show_master_status
+#         - name: mysql_commands.show_open_tables
+#         - name: mysql_commands.show_plugins
+#         - name: mysql_commands.show_privileges
+#         - name: mysql_commands.show_procedure_code
+#         - name: mysql_commands.show_procedure_status
+#         - name: mysql_commands.show_processlist
+#         - name: mysql_commands.show_profile
+#         - name: mysql_commands.show_profiles
+#         - name: mysql_commands.show_relaylog_events
+#         - name: mysql_commands.show_slave_hosts
+#         - name: mysql_commands.show_slave_status
+          - name: mysql_commands.show_status
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+#         - name: mysql_commands.show_storage_engines
+#         - name: mysql_commands.show_table_status
+#         - name: mysql_commands.show_tables
+#         - name: mysql_commands.show_triggers
+#         - name: mysql_commands.show_variables
+#         - name: mysql_commands.show_warnings
+#         - name: mysql_commands.signal
+#         - name: mysql_commands.slave_start
+#         - name: mysql_commands.slave_stop
+#         - name: mysql_commands.truncate
+#         - name: mysql_commands.uninstall_plugin
+#         - name: mysql_commands.unlock_tables
+          - name: mysql_commands.update
+            type: IntMonotonicCumulativeSum
+#         - name: mysql_commands.update_multi
+#         - name: mysql_commands.xa_commit
+#         - name: mysql_commands.xa_end
+#         - name: mysql_commands.xa_prepare
+#         - name: mysql_commands.xa_recover
+#         - name: mysql_commands.xa_rollback
+#         - name: mysql_commands.xa_start
+          - name: mysql_handler.commit
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_handler.delete
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_handler.prepare
+            type: IntMonotonicCumulativeSum
+          - name: mysql_handler.read_first
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_handler.read_key
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_handler.read_next
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+#         - name: mysql_handler.read_prev
+#         - name: mysql_handler.read_rnd
+          - name: mysql_handler.read_rnd_next
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+#         - name: mysql_handler.rollback
+#         - name: mysql_handler.savepoint
+#         - name: mysql_handler.savepoint_rollback
+          - name: mysql_handler.update
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_handler.write
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_handler.external_lock
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_locks.immediate
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_locks.waited
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_octets.rx
+            type: IntMonotonicCumulativeSum
+            attributes:
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_octets.tx
+            type: IntMonotonicCumulativeSum
+            attributes:
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_select.full_join
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_select.full_range_join
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_select.range
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_select.range_check
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_select.scan
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_sort_merge_passes
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_sort.range
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_sort_rows
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_sort.scan
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_slow_queries
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: threads.cached
+            type: IntGauge
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: threads.connected
+            type: IntGauge
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: threads.running
+            type: IntGauge
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: total_threads.created
+            type: IntMonotonicCumulativeSum
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_bpool_pages.data
+            type: IntGauge
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_bpool_pages.dirty
+            type: IntGauge
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_bpool_pages.free
+            type: IntGauge
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_bpool_pages.misc
+            type: IntGauge
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_bpool_pages.total
+            type: IntGauge
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_bpool_counters.pages_flushed
+            type: IntMonotonicCumulativeSum
+          - name: mysql_bpool_counters.read_ahead_rnd
+            type: IntMonotonicCumulativeSum
+          - name: mysql_bpool_counters.read_ahead
+            type: IntMonotonicCumulativeSum
+          - name: mysql_bpool_counters.read_ahead_evicted
+            type: IntMonotonicCumulativeSum
+          - name: mysql_bpool_counters.read_requests
+            type: IntMonotonicCumulativeSum
+          - name: mysql_bpool_counters.reads
+            type: IntMonotonicCumulativeSum
+          - name: mysql_bpool_counters.wait_free
+            type: IntMonotonicCumulativeSum
+          - name: mysql_bpool_counters.write_requests
+            type: IntMonotonicCumulativeSum
+          - name: mysql_bpool_bytes.data
+            type: IntGauge
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_bpool_bytes.dirty
+            type: IntGauge
+            attributes:
+              dsname: value
+              host: <ANY>
+              monitorID: smartagentcollectdmysql
+              plugin: mysql
+              plugin_instance: _testdb
+              system.type: mysql
+          - name: mysql_innodb_data.fsyncs
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_data.read
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_data.reads
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_data.writes
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_data.written
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_dblwr.writes
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_dblwr.written
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_log.waits
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_log.write_requests
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_log.writes
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_log.fsyncs
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_log.written
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_pages.created
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_pages.read
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_pages.written
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_row_lock.time
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_row_lock.waits
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_rows.deleted
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_rows.inserted
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_rows.read
+            type: IntMonotonicCumulativeSum
+          - name: mysql_innodb_rows.updated
+            type: IntMonotonicCumulativeSum
+          - name: bytes.buffer_pool_size
+            type: IntGauge
+          - name: bytes.ibuf_size
+            type: IntGauge
+          - name: gauge.file_num_open_files
+            type: IntGauge
+          - name: gauge.innodb_activity_count
+            type: IntGauge
+          - name: gauge.trx_rseg_history_len
+            type: IntGauge
+          - name: mysql_locks.lock_deadlocks
+            type: IntMonotonicCumulativeSum
+          - name: mysql_locks.lock_row_lock_current_waits
+            type: IntMonotonicCumulativeSum
+          - name: mysql_locks.lock_timeouts
+            type: IntMonotonicCumulativeSum
+          - name: operations.adaptive_hash_searches
+            type: IntMonotonicCumulativeSum
+          - name: operations.dml_deletes
+            type: IntMonotonicCumulativeSum
+          - name: operations.dml_inserts
+            type: IntMonotonicCumulativeSum
+          - name: operations.dml_updates
+            type: IntMonotonicCumulativeSum
+          - name: operations.ibuf_merges_delete
+            type: IntMonotonicCumulativeSum
+          - name: operations.ibuf_merges_delete_mark
+            type: IntMonotonicCumulativeSum
+          - name: operations.ibuf_merges_discard_delete
+            type: IntMonotonicCumulativeSum
+          - name: operations.ibuf_merges_discard_delete_mark
+            type: IntMonotonicCumulativeSum
+          - name: operations.ibuf_merges_discard_insert
+            type: IntMonotonicCumulativeSum
+          - name: operations.ibuf_merges_insert
+            type: IntMonotonicCumulativeSum
+          - name: operations.innodb_rwlock_s_os_waits
+            type: IntMonotonicCumulativeSum
+          - name: operations.innodb_rwlock_s_spin_rounds
+            type: IntMonotonicCumulativeSum
+          - name: operations.innodb_rwlock_s_spin_waits
+            type: IntMonotonicCumulativeSum
+          - name: operations.innodb_rwlock_x_os_waits
+            type: IntMonotonicCumulativeSum
+          - name: operations.innodb_rwlock_x_spin_rounds
+            type: IntMonotonicCumulativeSum
+          - name: operations.innodb_rwlock_x_spin_waits
+            type: IntMonotonicCumulativeSum
+          - name: operations.os_log_bytes_written
+            type: IntMonotonicCumulativeSum
+          - name: operations.os_log_pending_fsyncs
+            type: IntMonotonicCumulativeSum
+          - name: operations.os_log_pending_writes
+            type: IntMonotonicCumulativeSum

@@ -8,11 +8,12 @@ import (
 	"strings"
 
 	"github.com/mitchellh/hashstructure"
+	log "github.com/sirupsen/logrus"
+	yaml "gopkg.in/yaml.v2"
+
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
-	log "github.com/sirupsen/logrus"
-	yaml "gopkg.in/yaml.v2"
 )
 
 // MonitorConfig is used to configure monitor instances.  One instance of
@@ -132,6 +133,9 @@ type MonitorConfig struct {
 	// emitted by default.  A metric group is simply a collection of metrics,
 	// and they are defined in each monitor's documentation.
 	ExtraGroups []string `yaml:"extraGroups" json:"extraGroups"`
+	// If this is a native collectd plugin-based monitor it will
+	// run its own collectd subprocess. No effect otherwise.
+	IsolatedCollectd bool `yaml:"isolatedCollectd" json:"isolatedCollectd"`
 	// OtherConfig is everything else that is custom to a particular monitor
 	OtherConfig map[string]interface{} `yaml:",inline" neverLog:"omit"`
 	Hostname    string                 `yaml:"-" json:"-"`

@@ -18,6 +18,7 @@ package testutils
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -111,7 +112,7 @@ func TestCollectorContainerWithInvalidImage(t *testing.T) {
 	require.NoError(t, err)
 
 	err = collector.Start()
-	require.Contains(t, err.Error(), "Error response from daemon: no such image")
+	require.Contains(t, strings.ToLower(err.Error()), "error response from daemon: no such image")
 
 	err = collector.Shutdown()
 	require.EqualError(t, err, "cannot invoke Stop() on unstarted container")

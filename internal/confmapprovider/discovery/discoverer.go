@@ -359,7 +359,7 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 		ce.Write(zap.String("config", fmt.Sprintf("%#v\n", observerConfig)))
 	}
 
-	observerSettings := d.createExtensionCreateSettings(observerID.String())
+	observerSettings := d.createExtensionCreateSettings(observerID)
 	observer, err := observerFactory.CreateExtension(context.Background(), observerSettings, observerConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating %q extension: %w", observerID, err)
@@ -481,10 +481,11 @@ func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
 	return sMap, nil
 }
 
-func (d *discoverer) createExtensionCreateSettings(kind string) otelcolextension.CreateSettings {
+func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otelcolextension.CreateSettings {
 	return otelcolextension.CreateSettings{
+		ID: observerID,
 		TelemetrySettings: component.TelemetrySettings{
-			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", kind)),
+			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", observerID.String())),
 			TracerProvider: trace.NewNoopTracerProvider(),
 			MeterProvider:  metric.NewNoopMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
@@ -620,6 +621,11 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 			}
 		}
 
+		endpointID := "unavailable"
+		if eid, k := rAttrs.Get(discovery.EndpointIDAttr); k {
+			endpointID = eid.AsString()
+		}
+
 		var rule string
 		var configSection map[string]any
 		receiverID := component.NewIDWithName(component.Type(receiverType), receiverName)
@@ -664,15 +670,18 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 				if currentReceiverStatus != discovery.Successful || currentObserverStatus != discovery.Successful {
 					if rStatusAttr, ok := lr.Attributes().Get(discovery.StatusAttr); ok {
 						rStatus := discovery.StatusType(rStatusAttr.Str())
-						if ok, err = discovery.IsValidStatus(rStatus); !ok {
-							d.logger.Debug("invalid status from log record", zap.Error(err), zap.Any("lr", lr.Body().AsRaw()))
+						if valid, e := discovery.IsValidStatus(rStatus); !valid {
+							d.logger.Debug("invalid status from log record", zap.Error(e), zap.Any("lr", lr.Body().AsRaw()))
 							continue
 						}
 						receiverStatus := determineCurrentStatus(currentReceiverStatus, rStatus)
-						if receiverStatus == discovery.Partial {
-							fmt.Fprintf(os.Stderr, "Partially discovered %q using %q: %s\n", receiverID, observerID, lr.Body().AsString())
-						} else if receiverStatus == discovery.Successful {
-							fmt.Fprintf(os.Stderr, "Successfully discovered %q using %q.\n", receiverID, observerID)
+						switch receiverStatus {
+						case discovery.Failed:
+							d.logger.Info(fmt.Sprintf("failed to discover %q using %q endpoint %q: %s", receiverID, observerID, endpointID, lr.Body().AsString()))
+						case discovery.Partial:
+							fmt.Fprintf(os.Stderr, "Partially discovered %q using %q endpoint %q: %s\n", receiverID, observerID, endpointID, lr.Body().AsString())
+						case discovery.Successful:
+							fmt.Fprintf(os.Stderr, "Successfully discovered %q using %q endpoint %q.\n", receiverID, observerID, endpointID)
 						}
 						d.discoveredReceivers[receiverID] = receiverStatus
 						d.discoveredObservers[observerID] = determineCurrentStatus(currentObserverStatus, rStatus)

@@ -11,15 +11,15 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
-
 	"github.com/mitchellh/hashstructure"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/signalfx/signalfx-agent/pkg/core/common/constants"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/sources"
 	"github.com/signalfx/signalfx-agent/pkg/core/config/validation"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 	"github.com/signalfx/signalfx-agent/pkg/utils/hostfs"
-	log "github.com/sirupsen/logrus"
+	"github.com/signalfx/signalfx-agent/pkg/utils/timeutil"
 )
 
 const (
@@ -389,7 +389,8 @@ type CollectdConfig struct {
 	InstanceName string `yaml:"-"`
 	// A hack to allow custom collectd to easily specify a single monitorID via
 	// query parameter
-	WriteServerQuery string `yaml:"-"`
+	WriteServerQuery string          `yaml:"-"`
+	Logger           log.FieldLogger `yaml:"-"`
 }
 
 // Validate the collectd specific config

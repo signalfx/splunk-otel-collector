@@ -78,12 +78,18 @@ func MainInstance() *Manager {
 // InitCollectd makes a new instance of a manager and initializes it, but does
 // not start collectd
 func InitCollectd(conf *config.CollectdConfig) *Manager {
+	logger := conf.Logger
+	if logger == nil {
+		logger = log.StandardLogger()
+	}
+	logger = logger.WithField("collectdInstance", conf.InstanceName)
+
 	manager := &Manager{
 		conf:            conf,
 		activeMonitors:  make(map[types.MonitorID]types.Output),
 		genericJMXUsers: make(map[types.MonitorID]bool),
 		requestRestart:  make(chan struct{}),
-		logger:          log.WithField("collectdInstance", conf.InstanceName),
+		logger:          logger,
 	}
 	manager.deleteExistingConfig()
 
@@ -305,7 +311,7 @@ func (cm *Manager) manageCollectd(initCh chan<- struct{}, terminated chan struct
 			go func() {
 				scanner := utils.ChunkScanner(output)
 				for scanner.Scan() {
-					logLine(scanner.Text(), cm.logger)
+					cm.logLine(scanner.Text())
 				}
 			}()
 

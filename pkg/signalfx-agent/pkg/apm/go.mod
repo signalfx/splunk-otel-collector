@@ -36,6 +36,6 @@ replace (
 	github.com/go-kit/kit => github.com/go-kit/kit v0.12.0
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.8.2
 	golang.org/x/crypto => golang.org/x/crypto v0.4.0
-	golang.org/x/net => golang.org/x/net v0.4.0
+	golang.org/x/net => golang.org/x/net v0.7.0
 	gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.0
 )

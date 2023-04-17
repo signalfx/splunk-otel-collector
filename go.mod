@@ -91,7 +91,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.2
 	go.etcd.io/bbolt v1.3.7
-	go.etcd.io/etcd/client/v2 v2.305.7
+	go.etcd.io/etcd/client/v2 v2.305.8
 	go.opentelemetry.io/collector v0.75.0
 	go.opentelemetry.io/collector/confmap v0.75.0
 	go.opentelemetry.io/collector/exporter v0.75.0
@@ -441,8 +441,8 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	go.etcd.io/etcd/api/v3 v3.5.7 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.7 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.8 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.8 // indirect
 	go.mongodb.org/atlas v0.24.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/collector/component v0.75.0

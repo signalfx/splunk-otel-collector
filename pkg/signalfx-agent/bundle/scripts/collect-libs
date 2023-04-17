@@ -17,10 +17,15 @@
 set -e
 
 usage() {
-  echo 'Usage: $1 output_dir binary_path ...'
+  echo "Usage: $0 output_dir binary_path ..."
 }
 # Find all dependent shared object files for the collectd installation and move
 # them into the installation directory
+
+if [[ $# -lt 3 ]]; then
+  usage
+  exit 1
+fi
 
 target_path=$1
 mkdir -p $target_path
@@ -44,22 +49,33 @@ find_deps() {
   # Run all of the collectd libs/binaries through ldd and pull out the deps
   # We handle libjvm specially so exclude it here.
   find $paths -type f -o -type l -and -executable -or -name "*.so*" | \
-    xargs ldd | \
-    perl -ne 'print if /.* => (.+) \(0x[0-9a-f]+\)/' | \
-    perl -pe 's/.* => (.+) \(0x[0-9a-f]+\)/\1/' | \
-    perl -ne '/^\ s/ || print' | \
-    perl -ne '/:$/ || print' | \
-    grep -v libjvm.so | \
-    sort | uniq
+    xargs ldd 2>/dev/null | \
+    grep -o '/.*' | awk '{print $1}' | grep -v ':$' | grep -v 'libjvm.so' | sort -u
 }
 
-all_links() {
+copy_file_and_links() {
   local file=$(basename $1)
   local dir=$(dirname $1)
-  echo "${dir}/$file"
-  while file=$(readlink "${dir}/$file"); do
-    echo -n " ${dir}/$file"
-  done
+  local target_path=$2
+  local ref=$(readlink "${dir}/${file}" 2>/dev/null)
+  if [[ -z "$ref" ]]; then
+    # file is not a link
+    if [[ ! -f "${target_path}/${file}" ]]; then
+      cp -a "${dir}/${file}" "$target_path"
+      echo "Pulled in ${dir}/${file}"
+    fi
+  else
+    if [[ ! "$ref" =~ ^\/ ]]; then
+      # file is a relative link
+      ref="${dir}/${ref}"
+    fi
+    # traverse the links for the source file
+    copy_file_and_links "$ref" "$target_path"
+    if [[ ! -e "${target_path}/${file}" ]]; then
+      # create a relative link in target_path
+      (cd "$target_path" && ln -s "$(basename $ref)" "$file" && echo "Created link: $file -> $(readlink ${file})")
+    fi
+  fi
 }
 
 libs=$(find_deps $binary_paths)
@@ -71,8 +87,7 @@ if [ "$arch" = "ppc64le" ]; then
 fi
 for lib in /lib/${arch}-linux-gnu/libnss_* /lib/${arch}-linux-gnu/libnsl* $libs $transitive_deps
 do
-  cp -a $(all_links $lib) $target_path 
-  echo "Pulled in $lib" # to $new_path"
+  copy_file_and_links $lib $target_path
 done
 
 echo "Processed $(wc -w <<< $libs) libraries"
@@ -83,8 +98,7 @@ echo "Checking for missing lib dependencies..."
 new_deps=$(find_deps $target_path | sed -e "s!^$target_path!!")
 for dep in $new_deps
 do
-  stat ${target_path}/$(basename ${dep}) >/dev/null
-  if [[ $? != 0 ]]; then
+  if ! stat ${target_path}/$(basename ${dep}) >/dev/null; then
     echo "Missing dependency in target dir: $dep" >&2
     exit 1
   fi

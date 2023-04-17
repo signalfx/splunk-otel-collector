@@ -175,10 +175,10 @@ function check_policy() {
     $executionRestricted = ($executionPolicy -eq "Restricted")
     if ($executionRestricted) {
         throw @"
-Your execution policy is $executionPolicy, this means you will not be able import or use any scripts including modules.
-To fix this change you execution policy to something like RemoteSigned.
+You can't import or run scripts with execution policy $executionPolicy.
+Change your execution policy to RemoteSigned or similar:
         PS> Set-ExecutionPolicy RemoteSigned
-For more information execute:
+For more information, run the following command:
         PS> Get-Help about_execution_policies
 "@
     }
@@ -307,7 +307,7 @@ function start_service([string]$name, [string]$config_path=$config_path) {
             while (!(service_running -name "$name")) {
                 # timeout after 30 seconds
                 if ((New-TimeSpan -Start $startTime -End (Get-Date)).TotalSeconds -gt 60){
-                    throw "The $name service is not running.  Something went wrong during the installation.  Please check the Windows Event Viewer and rerun the installer if necessary."
+                    throw "The $name service is not running. Check the Windows Event Viewer and rerun the installer if needed."
                 }
                 # give windows a second to synchronize service status
                 Start-Sleep -Seconds 1
@@ -362,7 +362,7 @@ $ErrorActionPreference = 'Stop'; # stop on all errors
 # check administrator status
 echo 'Checking if running as Administrator...'
 if (!(check_if_admin)) {
-    throw 'You are not currently running this installation under an Administrator account.  Installation aborted!'
+    throw 'Installer is running without Administrator rights. Installation failed.'
 } else {
     echo '- Running as Administrator'
 }
@@ -372,19 +372,19 @@ echo 'Checking execution policy'
 check_policy
 
 if (msi_installed) {
-    throw "The Splunk OpenTelemetry Collector is already installed. Remove/Uninstall the collector and re-run this script."
+    throw "The Splunk OpenTelemetry Collector is already installed. Remove or uninstall the Collector and rerun this script."
 }
 
 if (service_installed -name "$service_name") {
-    throw "The $service_name service is already installed. Remove/Uninstall the collector and re-run this script."
+    throw "The $service_name service is already installed. Remove or uninstall the Collector and rerun this script."
 }
 
 if ($with_fluentd -And (service_installed -name "$fluentd_service_name")) {
-    throw "The $fluentd_service_name service is already installed. Remove/Uninstall fluentd and re-run this script."
+    throw "The $fluentd_service_name service is already installed. Remove or uninstall fluentd and rerun this script."
 }
 
 if ($with_fluentd -And (Test-Path -Path "$fluentd_base_dir\bin\fluentd")) {
-    throw "$fluentd_base_dir\bin\fluentd is already installed. Remove/Uninstall fluentd and re-run this script."
+    throw "$fluentd_base_dir\bin\fluentd is already installed. Remove or uninstall fluentd and rerun this script."
 }
 
 # create a temporary directory
@@ -399,7 +399,7 @@ if ($with_dotnet_instrumentation) {
     Invoke-WebRequest -Uri $download -OutFile $dotnet_autoinstr_path -UseBasicParsing
     Import-Module $dotnet_autoinstr_path
     if (Get-IsSignalFxInstalled) {
-        throw "SignalFx Instrumentation for .NET is already installed. Remove/Uninstall SignalFx Instrumentation for .NET and re-run this script."
+        throw "SignalFx Instrumentation for .NET is already installed. Remove or uninstall SignalFx Instrumentation for .NET and rerun this script."
     }
 }
 
@@ -431,7 +431,7 @@ if ("$env:VERIFY_ACCESS_TOKEN" -ne "false") {
     # verify access token
     echo 'Verifying Access Token...'
     if (!(verify_access_token -access_token $access_token -ingest_url $ingest_url -insecure $insecure)) {
-        throw "Failed to authenticate access token please verify that your access token is correct"
+        throw "Access token authentication failed. Verify that your access token is correct."
     }
     else {
         echo '- Verified Access Token'
@@ -495,7 +495,7 @@ if ($config_path -Eq "") {
     if (Test-Path -Path "$old_config_path") {
         $config_path = $old_config_path
     } else {
-        throw "The installed splunk-otel-collector package does not include a supported config file!"
+        throw "Valid Collector configuration file not found."
     }
 }
 

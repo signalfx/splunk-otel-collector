@@ -23,7 +23,6 @@ vetall:
 
 .PHONY: lint
 lint:
-	go generate ./...
 	@echo 'Linting LINUX code'
 	CGO_ENABLED=0 GOGC=40 golangci-lint run --allow-parallel-runners --timeout 10m
 	@echo 'Linting WINDOWS code'

@@ -146,6 +146,7 @@ func getConfigDir(f *Settings) string {
 func (s *Settings) ConfMapConverters() []confmap.Converter {
 	confMapConverters := []confmap.Converter{
 		configconverter.NewOverwritePropertiesConverter(s.setProperties),
+		configconverter.Discovery{},
 	}
 	if !s.noConvertConfig {
 		confMapConverters = append(

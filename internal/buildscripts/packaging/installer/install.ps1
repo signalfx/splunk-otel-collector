@@ -495,7 +495,7 @@ if ($config_path -Eq "") {
     if (Test-Path -Path "$old_config_path") {
         $config_path = $old_config_path
     } else {
-        throw "Valid Collector configuration file not found. Rerun the script with Administrator rights."
+        throw "Valid Collector configuration file not found."
     }
 }
 

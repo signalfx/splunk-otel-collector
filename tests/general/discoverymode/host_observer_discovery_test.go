@@ -169,12 +169,8 @@ func TestHostObserver(t *testing.T) {
 				},
 			},
 			"service": map[string]any{
-				"extensions": []any{"host_observer"},
-				"pipelines": map[string]any{
-					"metrics": map[string]any{
-						"receivers": []any{"receiver_creator/discovery"},
-					},
-				},
+				"extensions/splunk.discovery": []any{"host_observer"},
+				"receivers/splunk.discovery":  []any{"receiver_creator/discovery"},
 			},
 		},
 		"splunk.property": map[string]any{},

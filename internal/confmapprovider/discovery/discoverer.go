@@ -428,17 +428,14 @@ func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
 			receiverAdded = true
 		}
 	}
+
 	if receiverAdded {
-		if err := dCfg.Merge(confmap.NewFromStringMap(map[string]any{
-			"service": map[string]any{
-				"pipelines": map[string]any{
-					"metrics": map[string]any{
-						"receivers": []string{"receiver_creator/discovery"},
-					},
-				},
-			},
-		})); err != nil {
-			return nil, fmt.Errorf("failed adding receiver_creator/discovery to metrics pipeline: %w", err)
+		if err := dCfg.Merge(
+			confmap.NewFromStringMap(
+				map[string]any{"service": map[string]any{discovery.DiscoReceiversKey: []string{"receiver_creator/discovery"}}},
+			),
+		); err != nil {
+			return nil, fmt.Errorf("failed forming suggested discovery receivers array: %w", err)
 		}
 	}
 
@@ -464,7 +461,7 @@ func (d *discoverer) discoveryConfig(cfg *Config) (map[string]any, error) {
 	if len(observers) > 0 {
 		if err := dCfg.Merge(
 			confmap.NewFromStringMap(
-				map[string]any{"service": map[string]any{"extensions": observers}},
+				map[string]any{"service": map[string]any{discovery.DiscoExtensionsKey: observers}},
 			),
 		); err != nil {
 			return nil, fmt.Errorf("failed forming suggested discovery observer extensions array: %w", err)

@@ -31,15 +31,17 @@ var _ configsource.Hook = (*DryRun)(nil)
 
 type DryRun struct {
 	*sync.Mutex
-	configs []map[string]any
-	enabled bool
+	configs   []map[string]any
+	enabled   bool
+	discovery Discovery
 }
 
 func NewDryRun(enabled bool) *DryRun {
 	return &DryRun{
-		Mutex:   &sync.Mutex{},
-		enabled: enabled,
-		configs: []map[string]any{},
+		Mutex:     &sync.Mutex{},
+		enabled:   enabled,
+		configs:   []map[string]any{},
+		discovery: Discovery{},
 	}
 }
 
@@ -59,7 +61,7 @@ func (dr *DryRun) OnShutdown() {}
 // Convert disregards the provided *confmap.Conf so that it will use
 // unexpanded values (env vars, config source directives) as
 // accrued by OnRetrieve() calls.
-func (dr *DryRun) Convert(context.Context, *confmap.Conf) error {
+func (dr *DryRun) Convert(ctx context.Context, _ *confmap.Conf) error {
 	if dr == nil || !dr.enabled {
 		return nil
 	}
@@ -70,6 +72,12 @@ func (dr *DryRun) Convert(context.Context, *confmap.Conf) error {
 			dr.Unlock()
 			return err
 		}
+	}
+	// need to run through the discovery converter since the
+	// discovery confmap provider sets temporary service fields that
+	// are invalid
+	if err := dr.discovery.Convert(ctx, cm); err != nil {
+		return fmt.Errorf("error finalizing --dry-run with discovery converter: %w", err)
 	}
 	dr.Unlock() // not deferred because we are exiting
 	out, err := yaml.Marshal(cm.ToStringMap())

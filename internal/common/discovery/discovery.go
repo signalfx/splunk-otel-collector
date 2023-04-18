@@ -27,6 +27,9 @@ const (
 	ReceiverNameAttr   = "discovery.receiver.name"
 	ReceiverTypeAttr   = "discovery.receiver.type"
 	StatusAttr         = "discovery.status"
+
+	DiscoExtensionsKey = "extensions/splunk.discovery"
+	DiscoReceiversKey  = "receivers/splunk.discovery"
 )
 
 var NoType = component.NewID("")

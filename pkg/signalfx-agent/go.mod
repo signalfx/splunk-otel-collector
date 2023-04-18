@@ -19,7 +19,7 @@ replace (
 	github.com/go-kit/kit => github.com/go-kit/kit v0.12.0
 	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
-	github.com/opencontainers/runc => github.com/opencontainers/runc v1.1.5
+	github.com/opencontainers/runc => github.com/opencontainers/runc v1.1.6
 	github.com/signalfx/sapm-proto => github.com/signalfx/sapm-proto v0.12.0
 	github.com/spf13/viper => github.com/spf13/viper v1.11.0 // required to drop dependency on deprecated github.com/coreos/etcd and github.com/coreos/go-etcd
 	go.mongodb.org/mongo-driver => go.mongodb.org/mongo-driver v1.5.1

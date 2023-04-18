@@ -113,6 +113,7 @@ func TestNewSettingsNoConvertConfig(t *testing.T) {
 	}, settings.ResolverURIs())
 	require.Equal(t, []confmap.Converter{
 		configconverter.NewOverwritePropertiesConverter(settings.setProperties),
+		configconverter.Discovery{},
 	}, settings.ConfMapConverters())
 	require.Equal(t, []string{"--feature-gates", "foo", "--feature-gates", "-bar"}, settings.ColCoreArgs())
 }
@@ -140,6 +141,7 @@ func TestNewSettingsConvertConfig(t *testing.T) {
 	require.Equal(t, []string{configPath, anotherConfigPath}, settings.ResolverURIs())
 	require.Equal(t, []confmap.Converter{
 		configconverter.NewOverwritePropertiesConverter(settings.setProperties),
+		configconverter.Discovery{},
 		configconverter.RemoveBallastKey{},
 		configconverter.MoveOTLPInsecureKey{},
 		configconverter.MoveHecTLS{},

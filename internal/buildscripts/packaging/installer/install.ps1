@@ -257,7 +257,7 @@ function verify_access_token([string]$access_token="", [string]$ingest_url=$INGE
     } catch {
         $err = $_.Exception.Message
         $message = "
-        An error occurred while validating the access token
+        Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token.
         $err
         "
         throw "$message"

@@ -1052,7 +1052,7 @@ parse_args_and_install() {
   fi
 
   if [ "${VERIFY_ACCESS_TOKEN:-true}" = "true" ] && ! verify_access_token "$access_token" "$ingest_url" "$insecure"; then
-    echo "Your access token could not be verified. This may be due to a network connectivity issue." >&2
+    echo "Your access token could not be verified. This may be due to a network connectivity issue or an invalid access token." >&2
     exit 1
   fi
 

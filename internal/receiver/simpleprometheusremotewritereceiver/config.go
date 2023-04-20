@@ -35,7 +35,7 @@ type Config struct {
 	ListenPath    string            `mapstructure:"path"`
 	Timeout       time.Duration     `mapstructure:"timeout"`
 	BufferSize    int               `mapstructure:"buffer_size"` // Channel buffer size, defaults to blocking each request until processed
-	CacheCapacity int               `mapstructure:"cache_size"`
+	CacheCapacity int               `mapstructure:"cache_size"`  // Since PRW Metadata need not come in every request, store our knowledge of such
 }
 
 func (c *Config) Validate() error {
@@ -48,6 +48,9 @@ func (c *Config) Validate() error {
 	}
 	if c.Timeout < time.Millisecond {
 		errs = append(errs, errors.New("impractically short timeout"))
+	}
+	if c.BufferSize < 0 {
+		errs = append(errs, errors.New("buffer size must be non-negative"))
 	}
 	if c.CacheCapacity <= 100 {
 		errs = append(errs, errors.New("inadvisably small capacity for cache"))

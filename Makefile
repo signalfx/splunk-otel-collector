@@ -17,9 +17,6 @@ TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 # NONROOT_MODS includes ./* dirs (excludes . dir)
 NONROOT_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR) )
 
-# CircleCI runtime.NumCPU() is for host machine despite container instance only granting 2.
-# If we are in a CI job, limit to 2 (and scale as we increase executor size).
-NUM_CORES := $(shell if [ -z ${CIRCLE_JOB} ]; then echo `getconf _NPROCESSORS_ONLN` ; else echo 2; fi )
 GOTEST=go test -p $(NUM_CORES)
 
 # Currently integration tests are flakey when run in parallel due to internal metric and config server conflicts

@@ -89,11 +89,18 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: '**/go.sum'
 
+      - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        with:
+          path: ${{ env.GOLANGCI_LINT_CACHE }}
+          key: golangci-lint-${{ hashFiles('**/.golangci.yml', '**/*.go', '**/go.sum') }}
+
       - name: Lint
         run: |
           make install-tools
-          make -j4 for-all CMD="make checklicense impi lint misspell"
-  
+          make for-all CMD="make lint"
+
   test:
     name: test
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved

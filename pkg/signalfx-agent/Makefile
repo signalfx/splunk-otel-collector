@@ -24,9 +24,9 @@ vetall:
 .PHONY: lint
 lint:
 	@echo 'Linting LINUX code'
-	CGO_ENABLED=0 GOGC=40 golangci-lint run --allow-parallel-runners --timeout 10m
+	CGO_ENABLED=0 GOGC=40 golangci-lint run --allow-parallel-runners --timeout 10m -j$(NUM_CORES)
 	@echo 'Linting WINDOWS code'
-	GOOS=windows CGO_ENABLED=0 GOGC=40 golangci-lint run --allow-parallel-runners --timeout 10m
+	GOOS=windows CGO_ENABLED=0 GOGC=40 golangci-lint run --allow-parallel-runners --timeout 10m -j$(NUM_CORES)
 
 .PHONY: fmt
 fmt:

@@ -19,6 +19,7 @@ LINT=golangci-lint
 IMPI=impi
 # BUILD_TYPE should be one of (dev, release).
 BUILD_TYPE?=release
+NUM_CORES := $(shell getconf _NPROCESSORS_ONLN)
 
 ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | sort)
 
@@ -90,8 +91,8 @@ fmt: addlicense misspell-correction
 	fieldalignment -fix ./... || true
 
 .PHONY: lint
-lint: checklicense misspell
-	$(LINT) run --allow-parallel-runners --timeout 10m
+lint: checklicense misspell impi
+	$(LINT) run --allow-parallel-runners -j$(NUM_CORES)
 
 .PHONY: tidy
 tidy:

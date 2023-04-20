@@ -36,7 +36,7 @@ func TestHappy(t *testing.T) {
 
 	cfg := createDefaultConfig().(*Config)
 	freePort, err := internal.GetFreePort()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	cfg.Endpoint = fmt.Sprintf("localhost:%d", freePort)
 	cfg.ListenPath = "/metrics"
@@ -46,15 +46,15 @@ func TestHappy(t *testing.T) {
 	mockConsumer := consumertest.NewNop()
 	receiver, err := newPrometheusRemoteWriteReceiver(mockSettings, cfg, mockConsumer)
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	require.NotNil(t, receiver)
-	require.Nil(t, receiver.Start(ctx, nopHost))
+	require.NoError(t, receiver.Start(ctx, nopHost))
 
 	// Ensure we can instantiate
 	client, err := internal.NewMockPrwClient(
 		cfg.Endpoint,
 		"metrics",
 	)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, client)
 }

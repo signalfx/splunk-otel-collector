@@ -38,8 +38,8 @@ func TestFactory(t *testing.T) {
 
 	cfg := createDefaultConfig().(*Config)
 	freePort, err := internal.GetFreePort()
-	require.Nil(t, err)
-	assert.Nil(t, componenttest.CheckConfigStruct(cfg))
+	require.NoError(t, err)
+	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
 	cfg.Endpoint = fmt.Sprintf("localhost:%d", freePort)
 	cfg.ListenPath = "/metrics"
 
@@ -48,11 +48,11 @@ func TestFactory(t *testing.T) {
 	mockConsumer := consumertest.NewNop()
 	receiver, err := newPrometheusRemoteWriteReceiver(mockSettings, cfg, mockConsumer)
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	require.NotNil(t, receiver)
-	require.Nil(t, receiver.Start(ctx, nopHost))
+	require.NoError(t, receiver.Start(ctx, nopHost))
 
-	require.Nil(t, receiver.Shutdown(ctx))
+	require.NoError(t, receiver.Shutdown(ctx))
 
 }
 
@@ -68,7 +68,7 @@ func TestFactoryOtelIntegration(t *testing.T) {
 	require.NotNil(t, cfg)
 	factory, err := receiver.MakeFactoryMap(NewFactory())
 	factories := otelcol.Factories{Receivers: factory}
-	require.Nil(t, err)
+	require.NoError(t, err)
 	parsedFactory := factories.Receivers[typeString]
 	require.NotEmpty(t, parsedFactory)
 	assert.EqualValues(t, parsedFactory.Type(), typeString)

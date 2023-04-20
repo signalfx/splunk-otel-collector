@@ -28,7 +28,7 @@ import (
 
 func TestValidateConfig(t *testing.T) {
 	cfg := createDefaultConfig().(*Config)
-	assert.Nil(t, cfg.Validate())
+	assert.NoError(t, cfg.Validate())
 	assert.NotEmpty(t, cfg.Endpoint)
 	assert.NotEmpty(t, cfg.ListenPath)
 	assert.Equal(t, 30*time.Second, cfg.Timeout)

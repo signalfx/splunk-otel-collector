@@ -27,7 +27,7 @@ import (
 var _ component.Config = (*Config)(nil)
 
 const (
-	typeString = "simpleprometheusremotewrite"
+	typeString = "prometheusremotewrite"
 )
 
 type Config struct {

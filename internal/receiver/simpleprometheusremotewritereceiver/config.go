@@ -20,8 +20,7 @@ import (
 
 	"github.com/jaegertracing/jaeger/pkg/multierror"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/config/confighttp"
 )
 
 var _ component.Config = (*Config)(nil)
@@ -31,20 +30,17 @@ const (
 )
 
 type Config struct {
-	ListenAddr    confignet.NetAddr `mapstructure:",squash"`
-	ListenPath    string            `mapstructure:"path"`
-	Timeout       time.Duration     `mapstructure:"timeout"`
-	BufferSize    int               `mapstructure:"buffer_size"` // Channel buffer size, defaults to blocking each request until processed
-	CacheCapacity int               `mapstructure:"cache_size"`  // Since PRW Metadata need not come in every request, store our knowledge of such
+	ListenPath                    string `mapstructure:"path"`
+	confighttp.HTTPServerSettings `mapstructure:",squash"`
+	Timeout                       time.Duration `mapstructure:"timeout"`
+	BufferSize                    int           `mapstructure:"buffer_size"`
+	CacheCapacity                 int           `mapstructure:"cache_size"`
 }
 
 func (c *Config) Validate() error {
 	var errs []error
-	if c.ListenAddr.Endpoint == "" {
+	if c.Endpoint == "" {
 		errs = append(errs, errors.New("endpoint must not be empty"))
-	}
-	if c.ListenAddr.Transport == "" {
-		errs = append(errs, errors.New("transport must not be empty"))
 	}
 	if c.Timeout < time.Millisecond {
 		errs = append(errs, errors.New("impractically short timeout"))
@@ -54,9 +50,6 @@ func (c *Config) Validate() error {
 	}
 	if c.CacheCapacity <= 100 {
 		errs = append(errs, errors.New("inadvisably small capacity for cache"))
-	}
-	if err := componenttest.CheckConfigStruct(c); err != nil {
-		errs = append(errs, err)
 	}
 	if errs != nil {
 		return multierror.Wrap(errs)

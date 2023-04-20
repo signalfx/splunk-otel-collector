@@ -22,10 +22,10 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/transport"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal"
 )
 
-var _ transport.Reporter = (*reporter)(nil)
+var _ internal.Reporter = (*reporter)(nil)
 
 // reporter struct implements the transport.Reporter interface to give consistent
 // observability per Collector metric observability package.
@@ -35,7 +35,7 @@ type reporter struct {
 	obsrecv       *obsreport.Receiver
 }
 
-func newReporter(settings receiver.CreateSettings) (transport.Reporter, error) {
+func newReporter(settings receiver.CreateSettings) (internal.Reporter, error) {
 	obsrecv, err := obsreport.NewReceiver(obsreport.ReceiverSettings{
 		ReceiverID:             settings.ID,
 		Transport:              "tcp",

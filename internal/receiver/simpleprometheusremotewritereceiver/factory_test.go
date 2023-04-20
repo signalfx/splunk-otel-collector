@@ -28,7 +28,7 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/transport"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal"
 )
 
 func TestFactory(t *testing.T) {
@@ -37,10 +37,10 @@ func TestFactory(t *testing.T) {
 	defer cancel()
 
 	cfg := createDefaultConfig().(*Config)
-	freePort, err := transport.GetFreePort()
+	freePort, err := internal.GetFreePort()
 	require.Nil(t, err)
 	assert.Nil(t, componenttest.CheckConfigStruct(cfg))
-	cfg.ListenAddr.Endpoint = fmt.Sprintf("localhost:%d", freePort)
+	cfg.Endpoint = fmt.Sprintf("localhost:%d", freePort)
 	cfg.ListenPath = "/metrics"
 
 	nopHost := componenttest.NewNopHost()

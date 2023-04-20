@@ -25,16 +25,15 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/prw"
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/transport"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal"
 )
 
 var _ receiver.Metrics = (*simplePrometheusWriteReceiver)(nil)
 
 // simplePrometheusWriteReceiver implements the receiver.Metrics for PrometheusRemoteWrite protocol.
 type simplePrometheusWriteReceiver struct {
-	server       transport.Server
-	reporter     transport.Reporter
+	server       internal.Server
+	reporter     internal.Reporter
 	nextConsumer consumer.Metrics
 	cancel       context.CancelFunc
 	config       *Config
@@ -65,21 +64,19 @@ func newPrometheusRemoteWriteReceiver(
 	}
 	return r, nil
 }
-func (r *simplePrometheusWriteReceiver) buildTransportServer(ctx context.Context, metrics chan pmetric.Metrics) (transport.Server, error) {
-	listener, err := net.Listen(r.config.ListenAddr.Transport, r.config.ListenAddr.Endpoint)
+func (r *simplePrometheusWriteReceiver) buildTransportServer(ctx context.Context, metrics chan pmetric.Metrics) (internal.Server, error) {
+	listener, err := net.Listen("tcp", r.config.Endpoint)
 	if nil != err {
 		return nil, err
 	}
 	defer listener.Close()
-	cfg := &prw.ServerConfig{
-		Addr:         r.config.ListenAddr,
-		Path:         r.config.ListenPath,
-		ReadTimeout:  r.config.Timeout,
-		WriteTimeout: r.config.Timeout,
-		Mc:           metrics,
-		Reporter:     r.reporter,
+	cfg := &internal.ServerConfig{
+		HTTPServerSettings: r.config.HTTPServerSettings,
+		Path:               r.config.ListenPath,
+		Mc:                 metrics,
+		Reporter:           r.reporter,
 	}
-	server, err := prw.NewPrometheusRemoteWriteServer(ctx, cfg)
+	server, err := internal.NewPrometheusRemoteWriteServer(ctx, cfg)
 	return server, err
 
 }

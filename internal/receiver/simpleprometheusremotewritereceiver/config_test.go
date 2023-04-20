@@ -15,23 +15,22 @@
 package simpleprometheusremotewritereceiver
 
 import (
-	"io"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/confmap"
-	"gopkg.in/yaml.v2"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
 func TestValidateConfig(t *testing.T) {
 	cfg := createDefaultConfig().(*Config)
 	assert.Nil(t, cfg.Validate())
-	assert.NotEmpty(t, cfg.ListenAddr.Endpoint)
-	assert.NotEmpty(t, cfg.ListenAddr.Transport)
+	assert.NotEmpty(t, cfg.Endpoint)
+	assert.NotEmpty(t, cfg.ListenPath)
 	assert.Equal(t, 30*time.Second, cfg.Timeout)
 	assert.Equal(t, 0, cfg.BufferSize)
 }
@@ -40,27 +39,18 @@ func TestParseConfig(t *testing.T) {
 	cfg := NewFactory().CreateDefaultConfig()
 	require.NotNil(t, cfg)
 
-	rawYaml := make(map[string]any)
-	file, err := os.Open("prometheustranslation/testdata/otel-collector-config.yaml")
-	require.NoError(t, err)
-
-	buffer, err := io.ReadAll(file)
-	require.Nil(t, err)
-	assert.NotEmpty(t, buffer)
-	assert.Nil(t, yaml.Unmarshal(buffer, rawYaml))
-	assert.NotEmpty(t, rawYaml)
-
 	rawCfgs := make(map[string]map[component.ID]map[string]any)
-	conf := confmap.NewFromStringMap(rawYaml)
-	err = conf.Unmarshal(&rawCfgs, confmap.WithErrorUnused())
-	require.Nil(t, err)
+	conf, err := confmaptest.LoadConf("prometheustranslation/testdata/otel-collector-config.yaml")
+	require.NoError(t, err)
+	require.NoError(t, conf.Unmarshal(&rawCfgs, confmap.WithErrorUnused()))
 	require.NotEmpty(t, rawCfgs)
 
 	require.NotEmpty(t, rawCfgs["receivers"])
 	for id, value := range rawCfgs["receivers"] {
 		require.NotEmpty(t, id)
 		require.NotEmpty(t, value)
-		assert.Nil(t, component.UnmarshalConfig(confmap.NewFromStringMap(value), cfg))
+		assert.NoError(t, component.UnmarshalConfig(confmap.NewFromStringMap(value), cfg))
 	}
 	assert.NotEmpty(t, cfg)
+	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
 }

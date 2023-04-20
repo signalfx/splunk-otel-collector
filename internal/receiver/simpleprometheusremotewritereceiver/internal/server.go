@@ -12,17 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package prw
+package internal
 
 import (
 	"context"
 	"net/http"
-	"time"
 
-	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal/transport"
 )
 
 type PrometheusRemoteWriteServer struct {
@@ -31,21 +29,19 @@ type PrometheusRemoteWriteServer struct {
 }
 
 type ServerConfig struct {
-	transport.Reporter
-	Mc           chan pmetric.Metrics
-	Addr         confignet.NetAddr
-	Path         string
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
+	Reporter
+	component.Host
+	Mc chan pmetric.Metrics
+	component.TelemetrySettings
+	Path string
+	confighttp.HTTPServerSettings
 }
 
 func NewPrometheusRemoteWriteServer(ctx context.Context, config *ServerConfig) (*PrometheusRemoteWriteServer, error) {
 	handler := newHandler(ctx, config.Reporter, config.Path, config.Mc)
-	server := &http.Server{
-		Handler:      handler,
-		Addr:         config.Addr.Endpoint,
-		ReadTimeout:  config.ReadTimeout,
-		WriteTimeout: config.WriteTimeout,
+	server, err := config.HTTPServerSettings.ToServer(config.Host, config.TelemetrySettings, handler)
+	if err != nil {
+		return nil, err
 	}
 	return &PrometheusRemoteWriteServer{
 		handler: handler,
@@ -68,12 +64,12 @@ func (prw *PrometheusRemoteWriteServer) ListenAndServe() error {
 
 type handler struct {
 	ctx      context.Context
-	reporter transport.Reporter
+	reporter Reporter
 	mc       chan pmetric.Metrics
 	path     string
 }
 
-func newHandler(ctx context.Context, reporter transport.Reporter, path string, mc chan pmetric.Metrics) *handler {
+func newHandler(ctx context.Context, reporter Reporter, path string, mc chan pmetric.Metrics) *handler {
 	return &handler{
 		ctx:      ctx,
 		path:     path,

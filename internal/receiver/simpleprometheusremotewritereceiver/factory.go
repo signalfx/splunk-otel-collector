@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 )
@@ -45,9 +45,8 @@ func createMetricsReceiver(
 func createDefaultConfig() component.Config {
 	return &Config{
 		Timeout: 30 * time.Second,
-		ListenAddr: confignet.NetAddr{
-			Endpoint:  "localhost:0", // Will randomize port!
-			Transport: "tcp",
+		HTTPServerSettings: confighttp.HTTPServerSettings{
+			Endpoint: "localhost:0", // Will randomize port!
 		},
 		ListenPath:    "/metrics",
 		CacheCapacity: 10000,

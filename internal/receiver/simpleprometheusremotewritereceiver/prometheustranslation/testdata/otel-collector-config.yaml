@@ -1,7 +1,6 @@
 receivers:
   simpleprometheusremotewrite:
     endpoint: "0.0.0.0:54090"
-    transport: "tcp"
     path: "/metrics"
     timeout: "5s"
     buffer_size: 100

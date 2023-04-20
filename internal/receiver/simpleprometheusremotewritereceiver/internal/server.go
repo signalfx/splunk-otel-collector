@@ -18,6 +18,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -25,7 +26,7 @@ import (
 
 type PrometheusRemoteWriteServer struct {
 	*http.Server
-	*handler
+	Reporter Reporter
 }
 
 type ServerConfig struct {
@@ -38,14 +39,16 @@ type ServerConfig struct {
 }
 
 func NewPrometheusRemoteWriteServer(ctx context.Context, config *ServerConfig) (*PrometheusRemoteWriteServer, error) {
-	handler := newHandler(ctx, config.Reporter, config.Path, config.Mc)
+	handler := newHandler(ctx, config.Reporter, config, config.Mc)
+	mx := mux.NewRouter()
+	mx.HandleFunc(config.Path, handler)
 	server, err := config.HTTPServerSettings.ToServer(config.Host, config.TelemetrySettings, handler)
 	if err != nil {
 		return nil, err
 	}
 	return &PrometheusRemoteWriteServer{
-		handler: handler,
-		Server:  server,
+		Server:   server,
+		Reporter: config.Reporter,
 	}, nil
 }
 
@@ -54,7 +57,7 @@ func (prw *PrometheusRemoteWriteServer) Close() error {
 }
 
 func (prw *PrometheusRemoteWriteServer) ListenAndServe() error {
-	prw.reporter.OnDebugf("Starting prometheus simple write server")
+	prw.Reporter.OnDebugf("Starting prometheus simple write server")
 	err := prw.Server.ListenAndServe()
 	if err == http.ErrServerClosed {
 		return nil
@@ -62,23 +65,9 @@ func (prw *PrometheusRemoteWriteServer) ListenAndServe() error {
 	return err
 }
 
-type handler struct {
-	ctx      context.Context
-	reporter Reporter
-	mc       chan pmetric.Metrics
-	path     string
-}
-
-func newHandler(ctx context.Context, reporter Reporter, path string, mc chan pmetric.Metrics) *handler {
-	return &handler{
-		ctx:      ctx,
-		path:     path,
-		reporter: reporter,
-		mc:       mc,
+func newHandler(_ context.Context, _ Reporter, _ *ServerConfig, _ chan pmetric.Metrics) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// THIS IS A STUB FUNCTION.  You can see another branch with how I'm thinking this will look if you're curious
+		w.WriteHeader(http.StatusBadGateway)
 	}
-}
-
-func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// THIS IS A STUB FUNCTION.  You can see another branch with how I'm thinking this will look if you're curious
-	w.WriteHeader(http.StatusBadGateway)
 }

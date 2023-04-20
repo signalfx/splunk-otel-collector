@@ -18,19 +18,6 @@ import (
 	"context"
 )
 
-// Server abstracts the type of transport being used and offer an
-// interface to handle serving clients over that transport.
-type Server interface {
-	// ListenAndServe is a blocking call that starts to listen for client messages
-	// on the specific transport, and prepares the message to be processed by
-	// the Parser and passed to the next consumer.
-	ListenAndServe() error
-
-	// Close stops any running ListenAndServe, however, it waits for any
-	// data already received to be parsed and sent to the next consumer.
-	Close() error
-}
-
 // Reporter is used to report (via zPages, logs, metrics, etc) the events
 // happening when the Server is receiving and processing data.
 type Reporter interface {

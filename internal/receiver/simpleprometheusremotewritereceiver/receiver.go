@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"net/http"
 	"sync"
 
 	"go.opentelemetry.io/collector/component"
@@ -32,7 +33,7 @@ var _ receiver.Metrics = (*simplePrometheusWriteReceiver)(nil)
 
 // simplePrometheusWriteReceiver implements the receiver.Metrics for PrometheusRemoteWrite protocol.
 type simplePrometheusWriteReceiver struct {
-	server       internal.Server
+	server       *http.Server
 	reporter     internal.Reporter
 	nextConsumer consumer.Metrics
 	cancel       context.CancelFunc
@@ -64,43 +65,39 @@ func newPrometheusRemoteWriteReceiver(
 	}
 	return r, nil
 }
-func (r *simplePrometheusWriteReceiver) buildTransportServer(ctx context.Context, metrics chan pmetric.Metrics) (internal.Server, error) {
-	listener, err := net.Listen("tcp", r.config.Endpoint)
-	if nil != err {
-		return nil, err
-	}
-	defer listener.Close()
-	cfg := &internal.ServerConfig{
-		HTTPServerSettings: r.config.HTTPServerSettings,
-		Path:               r.config.ListenPath,
-		Mc:                 metrics,
-		Reporter:           r.reporter,
-	}
-	server, err := internal.NewPrometheusRemoteWriteServer(ctx, cfg)
-	return server, err
+func (receiver *simplePrometheusWriteReceiver) buildTransportServer(ctx context.Context, config *internal.ServerConfig) (*http.Server, error) {
+	server, err := internal.NewPrometheusRemoteWriteServer(ctx, config)
+	return server.Server, err
 
 }
 
 // Start starts an HTTP server that can process Prometheus Remote Write Requests
-func (r *simplePrometheusWriteReceiver) Start(ctx context.Context, host component.Host) error {
-	metricsChannel := make(chan pmetric.Metrics, r.config.BufferSize)
-	ctx, r.cancel = context.WithCancel(ctx)
-	server, err := r.buildTransportServer(ctx, metricsChannel)
+func (receiver *simplePrometheusWriteReceiver) Start(ctx context.Context, host component.Host) error {
+	metricsChannel := make(chan pmetric.Metrics, receiver.config.BufferSize)
+	cfg := &internal.ServerConfig{
+		HTTPServerSettings: receiver.config.HTTPServerSettings,
+		Path:               receiver.config.ListenPath,
+		Mc:                 metricsChannel,
+		Reporter:           receiver.reporter,
+		Host:               host,
+	}
+	ctx, receiver.cancel = context.WithCancel(ctx)
+	server, err := receiver.buildTransportServer(ctx, cfg)
 	if err != nil {
 		return err
 	}
-	r.Lock()
-	defer r.Unlock()
-	if nil != r.server {
-		err := r.server.Close()
+	receiver.Lock()
+	defer receiver.Unlock()
+	if nil != receiver.server {
+		err := receiver.server.Close()
 		if err != nil {
 			return err
 		}
 	}
-	r.server = server
+	receiver.server = server
 	// Start server
 	go func() {
-		if err := r.server.ListenAndServe(); err != nil {
+		if err := receiver.server.ListenAndServe(); err != nil {
 			if !errors.Is(err, net.ErrClosed) {
 				host.ReportFatalError(err)
 			}
@@ -111,9 +108,9 @@ func (r *simplePrometheusWriteReceiver) Start(ctx context.Context, host componen
 		for {
 			select {
 			case metrics := <-metricsChannel:
-				err := r.Flush(ctx2, metrics)
+				err := receiver.Flush(ctx2, metrics)
 				if err != nil {
-					r.reporter.OnTranslationError(ctx2, err)
+					receiver.reporter.OnTranslationError(ctx2, err)
 					close(metricsChannel)
 					return
 				}
@@ -128,18 +125,18 @@ func (r *simplePrometheusWriteReceiver) Start(ctx context.Context, host componen
 }
 
 // Shutdown stops the PrometheusSimpleRemoteWrite receiver.
-func (r *simplePrometheusWriteReceiver) Shutdown(context.Context) error {
-	r.Lock()
-	defer r.Unlock()
-	if r.cancel == nil {
+func (receiver *simplePrometheusWriteReceiver) Shutdown(context.Context) error {
+	receiver.Lock()
+	defer receiver.Unlock()
+	if receiver.cancel == nil {
 		return nil
 	}
-	defer r.cancel()
-	return r.server.Close()
+	defer receiver.cancel()
+	return receiver.server.Close()
 }
 
-func (r *simplePrometheusWriteReceiver) Flush(ctx context.Context, metrics pmetric.Metrics) error {
-	err := r.nextConsumer.ConsumeMetrics(ctx, metrics)
-	r.reporter.OnMetricsProcessed(ctx, metrics.DataPointCount(), err)
+func (receiver *simplePrometheusWriteReceiver) Flush(ctx context.Context, metrics pmetric.Metrics) error {
+	err := receiver.nextConsumer.ConsumeMetrics(ctx, metrics)
+	receiver.reporter.OnMetricsProcessed(ctx, metrics.DataPointCount(), err)
 	return err
 }

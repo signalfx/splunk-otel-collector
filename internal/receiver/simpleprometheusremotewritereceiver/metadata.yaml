@@ -1,0 +1,6 @@
+#sem_conv_version: Not yet!
+name: "simpleprometheuswritereceiver"
+#resource_attributes: # none yet!
+#attributes: # none yet!
+# As this is not a scraper, don't set metrics
+metrics:

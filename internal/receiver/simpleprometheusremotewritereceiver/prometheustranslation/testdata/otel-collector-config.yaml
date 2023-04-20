@@ -1,0 +1,29 @@
+receivers:
+  simpleprometheusremotewrite:
+    endpoint: "0.0.0.0:54090"
+    transport: "tcp"
+    path: "/metrics"
+    timeout: "5s"
+    buffer_size: 100
+processors:
+  batch:
+exporters:
+  signalfx:
+    # to configure, see https://github:com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter
+    access_token: "${SPLUNK_ACCESS_TOKEN}"
+    realm: "${SPLUNK_REALM}"
+  logging:
+    loglevel: debug
+service:
+  telemetry:
+    metrics:
+      address: ":8888"
+  pipelines:
+    metrics/logging:
+      receivers: [simpleprometheusremotewrite]
+      processors: [batch]
+      exporters: [logging]
+    metrics/sfx:
+      receivers: [simpleprometheusremotewrite]
+      processors: [batch]
+      exporters: [signalfx]

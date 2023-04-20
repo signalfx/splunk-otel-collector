@@ -42,7 +42,7 @@ func TestParseConfig(t *testing.T) {
 
 	rawYaml := make(map[string]any)
 	file, err := os.Open("prometheustranslation/testdata/otel-collector-config.yaml")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	buffer, err := io.ReadAll(file)
 	require.Nil(t, err)

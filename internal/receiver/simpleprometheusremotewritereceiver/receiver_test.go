@@ -50,14 +50,11 @@ func TestHappy(t *testing.T) {
 	require.NotNil(t, receiver)
 	require.Nil(t, receiver.Start(ctx, nopHost))
 
-	// Send some metrics
+	// Ensure we can instantiate
 	client, err := transport.NewMockPrwClient(
 		cfg.ListenAddr.Endpoint,
 		"metrics",
 	)
 	require.Nil(t, err)
 	require.NotNil(t, client)
-
-	// first try processing them without heuristics, then send them again with metadata.  check later to see if heuristics worked
-
 }

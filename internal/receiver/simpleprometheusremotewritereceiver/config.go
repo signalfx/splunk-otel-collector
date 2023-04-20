@@ -18,9 +18,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/jaegertracing/jaeger/pkg/multierror"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
+	"go.uber.org/multierr"
 )
 
 var _ component.Config = (*Config)(nil)
@@ -52,7 +52,7 @@ func (c *Config) Validate() error {
 		errs = append(errs, errors.New("inadvisably small capacity for cache"))
 	}
 	if errs != nil {
-		return multierror.Wrap(errs)
+		return multierr.Combine(errs...)
 	}
 	return nil
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package simpleprometheusremotewritereceiver
+package prometheusremotewritereceiver
 
 import (
 	"errors"
@@ -30,11 +30,16 @@ const (
 )
 
 type Config struct {
+	// Path in which the receiver should respond to prometheus remote write requests.
+	// Currently, we do not support multiple listeners on a single endpoint, so this is mostly future proofing.
 	ListenPath                    string `mapstructure:"path"`
 	confighttp.HTTPServerSettings `mapstructure:",squash"`
-	Timeout                       time.Duration `mapstructure:"timeout"`
-	BufferSize                    int           `mapstructure:"buffer_size"`
-	CacheCapacity                 int           `mapstructure:"cache_size"`
+	// Used as both read and write timeout for the receiver server
+	Timeout time.Duration `mapstructure:"timeout"`
+	// BufferSize is the degree to which metric translations may be buffered without blocking further write requests.
+	BufferSize int `mapstructure:"buffer_size"`
+	// CacheCapacity determines LRU capacity for how many different metrics may concurrently have persisted metadata.
+	CacheCapacity int `mapstructure:"cache_size"`
 }
 
 func (c *Config) Validate() error {

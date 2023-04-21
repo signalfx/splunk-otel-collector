@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package simpleprometheusremotewritereceiver
+package prometheusremotewritereceiver
 
 import (
 	"testing"
@@ -40,7 +40,7 @@ func TestParseConfig(t *testing.T) {
 	require.NotNil(t, cfg)
 
 	rawCfgs := make(map[string]map[component.ID]map[string]any)
-	conf, err := confmaptest.LoadConf("prometheustranslation/testdata/otel-collector-config.yaml")
+	conf, err := confmaptest.LoadConf("internal/testdata/otel-collector-config.yaml")
 	require.NoError(t, err)
 	require.NoError(t, conf.Unmarshal(&rawCfgs, confmap.WithErrorUnused()))
 	require.NotEmpty(t, rawCfgs)

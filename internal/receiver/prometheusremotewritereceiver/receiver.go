@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package simpleprometheusremotewritereceiver
+package prometheusremotewritereceiver
 
 import (
 	"context"
@@ -26,7 +26,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/simpleprometheusremotewritereceiver/internal"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal"
 )
 
 var _ receiver.Metrics = (*simplePrometheusWriteReceiver)(nil)
@@ -65,6 +65,7 @@ func newPrometheusRemoteWriteReceiver(
 	}
 	return r, nil
 }
+
 func (receiver *simplePrometheusWriteReceiver) buildTransportServer(ctx context.Context, config *internal.ServerConfig) (*http.Server, error) {
 	server, err := internal.NewPrometheusRemoteWriteServer(ctx, config)
 	return server.Server, err

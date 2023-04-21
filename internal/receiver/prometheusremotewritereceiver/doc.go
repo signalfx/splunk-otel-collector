@@ -14,4 +14,4 @@
 
 //go:generate mdatagen metadata.yaml
 
-package simpleprometheusremotewritereceiver
+package prometheusremotewritereceiver

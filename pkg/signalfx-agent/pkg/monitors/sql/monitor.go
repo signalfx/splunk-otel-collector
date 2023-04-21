@@ -25,8 +25,6 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
-var logger = logrus.WithFields(logrus.Fields{"monitorType": monitorType})
-
 func init() {
 	monitors.Register(&monitorMetadata, func() interface{} { return &Monitor{} }, &Config{})
 }
@@ -152,7 +150,7 @@ type Monitor struct {
 
 // Configure the monitor and kick off metric gathering
 func (m *Monitor) Configure(conf *Config) error {
-	m.logger = logger.WithField("monitorID", conf.MonitorID)
+	m.logger = logrus.WithField("monitorType", conf.Type).WithField("monitorID", conf.MonitorID)
 	m.ctx, m.cancel = context.WithCancel(context.Background())
 
 	// This will "open" a database by verifying that the config is sane but

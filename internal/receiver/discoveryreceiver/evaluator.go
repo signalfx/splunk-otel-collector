@@ -99,6 +99,7 @@ func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.
 		}
 	}
 
+	e.logger.Debug(fmt.Sprintf("evaluated match %v against %q (should log: %v)", matchPattern, pattern, shouldLog))
 	return shouldLog, nil
 }
 

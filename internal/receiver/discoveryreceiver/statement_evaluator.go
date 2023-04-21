@@ -25,6 +25,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"gopkg.in/yaml.v3"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver/statussources"
@@ -62,14 +63,22 @@ func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config, 
 			config:        config,
 			correlations:  correlations,
 			alreadyLogged: &sync.Map{},
-			// TODO: provide more capable env w/ resource and log record attributes
-			exprEnv: func(pattern string) map[string]any {
-				return map[string]any{"msg": pattern}
-			},
-			id: id,
+			id:            id,
 		},
 		encoder: encoder,
 	}
+
+	se.evaluator.exprEnv = func(pattern string) map[string]any {
+		patternMap := map[string]any{}
+		if err := yaml.Unmarshal([]byte(pattern), &patternMap); err != nil {
+			se.logger.Info(fmt.Sprintf("failed unmarshaling pattern map %q", pattern), zap.Error(err))
+			patternMap = map[string]any{"message": pattern}
+		}
+		// we need a way to look up fields that aren't valid identifiers https://github.com/antonmedv/expr/issues/106
+		patternMap["ExprEnv"] = patternMap
+		return patternMap
+	}
+
 	var err error
 	if se.evaluatedLogger, err = zapConfig.Build(
 		// zap.OnFatal must not be WriteThenFatal or WriteThenNoop since it's rewritten to be WriteThenFatal
@@ -155,12 +164,33 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 	}
 
 	stagePLogs, logRecords := se.prepareMatchingLogs(rEntry, receiverID, endpointID)
-	body := statementLogRecord.Body().AsString()
+	patternMap := map[string]string{"message": statement.Message}
+	for k, v := range statement.Fields {
+		switch k {
+		case "caller", "name", "stacktrace":
+		default:
+			patternMap[k] = fmt.Sprintf("%v", v)
+		}
+	}
+
+	var patternMapStr string
+	if pm, err := yaml.Marshal(patternMap); err != nil {
+		se.logger.Debug(fmt.Sprintf("failed marshaling pattern map for %q", statement.Message), zap.Error(err))
+		// best effort default in marshaling failure cases
+		patternMapStr = fmt.Sprintf("message: %q\n", statement.Message)
+	} else {
+		patternMapStr = string(pm)
+	}
+	se.logger.Debug("non-strict matches will be evaluated with pattern map", zap.String("map", patternMapStr))
 
 	var matchFound bool
 	for status, matches := range rEntry.Status.Statements {
 		for _, match := range matches {
-			if shouldLog, err := se.evaluateMatch(match, body, status, receiverID, endpointID); err != nil {
+			p := patternMapStr
+			if match.Strict != "" {
+				p = statement.Message
+			}
+			if shouldLog, err := se.evaluateMatch(match, p, status, receiverID, endpointID); err != nil {
 				se.logger.Info(fmt.Sprintf("Error evaluating %s statement match", status), zap.Error(err))
 				continue
 			} else if !shouldLog {

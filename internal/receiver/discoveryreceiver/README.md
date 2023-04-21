@@ -1,7 +1,7 @@
 # Discovery Receiver
 
 | Status                   |                  |
-| ------------------------ | ---------------- |
+|--------------------------|------------------|
 | Stability                | [in-development] |
 | Supported pipeline types | logs             |
 | Distributions            | [Splunk]         |
@@ -290,41 +290,70 @@ Flags: 0
 
 ### Main
 
-| Name | Type | Default | Docs |
-| ---- | ---- | ------- | ---- |
-| `watch_observers` (required) | []string | <no value> | The array of Observer extensions to receive Endpoint events from |
-| `log_endpoints` | bool | false | Whether to emit log records for Observer Endpoint events |
-| `embed_receiver_config` | bool | false | Whether to embed a base64-encoded, minimal Receiver Creator config for the generated receiver as a reported metrics `discovery.receiver.rule` resource attribute value for status log record matches |
-| `receivers` | map[string]ReceiverConfig | <no value> | The mapping of receiver names to their Receiver sub-config |
+| Name                         | Type                      | Default    | Docs                                                                                                                                                                                                 |
+|------------------------------|---------------------------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `watch_observers` (required) | []string                  | <no value> | The array of Observer extensions to receive Endpoint events from                                                                                                                                     |
+| `log_endpoints`              | bool                      | false      | Whether to emit log records for Observer Endpoint events                                                                                                                                             |
+| `embed_receiver_config`      | bool                      | false      | Whether to embed a base64-encoded, minimal Receiver Creator config for the generated receiver as a reported metrics `discovery.receiver.rule` resource attribute value for status log record matches |
+| `receivers`                  | map[string]ReceiverConfig | <no value> | The mapping of receiver names to their Receiver sub-config                                                                                                                                           |
 
 ### ReceiverConfig
 
-| Name | Type | Default | Docs |
-| ---- | ---- | ------- | ---- |
-| `rule` (required) | string | <no value> | The Receiver Creator compatible discover rule |
-| `config` | map[string]any | <no value> | The receiver instance configuration, including any Receiver Creator endpoint env value expr program value expansion |
+| Name                  | Type              | Default    | Docs                                                                                                                                            |
+|-----------------------|-------------------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| `rule` (required)     | string            | <no value> | The Receiver Creator compatible discover rule                                                                                                   |
+| `config`              | map[string]any    | <no value> | The receiver instance configuration, including any Receiver Creator endpoint env value expr program value expansion                             |
 | `resource_attributes` | map[string]string | <no value> | A mapping of string resource attributes and their (expr program compatible) values to include in reported metrics for status log record matches |
-| `status` | map[string]Match | <no value> | A mapping of `metrics` and/or `statements` to Match items for status evaluation |
+| `status`              | map[string]Match  | <no value> | A mapping of `metrics` and/or `statements` to Match items for status evaluation                                                                 |
 
 ### Match
 
 **One of `regexp`, `strict`, or `expr` is required.**
 
-| Name | Type | Default | Docs |
-| ---- | ---- | ------- | ---- |
-| `regexp` | string | <no value> | The regexp pattern to evaluate reported received metric names or component log statements |
-| `strict` | string | <no value> | The string literal to compare equivalence against reported received metric names or component log statements |
-| `expr` | string | <no value> | The expr program run with the reported received metric names or component log statements (vm env TBD) |
-| `first_only` | bool | false | Whether to emit only one log record for the first matching metric or log statement, ignoring all subsequent matches |
-| `record` | LogRecord | <no value> | The emitted log record content |
+| Name         | Type      | Default    | Docs                                                                                                                |
+|--------------|-----------|------------|---------------------------------------------------------------------------------------------------------------------|
+| `strict`     | string    | <no value> | The string literal to compare equivalence against reported received metric names or component log statement message |
+| `regexp`     | string    | <no value> | The regexp pattern to evaluate reported received metric names or component log statements                           |
+| `expr`       | string    | <no value> | The expr program run with the reported received metric names or component log statements                            |
+| `first_only` | bool      | false      | Whether to emit only one log record for the first matching metric or log statement, ignoring all subsequent matches |
+| `record`     | LogRecord | <no value> | The emitted log record content                                                                                      |
+
+#### `strict`
+
+For metrics, the metric name must match exactly.
+For logged statements, the message (`zapLogger.Info("<this statement message>")`) must match exactly.
+
+#### `regexp`
+
+For metrics, the regexp is evaluated against the metric name.
+For logged statements, the regexp is evaluated against the message and fields (`zapLogger.Info("<logged statement message>", zap.Any("field_name", "field_value"))`) rendered as a yaml mapping. The fields for `caller`, `name`, and `stacktrace` are currently withheld from the mapping.
+
+#### `expr`
+
+See [https://expr.medv.io/](https://expr.medv.io/) for env and language documentation.
+
+For metrics, the expr env consists of `{ "name": "<metric name>" }`.
+For logs, the expr env consists of `{ "message": "<logged statement message>", "<field_name>": "<field_value>" }`. The fields `caller`, `name`, and `stacktrace` are currently withheld from the env.
+
+Since some fields may not be valid expr identifiers (containing non word characters), the env contains a self-referential `ExprEnv` object:
+
+```go
+logger.Warn("some message", zap.String("some.field.with.periods", "some.value"))
+```
+
+In this case `some.field.with.periods` can be referenced via:
+
+```yaml
+expr: 'ExprEnv["some.field.with.periods"] contains "value"'
+```
 
 ### LogRecord
 
-| Name | Type | Default | Docs |
-| ---- | ---- | ------- | ---- |
-| `severity_text` | string | Emitted log statement severity level, if any, or "info" | The emitted log record's severity text |
-| `body` | string | Emitted log statement message | The emitted log record's body |
-| `attributes` | map[string]string | Emitted log statements fields | The emitted log record's attributes |
+| Name            | Type              | Default                                                 | Docs                                   |
+|-----------------|-------------------|---------------------------------------------------------|----------------------------------------|
+| `severity_text` | string            | Emitted log statement severity level, if any, or "info" | The emitted log record's severity text |
+| `body`          | string            | Emitted log statement message                           | The emitted log record's body          |
+| `attributes`    | map[string]string | Emitted log statements fields                           | The emitted log record's attributes    |
 
 ## Status log record content
 
@@ -332,3 +361,4 @@ In addition to the effects of the configured values, each emitted log record wil
 
 * `event.type` resource attribute with either `metric.match` or `statement.match` based on context.
 * `discovery.status` log record attribute with `successful`, `partial`, or `failed` status depending on match.
+

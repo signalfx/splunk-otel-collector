@@ -24,7 +24,7 @@
             {
               "key": "service.instance.id",
               "value": {
-                "stringValue": ""
+                "stringValue": "127.0.0.1:0"
               }
             },
             {

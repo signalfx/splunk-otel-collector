@@ -55,6 +55,7 @@ func TestScraper(t *testing.T) {
 	require.NoError(t, err)
 	attrs.PutStr(conventions.AttributeNetHostPort, u.Port())
 	attrs.PutStr(conventions.AttributeNetHostName, u.Host)
+	attrs.PutStr(conventions.AttributeServiceInstanceID, u.Host)
 
 	require.NoError(t, pmetrictest.CompareMetrics(expectedMetrics, actualMetrics,
 		pmetrictest.IgnoreMetricDataPointsOrder(), pmetrictest.IgnoreStartTimestamp(),

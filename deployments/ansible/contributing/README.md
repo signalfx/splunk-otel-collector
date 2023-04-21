@@ -10,7 +10,7 @@ if your change affects behavior of the Ansible collection.
 ## Local development
 
 Testing and validation of this Ansible role is based on 
-[Ansible Molecule](https://molecule.readthedocs.io/en/latest/).
+[Ansible Molecule](https://molecule.readthedocs.io).
 
 ### MacOS or Windows setup
 

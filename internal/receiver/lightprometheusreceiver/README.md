@@ -4,7 +4,7 @@
 | Status                   |           |
 | ------------------------ |-----------|
 | Stability                | [development]   |
-| Supported pipeline types |    |
+| Supported pipeline types | metrics   |
 | Distributions            | [] |
 
 [development]: https://github.com/open-telemetry/opentelemetry-collector#development

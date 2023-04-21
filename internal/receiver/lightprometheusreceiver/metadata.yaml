@@ -3,3 +3,4 @@ type: lightprometheus
 status:
   class: receiver
   stability: development
+  pipelines: metrics

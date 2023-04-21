@@ -47,7 +47,6 @@ const (
 
 type Config struct {
 	confighttp.HTTPClientSettings           `mapstructure:",squash"`
+	MetricFamiliesExcluded                  []PrometheusMetricFamily `mapstructure:"metric_families_excluded"`
 	scraperhelper.ScraperControllerSettings `mapstructure:",squash"`
-	// MetricFamiliesExcluded is a list of metric families excluded from collection (default:[])
-	MetricFamiliesExcluded []PrometheusMetricFamily `mapstructure:"metric_families_excluded"`
 }

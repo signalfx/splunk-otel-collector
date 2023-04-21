@@ -68,9 +68,32 @@ jobs:
       - name: gofmt
         run: |
           make install-tools
-          gofmt -s -w .
+          make fmt
           if ! git diff --exit-code; then
-            echo "One or more Go files are not formatted correctly. Run 'gofmt -s -w .' and push the changes."
+            echo "One or more Go files are not formatted correctly. Run 'make fmt' and push the changes."
+            exit 1
+          fi
+
+  generate-metrics:
+    name: generate-metrics
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
+    needs: [setup-environment]
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: '**/go.sum'
+
+      - name: generate-metrics
+        run: |
+          make generate-metrics
+          if ! git diff --exit-code; then
+            echo "Generated code is out of date. Run 'make generate-metrics' and push the changes."
             exit 1
           fi
 

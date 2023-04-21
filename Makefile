@@ -142,6 +142,7 @@ install-tools:
 .PHONY: generate-metrics
 generate-metrics: install-tools
 	go generate -tags mdatagen ./...
+	$(MAKE) fmt
 
 .PHONY: otelcol
 otelcol:

@@ -1,0 +1,5 @@
+type: lightprometheus
+
+status:
+  class: receiver
+  stability: development

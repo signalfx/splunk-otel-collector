@@ -21,15 +21,15 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
-)
 
-const typeStr = "lightprometheus"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/lightprometheusreceiver/internal/metadata"
+)
 
 func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
-		typeStr,
+		metadata.Type,
 		createDefaultConfig,
-		receiver.WithMetrics(createMetricsReceiver, component.StabilityLevelDevelopment),
+		receiver.WithMetrics(createMetricsReceiver, metadata.Stability),
 	)
 }
 
@@ -43,7 +43,7 @@ func createMetricsReceiver(
 	c, _ := rConf.(*Config)
 	s := newScraper(params, c)
 
-	scraper, err := scraperhelper.NewScraper(typeStr, s.scrape, scraperhelper.WithStart(s.start))
+	scraper, err := scraperhelper.NewScraper(params.ID.String(), s.scrape, scraperhelper.WithStart(s.start))
 	if err != nil {
 		return nil, err
 	}

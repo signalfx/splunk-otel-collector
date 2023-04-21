@@ -34,20 +34,49 @@ import (
 )
 
 type scraper struct {
-	client   *http.Client
-	settings component.TelemetrySettings
-	cfg      *Config
-	name     string
+	client            *http.Client
+	settings          component.TelemetrySettings
+	cfg               *Config
+	name              string
+	excludeCounters   bool
+	excludeGauges     bool
+	excludeSummaries  bool
+	excludeHistograms bool
+	excludeUntyped    bool
 }
 
 func newScraper(
 	settings receiver.CreateSettings,
 	cfg *Config,
 ) *scraper {
+	excludeCounters := false
+	excludeGauges := false
+	excludeSummaries := false
+	excludeHistograms := false
+	excludeUntyped := false
+	for _, f := range cfg.MetricFamiliesExcluded {
+		switch f {
+		case Counter:
+			excludeCounters = true
+		case Gauge:
+			excludeGauges = true
+		case Summary:
+			excludeSummaries = true
+		case Histogram:
+			excludeHistograms = true
+		case Untyped:
+			excludeUntyped = true
+		}
+	}
 	e := &scraper{
-		settings: settings.TelemetrySettings,
-		cfg:      cfg,
-		name:     settings.ID.Name(),
+		settings:          settings.TelemetrySettings,
+		cfg:               cfg,
+		name:              settings.ID.Name(),
+		excludeCounters:   excludeCounters,
+		excludeGauges:     excludeGauges,
+		excludeHistograms: excludeHistograms,
+		excludeSummaries:  excludeSummaries,
+		excludeUntyped:    excludeUntyped,
 	}
 
 	return e
@@ -139,11 +168,14 @@ func (s *scraper) convertMetricFamilies(metricFamilies []*dto.MetricFamily, rm p
 
 	sm := rm.ScopeMetrics().AppendEmpty()
 	for _, family := range metricFamilies {
-		newMetric := sm.Metrics().AppendEmpty()
-		newMetric.SetName(family.GetName())
-		newMetric.SetDescription(family.GetHelp())
 		switch *family.Type {
 		case dto.MetricType_COUNTER:
+			if s.excludeCounters {
+				continue
+			}
+			newMetric := sm.Metrics().AppendEmpty()
+			newMetric.SetName(family.GetName())
+			newMetric.SetDescription(family.GetHelp())
 			sum := newMetric.SetEmptySum()
 			sum.SetIsMonotonic(true)
 			sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
@@ -158,6 +190,12 @@ func (s *scraper) convertMetricFamilies(metricFamilies []*dto.MetricFamily, rm p
 				}
 			}
 		case dto.MetricType_GAUGE:
+			if s.excludeGauges {
+				continue
+			}
+			newMetric := sm.Metrics().AppendEmpty()
+			newMetric.SetName(family.GetName())
+			newMetric.SetDescription(family.GetHelp())
 			gauge := newMetric.SetEmptyGauge()
 			for _, fm := range family.Metric {
 				dp := gauge.DataPoints().AppendEmpty()
@@ -170,6 +208,12 @@ func (s *scraper) convertMetricFamilies(metricFamilies []*dto.MetricFamily, rm p
 				}
 			}
 		case dto.MetricType_HISTOGRAM, dto.MetricType_GAUGE_HISTOGRAM:
+			if s.excludeHistograms {
+				continue
+			}
+			newMetric := sm.Metrics().AppendEmpty()
+			newMetric.SetName(family.GetName())
+			newMetric.SetDescription(family.GetHelp())
 			histogram := newMetric.SetEmptyHistogram()
 			for _, fm := range family.Metric {
 				dp := histogram.DataPoints().AppendEmpty()
@@ -187,6 +231,12 @@ func (s *scraper) convertMetricFamilies(metricFamilies []*dto.MetricFamily, rm p
 				}
 			}
 		case dto.MetricType_SUMMARY:
+			if s.excludeSummaries {
+				continue
+			}
+			newMetric := sm.Metrics().AppendEmpty()
+			newMetric.SetName(family.GetName())
+			newMetric.SetDescription(family.GetHelp())
 			sum := newMetric.SetEmptySummary()
 			for _, fm := range family.Metric {
 				dp := sum.DataPoints().AppendEmpty()
@@ -205,6 +255,12 @@ func (s *scraper) convertMetricFamilies(metricFamilies []*dto.MetricFamily, rm p
 				}
 			}
 		case dto.MetricType_UNTYPED:
+			if s.excludeUntyped {
+				continue
+			}
+			newMetric := sm.Metrics().AppendEmpty()
+			newMetric.SetName(family.GetName())
+			newMetric.SetDescription(family.GetHelp())
 			gauge := newMetric.SetEmptyGauge()
 			for _, fm := range family.Metric {
 				dp := gauge.DataPoints().AppendEmpty()

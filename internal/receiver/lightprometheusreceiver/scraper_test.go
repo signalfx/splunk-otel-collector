@@ -62,6 +62,35 @@ func TestScraper(t *testing.T) {
 		pmetrictest.IgnoreTimestamp(), pmetrictest.IgnoreMetricsOrder()))
 }
 
+func TestScraperWithExclusion(t *testing.T) {
+	promMock := newPromMockServer(t)
+	cfg := createDefaultConfig().(*Config)
+	cfg.Endpoint = fmt.Sprintf("%s%s", promMock.URL, "/metrics")
+	cfg.MetricFamiliesExcluded = []PrometheusMetricFamily{Histogram}
+	require.NoError(t, component.ValidateConfig(cfg))
+
+	scraper := newScraper(receivertest.NewNopCreateSettings(), cfg)
+
+	err := scraper.start(context.Background(), componenttest.NewNopHost())
+	require.NoError(t, err)
+
+	actualMetrics, err := scraper.scrape(context.Background())
+	require.NoError(t, err)
+
+	expectedFile := filepath.Join("testdata", "scraper", "expected_no_histogram.json")
+	expectedMetrics, err := readMetrics(expectedFile)
+	require.NoError(t, err)
+	attrs := expectedMetrics.ResourceMetrics().At(0).Resource().Attributes()
+	u, err := url.Parse(promMock.URL)
+	require.NoError(t, err)
+	attrs.PutStr(conventions.AttributeNetHostPort, u.Port())
+	attrs.PutStr(conventions.AttributeNetHostName, u.Host)
+
+	require.NoError(t, pmetrictest.CompareMetrics(expectedMetrics, actualMetrics,
+		pmetrictest.IgnoreMetricDataPointsOrder(), pmetrictest.IgnoreStartTimestamp(),
+		pmetrictest.IgnoreTimestamp(), pmetrictest.IgnoreMetricsOrder()))
+}
+
 func readMetrics(filePath string) (pmetric.Metrics, error) {
 	expectedFileBytes, err := os.ReadFile(filePath)
 	if err != nil {

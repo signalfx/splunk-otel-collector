@@ -171,15 +171,33 @@ func (s *scraper) convertMetricFamilies(metricFamilies []*dto.MetricFamily, rm p
 			}
 		case dto.MetricType_HISTOGRAM, dto.MetricType_GAUGE_HISTOGRAM:
 			histogram := newMetric.SetEmptyHistogram()
+			histogram.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 			for _, fm := range family.Metric {
 				dp := histogram.DataPoints().AppendEmpty()
 				dp.SetTimestamp(now)
-				for _, b := range fm.GetHistogram().GetBucket() {
-					dp.BucketCounts().Append(b.GetCumulativeCount())
-					dp.ExplicitBounds().Append(b.GetUpperBound())
+
+				// Translate histogram buckets from Prometheus to the OTLP schema.
+				// The bucket counts in Prometheus are cumulative, while in OTLP they are not.
+				// Also, Prometheus has an extra bucket at the end for +Inf, OTLP assumes that implicitly.
+				buckets := fm.GetHistogram().GetBucket()
+				if len(buckets) > 0 {
+					dp.BucketCounts().Append(buckets[0].GetCumulativeCount())
 				}
+				if len(buckets) > 1 {
+					dp.ExplicitBounds().Append(buckets[0].GetUpperBound())
+					lastCumulativeCount := buckets[0].GetCumulativeCount()
+					for i := 1; i < len(buckets)-1; i++ {
+						currentCumulativeCount := buckets[i].GetCumulativeCount()
+						dp.BucketCounts().Append(currentCumulativeCount - lastCumulativeCount)
+						lastCumulativeCount = currentCumulativeCount
+						dp.ExplicitBounds().Append(buckets[i].GetUpperBound())
+					}
+					dp.BucketCounts().Append(buckets[len(buckets)-1].GetCumulativeCount() - lastCumulativeCount)
+				}
+
 				dp.SetSum(fm.GetHistogram().GetSampleSum())
 				dp.SetCount(fm.GetHistogram().GetSampleCount())
+
 				for _, l := range fm.GetLabel() {
 					if l.GetValue() != "" {
 						dp.Attributes().PutStr(l.GetName(), l.GetValue())

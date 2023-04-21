@@ -131,11 +131,17 @@ install-tools:
 	cd ./internal/tools && go install github.com/golangci/golangci-lint/cmd/golangci-lint
 	cd ./internal/tools && go install github.com/google/addlicense
 	cd ./internal/tools && go install github.com/jstemmer/go-junit-report
+	cd ./internal/tools && go install github.com/open-telemetry/opentelemetry-collector-contrib/cmd/mdatagen
 	cd ./internal/tools && go install github.com/ory/go-acc
 	cd ./internal/tools && go install github.com/pavius/impi/cmd/impi
 	cd ./internal/tools && go install github.com/tcnksm/ghr
 	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
 	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
+
+
+.PHONY: generate-metrics
+generate-metrics: install-tools
+	go generate -tags mdatagen ./...
 
 .PHONY: otelcol
 otelcol:

@@ -26,7 +26,7 @@ import (
 var TestdataDir = filepath.Join("..", "..", "testdata")
 
 func NewTestMetricsBuilder() *metadata.MetricsBuilder {
-	return metadata.NewMetricsBuilder(metadata.DefaultMetricsSettings(), receivertest.NewNopCreateSettings())
+	return metadata.NewMetricsBuilder(metadata.DefaultMetricsBuilderConfig(), receivertest.NewNopCreateSettings())
 }
 
 func MetricsByName(pm pmetric.Metrics) map[string]pmetric.Metric {

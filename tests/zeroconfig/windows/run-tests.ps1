@@ -10,7 +10,7 @@ $testdata_path = Join-Path $repo_root tests/zeroconfig/windows/testdata/
 $docker_setup_path = Join-Path $testdata_path docker-setup/
 
 if (!(Test-Path $docker_setup_path)) {
-    New-Item $testdata_path -ItemType Directory -Value docker-setup
+    New-Item $testdata_path -Force -ItemType Directory -Name docker-setup
 }
 
 # Copy files required to build the docker images.

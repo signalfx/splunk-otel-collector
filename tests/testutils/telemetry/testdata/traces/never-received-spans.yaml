@@ -1,0 +1,10 @@
+resource_spans:
+- attributes:
+    some_attr: some_value
+  scope_spans:
+  - instrumentation_scope:
+      name: scope_one
+      version: scope_one_version
+    spans:
+    - name: last_span
+    - name: missing_span

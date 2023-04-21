@@ -6,6 +6,11 @@ extensions:
 receivers:
   signalfx:
     endpoint: 0.0.0.0:9943
+  sapm:
+    endpoint: 0.0.0.0:7276
+
+processors:
+  batch:
 
 exporters:
   otlp:
@@ -18,4 +23,7 @@ service:
   pipelines:
     metrics:
       receivers: [signalfx]
+      exporters: [otlp]
+    traces:
+      receivers: [sapm]
       exporters: [otlp]

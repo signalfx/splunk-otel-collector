@@ -18,7 +18,7 @@ ENV ACCESS_TOKEN_TMP=$access_token
 RUN `
     $token = $Env:ACCESS_TOKEN_TMP; `
     $collector_msi_path = (dir "c:\setup\splunk-otel-collector-*.msi").FullName; `
-    c:\setup\install.ps1 -access_token $token -msi_path $collector_msi_path -with_fluentd $false -ingest_url "http://192.0.2.1:12345"
+    c:\setup\install.ps1 -access_token $token -msi_path $collector_msi_path -with_fluentd $false -ingest_url "http://192.0.2.1:12345" -trace_url "http://192.0.2.1:12345"
 ENV ACCESS_TOKEN_TMP=
 RUN `
     Set-ItemProperty -force -path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -name 'SPLUNK_CONFIG' -value 'C:\setup\pipeline-collector.yaml'

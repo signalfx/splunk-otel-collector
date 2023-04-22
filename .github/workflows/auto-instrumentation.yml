@@ -15,21 +15,13 @@ concurrency:
 
 jobs:
   libsplunk:
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
     strategy:
       matrix:
         ARCH: [ "amd64", "arm64" ]
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'self-hosted' || 'ubuntu-20.04'  }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        if: ${{ matrix.ARCH == 'arm64' }}
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: arm64
-          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Build libsplunk.so
         run: make -C instrumentation dist ARCH=${{ matrix.ARCH }}
@@ -42,13 +34,12 @@ jobs:
 
   build-package:
     name: build-package
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
     needs: [libsplunk]
     strategy:
       matrix:
         SYS_PACKAGE: [ "deb", "rpm" ]
         ARCH: [ "amd64", "arm64"]
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'self-hosted' || 'ubuntu-20.04'  }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -80,8 +71,6 @@ jobs:
 
   test-deb-package:
     name: test-deb-package
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
     needs: [build-package]
     strategy:
       matrix:
@@ -90,6 +79,7 @@ jobs:
         exclude:
           - DISTRO: debian:8
             ARCH: arm64
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'self-hosted' || 'ubuntu-20.04'  }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -100,25 +90,17 @@ jobs:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-deb
           path: ./instrumentation/dist
 
-      - name: Set up QEMU
-        if: ${{ matrix.ARCH == 'arm64' }}
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: arm64
-          image: tonistiigi/binfmt:qemu-v7.0.0
-
       - name: Test
         run: docker run --platform linux/${{ matrix.ARCH }} --rm -v $(pwd):/repo -w /repo ${{ matrix.DISTRO }} /repo/instrumentation/packaging/fpm/test.sh deb ${{ matrix.ARCH }}
 
   test-rpm-package:
     name: test-rpm-package
-    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
     needs: [build-package]
     strategy:
       matrix:
         DISTRO: [ "centos:7", "centos:8", "amazonlinux:2", "opensuse/leap:42", "opensuse/leap:15", "oraclelinux:7", "oraclelinux:8" ]
         ARCH: [ "amd64", "arm64" ]
+    runs-on: ${{ matrix.ARCH == 'arm64' && 'self-hosted' || 'ubuntu-20.04'  }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -128,13 +110,6 @@ jobs:
         with:
           name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-rpm
           path: ./instrumentation/dist
-
-      - name: Set up QEMU
-        if: ${{ matrix.ARCH == 'arm64'}}
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: arm64
-          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Test
         run: docker run --platform linux/${{ matrix.ARCH }} --rm -v $(pwd):/repo -w /repo ${{ matrix.DISTRO }} /repo/instrumentation/packaging/fpm/test.sh rpm ${{ matrix.ARCH }}

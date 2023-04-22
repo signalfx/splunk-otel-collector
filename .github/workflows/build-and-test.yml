@@ -32,7 +32,8 @@ env:
 jobs:
   setup-environment:
     name: setup-environment
-    runs-on: self-hosted
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -49,7 +50,8 @@ jobs:
 
   gofmt:
     name: gofmt
-    runs-on: self-hosted
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -72,7 +74,8 @@ jobs:
 
   generate-metrics:
     name: generate-metrics
-    runs-on: self-hosted
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -97,7 +100,8 @@ jobs:
 
   lint:
     name: lint
-    runs-on: self-hosted
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -123,7 +127,8 @@ jobs:
 
   test:
     name: test
-    runs-on: self-hosted
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -151,7 +156,8 @@ jobs:
 
   coverage:
     name: coverage
-    runs-on: self-hosted
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     needs: [setup-environment]
     steps:
       - name: Check out the codebase.
@@ -181,7 +187,8 @@ jobs:
 
   cross-compile:
     name: cross-compile
-    runs-on: self-hosted
+    # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
+    runs-on: ubuntu-20.04
     needs: [setup-environment]
     strategy:
       matrix:

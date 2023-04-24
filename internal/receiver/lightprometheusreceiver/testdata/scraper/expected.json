@@ -136,6 +136,7 @@
             {
               "name": "istio_request_bytes",
               "histogram": {
+                "aggregationTemporality": 2,
                 "dataPoints": [
                   {
                     "attributes": [
@@ -293,21 +294,9 @@
                     "timeUnixNano": "1680652414533114000",
                     "sum": 0,
                     "bucketCounts": [
-                      "0",
-                      "0",
-                      "0",
-                      "0",
-                      "0",
                       "0"
                     ],
-                    "explicitBounds": [
-                      0.5,
-                      1,
-                      2,
-                      3,
-                      4,
-                      5
-                    ]
+                    "explicitBounds": []
                   }
                 ]
               }
@@ -807,6 +796,7 @@
               "name": "istio_agent_go_gc_heap_allocs_by_size_bytes_total",
               "description": "Distribution of heap allocations by approximate size. Note that this  does not include tiny objects as defined by /gc/heap/tiny/allocs:objects, only tiny blocks.",
               "histogram": {
+                "aggregationTemporality": 2,
                 "dataPoints": [
                   {
                     "timeUnixNano": "1680652414533114000",
@@ -814,17 +804,17 @@
                     "sum": 310449604208,
                     "bucketCounts": [
                       "69482",
-                      "3331236",
-                      "34379917",
-                      "157242824",
-                      "174101606",
-                      "189289766",
-                      "218787074",
-                      "218855996",
-                      "218891888",
-                      "218921794",
-                      "219043605",
-                      "219116234"
+                      "3261754",
+                      "31048681",
+                      "122862907",
+                      "16858782",
+                      "15188160",
+                      "29497308",
+                      "68922",
+                      "35892",
+                      "29906",
+                      "121811",
+                      "72629"
                     ],
                     "explicitBounds": [
                       8.999999999999998,
@@ -837,8 +827,7 @@
                       3200.9999999999995,
                       6528.999999999999,
                       13568.999999999998,
-                      27264.999999999996,
-                      "Infinity"
+                      27264.999999999996
                     ]
                   }
                 ]

@@ -1,7 +1,4 @@
-FROM gettyimages/spark:2.4.1-hadoop-3.0
-
-RUN apt-get update && \
-    apt-get install -y netcat procps
+FROM bitnami/spark:3.1.3
 
 EXPOSE 8080
 

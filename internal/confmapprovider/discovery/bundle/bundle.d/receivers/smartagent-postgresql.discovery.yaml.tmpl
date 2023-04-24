@@ -7,9 +7,9 @@
       type: postgresql
       connectionString: 'sslmode=disable user={{ "{{.username}}" }} password={{ "{{.password}}" }}'
       params:
-        username: bundle.default
-        password: bundle.default
-      masterDBName: postgres
+        username: {{ defaultValue }}
+        password: {{ defaultValue }}
+      masterDBName: {{ defaultValue }}
   status:
     metrics:
       successful:

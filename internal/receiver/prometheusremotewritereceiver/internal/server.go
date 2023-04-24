@@ -39,10 +39,12 @@ type ServerConfig struct {
 }
 
 func NewPrometheusRemoteWriteServer(ctx context.Context, config *ServerConfig) (*PrometheusRemoteWriteServer, error) {
-	handler := newHandler(ctx, config.Reporter, config, config.Mc)
 	mx := mux.NewRouter()
+	handler := newHandler(ctx, config.Reporter, config, config.Mc)
 	mx.HandleFunc(config.Path, handler)
+	mx.Host(config.Endpoint)
 	server, err := config.HTTPServerSettings.ToServer(config.Host, config.TelemetrySettings, handler)
+	server.Addr = config.Endpoint
 	if err != nil {
 		return nil, err
 	}
@@ -65,9 +67,11 @@ func (prw *PrometheusRemoteWriteServer) ListenAndServe() error {
 	return err
 }
 
-func newHandler(_ context.Context, _ Reporter, _ *ServerConfig, _ chan pmetric.Metrics) http.HandlerFunc {
+func newHandler(ctx context.Context, reporter Reporter, _ *ServerConfig, _ chan pmetric.Metrics) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// THIS IS A STUB FUNCTION.  You can see another branch with how I'm thinking this will look if you're curious
-		w.WriteHeader(http.StatusBadGateway)
+		ctx2 := reporter.StartMetricsOp(ctx)
+		reporter.OnMetricsProcessed(ctx2, 0, nil)
+		w.WriteHeader(http.StatusNoContent)
 	}
 }

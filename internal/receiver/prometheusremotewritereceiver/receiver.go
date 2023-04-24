@@ -16,9 +16,7 @@ package prometheusremotewritereceiver
 
 import (
 	"context"
-	"errors"
-	"net"
-	"net/http"
+	"fmt"
 	"sync"
 
 	"go.opentelemetry.io/collector/component"
@@ -33,7 +31,7 @@ var _ receiver.Metrics = (*simplePrometheusWriteReceiver)(nil)
 
 // simplePrometheusWriteReceiver implements the receiver.Metrics for PrometheusRemoteWrite protocol.
 type simplePrometheusWriteReceiver struct {
-	server       *http.Server
+	server       *internal.PrometheusRemoteWriteServer
 	reporter     internal.Reporter
 	nextConsumer consumer.Metrics
 	cancel       context.CancelFunc
@@ -66,12 +64,6 @@ func newPrometheusRemoteWriteReceiver(
 	return r, nil
 }
 
-func (receiver *simplePrometheusWriteReceiver) buildTransportServer(ctx context.Context, config *internal.ServerConfig) (*http.Server, error) {
-	server, err := internal.NewPrometheusRemoteWriteServer(ctx, config)
-	return server.Server, err
-
-}
-
 // Start starts an HTTP server that can process Prometheus Remote Write Requests
 func (receiver *simplePrometheusWriteReceiver) Start(ctx context.Context, host component.Host) error {
 	metricsChannel := make(chan pmetric.Metrics, receiver.config.BufferSize)
@@ -83,7 +75,7 @@ func (receiver *simplePrometheusWriteReceiver) Start(ctx context.Context, host c
 		Host:               host,
 	}
 	ctx, receiver.cancel = context.WithCancel(ctx)
-	server, err := receiver.buildTransportServer(ctx, cfg)
+	server, err := internal.NewPrometheusRemoteWriteServer(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -105,11 +97,14 @@ func (receiver *simplePrometheusWriteReceiver) Start(ctx context.Context, host c
 
 func (receiver *simplePrometheusWriteReceiver) startServer(host component.Host) {
 	receiver.Lock()
-	defer receiver.Unlock()
-	if err := receiver.server.ListenAndServe(); err != nil {
-		if !errors.Is(err, net.ErrClosed) {
-			host.ReportFatalError(err)
-		}
+	server := receiver.server
+	if server == nil {
+		host.ReportFatalError(fmt.Errorf("start called on null server for receiver %s", typeString))
+	}
+	receiver.Unlock()
+	if err := server.ListenAndServe(); err != nil {
+		host.ReportFatalError(err)
+		receiver.reporter.OnDebugf("Error in %s/%s listening server %s: %s", typeString, receiver.settings.ID, server.Addr, err)
 	}
 }
 
@@ -140,14 +135,12 @@ func (receiver *simplePrometheusWriteReceiver) Shutdown(context.Context) error {
 	defer receiver.Unlock()
 	if receiver.cancel == nil {
 		return nil
-	} else {
-		defer receiver.cancel()
 	}
+	defer receiver.cancel()
 	if receiver.server != nil {
 		return receiver.server.Close()
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (receiver *simplePrometheusWriteReceiver) flush(ctx context.Context, metrics pmetric.Metrics) error {

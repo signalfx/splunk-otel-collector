@@ -2,6 +2,9 @@ FROM debian:stretch
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN sed -i 's|http://.*.debian.org|http://archive.debian.org|' /etc/apt/sources.list
+RUN sed -i '/stretch-updates/d' /etc/apt/sources.list
+
 RUN apt-get update && apt-get upgrade -y -o DPkg::Options::=--force-confold
 RUN apt-get install -y software-properties-common ca-certificates wget curl apt-transport-https python3-pip vim procps
 

@@ -30,11 +30,11 @@ const (
 )
 
 type Config struct {
-	// Path in which the receiver should respond to prometheus remote write requests.
-	// Currently, we do not support multiple listeners on a single endpoint, so this is mostly future proofing.
-	ListenPath                    string `mapstructure:"path"`
+	// ListenPath is the path in which the receiver should respond to prometheus remote write requests.
+	ListenPath string `mapstructure:"path"`
+	// provides generic settings for connecting to HTTP servers as commonly used in opentelemetry
 	confighttp.HTTPServerSettings `mapstructure:",squash"`
-	// Used as both read and write timeout for the receiver server
+	// Timeout is used as both read and write timeout for the receiver server
 	Timeout time.Duration `mapstructure:"timeout"`
 	// BufferSize is the degree to which metric translations may be buffered without blocking further write requests.
 	BufferSize int `mapstructure:"buffer_size"`

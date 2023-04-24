@@ -1,6 +1,6 @@
-#sem_conv_version: Not yet!
-name: "prometheuswritereceiver"
-#resource_attributes: # none yet!
-#attributes: # none yet!
-# As this is not a scraper, don't set metrics
-metrics:
+name: "prometheusremotewritereceiver"
+status:
+  type: "receiver"
+  stability: "development"
+  pipelines: ["metrics"]
+  distributions: ["splunk"]

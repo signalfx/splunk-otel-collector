@@ -46,6 +46,7 @@ func TestK8sObserver(t *testing.T) {
 	cluster := kubeutils.NewKindCluster(tc)
 	defer cluster.Delete()
 	cluster.Create()
+
 	cluster.LoadLocalCollectorImageIfNecessary()
 
 	namespace, serviceAccount := createNamespaceAndServiceAccount(cluster)

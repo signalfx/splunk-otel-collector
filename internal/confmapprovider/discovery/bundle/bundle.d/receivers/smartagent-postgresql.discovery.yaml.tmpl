@@ -1,7 +1,8 @@
 {{ receiver "smartagent/postgresql" }}:
   rule:
     docker_observer: type == "container" and port == 5432
-    host_observer: type == "hostport" and command contains "pg" and port == 5432
+    host_observer: type == "hostport" and command contains "postgres" and port == 5432
+    k8s_observer: type == "port" and pod.name contains "postgres" and port == 5432
   config:
     default:
       type: postgresql
@@ -13,20 +14,20 @@
   status:
     metrics:
       successful:
-        - strict: postgres_block_hit_ratio
+        - strict: postgres_query_count
           first_only: true
           log_record:
             severity_text: info
             body: postgresql SA receiver working!
     statements:
       failed:
-        - regexp: '.* connect: connection refused'
+        - regexp: 'connect: connection refused'
           first_only: true
           log_record:
             severity_text: info
             body: container appears to not be accepting postgres connections
       partial:
-        - regexp: '.*pq: password authentication failed for user.*'
+        - regexp: 'pq: password authentication failed for user'
           first_only: true
           log_record:
             severity_text: info
@@ -36,7 +37,7 @@
               `--set {{ configProperty "params" "password" "<password>" }}` or
               `{{ configPropertyEnvVar "params" "username" "<username>" }}` and
               `{{ configPropertyEnvVar "params" "password" "<password>" }}` environment variables.
-        - regexp: '.*pq: database ".*" does not exist.*'
+        - regexp: 'pq: database ".*" does not exist'
           first_only: true
           log_record:
             severity_text: info
@@ -44,3 +45,21 @@
               Please ensure your target database is correctly specified with
               `--set {{ configProperty "masterDBName" "<db>" }}` or
               `{{ configPropertyEnvVar "masterDBName" "<db>" }}` environment variable.
+        - regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'
+          first_only: true
+          log_record:
+            severity_text: info
+            body: >-
+              Please ensure your postgres database has
+              `shared_preload_libraries = 'pg_stat_statements'`
+              in its postgresql.conf and that
+              `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
+              has been run for each database you would like to monitor.
+        - regexp: 'could not monitor postgresql server: failed to determine total_time column name'
+          first_only: true
+          log_record:
+            severity_text: info
+            body: >-
+              Please ensure that `pg_stat_statements` is available for each database you
+              would like to monitor. Example:
+              `psql --dbname "<db-name>" -c "CREATE EXTENSION pg_stat_statements;"`

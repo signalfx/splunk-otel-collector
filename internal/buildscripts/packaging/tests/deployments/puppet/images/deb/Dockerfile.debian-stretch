@@ -1,5 +1,8 @@
 FROM debian:stretch
 
+RUN sed -i 's|http://.*.debian.org|http://archive.debian.org|' /etc/apt/sources.list
+RUN sed -i '/stretch-updates/d' /etc/apt/sources.list
+
 RUN apt-get update &&\
     apt-get install -yq ca-certificates procps systemd wget apt-transport-https libcap2-bin curl gnupg lsb-release
 

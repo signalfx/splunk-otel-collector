@@ -118,10 +118,10 @@ func (receiver *simplePrometheusWriteReceiver) manageServerLifecycle(ctx context
 		select {
 		case metrics := <-metricsChannel:
 			receiver.Lock()
-			receiver.reporter.StartMetricsOp(ctx)
-			err := receiver.flush(ctx, metrics)
+			metricContext := receiver.reporter.StartMetricsOp(ctx)
+			err := receiver.flush(metricContext, metrics)
 			if err != nil {
-				receiver.reporter.OnTranslationError(ctx, err)
+				receiver.reporter.OnTranslationError(metricContext, err)
 				receiver.Unlock()
 				close(metricsChannel)
 				return

@@ -27,7 +27,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver/statussources"
@@ -222,7 +221,7 @@ func TestLogRecordDefaultAndArbitrarySeverityText(t *testing.T) {
 
 	plogs := make(chan plog.Logs)
 
-	logger := zaptest.NewLogger(t)
+	logger := zap.NewNop()
 	cStore := newCorrelationStore(logger, time.Hour)
 	cStore.UpdateEndpoint(
 		observer.Endpoint{ID: "endpoint.id"},

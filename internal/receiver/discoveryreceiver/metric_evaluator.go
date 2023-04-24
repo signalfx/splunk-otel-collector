@@ -17,10 +17,8 @@ package discoveryreceiver
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -50,20 +48,15 @@ type metricEvaluator struct {
 	pLogs chan plog.Logs
 }
 
-func newMetricEvaluator(logger *zap.Logger, id component.ID, cfg *Config, pLogs chan plog.Logs, correlations correlationStore) *metricEvaluator {
+func newMetricEvaluator(logger *zap.Logger, cfg *Config, pLogs chan plog.Logs, correlations correlationStore) *metricEvaluator {
 	return &metricEvaluator{
 		pLogs: pLogs,
-		evaluator: &evaluator{
-			logger:        logger,
-			config:        cfg,
-			correlations:  correlations,
-			alreadyLogged: &sync.Map{},
+		evaluator: newEvaluator(logger, cfg, correlations,
 			// TODO: provide more capable env w/ resource and metric attributes
-			exprEnv: func(pattern string) map[string]any {
+			func(pattern string) map[string]any {
 				return map[string]any{"name": pattern}
 			},
-			id: id,
-		},
+		),
 	}
 }
 

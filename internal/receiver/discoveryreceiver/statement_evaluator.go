@@ -16,7 +16,6 @@ package discoveryreceiver
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer"
@@ -47,6 +46,7 @@ type statementEvaluator struct {
 	// this is the logger to share with other components to evaluate their statements and produce plog.Logs
 	evaluatedLogger *zap.Logger
 	encoder         zapcore.Encoder
+	id              component.ID
 }
 
 func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config, pLogs chan plog.Logs, correlations correlationStore) (*statementEvaluator, error) {
@@ -57,27 +57,11 @@ func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config, 
 	encoder := statussources.NewZapCoreEncoder()
 
 	se := &statementEvaluator{
-		pLogs: pLogs,
-		evaluator: &evaluator{
-			logger:        logger,
-			config:        config,
-			correlations:  correlations,
-			alreadyLogged: &sync.Map{},
-			id:            id,
-		},
+		pLogs:   pLogs,
 		encoder: encoder,
+		id:      id,
 	}
-
-	se.evaluator.exprEnv = func(pattern string) map[string]any {
-		patternMap := map[string]any{}
-		if err := yaml.Unmarshal([]byte(pattern), &patternMap); err != nil {
-			se.logger.Info(fmt.Sprintf("failed unmarshaling pattern map %q", pattern), zap.Error(err))
-			patternMap = map[string]any{"message": pattern}
-		}
-		// we need a way to look up fields that aren't valid identifiers https://github.com/antonmedv/expr/issues/106
-		patternMap["ExprEnv"] = patternMap
-		return patternMap
-	}
+	se.evaluator = newEvaluator(logger, config, correlations, se.exprEnv)
 
 	var err error
 	if se.evaluatedLogger, err = zapConfig.Build(
@@ -90,6 +74,16 @@ func newStatementEvaluator(logger *zap.Logger, id component.ID, config *Config, 
 		return nil, err
 	}
 	return se, nil
+}
+
+// exprEnv will unpack logged statement message and field content for expr program use
+func (se *statementEvaluator) exprEnv(pattern string) map[string]any {
+	patternMap := map[string]any{}
+	if err := yaml.Unmarshal([]byte(pattern), &patternMap); err != nil {
+		se.logger.Info(fmt.Sprintf("failed unmarshaling pattern map %q", pattern), zap.Error(err))
+		patternMap = map[string]any{"message": pattern}
+	}
+	return patternMap
 }
 
 // Enabled is a zapcore.Core method. We should be enabled for all

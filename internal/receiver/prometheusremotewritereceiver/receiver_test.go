@@ -60,4 +60,7 @@ func TestHappy(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.NotNil(t, client)
+	require.NoError(t, receiver.Shutdown(ctx))
+	// Shutting down should remain graceful as well
+	require.NoError(t, receiver.Shutdown(ctx))
 }

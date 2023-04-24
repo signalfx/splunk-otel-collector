@@ -140,9 +140,14 @@ func (receiver *simplePrometheusWriteReceiver) Shutdown(context.Context) error {
 	defer receiver.Unlock()
 	if receiver.cancel == nil {
 		return nil
+	} else {
+		defer receiver.cancel()
 	}
-	defer receiver.cancel()
-	return receiver.server.Close()
+	if receiver.server != nil {
+		return receiver.server.Close()
+	} else {
+		return nil
+	}
 }
 
 func (receiver *simplePrometheusWriteReceiver) flush(ctx context.Context, metrics pmetric.Metrics) error {

@@ -10,9 +10,9 @@ smartagent/postgresql:
       type: postgresql
       connectionString: 'sslmode=disable user={{.username}} password={{.password}}'
       params:
-        username: bundle.default
-        password: bundle.default
-      masterDBName: postgres
+        username: splunk.discovery
+        password: splunk.discovery
+      masterDBName: splunk.discovery
   status:
     metrics:
       successful:

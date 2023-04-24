@@ -51,17 +51,16 @@ func newReporter(settings receiver.CreateSettings) (internal.Reporter, error) {
 	}, nil
 }
 
-// OnDataReceived is called when a message or request is received from
-// a client. The returned context should be used in other calls to the same
-// reporter instance. The caller code should include a call to end the
-// returned span.
-func (r *reporter) OnDataReceived(ctx context.Context) context.Context {
+// StartMetricsOp is used to report a translation error from original
+// format to the internal format of the Collector. The context and span
+// passed to it should be the ones returned by StartMetricsOp in the reporter.
+func (r *reporter) StartMetricsOp(ctx context.Context) context.Context {
 	return r.obsrecv.StartMetricsOp(ctx)
 }
 
 // OnTranslationError is used to report a translation error from original
 // format to the internal format of the Collector. The context and span
-// passed to it should be the ones returned by OnDataReceived.
+// passed to it should be the ones returned by StartMetricsOp in the reporter.
 func (r *reporter) OnTranslationError(ctx context.Context, err error) {
 	if err == nil {
 		return
@@ -78,7 +77,7 @@ func (r *reporter) OnTranslationError(ctx context.Context, err error) {
 
 // OnMetricsProcessed is called when the received data is passed to next
 // consumer on the pipeline. The context and span passed to it should be the
-// ones returned by OnDataReceived. The error should be error returned by
+// ones returned by StartMetricsOp on the reporter. The error should be error returned by
 // the next consumer - the reporter is expected to handle nil error too.
 func (r *reporter) OnMetricsProcessed(
 	ctx context.Context,

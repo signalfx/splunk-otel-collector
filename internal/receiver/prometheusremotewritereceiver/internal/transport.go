@@ -24,12 +24,12 @@ type Reporter interface {
 
 	// OnTranslationError is used to report a translation error from original
 	// format to the internal format of the Collector. The context
-	// passed to it should be the ones returned by OnDataReceived.
+	// passed to it should be the ones returned by StartMetricsOp.
 	OnTranslationError(ctx context.Context, err error)
 
 	// OnMetricsProcessed is called when the received data is passed to next
 	// consumer on the pipeline. The context passed to it should be the
-	// one returned by OnDataReceived. The error should be error returned by
+	// one returned by StartMetricsOp. The error should be error returned by
 	// the next consumer - the reporter is expected to handle nil error too.
 	OnMetricsProcessed(ctx context.Context, numReceivedMessages int, err error)
 
@@ -37,4 +37,8 @@ type Reporter interface {
 	OnDebugf(
 		template string,
 		args ...interface{})
+
+	// StartMetricsOp should always be called first, and the context from such passed onto the calls for
+	// OnTranslationError (if an issue occurs) xor OnMetricsProcessed (if successful)
+	StartMetricsOp(ctx context.Context) context.Context
 }

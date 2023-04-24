@@ -96,33 +96,41 @@ func (receiver *simplePrometheusWriteReceiver) Start(ctx context.Context, host c
 		}
 	}
 	receiver.server = server
-	// Start server
-	go func() {
-		if err := receiver.server.ListenAndServe(); err != nil {
-			if !errors.Is(err, net.ErrClosed) {
-				host.ReportFatalError(err)
-			}
+
+	go receiver.startServer(host)
+	go receiver.manageServerLifecycle(ctx, metricsChannel)
+
+	return nil
+}
+
+func (receiver *simplePrometheusWriteReceiver) startServer(host component.Host) {
+	receiver.Lock()
+	defer receiver.Unlock()
+	if err := receiver.server.ListenAndServe(); err != nil {
+		if !errors.Is(err, net.ErrClosed) {
+			host.ReportFatalError(err)
 		}
-	}()
-	// Manage server lifecycle
-	go func(ctx2 context.Context) {
-		for {
-			select {
-			case metrics := <-metricsChannel:
-				err := receiver.Flush(ctx2, metrics)
-				if err != nil {
-					receiver.reporter.OnTranslationError(ctx2, err)
-					close(metricsChannel)
-					return
-				}
-			case <-ctx2.Done():
+	}
+}
+
+func (receiver *simplePrometheusWriteReceiver) manageServerLifecycle(ctx context.Context, metricsChannel chan pmetric.Metrics) {
+	for {
+		select {
+		case metrics := <-metricsChannel:
+			receiver.Lock()
+			err := receiver.flush(ctx, metrics)
+			if err != nil {
+				receiver.reporter.OnTranslationError(ctx, err)
+				receiver.Unlock()
 				close(metricsChannel)
 				return
 			}
+			receiver.Unlock()
+		case <-ctx.Done():
+			close(metricsChannel)
+			return
 		}
-	}(ctx)
-
-	return nil
+	}
 }
 
 // Shutdown stops the PrometheusSimpleRemoteWrite receiver.
@@ -136,7 +144,7 @@ func (receiver *simplePrometheusWriteReceiver) Shutdown(context.Context) error {
 	return receiver.server.Close()
 }
 
-func (receiver *simplePrometheusWriteReceiver) Flush(ctx context.Context, metrics pmetric.Metrics) error {
+func (receiver *simplePrometheusWriteReceiver) flush(ctx context.Context, metrics pmetric.Metrics) error {
 	err := receiver.nextConsumer.ConsumeMetrics(ctx, metrics)
 	receiver.reporter.OnMetricsProcessed(ctx, metrics.DataPointCount(), err)
 	return err

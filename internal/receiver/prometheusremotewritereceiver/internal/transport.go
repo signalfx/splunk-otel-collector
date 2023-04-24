@@ -21,11 +21,6 @@ import (
 // Reporter is used to report (via zPages, logs, metrics, etc) the events
 // happening when the Server is receiving and processing data.
 type Reporter interface {
-	// OnDataReceived is called when a message or request is received from
-	// a client. The returned context should be used in other calls to the same
-	// reporter instance. The caller code should include a call to end the
-	// returned span.
-	OnDataReceived(ctx context.Context) context.Context
 
 	// OnTranslationError is used to report a translation error from original
 	// format to the internal format of the Collector. The context

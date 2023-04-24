@@ -50,6 +50,9 @@ func TestHappy(t *testing.T) {
 	require.NotNil(t, receiver)
 	require.NoError(t, receiver.Start(ctx, nopHost))
 
+	// Calling start again should remain graceful
+	require.NoError(t, receiver.Start(ctx, nopHost))
+
 	// Ensure we can instantiate
 	client, err := internal.NewMockPrwClient(
 		cfg.Endpoint,

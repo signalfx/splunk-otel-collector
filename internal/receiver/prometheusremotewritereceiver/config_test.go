@@ -16,7 +16,6 @@ package prometheusremotewritereceiver
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -31,7 +30,6 @@ func TestValidateConfig(t *testing.T) {
 	assert.NoError(t, cfg.Validate())
 	assert.NotEmpty(t, cfg.Endpoint)
 	assert.NotEmpty(t, cfg.ListenPath)
-	assert.Equal(t, 30*time.Second, cfg.Timeout)
 	assert.Equal(t, 0, cfg.BufferSize)
 }
 

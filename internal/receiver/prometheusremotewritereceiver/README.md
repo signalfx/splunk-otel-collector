@@ -11,19 +11,19 @@ As of this writing, no official specification exists for remote write endpoints,
 As such, this receiver implements a best-effort mapping between such metrics.  If you find your use case or access patterns do not jive well with this receiver, please [cut an issue](https://github.com/signalfx/splunk-otel-collector/issues/new) to our repo with the specific data incongruity that you're experiencing, and we will do our best to provide for you within maintainable reason.
 
 ## Receiver Configuration
-This receiver is configured via standard OpenTelemetry mechanisms.  See [`config.go`](./config.go) specific options.
+This receiver is configured via standard OpenTelemetry mechanisms.  See [`config.go`](./config.go) for specific details.
 
-Of note is the `CacheCapacity` option, which limits how many metadata configurations are available.
+* `path` is the path in which the receiver should respond to prometheus remote write requests.
+  * Defaults to `/metrics`
+* `buffer_size` is the degree to which metric translations may be buffered without blocking further write requests.
+  * Defaults to `100`
+* `cache_size` is the number of most recent metadata requests which should be stored.  Turn this to zero if you wish to disable caching between requests, but do ensure your metrics write requests are independently and consistently parseable without any metadata if so.
+  * Defaults to `10000`
 
-// provides generic settings for connecting to HTTP servers as commonly used in opentelemetry
-confighttp.HTTPServerSettings `mapstructure:",squash"`
-`path` is the path in which the receiver should respond to prometheus remote write requests.
-`timeout` is used as both read and write timeout for the receiver server
-`buffer_size` is the degree to which metric translations may be buffered without blocking further write requests.
-`cache_size` is the number of most recent metadata requests which should be stored.  Turn this to zero if you wish to disable caching between requests, but do ensure your metrics write requests are independently and consistently parseable without any metadata if so.
-
-// CacheCapacity determines LRU capacity for how many different metrics may concurrently have persisted metadata.
-CacheCapacity int `mapstructure:"cache_size"`
+This receiver uses `opentelemetry-collector`'s [`confighttp`](https://github.com/open-telemetry/opentelemetry-collector/blob/main/config/confighttp/confighttp.go#L206) options if you would like to set up tls or similar.  (See linked documentation for the most up-to-date details).
+However, we make the following changes to their default options:
+* `endpoint` is the default interface + port to listen on
+  * Defaults to `localhost:19291`
 
 ## Remote write client configuration
 If you're using the [native remote write configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#remote_write), it's advisable that you enable `send=true` under `metadata_config`.

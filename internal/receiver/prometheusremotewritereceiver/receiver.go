@@ -97,31 +97,29 @@ func (receiver *simplePrometheusWriteReceiver) Start(ctx context.Context, host c
 
 func (receiver *simplePrometheusWriteReceiver) startServer(host component.Host) {
 	receiver.Lock()
-	server := receiver.server
-	if server == nil {
-		host.ReportFatalError(fmt.Errorf("start called on null server for receiver %s", typeString))
+	prometheusRemoteWriteServer := receiver.server
+	if prometheusRemoteWriteServer == nil {
+		host.ReportFatalError(fmt.Errorf("start called on null prometheusRemoteWriteServer for receiver %s", typeString))
 	}
 	receiver.Unlock()
-	if err := server.ListenAndServe(); err != nil {
+	if err := prometheusRemoteWriteServer.ListenAndServe(); err != nil {
 		host.ReportFatalError(err)
-		receiver.reporter.OnDebugf("Error in %s/%s listening server %s: %s", typeString, receiver.settings.ID, server.Addr, err)
+		receiver.reporter.OnDebugf("Error in %s/%s listening on %s/%s: %s", typeString, receiver.settings.ID, prometheusRemoteWriteServer.Addr, prometheusRemoteWriteServer.Path, err)
 	}
 }
 
 func (receiver *simplePrometheusWriteReceiver) manageServerLifecycle(ctx context.Context, metricsChannel chan pmetric.Metrics) {
+	reporter := receiver.reporter
 	for {
 		select {
 		case metrics := <-metricsChannel:
-			receiver.Lock()
-			metricContext := receiver.reporter.StartMetricsOp(ctx)
+			metricContext := reporter.StartMetricsOp(ctx)
 			err := receiver.flush(metricContext, metrics)
 			if err != nil {
-				receiver.reporter.OnTranslationError(metricContext, err)
-				receiver.Unlock()
+				reporter.OnTranslationError(metricContext, err)
 				close(metricsChannel)
 				return
 			}
-			receiver.Unlock()
 		case <-ctx.Done():
 			close(metricsChannel)
 			return

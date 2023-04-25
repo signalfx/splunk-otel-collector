@@ -52,19 +52,6 @@ func TestSmoke(t *testing.T) {
 		wg.Done()
 	}()
 
-	closeAfter := 2 * time.Second
-	t.Logf("will close after %d seconds, starting at %d", closeAfter/time.Second, time.Now().Unix())
-
-	select {
-	case <-mc:
-		require.Fail(t, "Should not be sending metrics in this test")
-	case <-time.After(closeAfter):
-		t.Logf("Closed at %d!", time.Now().Unix())
-		require.Nil(t, receiver.Shutdown(ctx))
-	case <-time.After(timeout + 2*time.Second):
-		require.Fail(t, "Should have closed server by now")
-	case <-ctx.Done():
-		assert.Error(t, ctx.Err())
-	}
+	require.NoError(t, receiver.Shutdown(ctx))
 	require.Eventually(t, func() bool { wg.Wait(); return true }, time.Second*10, time.Second)
 }

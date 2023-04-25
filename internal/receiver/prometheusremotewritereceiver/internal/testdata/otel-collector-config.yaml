@@ -2,7 +2,6 @@ receivers:
   simpleprometheusremotewrite:
     endpoint: "0.0.0.0:54090"
     path: "/metrics"
-    timeout: "5s"
     buffer_size: 100
 processors:
   batch:

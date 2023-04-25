@@ -16,7 +16,6 @@ package prometheusremotewritereceiver
 
 import (
 	"context"
-	"time"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
@@ -44,7 +43,6 @@ func createMetricsReceiver(
 
 func createDefaultConfig() component.Config {
 	return &Config{
-		Timeout: 30 * time.Second,
 		HTTPServerSettings: confighttp.HTTPServerSettings{
 			Endpoint: "localhost:19291", // While not IANA registered, convention is 19291 as a common PRW port
 		},

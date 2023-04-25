@@ -16,7 +16,6 @@ package prometheusremotewritereceiver
 
 import (
 	"errors"
-	"time"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
@@ -34,8 +33,6 @@ type Config struct {
 	ListenPath string `mapstructure:"path"`
 	// provides generic settings for connecting to HTTP servers as commonly used in opentelemetry
 	confighttp.HTTPServerSettings `mapstructure:",squash"`
-	// Timeout is used as both read and write timeout for the receiver server
-	Timeout time.Duration `mapstructure:"timeout"`
 	// BufferSize is the degree to which metric translations may be buffered without blocking further write requests.
 	BufferSize int `mapstructure:"buffer_size"`
 	// CacheCapacity determines LRU capacity for how many different metrics may concurrently have persisted metadata.
@@ -46,9 +43,6 @@ func (c *Config) Validate() error {
 	var errs []error
 	if c.Endpoint == "" {
 		errs = append(errs, errors.New("endpoint must not be empty"))
-	}
-	if c.Timeout < time.Millisecond {
-		errs = append(errs, errors.New("impractically short timeout"))
 	}
 	if c.BufferSize < 0 {
 		errs = append(errs, errors.New("buffer size must be non-negative"))

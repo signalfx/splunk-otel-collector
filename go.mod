@@ -6,7 +6,7 @@ require (
 	github.com/alecthomas/participle/v2 v2.0.0
 	github.com/antonmedv/expr v1.12.5
 	github.com/apache/pulsar-client-go v0.10.0
-	github.com/cenkalti/backoff/v4 v4.2.0
+	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-zookeeper/zk v1.0.3
 	github.com/gogo/protobuf v1.3.2

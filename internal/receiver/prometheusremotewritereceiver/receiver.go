@@ -102,17 +102,16 @@ func (receiver *prometheusRemoteWriteReceiver) startServer(host component.Host) 
 }
 
 func (receiver *prometheusRemoteWriteReceiver) manageServerLifecycle(ctx context.Context, metricsChannel <-chan pmetric.Metrics) {
-	r := receiver.reporter
 	for {
 		select {
 		case metrics, stillOpen := <-metricsChannel:
 			if !stillOpen {
 				return
 			}
-			metricContext := r.StartMetricsOp(ctx)
+			metricContext := receiver.reporter.StartMetricsOp(ctx)
 			err := receiver.flush(metricContext, metrics)
 			if err != nil {
-				r.OnError(metricContext, "flush_error", err)
+				receiver.reporter.OnError(metricContext, "flush_error", err)
 				return
 			}
 		case <-ctx.Done():

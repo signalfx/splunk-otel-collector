@@ -26,7 +26,7 @@ import (
 
 type PrometheusRemoteWriteServer struct {
 	*http.Server
-	Reporter Reporter
+	*ServerConfig
 }
 
 type ServerConfig struct {
@@ -44,13 +44,14 @@ func NewPrometheusRemoteWriteServer(ctx context.Context, config *ServerConfig) (
 	mx.HandleFunc(config.Path, handler)
 	mx.Host(config.Endpoint)
 	server, err := config.HTTPServerSettings.ToServer(config.Host, config.TelemetrySettings, handler)
+	// Currently this is not set, in favor of the pattern where they always explicitly pass the listener
 	server.Addr = config.Endpoint
 	if err != nil {
 		return nil, err
 	}
 	return &PrometheusRemoteWriteServer{
-		Server:   server,
-		Reporter: config.Reporter,
+		Server:       server,
+		ServerConfig: config,
 	}, nil
 }
 
@@ -60,7 +61,16 @@ func (prw *PrometheusRemoteWriteServer) Close() error {
 
 func (prw *PrometheusRemoteWriteServer) ListenAndServe() error {
 	prw.Reporter.OnDebugf("Starting prometheus simple write server")
-	err := prw.Server.ListenAndServe()
+	listener, err := prw.ServerConfig.ToListener()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if e := listener.Close(); e != nil {
+			prw.Reporter.OnDebugf("error in listener: %s", e)
+		}
+	}()
+	err = prw.Server.Serve(listener)
 	if err == http.ErrServerClosed {
 		return nil
 	}

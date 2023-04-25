@@ -17,7 +17,6 @@ package prometheusremotewritereceiver
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
@@ -35,7 +34,6 @@ type PrometheusRemoteWriteReceiver struct {
 	cancel       context.CancelFunc
 	config       *Config
 	settings     receiver.CreateSettings
-	sync.Mutex
 }
 
 // NewPrometheusRemoteWriteReceiver creates the PrometheusRemoteWrite receiver with the given parameters.
@@ -77,8 +75,6 @@ func (receiver *PrometheusRemoteWriteReceiver) Start(ctx context.Context, host c
 	if err != nil {
 		return err
 	}
-	receiver.Lock()
-	defer receiver.Unlock()
 	if nil != receiver.server {
 		err := receiver.server.Close()
 		if err != nil {
@@ -94,12 +90,10 @@ func (receiver *PrometheusRemoteWriteReceiver) Start(ctx context.Context, host c
 }
 
 func (receiver *PrometheusRemoteWriteReceiver) startServer(host component.Host) {
-	receiver.Lock()
 	prometheusRemoteWriteServer := receiver.server
 	if prometheusRemoteWriteServer == nil {
 		host.ReportFatalError(fmt.Errorf("start called on null prometheusRemoteWriteServer for receiver %s", typeString))
 	}
-	receiver.Unlock()
 	if err := prometheusRemoteWriteServer.ListenAndServe(); err != nil {
 		// our receiver swallows http's ErrServeClosed, and we should only get "concerning" issues at this point in the code.
 		host.ReportFatalError(err)
@@ -129,8 +123,6 @@ func (receiver *PrometheusRemoteWriteReceiver) manageServerLifecycle(ctx context
 
 // Shutdown stops the PrometheusSimpleRemoteWrite receiver.
 func (receiver *PrometheusRemoteWriteReceiver) Shutdown(context.Context) error {
-	receiver.Lock()
-	defer receiver.Unlock()
 	if receiver.cancel == nil {
 		return nil
 	}

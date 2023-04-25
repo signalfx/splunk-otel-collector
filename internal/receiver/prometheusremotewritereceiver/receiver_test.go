@@ -45,19 +45,20 @@ func TestHappy(t *testing.T) {
 	mockSettings := receivertest.NewNopCreateSettings()
 	mockConsumer := consumertest.NewNop()
 	mockreporter := newMockReporter(0)
-	receiver, err := NewPrometheusRemoteWriteReceiver(mockSettings, cfg, mockConsumer)
-	receiver.reporter = mockreporter
+	receiver, err := New(mockSettings, cfg, mockConsumer)
+	remoteWriteReceiver := receiver.(*prometheusRemoteWriteReceiver)
+	remoteWriteReceiver.reporter = mockreporter
 
 	assert.NoError(t, err)
-	require.NotNil(t, receiver)
-	require.NoError(t, receiver.Start(ctx, nopHost))
-	require.NotEmpty(t, receiver.server)
-	require.NotEmpty(t, receiver.cancel)
-	require.NotEmpty(t, receiver.config)
-	require.Equal(t, receiver.config.Endpoint, fmt.Sprintf("localhost:%d", freePort))
-	require.NotEmpty(t, receiver.settings)
-	require.NotNil(t, receiver.reporter)
-	require.Equal(t, expectedEndpoint, receiver.server.Addr)
+	require.NotNil(t, remoteWriteReceiver)
+	require.NoError(t, remoteWriteReceiver.Start(ctx, nopHost))
+	require.NotEmpty(t, remoteWriteReceiver.server)
+	require.NotEmpty(t, remoteWriteReceiver.cancel)
+	require.NotEmpty(t, remoteWriteReceiver.config)
+	require.Equal(t, remoteWriteReceiver.config.Endpoint, fmt.Sprintf("localhost:%d", freePort))
+	require.NotEmpty(t, remoteWriteReceiver.settings)
+	require.NotNil(t, remoteWriteReceiver.reporter)
+	require.Equal(t, expectedEndpoint, remoteWriteReceiver.server.Addr)
 
 	// Calling start again should remain graceful
 
@@ -74,7 +75,7 @@ func TestHappy(t *testing.T) {
 		Metadata:   []prompb.MetricMetadata{},
 	}))
 	require.NoError(t, mockreporter.WaitAllOnMetricsProcessedCalls(10*time.Second))
-	require.NoError(t, receiver.Shutdown(ctx))
+	require.NoError(t, remoteWriteReceiver.Shutdown(ctx))
 	// Shutting down should remain graceful as well
-	require.NoError(t, receiver.Shutdown(ctx))
+	require.NoError(t, remoteWriteReceiver.Shutdown(ctx))
 }

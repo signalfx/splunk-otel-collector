@@ -38,7 +38,7 @@ func createMetricsReceiver(
 	consumer consumer.Metrics,
 ) (receiver.Metrics, error) {
 	c := cfg.(*Config)
-	return NewPrometheusRemoteWriteReceiver(params, c, consumer)
+	return New(params, c, consumer)
 }
 
 func createDefaultConfig() component.Config {

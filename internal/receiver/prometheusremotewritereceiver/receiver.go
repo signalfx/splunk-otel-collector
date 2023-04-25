@@ -24,10 +24,10 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 )
 
-var _ receiver.Metrics = (*PrometheusRemoteWriteReceiver)(nil)
+var _ receiver.Metrics = (*prometheusRemoteWriteReceiver)(nil)
 
-// PrometheusRemoteWriteReceiver implements the receiver.Metrics for PrometheusRemoteWrite protocol.
-type PrometheusRemoteWriteReceiver struct {
+// prometheusRemoteWriteReceiver implements the receiver.Metrics for PrometheusRemoteWrite protocol.
+type prometheusRemoteWriteReceiver struct {
 	server       *prometheusRemoteWriteServer
 	reporter     reporter
 	nextConsumer consumer.Metrics
@@ -36,12 +36,12 @@ type PrometheusRemoteWriteReceiver struct {
 	settings     receiver.CreateSettings
 }
 
-// NewPrometheusRemoteWriteReceiver creates the PrometheusRemoteWrite receiver with the given parameters.
-func NewPrometheusRemoteWriteReceiver(
+// New creates the PrometheusRemoteWrite receiver with the given parameters.
+func New(
 	settings receiver.CreateSettings,
 	config *Config,
 	nextConsumer consumer.Metrics,
-) (*PrometheusRemoteWriteReceiver, error) {
+) (receiver.Metrics, error) {
 	if nextConsumer == nil {
 		return nil, component.ErrNilNextConsumer
 	}
@@ -51,7 +51,7 @@ func NewPrometheusRemoteWriteReceiver(
 		return nil, err
 	}
 
-	r := &PrometheusRemoteWriteReceiver{
+	r := &prometheusRemoteWriteReceiver{
 		settings:     settings,
 		config:       config,
 		nextConsumer: nextConsumer,
@@ -61,7 +61,7 @@ func NewPrometheusRemoteWriteReceiver(
 }
 
 // Start starts an HTTP server that can process Prometheus Remote Write Requests
-func (receiver *PrometheusRemoteWriteReceiver) Start(ctx context.Context, host component.Host) error {
+func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host component.Host) error {
 	metricsChannel := make(chan pmetric.Metrics, receiver.config.BufferSize)
 	cfg := &ServerConfig{
 		HTTPServerSettings: receiver.config.HTTPServerSettings,
@@ -89,7 +89,7 @@ func (receiver *PrometheusRemoteWriteReceiver) Start(ctx context.Context, host c
 	return nil
 }
 
-func (receiver *PrometheusRemoteWriteReceiver) startServer(host component.Host) {
+func (receiver *prometheusRemoteWriteReceiver) startServer(host component.Host) {
 	prometheusRemoteWriteServer := receiver.server
 	if prometheusRemoteWriteServer == nil {
 		host.ReportFatalError(fmt.Errorf("start called on null prometheusRemoteWriteServer for receiver %s", typeString))
@@ -101,7 +101,7 @@ func (receiver *PrometheusRemoteWriteReceiver) startServer(host component.Host) 
 	}
 }
 
-func (receiver *PrometheusRemoteWriteReceiver) manageServerLifecycle(ctx context.Context, metricsChannel <-chan pmetric.Metrics) {
+func (receiver *prometheusRemoteWriteReceiver) manageServerLifecycle(ctx context.Context, metricsChannel <-chan pmetric.Metrics) {
 	r := receiver.reporter
 	for {
 		select {
@@ -122,7 +122,7 @@ func (receiver *PrometheusRemoteWriteReceiver) manageServerLifecycle(ctx context
 }
 
 // Shutdown stops the PrometheusSimpleRemoteWrite receiver.
-func (receiver *PrometheusRemoteWriteReceiver) Shutdown(context.Context) error {
+func (receiver *prometheusRemoteWriteReceiver) Shutdown(context.Context) error {
 	if receiver.cancel == nil {
 		return nil
 	}
@@ -133,7 +133,7 @@ func (receiver *PrometheusRemoteWriteReceiver) Shutdown(context.Context) error {
 	return nil
 }
 
-func (receiver *PrometheusRemoteWriteReceiver) flush(ctx context.Context, metrics pmetric.Metrics) error {
+func (receiver *prometheusRemoteWriteReceiver) flush(ctx context.Context, metrics pmetric.Metrics) error {
 	err := receiver.nextConsumer.ConsumeMetrics(ctx, metrics)
 	receiver.reporter.OnMetricsProcessed(ctx, metrics.DataPointCount(), err)
 	return err

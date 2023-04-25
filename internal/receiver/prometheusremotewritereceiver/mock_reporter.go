@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-// MockReporter provides a Reporter that provides some useful functionalities for
+// MockReporter provides a iReporter that provides some useful functionalities for
 // tests (e.g.: wait for certain number of messages).
 type MockReporter struct {
 	TranslationErrors  []error
@@ -32,7 +32,7 @@ type MockReporter struct {
 	MessagesProcessed  uint32
 }
 
-var _ Reporter = (*MockReporter)(nil)
+var _ iReporter = (*MockReporter)(nil)
 
 func (m *MockReporter) AddExpected(newCalls int) int {
 	m.wgMetricsProcessed.Add(newCalls)

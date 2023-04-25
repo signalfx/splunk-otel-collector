@@ -18,9 +18,9 @@ import (
 	"context"
 )
 
-// Reporter is used to report (via zPages, logs, metrics, etc) the events
+// iReporter is used to report (via zPages, logs, metrics, etc) the events
 // happening when the Server is receiving and processing data.
-type Reporter interface {
+type iReporter interface {
 
 	// OnTranslationError is used to report a translation error from original
 	// format to the internal format of the Collector. The context

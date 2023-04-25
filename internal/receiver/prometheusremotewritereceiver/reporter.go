@@ -23,9 +23,9 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ Reporter = (*reporter)(nil)
+var _ iReporter = (*reporter)(nil)
 
-// reporter struct implements the transport.Reporter interface to give consistent
+// reporter struct implements the transport.iReporter interface to give consistent
 // observability per Collector metric observability package.
 type reporter struct {
 	logger        *zap.Logger
@@ -33,7 +33,7 @@ type reporter struct {
 	obsrecv       *obsreport.Receiver
 }
 
-func newReporter(settings receiver.CreateSettings) (Reporter, error) {
+func newReporter(settings receiver.CreateSettings) (iReporter, error) {
 	obsrecv, err := obsreport.NewReceiver(obsreport.ReceiverSettings{
 		ReceiverID:             settings.ID,
 		Transport:              "tcp",

@@ -30,7 +30,7 @@ var _ receiver.Metrics = (*simplePrometheusWriteReceiver)(nil)
 // simplePrometheusWriteReceiver implements the receiver.Metrics for PrometheusRemoteWrite protocol.
 type simplePrometheusWriteReceiver struct {
 	server       *PrometheusRemoteWriteServer
-	reporter     Reporter
+	reporter     iReporter
 	nextConsumer consumer.Metrics
 	cancel       context.CancelFunc
 	config       *Config

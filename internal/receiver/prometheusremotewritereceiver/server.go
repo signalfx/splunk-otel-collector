@@ -17,6 +17,7 @@ package prometheusremotewritereceiver
 import (
 	"context"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/collector/component"
@@ -27,12 +28,13 @@ import (
 type PrometheusRemoteWriteServer struct {
 	*http.Server
 	*ServerConfig
+	closeChannel *sync.Once
 }
 
 type ServerConfig struct {
 	Reporter
 	component.Host
-	Mc chan pmetric.Metrics
+	Mc chan<- pmetric.Metrics
 	component.TelemetrySettings
 	Path string
 	confighttp.HTTPServerSettings
@@ -52,10 +54,12 @@ func NewPrometheusRemoteWriteServer(ctx context.Context, config *ServerConfig) (
 	return &PrometheusRemoteWriteServer{
 		Server:       server,
 		ServerConfig: config,
+		closeChannel: &sync.Once{},
 	}, nil
 }
 
 func (prw *PrometheusRemoteWriteServer) Close() error {
+	defer prw.closeChannel.Do(func() { close(prw.Mc) })
 	return prw.Server.Close()
 }
 
@@ -65,11 +69,7 @@ func (prw *PrometheusRemoteWriteServer) ListenAndServe() error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if e := listener.Close(); e != nil {
-			prw.Reporter.OnDebugf("error in listener: %s", e)
-		}
-	}()
+	defer listener.Close()
 	err = prw.Server.Serve(listener)
 	if err == http.ErrServerClosed {
 		return nil
@@ -77,7 +77,7 @@ func (prw *PrometheusRemoteWriteServer) ListenAndServe() error {
 	return err
 }
 
-func newHandler(ctx context.Context, reporter Reporter, _ *ServerConfig, _ chan pmetric.Metrics) http.HandlerFunc {
+func newHandler(ctx context.Context, reporter Reporter, _ *ServerConfig, _ chan<- pmetric.Metrics) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// THIS IS A STUB FUNCTION.  You can see another branch with how I'm thinking this will look if you're curious
 		ctx2 := reporter.StartMetricsOp(ctx)

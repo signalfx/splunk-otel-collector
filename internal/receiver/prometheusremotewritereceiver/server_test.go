@@ -16,29 +16,35 @@ package prometheusremotewritereceiver
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/prometheus/prometheus/prompb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
-func TestSmoke(t *testing.T) {
-	mc := make(chan pmetric.Metrics)
-	defer close(mc)
+func TestWriteEmpty(t *testing.T) {
+	mc := make(chan<- pmetric.Metrics)
 	timeout := 5 * time.Second
-	addr := "localhost:0"
-	reporter := NewMockReporter(0)
+	reporter := NewMockReporter(1)
+	freePort, err := GetFreePort()
+	require.NoError(t, err)
+	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 	cfg := &ServerConfig{
-		Path:               "/metrics",
-		Reporter:           reporter,
-		Mc:                 mc,
-		HTTPServerSettings: confighttp.HTTPServerSettings{},
+		Path:     "/metrics",
+		Reporter: reporter,
+		Mc:       mc,
+		HTTPServerSettings: confighttp.HTTPServerSettings{
+			Endpoint: expectedEndpoint,
+		},
 	}
-	cfg.Endpoint = addr
+	require.Equal(t, expectedEndpoint, cfg.Endpoint)
+
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	receiver, err := NewPrometheusRemoteWriteServer(ctx, cfg)
@@ -51,6 +57,18 @@ func TestSmoke(t *testing.T) {
 		require.NoError(t, receiver.ListenAndServe())
 		wg.Done()
 	}()
+
+	client, err := NewMockPrwClient(
+		cfg.Endpoint,
+		"metrics",
+	)
+	require.NoError(t, err)
+	require.NotNil(t, client)
+	time.Sleep(100 * time.Millisecond)
+	require.NoError(t, client.SendWriteRequest(&prompb.WriteRequest{
+		Timeseries: []prompb.TimeSeries{},
+		Metadata:   []prompb.MetricMetadata{},
+	}))
 
 	require.NoError(t, receiver.Shutdown(ctx))
 	require.Eventually(t, func() bool { wg.Wait(); return true }, time.Second*10, time.Second)

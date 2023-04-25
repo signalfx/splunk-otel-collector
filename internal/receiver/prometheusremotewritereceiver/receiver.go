@@ -101,25 +101,27 @@ func (receiver *simplePrometheusWriteReceiver) startServer(host component.Host) 
 	}
 	receiver.Unlock()
 	if err := prometheusRemoteWriteServer.ListenAndServe(); err != nil {
+		// our receiver swallows http's ErrServeClosed, and we should only get "concerning" issues at this point in the code.
 		host.ReportFatalError(err)
 		receiver.reporter.OnDebugf("Error in %s/%s listening on %s/%s: %s", typeString, receiver.settings.ID, prometheusRemoteWriteServer.Addr, prometheusRemoteWriteServer.Path, err)
 	}
 }
 
-func (receiver *simplePrometheusWriteReceiver) manageServerLifecycle(ctx context.Context, metricsChannel chan pmetric.Metrics) {
+func (receiver *simplePrometheusWriteReceiver) manageServerLifecycle(ctx context.Context, metricsChannel <-chan pmetric.Metrics) {
 	reporter := receiver.reporter
 	for {
 		select {
-		case metrics := <-metricsChannel:
+		case metrics, stillOpen := <-metricsChannel:
+			if !stillOpen {
+				return
+			}
 			metricContext := reporter.StartMetricsOp(ctx)
 			err := receiver.flush(metricContext, metrics)
 			if err != nil {
 				reporter.OnTranslationError(metricContext, err)
-				close(metricsChannel)
 				return
 			}
 		case <-ctx.Done():
-			close(metricsChannel)
 			return
 		}
 	}

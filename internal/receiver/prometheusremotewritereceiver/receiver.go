@@ -118,7 +118,7 @@ func (receiver *PrometheusRemoteWriteReceiver) manageServerLifecycle(ctx context
 			metricContext := reporter.StartMetricsOp(ctx)
 			err := receiver.flush(metricContext, metrics)
 			if err != nil {
-				reporter.OnTranslationError(metricContext, err)
+				reporter.OnError(metricContext, err)
 				return
 			}
 		case <-ctx.Done():

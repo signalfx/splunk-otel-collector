@@ -56,10 +56,10 @@ func (r *reporter) StartMetricsOp(ctx context.Context) context.Context {
 	return r.obsrecv.StartMetricsOp(ctx)
 }
 
-// OnTranslationError is used to report a translation error from original
+// OnError is used to report a translation error from original
 // format to the internal format of the Collector. The context and span
 // passed to it should be the ones returned by StartMetricsOp in the reporter.
-func (r *reporter) OnTranslationError(ctx context.Context, err error) {
+func (r *reporter) OnError(ctx context.Context, reason string, err error) {
 	if err == nil {
 		return
 	}
@@ -69,7 +69,7 @@ func (r *reporter) OnTranslationError(ctx context.Context, err error) {
 	span := trace.FromContext(ctx)
 	span.Annotate([]trace.Attribute{
 		trace.StringAttribute("error", err.Error())},
-		"translation",
+		reason,
 	)
 }
 

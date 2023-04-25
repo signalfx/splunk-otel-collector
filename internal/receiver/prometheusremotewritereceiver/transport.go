@@ -22,10 +22,10 @@ import (
 // happening when the Server is receiving and processing data.
 type iReporter interface {
 
-	// OnTranslationError is used to report a translation error from original
+	// OnError is used to report a translation error from original
 	// format to the internal format of the Collector. The context
 	// passed to it should be the ones returned by StartMetricsOp.
-	OnTranslationError(ctx context.Context, err error)
+	OnError(ctx context.Context, reason string, err error)
 
 	// OnMetricsProcessed is called when the received data is passed to next
 	// consumer on the pipeline. The context passed to it should be the
@@ -39,6 +39,6 @@ type iReporter interface {
 		args ...interface{})
 
 	// StartMetricsOp should always be called first, and the context from such passed onto the calls for
-	// OnTranslationError (if an issue occurs) xor OnMetricsProcessed (if successful)
+	// OnError (if an issue occurs) xor OnMetricsProcessed (if successful)
 	StartMetricsOp(ctx context.Context) context.Context
 }

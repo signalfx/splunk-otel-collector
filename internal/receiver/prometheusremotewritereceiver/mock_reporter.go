@@ -52,7 +52,7 @@ func (m *mockReporter) StartMetricsOp(ctx context.Context) context.Context {
 	return ctx
 }
 
-func (m *mockReporter) OnTranslationError(_ context.Context, err error) {
+func (m *mockReporter) OnError(_ context.Context, err error) {
 	m.TranslationErrors = append(m.TranslationErrors, err)
 }
 

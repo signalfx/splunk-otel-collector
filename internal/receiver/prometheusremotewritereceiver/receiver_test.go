@@ -26,8 +26,6 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/receivertest"
-
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal"
 )
 
 func TestHappy(t *testing.T) {
@@ -36,7 +34,7 @@ func TestHappy(t *testing.T) {
 	defer cancel()
 
 	cfg := createDefaultConfig().(*Config)
-	freePort, err := internal.GetFreePort()
+	freePort, err := GetFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 
@@ -46,7 +44,7 @@ func TestHappy(t *testing.T) {
 	nopHost := componenttest.NewNopHost()
 	mockSettings := receivertest.NewNopCreateSettings()
 	mockConsumer := consumertest.NewNop()
-	mockreporter := internal.NewMockReporter(0)
+	mockreporter := NewMockReporter(0)
 	receiver, err := newPrometheusRemoteWriteReceiver(mockSettings, cfg, mockConsumer)
 	receiver.reporter = mockreporter
 
@@ -64,7 +62,7 @@ func TestHappy(t *testing.T) {
 	// Calling start again should remain graceful
 
 	// Ensure we can instantiate
-	client, err := internal.NewMockPrwClient(
+	client, err := NewMockPrwClient(
 		cfg.Endpoint,
 		"metrics",
 	)

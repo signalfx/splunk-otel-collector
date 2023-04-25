@@ -23,16 +23,14 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver"
-
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal"
 )
 
 var _ receiver.Metrics = (*simplePrometheusWriteReceiver)(nil)
 
 // simplePrometheusWriteReceiver implements the receiver.Metrics for PrometheusRemoteWrite protocol.
 type simplePrometheusWriteReceiver struct {
-	server       *internal.PrometheusRemoteWriteServer
-	reporter     internal.Reporter
+	server       *PrometheusRemoteWriteServer
+	reporter     Reporter
 	nextConsumer consumer.Metrics
 	cancel       context.CancelFunc
 	config       *Config
@@ -67,7 +65,7 @@ func newPrometheusRemoteWriteReceiver(
 // Start starts an HTTP server that can process Prometheus Remote Write Requests
 func (receiver *simplePrometheusWriteReceiver) Start(ctx context.Context, host component.Host) error {
 	metricsChannel := make(chan pmetric.Metrics, receiver.config.BufferSize)
-	cfg := &internal.ServerConfig{
+	cfg := &ServerConfig{
 		HTTPServerSettings: receiver.config.HTTPServerSettings,
 		Path:               receiver.config.ListenPath,
 		Mc:                 metricsChannel,
@@ -75,7 +73,7 @@ func (receiver *simplePrometheusWriteReceiver) Start(ctx context.Context, host c
 		Host:               host,
 	}
 	ctx, receiver.cancel = context.WithCancel(ctx)
-	server, err := internal.NewPrometheusRemoteWriteServer(ctx, cfg)
+	server, err := NewPrometheusRemoteWriteServer(ctx, cfg)
 	if err != nil {
 		return err
 	}

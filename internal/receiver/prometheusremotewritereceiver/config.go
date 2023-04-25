@@ -53,9 +53,6 @@ func (c *Config) Validate() error {
 	if c.BufferSize < 0 {
 		errs = append(errs, errors.New("buffer size must be non-negative"))
 	}
-	if c.CacheCapacity <= 100 {
-		errs = append(errs, errors.New("inadvisably small capacity for cache"))
-	}
 	if errs != nil {
 		return multierr.Combine(errs...)
 	}

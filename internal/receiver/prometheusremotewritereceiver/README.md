@@ -11,7 +11,7 @@ As of this writing, no official specification exists for remote write endpoints,
 As such, this receiver implements a best-effort mapping between such metrics.  If you find your use case or access patterns do not jive well with this receiver, please [cut an issue](https://github.com/signalfx/splunk-otel-collector/issues/new) to our repo with the specific data incongruity that you're experiencing, and we will do our best to provide for you within maintainable reason.
 
 ## Receiver Configuration
-This receiver is configured via standard open-telemetry mechanisms.  See [`config.go`](./config.go) specific options.
+This receiver is configured via standard OpenTelemetry mechanisms.  See [`config.go`](./config.go) specific options.
 
 Of note is the `CacheCapacity` option, which limits how many metadata configurations are available.
 

@@ -31,7 +31,7 @@ import (
 func TestWriteEmpty(t *testing.T) {
 	mc := make(chan<- pmetric.Metrics)
 	timeout := 5 * time.Second
-	reporter := NewMockReporter(1)
+	reporter := newMockReporter(1)
 	freePort, err := GetFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
@@ -47,7 +47,7 @@ func TestWriteEmpty(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	receiver, err := NewPrometheusRemoteWriteServer(ctx, cfg)
+	receiver, err := newPrometheusRemoteWriteServer(ctx, cfg)
 	assert.NoError(t, err)
 	require.NotNil(t, receiver)
 

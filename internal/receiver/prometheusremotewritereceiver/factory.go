@@ -38,7 +38,7 @@ func createMetricsReceiver(
 	consumer consumer.Metrics,
 ) (receiver.Metrics, error) {
 	c := cfg.(*Config)
-	return newPrometheusRemoteWriteReceiver(params, c, consumer)
+	return NewPrometheusRemoteWriteReceiver(params, c, consumer)
 }
 
 func createDefaultConfig() component.Config {
@@ -48,5 +48,6 @@ func createDefaultConfig() component.Config {
 		},
 		ListenPath:    "/metrics",
 		CacheCapacity: 10000,
+		BufferSize:    100,
 	}
 }

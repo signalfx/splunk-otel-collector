@@ -25,11 +25,11 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 )
 
-var _ receiver.Metrics = (*simplePrometheusWriteReceiver)(nil)
+var _ receiver.Metrics = (*PrometheusRemoteWriteReceiver)(nil)
 
-// simplePrometheusWriteReceiver implements the receiver.Metrics for PrometheusRemoteWrite protocol.
-type simplePrometheusWriteReceiver struct {
-	server       *PrometheusRemoteWriteServer
+// PrometheusRemoteWriteReceiver implements the receiver.Metrics for PrometheusRemoteWrite protocol.
+type PrometheusRemoteWriteReceiver struct {
+	server       *prometheusRemoteWriteServer
 	reporter     iReporter
 	nextConsumer consumer.Metrics
 	cancel       context.CancelFunc
@@ -38,12 +38,12 @@ type simplePrometheusWriteReceiver struct {
 	sync.Mutex
 }
 
-// newPrometheusRemoteWriteReceiver creates the PrometheusRemoteWrite receiver with the given parameters.
-func newPrometheusRemoteWriteReceiver(
+// NewPrometheusRemoteWriteReceiver creates the PrometheusRemoteWrite receiver with the given parameters.
+func NewPrometheusRemoteWriteReceiver(
 	settings receiver.CreateSettings,
 	config *Config,
 	nextConsumer consumer.Metrics,
-) (*simplePrometheusWriteReceiver, error) {
+) (*PrometheusRemoteWriteReceiver, error) {
 	if nextConsumer == nil {
 		return nil, component.ErrNilNextConsumer
 	}
@@ -53,7 +53,7 @@ func newPrometheusRemoteWriteReceiver(
 		return nil, err
 	}
 
-	r := &simplePrometheusWriteReceiver{
+	r := &PrometheusRemoteWriteReceiver{
 		settings:     settings,
 		config:       config,
 		nextConsumer: nextConsumer,
@@ -63,7 +63,7 @@ func newPrometheusRemoteWriteReceiver(
 }
 
 // Start starts an HTTP server that can process Prometheus Remote Write Requests
-func (receiver *simplePrometheusWriteReceiver) Start(ctx context.Context, host component.Host) error {
+func (receiver *PrometheusRemoteWriteReceiver) Start(ctx context.Context, host component.Host) error {
 	metricsChannel := make(chan pmetric.Metrics, receiver.config.BufferSize)
 	cfg := &ServerConfig{
 		HTTPServerSettings: receiver.config.HTTPServerSettings,
@@ -73,7 +73,7 @@ func (receiver *simplePrometheusWriteReceiver) Start(ctx context.Context, host c
 		Host:               host,
 	}
 	ctx, receiver.cancel = context.WithCancel(ctx)
-	server, err := NewPrometheusRemoteWriteServer(ctx, cfg)
+	server, err := newPrometheusRemoteWriteServer(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func (receiver *simplePrometheusWriteReceiver) Start(ctx context.Context, host c
 	return nil
 }
 
-func (receiver *simplePrometheusWriteReceiver) startServer(host component.Host) {
+func (receiver *PrometheusRemoteWriteReceiver) startServer(host component.Host) {
 	receiver.Lock()
 	prometheusRemoteWriteServer := receiver.server
 	if prometheusRemoteWriteServer == nil {
@@ -107,7 +107,7 @@ func (receiver *simplePrometheusWriteReceiver) startServer(host component.Host) 
 	}
 }
 
-func (receiver *simplePrometheusWriteReceiver) manageServerLifecycle(ctx context.Context, metricsChannel <-chan pmetric.Metrics) {
+func (receiver *PrometheusRemoteWriteReceiver) manageServerLifecycle(ctx context.Context, metricsChannel <-chan pmetric.Metrics) {
 	reporter := receiver.reporter
 	for {
 		select {
@@ -128,7 +128,7 @@ func (receiver *simplePrometheusWriteReceiver) manageServerLifecycle(ctx context
 }
 
 // Shutdown stops the PrometheusSimpleRemoteWrite receiver.
-func (receiver *simplePrometheusWriteReceiver) Shutdown(context.Context) error {
+func (receiver *PrometheusRemoteWriteReceiver) Shutdown(context.Context) error {
 	receiver.Lock()
 	defer receiver.Unlock()
 	if receiver.cancel == nil {
@@ -141,7 +141,7 @@ func (receiver *simplePrometheusWriteReceiver) Shutdown(context.Context) error {
 	return nil
 }
 
-func (receiver *simplePrometheusWriteReceiver) flush(ctx context.Context, metrics pmetric.Metrics) error {
+func (receiver *PrometheusRemoteWriteReceiver) flush(ctx context.Context, metrics pmetric.Metrics) error {
 	err := receiver.nextConsumer.ConsumeMetrics(ctx, metrics)
 	receiver.reporter.OnMetricsProcessed(ctx, metrics.DataPointCount(), err)
 	return err

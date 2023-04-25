@@ -25,12 +25,14 @@ import (
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
-func TestValidateConfig(t *testing.T) {
+func TestValidateConfigAndDefaults(t *testing.T) {
+	// Remember to change the README.md if any of these change in config
 	cfg := createDefaultConfig().(*Config)
 	assert.NoError(t, cfg.Validate())
-	assert.NotEmpty(t, cfg.Endpoint)
-	assert.NotEmpty(t, cfg.ListenPath)
-	assert.Equal(t, 0, cfg.BufferSize)
+	assert.Equal(t, "localhost:19291", cfg.Endpoint)
+	assert.Equal(t, "/metrics", cfg.ListenPath)
+	assert.Equal(t, 10000, cfg.CacheCapacity)
+	assert.Equal(t, 100, cfg.BufferSize)
 }
 
 func TestParseConfig(t *testing.T) {

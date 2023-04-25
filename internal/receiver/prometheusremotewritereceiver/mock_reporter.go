@@ -23,51 +23,51 @@ import (
 	"time"
 )
 
-// MockReporter provides a iReporter that provides some useful functionalities for
+// mockReporter provides a iReporter that provides some useful functionalities for
 // tests (e.g.: wait for certain number of messages).
-type MockReporter struct {
+type mockReporter struct {
 	TranslationErrors  []error
 	wgMetricsProcessed sync.WaitGroup
 	TotalCalls         uint32
 	MessagesProcessed  uint32
 }
 
-var _ iReporter = (*MockReporter)(nil)
+var _ iReporter = (*mockReporter)(nil)
 
-func (m *MockReporter) AddExpected(newCalls int) int {
+func (m *mockReporter) AddExpected(newCalls int) int {
 	m.wgMetricsProcessed.Add(newCalls)
 	atomic.AddUint32(&m.MessagesProcessed, uint32(newCalls))
 	atomic.AddUint32(&m.TotalCalls, uint32(newCalls))
 	return int(m.TotalCalls)
 }
 
-// NewMockReporter returns a new instance of a MockReporter.
-func NewMockReporter(expectedOnMetricsProcessedCalls int) *MockReporter {
-	m := MockReporter{}
+// newMockReporter returns a new instance of a mockReporter.
+func newMockReporter(expectedOnMetricsProcessedCalls int) *mockReporter {
+	m := mockReporter{}
 	m.wgMetricsProcessed.Add(expectedOnMetricsProcessedCalls)
 	return &m
 }
 
-func (m *MockReporter) StartMetricsOp(ctx context.Context) context.Context {
+func (m *mockReporter) StartMetricsOp(ctx context.Context) context.Context {
 	return ctx
 }
 
-func (m *MockReporter) OnTranslationError(_ context.Context, err error) {
+func (m *mockReporter) OnTranslationError(_ context.Context, err error) {
 	m.TranslationErrors = append(m.TranslationErrors, err)
 }
 
-func (m *MockReporter) OnMetricsProcessed(_ context.Context, numReceivedMessages int, _ error) {
+func (m *mockReporter) OnMetricsProcessed(_ context.Context, numReceivedMessages int, _ error) {
 	atomic.AddUint32(&m.MessagesProcessed, uint32(numReceivedMessages))
 	m.wgMetricsProcessed.Done()
 }
 
-func (m *MockReporter) OnDebugf(template string, args ...interface{}) {
+func (m *mockReporter) OnDebugf(template string, args ...interface{}) {
 	fmt.Println(fmt.Sprintf(template, args...))
 }
 
 // WaitAllOnMetricsProcessedCalls blocks until the number of expected calls
 // specified at creation of the reporter is completed.
-func (m *MockReporter) WaitAllOnMetricsProcessedCalls(timeout time.Duration) error {
+func (m *mockReporter) WaitAllOnMetricsProcessedCalls(timeout time.Duration) error {
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(timeout))
 	defer cancel()
 

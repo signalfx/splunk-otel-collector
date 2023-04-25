@@ -25,7 +25,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
-type PrometheusRemoteWriteServer struct {
+type prometheusRemoteWriteServer struct {
 	*http.Server
 	*ServerConfig
 	closeChannel *sync.Once
@@ -40,7 +40,7 @@ type ServerConfig struct {
 	confighttp.HTTPServerSettings
 }
 
-func NewPrometheusRemoteWriteServer(ctx context.Context, config *ServerConfig) (*PrometheusRemoteWriteServer, error) {
+func newPrometheusRemoteWriteServer(ctx context.Context, config *ServerConfig) (*prometheusRemoteWriteServer, error) {
 	mx := mux.NewRouter()
 	handler := newHandler(ctx, config.Reporter, config, config.Mc)
 	mx.HandleFunc(config.Path, handler)
@@ -51,19 +51,19 @@ func NewPrometheusRemoteWriteServer(ctx context.Context, config *ServerConfig) (
 	if err != nil {
 		return nil, err
 	}
-	return &PrometheusRemoteWriteServer{
+	return &prometheusRemoteWriteServer{
 		Server:       server,
 		ServerConfig: config,
 		closeChannel: &sync.Once{},
 	}, nil
 }
 
-func (prw *PrometheusRemoteWriteServer) Close() error {
+func (prw *prometheusRemoteWriteServer) Close() error {
 	defer prw.closeChannel.Do(func() { close(prw.Mc) })
 	return prw.Server.Close()
 }
 
-func (prw *PrometheusRemoteWriteServer) ListenAndServe() error {
+func (prw *prometheusRemoteWriteServer) ListenAndServe() error {
 	prw.Reporter.OnDebugf("Starting prometheus simple write server")
 	listener, err := prw.ServerConfig.ToListener()
 	if err != nil {

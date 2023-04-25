@@ -44,7 +44,7 @@ func TestFactory(t *testing.T) {
 	nopHost := componenttest.NewNopHost()
 	mockSettings := receivertest.NewNopCreateSettings()
 	mockConsumer := consumertest.NewNop()
-	receiver, err := newPrometheusRemoteWriteReceiver(mockSettings, cfg, mockConsumer)
+	receiver, err := NewPrometheusRemoteWriteReceiver(mockSettings, cfg, mockConsumer)
 
 	assert.NoError(t, err)
 	require.NotNil(t, receiver)

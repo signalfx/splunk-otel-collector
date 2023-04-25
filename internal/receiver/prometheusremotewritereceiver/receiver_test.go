@@ -44,8 +44,8 @@ func TestHappy(t *testing.T) {
 	nopHost := componenttest.NewNopHost()
 	mockSettings := receivertest.NewNopCreateSettings()
 	mockConsumer := consumertest.NewNop()
-	mockreporter := NewMockReporter(0)
-	receiver, err := newPrometheusRemoteWriteReceiver(mockSettings, cfg, mockConsumer)
+	mockreporter := newMockReporter(0)
+	receiver, err := NewPrometheusRemoteWriteReceiver(mockSettings, cfg, mockConsumer)
 	receiver.reporter = mockreporter
 
 	assert.NoError(t, err)

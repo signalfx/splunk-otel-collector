@@ -6,7 +6,7 @@ This prometheus remote write receiver aims to
 3. Support flaky clients to the best possible degree
 
 ## Limitations
-Regrettably, there exists neither an official specification for remote write endpoints, nor a 1-1 mapping between prometheus remote write metrics and open-telemetry metrics.
+As of this writing, no official specification exists for remote write endpoints, nor a 1-1 mapping between prometheus remote write metrics and OpenTelemetry metrics.
 
 As such, this receiver implements a best-effort mapping between such metrics.  If you find your use case or access patterns do not jive well with this receiver, please [cut an issue](https://github.com/signalfx/splunk-otel-collector/issues/new) to our repo with the specific data incongruity that you're experiencing, and we will do our best to provide for you within maintainable reason.
 

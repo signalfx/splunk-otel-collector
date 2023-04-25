@@ -23,17 +23,17 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ iReporter = (*reporter)(nil)
+var _ reporter = (*otelReporter)(nil)
 
-// reporter struct implements the transport.iReporter interface to give consistent
+// otelReporter struct implements the transport.reporter interface to give consistent
 // observability per Collector metric observability package.
-type reporter struct {
+type otelReporter struct {
 	logger        *zap.Logger
 	sugaredLogger *zap.SugaredLogger // Used for generic debug logging
 	obsrecv       *obsreport.Receiver
 }
 
-func newReporter(settings receiver.CreateSettings) (iReporter, error) {
+func newOtelReporter(settings receiver.CreateSettings) (reporter, error) {
 	obsrecv, err := obsreport.NewReceiver(obsreport.ReceiverSettings{
 		ReceiverID:             settings.ID,
 		Transport:              "tcp",
@@ -42,7 +42,7 @@ func newReporter(settings receiver.CreateSettings) (iReporter, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &reporter{
+	return &otelReporter{
 		logger:        settings.Logger,
 		sugaredLogger: settings.Logger.Sugar(),
 		obsrecv:       obsrecv,
@@ -51,15 +51,15 @@ func newReporter(settings receiver.CreateSettings) (iReporter, error) {
 
 // StartMetricsOp is used to report a translation error from original
 // format to the internal format of the Collector. The context and span
-// passed to it should be the ones returned by StartMetricsOp in the reporter.
-func (r *reporter) StartMetricsOp(ctx context.Context) context.Context {
+// passed to it should be the ones returned by StartMetricsOp in the otelReporter.
+func (r *otelReporter) StartMetricsOp(ctx context.Context) context.Context {
 	return r.obsrecv.StartMetricsOp(ctx)
 }
 
 // OnError is used to report a translation error from original
 // format to the internal format of the Collector. The context and span
-// passed to it should be the ones returned by StartMetricsOp in the reporter.
-func (r *reporter) OnError(ctx context.Context, reason string, err error) {
+// passed to it should be the ones returned by StartMetricsOp in the otelReporter.
+func (r *otelReporter) OnError(ctx context.Context, reason string, err error) {
 	if err == nil {
 		return
 	}
@@ -75,9 +75,9 @@ func (r *reporter) OnError(ctx context.Context, reason string, err error) {
 
 // OnMetricsProcessed is called when the received data is passed to next
 // consumer on the pipeline. The context and span passed to it should be the
-// ones returned by StartMetricsOp on the reporter. The error should be error returned by
-// the next consumer - the reporter is expected to handle nil error too.
-func (r *reporter) OnMetricsProcessed(
+// ones returned by StartMetricsOp on the otelReporter. The error should be error returned by
+// the next consumer - the otelReporter is expected to handle nil error too.
+func (r *otelReporter) OnMetricsProcessed(
 	ctx context.Context,
 	numReceivedMessages int,
 	err error,
@@ -97,7 +97,7 @@ func (r *reporter) OnMetricsProcessed(
 	r.obsrecv.EndMetricsOp(ctx, typeString, numReceivedMessages, err)
 }
 
-func (r *reporter) OnDebugf(template string, args ...interface{}) {
+func (r *otelReporter) OnDebugf(template string, args ...interface{}) {
 	if r.logger.Check(zap.DebugLevel, "debug") != nil {
 		r.sugaredLogger.Debugf(template, args...)
 	}

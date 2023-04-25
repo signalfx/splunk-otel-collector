@@ -23,16 +23,16 @@ import (
 	"time"
 )
 
-// mockReporter provides a iReporter that provides some useful functionalities for
+// mockReporter provides a reporter that provides some useful functionalities for
 // tests (e.g.: wait for certain number of messages).
 type mockReporter struct {
-	TranslationErrors  []error
+	Errors             []error
 	wgMetricsProcessed sync.WaitGroup
 	TotalCalls         uint32
 	MessagesProcessed  uint32
 }
 
-var _ iReporter = (*mockReporter)(nil)
+var _ reporter = (*mockReporter)(nil)
 
 func (m *mockReporter) AddExpected(newCalls int) int {
 	m.wgMetricsProcessed.Add(newCalls)
@@ -52,8 +52,8 @@ func (m *mockReporter) StartMetricsOp(ctx context.Context) context.Context {
 	return ctx
 }
 
-func (m *mockReporter) OnError(_ context.Context, err error) {
-	m.TranslationErrors = append(m.TranslationErrors, err)
+func (m *mockReporter) OnError(_ context.Context, _ string, err error) {
+	m.Errors = append(m.Errors, err)
 }
 
 func (m *mockReporter) OnMetricsProcessed(_ context.Context, numReceivedMessages int, _ error) {
@@ -66,7 +66,7 @@ func (m *mockReporter) OnDebugf(template string, args ...interface{}) {
 }
 
 // WaitAllOnMetricsProcessedCalls blocks until the number of expected calls
-// specified at creation of the reporter is completed.
+// specified at creation of the otelReporter is completed.
 func (m *mockReporter) WaitAllOnMetricsProcessedCalls(timeout time.Duration) error {
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(timeout))
 	defer cancel()

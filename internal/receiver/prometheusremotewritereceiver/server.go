@@ -32,7 +32,7 @@ type prometheusRemoteWriteServer struct {
 }
 
 type ServerConfig struct {
-	Reporter iReporter
+	Reporter reporter
 	component.Host
 	Mc chan<- pmetric.Metrics
 	component.TelemetrySettings
@@ -77,7 +77,7 @@ func (prw *prometheusRemoteWriteServer) ListenAndServe() error {
 	return err
 }
 
-func newHandler(ctx context.Context, reporter iReporter, _ *ServerConfig, _ chan<- pmetric.Metrics) http.HandlerFunc {
+func newHandler(ctx context.Context, reporter reporter, _ *ServerConfig, _ chan<- pmetric.Metrics) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// THIS IS A STUB FUNCTION.  You can see another branch with how I'm thinking this will look if you're curious
 		ctx2 := reporter.StartMetricsOp(ctx)

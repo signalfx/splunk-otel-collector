@@ -30,7 +30,7 @@ var _ receiver.Metrics = (*PrometheusRemoteWriteReceiver)(nil)
 // PrometheusRemoteWriteReceiver implements the receiver.Metrics for PrometheusRemoteWrite protocol.
 type PrometheusRemoteWriteReceiver struct {
 	server       *prometheusRemoteWriteServer
-	reporter     iReporter
+	reporter     reporter
 	nextConsumer consumer.Metrics
 	cancel       context.CancelFunc
 	config       *Config
@@ -48,7 +48,7 @@ func NewPrometheusRemoteWriteReceiver(
 		return nil, component.ErrNilNextConsumer
 	}
 
-	rep, err := newReporter(settings)
+	rep, err := newOtelReporter(settings)
 	if err != nil {
 		return nil, err
 	}
@@ -108,17 +108,17 @@ func (receiver *PrometheusRemoteWriteReceiver) startServer(host component.Host) 
 }
 
 func (receiver *PrometheusRemoteWriteReceiver) manageServerLifecycle(ctx context.Context, metricsChannel <-chan pmetric.Metrics) {
-	reporter := receiver.reporter
+	r := receiver.reporter
 	for {
 		select {
 		case metrics, stillOpen := <-metricsChannel:
 			if !stillOpen {
 				return
 			}
-			metricContext := reporter.StartMetricsOp(ctx)
+			metricContext := r.StartMetricsOp(ctx)
 			err := receiver.flush(metricContext, metrics)
 			if err != nil {
-				reporter.OnError(metricContext, err)
+				r.OnError(metricContext, "flush_error", err)
 				return
 			}
 		case <-ctx.Done():

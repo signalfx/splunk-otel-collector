@@ -27,7 +27,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver/statussources"
@@ -39,15 +38,15 @@ func TestStatementEvaluation(t *testing.T) {
 		match Match
 	}{
 		{name: "strict", match: Match{Strict: "desired.statement"}},
-		{name: "regexp", match: Match{Regexp: "^d[esired]{6}.statement$"}},
-		{name: "expr", match: Match{Expr: "msg == 'desired.statement'"}},
+		{name: "regexp", match: Match{Regexp: "message: d[esired]{6}.statement"}},
+		{name: "expr", match: Match{Expr: "message == 'desired.statement' && ExprEnv['field.one'] == 'field.one.value' && field_two contains 'two.value'"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			match := tc.match
 			match.Record = &LogRecord{
 				Body: "desired body content",
 				Attributes: map[string]string{
-					"one": "one.value", "two": "two.value",
+					"attr.one": "attr.one.value", "attr.two": "attr.two.value",
 				},
 			}
 			for _, status := range discovery.StatusTypes {
@@ -136,7 +135,11 @@ func TestStatementEvaluation(t *testing.T) {
 											panicCheck = require.Panics
 										}
 										panicCheck(t, func() {
-											logMethod(statement)
+											logMethod(
+												statement,
+												zap.String("field.one", "field.one.value"),
+												zap.String("field_two", "field.two.value"),
+											)
 										})
 									}
 
@@ -184,8 +187,10 @@ func TestStatementEvaluation(t *testing.T) {
 										require.Equal(t, map[string]any{
 											"discovery.status": string(status),
 											"name":             `a.receiver/receiver.name/receiver_creator/rc.name/{endpoint=""}/endpoint.id`,
-											"one":              "one.value",
-											"two":              "two.value",
+											"attr.one":         "attr.one.value",
+											"attr.two":         "attr.two.value",
+											"field.one":        "field.one.value",
+											"field_two":        "field.two.value",
 										}, lrAttrs)
 
 										require.Equal(t, "desired body content", lr.Body().AsString())
@@ -216,7 +221,7 @@ func TestLogRecordDefaultAndArbitrarySeverityText(t *testing.T) {
 
 	plogs := make(chan plog.Logs)
 
-	logger := zaptest.NewLogger(t)
+	logger := zap.NewNop()
 	cStore := newCorrelationStore(logger, time.Hour)
 	cStore.UpdateEndpoint(
 		observer.Endpoint{ID: "endpoint.id"},

@@ -11,7 +11,24 @@
 echopsql() {
   set -x
   psql postgresql://test_user:test_password@${POSTGRES_SERVER:-localhost}:5432/test_db "$@"
+  local r=$?
   { set +x; } 2>/dev/null
+  return $r
+}
+
+# create replication slots for postgres_replication_state metrics
+create_replication_slots() {
+for query in \
+  "SELECT * FROM pg_create_physical_replication_slot('some_physical_replication_slot');" \
+  "SELECT * FROM pg_create_logical_replication_slot('some_logical_replication_slot', 'test_decoding');"; do
+  while true; do
+    if echopsql -c "${query}"; then
+      echo "${query} successful"
+      break
+    fi
+    sleep 1
+  done
+done
 }
 
 random_str() {
@@ -74,10 +91,5 @@ while true; do
 done
 }
 
-# create replication slots for postgres_replication_state metrics
-echopsql -c "SELECT * FROM pg_create_physical_replication_slot('some_physical_replication_slot');"
-echopsql -c "SELECT * FROM pg_create_logical_replication_slot('some_logical_replication_slot', 'test_decoding');"
-
 echo "Beginning psql requests"
-modify_table_one &
-modify_table_two
+create_replication_slots & modify_table_one & modify_table_two

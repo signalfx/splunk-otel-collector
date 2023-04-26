@@ -4,7 +4,8 @@
 smartagent/postgresql:
   rule:
     docker_observer: type == "container" and port == 5432
-    host_observer: type == "hostport" and command contains "pg" and port == 5432
+    host_observer: type == "hostport" and command contains "postgres" and port == 5432
+    k8s_observer: type == "port" and pod.name contains "postgres" and port == 5432
   config:
     default:
       type: postgresql
@@ -16,20 +17,20 @@ smartagent/postgresql:
   status:
     metrics:
       successful:
-        - strict: postgres_block_hit_ratio
+        - strict: postgres_query_count
           first_only: true
           log_record:
             severity_text: info
-            body: postgresql SA receiver working!
+            body: PostgreSQL receiver is working!
     statements:
       failed:
-        - regexp: '.* connect: connection refused'
+        - regexp: 'connect: connection refused'
           first_only: true
           log_record:
             severity_text: info
-            body: container appears to not be accepting postgres connections
+            body: The container is refusing PostgreSQL connections.
       partial:
-        - regexp: '.*pq: password authentication failed for user.*'
+        - regexp: 'pq: password authentication failed for user'
           first_only: true
           log_record:
             severity_text: info
@@ -39,11 +40,29 @@ smartagent/postgresql:
               `--set splunk.discovery.receivers.smartagent/postgresql.config.params::password="<password>"` or
               `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_postgresql_CONFIG_params_x3a__x3a_username="<username>"` and
               `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_postgresql_CONFIG_params_x3a__x3a_password="<password>"` environment variables.
-        - regexp: '.*pq: database ".*" does not exist.*'
+        - regexp: 'pq: database ".*" does not exist'
           first_only: true
           log_record:
             severity_text: info
             body: >-
-              Please ensure your target database is correctly specified with
-              `--set splunk.discovery.receivers.smartagent/postgresql.config.masterDBName="<db>"` or
+              Make sure the target database is correctly specified using the
+              `--set splunk.discovery.receivers.smartagent/postgresql.config.masterDBName="<db>"` command or the
               `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_postgresql_CONFIG_masterDBName="<db>"` environment variable.
+        - regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'
+          first_only: true
+          log_record:
+            severity_text: info
+            body: >-
+              Make sure your PostgreSQL database has
+              `shared_preload_libraries = 'pg_stat_statements'`
+              in the postgresql.conf file and that
+              `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
+              has been run for each database you would like to monitor.
+        - regexp: 'could not monitor postgresql server: failed to determine total_time column name'
+          first_only: true
+          log_record:
+            severity_text: info
+            body: >-
+              Make sure that `pg_stat_statements` is available for each database you
+              would like to monitor. For example:
+              `psql --dbname "<db-name>" -c "CREATE EXTENSION pg_stat_statements;"`

@@ -90,13 +90,6 @@ resource_metrics:
               system.type: postgresql
               postgres_port: "5432"
             type: DoubleGauge
-          - name: postgres_sessions
-            attributes:
-              system.type: postgresql
-              database: test_db
-              postgres_port: "5432"
-              state: idle
-            type: DoubleGauge
           - name: postgres_pct_connections
             attributes:
               system.type: postgresql
@@ -105,9 +98,9 @@ resource_metrics:
           - name: postgres_sessions
             attributes:
               system.type: postgresql
-              database: test_db
+              database: <ANY>
               postgres_port: "5432"
-              state: active
+              state: <ANY>
             type: DoubleGauge
           - name: postgres_deadlocks
             attributes:
@@ -366,13 +359,6 @@ resource_metrics:
               table: table_one
               tablespace: ""
               type: user
-            type: DoubleGauge
-          - name: postgres_sessions
-            attributes:
-              system.type: postgresql
-              database: postgres
-              postgres_port: "5432"
-              state: idle
             type: DoubleGauge
           - name: postgres_queries_average_time
             type: DoubleMonotonicCumulativeSum

@@ -99,7 +99,7 @@ func (d *discoveryReceiver) Start(ctx context.Context, host component.Host) (err
 	d.endpointTracker = newEndpointTracker(d.observables, d.config, d.logger, d.pLogs, correlations)
 	d.endpointTracker.start()
 
-	d.metricEvaluator = newMetricEvaluator(d.logger, d.settings.ID, d.config, d.pLogs, correlations)
+	d.metricEvaluator = newMetricEvaluator(d.logger, d.config, d.pLogs, correlations)
 
 	if d.statementEvaluator, err = newStatementEvaluator(d.logger, d.settings.ID, d.config, d.pLogs, correlations); err != nil {
 		return fmt.Errorf("failed creating statement evaluator: %w", err)

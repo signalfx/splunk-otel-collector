@@ -31,6 +31,9 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 )
 
+// exprEnvFunc is to create an expr.Env function from pattern content.
+type exprEnvFunc func(pattern string) map[string]any
+
 // evaluator is the base status matcher that determines if telemetry warrants emitting a matching log record.
 // It also provides embedded config correlation that its embedding structs will utilize.
 type evaluator struct {
@@ -40,8 +43,17 @@ type evaluator struct {
 	// if match.FirstOnly this ~sync.Map(map[string]struct{}) keeps track of
 	// whether we've already emitted a record for the statement and can skip processing.
 	alreadyLogged *sync.Map
-	exprEnv       func(pattern string) map[string]any
-	id            component.ID
+	exprEnv       exprEnvFunc
+}
+
+func newEvaluator(logger *zap.Logger, config *Config, correlations correlationStore, envFunc exprEnvFunc) *evaluator {
+	return &evaluator{
+		logger:        logger,
+		config:        config,
+		correlations:  correlations,
+		alreadyLogged: &sync.Map{},
+		exprEnv:       envFunc,
+	}
 }
 
 // evaluateMatch parses the provided Match and returns whether it warrants a status log record
@@ -67,12 +79,15 @@ func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.
 	case match.Expr != "":
 		matchPattern = match.Expr
 		var program *vm.Program
+		// we need a way to look up fields that aren't valid identifiers https://github.com/antonmedv/expr/issues/106
+		env := e.exprEnv(pattern)
+		env["ExprEnv"] = env
 		// TODO: cache compiled programs for performance benefit
-		if program, err = expr.Compile(match.Expr, expr.Env(e.exprEnv(pattern))); err != nil {
+		if program, err = expr.Compile(match.Expr, expr.Env(env)); err != nil {
 			err = fmt.Errorf("invalid match expr statement: %w", err)
 		} else {
 			matchFunc = func(p string) (bool, error) {
-				ret, runErr := vm.Run(program, e.exprEnv(p))
+				ret, runErr := vm.Run(program, env)
 				if runErr != nil {
 					return false, runErr
 				}
@@ -99,6 +114,7 @@ func (e *evaluator) evaluateMatch(match Match, pattern string, status discovery.
 		}
 	}
 
+	e.logger.Debug(fmt.Sprintf("evaluated match %v against %q (should log: %v)", matchPattern, pattern, shouldLog))
 	return shouldLog, nil
 }
 

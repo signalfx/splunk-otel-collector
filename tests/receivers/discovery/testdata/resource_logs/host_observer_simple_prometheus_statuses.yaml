@@ -21,25 +21,6 @@ resource_logs:
             severity: 0
             severity_text: info
   - attributes:
-      discovery.endpoint.id: (host_observer)[::]-4318-TCP-1
-      discovery.event.type: statement.match
-      discovery.observer.id: host_observer
-      discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiCndhdGNoX29ic2VydmVyczoKLSBob3N0X29ic2VydmVyCg==
-      discovery.receiver.name: ""
-      discovery.receiver.rule: type == "hostport"
-      discovery.receiver.type: prometheus_simple
-    scope_logs:
-      - logs:
-          - body: Port appears to not be serving prometheus metrics
-            attributes:
-              caller: <ANY>
-              discovery.status: failed
-              kind: receiver
-              name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer)[::]-4318-TCP-1
-              target_labels: '{__name__="up", instance="[::]:4318", job="prometheus_simple/[::]:4318"}'
-            severity: 0
-            severity_text: debug
-  - attributes:
       discovery.endpoint.id: (host_observer/with_name)[::]-8888-TCP-1
       discovery.event.type: metric.match
       discovery.observer.id: host_observer/with_name
@@ -60,25 +41,6 @@ resource_logs:
               metric.name: otelcol_receiver_accepted_metric_points
             severity: 0
             severity_text: info
-  - attributes:
-      discovery.endpoint.id: (host_observer/with_name)[::]-4318-TCP-1
-      discovery.event.type: statement.match
-      discovery.observer.id: host_observer/with_name
-      discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiCndhdGNoX29ic2VydmVyczoKLSBob3N0X29ic2VydmVyL3dpdGhfbmFtZQo=
-      discovery.receiver.name: ""
-      discovery.receiver.rule: type == "hostport"
-      discovery.receiver.type: prometheus_simple
-    scope_logs:
-      - logs:
-          - body: Port appears to not be serving prometheus metrics
-            attributes:
-              caller: <ANY>
-              discovery.status: failed
-              kind: receiver
-              name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer/with_name)[::]-4318-TCP-1
-              target_labels: '{__name__="up", instance="[::]:4318", job="prometheus_simple/[::]:4318"}'
-            severity: 0
-            severity_text: debug
   - attributes:
       discovery.endpoint.id: (host_observer/with/another/name)[::]-8888-TCP-1
       discovery.event.type: metric.match
@@ -101,6 +63,44 @@ resource_logs:
             severity: 0
             severity_text: info
   - attributes:
+      discovery.endpoint.id: (host_observer)[::]-4318-TCP-1
+      discovery.event.type: statement.match
+      discovery.observer.id: host_observer
+      discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiCndhdGNoX29ic2VydmVyczoKLSBob3N0X29ic2VydmVyCg==
+      discovery.receiver.name: ""
+      discovery.receiver.rule: type == "hostport"
+      discovery.receiver.type: prometheus_simple
+    scope_logs:
+      - logs:
+          - body: (strict) Port appears to not be serving prometheus metrics
+            attributes:
+              caller: <ANY>
+              discovery.status: failed
+              kind: receiver
+              name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer)[::]-4318-TCP-1
+              target_labels: '{__name__="up", instance="[::]:4318", job="prometheus_simple/[::]:4318"}'
+            severity: 0
+            severity_text: debug
+  - attributes:
+      discovery.endpoint.id: (host_observer/with_name)[::]-4318-TCP-1
+      discovery.event.type: statement.match
+      discovery.observer.id: host_observer/with_name
+      discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiCndhdGNoX29ic2VydmVyczoKLSBob3N0X29ic2VydmVyL3dpdGhfbmFtZQo=
+      discovery.receiver.name: ""
+      discovery.receiver.rule: type == "hostport"
+      discovery.receiver.type: prometheus_simple
+    scope_logs:
+      - logs:
+          - body: (strict) Port appears to not be serving prometheus metrics
+            attributes:
+              caller: <ANY>
+              discovery.status: failed
+              kind: receiver
+              name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer/with_name)[::]-4318-TCP-1
+              target_labels: '{__name__="up", instance="[::]:4318", job="prometheus_simple/[::]:4318"}'
+            severity: 0
+            severity_text: debug
+  - attributes:
       discovery.endpoint.id: (host_observer/with/another/name)[::]-4318-TCP-1
       discovery.event.type: statement.match
       discovery.observer.id: host_observer/with/another/name
@@ -110,7 +110,121 @@ resource_logs:
       discovery.receiver.type: prometheus_simple
     scope_logs:
       - logs:
-          - body: Port appears to not be serving prometheus metrics
+          - body: (strict) Port appears to not be serving prometheus metrics
+            attributes:
+              caller: <ANY>
+              discovery.status: failed
+              kind: receiver
+              name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer/with/another/name)[::]-4318-TCP-1
+              target_labels: '{__name__="up", instance="[::]:4318", job="prometheus_simple/[::]:4318"}'
+            severity: 0
+            severity_text: debug
+  - attributes:
+      discovery.endpoint.id: (host_observer)[::]-4318-TCP-1
+      discovery.event.type: statement.match
+      discovery.observer.id: host_observer
+      discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiCndhdGNoX29ic2VydmVyczoKLSBob3N0X29ic2VydmVyCg==
+      discovery.receiver.name: ""
+      discovery.receiver.rule: type == "hostport"
+      discovery.receiver.type: prometheus_simple
+    scope_logs:
+      - logs:
+          - body: (regexp) Port appears to not be serving prometheus metrics
+            attributes:
+              caller: <ANY>
+              discovery.status: failed
+              kind: receiver
+              name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer)[::]-4318-TCP-1
+              target_labels: '{__name__="up", instance="[::]:4318", job="prometheus_simple/[::]:4318"}'
+            severity: 0
+            severity_text: debug
+  - attributes:
+      discovery.endpoint.id: (host_observer/with_name)[::]-4318-TCP-1
+      discovery.event.type: statement.match
+      discovery.observer.id: host_observer/with_name
+      discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiCndhdGNoX29ic2VydmVyczoKLSBob3N0X29ic2VydmVyL3dpdGhfbmFtZQo=
+      discovery.receiver.name: ""
+      discovery.receiver.rule: type == "hostport"
+      discovery.receiver.type: prometheus_simple
+    scope_logs:
+      - logs:
+          - body: (regexp) Port appears to not be serving prometheus metrics
+            attributes:
+              caller: <ANY>
+              discovery.status: failed
+              kind: receiver
+              name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer/with_name)[::]-4318-TCP-1
+              target_labels: '{__name__="up", instance="[::]:4318", job="prometheus_simple/[::]:4318"}'
+            severity: 0
+            severity_text: debug
+  - attributes:
+      discovery.endpoint.id: (host_observer/with/another/name)[::]-4318-TCP-1
+      discovery.event.type: statement.match
+      discovery.observer.id: host_observer/with/another/name
+      discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiCndhdGNoX29ic2VydmVyczoKLSBob3N0X29ic2VydmVyL3dpdGgvYW5vdGhlci9uYW1lCg==
+      discovery.receiver.name: ""
+      discovery.receiver.rule: type == "hostport"
+      discovery.receiver.type: prometheus_simple
+    scope_logs:
+      - logs:
+          - body: (regexp) Port appears to not be serving prometheus metrics
+            attributes:
+              caller: <ANY>
+              discovery.status: failed
+              kind: receiver
+              name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer/with/another/name)[::]-4318-TCP-1
+              target_labels: '{__name__="up", instance="[::]:4318", job="prometheus_simple/[::]:4318"}'
+            severity: 0
+            severity_text: debug
+  - attributes:
+      discovery.endpoint.id: (host_observer)[::]-4318-TCP-1
+      discovery.event.type: statement.match
+      discovery.observer.id: host_observer
+      discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiCndhdGNoX29ic2VydmVyczoKLSBob3N0X29ic2VydmVyCg==
+      discovery.receiver.name: ""
+      discovery.receiver.rule: type == "hostport"
+      discovery.receiver.type: prometheus_simple
+    scope_logs:
+      - logs:
+          - body: (expr) Port appears to not be serving prometheus metrics
+            attributes:
+              caller: <ANY>
+              discovery.status: failed
+              kind: receiver
+              name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer)[::]-4318-TCP-1
+              target_labels: '{__name__="up", instance="[::]:4318", job="prometheus_simple/[::]:4318"}'
+            severity: 0
+            severity_text: debug
+  - attributes:
+      discovery.endpoint.id: (host_observer/with_name)[::]-4318-TCP-1
+      discovery.event.type: statement.match
+      discovery.observer.id: host_observer/with_name
+      discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiCndhdGNoX29ic2VydmVyczoKLSBob3N0X29ic2VydmVyL3dpdGhfbmFtZQo=
+      discovery.receiver.name: ""
+      discovery.receiver.rule: type == "hostport"
+      discovery.receiver.type: prometheus_simple
+    scope_logs:
+      - logs:
+          - body: (expr) Port appears to not be serving prometheus metrics
+            attributes:
+              caller: <ANY>
+              discovery.status: failed
+              kind: receiver
+              name: prometheus_simple//receiver_creator/discovery{endpoint="[::]:4318"}/(host_observer/with_name)[::]-4318-TCP-1
+              target_labels: '{__name__="up", instance="[::]:4318", job="prometheus_simple/[::]:4318"}'
+            severity: 0
+            severity_text: debug
+  - attributes:
+      discovery.endpoint.id: (host_observer/with/another/name)[::]-4318-TCP-1
+      discovery.event.type: statement.match
+      discovery.observer.id: host_observer/with/another/name
+      discovery.receiver.config: cmVjZWl2ZXJzOgogIHByb21ldGhldXNfc2ltcGxlOgogICAgY29uZmlnOiB7fQogICAgcmVzb3VyY2VfYXR0cmlidXRlczoKICAgICAgb25lLmtleTogb25lLnZhbHVlCiAgICAgIHR3by5rZXk6IHR3by52YWx1ZQogICAgcnVsZTogdHlwZSA9PSAiaG9zdHBvcnQiCndhdGNoX29ic2VydmVyczoKLSBob3N0X29ic2VydmVyL3dpdGgvYW5vdGhlci9uYW1lCg==
+      discovery.receiver.name: ""
+      discovery.receiver.rule: type == "hostport"
+      discovery.receiver.type: prometheus_simple
+    scope_logs:
+      - logs:
+          - body: (expr) Port appears to not be serving prometheus metrics
             attributes:
               caller: <ANY>
               discovery.status: failed

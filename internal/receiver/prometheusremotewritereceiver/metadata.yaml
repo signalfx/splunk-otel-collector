@@ -1,0 +1,6 @@
+name: "prometheusremotewritereceiver"
+status:
+  type: "receiver"
+  stability: "development"
+  pipelines: ["metrics"]
+  distributions: ["splunk"]

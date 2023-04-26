@@ -17,125 +17,90 @@ package httpsinkexporter
 
 import (
 	"context"
-	"net"
-	http "net/http"
-	"sync"
-	"time"
 
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/jaegertracing/jaeger/model"
 	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.uber.org/zap"
 )
 
-var marshaler = &jsonpb.Marshaler{}
+var spanMarshaler = &jsonpb.Marshaler{}
+var metricMarshaler = &pmetric.JSONMarshaler{}
 
 // httpSinkExporter ...
 type httpSinkExporter struct {
-	ch       chan *model.Batch
-	server   *http.Server
-	endpoint string
-	clients  []*client
-	mu       sync.Mutex
+	sink *sink
+
+	metrics chan pmetric.Metrics
+	spans   chan *model.Batch
+}
+
+func newExporter(logger *zap.Logger, endpoint string) *httpSinkExporter {
+	return &httpSinkExporter{sink: newSink(logger, endpoint)}
 }
 
 func (e *httpSinkExporter) ConsumeTraces(_ context.Context, td ptrace.Traces) error {
+	// TODO: replace jaeger with OTLP
 	batches, err := jaegertranslator.ProtoFromTraces(td)
 	if err != nil {
 		return err
 	}
 	for _, batch := range batches {
 		go func(b *model.Batch) {
-			e.ch <- b
+			e.spans <- b
 		}(batch)
 	}
 	return nil
 }
 
-func (e *httpSinkExporter) addClient(c *client) {
-	e.mu.Lock()
-	e.clients = append(e.clients, c)
-	e.mu.Unlock()
-}
-
-func (e *httpSinkExporter) removeClient(c *client) {
-	e.mu.Lock()
-	index := -1
-	for i, v := range e.clients {
-		if v == c {
-			index = i
-			break
-		}
-	}
-	if index != -1 {
-		e.clients = append(e.clients[:index], e.clients[index+1:]...)
-	}
-	e.mu.Unlock()
-}
-
-func (e *httpSinkExporter) handler(w http.ResponseWriter, r *http.Request) {
-	opts, err := parseOptions(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	c := newClient(opts)
-	e.addClient(c)
-	defer e.removeClient(c)
-
-	result, err := c.response()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(result)
-}
-
-func (e *httpSinkExporter) Start(ctx context.Context, _ component.Host) error {
-	e.startServer(ctx)
-	go e.fanOut()
+func (e *httpSinkExporter) ConsumeMetrics(_ context.Context, md pmetric.Metrics) error {
+	go func(m pmetric.Metrics) {
+		e.metrics <- m
+	}(md)
 	return nil
 }
 
-func (e *httpSinkExporter) fanOut() error {
-	e.ch = make(chan *model.Batch)
+func (e *httpSinkExporter) Start(ctx context.Context, _ component.Host) error {
+	e.sink.start(ctx)
+	go e.fanOutSpans()
+	go e.fanOutMetrics()
+	return nil
+}
+
+// Shutdown stops the exporter and is invoked during shutdown.
+func (e *httpSinkExporter) Shutdown(ctx context.Context) error {
+	return e.sink.shutdown(ctx)
+}
+
+func (e *httpSinkExporter) fanOutSpans() error {
+	e.spans = make(chan *model.Batch)
 	for {
-		batch := <-e.ch
-		e.mu.Lock()
-		clients := e.clients
-		e.mu.Unlock()
+		batch := <-e.spans
+		clients := e.sink.clients(typeSpans)
 		for _, c := range clients {
 			if !c.stopped {
 				go func(c *client) {
-					c.ch <- batch
+					c.spans <- batch
 				}(c)
 			}
 		}
 	}
 }
 
-// Shutdown stops the exporter and is invoked during shutdown.
-func (e *httpSinkExporter) Shutdown(ctx context.Context) error {
-	if e.server != nil {
-		return e.server.Shutdown(ctx)
+func (e *httpSinkExporter) fanOutMetrics() error {
+	e.metrics = make(chan pmetric.Metrics)
+	for {
+		metrics := <-e.metrics
+		clients := e.sink.clients(typeMetrics)
+		for _, c := range clients {
+			if !c.stopped {
+				go func(c *client) {
+					c.metrics <- metrics
+				}(c)
+			}
+		}
 	}
-	return nil
-}
-
-func (e *httpSinkExporter) startServer(ctx context.Context) {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", e.handler)
-	e.server = &http.Server{
-		Addr:    "e.endpoint",
-		Handler: mux,
-		BaseContext: func(listener net.Listener) context.Context {
-			return ctx
-		},
-		ReadHeaderTimeout: 5 * time.Second,
-	}
-	go e.server.ListenAndServe()
 }

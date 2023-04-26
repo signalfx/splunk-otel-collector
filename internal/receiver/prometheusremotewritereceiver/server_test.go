@@ -26,41 +26,49 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal/testdata"
 )
 
 func TestWriteEmpty(t *testing.T) {
 	mc := make(chan<- pmetric.Metrics)
-	timeout := 5 * time.Second
-	reporter := newMockReporter(1)
-	freePort, err := GetFreePort()
+	mockReporter := newMockReporter()
+	freePort, err := internal.GetFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
+	parser := &PrometheusRemoteOtelParser{SfxGatewayCompatability: true}
+	require.NoError(t, err)
 	cfg := &ServerConfig{
 		Path:     "/metrics",
-		Reporter: reporter,
+		Reporter: mockReporter,
 		Mc:       mc,
 		HTTPServerSettings: confighttp.HTTPServerSettings{
 			Endpoint: expectedEndpoint,
 		},
+		Parser: parser,
 	}
 	require.Equal(t, expectedEndpoint, cfg.Endpoint)
-
+	timeout := time.Second * 1000
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	receiver, err := newPrometheusRemoteWriteServer(ctx, cfg)
+	remoteWriteServer, err := newPrometheusRemoteWriteServer(cfg)
 	assert.NoError(t, err)
-	require.NotNil(t, receiver)
+	require.NotNil(t, remoteWriteServer)
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		require.NoError(t, receiver.ListenAndServe())
+		t.Logf("starting server...")
+		require.NoError(t, remoteWriteServer.ListenAndServe())
+		t.Logf("stopped server...")
 		wg.Done()
 	}()
 
-	client, err := NewMockPrwClient(
+	client, err := internal.NewMockPrwClient(
 		cfg.Endpoint,
 		"metrics",
+		timeout,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, client)
@@ -70,6 +78,59 @@ func TestWriteEmpty(t *testing.T) {
 		Metadata:   []prompb.MetricMetadata{},
 	}))
 
-	require.NoError(t, receiver.Shutdown(ctx))
-	require.Eventually(t, func() bool { wg.Wait(); return true }, time.Second*10, time.Second)
+	require.NoError(t, mockReporter.WaitAllOnMetricsProcessedCalls(time.Second*5))
+	require.NoError(t, remoteWriteServer.Shutdown(ctx))
+	require.Eventually(t, func() bool { wg.Wait(); return true }, time.Second*2, 100*time.Millisecond)
+}
+
+func TestWriteMany(t *testing.T) {
+	mc := make(chan<- pmetric.Metrics, 1000)
+	mockReporter := newMockReporter()
+	freePort, err := internal.GetFreePort()
+	require.NoError(t, err)
+	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
+	parser := &PrometheusRemoteOtelParser{SfxGatewayCompatability: true}
+	require.NoError(t, err)
+	cfg := &ServerConfig{
+		Path:     "/metrics",
+		Reporter: mockReporter,
+		Mc:       mc,
+		HTTPServerSettings: confighttp.HTTPServerSettings{
+			Endpoint: expectedEndpoint,
+		},
+		Parser: parser,
+	}
+	require.Equal(t, expectedEndpoint, cfg.Endpoint)
+	timeout := time.Second * 1000
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	remoteWriteServer, err := newPrometheusRemoteWriteServer(cfg)
+	assert.NoError(t, err)
+	require.NotNil(t, remoteWriteServer)
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		t.Logf("starting server...")
+		require.NoError(t, remoteWriteServer.ListenAndServe())
+		t.Logf("stopped server...")
+		wg.Done()
+	}()
+
+	client, err := internal.NewMockPrwClient(
+		cfg.Endpoint,
+		"metrics",
+		timeout,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, client)
+	time.Sleep(100 * time.Millisecond)
+	wqs := testdata.GetWriteRequestsOfAllTypesWithoutMetadata()
+	for _, wq := range wqs {
+		require.NoError(t, client.SendWriteRequest(wq))
+	}
+
+	require.NoError(t, mockReporter.WaitAllOnMetricsProcessedCalls(time.Second*5))
+	require.NoError(t, remoteWriteServer.Shutdown(ctx))
+	require.Eventually(t, func() bool { wg.Wait(); return true }, time.Second*2, 100*time.Millisecond)
 }

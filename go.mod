@@ -121,11 +121,13 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.4.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.1.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0 // indirect
+	github.com/Code-Hex/go-generics-cache v1.3.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apache/arrow/go/v10 v10.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.4.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.6.0 // indirect
 	github.com/cpuguy83/dockercfg v0.3.1 // indirect
+	github.com/deckarep/golang-set/v2 v2.3.0 // indirect
 	github.com/go-redis/redis/v7 v7.4.1 // indirect
 	github.com/goccy/go-json v0.9.11 // indirect
 	github.com/google/s2a-go v0.1.2 // indirect

@@ -14,13 +14,13 @@ require (
 	github.com/signalfx/splunk-otel-collector/tests v0.72.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.2
-	go.opentelemetry.io/collector v0.75.0
-	go.opentelemetry.io/collector/component v0.75.0
-	go.opentelemetry.io/collector/confmap v0.75.0
-	go.opentelemetry.io/collector/consumer v0.75.0
-	go.opentelemetry.io/collector/exporter v0.75.0
+	go.opentelemetry.io/collector v0.76.0
+	go.opentelemetry.io/collector/component v0.76.0
+	go.opentelemetry.io/collector/confmap v0.76.0
+	go.opentelemetry.io/collector/consumer v0.76.0
+	go.opentelemetry.io/collector/exporter v0.76.0
 	go.opentelemetry.io/collector/pdata v1.0.0-rc9
-	go.opentelemetry.io/collector/receiver v0.75.0
+	go.opentelemetry.io/collector/receiver v0.76.0
 	go.opentelemetry.io/otel/metric v0.37.0
 	go.opentelemetry.io/otel/trace v1.14.0
 	go.uber.org/zap v1.24.0
@@ -69,7 +69,7 @@ require (
 	github.com/aws/smithy-go v1.13.3 // indirect
 	github.com/beevik/ntp v0.3.0 // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
-	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
+	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e // indirect
 	github.com/containerd/containerd v1.6.19 // indirect
@@ -90,6 +90,7 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible // indirect
+	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -174,7 +175,7 @@ require (
 	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/klauspost/asmfmt v1.3.2 // indirect
-	github.com/klauspost/compress v1.16.3 // indirect
+	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/knadh/koanf v1.5.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
@@ -230,7 +231,7 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
-	github.com/rs/cors v1.8.3 // indirect
+	github.com/rs/cors v1.9.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20200724154423-2164a8ac840e // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
@@ -266,9 +267,9 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.7 // indirect
 	go.etcd.io/etcd/client/v2 v2.305.7 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	go.opentelemetry.io/collector/featuregate v0.75.0 // indirect
-	go.opentelemetry.io/collector/receiver/otlpreceiver v0.75.0 // indirect
-	go.opentelemetry.io/collector/semconv v0.75.0 // indirect
+	go.opentelemetry.io/collector/featuregate v0.76.0 // indirect
+	go.opentelemetry.io/collector/receiver/otlpreceiver v0.76.0 // indirect
+	go.opentelemetry.io/collector/semconv v0.76.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.40.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.40.0 // indirect
 	go.opentelemetry.io/otel v1.14.0 // indirect
@@ -277,12 +278,12 @@ require (
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a // indirect
 	golang.org/x/mod v0.9.0 // indirect
-	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/oauth2 v0.5.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/term v0.6.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect

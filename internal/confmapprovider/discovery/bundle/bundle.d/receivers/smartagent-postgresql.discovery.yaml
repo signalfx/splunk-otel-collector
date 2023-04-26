@@ -21,14 +21,14 @@ smartagent/postgresql:
           first_only: true
           log_record:
             severity_text: info
-            body: postgresql SA receiver working!
+            body: PostgreSQL receiver is working!
     statements:
       failed:
         - regexp: 'connect: connection refused'
           first_only: true
           log_record:
             severity_text: info
-            body: container appears to not be accepting postgres connections
+            body: The container is refusing PostgreSQL connections.
       partial:
         - regexp: 'pq: password authentication failed for user'
           first_only: true
@@ -45,17 +45,17 @@ smartagent/postgresql:
           log_record:
             severity_text: info
             body: >-
-              Please ensure your target database is correctly specified with
-              `--set splunk.discovery.receivers.smartagent/postgresql.config.masterDBName="<db>"` or
+              Make sure the target database is correctly specified using the
+              `--set splunk.discovery.receivers.smartagent/postgresql.config.masterDBName="<db>"` command or the
               `SPLUNK_DISCOVERY_RECEIVERS_smartagent_x2f_postgresql_CONFIG_masterDBName="<db>"` environment variable.
         - regexp: 'pq: pg_stat_statements must be loaded via shared_preload_libraries'
           first_only: true
           log_record:
             severity_text: info
             body: >-
-              Please ensure your postgres database has
+              Make sure your PostgreSQL database has
               `shared_preload_libraries = 'pg_stat_statements'`
-              in its postgresql.conf and that
+              in the postgresql.conf file and that
               `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
               has been run for each database you would like to monitor.
         - regexp: 'could not monitor postgresql server: failed to determine total_time column name'
@@ -63,6 +63,6 @@ smartagent/postgresql:
           log_record:
             severity_text: info
             body: >-
-              Please ensure that `pg_stat_statements` is available for each database you
-              would like to monitor. Example:
+              Make sure that `pg_stat_statements` is available for each database you
+              would like to monitor. For example:
               `psql --dbname "<db-name>" -c "CREATE EXTENSION pg_stat_statements;"`

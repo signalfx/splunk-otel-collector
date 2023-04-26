@@ -20,16 +20,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"go.uber.org/zap"
 )
 
 func Test_httpSinkExporter_Start(t *testing.T) {
-	sink := &httpSinkExporter{
-		endpoint: "localhost:0",
-		ch:       nil,
-		clients:  nil,
-	}
-	err := sink.Start(context.Background(), componenttest.NewNopHost())
+	exp := newExporter(zap.NewNop(), "localhost:0")
+	err := exp.Start(context.Background(), componenttest.NewNopHost())
 	assert.NoError(t, err)
-	err = sink.Shutdown(context.Background())
+	err = exp.Shutdown(context.Background())
 	assert.NoError(t, err)
 }

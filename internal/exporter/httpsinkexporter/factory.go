@@ -34,6 +34,7 @@ func NewFactory() exporter.Factory {
 	return exporter.NewFactory(
 		typeStr,
 		createDefaultConfig,
+		exporter.WithMetrics(createMetricsExporter, component.StabilityLevelDevelopment),
 		exporter.WithTraces(createTracesExporter, component.StabilityLevelDevelopment),
 	)
 }
@@ -44,17 +45,31 @@ func createDefaultConfig() component.Config {
 	}
 }
 
-func createTracesExporter(
-	ctx context.Context,
+func createTracesExporter(ctx context.Context,
 	set exporter.CreateSettings,
 	cfg component.Config,
 ) (exporter.Traces, error) {
-	exp := &httpSinkExporter{endpoint: cfg.(*Config).Endpoint}
+	exp := newExporter(set.Logger, cfg.(*Config).Endpoint)
 	return exporterhelper.NewTracesExporter(
 		ctx,
 		set,
 		cfg,
 		exp.ConsumeTraces,
+		exporterhelper.WithStart(exp.Start),
+		exporterhelper.WithShutdown(exp.Shutdown),
+	)
+}
+
+func createMetricsExporter(ctx context.Context,
+	set exporter.CreateSettings,
+	cfg component.Config,
+) (exporter.Metrics, error) {
+	exp := newExporter(set.Logger, cfg.(*Config).Endpoint)
+	return exporterhelper.NewMetricsExporter(
+		ctx,
+		set,
+		cfg,
+		exp.ConsumeMetrics,
 		exporterhelper.WithStart(exp.Start),
 		exporterhelper.WithShutdown(exp.Shutdown),
 	)

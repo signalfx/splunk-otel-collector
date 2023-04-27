@@ -32,7 +32,7 @@ receivers:
                 log_record:
                   severity_text: debug
                   body: (strict) Port appears to not be serving prometheus metrics
-              - regexp: 'message: Failed to scrape Prometheus endpoint'
+              - regexp: '"message":"Failed to scrape Prometheus endpoint"'
                 first_only: true
                 log_record:
                   severity_text: debug

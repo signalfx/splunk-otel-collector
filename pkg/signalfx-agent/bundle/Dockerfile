@@ -15,7 +15,7 @@
 ARG ARCH=amd64
 ARG JDK_VERSION=11.0.19_7
 ARG MAVEN_VERSION=3.6.0
-ARG PYTHON_VERSION=3.8.16
+ARG PYTHON_VERSION=3.11.3
 ARG PIP_VERSION=21.0.1
 ARG COLLECTD_VERSION=5.8.0-sfx0
 ARG COLLECTD_COMMIT=4d3327b14cf4359029613baf4f90c4952702105e
@@ -30,8 +30,8 @@ ARG MAVEN_VERSION
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt update &&\
-    apt install -y wget
+RUN apt-get update -qq &&\
+    apt-get install -qq -y wget
 
 ENV OPENJDK_BASE_URL="https://github.com/adoptium/temurin11-binaries/releases/download"
 
@@ -43,7 +43,7 @@ RUN ENCODED_VER=$(echo $JDK_VERSION | sed 's/_/%2B/g') && \
     else \
     OPENJDK_URL="${OPENJDK_BASE_URL}/jdk-${ENCODED_VER}/OpenJDK11U-jdk_${ARCH}_linux_hotspot_${JDK_VERSION}.tar.gz"; \
     fi && \
-    wget -O /tmp/openjdk.tar.gz "$OPENJDK_URL"
+    wget -nv -O /tmp/openjdk.tar.gz "$OPENJDK_URL"
 
 RUN mkdir -p /opt/root && \
     tar -C /opt/root -xzf /tmp/openjdk.tar.gz && \
@@ -60,7 +60,7 @@ RUN mkdir -p /opt/root/jre && \
 
 ENV MAVEN_BASE_URL="https://archive.apache.org/dist/maven/maven-3"
 
-RUN wget -O /tmp/maven.tar.gz ${MAVEN_BASE_URL}/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
+RUN wget -nv -O /tmp/maven.tar.gz ${MAVEN_BASE_URL}/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
     tar -C /tmp -xzf /tmp/maven.tar.gz && \
     rm -f /tmp/maven.tar.gz
 
@@ -68,10 +68,10 @@ ENV PATH=$PATH:/tmp/apache-maven-${MAVEN_VERSION}/bin
 
 COPY java/ /usr/src/agent-java/
 RUN cd /usr/src/agent-java/runner &&\
-    mvn -V clean install
+    mvn -V -q clean install
 
 RUN cd /usr/src/agent-java/jmx &&\
-    mvn -V clean package
+    mvn -V -q clean package
 
 RUN rm -rf /tmp/apache-maven*
 
@@ -85,8 +85,8 @@ ARG PYTHON_VERSION
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
-    apt-get update &&\
-    apt-get install -y \
+    apt-get update -qq &&\
+    apt-get install -qq -y \
       curl \
       dpkg \
       net-tools \
@@ -153,15 +153,15 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
       quilt \
       zlib1g-dev
 
-RUN wget https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
+RUN wget -nv https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29 && \
     dpkg -i mysql-apt-config_0.8.12-1_all.deb && \
     rm -f mysql-apt-config_0.8.12-1_all.deb && \
-    apt-get update && apt-get install -y libmysqlclient-dev libcurl4-gnutls-dev
+    apt-get update -qq && apt-get install -qq -y libmysqlclient-dev libcurl4-gnutls-dev
 
-RUN wget -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
+RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
     cd /tmp &&\
-    tar xzf Python-${PYTHON_VERSION}.tgz && \
+    tar -xzf Python-${PYTHON_VERSION}.tgz && \
     cd Python-${PYTHON_VERSION} && \
     ./configure --enable-shared --enable-ipv6 --with-system-ffi --with-system-expat && \
     make -j`nproc` && make install libinstall && \
@@ -178,8 +178,8 @@ ARG COLLECTD_VERSION
 ARG COLLECTD_COMMIT
 
 RUN cd /tmp &&\
-    wget https://github.com/signalfx/collectd/archive/${COLLECTD_COMMIT}.tar.gz &&\
-    tar -xvf ${COLLECTD_COMMIT}.tar.gz &&\
+    wget -nv https://github.com/signalfx/collectd/archive/${COLLECTD_COMMIT}.tar.gz &&\
+    tar -xzf ${COLLECTD_COMMIT}.tar.gz &&\
     mkdir -p /usr/src/ &&\
     mv collectd-${COLLECTD_COMMIT}* /usr/src/collectd &&\
     rm -f ${COLLECTD_COMMIT}.tar.gz
@@ -243,9 +243,9 @@ RUN DISABLE_XENCPU=""; if [ "$ARCH" = "ppc64le" ]; then DISABLE_XENCPU="--disabl
         --disable-silent-rules \
         --disable-static \
         --with-java=${JAVA_HOME} \
-        LIBPYTHON_LDFLAGS="$(python3.8-config --ldflags) -lpython3.8" \
-        LIBPYTHON_CPPFLAGS="$(python3.8-config --includes)" \
-        LIBPYTHON_LIBS="$(python3.8-config --libs) -lpython3.8"
+        LIBPYTHON_LDFLAGS="$(python3.11-config --ldflags) -lpython3.11" \
+        LIBPYTHON_CPPFLAGS="$(python3.11-config --includes)/cpython" \
+        LIBPYTHON_LIBS="$(python3.11-config --libs) -lpython3.11"
 
 # Compile all of collectd first, including plugins
 RUN make -j`nproc` &&\
@@ -256,8 +256,8 @@ RUN /opt/collect-libs /opt/deps /usr/sbin/collectd /usr/lib/collectd/
 
 # Compile patchelf statically from source
 RUN cd /tmp &&\
-    wget https://nixos.org/releases/patchelf/patchelf-0.11/patchelf-0.11.tar.gz &&\
-    tar -xf patchelf*.tar.gz &&\
+    wget -nv https://nixos.org/releases/patchelf/patchelf-0.11/patchelf-0.11.tar.gz &&\
+    tar -xzf patchelf*.tar.gz &&\
     cd patchelf-0.11* &&\
     ./configure LDFLAGS="-static" &&\
     make &&\
@@ -295,15 +295,15 @@ RUN /usr/local/bin/python3 -m pip list
 # Remove pip to avoid usage in python monitor and in exec'd container
 RUN /usr/local/bin/python3 -m pip uninstall pip -y
 # Delete all bundled wheels
-RUN find /usr/local/lib/python3.8 -name "*.whl" -delete
+RUN find /usr/local/lib/python3.11 -name "*.whl" -delete
 
 # Delete all compiled python to save space
-RUN find /usr/local/lib/python3.8 -name "*.pyc" -o -name "*.pyo" | xargs rm
+RUN find /usr/local/lib/python3.11 -name "*.pyc" -o -name "*.pyo" | xargs rm
 # We don't support compiling extension modules so don't need this directory
-RUN rm -rf /usr/local/lib/python3.8/config-*-linux-gnu
+RUN rm -rf /usr/local/lib/python3.11/config-*-linux-gnu
 
-RUN find /usr/local/lib/python3.8 -type d -name __pycache__ | xargs rm -rf {} \;
-RUN find /usr/local/lib/python3.8 -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
+RUN find /usr/local/lib/python3.11 -type d -name __pycache__ | xargs rm -rf {} \;
+RUN find /usr/local/lib/python3.11 -wholename "*test*.key" -delete -or -wholename "*test*.pem" -delete
 
 
 ####### Extra packages that don't make sense to pull down in any other stage ########
@@ -311,8 +311,8 @@ FROM ${DOCKER_REPO}/ubuntu:18.04 as extra-packages
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt update &&\
-    apt install -y \
+RUN apt-get update -qq &&\
+    apt-get install -qq -y \
         curl \
         host \
         iproute2 \
@@ -358,9 +358,9 @@ RUN mkdir -p /opt/root/bin &&\
 COPY --from=collectd /usr/local/bin/patchelf /usr/bin/
 
 # Gather Python dependencies
-COPY --from=python-plugins /usr/local/lib/python3.8 /opt/root/lib/python3.8
-COPY --from=python-plugins /usr/local/lib/libpython3.8.so.1.0 /opt/root/lib
-COPY --from=python-plugins /usr/local/bin/python3.8 /opt/root/bin/python
+COPY --from=python-plugins /usr/local/lib/python3.11 /opt/root/lib/python3.11
+COPY --from=python-plugins /usr/local/lib/libpython3.11.so.1.0 /opt/root/lib
+COPY --from=python-plugins /usr/local/bin/python3.11 /opt/root/bin/python
 
 # Gather compiled collectd plugin libraries
 COPY --from=collectd /usr/sbin/collectd /opt/root/bin/collectd

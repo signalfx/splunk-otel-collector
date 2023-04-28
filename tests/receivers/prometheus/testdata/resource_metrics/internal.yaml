@@ -5,7 +5,10 @@ resource_metrics:
       service.instance.id: localhost:8889
       service.name: otel-agent
     scope_metrics:
-      - metrics:
+      - instrumentation_scope:
+          name: otelcol/prometheusreceiver
+          version: <VERSION_FROM_BUILD>
+        metrics:
           - name: otelcol_process_runtime_total_sys_memory_bytes
             description: Total bytes of memory obtained from the OS (see 'go doc runtime.MemStats.Sys')
             type: DoubleGauge

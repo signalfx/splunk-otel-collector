@@ -14,7 +14,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -29,7 +28,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -45,7 +43,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -58,7 +55,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -72,7 +68,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -102,7 +97,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -145,7 +139,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -187,7 +180,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -217,7 +209,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -226,7 +217,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -237,7 +227,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -246,7 +235,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -255,7 +243,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -266,7 +253,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -278,7 +264,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -287,7 +272,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -296,7 +280,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -305,7 +288,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -314,7 +296,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -322,7 +303,6 @@ resource_metrics:
             type: IntMonotonicCumulativeSum
             attributes:
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -330,7 +310,6 @@ resource_metrics:
             type: IntMonotonicCumulativeSum
             attributes:
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -339,7 +318,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -348,7 +326,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -357,7 +334,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -366,7 +342,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -375,7 +350,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -384,7 +358,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -393,7 +366,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -402,7 +374,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -411,7 +382,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -420,7 +390,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -429,7 +398,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -438,7 +406,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -447,7 +414,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -456,7 +422,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -465,7 +430,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -474,7 +438,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -483,7 +446,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -492,7 +454,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -501,7 +462,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -526,7 +486,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql
@@ -535,7 +494,6 @@ resource_metrics:
             attributes:
               dsname: value
               host: <ANY>
-              monitorID: smartagentcollectdmysql
               plugin: mysql
               plugin_instance: _testdb
               system.type: mysql

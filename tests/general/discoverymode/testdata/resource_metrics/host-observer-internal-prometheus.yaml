@@ -5,7 +5,10 @@ resource_metrics:
       service.instance.id: <ANY>
       service.name: <ANY>
     scope_metrics:
-      - metrics:
+      - instrumentation_scope:
+          name: otelcol/prometheusreceiver
+          version: <VERSION_FROM_BUILD>
+        metrics:
           - name: otelcol_exporter_enqueue_failed_log_records
             type: DoubleMonotonicCumulativeSum
             attributes:

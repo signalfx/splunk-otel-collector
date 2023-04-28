@@ -1,4 +1,4 @@
-name: databricksreceiver
+type: databricksreceiver
 resource_attributes:
   databricks.instance.name:
     description: The name of the Databricks instance as defined by the value of the "instance_name" field in the config

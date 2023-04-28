@@ -6,4 +6,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 )
 
-const Stability = component.StabilityLevelDevelopment
+const (
+	Type      = "prometheusremotewritereceiver"
+	Stability = component.StabilityLevelDevelopment
+)

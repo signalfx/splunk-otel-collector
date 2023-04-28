@@ -140,7 +140,7 @@ install-tools:
 
 
 .PHONY: generate-metrics
-generate-metrics: install-tools
+generate-metrics:
 	go generate -tags mdatagen ./...
 	$(MAKE) fmt
 

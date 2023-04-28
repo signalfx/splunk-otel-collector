@@ -24,6 +24,10 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	monitorIDDim = "monitorID"
+)
+
 var (
 	errUnsupportedMetricTypeTimestamp = fmt.Errorf("unsupported metric type timestamp")
 )
@@ -70,6 +74,15 @@ func setDataTypeAndPoints(datapoint *sfx.Datapoint, ms pmetric.MetricSlice, time
 		break
 	default:
 		return fmt.Errorf("unsupported value type %T: %v", datapoint.Value, datapoint.Value)
+	}
+
+	// isolated collectd plugins will set the "monitorID" dimension. We need to
+	// delete this dimension if it matches the meta value to prevent high cardinality values
+	// (especially a concern with receiver creator that uses endpoint IDs).
+	if mmID, metaSet := datapoint.Meta[monitorIDDim]; metaSet {
+		if dmID, dimSet := datapoint.Dimensions[monitorIDDim]; dimSet && dmID == mmID {
+			delete(datapoint.Dimensions, monitorIDDim)
+		}
 	}
 
 	switch sfxMetricType {

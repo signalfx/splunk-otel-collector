@@ -73,11 +73,15 @@ func main() {
 
 	var rendered map[string]any
 	// confirm rendered is valid yaml
-	panicOnError(yaml.Unmarshal(out.Bytes(), &rendered))
+	if err = yaml.Unmarshal(out.Bytes(), &rendered); err != nil {
+		panicOnError(fmt.Errorf("failed unmarshaling %s: %w", s.templateFile, err))
+	}
 
 	outFilename := strings.TrimSuffix(s.templateFile, ".tmpl")
 	if s.renderInParentDir {
-		panicOnError(os.WriteFile(outFilename, out.Bytes(), 0600))
+		if err = os.WriteFile(outFilename, out.Bytes(), 0600); err != nil {
+			panicOnError(fmt.Errorf("failed writing to %s: %w", outFilename, err))
+		}
 	} else {
 		fmt.Fprint(os.Stdout, out.String())
 	}

@@ -26,6 +26,7 @@ FLUENTD_CONFD="/project/internal/buildscripts/packaging/msi/fluentd/conf.d"
 SUPPORT_BUNDLE_SCRIPT="/project/internal/buildscripts/packaging/msi/splunk-support-bundle.ps1"
 SPLUNK_ICON="/project/internal/buildscripts/packaging/msi/splunk.ico"
 OUTPUT_DIR="/project/dist"
+JMX_METRIC_GATHERER_RELEASE="1.7.0-alpha"
 
 usage() {
     cat <<EOH >&2
@@ -36,24 +37,26 @@ Description:
     By default, the MSI is saved as '${OUTPUT_DIR}/splunk-otel-collector-VERSION-amd64.msi'.
 
 OPTIONS:
-    --otelcol PATH:          Absolute path to the otelcol exe.
-                             Defaults to '$OTELCOL'.
-    --translatesfx PATH:     Absolute path to the translatesfx exe.
-                             Defaults to '$TRANSLATESFX'.
-    --agent-config PATH:     Absolute path to the agent config.
-                             Defaults to '$AGENT_CONFIG'.
-    --gateway-config PATH:   Absolute path to the gateway config.
-                             Defaults to '$GATEWAY_CONFIG'.
-    --fluentd PATH:          Absolute path to the fluentd config.
-                             Defaults to '$FLUENTD_CONFIG'.
-    --fluentd-confd PATH:    Absolute path to the conf.d.
-                             Defaults to '$FLUENTD_CONFD'.
-    --support-bundle PATH:   Absolute path to the support bundle script.
-                             Defaults to '$SUPPORT_BUNDLE_SCRIPT'.
-    --splunk-icon PATH:      Absolute path to the splunk.ico.
-                             Defaults to '$SPLUNK_ICON'.
-    --output DIR:            Directory to save the MSI.
-                             Defaults to '$OUTPUT_DIR'.
+    --otelcol PATH:                   Absolute path to the otelcol exe.
+                                      Defaults to '$OTELCOL'.
+    --translatesfx PATH:              Absolute path to the translatesfx exe.
+                                      Defaults to '$TRANSLATESFX'.
+    --agent-config PATH:              Absolute path to the agent config.
+                                      Defaults to '$AGENT_CONFIG'.
+    --gateway-config PATH:            Absolute path to the gateway config.
+                                      Defaults to '$GATEWAY_CONFIG'.
+    --fluentd PATH:                   Absolute path to the fluentd config.
+                                      Defaults to '$FLUENTD_CONFIG'.
+    --fluentd-confd PATH:             Absolute path to the conf.d.
+                                      Defaults to '$FLUENTD_CONFD'.
+    --support-bundle PATH:            Absolute path to the support bundle script.
+                                      Defaults to '$SUPPORT_BUNDLE_SCRIPT'.
+    --jmx-metric-gatherer VERSION:    The released version of the JMX Metric Gatherer JAR to include (will be downloaded).
+                                      Defaults to '$JMX_METRIC_GATHERER_RELEASE'.
+    --splunk-icon PATH:               Absolute path to the splunk.ico.
+                                      Defaults to '$SPLUNK_ICON'.
+    --output DIR:                     Directory to save the MSI.
+                                      Defaults to '$OUTPUT_DIR'.
 
 EOH
 }
@@ -66,6 +69,7 @@ parse_args_and_build() {
     local fluentd_config="$FLUENTD_CONFIG"
     local fluentd_confd="$FLUENTD_CONFD"
     local support_bundle="$SUPPORT_BUNDLE_SCRIPT"
+    local jmx_metric_gatherer_release="$JMX_METRIC_GATHERER_RELEASE"
     local splunk_icon="$SPLUNK_ICON"
     local output="$OUTPUT_DIR"
     local version=
@@ -98,6 +102,10 @@ parse_args_and_build() {
                 ;;
             --support-bundle)
                 support_bundle="$2"
+                shift 1
+                ;;
+            --jmx-metric-gatherer)
+                jmx_metric_gatherer_release="$2"
                 shift 1
                 ;;
             --splunk-icon)
@@ -151,6 +159,8 @@ parse_args_and_build() {
     unzip -d "$files_dir" "${OUTPUT_DIR}/agent-bundle_windows_amd64.zip"
     rm -f "${OUTPUT_DIR}/agent-bundle_windows_amd64.zip"
 
+    download_jmx_metric_gatherer "$jmx_metric_gatherer_release" "$build_dir" "$files_dir"
+
     # kludge to satisfy relative path in splunk-otel-collector.wxs
     mkdir -p /work/internal/buildscripts/packaging/msi
     cp "${splunk_icon}" "/work/internal/buildscripts/packaging/msi/splunk.ico"
@@ -173,6 +183,20 @@ parse_args_and_build() {
     { set +x; } 2>/dev/null
 
     echo "MSI saved to ${output}/${msi_name}"
+}
+
+download_jmx_metric_gatherer() {
+    local version="$1"
+    local build_dir="$2"
+    local output_dir="$3"
+    JMX_METRIC_GATHERER_RELEASE_DL_URL="https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/$version/opentelemetry-jmx-metrics-$version.jar"
+    echo "Downloading ${JMX_METRIC_GATHERER_RELEASE_DL_URL}..."
+
+    curl -sL "$JMX_METRIC_GATHERER_RELEASE_DL_URL" -o "${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"
+    mv "${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar" "$output_dir"
+
+    # Delete unnecessary files.
+    rm -f "${build_dir}/opentelemetry-java-contrib-jmx-metrics.jar"
 }
 
 parse_args_and_build $@

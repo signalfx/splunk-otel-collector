@@ -67,8 +67,11 @@
 
       <!-- Copy the default agent config file to ProgramData if it does not already exist -->
       <CustomAction Id="CopyConfig" ExeCommand="xcopy /y &quot;[INSTALLDIR]agent_config.yaml&quot; &quot;[CommonAppDataFolder]Splunk\OpenTelemetry Collector\agent_config.yaml*&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
+      <!-- Copy the JMX Metric Gatherer JAR to opt if it does not already exist -->
+      <CustomAction Id="CopyJMXJAR" ExeCommand="xcopy /y &quot;[INSTALLDIR]opentelemetry-java-contrib-jmx-metrics.jar&quot; &quot;[WindowsVolume]\opt\opentelemetry-java-contrib-jmx-metrics.jar*&quot;" Directory="INSTALLDIR" Impersonate="no" Execute="deferred" Return="check" />
       <InstallExecuteSequence>
          <Custom Action="CopyConfig" After="InstallFiles">NOT CONFIG_FILE_EXISTS AND NOT Installed</Custom>
+         <Custom Action="CopyJMXJAR" After="InstallFiles">UPGRADINGPRODUCTCODE OR NOT Installed</Custom>
       </InstallExecuteSequence>
    </Product>
 </Wix>

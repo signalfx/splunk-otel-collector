@@ -38,7 +38,7 @@ func TestStatementEvaluation(t *testing.T) {
 		match Match
 	}{
 		{name: "strict", match: Match{Strict: "desired.statement"}},
-		{name: "regexp", match: Match{Regexp: "message: d[esired]{6}.statement"}},
+		{name: "regexp", match: Match{Regexp: `"message":"d[esired]{6}.statement"`}},
 		{name: "expr", match: Match{Expr: "message == 'desired.statement' && ExprEnv['field.one'] == 'field.one.value' && field_two contains 'two.value'"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

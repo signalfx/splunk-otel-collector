@@ -41,6 +41,7 @@ SERVICE_INSTALL_PATH="/lib/systemd/system/$SERVICE_NAME.service"
 
 FLUENTD_CONFIG_INSTALL_DIR="/etc/otel/collector/fluentd"
 
+JMX_METRIC_GATHERER_RELEASE_PATH="${FPM_DIR}/../jmx-metric-gatherer-release.txt"
 BUNDLE_BASE_DIR="/usr/lib/splunk-otel-collector"
 AGENT_BUNDLE_INSTALL_DIR="$BUNDLE_BASE_DIR/agent-bundle"
 
@@ -65,6 +66,17 @@ get_version() {
 create_user_group() {
     sudo getent passwd $SERVICE_USER >/dev/null || \
         sudo useradd --system --user-group --no-create-home --shell /sbin/nologin $SERVICE_USER
+}
+
+download_jmx_metric_gatherer() {
+    local version="$1"
+    local buildroot="$2"
+
+    JMX_METRIC_GATHERER_RELEASE_DL_URL="https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/$version/opentelemetry-jmx-metrics-$version.jar"
+    mkdir -p "$buildroot/opt"
+
+    echo "Downloading ${JMX_METRIC_GATHERER_RELEASE_DL_URL}"
+    curl -sL "$JMX_METRIC_GATHERER_RELEASE_DL_URL" -o "$buildroot/opt/opentelemetry-java-contrib-jmx-metrics.jar"
 }
 
 setup_files_and_permissions() {

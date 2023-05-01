@@ -17,6 +17,7 @@
 package tests
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"runtime"
@@ -85,6 +86,24 @@ func TestK8sObserver(t *testing.T) {
 
 type testCluster struct{ *kubeutils.KindCluster }
 
+// uses *error for deferred require error content
+// so that %v verbs don't result in rendered addresses
+type printableError struct {
+	e *error
+}
+
+func newPrintableError() printableError {
+	noopErr := fmt.Errorf("noop")
+	return printableError{&noopErr}
+}
+
+func (p printableError) String() string {
+	if p.e != nil {
+		return fmt.Sprintf("%v", *p.e)
+	}
+	return "<nil>"
+}
+
 func (cluster testCluster) createMySQL(name, namespace, serviceAccount string) string {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -130,17 +149,18 @@ func (cluster testCluster) createMySQL(name, namespace, serviceAccount string) s
 		return strings.Contains(stdOut.String(), "port: 3306  MySQL Community Server")
 	}, time.Minute, 1*time.Second)
 
-	require.Eventually(cluster.Testcase, func() bool {
-		for _, u := range []string{"root", user} {
-			if _, _, err = cluster.Kubectl(
+	var stdOut, stdErr bytes.Buffer
+	pe := newPrintableError()
+	for _, u := range []string{"root", user} {
+		require.Eventually(cluster.Testcase, func() bool {
+			stdOut, stdErr, err = cluster.Kubectl(
 				"exec", "-n", namespace, mysql.Name, "--",
 				"mysql", fmt.Sprintf("-u%s", u), "-ptestpass", "-e", "show status",
-			); err != nil {
-				return false
-			}
-		}
-		return true
-	}, time.Minute, 5*time.Second, err)
+			)
+			*pe.e = err
+			return err == nil
+		}, time.Minute, 5*time.Second, "db check for %s: %q, %q, %q", user, &stdOut, &stdErr, pe)
+	}
 
 	for _, cmd := range [][]string{
 		{"mysql", "-uroot", "-ptestpass", "-e", "grant PROCESS on *.* TO 'testuser'@'%'; flush privileges;"},

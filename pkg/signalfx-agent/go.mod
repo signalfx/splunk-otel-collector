@@ -60,7 +60,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/jaegertracing/jaeger v1.41.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
-	github.com/lib/pq v1.10.8
+	github.com/lib/pq v1.10.9
 	github.com/mailru/easyjson v0.7.7
 	github.com/mattn/go-xmlrpc v0.0.3
 	github.com/mauricelam/genny v0.0.0-20190320071652-0800202903e5 // indirect

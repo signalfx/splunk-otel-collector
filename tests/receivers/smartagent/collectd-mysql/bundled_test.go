@@ -130,6 +130,18 @@ func (cluster testCluster) createMySQL(name, namespace, serviceAccount string) s
 		return strings.Contains(stdOut.String(), "port: 3306  MySQL Community Server")
 	}, time.Minute, 1*time.Second)
 
+	require.Eventually(cluster.Testcase, func() bool {
+		for _, u := range []string{"root", user} {
+			if _, _, err = cluster.Kubectl(
+				"exec", "-n", namespace, mysql.Name, "--",
+				"mysql", fmt.Sprintf("-u%s", u), "-ptestpass", "-e", "show status",
+			); err != nil {
+				return false
+			}
+		}
+		return true
+	}, time.Minute, 5*time.Second, err)
+
 	for _, cmd := range [][]string{
 		{"mysql", "-uroot", "-ptestpass", "-e", "grant PROCESS on *.* TO 'testuser'@'%'; flush privileges;"},
 		{"mysql", "-utestuser", "-ptestpass", "-D", "testdb", "-e", "CREATE TABLE a_table (name VARCHAR(255), preference VARCHAR(255))"},
@@ -141,8 +153,8 @@ func (cluster testCluster) createMySQL(name, namespace, serviceAccount string) s
 		{"mysql", "-utestuser", "-ptestpass", "-D", "testdb", "-e", "DELETE FROM a_table WHERE name = 'another.name'"},
 	} {
 		args := append([]string{"exec", "-n", namespace, mysql.Name, "--"}, cmd...)
-		stdout, stderr, err := cluster.Kubectl(args...)
-		require.NoError(cluster.Testcase, err, fmt.Sprintf("stdout: %q, stderr: %q", stdout, stderr))
+		stdout, stderr, e := cluster.Kubectl(args...)
+		require.NoError(cluster.Testcase, e, fmt.Sprintf("stdout: %q, stderr: %q", stdout, stderr))
 	}
 
 	return string(mysql.UID)

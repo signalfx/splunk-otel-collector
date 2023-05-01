@@ -167,13 +167,25 @@ func (k KindCluster) runKubectl(stdin io.Reader, args ...string) (stdOut, stdErr
 	kubectl.SetArgs(fullArgs)
 
 	kubectlcmdutil.BehaviorOnFatal(func(msg string, code int) {
-		err = fmt.Errorf("os.Exit(%d): %q", code, msg)
 		// panic here to prevent swallowing what would have been a fatal error
-		panic(err)
+		panic(fmt.Errorf("os.Exit(%d): %q", code, msg))
 	})
+
+	defer func() {
+		// recovered from fatal kubectl command
+		if e := recover(); e != nil {
+			ee, ok := e.(error)
+			if !ok {
+				ee = fmt.Errorf("%v", e)
+			}
+			err = multierr.Combine(err, ee)
+		}
+	}()
+
 	if e := kubectl.Execute(); e != nil {
 		err = multierr.Combine(err, e)
 	}
+
 	return *stdout, *stderr, err
 }
 

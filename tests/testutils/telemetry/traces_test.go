@@ -39,7 +39,7 @@ func TestSaveAndLoadCycle(t *testing.T) {
 	require.NotNil(t, loadedResourceTraces)
 
 	containsAll, err := loadedResourceTraces.ContainsAll(toSaveResourceTraces)
-	require.NoError(t, err) 
+	require.NoError(t, err)
 	require.True(t, containsAll)
 }
 
@@ -183,7 +183,7 @@ func TestFlattenResourceTracesBySpansIdentity(t *testing.T) {
 	spans := []Span{
 		{Name: "a span"},
 		{Name: "another span", Attributes: &map[string]any{}},
-		{Name: "yet another span", Attributes: &map[string]any{ "attr": "value"}},
+		{Name: "yet another span", Attributes: &map[string]any{"attr": "value"}},
 	}
 	ss := ScopeSpans{Spans: spans}
 	resourceTraces := ResourceTraces{

@@ -89,7 +89,7 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 
 	otlp.logsSink = new(consumertest.LogsSink)
 	otlp.metricsSink = new(consumertest.MetricsSink)
-	otlp.tracesSink = new (consumertest.TracesSink)
+	otlp.tracesSink = new(consumertest.TracesSink)
 
 	otlpFactory := otlpreceiver.NewFactory()
 	otlpConfig := otlpFactory.CreateDefaultConfig().(*otlpreceiver.Config)
@@ -126,9 +126,9 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 }
 
 func (otlp *OTLPReceiverSink) assertBuilt(operation string) error {
-	if otlp.logsReceiver == nil || otlp.logsSink == nil || 
-	otlp.metricsReceiver == nil || otlp.metricsSink == nil ||
-	otlp.tracesReceiver == nil || otlp.tracesSink == nil {
+	if otlp.logsReceiver == nil || otlp.logsSink == nil ||
+		otlp.metricsReceiver == nil || otlp.metricsSink == nil ||
+		otlp.tracesReceiver == nil || otlp.tracesSink == nil {
 		return fmt.Errorf("cannot invoke %s() on an OTLPReceiverSink that hasn't been built", operation)
 	}
 	return nil

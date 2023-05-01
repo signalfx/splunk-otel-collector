@@ -144,12 +144,12 @@ func createOTLPFactoryParameters() (otlpexporter.Config, otelcolexporter.CreateS
 }
 
 func otlpMetricsExporter(t *testing.T) otelcolexporter.Metrics {
-	exporterCfg, createParams := createOTLPFactoryParameters() 
+	exporterCfg, createParams := createOTLPFactoryParameters()
 	otlpExporterFactory := otlpexporter.NewFactory()
 	ctx := context.Background()
-	
+
 	exporter, err := otlpExporterFactory.CreateMetricsExporter(ctx, createParams, &exporterCfg)
-	
+
 	require.NoError(t, err)
 	require.NotNil(t, exporter)
 	err = exporter.Start(ctx, componenttest.NewNopHost())
@@ -204,12 +204,12 @@ func TestAssertAllMetricsReceivedHappyPath(t *testing.T) {
 }
 
 func otlpTracesExporter(t *testing.T) otelcolexporter.Traces {
-	exporterCfg, createParams := createOTLPFactoryParameters() 
+	exporterCfg, createParams := createOTLPFactoryParameters()
 	otlpExporterFactory := otlpexporter.NewFactory()
 	ctx := context.Background()
-	
+
 	exporter, err := otlpExporterFactory.CreateTracesExporter(ctx, createParams, &exporterCfg)
-	
+
 	require.NoError(t, err)
 	require.NotNil(t, exporter)
 	err = exporter.Start(ctx, componenttest.NewNopHost())

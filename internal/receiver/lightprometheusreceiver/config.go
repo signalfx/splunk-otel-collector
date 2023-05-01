@@ -30,10 +30,33 @@ func createDefaultConfig() component.Config {
 	return &Config{
 		ScraperControllerSettings: scs,
 		HTTPClientSettings:        confighttp.NewDefaultHTTPClientSettings(),
+		ResourceAttributes: ResourceAttributesConfig{
+			ServiceInstanceID: ResourceAttributeConfig{Enabled: true},
+			ServiceName:       ResourceAttributeConfig{Enabled: true},
+			NetHostName:       ResourceAttributeConfig{Enabled: false},
+			NetHostPort:       ResourceAttributeConfig{Enabled: false},
+			HTTPScheme:        ResourceAttributeConfig{Enabled: false},
+		},
 	}
+}
+
+// ResourceAttributeConfig provides configuration for a resource attribute.
+type ResourceAttributeConfig struct {
+	Enabled bool `mapstructure:"enabled"`
+}
+
+// ResourceAttributesConfig allows users to configure the resource attributes.
+type ResourceAttributesConfig struct {
+	ServiceName       ResourceAttributeConfig `mapstructure:"service.name"`
+	ServiceInstanceID ResourceAttributeConfig `mapstructure:"service.instance.id"`
+	NetHostName       ResourceAttributeConfig `mapstructure:"net.host.name"`
+	NetHostPort       ResourceAttributeConfig `mapstructure:"net.host.port"`
+	HTTPScheme        ResourceAttributeConfig `mapstructure:"http.scheme"`
 }
 
 type Config struct {
 	confighttp.HTTPClientSettings           `mapstructure:",squash"`
 	scraperhelper.ScraperControllerSettings `mapstructure:",squash"`
+	// ResourceAttributes that added to scraped metrics.
+	ResourceAttributes ResourceAttributesConfig `mapstructure:"resource_attributes"`
 }

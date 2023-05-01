@@ -1,40 +1,6 @@
 {
   "resourceMetrics": [
     {
-      "resource": {
-          "attributes": [
-            {
-              "key": "http.scheme",
-              "value": {
-                "stringValue": "http"
-              }
-            },
-            {
-              "key": "net.host.name",
-              "value": {
-                "stringValue": "127.0.0.1:0"
-              }
-            },
-            {
-              "key": "net.host.port",
-              "value": {
-                "stringValue": "0"
-              }
-            },
-            {
-              "key": "service.instance.id",
-              "value": {
-                "stringValue": "127.0.0.1:0"
-              }
-            },
-            {
-              "key": "service.name",
-              "value": {
-                "stringValue": ""
-              }
-            }
-          ]
-      },
       "scopeMetrics": [
         {
           "scope": {},

@@ -16,7 +16,6 @@ package testutils
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -144,10 +143,8 @@ func (otlp *OTLPReceiverSink) Start() error {
 	}
 
 	if err := (*otlp.tracesReceiver).Start(context.Background(), otlp.Host); err != nil {
-		return errors.Join(
-			err,
-			(*otlp.metricsReceiver).Shutdown(context.Background()),
-		)
+		_ = (*otlp.metricsReceiver).Shutdown(context.Background())
+		return err
 	}
 
 	return nil
@@ -158,10 +155,15 @@ func (otlp *OTLPReceiverSink) Shutdown() error {
 		return err
 	}
 
-	return errors.Join(
-		(*otlp.metricsReceiver).Shutdown(context.Background()),
-		(*otlp.tracesReceiver).Shutdown(context.Background()),
-	)
+	metricsShutdownErr := (*otlp.metricsReceiver).Shutdown(context.Background())
+	tracesShutdownErr := (*otlp.tracesReceiver).Shutdown(context.Background())
+	if metricsShutdownErr != nil {
+		return metricsShutdownErr
+	}
+	if tracesShutdownErr != nil {
+		return tracesShutdownErr
+	}
+	return nil
 }
 
 func (otlp *OTLPReceiverSink) AllLogs() []plog.Logs {

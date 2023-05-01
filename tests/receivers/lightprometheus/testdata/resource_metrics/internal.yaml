@@ -1,8 +1,5 @@
 resource_metrics:
   - attributes:
-      http.scheme: http
-      net.host.name: localhost:8889
-      net.host.port: "8889"
       service.instance.id: localhost:8889
       service.name: myjob
     scope_metrics:

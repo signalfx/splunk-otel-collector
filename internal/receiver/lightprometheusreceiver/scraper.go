@@ -95,11 +95,21 @@ func (s *scraper) fetchPrometheusMetrics(fetch fetcher) (pmetric.Metrics, error)
 	}
 	rm := m.ResourceMetrics().AppendEmpty()
 	res := rm.Resource()
-	res.Attributes().PutStr(conventions.AttributeServiceName, s.name)
-	res.Attributes().PutStr(conventions.AttributeNetHostName, u.Host)
-	res.Attributes().PutStr(conventions.AttributeServiceInstanceID, u.Host)
-	res.Attributes().PutStr(conventions.AttributeNetHostPort, u.Port())
-	res.Attributes().PutStr(conventions.AttributeHTTPScheme, u.Scheme)
+	if s.cfg.ResourceAttributes.ServiceName.Enabled {
+		res.Attributes().PutStr(conventions.AttributeServiceName, s.name)
+	}
+	if s.cfg.ResourceAttributes.NetHostName.Enabled {
+		res.Attributes().PutStr(conventions.AttributeNetHostName, u.Host)
+	}
+	if s.cfg.ResourceAttributes.ServiceInstanceID.Enabled {
+		res.Attributes().PutStr(conventions.AttributeServiceInstanceID, u.Host)
+	}
+	if s.cfg.ResourceAttributes.NetHostPort.Enabled {
+		res.Attributes().PutStr(conventions.AttributeNetHostPort, u.Port())
+	}
+	if s.cfg.ResourceAttributes.HTTPScheme.Enabled {
+		res.Attributes().PutStr(conventions.AttributeHTTPScheme, u.Scheme)
+	}
 	s.convertMetricFamilies(metricFamilies, rm)
 	return m, nil
 }

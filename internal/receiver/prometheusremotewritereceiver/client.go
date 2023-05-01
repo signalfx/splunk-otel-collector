@@ -18,6 +18,7 @@ import (
 	"context"
 	"net"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/gogo/protobuf/proto"
@@ -65,8 +66,17 @@ func (prwc *MockPrwClient) SendWriteRequest(wr *prompb.WriteRequest) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), prwc.Timeout)
 	defer cancel()
-
-	err = prwc.Client.Store(ctx, compressed)
+	retry := 3
+	for retry > 0 {
+		err = prwc.Client.Store(ctx, compressed)
+		if nil == err {
+			break
+		}
+		if strings.Contains(err.Error(), "connection refused") {
+			retry -= 1
+			time.Sleep(2 * time.Second)
+		}
+	}
 	return err
 }
 

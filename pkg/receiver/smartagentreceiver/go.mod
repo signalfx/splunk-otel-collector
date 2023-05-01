@@ -315,9 +315,6 @@ replace (
 	github.com/signalfx/splunk-otel-collector/tests => ../../../tests
 )
 
-// v1.10.x has breaking changes that need adoption in the smart agent
-replace github.com/antonmedv/expr => github.com/antonmedv/expr v1.9.0
-
 // To prevent attempted downgrading for agent deps, do not remove signalfx-agent or signalfx/pkg/apm replace directives
 replace (
 	github.com/signalfx/signalfx-agent => ../../signalfx-agent

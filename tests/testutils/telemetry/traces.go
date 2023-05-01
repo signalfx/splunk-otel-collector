@@ -42,8 +42,8 @@ type ScopeSpans struct {
 
 // Span is the trace content, here defined only with the fields required for tests.
 type Span struct {
-	Name       string          `yaml:"name,omitempty"`
 	Attributes *map[string]any `yaml:"attributes,omitempty"`
+	Name       string          `yaml:"name,omitempty"`
 }
 
 // SaveResourceTraces is a helper function that saves the ResourceTraces to an yaml file.
@@ -53,7 +53,7 @@ func (rt *ResourceTraces) SaveResourceTraces(path string) error {
 		return err
 	}
 
-	err = os.WriteFile(path, yamlData, 0644)
+	err = os.WriteFile(path, yamlData, 0600)
 	if err != nil {
 		return err
 	}
@@ -174,14 +174,14 @@ func FlattenResourceTraces(resourceTracesSlice ...ResourceTraces) ResourceTraces
 // Span equivalence is based on RelaxedEquals() check: fields not in expected (e.g. unit, type, value, etc.)
 // are not compared to received, but all labels must match.
 // For better reliability, it's advised that both ResourceTraces items have been flattened by FlattenResourceTraces.
-func (resourceTraces ResourceTraces) ContainsAll(expected ResourceTraces) (bool, error) {
+func (rt ResourceTraces) ContainsAll(expected ResourceTraces) (bool, error) {
 	var missingResources []string
 	missingInstrumentationScopes := map[string]struct{}{}
 	var missingSpans []string
 
 	for _, expectedResourceSpans := range expected.ResourceSpans {
 		resourceMatched := false
-		for _, resourceSpans := range resourceTraces.ResourceSpans {
+		for _, resourceSpans := range rt.ResourceSpans {
 			if expectedResourceSpans.Resource.Equals(resourceSpans.Resource) {
 				resourceMatched = true
 				innerMissingInstrumentationScopes := map[string]struct{}{}
@@ -250,7 +250,7 @@ func (resourceTraces ResourceTraces) ContainsAll(expected ResourceTraces) (bool,
 	if len(missingResources) != 0 {
 		return false, fmt.Errorf(
 			"%v doesn't contain all of %v. Missing resources: %s",
-			resourceTraces.ResourceSpans, expected.ResourceSpans, missingResources,
+			rt.ResourceSpans, expected.ResourceSpans, missingResources,
 		)
 	}
 	return true, nil

@@ -16,9 +16,10 @@ package prometheusremotewritereceiver
 
 import (
 	"context"
+	"errors"
 	"net"
 	"net/url"
-	"strings"
+	"syscall"
 	"time"
 
 	"github.com/gogo/protobuf/proto"

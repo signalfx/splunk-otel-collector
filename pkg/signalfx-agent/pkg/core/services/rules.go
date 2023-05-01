@@ -6,13 +6,13 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
-	"github.com/signalfx/signalfx-agent/pkg/utils"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/ast"
 	"github.com/antonmedv/expr/parser"
+	"github.com/davecgh/go-spew/spew"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/signalfx/signalfx-agent/pkg/utils"
 )
 
 // get returns the value of the specified key in the supplied map
@@ -44,7 +44,7 @@ func get(args ...interface{}) interface{} {
 	return nil
 }
 
-// Kept for backwards-comptaiblity, they aren't really necessary for newly
+// Kept for backwards-compatibility, they aren't really necessary for newly
 // written rules.
 var ruleFunctions = map[string]interface{}{
 	"Get": get,
@@ -144,12 +144,13 @@ func ValidateDiscoveryRule(originalRule string) error {
 	return nil
 }
 
+var _ ast.Visitor = (*exprVisitor)(nil)
+
 type exprVisitor struct {
 	identifiers []string
 }
 
-func (v *exprVisitor) Enter(node *ast.Node) {}
-func (v *exprVisitor) Exit(node *ast.Node) {
+func (v *exprVisitor) Visit(node *ast.Node) {
 	if n, ok := (*node).(*ast.IdentifierNode); ok {
 		v.identifiers = append(v.identifiers, n.Value)
 	}
@@ -173,7 +174,9 @@ func findMissingIdentifiers(originalText string, endpointParams map[string]inter
 	var missing []string
 	for _, v := range vars {
 		if _, ok := endpointParams[v]; !ok {
-			missing = append(missing, v)
+			if _, ok = ruleFunctions[v]; !ok {
+				missing = append(missing, v)
+			}
 		}
 	}
 	return missing, nil

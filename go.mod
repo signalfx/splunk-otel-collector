@@ -543,9 +543,6 @@ replace (
 	k8s.io/apiserver => k8s.io/apiserver v0.24.1 // required to drop dependency on deprecated go.etcd.io/etcd
 )
 
-// v1.10.x has breaking changes that need adoption in the smart agent
-replace github.com/antonmedv/expr => github.com/antonmedv/expr v1.9.0
-
 // this is the version that doesn't suffer from https://github.com/mattn/go-ieproxy/issues/45
 replace github.com/mattn/go-ieproxy => github.com/mattn/go-ieproxy v0.0.1
 

@@ -18,9 +18,11 @@ package tests
 
 import (
 	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
+	"github.com/stretchr/testify/require"
 )
 
 func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
@@ -31,5 +33,14 @@ func TestJMXReceiverProvidesAllJVMMetrics(t *testing.T) {
 		).WithExposedPorts("7199:7199").WithName("jmx").WillWaitForPorts("7199"),
 	}
 
-	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml", containers, nil)
+	testdata, err := filepath.Abs(path.Join(".", "testdata"))
+	require.NoError(t, err)
+
+	testutils.AssertAllMetricsReceived(t, "all.yaml", "all_metrics_config.yaml", containers,
+		[]testutils.CollectorBuilder{
+			func(collector testutils.Collector) testutils.Collector {
+				return collector.WithMount(testdata, "/etc/otel/collector/tmp").WithEnv(map[string]string{"TMPDIR": "/etc/otel/collector/tmp"})
+			},
+		},
+	)
 }

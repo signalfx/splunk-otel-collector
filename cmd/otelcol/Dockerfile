@@ -41,8 +41,6 @@ RUN JMX_METRICS_JAR=opentelemetry-jmx-metrics-${JMX_METRIC_GATHERER_RELEASE}.jar
 URL=https://repo1.maven.org/maven2/io/opentelemetry/contrib/opentelemetry-jmx-metrics/${JMX_METRIC_GATHERER_RELEASE}/$JMX_METRICS_JAR && \
 cd /tmp && wget "$URL" && mv $JMX_METRICS_JAR opentelemetry-java-contrib-jmx-metrics.jar;
 
-#FROM openjdk:11 as openjdk
-
 FROM ${DOCKER_REPO}/debian:11.5 as journalctl
 RUN apt update
 RUN apt install -y systemd
@@ -53,7 +51,9 @@ FROM scratch
 ENV SPLUNK_BUNDLE_DIR=/usr/lib/splunk-otel-collector/agent-bundle
 ENV SPLUNK_COLLECTD_DIR=${SPLUNK_BUNDLE_DIR}/run/collectd
 ENV PATH=${PATH}:${SPLUNK_BUNDLE_DIR}/bin
-#ENV JAVA_HOME=${SPLUNK_BUNDLE_DIR}/jre
+ENV JAVA_HOME=/opt/java/openjdk
+COPY --from=eclipse-temurin:11 $JAVA_HOME $JAVA_HOME
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=otelcol /etc_passwd /etc/passwd
 COPY --from=otelcol --chown=999 /otelcol /
@@ -63,7 +63,6 @@ COPY --from=otelcol --chown=999 /otel /etc/otel
 COPY --from=otelcol --chown=999 /otel/collector /etc/otel/collector
 COPY --from=agent-bundle --chown=999 /usr/lib/splunk-otel-collector /usr/lib/splunk-otel-collector
 COPY --from=jmx --chown=999 /tmp/opentelemetry-java-contrib-jmx-metrics.jar /opt/opentelemetry-java-contrib-jmx-metrics.jar
-#COPY --from=openjdk --chown=999 /usr/local/openjdk-11/conf ${JAVA_HOME}/conf
 
 COPY --from=journalctl --chown=999 /bin/journalctl /bin/journalctl
 COPY --from=journalctl --chown=999 /opt/journalctl /

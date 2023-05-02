@@ -6,6 +6,7 @@ receivers:
     password: cassandra
     username: cassandra
     collection_interval: 1s
+    log_level: debug
 processors:
   resource:
     attributes:
@@ -16,10 +17,15 @@ exporters:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
+  logging:
+    verbosity: detailed
 
 service:
+  telemetry:
+    logs:
+      level: "debug"
   pipelines:
     metrics:
       receivers: [jmx]
       processors: [resource]
-      exporters: [otlp]
+      exporters: [otlp, logging]

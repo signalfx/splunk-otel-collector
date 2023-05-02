@@ -32,6 +32,7 @@ ALL_SRC := $(shell find $(ALL_PKG_DIRS) -name '*.go' \
 # All source code and documents. Used in spell check.
 ALL_SRC_AND_DOC := $(shell find $(ALL_PKG_DIRS) -name "*.md" -o -name "*.go" -o -name "*.yaml" \
                                 -not -path '*/third_party/*' \
+                                -not -path '*/internal/signalfx-agent/*' \
                                 -type f | sort)
 
 pwd:

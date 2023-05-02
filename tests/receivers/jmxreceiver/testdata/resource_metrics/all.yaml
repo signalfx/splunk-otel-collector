@@ -11,14 +11,10 @@ resource_metrics:
           - name: jvm.gc.collections.elapsed
             description: the approximate accumulated collection elapsed time in milliseconds
             unit: ms
-#            labels:
-#              name: ParNew
             type: IntMonotonicCumulativeSum
           - name: jvm.gc.collections.elapsed
             description: the approximate accumulated collection elapsed time in milliseconds
             unit: ms
-#            labels:
-#              name: ConcurrentMarkSweep
             type: IntMonotonicCumulativeSum
           - name: jvm.memory.heap.used
             description: current heap usage
@@ -31,38 +27,26 @@ resource_metrics:
           - name: jvm.memory.pool.max
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: CMS Old Gen
             type: IntGauge
           - name: jvm.memory.pool.max
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Par Eden Space
             type: IntGauge
           - name: jvm.memory.pool.max
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Metaspace
             type: IntGauge
           - name: jvm.memory.pool.max
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Compressed Class Space
             type: IntGauge
           - name: jvm.memory.pool.max
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Par Survivor Space
             type: IntGauge
           - name: jvm.memory.pool.max
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Code Cache
             type: IntGauge
           - name: jvm.memory.nonheap.committed
             description: current non-heap usage
@@ -75,14 +59,10 @@ resource_metrics:
           - name: jvm.gc.collections.count
             description: total number of collections that have occurred
             unit: 1
-#            labels:
-#              name: ParNew
             type: IntMonotonicCumulativeSum
           - name: jvm.gc.collections.count
             description: total number of collections that have occurred
             unit: 1
-#            labels:
-#              name: ConcurrentMarkSweep
             type: IntMonotonicCumulativeSum
           - name: jvm.memory.nonheap.init
             description: current non-heap usage
@@ -91,26 +71,18 @@ resource_metrics:
           - name: jvm.memory.pool.init
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: CMS Old Gen
             type: IntGauge
           - name: jvm.memory.pool.init
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Par Eden Space
             type: IntGauge
           - name: jvm.memory.pool.init
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Par Survivor Space
             type: IntGauge
           - name: jvm.memory.pool.init
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Code Cache
             type: IntGauge
           - name: jvm.memory.nonheap.max
             description: current non-heap usage
@@ -131,38 +103,26 @@ resource_metrics:
           - name: jvm.memory.pool.committed
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: CMS Old Gen
             type: IntGauge
           - name: jvm.memory.pool.committed
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Par Eden Space
             type: IntGauge
           - name: jvm.memory.pool.committed
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Metaspace
             type: IntGauge
           - name: jvm.memory.pool.committed
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Compressed Class Space
             type: IntGauge
           - name: jvm.memory.pool.committed
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Par Survivor Space
             type: IntGauge
           - name: jvm.memory.pool.committed
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Code Cache
             type: IntGauge
           - name: jvm.memory.nonheap.used
             description: current non-heap usage
@@ -171,35 +131,23 @@ resource_metrics:
           - name: jvm.memory.pool.used
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: CMS Old Gen
           - name: jvm.memory.pool.used
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Par Eden Space
             type: IntGauge
           - name: jvm.memory.pool.used
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Metaspace
             type: IntGauge
           - name: jvm.memory.pool.used
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Compressed Class Space
             type: IntGauge
           - name: jvm.memory.pool.used
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Par Survivor Space
             type: IntGauge
           - name: jvm.memory.pool.used
             description: current memory pool usage
             unit: by
-#            labels:
-#              name: Code Cache
             type: IntGauge

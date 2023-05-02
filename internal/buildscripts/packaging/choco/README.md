@@ -2,7 +2,7 @@
 
 - Run a Windows VM so that you can share a directory with it from your Mac/Linux host to the Windows guest e.g.:
   - Download a Windows server .iso
-    - e.g. https://info.microsoft.com/ww-landing-windows-server-2022.html
+    - e.g. https://www.microsoft.com/en-us/evalcenter/download-windows-server-2022
   - Install Windows on a local VM
     - e.g. using VMware Fusion, select Standard Evaluation (Desktop Experience) then Custom Install
 - On the Mac/Linux host, in a clone of this repo (splunk otel collector):

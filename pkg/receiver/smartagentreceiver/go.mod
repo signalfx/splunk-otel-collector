@@ -313,10 +313,9 @@ replace (
 	github.com/signalfx/splunk-otel-collector/tests => ../../../tests
 )
 
-// To prevent attempted downgrading for agent deps, do not remove signalfx-agent or signalfx/pkg/apm replace directives
 replace (
-	github.com/signalfx/signalfx-agent => ../../signalfx-agent
-	github.com/signalfx/signalfx-agent/pkg/apm => ../../signalfx-agent/pkg/apm
+	github.com/signalfx/signalfx-agent => ../../../internal/signalfx-agent
+	github.com/signalfx/signalfx-agent/pkg/apm => ../../../internal/signalfx-agent/pkg/apm
 )
 
 // this is the version that doesn't suffer from https://github.com/mattn/go-ieproxy/issues/45

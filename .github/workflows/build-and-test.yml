@@ -227,7 +227,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: .cache/buildx/agent-bundle-${{ matrix.ARCH }}
-          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('pkg/signalfx-agent/bundle/**') }}
+          key: agent-bundle-buildx-${{ matrix.ARCH }}-${{ hashFiles('internal/signalfx-agent/bundle/**') }}
 
       - uses: docker/setup-qemu-action@v2
         if: ${{ matrix.ARCH != 'amd64' }}
@@ -235,7 +235,7 @@ jobs:
           platforms: ${{ matrix.ARCH }}
           image: tonistiigi/binfmt:qemu-v7.0.0
 
-      - run: make -C pkg/signalfx-agent/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
+      - run: make -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
 
       - uses: actions/upload-artifact@v3
         with:
@@ -252,9 +252,9 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: ${{ env.PIP_CACHE_DIR }}
-          key: agent-bundle-windows-pip-${{ hashFiles('pkg/signalfx-agent/bundle/collectd-plugins.yaml', 'pkg/signalfx-agent/bundle/scripts/requirements.txt') }}
+          key: agent-bundle-windows-pip-${{ hashFiles('internal/signalfx-agent/bundle/collectd-plugins.yaml', 'internal/signalfx-agent/bundle/scripts/requirements.txt') }}
 
-      - run: ./pkg/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
+      - run: ./internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
 
       - uses: actions/upload-artifact@v3
         with:
@@ -616,7 +616,7 @@ jobs:
               - '.github/workflows/build-and-test.yml'
               - 'internal/buildscripts/packaging/installer/install.ps1'
               - 'internal/buildscripts/packaging/msi/**'
-              - 'pkg/signalfx-agent/bundle/**'
+              - 'internal/signalfx-agent/bundle/**'
               - 'tests/zeroconfig/windows/**'
 
   windows-zeroconfig-e2e-test:

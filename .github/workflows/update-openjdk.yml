@@ -22,12 +22,12 @@ jobs:
           repository: adoptium/temurin11-binaries
           excludes: prerelease, draft
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Update JDK_VERSION in pkg/signalfx-agent/bundle/Dockerfile
+      - name: Update JDK_VERSION in internal/signalfx-agent/bundle/Dockerfile
         run: |
           version=$( echo "${{ steps.latest.outputs.release }}" | sed 's|^jdk-\(.*\)|\1|' | tr '+' '_' )
           if [[ -n "$version" ]]; then
             echo "$version"
-            sed -i "s|^ARG JDK_VERSION=.*|ARG JDK_VERSION=${version}|" pkg/signalfx-agent/bundle/Dockerfile
+            sed -i "s|^ARG JDK_VERSION=.*|ARG JDK_VERSION=${version}|" internal/signalfx-agent/bundle/Dockerfile
             git diff
           fi
       - name: Create Pull Request

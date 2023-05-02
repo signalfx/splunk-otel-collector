@@ -67,7 +67,7 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
-    directory: "/pkg/signalfx-agent"
+    directory: "/internal/signalfx-agent"
     ignore:
       - dependency-name: "go.opentelemetry.io/*"
       - dependency-name: "github.com/open-telemetry/*"
@@ -76,7 +76,7 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
-    directory: "/pkg/signalfx-agent/pkg/apm"
+    directory: "/internal/signalfx-agent/pkg/apm"
     ignore:
       - dependency-name: "go.opentelemetry.io/*"
       - dependency-name: "github.com/open-telemetry/*"
@@ -105,11 +105,11 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"
-    directory: "/pkg/signalfx-agent/bundle/python"
+    directory: "/internal/signalfx-agent/bundle/python"
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"
-    directory: "/pkg/signalfx-agent/bundle/scripts"
+    directory: "/internal/signalfx-agent/bundle/scripts"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
@@ -145,14 +145,14 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/pkg/signalfx-agent/bundle"
+    directory: "/internal/signalfx-agent/bundle"
     schedule:
       interval: "weekly"
   - package-ecosystem: "maven"
-    directory: "/pkg/signalfx-agent/bundle/java/jmx"
+    directory: "/internal/signalfx-agent/bundle/java/jmx"
     schedule:
       interval: "weekly"
   - package-ecosystem: "maven"
-    directory: "/pkg/signalfx-agent/bundle/java/runner"
+    directory: "/internal/signalfx-agent/bundle/java/runner"
     schedule:
       interval: "weekly"

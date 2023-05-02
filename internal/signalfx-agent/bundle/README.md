@@ -77,7 +77,7 @@ Run the following commands to build the bundle for Linux (requires `git`,
 ```sh
 $ git clone https://github.com/signalfx/splunk-otel-collector
 $ cd splunk-otel-collector
-$ make -C pkg/signalfx-agent/bundle agent-bundle-linux ARCH=<amd64|arm64>
+$ make -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=<amd64|arm64>
 ```
 
 The bundle will be saved to `dist/agent-bundle_linux_<amd64|arm64>.tar.gz`.
@@ -91,6 +91,6 @@ Run the following Powershell commands to build the bundle for Windows (requires
 ```sh
 PS> git clone https://github.com/signalfx/splunk-otel-collector
 PS> cd splunk-otel-collector
-PS> ./pkg/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
+PS> ./internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
 ```
 The bundle will be saved to `dist/agent-bundl_windows_amd64.zip`.

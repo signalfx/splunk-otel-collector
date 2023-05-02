@@ -187,12 +187,12 @@ agent-bundle-linux:
   cache:
     key:
       files:
-        - pkg/signalfx-agent/bundle/**
+        - internal/signalfx-agent/bundle/**
     paths:
       - .cache/buildx/agent-bundle-${ARCH}
   script:
     - *docker-reader-role
-    - make -C pkg/signalfx-agent/bundle agent-bundle-linux ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
+    - make -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
   artifacts:
     paths:
       - dist/agent-bundle_linux_${ARCH}.tar.gz
@@ -207,12 +207,12 @@ agent-bundle-windows:
   cache:
     key:
       files:
-        - pkg/signalfx-agent/bundle/collectd-plugins.yaml
-        - pkg/signalfx-agent/bundle/scripts/requirements.txt
+        - internal/signalfx-agent/bundle/collectd-plugins.yaml
+        - internal/signalfx-agent/bundle/scripts/requirements.txt
     paths:
       - .cache/pip
   script:
-    - ./pkg/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
+    - ./internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle
   artifacts:
     paths:
       - dist/agent-bundle_windows_amd64.zip

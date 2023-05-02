@@ -21,7 +21,7 @@ The receiver is under active development which means that configuration interfac
 
 The following settings are required:
 
-- `endpoint` (no default): Address and port to listen on for Prometheus metrics. This is the same endpoint that 
+- `endpoint` (no default): Address to request Prometheus metrics. This is the same endpoint that 
   Prometheus scrapes to collect metrics. IMPORTANT: This receiver currently does require the metric path to be included
   in the endpoint. For example, if the endpoint is `localhost:1234`, the metrics path must be included, e.g.
   `localhost:1234/metrics`. This likely will be changed in the future.

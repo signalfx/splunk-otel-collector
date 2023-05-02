@@ -28,7 +28,7 @@ The following settings are required:
 
 The following settings can be optionally configured:
 
-- `collection_interval` (default = 30s): The internal at which metrics should be emitted by this receiver.
+- `collection_interval` (default = 30s): The internal at which metrics should be scraped by this receiver.
 - `resource_attributes`: Resource attributes to be added to all metrics emitted by this receiver. The following options
   are available to configure resource attributes:
   - `service.name`:

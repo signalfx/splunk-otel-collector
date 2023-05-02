@@ -23,6 +23,13 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
+    directory: "/examples/splunk-hec/logging"
+    ignore:
+      - dependency-name: "go.opentelemetry.io/*"
+      - dependency-name: "github.com/open-telemetry/*"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "gomod"
     directory: "/examples/splunk-hec-traces/tracing"
     ignore:
       - dependency-name: "go.opentelemetry.io/*"
@@ -30,7 +37,16 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
-    directory: "/examples/splunk-hec/logging"
+    directory: "/internal/signalfx-agent"
+    ignore:
+      - dependency-name: "go.opentelemetry.io/*"
+      - dependency-name: "github.com/open-telemetry/*"
+      - dependency-name: "github.com/openshift/*"
+        versions: ["v3.9.0+incompatible"]
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "gomod"
+    directory: "/internal/signalfx-agent/pkg/apm"
     ignore:
       - dependency-name: "go.opentelemetry.io/*"
       - dependency-name: "github.com/open-telemetry/*"
@@ -64,22 +80,6 @@ updates:
       - dependency-name: "github.com/open-telemetry/*"
       - dependency-name: "github.com/openshift/*"
         versions: ["v3.9.0+incompatible"]
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "gomod"
-    directory: "/internal/signalfx-agent"
-    ignore:
-      - dependency-name: "go.opentelemetry.io/*"
-      - dependency-name: "github.com/open-telemetry/*"
-      - dependency-name: "github.com/openshift/*"
-        versions: ["v3.9.0+incompatible"]
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "gomod"
-    directory: "/internal/signalfx-agent/pkg/apm"
-    ignore:
-      - dependency-name: "go.opentelemetry.io/*"
-      - dependency-name: "github.com/open-telemetry/*"
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
@@ -121,11 +121,11 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/examples/splunk-hec-traces/tracing"
+    directory: "/examples/splunk-hec/logging"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/examples/splunk-hec/logging"
+    directory: "/examples/splunk-hec-traces/tracing"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"

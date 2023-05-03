@@ -9,6 +9,13 @@ SHELL [ "powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPre
 
 COPY docker-setup/ /setup
 
+# Install the .NET IIS hosting bundle
+RUN `
+    $process = Start-Process -Filepath C:\setup\dotnet-hosting-win.exe -ArgumentList  @('/install', '/q', '/norestart', 'OPT_NO_X86=1') -Wait -PassThru; `
+    if ($process.ExitCode -ne 0) { `
+        exit $process.ExitCode; `
+    }
+
 # WARNING: Passing access token as a build argument is to facilitate manual validation of this Dockerfile. It shouldn't be used in production.
 ARG verify_access_token=false
 ARG access_token=some_token
@@ -20,7 +27,10 @@ RUN `
     c:\setup\install.ps1 -access_token $token -msi_path $collector_msi_path -with_dotnet_instrumentation $true -deployment_env zc-iis-test -ingest_url "http://splunk-otel-collector:9943" -trace_url "http://splunk-otel-collector:7276/v2/trace"
 ENV ACCESS_TOKEN_TMP=
 
-COPY apps/bin/_PublishedWebsites/AspNet.WebApi.NetFramework/ /apps/aspnetfx
+COPY apps/bin/aspnetfxapp/_PublishedWebsites/AspNet.WebApi.NetFramework/ /apps/aspnetfx
+COPY apps/bin/aspnetcoreapppublish/ /apps/aspnetcore
 
 # Add test application to the Default Web Site
 RUN \Windows\System32\inetsrv\appcmd add app /site.name:\"Default Web Site\" /path:/aspnetfxapp /physicalPath:\"c:\apps\aspnetfx\"
+RUN \Windows\System32\inetsrv\appcmd add apppool /name:AspNetCoreAppPool /managedRuntimeVersion:""
+RUN \Windows\System32\inetsrv\appcmd add app /site.name:\"Default Web Site\" /path:/aspnetcoreapp /physicalPath:\"c:\apps\aspnetcore\" /applicationPool:AspNetCoreAppPool

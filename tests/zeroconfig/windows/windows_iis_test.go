@@ -86,17 +86,15 @@ func TestWindowsIISInstrumentation(t *testing.T) {
 		return resp.StatusCode == http.StatusOK
 	}, 30*time.Second, 100*time.Millisecond)
 
-	// Make a GET request to the ASP.NET app on the Windows IIS container
-	httpClient := &http.Client{}
-	req, err := http.NewRequest("GET", "http://localhost:8000/aspnetfxapp/api/values", nil)
-	require.NoError(t, err)
-	resp, err := httpClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+	requireHTTPGetRequestSuccess(t, "http://localhost:8000/aspnetfxapp/api/values/4")
 	t.Log("ASP.NET HTTP Request succeeded")
+	expectedResourceTraces, err := telemetry.LoadResourceTraces("expected_aspnetfxapp_traces.yaml")
+	require.NoError(t, err)
+	require.NoError(t, otlp.AssertAllTracesReceived(t, *expectedResourceTraces, 30*time.Second))
 
-	expectedResourceTraces, err := telemetry.LoadResourceTraces("expected_resource_traces.yaml")
+	requireHTTPGetRequestSuccess(t, "http://localhost:8000/aspnetcoreapp/api/values/6")
+	t.Log("ASP.NET Core HTTP Request succeeded")
+	expectedResourceTraces, err = telemetry.LoadResourceTraces("expected_aspnetcoreapp_traces.yaml")
 	require.NoError(t, err)
 	require.NoError(t, otlp.AssertAllTracesReceived(t, *expectedResourceTraces, 30*time.Second))
 }
@@ -108,4 +106,14 @@ func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {
 	err := cmd.Run()
 	t.Log(out.String())
 	require.NoError(t, err)
+}
+
+func requireHTTPGetRequestSuccess(t *testing.T, url string) {
+	httpClient := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	require.NoError(t, err)
+	resp, err := httpClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 }

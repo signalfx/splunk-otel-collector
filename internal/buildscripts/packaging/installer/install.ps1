@@ -132,13 +132,13 @@ $format = "msi"
 $service_name = "splunk-otel-collector"
 $signalfx_dl = "https://dl.signalfx.com"
 try {
-    Resolve-Path $env:PROGRAMFILES
+    Resolve-Path $env:PROGRAMFILES 2>&1>$null
     $installation_path = "${env:PROGRAMFILES}\Splunk\OpenTelemetry Collector"
 } catch {
     $installation_path = "\Program Files\Splunk\OpenTelemetry Collector"
 }
 try {
-    Resolve-Path $env:PROGRAMDATA
+    Resolve-Path $env:PROGRAMDATA 2>&1>$null
     $program_data_path = "${env:PROGRAMDATA}\Splunk\OpenTelemetry Collector"
 } catch {
     $program_data_path = "\ProgramData\Splunk\OpenTelemetry Collector"
@@ -149,7 +149,7 @@ $gateway_config_path = "$program_data_path\gateway_config.yaml"
 $config_path = ""
 
 try {
-    Resolve-Path $env:TEMP
+    Resolve-Path $env:TEMP 2>&1>$null
     $tempdir = "${env:TEMP}\Splunk\OpenTelemetry Collector"
 } catch {
     $tempdir = "\tmp\Splunk\OpenTelemetry Collector"
@@ -160,7 +160,7 @@ $regkey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 $fluentd_msi_name = "td-agent-4.3.2-x64.msi"
 $fluentd_dl_url = "https://packages.treasuredata.com/4/windows/$fluentd_msi_name"
 try {
-    Resolve-Path $env:SYSTEMDRIVE
+    Resolve-Path $env:SYSTEMDRIVE 2>&1>$null
     $fluentd_base_dir = "${env:SYSTEMDRIVE}\opt\td-agent"
 } catch {
     $fluentd_base_dir = "\opt\td-agent"
@@ -168,6 +168,7 @@ try {
 $fluentd_config_dir = "$fluentd_base_dir\etc\td-agent"
 $fluentd_config_path = "$fluentd_config_dir\td-agent.conf"
 $fluentd_service_name = "fluentdwinsvc"
+$fluentd_log_path = "$fluentd_base_dir\td-agent.log"
 
 # check that we're not running with a restricted execution policy
 function check_policy() {
@@ -287,31 +288,73 @@ function service_installed([string]$name) {
     return ((Get-CimInstance -ClassName win32_service -Filter "Name = '$name'" | Select Name, State).Name -Eq "$name")
 }
 
+function get_service_log_path([string]$name) {
+    $log_path = "the Windows Event Viewer"
+    if (($name -eq $fluentd_service_name) -and (Test-Path -Path "$fluentd_log_path")) {
+        $log_path = $fluentd_log_path
+    }
+    return $log_path
+}
+
+# wait for the service to start
+function wait_for_service([string]$name, [int]$timeout=60) {
+    $startTime = Get-Date
+    while (!(service_running -name "$name")){
+        if ((New-TimeSpan -Start $startTime -End (Get-Date)).TotalSeconds -gt $timeout) {
+            $err = "Timed out waiting for the $name service to be running."
+            $log_path = get_service_log_path -name "$name"
+            Write-Warning "$err"
+            Write-Warning "Please check $log_path for more details."
+            throw "$err"
+        }
+        # give windows a second to synchronize service status
+        Start-Sleep -Seconds 1
+    }
+}
+
+# wait for the service to stop
+function wait_for_service_stop([string]$name, [int]$timeout=60) {
+    $startTime = Get-Date
+    while ((service_running -name "$name")){
+        if ((New-TimeSpan -Start $startTime -End (Get-Date)).TotalSeconds -gt $timeout) {
+            $err = "Timed out waiting for the $name service to be stopped."
+            $log_path = get_service_log_path -name "$name"
+            Write-Warning "$err"
+            Write-Warning "Please check $log_path for more details."
+            throw "$err"
+        }
+        # give windows a second to synchronize service status
+        Start-Sleep -Seconds 1
+    }
+}
+
 # start the service if it's stopped
-function start_service([string]$name, [string]$config_path=$config_path) {
+function start_service([string]$name, [string]$config_path=$config_path, [int]$max_attempts=3, [int]$timeout=60) {
+    if (!(service_installed -name "$name")) {
+        throw "The $name service does not exist!"
+    }
     if (!(service_running -name "$name")) {
         if (Test-Path -Path $config_path) {
-            try {
-                Start-Service -Name "$name"
-            } catch {
-                $err = $_.Exception.Message
-                $message = "
-                An error occurred while trying to start the $name service
-                $err
-                "
-                throw "$message"
-            }
-
-            # wait for the service to start
-            $startTime = Get-Date
-            while (!(service_running -name "$name")) {
-                # timeout after 30 seconds
-                if ((New-TimeSpan -Start $startTime -End (Get-Date)).TotalSeconds -gt 60){
-                    throw "The $name service is not running. Check the Windows Event Viewer and rerun the installer if needed."
+            for ($i=1; $i -le $max_attempts; $i++) {
+                try {
+                    Start-Service -Name "$name"
+                    break
+                } catch {
+                    $err = $_.Exception.Message
+                    if ($i -eq $max_attempts) {
+                        $log_path = get_service_log_path -name "$name"
+                        Write-Warning "An error occurred while trying to start the $name service:"
+                        Write-Warning "$err"
+                        Write-Warning "Please check $log_path for more details."
+                        throw "$err"
+                    } else {
+                        Stop-Service -Name "$name" -ErrorAction Ignore
+                        Start-Sleep -Seconds 10
+                        continue
+                    }
                 }
-                # give windows a second to synchronize service status
-                Start-Sleep -Seconds 1
             }
+            wait_for_service -name "$name" -timeout $timeout
         } else {
             throw "$config_path does not exist and is required to start the $name service"
         }
@@ -319,17 +362,27 @@ function start_service([string]$name, [string]$config_path=$config_path) {
 }
 
 # stop the service if it's running
-function stop_service([string]$name) {
+function stop_service([string]$name, [int]$max_attempts=3, [int]$timeout=60) {
     if ((service_running -name "$name")) {
-        try {
-            Stop-Service -Name "$name"
-        } catch {
-            $err = $_.Exception.Message
-            $message = "
-            An error occurred while trying to stop the $name service
-            $message
-            "
+        for ($i=1; $i -le $max_attempts; $i++) {
+            try {
+                Stop-Service -Name "$name"
+                break
+            } catch {
+                $err = $_.Exception.Message
+                if ($i -eq $max_attempts) {
+                    $log_path = get_service_log_path -name "$name"
+                    Write-Warning "An error occurred while trying to start the $name service:"
+                    Write-Warning "$err"
+                    Write-Warning "Please check $log_path for more details."
+                    throw "$err"
+                } else {
+                    Start-Sleep -Seconds 10
+                    continue
+                }
+            }
         }
+        wait_for_service_stop -name "$name" -timeout $timeout
     }
 }
 
@@ -337,11 +390,10 @@ function stop_service([string]$name) {
 function download_collector_package([string]$collector_version=$collector_version, [string]$tempdir=$tempdir, [string]$stage=$stage, [string]$arch=$arch, [string]$format=$format) {
     # get the filename to download
     $filename = get_filename -tag $collector_version -format $format -arch $arch
-    echo $filename
 
     # get url for file to download
     $fileurl = get_url -stage $stage -format $format -filename $filename
-    echo "Downloading package..."
+    echo "Downloading $fileName ..."
     download_file -url $fileurl -outputDir $tempdir -filename $filename
     ensure_file_exists "$tempdir\$filename"
     echo "- $fileurl -> '$tempdir'"
@@ -355,6 +407,26 @@ function msi_installed([string]$name="Splunk OpenTelemetry Collector") {
 function update_registry([string]$path, [string]$name, [string]$value) {
     echo "Updating $path for $name..."
     Set-ItemProperty -path "$path" -name "$name" -value "$value"
+}
+
+function install_msi([string]$path) {
+    Write-Host "Installing $path ..."
+    $startTime = Get-Date
+    $proc = (Start-Process msiexec.exe -Wait -PassThru -ArgumentList "/qn /norestart /i `"$path`"")
+    if ($proc.ExitCode -ne 0 -and $proc.ExitCode -ne 3010) {
+        Write-Warning "The installer failed with error code ${proc.ExitCode}."
+        try {
+            $events = (Get-WinEvent -ProviderName "MsiInstaller" | Where-Object { $_.TimeCreated -ge $startTime })
+            ForEach ($event in $events) {
+                ($event | Select -ExpandProperty Message | Out-String).TrimEnd() | Write-Host
+            }
+        } catch {
+            Write-Warning "Please check the Windows Event Viewer for more details."
+            continue
+        }
+        Exit $proc.ExitCode
+    }
+    Write-Host "- Done"
 }
 
 $ErrorActionPreference = 'Stop'; # stop on all errors
@@ -463,9 +535,7 @@ if ($collector_msi_url) {
     }
 }
 
-echo "Installing $msi_path ..."
-Start-Process msiexec.exe -Wait -ArgumentList "/qn /norestart /i `"$msi_path`""
-echo "- Done"
+install_msi -path "$msi_path"
 
 # copy the default configs to $program_data_path
 mkdir "$program_data_path" -ErrorAction Ignore
@@ -510,9 +580,20 @@ update_registry -path "$regkey" -name "SPLUNK_MEMORY_TOTAL_MIB" -value "$memory"
 update_registry -path "$regkey" -name "SPLUNK_REALM" -value "$realm"
 update_registry -path "$regkey" -name "SPLUNK_TRACE_URL" -value "$trace_url"
 
-echo "Starting $service_name service..."
-start_service -name "$service_name" -config_path "$config_path"
-echo "- Started"
+$message = "
+The Splunk OpenTelemetry Collector for Windows has been successfully installed.
+Make sure that your system's time is relatively accurate or else datapoints may not be accepted.
+The collector's main configuration file is located at $config_path,
+and the environment variables are stored in the $regkey registry key.
+
+If the $config_path configuration file or any of the
+SPLUNK_* environment variables in the $regkey registry key are modified,
+the collector service must be restarted to apply the changes by restarting the system or running the
+following PowerShell commands:
+  PS> Stop-Service $service_name
+  PS> Start-Service $service_name
+"
+echo "$message"
 
 if ($with_fluentd) {
     $default_fluentd_config = "$installation_path\fluentd\td-agent.conf"
@@ -545,52 +626,13 @@ if ($with_fluentd) {
         $fluentd_msi_name = "td-agent.msi"
     }
 
+    echo ""
     echo "Downloading $fluentd_dl_url..."
     download_file -url "$fluentd_dl_url" -outputDir "$tempdir" -fileName "$fluentd_msi_name"
     $fluentd_msi_path = (Join-Path "$tempdir" "$fluentd_msi_name")
 
-    echo "Installing $fluentd_msi_path ..."
-    Start-Process msiexec.exe -Wait -ArgumentList "/qn /norestart /i `"$fluentd_msi_path`""
-    echo "- Done"
+    install_msi -path "$fluentd_msi_path"
 
-    stop_service -name "$fluentd_service_name"
-
-    echo "Starting $fluentd_service_name service..."
-    start_service -name "$fluentd_service_name" -config_path "$fluentd_config_path"
-    echo "- Started"
-}
-
-if ($with_dotnet_instrumentation) {
-    echo "Installing SignalFx Dotnet Auto Instrumentation..."
-    Install-SignalFxDotnet
-
-    if ($deployment_env -ne "") {
-        echo "Setting SIGNALFX_ENV environment variable to $deployment_env ..."
-        update_registry -path "$regkey" -name "SIGNALFX_ENV" -value "$deployment_env"
-    } else {
-        echo "SIGNALFX_ENV environment variable not set. Unless otherwise defined, will appear as 'unknown' in the UI."
-    }
-}
-
-# remove the temporary directory
-Remove-Item -Recurse -Force "$tempdir"
-
-$message = "
-The Splunk OpenTelemetry Collector for Windows has been successfully installed.
-Make sure that your system's time is relatively accurate or else datapoints may not be accepted.
-The collector's main configuration file is located at $config_path,
-and the environment variables are stored in the $regkey registry key.
-
-If the $config_path configuration file or any of the
-SPLUNK_* environment variables in the $regkey registry key are modified,
-the collector service must be restarted to apply the changes by restarting the system or running the
-following PowerShell commands:
-  PS> Stop-Service $service_name
-  PS> Start-Service $service_name
-"
-echo "$message"
-
-if ($with_fluentd) {
     $message = "
 Fluentd has been installed and configured to forward log events to the Splunk OpenTelemetry Collector.
 By default, all log events with the @SPLUNK label will be forwarded to the collector.
@@ -611,9 +653,37 @@ restarted to apply the changes by restarting the system or running the following
 }
 
 if ($with_dotnet_instrumentation) {
+    echo "Installing SignalFx Dotnet Auto Instrumentation..."
+    Install-SignalFxDotnet
+
+    if ($deployment_env -ne "") {
+        echo "Setting SIGNALFX_ENV environment variable to $deployment_env ..."
+        update_registry -path "$regkey" -name "SIGNALFX_ENV" -value "$deployment_env"
+    } else {
+        echo "SIGNALFX_ENV environment variable not set. Unless otherwise defined, will appear as 'unknown' in the UI."
+    }
+
     $message = "
 SignalFx .NET Instrumentation has been installed and configured to forward traces to the Splunk OpenTelemetry Collector.
 By default, .NET Instrumentation will automatically generate traces for applications running on IIS.
 "
     echo "$message"
+}
+
+# remove the temporary directory
+Remove-Item -Recurse -Force "$tempdir"
+
+# Try starting the service(s) only after all components were successfully installed.
+echo "Starting $service_name service..."
+start_service -name "$service_name" -config_path "$config_path"
+echo "- Started"
+
+if ($with_fluentd) {
+    # The fluentd service is automatically started after msi installation.
+    # Wait for it to be running before trying to restart it with our custom config.
+    echo "Restarting $fluentd_service_name service..."
+    wait_for_service -name "$fluentd_service_name"
+    stop_service -name "$fluentd_service_name"
+    start_service -name "$fluentd_service_name" -config_path "$fluentd_config_path"
+    echo "- Started"
 }

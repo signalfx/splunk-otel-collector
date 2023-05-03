@@ -138,16 +138,7 @@ func (otlp *OTLPReceiverSink) Start() error {
 		return err
 	}
 
-	if err := (*otlp.metricsReceiver).Start(context.Background(), otlp.Host); err != nil {
-		return err
-	}
-
-	if err := (*otlp.tracesReceiver).Start(context.Background(), otlp.Host); err != nil {
-		_ = (*otlp.metricsReceiver).Shutdown(context.Background())
-		return err
-	}
-
-	return nil
+	return (*otlp.metricsReceiver).Start(context.Background(), otlp.Host)
 }
 
 func (otlp *OTLPReceiverSink) Shutdown() error {
@@ -155,15 +146,7 @@ func (otlp *OTLPReceiverSink) Shutdown() error {
 		return err
 	}
 
-	metricsShutdownErr := (*otlp.metricsReceiver).Shutdown(context.Background())
-	tracesShutdownErr := (*otlp.tracesReceiver).Shutdown(context.Background())
-	if metricsShutdownErr != nil {
-		return metricsShutdownErr
-	}
-	if tracesShutdownErr != nil {
-		return tracesShutdownErr
-	}
-	return nil
+	return (*otlp.metricsReceiver).Shutdown(context.Background())
 }
 
 func (otlp *OTLPReceiverSink) AllLogs() []plog.Logs {

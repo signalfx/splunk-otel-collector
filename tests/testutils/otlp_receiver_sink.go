@@ -296,12 +296,12 @@ func (otlp *OTLPReceiverSink) AssertAllMetricsReceived(t testing.TB, expectedRes
 	return err
 }
 
-func (otlp *OTLPReceiverSink) AssertAllTracesReceived(t testing.TB, exptectedResourceTraces telemetry.ResourceTraces, waitTime time.Duration) error {
+func (otlp *OTLPReceiverSink) AssertAllTracesReceived(t testing.TB, expectedResourceTraces telemetry.ResourceTraces, waitTime time.Duration) error {
 	if err := otlp.assertBuilt("AssertAllTracesReceived"); err != nil {
 		return err
 	}
 
-	if len(exptectedResourceTraces.ResourceSpans) == 0 {
+	if len(expectedResourceTraces.ResourceSpans) == 0 {
 		return fmt.Errorf("empty ResourceTraces provided")
 	}
 
@@ -324,7 +324,7 @@ func (otlp *OTLPReceiverSink) AssertAllTracesReceived(t testing.TB, exptectedRes
 		receivedTraces = telemetry.FlattenResourceTraces(receivedResourceTraces)
 
 		var containsAll bool
-		containsAll, err = receivedTraces.ContainsAll(exptectedResourceTraces)
+		containsAll, err = receivedTraces.ContainsAll(expectedResourceTraces)
 		return containsAll
 	}, waitTime, 10*time.Millisecond, "Failed to receive expected traces")
 

@@ -1,0 +1,46 @@
+name: win-installer-script-test
+
+# Only run tests for main branch or if the PR has relevant changes
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '.github/workflows/win-installer-script-test.yml'
+      - '.github/workflows/scripts/**'
+      - 'internal/buildscripts/packaging/installer/install.ps1'
+
+concurrency:
+  group: win-installer-script-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ${{ matrix.OS }}
+    strategy:
+      matrix:
+        OS: [ "windows-2019", "windows-2022" ]
+        MODE: [ "agent", "gateway" ]
+        WITH_FLUENTD: [ "true", "false" ]
+      fail-fast: false
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v3
+
+      - name: Installation test
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:VERIFY_ACCESS_TOKEN = "false"
+          .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -realm "test" -mode "${{ matrix.MODE }}" -memory "256" -with_fluentd $${{ matrix.WITH_FLUENTD }}
+          Start-Sleep -s 30
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "testing123" -realm "test" -memory "256" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
+
+      - name: splunk-otel-collector logs
+        if: ${{ always() }}
+        run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
+
+      - name: fluentd logs
+        if: ${{ always() && matrix.WITH_FLUENTD == 'true' }}
+        run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"

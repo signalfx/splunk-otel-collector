@@ -451,17 +451,29 @@ jobs:
           path: ./dist
 
       - name: Installation test
+        env:
+          token: fake-token
+          realm: fake-realm
+          memory: "256"
         run: |
           $ErrorActionPreference = 'Stop'
           Set-PSDebug -Trace 1
           $msi_path = Resolve-Path .\dist\splunk-otel-collector*.msi
           $env:VERIFY_ACCESS_TOKEN = "false"
-          .\internal\buildscripts\packaging\installer\install.ps1 -access_token "testing123" -realm "test" -msi_path "$msi_path" -mode "${{ matrix.MODE }}" -with_fluentd $${{ matrix.WITH_FLUENTD }}
+          .\internal\buildscripts\packaging\installer\install.ps1 -access_token "${{ env.token }}" -realm "${{ env.realm }}" -msi_path "$msi_path" -mode "${{ matrix.MODE }}" -memory "${{ env.memory }}" -with_fluentd $${{ matrix.WITH_FLUENTD }}
           Start-Sleep -s 30
-          powershell.exe -File .github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          powershell.exe -File .github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
           Test-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\python\python.exe"
           Test-Path -Path "$env:ProgramFiles\Splunk\OpenTelemetry Collector\agent-bundle\collectd-python"
+
+      - name: splunk-otel-collector logs
+        if: ${{ always() }}
+        run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
+
+      - name: fluentd logs
+        if: ${{ always() && matrix.WITH_FLUENTD == 'true' }}
+        run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"
 
   windows-choco:
     name: windows-choco
@@ -489,6 +501,19 @@ jobs:
           .\internal\buildscripts\packaging\choco\make.ps1 build_choco -MSIFile $msi_file_path -Version $version | Tee-Object -file .\dist\build_logs.log
           Test-Path -Path ".\dist\splunk-otel-collector.$version.nupkg"
 
+      - name: Test install without parameters
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-PSDebug -Trace 1
+          choco install splunk-otel-collector -s=".\dist" -y
+          if ($LASTEXITCODE -ne 0) {
+            throw "choco install failed!"
+          }
+          # the collector service should not be running if installed without the SPLUNK_ACCESS_TOKEN parameter
+          if ((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running") {
+            throw "splunk-otel-collector is running"
+          }
+
       - name: Uploading choco build artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -504,6 +529,8 @@ jobs:
         OS: [ "windows-2019", "windows-2022" ]
         MODE: [ "agent", "gateway" ]
         WITH_FLUENTD: [ "true", "false" ]
+        SCENARIO: [ "install", "upgrade" ]
+      fail-fast: false
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3
@@ -514,31 +541,57 @@ jobs:
           name: choco-build
           path: ./dist
 
-      - name: Chocolatey test
+      - name: Chocolatey ${{ matrix.SCENARIO }} test
+        env:
+          token: fake-token
+          realm: fake-realm
+          memory: "256"
         run: |
           $ErrorActionPreference = 'Stop'
           Set-PSDebug -Trace 1
           $choco_file_name = Resolve-Path .\dist\splunk-otel-collector*.nupkg
-          write-host "Installing $choco_file_name..."
-          choco install splunk-otel-collector -s="$choco_file_name" --params="'/SPLUNK_ACCESS_TOKEN=12345 /SPLUNK_REALM=test /MODE:${{ matrix.MODE }} /WITH_FLUENTD:${{ matrix.WITH_FLUENTD }}'" -y
-          Start-Sleep -s 30
-          powershell.exe -File .github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          powershell.exe -File .github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          write-host "Reinstalling choco package..."
-          choco install splunk-otel-collector -s="$choco_file_name" --params="'/MODE:${{ matrix.MODE }} /WITH_FLUENTD:${{ matrix.WITH_FLUENTD }}'" --force -y
-          Start-Sleep -s 30
-          powershell.exe -File .github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
-          write-host "Uninstalling choco package..."
-          choco uninstall -y splunk-otel-collector
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running")) {
-            write-host "splunk-otel-collector has been successfully uninstalled and service is not running."
+          $params = "/SPLUNK_ACCESS_TOKEN=${{ env.token }} /SPLUNK_REALM=${{ env.realm }} /SPLUNK_MEMORY_TOTAL_MIB=${{ env.memory }} /MODE:${{ matrix.MODE }} /WITH_FLUENTD:${{ matrix.WITH_FLUENTD }}"
+          if ("${{ matrix.SCENARIO }}" -eq "install") {
+            write-host "Installing $choco_file_name ..."
+            choco install splunk-otel-collector -s=".\dist" --params="'$params'" -y
+            if ($LASTEXITCODE -ne 0) {
+              throw "choco install failed!"
+            }
           } else {
-            throw "Failed to uninstall splunk-otel-collector chocolatey package."
+            write-host "Installing splunk-otel-collector 0.74.0 ..."
+            choco feature enable -n=useRememberedArgumentsForUpgrades
+            choco install splunk-otel-collector --no-progress --version=0.74.0 --params="'$params'" -y
+            if ($LASTEXITCODE -ne 0) {
+              throw "choco install failed!"
+            }
+            Start-Sleep 30
+            write-host "Upgrading $choco_file_name ..."
+            choco upgrade splunk-otel-collector -s=".\dist" -y
+            if ($LASTEXITCODE -ne 0) {
+              throw "choco upgrade failed!"
+            }
           }
-          if (!((Get-CimInstance -ClassName win32_service -Filter "Name = 'fluentdwinsvc'" | Select Name, State).State -Eq "Running")) {
-            write-host "fluentdwinsvc has been successfully uninstalled and service is not running."
-          } else {
-            throw "Failed to uninstall fluentdwinsvc."
+          Start-Sleep -s 30
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-services.ps1 -mode "${{ matrix.MODE }}" -access_token "${{ env.token }}" -realm "${{ env.realm }}" -memory "${{ env.memory }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
+          & ${{ github.workspace }}\.github\workflows\scripts\win-test-support-bundle.ps1 -mode "${{ matrix.MODE }}" -with_fluentd "${{ matrix.WITH_FLUENTD }}"
+
+      - name: splunk-otel-collector logs
+        if: ${{ always() }}
+        run: Get-WinEvent -ProviderName splunk-otel-collector | Sort-Object -Property TimeCreated | Select-Object -Property Message | Format-List
+
+      - name: fluentd logs
+        if: ${{ always() && matrix.WITH_FLUENTD == 'true' }}
+        run: Get-Content -Path "${env:SYSTEMDRIVE}\opt\td-agent\td-agent.log"
+
+      - name: Uninstall test
+        run: |
+          choco uninstall splunk-otel-collector -y
+          if ($LASTEXITCODE -ne 0) {
+            throw "choco uninstall failed!"
+          }
+          Start-Sleep -s 30
+          if ((Get-CimInstance -ClassName win32_service -Filter "Name = 'splunk-otel-collector'" | Select Name, State).State -Eq "Running") {
+            throw "splunk-otel-collector service is still running"
           }
 
   windows-zeroconfig-sources:

@@ -19,7 +19,6 @@ package telemetry
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -224,13 +223,7 @@ func TestTraceContainsAllNoBijection(t *testing.T) {
 	containsAll, err = expected.ContainsAll(received)
 	require.False(t, containsAll)
 	require.Error(t, err)
-	// The function used to generate the string representation of the span doesn't guarantee the order of the fields
-	// test both possibilities to ensure the test passes in all platforms.
-	errMsg := err.Error()
-	containsExpectedMissingSpanMsg :=
-		strings.Contains(errMsg, "Missing Spans: [name: span_one\nattributes:\n  one_attr: one_value\n  two_attr: two_value\n]") ||
-			strings.Contains(errMsg, "Missing Spans: [attributes:\n  one_attr: one_value\n  two_attr: two_value\nname: span_one\n]")
-	require.True(t, containsExpectedMissingSpanMsg)
+	require.Contains(t, err.Error(), "Missing Spans: [attributes:\n  one_attr: one_value\n  two_attr: two_value\nname: span_one\n]")
 }
 
 func TestTraceContainsAllSpansNeverReceived(t *testing.T) {

@@ -153,13 +153,13 @@ func (k KindCluster) Apply(manifests string) (stdOut, stdErr bytes.Buffer, err e
 }
 
 func (k KindCluster) runKubectl(stdin io.Reader, args ...string) (stdOut, stdErr bytes.Buffer, err error) {
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
+	stdOut = bytes.Buffer{}
+	stdErr = bytes.Buffer{}
 	fullArgs := append([]string{"--kubeconfig", k.Kubeconfig}, args...)
 	kubectl := kubectlcmd.NewDefaultKubectlCommandWithArgs(
 		kubectlcmd.KubectlOptions{
 			Arguments: append([]string{"<ignored-placeholder>"}, args...),
-			IOStreams: genericclioptions.IOStreams{In: stdin, Out: stdout, ErrOut: stderr},
+			IOStreams: genericclioptions.IOStreams{In: stdin, Out: &stdOut, ErrOut: &stdErr},
 			// don't use default or persist (pin local kubeconfig)
 			ConfigFlags: genericclioptions.NewConfigFlags(false),
 		},
@@ -186,7 +186,7 @@ func (k KindCluster) runKubectl(stdin io.Reader, args ...string) (stdOut, stdErr
 		err = multierr.Combine(err, e)
 	}
 
-	return *stdout, *stderr, err
+	return
 }
 
 func (k KindCluster) runKindCmd(args []string) {

@@ -89,17 +89,12 @@ type testCluster struct{ *kubeutils.KindCluster }
 // uses *error for deferred require error content
 // so that %v verbs don't result in rendered addresses
 type printableError struct {
-	e *error
-}
-
-func newPrintableError() printableError {
-	noopErr := fmt.Errorf("noop")
-	return printableError{&noopErr}
+	err *error
 }
 
 func (p printableError) String() string {
-	if p.e != nil {
-		return fmt.Sprintf("%v", *p.e)
+	if p.err != nil {
+		return fmt.Sprintf("%v", *p.err)
 	}
 	return "<nil>"
 }
@@ -149,17 +144,16 @@ func (cluster testCluster) createMySQL(name, namespace, serviceAccount string) s
 		return strings.Contains(stdOut.String(), "port: 3306  MySQL Community Server")
 	}, time.Minute, 1*time.Second)
 
-	var stdOut, stdErr bytes.Buffer
-	pe := newPrintableError()
+	stdOut, stdErr := new(bytes.Buffer), new(bytes.Buffer)
+	pe := &printableError{err: &err}
 	for _, u := range []string{"root", user} {
 		require.Eventually(cluster.Testcase, func() bool {
-			stdOut, stdErr, err = cluster.Kubectl(
+			*stdOut, *stdErr, *pe.err = cluster.Kubectl(
 				"exec", "-n", namespace, mysql.Name, "--",
 				"mysql", fmt.Sprintf("-u%s", u), "-ptestpass", "-e", "show status",
 			)
-			*pe.e = err
-			return err == nil
-		}, time.Minute, 5*time.Second, "db check for %s: %q, %q, %q", user, &stdOut, &stdErr, pe)
+			return pe.err == nil
+		}, 30*time.Second, 5*time.Second, "db check for %s: %q, %q, %q", user, stdOut, stdErr, pe)
 	}
 
 	for _, cmd := range [][]string{

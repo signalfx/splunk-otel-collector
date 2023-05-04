@@ -18,7 +18,6 @@ package zeroconfig
 
 import (
 	"net/http"
-	"os"
 	"os/exec"
 	"path"
 	"strings"
@@ -43,13 +42,10 @@ func TestWindowsIISInstrumentation(t *testing.T) {
 	//    configuration that runs a splunk-otel-collector that receives the O11y signals from the instrumented container.
 	//    This way the test can leverage the existing testutils OTLP sink.
 
-	// Set the Docker "context"
-	os.Chdir(path.Join(".", "testdata"))
-	defer os.Chdir("..")
-
-	requireNoErrorExecCommand(t, "docker", "compose", "up", "--detach")
+	dockerComposeFile := path.Join(".", "testdata", "docker-compose.yaml")
+	requireNoErrorExecCommand(t, "docker", "compose", "-f", dockerComposeFile, "up", "--detach")
 	defer func() {
-		requireNoErrorExecCommand(t, "docker", "compose", "down")
+		requireNoErrorExecCommand(t, "docker", "compose", "-f", dockerComposeFile, "down")
 	}()
 
 	// A firewall rule must be in place for the OTLP Endpoint to be visible to the Docker compose containers.

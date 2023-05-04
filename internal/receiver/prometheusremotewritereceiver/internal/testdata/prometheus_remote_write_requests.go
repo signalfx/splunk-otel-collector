@@ -48,7 +48,7 @@ func SampleGaugeTs() []prompb.TimeSeries {
 	return []prompb.TimeSeries{
 		{
 			Labels: []prompb.Label{
-				{Name: "__name__", Value: "go_goroutines"},
+				{Name: "__name__", Value: "i_am_a_gauge"},
 			},
 			Samples: []prompb.Sample{
 				{Value: 42, Timestamp: Jan20.UnixMilli()},
@@ -149,7 +149,7 @@ func SampleSummaryWq() *prompb.WriteRequest {
 	}
 }
 
-func ExpectedCounter(sfxCompat bool) pmetric.Metrics {
+func ExpectedCounter() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -167,13 +167,22 @@ func ExpectedCounter(sfxCompat bool) pmetric.Metrics {
 	dp.Attributes().PutStr("method", "GET")
 	dp.Attributes().PutStr("status", "200")
 
-	if sfxCompat {
-		metric := scopeMetrics.Metrics().AppendEmpty()
-		metric.SetName("prometheus.total_NaN_datapoints")
-		counter := metric.SetEmptySum()
-		counter.SetIsMonotonic(true)
-		counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
-	}
+	return result
+}
+
+func ExpectedGauge() pmetric.Metrics {
+	result := pmetric.NewMetrics()
+	resourceMetrics := result.ResourceMetrics().AppendEmpty()
+	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+	scopeMetrics.Scope().SetName("prometheusremotewrite")
+	scopeMetrics.Scope().SetVersion("0.1")
+	metric := scopeMetrics.Metrics().AppendEmpty()
+	metric.SetName("i_am_a_gauge")
+	counter := metric.SetEmptyGauge()
+	dp := counter.DataPoints().AppendEmpty()
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetIntValue(42)
 
 	return result
 }
@@ -190,6 +199,53 @@ func GetWriteRequestsOfAllTypesWithoutMetadata() []*prompb.WriteRequest {
 		SampleSummaryWq(),
 	}
 	return sampleWriteRequestsNoMetadata
+}
+
+func AddSfxCompatibilityMetrics(metrics pmetric.Metrics, expectedNans int64, expectedMissing int64, expectedInvalid int64) pmetric.Metrics {
+	if metrics == pmetric.NewMetrics() {
+		metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
+	}
+	scope := metrics.ResourceMetrics().At(0).ScopeMetrics().At(0)
+	addSfxCompatibilityMissingNameMetrics(scope, expectedMissing)
+	addSfxCompatibilityNanMetrics(scope, expectedNans)
+	addSfxCompatibilityInvalidRequestMetrics(scope, expectedInvalid)
+	return metrics
+}
+
+// addSfxCompatibilityInvalidRequestMetrics adds the meta-metrics to a given scope, but won't set values
+// See https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go#L188
+func addSfxCompatibilityInvalidRequestMetrics(scopeMetrics pmetric.ScopeMetrics, value int64) pmetric.Metric {
+	metric := scopeMetrics.Metrics().AppendEmpty()
+	metric.SetName("prometheus.invalid_requests")
+	counter := metric.SetEmptySum()
+	counter.SetIsMonotonic(true)
+	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	counter.DataPoints().AppendEmpty().SetIntValue(value)
+	return metric
+}
+
+// addSfxCompatibilityMissingNameMetrics adds the meta-metrics to a given scope, but won't set values
+// See https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go#L188
+func addSfxCompatibilityMissingNameMetrics(scopeMetrics pmetric.ScopeMetrics, value int64) pmetric.Metric {
+	metric := scopeMetrics.Metrics().AppendEmpty()
+	metric.SetName("prometheus.total_bad_datapoints")
+	counter := metric.SetEmptySum()
+	counter.SetIsMonotonic(true)
+	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	counter.DataPoints().AppendEmpty().SetIntValue(value)
+	return metric
+}
+
+// addSfxCompatibilityNanMetrics adds the meta-metrics to a given scope, but won't set values
+// See https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go#L188
+func addSfxCompatibilityNanMetrics(scopeMetrics pmetric.ScopeMetrics, value int64) pmetric.Metric {
+	metric := scopeMetrics.Metrics().AppendEmpty()
+	metric.SetName("prometheus.total_NAN_samples")
+	counter := metric.SetEmptySum()
+	counter.SetIsMonotonic(true)
+	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	counter.DataPoints().AppendEmpty().SetIntValue(value)
+	return metric
 }
 
 func FlattenWriteRequests(request []*prompb.WriteRequest) *prompb.WriteRequest {

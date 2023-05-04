@@ -24,7 +24,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal/testdata"
 )
 
@@ -86,25 +85,6 @@ func TestParseNoSfxCompat(t *testing.T) {
 
 func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 	reporter := newMockReporter()
-	require.NotEmpty(t, reporter)
-	parser := &PrometheusRemoteOtelParser{SfxGatewayCompatability: true}
-
-	sampleWriteRequests := testdata.FlattenWriteRequests(testdata.GetWriteRequestsOfAllTypesWithoutMetadata())
-	partitions, err := parser.partitionWriteRequest(sampleWriteRequests)
-	require.NoError(t, err)
-	for familyName, partition := range partitions {
-		for _, md := range partition {
-			assert.NotEmpty(t, familyName)
-			assert.Equal(t, md.MetricMetadata.MetricFamilyName, familyName)
-			assert.NotEmpty(t, md.MetricMetadata.Type)
-			assert.NotEmpty(t, md.Samples)
-			assert.Equal(t, familyName, internal.GetBaseMetricFamilyName(md.MetricName))
-		}
-	}
-}
-
-func TestParseAndPartitionMixedPrometheusRemoteWriteRequest(t *testing.T) {
-	reporter := newMockReporter()
 	require.NotNil(t, reporter)
 	parser := &PrometheusRemoteOtelParser{SfxGatewayCompatability: true}
 
@@ -154,7 +134,7 @@ func TestParseAndPartitionMixedPrometheusRemoteWriteRequest(t *testing.T) {
 
 }
 
-func TestAddCounter(t *testing.T) {
+func TestAddMetricsHappyPath(t *testing.T) {
 
 	testCases := []struct {
 		Sample   *prompb.WriteRequest
@@ -162,9 +142,14 @@ func TestAddCounter(t *testing.T) {
 		Name     string
 	}{
 		{
-			Name:     "",
+			Name:     "test counters",
 			Sample:   testdata.SampleCounterWq(),
-			Expected: testdata.ExpectedCounter(true),
+			Expected: testdata.AddSfxCompatibilityMetrics(testdata.ExpectedCounter(), 0, 0, 0),
+		},
+		{
+			Name:     "test gauges",
+			Sample:   testdata.SampleGaugeWq(),
+			Expected: testdata.AddSfxCompatibilityMetrics(testdata.ExpectedGauge(), 0, 0, 0),
 		},
 	}
 
@@ -178,6 +163,8 @@ func TestAddCounter(t *testing.T) {
 
 			require.NoError(t, pmetrictest.CompareMetrics(tc.Expected, actual,
 				pmetrictest.IgnoreMetricDataPointsOrder(),
+				pmetrictest.IgnoreStartTimestamp(),
+				pmetrictest.IgnoreTimestamp(),
 				pmetrictest.IgnoreMetricsOrder()))
 		})
 

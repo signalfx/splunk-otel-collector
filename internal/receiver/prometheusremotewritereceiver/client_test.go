@@ -16,8 +16,10 @@ package prometheusremotewritereceiver
 
 import (
 	"context"
+	"errors"
 	"net"
 	"net/url"
+	"syscall"
 	"time"
 
 	"github.com/gogo/protobuf/proto"
@@ -65,8 +67,17 @@ func (prwc *MockPrwClient) SendWriteRequest(wr *prompb.WriteRequest) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), prwc.Timeout)
 	defer cancel()
-
-	err = prwc.Client.Store(ctx, compressed)
+	retry := 3
+	for retry > 0 {
+		err = prwc.Client.Store(ctx, compressed)
+		if nil == err {
+			break
+		}
+		if errors.Is(err, syscall.ECONNREFUSED) {
+			retry--
+			time.Sleep(2 * time.Second)
+		}
+	}
 	return err
 }
 

@@ -199,13 +199,14 @@ def test_installer_custom(distro, arch):
     custom_config = "/etc/my-config.yaml"
     config_url = f"https://raw.githubusercontent.com/signalfx/splunk-otel-collector/v{collector_version}/cmd/otelcol/config/collector/gateway_config.yaml"
 
-    install_cmd = get_installer_cmd()
-    install_cmd = f"{install_cmd} --without-fluentd"
-    install_cmd = f"{install_cmd} --memory 256"
-    install_cmd = f"{install_cmd} --ballast 64"
-    install_cmd = f"{install_cmd} --service-user {service_owner} --service-group {service_owner}"
-    install_cmd = f"{install_cmd} --collector-config {custom_config}"
-    install_cmd = f"{install_cmd} --collector-version {collector_version}"
+    install_cmd = " ".join((
+        get_installer_cmd(),
+        "--without-fluentd",
+        "--memory 256 --ballast 64",
+        f"--service-user {service_owner} --service-group {service_owner}",
+        f"--collector-config {custom_config}",
+        f"--collector-version {collector_version}",
+    ))
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
     with run_distro_container(distro, arch) as container:
@@ -318,16 +319,18 @@ def test_installer_with_instrumentation_custom(distro, arch):
     if distro == "opensuse-12" and arch == "arm64":
         pytest.skip("opensuse-12 arm64 no longer supported")
 
-    install_cmd = get_installer_cmd()
-    install_cmd = f"{install_cmd} --without-fluentd"
-    install_cmd = f"{install_cmd} --with-instrumentation"
-    install_cmd = f"{install_cmd} --deployment-environment test"
-    install_cmd = f"{install_cmd} --disable-telemetry"
-    install_cmd = f"{install_cmd} --service-name test"
-    install_cmd = f"{install_cmd} --no-generate-service-name"
-    install_cmd = f"{install_cmd} --enable-profiler"
-    install_cmd = f"{install_cmd} --enable-profiler-memory"
-    install_cmd = f"{install_cmd} --enable-metrics"
+    install_cmd = " ".join((
+        get_installer_cmd(),
+        "--without-fluentd",
+        "--with-instrumentation",
+        "--deployment-environment test",
+        "--disable-telemetry",
+        "--service-name test",
+        "--no-generate-service-name",
+        "--enable-profiler",
+        "--enable-profiler-memory",
+        "--enable-metrics",
+    ))
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
     with run_distro_container(distro, arch) as container:

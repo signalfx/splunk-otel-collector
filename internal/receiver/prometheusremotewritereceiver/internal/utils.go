@@ -21,17 +21,17 @@ import (
 	"github.com/prometheus/prometheus/prompb"
 )
 
+// GetBaseMetricFamilyName uses heuristics to determine the metric family of a given metric, by
+// removing known suffixes for Sum/Counter, Histogram and Summary metric types.
+// While not strictly enforced in the protobuf, prometheus does not support "colliding"
+// "metric family names" in the same write request, so this should be safe
+// https://prometheus.io/docs/practices/naming/
+// https://prometheus.io/docs/concepts/metric_types/
 func GetBaseMetricFamilyName(metricName string) string {
-	// Remove known suffixes for Sum/Counter, Histogram and Summary metric types.
-	// While not strictly enforced in the protobuf, prometheus does not support "colliding"
-	// "metric family names" in the same write request, so this should be safe
-	// https://prometheus.io/docs/practices/naming/
-	// https://prometheus.io/docs/concepts/metric_types/
 	suffixes := []string{"_count", "_sum", "_bucket", "_created", "_total"}
 	for _, suffix := range suffixes {
 		if strings.HasSuffix(metricName, suffix) {
-			metricName = strings.TrimSuffix(metricName, suffix)
-			break
+			return strings.TrimSuffix(metricName, suffix)
 		}
 	}
 

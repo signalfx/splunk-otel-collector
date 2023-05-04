@@ -157,9 +157,9 @@ func TestParseAndPartitionMixedPrometheusRemoteWriteRequest(t *testing.T) {
 func TestAddCounter(t *testing.T) {
 
 	testCases := []struct {
-		Name     string
 		Sample   *prompb.WriteRequest
 		Expected pmetric.Metrics
+		Name     string
 	}{
 		{
 			Name:     "",

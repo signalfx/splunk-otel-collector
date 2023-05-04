@@ -275,10 +275,8 @@ func ExpectedSfxCompatibleQuantile() pmetric.Metrics {
 	for _, values := range pairs {
 		metric := scopeMetrics.Metrics().AppendEmpty()
 		metric.SetName("request_duration_seconds")
-		counter := metric.SetEmptySum()
-		counter.SetIsMonotonic(true)
-		counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
-		dp := counter.DataPoints().AppendEmpty()
+		gauge := metric.SetEmptyGauge()
+		dp := gauge.DataPoints().AppendEmpty()
 		dp.Attributes().PutStr("quantile", values.bucket)
 		dp.SetTimestamp(pcommon.Timestamp(values.timestamp))
 		dp.SetStartTimestamp(pcommon.Timestamp(values.timestamp))
@@ -287,24 +285,20 @@ func ExpectedSfxCompatibleQuantile() pmetric.Metrics {
 
 	metric := scopeMetrics.Metrics().AppendEmpty()
 	metric.SetName("request_duration_seconds_count")
-	counter := metric.SetEmptySum()
-	counter.SetIsMonotonic(true)
-	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
-	dp := counter.DataPoints().AppendEmpty()
+	gauge := metric.SetEmptyGauge()
+	dp := gauge.DataPoints().AppendEmpty()
 	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
 	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
 	dp.SetIntValue(1500)
 
 	metric = scopeMetrics.Metrics().AppendEmpty()
 	metric.SetName("request_duration_seconds_sum")
-	counter = metric.SetEmptySum()
-	counter.SetIsMonotonic(true)
-	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
-	dp = counter.DataPoints().AppendEmpty()
+	gauge = metric.SetEmptyGauge()
+	dp = gauge.DataPoints().AppendEmpty()
 
 	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
 	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
-	dp.SetIntValue(123.5)
+	dp.SetDoubleValue(123.5)
 
 	return result
 }

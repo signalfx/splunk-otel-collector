@@ -140,7 +140,7 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(ilm pmetric.ScopeMetrics
 		}
 	case prompb.MetricMetadata_SUMMARY:
 		if prwParser.SfxGatewayCompatability {
-			err = prwParser.addCounterMetrics(ilm, family, metrics, metricsMetadata)
+			err = prwParser.addGaugeMetrics(ilm, family, metrics, metricsMetadata)
 		} else {
 			err = fmt.Errorf("this version of the prometheus remote write receiver only supports SfxGatewayCompatability mode")
 		}

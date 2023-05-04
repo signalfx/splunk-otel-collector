@@ -154,6 +154,11 @@ func TestAddMetricsHappyPath(t *testing.T) {
 			Sample:   testdata.SampleHistogramWq(),
 			Expected: testdata.AddSfxCompatibilityMetrics(testdata.ExpectedSfxCompatibleHistogram(), 0, 0, 0),
 		},
+		{
+			Name:     "test quantiles",
+			Sample:   testdata.SampleSummaryWq(),
+			Expected: testdata.AddSfxCompatibilityMetrics(testdata.ExpectedSfxCompatibleQuantile(), 0, 0, 0),
+		},
 	}
 
 	for _, tc := range testCases {

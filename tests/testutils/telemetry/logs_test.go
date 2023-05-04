@@ -109,7 +109,7 @@ func TestLoadLogsHappyPath(t *testing.T) {
 func TestLoadLogsNotAValidPath(t *testing.T) {
 	resourceLogs, err := LoadResourceLogs("notafile")
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "no such file or directory")
+	require.Contains(t, err.Error(), invalidPathErrorMsg())
 	require.Nil(t, resourceLogs)
 }
 

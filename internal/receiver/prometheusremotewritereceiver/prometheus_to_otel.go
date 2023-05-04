@@ -87,9 +87,9 @@ func (prwParser *PrometheusRemoteOtelParser) partitionWriteRequest(writeReq *pro
 
 func (prwParser *PrometheusRemoteOtelParser) TransformPrometheusRemoteWriteToOtel(parsedPrwMetrics map[string][]MetricData) (pmetric.Metrics, error) {
 	metric := pmetric.NewMetrics()
+	rm := metric.ResourceMetrics().AppendEmpty()
 	var translationErrors error
 	for metricFamily, metrics := range parsedPrwMetrics {
-		rm := metric.ResourceMetrics().AppendEmpty()
 		err := prwParser.addMetrics(rm, metricFamily, metrics)
 		if err != nil {
 			translationErrors = multierr.Append(translationErrors, err)
@@ -125,13 +125,13 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(rm pmetric.ResourceMetri
 		err = prwParser.addCounterMetrics(ilm, family, metrics, metricsMetadata)
 	case prompb.MetricMetadata_HISTOGRAM, prompb.MetricMetadata_GAUGEHISTOGRAM:
 		if prwParser.SfxGatewayCompatability {
-			err = prwParser.addHistogramCounterMetrics(ilm, family, metrics, metricsMetadata)
+			err = prwParser.addCounterMetrics(ilm, family, metrics, metricsMetadata)
 		} else {
 			err = fmt.Errorf("this version of the prometheus remote write receiver only supports SfxGatewayCompatability mode")
 		}
 	case prompb.MetricMetadata_SUMMARY:
 		if prwParser.SfxGatewayCompatability {
-			err = prwParser.addQuantileCounterMetrics(ilm, family, metrics, metricsMetadata)
+			err = prwParser.addCounterMetrics(ilm, family, metrics, metricsMetadata)
 		} else {
 			err = fmt.Errorf("this version of the prometheus remote write receiver only supports SfxGatewayCompatability mode")
 		}
@@ -143,11 +143,11 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(rm pmetric.ResourceMetri
 	return err
 }
 
-func (prwParser *PrometheusRemoteOtelParser) scaffoldNewMetric(ilm pmetric.ScopeMetrics, family string, metricsMetadata prompb.MetricMetadata) pmetric.Metric {
+func (prwParser *PrometheusRemoteOtelParser) scaffoldNewMetric(ilm pmetric.ScopeMetrics, name string, metricsMetadata prompb.MetricMetadata) pmetric.Metric {
 	nm := ilm.Metrics().AppendEmpty()
 	nm.SetUnit(metricsMetadata.Unit)
 	nm.SetDescription(metricsMetadata.GetHelp())
-	nm.SetName(family)
+	nm.SetName(name)
 	return nm
 }
 
@@ -169,17 +169,15 @@ func (prwParser *PrometheusRemoteOtelParser) addBadDataPoints(ilm pmetric.ScopeM
 }
 
 func (prwParser *PrometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeMetrics, metrics []MetricData) {
+	if !prwParser.SfxGatewayCompatability {
+		return
+	}
 	errMetric := ilm.Metrics().AppendEmpty()
 	errMetric.SetName("prometheus.total_NaN_datapoints")
 	errorSum := errMetric.SetEmptySum()
 	errorSum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	errorSum.SetIsMonotonic(true)
 	for _, metric := range metrics {
-		dp := errorSum.DataPoints().AppendEmpty()
-
-		minTs, maxTs := getSampleTimestampBounds(metric.Samples)
-		dp.SetStartTimestamp(pcommon.Timestamp(minTs))
-		dp.SetTimestamp(pcommon.Timestamp(maxTs))
 
 		numNans := int64(0)
 		for _, sample := range metric.Samples {
@@ -187,20 +185,22 @@ func (prwParser *PrometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeM
 				numNans++
 			}
 		}
-		dp.SetIntValue(numNans)
+		if numNans > 0 {
+			dp := errorSum.DataPoints().AppendEmpty()
+			minTs, maxTs := getSampleTimestampBounds(metric.Samples)
+			dp.SetStartTimestamp(pcommon.Timestamp(minTs))
+			dp.SetTimestamp(pcommon.Timestamp(maxTs))
+			dp.SetIntValue(numNans)
+		}
 	}
 }
 
 func (prwParser *PrometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMetrics, family string, metrics []MetricData, metadata prompb.MetricMetadata) error {
-	var translationErrors []error
 	if nil == metrics {
-		translationErrors = append(translationErrors, fmt.Errorf("Nil metricsdata pointer! %s", family))
+		return fmt.Errorf("Nil metricsdata pointer! %s", family)
 	}
-	if translationErrors != nil {
-		return multierr.Combine(translationErrors...)
-	}
-	nm := prwParser.scaffoldNewMetric(ilm, family, metadata)
 	for _, metricsData := range metrics {
+		nm := prwParser.scaffoldNewMetric(ilm, metricsData.MetricName, metadata)
 		if metricsData.MetricName != "" {
 			nm.SetName(metricsData.MetricName)
 		}
@@ -208,6 +208,7 @@ func (prwParser *PrometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMe
 		for _, sample := range metricsData.Samples {
 			dp := gauge.DataPoints().AppendEmpty()
 			dp.SetTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
+			dp.SetStartTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
 			prwParser.setFloatOrInt(dp, sample)
 			prwParser.setAttributes(dp, metricsData.Labels)
 		}
@@ -216,21 +217,18 @@ func (prwParser *PrometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMe
 }
 
 func (prwParser *PrometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.ScopeMetrics, family string, metrics []MetricData, metadata prompb.MetricMetadata) error {
-	var translationErrors []error
 	if nil == metrics {
-		translationErrors = append(translationErrors, fmt.Errorf("Nil metricsdata pointer! %s", family))
+		return fmt.Errorf("Nil metricsdata pointer! %s", family)
 	}
-	if translationErrors != nil {
-		return multierr.Combine(translationErrors...)
-	}
-	nm := prwParser.scaffoldNewMetric(ilm, family, metadata)
 	for _, metricsData := range metrics {
+		nm := prwParser.scaffoldNewMetric(ilm, metricsData.MetricName, metadata)
 		sumMetric := nm.SetEmptySum()
 		sumMetric.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 		sumMetric.SetIsMonotonic(true)
 		for _, sample := range metricsData.Samples {
 			dp := nm.Sum().DataPoints().AppendEmpty()
 			dp.SetTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
+			dp.SetStartTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
 			prwParser.setFloatOrInt(dp, sample)
 			prwParser.setAttributes(dp, metricsData.Labels)
 		}
@@ -246,9 +244,8 @@ func (prwParser *PrometheusRemoteOtelParser) addInfoStateset(ilm pmetric.ScopeMe
 	if translationErrors != nil {
 		return multierr.Combine(translationErrors...)
 	}
-	nm := prwParser.scaffoldNewMetric(ilm, family, metadata)
 	for _, metricsData := range metrics {
-
+		nm := prwParser.scaffoldNewMetric(ilm, metricsData.MetricName, metadata)
 		// set as SUM but non-monotonic
 		sumMetric := nm.SetEmptySum()
 		sumMetric.SetIsMonotonic(false)
@@ -262,38 +259,6 @@ func (prwParser *PrometheusRemoteOtelParser) addInfoStateset(ilm pmetric.ScopeMe
 		}
 	}
 	return nil
-}
-
-// addQuantileCounterMetrics supports the legacy signalfx format of simply reporting all histograms as counters
-func (prwParser *PrometheusRemoteOtelParser) addQuantileCounterMetrics(ilm pmetric.ScopeMetrics, family string, metrics []MetricData, metadata prompb.MetricMetadata) error {
-	var translationErrors []error
-	if nil == metrics {
-		translationErrors = append(translationErrors, fmt.Errorf("Nil metricsdata pointer! %s", family))
-	}
-	if translationErrors != nil {
-		return multierr.Combine(translationErrors...)
-	}
-	for index, metric := range metrics {
-		bucket := "bucket" // TODO extract quantile from label
-		metrics[index].MetricName = metric.MetricName + bucket
-	}
-	return prwParser.addCounterMetrics(ilm, family, metrics, metadata)
-}
-
-// addHistogramCounterMetrics supports the legacy signalfx format of simply reporting all histograms as counters
-func (prwParser *PrometheusRemoteOtelParser) addHistogramCounterMetrics(ilm pmetric.ScopeMetrics, family string, metrics []MetricData, metadata prompb.MetricMetadata) error {
-	var translationErrors []error
-	if nil == metrics {
-		translationErrors = append(translationErrors, fmt.Errorf("Nil metricsdata pointer! %s", family))
-	}
-	if translationErrors != nil {
-		return multierr.Combine(translationErrors...)
-	}
-	for index, metric := range metrics {
-		bucket := "bucket" // TODO extract LE from label
-		metrics[index].MetricName = metric.MetricName + bucket
-	}
-	return prwParser.addCounterMetrics(ilm, family, metrics, metadata)
 }
 
 func getSampleTimestampBounds(samples []prompb.Sample) (int64, int64) {

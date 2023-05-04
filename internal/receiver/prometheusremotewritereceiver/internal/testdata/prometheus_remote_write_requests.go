@@ -22,6 +22,10 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
+var (
+	Jan20 = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+)
+
 func SampleCounterTs() []prompb.TimeSeries {
 	return []prompb.TimeSeries{
 		{
@@ -31,7 +35,7 @@ func SampleCounterTs() []prompb.TimeSeries {
 				{Name: "status", Value: "200"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 1024, Timestamp: 1633024800000},
+				{Value: 1024, Timestamp: Jan20.UnixMilli()},
 			},
 		},
 	}
@@ -47,7 +51,7 @@ func SampleGaugeTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "go_goroutines"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 42, Timestamp: 1577865600},
+				{Value: 42, Timestamp: Jan20.UnixMilli()},
 			},
 		},
 	}
@@ -63,7 +67,7 @@ func SampleHistogramTs() []prompb.TimeSeries {
 				{Name: "le", Value: "0.1"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 500, Timestamp: 1633024800000},
+				{Value: 500, Timestamp: Jan20.UnixMilli()},
 			},
 		},
 		{
@@ -72,7 +76,7 @@ func SampleHistogramTs() []prompb.TimeSeries {
 				{Name: "le", Value: "0.2"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 1500, Timestamp: 1633024800000},
+				{Value: 1500, Timestamp: Jan20.UnixMilli()},
 			},
 		},
 		{
@@ -80,7 +84,7 @@ func SampleHistogramTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "api_request_duration_seconds_count"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 2500, Timestamp: 1633024800000},
+				{Value: 2500, Timestamp: Jan20.UnixMilli()},
 			},
 		},
 		{
@@ -88,7 +92,7 @@ func SampleHistogramTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "api_request_duration_seconds_sum"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 350, Timestamp: 1633024800000},
+				{Value: 350, Timestamp: Jan20.UnixMilli()},
 			},
 		},
 	}
@@ -108,7 +112,7 @@ func SampleSummaryTs() []prompb.TimeSeries {
 				{Name: "quantile", Value: "0.5"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 0.25, Timestamp: 1633024800000},
+				{Value: 0.25, Timestamp: Jan20.UnixMilli()},
 			},
 		},
 		{
@@ -117,7 +121,7 @@ func SampleSummaryTs() []prompb.TimeSeries {
 				{Name: "quantile", Value: "0.9"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 0.35, Timestamp: 1633024800000},
+				{Value: 0.35, Timestamp: Jan20.Add(1 * time.Second).UnixMilli()},
 			},
 		},
 		{
@@ -125,7 +129,7 @@ func SampleSummaryTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "rpc_duration_seconds_sum"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 123.5, Timestamp: 1633024800000},
+				{Value: 123.5, Timestamp: Jan20.UnixMilli()},
 			},
 		},
 		{
@@ -133,7 +137,7 @@ func SampleSummaryTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "rpc_duration_seconds_count"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 1500, Timestamp: 1633024800000},
+				{Value: 1500, Timestamp: Jan20.UnixMilli()},
 			},
 		},
 	}
@@ -145,7 +149,7 @@ func SampleSummaryWq() *prompb.WriteRequest {
 	}
 }
 
-func ExpectedCounter() pmetric.Metrics {
+func ExpectedCounter(sfxCompat bool) pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
@@ -157,9 +161,19 @@ func ExpectedCounter() pmetric.Metrics {
 	counter.SetIsMonotonic(true)
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := counter.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.NewTimestampFromTime(time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)))
-	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
 	dp.SetIntValue(1024)
+	dp.Attributes().PutStr("method", "GET")
+	dp.Attributes().PutStr("status", "200")
+
+	if sfxCompat {
+		metric := scopeMetrics.Metrics().AppendEmpty()
+		metric.SetName("prometheus.total_NaN_datapoints")
+		counter := metric.SetEmptySum()
+		counter.SetIsMonotonic(true)
+		counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	}
 
 	return result
 }

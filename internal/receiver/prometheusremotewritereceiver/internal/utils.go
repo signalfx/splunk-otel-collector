@@ -38,7 +38,7 @@ func GetBaseMetricFamilyName(metricName string) string {
 	return metricName
 }
 
-// Finds label corresponding to timeseries
+// ExtractMetricNameLabel Finds label corresponding to timeseries
 func ExtractMetricNameLabel(labels []prompb.Label) (string, error) {
 
 	for _, label := range labels {

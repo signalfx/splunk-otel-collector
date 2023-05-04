@@ -164,7 +164,7 @@ func TestAddCounter(t *testing.T) {
 		{
 			Name:     "",
 			Sample:   testdata.SampleCounterWq(),
-			Expected: pmetric.NewMetrics(),
+			Expected: testdata.ExpectedCounter(true),
 		},
 	}
 
@@ -175,6 +175,7 @@ func TestAddCounter(t *testing.T) {
 			parser := &PrometheusRemoteOtelParser{SfxGatewayCompatability: true}
 			actual, err := parser.FromPrometheusWriteRequestMetrics(tc.Sample)
 			assert.NoError(t, err)
+
 			require.NoError(t, pmetrictest.CompareMetrics(tc.Expected, actual,
 				pmetrictest.IgnoreMetricDataPointsOrder(),
 				pmetrictest.IgnoreMetricsOrder()))

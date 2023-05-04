@@ -64,9 +64,6 @@ func TestEmptySend(t *testing.T) {
 	require.NotNil(t, remoteWriteReceiver.reporter)
 	require.Equal(t, expectedEndpoint, remoteWriteReceiver.server.Addr)
 
-	// Calling start again should remain graceful
-
-	// Ensure we can instantiate
 	client, err := NewMockPrwClient(
 		cfg.Endpoint,
 		"metrics",
@@ -79,8 +76,6 @@ func TestEmptySend(t *testing.T) {
 		Metadata:   []prompb.MetricMetadata{},
 	}))
 	require.NoError(t, mockreporter.WaitAllOnMetricsProcessedCalls(10*time.Second))
-	require.NoError(t, remoteWriteReceiver.Shutdown(ctx))
-	// Shutting down should remain graceful as well
 	require.NoError(t, remoteWriteReceiver.Shutdown(ctx))
 }
 
@@ -120,9 +115,6 @@ func TestActualSend(t *testing.T) {
 	require.NotNil(t, remoteWriteReceiver.reporter)
 	require.Equal(t, expectedEndpoint, remoteWriteReceiver.server.Addr)
 
-	// Calling start again should remain graceful
-
-	// Ensure we can instantiate
 	client, err := NewMockPrwClient(
 		cfg.Endpoint,
 		"metrics",
@@ -131,7 +123,6 @@ func TestActualSend(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, client)
 
-	// first try processing them without heuristics, then send them again with metadata.  check later to see if heuristics worked
 	for index, wq := range sampleNoMdMetrics {
 		mockreporter.AddExpectedStart(1)
 		mockreporter.AddExpectedSuccess(1)
@@ -142,7 +133,5 @@ func TestActualSend(t *testing.T) {
 		}
 	}
 
-	require.NoError(t, remoteWriteReceiver.Shutdown(ctx))
-	// Shutting down should remain graceful as well
 	require.NoError(t, remoteWriteReceiver.Shutdown(ctx))
 }

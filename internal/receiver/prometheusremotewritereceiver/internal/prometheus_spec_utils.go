@@ -49,8 +49,9 @@ func ExtractMetricNameLabel(labels []prompb.Label) (string, error) {
 	return "", fmt.Errorf("did not find a label with `__name__` as per prometheus spec")
 }
 
-// GuessMetricTypeByLabels This is a 'best effort' heuristic applying guidance from the latest OpenMetrics specification
-// See: https://raw.githubusercontent.com/OpenObservability/OpenMetrics/main/specification/OpenMetrics.md
+// GuessMetricTypeByLabels This is a 'best effort' heuristic applying guidance from the latest PRW Receiver and OpenMetrics specifications
+// See: https://prometheus.io/docs/concepts/remote_write_spec/#prometheus-remote-write-specification
+// Also see: https://raw.githubusercontent.com/OpenObservability/OpenMetrics/main/specification/OpenMetrics.md
 // As this is a heuristic process, the order of operations is SIGNIFICANT.
 func GuessMetricTypeByLabels(metricName string, labels []prompb.Label) prompb.MetricMetadata_MetricType {
 

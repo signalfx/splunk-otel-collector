@@ -145,7 +145,7 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(ilm pmetric.ScopeMetrics
 			err = fmt.Errorf("this version of the prometheus remote write receiver only supports SfxGatewayCompatability mode")
 		}
 	case prompb.MetricMetadata_INFO, prompb.MetricMetadata_STATESET:
-		err = prwParser.addInfoStateset(ilm, family, metrics, metricsMetadata)
+		err = fmt.Errorf("this version of the prometheus remote write receiver does not support info or statesets")
 	default:
 		err = fmt.Errorf("unsupported type %s for metric family %s", metricsMetadata.Type, family)
 	}
@@ -257,41 +257,6 @@ func (prwParser *PrometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.Scope
 				continue
 			}
 			dp := nm.Sum().DataPoints().AppendEmpty()
-			dp.SetTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
-			dp.SetStartTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
-			prwParser.setFloatOrInt(dp, sample)
-			prwParser.setAttributes(dp, metricsData.Labels)
-		}
-	}
-	return nil
-}
-
-// addInfoStateset handles statesets (enums) in prometheus
-func (prwParser *PrometheusRemoteOtelParser) addInfoStateset(ilm pmetric.ScopeMetrics, family string, metrics []MetricData, metadata prompb.MetricMetadata) error {
-	var translationErrors []error
-	if nil == metrics {
-		translationErrors = append(translationErrors, fmt.Errorf("Nil metricsdata pointer! %s", family))
-	}
-	if translationErrors != nil {
-		return multierr.Combine(translationErrors...)
-	}
-	for _, metricsData := range metrics {
-		if metricsData.MetricName == "" && prwParser.SfxGatewayCompatability {
-			atomic.AddInt64(&prwParser.totalBadMetrics, 1)
-			continue
-		}
-		nm := prwParser.scaffoldNewMetric(ilm, metricsData.MetricName, metadata)
-		// set as SUM but non-monotonic
-		sumMetric := nm.SetEmptySum()
-		sumMetric.SetIsMonotonic(false)
-		sumMetric.SetAggregationTemporality(pmetric.AggregationTemporalityUnspecified)
-
-		for _, sample := range metricsData.Samples {
-			if math.IsNaN(sample.Value) && prwParser.SfxGatewayCompatability {
-				atomic.AddInt64(&prwParser.totalNans, 1)
-				continue
-			}
-			dp := sumMetric.DataPoints().AppendEmpty()
 			dp.SetTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
 			dp.SetStartTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
 			prwParser.setFloatOrInt(dp, sample)

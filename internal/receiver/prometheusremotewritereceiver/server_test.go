@@ -110,9 +110,7 @@ func TestWriteMany(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		t.Logf("starting server...")
 		require.NoError(t, remoteWriteServer.ListenAndServe())
-		t.Logf("stopped server...")
 		wg.Done()
 	}()
 

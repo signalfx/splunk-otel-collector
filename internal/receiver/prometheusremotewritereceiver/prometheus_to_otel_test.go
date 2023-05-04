@@ -116,8 +116,6 @@ func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 	results, err := parser.TransformPrometheusRemoteWriteToOtel(noMdPartitions)
 	require.NoError(t, err)
 
-	// ensure we have translated all types
-	// TODO actually let's make this a hashmap of type: metricnames
 	typesSeen := mapset.NewSet[pmetric.MetricType]()
 	for resourceMetricsIndex := 0; resourceMetricsIndex < results.ResourceMetrics().Len(); resourceMetricsIndex++ {
 		rm := results.ResourceMetrics().At(resourceMetricsIndex)
@@ -150,6 +148,11 @@ func TestAddMetricsHappyPath(t *testing.T) {
 			Name:     "test gauges",
 			Sample:   testdata.SampleGaugeWq(),
 			Expected: testdata.AddSfxCompatibilityMetrics(testdata.ExpectedGauge(), 0, 0, 0),
+		},
+		{
+			Name:     "test histograms",
+			Sample:   testdata.SampleHistogramWq(),
+			Expected: testdata.AddSfxCompatibilityMetrics(testdata.ExpectedSfxCompatibleHistogram(), 0, 0, 0),
 		},
 	}
 

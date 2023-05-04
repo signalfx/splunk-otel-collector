@@ -187,6 +187,66 @@ func ExpectedGauge() pmetric.Metrics {
 	return result
 }
 
+func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
+	result := pmetric.NewMetrics()
+	resourceMetrics := result.ResourceMetrics().AppendEmpty()
+	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+	scopeMetrics.Scope().SetName("prometheusremotewrite")
+	scopeMetrics.Scope().SetVersion("0.1")
+
+	// set bucket sizes
+	pairs := []struct {
+		bucket    string
+		value     float64
+		timestamp int64
+	}{
+		{
+			bucket:    "0.1",
+			value:     500,
+			timestamp: Jan20.UnixMilli(),
+		},
+		{
+			bucket:    "0.2",
+			value:     1500,
+			timestamp: Jan20.UnixMilli(),
+		},
+	}
+	for _, values := range pairs {
+		metric := scopeMetrics.Metrics().AppendEmpty()
+		metric.SetName("api_request_duration_seconds_bucket")
+		counter := metric.SetEmptySum()
+		counter.SetIsMonotonic(true)
+		counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+		dp := counter.DataPoints().AppendEmpty()
+		dp.SetTimestamp(pcommon.Timestamp(values.timestamp))
+		dp.SetStartTimestamp(pcommon.Timestamp(values.timestamp))
+		dp.SetDoubleValue(values.value)
+	}
+
+	metric := scopeMetrics.Metrics().AppendEmpty()
+	metric.SetName("api_request_duration_seconds_count")
+	counter := metric.SetEmptySum()
+	counter.SetIsMonotonic(true)
+	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	dp := counter.DataPoints().AppendEmpty()
+	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixMilli()))
+	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixMilli()))
+	dp.SetIntValue(2500)
+
+	metric = scopeMetrics.Metrics().AppendEmpty()
+	metric.SetName("api_request_duration_seconds_sum")
+	counter = metric.SetEmptySum()
+	counter.SetIsMonotonic(true)
+	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	dp = counter.DataPoints().AppendEmpty()
+
+	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixMilli()))
+	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixMilli()))
+	dp.SetDoubleValue(350)
+
+	return result
+}
+
 func GetWriteRequestsOfAllTypesWithoutMetadata() []*prompb.WriteRequest {
 	var sampleWriteRequestsNoMetadata = []*prompb.WriteRequest{
 		// Counter

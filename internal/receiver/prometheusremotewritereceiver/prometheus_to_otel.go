@@ -160,7 +160,7 @@ func (prwParser *PrometheusRemoteOtelParser) scaffoldNewMetric(ilm pmetric.Scope
 	return nm
 }
 
-// addMetricsWithMissingName is used to report metrics in the remote write request without names
+// addBadRequests is used to report write requests with invalid data
 func (prwParser *PrometheusRemoteOtelParser) addBadRequests(ilm pmetric.ScopeMetrics, start time.Time, end time.Time) {
 	if !prwParser.SfxGatewayCompatability {
 		return
@@ -193,6 +193,7 @@ func (prwParser *PrometheusRemoteOtelParser) addMetricsWithMissingName(ilm pmetr
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(end))
 }
 
+// addNanDataPoints is an sfx compatibility error metric
 func (prwParser *PrometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeMetrics, start time.Time, end time.Time) {
 	if !prwParser.SfxGatewayCompatability {
 		return
@@ -208,6 +209,7 @@ func (prwParser *PrometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeM
 	dp.SetIntValue(atomic.LoadInt64(&prwParser.totalNans))
 }
 
+// addGaugeMetrics handles any scalar metric family which can go up or down
 func (prwParser *PrometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMetrics, family string, metrics []MetricData, metadata prompb.MetricMetadata) error {
 	if nil == metrics {
 		return fmt.Errorf("Nil metricsdata pointer! %s", family)
@@ -235,6 +237,7 @@ func (prwParser *PrometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMe
 	return nil
 }
 
+// addCounterMetrics handles any scalar metric family which can only goes up, and are cumulative
 func (prwParser *PrometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.ScopeMetrics, family string, metrics []MetricData, metadata prompb.MetricMetadata) error {
 	if nil == metrics {
 		return fmt.Errorf("Nil metricsdata pointer! %s", family)
@@ -263,6 +266,7 @@ func (prwParser *PrometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.Scope
 	return nil
 }
 
+// addInfoStateset handles statesets (enums) in prometheus
 func (prwParser *PrometheusRemoteOtelParser) addInfoStateset(ilm pmetric.ScopeMetrics, family string, metrics []MetricData, metadata prompb.MetricMetadata) error {
 	var translationErrors []error
 	if nil == metrics {

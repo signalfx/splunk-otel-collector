@@ -32,7 +32,7 @@ func TestValidateConfigAndDefaults(t *testing.T) {
 	assert.Equal(t, "localhost:19291", cfg.Endpoint)
 	assert.Equal(t, "/metrics", cfg.ListenPath)
 	assert.Equal(t, 100, cfg.BufferSize)
-	assert.False(t, cfg.SfxGatewayCompatability)
+	assert.False(t, cfg.SfxGatewayCompatibility)
 }
 
 func TestParseConfig(t *testing.T) {

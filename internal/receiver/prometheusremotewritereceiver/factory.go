@@ -48,6 +48,6 @@ func createDefaultConfig() component.Config {
 		},
 		ListenPath:              "/metrics",
 		BufferSize:              100,
-		SfxGatewayCompatability: false,
+		SfxGatewayCompatibility: false,
 	}
 }

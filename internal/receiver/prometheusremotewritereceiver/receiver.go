@@ -64,7 +64,7 @@ func New(
 func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host component.Host) error {
 	metricsChannel := make(chan pmetric.Metrics, receiver.config.BufferSize)
 	parser := &PrometheusRemoteOtelParser{
-		SfxGatewayCompatability: receiver.config.SfxGatewayCompatability,
+		SfxGatewayCompatability: receiver.config.SfxGatewayCompatibility,
 	}
 	cfg := &ServerConfig{
 		HTTPServerSettings: receiver.config.HTTPServerSettings,

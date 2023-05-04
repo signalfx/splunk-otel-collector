@@ -43,7 +43,7 @@ func TestEmptySend(t *testing.T) {
 
 	cfg.Endpoint = expectedEndpoint
 	cfg.ListenPath = "/metrics"
-	cfg.SfxGatewayCompatability = true
+	cfg.SfxGatewayCompatibility = true
 
 	nopHost := componenttest.NewNopHost()
 	mockSettings := receivertest.NewNopCreateSettings()
@@ -91,7 +91,7 @@ func TestActualSend(t *testing.T) {
 
 	cfg.Endpoint = expectedEndpoint
 	cfg.ListenPath = "/metrics"
-	cfg.SfxGatewayCompatability = true
+	cfg.SfxGatewayCompatibility = true
 
 	nopHost := componenttest.NewNopHost()
 	mockSettings := receivertest.NewNopCreateSettings()

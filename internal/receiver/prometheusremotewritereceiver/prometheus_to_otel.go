@@ -129,18 +129,18 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(ilm pmetric.ScopeMetrics
 	var err error
 	switch metricsMetadata.Type {
 	case prompb.MetricMetadata_GAUGE, prompb.MetricMetadata_UNKNOWN:
-		err = prwParser.addGaugeMetrics(ilm, family, metrics, metricsMetadata)
+		prwParser.addGaugeMetrics(ilm, metrics, metricsMetadata)
 	case prompb.MetricMetadata_COUNTER:
-		err = prwParser.addCounterMetrics(ilm, family, metrics, metricsMetadata)
+		prwParser.addCounterMetrics(ilm, metrics, metricsMetadata)
 	case prompb.MetricMetadata_HISTOGRAM, prompb.MetricMetadata_GAUGEHISTOGRAM:
 		if prwParser.SfxGatewayCompatability {
-			err = prwParser.addCounterMetrics(ilm, family, metrics, metricsMetadata)
+			prwParser.addCounterMetrics(ilm, metrics, metricsMetadata)
 		} else {
 			err = fmt.Errorf("this version of the prometheus remote write receiver only supports SfxGatewayCompatability mode")
 		}
 	case prompb.MetricMetadata_SUMMARY:
 		if prwParser.SfxGatewayCompatability {
-			err = prwParser.addGaugeMetrics(ilm, family, metrics, metricsMetadata)
+			prwParser.addGaugeMetrics(ilm, metrics, metricsMetadata)
 		} else {
 			err = fmt.Errorf("this version of the prometheus remote write receiver only supports SfxGatewayCompatability mode")
 		}
@@ -210,10 +210,7 @@ func (prwParser *PrometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeM
 }
 
 // addGaugeMetrics handles any scalar metric family which can go up or down
-func (prwParser *PrometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMetrics, family string, metrics []MetricData, metadata prompb.MetricMetadata) error {
-	if nil == metrics {
-		return fmt.Errorf("Nil metricsdata pointer! %s", family)
-	}
+func (prwParser *PrometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMetrics, metrics []MetricData, metadata prompb.MetricMetadata) {
 	for _, metricsData := range metrics {
 		if metricsData.MetricName == "" && prwParser.SfxGatewayCompatability {
 			atomic.AddInt64(&prwParser.totalBadMetrics, 1)
@@ -234,14 +231,10 @@ func (prwParser *PrometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMe
 			prwParser.setAttributes(dp, metricsData.Labels)
 		}
 	}
-	return nil
 }
 
 // addCounterMetrics handles any scalar metric family which can only goes up, and are cumulative
-func (prwParser *PrometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.ScopeMetrics, family string, metrics []MetricData, metadata prompb.MetricMetadata) error {
-	if nil == metrics {
-		return fmt.Errorf("Nil metricsdata pointer! %s", family)
-	}
+func (prwParser *PrometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.ScopeMetrics, metrics []MetricData, metadata prompb.MetricMetadata) {
 	for _, metricsData := range metrics {
 		if metricsData.MetricName == "" && prwParser.SfxGatewayCompatability {
 			atomic.AddInt64(&prwParser.totalBadMetrics, 1)
@@ -263,7 +256,6 @@ func (prwParser *PrometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.Scope
 			prwParser.setAttributes(dp, metricsData.Labels)
 		}
 	}
-	return nil
 }
 
 func getSampleTimestampBounds(samples []prompb.Sample) (int64, int64) {

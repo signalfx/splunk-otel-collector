@@ -40,7 +40,7 @@ func TestFactory(t *testing.T) {
 	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
 	cfg.Endpoint = fmt.Sprintf("localhost:%d", freePort)
 	cfg.ListenPath = "/metrics"
-	cfg.SfxGatewayCompatability = true
+	cfg.SfxGatewayCompatibility = true
 
 	nopHost := componenttest.NewNopHost()
 	mockSettings := receivertest.NewNopCreateSettings()

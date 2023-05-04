@@ -21,26 +21,35 @@
             body: PostgreSQL receiver is working!
     statements:
       failed:
+        - regexp: 'connect: network is unreachable'
+          first_only: true
+          log_record:
+            severity_text: info
+            append_pattern: true
+            body: The container cannot be reached by the collector. Is it in a shared network?
         - regexp: 'connect: connection refused'
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: The container is refusing PostgreSQL connections.
       partial:
         - regexp: 'pq: password authentication failed for user'
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: >-
               Please ensure your user credentials are correctly specified with
               `--set {{ configProperty "params" "username" "<username>" }}` and
               `--set {{ configProperty "params" "password" "<password>" }}` or
               `{{ configPropertyEnvVar "params" "username" "<username>" }}` and
               `{{ configPropertyEnvVar "params" "password" "<password>" }}` environment variables.
-        - regexp: 'pq: database ".*" does not exist'
+        - regexp: 'pq: database .* does not exist'
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: >-
               Make sure the target database is correctly specified using the
               `--set {{ configProperty "masterDBName" "<db>" }}` command or the
@@ -49,17 +58,12 @@
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: >-
               Make sure your PostgreSQL database has
               `shared_preload_libraries = 'pg_stat_statements'`
               in the postgresql.conf file and that
               `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;`
               has been run for each database you would like to monitor.
-        - regexp: 'could not monitor postgresql server: failed to determine total_time column name'
-          first_only: true
-          log_record:
-            severity_text: info
-            body: >-
-              Make sure that `pg_stat_statements` is available for each database you
-              would like to monitor. For example:
+              For example:
               `psql --dbname "<db-name>" -c "CREATE EXTENSION pg_stat_statements;"`

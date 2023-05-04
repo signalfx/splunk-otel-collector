@@ -48,7 +48,7 @@ func TestWriteEmpty(t *testing.T) {
 		Parser: parser,
 	}
 	require.Equal(t, expectedEndpoint, cfg.Endpoint)
-	timeout := time.Second * 1000
+	timeout := time.Second * 10
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	remoteWriteServer, err := newPrometheusRemoteWriteServer(cfg)

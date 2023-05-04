@@ -13,7 +13,7 @@
     name: td-agent
     state: restarted
   when:
-    - install_fluentd and (start_service | default(true) | bool)
+    - install_fluentd and fluentd_supported and (start_service | default(true) | bool)
   listen: "restart td-agent"
 
 - name: Restart Splunk OpenTelemetry Collector

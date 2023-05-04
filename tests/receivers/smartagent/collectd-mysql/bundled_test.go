@@ -142,7 +142,7 @@ func (cluster testCluster) createMySQL(name, namespace, serviceAccount string) s
 		stdOut, _, err := cluster.Kubectl("logs", "-n", namespace, mysql.Name)
 		require.NoError(cluster.Testcase, err)
 		return strings.Contains(stdOut.String(), "port: 3306  MySQL Community Server")
-	}, time.Minute, 1*time.Second)
+	}, time.Minute, time.Second)
 
 	stdOut, stdErr := new(bytes.Buffer), new(bytes.Buffer)
 	pe := &printableError{err: &err}
@@ -150,23 +150,27 @@ func (cluster testCluster) createMySQL(name, namespace, serviceAccount string) s
 		require.Eventually(cluster.Testcase, func() bool {
 			*stdOut, *stdErr, *pe.err = cluster.Kubectl(
 				"exec", "-n", namespace, mysql.Name, "--",
-				"mysql", fmt.Sprintf("-u%s", u), "-ptestpass", "-e", "show status",
+				"mysql", "--protocol=tcp", "-h127.0.0.1", "-p3306",
+				fmt.Sprintf("-u%s", u), "-ptestpass", "-e", "show status",
 			)
-			return pe.err == nil
+			return *pe.err == nil
 		}, 30*time.Second, 5*time.Second, "db check for %s: %q, %q, %q", user, stdOut, stdErr, pe)
 	}
 
 	for _, cmd := range [][]string{
-		{"mysql", "-uroot", "-ptestpass", "-e", "grant PROCESS on *.* TO 'testuser'@'%'; flush privileges;"},
-		{"mysql", "-utestuser", "-ptestpass", "-D", "testdb", "-e", "CREATE TABLE a_table (name VARCHAR(255), preference VARCHAR(255))"},
-		{"mysql", "-utestuser", "-ptestpass", "-D", "testdb", "-e", "ALTER TABLE a_table ADD COLUMN id INT AUTO_INCREMENT PRIMARY KEY"},
-		{"mysql", "-utestuser", "-ptestpass", "-D", "testdb", "-e", "INSERT INTO a_table (name, preference) VALUES ('some.name', 'some preference')"},
-		{"mysql", "-utestuser", "-ptestpass", "-D", "testdb", "-e", "INSERT INTO a_table (name, preference) VALUES ('another.name', 'another preference');"},
-		{"mysql", "-utestuser", "-ptestpass", "-D", "testdb", "-e", "UPDATE a_table SET preference = 'the real preference' WHERE name = 'some.name'"},
-		{"mysql", "-utestuser", "-ptestpass", "-D", "testdb", "-e", "SELECT * FROM a_table"},
-		{"mysql", "-utestuser", "-ptestpass", "-D", "testdb", "-e", "DELETE FROM a_table WHERE name = 'another.name'"},
+		{"-uroot", "-ptestpass", "-e", "grant PROCESS on *.* TO 'testuser'@'%'; flush privileges;"},
+		{"-utestuser", "-ptestpass", "-Dtestdb", "-e", "CREATE TABLE a_table (name VARCHAR(255), preference VARCHAR(255))"},
+		{"-utestuser", "-ptestpass", "-Dtestdb", "-e", "ALTER TABLE a_table ADD COLUMN id INT AUTO_INCREMENT PRIMARY KEY"},
+		{"-utestuser", "-ptestpass", "-Dtestdb", "-e", "INSERT INTO a_table (name, preference) VALUES ('some.name', 'some preference')"},
+		{"-utestuser", "-ptestpass", "-Dtestdb", "-e", "INSERT INTO a_table (name, preference) VALUES ('another.name', 'another preference');"},
+		{"-utestuser", "-ptestpass", "-Dtestdb", "-e", "UPDATE a_table SET preference = 'the real preference' WHERE name = 'some.name'"},
+		{"-utestuser", "-ptestpass", "-Dtestdb", "-e", "SELECT * FROM a_table"},
+		{"-utestuser", "-ptestpass", "-Dtestdb", "-e", "DELETE FROM a_table WHERE name = 'another.name'"},
 	} {
-		args := append([]string{"exec", "-n", namespace, mysql.Name, "--"}, cmd...)
+		args := append([]string{
+			"exec", "-n", namespace, mysql.Name, "--",
+			"mysql", "--protocol=tcp", "-h127.0.0.1", "-p3306",
+		}, cmd...)
 		stdout, stderr, e := cluster.Kubectl(args...)
 		require.NoError(cluster.Testcase, e, fmt.Sprintf("stdout: %q, stderr: %q", stdout, stderr))
 	}

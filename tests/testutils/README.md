@@ -96,7 +96,7 @@ err = myContainerFromBuildContext.Start(context.Background())
 
 ### OTLP Metrics Receiver Sink
 
-The `OTLPReceiverSink` is a helper type that will easily stand up an inmemory OTLP Receiver with
+The `OTLPReceiverSink` is a helper type that will easily stand up an in memory OTLP Receiver with
 `consumertest.MetricsSink` functionality.  It will listen to the configured gRPC endpoint that running Collector
 processes can be configured to reach and provides an `AssertAllMetricsReceived()` test method to confirm that expected
 `ResourceMetrics` are received within the specified window.

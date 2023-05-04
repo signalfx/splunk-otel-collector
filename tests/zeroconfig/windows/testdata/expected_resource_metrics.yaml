@@ -1,6 +1,0 @@
-resource_metrics:
-  - attributes:
-    scope_metrics:
-      - metrics:
-          - name: otelcol_exporter_sent_spans
-            count: 2

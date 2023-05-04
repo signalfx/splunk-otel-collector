@@ -96,9 +96,9 @@ func TestWindowsIISInstrumentation(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 	t.Log("ASP.NET HTTP Request succeeded")
 
-	expectedResourceMetrics, err := telemetry.LoadResourceMetrics("expected_resource_metrics.yaml")
+	expectedResourceTraces, err := telemetry.LoadResourceTraces("expected_resource_traces.yaml")
 	require.NoError(t, err)
-	require.NoError(t, otlp.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
+	require.NoError(t, otlp.AssertAllTracesReceived(t, *expectedResourceTraces, 30*time.Second))
 }
 
 func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {

@@ -1,0 +1,28 @@
+resource_spans:
+- attributes:
+    one_attr: one_value
+    two_attr: two_value
+  scope_spans:
+  - instrumentation_scope:
+      attributes:
+        one_attr: one_value
+      name: scope_one
+      version: scope_one_version
+    spans:
+    - name: span_two
+      attributes: {}
+  - instrumentation_scope:
+      attributes: {}
+      name: instrumentation_scope_two
+      version: instrumentation_scope_two_version
+    spans:
+    - name: span_one
+      attributes: {}
+- attributes:
+    some_attr: some_value
+  scope_spans:
+  - instrumentation_scope:
+      name: scope_one
+      version: scope_one_version
+    spans:
+    - name: last_span

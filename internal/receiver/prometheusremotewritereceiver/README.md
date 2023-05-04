@@ -30,7 +30,8 @@ If you're using the [native remote write configuration](https://prometheus.io/do
 If possible, wait on sending multiple requests until you're reasonably assured that metadata has propagated to the receiver.
 
 ## Nuances in translation
-We do not [remove suffixes](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/6658646e7705b74f13031c777fcd8dd1cd64c850/receiver/prometheusreceiver/internal/metricfamily.go#L316) as is done in the otel-contrib `prometheusreceiver`
+- We do not [remove suffixes](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/6658646e7705b74f13031c777fcd8dd1cd64c850/receiver/prometheusreceiver/internal/metricfamily.go#L316) as is done in the otel-contrib `prometheusreceiver`
+- Keep in mind promethes timestamps are in unix epoch milliseconds, while otel timestamps are in unix epoch nanoseconds
 
 ### Signalfx Compatibility Mode
 Turning on the `sfx_gateway_compatibility` configuration option will result in the following changes
@@ -41,4 +42,7 @@ Turning on the `sfx_gateway_compatibility` configuration option will result in t
 - If the representation of a sample is missing a metric name, we will report an additional counter with the metric name [`"prometheus.total_bad_datapoints"`](https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go#LL191C24-L191C24)
 - Any errors in parsing the request will report an additional counter [`"prometheus.invalid_requests"`](https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go#LL189C80-L189C91)
 - Metadata is IGNORED
-- `timestamp := time.Unix(0, int64(time.Millisecond)*s.Timestamp)`
+ 
+The following options from sfx gateway will not be translated
+- `"request_time.ns"` is no longer reported.  `obsreport` handles similar functionality.
+- `"drain_size"` is no longer reported.  `obsreport` handles similar functionality.

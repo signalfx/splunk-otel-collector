@@ -115,6 +115,7 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(rm pmetric.ResourceMetri
 		prwParser.addNanDataPoints(ilm, metrics)
 	}
 
+	// When we add native histogram support, this will be a map lookup on metrics family
 	metricsMetadata := metrics[0].MetricMetadata
 
 	var err error

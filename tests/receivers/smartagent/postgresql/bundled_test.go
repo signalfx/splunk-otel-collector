@@ -398,12 +398,14 @@ func (cluster testCluster) daemonSetManifest(namespace, serviceAccount, configMa
 				Image: testutils.GetCollectorImageOrSkipTest(cluster.Testcase),
 				Command: []string{
 					"/otelcol", "--config=/config/config.yaml", "--discovery",
-					"--set", "splunk.discovery.receivers.smartagent/postgresql.config.params::username=test_user",
-					"--set", "splunk.discovery.receivers.smartagent/postgresql.config.params::password=test_password",
+					"--set", "splunk.discovery.receivers.smartagent/postgresql.config.params::username='${PG_USERNAME}'",
+					"--set", "splunk.discovery.receivers.smartagent/postgresql.config.params::password='${PG_PASSWORD}'",
 					"--set", "splunk.discovery.receivers.smartagent/postgresql.config.masterDBName=test_db",
 					"--set", `splunk.discovery.receivers.smartagent/postgresql.config.extraMetrics=["*"]`,
 				},
 				Env: []corev1.EnvVar{
+					{Name: "PG_USERNAME", Value: "test_user"},
+					{Name: "PG_PASSWORD", Value: "test_password"},
 					{Name: "OTLP_ENDPOINT", Value: otlpEndpoint},
 					// Helpful for debugging
 					// {Name: "SPLUNK_DISCOVERY_DURATION", Value: "20s"},

@@ -10,6 +10,8 @@ As of this writing, no official specification exists for remote write endpoints,
 
 As such, this receiver implements a best-effort mapping between such metrics.  If you find your use case or access patterns do not jive well with this receiver, please [cut an issue](https://github.com/signalfx/splunk-otel-collector/issues/new) to our repo with the specific data incongruity that you're experiencing, and we will do our best to provide for you within maintainable reason.
 
+Currently, we *only* support `sfx_gateway_compatibility` mode.  Trying to write a histogram, quantile, and anything other than a simple gauge or counter will fail if this configuration option is not enabled.  See [Receiver Configuration](#receiver-configuration) and the [Gateway Compatibility](#signalfx-gateway-compatibility-mode) for more details.
+
 ## Receiver Configuration
 This receiver is configured via standard OpenTelemetry mechanisms.  See [`config.go`](./config.go) for specific details.
 
@@ -34,13 +36,13 @@ If possible, wait on sending multiple requests until you're reasonably assured t
 
 ### SignalFx Gateway Compatibility Mode
 Turning on the `sfx_gateway_compatibility` configuration option will result in the following changes
-- It will transform histograms [into counters](https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go#L98), suffixing the `le` to the metric name.
-- It will transform quantiles (summaries) [into counters](https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go#L98), suffixing `quantile` to the metric name.
+- It will transform histograms [into counters](https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go#L98).
+- It will transform quantiles (summaries) into gauges.
 - If the representation of a float could be expressed as an integer without loss, we will set it as an integer
 - If the representation of a sample is NAN, we will report an additional counter with the metric name [`"prometheus.total_NAN_samples"`](https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go#LL190C24-L190C53)
 - If the representation of a sample is missing a metric name, we will report an additional counter with the metric name [`"prometheus.total_bad_datapoints"`](https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go#LL191C24-L191C24)
 - Any errors in parsing the request will report an additional counter [`"prometheus.invalid_requests"`](https://github.com/signalfx/gateway/blob/main/protocol/prometheus/prometheuslistener.go#LL189C80-L189C91)
-- Metadata is IGNORED
+- Metadata from the `prompb.WriteRequest` is **ignored**
  
 The following options from sfx gateway will not be translated
 - `"request_time.ns"` is no longer reported.  `obsreport` handles similar functionality.

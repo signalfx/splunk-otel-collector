@@ -1,3 +1,0 @@
-1. is there a spec for obsreport?  If so am I aligned?
-2. ensure errors are same as in upstream for sfx compat
-3. maybe add back the cache

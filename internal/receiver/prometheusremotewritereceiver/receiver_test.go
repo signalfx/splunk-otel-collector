@@ -28,7 +28,6 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal/testdata"
 )
 
@@ -38,7 +37,7 @@ func TestEmptySend(t *testing.T) {
 	defer cancel()
 
 	cfg := createDefaultConfig().(*Config)
-	freePort, err := internal.GetFreePort()
+	freePort, err := GetFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 
@@ -68,7 +67,7 @@ func TestEmptySend(t *testing.T) {
 	// Calling start again should remain graceful
 
 	// Ensure we can instantiate
-	client, err := internal.NewMockPrwClient(
+	client, err := NewMockPrwClient(
 		cfg.Endpoint,
 		"metrics",
 		time.Second*5,
@@ -91,7 +90,7 @@ func TestActualSend(t *testing.T) {
 	defer cancel()
 
 	cfg := createDefaultConfig().(*Config)
-	freePort, err := internal.GetFreePort()
+	freePort, err := GetFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 
@@ -124,7 +123,7 @@ func TestActualSend(t *testing.T) {
 	// Calling start again should remain graceful
 
 	// Ensure we can instantiate
-	client, err := internal.NewMockPrwClient(
+	client, err := NewMockPrwClient(
 		cfg.Endpoint,
 		"metrics",
 		time.Second*5,

@@ -27,14 +27,13 @@ import (
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal/testdata"
 )
 
 func TestWriteEmpty(t *testing.T) {
 	mc := make(chan<- pmetric.Metrics)
 	mockReporter := newMockReporter()
-	freePort, err := internal.GetFreePort()
+	freePort, err := GetFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 	parser := &PrometheusRemoteOtelParser{SfxGatewayCompatability: true}
@@ -65,7 +64,7 @@ func TestWriteEmpty(t *testing.T) {
 		wg.Done()
 	}()
 
-	client, err := internal.NewMockPrwClient(
+	client, err := NewMockPrwClient(
 		cfg.Endpoint,
 		"metrics",
 		timeout,
@@ -86,7 +85,7 @@ func TestWriteEmpty(t *testing.T) {
 func TestWriteMany(t *testing.T) {
 	mc := make(chan<- pmetric.Metrics, 1000)
 	mockReporter := newMockReporter()
-	freePort, err := internal.GetFreePort()
+	freePort, err := GetFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
 	parser := &PrometheusRemoteOtelParser{SfxGatewayCompatability: true}
@@ -117,7 +116,7 @@ func TestWriteMany(t *testing.T) {
 		wg.Done()
 	}()
 
-	client, err := internal.NewMockPrwClient(
+	client, err := NewMockPrwClient(
 		cfg.Endpoint,
 		"metrics",
 		timeout,

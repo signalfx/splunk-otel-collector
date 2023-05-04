@@ -21,8 +21,6 @@ import (
 	"github.com/prometheus/prometheus/prompb"
 )
 
-const TypeStr = "prometheusremotewrite"
-
 func GetBaseMetricFamilyName(metricName string) string {
 	// Remove known suffixes for Sum/Counter, Histogram and Summary metric types.
 	// While not strictly enforced in the protobuf, prometheus does not support "colliding"
@@ -84,6 +82,5 @@ func GuessMetricTypeByLabels(metricName string, labels []prompb.Label) prompb.Me
 	if strings.HasSuffix(metricName, "_info") {
 		return prompb.MetricMetadata_INFO
 	}
-	// TODO hughesjj okay should we ever return unknown?
 	return prompb.MetricMetadata_GAUGE
 }

@@ -27,8 +27,6 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receivertest"
-
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal"
 )
 
 func TestFactory(t *testing.T) {
@@ -37,7 +35,7 @@ func TestFactory(t *testing.T) {
 	defer cancel()
 
 	cfg := createDefaultConfig().(*Config)
-	freePort, err := internal.GetFreePort()
+	freePort, err := GetFreePort()
 	require.NoError(t, err)
 	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
 	cfg.Endpoint = fmt.Sprintf("localhost:%d", freePort)

@@ -103,7 +103,7 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(rm pmetric.ResourceMetri
 
 	// TODO hughesjj cast to int if essentially int... maybe?  idk they do it in sfx.gateway
 	ilm := rm.ScopeMetrics().AppendEmpty()
-	ilm.Scope().SetName(internal.TypeStr)
+	ilm.Scope().SetName(typeString)
 	ilm.Scope().SetVersion("0.1")
 
 	if family == "" {

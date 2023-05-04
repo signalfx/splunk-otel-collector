@@ -166,8 +166,6 @@ func TestAddMetricsHappyPath(t *testing.T) {
 
 			require.NoError(t, pmetrictest.CompareMetrics(tc.Expected, actual,
 				pmetrictest.IgnoreMetricDataPointsOrder(),
-				pmetrictest.IgnoreStartTimestamp(),
-				pmetrictest.IgnoreTimestamp(),
 				pmetrictest.IgnoreMetricsOrder()))
 		})
 

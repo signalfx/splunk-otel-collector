@@ -197,18 +197,18 @@ func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
 	// set bucket sizes
 	pairs := []struct {
 		bucket    string
-		value     float64
+		value     int64
 		timestamp int64
 	}{
 		{
 			bucket:    "0.1",
 			value:     500,
-			timestamp: Jan20.UnixMilli(),
+			timestamp: Jan20.UnixNano(),
 		},
 		{
 			bucket:    "0.2",
 			value:     1500,
-			timestamp: Jan20.UnixMilli(),
+			timestamp: Jan20.UnixNano(),
 		},
 	}
 	for _, values := range pairs {
@@ -218,9 +218,10 @@ func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
 		counter.SetIsMonotonic(true)
 		counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 		dp := counter.DataPoints().AppendEmpty()
+		dp.Attributes().PutStr("le", values.bucket)
 		dp.SetTimestamp(pcommon.Timestamp(values.timestamp))
 		dp.SetStartTimestamp(pcommon.Timestamp(values.timestamp))
-		dp.SetDoubleValue(values.value)
+		dp.SetIntValue(values.value)
 	}
 
 	metric := scopeMetrics.Metrics().AppendEmpty()
@@ -229,8 +230,8 @@ func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
 	counter.SetIsMonotonic(true)
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp := counter.DataPoints().AppendEmpty()
-	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixMilli()))
-	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixMilli()))
+	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
 	dp.SetIntValue(2500)
 
 	metric = scopeMetrics.Metrics().AppendEmpty()
@@ -240,9 +241,9 @@ func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	dp = counter.DataPoints().AppendEmpty()
 
-	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixMilli()))
-	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixMilli()))
-	dp.SetDoubleValue(350)
+	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetIntValue(350)
 
 	return result
 }
@@ -280,7 +281,10 @@ func addSfxCompatibilityInvalidRequestMetrics(scopeMetrics pmetric.ScopeMetrics,
 	counter := metric.SetEmptySum()
 	counter.SetIsMonotonic(true)
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
-	counter.DataPoints().AppendEmpty().SetIntValue(value)
+	dp := counter.DataPoints().AppendEmpty()
+	dp.SetIntValue(value)
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
 	return metric
 }
 
@@ -292,7 +296,10 @@ func addSfxCompatibilityMissingNameMetrics(scopeMetrics pmetric.ScopeMetrics, va
 	counter := metric.SetEmptySum()
 	counter.SetIsMonotonic(true)
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
-	counter.DataPoints().AppendEmpty().SetIntValue(value)
+	dp := counter.DataPoints().AppendEmpty()
+	dp.SetIntValue(value)
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
 	return metric
 }
 
@@ -304,7 +311,10 @@ func addSfxCompatibilityNanMetrics(scopeMetrics pmetric.ScopeMetrics, value int6
 	counter := metric.SetEmptySum()
 	counter.SetIsMonotonic(true)
 	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
-	counter.DataPoints().AppendEmpty().SetIntValue(value)
+	dp := counter.DataPoints().AppendEmpty()
+	dp.SetIntValue(value)
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(Jan20))
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(Jan20))
 	return metric
 }
 

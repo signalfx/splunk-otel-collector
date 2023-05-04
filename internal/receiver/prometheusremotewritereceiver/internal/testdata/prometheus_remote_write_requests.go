@@ -108,7 +108,7 @@ func SampleSummaryTs() []prompb.TimeSeries {
 	return []prompb.TimeSeries{
 		{
 			Labels: []prompb.Label{
-				{Name: "__name__", Value: "rpc_duration_seconds"},
+				{Name: "__name__", Value: "request_duration_seconds"},
 				{Name: "quantile", Value: "0.5"},
 			},
 			Samples: []prompb.Sample{
@@ -117,16 +117,16 @@ func SampleSummaryTs() []prompb.TimeSeries {
 		},
 		{
 			Labels: []prompb.Label{
-				{Name: "__name__", Value: "rpc_duration_seconds"},
+				{Name: "__name__", Value: "request_duration_seconds"},
 				{Name: "quantile", Value: "0.9"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 0.35, Timestamp: Jan20.Add(1 * time.Second).UnixMilli()},
+				{Value: 0.35, Timestamp: Jan20.UnixMilli()},
 			},
 		},
 		{
 			Labels: []prompb.Label{
-				{Name: "__name__", Value: "rpc_duration_seconds_sum"},
+				{Name: "__name__", Value: "request_duration_seconds_sum"},
 			},
 			Samples: []prompb.Sample{
 				{Value: 123.5, Timestamp: Jan20.UnixMilli()},
@@ -134,7 +134,7 @@ func SampleSummaryTs() []prompb.TimeSeries {
 		},
 		{
 			Labels: []prompb.Label{
-				{Name: "__name__", Value: "rpc_duration_seconds_count"},
+				{Name: "__name__", Value: "request_duration_seconds_count"},
 			},
 			Samples: []prompb.Sample{
 				{Value: 1500, Timestamp: Jan20.UnixMilli()},
@@ -244,6 +244,67 @@ func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
 	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
 	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
 	dp.SetIntValue(350)
+
+	return result
+}
+
+func ExpectedSfxCompatibleQuantile() pmetric.Metrics {
+	result := pmetric.NewMetrics()
+	resourceMetrics := result.ResourceMetrics().AppendEmpty()
+	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+	scopeMetrics.Scope().SetName("prometheusremotewrite")
+	scopeMetrics.Scope().SetVersion("0.1")
+
+	// set bucket sizes
+	pairs := []struct {
+		bucket    string
+		value     float64
+		timestamp int64
+	}{
+		{
+			bucket:    "0.5",
+			value:     .25,
+			timestamp: Jan20.UnixNano(),
+		},
+		{
+			bucket:    "0.9",
+			value:     .35,
+			timestamp: Jan20.UnixNano(),
+		},
+	}
+	for _, values := range pairs {
+		metric := scopeMetrics.Metrics().AppendEmpty()
+		metric.SetName("request_duration_seconds")
+		counter := metric.SetEmptySum()
+		counter.SetIsMonotonic(true)
+		counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+		dp := counter.DataPoints().AppendEmpty()
+		dp.Attributes().PutStr("quantile", values.bucket)
+		dp.SetTimestamp(pcommon.Timestamp(values.timestamp))
+		dp.SetStartTimestamp(pcommon.Timestamp(values.timestamp))
+		dp.SetDoubleValue(values.value)
+	}
+
+	metric := scopeMetrics.Metrics().AppendEmpty()
+	metric.SetName("request_duration_seconds_count")
+	counter := metric.SetEmptySum()
+	counter.SetIsMonotonic(true)
+	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	dp := counter.DataPoints().AppendEmpty()
+	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetIntValue(1500)
+
+	metric = scopeMetrics.Metrics().AppendEmpty()
+	metric.SetName("request_duration_seconds_sum")
+	counter = metric.SetEmptySum()
+	counter.SetIsMonotonic(true)
+	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	dp = counter.DataPoints().AppendEmpty()
+
+	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
+	dp.SetIntValue(123.5)
 
 	return result
 }

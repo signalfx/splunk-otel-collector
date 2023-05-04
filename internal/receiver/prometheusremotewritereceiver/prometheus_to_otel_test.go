@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	mapset "github.com/deckarep/golang-set/v2"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/prometheus/prometheus/prompb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -151,4 +152,33 @@ func TestParseAndPartitionMixedPrometheusRemoteWriteRequest(t *testing.T) {
 	expectedTypesSeen := mapset.NewSet(pmetric.MetricTypeSum, pmetric.MetricTypeGauge)
 	require.Equal(t, expectedTypesSeen, typesSeen)
 
+}
+
+func TestAddCounter(t *testing.T) {
+
+	testCases := []struct {
+		Name     string
+		Sample   *prompb.WriteRequest
+		Expected pmetric.Metrics
+	}{
+		{
+			Name:     "",
+			Sample:   testdata.SampleCounterWq(),
+			Expected: pmetric.NewMetrics(),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			reporter := newMockReporter()
+			require.NotNil(t, reporter)
+			parser := &PrometheusRemoteOtelParser{SfxGatewayCompatability: true}
+			actual, err := parser.FromPrometheusWriteRequestMetrics(tc.Sample)
+			assert.NoError(t, err)
+			require.NoError(t, pmetrictest.CompareMetrics(tc.Expected, actual,
+				pmetrictest.IgnoreMetricDataPointsOrder(),
+				pmetrictest.IgnoreMetricsOrder()))
+		})
+
+	}
 }

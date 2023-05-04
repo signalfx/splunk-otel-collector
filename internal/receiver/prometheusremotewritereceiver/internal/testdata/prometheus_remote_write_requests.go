@@ -15,7 +15,11 @@
 package testdata
 
 import (
+	"time"
+
 	"github.com/prometheus/prometheus/prompb"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 func SampleCounterTs() []prompb.TimeSeries {
@@ -43,7 +47,7 @@ func SampleGaugeTs() []prompb.TimeSeries {
 				{Name: "__name__", Value: "go_goroutines"},
 			},
 			Samples: []prompb.Sample{
-				{Value: 42, Timestamp: 1633024800000},
+				{Value: 42, Timestamp: 1577865600},
 			},
 		},
 	}
@@ -139,6 +143,25 @@ func SampleSummaryWq() *prompb.WriteRequest {
 	return &prompb.WriteRequest{
 		Timeseries: SampleSummaryTs(),
 	}
+}
+
+func ExpectedCounter() pmetric.Metrics {
+	result := pmetric.NewMetrics()
+	resourceMetrics := result.ResourceMetrics().AppendEmpty()
+	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
+	scopeMetrics.Scope().SetName("prometheusremotewrite")
+	scopeMetrics.Scope().SetVersion("0.1")
+	metric := scopeMetrics.Metrics().AppendEmpty()
+	metric.SetName("http_requests_total")
+	counter := metric.SetEmptySum()
+	counter.SetIsMonotonic(true)
+	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	dp := counter.DataPoints().AppendEmpty()
+	dp.SetTimestamp(pcommon.NewTimestampFromTime(time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)))
+	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)))
+	dp.SetIntValue(1024)
+
+	return result
 }
 
 func GetWriteRequestsOfAllTypesWithoutMetadata() []*prompb.WriteRequest {

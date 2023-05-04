@@ -17,6 +17,7 @@ package prometheusremotewritereceiver
 import (
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/prometheus/prometheus/prompb"
@@ -106,14 +107,13 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(rm pmetric.ResourceMetri
 	ilm.Scope().SetName(typeString)
 	ilm.Scope().SetVersion("0.1")
 
-	if family == "" {
+	if family == "" || len(metrics) == 0 {
 		prwParser.addBadDataPoints(ilm, metrics)
 		return errors.New("missing name")
 	}
-
-	// TODO error handling
-	// badrequest if empty samples/metrics right?
-	// if family empty then the other dealio for sfx compatibility mode
+	if prwParser.SfxGatewayCompatability {
+		prwParser.addNanDataPoints(ilm, metrics)
+	}
 
 	metricsMetadata := metrics[0].MetricMetadata
 
@@ -151,6 +151,7 @@ func (prwParser *PrometheusRemoteOtelParser) scaffoldNewMetric(ilm pmetric.Scope
 	return nm
 }
 
+// addBadDataPoints is used to report metrics in the remote write request without names
 func (prwParser *PrometheusRemoteOtelParser) addBadDataPoints(ilm pmetric.ScopeMetrics, metrics []MetricData) {
 	errMetric := ilm.Metrics().AppendEmpty()
 	errMetric.SetName("prometheus.total_bad_datapoints")
@@ -160,6 +161,33 @@ func (prwParser *PrometheusRemoteOtelParser) addBadDataPoints(ilm pmetric.ScopeM
 	for _, metric := range metrics {
 		dp := errorSum.DataPoints().AppendEmpty()
 		dp.SetIntValue(int64(len(metric.Samples)))
+
+		minTs, maxTs := getSampleTimestampBounds(metric.Samples)
+		dp.SetStartTimestamp(pcommon.Timestamp(minTs))
+		dp.SetTimestamp(pcommon.Timestamp(maxTs))
+	}
+}
+
+func (prwParser *PrometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeMetrics, metrics []MetricData) {
+	errMetric := ilm.Metrics().AppendEmpty()
+	errMetric.SetName("prometheus.total_NaN_datapoints")
+	errorSum := errMetric.SetEmptySum()
+	errorSum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	errorSum.SetIsMonotonic(true)
+	for _, metric := range metrics {
+		dp := errorSum.DataPoints().AppendEmpty()
+
+		minTs, maxTs := getSampleTimestampBounds(metric.Samples)
+		dp.SetStartTimestamp(pcommon.Timestamp(minTs))
+		dp.SetTimestamp(pcommon.Timestamp(maxTs))
+
+		numNans := int64(0)
+		for _, sample := range metric.Samples {
+			if math.IsNaN(sample.Value) {
+				numNans++
+			}
+		}
+		dp.SetIntValue(numNans)
 	}
 }
 
@@ -179,11 +207,9 @@ func (prwParser *PrometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMe
 		gauge := nm.SetEmptyGauge()
 		for _, sample := range metricsData.Samples {
 			dp := gauge.DataPoints().AppendEmpty()
-			dp.SetDoubleValue(sample.Value)
-			dp.SetTimestamp(pcommon.Timestamp(sample.Timestamp * int64(time.Millisecond)))
-			for _, attr := range metricsData.Labels {
-				dp.Attributes().PutStr(attr.Name, attr.Value)
-			}
+			dp.SetTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
+			prwParser.setFloatOrInt(dp, sample)
+			prwParser.setAttributes(dp, metricsData.Labels)
 		}
 	}
 	return nil
@@ -199,23 +225,14 @@ func (prwParser *PrometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.Scope
 	}
 	nm := prwParser.scaffoldNewMetric(ilm, family, metadata)
 	for _, metricsData := range metrics {
-		// TODO yeah no
-		if metricsData.MetricName != "" {
-			nm.SetName(metricsData.MetricName)
-		}
 		sumMetric := nm.SetEmptySum()
-		// TODO hughesjj No idea how correct this is, but scraper always sets this way.  could totally see PRW being different
 		sumMetric.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
-		// TODO hughesjj No idea how correct this is, but scraper always sets this way.  could totally see PRW being different
 		sumMetric.SetIsMonotonic(true)
 		for _, sample := range metricsData.Samples {
-			counter := nm.Sum().DataPoints().AppendEmpty()
-			counter.SetDoubleValue(sample.Value)
-			counter.SetTimestamp(pcommon.Timestamp(sample.Timestamp * int64(time.Millisecond)))
-			for _, attr := range metricsData.Labels {
-				counter.Attributes().PutStr(attr.Name, attr.Value)
-			}
-			// Fairly certain counter is byref here
+			dp := nm.Sum().DataPoints().AppendEmpty()
+			dp.SetTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
+			prwParser.setFloatOrInt(dp, sample)
+			prwParser.setAttributes(dp, metricsData.Labels)
 		}
 	}
 	return nil
@@ -231,10 +248,6 @@ func (prwParser *PrometheusRemoteOtelParser) addInfoStateset(ilm pmetric.ScopeMe
 	}
 	nm := prwParser.scaffoldNewMetric(ilm, family, metadata)
 	for _, metricsData := range metrics {
-		// TODO better way to do this
-		if metricsData.MetricName != "" {
-			nm.SetName(metricsData.MetricName)
-		}
 
 		// set as SUM but non-monotonic
 		sumMetric := nm.SetEmptySum()
@@ -243,11 +256,9 @@ func (prwParser *PrometheusRemoteOtelParser) addInfoStateset(ilm pmetric.ScopeMe
 
 		for _, sample := range metricsData.Samples {
 			dp := sumMetric.DataPoints().AppendEmpty()
-			dp.SetTimestamp(pcommon.Timestamp(sample.GetTimestamp() * int64(time.Millisecond)))
-			dp.SetDoubleValue(sample.GetValue()) // TODO hughesjj maybe see if can be intvalue
-			for _, attr := range metricsData.Labels {
-				dp.Attributes().PutStr(attr.Name, attr.Value)
-			}
+			dp.SetTimestamp(prometheusToOtelTimestamp(sample.GetTimestamp()))
+			prwParser.setFloatOrInt(dp, sample)
+			prwParser.setAttributes(dp, metricsData.Labels)
 		}
 	}
 	return nil
@@ -283,4 +294,45 @@ func (prwParser *PrometheusRemoteOtelParser) addHistogramCounterMetrics(ilm pmet
 		metrics[index].MetricName = metric.MetricName + bucket
 	}
 	return prwParser.addCounterMetrics(ilm, family, metrics, metadata)
+}
+
+func getSampleTimestampBounds(samples []prompb.Sample) (int64, int64) {
+	if len(samples) < 1 {
+		return -1, -1
+	}
+	minTimestamp := int64(math.MaxInt64)
+	maxTimestamp := int64(math.MinInt64)
+	for _, sample := range samples {
+		if minTimestamp > sample.Timestamp {
+			minTimestamp = sample.Timestamp
+		}
+		if maxTimestamp < sample.GetTimestamp() {
+			maxTimestamp = sample.GetTimestamp()
+		}
+	}
+	return minTimestamp, maxTimestamp
+}
+
+func (prwParser *PrometheusRemoteOtelParser) setFloatOrInt(dp pmetric.NumberDataPoint, sample prompb.Sample) error {
+	if math.IsNaN(sample.Value) {
+		return fmt.Errorf("NAN value found")
+	}
+	if float64(int64(sample.Value)) == sample.Value {
+		dp.SetIntValue(int64(sample.Value))
+	} else {
+		dp.SetDoubleValue(sample.Value)
+	}
+	return nil
+}
+
+func prometheusToOtelTimestamp(ts int64) pcommon.Timestamp {
+	return pcommon.Timestamp(ts * int64(time.Millisecond))
+}
+
+func (prwParser *PrometheusRemoteOtelParser) setAttributes(dp pmetric.NumberDataPoint, labels []prompb.Label) {
+	for _, attr := range labels {
+		if attr.Name != "__name__" {
+			dp.Attributes().PutStr(attr.Name, attr.Value)
+		}
+	}
 }

@@ -110,9 +110,6 @@ def test_collector_package_install(distro, arch):
     pkg_base = os.path.basename(pkg_path)
 
     with run_distro_container(distro, arch) as container:
-        # qemu is slow, so wait for systemd to be ready
-        assert wait_for(lambda: run_container_cmd(container, "systemctl list-units --no-pager"), timeout=30)
-
         # install setcap dependency
         if distro in RPM_DISTROS:
             run_container_cmd(container, get_libcap_command(container))
@@ -194,14 +191,11 @@ def test_collector_package_upgrade(distro, arch):
     pkg_base = os.path.basename(pkg_path)
 
     with run_distro_container(distro, arch=arch) as container:
-        # qemu is slow, so wait for systemd to be ready
-        assert wait_for(lambda: run_container_cmd(container, "systemctl list-units --no-pager"), timeout=30)
-
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
 
         try:
             # install an older version of the collector package
-            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
+            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout="10m")
 
             time.sleep(5)
 

@@ -69,6 +69,7 @@ collectd_config_dir="${collector_bundle_dir}/run/collectd"
 distro="$( get_distro )"
 distro_codename="$( get_distro_codename )"
 distro_version="$( get_distro_version )"
+distro_arch="$( uname -m )"
 repo_base="https://splunk.jfrog.io/splunk"
 
 deb_repo_base="${repo_base}/otel-collector-deb"
@@ -752,6 +753,17 @@ distro_is_supported() {
   return 1
 }
 
+arch_supported() {
+  case "$distro_arch" in
+    amd64|x86_64|aarch64|arm64)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 fluentd_supported() {
   case "$distro" in
     amzn)
@@ -762,9 +774,59 @@ fluentd_supported() {
     sles|opensuse*)
       return 1
       ;;
+    debian)
+      if [ "$distro_version" = "9" ] && [ "$distro_arch" = "aarch64" ]; then
+        return 1
+      fi
+      ;;
+    ubuntu)
+      if [ "$distro_version" = "16.04" ] && [ "$distro_arch" = "aarch64" ]; then
+        return 1
+      fi
+      ;;
   esac
 
   return 0
+}
+
+check_support() {
+  case "$distro" in
+    debian|ubuntu)
+      if [ -z "$distro_codename" ]; then
+        echo "Your Linux distribution codename could not be determined from /etc/os-release." >&2
+        exit 1
+      fi
+      ;;
+    *)
+      if [ -z "$distro" ]; then
+        echo "Your Linux distribution could not be determined from /etc/os-release." >&2
+        exit 1
+      fi
+      if [ -z "$distro_version" ]; then
+        echo "Your Linux distribution version could not be determined from /etc/os-release." >&2
+        exit 1
+      fi
+      if [ -z "$distro_arch" ]; then
+        echo "Your system's architecture could not be determined from 'uname -m'." >&2
+        exit 1
+      fi
+      ;;
+  esac
+
+  if ! distro_is_supported; then
+    echo "Your Linux distribution/version is not supported." >&2
+    exit 1
+  fi
+
+  if ! arch_supported; then
+    echo "Your system's architecture '${distro_arch}' is not supported." >&2
+    exit 1
+  fi
+
+  if ! command -v systemctl >/dev/null 2>&1; then
+    echo "The systemctl command is required but was not found." >&2
+    exit 1
+  fi
 }
 
 parse_args_and_install() {
@@ -879,7 +941,7 @@ parse_args_and_install() {
         ;;
       --with-fluentd)
         if ! fluentd_supported; then
-          echo "WARNING: Ignoring the --with-fluentd option since fluentd is currently not supported for ${distro}:${distro_version}." >&2
+          echo "WARNING: Ignoring the --with-fluentd option since fluentd is currently not supported for ${distro}:${distro_version} ${distro_arch}." >&2
           with_fluentd="false"
         else
           with_fluentd="true"
@@ -961,35 +1023,6 @@ parse_args_and_install() {
   if [ "$uninstall" = true ]; then
       uninstall
       exit 0
-  fi
-
-  case "$distro" in
-    debian|ubuntu)
-      if [ -z "$distro_codename" ]; then
-        echo "Your Linux distribution codename could not be determined from /etc/os-release." >&2
-        exit 1
-      fi
-      ;;
-    *)
-      if [ -z "$distro" ]; then
-        echo "Your Linux distribution could not be determined from /etc/os-release." >&2
-        exit 1
-      fi
-      if [ -z "$distro_version" ]; then
-        echo "Your Linux distribution version could not be determined from /etc/os-release." >&2
-        exit 1
-      fi
-      ;;
-  esac
-
-  if ! distro_is_supported; then
-    echo "Your Linux distribution/version is not supported." >&2
-    exit 1
-  fi
-
-  if ! command -v systemctl >/dev/null 2>&1; then
-    echo "The systemctl command is required but was not found." >&2
-    exit 1
   fi
 
   if ! fluentd_supported; then
@@ -1213,5 +1246,7 @@ EOH
   fi
   exit 0
 }
+
+check_support
 
 parse_args_and_install $@

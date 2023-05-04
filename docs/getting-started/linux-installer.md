@@ -20,9 +20,9 @@ Currently, the following Linux distributions and versions are supported:
 
 - Amazon Linux: 2, 2023 (**Note:** Log collection with Fluentd not currently supported for Amazon Linux 2023.)
 - CentOS / Red Hat / Oracle: 7, 8, 9
-- Debian: 9, 10, 11
+- Debian: 9, 10, 11 (**Note:** Log collection with Fluentd is not supported for Debian 9 aarch64.)
 - SUSE: 12, 15 (**Note:** Only for Collector versions v0.34.0 or higher.  Log collection with Fluentd not currently supported.)
-- Ubuntu: 16.04, 18.04, 20.04, 22.04
+- Ubuntu: 16.04, 18.04, 20.04, 22.04 (**Note:** Log collection with Fluentd is not supported for Ubuntu 16.04 aarch64.)
 
 ## Getting Started
 

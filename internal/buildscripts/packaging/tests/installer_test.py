@@ -35,43 +35,62 @@ INSTALLER_PATH = REPO_DIR / "internal" / "buildscripts" / "packaging" / "install
 
 # Override default test parameters with the following env vars
 STAGE = os.environ.get("STAGE", "release")
-VERSIONS = os.environ.get("VERSIONS", "latest").split(",")
+VERSION = os.environ.get("VERSION", "latest")
+SPLUNK_ACCESS_TOKEN = os.environ.get("SPLUNK_ACCESS_TOKEN", "testing123")
+SPLUNK_REALM = os.environ.get("SPLUNK_REALM", "fake-realm")
+TOTAL_MEMORY = "512"
 
 SPLUNK_ENV_PATH = "/etc/otel/collector/splunk-otel-collector.conf"
 OLD_SPLUNK_ENV_PATH = "/etc/otel/collector/splunk_env"
 AGENT_CONFIG_PATH = "/etc/otel/collector/agent_config.yaml"
 GATEWAY_CONFIG_PATH = "/etc/otel/collector/gateway_config.yaml"
 OLD_CONFIG_PATH = "/etc/otel/collector/splunk_config_linux.yaml"
-TOTAL_MEMORY = "256"
-BALLAST = "64"
-REALM = "test"
 INSTR_CONF_PATH = "/usr/lib/splunk-instrumentation/instrumentation.conf"
 LIBSPLUNK_PATH = "/usr/lib/splunk-instrumentation/libsplunk.so"
 
+INSTALLER_TIMEOUT = "30m"
 
-def verify_env_file(container, mode="agent", ballast=None):
+
+def get_installer_cmd():
+    install_cmd = f"sh -x /test/install.sh -- {SPLUNK_ACCESS_TOKEN} --realm {SPLUNK_REALM}"
+
+    if VERSION != "latest":
+        install_cmd = f"{install_cmd} --collector-version {VERSION.lstrip('v')}"
+
+    if STAGE != "release":
+        assert STAGE in ("test", "beta"), f"Unsupported stage '{STAGE}'!"
+        install_cmd = f"{install_cmd} --{STAGE}"
+
+    return install_cmd
+
+
+def verify_env_file(container, mode="agent", config_path=None, memory=TOTAL_MEMORY, ballast=None):
     env_path = SPLUNK_ENV_PATH
     if container.exec_run(f"test -f {OLD_SPLUNK_ENV_PATH}").exit_code == 0:
         env_path = OLD_SPLUNK_ENV_PATH
 
-    config_path = AGENT_CONFIG_PATH if mode == "agent" else GATEWAY_CONFIG_PATH
-    if container.exec_run(f"test -f {OLD_CONFIG_PATH}").exit_code == 0:
-        config_path = OLD_CONFIG_PATH
-    elif mode == "gateway" and container.exec_run(f"test -f {GATEWAY_CONFIG_PATH}").exit_code != 0:
-        config_path = AGENT_CONFIG_PATH
+    if not config_path:
+        config_path = AGENT_CONFIG_PATH if mode == "agent" else GATEWAY_CONFIG_PATH
+        if container.exec_run(f"test -f {OLD_CONFIG_PATH}").exit_code == 0:
+            config_path = OLD_CONFIG_PATH
+        elif mode == "gateway" and container.exec_run(f"test -f {GATEWAY_CONFIG_PATH}").exit_code != 0:
+            config_path = AGENT_CONFIG_PATH
+
+    ingest_url = f"https://ingest.{SPLUNK_REALM}.signalfx.com"
+    api_url = f"https://api.{SPLUNK_REALM}.signalfx.com"
 
     run_container_cmd(container, f"grep '^SPLUNK_CONFIG={config_path}$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN=testing123$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_REALM={REALM}$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_API_URL=https://api.{REALM}.signalfx.com$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_INGEST_URL=https://ingest.{REALM}.signalfx.com$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_TRACE_URL=https://ingest.{REALM}.signalfx.com/v2/trace$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_HEC_URL=https://ingest.{REALM}.signalfx.com/v1/log$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_HEC_TOKEN=testing123$' {env_path}")
-    run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={TOTAL_MEMORY}$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_ACCESS_TOKEN={SPLUNK_ACCESS_TOKEN}$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_REALM={SPLUNK_REALM}$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_API_URL={api_url}$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_INGEST_URL={ingest_url}$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_TRACE_URL={ingest_url}/v2/trace$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_HEC_URL={ingest_url}/v1/log$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_HEC_TOKEN={SPLUNK_ACCESS_TOKEN}$' {env_path}")
+    run_container_cmd(container, f"grep '^SPLUNK_MEMORY_TOTAL_MIB={memory}$' {env_path}")
 
     if ballast:
-        run_container_cmd(container, f"grep '^SPLUNK_BALLAST_SIZE_MIB={BALLAST}$' {env_path}")
+        run_container_cmd(container, f"grep '^SPLUNK_BALLAST_SIZE_MIB={ballast}$' {env_path}")
 
 
 def verify_support_bundle(container):
@@ -100,8 +119,12 @@ def verify_uninstall(container, distro):
             assert container.exec_run(f"rpm -q {pkg}").exit_code != 0
 
 
-def fluentd_supported(distro):
-    if "opensuse" in distro or distro == "amazonlinux-2023":
+def fluentd_supported(distro, arch):
+    if "opensuse" in distro:
+        return False
+    elif distro == "amazonlinux-2023":
+        return False
+    elif distro in ("debian-stretch", "ubuntu-xenial") and arch == "arm64":
         return False
 
     return True
@@ -113,25 +136,23 @@ def fluentd_supported(distro):
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
-@pytest.mark.parametrize("version", VERSIONS)
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
 @pytest.mark.parametrize("mode", ["agent", "gateway"])
-def test_installer_mode(distro, version, mode):
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --mode {mode}"
+def test_installer_default(distro, arch, mode):
+    if distro == "opensuse-12" and arch == "arm64":
+        pytest.skip("opensuse-12 arm64 no longer supported")
 
-    if version != "latest":
-        install_cmd = f"{install_cmd} --collector-version {version.lstrip('v')}"
-
-    if STAGE != "release":
-        assert STAGE in ("test", "beta"), f"Unsupported stage '{STAGE}'!"
-        install_cmd = f"{install_cmd} --{STAGE}"
+    install_cmd = get_installer_cmd()
+    if mode != "agent":
+        install_cmd = f"{install_cmd} --mode {mode}"
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
+    with run_distro_container(distro, arch) as container:
         # run installer script
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
 
         try:
-            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
+            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
             time.sleep(5)
 
             # verify splunk-otel-auto-instrumentation is not installed
@@ -146,7 +167,7 @@ def test_installer_mode(distro, version, mode):
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
 
-            if fluentd_supported(distro):
+            if fluentd_supported(distro, arch):
                 assert container.exec_run("systemctl status td-agent").exit_code == 0
 
             # test support bundle script
@@ -155,7 +176,7 @@ def test_installer_mode(distro, version, mode):
             verify_uninstall(container, distro)
 
         finally:
-            if fluentd_supported(distro):
+            if fluentd_supported(distro, arch):
                 run_container_cmd(container, "journalctl -u td-agent --no-pager")
                 if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
                     run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
@@ -168,82 +189,48 @@ def test_installer_mode(distro, version, mode):
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
-@pytest.mark.parametrize("version", VERSIONS)
-def test_installer_ballast(distro, version):
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --ballast {BALLAST}"
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_custom(distro, arch):
+    if distro == "opensuse-12" and arch == "arm64":
+        pytest.skip("opensuse-12 arm64 no longer supported")
 
-    if version != "latest":
-        install_cmd = f"{install_cmd} --collector-version {version.lstrip('v')}"
-
-    if STAGE != "release":
-        assert STAGE in ("test", "beta"), f"Unsupported stage '{STAGE}'!"
-        install_cmd = f"{install_cmd} --{STAGE}"
-
-    print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
-        # run installer script
-        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
-
-        try:
-            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
-            time.sleep(5)
-
-            # verify env file created with configured parameters
-            verify_env_file(container, ballast=BALLAST)
-
-            # verify collector service status
-            assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
-
-            if fluentd_supported(distro):
-                assert container.exec_run("systemctl status td-agent").exit_code == 0
-
-            verify_uninstall(container, distro)
-
-        finally:
-            if fluentd_supported(distro):
-                run_container_cmd(container, "journalctl -u td-agent --no-pager")
-                if container.exec_run("test -f /var/log/td-agent/td-agent.log").exit_code == 0:
-                    run_container_cmd(container, "cat /var/log/td-agent/td-agent.log")
-            run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
-
-
-@pytest.mark.installer
-@pytest.mark.parametrize(
-    "distro",
-    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
-    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
-)
-@pytest.mark.parametrize("version", VERSIONS)
-def test_installer_service_owner(distro, version):
+    collector_version = "0.74.0"
     service_owner = "test-user"
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY}"
-    install_cmd = f"{install_cmd} --service-user {service_owner} --service-group {service_owner}"
+    custom_config = "/etc/my-config.yaml"
+    config_url = f"https://raw.githubusercontent.com/signalfx/splunk-otel-collector/v{collector_version}/cmd/otelcol/config/collector/gateway_config.yaml"
 
-    if version != "latest":
-        install_cmd = f"{install_cmd} --collector-version {version.lstrip('v')}"
-
-    if STAGE != "release":
-        assert STAGE in ("test", "beta"), f"Unsupported stage '{STAGE}'!"
-        install_cmd = f"{install_cmd} --{STAGE}"
+    install_cmd = " ".join((
+        get_installer_cmd(),
+        "--without-fluentd",
+        "--memory 256 --ballast 64",
+        f"--service-user {service_owner} --service-group {service_owner}",
+        f"--collector-config {custom_config}",
+        f"--collector-version {collector_version}",
+    ))
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
+    with run_distro_container(distro, arch) as container:
+        run_container_cmd(container, f"wget -nv -O /etc/my-config.yaml {config_url}")
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
 
         try:
             # run installer script
-            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
+            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
             time.sleep(5)
 
+            # verify collector version
+            _, output = run_container_cmd(container, "otelcol --version")
+            assert output.decode("utf-8").strip() == f"otelcol version v{collector_version}"
+
             # verify env file created with configured parameters
-            verify_env_file(container)
+            verify_env_file(container, config_path=custom_config, memory="256", ballast="64")
 
             # verify collector service status
             assert wait_for(lambda: service_is_running(container, service_owner=service_owner))
 
             # verify the default user/group was deleted
-            assert container.exec_run("getent passwd splunk-otel-collector").exit_code != 0
-            assert container.exec_run("getent group splunk-otel-collector").exit_code != 0
+            assert container.exec_run(f"getent passwd {SERVICE_OWNER}").exit_code != 0
+            assert container.exec_run(f"getent group {SERVICE_OWNER}").exit_code != 0
 
             # verify the installed directories are owned by test-user
             bundle_owner = container.exec_run("stat -c '%U:%G' /usr/lib/splunk-otel-collector").output.decode("utf-8")
@@ -251,49 +238,7 @@ def test_installer_service_owner(distro, version):
             config_owner = container.exec_run("stat -c '%U:%G' /etc/otel").output.decode("utf-8")
             assert config_owner.strip() == f"{service_owner}:{service_owner}"
 
-            if fluentd_supported(distro):
-                assert container.exec_run("systemctl status td-agent").exit_code == 0
-
-            verify_uninstall(container, distro)
-
-        finally:
-            if fluentd_supported(distro):
-                run_container_cmd(container, "journalctl -u td-agent --no-pager")
-            run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
-
-
-@pytest.mark.installer
-@pytest.mark.parametrize(
-    "distro",
-    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
-    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
-    )
-@pytest.mark.parametrize("version", VERSIONS)
-def test_installer_without_fluentd(distro, version):
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --without-fluentd"
-
-    if version != "latest":
-        install_cmd = f"{install_cmd} --collector-version {version.lstrip('v')}"
-
-    if STAGE != "release":
-        assert STAGE in ("test", "beta"), f"Unsupported stage '{STAGE}'!"
-        install_cmd = f"{install_cmd} --{STAGE}"
-
-    print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
-        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
-
-        try:
-            # run installer script
-            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
-            time.sleep(5)
-
-            # verify env file created with configured parameters
-            verify_env_file(container)
-
-            # verify collector service status
-            assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
-
+            # verify td-agent was not installed
             if distro in DEB_DISTROS:
                 assert container.exec_run("dpkg -s td-agent").exit_code != 0
             else:
@@ -312,24 +257,22 @@ def test_installer_without_fluentd(distro, version):
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
-@pytest.mark.parametrize("version", VERSIONS)
-def test_installer_with_instrumentation(distro, version):
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --with-instrumentation"
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_with_instrumentation_default(distro, arch):
+    if distro == "opensuse-12" and arch == "arm64":
+        pytest.skip("opensuse-12 arm64 no longer supported")
 
-    if version != "latest":
-        install_cmd = f"{install_cmd} --collector-version {version.lstrip('v')}"
-
-    if STAGE != "release":
-        assert STAGE in ("test", "beta"), f"Unsupported stage '{STAGE}'!"
-        install_cmd = f"{install_cmd} --{STAGE}"
+    install_cmd = get_installer_cmd()
+    install_cmd = f"{install_cmd} --without-fluentd"
+    install_cmd = f"{install_cmd} --with-instrumentation"
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
+    with run_distro_container(distro, arch) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
 
         try:
             # run installer script
-            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
+            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
             time.sleep(5)
 
             # verify env file created with configured parameters
@@ -371,32 +314,31 @@ def test_installer_with_instrumentation(distro, version):
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
     + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
     )
-@pytest.mark.parametrize("version", VERSIONS)
-def test_installer_with_instrumentation_options(distro, version):
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --with-instrumentation"
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_installer_with_instrumentation_custom(distro, arch):
+    if distro == "opensuse-12" and arch == "arm64":
+        pytest.skip("opensuse-12 arm64 no longer supported")
 
-    if version != "latest":
-        install_cmd = f"{install_cmd} --collector-version {version.lstrip('v')}"
-
-    if STAGE != "release":
-        assert STAGE in ("test", "beta"), f"Unsupported stage '{STAGE}'!"
-        install_cmd = f"{install_cmd} --{STAGE}"
-
-    install_cmd = f"{install_cmd} --deployment-environment test"
-    install_cmd = f"{install_cmd} --disable-telemetry"
-    install_cmd = f"{install_cmd} --service-name test"
-    install_cmd = f"{install_cmd} --no-generate-service-name"
-    install_cmd = f"{install_cmd} --enable-profiler"
-    install_cmd = f"{install_cmd} --enable-profiler-memory"
-    install_cmd = f"{install_cmd} --enable-metrics"
+    install_cmd = " ".join((
+        get_installer_cmd(),
+        "--without-fluentd",
+        "--with-instrumentation",
+        "--deployment-environment test",
+        "--disable-telemetry",
+        "--service-name test",
+        "--no-generate-service-name",
+        "--enable-profiler",
+        "--enable-profiler-memory",
+        "--enable-metrics",
+    ))
 
     print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
+    with run_distro_container(distro, arch) as container:
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
 
         try:
             # run installer script
-            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
+            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout=INSTALLER_TIMEOUT)
             time.sleep(5)
 
             # verify env file created with configured parameters
@@ -427,46 +369,5 @@ def test_installer_with_instrumentation_options(distro, version):
 
             verify_uninstall(container, distro)
 
-        finally:
-            run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")
-
-
-@pytest.mark.installer
-@pytest.mark.parametrize(
-    "distro",
-    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
-    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
-    )
-def test_installer_custom_config(distro):
-    custom_config = "/etc/my-config.yaml"
-    install_cmd = f"sh -x /test/install.sh -- testing123 --realm {REALM} --memory {TOTAL_MEMORY} --without-fluentd"
-
-    if STAGE != "release":
-        assert STAGE in ("test", "beta"), f"Unsupported stage '{STAGE}'!"
-        install_cmd = f"{install_cmd} --{STAGE}"
-
-    install_cmd = f"{install_cmd} --collector-config {custom_config}"
-
-    print(f"Testing installation on {distro} from {STAGE} stage ...")
-    with run_distro_container(distro) as container:
-        local_config = REPO_DIR / "cmd" / "otelcol" / "config" / "collector" / "agent_config.yaml"
-        copy_file_into_container(container, local_config, custom_config)
-        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
-
-        try:
-            # run installer script
-            run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"})
-            time.sleep(5)
-
-            # verify custom config was set
-            run_container_cmd(container, f"grep '^SPLUNK_CONFIG={custom_config}$' {SPLUNK_ENV_PATH}")
-
-            # verify collector service status
-            assert wait_for(lambda: service_is_running(container, service_owner=SERVICE_OWNER))
-
-            verify_uninstall(container, distro)
-
-            # verify custom config was not deleted after uninstall
-            run_container_cmd(container, f"test -f {custom_config}")
         finally:
             run_container_cmd(container, f"journalctl -u {SERVICE_NAME} --no-pager")

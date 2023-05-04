@@ -67,9 +67,12 @@ func (prwParser *PrometheusRemoteOtelParser) FromPrometheusWriteRequestMetrics(r
 func (prwParser *PrometheusRemoteOtelParser) TransformPrometheusRemoteWriteToOtel(parsedPrwMetrics map[string][]MetricData) (pmetric.Metrics, error) {
 	metric := pmetric.NewMetrics()
 	rm := metric.ResourceMetrics().AppendEmpty()
+	ilm := rm.ScopeMetrics().AppendEmpty()
+	ilm.Scope().SetName(typeString)
+	ilm.Scope().SetVersion("0.1")
 	var translationErrors error
 	for metricFamily, metrics := range parsedPrwMetrics {
-		err := prwParser.addMetrics(rm, metricFamily, metrics)
+		err := prwParser.addMetrics(ilm, metricFamily, metrics)
 		if err != nil {
 			translationErrors = multierr.Append(translationErrors, err)
 		}
@@ -114,16 +117,13 @@ func (prwParser *PrometheusRemoteOtelParser) partitionWriteRequest(writeReq *pro
 
 // This actually converts from a prometheus prompdb.MetaDataType to the closest equivalent otel type
 // See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/13bcae344506fe2169b59d213361d04094c651f6/receiver/prometheusreceiver/internal/util.go#L106
-func (prwParser *PrometheusRemoteOtelParser) addMetrics(rm pmetric.ResourceMetrics, family string, metrics []MetricData) error {
+func (prwParser *PrometheusRemoteOtelParser) addMetrics(ilm pmetric.ScopeMetrics, family string, metrics []MetricData) error {
 	if family == "" || len(metrics) == 0 {
 		return errors.New("missing name or metrics")
 	}
 
-	ilm := rm.ScopeMetrics().AppendEmpty()
-	ilm.Scope().SetName(typeString)
-	ilm.Scope().SetVersion("0.1")
-
 	// When we add native histogram support, this will be a map lookup on metrics family
+	// this is also why we partition into families, as native PRW histograms can combine sums and histograms
 	metricsMetadata := metrics[0].MetricMetadata
 
 	var err error

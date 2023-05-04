@@ -178,6 +178,12 @@ manually before the backward compatibility is dropped. For every configuration u
 [the default agent config](https://github.com/signalfx/splunk-otel-collector/blob/main/cmd/otelcol/config/collector/agent_config.yaml)
 as a reference.
 
+### From 0.68.0 to 0.69.0
+
+- `gke` and `gce` resource detectors in `resourcedetection` processor are replaced with `gcp` resource detector. 
+  If you have `gke` and `gce` detectors configured in the `resourcedetection` processor, please update your 
+  configuration accordingly. More details: https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/10347 
+
 ### From 0.41.0 to 0.42.0
 
 - The Splunk OpenTelemetry Collector used to [evaluate user configuration 

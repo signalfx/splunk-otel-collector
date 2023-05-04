@@ -92,14 +92,11 @@ func newHandler(parser *PrometheusRemoteOtelParser, sc *ServerConfig, mc chan<- 
 		}
 		results, err := parser.FromPrometheusWriteRequestMetrics(req)
 		if nil != err {
-			// Prolly server side errors too
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			sc.Reporter.OnDebugf("prometheus_translation", err)
 			return
 		}
-		mc <- results // TODO hughesjj well, I think it might break here for some reason?
-		// In anticipation of eventually better supporting backpressure, return 202 instead of 204
-		// eh actually the prometheus remote write client doesn't support non 204...
+		mc <- results
 		w.WriteHeader(http.StatusAccepted)
 	}
 }

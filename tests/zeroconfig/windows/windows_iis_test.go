@@ -86,17 +86,9 @@ func TestWindowsIISInstrumentation(t *testing.T) {
 		return resp.StatusCode == http.StatusOK
 	}, 30*time.Second, 100*time.Millisecond)
 
-	requireHTTPGetRequestSuccess(t, "http://localhost:8000/aspnetfxapp/api/values/4")
-	t.Log("ASP.NET HTTP Request succeeded")
-	expectedResourceTraces, err := telemetry.LoadResourceTraces("expected_aspnetfxapp_traces.yaml")
-	require.NoError(t, err)
-	require.NoError(t, otlp.AssertAllTracesReceived(t, *expectedResourceTraces, 30*time.Second))
+	testExpectedTracesForHTTPGetRequest(t, otlp, "http://localhost:8000/aspnetfxapp/api/values/4", "aspnetfx.yaml")
 
-	requireHTTPGetRequestSuccess(t, "http://localhost:8000/aspnetcoreapp/api/values/6")
-	t.Log("ASP.NET Core HTTP Request succeeded")
-	expectedResourceTraces, err = telemetry.LoadResourceTraces("expected_aspnetcoreapp_traces.yaml")
-	require.NoError(t, err)
-	require.NoError(t, otlp.AssertAllTracesReceived(t, *expectedResourceTraces, 30*time.Second))
+	testExpectedTracesForHTTPGetRequest(t, otlp, "http://localhost:8000/aspnetcoreapp/api/values/6", "aspnetcore.yaml")
 }
 
 func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {
@@ -116,4 +108,13 @@ func requireHTTPGetRequestSuccess(t *testing.T, url string) {
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	require.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPReceiverSink, url string, expectedTracesFileName string) {
+	requireHTTPGetRequestSuccess(t, url)
+	expectedResourceTraces, err := telemetry.LoadResourceTraces(
+		path.Join(".", "testdata", "resource_traces", expectedTracesFileName),
+	)
+	require.NoError(t, err)
+	require.NoError(t, otlp.AssertAllTracesReceived(t, *expectedResourceTraces, 30*time.Second))
 }

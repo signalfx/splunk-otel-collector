@@ -36,7 +36,7 @@ jobs:
           fi
           distro=$(for d in $dockerfiles; do echo -n "\"$d\","; done)
           arch='"amd64","arm64"'
-          exclude='{"DISTRO": "opensuse-12", "ARCH": "arm64"}'
+          exclude='{"DISTRO": "opensuse-12", "ARCH": "arm64"}'  # opensuse-12 (leap 42) does not support arm64
           matrix="{\"DISTRO\": [${distro%,}], \"ARCH\": [${arch}], \"exclude\": [${exclude}]}"
           echo "$matrix" | jq
           echo "matrix=${matrix}" >> $GITHUB_OUTPUT

@@ -31,7 +31,7 @@ If possible, wait on sending multiple requests until you're reasonably assured t
 
 ## Nuances in translation
 - We do not [remove suffixes](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/6658646e7705b74f13031c777fcd8dd1cd64c850/receiver/prometheusreceiver/internal/metricfamily.go#L316) as is done in the otel-contrib `prometheusreceiver`
-- Keep in mind promethes timestamps are in unix epoch milliseconds, while otel timestamps are in unix epoch nanoseconds
+- Keep in mind prometheus timestamps are in unix epoch milliseconds, while otel timestamps are in unix epoch nanoseconds
 
 ### Signalfx Compatibility Mode
 Turning on the `sfx_gateway_compatibility` configuration option will result in the following changes

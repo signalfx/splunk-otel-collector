@@ -118,5 +118,5 @@ func TestDefaultValue(t *testing.T) {
 	require.NoError(t, err)
 	out := &bytes.Buffer{}
 	require.NoError(t, tmplt.Execute(out, nil))
-	require.Equal(t, "splunk.discovery", out.String())
+	require.Equal(t, "splunk.discovery.default", out.String())
 }

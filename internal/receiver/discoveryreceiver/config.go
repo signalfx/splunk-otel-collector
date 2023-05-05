@@ -88,9 +88,10 @@ type Match struct {
 
 // LogRecord is a definition of the desired plog.LogRecord content to emit for a match.
 type LogRecord struct {
-	Attributes   map[string]string `mapstructure:"attributes"`
-	SeverityText string            `mapstructure:"severity_text"`
-	Body         string            `mapstructure:"body"`
+	Attributes    map[string]string `mapstructure:"attributes"`
+	SeverityText  string            `mapstructure:"severity_text"`
+	Body          string            `mapstructure:"body"`
+	AppendPattern bool              `mapstructure:"append_pattern"`
 }
 
 func (cfg *Config) Validate() error {

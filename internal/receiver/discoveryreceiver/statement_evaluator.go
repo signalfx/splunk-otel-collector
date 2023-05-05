@@ -161,7 +161,7 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 	patternMap := map[string]string{"message": statement.Message}
 	for k, v := range statement.Fields {
 		switch k {
-		case "caller", "name", "stacktrace":
+		case "caller", "monitorID", "name", "stacktrace":
 		default:
 			patternMap[k] = fmt.Sprintf("%v", v)
 		}
@@ -198,7 +198,11 @@ func (se *statementEvaluator) evaluateStatement(statement *statussources.Stateme
 			}
 			statementLogRecord.CopyTo(logRecord)
 			if desiredRecord.Body != "" {
-				logRecord.Body().SetStr(desiredRecord.Body)
+				body := desiredRecord.Body
+				if desiredRecord.AppendPattern {
+					body = fmt.Sprintf("%s (evaluated %q)", body, p)
+				}
+				logRecord.Body().SetStr(body)
 			}
 			if len(desiredRecord.Attributes) > 0 {
 				for k, v := range desiredRecord.Attributes {

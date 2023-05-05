@@ -26,7 +26,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/properties"
 )
 
-const defaultValue = "splunk.discovery"
+const defaultValue = "splunk.discovery.default"
 
 func FuncMap() template.FuncMap {
 	dc := newDiscoveryConfig()

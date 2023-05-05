@@ -25,41 +25,35 @@ import (
 // mockReporter provides a reporter that provides some useful functionalities for
 // tests (e.g.: wait for certain number of messages).
 type mockReporter struct {
-	TotalSuccessMetrics *int32
+	TotalSuccessMetrics int32
+	TotalErrorMetrics   int32
 	OpsSuccess          *sync.WaitGroup
 	OpsStarted          *sync.WaitGroup
 	OpsFailed           *sync.WaitGroup
 	Errors              []error
+	ErrorLocation       []string
 }
 
 var _ reporter = (*mockReporter)(nil)
 
-func (m *mockReporter) AddExpectedError(newCalls int) int {
+func (m *mockReporter) AddExpectedError(newCalls int) {
 	m.OpsFailed.Add(newCalls)
-	atomic.AddInt32(m.TotalSuccessMetrics, int32(newCalls))
-	return int(atomic.LoadInt32(m.TotalSuccessMetrics))
 }
 
-func (m *mockReporter) AddExpectedSuccess(newCalls int) int {
+func (m *mockReporter) AddExpectedSuccess(newCalls int) {
 	m.OpsSuccess.Add(newCalls)
-	atomic.AddInt32(m.TotalSuccessMetrics, int32(newCalls))
-	return int(atomic.LoadInt32(m.TotalSuccessMetrics))
 }
 
-func (m *mockReporter) AddExpectedStart(newCalls int) int {
+func (m *mockReporter) AddExpectedStart(newCalls int) {
 	m.OpsStarted.Add(newCalls)
-	atomic.AddInt32(m.TotalSuccessMetrics, int32(newCalls))
-	return int(atomic.LoadInt32(m.TotalSuccessMetrics))
 }
 
 // newMockReporter returns a new instance of a mockReporter.
 func newMockReporter() *mockReporter {
-	successCalls := new(int32)
 	m := mockReporter{
-		OpsSuccess:          &sync.WaitGroup{},
-		OpsFailed:           &sync.WaitGroup{},
-		OpsStarted:          &sync.WaitGroup{},
-		TotalSuccessMetrics: successCalls,
+		OpsSuccess: &sync.WaitGroup{},
+		OpsFailed:  &sync.WaitGroup{},
+		OpsStarted: &sync.WaitGroup{},
 	}
 	return &m
 }
@@ -69,13 +63,14 @@ func (m *mockReporter) StartMetricsOp(ctx context.Context) context.Context {
 	return ctx
 }
 
-func (m *mockReporter) OnError(_ context.Context, _ string, err error) {
+func (m *mockReporter) OnError(_ context.Context, errorLocation string, err error) {
 	m.Errors = append(m.Errors, err)
+	m.ErrorLocation = append(m.ErrorLocation, errorLocation)
 	m.OpsFailed.Done()
 }
 
 func (m *mockReporter) OnMetricsProcessed(_ context.Context, numReceivedMessages int, _ error) {
-	atomic.AddInt32(m.TotalSuccessMetrics, int32(numReceivedMessages))
+	atomic.AddInt32(&m.TotalSuccessMetrics, int32(numReceivedMessages))
 	m.OpsSuccess.Done()
 }
 

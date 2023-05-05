@@ -127,10 +127,12 @@ func TestActualSend(t *testing.T) {
 		mockreporter.AddExpectedStart(1)
 		mockreporter.AddExpectedSuccess(1)
 		err = client.SendWriteRequest(wq)
-		assert.Nil(t, err, "failed to write %d", index)
+		assert.NoError(t, err, "failed to write %d", index)
 		if nil != err {
-			assert.Nil(t, errors.Unwrap(err))
+			assert.NoError(t, errors.Unwrap(err))
 		}
+		// always will have 3 "health" metrics added when sfx gateway compatibility is enables
+		assert.GreaterOrEqual(t, mockreporter.TotalSuccessMetrics, int32(len(wq.Timeseries)+3))
 	}
 
 	require.NoError(t, remoteWriteReceiver.Shutdown(ctx))

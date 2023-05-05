@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v0.76.1
+
+### 💡 Enhancements 💡
+
+- `receiver/jmxreceiver`: Add OpenTelemetry JMX receiver to our distribution ([#3068](https://github.com/signalfx/splunk-otel-collector/pull/3068))
+- Update Java auto-instrumentation library to 1.23.1 ([#3055](https://github.com/signalfx/splunk-otel-collector/pull/3055))
+- Update installer script to check system architecture ([#2888](https://github.com/signalfx/splunk-otel-collector/pull/2888))
+- Ansible: Support RHEL9 and Amazon 2023 ([#3067](https://github.com/signalfx/splunk-otel-collector/pull/3067))
+
 ## v0.76.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.76.1](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.76.1) and the [opentelemetry-collector-contrib v0.76.3](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.76.3) releases where appropriate.

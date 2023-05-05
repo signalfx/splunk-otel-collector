@@ -6,7 +6,7 @@
 
 ### 💡 Enhancements 💡
 
-- `receiver/jmxreceiver`: Add OpenTelemetry JMX receiver to our distribution ([#3068](https://github.com/signalfx/splunk-otel-collector/pull/3068))
+- `receiver/jmxreceiver`: Add OpenTelemetry JMX receiver to the distribution ([#3068](https://github.com/signalfx/splunk-otel-collector/pull/3068))
 - Update Java auto-instrumentation library to 1.23.1 ([#3055](https://github.com/signalfx/splunk-otel-collector/pull/3055))
 - Update installer script to check system architecture ([#2888](https://github.com/signalfx/splunk-otel-collector/pull/2888))
 - Ansible: Support RHEL9 and Amazon 2023 ([#3067](https://github.com/signalfx/splunk-otel-collector/pull/3067))

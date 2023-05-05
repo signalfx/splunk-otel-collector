@@ -1576,6 +1576,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsre
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.76.3/go.mod h1:Nwd3Ac8nHETTMsGjs4BZrUXWVdxxSN0yqT4y1DXKTkw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.76.3 h1:yJ1+m8Fr45GU1pe08XPqjle0+ki8Cy8TzbzkS/RyZxs=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.76.3/go.mod h1:+OtY82Rv9hloUibz6t8PtG/v+po6Pw5DCHF2jflHXAY=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.76.3 h1:bRrBV6r8qgvFT3FRiJZUeTXtSMIYZaP5Yfv30Oz3B30=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jmxreceiver v0.76.3/go.mod h1:a6hfLDD/zF3U8El+6LFSo/8jV4mV9T3i7yMcpoRpXvk=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.76.3 h1:EUyaQ3ZGh+W9b1prasvX0OGy/Nv8gzCcAdOa8ZxRSiA=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.76.3/go.mod h1:7L5U+211R1h7p6MIR0TWBX3xCTt2uA4YMHOWtuEVylo=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/k8sclusterreceiver v0.76.3 h1:tb+Qf78p/x48ujMj8JMLDUjmxDRs+sfDPUXDfeGkI38=

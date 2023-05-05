@@ -19,6 +19,7 @@
 //go:generate go install github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/bundle/cmd/discoverybundler
 
 //go:generate discoverybundler -r -t bundle.d/receivers/smartagent-postgresql.discovery.yaml.tmpl
+//go:generate discoverybundler -r -t bundle.d/receivers/smartagent-collectd-mysql.discovery.yaml.tmpl
 
 //go:generate discoverybundler -r -t bundle.d/extensions/docker-observer.discovery.yaml.tmpl
 //go:generate discoverybundler -r -t bundle.d/extensions/host-observer.discovery.yaml.tmpl

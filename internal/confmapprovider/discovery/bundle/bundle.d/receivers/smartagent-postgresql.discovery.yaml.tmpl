@@ -26,7 +26,7 @@
           log_record:
             severity_text: info
             append_pattern: true
-            body: The container cannot be reached by the collector. Is it in a shared network?
+            body: The container cannot be reached by the Collector. Make sure they're in the same network.
         - regexp: 'connect: connection refused'
           first_only: true
           log_record:

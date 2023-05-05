@@ -338,14 +338,16 @@ func (cluster testCluster) daemonSetManifest(namespace, serviceAccount, configMa
 				Image: testutils.GetCollectorImageOrSkipTest(cluster.Testcase),
 				Command: []string{
 					"/otelcol", "--config=/config/config.yaml", "--discovery",
-					"--set", "splunk.discovery.receivers.smartagent/collectd/mysql.config.username=testuser",
-					"--set", "splunk.discovery.receivers.smartagent/collectd/mysql.config.password=testpass",
+					"--set", "splunk.discovery.receivers.smartagent/collectd/mysql.config.username='${MYSQL_USERNAME}'",
+					"--set", "splunk.discovery.receivers.smartagent/collectd/mysql.config.password='${MYSQL_PASSWORD}'",
 					"--set", "splunk.discovery.receivers.smartagent/collectd/mysql.config.databases=[{name: 'testdb'}]",
 					"--set", "splunk.discovery.receivers.smartagent/collectd/mysql.config.innodbStats=true",
 					"--set", `splunk.discovery.receivers.smartagent/collectd/mysql.config.extraMetrics=["*"]`,
 				},
 				Env: []corev1.EnvVar{
 					{Name: "OTLP_ENDPOINT", Value: otlpEndpoint},
+					{Name: "MYSQL_USERNAME", Value: user},
+					{Name: "MYSQL_PASSWORD", Value: password},
 					// Helpful for debugging
 					// {Name: "SPLUNK_DISCOVERY_DURATION", Value: "20s"},
 					// {Name: "SPLUNK_DISCOVERY_LOG_LEVEL", Value: "debug"},

@@ -9,10 +9,10 @@ smartagent/collectd/mysql:
   config:
     default:
       type: collectd/mysql
-      username: splunk.discovery
-      password: splunk.discovery
+      username: splunk.discovery.default
+      password: splunk.discovery.default
       databases:
-        - name: splunk.discovery
+        - name: splunk.discovery.default
       isolatedCollectd: true
   status:
     metrics:
@@ -21,19 +21,21 @@ smartagent/collectd/mysql:
           first_only: true
           log_record:
             severity_text: info
-            body: collectd/mysql receiver is working!
+            body: smartagent/collectd/mysql receiver is working!
     statements:
       failed:
-        - regexp: "mysql plugin: Failed to connect to database .* at server .* Can't connect to MySQL server on .*\\(111\\)"
+        - regexp: "mysql plugin: Failed to connect to database .* at server .* Can't connect to MySQL server on .* [(]111[)]"
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: The container is refusing MySQL connections.
       partial:
-        - regexp: 'mysql plugin: Failed to connect to database .* at server .* Access denied for user .* \\(using password: YES\\)'
+        - regexp: 'mysql plugin: Failed to connect to database .* at server .* Access denied for user .* [(]using password: .*[)]'
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: >-
               Make sure your user credentials are correctly specified using the
               `--set splunk.discovery.receivers.smartagent/collectd/mysql.config.username="<username>"` and
@@ -44,6 +46,7 @@ smartagent/collectd/mysql:
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: >-
               Make sure your MySQL databases are correctly specified using the
               `--set splunk.discovery.receivers.smartagent/collectd/mysql.config.databases="[{name: '<db-name-0>'}, {name: '<db-name-1>', username: '<username>', password: '<password>'}]"` command or the
@@ -52,6 +55,7 @@ smartagent/collectd/mysql:
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: >-
               Make sure your MySQL databases and auth information are correctly specified using the
               `--set splunk.discovery.receivers.smartagent/collectd/mysql.config.databases="[{name: '<db-name-0>'}, {name: '<db-name-1>', username: '<username>', password: '<password>'}]"` command or the

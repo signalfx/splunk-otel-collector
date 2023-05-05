@@ -18,19 +18,21 @@
           first_only: true
           log_record:
             severity_text: info
-            body: collectd/mysql receiver is working!
+            body: smartagent/collectd/mysql receiver is working!
     statements:
       failed:
-        - regexp: "mysql plugin: Failed to connect to database .* at server .* Can't connect to MySQL server on .*\\(111\\)"
+        - regexp: "mysql plugin: Failed to connect to database .* at server .* Can't connect to MySQL server on .* [(]111[)]"
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: The container is refusing MySQL connections.
       partial:
-        - regexp: 'mysql plugin: Failed to connect to database .* at server .* Access denied for user .* \\(using password: YES\\)'
+        - regexp: 'mysql plugin: Failed to connect to database .* at server .* Access denied for user .* [(]using password: .*[)]'
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: >-
               Make sure your user credentials are correctly specified using the
               `--set {{ configProperty "username" "<username>" }}` and
@@ -41,6 +43,7 @@
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: >-
               Make sure your MySQL databases are correctly specified using the
               `--set {{ configProperty "databases" "[{name: '<db-name-0>'}, {name: '<db-name-1>', username: '<username>', password: '<password>'}]" }}` command or the
@@ -49,6 +52,7 @@
           first_only: true
           log_record:
             severity_text: info
+            append_pattern: true
             body: >-
               Make sure your MySQL databases and auth information are correctly specified using the
               `--set {{ configProperty "databases" "[{name: '<db-name-0>'}, {name: '<db-name-1>', username: '<username>', password: '<password>'}]" }}` command or the

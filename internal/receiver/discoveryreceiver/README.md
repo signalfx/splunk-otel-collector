@@ -349,11 +349,12 @@ expr: 'ExprEnv["some.field.with.periods"] contains "value"'
 
 ### LogRecord
 
-| Name            | Type              | Default                                                 | Docs                                   |
-|-----------------|-------------------|---------------------------------------------------------|----------------------------------------|
-| `severity_text` | string            | Emitted log statement severity level, if any, or "info" | The emitted log record's severity text |
-| `body`          | string            | Emitted log statement message                           | The emitted log record's body          |
-| `attributes`    | map[string]string | Emitted log statements fields                           | The emitted log record's attributes    |
+| Name             | Type              | Default                                                 | Docs                                                                        |
+|------------------|-------------------|---------------------------------------------------------|-----------------------------------------------------------------------------|
+| `severity_text`  | string            | Emitted log statement severity level, if any, or "info" | The emitted log record's severity text                                      |
+| `body`           | string            | Emitted log statement message                           | The emitted log record's body                                               |
+| `attributes`     | map[string]string | Emitted log statements fields                           | The emitted log record's attributes                                         |
+| `append_pattern` | bool              | false                                                   | Whether to append the evaluated statement to the configured log record body |
 
 ## Status log record content
 

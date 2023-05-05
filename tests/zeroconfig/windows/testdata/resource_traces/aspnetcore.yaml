@@ -1,0 +1,24 @@
+resource_spans:
+- attributes:
+    deployment.environment: zc-iis-test
+    host.id: <ANY>
+    host.name: <ANY>
+    os.type: windows
+    service.name: AspNetCore.WebApi.Net
+  scope_spans:
+  - instrumentation_scope:
+      attributes: {}
+    spans:
+    - name: GET /aspnetcoreapp/api/values/{id}
+      attributes:
+        aspnet_core.endpoint: 'HTTP: GET /api/values/{id}'
+        aspnet_core.route: /api/values/{id}
+        component: aspnet_core
+        http.host: localhost:8000
+        http.method: GET
+        http.status_code: "200"
+        http.url: http://localhost:8000/aspnetcoreapp/api/values/6
+        http.user_agent: Go-http-client/1.1
+        net.peer.ip: <ANY>
+        signalfx.tracing.library: dotnet-tracing
+        signalfx.tracing.version: <ANY>

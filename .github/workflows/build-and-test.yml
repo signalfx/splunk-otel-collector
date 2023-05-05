@@ -637,6 +637,11 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.3
 
+      - uses: actions/setup-dotnet@v3.0.3
+        with:
+          dotnet-version: | 
+            6.0.407
+
       - name: Download Splunk OTel Collector msi
         uses: actions/download-artifact@v3
         with:

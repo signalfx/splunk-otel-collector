@@ -3,7 +3,7 @@
 
 - name: Set required td-agent version
   ansible.builtin.set_fact:
-    td_agent_version: |
+    td_agent_version: |-
       {%- if td_agent_version -%}
         {{ td_agent_version }}
       {%- elif ansible_distribution_release == "stretch" -%}

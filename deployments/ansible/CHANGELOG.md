@@ -1,5 +1,11 @@
 # Changelog
 
+## ansible-v0.18.0
+
+### 💡 Enhancements 💡
+
+- Add support for RHEL 9 and Amazon Linux 2023
+
 ## ansible-v0.17.0
 
 ### 🧰 Bug fixes 🧰

@@ -59,12 +59,14 @@ jobs:
       matrix:
         ansible:
           - ansible~=2.10.0
-          - ansible~=3.0
-          - ansible~=4.0
+          - ansible~=6.0
+          - ansible~=7.0
         distro:
           - amazonlinux2
+          - amazonlinux2023
           - centos7
           - centos8
+          - centos9
           - debian9
           - debian10
           - debian11
@@ -74,6 +76,10 @@ jobs:
           - ubuntu1804
           - ubuntu2004
           - ubuntu2204
+        exclude:
+          # ansible<6 unsupported on Amazon Linux 2023
+          - distro: amazonlinux2023
+            ansible: ansible~=2.10.0
 
     steps:
       - name: Check out the codebase.
@@ -88,6 +94,7 @@ jobs:
             molecule-docker==0.2.4
             docker==5.0.0
             ansible-lint==5.4.0
+            urllib3<2
 
       - name: Set up Python 3.
         uses: actions/setup-python@v4
@@ -119,8 +126,8 @@ jobs:
       matrix:
         ansible:
           - ansible~=2.10.0
-          - ansible~=3.0
-          - ansible~=4.0
+          - ansible~=6.0
+          - ansible~=7.0
         distro:
           - "2012"
           - "2016"

@@ -25,6 +25,14 @@
       {%- else -%}
         /usr/lib/splunk-otel-collector/agent-bundle/run/collectd
       {%- endif -%}
+    fluentd_supported: |-
+      {%- if ansible_os_family == "Suse" -%}
+        false
+      {%- elif ansible_distribution == "Amazon" and ansible_distribution_version == "2023" -%}
+        false
+      {%- else -%}
+        true
+      {%- endif -%}
   when: ansible_os_family != "Windows"
 
 - name: set default vars for Windows

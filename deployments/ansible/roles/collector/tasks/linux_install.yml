@@ -60,7 +60,7 @@
 
 - name: Install FluentD
   ansible.builtin.import_tasks: linux_install_fluentd.yml
-  when: install_fluentd and ansible_os_family != "Suse"
+  when: install_fluentd and fluentd_supported
 
 - name: Install Splunk OpenTelemetry Auto Instrumentation with apt package manager
   ansible.builtin.import_tasks: apt_install_auto_instrumentation.yml

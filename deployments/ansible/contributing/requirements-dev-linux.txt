@@ -1,4 +1,6 @@
-ansible==3.4.0
+ansible~=7.0
+ansible-lint==5.4.0
 molecule==3.3.0
 molecule-docker==0.2.4
 docker==5.0.0
+urllib3<2

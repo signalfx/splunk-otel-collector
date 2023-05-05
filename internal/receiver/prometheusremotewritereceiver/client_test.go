@@ -75,6 +75,8 @@ func (prwc *MockPrwClient) SendWriteRequest(wr *prompb.WriteRequest) error {
 		if errors.Is(err, syscall.ECONNREFUSED) {
 			retry--
 			time.Sleep(2 * time.Second)
+		} else {
+			break
 		}
 	}
 	return err

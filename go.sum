@@ -1170,7 +1170,6 @@ github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/X
 github.com/jtolds/gls v4.20.0+incompatible h1:xdiiI2gbIgH/gLH7ADydsJ1uDOEzR8yvV7C0MuV77Wo=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/juju/errors v0.0.0-20181012004132-a4583d0a56ea/go.mod h1:W54LbzXuIE0boCoNJfwqpmkKJ1O4TCTZMetAt6jGk7Q=
-github.com/juju/errors v0.0.0-20200330140219-3fe23663418f h1:MCOvExGLpaSIzLYB4iQXEHP4jYVU6vmzLNQPdMVrxnM=
 github.com/juju/loggo v0.0.0-20190526231331-6e530bcce5d8/go.mod h1:vgyd7OREkbtVEN/8IXZe5Ooef3LQePvuBm9UWj6ZL8U=
 github.com/juju/testing v0.0.0-20191001232224-ce9dec17d28b/go.mod h1:63prj8cnj0tU0S9OHjGJn+b1h0ZghCndfnbQolrYTwA=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
@@ -1849,15 +1848,11 @@ github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3 h1:32k2QLgsKhcEs55q4REP
 github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3/go.mod h1:gJrXWi7wSGXfiC7+VheQaz+ypdCt5SmZNL+BRxUe7y4=
 github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657 h1:2B5haF9erda6sSaeHpGKqmgM3irTkjB0bkdjWoV5Qbo=
 github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657/go.mod h1:mUgf0Go14xjLxNZFSGSK9m+GT7jCHyECuCjPh1zadUc=
-github.com/signalfx/gateway v1.2.23 h1:+yDgpU7qp3Ypha6naV6Uflk9u8R3LrqRjZ/ha3+1OrY=
-github.com/signalfx/gateway v1.2.23/go.mod h1:YzAGMSBSeqjV1okKI03Rx/eyQsMOt9SocbWQE5FTmls=
 github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d h1:pASiJ1M7WilKj0vFhVmOjeMiu7KxDdiL4t96LGuGKtw=
 github.com/signalfx/go-loggregator v1.0.1-0.20200205155641-5ba5ca92118d/go.mod h1:/c4ZEpdE+tBRXMLLLgGsSI8jApnAphH8OMK7M+w5TXw=
 github.com/signalfx/gohelpers v0.0.0-20151202220853-ac9f0e053f15 h1:fpg8nIesNCgMnw44flP5fljNCkYfpGxbtzREMlLDI08=
 github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 h1:WsShHmu12ZztYPfh9b+I+VjYD1o8iOHhB67WZCMEEE8=
 github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083/go.mod h1:adPDS6s7WaajdFBV9mQ7i0dKfQ8xiDnF9ZNETVPpp7c=
-github.com/signalfx/golib v2.5.1+incompatible h1:rw16Flfx5Z29DahDSNGAA3ch8dOeNc3oOMUJm493yao=
-github.com/signalfx/golib v2.5.1+incompatible/go.mod h1:nWYefOwlUKWm/SpN/LgVSBnyH1T9NpT1ANlmgRIi1Cs=
 github.com/signalfx/golib/v3 v3.3.47/go.mod h1:N7bdXqA6fGQQn03WHZRDXvyN/GUFI+BXjoJgidfncZU=
 github.com/signalfx/golib/v3 v3.3.50 h1:TTBpfzsO00F8ep6rhLgBmRIPUpRqBenacezjE4xCweI=
 github.com/signalfx/golib/v3 v3.3.50/go.mod h1:rgFSi8VmkU55NJJfp1kku5CZutqxk9U9x07ZcwQwgHU=

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/mailru/easyjson"
-	collectdformat "github.com/signalfx/gateway/protocol/collectd/format"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
 	"github.com/signalfx/ingest-protocols/protocol/collectd"
@@ -84,7 +83,7 @@ func (s *WriteHTTPServer) Shutdown() error {
 // ServeHTTP accepts collectd write_http requests and sends the resulting
 // datapoint/events to the configured callback functions.
 func (s *WriteHTTPServer) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	var writeBody collectdformat.JSONWriteBody
+	var writeBody JSONWriteBody
 	if err := easyjson.UnmarshalFromReader(req.Body, &writeBody); err != nil {
 		log.WithError(err).Error("Could not decode body of write_http request")
 		rw.WriteHeader(http.StatusBadRequest)

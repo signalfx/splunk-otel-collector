@@ -13,7 +13,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/mailru/easyjson"
 	sfxmodel "github.com/signalfx/com_signalfx_metrics_protobuf/model"
-	signalfxformat "github.com/signalfx/gateway/protocol/signalfx/format"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/ingest-protocols/protocol/signalfx"
 	"github.com/sirupsen/logrus"
@@ -67,7 +66,7 @@ func (h *JSONHandler) handleMessage(msgType subproc.MessageType, payloadReader i
 	switch msgType {
 	case messageTypeDatapointJSONList:
 		// The following is copied from github.com/signalfx/gateway
-		var d signalfxformat.JSONDatapointV2
+		var d JSONDatapointV2
 		if err := easyjson.UnmarshalFromReader(payloadReader, &d); err != nil {
 			return err
 		}

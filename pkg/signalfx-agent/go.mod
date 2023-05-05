@@ -15,7 +15,6 @@ replace (
 // security updates
 replace (
 	github.com/Azure/go-autorest/autorest/adal => github.com/Azure/go-autorest/autorest/adal v0.9.18
-	github.com/containerd/containerd => github.com/containerd/containerd v1.5.18
 	github.com/go-kit/kit => github.com/go-kit/kit v0.12.0
 	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.2.0
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
@@ -82,7 +81,6 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/signalfx/com_signalfx_metrics_protobuf v0.0.3
 	github.com/signalfx/defaults v1.2.2-0.20180531161417-70562fe60657
-	github.com/signalfx/gateway v1.2.23
 	github.com/signalfx/golib/v3 v3.3.50
 	github.com/signalfx/ingest-protocols v0.1.14
 	github.com/signalfx/signalfx-go v1.30.0
@@ -234,7 +232,6 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
-	github.com/juju/errors v0.0.0-20200330140219-3fe23663418f // indirect
 	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/klauspost/asmfmt v1.3.2 // indirect
 	github.com/klauspost/compress v1.15.15 // indirect
@@ -271,7 +268,6 @@ require (
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.22.8 // indirect
 	github.com/signalfx/gohistogram v0.0.0-20160107210732-1ccfd2ff5083 // indirect
-	github.com/signalfx/golib v2.5.1+incompatible // indirect
 	github.com/signalfx/sapm-proto v0.12.0 // indirect
 	github.com/smartystreets/assertions v1.13.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect

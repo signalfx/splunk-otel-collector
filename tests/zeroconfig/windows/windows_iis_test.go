@@ -18,7 +18,6 @@ package zeroconfig
 
 import (
 	"net/http"
-	"os"
 	"os/exec"
 	"path"
 	"strings"
@@ -43,13 +42,10 @@ func TestWindowsIISInstrumentation(t *testing.T) {
 	//    configuration that runs a splunk-otel-collector that receives the O11y signals from the instrumented container.
 	//    This way the test can leverage the existing testutils OTLP sink.
 
-	// Set the Docker "context"
-	os.Chdir(path.Join(".", "testdata"))
-	defer os.Chdir("..")
-
-	requireNoErrorExecCommand(t, "docker", "compose", "up", "--detach")
+	dockerComposeFile := path.Join(".", "testdata", "docker-compose.yaml")
+	requireNoErrorExecCommand(t, "docker", "compose", "-f", dockerComposeFile, "up", "--detach")
 	defer func() {
-		requireNoErrorExecCommand(t, "docker", "compose", "down")
+		requireNoErrorExecCommand(t, "docker", "compose", "-f", dockerComposeFile, "down")
 	}()
 
 	// A firewall rule must be in place for the OTLP Endpoint to be visible to the Docker compose containers.
@@ -86,19 +82,9 @@ func TestWindowsIISInstrumentation(t *testing.T) {
 		return resp.StatusCode == http.StatusOK
 	}, 30*time.Second, 100*time.Millisecond)
 
-	// Make a GET request to the ASP.NET app on the Windows IIS container
-	httpClient := &http.Client{}
-	req, err := http.NewRequest("GET", "http://localhost:8000/aspnetfxapp/api/values", nil)
-	require.NoError(t, err)
-	resp, err := httpClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-	require.Equal(t, http.StatusOK, resp.StatusCode)
-	t.Log("ASP.NET HTTP Request succeeded")
+	testExpectedTracesForHTTPGetRequest(t, otlp, "http://localhost:8000/aspnetfxapp/api/values/4", "aspnetfx.yaml")
 
-	expectedResourceTraces, err := telemetry.LoadResourceTraces("expected_resource_traces.yaml")
-	require.NoError(t, err)
-	require.NoError(t, otlp.AssertAllTracesReceived(t, *expectedResourceTraces, 30*time.Second))
+	testExpectedTracesForHTTPGetRequest(t, otlp, "http://localhost:8000/aspnetcoreapp/api/values/6", "aspnetcore.yaml")
 }
 
 func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {
@@ -108,4 +94,23 @@ func requireNoErrorExecCommand(t *testing.T, name string, arg ...string) {
 	err := cmd.Run()
 	t.Log(out.String())
 	require.NoError(t, err)
+}
+
+func requireHTTPGetRequestSuccess(t *testing.T, url string) {
+	httpClient := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	require.NoError(t, err)
+	resp, err := httpClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func testExpectedTracesForHTTPGetRequest(t *testing.T, otlp *testutils.OTLPReceiverSink, url string, expectedTracesFileName string) {
+	requireHTTPGetRequestSuccess(t, url)
+	expectedResourceTraces, err := telemetry.LoadResourceTraces(
+		path.Join(".", "testdata", "resource_traces", expectedTracesFileName),
+	)
+	require.NoError(t, err)
+	require.NoError(t, otlp.AssertAllTracesReceived(t, *expectedResourceTraces, 30*time.Second))
 }

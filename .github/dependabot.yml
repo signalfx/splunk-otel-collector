@@ -23,7 +23,7 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
-    directory: "/examples/splunk-hec/logging"
+    directory: "/examples/signalfxgatewayprometheusremotewritereceiver"
     ignore:
       - dependency-name: "go.opentelemetry.io/*"
       - dependency-name: "github.com/open-telemetry/*"
@@ -31,6 +31,13 @@ updates:
       interval: "weekly"
   - package-ecosystem: "gomod"
     directory: "/examples/splunk-hec-traces/tracing"
+    ignore:
+      - dependency-name: "go.opentelemetry.io/*"
+      - dependency-name: "github.com/open-telemetry/*"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "gomod"
+    directory: "/examples/splunk-hec/logging"
     ignore:
       - dependency-name: "go.opentelemetry.io/*"
       - dependency-name: "github.com/open-telemetry/*"
@@ -121,11 +128,11 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/examples/splunk-hec/logging"
+    directory: "/examples/splunk-hec-traces/tracing"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/examples/splunk-hec-traces/tracing"
+    directory: "/examples/splunk-hec/logging"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"

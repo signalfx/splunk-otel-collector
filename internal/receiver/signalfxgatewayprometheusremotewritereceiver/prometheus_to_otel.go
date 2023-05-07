@@ -95,7 +95,7 @@ func (prwParser *prometheusRemoteOtelParser) partitionWriteRequest(writeReq *pro
 			MetricFamilyName: metricFamilyName,
 			Type:             metricType,
 		}
-		metricData := metricData{
+		md := metricData{
 			Labels:         ts.Labels,
 			Samples:        writeReq.Timeseries[index].Samples,
 			Exemplars:      writeReq.Timeseries[index].Exemplars,
@@ -103,10 +103,10 @@ func (prwParser *prometheusRemoteOtelParser) partitionWriteRequest(writeReq *pro
 			MetricName:     metricName,
 			MetricMetadata: metricMetadata,
 		}
-		if len(metricData.Samples) < 1 {
+		if len(md.Samples) < 1 {
 			translationErrors = multierr.Append(translationErrors, fmt.Errorf("no samples found for  %s", metricName))
 		}
-		partitions[metricData.MetricMetadata.MetricFamilyName] = append(partitions[metricData.MetricMetadata.MetricFamilyName], metricData)
+		partitions[md.MetricMetadata.MetricFamilyName] = append(partitions[md.MetricMetadata.MetricFamilyName], md)
 	}
 
 	return partitions, translationErrors

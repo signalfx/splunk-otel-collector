@@ -379,19 +379,10 @@ func addSfxCompatibilityNanMetrics(scopeMetrics pmetric.ScopeMetrics, value int6
 func FlattenWriteRequests(request []*prompb.WriteRequest) *prompb.WriteRequest {
 	var ts []prompb.TimeSeries
 	for _, req := range request {
-		for _, t := range req.Timeseries {
-			ts = append(ts, t)
-		}
-	}
-	var md []prompb.MetricMetadata
-	for _, req := range request {
-		for _, t := range req.Metadata {
-			md = append(md, t)
-		}
+		ts = append(ts, req.Timeseries...)
 	}
 	return &prompb.WriteRequest{
 		Timeseries: ts,
-		Metadata:   md,
 	}
 }
 

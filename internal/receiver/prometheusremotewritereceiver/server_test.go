@@ -36,9 +36,9 @@ func TestWriteEmpty(t *testing.T) {
 	freePort, err := GetFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
-	parser := &PrometheusRemoteOtelParser{SfxGatewayCompatability: true}
+	parser := &prometheusRemoteOtelParser{SfxGatewayCompatability: true}
 	require.NoError(t, err)
-	cfg := &ServerConfig{
+	cfg := &serverConfig{
 		Path:     "/metrics",
 		Reporter: mockReporter,
 		Mc:       mc,
@@ -59,7 +59,7 @@ func TestWriteEmpty(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		t.Logf("starting server...")
-		require.NoError(t, remoteWriteServer.ListenAndServe())
+		require.NoError(t, remoteWriteServer.listenAndServe())
 		t.Logf("stopped server...")
 		wg.Done()
 	}()
@@ -88,9 +88,9 @@ func TestWriteMany(t *testing.T) {
 	freePort, err := GetFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
-	parser := &PrometheusRemoteOtelParser{SfxGatewayCompatability: true}
+	parser := &prometheusRemoteOtelParser{SfxGatewayCompatability: true}
 	require.NoError(t, err)
-	cfg := &ServerConfig{
+	cfg := &serverConfig{
 		Path:     "/metrics",
 		Reporter: mockReporter,
 		Mc:       mc,
@@ -110,7 +110,7 @@ func TestWriteMany(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		require.NoError(t, remoteWriteServer.ListenAndServe())
+		require.NoError(t, remoteWriteServer.listenAndServe())
 		wg.Done()
 	}()
 

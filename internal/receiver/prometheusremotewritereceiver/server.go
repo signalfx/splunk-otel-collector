@@ -27,21 +27,21 @@ import (
 
 type prometheusRemoteWriteServer struct {
 	*http.Server
-	*ServerConfig
+	*serverConfig
 	closeChannel *sync.Once
 }
 
-type ServerConfig struct {
+type serverConfig struct {
 	Reporter reporter
 	component.Host
 	Mc chan<- pmetric.Metrics
 	component.TelemetrySettings
 	Path   string
-	Parser *PrometheusRemoteOtelParser
+	Parser *prometheusRemoteOtelParser
 	confighttp.HTTPServerSettings
 }
 
-func newPrometheusRemoteWriteServer(config *ServerConfig) (*prometheusRemoteWriteServer, error) {
+func newPrometheusRemoteWriteServer(config *serverConfig) (*prometheusRemoteWriteServer, error) {
 	mx := mux.NewRouter()
 	handler := newHandler(config.Parser, config, config.Mc)
 	mx.HandleFunc(config.Path, handler)
@@ -54,19 +54,19 @@ func newPrometheusRemoteWriteServer(config *ServerConfig) (*prometheusRemoteWrit
 	}
 	return &prometheusRemoteWriteServer{
 		Server:       server,
-		ServerConfig: config,
+		serverConfig: config,
 		closeChannel: &sync.Once{},
 	}, nil
 }
 
-func (prw *prometheusRemoteWriteServer) Close() error {
+func (prw *prometheusRemoteWriteServer) close() error {
 	defer prw.closeChannel.Do(func() { close(prw.Mc) })
 	return prw.Server.Close()
 }
 
-func (prw *prometheusRemoteWriteServer) ListenAndServe() error {
+func (prw *prometheusRemoteWriteServer) listenAndServe() error {
 	prw.Reporter.OnDebugf("Starting prometheus simple write server")
-	listener, err := prw.ServerConfig.ToListener()
+	listener, err := prw.serverConfig.ToListener()
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (prw *prometheusRemoteWriteServer) ListenAndServe() error {
 	return err
 }
 
-func newHandler(parser *PrometheusRemoteOtelParser, sc *ServerConfig, mc chan<- pmetric.Metrics) http.HandlerFunc {
+func newHandler(parser *prometheusRemoteOtelParser, sc *serverConfig, mc chan<- pmetric.Metrics) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sc.Reporter.OnDebugf("Processing write request %s", r.RequestURI)
 		req, err := remote.DecodeWriteRequest(r.Body)
@@ -90,7 +90,7 @@ func newHandler(parser *PrometheusRemoteOtelParser, sc *ServerConfig, mc chan<- 
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
-		results, err := parser.FromPrometheusWriteRequestMetrics(req)
+		results, err := parser.fromPrometheusWriteRequestMetrics(req)
 		if nil != err {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			sc.Reporter.OnDebugf("prometheus_translation", err)

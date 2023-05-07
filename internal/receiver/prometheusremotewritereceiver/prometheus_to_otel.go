@@ -29,7 +29,7 @@ import (
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal"
 )
 
-type MetricData struct {
+type metricData struct {
 	MetricName     string
 	Labels         []prompb.Label
 	Samples        []prompb.Sample
@@ -38,18 +38,18 @@ type MetricData struct {
 	MetricMetadata prompb.MetricMetadata
 }
 
-type PrometheusRemoteOtelParser struct {
+type prometheusRemoteOtelParser struct {
 	SfxGatewayCompatability bool
 	totalNans               int64
 	totalInvalidRequests    int64
 	totalBadMetrics         int64
 }
 
-func (prwParser *PrometheusRemoteOtelParser) FromPrometheusWriteRequestMetrics(request *prompb.WriteRequest) (pmetric.Metrics, error) {
+func (prwParser *prometheusRemoteOtelParser) fromPrometheusWriteRequestMetrics(request *prompb.WriteRequest) (pmetric.Metrics, error) {
 	var otelMetrics pmetric.Metrics
 	metricFamiliesAndData, err := prwParser.partitionWriteRequest(request)
 	if nil == err {
-		otelMetrics, err = prwParser.TransformPrometheusRemoteWriteToOtel(metricFamiliesAndData)
+		otelMetrics, err = prwParser.transformPrometheusRemoteWriteToOtel(metricFamiliesAndData)
 	}
 	if prwParser.SfxGatewayCompatability {
 		if otelMetrics == pmetric.NewMetrics() {
@@ -64,7 +64,7 @@ func (prwParser *PrometheusRemoteOtelParser) FromPrometheusWriteRequestMetrics(r
 	return otelMetrics, err
 }
 
-func (prwParser *PrometheusRemoteOtelParser) TransformPrometheusRemoteWriteToOtel(parsedPrwMetrics map[string][]MetricData) (pmetric.Metrics, error) {
+func (prwParser *prometheusRemoteOtelParser) transformPrometheusRemoteWriteToOtel(parsedPrwMetrics map[string][]metricData) (pmetric.Metrics, error) {
 	metric := pmetric.NewMetrics()
 	rm := metric.ResourceMetrics().AppendEmpty()
 	ilm := rm.ScopeMetrics().AppendEmpty()
@@ -80,8 +80,8 @@ func (prwParser *PrometheusRemoteOtelParser) TransformPrometheusRemoteWriteToOte
 	return metric, translationErrors
 }
 
-func (prwParser *PrometheusRemoteOtelParser) partitionWriteRequest(writeReq *prompb.WriteRequest) (map[string][]MetricData, error) {
-	partitions := make(map[string][]MetricData)
+func (prwParser *prometheusRemoteOtelParser) partitionWriteRequest(writeReq *prompb.WriteRequest) (map[string][]metricData, error) {
+	partitions := make(map[string][]metricData)
 	var translationErrors error
 	for index, ts := range writeReq.Timeseries {
 		metricName, err := internal.ExtractMetricNameLabel(ts.Labels)
@@ -98,7 +98,7 @@ func (prwParser *PrometheusRemoteOtelParser) partitionWriteRequest(writeReq *pro
 			MetricFamilyName: metricFamilyName,
 			Type:             metricType,
 		}
-		metricData := MetricData{
+		metricData := metricData{
 			Labels:         ts.Labels,
 			Samples:        writeReq.Timeseries[index].Samples,
 			Exemplars:      writeReq.Timeseries[index].Exemplars,
@@ -117,7 +117,7 @@ func (prwParser *PrometheusRemoteOtelParser) partitionWriteRequest(writeReq *pro
 
 // This actually converts from a prometheus prompdb.MetaDataType to the closest equivalent otel type
 // See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/13bcae344506fe2169b59d213361d04094c651f6/receiver/prometheusreceiver/internal/util.go#L106
-func (prwParser *PrometheusRemoteOtelParser) addMetrics(ilm pmetric.ScopeMetrics, family string, metrics []MetricData) error {
+func (prwParser *prometheusRemoteOtelParser) addMetrics(ilm pmetric.ScopeMetrics, family string, metrics []metricData) error {
 	if family == "" || len(metrics) == 0 {
 		return errors.New("missing name or metrics")
 	}
@@ -152,7 +152,7 @@ func (prwParser *PrometheusRemoteOtelParser) addMetrics(ilm pmetric.ScopeMetrics
 	return err
 }
 
-func (prwParser *PrometheusRemoteOtelParser) scaffoldNewMetric(ilm pmetric.ScopeMetrics, name string, metricsMetadata prompb.MetricMetadata) pmetric.Metric {
+func (prwParser *prometheusRemoteOtelParser) scaffoldNewMetric(ilm pmetric.ScopeMetrics, name string, metricsMetadata prompb.MetricMetadata) pmetric.Metric {
 	nm := ilm.Metrics().AppendEmpty()
 	nm.SetUnit(metricsMetadata.Unit)
 	nm.SetDescription(metricsMetadata.GetHelp())
@@ -161,7 +161,7 @@ func (prwParser *PrometheusRemoteOtelParser) scaffoldNewMetric(ilm pmetric.Scope
 }
 
 // addBadRequests is used to report write requests with invalid data
-func (prwParser *PrometheusRemoteOtelParser) addBadRequests(ilm pmetric.ScopeMetrics, start time.Time, end time.Time) {
+func (prwParser *prometheusRemoteOtelParser) addBadRequests(ilm pmetric.ScopeMetrics, start time.Time, end time.Time) {
 	if !prwParser.SfxGatewayCompatability {
 		return
 	}
@@ -177,7 +177,7 @@ func (prwParser *PrometheusRemoteOtelParser) addBadRequests(ilm pmetric.ScopeMet
 }
 
 // addMetricsWithMissingName is used to report metrics in the remote write request without names
-func (prwParser *PrometheusRemoteOtelParser) addMetricsWithMissingName(ilm pmetric.ScopeMetrics, start time.Time, end time.Time) {
+func (prwParser *prometheusRemoteOtelParser) addMetricsWithMissingName(ilm pmetric.ScopeMetrics, start time.Time, end time.Time) {
 	if !prwParser.SfxGatewayCompatability {
 		return
 	}
@@ -194,7 +194,7 @@ func (prwParser *PrometheusRemoteOtelParser) addMetricsWithMissingName(ilm pmetr
 }
 
 // addNanDataPoints is an sfx compatibility error metric
-func (prwParser *PrometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeMetrics, start time.Time, end time.Time) {
+func (prwParser *prometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeMetrics, start time.Time, end time.Time) {
 	if !prwParser.SfxGatewayCompatability {
 		return
 	}
@@ -210,7 +210,7 @@ func (prwParser *PrometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeM
 }
 
 // addGaugeMetrics handles any scalar metric family which can go up or down
-func (prwParser *PrometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMetrics, metrics []MetricData, metadata prompb.MetricMetadata) {
+func (prwParser *prometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMetrics, metrics []metricData, metadata prompb.MetricMetadata) {
 	for _, metricsData := range metrics {
 		if metricsData.MetricName == "" && prwParser.SfxGatewayCompatability {
 			atomic.AddInt64(&prwParser.totalBadMetrics, 1)
@@ -234,7 +234,7 @@ func (prwParser *PrometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMe
 }
 
 // addCounterMetrics handles any scalar metric family which can only goes up, and are cumulative
-func (prwParser *PrometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.ScopeMetrics, metrics []MetricData, metadata prompb.MetricMetadata) {
+func (prwParser *prometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.ScopeMetrics, metrics []metricData, metadata prompb.MetricMetadata) {
 	for _, metricsData := range metrics {
 		if metricsData.MetricName == "" && prwParser.SfxGatewayCompatability {
 			atomic.AddInt64(&prwParser.totalBadMetrics, 1)
@@ -290,7 +290,7 @@ func getWriteRequestTimestampBounds(request *prompb.WriteRequest) (time.Time, ti
 	return time.UnixMilli(minTimestamp), time.UnixMilli(maxTimestamp)
 }
 
-func (prwParser *PrometheusRemoteOtelParser) setFloatOrInt(dp pmetric.NumberDataPoint, sample prompb.Sample) error {
+func (prwParser *prometheusRemoteOtelParser) setFloatOrInt(dp pmetric.NumberDataPoint, sample prompb.Sample) error {
 	if math.IsNaN(sample.Value) {
 		return fmt.Errorf("NAN value found")
 	}
@@ -306,7 +306,7 @@ func prometheusToOtelTimestamp(ts int64) pcommon.Timestamp {
 	return pcommon.Timestamp(ts * int64(time.Millisecond))
 }
 
-func (prwParser *PrometheusRemoteOtelParser) setAttributes(dp pmetric.NumberDataPoint, labels []prompb.Label) {
+func (prwParser *prometheusRemoteOtelParser) setAttributes(dp pmetric.NumberDataPoint, labels []prompb.Label) {
 	for _, attr := range labels {
 		if attr.Name != "__name__" {
 			dp.Attributes().PutStr(attr.Name, attr.Value)

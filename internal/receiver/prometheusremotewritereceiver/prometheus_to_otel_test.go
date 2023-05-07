@@ -31,7 +31,7 @@ import (
 func TestParseNoSfxCompat(t *testing.T) {
 	reporter := newMockReporter()
 	require.NotEmpty(t, reporter)
-	parser := &PrometheusRemoteOtelParser{}
+	parser := &prometheusRemoteOtelParser{}
 
 	require.False(t, parser.SfxGatewayCompatability)
 
@@ -51,7 +51,7 @@ func TestParseNoSfxCompat(t *testing.T) {
 
 	for _, test := range shouldFailTestCases {
 		t.Run(test.Name, func(tt *testing.T) {
-			metrics, err := parser.FromPrometheusWriteRequestMetrics(test.Sample)
+			metrics, err := parser.fromPrometheusWriteRequestMetrics(test.Sample)
 			assert.ErrorContains(t, err, "support")
 			assert.NotNil(t, metrics)
 			assert.Empty(t, metrics.DataPointCount())
@@ -74,7 +74,7 @@ func TestParseNoSfxCompat(t *testing.T) {
 
 	for _, test := range shouldBeTransparentTestCases {
 		t.Run(test.Name, func(tt *testing.T) {
-			metrics, err := parser.FromPrometheusWriteRequestMetrics(test.Sample)
+			metrics, err := parser.fromPrometheusWriteRequestMetrics(test.Sample)
 			assert.NoError(t, err)
 			assert.NotNil(t, metrics)
 			assert.NotEmpty(t, metrics.DataPointCount())
@@ -86,17 +86,17 @@ func TestParseNoSfxCompat(t *testing.T) {
 func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 	reporter := newMockReporter()
 	require.NotNil(t, reporter)
-	parser := &PrometheusRemoteOtelParser{SfxGatewayCompatability: true}
+	parser := &prometheusRemoteOtelParser{SfxGatewayCompatability: true}
 
 	sampleWriteRequests := testdata.FlattenWriteRequests(testdata.GetWriteRequestsOfAllTypesWithoutMetadata())
 	noMdPartitions, err := parser.partitionWriteRequest(sampleWriteRequests)
 	require.NoError(t, err)
 	require.Empty(t, sampleWriteRequests.Metadata, "NoMetadata (heuristical) portion of test contains metadata")
 
-	noMdMap := make(map[string]map[string][]MetricData)
+	noMdMap := make(map[string]map[string][]metricData)
 	for key, partition := range noMdPartitions {
 		require.Nil(t, noMdMap[key])
-		noMdMap[key] = make(map[string][]MetricData)
+		noMdMap[key] = make(map[string][]metricData)
 
 		for _, md := range partition {
 			assert.Equal(t, key, md.MetricMetadata.MetricFamilyName)
@@ -113,7 +113,7 @@ func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 		}
 	}
 
-	results, err := parser.TransformPrometheusRemoteWriteToOtel(noMdPartitions)
+	results, err := parser.transformPrometheusRemoteWriteToOtel(noMdPartitions)
 	require.NoError(t, err)
 
 	typesSeen := mapset.NewSet[pmetric.MetricType]()
@@ -165,8 +165,8 @@ func TestAddMetricsHappyPath(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			reporter := newMockReporter()
 			require.NotNil(t, reporter)
-			parser := &PrometheusRemoteOtelParser{SfxGatewayCompatability: true}
-			actual, err := parser.FromPrometheusWriteRequestMetrics(tc.Sample)
+			parser := &prometheusRemoteOtelParser{SfxGatewayCompatability: true}
+			actual, err := parser.fromPrometheusWriteRequestMetrics(tc.Sample)
 			assert.NoError(t, err)
 
 			require.NoError(t, pmetrictest.CompareMetrics(tc.Expected, actual,

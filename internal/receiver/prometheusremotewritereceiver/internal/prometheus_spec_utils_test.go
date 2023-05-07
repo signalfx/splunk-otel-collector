@@ -23,11 +23,11 @@ import (
 )
 
 func TestGetMetricFamilyName(t *testing.T) {
-	assert.Equal(t, "rpc_duration_seconds", GetBaseMetricFamilyName("rpc_duration_seconds"))
-	assert.Equal(t, "rpc_duration_seconds", GetBaseMetricFamilyName("rpc_duration_seconds_count"))
-	assert.Equal(t, "rpc_duration_seconds", GetBaseMetricFamilyName("rpc_duration_seconds_total"))
-	assert.Equal(t, "rpc_duration_seconds", GetBaseMetricFamilyName("rpc_duration_seconds_sum"))
-	assert.Equal(t, "rpc_duration_seconds", GetBaseMetricFamilyName("rpc_duration_seconds_bucket"))
+	assert.Equal(t, "rpc_duration_seconds", DetermineBaseMetricFamilyNameByConvention("rpc_duration_seconds"))
+	assert.Equal(t, "rpc_duration_seconds", DetermineBaseMetricFamilyNameByConvention("rpc_duration_seconds_count"))
+	assert.Equal(t, "rpc_duration_seconds", DetermineBaseMetricFamilyNameByConvention("rpc_duration_seconds_total"))
+	assert.Equal(t, "rpc_duration_seconds", DetermineBaseMetricFamilyNameByConvention("rpc_duration_seconds_sum"))
+	assert.Equal(t, "rpc_duration_seconds", DetermineBaseMetricFamilyNameByConvention("rpc_duration_seconds_bucket"))
 }
 
 func TestGetMetricTypeByLabels(t *testing.T) {
@@ -88,9 +88,9 @@ func TestGetMetricTypeByLabels(t *testing.T) {
 	for _, tc := range testCases {
 		metricName, err := ExtractMetricNameLabel(tc.labels)
 		require.NoError(t, err)
-		metricType := GuessMetricTypeByLabels(metricName, tc.labels)
+		metricType := DetermineMetricTypeByConvention(metricName, tc.labels)
 		if metricType != tc.metricType {
-			t.Errorf("GuessMetricTypeByLabels(%v) = %v; want %v", tc.labels, metricType, tc.metricType)
+			t.Errorf("DetermineMetricTypeByConvention(%v) = %v; want %v", tc.labels, metricType, tc.metricType)
 		}
 	}
 }

@@ -88,12 +88,12 @@ func (prwParser *PrometheusRemoteOtelParser) partitionWriteRequest(writeReq *pro
 		if err != nil {
 			translationErrors = multierr.Append(translationErrors, err)
 		}
-		metricFamilyName := internal.GetBaseMetricFamilyName(metricName)
+		metricFamilyName := internal.DetermineBaseMetricFamilyNameByConvention(metricName)
 		if metricFamilyName == "" {
 			translationErrors = multierr.Append(translationErrors, fmt.Errorf("metric family name missing: %s", metricName))
 		}
 
-		metricType := internal.GuessMetricTypeByLabels(metricName, ts.Labels)
+		metricType := internal.DetermineMetricTypeByConvention(metricName, ts.Labels)
 		metricMetadata := prompb.MetricMetadata{
 			MetricFamilyName: metricFamilyName,
 			Type:             metricType,

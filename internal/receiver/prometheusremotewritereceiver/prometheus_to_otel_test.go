@@ -17,7 +17,6 @@ package prometheusremotewritereceiver
 import (
 	"testing"
 
-	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 	"github.com/prometheus/prometheus/prompb"
 	"github.com/stretchr/testify/assert"
@@ -114,18 +113,21 @@ func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 	results, err := parser.transformPrometheusRemoteWriteToOtel(noMdPartitions)
 	require.NoError(t, err)
 
-	typesSeen := mapset.NewSet[pmetric.MetricType]()
+	typesSeen := make(map[pmetric.MetricType][]string)
 	for resourceMetricsIndex := 0; resourceMetricsIndex < results.ResourceMetrics().Len(); resourceMetricsIndex++ {
 		rm := results.ResourceMetrics().At(resourceMetricsIndex)
 		for scopeMetricsIndex := 0; scopeMetricsIndex < rm.ScopeMetrics().Len(); scopeMetricsIndex++ {
 			sm := rm.ScopeMetrics().At(scopeMetricsIndex)
 			for metricsIndex := 0; metricsIndex < sm.Metrics().Len(); metricsIndex++ {
 				metric := sm.Metrics().At(metricsIndex)
-				typesSeen.Add(metric.Type())
+				typesSeen[metric.Type()] = append(typesSeen[metric.Type()], metric.Name())
 			}
 		}
 	}
-	expectedTypesSeen := mapset.NewSet(pmetric.MetricTypeSum, pmetric.MetricTypeGauge)
+	expectedTypesSeen := map[pmetric.MetricType][]string{
+		pmetric.MetricTypeSum:   {"http_requests_total", "api_request_duration_seconds_bucket", "api_request_duration_seconds_bucket", "api_request_duration_seconds_count", "api_request_duration_seconds_sum"},
+		pmetric.MetricTypeGauge: {"i_am_a_gauge", "request_duration_seconds", "request_duration_seconds", "request_duration_seconds_sum", "request_duration_seconds_count"},
+	}
 	require.Equal(t, expectedTypesSeen, typesSeen)
 
 }

@@ -25,13 +25,13 @@ import (
 // mockReporter provides a reporter that provides some useful functionalities for
 // tests (e.g.: wait for certain number of messages).
 type mockReporter struct {
-	TotalSuccessMetrics int32
-	TotalErrorMetrics   int32
 	OpsSuccess          *sync.WaitGroup
 	OpsStarted          *sync.WaitGroup
 	OpsFailed           *sync.WaitGroup
 	Errors              []error
 	ErrorLocation       []string
+	TotalSuccessMetrics int32
+	TotalErrorMetrics   int32
 }
 
 var _ reporter = (*mockReporter)(nil)

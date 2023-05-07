@@ -26,7 +26,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.uber.org/multierr"
 
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal"
 )
 
 type metricData struct {

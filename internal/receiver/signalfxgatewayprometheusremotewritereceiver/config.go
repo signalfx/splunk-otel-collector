@@ -25,7 +25,7 @@ import (
 var _ component.Config = (*Config)(nil)
 
 const (
-	typeString = "prometheusremotewrite"
+	typeString = "signalfxgatewayprometheusremotewrite"
 )
 
 type Config struct {

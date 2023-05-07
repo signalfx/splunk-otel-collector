@@ -1,0 +1,25 @@
+version: "3.1"
+services:
+  otelcollector:
+    image:  otelcol:latest
+    container_name: otelcollector
+    environment:
+      - SPLUNK_ACCESS_TOKEN=${SPLUNK_ACCESS_TOKEN}
+      - SPLUNK_REALM=${SPLUNK_REALM}
+      - ENDPOINT="http://otelcollector:54090"
+      - LISTEN_PATH="/metrics"
+    command: ["--config=/etc/otel-collector-config.yaml", "--set=service.telemetry.logs.level=debug"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "54090:54090"
+      - "8888:8888"
+
+  fake_metrics_generator:
+    build:
+      context: .
+      dockerfile: Dockerfile.fake-metrics-generator
+    depends_on:
+      - otelcollector
+    environment:
+      - TARGET_URL=http://otelcollector:54090/metrics

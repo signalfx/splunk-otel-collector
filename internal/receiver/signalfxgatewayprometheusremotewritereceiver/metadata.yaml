@@ -1,6 +1,6 @@
-name: "signalfxgatewayprometheusremotewritereceiver"
+type: "signalfxgatewayprometheusremotewritereceiver"
 status:
-  type: "receiver"
+  class: "receiver"
   stability: "development"
   pipelines: ["metrics"]
   distributions: ["splunk"]

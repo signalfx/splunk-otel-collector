@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package testdata
+package prometheusremotewritereceiver
 
 import (
+	"testing"
 	"time"
 
 	"github.com/prometheus/prometheus/prompb"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
@@ -389,5 +392,17 @@ func FlattenWriteRequests(request []*prompb.WriteRequest) *prompb.WriteRequest {
 	return &prompb.WriteRequest{
 		Timeseries: ts,
 		Metadata:   md,
+	}
+}
+
+func TestBasicNoMd(t *testing.T) {
+	wqs := GetWriteRequestsOfAllTypesWithoutMetadata()
+	require.NotNil(t, wqs)
+	for _, wq := range wqs {
+		for _, ts := range wq.Timeseries {
+			require.NotNil(t, ts)
+			assert.NotEmpty(t, ts.Labels)
+		}
+		require.Empty(t, wq.Metadata)
 	}
 }

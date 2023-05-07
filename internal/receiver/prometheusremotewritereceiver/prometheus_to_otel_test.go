@@ -23,8 +23,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal/testdata"
 )
 
 // for now, we only support sfx compatibility
@@ -41,11 +39,11 @@ func TestParseNoSfxCompat(t *testing.T) {
 	}{
 		{
 			Name:   "quantile",
-			Sample: testdata.SampleSummaryWq(),
+			Sample: SampleSummaryWq(),
 		},
 		{
 			Name:   "histogram",
-			Sample: testdata.SampleHistogramWq(),
+			Sample: SampleHistogramWq(),
 		},
 	}
 
@@ -64,11 +62,11 @@ func TestParseNoSfxCompat(t *testing.T) {
 	}{
 		{
 			Name:   "counter",
-			Sample: testdata.SampleCounterWq(),
+			Sample: SampleCounterWq(),
 		},
 		{
 			Name:   "gauge",
-			Sample: testdata.SampleGaugeWq(),
+			Sample: SampleGaugeWq(),
 		},
 	}
 
@@ -88,7 +86,7 @@ func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 	require.NotNil(t, reporter)
 	parser := &prometheusRemoteOtelParser{SfxGatewayCompatability: true}
 
-	sampleWriteRequests := testdata.FlattenWriteRequests(testdata.GetWriteRequestsOfAllTypesWithoutMetadata())
+	sampleWriteRequests := FlattenWriteRequests(GetWriteRequestsOfAllTypesWithoutMetadata())
 	noMdPartitions, err := parser.partitionWriteRequest(sampleWriteRequests)
 	require.NoError(t, err)
 	require.Empty(t, sampleWriteRequests.Metadata, "NoMetadata (heuristical) portion of test contains metadata")
@@ -141,23 +139,23 @@ func TestAddMetricsHappyPath(t *testing.T) {
 	}{
 		{
 			Name:     "test counters",
-			Sample:   testdata.SampleCounterWq(),
-			Expected: testdata.AddSfxCompatibilityMetrics(testdata.ExpectedCounter(), 0, 0, 0),
+			Sample:   SampleCounterWq(),
+			Expected: AddSfxCompatibilityMetrics(ExpectedCounter(), 0, 0, 0),
 		},
 		{
 			Name:     "test gauges",
-			Sample:   testdata.SampleGaugeWq(),
-			Expected: testdata.AddSfxCompatibilityMetrics(testdata.ExpectedGauge(), 0, 0, 0),
+			Sample:   SampleGaugeWq(),
+			Expected: AddSfxCompatibilityMetrics(ExpectedGauge(), 0, 0, 0),
 		},
 		{
 			Name:     "test histograms",
-			Sample:   testdata.SampleHistogramWq(),
-			Expected: testdata.AddSfxCompatibilityMetrics(testdata.ExpectedSfxCompatibleHistogram(), 0, 0, 0),
+			Sample:   SampleHistogramWq(),
+			Expected: AddSfxCompatibilityMetrics(ExpectedSfxCompatibleHistogram(), 0, 0, 0),
 		},
 		{
 			Name:     "test quantiles",
-			Sample:   testdata.SampleSummaryWq(),
-			Expected: testdata.AddSfxCompatibilityMetrics(testdata.ExpectedSfxCompatibleQuantile(), 0, 0, 0),
+			Sample:   SampleSummaryWq(),
+			Expected: AddSfxCompatibilityMetrics(ExpectedSfxCompatibleQuantile(), 0, 0, 0),
 		},
 	}
 

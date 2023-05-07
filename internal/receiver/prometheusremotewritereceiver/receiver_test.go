@@ -27,8 +27,6 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/receivertest"
-
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal/testdata"
 )
 
 func TestEmptySend(t *testing.T) {
@@ -97,7 +95,7 @@ func TestSuccessfulSend(t *testing.T) {
 	mockSettings := receivertest.NewNopCreateSettings()
 	mockConsumer := consumertest.NewNop()
 
-	sampleNoMdMetrics := testdata.GetWriteRequestsOfAllTypesWithoutMetadata()
+	sampleNoMdMetrics := GetWriteRequestsOfAllTypesWithoutMetadata()
 	mockreporter := newMockReporter()
 
 	receiver, err := New(mockSettings, cfg, mockConsumer)
@@ -184,10 +182,10 @@ func TestSendWithError(t *testing.T) {
 	mockreporter.AddExpectedStart(4)
 	mockreporter.AddExpectedSuccess(2)
 	mockreporter.AddExpectedError(2)
-	assert.NoError(t, client.SendWriteRequest(testdata.SampleCounterWq()))
-	assert.NoError(t, client.SendWriteRequest(testdata.SampleGaugeWq()))
-	assert.Errorf(t, client.SendWriteRequest(testdata.SampleHistogramWq()), "support")
-	assert.Errorf(t, client.SendWriteRequest(testdata.SampleSummaryWq()), "support")
+	assert.NoError(t, client.SendWriteRequest(SampleCounterWq()))
+	assert.NoError(t, client.SendWriteRequest(SampleGaugeWq()))
+	assert.Errorf(t, client.SendWriteRequest(SampleHistogramWq()), "support")
+	assert.Errorf(t, client.SendWriteRequest(SampleSummaryWq()), "support")
 
 	require.NoError(t, remoteWriteReceiver.Shutdown(ctx))
 }

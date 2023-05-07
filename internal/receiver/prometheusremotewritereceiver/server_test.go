@@ -26,8 +26,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-
-	"github.com/signalfx/splunk-otel-collector/internal/receiver/prometheusremotewritereceiver/internal/testdata"
 )
 
 func TestWriteEmpty(t *testing.T) {
@@ -122,7 +120,7 @@ func TestWriteMany(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	time.Sleep(100 * time.Millisecond)
-	wqs := testdata.GetWriteRequestsOfAllTypesWithoutMetadata()
+	wqs := GetWriteRequestsOfAllTypesWithoutMetadata()
 	for _, wq := range wqs {
 		require.NoError(t, client.SendWriteRequest(wq))
 	}

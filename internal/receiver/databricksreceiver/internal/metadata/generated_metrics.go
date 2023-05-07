@@ -8298,18 +8298,21 @@ type MetricsBuilderConfig struct {
 // MetricsBuilder provides an interface for scrapers to report metrics while taking care of all the transformations
 // required to produce metric representation defined in metadata and user settings.
 type MetricsBuilder struct {
-	metricsBuffer                                                                                                            pmetric.Metrics
-	buildInfo                                                                                                                component.BuildInfo
-	metricDatabricksSparkExecutorMetricsMappedPoolMemory                                                                     metricDatabricksSparkExecutorMetricsMappedPoolMemory
-	metricDatabricksSparkBlockManagerMemoryOnHeapMax                                                                         metricDatabricksSparkBlockManagerMemoryOnHeapMax
+	startTime                                                                                                                pcommon.Timestamp   // start time that will be applied to all recorded data points.
+	metricsCapacity                                                                                                          int                 // maximum observed number of metrics per resource.
+	resourceCapacity                                                                                                         int                 // maximum observed number of resource attributes.
+	metricsBuffer                                                                                                            pmetric.Metrics     // accumulates metrics data before emitting.
+	buildInfo                                                                                                                component.BuildInfo // contains version information
+	resourceAttributesSettings                                                                                               ResourceAttributesSettings
+	metricDatabricksJobsActiveTotal                                                                                          metricDatabricksJobsActiveTotal
+	metricDatabricksJobsRunDuration                                                                                          metricDatabricksJobsRunDuration
 	metricDatabricksJobsScheduleStatus                                                                                       metricDatabricksJobsScheduleStatus
-	metricDatabricksTasksScheduleStatus                                                                                      metricDatabricksTasksScheduleStatus
 	metricDatabricksJobsTotal                                                                                                metricDatabricksJobsTotal
 	metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed                                                                     metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed
 	metricDatabricksSparkBlockManagerMemoryMax                                                                               metricDatabricksSparkBlockManagerMemoryMax
 	metricDatabricksSparkBlockManagerMemoryOffHeapMax                                                                        metricDatabricksSparkBlockManagerMemoryOffHeapMax
 	metricDatabricksSparkBlockManagerMemoryOffHeapUsed                                                                       metricDatabricksSparkBlockManagerMemoryOffHeapUsed
-	metricDatabricksSparkExecutorMetricsMinorGcCount                                                                         metricDatabricksSparkExecutorMetricsMinorGcCount
+	metricDatabricksSparkBlockManagerMemoryOnHeapMax                                                                         metricDatabricksSparkBlockManagerMemoryOnHeapMax
 	metricDatabricksSparkBlockManagerMemoryOnHeapUsed                                                                        metricDatabricksSparkBlockManagerMemoryOnHeapUsed
 	metricDatabricksSparkBlockManagerMemoryRemaining                                                                         metricDatabricksSparkBlockManagerMemoryRemaining
 	metricDatabricksSparkBlockManagerMemoryRemainingOffHeap                                                                  metricDatabricksSparkBlockManagerMemoryRemainingOffHeap
@@ -8353,7 +8356,7 @@ type MetricsBuilder struct {
 	metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount              metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount
 	metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount                              metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount
 	metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime                                   metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime
-	metricDatabricksSparkExecutorMetricsMinorGcTime                                                                          metricDatabricksSparkExecutorMetricsMinorGcTime
+	metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount                                    metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount
 	metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount                                          metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount
 	metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount                                          metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount
 	metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved                                           metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved
@@ -8370,9 +8373,9 @@ type MetricsBuilder struct {
 	metricDatabricksSparkExecutorMetricsJvmOffHeapMemory                                                                     metricDatabricksSparkExecutorMetricsJvmOffHeapMemory
 	metricDatabricksSparkExecutorMetricsMajorGcCount                                                                         metricDatabricksSparkExecutorMetricsMajorGcCount
 	metricDatabricksSparkExecutorMetricsMajorGcTime                                                                          metricDatabricksSparkExecutorMetricsMajorGcTime
-	metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize                                                          metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize
-	metricDatabricksJobsRunDuration                                                                                          metricDatabricksJobsRunDuration
-	metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount                                    metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount
+	metricDatabricksSparkExecutorMetricsMappedPoolMemory                                                                     metricDatabricksSparkExecutorMetricsMappedPoolMemory
+	metricDatabricksSparkExecutorMetricsMinorGcCount                                                                         metricDatabricksSparkExecutorMetricsMinorGcCount
+	metricDatabricksSparkExecutorMetricsMinorGcTime                                                                          metricDatabricksSparkExecutorMetricsMinorGcTime
 	metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory                                                               metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory
 	metricDatabricksSparkExecutorMetricsOffHeapStorageMemory                                                                 metricDatabricksSparkExecutorMetricsOffHeapStorageMemory
 	metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory                                                                 metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory
@@ -8404,7 +8407,7 @@ type MetricsBuilder struct {
 	metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount                                                     metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount
 	metricDatabricksSparkLiveListenerBusQueueAppstatusSize                                                                   metricDatabricksSparkLiveListenerBusQueueAppstatusSize
 	metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount                                            metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount
-	metricDatabricksJobsActiveTotal                                                                                          metricDatabricksJobsActiveTotal
+	metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize                                                          metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize
 	metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount                                                        metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount
 	metricDatabricksSparkLiveListenerBusQueueSharedSize                                                                      metricDatabricksSparkLiveListenerBusQueueSharedSize
 	metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount                                                       metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount
@@ -8440,10 +8443,7 @@ type MetricsBuilder struct {
 	metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime                                               metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime
 	metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime                                              metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime
 	metricDatabricksTasksRunDuration                                                                                         metricDatabricksTasksRunDuration
-	startTime                                                                                                                pcommon.Timestamp
-	metricsCapacity                                                                                                          int
-	resourceCapacity                                                                                                         int
-	resourceAttributesSettings                                                                                               ResourceAttributesSettings
+	metricDatabricksTasksScheduleStatus                                                                                      metricDatabricksTasksScheduleStatus
 }
 
 // metricBuilderOption applies changes to default metrics builder.

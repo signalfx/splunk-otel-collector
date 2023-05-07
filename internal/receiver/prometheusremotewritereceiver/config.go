@@ -35,8 +35,6 @@ type Config struct {
 	confighttp.HTTPServerSettings `mapstructure:",squash"`
 	// BufferSize is the degree to which metric translations may be buffered without blocking further write requests.
 	BufferSize int `mapstructure:"buffer_size"`
-	// SfxGatewayCompatability will convert le, quantile, and other histogram likemetrics into a counter instead.
-	SfxGatewayCompatibility bool `mapstructure:"sfx_gateway_compatibility"`
 }
 
 func (c *Config) Validate() error {

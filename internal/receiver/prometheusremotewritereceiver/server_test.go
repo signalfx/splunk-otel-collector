@@ -34,7 +34,7 @@ func TestWriteEmpty(t *testing.T) {
 	freePort, err := GetFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
-	parser := &prometheusRemoteOtelParser{SfxGatewayCompatability: true}
+	parser := &prometheusRemoteOtelParser{}
 	require.NoError(t, err)
 	cfg := &serverConfig{
 		Path:     "/metrics",
@@ -86,7 +86,7 @@ func TestWriteMany(t *testing.T) {
 	freePort, err := GetFreePort()
 	require.NoError(t, err)
 	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
-	parser := &prometheusRemoteOtelParser{SfxGatewayCompatability: true}
+	parser := &prometheusRemoteOtelParser{}
 	require.NoError(t, err)
 	cfg := &serverConfig{
 		Path:     "/metrics",

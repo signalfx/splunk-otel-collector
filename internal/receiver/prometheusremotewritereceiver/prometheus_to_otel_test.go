@@ -22,68 +22,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"golang.org/x/exp/maps"
 )
-
-// for now, we only support sfx compatibility
-func TestParseNoSfxCompat(t *testing.T) {
-	reporter := newMockReporter()
-	require.NotEmpty(t, reporter)
-	parser := &prometheusRemoteOtelParser{}
-
-	require.False(t, parser.SfxGatewayCompatability)
-
-	shouldFailTestCases := []struct {
-		Sample *prompb.WriteRequest
-		Name   string
-	}{
-		{
-			Name:   "quantile",
-			Sample: SampleSummaryWq(),
-		},
-		{
-			Name:   "histogram",
-			Sample: SampleHistogramWq(),
-		},
-	}
-
-	for _, test := range shouldFailTestCases {
-		t.Run(test.Name, func(tt *testing.T) {
-			metrics, err := parser.fromPrometheusWriteRequestMetrics(test.Sample)
-			assert.ErrorContains(t, err, "support")
-			assert.NotNil(t, metrics)
-			assert.Empty(t, metrics.DataPointCount())
-		})
-	}
-
-	shouldBeTransparentTestCases := []struct {
-		Sample *prompb.WriteRequest
-		Name   string
-	}{
-		{
-			Name:   "counter",
-			Sample: SampleCounterWq(),
-		},
-		{
-			Name:   "gauge",
-			Sample: SampleGaugeWq(),
-		},
-	}
-
-	for _, test := range shouldBeTransparentTestCases {
-		t.Run(test.Name, func(tt *testing.T) {
-			metrics, err := parser.fromPrometheusWriteRequestMetrics(test.Sample)
-			assert.NoError(t, err)
-			assert.NotNil(t, metrics)
-			assert.NotEmpty(t, metrics.DataPointCount())
-		})
-	}
-
-}
 
 func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 	reporter := newMockReporter()
 	require.NotNil(t, reporter)
-	parser := &prometheusRemoteOtelParser{SfxGatewayCompatability: true}
+	parser := &prometheusRemoteOtelParser{}
 
 	sampleWriteRequests := FlattenWriteRequests(GetWriteRequestsOfAllTypesWithoutMetadata())
 	noMdPartitions, err := parser.partitionWriteRequest(sampleWriteRequests)
@@ -128,7 +73,10 @@ func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 		pmetric.MetricTypeSum:   {"http_requests_total", "api_request_duration_seconds_bucket", "api_request_duration_seconds_bucket", "api_request_duration_seconds_count", "api_request_duration_seconds_sum"},
 		pmetric.MetricTypeGauge: {"i_am_a_gauge", "request_duration_seconds", "request_duration_seconds", "request_duration_seconds_sum", "request_duration_seconds_count"},
 	}
-	require.Equal(t, expectedTypesSeen, typesSeen)
+	require.ElementsMatch(t, maps.Keys(expectedTypesSeen), maps.Keys(typesSeen))
+	for key, values := range typesSeen {
+		require.ElementsMatch(t, expectedTypesSeen[key], values)
+	}
 
 }
 
@@ -165,7 +113,7 @@ func TestAddMetricsHappyPath(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			reporter := newMockReporter()
 			require.NotNil(t, reporter)
-			parser := &prometheusRemoteOtelParser{SfxGatewayCompatability: true}
+			parser := &prometheusRemoteOtelParser{}
 			actual, err := parser.fromPrometheusWriteRequestMetrics(tc.Sample)
 			assert.NoError(t, err)
 

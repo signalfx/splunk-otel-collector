@@ -46,8 +46,7 @@ func createDefaultConfig() component.Config {
 		HTTPServerSettings: confighttp.HTTPServerSettings{
 			Endpoint: "localhost:19291", // While not IANA registered, convention is 19291 as a common PRW port
 		},
-		ListenPath:              "/metrics",
-		BufferSize:              100,
-		SfxGatewayCompatibility: false,
+		ListenPath: "/metrics",
+		BufferSize: 100,
 	}
 }

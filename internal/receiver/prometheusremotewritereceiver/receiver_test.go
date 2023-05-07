@@ -41,7 +41,6 @@ func TestEmptySend(t *testing.T) {
 
 	cfg.Endpoint = expectedEndpoint
 	cfg.ListenPath = "/metrics"
-	cfg.SfxGatewayCompatibility = true
 
 	nopHost := componenttest.NewNopHost()
 	mockSettings := receivertest.NewNopCreateSettings()
@@ -89,7 +88,6 @@ func TestSuccessfulSend(t *testing.T) {
 
 	cfg.Endpoint = expectedEndpoint
 	cfg.ListenPath = "/metrics"
-	cfg.SfxGatewayCompatibility = true
 
 	nopHost := componenttest.NewNopHost()
 	mockSettings := receivertest.NewNopCreateSettings()
@@ -132,60 +130,6 @@ func TestSuccessfulSend(t *testing.T) {
 		// always will have 3 "health" metrics added when sfx gateway compatibility is enables
 		assert.GreaterOrEqual(t, mockreporter.TotalSuccessMetrics, int32(len(wq.Timeseries)+3))
 	}
-
-	require.NoError(t, remoteWriteReceiver.Shutdown(ctx))
-}
-
-func TestSendWithError(t *testing.T) {
-	timeout := time.Second * 10
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	cfg := createDefaultConfig().(*Config)
-	freePort, err := GetFreePort()
-	require.NoError(t, err)
-	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
-
-	cfg.Endpoint = expectedEndpoint
-	cfg.ListenPath = "/metrics"
-	cfg.SfxGatewayCompatibility = false
-
-	nopHost := componenttest.NewNopHost()
-	mockSettings := receivertest.NewNopCreateSettings()
-	mockConsumer := consumertest.NewNop()
-
-	mockreporter := newMockReporter()
-
-	receiver, err := New(mockSettings, cfg, mockConsumer)
-	remoteWriteReceiver := receiver.(*prometheusRemoteWriteReceiver)
-	remoteWriteReceiver.reporter = mockreporter
-
-	assert.NoError(t, err)
-	require.NotNil(t, remoteWriteReceiver)
-	require.NoError(t, remoteWriteReceiver.Start(ctx, nopHost))
-	require.NotEmpty(t, remoteWriteReceiver.server)
-	require.NotEmpty(t, remoteWriteReceiver.cancel)
-	require.NotEmpty(t, remoteWriteReceiver.config)
-	require.Equal(t, remoteWriteReceiver.config.Endpoint, fmt.Sprintf("localhost:%d", freePort))
-	require.NotEmpty(t, remoteWriteReceiver.settings)
-	require.NotNil(t, remoteWriteReceiver.reporter)
-	require.Equal(t, expectedEndpoint, remoteWriteReceiver.server.Addr)
-
-	client, err := NewMockPrwClient(
-		cfg.Endpoint,
-		"metrics",
-		time.Second*5,
-	)
-	require.NoError(t, err)
-	require.NotNil(t, client)
-
-	mockreporter.AddExpectedStart(4)
-	mockreporter.AddExpectedSuccess(2)
-	mockreporter.AddExpectedError(2)
-	assert.NoError(t, client.SendWriteRequest(SampleCounterWq()))
-	assert.NoError(t, client.SendWriteRequest(SampleGaugeWq()))
-	assert.Errorf(t, client.SendWriteRequest(SampleHistogramWq()), "support")
-	assert.Errorf(t, client.SendWriteRequest(SampleSummaryWq()), "support")
 
 	require.NoError(t, remoteWriteReceiver.Shutdown(ctx))
 }

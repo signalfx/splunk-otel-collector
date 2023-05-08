@@ -80,7 +80,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowseventlogreceiver v0.76.3
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsperfcountersreceiver v0.76.3
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.76.3
-	github.com/prometheus/client_model v0.3.0
+	github.com/prometheus/client_model v0.4.0
 	github.com/prometheus/common v0.42.0
 	github.com/prometheus/prometheus v0.43.1
 	github.com/signalfx/golib/v3 v3.3.50

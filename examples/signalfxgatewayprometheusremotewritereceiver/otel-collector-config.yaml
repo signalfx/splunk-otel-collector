@@ -9,10 +9,10 @@ extensions:
 processors:
   batch:
 exporters:
-#  signalfx:
-#    # to configure, see https://github:com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter
-#    access_token: "${SPLUNK_ACCESS_TOKEN}"
-#    realm: "${SPLUNK_REALM}"
+  signalfx:
+    # to configure, see https://github:com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/signalfxexporter
+    access_token: "${SPLUNK_ACCESS_TOKEN}"
+    realm: "${SPLUNK_REALM}"
   logging:
     verbosity: Detailed
 service:
@@ -20,11 +20,9 @@ service:
   #  metrics:
   #    address: ":19291"
   pipelines:
-    #    metrics/sfx:
-    #      receivers: [simpleprometheusremotewrite]
-    #      processors: [batch]
-    #      exporters: [signalfx]
-    metrics/logging:
+    metrics:
       receivers: ["signalfxgatewayprometheusremotewrite"]
       processors: ["batch"]
-      exporters: ["logging"]
+      exporters: 
+        - "logging"
+        - "signalfx"

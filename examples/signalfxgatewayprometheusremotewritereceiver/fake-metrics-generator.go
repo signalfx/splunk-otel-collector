@@ -1,31 +1,59 @@
+// Copyright OpenTelemetry Authors
+// Copyright Splunk, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
-	"bytes"
-	"fmt"
-	"net/http"
+	"context"
+	"net/url"
 	"os"
 	"time"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/snappy"
+	"github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/prompb"
+	"github.com/prometheus/prometheus/storage/remote"
 )
 
 func main() {
-	targetURL := os.Getenv("TARGET_URL")
-	if targetURL == "" {
-		targetURL = "http://otelcollector:19291/metrics"
+
+	URL := &config.URL{
+		URL: &url.URL{
+			Scheme: "http",
+			Host:   os.Getenv("endpoint"),
+			Path:   os.Getenv("path"),
+		},
+	}
+	cfg := &remote.ClientConfig{
+		URL:              URL,
+		HTTPClientConfig: config.HTTPClientConfig{},
+	}
+	client, err := remote.NewWriteClient("mock_prw_client", cfg)
+	if err != nil {
+		panic(err)
 	}
 
 	metrics := []prompb.TimeSeries{
 		{
 			Labels: []prompb.Label{
 				{Name: "__name__", Value: "fake_metric_total"},
-				{Name: "instance", Value: targetURL},
+				{Name: "instance", Value: cfg.URL.Host},
 			},
 			Samples: []prompb.Sample{
-				{Value: 42, Timestamp: time.Now().UnixNano() / int64(time.Millisecond)},
+				{Value: 42, Timestamp: time.Now().UnixMilli()},
 			},
 		},
 	}
@@ -33,24 +61,19 @@ func main() {
 	req := &prompb.WriteRequest{
 		Timeseries: metrics,
 	}
+	compressed := encodeWriteRequest(req)
 
-	data, err := proto.Marshal(req)
+	for {
+		err = client.Store(context.Background(), compressed)
+		time.Sleep(10 * time.Second)
+	}
+}
+
+func encodeWriteRequest(request *prompb.WriteRequest) []byte {
+	data, err := proto.Marshal(request)
 	if err != nil {
 		panic(err)
 	}
 
-	compressed := snappy.Encode(nil, data)
-
-	// Continuously send fake metrics
-	for {
-		_, err := http.Post(targetURL, "application/x-protobuf", bytes.NewReader(compressed))
-		if err != nil {
-			fmt.Printf("Error sending metrics: %v\n", err)
-		} else {
-			fmt.Println("Metrics sent successfully")
-		}
-
-		// Adjust the interval between metric sends as needed
-		time.Sleep(10 * time.Second)
-	}
+	return snappy.Encode(nil, data)
 }

@@ -46,10 +46,7 @@ func newPrometheusRemoteWriteServer(config *serverConfig) (*prometheusRemoteWrit
 	handler := newHandler(config.Parser, config, config.Mc)
 	mx.HandleFunc(config.Path, handler)
 	mx.Host(config.Endpoint)
-	// TODO is this really where it's thrown?  oh prolly in handler... .wait though lots of nils
-	// otelcollector             | go.opentelemetry.io/collector/config/confighttp.(*HTTPServerSettings).ToServer(0xc000dd2d80, {0x61fe798, 0xc002437730}, {0x0, {0x0, 0x0}, {0x0, 0x0}, 0x0}, {0x61c0fa0, ...}, ...)
 	server, err := config.HTTPServerSettings.ToServer(config.Host, config.TelemetrySettings, mx)
-	// Currently this is not set, in favor of the pattern where they always explicitly pass the listener
 	server.Addr = config.Endpoint
 	if err != nil {
 		return nil, err

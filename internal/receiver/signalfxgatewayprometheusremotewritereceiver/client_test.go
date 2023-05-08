@@ -17,7 +17,6 @@ package signalfxgatewayprometheusremotewritereceiver
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net"
 	"net/url"
 	"syscall"
@@ -80,7 +79,7 @@ func (prwc *MockPrwClient) SendWriteRequest(wr *prompb.WriteRequest) error {
 			return err
 		}
 	}
-	return fmt.Errorf("failed to send prometheus remote write requests to server with %d/3 retries remaining", retry)
+	return errors.New("failed to send prometheus remote write requests to server")
 }
 
 func GetFreePort() (int, error) {

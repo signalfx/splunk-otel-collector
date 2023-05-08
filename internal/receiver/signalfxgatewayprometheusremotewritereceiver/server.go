@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package prometheusremotewritereceiver
+package signalfxgatewayprometheusremotewritereceiver
 
 import (
-	"context"
 	"net/http"
 	"sync"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/prometheus/storage/remote"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -27,45 +27,45 @@ import (
 
 type prometheusRemoteWriteServer struct {
 	*http.Server
-	*ServerConfig
+	*serverConfig
 	closeChannel *sync.Once
 }
 
-type ServerConfig struct {
+type serverConfig struct {
 	Reporter reporter
 	component.Host
 	Mc chan<- pmetric.Metrics
 	component.TelemetrySettings
-	Path string
+	Path   string
+	Parser *prometheusRemoteOtelParser
 	confighttp.HTTPServerSettings
 }
 
-func newPrometheusRemoteWriteServer(ctx context.Context, config *ServerConfig) (*prometheusRemoteWriteServer, error) {
+func newPrometheusRemoteWriteServer(config *serverConfig) (*prometheusRemoteWriteServer, error) {
 	mx := mux.NewRouter()
-	handler := newHandler(ctx, config.Reporter, config, config.Mc)
+	handler := newHandler(config.Parser, config, config.Mc)
 	mx.HandleFunc(config.Path, handler)
 	mx.Host(config.Endpoint)
-	server, err := config.HTTPServerSettings.ToServer(config.Host, config.TelemetrySettings, handler)
-	// Currently this is not set, in favor of the pattern where they always explicitly pass the listener
+	server, err := config.HTTPServerSettings.ToServer(config.Host, config.TelemetrySettings, mx)
 	server.Addr = config.Endpoint
 	if err != nil {
 		return nil, err
 	}
 	return &prometheusRemoteWriteServer{
 		Server:       server,
-		ServerConfig: config,
+		serverConfig: config,
 		closeChannel: &sync.Once{},
 	}, nil
 }
 
-func (prw *prometheusRemoteWriteServer) Close() error {
+func (prw *prometheusRemoteWriteServer) close() error {
 	defer prw.closeChannel.Do(func() { close(prw.Mc) })
 	return prw.Server.Close()
 }
 
-func (prw *prometheusRemoteWriteServer) ListenAndServe() error {
+func (prw *prometheusRemoteWriteServer) listenAndServe() error {
 	prw.Reporter.OnDebugf("Starting prometheus simple write server")
-	listener, err := prw.ServerConfig.ToListener()
+	listener, err := prw.serverConfig.ToListener()
 	if err != nil {
 		return err
 	}
@@ -77,11 +77,25 @@ func (prw *prometheusRemoteWriteServer) ListenAndServe() error {
 	return err
 }
 
-func newHandler(ctx context.Context, reporter reporter, _ *ServerConfig, _ chan<- pmetric.Metrics) http.HandlerFunc {
+func newHandler(parser *prometheusRemoteOtelParser, sc *serverConfig, mc chan<- pmetric.Metrics) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// THIS IS A STUB FUNCTION.  You can see another branch with how I'm thinking this will look if you're curious
-		ctx2 := reporter.StartMetricsOp(ctx)
-		reporter.OnMetricsProcessed(ctx2, 0, nil)
-		w.WriteHeader(http.StatusNoContent)
+		sc.Reporter.OnDebugf("Processing write request %s", r.RequestURI)
+		req, err := remote.DecodeWriteRequest(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if len(req.Timeseries) == 0 && len(req.Metadata) == 0 {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		results, err := parser.fromPrometheusWriteRequestMetrics(req)
+		if nil != err {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			sc.Reporter.OnDebugf("prometheus_translation", err)
+			return
+		}
+		mc <- results
+		w.WriteHeader(http.StatusAccepted)
 	}
 }

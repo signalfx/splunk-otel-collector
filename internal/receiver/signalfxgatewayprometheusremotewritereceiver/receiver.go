@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package prometheusremotewritereceiver
+package signalfxgatewayprometheusremotewritereceiver
 
 import (
 	"context"
@@ -63,20 +63,22 @@ func New(
 // Start starts an HTTP server that can process Prometheus Remote Write Requests
 func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host component.Host) error {
 	metricsChannel := make(chan pmetric.Metrics, receiver.config.BufferSize)
-	cfg := &ServerConfig{
+	cfg := &serverConfig{
 		HTTPServerSettings: receiver.config.HTTPServerSettings,
 		Path:               receiver.config.ListenPath,
 		Mc:                 metricsChannel,
+		TelemetrySettings:  receiver.settings.TelemetrySettings,
 		Reporter:           receiver.reporter,
 		Host:               host,
+		Parser:             &prometheusRemoteOtelParser{},
 	}
 	ctx, receiver.cancel = context.WithCancel(ctx)
-	server, err := newPrometheusRemoteWriteServer(ctx, cfg)
+	server, err := newPrometheusRemoteWriteServer(cfg)
 	if err != nil {
 		return err
 	}
 	if nil != receiver.server {
-		err := receiver.server.Close()
+		err := receiver.server.close()
 		if err != nil {
 			return err
 		}
@@ -94,7 +96,7 @@ func (receiver *prometheusRemoteWriteReceiver) startServer(host component.Host) 
 	if prometheusRemoteWriteServer == nil {
 		host.ReportFatalError(fmt.Errorf("start called on null prometheusRemoteWriteServer for receiver %s", typeString))
 	}
-	if err := prometheusRemoteWriteServer.ListenAndServe(); err != nil {
+	if err := prometheusRemoteWriteServer.listenAndServe(); err != nil {
 		// our receiver swallows http's ErrServeClosed, and we should only get "concerning" issues at this point in the code.
 		host.ReportFatalError(err)
 		receiver.reporter.OnDebugf("Error in %s/%s listening on %s/%s: %s", typeString, receiver.settings.ID, prometheusRemoteWriteServer.Addr, prometheusRemoteWriteServer.Path, err)
@@ -127,7 +129,7 @@ func (receiver *prometheusRemoteWriteReceiver) Shutdown(context.Context) error {
 	}
 	defer receiver.cancel()
 	if receiver.server != nil {
-		return receiver.server.Close()
+		return receiver.server.close()
 	}
 	return nil
 }

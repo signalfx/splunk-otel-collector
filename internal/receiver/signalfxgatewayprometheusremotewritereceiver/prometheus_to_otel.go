@@ -47,7 +47,7 @@ func (prwParser *prometheusRemoteOtelParser) fromPrometheusWriteRequestMetrics(r
 	var otelMetrics pmetric.Metrics
 	metricFamiliesAndData, err := prwParser.partitionWriteRequest(request)
 	if nil == err {
-		otelMetrics, err = prwParser.transformPrometheusRemoteWriteToOtel(metricFamiliesAndData)
+		otelMetrics = prwParser.transformPrometheusRemoteWriteToOtel(metricFamiliesAndData)
 	}
 	if otelMetrics == pmetric.NewMetrics() {
 		otelMetrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
@@ -60,17 +60,16 @@ func (prwParser *prometheusRemoteOtelParser) fromPrometheusWriteRequestMetrics(r
 	return otelMetrics, err
 }
 
-func (prwParser *prometheusRemoteOtelParser) transformPrometheusRemoteWriteToOtel(parsedPrwMetrics map[prompb.MetricMetadata_MetricType][]metricData) (pmetric.Metrics, error) {
+func (prwParser *prometheusRemoteOtelParser) transformPrometheusRemoteWriteToOtel(parsedPrwMetrics map[prompb.MetricMetadata_MetricType][]metricData) pmetric.Metrics {
 	metric := pmetric.NewMetrics()
 	rm := metric.ResourceMetrics().AppendEmpty()
 	ilm := rm.ScopeMetrics().AppendEmpty()
 	ilm.Scope().SetName(typeString)
 	ilm.Scope().SetVersion("0.1")
-	var translationErrors error
 	for metricType, metrics := range parsedPrwMetrics {
 		prwParser.addMetrics(ilm, metricType, metrics)
 	}
-	return metric, translationErrors
+	return metric
 }
 
 func (prwParser *prometheusRemoteOtelParser) partitionWriteRequest(writeReq *prompb.WriteRequest) (map[prompb.MetricMetadata_MetricType][]metricData, error) {
@@ -109,9 +108,9 @@ func (prwParser *prometheusRemoteOtelParser) addMetrics(ilm pmetric.ScopeMetrics
 
 	switch metricType {
 	case prompb.MetricMetadata_COUNTER, prompb.MetricMetadata_HISTOGRAM, prompb.MetricMetadata_GAUGEHISTOGRAM:
-		prwParser.addCounterMetrics(ilm, metrics, metricType)
+		prwParser.addCounterMetrics(ilm, metrics)
 	default:
-		prwParser.addGaugeMetrics(ilm, metrics, metricType)
+		prwParser.addGaugeMetrics(ilm, metrics)
 	}
 }
 
@@ -162,7 +161,7 @@ func (prwParser *prometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeM
 }
 
 // addGaugeMetrics handles any scalar metric family which can go up or down
-func (prwParser *prometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMetrics, metrics []metricData, metricType prompb.MetricMetadata_MetricType) {
+func (prwParser *prometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMetrics, metrics []metricData) {
 	for _, metricsData := range metrics {
 		if metricsData.MetricName == "" {
 			prwParser.totalBadMetrics.Add(1)
@@ -186,7 +185,7 @@ func (prwParser *prometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMe
 }
 
 // addCounterMetrics handles any scalar metric family which can only goes up, and are cumulative
-func (prwParser *prometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.ScopeMetrics, metrics []metricData, metricType prompb.MetricMetadata_MetricType) {
+func (prwParser *prometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.ScopeMetrics, metrics []metricData) {
 	for _, metricsData := range metrics {
 		if metricsData.MetricName == "" {
 			prwParser.totalBadMetrics.Add(1)

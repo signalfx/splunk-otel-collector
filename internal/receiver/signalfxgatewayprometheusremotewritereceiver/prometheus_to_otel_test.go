@@ -47,8 +47,7 @@ func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 		}
 	}
 
-	results, err := parser.transformPrometheusRemoteWriteToOtel(noMdPartitions)
-	require.NoError(t, err)
+	results := parser.transformPrometheusRemoteWriteToOtel(noMdPartitions)
 
 	typesSeen := make(map[pmetric.MetricType][]string)
 	for resourceMetricsIndex := 0; resourceMetricsIndex < results.ResourceMetrics().Len(); resourceMetricsIndex++ {

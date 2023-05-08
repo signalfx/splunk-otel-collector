@@ -6,8 +6,6 @@ services:
     environment:
       - SPLUNK_ACCESS_TOKEN=${SPLUNK_ACCESS_TOKEN}
       - SPLUNK_REALM=${SPLUNK_REALM}
-      - ENDPOINT="http://otelcollector:54090"
-      - LISTEN_PATH="/metrics"
     command: ["--config=/etc/otel-collector-config.yaml", "--set=service.telemetry.logs.level=debug"]
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml

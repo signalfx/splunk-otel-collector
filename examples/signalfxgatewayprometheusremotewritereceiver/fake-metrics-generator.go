@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-	// Adjust the metrics as needed
 	metrics := []prompb.TimeSeries{
 		{
 			Labels: []prompb.Label{
@@ -26,7 +25,6 @@ func main() {
 		},
 	}
 
-	// Create a WriteRequest with the sample metrics
 	req := &prompb.WriteRequest{
 		Timeseries: metrics,
 	}

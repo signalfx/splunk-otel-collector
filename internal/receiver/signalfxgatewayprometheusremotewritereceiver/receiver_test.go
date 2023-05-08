@@ -127,8 +127,51 @@ func TestSuccessfulSend(t *testing.T) {
 		if nil != err {
 			assert.NoError(t, errors.Unwrap(err))
 		}
-		// always will have 3 "health" metrics added when sfx gateway compatibility is enables
-		assert.GreaterOrEqual(t, mockreporter.TotalSuccessMetrics, int32(len(wq.Timeseries)+3))
+		// always will have 3 "health" metrics due to sfx gateway compatibility metrics
+		assert.GreaterOrEqual(t, mockreporter.TotalSuccessMetrics.Load(), int32(len(wq.Timeseries)+3))
+		assert.Equal(t, mockreporter.TotalErrorMetrics.Load(), int32(0))
+	}
+
+	require.NoError(t, remoteWriteReceiver.Shutdown(ctx))
+}
+
+func TestRealReporter(t *testing.T) {
+	timeout := time.Second * 10
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	cfg := createDefaultConfig().(*Config)
+	freePort, err := GetFreePort()
+	require.NoError(t, err)
+	expectedEndpoint := fmt.Sprintf("localhost:%d", freePort)
+
+	cfg.Endpoint = expectedEndpoint
+	cfg.ListenPath = "/metrics"
+
+	nopHost := componenttest.NewNopHost()
+	mockSettings := receivertest.NewNopCreateSettings()
+	mockConsumer := consumertest.NewNop()
+
+	sampleNoMdMetrics := GetWriteRequestsOfAllTypesWithoutMetadata()
+
+	receiver, err := New(mockSettings, cfg, mockConsumer)
+	remoteWriteReceiver := receiver.(*prometheusRemoteWriteReceiver)
+
+	assert.NoError(t, err)
+	require.NotNil(t, remoteWriteReceiver)
+	require.NoError(t, remoteWriteReceiver.Start(ctx, nopHost))
+
+	client, err := NewMockPrwClient(
+		cfg.Endpoint,
+		"metrics",
+		time.Second*5,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, client)
+
+	for index, wq := range sampleNoMdMetrics {
+		err = client.SendWriteRequest(wq)
+		require.NoError(t, err, "failed to write %d", index)
 	}
 
 	require.NoError(t, remoteWriteReceiver.Shutdown(ctx))

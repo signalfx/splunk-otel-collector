@@ -28,10 +28,10 @@ type mockReporter struct {
 	OpsSuccess          *sync.WaitGroup
 	OpsStarted          *sync.WaitGroup
 	OpsFailed           *sync.WaitGroup
-	Errors              []error
-	ErrorLocation       []string
-	TotalSuccessMetrics int32
-	TotalErrorMetrics   int32
+	Errors              chan error
+	ErrorLocation       chan string
+	TotalSuccessMetrics atomic.Int32
+	TotalErrorMetrics   atomic.Int32
 }
 
 var _ reporter = (*mockReporter)(nil)
@@ -51,9 +51,11 @@ func (m *mockReporter) AddExpectedStart(newCalls int) {
 // newMockReporter returns a new instance of a mockReporter.
 func newMockReporter() *mockReporter {
 	m := mockReporter{
-		OpsSuccess: &sync.WaitGroup{},
-		OpsFailed:  &sync.WaitGroup{},
-		OpsStarted: &sync.WaitGroup{},
+		OpsSuccess:          &sync.WaitGroup{},
+		OpsFailed:           &sync.WaitGroup{},
+		OpsStarted:          &sync.WaitGroup{},
+		TotalErrorMetrics:   atomic.Int32{},
+		TotalSuccessMetrics: atomic.Int32{},
 	}
 	return &m
 }
@@ -64,13 +66,14 @@ func (m *mockReporter) StartMetricsOp(ctx context.Context) context.Context {
 }
 
 func (m *mockReporter) OnError(_ context.Context, errorLocation string, err error) {
-	m.Errors = append(m.Errors, err)
-	m.ErrorLocation = append(m.ErrorLocation, errorLocation)
+	m.TotalErrorMetrics.Add(1)
+	m.Errors <- err
+	m.ErrorLocation <- errorLocation
 	m.OpsFailed.Done()
 }
 
 func (m *mockReporter) OnMetricsProcessed(_ context.Context, numReceivedMessages int, _ error) {
-	atomic.AddInt32(&m.TotalSuccessMetrics, int32(numReceivedMessages))
+	m.TotalSuccessMetrics.Add(int32(numReceivedMessages))
 	m.OpsSuccess.Done()
 }
 

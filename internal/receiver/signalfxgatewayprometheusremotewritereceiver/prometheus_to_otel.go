@@ -39,9 +39,9 @@ type metricData struct {
 }
 
 type prometheusRemoteOtelParser struct {
-	totalNans            int64
-	totalInvalidRequests int64
-	totalBadMetrics      int64
+	totalNans            atomic.Int64
+	totalInvalidRequests atomic.Int64
+	totalBadMetrics      atomic.Int64
 }
 
 func (prwParser *prometheusRemoteOtelParser) fromPrometheusWriteRequestMetrics(request *prompb.WriteRequest) (pmetric.Metrics, error) {
@@ -149,7 +149,7 @@ func (prwParser *prometheusRemoteOtelParser) addBadRequests(ilm pmetric.ScopeMet
 	errorSum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	errorSum.SetIsMonotonic(true)
 	dp := errorSum.DataPoints().AppendEmpty()
-	dp.SetIntValue(atomic.LoadInt64(&prwParser.totalInvalidRequests))
+	dp.SetIntValue(prwParser.totalInvalidRequests.Load())
 	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(start))
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(end))
 }
@@ -162,7 +162,7 @@ func (prwParser *prometheusRemoteOtelParser) addMetricsWithMissingName(ilm pmetr
 	errorSum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 	errorSum.SetIsMonotonic(true)
 	dp := errorSum.DataPoints().AppendEmpty()
-	dp.SetIntValue(atomic.LoadInt64(&prwParser.totalBadMetrics))
+	dp.SetIntValue(prwParser.totalBadMetrics.Load())
 
 	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(start))
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(end))
@@ -178,14 +178,14 @@ func (prwParser *prometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeM
 	dp := errorSum.DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(pcommon.NewTimestampFromTime(start))
 	dp.SetTimestamp(pcommon.NewTimestampFromTime(end))
-	dp.SetIntValue(atomic.LoadInt64(&prwParser.totalNans))
+	dp.SetIntValue(prwParser.totalNans.Load())
 }
 
 // addGaugeMetrics handles any scalar metric family which can go up or down
 func (prwParser *prometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMetrics, metrics []metricData, metadata prompb.MetricMetadata) {
 	for _, metricsData := range metrics {
 		if metricsData.MetricName == "" {
-			atomic.AddInt64(&prwParser.totalBadMetrics, 1)
+			prwParser.totalBadMetrics.Add(1)
 			continue
 		}
 		nm := prwParser.scaffoldNewMetric(ilm, metricsData.MetricName, metadata)
@@ -193,7 +193,7 @@ func (prwParser *prometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMe
 		gauge := nm.SetEmptyGauge()
 		for _, sample := range metricsData.Samples {
 			if math.IsNaN(sample.Value) {
-				atomic.AddInt64(&prwParser.totalNans, 1)
+				prwParser.totalNans.Add(1)
 				continue
 			}
 			dp := gauge.DataPoints().AppendEmpty()
@@ -209,7 +209,7 @@ func (prwParser *prometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMe
 func (prwParser *prometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.ScopeMetrics, metrics []metricData, metadata prompb.MetricMetadata) {
 	for _, metricsData := range metrics {
 		if metricsData.MetricName == "" {
-			atomic.AddInt64(&prwParser.totalBadMetrics, 1)
+			prwParser.totalBadMetrics.Add(1)
 			continue
 		}
 		nm := prwParser.scaffoldNewMetric(ilm, metricsData.MetricName, metadata)
@@ -218,7 +218,7 @@ func (prwParser *prometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.Scope
 		sumMetric.SetIsMonotonic(true)
 		for _, sample := range metricsData.Samples {
 			if math.IsNaN(sample.Value) {
-				atomic.AddInt64(&prwParser.totalNans, 1)
+				prwParser.totalNans.Add(1)
 				continue
 			}
 			dp := nm.Sum().DataPoints().AppendEmpty()

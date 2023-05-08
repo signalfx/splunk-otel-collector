@@ -64,7 +64,7 @@ func main() {
 	compressed := encodeWriteRequest(req)
 
 	for {
-		err = client.Store(context.Background(), compressed)
+		client.Store(context.Background(), compressed)
 		time.Sleep(10 * time.Second)
 	}
 }

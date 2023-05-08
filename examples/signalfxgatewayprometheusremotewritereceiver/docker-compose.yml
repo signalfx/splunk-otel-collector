@@ -10,7 +10,7 @@ services:
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "54090:54090"
+      - "19291:19291"
       - "8888:8888"
 
   fake_metrics_generator:
@@ -20,4 +20,4 @@ services:
     depends_on:
       - otelcollector
     environment:
-      - TARGET_URL=http://otelcollector:54090/metrics
+      - TARGET_URL=http://otelcollector:19291/metrics

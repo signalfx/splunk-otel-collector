@@ -1,6 +1,6 @@
 receivers:
   signalfxgatewayprometheusremotewrite:
-    endpoint: "0.0.0.0:54090"
+    endpoint: "0.0.0.0:19291"
     path: "/metrics"
     buffer_size: 100
 extensions:
@@ -16,9 +16,9 @@ exporters:
   logging:
     verbosity: Detailed
 service:
-  telemetry:
-    metrics:
-      address: ":54090"
+  #telemetry:
+  #  metrics:
+  #    address: ":19291"
   pipelines:
     #    metrics/sfx:
     #      receivers: [simpleprometheusremotewrite]

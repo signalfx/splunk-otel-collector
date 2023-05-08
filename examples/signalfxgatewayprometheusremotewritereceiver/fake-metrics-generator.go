@@ -13,11 +13,16 @@ import (
 )
 
 func main() {
+	targetURL := os.Getenv("TARGET_URL")
+	if targetURL == "" {
+		targetURL = "http://otelcollector:19291/metrics"
+	}
+
 	metrics := []prompb.TimeSeries{
 		{
 			Labels: []prompb.Label{
 				{Name: "__name__", Value: "fake_metric_total"},
-				{Name: "instance", Value: "localhost:54090"},
+				{Name: "instance", Value: targetURL},
 			},
 			Samples: []prompb.Sample{
 				{Value: 42, Timestamp: time.Now().UnixNano() / int64(time.Millisecond)},
@@ -35,11 +40,6 @@ func main() {
 	}
 
 	compressed := snappy.Encode(nil, data)
-
-	targetURL := os.Getenv("TARGET_URL")
-	if targetURL == "" {
-		targetURL = "http://otelcollector:54090/metrics"
-	}
 
 	// Continuously send fake metrics
 	for {

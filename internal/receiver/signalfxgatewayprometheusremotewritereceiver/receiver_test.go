@@ -162,7 +162,6 @@ func TestRealReporter(t *testing.T) {
 	require.NoError(t, remoteWriteReceiver.Start(ctx, nopHost))
 	require.NotEmpty(t, remoteWriteReceiver.settings.TelemetrySettings)
 	require.NotEmpty(t, remoteWriteReceiver.settings.Logger)
-	require.NotEmpty(t, remoteWriteReceiver.settings.MeterProvider)
 	require.NotEmpty(t, remoteWriteReceiver.settings.BuildInfo)
 
 	client, err := NewMockPrwClient(

@@ -67,6 +67,7 @@ func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host c
 		HTTPServerSettings: receiver.config.HTTPServerSettings,
 		Path:               receiver.config.ListenPath,
 		Mc:                 metricsChannel,
+		TelemetrySettings:  receiver.settings.TelemetrySettings,
 		Reporter:           receiver.reporter,
 		Host:               host,
 		Parser:             &prometheusRemoteOtelParser{},

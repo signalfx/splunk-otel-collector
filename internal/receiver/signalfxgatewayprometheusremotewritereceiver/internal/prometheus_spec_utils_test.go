@@ -18,17 +18,8 @@ import (
 	"testing"
 
 	"github.com/prometheus/prometheus/prompb"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func TestGetMetricFamilyName(t *testing.T) {
-	assert.Equal(t, "rpc_duration_seconds", DetermineBaseMetricFamilyNameByConvention("rpc_duration_seconds"))
-	assert.Equal(t, "rpc_duration_seconds", DetermineBaseMetricFamilyNameByConvention("rpc_duration_seconds_count"))
-	assert.Equal(t, "rpc_duration_seconds", DetermineBaseMetricFamilyNameByConvention("rpc_duration_seconds_total"))
-	assert.Equal(t, "rpc_duration_seconds", DetermineBaseMetricFamilyNameByConvention("rpc_duration_seconds_sum"))
-	assert.Equal(t, "rpc_duration_seconds", DetermineBaseMetricFamilyNameByConvention("rpc_duration_seconds_bucket"))
-}
 
 func TestGetMetricTypeByLabels(t *testing.T) {
 	testCases := []struct {

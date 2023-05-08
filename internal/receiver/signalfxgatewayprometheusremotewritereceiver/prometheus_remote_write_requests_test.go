@@ -239,10 +239,8 @@ func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
 
 	metric = scopeMetrics.Metrics().AppendEmpty()
 	metric.SetName("api_request_duration_seconds_sum")
-	counter = metric.SetEmptySum()
-	counter.SetIsMonotonic(true)
-	counter.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
-	dp = counter.DataPoints().AppendEmpty()
+	gauge := metric.SetEmptyGauge()
+	dp = gauge.DataPoints().AppendEmpty()
 
 	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
 	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
@@ -288,15 +286,17 @@ func ExpectedSfxCompatibleQuantile() pmetric.Metrics {
 
 	metric := scopeMetrics.Metrics().AppendEmpty()
 	metric.SetName("request_duration_seconds_count")
-	gauge := metric.SetEmptyGauge()
-	dp := gauge.DataPoints().AppendEmpty()
+	sum := metric.SetEmptySum()
+	sum.SetIsMonotonic(true)
+	sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	dp := sum.DataPoints().AppendEmpty()
 	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
 	dp.SetStartTimestamp(pcommon.Timestamp(Jan20.UnixNano()))
 	dp.SetIntValue(1500)
 
 	metric = scopeMetrics.Metrics().AppendEmpty()
 	metric.SetName("request_duration_seconds_sum")
-	gauge = metric.SetEmptyGauge()
+	gauge := metric.SetEmptyGauge()
 	dp = gauge.DataPoints().AppendEmpty()
 
 	dp.SetTimestamp(pcommon.Timestamp(Jan20.UnixNano()))

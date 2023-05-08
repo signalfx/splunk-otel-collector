@@ -21,25 +21,6 @@ import (
 	"github.com/prometheus/prometheus/prompb"
 )
 
-var (
-	suffixes = [...]string{"_count", "_sum", "_bucket", "_created", "_total"}
-)
-
-// DetermineBaseMetricFamilyNameByConvention uses heuristics to determine the metric family of a given metric, by
-// inspecting known suffixes for Sum/Counter, Histogram and Summary metric types.
-// While not strictly enforced in the protobuf, prometheus does not support "colliding"
-// "metric family names" in the same write request, so this should be safe
-// https://prometheus.io/docs/practices/naming/
-// https://prometheus.io/docs/concepts/metric_types/
-func DetermineBaseMetricFamilyNameByConvention(metricName string) string {
-	for _, suffix := range suffixes {
-		if strings.HasSuffix(metricName, suffix) {
-			return strings.TrimSuffix(metricName, suffix)
-		}
-	}
-	return metricName
-}
-
 // ExtractMetricNameLabel Finds label corresponding to metric name
 func ExtractMetricNameLabel(labels []prompb.Label) (string, error) {
 	metricName, ok := getLabelValue(labels, "__name__")

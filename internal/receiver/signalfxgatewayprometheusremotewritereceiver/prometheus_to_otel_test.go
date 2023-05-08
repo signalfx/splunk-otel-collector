@@ -35,23 +35,15 @@ func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, sampleWriteRequests.Metadata, "NoMetadata (heuristical) portion of test contains metadata")
 
-	noMdMap := make(map[string]map[string][]metricData)
+	noMdMap := make(map[prompb.MetricMetadata_MetricType]map[string][]metricData)
 	for key, partition := range noMdPartitions {
 		require.Nil(t, noMdMap[key])
 		noMdMap[key] = make(map[string][]metricData)
 
 		for _, md := range partition {
-			assert.Equal(t, key, md.MetricMetadata.MetricFamilyName)
-
 			noMdMap[key][md.MetricName] = append(noMdMap[key][md.MetricName], md)
 
-			assert.Equal(t, md.MetricMetadata.MetricFamilyName, key)
 			assert.NotEmpty(t, md.MetricMetadata.Type)
-			assert.NotEmpty(t, md.MetricMetadata.MetricFamilyName)
-
-			// Help and Unit should only exist for things with metadata
-			assert.Empty(t, md.MetricMetadata.Unit)
-			assert.Empty(t, md.MetricMetadata.Help)
 		}
 	}
 
@@ -70,8 +62,8 @@ func TestParseAndPartitionPrometheusRemoteWriteRequest(t *testing.T) {
 		}
 	}
 	expectedTypesSeen := map[pmetric.MetricType][]string{
-		pmetric.MetricTypeSum:   {"http_requests_total", "api_request_duration_seconds_bucket", "api_request_duration_seconds_bucket", "api_request_duration_seconds_count", "api_request_duration_seconds_sum"},
-		pmetric.MetricTypeGauge: {"i_am_a_gauge", "request_duration_seconds", "request_duration_seconds", "request_duration_seconds_sum", "request_duration_seconds_count"},
+		pmetric.MetricTypeSum:   {"http_requests_total", "api_request_duration_seconds_bucket", "api_request_duration_seconds_bucket", "api_request_duration_seconds_count", "request_duration_seconds_count"},
+		pmetric.MetricTypeGauge: {"i_am_a_gauge", "request_duration_seconds", "request_duration_seconds", "request_duration_seconds_sum", "api_request_duration_seconds_sum"},
 	}
 	require.ElementsMatch(t, maps.Keys(expectedTypesSeen), maps.Keys(typesSeen))
 	for key, values := range typesSeen {

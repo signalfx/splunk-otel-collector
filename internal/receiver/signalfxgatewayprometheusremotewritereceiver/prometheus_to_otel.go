@@ -15,7 +15,6 @@
 package signalfxgatewayprometheusremotewritereceiver
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"sync/atomic"
@@ -61,39 +60,31 @@ func (prwParser *prometheusRemoteOtelParser) fromPrometheusWriteRequestMetrics(r
 	return otelMetrics, err
 }
 
-func (prwParser *prometheusRemoteOtelParser) transformPrometheusRemoteWriteToOtel(parsedPrwMetrics map[string][]metricData) (pmetric.Metrics, error) {
+func (prwParser *prometheusRemoteOtelParser) transformPrometheusRemoteWriteToOtel(parsedPrwMetrics map[prompb.MetricMetadata_MetricType][]metricData) (pmetric.Metrics, error) {
 	metric := pmetric.NewMetrics()
 	rm := metric.ResourceMetrics().AppendEmpty()
 	ilm := rm.ScopeMetrics().AppendEmpty()
 	ilm.Scope().SetName(typeString)
 	ilm.Scope().SetVersion("0.1")
 	var translationErrors error
-	for metricFamily, metrics := range parsedPrwMetrics {
-		err := prwParser.addMetrics(ilm, metricFamily, metrics)
-		if err != nil {
-			translationErrors = multierr.Append(translationErrors, err)
-		}
+	for metricType, metrics := range parsedPrwMetrics {
+		prwParser.addMetrics(ilm, metricType, metrics)
 	}
 	return metric, translationErrors
 }
 
-func (prwParser *prometheusRemoteOtelParser) partitionWriteRequest(writeReq *prompb.WriteRequest) (map[string][]metricData, error) {
-	partitions := make(map[string][]metricData)
+func (prwParser *prometheusRemoteOtelParser) partitionWriteRequest(writeReq *prompb.WriteRequest) (map[prompb.MetricMetadata_MetricType][]metricData, error) {
+	partitions := make(map[prompb.MetricMetadata_MetricType][]metricData)
 	var translationErrors error
 	for index, ts := range writeReq.Timeseries {
 		metricName, err := internal.ExtractMetricNameLabel(ts.Labels)
 		if err != nil {
 			translationErrors = multierr.Append(translationErrors, err)
 		}
-		metricFamilyName := internal.DetermineBaseMetricFamilyNameByConvention(metricName)
-		if metricFamilyName == "" {
-			translationErrors = multierr.Append(translationErrors, fmt.Errorf("metric family name missing: %s", metricName))
-		}
 
 		metricType := internal.DetermineMetricTypeByConvention(metricName, ts.Labels)
 		metricMetadata := prompb.MetricMetadata{
-			MetricFamilyName: metricFamilyName,
-			Type:             metricType,
+			Type: metricType,
 		}
 		md := metricData{
 			Labels:         ts.Labels,
@@ -106,7 +97,7 @@ func (prwParser *prometheusRemoteOtelParser) partitionWriteRequest(writeReq *pro
 		if len(md.Samples) < 1 {
 			translationErrors = multierr.Append(translationErrors, fmt.Errorf("no samples found for  %s", metricName))
 		}
-		partitions[md.MetricMetadata.MetricFamilyName] = append(partitions[md.MetricMetadata.MetricFamilyName], md)
+		partitions[metricType] = append(partitions[metricType], md)
 	}
 
 	return partitions, translationErrors
@@ -114,29 +105,18 @@ func (prwParser *prometheusRemoteOtelParser) partitionWriteRequest(writeReq *pro
 
 // This actually converts from a prometheus prompdb.MetaDataType to the closest equivalent otel type
 // See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/13bcae344506fe2169b59d213361d04094c651f6/receiver/prometheusreceiver/internal/util.go#L106
-func (prwParser *prometheusRemoteOtelParser) addMetrics(ilm pmetric.ScopeMetrics, family string, metrics []metricData) error {
-	if family == "" || len(metrics) == 0 {
-		return errors.New("missing name or metrics")
-	}
+func (prwParser *prometheusRemoteOtelParser) addMetrics(ilm pmetric.ScopeMetrics, metricType prompb.MetricMetadata_MetricType, metrics []metricData) {
 
-	// When we add native histogram support, this will be a map lookup on metrics family
-	// this is also why we partition into families, as native PRW histograms can combine sums and histograms
-	metricsMetadata := metrics[0].MetricMetadata
-
-	var err error
-	switch metricsMetadata.Type {
+	switch metricType {
 	case prompb.MetricMetadata_COUNTER, prompb.MetricMetadata_HISTOGRAM, prompb.MetricMetadata_GAUGEHISTOGRAM:
-		prwParser.addCounterMetrics(ilm, metrics, metricsMetadata)
+		prwParser.addCounterMetrics(ilm, metrics, metricType)
 	default:
-		prwParser.addGaugeMetrics(ilm, metrics, metricsMetadata)
+		prwParser.addGaugeMetrics(ilm, metrics, metricType)
 	}
-	return err
 }
 
-func (prwParser *prometheusRemoteOtelParser) scaffoldNewMetric(ilm pmetric.ScopeMetrics, name string, metricsMetadata prompb.MetricMetadata) pmetric.Metric {
+func (prwParser *prometheusRemoteOtelParser) scaffoldNewMetric(ilm pmetric.ScopeMetrics, name string) pmetric.Metric {
 	nm := ilm.Metrics().AppendEmpty()
-	nm.SetUnit(metricsMetadata.Unit)
-	nm.SetDescription(metricsMetadata.GetHelp())
 	nm.SetName(name)
 	return nm
 }
@@ -182,13 +162,13 @@ func (prwParser *prometheusRemoteOtelParser) addNanDataPoints(ilm pmetric.ScopeM
 }
 
 // addGaugeMetrics handles any scalar metric family which can go up or down
-func (prwParser *prometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMetrics, metrics []metricData, metadata prompb.MetricMetadata) {
+func (prwParser *prometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMetrics, metrics []metricData, metricType prompb.MetricMetadata_MetricType) {
 	for _, metricsData := range metrics {
 		if metricsData.MetricName == "" {
 			prwParser.totalBadMetrics.Add(1)
 			continue
 		}
-		nm := prwParser.scaffoldNewMetric(ilm, metricsData.MetricName, metadata)
+		nm := prwParser.scaffoldNewMetric(ilm, metricsData.MetricName)
 		nm.SetName(metricsData.MetricName)
 		gauge := nm.SetEmptyGauge()
 		for _, sample := range metricsData.Samples {
@@ -206,13 +186,13 @@ func (prwParser *prometheusRemoteOtelParser) addGaugeMetrics(ilm pmetric.ScopeMe
 }
 
 // addCounterMetrics handles any scalar metric family which can only goes up, and are cumulative
-func (prwParser *prometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.ScopeMetrics, metrics []metricData, metadata prompb.MetricMetadata) {
+func (prwParser *prometheusRemoteOtelParser) addCounterMetrics(ilm pmetric.ScopeMetrics, metrics []metricData, metricType prompb.MetricMetadata_MetricType) {
 	for _, metricsData := range metrics {
 		if metricsData.MetricName == "" {
 			prwParser.totalBadMetrics.Add(1)
 			continue
 		}
-		nm := prwParser.scaffoldNewMetric(ilm, metricsData.MetricName, metadata)
+		nm := prwParser.scaffoldNewMetric(ilm, metricsData.MetricName)
 		sumMetric := nm.SetEmptySum()
 		sumMetric.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 		sumMetric.SetIsMonotonic(true)

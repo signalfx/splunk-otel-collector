@@ -287,6 +287,9 @@ RUN /usr/local/bin/python3 -m pip install -r /opt/requirements.txt
 RUN mkdir -p /opt/collectd-python &&\
     /usr/local/bin/python3 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python
 
+# Delete *requirements.txt files after plugins are installed
+RUN find /opt/collectd-python -name "*requirements.txt" -delete
+
 COPY python/ /opt/sfxpython/
 RUN cd /opt/sfxpython && /usr/local/bin/python3 -m pip install .
 

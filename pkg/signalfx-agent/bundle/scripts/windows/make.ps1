@@ -74,6 +74,7 @@ function bundle (
     Get-ChildItem -recurse -path "$buildDir\$BUNDLE_DIR\*" -include __pycache__ | Remove-Item -force -Recurse
     Get-ChildItem -recurse -path "$buildDir\$BUNDLE_DIR\*" -include *.key,*.pem | Where-Object { $_.Directory -match 'test' } | Remove-Item -force
     Get-ChildItem -recurse -path "$buildDir\$BUNDLE_DIR\*" -include *.pyc,*.pyo,*.whl | Remove-Item -force
+    Get-ChildItem -recurse -path "$buildDir\$BUNDLE_DIR\collectd-python\*" -include *requirements.txt | Remove-Item -force
 
     # clean up empty directories
     remove_empty_directories -buildDir "$buildDir\$BUNDLE_DIR"

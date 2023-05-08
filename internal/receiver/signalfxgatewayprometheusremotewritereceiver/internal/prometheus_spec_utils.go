@@ -15,7 +15,7 @@
 package internal
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/prometheus/prometheus/prompb"

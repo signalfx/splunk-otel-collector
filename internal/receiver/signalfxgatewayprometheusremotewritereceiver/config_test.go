@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package prometheusremotewritereceiver
+package signalfxgatewayprometheusremotewritereceiver
 
 import (
 	"testing"
@@ -31,7 +31,6 @@ func TestValidateConfigAndDefaults(t *testing.T) {
 	assert.NoError(t, cfg.Validate())
 	assert.Equal(t, "localhost:19291", cfg.Endpoint)
 	assert.Equal(t, "/metrics", cfg.ListenPath)
-	assert.Equal(t, 10000, cfg.CacheCapacity)
 	assert.Equal(t, 100, cfg.BufferSize)
 }
 

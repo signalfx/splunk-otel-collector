@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package prometheusremotewritereceiver
+package signalfxgatewayprometheusremotewritereceiver
 
 import (
 	"context"
@@ -49,9 +49,7 @@ func TestFactory(t *testing.T) {
 	assert.NoError(t, err)
 	require.NotNil(t, receiver)
 	require.NoError(t, receiver.Start(ctx, nopHost))
-
 	require.NoError(t, receiver.Shutdown(ctx))
-
 }
 
 func TestNewFactory(t *testing.T) {

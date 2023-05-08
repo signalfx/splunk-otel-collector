@@ -16,4 +16,4 @@
 
 //go:generate mdatagen metadata.yaml
 
-package prometheusremotewritereceiver
+package signalfxgatewayprometheusremotewritereceiver

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package prometheusremotewritereceiver
+package signalfxgatewayprometheusremotewritereceiver
 
 import (
 	"errors"
@@ -25,7 +25,7 @@ import (
 var _ component.Config = (*Config)(nil)
 
 const (
-	typeString = "prometheusremotewrite"
+	typeString = "signalfxgatewayprometheusremotewrite"
 )
 
 type Config struct {
@@ -35,8 +35,6 @@ type Config struct {
 	confighttp.HTTPServerSettings `mapstructure:",squash"`
 	// BufferSize is the degree to which metric translations may be buffered without blocking further write requests.
 	BufferSize int `mapstructure:"buffer_size"`
-	// CacheCapacity determines LRU capacity for how many different metrics may concurrently have persisted metadata.
-	CacheCapacity int `mapstructure:"cache_size"`
 }
 
 func (c *Config) Validate() error {

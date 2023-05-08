@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package prometheusremotewritereceiver
+package signalfxgatewayprometheusremotewritereceiver
 
 import (
 	"context"
@@ -46,8 +46,7 @@ func createDefaultConfig() component.Config {
 		HTTPServerSettings: confighttp.HTTPServerSettings{
 			Endpoint: "localhost:19291", // While not IANA registered, convention is 19291 as a common PRW port
 		},
-		ListenPath:    "/metrics",
-		CacheCapacity: 10000,
-		BufferSize:    100,
+		ListenPath: "/metrics",
+		BufferSize: 100,
 	}
 }

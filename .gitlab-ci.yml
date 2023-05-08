@@ -54,6 +54,10 @@ fossa:
       export STAGE="release"
     fi
 
+.aws-releaser-role: &aws-releaser-role |
+  creds-helper init
+  eval $(creds-helper aws --eval "aws:v1/o11y-infra/role/o11y_gdi_otel_releaser_role")
+
 .trigger-filter:
   only:
     variables:
@@ -75,16 +79,24 @@ fossa:
   retry: 2
   before_script:
     - *get-artifactory-stage
+    - *aws-releaser-role
   script:
     - pip3 install -r internal/buildscripts/packaging/release/requirements.txt
     - |
-      for path in ${PATHS:-}; do
-        if [ ! -f "$path" ]; then
-          echo "$path not found!"
-          exit 1
-        fi
-        python3 internal/buildscripts/packaging/release/release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
-      done
+      if [ -n "${PATHS:-}" ]; then
+        for path in $PATHS; do
+          if [ ! -f "$path" ]; then
+            echo "$path not found!"
+            exit 1
+          fi
+          python3 internal/buildscripts/packaging/release/release.py --force --stage=${STAGE} --path=$path ${OPTIONS:-}
+        done
+      elif [ -n "${INSTALLERS:-}" ]; then
+        python3 internal/buildscripts/packaging/release/release.py --force --installers ${OPTIONS:-}
+      else
+        echo "Either the PATHS or INSTALLERS env var must be defined!" >&2
+        exit 1
+      fi
 
 .go-cache:
   image: '${DOCKER_HUB_REPO}/golang:1.19.6'
@@ -664,6 +676,35 @@ release-rpms:
     paths:
       - dist/signed/*${ARCH}.rpm
       - ${ARCH}/repomd.xml
+
+# only upload the msi to S3 for stable release tags
+release-msi:
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  extends:
+    - .deploy-release
+  stage: release
+  dependencies:
+    - sign-msi
+  variables:
+    PATHS: dist/signed/*.msi
+
+# only upload the installer scripts to S3 for stable release tags
+release-installers:
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  except:
+    - schedules
+  extends:
+    - .deploy-release
+  stage: release
+  dependencies: []
+  variables:
+    INSTALLERS: "true"
 
 choco-release:
   extends: .trigger-filter

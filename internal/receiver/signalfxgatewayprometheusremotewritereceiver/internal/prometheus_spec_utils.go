@@ -25,7 +25,7 @@ import (
 func ExtractMetricNameLabel(labels []prompb.Label) (string, error) {
 	metricName, ok := getLabelValue(labels, "__name__")
 	if !ok {
-		return "", fmt.Errorf("did not find a label with `__name__` as per prometheus spec")
+		return "", errors.New("did not find a label with `__name__` as per prometheus spec")
 	}
 	return metricName, nil
 }

@@ -63,6 +63,7 @@ jobs:
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Setup python
         uses: actions/setup-python@v4

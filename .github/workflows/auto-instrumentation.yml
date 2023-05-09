@@ -29,6 +29,7 @@ jobs:
         uses: docker/setup-qemu-action@v2
         with:
           platforms: arm64
+          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Build libsplunk.so
         run: make -C instrumentation dist ARCH=${{ matrix.ARCH }}
@@ -104,6 +105,7 @@ jobs:
         uses: docker/setup-qemu-action@v2
         with:
           platforms: arm64
+          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Test
         run: docker run --platform linux/${{ matrix.ARCH }} --rm -v $(pwd):/repo -w /repo ${{ matrix.DISTRO }} /repo/instrumentation/packaging/fpm/test.sh deb ${{ matrix.ARCH }}
@@ -132,6 +134,7 @@ jobs:
         uses: docker/setup-qemu-action@v2
         with:
           platforms: arm64
+          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Test
         run: docker run --platform linux/${{ matrix.ARCH }} --rm -v $(pwd):/repo -w /repo ${{ matrix.DISTRO }} /repo/instrumentation/packaging/fpm/test.sh rpm ${{ matrix.ARCH }}

@@ -50,6 +50,7 @@ jobs:
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
       - run: |
           make docker-otelcol ARCH=${{ matrix.ARCH }}
         env:
@@ -85,6 +86,7 @@ jobs:
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
       - run: make integration-vet
@@ -117,6 +119,7 @@ jobs:
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
       - run: docker load -i ./bin/image.tar
       - run: chmod a+x ./bin/*
       - run: make integration-test-split

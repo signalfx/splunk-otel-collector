@@ -112,6 +112,9 @@ func TestDefaultComponents(t *testing.T) {
 		"splunk_hec",
 		"httpsink",
 	}
+	expectedConnectors := []component.Type{
+		"forwardconnector",
+	}
 
 	factories, err := Get()
 	assert.NoError(t, err)
@@ -144,6 +147,14 @@ func TestDefaultComponents(t *testing.T) {
 	assert.Len(t, exps, len(expectedExporters))
 	for _, k := range expectedExporters {
 		v, ok := exps[k]
+		require.True(t, ok)
+		assert.Equal(t, k, v.Type())
+	}
+
+	conns := factories.Connectors
+	assert.Len(t, conns, len(expectedConnectors))
+	for _, k := range expectedConnectors {
+		v, ok := conns[k]
 		require.True(t, ok)
 		assert.Equal(t, k, v.Type())
 	}

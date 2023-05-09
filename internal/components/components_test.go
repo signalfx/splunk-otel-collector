@@ -113,7 +113,7 @@ func TestDefaultComponents(t *testing.T) {
 		"httpsink",
 	}
 	expectedConnectors := []component.Type{
-		"forwardconnector",
+		"forward",
 	}
 
 	factories, err := Get()
@@ -155,7 +155,7 @@ func TestDefaultComponents(t *testing.T) {
 	assert.Len(t, conns, len(expectedConnectors))
 	for _, k := range expectedConnectors {
 		v, ok := conns[k]
-		require.True(t, ok)
+		require.True(t, ok, fmt.Sprintf("Missing expected connector %s", k))
 		assert.Equal(t, k, v.Type())
 	}
 }

@@ -94,6 +94,7 @@ require (
 	github.com/stretchr/testify v1.8.2
 	go.etcd.io/bbolt v1.3.7
 	go.etcd.io/etcd/client/v2 v2.305.8
+	go.opentelemetry.io/collector/connector/forwardconnector v0.76.1
 	go.opentelemetry.io/collector v0.76.1
 	go.opentelemetry.io/collector/confmap v0.76.1
 	go.opentelemetry.io/collector/exporter v0.76.1

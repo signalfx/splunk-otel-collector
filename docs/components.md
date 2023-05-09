@@ -113,6 +113,14 @@ The distribution offers support for the following components.
 | [ballast](https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/ballastextension)                           | [beta]    |
 
 </div>
+
+<div>
+
+| Connectors                                                                                                           | Stability        |
+|:---------------------------------------------------------------------------------------------------------------------|:-----------------|
+| [forward](https://github.com/open-telemetry/opentelemetry-collector/tree/main/connector/forwardconnector)            | [alpha]          |
+
+</div>
 </div>
 
 [stable]: https://github.com/open-telemetry/opentelemetry-collector#stable

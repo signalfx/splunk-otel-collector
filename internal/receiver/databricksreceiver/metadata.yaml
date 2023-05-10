@@ -1,3 +1,4 @@
+name: databricksreceiver
 type: databricksreceiver
 resource_attributes:
   databricks.instance.name:

@@ -22,3 +22,5 @@ This receiver is configured through standard OpenTelemetry mechanisms.  See [`co
 * `buffer_size` is the degree to which metric translations can be buffered without blocking further write requests. The default value is `100`.
   This receiver uses `opentelemetry-collector`'s [`confighttp`](https://github.com/open-telemetry/opentelemetry-collector/blob/main/config/confighttp/confighttp.go#L206) options if you want to set up TLS and other features. However, the receiver makes the following changes to upstream default options:
 * `endpoint` is the default interface and port to listen on. The default value is `localhost:19291`.
+ 
+If everything is configured properly, logs with sample writes should start appearing in stdout shortly.

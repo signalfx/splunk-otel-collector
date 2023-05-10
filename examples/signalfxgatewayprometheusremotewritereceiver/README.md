@@ -1,24 +1,18 @@
-# SignalFx Gateway Prometheus Remote write Receiver Example
+# Prometheus remote write example
 
-This example provides a `docker-compose` environment that continually sends some fake prometheus remote writes to an otel receiver replacement for the deprecated SignalFx Gateway for Prometheus Remote Writes.
-To run this, ensure you have `docker-compose` installed. 
+This example provides a `docker-compose` environment that continually sends fake prometheus remote writes to an OTel receiver replacement for the deprecated SignalFx Gateway for Prometheus Remote Writes. To run the example, make sure you have `docker-compose` installed.
 
 ## Configuration
-You can change the exporters to your liking by modifying `otel-collector-config.yaml`.
+To change the exporters, edit the `otel-collector-config.yaml` configuration file.
 
-Ensure the following environment variables are properly set, should you wish to send data to splunk observability cloud:
-1. `SPLUNK_ACCESS_TOKEN`
-2. `SPLUNK_REALM`
-
-Alternatively, you can remove the `signalfx` array item from the `exporters` configuration map in `otel-collector-config.yaml`
-
-Feel free to modify the sample client to your liking, or even disable it and write your own!
-
-## Running
-Once you've verified your environment, you can run the example by
-
+If you want to send data to Splunk Observability Cloud, set the following environment variables:
+- `SPLUNK_ACCESS_TOKEN`
+- `SPLUNK_REALM`
+ 
+You can also remove the `signalfx` array item from the `exporters` configuration map in the `otel-collector-config.yaml` configuration file.
+> **Tip:** Experiment and modify the sample client, or even disable it and write your own.
+ 
+## Running this example
+After you've verified your environment, enter the following command to run the example:
 ```bash
 $> docker-compose up
-```
-
-If everything is configured properly, logs with sample writes should start appearing in stdout shortly.

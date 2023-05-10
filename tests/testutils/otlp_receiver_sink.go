@@ -31,7 +31,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
@@ -98,7 +98,7 @@ func (otlp OTLPReceiverSink) Build() (*OTLPReceiverSink, error) {
 	params := receiver.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         otlp.Logger,
-			MeterProvider:  metric.NewNoopMeterProvider(),
+			MeterProvider:  noop.NewMeterProvider(),
 			TracerProvider: trace.NewNoopTracerProvider(),
 		},
 	}

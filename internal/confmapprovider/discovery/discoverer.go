@@ -36,7 +36,7 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/pdata/plog"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
-	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
@@ -484,7 +484,7 @@ func (d *discoverer) createExtensionCreateSettings(observerID component.ID) otel
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", observerID.String())),
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  metric.NewNoopMeterProvider(),
+			MeterProvider:  noop.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 		BuildInfo: d.info,
@@ -496,7 +496,7 @@ func (d *discoverer) createReceiverCreateSettings() otelcolreceiver.CreateSettin
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.New(d.logger.Core()).With(zap.String("kind", "receiver")),
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  metric.NewNoopMeterProvider(),
+			MeterProvider:  noop.NewMeterProvider(),
 			MetricsLevel:   configtelemetry.LevelDetailed,
 		},
 		BuildInfo: d.info,

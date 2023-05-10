@@ -1,5 +1,5 @@
 receivers:
-  simpleprometheusremotewrite:
+  signalfxgatewayprometheusremotewrite:
     endpoint: "0.0.0.0:54090"
     path: "/metrics"
     buffer_size: 100
@@ -18,10 +18,10 @@ service:
       address: ":8888"
   pipelines:
     metrics/logging:
-      receivers: [simpleprometheusremotewrite]
+      receivers: [signalfxgatewayprometheusremotewrite]
       processors: [batch]
       exporters: [logging]
     metrics/sfx:
-      receivers: [simpleprometheusremotewrite]
+      receivers: [signalfxgatewayprometheusremotewrite]
       processors: [batch]
       exporters: [signalfx]

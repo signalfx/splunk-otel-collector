@@ -7,6 +7,6 @@ import (
 )
 
 const (
-	Type      = "signalfxgatewayprometheusremotewritereceiver"
+	Type      = "signalfxgatewayprometheusremotewrite"
 	Stability = component.StabilityLevelDevelopment
 )

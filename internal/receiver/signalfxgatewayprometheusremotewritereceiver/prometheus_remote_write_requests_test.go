@@ -156,7 +156,7 @@ func ExpectedCounter() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-	scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewrite")
+	scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewritereceiver")
 	scopeMetrics.Scope().SetVersion("0.1")
 	metric := scopeMetrics.Metrics().AppendEmpty()
 	metric.SetName("http_requests_total")
@@ -177,7 +177,7 @@ func ExpectedGauge() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-	scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewrite")
+	scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewritereceiver")
 	scopeMetrics.Scope().SetVersion("0.1")
 	metric := scopeMetrics.Metrics().AppendEmpty()
 	metric.SetName("i_am_a_gauge")
@@ -194,7 +194,7 @@ func ExpectedSfxCompatibleHistogram() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-	scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewrite")
+	scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewritereceiver")
 	scopeMetrics.Scope().SetVersion("0.1")
 
 	// set bucket sizes
@@ -253,7 +253,7 @@ func ExpectedSfxCompatibleQuantile() pmetric.Metrics {
 	result := pmetric.NewMetrics()
 	resourceMetrics := result.ResourceMetrics().AppendEmpty()
 	scopeMetrics := resourceMetrics.ScopeMetrics().AppendEmpty()
-	scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewrite")
+	scopeMetrics.Scope().SetName("signalfxgatewayprometheusremotewritereceiver")
 	scopeMetrics.Scope().SetVersion("0.1")
 
 	// set bucket sizes

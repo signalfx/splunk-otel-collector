@@ -22,6 +22,8 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
 )
 
 var _ receiver.Metrics = (*prometheusRemoteWriteReceiver)(nil)
@@ -99,7 +101,7 @@ func (receiver *prometheusRemoteWriteReceiver) startServer(host component.Host) 
 	if err := prometheusRemoteWriteServer.listenAndServe(); err != nil {
 		// our receiver swallows http's ErrServeClosed, and we should only get "concerning" issues at this point in the code.
 		host.ReportFatalError(err)
-		receiver.reporter.OnDebugf("Error in %s/%s listening on %s/%s: %s", typeString, receiver.settings.ID, prometheusRemoteWriteServer.Addr, prometheusRemoteWriteServer.Path, err)
+		receiver.reporter.OnDebugf("Error in %s/%s listening on %s/%s: %s", metadata.Type, receiver.settings.ID, prometheusRemoteWriteServer.Addr, prometheusRemoteWriteServer.Path, err)
 	}
 }
 

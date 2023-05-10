@@ -1,4 +1,4 @@
-type: "signalfxgatewayprometheusremotewritereceiver"
+type: "signalfxgatewayprometheusremotewrite"
 status:
   class: "receiver"
   stability: "development"

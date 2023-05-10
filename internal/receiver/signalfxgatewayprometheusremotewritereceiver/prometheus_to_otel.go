@@ -26,6 +26,7 @@ import (
 	"go.uber.org/multierr"
 
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal"
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
 )
 
 type metricData struct {
@@ -64,7 +65,7 @@ func (prwParser *prometheusRemoteOtelParser) transformPrometheusRemoteWriteToOte
 	metric := pmetric.NewMetrics()
 	rm := metric.ResourceMetrics().AppendEmpty()
 	ilm := rm.ScopeMetrics().AppendEmpty()
-	ilm.Scope().SetName(typeString)
+	ilm.Scope().SetName(metadata.Type)
 	ilm.Scope().SetVersion("0.1")
 	for metricType, metrics := range parsedPrwMetrics {
 		prwParser.addMetrics(ilm, metricType, metrics)

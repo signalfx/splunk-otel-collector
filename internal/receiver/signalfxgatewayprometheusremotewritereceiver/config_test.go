@@ -23,6 +23,8 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
 )
 
 func TestValidateConfigAndDefaults(t *testing.T) {
@@ -34,9 +36,14 @@ func TestValidateConfigAndDefaults(t *testing.T) {
 	assert.Equal(t, 100, cfg.BufferSize)
 }
 
-func TestParseConfig(t *testing.T) {
+func TestLoadConfigFromFactory(t *testing.T) {
 	cfg := NewFactory().CreateDefaultConfig()
 	require.NotNil(t, cfg)
+	assert.NotEmpty(t, cfg)
+	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
+}
+
+func TestParseConfig(t *testing.T) {
 
 	rawCfgs := make(map[string]map[component.ID]map[string]any)
 	conf, err := confmaptest.LoadConf("internal/testdata/otel-collector-config.yaml")
@@ -44,12 +51,13 @@ func TestParseConfig(t *testing.T) {
 	require.NoError(t, conf.Unmarshal(&rawCfgs, confmap.WithErrorUnused()))
 	require.NotEmpty(t, rawCfgs)
 
-	require.NotEmpty(t, rawCfgs["receivers"])
-	for id, value := range rawCfgs["receivers"] {
-		require.NotEmpty(t, id)
-		require.NotEmpty(t, value)
-		assert.NoError(t, component.UnmarshalConfig(confmap.NewFromStringMap(value), cfg))
-	}
-	assert.NotEmpty(t, cfg)
-	assert.NoError(t, componenttest.CheckConfigStruct(cfg))
+	config := createDefaultConfig()
+	sub, err := conf.Sub("receivers")
+	require.NoError(t, err)
+	require.NotEmpty(t, sub)
+	sub, err = sub.Sub(metadata.Type)
+	require.NoError(t, err)
+	require.NotEmpty(t, sub)
+	require.NoError(t, component.UnmarshalConfig(sub, config))
+
 }

@@ -24,10 +24,6 @@ import (
 
 var _ component.Config = (*Config)(nil)
 
-const (
-	typeString = "signalfxgatewayprometheusremotewrite"
-)
-
 type Config struct {
 	// ListenPath is the path in which the receiver should respond to prometheus remote write requests.
 	ListenPath string `mapstructure:"path"`

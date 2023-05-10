@@ -21,6 +21,8 @@ import (
 	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
+
+	"github.com/signalfx/splunk-otel-collector/internal/receiver/signalfxgatewayprometheusremotewritereceiver/internal/metadata"
 )
 
 var _ reporter = (*otelReporter)(nil)
@@ -94,7 +96,7 @@ func (r *otelReporter) OnMetricsProcessed(
 		})
 	}
 
-	r.obsrecv.EndMetricsOp(ctx, typeString, numReceivedMessages, err)
+	r.obsrecv.EndMetricsOp(ctx, metadata.Type, numReceivedMessages, err)
 }
 
 func (r *otelReporter) OnDebugf(template string, args ...interface{}) {

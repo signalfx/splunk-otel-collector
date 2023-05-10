@@ -2,6 +2,7 @@ default:
   image: '${DOCKER_CICD_REPO}/ci-container/debian-buster:1.8.0'
 
 stages:
+  - update-otel-deps
   - sast-oss-scan
   - build
   - sign-binaries
@@ -35,6 +36,8 @@ semgrep:
   only:
     - main
     - schedules
+  needs: []
+  dependencies: []
 
 fossa:
   extends: .oss-scan
@@ -42,6 +45,8 @@ fossa:
   only:
     - main
     - schedules
+  needs: []
+  dependencies: []
   # allow_failure: false
 
 .get-artifactory-stage: &get-artifactory-stage
@@ -117,6 +122,23 @@ fossa:
 .docker-reader-role: &docker-reader-role |
   creds-helper init
   eval $(creds-helper docker --eval "artifactory:v2/cloud/role/docker-reader-role")
+
+update-otel-deps:
+  only:
+    - schedules
+  extends: .go-cache
+  stage: update-otel-deps
+  needs: []
+  dependencies: []
+  script:
+    - |
+      # install the gh cli
+      curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+        && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+        && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+        && apt update \
+        && apt install gh -y
+    - .gitlab/update-otel-deps.sh
 
 compile:
   extends:

@@ -29,6 +29,7 @@ type prometheusRemoteWriteServer struct {
 	*http.Server
 	*serverConfig
 	closeChannel *sync.Once
+	listening    *sync.WaitGroup
 }
 
 type serverConfig struct {
@@ -51,16 +52,23 @@ func newPrometheusRemoteWriteServer(config *serverConfig) (*prometheusRemoteWrit
 	if err != nil {
 		return nil, err
 	}
-	return &prometheusRemoteWriteServer{
+	prwServer := &prometheusRemoteWriteServer{
 		Server:       server,
 		serverConfig: config,
 		closeChannel: &sync.Once{},
-	}, nil
+		listening:    &sync.WaitGroup{},
+	}
+	prwServer.listening.Add(1)
+	return prwServer, nil
 }
 
 func (prw *prometheusRemoteWriteServer) close() error {
 	defer prw.closeChannel.Do(func() { close(prw.Mc) })
 	return prw.Server.Close()
+}
+
+func (prw *prometheusRemoteWriteServer) ready() {
+	prw.listening.Wait()
 }
 
 func (prw *prometheusRemoteWriteServer) listenAndServe() error {
@@ -70,7 +78,9 @@ func (prw *prometheusRemoteWriteServer) listenAndServe() error {
 		return err
 	}
 	defer listener.Close()
+	prw.listening.Done()
 	err = prw.Server.Serve(listener)
+	prw.listening.Add(1)
 	if err == http.ErrServerClosed {
 		return nil
 	}

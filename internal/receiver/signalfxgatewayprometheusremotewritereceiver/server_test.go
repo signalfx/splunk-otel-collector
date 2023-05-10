@@ -53,13 +53,13 @@ func TestWriteEmpty(t *testing.T) {
 	assert.NoError(t, err)
 	require.NotNil(t, remoteWriteServer)
 
-	wg := sync.WaitGroup{}
-	wg.Add(1)
+	serverLifecycle := sync.WaitGroup{}
+	serverLifecycle.Add(1)
 	go func() {
 		t.Logf("starting server...")
 		require.NoError(t, remoteWriteServer.listenAndServe())
 		t.Logf("stopped server...")
-		wg.Done()
+		serverLifecycle.Done()
 	}()
 
 	client, err := NewMockPrwClient(
@@ -69,7 +69,7 @@ func TestWriteEmpty(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.NotNil(t, client)
-	time.Sleep(100 * time.Millisecond)
+	require.Eventually(t, func() bool { remoteWriteServer.ready(); return true }, time.Second*10, 50*time.Millisecond)
 	require.NoError(t, client.SendWriteRequest(&prompb.WriteRequest{
 		Timeseries: []prompb.TimeSeries{},
 		Metadata:   []prompb.MetricMetadata{},
@@ -77,7 +77,7 @@ func TestWriteEmpty(t *testing.T) {
 
 	require.NoError(t, mockReporter.WaitAllOnMetricsProcessedCalls(time.Second*5))
 	require.NoError(t, remoteWriteServer.Shutdown(ctx))
-	require.Eventually(t, func() bool { wg.Wait(); return true }, time.Second*2, 100*time.Millisecond)
+	require.Eventually(t, func() bool { serverLifecycle.Wait(); return true }, time.Second*2, 100*time.Millisecond)
 }
 
 func TestWriteMany(t *testing.T) {
@@ -105,12 +105,13 @@ func TestWriteMany(t *testing.T) {
 	assert.NoError(t, err)
 	require.NotNil(t, remoteWriteServer)
 
-	wg := sync.WaitGroup{}
-	wg.Add(1)
+	serverLifecycle := sync.WaitGroup{}
+	serverLifecycle.Add(1)
 	go func() {
 		require.NoError(t, remoteWriteServer.listenAndServe())
-		wg.Done()
+		serverLifecycle.Done()
 	}()
+	require.Eventually(t, func() bool { remoteWriteServer.ready(); return true }, time.Second*10, 50*time.Millisecond)
 
 	client, err := NewMockPrwClient(
 		cfg.Endpoint,
@@ -127,5 +128,5 @@ func TestWriteMany(t *testing.T) {
 
 	require.NoError(t, mockReporter.WaitAllOnMetricsProcessedCalls(time.Second*5))
 	require.NoError(t, remoteWriteServer.Shutdown(ctx))
-	require.Eventually(t, func() bool { wg.Wait(); return true }, time.Second*2, 100*time.Millisecond)
+	require.Eventually(t, func() bool { serverLifecycle.Wait(); return true }, time.Second*2, 100*time.Millisecond)
 }

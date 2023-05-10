@@ -60,6 +60,7 @@ func TestEmptySend(t *testing.T) {
 	require.NotEmpty(t, remoteWriteReceiver.settings)
 	require.NotNil(t, remoteWriteReceiver.reporter)
 	require.Equal(t, expectedEndpoint, remoteWriteReceiver.server.Addr)
+	require.Eventually(t, func() bool { remoteWriteReceiver.server.ready(); return true }, time.Second*10, 50*time.Millisecond)
 
 	client, err := NewMockPrwClient(
 		cfg.Endpoint,
@@ -110,6 +111,7 @@ func TestSuccessfulSend(t *testing.T) {
 	require.NotEmpty(t, remoteWriteReceiver.settings)
 	require.NotNil(t, remoteWriteReceiver.reporter)
 	require.Equal(t, expectedEndpoint, remoteWriteReceiver.server.Addr)
+	require.Eventually(t, func() bool { remoteWriteReceiver.server.ready(); return true }, time.Second*10, 50*time.Millisecond)
 
 	client, err := NewMockPrwClient(
 		cfg.Endpoint,
@@ -163,6 +165,7 @@ func TestRealReporter(t *testing.T) {
 	require.NotEmpty(t, remoteWriteReceiver.settings.TelemetrySettings)
 	require.NotEmpty(t, remoteWriteReceiver.settings.Logger)
 	require.NotEmpty(t, remoteWriteReceiver.settings.BuildInfo)
+	require.Eventually(t, func() bool { remoteWriteReceiver.server.ready(); return true }, time.Second*10, 50*time.Millisecond)
 
 	client, err := NewMockPrwClient(
 		cfg.Endpoint,

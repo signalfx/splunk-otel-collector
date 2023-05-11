@@ -233,6 +233,7 @@ jobs:
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - run: make -C pkg/signalfx-agent/bundle agent-bundle-linux ARCH=${{ matrix.ARCH }}
 
@@ -357,6 +358,7 @@ jobs:
         if: ${{ matrix.ARCH != 'amd64' }}
         with:
           platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Setup python
         uses: actions/setup-python@v4
@@ -676,6 +678,7 @@ jobs:
         uses: docker/setup-qemu-action@v2
         with:
           platforms: ${{ matrix.ARCH }}
+          image: tonistiigi/binfmt:qemu-v7.0.0
 
       - name: Downloading binaries-linux_${{ matrix.ARCH }}
         uses: actions/download-artifact@v3

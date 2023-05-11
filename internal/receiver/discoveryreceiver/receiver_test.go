@@ -24,7 +24,7 @@ import (
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/extension"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
-	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -33,7 +33,7 @@ func TestNewDiscoveryReceiver(t *testing.T) {
 	rcs := otelcolreceiver.CreateSettings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:         zap.NewNop(),
-			MeterProvider:  metric.NewNoopMeterProvider(),
+			MeterProvider:  noop.NewMeterProvider(),
 			TracerProvider: trace.NewNoopTracerProvider(),
 		},
 	}
@@ -101,7 +101,7 @@ func TestObservablesFromHost(t *testing.T) {
 				TelemetrySettings: component.TelemetrySettings{
 					Logger:         zap.NewNop(),
 					TracerProvider: trace.NewNoopTracerProvider(),
-					MeterProvider:  metric.NewNoopMeterProvider(),
+					MeterProvider:  noop.NewMeterProvider(),
 				},
 			}
 			host := mockHost{extensions: test.extensions}

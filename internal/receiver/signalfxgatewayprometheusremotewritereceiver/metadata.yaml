@@ -1,6 +1,6 @@
 type: "signalfxgatewayprometheusremotewrite"
 status:
   class: "receiver"
-  stability: "development"
-  pipelines: ["metrics"]
+  stability:
+    development: ["metrics"]
   distributions: ["splunk"]

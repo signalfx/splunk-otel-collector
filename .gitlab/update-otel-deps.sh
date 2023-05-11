@@ -25,14 +25,14 @@ create_collector_pr() {
   # check if the branch exists
   if git ls-remote --exit-code --heads origin "$update_deps_branch"; then
     # get number of open PRs for the branch
-    nprs="$( gh pr list --repo "$repo_url" --head "$update_deps_branch" --state open --json id --jq length )"
-    if [[ ! "$nprs" =~ ^[0-9]+$ ]]; then
+    pr_count="$( gh pr list --repo "$repo_url" --head "$update_deps_branch" --state open --json id --jq length )"
+    if [[ ! "$pr_count" =~ ^[0-9]+$ ]]; then
       echo "ERROR: Failed to get PRs for the $update_deps_branch branch!" >&2
-      echo "$nprs" >&2
+      echo "$pr_count" >&2
       exit 1
     fi
-    if [[ "$nprs" != "0" ]]; then
-      echo ">>> The $update_deps_branch branch exists and has $nprs open PR(s)."
+    if [[ "$pr_count" != "0" ]]; then
+      echo ">>> The $update_deps_branch branch exists and has $pr_count open PR(s)."
       echo ">>> Nothing to do."
       exit 0
     fi

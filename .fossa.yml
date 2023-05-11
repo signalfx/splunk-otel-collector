@@ -4,13 +4,13 @@ targets:
   only:
     - type: gomod
     - type: maven
-      path: pkg/signalfx-agent/bundle/java/jmx
+      path: internal/signalfx-agent/bundle/java/jmx
     - type: maven
-      path: pkg/signalfx-agent/bundle/java/runner
+      path: internal/signalfx-agent/bundle/java/runner
     - type: setuptools
-      path: pkg/signalfx-agent/bundle/python
+      path: internal/signalfx-agent/bundle/python
     - type: setuptools
-      path: pkg/signalfx-agent/bundle/scripts
+      path: internal/signalfx-agent/bundle/scripts
 
 paths:
   exclude:

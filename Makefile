@@ -155,7 +155,7 @@ ifneq ($(SKIP_COMPILE), true)
 endif
 ifneq ($(filter $(ARCH), $(BUNDLE_SUPPORTED_ARCHS)),)
 ifneq ($(SKIP_BUNDLE), true)
-	$(MAKE) -C pkg/signalfx-agent/bundle agent-bundle-linux ARCH=$(ARCH) DOCKER_REPO=$(DOCKER_REPO)
+	$(MAKE) -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=$(ARCH) DOCKER_REPO=$(DOCKER_REPO)
 endif
 endif
 	rm -rf ./cmd/otelcol/dist
@@ -211,7 +211,7 @@ ifneq ($(SKIP_COMPILE), true)
 endif
 ifneq ($(filter $(ARCH), $(BUNDLE_SUPPORTED_ARCHS)),)
 ifneq ($(SKIP_BUNDLE), true)
-	$(MAKE) -C pkg/signalfx-agent/bundle agent-bundle-linux ARCH=$(ARCH) DOCKER_REPO=$(DOCKER_REPO)
+	$(MAKE) -C internal/signalfx-agent/bundle agent-bundle-linux ARCH=$(ARCH) DOCKER_REPO=$(DOCKER_REPO)
 endif
 endif
 	docker build -t otelcol-fpm internal/buildscripts/packaging/fpm
@@ -222,7 +222,7 @@ msi:
 ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) binaries-windows_amd64
 endif
-	test -f ./dist/agent-bundle_windows_amd64.zip || (echo "./dist/agent-bundle_windows_amd64.zip not found! Either download a pre-built bundle to ./dist/, or run './pkg/signalfx-agent/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to ./dist/." && exit 1)
+	test -f ./dist/agent-bundle_windows_amd64.zip || (echo "./dist/agent-bundle_windows_amd64.zip not found! Either download a pre-built bundle to ./dist/, or run './internal/signalfx-agent/bundle/scripts/windows/make.ps1 bundle' on a windows host and copy it to ./dist/." && exit 1)
 	./internal/buildscripts/packaging/msi/build.sh "$(VERSION)" "$(DOCKER_REPO)"
 
 .PHONY: update-examples

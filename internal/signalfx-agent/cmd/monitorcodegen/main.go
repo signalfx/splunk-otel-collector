@@ -14,8 +14,9 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/signalfx/signalfx-agent/pkg/selfdescribe"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/signalfx/signalfx-agent/pkg/selfdescribe"
 )
 
 const (

@@ -6,629 +6,10 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver"
 )
-
-// MetricSettings provides common settings for a particular metric.
-type MetricSettings struct {
-	Enabled bool `mapstructure:"enabled"`
-
-	enabledSetByUser bool
-}
-
-func (ms *MetricSettings) Unmarshal(parser *confmap.Conf) error {
-	if parser == nil {
-		return nil
-	}
-	err := parser.Unmarshal(ms, confmap.WithErrorUnused())
-	if err != nil {
-		return err
-	}
-	ms.enabledSetByUser = parser.IsSet("enabled")
-	return nil
-}
-
-// MetricsSettings provides settings for databricksreceiver metrics.
-type MetricsSettings struct {
-	DatabricksJobsActiveTotal                                                                                          MetricSettings `mapstructure:"databricks.jobs.active.total"`
-	DatabricksJobsRunDuration                                                                                          MetricSettings `mapstructure:"databricks.jobs.run.duration"`
-	DatabricksJobsScheduleStatus                                                                                       MetricSettings `mapstructure:"databricks.jobs.schedule.status"`
-	DatabricksJobsTotal                                                                                                MetricSettings `mapstructure:"databricks.jobs.total"`
-	DatabricksSparkBlockManagerMemoryDiskSpaceUsed                                                                     MetricSettings `mapstructure:"databricks.spark.block_manager.memory.disk_space.used"`
-	DatabricksSparkBlockManagerMemoryMax                                                                               MetricSettings `mapstructure:"databricks.spark.block_manager.memory.max"`
-	DatabricksSparkBlockManagerMemoryOffHeapMax                                                                        MetricSettings `mapstructure:"databricks.spark.block_manager.memory.off_heap.max"`
-	DatabricksSparkBlockManagerMemoryOffHeapUsed                                                                       MetricSettings `mapstructure:"databricks.spark.block_manager.memory.off_heap.used"`
-	DatabricksSparkBlockManagerMemoryOnHeapMax                                                                         MetricSettings `mapstructure:"databricks.spark.block_manager.memory.on_heap.max"`
-	DatabricksSparkBlockManagerMemoryOnHeapUsed                                                                        MetricSettings `mapstructure:"databricks.spark.block_manager.memory.on_heap.used"`
-	DatabricksSparkBlockManagerMemoryRemaining                                                                         MetricSettings `mapstructure:"databricks.spark.block_manager.memory.remaining"`
-	DatabricksSparkBlockManagerMemoryRemainingOffHeap                                                                  MetricSettings `mapstructure:"databricks.spark.block_manager.memory.remaining.off_heap"`
-	DatabricksSparkBlockManagerMemoryRemainingOnHeap                                                                   MetricSettings `mapstructure:"databricks.spark.block_manager.memory.remaining.on_heap"`
-	DatabricksSparkBlockManagerMemoryUsed                                                                              MetricSettings `mapstructure:"databricks.spark.block_manager.memory.used"`
-	DatabricksSparkCodeGeneratorCompilationTime                                                                        MetricSettings `mapstructure:"databricks.spark.code_generator.compilation.time"`
-	DatabricksSparkCodeGeneratorGeneratedClassSize                                                                     MetricSettings `mapstructure:"databricks.spark.code_generator.generated_class_size"`
-	DatabricksSparkCodeGeneratorGeneratedMethodSize                                                                    MetricSettings `mapstructure:"databricks.spark.code_generator.generated_method_size"`
-	DatabricksSparkCodeGeneratorSourcecodeSize                                                                         MetricSettings `mapstructure:"databricks.spark.code_generator.sourcecode_size"`
-	DatabricksSparkDagSchedulerJobsActive                                                                              MetricSettings `mapstructure:"databricks.spark.dag_scheduler.jobs.active"`
-	DatabricksSparkDagSchedulerJobsAll                                                                                 MetricSettings `mapstructure:"databricks.spark.dag_scheduler.jobs.all"`
-	DatabricksSparkDagSchedulerStagesFailed                                                                            MetricSettings `mapstructure:"databricks.spark.dag_scheduler.stages.failed"`
-	DatabricksSparkDagSchedulerStagesRunning                                                                           MetricSettings `mapstructure:"databricks.spark.dag_scheduler.stages.running"`
-	DatabricksSparkDagSchedulerStagesWaiting                                                                           MetricSettings `mapstructure:"databricks.spark.dag_scheduler.stages.waiting"`
-	DatabricksSparkDatabricksDirectoryCommitAutoVacuumCount                                                            MetricSettings `mapstructure:"databricks.spark.databricks.directory_commit.auto_vacuum.count"`
-	DatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered                                                       MetricSettings `mapstructure:"databricks.spark.databricks.directory_commit.deleted_files_filtered"`
-	DatabricksSparkDatabricksDirectoryCommitFilterListingCount                                                         MetricSettings `mapstructure:"databricks.spark.databricks.directory_commit.filter_listing.count"`
-	DatabricksSparkDatabricksDirectoryCommitJobCommitCompleted                                                         MetricSettings `mapstructure:"databricks.spark.databricks.directory_commit.job_commit_completed"`
-	DatabricksSparkDatabricksDirectoryCommitMarkerReadErrors                                                           MetricSettings `mapstructure:"databricks.spark.databricks.directory_commit.marker_read.errors"`
-	DatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount                                                         MetricSettings `mapstructure:"databricks.spark.databricks.directory_commit.marker_refresh.count"`
-	DatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors                                                        MetricSettings `mapstructure:"databricks.spark.databricks.directory_commit.marker_refresh.errors"`
-	DatabricksSparkDatabricksDirectoryCommitMarkersRead                                                                MetricSettings `mapstructure:"databricks.spark.databricks.directory_commit.markers.read"`
-	DatabricksSparkDatabricksDirectoryCommitRepeatedListCount                                                          MetricSettings `mapstructure:"databricks.spark.databricks.directory_commit.repeated_list.count"`
-	DatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered                                                   MetricSettings `mapstructure:"databricks.spark.databricks.directory_commit.uncommitted_files.filtered"`
-	DatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound                                                        MetricSettings `mapstructure:"databricks.spark.databricks.directory_commit.untracked_files.found"`
-	DatabricksSparkDatabricksDirectoryCommitVacuumCount                                                                MetricSettings `mapstructure:"databricks.spark.databricks.directory_commit.vacuum.count"`
-	DatabricksSparkDatabricksDirectoryCommitVacuumErrors                                                               MetricSettings `mapstructure:"databricks.spark.databricks.directory_commit.vacuum.errors"`
-	DatabricksSparkDatabricksPreemptionChecksCount                                                                     MetricSettings `mapstructure:"databricks.spark.databricks.preemption.checks.count"`
-	DatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount                                                           MetricSettings `mapstructure:"databricks.spark.databricks.preemption.pools_autoexpired.count"`
-	DatabricksSparkDatabricksPreemptionPoolstarvationTime                                                              MetricSettings `mapstructure:"databricks.spark.databricks.preemption.poolstarvation.time"`
-	DatabricksSparkDatabricksPreemptionSchedulerOverheadTime                                                           MetricSettings `mapstructure:"databricks.spark.databricks.preemption.scheduler_overhead.time"`
-	DatabricksSparkDatabricksPreemptionTaskWastedTime                                                                  MetricSettings `mapstructure:"databricks.spark.databricks.preemption.task_wasted.time"`
-	DatabricksSparkDatabricksPreemptionTasksPreemptedCount                                                             MetricSettings `mapstructure:"databricks.spark.databricks.preemption.tasks_preempted.count"`
-	DatabricksSparkDatabricksTaskSchedulingLanesActivePools                                                            MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.active_pools"`
-	DatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools                                                  MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.bypass_lane_active_pools"`
-	DatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools                                                    MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.fast_lane_active_pools"`
-	DatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime                                           MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.finished_queries_total_task.time"`
-	DatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools                                                 MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.marked_pools"`
-	DatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned                                        MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.two_phase_pools_cleaned"`
-	DatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned                                          MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.lane_cleanup.zombie_pools_cleaned"`
-	DatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount              MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_successful_preemption_iterations.count"`
-	DatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount                              MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_tasks_preempted.count"`
-	DatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime                                   MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.preemption.slot_transfer_wasted_task.time"`
-	DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount                                    MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.slot_reservation.gradual_decrease.count"`
-	DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount                                          MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_drop.count"`
-	DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount                                          MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.slot_reservation.quick_jump.count"`
-	DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved                                           MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.slot_reservation.slots_reserved"`
-	DatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools                                                    MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.slow_lane_active_pools"`
-	DatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished                                               MetricSettings `mapstructure:"databricks.spark.databricks.task_scheduling_lanes.totalquerygroupsfinished"`
-	DatabricksSparkExecutorDiskUsed                                                                                    MetricSettings `mapstructure:"databricks.spark.executor.disk_used"`
-	DatabricksSparkExecutorMaxMemory                                                                                   MetricSettings `mapstructure:"databricks.spark.executor.max_memory"`
-	DatabricksSparkExecutorMemoryUsed                                                                                  MetricSettings `mapstructure:"databricks.spark.executor.memory_used"`
-	DatabricksSparkExecutorTotalInputBytes                                                                             MetricSettings `mapstructure:"databricks.spark.executor.total_input_bytes"`
-	DatabricksSparkExecutorTotalShuffleRead                                                                            MetricSettings `mapstructure:"databricks.spark.executor.total_shuffle_read"`
-	DatabricksSparkExecutorTotalShuffleWrite                                                                           MetricSettings `mapstructure:"databricks.spark.executor.total_shuffle_write"`
-	DatabricksSparkExecutorMetricsDirectPoolMemory                                                                     MetricSettings `mapstructure:"databricks.spark.executor_metrics.direct_pool.memory"`
-	DatabricksSparkExecutorMetricsJvmHeapMemory                                                                        MetricSettings `mapstructure:"databricks.spark.executor_metrics.jvm.heap.memory"`
-	DatabricksSparkExecutorMetricsJvmOffHeapMemory                                                                     MetricSettings `mapstructure:"databricks.spark.executor_metrics.jvm.off_heap.memory"`
-	DatabricksSparkExecutorMetricsMajorGcCount                                                                         MetricSettings `mapstructure:"databricks.spark.executor_metrics.major_gc.count"`
-	DatabricksSparkExecutorMetricsMajorGcTime                                                                          MetricSettings `mapstructure:"databricks.spark.executor_metrics.major_gc.time"`
-	DatabricksSparkExecutorMetricsMappedPoolMemory                                                                     MetricSettings `mapstructure:"databricks.spark.executor_metrics.mapped_pool.memory"`
-	DatabricksSparkExecutorMetricsMinorGcCount                                                                         MetricSettings `mapstructure:"databricks.spark.executor_metrics.minor_gc.count"`
-	DatabricksSparkExecutorMetricsMinorGcTime                                                                          MetricSettings `mapstructure:"databricks.spark.executor_metrics.minor_gc.time"`
-	DatabricksSparkExecutorMetricsOffHeapExecutionMemory                                                               MetricSettings `mapstructure:"databricks.spark.executor_metrics.off_heap.execution.memory"`
-	DatabricksSparkExecutorMetricsOffHeapStorageMemory                                                                 MetricSettings `mapstructure:"databricks.spark.executor_metrics.off_heap.storage.memory"`
-	DatabricksSparkExecutorMetricsOffHeapUnifiedMemory                                                                 MetricSettings `mapstructure:"databricks.spark.executor_metrics.off_heap.unified.memory"`
-	DatabricksSparkExecutorMetricsOnHeapExecutionMemory                                                                MetricSettings `mapstructure:"databricks.spark.executor_metrics.on_heap.execution.memory"`
-	DatabricksSparkExecutorMetricsOnHeapStorageMemory                                                                  MetricSettings `mapstructure:"databricks.spark.executor_metrics.on_heap.storage.memory"`
-	DatabricksSparkExecutorMetricsOnHeapUnifiedMemory                                                                  MetricSettings `mapstructure:"databricks.spark.executor_metrics.on_heap.unified.memory"`
-	DatabricksSparkExecutorMetricsProcessTreeJvmRssMemory                                                              MetricSettings `mapstructure:"databricks.spark.executor_metrics.process_tree.jvm_rss.memory"`
-	DatabricksSparkExecutorMetricsProcessTreeJvmVMemory                                                                MetricSettings `mapstructure:"databricks.spark.executor_metrics.process_tree.jvm_v.memory"`
-	DatabricksSparkExecutorMetricsProcessTreeOtherRssMemory                                                            MetricSettings `mapstructure:"databricks.spark.executor_metrics.process_tree.other_rss.memory"`
-	DatabricksSparkExecutorMetricsProcessTreeOtherVMemory                                                              MetricSettings `mapstructure:"databricks.spark.executor_metrics.process_tree.other_v.memory"`
-	DatabricksSparkExecutorMetricsProcessTreePythonRssMemory                                                           MetricSettings `mapstructure:"databricks.spark.executor_metrics.process_tree.python_rss.memory"`
-	DatabricksSparkExecutorMetricsProcessTreePythonVMemory                                                             MetricSettings `mapstructure:"databricks.spark.executor_metrics.process_tree.python_v.memory"`
-	DatabricksSparkHiveExternalCatalogFileCacheHits                                                                    MetricSettings `mapstructure:"databricks.spark.hive_external_catalog.file_cache.hits"`
-	DatabricksSparkHiveExternalCatalogFilesDiscovered                                                                  MetricSettings `mapstructure:"databricks.spark.hive_external_catalog.files_discovered"`
-	DatabricksSparkHiveExternalCatalogHiveClientCalls                                                                  MetricSettings `mapstructure:"databricks.spark.hive_external_catalog.hive_client_calls"`
-	DatabricksSparkHiveExternalCatalogParallelListingJobsCount                                                         MetricSettings `mapstructure:"databricks.spark.hive_external_catalog.parallel_listing_jobs.count"`
-	DatabricksSparkHiveExternalCatalogPartitionsFetched                                                                MetricSettings `mapstructure:"databricks.spark.hive_external_catalog.partitions_fetched"`
-	DatabricksSparkJobNumActiveStages                                                                                  MetricSettings `mapstructure:"databricks.spark.job.num_active_stages"`
-	DatabricksSparkJobNumActiveTasks                                                                                   MetricSettings `mapstructure:"databricks.spark.job.num_active_tasks"`
-	DatabricksSparkJobNumCompletedStages                                                                               MetricSettings `mapstructure:"databricks.spark.job.num_completed_stages"`
-	DatabricksSparkJobNumCompletedTasks                                                                                MetricSettings `mapstructure:"databricks.spark.job.num_completed_tasks"`
-	DatabricksSparkJobNumFailedStages                                                                                  MetricSettings `mapstructure:"databricks.spark.job.num_failed_stages"`
-	DatabricksSparkJobNumFailedTasks                                                                                   MetricSettings `mapstructure:"databricks.spark.job.num_failed_tasks"`
-	DatabricksSparkJobNumSkippedStages                                                                                 MetricSettings `mapstructure:"databricks.spark.job.num_skipped_stages"`
-	DatabricksSparkJobNumSkippedTasks                                                                                  MetricSettings `mapstructure:"databricks.spark.job.num_skipped_tasks"`
-	DatabricksSparkJobNumTasks                                                                                         MetricSettings `mapstructure:"databricks.spark.job.num_tasks"`
-	DatabricksSparkJvmCPUTime                                                                                          MetricSettings `mapstructure:"databricks.spark.jvm.cpu.time"`
-	DatabricksSparkLiveListenerBusEventsPostedCount                                                                    MetricSettings `mapstructure:"databricks.spark.live_listener_bus.events_posted.count"`
-	DatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount                                                     MetricSettings `mapstructure:"databricks.spark.live_listener_bus.queue.app_status.dropped_events.count"`
-	DatabricksSparkLiveListenerBusQueueAppstatusSize                                                                   MetricSettings `mapstructure:"databricks.spark.live_listener_bus.queue.appstatus.size"`
-	DatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount                                            MetricSettings `mapstructure:"databricks.spark.live_listener_bus.queue.executor_management.dropped_events.count"`
-	DatabricksSparkLiveListenerBusQueueExecutormanagementSize                                                          MetricSettings `mapstructure:"databricks.spark.live_listener_bus.queue.executormanagement.size"`
-	DatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount                                                        MetricSettings `mapstructure:"databricks.spark.live_listener_bus.queue.shared.dropped_events.count"`
-	DatabricksSparkLiveListenerBusQueueSharedSize                                                                      MetricSettings `mapstructure:"databricks.spark.live_listener_bus.queue.shared.size"`
-	DatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount                                                       MetricSettings `mapstructure:"databricks.spark.live_listener_bus.queue.streams.dropped_events.count"`
-	DatabricksSparkLiveListenerBusQueueStreamsSize                                                                     MetricSettings `mapstructure:"databricks.spark.live_listener_bus.queue.streams.size"`
-	DatabricksSparkSparkSQLOperationManagerHiveOperationsCount                                                         MetricSettings `mapstructure:"databricks.spark.spark_sql_operation_manager.hive_operations.count"`
-	DatabricksSparkStageDiskBytesSpilled                                                                               MetricSettings `mapstructure:"databricks.spark.stage.disk_bytes_spilled"`
-	DatabricksSparkStageExecutorRunTime                                                                                MetricSettings `mapstructure:"databricks.spark.stage.executor_run_time"`
-	DatabricksSparkStageInputBytes                                                                                     MetricSettings `mapstructure:"databricks.spark.stage.input_bytes"`
-	DatabricksSparkStageInputRecords                                                                                   MetricSettings `mapstructure:"databricks.spark.stage.input_records"`
-	DatabricksSparkStageMemoryBytesSpilled                                                                             MetricSettings `mapstructure:"databricks.spark.stage.memory_bytes_spilled"`
-	DatabricksSparkStageOutputBytes                                                                                    MetricSettings `mapstructure:"databricks.spark.stage.output_bytes"`
-	DatabricksSparkStageOutputRecords                                                                                  MetricSettings `mapstructure:"databricks.spark.stage.output_records"`
-	DatabricksSparkTimerDagSchedulerMessageProcessingTime                                                              MetricSettings `mapstructure:"databricks.spark.timer.dag_scheduler.message_processing.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime          MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.streaming.query_listener_bus.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime                                   MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime             MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.execution.ui.sql_app_status_listener.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.hive.thriftserver.ui.hive_thrift_server2listener.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime                                MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.spark_session.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime                    MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.sql.util.execution_listener_bus.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime                        MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.status.app_status_listener.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime                                MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.apache.spark.util.profiler_env.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime       MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.databricks.backend.daemon.driver.data_plane_event_listener.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime      MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.databricks.backend.daemon.driver.dbc_event_logging_listener.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime                     MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.databricks.photon.photon_cleanup_listener.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime            MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.databricks.spark.util.executor_time_logging_listener.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime                   MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.databricks.spark.util.usage_logging_listener.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime                        MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.advice.advisor_listener.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime                MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.debugger.query_watchdog_listener.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime                   MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.execution.ui.io_cache_listener.time"`
-	DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime              MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.listener_processing.databricks.sql.io.caching.repeated_reads_estimator.time"`
-	DatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime                                            MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.queue.app_status.listener_processing.time"`
-	DatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime                                   MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.queue.executor_management.listener_processing.time"`
-	DatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime                                               MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.queue.shared.listener_processing.time"`
-	DatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime                                              MetricSettings `mapstructure:"databricks.spark.timer.live_listener_bus.queue.streams.listener_processing.time"`
-	DatabricksTasksRunDuration                                                                                         MetricSettings `mapstructure:"databricks.tasks.run.duration"`
-	DatabricksTasksScheduleStatus                                                                                      MetricSettings `mapstructure:"databricks.tasks.schedule.status"`
-}
-
-func DefaultMetricsSettings() MetricsSettings {
-	return MetricsSettings{
-		DatabricksJobsActiveTotal: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksJobsRunDuration: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksJobsScheduleStatus: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksJobsTotal: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkBlockManagerMemoryDiskSpaceUsed: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkBlockManagerMemoryMax: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkBlockManagerMemoryOffHeapMax: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkBlockManagerMemoryOffHeapUsed: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkBlockManagerMemoryOnHeapMax: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkBlockManagerMemoryOnHeapUsed: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkBlockManagerMemoryRemaining: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkBlockManagerMemoryRemainingOffHeap: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkBlockManagerMemoryRemainingOnHeap: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkBlockManagerMemoryUsed: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkCodeGeneratorCompilationTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkCodeGeneratorGeneratedClassSize: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkCodeGeneratorGeneratedMethodSize: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkCodeGeneratorSourcecodeSize: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDagSchedulerJobsActive: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDagSchedulerJobsAll: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDagSchedulerStagesFailed: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDagSchedulerStagesRunning: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDagSchedulerStagesWaiting: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksDirectoryCommitAutoVacuumCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksDirectoryCommitFilterListingCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksDirectoryCommitJobCommitCompleted: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksDirectoryCommitMarkerReadErrors: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksDirectoryCommitMarkersRead: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksDirectoryCommitRepeatedListCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksDirectoryCommitVacuumCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksDirectoryCommitVacuumErrors: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksPreemptionChecksCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksPreemptionPoolstarvationTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksPreemptionSchedulerOverheadTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksPreemptionTaskWastedTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksPreemptionTasksPreemptedCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesActivePools: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorDiskUsed: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMaxMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMemoryUsed: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorTotalInputBytes: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorTotalShuffleRead: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorTotalShuffleWrite: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsDirectPoolMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsJvmHeapMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsJvmOffHeapMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsMajorGcCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsMajorGcTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsMappedPoolMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsMinorGcCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsMinorGcTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsOffHeapExecutionMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsOffHeapStorageMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsOffHeapUnifiedMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsOnHeapExecutionMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsOnHeapStorageMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsOnHeapUnifiedMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsProcessTreeJvmRssMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsProcessTreeJvmVMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsProcessTreeOtherRssMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsProcessTreeOtherVMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsProcessTreePythonRssMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkExecutorMetricsProcessTreePythonVMemory: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkHiveExternalCatalogFileCacheHits: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkHiveExternalCatalogFilesDiscovered: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkHiveExternalCatalogHiveClientCalls: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkHiveExternalCatalogParallelListingJobsCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkHiveExternalCatalogPartitionsFetched: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkJobNumActiveStages: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkJobNumActiveTasks: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkJobNumCompletedStages: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkJobNumCompletedTasks: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkJobNumFailedStages: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkJobNumFailedTasks: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkJobNumSkippedStages: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkJobNumSkippedTasks: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkJobNumTasks: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkJvmCPUTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkLiveListenerBusEventsPostedCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkLiveListenerBusQueueAppstatusSize: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkLiveListenerBusQueueExecutormanagementSize: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkLiveListenerBusQueueSharedSize: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkLiveListenerBusQueueStreamsSize: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkSparkSQLOperationManagerHiveOperationsCount: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkStageDiskBytesSpilled: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkStageExecutorRunTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkStageInputBytes: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkStageInputRecords: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkStageMemoryBytesSpilled: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkStageOutputBytes: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkStageOutputRecords: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerDagSchedulerMessageProcessingTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksTasksRunDuration: MetricSettings{
-			Enabled: true,
-		},
-		DatabricksTasksScheduleStatus: MetricSettings{
-			Enabled: true,
-		},
-	}
-}
-
-// ResourceAttributeSettings provides common settings for a particular metric.
-type ResourceAttributeSettings struct {
-	Enabled bool `mapstructure:"enabled"`
-}
-
-// ResourceAttributesSettings provides settings for databricksreceiver metrics.
-type ResourceAttributesSettings struct {
-	DatabricksInstanceName ResourceAttributeSettings `mapstructure:"databricks.instance.name"`
-	SparkAppID             ResourceAttributeSettings `mapstructure:"spark.app.id"`
-	SparkClusterID         ResourceAttributeSettings `mapstructure:"spark.cluster.id"`
-	SparkClusterName       ResourceAttributeSettings `mapstructure:"spark.cluster.name"`
-}
-
-func DefaultResourceAttributesSettings() ResourceAttributesSettings {
-	return ResourceAttributesSettings{
-		DatabricksInstanceName: ResourceAttributeSettings{
-			Enabled: true,
-		},
-		SparkAppID: ResourceAttributeSettings{
-			Enabled: true,
-		},
-		SparkClusterID: ResourceAttributeSettings{
-			Enabled: true,
-		},
-		SparkClusterName: ResourceAttributeSettings{
-			Enabled: true,
-		},
-	}
-}
 
 // AttributeTaskType specifies the a value task.type attribute.
 type AttributeTaskType int
@@ -674,7 +55,7 @@ var MapAttributeTaskType = map[string]AttributeTaskType{
 
 type metricDatabricksJobsActiveTotal struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -687,7 +68,7 @@ func (m *metricDatabricksJobsActiveTotal) init() {
 }
 
 func (m *metricDatabricksJobsActiveTotal) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -705,16 +86,16 @@ func (m *metricDatabricksJobsActiveTotal) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksJobsActiveTotal) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksJobsActiveTotal(settings MetricSettings) metricDatabricksJobsActiveTotal {
-	m := metricDatabricksJobsActiveTotal{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksJobsActiveTotal(cfg MetricConfig) metricDatabricksJobsActiveTotal {
+	m := metricDatabricksJobsActiveTotal{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -723,7 +104,7 @@ func newMetricDatabricksJobsActiveTotal(settings MetricSettings) metricDatabrick
 
 type metricDatabricksJobsRunDuration struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -737,7 +118,7 @@ func (m *metricDatabricksJobsRunDuration) init() {
 }
 
 func (m *metricDatabricksJobsRunDuration) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, jobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -756,16 +137,16 @@ func (m *metricDatabricksJobsRunDuration) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksJobsRunDuration) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksJobsRunDuration(settings MetricSettings) metricDatabricksJobsRunDuration {
-	m := metricDatabricksJobsRunDuration{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksJobsRunDuration(cfg MetricConfig) metricDatabricksJobsRunDuration {
+	m := metricDatabricksJobsRunDuration{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -774,7 +155,7 @@ func newMetricDatabricksJobsRunDuration(settings MetricSettings) metricDatabrick
 
 type metricDatabricksJobsScheduleStatus struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -788,7 +169,7 @@ func (m *metricDatabricksJobsScheduleStatus) init() {
 }
 
 func (m *metricDatabricksJobsScheduleStatus) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, jobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -807,16 +188,16 @@ func (m *metricDatabricksJobsScheduleStatus) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksJobsScheduleStatus) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksJobsScheduleStatus(settings MetricSettings) metricDatabricksJobsScheduleStatus {
-	m := metricDatabricksJobsScheduleStatus{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksJobsScheduleStatus(cfg MetricConfig) metricDatabricksJobsScheduleStatus {
+	m := metricDatabricksJobsScheduleStatus{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -825,7 +206,7 @@ func newMetricDatabricksJobsScheduleStatus(settings MetricSettings) metricDatabr
 
 type metricDatabricksJobsTotal struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -838,7 +219,7 @@ func (m *metricDatabricksJobsTotal) init() {
 }
 
 func (m *metricDatabricksJobsTotal) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -856,16 +237,16 @@ func (m *metricDatabricksJobsTotal) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksJobsTotal) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksJobsTotal(settings MetricSettings) metricDatabricksJobsTotal {
-	m := metricDatabricksJobsTotal{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksJobsTotal(cfg MetricConfig) metricDatabricksJobsTotal {
+	m := metricDatabricksJobsTotal{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -874,7 +255,7 @@ func newMetricDatabricksJobsTotal(settings MetricSettings) metricDatabricksJobsT
 
 type metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -888,7 +269,7 @@ func (m *metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed) init() {
 }
 
 func (m *metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -910,16 +291,16 @@ func (m *metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed) updateCapacity() 
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkBlockManagerMemoryDiskSpaceUsed(settings MetricSettings) metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed {
-	m := metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkBlockManagerMemoryDiskSpaceUsed(cfg MetricConfig) metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed {
+	m := metricDatabricksSparkBlockManagerMemoryDiskSpaceUsed{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -928,7 +309,7 @@ func newMetricDatabricksSparkBlockManagerMemoryDiskSpaceUsed(settings MetricSett
 
 type metricDatabricksSparkBlockManagerMemoryMax struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -942,7 +323,7 @@ func (m *metricDatabricksSparkBlockManagerMemoryMax) init() {
 }
 
 func (m *metricDatabricksSparkBlockManagerMemoryMax) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -964,16 +345,16 @@ func (m *metricDatabricksSparkBlockManagerMemoryMax) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkBlockManagerMemoryMax) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkBlockManagerMemoryMax(settings MetricSettings) metricDatabricksSparkBlockManagerMemoryMax {
-	m := metricDatabricksSparkBlockManagerMemoryMax{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkBlockManagerMemoryMax(cfg MetricConfig) metricDatabricksSparkBlockManagerMemoryMax {
+	m := metricDatabricksSparkBlockManagerMemoryMax{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -982,7 +363,7 @@ func newMetricDatabricksSparkBlockManagerMemoryMax(settings MetricSettings) metr
 
 type metricDatabricksSparkBlockManagerMemoryOffHeapMax struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -996,7 +377,7 @@ func (m *metricDatabricksSparkBlockManagerMemoryOffHeapMax) init() {
 }
 
 func (m *metricDatabricksSparkBlockManagerMemoryOffHeapMax) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1018,16 +399,16 @@ func (m *metricDatabricksSparkBlockManagerMemoryOffHeapMax) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkBlockManagerMemoryOffHeapMax) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkBlockManagerMemoryOffHeapMax(settings MetricSettings) metricDatabricksSparkBlockManagerMemoryOffHeapMax {
-	m := metricDatabricksSparkBlockManagerMemoryOffHeapMax{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkBlockManagerMemoryOffHeapMax(cfg MetricConfig) metricDatabricksSparkBlockManagerMemoryOffHeapMax {
+	m := metricDatabricksSparkBlockManagerMemoryOffHeapMax{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1036,7 +417,7 @@ func newMetricDatabricksSparkBlockManagerMemoryOffHeapMax(settings MetricSetting
 
 type metricDatabricksSparkBlockManagerMemoryOffHeapUsed struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1050,7 +431,7 @@ func (m *metricDatabricksSparkBlockManagerMemoryOffHeapUsed) init() {
 }
 
 func (m *metricDatabricksSparkBlockManagerMemoryOffHeapUsed) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1072,16 +453,16 @@ func (m *metricDatabricksSparkBlockManagerMemoryOffHeapUsed) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkBlockManagerMemoryOffHeapUsed) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkBlockManagerMemoryOffHeapUsed(settings MetricSettings) metricDatabricksSparkBlockManagerMemoryOffHeapUsed {
-	m := metricDatabricksSparkBlockManagerMemoryOffHeapUsed{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkBlockManagerMemoryOffHeapUsed(cfg MetricConfig) metricDatabricksSparkBlockManagerMemoryOffHeapUsed {
+	m := metricDatabricksSparkBlockManagerMemoryOffHeapUsed{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1090,7 +471,7 @@ func newMetricDatabricksSparkBlockManagerMemoryOffHeapUsed(settings MetricSettin
 
 type metricDatabricksSparkBlockManagerMemoryOnHeapMax struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1104,7 +485,7 @@ func (m *metricDatabricksSparkBlockManagerMemoryOnHeapMax) init() {
 }
 
 func (m *metricDatabricksSparkBlockManagerMemoryOnHeapMax) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1126,16 +507,16 @@ func (m *metricDatabricksSparkBlockManagerMemoryOnHeapMax) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkBlockManagerMemoryOnHeapMax) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkBlockManagerMemoryOnHeapMax(settings MetricSettings) metricDatabricksSparkBlockManagerMemoryOnHeapMax {
-	m := metricDatabricksSparkBlockManagerMemoryOnHeapMax{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkBlockManagerMemoryOnHeapMax(cfg MetricConfig) metricDatabricksSparkBlockManagerMemoryOnHeapMax {
+	m := metricDatabricksSparkBlockManagerMemoryOnHeapMax{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1144,7 +525,7 @@ func newMetricDatabricksSparkBlockManagerMemoryOnHeapMax(settings MetricSettings
 
 type metricDatabricksSparkBlockManagerMemoryOnHeapUsed struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1158,7 +539,7 @@ func (m *metricDatabricksSparkBlockManagerMemoryOnHeapUsed) init() {
 }
 
 func (m *metricDatabricksSparkBlockManagerMemoryOnHeapUsed) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1180,16 +561,16 @@ func (m *metricDatabricksSparkBlockManagerMemoryOnHeapUsed) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkBlockManagerMemoryOnHeapUsed) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkBlockManagerMemoryOnHeapUsed(settings MetricSettings) metricDatabricksSparkBlockManagerMemoryOnHeapUsed {
-	m := metricDatabricksSparkBlockManagerMemoryOnHeapUsed{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkBlockManagerMemoryOnHeapUsed(cfg MetricConfig) metricDatabricksSparkBlockManagerMemoryOnHeapUsed {
+	m := metricDatabricksSparkBlockManagerMemoryOnHeapUsed{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1198,7 +579,7 @@ func newMetricDatabricksSparkBlockManagerMemoryOnHeapUsed(settings MetricSetting
 
 type metricDatabricksSparkBlockManagerMemoryRemaining struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1212,7 +593,7 @@ func (m *metricDatabricksSparkBlockManagerMemoryRemaining) init() {
 }
 
 func (m *metricDatabricksSparkBlockManagerMemoryRemaining) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1234,16 +615,16 @@ func (m *metricDatabricksSparkBlockManagerMemoryRemaining) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkBlockManagerMemoryRemaining) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkBlockManagerMemoryRemaining(settings MetricSettings) metricDatabricksSparkBlockManagerMemoryRemaining {
-	m := metricDatabricksSparkBlockManagerMemoryRemaining{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkBlockManagerMemoryRemaining(cfg MetricConfig) metricDatabricksSparkBlockManagerMemoryRemaining {
+	m := metricDatabricksSparkBlockManagerMemoryRemaining{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1252,7 +633,7 @@ func newMetricDatabricksSparkBlockManagerMemoryRemaining(settings MetricSettings
 
 type metricDatabricksSparkBlockManagerMemoryRemainingOffHeap struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1266,7 +647,7 @@ func (m *metricDatabricksSparkBlockManagerMemoryRemainingOffHeap) init() {
 }
 
 func (m *metricDatabricksSparkBlockManagerMemoryRemainingOffHeap) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1288,16 +669,16 @@ func (m *metricDatabricksSparkBlockManagerMemoryRemainingOffHeap) updateCapacity
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkBlockManagerMemoryRemainingOffHeap) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkBlockManagerMemoryRemainingOffHeap(settings MetricSettings) metricDatabricksSparkBlockManagerMemoryRemainingOffHeap {
-	m := metricDatabricksSparkBlockManagerMemoryRemainingOffHeap{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkBlockManagerMemoryRemainingOffHeap(cfg MetricConfig) metricDatabricksSparkBlockManagerMemoryRemainingOffHeap {
+	m := metricDatabricksSparkBlockManagerMemoryRemainingOffHeap{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1306,7 +687,7 @@ func newMetricDatabricksSparkBlockManagerMemoryRemainingOffHeap(settings MetricS
 
 type metricDatabricksSparkBlockManagerMemoryRemainingOnHeap struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1320,7 +701,7 @@ func (m *metricDatabricksSparkBlockManagerMemoryRemainingOnHeap) init() {
 }
 
 func (m *metricDatabricksSparkBlockManagerMemoryRemainingOnHeap) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1342,16 +723,16 @@ func (m *metricDatabricksSparkBlockManagerMemoryRemainingOnHeap) updateCapacity(
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkBlockManagerMemoryRemainingOnHeap) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkBlockManagerMemoryRemainingOnHeap(settings MetricSettings) metricDatabricksSparkBlockManagerMemoryRemainingOnHeap {
-	m := metricDatabricksSparkBlockManagerMemoryRemainingOnHeap{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkBlockManagerMemoryRemainingOnHeap(cfg MetricConfig) metricDatabricksSparkBlockManagerMemoryRemainingOnHeap {
+	m := metricDatabricksSparkBlockManagerMemoryRemainingOnHeap{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1360,7 +741,7 @@ func newMetricDatabricksSparkBlockManagerMemoryRemainingOnHeap(settings MetricSe
 
 type metricDatabricksSparkBlockManagerMemoryUsed struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1374,7 +755,7 @@ func (m *metricDatabricksSparkBlockManagerMemoryUsed) init() {
 }
 
 func (m *metricDatabricksSparkBlockManagerMemoryUsed) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1396,16 +777,16 @@ func (m *metricDatabricksSparkBlockManagerMemoryUsed) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkBlockManagerMemoryUsed) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkBlockManagerMemoryUsed(settings MetricSettings) metricDatabricksSparkBlockManagerMemoryUsed {
-	m := metricDatabricksSparkBlockManagerMemoryUsed{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkBlockManagerMemoryUsed(cfg MetricConfig) metricDatabricksSparkBlockManagerMemoryUsed {
+	m := metricDatabricksSparkBlockManagerMemoryUsed{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1414,7 +795,7 @@ func newMetricDatabricksSparkBlockManagerMemoryUsed(settings MetricSettings) met
 
 type metricDatabricksSparkCodeGeneratorCompilationTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1428,7 +809,7 @@ func (m *metricDatabricksSparkCodeGeneratorCompilationTime) init() {
 }
 
 func (m *metricDatabricksSparkCodeGeneratorCompilationTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1450,16 +831,16 @@ func (m *metricDatabricksSparkCodeGeneratorCompilationTime) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkCodeGeneratorCompilationTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkCodeGeneratorCompilationTime(settings MetricSettings) metricDatabricksSparkCodeGeneratorCompilationTime {
-	m := metricDatabricksSparkCodeGeneratorCompilationTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkCodeGeneratorCompilationTime(cfg MetricConfig) metricDatabricksSparkCodeGeneratorCompilationTime {
+	m := metricDatabricksSparkCodeGeneratorCompilationTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1468,7 +849,7 @@ func newMetricDatabricksSparkCodeGeneratorCompilationTime(settings MetricSetting
 
 type metricDatabricksSparkCodeGeneratorGeneratedClassSize struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1482,7 +863,7 @@ func (m *metricDatabricksSparkCodeGeneratorGeneratedClassSize) init() {
 }
 
 func (m *metricDatabricksSparkCodeGeneratorGeneratedClassSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1504,16 +885,16 @@ func (m *metricDatabricksSparkCodeGeneratorGeneratedClassSize) updateCapacity() 
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkCodeGeneratorGeneratedClassSize) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkCodeGeneratorGeneratedClassSize(settings MetricSettings) metricDatabricksSparkCodeGeneratorGeneratedClassSize {
-	m := metricDatabricksSparkCodeGeneratorGeneratedClassSize{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkCodeGeneratorGeneratedClassSize(cfg MetricConfig) metricDatabricksSparkCodeGeneratorGeneratedClassSize {
+	m := metricDatabricksSparkCodeGeneratorGeneratedClassSize{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1522,7 +903,7 @@ func newMetricDatabricksSparkCodeGeneratorGeneratedClassSize(settings MetricSett
 
 type metricDatabricksSparkCodeGeneratorGeneratedMethodSize struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1536,7 +917,7 @@ func (m *metricDatabricksSparkCodeGeneratorGeneratedMethodSize) init() {
 }
 
 func (m *metricDatabricksSparkCodeGeneratorGeneratedMethodSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1558,16 +939,16 @@ func (m *metricDatabricksSparkCodeGeneratorGeneratedMethodSize) updateCapacity()
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkCodeGeneratorGeneratedMethodSize) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkCodeGeneratorGeneratedMethodSize(settings MetricSettings) metricDatabricksSparkCodeGeneratorGeneratedMethodSize {
-	m := metricDatabricksSparkCodeGeneratorGeneratedMethodSize{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkCodeGeneratorGeneratedMethodSize(cfg MetricConfig) metricDatabricksSparkCodeGeneratorGeneratedMethodSize {
+	m := metricDatabricksSparkCodeGeneratorGeneratedMethodSize{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1576,7 +957,7 @@ func newMetricDatabricksSparkCodeGeneratorGeneratedMethodSize(settings MetricSet
 
 type metricDatabricksSparkCodeGeneratorSourcecodeSize struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1590,7 +971,7 @@ func (m *metricDatabricksSparkCodeGeneratorSourcecodeSize) init() {
 }
 
 func (m *metricDatabricksSparkCodeGeneratorSourcecodeSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1612,16 +993,16 @@ func (m *metricDatabricksSparkCodeGeneratorSourcecodeSize) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkCodeGeneratorSourcecodeSize) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkCodeGeneratorSourcecodeSize(settings MetricSettings) metricDatabricksSparkCodeGeneratorSourcecodeSize {
-	m := metricDatabricksSparkCodeGeneratorSourcecodeSize{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkCodeGeneratorSourcecodeSize(cfg MetricConfig) metricDatabricksSparkCodeGeneratorSourcecodeSize {
+	m := metricDatabricksSparkCodeGeneratorSourcecodeSize{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1630,7 +1011,7 @@ func newMetricDatabricksSparkCodeGeneratorSourcecodeSize(settings MetricSettings
 
 type metricDatabricksSparkDagSchedulerJobsActive struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1644,7 +1025,7 @@ func (m *metricDatabricksSparkDagSchedulerJobsActive) init() {
 }
 
 func (m *metricDatabricksSparkDagSchedulerJobsActive) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1666,16 +1047,16 @@ func (m *metricDatabricksSparkDagSchedulerJobsActive) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDagSchedulerJobsActive) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDagSchedulerJobsActive(settings MetricSettings) metricDatabricksSparkDagSchedulerJobsActive {
-	m := metricDatabricksSparkDagSchedulerJobsActive{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDagSchedulerJobsActive(cfg MetricConfig) metricDatabricksSparkDagSchedulerJobsActive {
+	m := metricDatabricksSparkDagSchedulerJobsActive{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1684,7 +1065,7 @@ func newMetricDatabricksSparkDagSchedulerJobsActive(settings MetricSettings) met
 
 type metricDatabricksSparkDagSchedulerJobsAll struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1698,7 +1079,7 @@ func (m *metricDatabricksSparkDagSchedulerJobsAll) init() {
 }
 
 func (m *metricDatabricksSparkDagSchedulerJobsAll) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1720,16 +1101,16 @@ func (m *metricDatabricksSparkDagSchedulerJobsAll) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDagSchedulerJobsAll) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDagSchedulerJobsAll(settings MetricSettings) metricDatabricksSparkDagSchedulerJobsAll {
-	m := metricDatabricksSparkDagSchedulerJobsAll{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDagSchedulerJobsAll(cfg MetricConfig) metricDatabricksSparkDagSchedulerJobsAll {
+	m := metricDatabricksSparkDagSchedulerJobsAll{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1738,7 +1119,7 @@ func newMetricDatabricksSparkDagSchedulerJobsAll(settings MetricSettings) metric
 
 type metricDatabricksSparkDagSchedulerStagesFailed struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1752,7 +1133,7 @@ func (m *metricDatabricksSparkDagSchedulerStagesFailed) init() {
 }
 
 func (m *metricDatabricksSparkDagSchedulerStagesFailed) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1774,16 +1155,16 @@ func (m *metricDatabricksSparkDagSchedulerStagesFailed) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDagSchedulerStagesFailed) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDagSchedulerStagesFailed(settings MetricSettings) metricDatabricksSparkDagSchedulerStagesFailed {
-	m := metricDatabricksSparkDagSchedulerStagesFailed{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDagSchedulerStagesFailed(cfg MetricConfig) metricDatabricksSparkDagSchedulerStagesFailed {
+	m := metricDatabricksSparkDagSchedulerStagesFailed{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1792,7 +1173,7 @@ func newMetricDatabricksSparkDagSchedulerStagesFailed(settings MetricSettings) m
 
 type metricDatabricksSparkDagSchedulerStagesRunning struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1806,7 +1187,7 @@ func (m *metricDatabricksSparkDagSchedulerStagesRunning) init() {
 }
 
 func (m *metricDatabricksSparkDagSchedulerStagesRunning) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1828,16 +1209,16 @@ func (m *metricDatabricksSparkDagSchedulerStagesRunning) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDagSchedulerStagesRunning) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDagSchedulerStagesRunning(settings MetricSettings) metricDatabricksSparkDagSchedulerStagesRunning {
-	m := metricDatabricksSparkDagSchedulerStagesRunning{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDagSchedulerStagesRunning(cfg MetricConfig) metricDatabricksSparkDagSchedulerStagesRunning {
+	m := metricDatabricksSparkDagSchedulerStagesRunning{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1846,7 +1227,7 @@ func newMetricDatabricksSparkDagSchedulerStagesRunning(settings MetricSettings) 
 
 type metricDatabricksSparkDagSchedulerStagesWaiting struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1860,7 +1241,7 @@ func (m *metricDatabricksSparkDagSchedulerStagesWaiting) init() {
 }
 
 func (m *metricDatabricksSparkDagSchedulerStagesWaiting) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -1882,16 +1263,16 @@ func (m *metricDatabricksSparkDagSchedulerStagesWaiting) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDagSchedulerStagesWaiting) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDagSchedulerStagesWaiting(settings MetricSettings) metricDatabricksSparkDagSchedulerStagesWaiting {
-	m := metricDatabricksSparkDagSchedulerStagesWaiting{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDagSchedulerStagesWaiting(cfg MetricConfig) metricDatabricksSparkDagSchedulerStagesWaiting {
+	m := metricDatabricksSparkDagSchedulerStagesWaiting{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1900,7 +1281,7 @@ func newMetricDatabricksSparkDagSchedulerStagesWaiting(settings MetricSettings) 
 
 type metricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1916,7 +1297,7 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount) init() {
 }
 
 func (m *metricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -1938,16 +1319,16 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount) updateCa
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount(settings MetricSettings) metricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount {
-	m := metricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount(cfg MetricConfig) metricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount {
+	m := metricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -1956,7 +1337,7 @@ func newMetricDatabricksSparkDatabricksDirectoryCommitAutoVacuumCount(settings M
 
 type metricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -1972,7 +1353,7 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered) ini
 }
 
 func (m *metricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -1994,16 +1375,16 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered) upd
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered(settings MetricSettings) metricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered {
-	m := metricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered(cfg MetricConfig) metricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered {
+	m := metricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2012,7 +1393,7 @@ func newMetricDatabricksSparkDatabricksDirectoryCommitDeletedFilesFiltered(setti
 
 type metricDatabricksSparkDatabricksDirectoryCommitFilterListingCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2028,7 +1409,7 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitFilterListingCount) init(
 }
 
 func (m *metricDatabricksSparkDatabricksDirectoryCommitFilterListingCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2050,16 +1431,16 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitFilterListingCount) updat
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksDirectoryCommitFilterListingCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksDirectoryCommitFilterListingCount(settings MetricSettings) metricDatabricksSparkDatabricksDirectoryCommitFilterListingCount {
-	m := metricDatabricksSparkDatabricksDirectoryCommitFilterListingCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksDirectoryCommitFilterListingCount(cfg MetricConfig) metricDatabricksSparkDatabricksDirectoryCommitFilterListingCount {
+	m := metricDatabricksSparkDatabricksDirectoryCommitFilterListingCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2068,7 +1449,7 @@ func newMetricDatabricksSparkDatabricksDirectoryCommitFilterListingCount(setting
 
 type metricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2084,7 +1465,7 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted) init(
 }
 
 func (m *metricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2106,16 +1487,16 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted) updat
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted(settings MetricSettings) metricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted {
-	m := metricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted(cfg MetricConfig) metricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted {
+	m := metricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2124,7 +1505,7 @@ func newMetricDatabricksSparkDatabricksDirectoryCommitJobCommitCompleted(setting
 
 type metricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2140,7 +1521,7 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors) init() 
 }
 
 func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2162,16 +1543,16 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors) updateC
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors(settings MetricSettings) metricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors {
-	m := metricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors(cfg MetricConfig) metricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors {
+	m := metricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2180,7 +1561,7 @@ func newMetricDatabricksSparkDatabricksDirectoryCommitMarkerReadErrors(settings 
 
 type metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2196,7 +1577,7 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount) init(
 }
 
 func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2218,16 +1599,16 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount) updat
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount(settings MetricSettings) metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount {
-	m := metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount(cfg MetricConfig) metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount {
+	m := metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2236,7 +1617,7 @@ func newMetricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshCount(setting
 
 type metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2252,7 +1633,7 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors) init
 }
 
 func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2274,16 +1655,16 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors) upda
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors(settings MetricSettings) metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors {
-	m := metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors(cfg MetricConfig) metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors {
+	m := metricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2292,7 +1673,7 @@ func newMetricDatabricksSparkDatabricksDirectoryCommitMarkerRefreshErrors(settin
 
 type metricDatabricksSparkDatabricksDirectoryCommitMarkersRead struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2308,7 +1689,7 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkersRead) init() {
 }
 
 func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkersRead) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2330,16 +1711,16 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkersRead) updateCapaci
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksDirectoryCommitMarkersRead) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksDirectoryCommitMarkersRead(settings MetricSettings) metricDatabricksSparkDatabricksDirectoryCommitMarkersRead {
-	m := metricDatabricksSparkDatabricksDirectoryCommitMarkersRead{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksDirectoryCommitMarkersRead(cfg MetricConfig) metricDatabricksSparkDatabricksDirectoryCommitMarkersRead {
+	m := metricDatabricksSparkDatabricksDirectoryCommitMarkersRead{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2348,7 +1729,7 @@ func newMetricDatabricksSparkDatabricksDirectoryCommitMarkersRead(settings Metri
 
 type metricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2364,7 +1745,7 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount) init()
 }
 
 func (m *metricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2386,16 +1767,16 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount) update
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount(settings MetricSettings) metricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount {
-	m := metricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount(cfg MetricConfig) metricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount {
+	m := metricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2404,7 +1785,7 @@ func newMetricDatabricksSparkDatabricksDirectoryCommitRepeatedListCount(settings
 
 type metricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2420,7 +1801,7 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered)
 }
 
 func (m *metricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2442,16 +1823,16 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered)
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered(settings MetricSettings) metricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered {
-	m := metricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered(cfg MetricConfig) metricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered {
+	m := metricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2460,7 +1841,7 @@ func newMetricDatabricksSparkDatabricksDirectoryCommitUncommittedFilesFiltered(s
 
 type metricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2476,7 +1857,7 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound) init
 }
 
 func (m *metricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2498,16 +1879,16 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound) upda
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound(settings MetricSettings) metricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound {
-	m := metricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound(cfg MetricConfig) metricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound {
+	m := metricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2516,7 +1897,7 @@ func newMetricDatabricksSparkDatabricksDirectoryCommitUntrackedFilesFound(settin
 
 type metricDatabricksSparkDatabricksDirectoryCommitVacuumCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2532,7 +1913,7 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitVacuumCount) init() {
 }
 
 func (m *metricDatabricksSparkDatabricksDirectoryCommitVacuumCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2554,16 +1935,16 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitVacuumCount) updateCapaci
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksDirectoryCommitVacuumCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksDirectoryCommitVacuumCount(settings MetricSettings) metricDatabricksSparkDatabricksDirectoryCommitVacuumCount {
-	m := metricDatabricksSparkDatabricksDirectoryCommitVacuumCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksDirectoryCommitVacuumCount(cfg MetricConfig) metricDatabricksSparkDatabricksDirectoryCommitVacuumCount {
+	m := metricDatabricksSparkDatabricksDirectoryCommitVacuumCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2572,7 +1953,7 @@ func newMetricDatabricksSparkDatabricksDirectoryCommitVacuumCount(settings Metri
 
 type metricDatabricksSparkDatabricksDirectoryCommitVacuumErrors struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2588,7 +1969,7 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitVacuumErrors) init() {
 }
 
 func (m *metricDatabricksSparkDatabricksDirectoryCommitVacuumErrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2610,16 +1991,16 @@ func (m *metricDatabricksSparkDatabricksDirectoryCommitVacuumErrors) updateCapac
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksDirectoryCommitVacuumErrors) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksDirectoryCommitVacuumErrors(settings MetricSettings) metricDatabricksSparkDatabricksDirectoryCommitVacuumErrors {
-	m := metricDatabricksSparkDatabricksDirectoryCommitVacuumErrors{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksDirectoryCommitVacuumErrors(cfg MetricConfig) metricDatabricksSparkDatabricksDirectoryCommitVacuumErrors {
+	m := metricDatabricksSparkDatabricksDirectoryCommitVacuumErrors{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2628,7 +2009,7 @@ func newMetricDatabricksSparkDatabricksDirectoryCommitVacuumErrors(settings Metr
 
 type metricDatabricksSparkDatabricksPreemptionChecksCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2644,7 +2025,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionChecksCount) init() {
 }
 
 func (m *metricDatabricksSparkDatabricksPreemptionChecksCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2666,16 +2047,16 @@ func (m *metricDatabricksSparkDatabricksPreemptionChecksCount) updateCapacity() 
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksPreemptionChecksCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksPreemptionChecksCount(settings MetricSettings) metricDatabricksSparkDatabricksPreemptionChecksCount {
-	m := metricDatabricksSparkDatabricksPreemptionChecksCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksPreemptionChecksCount(cfg MetricConfig) metricDatabricksSparkDatabricksPreemptionChecksCount {
+	m := metricDatabricksSparkDatabricksPreemptionChecksCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2684,7 +2065,7 @@ func newMetricDatabricksSparkDatabricksPreemptionChecksCount(settings MetricSett
 
 type metricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2700,7 +2081,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount) init() 
 }
 
 func (m *metricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2722,16 +2103,16 @@ func (m *metricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount) updateC
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount(settings MetricSettings) metricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount {
-	m := metricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount(cfg MetricConfig) metricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount {
+	m := metricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2740,7 +2121,7 @@ func newMetricDatabricksSparkDatabricksPreemptionPoolsAutoexpiredCount(settings 
 
 type metricDatabricksSparkDatabricksPreemptionPoolstarvationTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2756,7 +2137,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionPoolstarvationTime) init() {
 }
 
 func (m *metricDatabricksSparkDatabricksPreemptionPoolstarvationTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2778,16 +2159,16 @@ func (m *metricDatabricksSparkDatabricksPreemptionPoolstarvationTime) updateCapa
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksPreemptionPoolstarvationTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksPreemptionPoolstarvationTime(settings MetricSettings) metricDatabricksSparkDatabricksPreemptionPoolstarvationTime {
-	m := metricDatabricksSparkDatabricksPreemptionPoolstarvationTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksPreemptionPoolstarvationTime(cfg MetricConfig) metricDatabricksSparkDatabricksPreemptionPoolstarvationTime {
+	m := metricDatabricksSparkDatabricksPreemptionPoolstarvationTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2796,7 +2177,7 @@ func newMetricDatabricksSparkDatabricksPreemptionPoolstarvationTime(settings Met
 
 type metricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2812,7 +2193,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime) init() 
 }
 
 func (m *metricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2834,16 +2215,16 @@ func (m *metricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime) updateC
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime(settings MetricSettings) metricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime {
-	m := metricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime(cfg MetricConfig) metricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime {
+	m := metricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2852,7 +2233,7 @@ func newMetricDatabricksSparkDatabricksPreemptionSchedulerOverheadTime(settings 
 
 type metricDatabricksSparkDatabricksPreemptionTaskWastedTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2868,7 +2249,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionTaskWastedTime) init() {
 }
 
 func (m *metricDatabricksSparkDatabricksPreemptionTaskWastedTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2890,16 +2271,16 @@ func (m *metricDatabricksSparkDatabricksPreemptionTaskWastedTime) updateCapacity
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksPreemptionTaskWastedTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksPreemptionTaskWastedTime(settings MetricSettings) metricDatabricksSparkDatabricksPreemptionTaskWastedTime {
-	m := metricDatabricksSparkDatabricksPreemptionTaskWastedTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksPreemptionTaskWastedTime(cfg MetricConfig) metricDatabricksSparkDatabricksPreemptionTaskWastedTime {
+	m := metricDatabricksSparkDatabricksPreemptionTaskWastedTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2908,7 +2289,7 @@ func newMetricDatabricksSparkDatabricksPreemptionTaskWastedTime(settings MetricS
 
 type metricDatabricksSparkDatabricksPreemptionTasksPreemptedCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2924,7 +2305,7 @@ func (m *metricDatabricksSparkDatabricksPreemptionTasksPreemptedCount) init() {
 }
 
 func (m *metricDatabricksSparkDatabricksPreemptionTasksPreemptedCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -2946,16 +2327,16 @@ func (m *metricDatabricksSparkDatabricksPreemptionTasksPreemptedCount) updateCap
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksPreemptionTasksPreemptedCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksPreemptionTasksPreemptedCount(settings MetricSettings) metricDatabricksSparkDatabricksPreemptionTasksPreemptedCount {
-	m := metricDatabricksSparkDatabricksPreemptionTasksPreemptedCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksPreemptionTasksPreemptedCount(cfg MetricConfig) metricDatabricksSparkDatabricksPreemptionTasksPreemptedCount {
+	m := metricDatabricksSparkDatabricksPreemptionTasksPreemptedCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -2964,7 +2345,7 @@ func newMetricDatabricksSparkDatabricksPreemptionTasksPreemptedCount(settings Me
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesActivePools struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -2980,7 +2361,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesActivePools) init() {
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesActivePools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3002,16 +2383,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesActivePools) updateCa
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesActivePools) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesActivePools(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesActivePools {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesActivePools{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesActivePools(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesActivePools {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesActivePools{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3020,7 +2401,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesActivePools(settings M
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3036,7 +2417,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3058,16 +2439,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3076,7 +2457,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesBypassLaneActivePools(
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3092,7 +2473,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools) 
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3114,16 +2495,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools) 
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3132,7 +2513,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesFastLaneActivePools(se
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3148,7 +2529,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalT
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3170,16 +2551,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalT
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTaskTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3188,7 +2569,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesFinishedQueriesTotalTa
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3204,7 +2585,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPool
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3226,16 +2607,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPool
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3244,7 +2625,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupMarkedPools
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3260,7 +2641,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePo
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3282,16 +2663,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePo
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoolsCleaned{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3300,7 +2681,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupTwoPhasePoo
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3316,7 +2697,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePool
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3338,16 +2719,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePool
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePoolsCleaned{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3356,7 +2737,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesLaneCleanupZombiePools
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3372,7 +2753,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransfe
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3394,16 +2775,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransfe
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferSuccessfulPreemptionIterationsCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3412,7 +2793,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransfer
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3428,7 +2809,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransfe
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3450,16 +2831,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransfe
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferTasksPreemptedCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3468,7 +2849,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransfer
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3484,7 +2865,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransfe
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3506,16 +2887,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransfe
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransferWastedTaskTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3524,7 +2905,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesPreemptionSlotTransfer
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3540,7 +2921,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradua
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3562,16 +2943,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradua
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradualDecreaseCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3580,7 +2961,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationGradual
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3596,7 +2977,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickD
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3618,16 +2999,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickD
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDropCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3636,7 +3017,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickDr
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3652,7 +3033,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJ
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3674,16 +3055,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJ
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJumpCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3692,7 +3073,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationQuickJu
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3708,7 +3089,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsR
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3730,16 +3111,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsR
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsReserved{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3748,7 +3129,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlotReservationSlotsRe
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3764,7 +3145,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools) 
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3786,16 +3167,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools) 
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3804,7 +3185,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesSlowLaneActivePools(se
 
 type metricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3820,7 +3201,7 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinis
 }
 
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -3842,16 +3223,16 @@ func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinis
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished(settings MetricSettings) metricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished {
-	m := metricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished(cfg MetricConfig) metricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished {
+	m := metricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinished{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3860,7 +3241,7 @@ func newMetricDatabricksSparkDatabricksTaskSchedulingLanesTotalquerygroupsfinish
 
 type metricDatabricksSparkExecutorDiskUsed struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3874,7 +3255,7 @@ func (m *metricDatabricksSparkExecutorDiskUsed) init() {
 }
 
 func (m *metricDatabricksSparkExecutorDiskUsed) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -3895,16 +3276,16 @@ func (m *metricDatabricksSparkExecutorDiskUsed) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorDiskUsed) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorDiskUsed(settings MetricSettings) metricDatabricksSparkExecutorDiskUsed {
-	m := metricDatabricksSparkExecutorDiskUsed{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorDiskUsed(cfg MetricConfig) metricDatabricksSparkExecutorDiskUsed {
+	m := metricDatabricksSparkExecutorDiskUsed{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3913,7 +3294,7 @@ func newMetricDatabricksSparkExecutorDiskUsed(settings MetricSettings) metricDat
 
 type metricDatabricksSparkExecutorMaxMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3927,7 +3308,7 @@ func (m *metricDatabricksSparkExecutorMaxMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMaxMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -3948,16 +3329,16 @@ func (m *metricDatabricksSparkExecutorMaxMemory) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMaxMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMaxMemory(settings MetricSettings) metricDatabricksSparkExecutorMaxMemory {
-	m := metricDatabricksSparkExecutorMaxMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMaxMemory(cfg MetricConfig) metricDatabricksSparkExecutorMaxMemory {
+	m := metricDatabricksSparkExecutorMaxMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -3966,7 +3347,7 @@ func newMetricDatabricksSparkExecutorMaxMemory(settings MetricSettings) metricDa
 
 type metricDatabricksSparkExecutorMemoryUsed struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -3980,7 +3361,7 @@ func (m *metricDatabricksSparkExecutorMemoryUsed) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMemoryUsed) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4001,16 +3382,16 @@ func (m *metricDatabricksSparkExecutorMemoryUsed) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMemoryUsed) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMemoryUsed(settings MetricSettings) metricDatabricksSparkExecutorMemoryUsed {
-	m := metricDatabricksSparkExecutorMemoryUsed{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMemoryUsed(cfg MetricConfig) metricDatabricksSparkExecutorMemoryUsed {
+	m := metricDatabricksSparkExecutorMemoryUsed{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4019,7 +3400,7 @@ func newMetricDatabricksSparkExecutorMemoryUsed(settings MetricSettings) metricD
 
 type metricDatabricksSparkExecutorTotalInputBytes struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4035,7 +3416,7 @@ func (m *metricDatabricksSparkExecutorTotalInputBytes) init() {
 }
 
 func (m *metricDatabricksSparkExecutorTotalInputBytes) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -4056,16 +3437,16 @@ func (m *metricDatabricksSparkExecutorTotalInputBytes) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorTotalInputBytes) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorTotalInputBytes(settings MetricSettings) metricDatabricksSparkExecutorTotalInputBytes {
-	m := metricDatabricksSparkExecutorTotalInputBytes{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorTotalInputBytes(cfg MetricConfig) metricDatabricksSparkExecutorTotalInputBytes {
+	m := metricDatabricksSparkExecutorTotalInputBytes{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4074,7 +3455,7 @@ func newMetricDatabricksSparkExecutorTotalInputBytes(settings MetricSettings) me
 
 type metricDatabricksSparkExecutorTotalShuffleRead struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4090,7 +3471,7 @@ func (m *metricDatabricksSparkExecutorTotalShuffleRead) init() {
 }
 
 func (m *metricDatabricksSparkExecutorTotalShuffleRead) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -4111,16 +3492,16 @@ func (m *metricDatabricksSparkExecutorTotalShuffleRead) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorTotalShuffleRead) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorTotalShuffleRead(settings MetricSettings) metricDatabricksSparkExecutorTotalShuffleRead {
-	m := metricDatabricksSparkExecutorTotalShuffleRead{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorTotalShuffleRead(cfg MetricConfig) metricDatabricksSparkExecutorTotalShuffleRead {
+	m := metricDatabricksSparkExecutorTotalShuffleRead{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4129,7 +3510,7 @@ func newMetricDatabricksSparkExecutorTotalShuffleRead(settings MetricSettings) m
 
 type metricDatabricksSparkExecutorTotalShuffleWrite struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4145,7 +3526,7 @@ func (m *metricDatabricksSparkExecutorTotalShuffleWrite) init() {
 }
 
 func (m *metricDatabricksSparkExecutorTotalShuffleWrite) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkExecutorIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -4166,16 +3547,16 @@ func (m *metricDatabricksSparkExecutorTotalShuffleWrite) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorTotalShuffleWrite) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorTotalShuffleWrite(settings MetricSettings) metricDatabricksSparkExecutorTotalShuffleWrite {
-	m := metricDatabricksSparkExecutorTotalShuffleWrite{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorTotalShuffleWrite(cfg MetricConfig) metricDatabricksSparkExecutorTotalShuffleWrite {
+	m := metricDatabricksSparkExecutorTotalShuffleWrite{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4184,7 +3565,7 @@ func newMetricDatabricksSparkExecutorTotalShuffleWrite(settings MetricSettings) 
 
 type metricDatabricksSparkExecutorMetricsDirectPoolMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4198,7 +3579,7 @@ func (m *metricDatabricksSparkExecutorMetricsDirectPoolMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsDirectPoolMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4220,16 +3601,16 @@ func (m *metricDatabricksSparkExecutorMetricsDirectPoolMemory) updateCapacity() 
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsDirectPoolMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsDirectPoolMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsDirectPoolMemory {
-	m := metricDatabricksSparkExecutorMetricsDirectPoolMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsDirectPoolMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsDirectPoolMemory {
+	m := metricDatabricksSparkExecutorMetricsDirectPoolMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4238,7 +3619,7 @@ func newMetricDatabricksSparkExecutorMetricsDirectPoolMemory(settings MetricSett
 
 type metricDatabricksSparkExecutorMetricsJvmHeapMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4252,7 +3633,7 @@ func (m *metricDatabricksSparkExecutorMetricsJvmHeapMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsJvmHeapMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4274,16 +3655,16 @@ func (m *metricDatabricksSparkExecutorMetricsJvmHeapMemory) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsJvmHeapMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsJvmHeapMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsJvmHeapMemory {
-	m := metricDatabricksSparkExecutorMetricsJvmHeapMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsJvmHeapMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsJvmHeapMemory {
+	m := metricDatabricksSparkExecutorMetricsJvmHeapMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4292,7 +3673,7 @@ func newMetricDatabricksSparkExecutorMetricsJvmHeapMemory(settings MetricSetting
 
 type metricDatabricksSparkExecutorMetricsJvmOffHeapMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4306,7 +3687,7 @@ func (m *metricDatabricksSparkExecutorMetricsJvmOffHeapMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsJvmOffHeapMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4328,16 +3709,16 @@ func (m *metricDatabricksSparkExecutorMetricsJvmOffHeapMemory) updateCapacity() 
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsJvmOffHeapMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsJvmOffHeapMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsJvmOffHeapMemory {
-	m := metricDatabricksSparkExecutorMetricsJvmOffHeapMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsJvmOffHeapMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsJvmOffHeapMemory {
+	m := metricDatabricksSparkExecutorMetricsJvmOffHeapMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4346,7 +3727,7 @@ func newMetricDatabricksSparkExecutorMetricsJvmOffHeapMemory(settings MetricSett
 
 type metricDatabricksSparkExecutorMetricsMajorGcCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4360,7 +3741,7 @@ func (m *metricDatabricksSparkExecutorMetricsMajorGcCount) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsMajorGcCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4382,16 +3763,16 @@ func (m *metricDatabricksSparkExecutorMetricsMajorGcCount) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsMajorGcCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsMajorGcCount(settings MetricSettings) metricDatabricksSparkExecutorMetricsMajorGcCount {
-	m := metricDatabricksSparkExecutorMetricsMajorGcCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsMajorGcCount(cfg MetricConfig) metricDatabricksSparkExecutorMetricsMajorGcCount {
+	m := metricDatabricksSparkExecutorMetricsMajorGcCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4400,7 +3781,7 @@ func newMetricDatabricksSparkExecutorMetricsMajorGcCount(settings MetricSettings
 
 type metricDatabricksSparkExecutorMetricsMajorGcTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4414,7 +3795,7 @@ func (m *metricDatabricksSparkExecutorMetricsMajorGcTime) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsMajorGcTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4436,16 +3817,16 @@ func (m *metricDatabricksSparkExecutorMetricsMajorGcTime) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsMajorGcTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsMajorGcTime(settings MetricSettings) metricDatabricksSparkExecutorMetricsMajorGcTime {
-	m := metricDatabricksSparkExecutorMetricsMajorGcTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsMajorGcTime(cfg MetricConfig) metricDatabricksSparkExecutorMetricsMajorGcTime {
+	m := metricDatabricksSparkExecutorMetricsMajorGcTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4454,7 +3835,7 @@ func newMetricDatabricksSparkExecutorMetricsMajorGcTime(settings MetricSettings)
 
 type metricDatabricksSparkExecutorMetricsMappedPoolMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4468,7 +3849,7 @@ func (m *metricDatabricksSparkExecutorMetricsMappedPoolMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsMappedPoolMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4490,16 +3871,16 @@ func (m *metricDatabricksSparkExecutorMetricsMappedPoolMemory) updateCapacity() 
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsMappedPoolMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsMappedPoolMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsMappedPoolMemory {
-	m := metricDatabricksSparkExecutorMetricsMappedPoolMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsMappedPoolMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsMappedPoolMemory {
+	m := metricDatabricksSparkExecutorMetricsMappedPoolMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4508,7 +3889,7 @@ func newMetricDatabricksSparkExecutorMetricsMappedPoolMemory(settings MetricSett
 
 type metricDatabricksSparkExecutorMetricsMinorGcCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4522,7 +3903,7 @@ func (m *metricDatabricksSparkExecutorMetricsMinorGcCount) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsMinorGcCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4544,16 +3925,16 @@ func (m *metricDatabricksSparkExecutorMetricsMinorGcCount) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsMinorGcCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsMinorGcCount(settings MetricSettings) metricDatabricksSparkExecutorMetricsMinorGcCount {
-	m := metricDatabricksSparkExecutorMetricsMinorGcCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsMinorGcCount(cfg MetricConfig) metricDatabricksSparkExecutorMetricsMinorGcCount {
+	m := metricDatabricksSparkExecutorMetricsMinorGcCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4562,7 +3943,7 @@ func newMetricDatabricksSparkExecutorMetricsMinorGcCount(settings MetricSettings
 
 type metricDatabricksSparkExecutorMetricsMinorGcTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4576,7 +3957,7 @@ func (m *metricDatabricksSparkExecutorMetricsMinorGcTime) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsMinorGcTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4598,16 +3979,16 @@ func (m *metricDatabricksSparkExecutorMetricsMinorGcTime) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsMinorGcTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsMinorGcTime(settings MetricSettings) metricDatabricksSparkExecutorMetricsMinorGcTime {
-	m := metricDatabricksSparkExecutorMetricsMinorGcTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsMinorGcTime(cfg MetricConfig) metricDatabricksSparkExecutorMetricsMinorGcTime {
+	m := metricDatabricksSparkExecutorMetricsMinorGcTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4616,7 +3997,7 @@ func newMetricDatabricksSparkExecutorMetricsMinorGcTime(settings MetricSettings)
 
 type metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4630,7 +4011,7 @@ func (m *metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4652,16 +4033,16 @@ func (m *metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory) updateCapac
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsOffHeapExecutionMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory {
-	m := metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsOffHeapExecutionMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory {
+	m := metricDatabricksSparkExecutorMetricsOffHeapExecutionMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4670,7 +4051,7 @@ func newMetricDatabricksSparkExecutorMetricsOffHeapExecutionMemory(settings Metr
 
 type metricDatabricksSparkExecutorMetricsOffHeapStorageMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4684,7 +4065,7 @@ func (m *metricDatabricksSparkExecutorMetricsOffHeapStorageMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsOffHeapStorageMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4706,16 +4087,16 @@ func (m *metricDatabricksSparkExecutorMetricsOffHeapStorageMemory) updateCapacit
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsOffHeapStorageMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsOffHeapStorageMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsOffHeapStorageMemory {
-	m := metricDatabricksSparkExecutorMetricsOffHeapStorageMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsOffHeapStorageMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsOffHeapStorageMemory {
+	m := metricDatabricksSparkExecutorMetricsOffHeapStorageMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4724,7 +4105,7 @@ func newMetricDatabricksSparkExecutorMetricsOffHeapStorageMemory(settings Metric
 
 type metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4738,7 +4119,7 @@ func (m *metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4760,16 +4141,16 @@ func (m *metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory) updateCapacit
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory {
-	m := metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory {
+	m := metricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4778,7 +4159,7 @@ func newMetricDatabricksSparkExecutorMetricsOffHeapUnifiedMemory(settings Metric
 
 type metricDatabricksSparkExecutorMetricsOnHeapExecutionMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4792,7 +4173,7 @@ func (m *metricDatabricksSparkExecutorMetricsOnHeapExecutionMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsOnHeapExecutionMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4814,16 +4195,16 @@ func (m *metricDatabricksSparkExecutorMetricsOnHeapExecutionMemory) updateCapaci
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsOnHeapExecutionMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsOnHeapExecutionMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsOnHeapExecutionMemory {
-	m := metricDatabricksSparkExecutorMetricsOnHeapExecutionMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsOnHeapExecutionMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsOnHeapExecutionMemory {
+	m := metricDatabricksSparkExecutorMetricsOnHeapExecutionMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4832,7 +4213,7 @@ func newMetricDatabricksSparkExecutorMetricsOnHeapExecutionMemory(settings Metri
 
 type metricDatabricksSparkExecutorMetricsOnHeapStorageMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4846,7 +4227,7 @@ func (m *metricDatabricksSparkExecutorMetricsOnHeapStorageMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsOnHeapStorageMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4868,16 +4249,16 @@ func (m *metricDatabricksSparkExecutorMetricsOnHeapStorageMemory) updateCapacity
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsOnHeapStorageMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsOnHeapStorageMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsOnHeapStorageMemory {
-	m := metricDatabricksSparkExecutorMetricsOnHeapStorageMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsOnHeapStorageMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsOnHeapStorageMemory {
+	m := metricDatabricksSparkExecutorMetricsOnHeapStorageMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4886,7 +4267,7 @@ func newMetricDatabricksSparkExecutorMetricsOnHeapStorageMemory(settings MetricS
 
 type metricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4900,7 +4281,7 @@ func (m *metricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4922,16 +4303,16 @@ func (m *metricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory) updateCapacity
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory {
-	m := metricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory {
+	m := metricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4940,7 +4321,7 @@ func newMetricDatabricksSparkExecutorMetricsOnHeapUnifiedMemory(settings MetricS
 
 type metricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -4954,7 +4335,7 @@ func (m *metricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -4976,16 +4357,16 @@ func (m *metricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory) updateCapa
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory {
-	m := metricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory {
+	m := metricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -4994,7 +4375,7 @@ func newMetricDatabricksSparkExecutorMetricsProcessTreeJvmRssMemory(settings Met
 
 type metricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5008,7 +4389,7 @@ func (m *metricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -5030,16 +4411,16 @@ func (m *metricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory) updateCapaci
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory {
-	m := metricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory {
+	m := metricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5048,7 +4429,7 @@ func newMetricDatabricksSparkExecutorMetricsProcessTreeJvmVMemory(settings Metri
 
 type metricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5062,7 +4443,7 @@ func (m *metricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -5084,16 +4465,16 @@ func (m *metricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory) updateCa
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory {
-	m := metricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory {
+	m := metricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5102,7 +4483,7 @@ func newMetricDatabricksSparkExecutorMetricsProcessTreeOtherRssMemory(settings M
 
 type metricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5116,7 +4497,7 @@ func (m *metricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -5138,16 +4519,16 @@ func (m *metricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory) updateCapa
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory {
-	m := metricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory {
+	m := metricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5156,7 +4537,7 @@ func newMetricDatabricksSparkExecutorMetricsProcessTreeOtherVMemory(settings Met
 
 type metricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5170,7 +4551,7 @@ func (m *metricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory) init() 
 }
 
 func (m *metricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -5192,16 +4573,16 @@ func (m *metricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory) updateC
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory {
-	m := metricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory {
+	m := metricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5210,7 +4591,7 @@ func newMetricDatabricksSparkExecutorMetricsProcessTreePythonRssMemory(settings 
 
 type metricDatabricksSparkExecutorMetricsProcessTreePythonVMemory struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5224,7 +4605,7 @@ func (m *metricDatabricksSparkExecutorMetricsProcessTreePythonVMemory) init() {
 }
 
 func (m *metricDatabricksSparkExecutorMetricsProcessTreePythonVMemory) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -5246,16 +4627,16 @@ func (m *metricDatabricksSparkExecutorMetricsProcessTreePythonVMemory) updateCap
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkExecutorMetricsProcessTreePythonVMemory) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkExecutorMetricsProcessTreePythonVMemory(settings MetricSettings) metricDatabricksSparkExecutorMetricsProcessTreePythonVMemory {
-	m := metricDatabricksSparkExecutorMetricsProcessTreePythonVMemory{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkExecutorMetricsProcessTreePythonVMemory(cfg MetricConfig) metricDatabricksSparkExecutorMetricsProcessTreePythonVMemory {
+	m := metricDatabricksSparkExecutorMetricsProcessTreePythonVMemory{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5264,7 +4645,7 @@ func newMetricDatabricksSparkExecutorMetricsProcessTreePythonVMemory(settings Me
 
 type metricDatabricksSparkHiveExternalCatalogFileCacheHits struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5280,7 +4661,7 @@ func (m *metricDatabricksSparkHiveExternalCatalogFileCacheHits) init() {
 }
 
 func (m *metricDatabricksSparkHiveExternalCatalogFileCacheHits) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -5302,16 +4683,16 @@ func (m *metricDatabricksSparkHiveExternalCatalogFileCacheHits) updateCapacity()
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkHiveExternalCatalogFileCacheHits) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkHiveExternalCatalogFileCacheHits(settings MetricSettings) metricDatabricksSparkHiveExternalCatalogFileCacheHits {
-	m := metricDatabricksSparkHiveExternalCatalogFileCacheHits{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkHiveExternalCatalogFileCacheHits(cfg MetricConfig) metricDatabricksSparkHiveExternalCatalogFileCacheHits {
+	m := metricDatabricksSparkHiveExternalCatalogFileCacheHits{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5320,7 +4701,7 @@ func newMetricDatabricksSparkHiveExternalCatalogFileCacheHits(settings MetricSet
 
 type metricDatabricksSparkHiveExternalCatalogFilesDiscovered struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5336,7 +4717,7 @@ func (m *metricDatabricksSparkHiveExternalCatalogFilesDiscovered) init() {
 }
 
 func (m *metricDatabricksSparkHiveExternalCatalogFilesDiscovered) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -5358,16 +4739,16 @@ func (m *metricDatabricksSparkHiveExternalCatalogFilesDiscovered) updateCapacity
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkHiveExternalCatalogFilesDiscovered) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkHiveExternalCatalogFilesDiscovered(settings MetricSettings) metricDatabricksSparkHiveExternalCatalogFilesDiscovered {
-	m := metricDatabricksSparkHiveExternalCatalogFilesDiscovered{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkHiveExternalCatalogFilesDiscovered(cfg MetricConfig) metricDatabricksSparkHiveExternalCatalogFilesDiscovered {
+	m := metricDatabricksSparkHiveExternalCatalogFilesDiscovered{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5376,7 +4757,7 @@ func newMetricDatabricksSparkHiveExternalCatalogFilesDiscovered(settings MetricS
 
 type metricDatabricksSparkHiveExternalCatalogHiveClientCalls struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5392,7 +4773,7 @@ func (m *metricDatabricksSparkHiveExternalCatalogHiveClientCalls) init() {
 }
 
 func (m *metricDatabricksSparkHiveExternalCatalogHiveClientCalls) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -5414,16 +4795,16 @@ func (m *metricDatabricksSparkHiveExternalCatalogHiveClientCalls) updateCapacity
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkHiveExternalCatalogHiveClientCalls) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkHiveExternalCatalogHiveClientCalls(settings MetricSettings) metricDatabricksSparkHiveExternalCatalogHiveClientCalls {
-	m := metricDatabricksSparkHiveExternalCatalogHiveClientCalls{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkHiveExternalCatalogHiveClientCalls(cfg MetricConfig) metricDatabricksSparkHiveExternalCatalogHiveClientCalls {
+	m := metricDatabricksSparkHiveExternalCatalogHiveClientCalls{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5432,7 +4813,7 @@ func newMetricDatabricksSparkHiveExternalCatalogHiveClientCalls(settings MetricS
 
 type metricDatabricksSparkHiveExternalCatalogParallelListingJobsCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5448,7 +4829,7 @@ func (m *metricDatabricksSparkHiveExternalCatalogParallelListingJobsCount) init(
 }
 
 func (m *metricDatabricksSparkHiveExternalCatalogParallelListingJobsCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -5470,16 +4851,16 @@ func (m *metricDatabricksSparkHiveExternalCatalogParallelListingJobsCount) updat
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkHiveExternalCatalogParallelListingJobsCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkHiveExternalCatalogParallelListingJobsCount(settings MetricSettings) metricDatabricksSparkHiveExternalCatalogParallelListingJobsCount {
-	m := metricDatabricksSparkHiveExternalCatalogParallelListingJobsCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkHiveExternalCatalogParallelListingJobsCount(cfg MetricConfig) metricDatabricksSparkHiveExternalCatalogParallelListingJobsCount {
+	m := metricDatabricksSparkHiveExternalCatalogParallelListingJobsCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5488,7 +4869,7 @@ func newMetricDatabricksSparkHiveExternalCatalogParallelListingJobsCount(setting
 
 type metricDatabricksSparkHiveExternalCatalogPartitionsFetched struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5504,7 +4885,7 @@ func (m *metricDatabricksSparkHiveExternalCatalogPartitionsFetched) init() {
 }
 
 func (m *metricDatabricksSparkHiveExternalCatalogPartitionsFetched) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -5526,16 +4907,16 @@ func (m *metricDatabricksSparkHiveExternalCatalogPartitionsFetched) updateCapaci
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkHiveExternalCatalogPartitionsFetched) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkHiveExternalCatalogPartitionsFetched(settings MetricSettings) metricDatabricksSparkHiveExternalCatalogPartitionsFetched {
-	m := metricDatabricksSparkHiveExternalCatalogPartitionsFetched{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkHiveExternalCatalogPartitionsFetched(cfg MetricConfig) metricDatabricksSparkHiveExternalCatalogPartitionsFetched {
+	m := metricDatabricksSparkHiveExternalCatalogPartitionsFetched{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5544,7 +4925,7 @@ func newMetricDatabricksSparkHiveExternalCatalogPartitionsFetched(settings Metri
 
 type metricDatabricksSparkJobNumActiveStages struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5558,7 +4939,7 @@ func (m *metricDatabricksSparkJobNumActiveStages) init() {
 }
 
 func (m *metricDatabricksSparkJobNumActiveStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -5579,16 +4960,16 @@ func (m *metricDatabricksSparkJobNumActiveStages) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkJobNumActiveStages) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkJobNumActiveStages(settings MetricSettings) metricDatabricksSparkJobNumActiveStages {
-	m := metricDatabricksSparkJobNumActiveStages{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkJobNumActiveStages(cfg MetricConfig) metricDatabricksSparkJobNumActiveStages {
+	m := metricDatabricksSparkJobNumActiveStages{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5597,7 +4978,7 @@ func newMetricDatabricksSparkJobNumActiveStages(settings MetricSettings) metricD
 
 type metricDatabricksSparkJobNumActiveTasks struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5611,7 +4992,7 @@ func (m *metricDatabricksSparkJobNumActiveTasks) init() {
 }
 
 func (m *metricDatabricksSparkJobNumActiveTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -5632,16 +5013,16 @@ func (m *metricDatabricksSparkJobNumActiveTasks) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkJobNumActiveTasks) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkJobNumActiveTasks(settings MetricSettings) metricDatabricksSparkJobNumActiveTasks {
-	m := metricDatabricksSparkJobNumActiveTasks{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkJobNumActiveTasks(cfg MetricConfig) metricDatabricksSparkJobNumActiveTasks {
+	m := metricDatabricksSparkJobNumActiveTasks{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5650,7 +5031,7 @@ func newMetricDatabricksSparkJobNumActiveTasks(settings MetricSettings) metricDa
 
 type metricDatabricksSparkJobNumCompletedStages struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5664,7 +5045,7 @@ func (m *metricDatabricksSparkJobNumCompletedStages) init() {
 }
 
 func (m *metricDatabricksSparkJobNumCompletedStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -5685,16 +5066,16 @@ func (m *metricDatabricksSparkJobNumCompletedStages) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkJobNumCompletedStages) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkJobNumCompletedStages(settings MetricSettings) metricDatabricksSparkJobNumCompletedStages {
-	m := metricDatabricksSparkJobNumCompletedStages{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkJobNumCompletedStages(cfg MetricConfig) metricDatabricksSparkJobNumCompletedStages {
+	m := metricDatabricksSparkJobNumCompletedStages{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5703,7 +5084,7 @@ func newMetricDatabricksSparkJobNumCompletedStages(settings MetricSettings) metr
 
 type metricDatabricksSparkJobNumCompletedTasks struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5717,7 +5098,7 @@ func (m *metricDatabricksSparkJobNumCompletedTasks) init() {
 }
 
 func (m *metricDatabricksSparkJobNumCompletedTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -5738,16 +5119,16 @@ func (m *metricDatabricksSparkJobNumCompletedTasks) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkJobNumCompletedTasks) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkJobNumCompletedTasks(settings MetricSettings) metricDatabricksSparkJobNumCompletedTasks {
-	m := metricDatabricksSparkJobNumCompletedTasks{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkJobNumCompletedTasks(cfg MetricConfig) metricDatabricksSparkJobNumCompletedTasks {
+	m := metricDatabricksSparkJobNumCompletedTasks{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5756,7 +5137,7 @@ func newMetricDatabricksSparkJobNumCompletedTasks(settings MetricSettings) metri
 
 type metricDatabricksSparkJobNumFailedStages struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5770,7 +5151,7 @@ func (m *metricDatabricksSparkJobNumFailedStages) init() {
 }
 
 func (m *metricDatabricksSparkJobNumFailedStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -5791,16 +5172,16 @@ func (m *metricDatabricksSparkJobNumFailedStages) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkJobNumFailedStages) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkJobNumFailedStages(settings MetricSettings) metricDatabricksSparkJobNumFailedStages {
-	m := metricDatabricksSparkJobNumFailedStages{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkJobNumFailedStages(cfg MetricConfig) metricDatabricksSparkJobNumFailedStages {
+	m := metricDatabricksSparkJobNumFailedStages{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5809,7 +5190,7 @@ func newMetricDatabricksSparkJobNumFailedStages(settings MetricSettings) metricD
 
 type metricDatabricksSparkJobNumFailedTasks struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5823,7 +5204,7 @@ func (m *metricDatabricksSparkJobNumFailedTasks) init() {
 }
 
 func (m *metricDatabricksSparkJobNumFailedTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -5844,16 +5225,16 @@ func (m *metricDatabricksSparkJobNumFailedTasks) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkJobNumFailedTasks) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkJobNumFailedTasks(settings MetricSettings) metricDatabricksSparkJobNumFailedTasks {
-	m := metricDatabricksSparkJobNumFailedTasks{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkJobNumFailedTasks(cfg MetricConfig) metricDatabricksSparkJobNumFailedTasks {
+	m := metricDatabricksSparkJobNumFailedTasks{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5862,7 +5243,7 @@ func newMetricDatabricksSparkJobNumFailedTasks(settings MetricSettings) metricDa
 
 type metricDatabricksSparkJobNumSkippedStages struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5876,7 +5257,7 @@ func (m *metricDatabricksSparkJobNumSkippedStages) init() {
 }
 
 func (m *metricDatabricksSparkJobNumSkippedStages) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -5897,16 +5278,16 @@ func (m *metricDatabricksSparkJobNumSkippedStages) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkJobNumSkippedStages) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkJobNumSkippedStages(settings MetricSettings) metricDatabricksSparkJobNumSkippedStages {
-	m := metricDatabricksSparkJobNumSkippedStages{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkJobNumSkippedStages(cfg MetricConfig) metricDatabricksSparkJobNumSkippedStages {
+	m := metricDatabricksSparkJobNumSkippedStages{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5915,7 +5296,7 @@ func newMetricDatabricksSparkJobNumSkippedStages(settings MetricSettings) metric
 
 type metricDatabricksSparkJobNumSkippedTasks struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5929,7 +5310,7 @@ func (m *metricDatabricksSparkJobNumSkippedTasks) init() {
 }
 
 func (m *metricDatabricksSparkJobNumSkippedTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -5950,16 +5331,16 @@ func (m *metricDatabricksSparkJobNumSkippedTasks) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkJobNumSkippedTasks) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkJobNumSkippedTasks(settings MetricSettings) metricDatabricksSparkJobNumSkippedTasks {
-	m := metricDatabricksSparkJobNumSkippedTasks{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkJobNumSkippedTasks(cfg MetricConfig) metricDatabricksSparkJobNumSkippedTasks {
+	m := metricDatabricksSparkJobNumSkippedTasks{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -5968,7 +5349,7 @@ func newMetricDatabricksSparkJobNumSkippedTasks(settings MetricSettings) metricD
 
 type metricDatabricksSparkJobNumTasks struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -5982,7 +5363,7 @@ func (m *metricDatabricksSparkJobNumTasks) init() {
 }
 
 func (m *metricDatabricksSparkJobNumTasks) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -6003,16 +5384,16 @@ func (m *metricDatabricksSparkJobNumTasks) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkJobNumTasks) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkJobNumTasks(settings MetricSettings) metricDatabricksSparkJobNumTasks {
-	m := metricDatabricksSparkJobNumTasks{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkJobNumTasks(cfg MetricConfig) metricDatabricksSparkJobNumTasks {
+	m := metricDatabricksSparkJobNumTasks{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6021,7 +5402,7 @@ func newMetricDatabricksSparkJobNumTasks(settings MetricSettings) metricDatabric
 
 type metricDatabricksSparkJvmCPUTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6037,7 +5418,7 @@ func (m *metricDatabricksSparkJvmCPUTime) init() {
 }
 
 func (m *metricDatabricksSparkJvmCPUTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -6059,16 +5440,16 @@ func (m *metricDatabricksSparkJvmCPUTime) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkJvmCPUTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkJvmCPUTime(settings MetricSettings) metricDatabricksSparkJvmCPUTime {
-	m := metricDatabricksSparkJvmCPUTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkJvmCPUTime(cfg MetricConfig) metricDatabricksSparkJvmCPUTime {
+	m := metricDatabricksSparkJvmCPUTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6077,7 +5458,7 @@ func newMetricDatabricksSparkJvmCPUTime(settings MetricSettings) metricDatabrick
 
 type metricDatabricksSparkLiveListenerBusEventsPostedCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6093,7 +5474,7 @@ func (m *metricDatabricksSparkLiveListenerBusEventsPostedCount) init() {
 }
 
 func (m *metricDatabricksSparkLiveListenerBusEventsPostedCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -6115,16 +5496,16 @@ func (m *metricDatabricksSparkLiveListenerBusEventsPostedCount) updateCapacity()
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkLiveListenerBusEventsPostedCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkLiveListenerBusEventsPostedCount(settings MetricSettings) metricDatabricksSparkLiveListenerBusEventsPostedCount {
-	m := metricDatabricksSparkLiveListenerBusEventsPostedCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkLiveListenerBusEventsPostedCount(cfg MetricConfig) metricDatabricksSparkLiveListenerBusEventsPostedCount {
+	m := metricDatabricksSparkLiveListenerBusEventsPostedCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6133,7 +5514,7 @@ func newMetricDatabricksSparkLiveListenerBusEventsPostedCount(settings MetricSet
 
 type metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6149,7 +5530,7 @@ func (m *metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount) i
 }
 
 func (m *metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -6171,16 +5552,16 @@ func (m *metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount) u
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount(settings MetricSettings) metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount {
-	m := metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount(cfg MetricConfig) metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount {
+	m := metricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6189,7 +5570,7 @@ func newMetricDatabricksSparkLiveListenerBusQueueAppStatusDroppedEventsCount(set
 
 type metricDatabricksSparkLiveListenerBusQueueAppstatusSize struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6203,7 +5584,7 @@ func (m *metricDatabricksSparkLiveListenerBusQueueAppstatusSize) init() {
 }
 
 func (m *metricDatabricksSparkLiveListenerBusQueueAppstatusSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -6225,16 +5606,16 @@ func (m *metricDatabricksSparkLiveListenerBusQueueAppstatusSize) updateCapacity(
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkLiveListenerBusQueueAppstatusSize) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkLiveListenerBusQueueAppstatusSize(settings MetricSettings) metricDatabricksSparkLiveListenerBusQueueAppstatusSize {
-	m := metricDatabricksSparkLiveListenerBusQueueAppstatusSize{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkLiveListenerBusQueueAppstatusSize(cfg MetricConfig) metricDatabricksSparkLiveListenerBusQueueAppstatusSize {
+	m := metricDatabricksSparkLiveListenerBusQueueAppstatusSize{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6243,7 +5624,7 @@ func newMetricDatabricksSparkLiveListenerBusQueueAppstatusSize(settings MetricSe
 
 type metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6259,7 +5640,7 @@ func (m *metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEvent
 }
 
 func (m *metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -6281,16 +5662,16 @@ func (m *metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEvent
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount(settings MetricSettings) metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount {
-	m := metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount(cfg MetricConfig) metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount {
+	m := metricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEventsCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6299,7 +5680,7 @@ func newMetricDatabricksSparkLiveListenerBusQueueExecutorManagementDroppedEvents
 
 type metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6313,7 +5694,7 @@ func (m *metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize) init()
 }
 
 func (m *metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -6335,16 +5716,16 @@ func (m *metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize) update
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkLiveListenerBusQueueExecutormanagementSize(settings MetricSettings) metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize {
-	m := metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkLiveListenerBusQueueExecutormanagementSize(cfg MetricConfig) metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize {
+	m := metricDatabricksSparkLiveListenerBusQueueExecutormanagementSize{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6353,7 +5734,7 @@ func newMetricDatabricksSparkLiveListenerBusQueueExecutormanagementSize(settings
 
 type metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6369,7 +5750,7 @@ func (m *metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount) init
 }
 
 func (m *metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -6391,16 +5772,16 @@ func (m *metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount) upda
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount(settings MetricSettings) metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount {
-	m := metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount(cfg MetricConfig) metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount {
+	m := metricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6409,7 +5790,7 @@ func newMetricDatabricksSparkLiveListenerBusQueueSharedDroppedEventsCount(settin
 
 type metricDatabricksSparkLiveListenerBusQueueSharedSize struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6423,7 +5804,7 @@ func (m *metricDatabricksSparkLiveListenerBusQueueSharedSize) init() {
 }
 
 func (m *metricDatabricksSparkLiveListenerBusQueueSharedSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -6445,16 +5826,16 @@ func (m *metricDatabricksSparkLiveListenerBusQueueSharedSize) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkLiveListenerBusQueueSharedSize) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkLiveListenerBusQueueSharedSize(settings MetricSettings) metricDatabricksSparkLiveListenerBusQueueSharedSize {
-	m := metricDatabricksSparkLiveListenerBusQueueSharedSize{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkLiveListenerBusQueueSharedSize(cfg MetricConfig) metricDatabricksSparkLiveListenerBusQueueSharedSize {
+	m := metricDatabricksSparkLiveListenerBusQueueSharedSize{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6463,7 +5844,7 @@ func newMetricDatabricksSparkLiveListenerBusQueueSharedSize(settings MetricSetti
 
 type metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6479,7 +5860,7 @@ func (m *metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount) ini
 }
 
 func (m *metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -6501,16 +5882,16 @@ func (m *metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount) upd
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount(settings MetricSettings) metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount {
-	m := metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount(cfg MetricConfig) metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount {
+	m := metricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6519,7 +5900,7 @@ func newMetricDatabricksSparkLiveListenerBusQueueStreamsDroppedEventsCount(setti
 
 type metricDatabricksSparkLiveListenerBusQueueStreamsSize struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6533,7 +5914,7 @@ func (m *metricDatabricksSparkLiveListenerBusQueueStreamsSize) init() {
 }
 
 func (m *metricDatabricksSparkLiveListenerBusQueueStreamsSize) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -6555,16 +5936,16 @@ func (m *metricDatabricksSparkLiveListenerBusQueueStreamsSize) updateCapacity() 
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkLiveListenerBusQueueStreamsSize) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkLiveListenerBusQueueStreamsSize(settings MetricSettings) metricDatabricksSparkLiveListenerBusQueueStreamsSize {
-	m := metricDatabricksSparkLiveListenerBusQueueStreamsSize{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkLiveListenerBusQueueStreamsSize(cfg MetricConfig) metricDatabricksSparkLiveListenerBusQueueStreamsSize {
+	m := metricDatabricksSparkLiveListenerBusQueueStreamsSize{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6573,7 +5954,7 @@ func newMetricDatabricksSparkLiveListenerBusQueueStreamsSize(settings MetricSett
 
 type metricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6587,7 +5968,7 @@ func (m *metricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount) init(
 }
 
 func (m *metricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, pipelineIDAttributeValue string, pipelineNameAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -6609,16 +5990,16 @@ func (m *metricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount) updat
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount(settings MetricSettings) metricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount {
-	m := metricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount(cfg MetricConfig) metricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount {
+	m := metricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6627,7 +6008,7 @@ func newMetricDatabricksSparkSparkSQLOperationManagerHiveOperationsCount(setting
 
 type metricDatabricksSparkStageDiskBytesSpilled struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6641,7 +6022,7 @@ func (m *metricDatabricksSparkStageDiskBytesSpilled) init() {
 }
 
 func (m *metricDatabricksSparkStageDiskBytesSpilled) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -6662,16 +6043,16 @@ func (m *metricDatabricksSparkStageDiskBytesSpilled) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkStageDiskBytesSpilled) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkStageDiskBytesSpilled(settings MetricSettings) metricDatabricksSparkStageDiskBytesSpilled {
-	m := metricDatabricksSparkStageDiskBytesSpilled{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkStageDiskBytesSpilled(cfg MetricConfig) metricDatabricksSparkStageDiskBytesSpilled {
+	m := metricDatabricksSparkStageDiskBytesSpilled{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6680,7 +6061,7 @@ func newMetricDatabricksSparkStageDiskBytesSpilled(settings MetricSettings) metr
 
 type metricDatabricksSparkStageExecutorRunTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6694,7 +6075,7 @@ func (m *metricDatabricksSparkStageExecutorRunTime) init() {
 }
 
 func (m *metricDatabricksSparkStageExecutorRunTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -6715,16 +6096,16 @@ func (m *metricDatabricksSparkStageExecutorRunTime) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkStageExecutorRunTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkStageExecutorRunTime(settings MetricSettings) metricDatabricksSparkStageExecutorRunTime {
-	m := metricDatabricksSparkStageExecutorRunTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkStageExecutorRunTime(cfg MetricConfig) metricDatabricksSparkStageExecutorRunTime {
+	m := metricDatabricksSparkStageExecutorRunTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6733,7 +6114,7 @@ func newMetricDatabricksSparkStageExecutorRunTime(settings MetricSettings) metri
 
 type metricDatabricksSparkStageInputBytes struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6747,7 +6128,7 @@ func (m *metricDatabricksSparkStageInputBytes) init() {
 }
 
 func (m *metricDatabricksSparkStageInputBytes) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -6768,16 +6149,16 @@ func (m *metricDatabricksSparkStageInputBytes) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkStageInputBytes) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkStageInputBytes(settings MetricSettings) metricDatabricksSparkStageInputBytes {
-	m := metricDatabricksSparkStageInputBytes{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkStageInputBytes(cfg MetricConfig) metricDatabricksSparkStageInputBytes {
+	m := metricDatabricksSparkStageInputBytes{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6786,7 +6167,7 @@ func newMetricDatabricksSparkStageInputBytes(settings MetricSettings) metricData
 
 type metricDatabricksSparkStageInputRecords struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6800,7 +6181,7 @@ func (m *metricDatabricksSparkStageInputRecords) init() {
 }
 
 func (m *metricDatabricksSparkStageInputRecords) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -6821,16 +6202,16 @@ func (m *metricDatabricksSparkStageInputRecords) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkStageInputRecords) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkStageInputRecords(settings MetricSettings) metricDatabricksSparkStageInputRecords {
-	m := metricDatabricksSparkStageInputRecords{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkStageInputRecords(cfg MetricConfig) metricDatabricksSparkStageInputRecords {
+	m := metricDatabricksSparkStageInputRecords{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6839,7 +6220,7 @@ func newMetricDatabricksSparkStageInputRecords(settings MetricSettings) metricDa
 
 type metricDatabricksSparkStageMemoryBytesSpilled struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6853,7 +6234,7 @@ func (m *metricDatabricksSparkStageMemoryBytesSpilled) init() {
 }
 
 func (m *metricDatabricksSparkStageMemoryBytesSpilled) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -6874,16 +6255,16 @@ func (m *metricDatabricksSparkStageMemoryBytesSpilled) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkStageMemoryBytesSpilled) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkStageMemoryBytesSpilled(settings MetricSettings) metricDatabricksSparkStageMemoryBytesSpilled {
-	m := metricDatabricksSparkStageMemoryBytesSpilled{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkStageMemoryBytesSpilled(cfg MetricConfig) metricDatabricksSparkStageMemoryBytesSpilled {
+	m := metricDatabricksSparkStageMemoryBytesSpilled{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6892,7 +6273,7 @@ func newMetricDatabricksSparkStageMemoryBytesSpilled(settings MetricSettings) me
 
 type metricDatabricksSparkStageOutputBytes struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6906,7 +6287,7 @@ func (m *metricDatabricksSparkStageOutputBytes) init() {
 }
 
 func (m *metricDatabricksSparkStageOutputBytes) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -6927,16 +6308,16 @@ func (m *metricDatabricksSparkStageOutputBytes) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkStageOutputBytes) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkStageOutputBytes(settings MetricSettings) metricDatabricksSparkStageOutputBytes {
-	m := metricDatabricksSparkStageOutputBytes{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkStageOutputBytes(cfg MetricConfig) metricDatabricksSparkStageOutputBytes {
+	m := metricDatabricksSparkStageOutputBytes{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6945,7 +6326,7 @@ func newMetricDatabricksSparkStageOutputBytes(settings MetricSettings) metricDat
 
 type metricDatabricksSparkStageOutputRecords struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -6959,7 +6340,7 @@ func (m *metricDatabricksSparkStageOutputRecords) init() {
 }
 
 func (m *metricDatabricksSparkStageOutputRecords) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, clusterIDAttributeValue string, sparkAppIDAttributeValue string, sparkJobIDAttributeValue int64) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -6980,16 +6361,16 @@ func (m *metricDatabricksSparkStageOutputRecords) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkStageOutputRecords) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkStageOutputRecords(settings MetricSettings) metricDatabricksSparkStageOutputRecords {
-	m := metricDatabricksSparkStageOutputRecords{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkStageOutputRecords(cfg MetricConfig) metricDatabricksSparkStageOutputRecords {
+	m := metricDatabricksSparkStageOutputRecords{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -6998,7 +6379,7 @@ func newMetricDatabricksSparkStageOutputRecords(settings MetricSettings) metricD
 
 type metricDatabricksSparkTimerDagSchedulerMessageProcessingTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7014,7 +6395,7 @@ func (m *metricDatabricksSparkTimerDagSchedulerMessageProcessingTime) init() {
 }
 
 func (m *metricDatabricksSparkTimerDagSchedulerMessageProcessingTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7034,16 +6415,16 @@ func (m *metricDatabricksSparkTimerDagSchedulerMessageProcessingTime) updateCapa
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerDagSchedulerMessageProcessingTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerDagSchedulerMessageProcessingTime(settings MetricSettings) metricDatabricksSparkTimerDagSchedulerMessageProcessingTime {
-	m := metricDatabricksSparkTimerDagSchedulerMessageProcessingTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerDagSchedulerMessageProcessingTime(cfg MetricConfig) metricDatabricksSparkTimerDagSchedulerMessageProcessingTime {
+	m := metricDatabricksSparkTimerDagSchedulerMessageProcessingTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7052,7 +6433,7 @@ func newMetricDatabricksSparkTimerDagSchedulerMessageProcessingTime(settings Met
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7068,7 +6449,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7088,16 +6469,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionStreamingQueryListenerBusTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7106,7 +6487,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQ
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7122,7 +6503,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7142,16 +6523,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7160,7 +6541,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQ
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7176,7 +6557,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7196,16 +6577,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLExecutionUISQLAppStatusListenerTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7214,7 +6595,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQ
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7230,7 +6611,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7250,16 +6631,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLHiveThriftserverUIHiveThriftServer2listenerTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7268,7 +6649,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQ
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7284,7 +6665,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7304,16 +6685,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLSparkSessionTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7322,7 +6703,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQ
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7338,7 +6719,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7358,16 +6739,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQLUtilExecutionListenerBusTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7376,7 +6757,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSQ
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7392,7 +6773,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7412,16 +6793,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkS
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkStatusAppStatusListenerTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7430,7 +6811,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkSt
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7446,7 +6827,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkU
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7466,16 +6847,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkU
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUtilProfilerEnvTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7484,7 +6865,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingApacheSparkUt
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7500,7 +6881,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBa
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7520,16 +6901,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBa
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDataPlaneEventListenerTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7538,7 +6919,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBac
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7554,7 +6935,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBa
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7574,16 +6955,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBa
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBackendDaemonDriverDbcEventLoggingListenerTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7592,7 +6973,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksBac
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7608,7 +6989,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPh
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7628,16 +7009,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPh
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPhotonPhotonCleanupListenerTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7646,7 +7027,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksPho
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7662,7 +7043,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSp
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7682,16 +7063,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSp
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilExecutorTimeLoggingListenerTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7700,7 +7081,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSpa
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7716,7 +7097,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSp
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7736,16 +7117,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSp
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSparkUtilUsageLoggingListenerTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7754,7 +7135,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSpa
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7770,7 +7151,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQ
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7790,16 +7171,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQ
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLAdviceAdvisorListenerTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7808,7 +7189,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQL
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7824,7 +7205,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQ
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7844,16 +7225,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQ
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLDebuggerQueryWatchdogListenerTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7862,7 +7243,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQL
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7878,7 +7259,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQ
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7898,16 +7279,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQ
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLExecutionUIIoCacheListenerTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7916,7 +7297,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQL
 
 type metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7932,7 +7313,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQ
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -7952,16 +7333,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQ
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime {
-	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime {
+	m := metricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQLIoCachingRepeatedReadsEstimatorTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -7970,7 +7351,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusListenerProcessingDatabricksSQL
 
 type metricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -7986,7 +7367,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessi
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -8006,16 +7387,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessi
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime {
-	m := metricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime {
+	m := metricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessingTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -8024,7 +7405,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusQueueAppStatusListenerProcessin
 
 type metricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -8040,7 +7421,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListene
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -8060,16 +7441,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListene
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime {
-	m := metricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime {
+	m := metricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListenerProcessingTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -8078,7 +7459,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusQueueExecutorManagementListener
 
 type metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -8094,7 +7475,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingT
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -8114,16 +7495,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingT
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime {
-	m := metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime {
+	m := metricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -8132,7 +7513,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusQueueSharedListenerProcessingTi
 
 type metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -8148,7 +7529,7 @@ func (m *metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessing
 }
 
 func (m *metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, clusterIDAttributeValue string, sparkAppIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Sum().DataPoints().AppendEmpty()
@@ -8168,16 +7549,16 @@ func (m *metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessing
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime(settings MetricSettings) metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime {
-	m := metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime(cfg MetricConfig) metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime {
+	m := metricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingTime{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -8186,7 +7567,7 @@ func newMetricDatabricksSparkTimerLiveListenerBusQueueStreamsListenerProcessingT
 
 type metricDatabricksTasksRunDuration struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -8200,7 +7581,7 @@ func (m *metricDatabricksTasksRunDuration) init() {
 }
 
 func (m *metricDatabricksTasksRunDuration) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, jobIDAttributeValue int64, taskIDAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -8220,16 +7601,16 @@ func (m *metricDatabricksTasksRunDuration) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksTasksRunDuration) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksTasksRunDuration(settings MetricSettings) metricDatabricksTasksRunDuration {
-	m := metricDatabricksTasksRunDuration{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksTasksRunDuration(cfg MetricConfig) metricDatabricksTasksRunDuration {
+	m := metricDatabricksTasksRunDuration{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
@@ -8238,7 +7619,7 @@ func newMetricDatabricksTasksRunDuration(settings MetricSettings) metricDatabric
 
 type metricDatabricksTasksScheduleStatus struct {
 	data     pmetric.Metric // data buffer for generated metric.
-	settings MetricSettings // metric settings provided by user.
+	config   MetricConfig   // metric config provided by user.
 	capacity int            // max observed number of data points added to the metric.
 }
 
@@ -8252,7 +7633,7 @@ func (m *metricDatabricksTasksScheduleStatus) init() {
 }
 
 func (m *metricDatabricksTasksScheduleStatus) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, jobIDAttributeValue int64, taskIDAttributeValue string, taskTypeAttributeValue string) {
-	if !m.settings.Enabled {
+	if !m.config.Enabled {
 		return
 	}
 	dp := m.data.Gauge().DataPoints().AppendEmpty()
@@ -8273,30 +7654,24 @@ func (m *metricDatabricksTasksScheduleStatus) updateCapacity() {
 
 // emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
 func (m *metricDatabricksTasksScheduleStatus) emit(metrics pmetric.MetricSlice) {
-	if m.settings.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
+	if m.config.Enabled && m.data.Gauge().DataPoints().Len() > 0 {
 		m.updateCapacity()
 		m.data.MoveTo(metrics.AppendEmpty())
 		m.init()
 	}
 }
 
-func newMetricDatabricksTasksScheduleStatus(settings MetricSettings) metricDatabricksTasksScheduleStatus {
-	m := metricDatabricksTasksScheduleStatus{settings: settings}
-	if settings.Enabled {
+func newMetricDatabricksTasksScheduleStatus(cfg MetricConfig) metricDatabricksTasksScheduleStatus {
+	m := metricDatabricksTasksScheduleStatus{config: cfg}
+	if cfg.Enabled {
 		m.data = pmetric.NewMetric()
 		m.init()
 	}
 	return m
 }
 
-// MetricsBuilderConfig is a structural subset of an otherwise 1-1 copy of metadata.yaml
-type MetricsBuilderConfig struct {
-	Metrics            MetricsSettings            `mapstructure:"metrics"`
-	ResourceAttributes ResourceAttributesSettings `mapstructure:"resource_attributes"`
-}
-
 // MetricsBuilder provides an interface for scrapers to report metrics while taking care of all the transformations
-// required to produce metric representation defined in metadata and user settings.
+// required to produce metric representation defined in metadata and user config.
 type MetricsBuilder struct {
 	metricsBuffer                                                                                                            pmetric.Metrics
 	buildInfo                                                                                                                component.BuildInfo
@@ -8443,7 +7818,7 @@ type MetricsBuilder struct {
 	startTime                                                                                                                pcommon.Timestamp
 	metricsCapacity                                                                                                          int
 	resourceCapacity                                                                                                         int
-	resourceAttributesSettings                                                                                               ResourceAttributesSettings
+	resourceAttributesConfig                                                                                                 ResourceAttributesConfig
 }
 
 // metricBuilderOption applies changes to default metrics builder.
@@ -8456,26 +7831,12 @@ func WithStartTime(startTime pcommon.Timestamp) metricBuilderOption {
 	}
 }
 
-func DefaultMetricsBuilderConfig() MetricsBuilderConfig {
-	return MetricsBuilderConfig{
-		Metrics:            DefaultMetricsSettings(),
-		ResourceAttributes: DefaultResourceAttributesSettings(),
-	}
-}
-
-func NewMetricsBuilderConfig(ms MetricsSettings, ras ResourceAttributesSettings) MetricsBuilderConfig {
-	return MetricsBuilderConfig{
-		Metrics:            ms,
-		ResourceAttributes: ras,
-	}
-}
-
 func NewMetricsBuilder(mbc MetricsBuilderConfig, settings receiver.CreateSettings, options ...metricBuilderOption) *MetricsBuilder {
 	mb := &MetricsBuilder{
 		startTime:                          pcommon.NewTimestampFromTime(time.Now()),
 		metricsBuffer:                      pmetric.NewMetrics(),
 		buildInfo:                          settings.BuildInfo,
-		resourceAttributesSettings:         mbc.ResourceAttributes,
+		resourceAttributesConfig:           mbc.ResourceAttributes,
 		metricDatabricksJobsActiveTotal:    newMetricDatabricksJobsActiveTotal(mbc.Metrics.DatabricksJobsActiveTotal),
 		metricDatabricksJobsRunDuration:    newMetricDatabricksJobsRunDuration(mbc.Metrics.DatabricksJobsRunDuration),
 		metricDatabricksJobsScheduleStatus: newMetricDatabricksJobsScheduleStatus(mbc.Metrics.DatabricksJobsScheduleStatus),
@@ -8634,12 +7995,12 @@ func (mb *MetricsBuilder) updateCapacity(rm pmetric.ResourceMetrics) {
 }
 
 // ResourceMetricsOption applies changes to provided resource metrics.
-type ResourceMetricsOption func(ResourceAttributesSettings, pmetric.ResourceMetrics)
+type ResourceMetricsOption func(ResourceAttributesConfig, pmetric.ResourceMetrics)
 
 // WithDatabricksInstanceName sets provided value as "databricks.instance.name" attribute for current resource.
 func WithDatabricksInstanceName(val string) ResourceMetricsOption {
-	return func(ras ResourceAttributesSettings, rm pmetric.ResourceMetrics) {
-		if ras.DatabricksInstanceName.Enabled {
+	return func(rac ResourceAttributesConfig, rm pmetric.ResourceMetrics) {
+		if rac.DatabricksInstanceName.Enabled {
 			rm.Resource().Attributes().PutStr("databricks.instance.name", val)
 		}
 	}
@@ -8647,8 +8008,8 @@ func WithDatabricksInstanceName(val string) ResourceMetricsOption {
 
 // WithSparkAppID sets provided value as "spark.app.id" attribute for current resource.
 func WithSparkAppID(val string) ResourceMetricsOption {
-	return func(ras ResourceAttributesSettings, rm pmetric.ResourceMetrics) {
-		if ras.SparkAppID.Enabled {
+	return func(rac ResourceAttributesConfig, rm pmetric.ResourceMetrics) {
+		if rac.SparkAppID.Enabled {
 			rm.Resource().Attributes().PutStr("spark.app.id", val)
 		}
 	}
@@ -8656,8 +8017,8 @@ func WithSparkAppID(val string) ResourceMetricsOption {
 
 // WithSparkClusterID sets provided value as "spark.cluster.id" attribute for current resource.
 func WithSparkClusterID(val string) ResourceMetricsOption {
-	return func(ras ResourceAttributesSettings, rm pmetric.ResourceMetrics) {
-		if ras.SparkClusterID.Enabled {
+	return func(rac ResourceAttributesConfig, rm pmetric.ResourceMetrics) {
+		if rac.SparkClusterID.Enabled {
 			rm.Resource().Attributes().PutStr("spark.cluster.id", val)
 		}
 	}
@@ -8665,8 +8026,8 @@ func WithSparkClusterID(val string) ResourceMetricsOption {
 
 // WithSparkClusterName sets provided value as "spark.cluster.name" attribute for current resource.
 func WithSparkClusterName(val string) ResourceMetricsOption {
-	return func(ras ResourceAttributesSettings, rm pmetric.ResourceMetrics) {
-		if ras.SparkClusterName.Enabled {
+	return func(rac ResourceAttributesConfig, rm pmetric.ResourceMetrics) {
+		if rac.SparkClusterName.Enabled {
 			rm.Resource().Attributes().PutStr("spark.cluster.name", val)
 		}
 	}
@@ -8675,7 +8036,7 @@ func WithSparkClusterName(val string) ResourceMetricsOption {
 // WithStartTimeOverride overrides start time for all the resource metrics data points.
 // This option should be only used if different start time has to be set on metrics coming from different resources.
 func WithStartTimeOverride(start pcommon.Timestamp) ResourceMetricsOption {
-	return func(ras ResourceAttributesSettings, rm pmetric.ResourceMetrics) {
+	return func(_ ResourceAttributesConfig, rm pmetric.ResourceMetrics) {
 		var dps pmetric.NumberDataPointSlice
 		metrics := rm.ScopeMetrics().At(0).Metrics()
 		for i := 0; i < metrics.Len(); i++ {
@@ -8846,7 +8207,7 @@ func (mb *MetricsBuilder) EmitForResource(rmo ...ResourceMetricsOption) {
 	mb.metricDatabricksTasksScheduleStatus.emit(ils.Metrics())
 
 	for _, op := range rmo {
-		op(mb.resourceAttributesSettings, rm)
+		op(mb.resourceAttributesConfig, rm)
 	}
 	if ils.Metrics().Len() > 0 {
 		mb.updateCapacity(rm)
@@ -8856,7 +8217,7 @@ func (mb *MetricsBuilder) EmitForResource(rmo ...ResourceMetricsOption) {
 
 // Emit returns all the metrics accumulated by the metrics builder and updates the internal state to be ready for
 // recording another set of metrics. This function will be responsible for applying all the transformations required to
-// produce metric representation defined in metadata and user settings, e.g. delta or cumulative.
+// produce metric representation defined in metadata and user config, e.g. delta or cumulative.
 func (mb *MetricsBuilder) Emit(rmo ...ResourceMetricsOption) pmetric.Metrics {
 	mb.EmitForResource(rmo...)
 	metrics := mb.metricsBuffer

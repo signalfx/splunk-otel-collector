@@ -29,7 +29,7 @@ replace (
 require (
 	code.cloudfoundry.org/go-loggregator v7.4.0+incompatible
 	github.com/Microsoft/go-winio v0.6.0 // indirect
-	github.com/SAP/go-hdb v0.111.7
+	github.com/SAP/go-hdb v1.2.6
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/Showmax/go-fqdn v1.0.0
 	github.com/StackExchange/wmi v1.2.1
@@ -93,7 +93,7 @@ require (
 	go.etcd.io/etcd/client/v2 v2.305.7
 	golang.org/x/net v0.9.0
 	golang.org/x/sync v0.1.0
-	golang.org/x/sys v0.7.0
+	golang.org/x/sys v0.8.0
 	golang.org/x/tools v0.7.0 // indirect
 	google.golang.org/grpc v1.55.0
 	gopkg.in/go-playground/validator.v9 v9.31.0
@@ -286,8 +286,8 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
-	golang.org/x/crypto v0.7.0 // indirect
-	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a // indirect
+	golang.org/x/crypto v0.8.0 // indirect
+	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53 // indirect
 	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/term v0.7.0 // indirect

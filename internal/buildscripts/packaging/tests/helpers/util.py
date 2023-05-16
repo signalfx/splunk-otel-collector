@@ -42,6 +42,18 @@ def retry(function, exception, max_attempts=5, interval=5):
         time.sleep(interval)
 
 
+def wait_for_container_cmd(container, cmd, timeout=DEFAULT_TIMEOUT):
+    start_time = time.time()
+    while True:
+        code, output = container.exec_run(cmd)
+        elapsed = time.time() - start_time
+        if code == 0:
+            print(f"'{cmd}' completed in {elapsed}s:\n{output.decode('utf-8')}")
+            return code, output
+        assert elapsed < timeout, f"timed out waiting for '{cmd}':\n{output.decode('utf-8')}"
+        time.sleep(1)
+
+
 @contextmanager
 def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, buildargs=None, timeout=DEFAULT_TIMEOUT):
     client = docker.from_env()
@@ -98,14 +110,7 @@ def run_distro_container(distro, arch="amd64", dockerfile=None, path=TESTS_DIR, 
             time.sleep(1)
 
         # qemu is slow, so wait for systemd to be ready
-        start_time = time.time()
-        while True:
-            code, output = container.exec_run("systemctl list-units --no-pager")
-            if code == 0:
-                break
-            output = output.decode("utf-8").strip()
-            assert (time.time() - start_time) < timeout, f"timed out waiting for systemd to start: {output}"
-            time.sleep(1)
+        wait_for_container_cmd(container, "systemctl show-environment", timeout=timeout)
 
         yield container
     finally:

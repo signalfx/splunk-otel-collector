@@ -21,14 +21,18 @@ SCRIPT_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 
 VERSION="${1:-}"
 ARCH="${2:-amd64}"
-OUTPUT_DIR="${3:-$REPO_DIR/instrumentation/dist}"
-LIBSPLUNK_PATH="$REPO_DIR/instrumentation/dist/libsplunk_${ARCH}.so"
-JAVA_AGENT_PATH="$REPO_DIR/instrumentation/dist/splunk-otel-javaagent.jar"
+OUTPUT_DIR="${3:-$SCRIPT_DIR/../../dist}"
+
+LIBSPLUNK_PATH="$SCRIPT_DIR/../../dist/libsplunk_${ARCH}.so"
+JAVA_AGENT_PATH="$SCRIPT_DIR/../../dist/splunk-otel-javaagent.jar"
 JAVA_AGENT_RELEASE="$(cat $JAVA_AGENT_RELEASE_PATH)"
 
 if [[ -z "$VERSION" ]]; then
     VERSION="$( get_version )"
 fi
+
+# rpm doesn't like dashes in the version, replace with tildas
+VERSION="${VERSION/'-'/'~'}"
 VERSION="${VERSION#v}"
 
 download_java_agent "$JAVA_AGENT_RELEASE" "$JAVA_AGENT_PATH"
@@ -39,21 +43,29 @@ setup_files_and_permissions "$LIBSPLUNK_PATH" "$JAVA_AGENT_PATH" "$buildroot"
 
 mkdir -p "$OUTPUT_DIR"
 
-sudo fpm -s dir -t deb -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
+if [[ "$ARCH" = "arm64" ]]; then
+    ARCH="aarch64"
+elif [[ "$ARCH" = "amd64" ]]; then
+    ARCH="x86_64"
+fi
+
+sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --vendor "$PKG_VENDOR" \
     --maintainer "$PKG_MAINTAINER" \
     --description "$PKG_DESCRIPTION" \
     --license "$PKG_LICENSE" \
     --url "$PKG_URL" \
     --architecture "$ARCH" \
-    --deb-dist "stable" \
-    --deb-use-file-permissions \
-    --after-install "$POSTINSTALL_PATH" \
+    --rpm-rpmbuild-define "_build_id_links none" \
+    --rpm-summary "$PKG_DESCRIPTION" \
+    --rpm-use-file-permissions \
+    --rpm-posttrans "$POSTINSTALL_PATH" \
     --before-remove "$PREUNINSTALL_PATH" \
-    --deb-no-default-config-files \
     --depends sed \
     --depends grep \
     --config-files "$CONFIG_INSTALL_PATH" \
+    --provides "$PKG_NAME" \
+    --conflicts "splunk-otel-systemd-auto-instrumentation" \
     "$buildroot/"=/
 
-dpkg -c "${OUTPUT_DIR}/${PKG_NAME}_${VERSION}_${ARCH}.deb"
+rpm -qpli "${OUTPUT_DIR}/${PKG_NAME}-${VERSION}-1.${ARCH}.rpm"

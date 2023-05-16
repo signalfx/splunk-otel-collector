@@ -196,10 +196,10 @@ libsplunk:
       - ARCH: ["amd64", "arm64"]
   script:
     - *docker-reader-role
-    - make -C instrumentation dist ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
+    - make -C instrumentation/splunk-otel-auto-instrumentation dist ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
   artifacts:
     paths:
-      - instrumentation/dist/libsplunk_*.so
+      - instrumentation/splunk-otel-auto-instrumentation/dist/libsplunk_*.so
 
 agent-bundle-linux:
   rules:
@@ -255,11 +255,12 @@ agent-bundle-windows:
     - libsplunk
   parallel:
     matrix:
+      - PKG: [splunk-otel-auto-instrumentation, splunk-otel-envvar-auto-instrumentation]
       - ARCH: [amd64, arm64]
   before_script:
     - ./instrumentation/packaging/fpm/install-deps.sh
   script:
-    - ./instrumentation/packaging/fpm/${PKG_TYPE}/build.sh "${CI_COMMIT_TAG:-}" "$ARCH" "./dist"
+    - ./instrumentation/${PKG}/packaging/${PKG_TYPE}/build.sh "${CI_COMMIT_TAG:-}" "$ARCH" "./dist"
 
 instrumentation-deb:
   extends: .instrumentation-deb-rpm

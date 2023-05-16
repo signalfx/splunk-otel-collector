@@ -136,11 +136,11 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/instrumentation"
+    directory: "/instrumentation/packaging/fpm"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/instrumentation/packaging/fpm"
+    directory: "/instrumentation/splunk-otel-auto-instrumentation"
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"

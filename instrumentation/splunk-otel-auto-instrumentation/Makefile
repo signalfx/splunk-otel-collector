@@ -63,8 +63,9 @@ ifneq ($(SKIP_COMPILE), true)
 	$(MAKE) dist
 endif
 	@mkdir -p dist
-	docker build -t instrumentation-fpm packaging/fpm
-	docker run --rm -v $(CURDIR)/../:/repo -e PACKAGE=$* -e VERSION=$(VERSION) -e ARCH=$(ARCH) instrumentation-fpm
+	docker build -t instrumentation-fpm $(CURDIR)/../packaging/fpm
+	docker run --rm -v $(CURDIR)/../../:/repo instrumentation-fpm \
+		/repo/instrumentation/splunk-otel-auto-instrumentation/packaging/$*/build.sh "$(VERSION)" "$(ARCH)"
 
 # Run this to install and enable the auto-instrumentation files. Mostly intended for development.
 .PHONY: install

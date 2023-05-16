@@ -24,16 +24,15 @@ PKG_DESCRIPTION="Splunk OpenTelemetry Auto Instrumentation"
 PKG_LICENSE="Apache 2.0"
 PKG_URL="https://github.com/signalfx/splunk-otel-collector"
 
-LIBSPLUNK_INSTALL_PATH="/usr/lib/splunk-instrumentation/libsplunk.so"
-JAVA_AGENT_INSTALL_PATH="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
-CONFIG_INSTALL_PATH="/usr/lib/splunk-instrumentation/instrumentation.conf"
-
 JAVA_AGENT_RELEASE_PATH="${FPM_DIR}/../java-agent-release.txt"
 JAVA_AGENT_RELEASE_URL="https://github.com/signalfx/splunk-otel-java/releases/"
+JAVA_AGENT_INSTALL_PATH="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
+CONFIG_INSTALL_PATH="/etc/systemd/system.conf.d/splunk-otel-javaagent.conf"
+CONFIG_REPO_PATH="${FPM_DIR}/splunk-otel-javaagent.conf"
+PROPERTIES_INSTALL_PATH="/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties"
+PROPERTIES_REPO_PATH="${FPM_DIR}/splunk-otel-javaagent.properties"
 
 POSTINSTALL_PATH="$FPM_DIR/postinstall.sh"
-PREUNINSTALL_PATH="$FPM_DIR/preuninstall.sh"
-CONFIG_PATH="$REPO_DIR/instrumentation/install/instrumentation.conf"
 
 get_version() {
     commit_tag="$( git -C "$REPO_DIR" describe --abbrev=0 --tags --exact-match --match 'v[0-9]*' 2>/dev/null || true )"
@@ -65,22 +64,21 @@ download_java_agent() {
 }
 
 setup_files_and_permissions() {
-    local libsplunk="$1"
-    local java_agent="$2"
-    local buildroot="$3"
-
-    mkdir -p "$buildroot/$(dirname $LIBSPLUNK_INSTALL_PATH)"
-    cp -f "$libsplunk" "$buildroot/$LIBSPLUNK_INSTALL_PATH"
-    sudo chown root:root "$buildroot/$LIBSPLUNK_INSTALL_PATH"
-    sudo chmod 755 "$buildroot/$LIBSPLUNK_INSTALL_PATH"
+    local java_agent="$1"
+    local buildroot="$2"
 
     mkdir -p "$buildroot/$(dirname $JAVA_AGENT_INSTALL_PATH)"
     cp -f "$java_agent" "$buildroot/$JAVA_AGENT_INSTALL_PATH"
     sudo chown root:root "$buildroot/$JAVA_AGENT_INSTALL_PATH"
     sudo chmod 755 "$buildroot/$JAVA_AGENT_INSTALL_PATH"
 
+    mkdir -p "$buildroot/$(dirname $PROPERTIES_INSTALL_PATH)"
+    cp -f "$PROPERTIES_REPO_PATH" "$buildroot/$PROPERTIES_INSTALL_PATH"
+    sudo chown root:root "$buildroot/$PROPERTIES_INSTALL_PATH"
+    sudo chmod 644 "$buildroot/$PROPERTIES_INSTALL_PATH"
+
     mkdir -p "$buildroot/$(dirname $CONFIG_INSTALL_PATH)"
-    cp -f "$CONFIG_PATH" "$buildroot/$CONFIG_INSTALL_PATH"
+    cp -f "$CONFIG_REPO_PATH" "$buildroot/$CONFIG_INSTALL_PATH"
     sudo chown root:root "$buildroot/$CONFIG_INSTALL_PATH"
     sudo chmod 644 "$buildroot/$CONFIG_INSTALL_PATH"
 }

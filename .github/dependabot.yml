@@ -136,10 +136,6 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/instrumentation"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker"
     directory: "/instrumentation/packaging/fpm"
     schedule:
       interval: "weekly"

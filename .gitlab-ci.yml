@@ -174,20 +174,6 @@ compile:
       - bin/translatesfx_*
       - bin/migratecheckpoint_*
 
-libsplunk:
-  extends: .trigger-filter
-  stage: build
-  retry: 2
-  parallel:
-    matrix:
-      - ARCH: ["amd64", "arm64"]
-  script:
-    - *docker-reader-role
-    - make -C instrumentation dist ARCH=${ARCH} DOCKER_REPO=${DOCKER_HUB_REPO}
-  artifacts:
-    paths:
-      - instrumentation/dist/libsplunk_*.so
-
 agent-bundle-linux:
   extends: .trigger-filter
   stage: build
@@ -235,8 +221,8 @@ agent-bundle-windows:
 .instrumentation-deb-rpm:
   extends: .trigger-filter
   stage: package
-  needs:
-    - libsplunk
+  needs: []
+  dependencies: []
   parallel:
     matrix:
       - ARCH: [amd64, arm64]
@@ -867,7 +853,6 @@ github-release:
   stage: github-release
   dependencies:
     - compile
-    - libsplunk
     - sign-exe
     - sign-osx
     - release-debs
@@ -883,7 +868,6 @@ github-release:
     - mkdir -p dist/assets
     - cp bin/otelcol_linux_* dist/assets/
     - cp bin/translatesfx_linux_* dist/assets/
-    - cp instrumentation/dist/libsplunk_*.so dist/assets/
     - cp dist/signed/* dist/assets/
     - |
       # rename agent bundles to include the version for stable releases

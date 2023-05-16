@@ -14,24 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-PRELOAD_PATH="/etc/ld.so.preload"
-LIBSPLUNK_PATH="/usr/lib/splunk-instrumentation/libsplunk.so"
-
-if [ -f "$PRELOAD_PATH" ]; then
-    if ! grep -q "$LIBSPLUNK_PATH" "$PRELOAD_PATH"; then
-        # backup existing file with timestamp
-        if command -v rpm >/dev/null 2>&1; then
-            # need to escape '%' for rpm macros
-            ts="$(date '+%%Y%%m%%d-%%H%%M%%S')"
-        else
-            ts="$(date '+%Y%m%d-%H%M%S')"
-        fi
-        echo "Saving $PRELOAD_PATH as ${PRELOAD_PATH}.bak.${ts}"
-        cp "$PRELOAD_PATH" "${PRELOAD_PATH}.bak.${ts}"
-        echo "Adding $LIBSPLUNK_PATH to $PRELOAD_PATH"
-        echo "$LIBSPLUNK_PATH" >> "$PRELOAD_PATH"
-    fi
-else
-    echo "Adding $LIBSPLUNK_PATH to $PRELOAD_PATH"
-    echo "$LIBSPLUNK_PATH" >> "$PRELOAD_PATH"
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl daemon-reload
 fi

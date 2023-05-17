@@ -15,23 +15,32 @@ cd "${ROOT_DIR}"
 create_collector_pr() {
   local repo="signalfx/splunk-otel-collector"
   local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
-  local update_deps_branch="create-pull-request/update-deps"
-  local message="Update OpenTelemetry Dependencies to latest"
+  local branch="create-pull-request/update-openjdk"
+  local message="Update Bundled OpenJDK to latest"
 
   echo ">>> Cloning the $repo repository ..."
   git clone "$repo_url" collector-mirror
   cd collector-mirror
 
-  setup_branch "$update_deps_branch" "$repo_url"
+  setup_branch "$branch" "$repo_url"
 
-  echo ">>> Updating otel deps to latest ..."
-  OTEL_VERSION="latest" ./internal/buildscripts/update-deps
-  make for-all CMD='make tidy'
+  echo ">>> Getting latest openjdk release ..."
+  tag="$( gh release view --repo "https://github.com/adoptium/temurin11-binaries" --json tagName --jq 'select(.isDraft|not and .isPrelease|not) | .tagName' )"
+  if [[ -n "$tag" ]]; then
+    version=$( echo "$tag" | sed 's|^jdk-\(.*\)|\1|' | tr '+' '_' )
+    if [[ -n "$version" ]]; then
+      echo ">>> Updating openjdk version to $version ..."
+      sed -i "s|^ARG JDK_VERSION=.*|ARG JDK_VERSION=${version}|" internal/signalfx-agent/bundle/Dockerfile
+    else
+      echo "ERROR: Failed to get version from tag name '${tag}'!" >&2
+      exit 1
+    fi
+  fi
 
   # Only create the PR if there are changes
   if ! git diff --exit-code >/dev/null 2>&1; then
     git commit -S -am "$message"
-    git push -f "$repo_url" "$update_deps_branch"
+    git push -f "$repo_url" "$branch"
     echo ">>> Creating the PR ..."
     gh pr create \
       --draft \
@@ -39,7 +48,7 @@ create_collector_pr() {
       --title "$message" \
       --body "$message" \
       --base main \
-      --head "$update_deps_branch"
+      --head "$branch"
   fi
 }
 

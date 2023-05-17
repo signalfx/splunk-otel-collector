@@ -22,26 +22,7 @@ create_collector_pr() {
   git clone "$repo_url" collector-mirror
   cd collector-mirror
 
-  # check if the branch exists
-  if git ls-remote --exit-code --heads origin "$update_deps_branch"; then
-    # get number of open PRs for the branch
-    pr_count="$( gh pr list --repo "$repo_url" --head "$update_deps_branch" --state open --json id --jq length )"
-    if [[ ! "$pr_count" =~ ^[0-9]+$ ]]; then
-      echo "ERROR: Failed to get PRs for the $update_deps_branch branch!" >&2
-      echo "$pr_count" >&2
-      exit 1
-    fi
-    if [[ "$pr_count" != "0" ]]; then
-      echo ">>> The $update_deps_branch branch exists and has $pr_count open PR(s)."
-      echo ">>> Nothing to do."
-      exit 0
-    fi
-    echo ">>> Resetting the $update_deps_branch branch to main ..."
-    git checkout "$update_deps_branch"
-    git reset --hard origin/main
-  else
-    git checkout -b "$update_deps_branch"
-  fi
+  setup_branch "$update_deps_branch" "$repo_url"
 
   echo ">>> Updating otel deps to latest ..."
   OTEL_VERSION="latest" ./internal/buildscripts/update-deps

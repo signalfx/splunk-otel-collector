@@ -17,6 +17,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"os"
 	"time"
@@ -24,6 +25,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/snappy"
 	"github.com/prometheus/common/config"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/prompb"
 	"github.com/prometheus/prometheus/storage/remote"
 )
@@ -37,35 +39,25 @@ func main() {
 			Path:   os.Getenv("path"),
 		},
 	}
+	timeout, err := model.ParseDuration("2s")
 	cfg := &remote.ClientConfig{
 		URL:              URL,
 		HTTPClientConfig: config.HTTPClientConfig{},
+		Timeout:          timeout,
 	}
 	client, err := remote.NewWriteClient("mock_prw_client", cfg)
 	if err != nil {
 		panic(err)
 	}
 
-	metrics := []prompb.TimeSeries{
-		{
-			Labels: []prompb.Label{
-				{Name: "__name__", Value: "fake_metric_total"},
-				{Name: "instance", Value: cfg.URL.Host},
-			},
-			Samples: []prompb.Sample{
-				{Value: 42, Timestamp: time.Now().UnixMilli()},
-			},
-		},
-	}
-
-	req := &prompb.WriteRequest{
-		Timeseries: metrics,
-	}
-	compressed := encodeWriteRequest(req)
-
+	i := 0
 	for {
-		client.Store(context.Background(), compressed)
+		e := client.Store(context.Background(), getWriteRequest(cfg, i))
+		if e != nil {
+			fmt.Println(e)
+		}
 		time.Sleep(10 * time.Second)
+		i++
 	}
 }
 
@@ -76,4 +68,23 @@ func encodeWriteRequest(request *prompb.WriteRequest) []byte {
 	}
 
 	return snappy.Encode(nil, data)
+}
+
+func getWriteRequest(cfg *remote.ClientConfig, index int) []byte {
+	metrics := []prompb.TimeSeries{
+		{
+			Labels: []prompb.Label{
+				{Name: "__name__", Value: "fake_metric_total"},
+				{Name: "instance", Value: cfg.URL.Host},
+			},
+			Samples: []prompb.Sample{
+				{Value: float64(42 + index), Timestamp: time.Now().UnixMilli()},
+			},
+		},
+	}
+
+	req := &prompb.WriteRequest{
+		Timeseries: metrics,
+	}
+	return encodeWriteRequest(req)
 }

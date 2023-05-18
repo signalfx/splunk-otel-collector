@@ -20,4 +20,5 @@ services:
     depends_on:
       - otelcollector
     environment:
-      - TARGET_URL=http://otelcollector:19291/metrics
+      - endpoint=otelcollector:19291
+      - path=/metrics

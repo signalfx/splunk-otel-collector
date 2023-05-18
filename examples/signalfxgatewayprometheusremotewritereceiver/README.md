@@ -13,6 +13,6 @@ You can also remove the `signalfx` array item from the `exporters` configuration
 > **Tip:** Experiment and modify the sample client, or even disable it and write your own.
  
 ## Running this example
-After you've verified your environment, enter the following command to run the example:
-```bash
-$> docker-compose up
+After you've verified your environment, run the example via `docker-compose up`
+
+If that doesn't work, try running `cd ../../ && make docker-otelcol && cd - && docker-compose up --build`

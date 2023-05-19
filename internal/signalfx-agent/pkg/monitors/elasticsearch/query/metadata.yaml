@@ -7,7 +7,7 @@ monitors:
       constructs SignalFx datapoints based on Elasticsearch aggregation types and
       also aggregation names.
 
-      An simple configuration looks like the following:
+      A simple configuration looks like the following:
 
       ```yaml
       monitors:
@@ -231,7 +231,7 @@ monitors:
       ...
       ```
 
-      In this case, each bucket will result 5 metrics -
+      In this case, each bucket will output 5 metrics: 
 
         1. `cpu_usage_stats.count`
         2. `cpu_usage_stats.min`

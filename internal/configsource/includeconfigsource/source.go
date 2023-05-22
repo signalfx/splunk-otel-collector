@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"text/template"
 
 	"github.com/fsnotify/fsnotify"
@@ -53,7 +54,15 @@ func newConfigSource(config *Config) (configsource.ConfigSource, error) {
 }
 
 func (is *includeConfigSource) Retrieve(_ context.Context, selector string, paramsConfigMap *confmap.Conf, watcher confmap.WatcherFunc) (*confmap.Retrieved, error) {
-	tmpl, err := template.ParseFiles(selector)
+	matches, err := filepath.Glob(selector)
+	if err != nil {
+		return nil, err
+	}
+	if len(matches) == 0 {
+		return nil, fmt.Errorf("file(s) not found for %q", selector)
+	}
+
+	tmpl, err := template.ParseFiles(matches...)
 	if err != nil {
 		return nil, err
 	}

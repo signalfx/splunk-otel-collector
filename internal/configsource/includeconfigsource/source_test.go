@@ -17,6 +17,7 @@ package includeconfigsource
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path"
 	"runtime"
@@ -39,7 +40,7 @@ func TestIncludeConfigSource_Session(t *testing.T) {
 		{
 			name:     "missing_file",
 			selector: "not_to_be_found",
-			wantErr:  &os.PathError{},
+			wantErr:  fmt.Errorf("file(s) not found for ./testdata/not_to_be_found"),
 		},
 		{
 			name:     "scalar_data_file",

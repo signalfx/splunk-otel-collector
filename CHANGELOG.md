@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 🧰 Bug fixes 🧰
+
+- Include expandconverter to support bare `"$ENV_VAR"` form on recursive confmap.Provider value loading ([#3168](https://github.com/signalfx/splunk-otel-collector/pull/3168))
+
 ## v0.77.0
 
 This Splunk OpenTelemetry Collector release includes changes from the [opentelemetry-collector v0.77.0](https://github.com/open-telemetry/opentelemetry-collector/releases/tag/v0.77.0) and the [opentelemetry-collector-contrib v0.77.0](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v0.77.0) releases where appropriate.

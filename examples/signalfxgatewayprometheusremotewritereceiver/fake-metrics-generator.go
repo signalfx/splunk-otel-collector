@@ -39,11 +39,11 @@ func main() {
 			Path:   os.Getenv("path"),
 		},
 	}
-	timeout, err := model.ParseDuration("2s")
+
 	cfg := &remote.ClientConfig{
 		URL:              URL,
 		HTTPClientConfig: config.HTTPClientConfig{},
-		Timeout:          timeout,
+		Timeout:          model.Duration(2 * time.Second),
 	}
 	client, err := remote.NewWriteClient("mock_prw_client", cfg)
 	if err != nil {

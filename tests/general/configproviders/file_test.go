@@ -33,8 +33,9 @@ func TestFileProvider(t *testing.T) {
 		t, "memory.yaml", "file_config.yaml", nil,
 		[]testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {
+				collector = collector.WithEnv(map[string]string{"COLLECTION_INTERVAL": "1s"})
 				if cc, ok := collector.(*testutils.CollectorContainer); ok {
-					return cc.WithMount(testdataPath, "/testdata")
+					collector = cc.WithMount(testdataPath, "/testdata")
 				}
 				return collector
 			},

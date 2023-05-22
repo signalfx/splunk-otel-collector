@@ -19,55 +19,44 @@ package tests
 import (
 	"fmt"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
-	logCore, logs := observer.New(zap.DebugLevel)
-	logger := zap.New(logCore)
+func TestIncludeTemplatedConfigs(t *testing.T) {
+	tc := testutils.NewTestcase(t)
+	defer tc.PrintLogsOnFailure()
 
 	csPort := testutils.GetAvailablePort(t)
-	collector, err := testutils.NewCollectorProcess().
-		WithArgs("--config", path.Join(".", "testdata", "templated.yaml")).
-		WithLogger(logger).
-		WithEnv(map[string]string{
-			"SPLUNK_DEBUG_CONFIG_SERVER_PORT": fmt.Sprintf("%d", csPort),
-		}).
-		Build()
-
-	require.NotNil(t, collector)
-	require.NoError(t, err)
-
-	defer func() {
-		require.NoError(t, collector.Shutdown())
-	}()
-
-	err = collector.Start()
-	require.NoError(t, err)
-
-	require.Eventually(t, func() bool {
-		for _, log := range logs.All() {
-			if strings.Contains(log.Message,
-				`Set config to [testdata/templated.yaml]`,
-			) {
-				return true
-			}
+	collector, shutdown := tc.SplunkOtelCollector("", func(collector testutils.Collector) testutils.Collector {
+		if cc, ok := collector.(*testutils.CollectorContainer); ok {
+			testdata, err := filepath.Abs(filepath.Join(".", "testdata"))
+			require.NoError(t, err)
+			collector = cc.WithMount(testdata, "/testdata")
 		}
-		return false
-	}, 20*time.Second, time.Second)
+
+		return collector.WithArgs(
+			// setting this directly to not rely on `/etc/config.yaml` container default
+			"--config", path.Join(".", "testdata", "include_templated.yaml"),
+		).WithEnv(
+			map[string]string{
+				"SPLUNK_DEBUG_CONFIG_SERVER_PORT": fmt.Sprintf("%d", csPort),
+			},
+		)
+	})
+	defer shutdown()
 
 	require.Eventually(t, func() bool {
-		for _, log := range logs.All() {
-			// Confirm collector starts and runs successfully
-			if strings.Contains(log.Message, "Everything is ready. Begin running and processing data.") {
+		for _, log := range tc.ObservedLogs.All() {
+			if strings.Contains(log.Message,
+				`Set config to [testdata/include_templated.yaml]`,
+			) {
 				return true
 			}
 		}
@@ -77,7 +66,7 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 	expectedConfig := map[string]any{
 		"receivers": map[string]any{
 			"hostmetrics": map[string]any{
-				"collection_interval": "10s",
+				"collection_interval": "1s",
 				"scrapers": map[string]any{
 					"cpu":        nil,
 					"disk":       nil,
@@ -94,7 +83,7 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 		},
 		"exporters": map[string]any{
 			"otlp": map[string]any{
-				"endpoint": "localhost:23456",
+				"endpoint": tc.OTLPEndpoint,
 				"tls": map[string]any{
 					"insecure": true,
 				},
@@ -110,6 +99,14 @@ func TestCollectorProcessWithMultipleTemplateConfigs(t *testing.T) {
 			},
 		},
 	}
+	effective := collector.EffectiveConfig(t, csPort)
+	if !testutils.CollectorImageIsSet() {
+		// default collector process uses --set service.telemetry args
+		delete(effective["service"].(map[string]any), "telemetry")
+	}
 
-	require.Equal(t, expectedConfig, collector.EffectiveConfig(t, csPort))
+	require.Equal(t, expectedConfig, effective)
+
+	expectedResourceMetrics := tc.ResourceMetrics("hostmetrics.yaml")
+	require.NoError(t, tc.OTLPReceiverSink.AssertAllMetricsReceived(t, *expectedResourceMetrics, 30*time.Second))
 }

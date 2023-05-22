@@ -1,0 +1,3 @@
+    endpoint: ${file:./testdata/otlp_endpoint}
+    tls:
+      insecure: true

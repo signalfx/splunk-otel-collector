@@ -14,7 +14,7 @@ processors:
   resourcedetection:
     detectors: [ system ]
 exporters:
-  otlp: ${include:./testdata/exporter_component}
+  otlp: ${include:./testdata/include_nested_exporter_component}
 service: |
   $include: ./testdata/service_template_component
   my_receivers: [ hostmetrics ]

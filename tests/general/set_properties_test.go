@@ -103,7 +103,7 @@ func TestSetProperties(t *testing.T) {
 			"otlp": map[string]any{
 				"protocols": map[string]any{
 					"grpc": map[string]any{
-						"max_recv_msg_size_mib": "1",
+						"max_recv_msg_size_mib": 1,
 					},
 					"http": map[string]any{
 						"endpoint": "localhost:0",
@@ -116,7 +116,7 @@ func TestSetProperties(t *testing.T) {
 				"metrics": map[string]any{
 					"include": map[string]any{
 						"match_type":   "regexp",
-						"metric_names": "[a.name]",
+						"metric_names": []any{"a.name"},
 					},
 				},
 			},
@@ -124,7 +124,7 @@ func TestSetProperties(t *testing.T) {
 				"metrics": map[string]any{
 					"include": map[string]any{
 						"match_type":   "strict",
-						"metric_names": "[another.name]",
+						"metric_names": []any{"another.name"},
 					},
 				},
 			},

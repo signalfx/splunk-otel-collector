@@ -31,13 +31,13 @@ platforms:
     instance_raw_config_args: *vagrant_args
   - name: "2019"
     box: gusztavvargadr/windows-server-2019-standard
-    box_version: 1809.0.2211
+    box_version: 1809.0.2305
     cpus: 2
     memory: 4096
     instance_raw_config_args: *vagrant_args
   - name: "2022"
     box: gusztavvargadr/windows-server-2022-standard
-    box_version: 2102.0.2211
+    box_version: 2102.0.2305
     cpus: 2
     memory: 4096
     instance_raw_config_args: *vagrant_args

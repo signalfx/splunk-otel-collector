@@ -63,7 +63,7 @@ func main() {
 
 	confMapConverters := collectorSettings.ConfMapConverters()
 	configServer := configconverter.NewConfigServer()
-	dryRun := configconverter.NewDryRun(collectorSettings.IsDryRun())
+	dryRun := configconverter.NewDryRun(collectorSettings.IsDryRun(), confMapConverters)
 	confMapConverters = append(confMapConverters, dryRun, configServer)
 
 	discovery, err := discovery.New()

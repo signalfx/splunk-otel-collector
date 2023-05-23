@@ -45,7 +45,7 @@ jobs:
 
   linux-installer-script-test:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
-    runs-on: ubuntu-20.04
+    runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
     needs: installer-test-matrix
     strategy:
       matrix: ${{ fromJSON(needs.installer-test-matrix.outputs.matrix) }}

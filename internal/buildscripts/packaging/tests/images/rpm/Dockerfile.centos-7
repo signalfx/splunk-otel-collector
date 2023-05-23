@@ -4,6 +4,7 @@ FROM centos:7
 
 ENV container docker
 
+RUN echo 'fastestmirror=1' >> /etc/yum.conf
 RUN yum install -y curl procps initscripts systemd wget
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i = \

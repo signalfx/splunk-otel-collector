@@ -77,7 +77,10 @@ func getServiceExtensions(out map[string]any) (map[string]any, []any, error) {
 	service := map[string]any{}
 	var serviceExtensions []any
 	if s, hasService := out["service"]; hasService && s != nil {
-		service = s.(map[string]any)
+		var ok bool
+		if service, ok = s.(map[string]any); !ok {
+			return nil, nil, fmt.Errorf("service is of unexpected form (%T): %v", s, s)
+		}
 		if ses, hasExtensions := service["extensions"]; hasExtensions && ses != nil {
 			var err error
 			if serviceExtensions, err = toAnySlice(ses); err != nil {

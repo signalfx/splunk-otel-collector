@@ -42,6 +42,7 @@ CUSTOM_PROPERTIES_PATH = TESTS_DIR / "instrumentation" / "splunk-otel-javaagent.
 PKG_NAME = "splunk-otel-auto-instrumentation"
 PKG_DIR = REPO_DIR / "instrumentation" / "dist"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
+INSTALLER_PATH = REPO_DIR / "internal" / "buildscripts" / "packaging" / "installer" / "install.sh"
 
 
 def get_package(distro, name, path, arch):
@@ -61,6 +62,54 @@ def get_package(distro, name, path, arch):
         return None
 
 
+def verify_tomcat_instrumentation(container, distro, config, otelcol_path=None):
+    tomcat_service = "tomcat9"
+    if distro in RPM_DISTROS and distro != "amazonlinux-2023":
+        tomcat_service = "tomcat"
+
+    # overwrite the default config installed by the package with the custom test config
+    if config == "env_vars":
+        copy_file_into_container(container, CUSTOM_CONF_PATH, DEFAULT_CONF_PATH)
+        run_container_cmd(container, "systemctl daemon-reload")
+    elif config == "properties_file":
+        copy_file_into_container(container, CUSTOM_PROPERTIES_PATH, DEFAULT_PROPERTIES_PATH)
+
+    # restart tomcat to pick up the env vars and ensure it is running
+    run_container_cmd(container, f"systemctl restart {tomcat_service}", timeout="1m")
+    time.sleep(5)
+    run_container_cmd(container, f"systemctl status {tomcat_service}")
+
+    # check tomcat logs to ensure the java agent was picked up
+    _, logs = run_container_cmd(container, f"journalctl -u {tomcat_service} --no-pager")
+    assert f"-javaagent:{JAVA_AGENT_PATH}" in logs.decode("utf-8"), \
+        f"'{JAVA_AGENT_PATH}' not found in tomcat logs"
+
+    # expected dimensions defined in the custom test config
+    service_name = f"service_name_from_{config}"
+    service_name_found = False
+    deployment_environment = f"deployment_environment_from_{config}"
+    deployment_environment_found = False
+
+    # start the collector and check the output/logs for datapoints with the custom dimensions
+    if otelcol_path:
+        _, stream = container.exec_run(f"{otelcol_path} --config=/test/config.yaml", stream=True)
+    else:
+        _, stream = container.exec_run("journalctl -f -u splunk-otel-collector", stream=True)
+
+    start_time = time.time()
+    for data in stream:
+        output = data.decode("utf-8")
+        print(output)
+        if f"service: Str({service_name})" in output:
+            service_name_found = True
+        if f"deployment_environment: Str({deployment_environment})" in output:
+            deployment_environment_found = True
+        if service_name_found and deployment_environment_found:
+            break
+        assert (time.time() - start_time) < 300, \
+            f"timed out waiting for '{service_name}' and '{deployment_environment}'"
+
+
 @pytest.mark.parametrize(
     "distro",
     [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
@@ -68,14 +117,11 @@ def get_package(distro, name, path, arch):
     )
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 @pytest.mark.parametrize("config", ["env_vars", "properties_file"])
-def test_instrumentation_package_install(distro, arch, config):
-    tomcat_service = "tomcat9"
+def test_package_install(distro, arch, config):
     if distro in DEB_DISTROS:
         dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
     else:
         dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
-        if distro != "amazonlinux-2023":
-            tomcat_service = "tomcat"
 
     otelcol_bin = f"otelcol_linux_{arch}"
     otelcol_bin_path = OTELCOL_BIN_DIR / otelcol_bin
@@ -97,44 +143,59 @@ def test_instrumentation_package_install(distro, arch, config):
         else:
             run_container_cmd(container, f"rpm -i /test/{pkg_base}")
 
+        # verify files were installed
         run_container_cmd(container, f"test -f {JAVA_AGENT_PATH}")
         run_container_cmd(container, f"test -f {DEFAULT_PROPERTIES_PATH}")
         run_container_cmd(container, f"test -f {DEFAULT_CONF_PATH}")
 
-        # overwrite the default config installed by the package with the custom test config
-        if config == "env_vars":
-            copy_file_into_container(container, CUSTOM_CONF_PATH, DEFAULT_CONF_PATH)
-            run_container_cmd(container, "systemctl daemon-reload")
-        elif config == "properties_file":
-            copy_file_into_container(container, CUSTOM_PROPERTIES_PATH, DEFAULT_PROPERTIES_PATH)
+        verify_tomcat_instrumentation(container, distro, config, otelcol_path=f"/test/{otelcol_bin}")
 
-        # restart tomcat to pick up the env vars and ensure it is running
-        run_container_cmd(container, f"systemctl restart {tomcat_service}", timeout="1m")
-        time.sleep(5)
-        run_container_cmd(container, f"systemctl status {tomcat_service}")
 
-        # check tomcat logs to ensure the java agent was picked up
-        _, logs = run_container_cmd(container, f"journalctl -u {tomcat_service} --no-pager")
-        assert f"-javaagent:{JAVA_AGENT_PATH}" in logs.decode("utf-8"), \
-            f"'{JAVA_AGENT_PATH}' not found in tomcat logs"
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+    )
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+@pytest.mark.parametrize("config", ["env_vars", "properties_file"])
+def test_package_upgrade(distro, arch, config):
+    if distro in DEB_DISTROS:
+        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
+    else:
+        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
 
-        # expected dimensions defined in the custom test config
-        service_name = f"service_name_from_{config}"
-        service_name_found = False
-        deployment_environment = f"deployment_environment_from_{config}"
-        deployment_environment_found = False
+    install_cmd = "sh /test/install.sh -- testing123 --realm test --without-fluentd " \
+                  "--collector-config /test/config.yaml --with-instrumentation --instrumentation-version 0.76.0"
 
-        # start the collector and check the output for datapoints with the custom dimensions
-        _, stream = container.exec_run(f"/test/{otelcol_bin} --config=/test/config.yaml", stream=True)
-        start_time = time.time()
-        for data in stream:
-            output = data.decode("utf-8")
-            print(output)
-            if f"service: Str({service_name})" in output:
-                service_name_found = True
-            if f"deployment_environment: Str({deployment_environment})" in output:
-                deployment_environment_found = True
-            if service_name_found and deployment_environment_found:
-                break
-            assert (time.time() - start_time) < 300, \
-                f"timed out waiting for '{service_name}' and '{deployment_environment}'"
+    pkg_path = get_package(distro, PKG_NAME, PKG_DIR, arch)
+    assert pkg_path, f"{PKG_NAME} package not found in {PKG_DIR}"
+    pkg_base = os.path.basename(pkg_path)
+
+    with run_distro_container(distro, dockerfile=dockerfile, arch=arch) as container:
+        copy_file_into_container(container, COLLECTOR_CONFIG_PATH, "/test/config.yaml")
+        copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
+        copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
+
+        # install the collector and an older version of the instrumentation package
+        run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout="10m")
+
+        # verify /etc/ld.so.preload and libsplunk.so were installed
+        run_container_cmd(container, "test -f /etc/ld.so.preload")
+        run_container_cmd(container, "test -f /usr/lib/splunk-instrumentation/libsplunk.so")
+
+        # upgrade the instrumentation package
+        if distro in DEB_DISTROS:
+            run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
+        elif distro in RPM_DISTROS:
+            run_container_cmd(container, f"rpm -U /test/{pkg_base}")
+
+        # verify /etc/ld.so.preload and libsplunk.so were deleted after upgrade
+        run_container_cmd(container, "test ! -f /etc/ld.so.preload")
+        run_container_cmd(container, "test ! -f /usr/lib/splunk-instrumentation/libsplunk.so")
+
+        # verify files were installed after upgrade
+        run_container_cmd(container, f"test -f {JAVA_AGENT_PATH}")
+        run_container_cmd(container, f"test -f {DEFAULT_PROPERTIES_PATH}")
+        run_container_cmd(container, f"test -f {DEFAULT_CONF_PATH}")
+
+        verify_tomcat_instrumentation(container, distro, config)

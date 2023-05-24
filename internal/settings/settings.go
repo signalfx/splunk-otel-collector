@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -70,6 +72,7 @@ type Settings struct {
 	discoveryProperties []string
 	setProperties       []string
 	colCoreArgs         []string
+	supportedURISchemes []string
 	versionFlag         bool
 	noConvertConfig     bool
 	configD             bool
@@ -153,6 +156,29 @@ func (s *Settings) ConfMapProviders() map[string]confmap.Provider {
 	return s.confMapProviders
 }
 
+func loadConfMapProviders(s *Settings) error {
+	var err error
+	if s.discovery, err = discovery.New(); err != nil {
+		return fmt.Errorf("failed to create discovery provider: %w", err)
+	}
+
+	s.confMapProviders = map[string]confmap.Provider{
+		envProvider.Scheme():  envProvider,
+		fileProvider.Scheme(): fileProvider,
+	}
+
+	for p := range s.confMapProviders {
+		s.supportedURISchemes = append(s.supportedURISchemes, p)
+	}
+	sort.Strings(s.supportedURISchemes)
+
+	// though supported, these schemes shouldn't be advertised for use w/ --config
+	s.confMapProviders[s.discovery.PropertyScheme()] = s.discovery.PropertyProvider()
+	s.confMapProviders[s.discovery.ConfigDScheme()] = s.discovery.ConfigDProvider()
+	s.confMapProviders[s.discovery.DiscoveryModeScheme()] = s.discovery.DiscoveryModeProvider()
+	return nil
+}
+
 // ConfMapConverters returns confmap.Converters for the collector core service.
 func (s *Settings) ConfMapConverters() []confmap.Converter {
 	confMapConverters := []confmap.Converter{
@@ -192,17 +218,8 @@ func parseArgs(args []string) (*Settings, error) {
 		configDir:          new(stringPointerFlagValue),
 	}
 
-	var err error
-	if settings.discovery, err = discovery.New(); err != nil {
-		return nil, fmt.Errorf("failed to create discovery provider: %w", err)
-	}
-
-	settings.confMapProviders = map[string]confmap.Provider{
-		envProvider.Scheme():                     envProvider,
-		fileProvider.Scheme():                    fileProvider,
-		settings.discovery.PropertyScheme():      settings.discovery.PropertyProvider(),
-		settings.discovery.ConfigDScheme():       settings.discovery.ConfigDProvider(),
-		settings.discovery.DiscoveryModeScheme(): settings.discovery.DiscoveryModeProvider(),
+	if err := loadConfMapProviders(settings); err != nil {
+		return nil, fmt.Errorf("failed loading confmap.Providers: %w", err)
 	}
 
 	flagSet.Var(settings.configPaths, "config", "Locations to the config file(s), "+
@@ -430,21 +447,47 @@ func checkInputConfigs(settings *Settings) error {
 	configPathVar := os.Getenv(ConfigEnvVar)
 	configYaml := os.Getenv(ConfigYamlEnvVar)
 
+	var configFilePaths []string
 	for _, filePath := range settings.configPaths.value {
+		scheme, location, isURI := parseURI(filePath)
+		if isURI {
+			if _, ok := settings.confMapProviders[scheme]; !ok {
+				log.Printf("%q is an unsupported config provider scheme for this Collector distribution (not in %v).", scheme, settings.supportedURISchemes)
+				continue
+			}
+			if scheme != fileProvider.Scheme() {
+				continue
+			}
+			filePath = location
+		}
 		if _, err := os.Stat(filePath); err != nil {
 			return fmt.Errorf("unable to find the configuration file %s, ensure flag '--config' is set properly: %w", filePath, err)
 		}
+		configFilePaths = append(configFilePaths, filePath)
 	}
 
-	if configPathVar != "" && !settings.configPaths.contains(configPathVar) {
-		log.Printf("Both environment variable %v and flag '--config' were specified. Using the flag values and ignoring the environment variable value %s in this session", ConfigEnvVar, configPathVar)
+	if len(configFilePaths) == 0 {
+		return nil
+	}
+
+	if configPathVar != "" {
+		differingVals := true
+		for _, p := range configFilePaths {
+			if p == configPathVar {
+				differingVals = false
+				break
+			}
+		}
+		if differingVals {
+			log.Printf("Both environment variable %v and flag '--config' were specified. Using the flag values and ignoring the environment variable value %s in this session", ConfigEnvVar, configPathVar)
+		}
 	}
 
 	if configYaml != "" {
 		log.Printf("Both environment variable %s and flag '--config' were specified. Using the flag values and ignoring the environment variable in this session", ConfigYamlEnvVar)
 	}
 
-	return confirmRequiredEnvVarsForDefaultConfigs(settings.configPaths.value)
+	return confirmRequiredEnvVarsForDefaultConfigs(configFilePaths)
 }
 
 func checkConfigPathEnvVar(settings *Settings) error {
@@ -536,4 +579,17 @@ func (s *stringPointerFlagValue) String() string {
 		return ""
 	}
 	return *s.value
+}
+
+// From https://github.com/open-telemetry/opentelemetry-collector/blob/18a11ec09b3f4883d0360a41054ce8f4a8736ea8/confmap/expand.go
+// Copyright The OpenTelemetry Authors
+// SPDX-License-Identifier: Apache-2.0
+var uriRegexp = regexp.MustCompile(`(?s:^(?P<Scheme>[A-Za-z][A-Za-z0-9+.-]+):(?P<OpaqueValue>.*)$)`)
+
+func parseURI(uri string) (scheme string, location string, isURI bool) {
+	submatches := uriRegexp.FindStringSubmatch(uri)
+	if len(submatches) != 3 {
+		return "", "", false
+	}
+	return submatches[1], submatches[2], true
 }

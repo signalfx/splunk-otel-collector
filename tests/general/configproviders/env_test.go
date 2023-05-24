@@ -17,26 +17,37 @@
 package tests
 
 import (
-	"path"
-	"path/filepath"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 
 	"github.com/signalfx/splunk-otel-collector/tests/testutils"
 )
 
-func TestFileProvider(t *testing.T) {
-	testdataPath, err := filepath.Abs(path.Join(".", "testdata"))
-	require.NoError(t, err)
+func TestEnvProvider(t *testing.T) {
+	config := `receivers:
+  hostmetrics:
+    collection_interval: 1s
+    scrapers:
+      memory:
+
+exporters:
+  otlp:
+    endpoint: ${env:OTLP_ENDPOINT}
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [hostmetrics]
+      exporters: [otlp]
+`
 	testutils.AssertAllMetricsReceived(
 		t, "memory.yaml", "", nil,
 		[]testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {
-				if cc, ok := collector.(*testutils.CollectorContainer); ok {
-					collector = cc.WithMount(testdataPath, "/testdata")
-				}
-				return collector.WithArgs("--config", "file:./testdata/file_config.yaml")
+				return collector.WithEnv(
+					map[string]string{"SOME_ENV_VAR": config},
+				).WithArgs("--config", "env:SOME_ENV_VAR")
 			},
 		},
 	)

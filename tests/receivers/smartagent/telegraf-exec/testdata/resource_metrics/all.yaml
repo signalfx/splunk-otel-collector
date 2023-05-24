@@ -1,0 +1,9 @@
+resource_metrics:
+  - scope_metrics:
+      - metrics:
+          - name: some.metric
+            attributes:
+              tag.one: one
+              tag.two: two
+              system.type: exec
+            type: IntGauge

@@ -479,6 +479,45 @@ func TestConfigDirFromEnvVar(t *testing.T) {
 	require.Equal(t, "/from/env/var", getConfigDir(settings))
 }
 
+func TestConfigArgFileURIForm(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	uriPath := fmt.Sprintf("file:%s", configPath)
+	settings, err := New([]string{"--config", uriPath})
+	require.NoError(t, err)
+	require.Equal(t, []string{uriPath}, settings.configPaths.value)
+	require.Equal(t, settings.configPaths.value, settings.ResolverURIs())
+}
+
+func TestConfigArgEnvURIForm(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+	settings, err := New([]string{"--config", "env:SOME_ENV_VAR"})
+	require.NoError(t, err)
+	require.Equal(t, []string{"env:SOME_ENV_VAR"}, settings.configPaths.value)
+	require.Equal(t, settings.configPaths.value, settings.ResolverURIs())
+
+}
+
+func TestConfigArgUnsupportedURI(t *testing.T) {
+	t.Cleanup(clearEnv(t))
+
+	oldWriter := log.Default().Writer()
+	defer func() {
+		log.Default().SetOutput(oldWriter)
+	}()
+
+	logs := new(bytes.Buffer)
+	log.Default().SetOutput(logs)
+
+	settings, err := New([]string{"--config", "invalid:invalid"})
+	// though invalid, we defer failing to collector service
+	require.NoError(t, err)
+	require.NotNil(t, settings)
+	require.Equal(t, []string{"invalid:invalid"}, settings.configPaths.value)
+	require.Equal(t, settings.configPaths.value, settings.ResolverURIs())
+
+	require.Contains(t, logs.String(), `"invalid" is an unsupported config provider scheme for this Collector distribution (not in [env file]).`)
+}
+
 // to satisfy Settings generation
 func setRequiredEnvVars(t *testing.T) func() {
 	cleanup := clearEnv(t)

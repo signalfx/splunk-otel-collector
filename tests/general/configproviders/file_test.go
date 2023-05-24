@@ -30,13 +30,13 @@ func TestFileProvider(t *testing.T) {
 	testdataPath, err := filepath.Abs(path.Join(".", "testdata"))
 	require.NoError(t, err)
 	testutils.AssertAllMetricsReceived(
-		t, "memory.yaml", "file_config.yaml", nil,
+		t, "memory.yaml", "", nil,
 		[]testutils.CollectorBuilder{
 			func(collector testutils.Collector) testutils.Collector {
 				if cc, ok := collector.(*testutils.CollectorContainer); ok {
-					return cc.WithMount(testdataPath, "/testdata")
+					collector = cc.WithMount(testdataPath, "/testdata")
 				}
-				return collector
+				return collector.WithArgs("--config", "file:./testdata/file_config.yaml")
 			},
 		},
 	)

@@ -81,6 +81,32 @@ func TestNewSettingsWithHelpFlags(t *testing.T) {
 	require.Nil(t, settings)
 }
 
+func TestNewSettingsConfMapProviders(t *testing.T) {
+	t.Cleanup(setRequiredEnvVars(t))
+	settings, err := New([]string{})
+	require.NoError(t, err)
+	require.NotNil(t, settings)
+
+	confMapProviders := settings.ConfMapProviders()
+
+	require.Contains(t, confMapProviders, settings.discovery.PropertyScheme())
+	propertyProvider := confMapProviders[settings.discovery.PropertyScheme()]
+
+	require.Contains(t, confMapProviders, settings.discovery.ConfigDScheme())
+	configdProvider := confMapProviders[settings.discovery.ConfigDScheme()]
+
+	require.Contains(t, confMapProviders, settings.discovery.DiscoveryModeScheme())
+	discoveryModeProvider := confMapProviders[settings.discovery.DiscoveryModeScheme()]
+
+	require.Equal(t, map[string]confmap.Provider{
+		envProvider.Scheme():                     envProvider,
+		fileProvider.Scheme():                    fileProvider,
+		settings.discovery.PropertyScheme():      propertyProvider,
+		settings.discovery.ConfigDScheme():       configdProvider,
+		settings.discovery.DiscoveryModeScheme(): discoveryModeProvider,
+	}, confMapProviders)
+}
+
 func TestNewSettingsNoConvertConfig(t *testing.T) {
 	t.Cleanup(clearEnv(t))
 	settings, err := New([]string{

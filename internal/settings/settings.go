@@ -23,8 +23,11 @@ import (
 
 	flag "github.com/spf13/pflag"
 	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/confmap/provider/envprovider"
+	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
+	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery"
 )
 
 const (
@@ -51,19 +54,22 @@ const (
 	DefaultMemoryBallastPercentage = 33
 	DefaultMemoryLimitPercentage   = 90
 	DefaultMemoryTotalMiB          = 512
+)
 
-	DiscoveryModeScheme = "splunk.discovery"
-	PropertyScheme      = "splunk.property"
-	ConfigDScheme       = "splunk.configd"
+var (
+	envProvider  = envprovider.New()
+	fileProvider = fileprovider.New()
 )
 
 type Settings struct {
+	discovery           discovery.Provider
 	configPaths         *stringArrayFlagValue
 	setOptionArguments  *stringArrayFlagValue
 	configDir           *stringPointerFlagValue
-	colCoreArgs         []string
-	setProperties       []string
+	confMapProviders    map[string]confmap.Provider
 	discoveryProperties []string
+	setProperties       []string
+	colCoreArgs         []string
 	versionFlag         bool
 	noConvertConfig     bool
 	configD             bool
@@ -105,16 +111,16 @@ func (s *Settings) ResolverURIs() []string {
 	configDir := getConfigDir(s)
 
 	for _, property := range s.discoveryProperties {
-		configPaths = append(configPaths, fmt.Sprintf("%s:%s", PropertyScheme, property))
+		configPaths = append(configPaths, fmt.Sprintf("%s:%s", s.discovery.PropertyScheme(), property))
 	}
 
 	if s.configD {
-		configPaths = append(configPaths, fmt.Sprintf("%s:%s", ConfigDScheme, configDir))
+		configPaths = append(configPaths, fmt.Sprintf("%s:%s", s.discovery.ConfigDScheme(), configDir))
 	}
 
 	if s.discoveryMode {
 		// discovery uri must come last to successfully merge w/ other config content
-		configPaths = append(configPaths, fmt.Sprintf("%s:%s", DiscoveryModeScheme, s.configDir))
+		configPaths = append(configPaths, fmt.Sprintf("%s:%s", s.discovery.DiscoveryModeScheme(), s.configDir))
 	}
 
 	configYaml := os.Getenv(ConfigYamlEnvVar)
@@ -140,6 +146,11 @@ func getConfigDir(f *Settings) string {
 	}
 
 	return configDir
+}
+
+// ConfMapProviders returns the confmap.Providers by their scheme for the collector core service.
+func (s *Settings) ConfMapProviders() map[string]confmap.Provider {
+	return s.confMapProviders
 }
 
 // ConfMapConverters returns confmap.Converters for the collector core service.
@@ -179,6 +190,19 @@ func parseArgs(args []string) (*Settings, error) {
 		configPaths:        new(stringArrayFlagValue),
 		setOptionArguments: new(stringArrayFlagValue),
 		configDir:          new(stringPointerFlagValue),
+	}
+
+	var err error
+	if settings.discovery, err = discovery.New(); err != nil {
+		return nil, fmt.Errorf("failed to create discovery provider: %w", err)
+	}
+
+	settings.confMapProviders = map[string]confmap.Provider{
+		envProvider.Scheme():                     envProvider,
+		fileProvider.Scheme():                    fileProvider,
+		settings.discovery.PropertyScheme():      settings.discovery.PropertyProvider(),
+		settings.discovery.ConfigDScheme():       settings.discovery.ConfigDProvider(),
+		settings.discovery.DiscoveryModeScheme(): settings.discovery.DiscoveryModeProvider(),
 	}
 
 	flagSet.Var(settings.configPaths, "config", "Locations to the config file(s), "+

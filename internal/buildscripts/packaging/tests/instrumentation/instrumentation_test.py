@@ -45,6 +45,13 @@ JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 INSTALLER_PATH = REPO_DIR / "internal" / "buildscripts" / "packaging" / "installer" / "install.sh"
 
 
+def get_dockerfile(distro):
+    if distro in DEB_DISTROS:
+        return IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
+    else:
+        return IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
+
+
 def get_package(distro, name, path, arch):
     pkg_paths = []
     if distro in DEB_DISTROS:
@@ -118,11 +125,6 @@ def verify_tomcat_instrumentation(container, distro, config, otelcol_path=None):
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 @pytest.mark.parametrize("config", ["env_vars", "properties_file"])
 def test_package_install(distro, arch, config):
-    if distro in DEB_DISTROS:
-        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
-    else:
-        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
-
     otelcol_bin = f"otelcol_linux_{arch}"
     otelcol_bin_path = OTELCOL_BIN_DIR / otelcol_bin
     assert os.path.isfile(otelcol_bin_path), f"{otelcol_bin_path} not found!"
@@ -131,7 +133,7 @@ def test_package_install(distro, arch, config):
     assert pkg_path, f"{PKG_NAME} package not found in {PKG_DIR}"
     pkg_base = os.path.basename(pkg_path)
 
-    with run_distro_container(distro, dockerfile=dockerfile, arch=arch) as container:
+    with run_distro_container(distro, dockerfile=get_dockerfile(distro), arch=arch) as container:
         copy_file_into_container(container, COLLECTOR_CONFIG_PATH, "/test/config.yaml")
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
         copy_file_into_container(container, otelcol_bin_path, f"/test/{otelcol_bin}")
@@ -159,11 +161,6 @@ def test_package_install(distro, arch, config):
 @pytest.mark.parametrize("arch", ["amd64", "arm64"])
 @pytest.mark.parametrize("config", ["env_vars", "properties_file"])
 def test_package_upgrade(distro, arch, config):
-    if distro in DEB_DISTROS:
-        dockerfile = IMAGES_DIR / "deb" / f"Dockerfile.{distro}"
-    else:
-        dockerfile = IMAGES_DIR / "rpm" / f"Dockerfile.{distro}"
-
     install_cmd = "sh /test/install.sh -- testing123 --realm test --without-fluentd " \
                   "--collector-config /test/config.yaml --with-instrumentation --instrumentation-version 0.76.0"
 
@@ -171,7 +168,7 @@ def test_package_upgrade(distro, arch, config):
     assert pkg_path, f"{PKG_NAME} package not found in {PKG_DIR}"
     pkg_base = os.path.basename(pkg_path)
 
-    with run_distro_container(distro, dockerfile=dockerfile, arch=arch) as container:
+    with run_distro_container(distro, dockerfile=get_dockerfile(distro), arch=arch) as container:
         copy_file_into_container(container, COLLECTOR_CONFIG_PATH, "/test/config.yaml")
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
@@ -199,3 +196,47 @@ def test_package_upgrade(distro, arch, config):
         run_container_cmd(container, f"test -f {DEFAULT_CONF_PATH}")
 
         verify_tomcat_instrumentation(container, distro, config)
+
+@pytest.mark.parametrize(
+    "distro",
+    [pytest.param(distro, marks=pytest.mark.deb) for distro in DEB_DISTROS]
+    + [pytest.param(distro, marks=pytest.mark.rpm) for distro in RPM_DISTROS],
+    )
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_package_uninstall(distro, arch):
+    pkg_path = get_package(distro, PKG_NAME, PKG_DIR, arch)
+    assert pkg_path, f"{PKG_NAME} package not found in {PKG_DIR}"
+    pkg_base = os.path.basename(pkg_path)
+
+    with run_distro_container(distro, dockerfile=get_dockerfile(distro), arch=arch) as container:
+        copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
+
+        # install the package
+        if distro in DEB_DISTROS:
+            run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
+        elif distro in RPM_DISTROS:
+            run_container_cmd(container, f"rpm -i /test/{pkg_base}")
+
+        # verify files were installed
+        run_container_cmd(container, f"test -f {JAVA_AGENT_PATH}")
+        run_container_cmd(container, f"test -f {DEFAULT_PROPERTIES_PATH}")
+        run_container_cmd(container, f"test -f {DEFAULT_CONF_PATH}")
+
+        # uninstall the package
+        if distro in DEB_DISTROS:
+            run_container_cmd(container, f"dpkg -P {PKG_NAME}")
+        else:
+            run_container_cmd(container, f"rpm -e {PKG_NAME}")
+
+        # verify the package was uninstalled
+        if distro in DEB_DISTROS:
+            assert container.exec_run(f"dpkg -s {PKG_NAME}").exit_code != 0
+        else:
+            assert container.exec_run(f"rpm -q {PKG_NAME}").exit_code != 0
+
+        # verify files were uninstalled
+        run_container_cmd(container, "test ! -f /etc/ld.so.preload")
+        run_container_cmd(container, "test ! -f /usr/lib/splunk-instrumentation/libsplunk.so")
+        run_container_cmd(container, f"test ! -f {JAVA_AGENT_PATH}")
+        run_container_cmd(container, f"test ! -f {DEFAULT_PROPERTIES_PATH}")
+        run_container_cmd(container, f"test ! -f {DEFAULT_CONF_PATH}")

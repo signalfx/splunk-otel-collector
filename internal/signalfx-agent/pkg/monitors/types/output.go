@@ -5,6 +5,7 @@ import (
 	"github.com/signalfx/golib/v3/event"
 	"github.com/signalfx/golib/v3/trace"
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 // Output is the interface that monitors should use to send data to the agent
@@ -13,6 +14,7 @@ import (
 
 type Output interface {
 	Copy() Output
+	SendMetrics(pmetric.Metrics)
 	SendDatapoints(...*datapoint.Datapoint)
 	SendEvent(*event.Event)
 	SendSpans(...*trace.Span)

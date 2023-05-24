@@ -12,8 +12,8 @@ import (
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
-	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"k8s.io/client-go/rest"
 
 	"github.com/signalfx/signalfx-agent/pkg/core/common/auth"
@@ -149,30 +149,31 @@ func (m *Monitor) Configure(conf *Config) error {
 	var ctx context.Context
 	ctx, m.cancel = context.WithCancel(context.Background())
 	utils.RunOnInterval(ctx, func() {
-		dps, err := fetchPrometheusMetrics(fetch)
+		metrics, err := fetchPrometheusMetrics(fetch)
 		if err != nil {
 			// The default log level is error, users can configure which level to use
 			m.logger.WithError(err).Log(conf.scrapeFailureLogrusLevel, "Could not get prometheus metrics")
 			return
 		}
 
-		m.Output.SendDatapoints(dps...)
+		m.Output.SendMetrics(metrics)
 	}, time.Duration(conf.IntervalSeconds)*time.Second)
 
 	return nil
 }
 
-func fetchPrometheusMetrics(fetch fetcher) ([]*datapoint.Datapoint, error) {
+func fetchPrometheusMetrics(fetch fetcher) (pmetric.Metrics, error) {
+	metrics := pmetric.NewMetrics()
 	metricFamilies, err := doFetch(fetch)
 	if err != nil {
-		return nil, err
+		return metrics, err
 	}
+	sm := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
 
-	var dps []*datapoint.Datapoint
 	for i := range metricFamilies {
-		dps = append(dps, convertMetricFamily(metricFamilies[i])...)
+		convertMetricFamily(sm, metricFamilies[i])
 	}
-	return dps, nil
+	return metrics, nil
 }
 
 func doFetch(fetch fetcher) ([]*dto.MetricFamily, error) {

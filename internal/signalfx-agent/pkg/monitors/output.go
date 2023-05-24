@@ -9,6 +9,7 @@ import (
 	"github.com/signalfx/signalfx-agent/pkg/core/services"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 // The default implementation of Output
@@ -42,6 +43,10 @@ func (mo *monitorOutput) Copy() types.Output {
 	o.dimensionTransformations = utils.CloneStringMap(mo.dimensionTransformations)
 	o.filterSet = &(*mo.filterSet)
 	return &o
+}
+
+func (mo *monitorOutput) SendMetrics(metrics pmetric.Metrics) {
+	panic("sending pmetric data is not supported")
 }
 
 func (mo *monitorOutput) SendDatapoints(dps ...*datapoint.Datapoint) {

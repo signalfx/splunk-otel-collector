@@ -27,6 +27,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	otelcolreceiver "go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 
@@ -193,6 +194,15 @@ func (out *output) Copy() types.Output {
 	cp.extraSpanTags = utils.CloneStringMap(out.extraSpanTags)
 	cp.defaultSpanTags = utils.CloneStringMap(out.defaultSpanTags)
 	return &cp
+}
+
+func (out *output) SendMetrics(metrics pmetric.Metrics) {
+	if out.nextMetricsConsumer == nil {
+		return
+	}
+	ctx := out.reporter.StartMetricsOp(context.Background())
+	err := out.nextMetricsConsumer.ConsumeMetrics(context.Background(), metrics)
+	out.reporter.EndMetricsOp(ctx, typeStr, metrics.MetricCount(), err)
 }
 
 func (out *output) SendDatapoints(datapoints ...*datapoint.Datapoint) {

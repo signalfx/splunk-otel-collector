@@ -4,13 +4,10 @@ import (
 	"strconv"
 
 	dto "github.com/prometheus/client_model/go"
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/golib/v3/sfxclient"
-	"github.com/signalfx/signalfx-agent/pkg/utils"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 type extractor func(m *dto.Metric) float64
-type dpFactory func(string, map[string]string, float64) *datapoint.Datapoint
 
 func gaugeExtractor(m *dto.Metric) float64 {
 	return m.GetGauge().GetValue()
@@ -24,66 +21,108 @@ func counterExtractor(m *dto.Metric) float64 {
 	return m.GetCounter().GetValue()
 }
 
-func convertMetricFamily(mf *dto.MetricFamily) []*datapoint.Datapoint {
+func convertMetricFamily(sm pmetric.ScopeMetrics, mf *dto.MetricFamily) {
 	if mf.Type == nil || mf.Name == nil {
-		return nil
+		return
 	}
 	switch *mf.Type {
 	case dto.MetricType_GAUGE:
-		return makeSimpleDatapoints(*mf.Name, mf.Metric, sfxclient.GaugeF, gaugeExtractor)
+		makeGaugeDataPoints(sm, *mf.Name, mf.Metric, gaugeExtractor)
 	case dto.MetricType_COUNTER:
-		return makeSimpleDatapoints(*mf.Name, mf.Metric, sfxclient.CumulativeF, counterExtractor)
+		makeSumDataPoints(sm, *mf.Name, mf.Metric, counterExtractor)
 	case dto.MetricType_UNTYPED:
-		return makeSimpleDatapoints(*mf.Name, mf.Metric, sfxclient.GaugeF, untypedExtractor)
+		makeGaugeDataPoints(sm, *mf.Name, mf.Metric, untypedExtractor)
 	case dto.MetricType_SUMMARY:
-		return makeSummaryDatapoints(*mf.Name, mf.Metric)
+		makeSummaryDatapoints(sm, *mf.Name, mf.Metric)
 	// TODO: figure out how to best convert histograms, in particular the
 	// upper bound value
 	case dto.MetricType_HISTOGRAM:
-		return makeHistogramDatapoints(*mf.Name, mf.Metric)
+		makeHistogramDatapoints(sm, *mf.Name, mf.Metric)
 	default:
-		return nil
 	}
 }
 
-func makeSimpleDatapoints(name string, ms []*dto.Metric, dpf dpFactory, e extractor) []*datapoint.Datapoint {
-	dps := make([]*datapoint.Datapoint, len(ms))
-	for i, m := range ms {
-		dps[i] = dpf(name, labelsToDims(m.Label), e(m))
-	}
-	return dps
-}
-
-func makeSummaryDatapoints(name string, ms []*dto.Metric) []*datapoint.Datapoint {
-	var dps []*datapoint.Datapoint
+func makeGaugeDataPoints(sm pmetric.ScopeMetrics, name string, ms []*dto.Metric, e extractor) {
+	metric := sm.Metrics().AppendEmpty()
+	metric.SetName(name)
+	g := metric.SetEmptyGauge()
 	for _, m := range ms {
-		dims := labelsToDims(m.Label)
+		dp := g.DataPoints().AppendEmpty()
+		dp.SetDoubleValue(e(m))
+		for i := range m.Label {
+			dp.Attributes().PutStr(m.Label[i].GetName(), m.Label[i].GetValue())
+		}
+		dp.Attributes().PutStr("system.type", "prometheus-exporter")
+	}
+}
+
+func makeSumDataPoints(sm pmetric.ScopeMetrics, name string, ms []*dto.Metric, e extractor) {
+	metric := sm.Metrics().AppendEmpty()
+	metric.SetName(name)
+	sum := metric.SetEmptySum()
+	sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	sum.SetIsMonotonic(true)
+	for _, m := range ms {
+		dp := sum.DataPoints().AppendEmpty()
+		dp.SetDoubleValue(e(m))
+		for i := range m.Label {
+			dp.Attributes().PutStr(m.Label[i].GetName(), m.Label[i].GetValue())
+		}
+		dp.Attributes().PutStr("system.type", "prometheus-exporter")
+	}
+}
+
+func makeSummaryDatapoints(sm pmetric.ScopeMetrics, name string, ms []*dto.Metric) {
+
+	for _, m := range ms {
 		s := m.GetSummary()
 		if s == nil {
 			continue
 		}
 
 		if s.SampleCount != nil {
-			dps = append(dps, sfxclient.Cumulative(name+"_count", dims, int64(s.GetSampleCount())))
+			metric := sm.Metrics().AppendEmpty()
+			metric.SetName(name + "_count")
+			sum := metric.Sum()
+			sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+			dp := sum.DataPoints().AppendEmpty()
+			for i := range m.Label {
+				dp.Attributes().PutStr(m.Label[i].GetName(), m.Label[i].GetValue())
+			}
+			dp.Attributes().PutStr("system.type", "prometheus-exporter")
+			dp.SetIntValue(int64(s.GetSampleCount()))
 		}
 
 		if s.SampleSum != nil {
-			dps = append(dps, sfxclient.CumulativeF(name, dims, s.GetSampleSum()))
+			metric := sm.Metrics().AppendEmpty()
+			metric.SetName(name)
+			sum := metric.Sum()
+			sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+			dp := sum.DataPoints().AppendEmpty()
+			for i := range m.Label {
+				dp.Attributes().PutStr(m.Label[i].GetName(), m.Label[i].GetValue())
+			}
+			dp.Attributes().PutStr("system.type", "prometheus-exporter")
+			dp.SetIntValue(int64(s.GetSampleSum()))
 		}
 
+		quantiles := sm.Metrics().AppendEmpty()
+		quantiles.SetName(name + "_quantile")
+		quantileGauge := quantiles.Gauge()
 		qs := s.GetQuantile()
 		for i := range qs {
-			quantileDims := utils.MergeStringMaps(dims, map[string]string{
-				"quantile": strconv.FormatFloat(qs[i].GetQuantile(), 'f', 6, 64),
-			})
-			dps = append(dps, sfxclient.GaugeF(name+"_quantile", quantileDims, qs[i].GetValue()))
+			dp := quantileGauge.DataPoints().AppendEmpty()
+			for i := range m.Label {
+				dp.Attributes().PutStr(m.Label[i].GetName(), m.Label[i].GetValue())
+			}
+			dp.Attributes().PutStr("quantile", strconv.FormatFloat(qs[i].GetQuantile(), 'f', 6, 64))
+			dp.Attributes().PutStr("system.type", "prometheus-exporter")
+			dp.SetDoubleValue(qs[i].GetValue())
 		}
 	}
-	return dps
 }
 
-func makeHistogramDatapoints(name string, ms []*dto.Metric) []*datapoint.Datapoint {
-	var dps []*datapoint.Datapoint
+func makeHistogramDatapoints(sm pmetric.ScopeMetrics, name string, ms []*dto.Metric) {
 	for _, m := range ms {
 		dims := labelsToDims(m.Label)
 		h := m.GetHistogram()
@@ -92,22 +131,46 @@ func makeHistogramDatapoints(name string, ms []*dto.Metric) []*datapoint.Datapoi
 		}
 
 		if h.SampleCount != nil {
-			dps = append(dps, sfxclient.Cumulative(name+"_count", dims, int64(h.GetSampleCount())))
+			count := sm.Metrics().AppendEmpty()
+			count.SetName(name + "_count")
+			sum := count.Sum()
+			sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+			dp := sum.DataPoints().AppendEmpty()
+			for k, v := range dims {
+				dp.Attributes().PutStr(k, v)
+			}
+			dp.Attributes().PutStr("system.type", "prometheus-exporter")
+			dp.SetIntValue(int64(h.GetSampleCount()))
 		}
 
 		if h.SampleSum != nil {
-			dps = append(dps, sfxclient.CumulativeF(name, dims, h.GetSampleSum()))
+			sampleSum := sm.Metrics().AppendEmpty()
+			sampleSum.SetName(name)
+			sum := sampleSum.Sum()
+			sum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+			dp := sum.DataPoints().AppendEmpty()
+			for k, v := range dims {
+				dp.Attributes().PutStr(k, v)
+			}
+			dp.Attributes().PutStr("system.type", "prometheus-exporter")
+			dp.SetIntValue(int64(h.GetSampleSum()))
 		}
 
+		b := sm.Metrics().AppendEmpty()
+		b.SetName(name + "_bucket")
+		bucketsSum := b.Sum()
+		bucketsSum.SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
 		buckets := h.GetBucket()
 		for i := range buckets {
-			bucketDims := utils.MergeStringMaps(dims, map[string]string{
-				"upper_bound": strconv.FormatFloat(buckets[i].GetUpperBound(), 'f', 6, 64),
-			})
-			dps = append(dps, sfxclient.Cumulative(name+"_bucket", bucketDims, int64(buckets[i].GetCumulativeCount())))
+			dp := bucketsSum.DataPoints().AppendEmpty()
+			for i := range m.Label {
+				dp.Attributes().PutStr(m.Label[i].GetName(), m.Label[i].GetValue())
+			}
+			dp.Attributes().PutStr("upper_bound", strconv.FormatFloat(buckets[i].GetUpperBound(), 'f', 6, 64))
+			dp.Attributes().PutStr("system.type", "prometheus-exporter")
+			dp.SetIntValue(int64(buckets[i].GetCumulativeCount()))
 		}
 	}
-	return dps
 }
 
 func labelsToDims(labels []*dto.LabelPair) map[string]string {

@@ -86,6 +86,11 @@ func (container Container) WithContext(path string) Container {
 	return container
 }
 
+func (container Container) WithBuildArgs(args map[string]*string) Container {
+	container.Dockerfile.BuildArgs = args
+	return container
+}
+
 func (container Container) WithContextArchive(contextArchive io.Reader) Container {
 	container.Dockerfile.ContextArchive = contextArchive
 	return container

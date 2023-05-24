@@ -22,8 +22,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/signalfx/splunk-otel-collector/internal/settings"
 )
 
 func TestConfigDProviderHappyPath(t *testing.T) {
@@ -93,7 +91,7 @@ func TestConfigDProviderInvalidURIs(t *testing.T) {
 	assert.EqualError(t, err, `uri "not.a.thing:not.a.path" is not supported by splunk.configd provider`)
 	assert.Nil(t, retrieved)
 
-	retrieved, err = configD.Retrieve(context.Background(), fmt.Sprintf("%s:not.a.path", settings.DiscoveryModeScheme), nil)
+	retrieved, err = configD.Retrieve(context.Background(), fmt.Sprintf("%s:not.a.path", discoveryModeScheme), nil)
 	assert.EqualError(t, err, `uri "splunk.discovery:not.a.path" is not supported by splunk.configd provider`)
 	assert.Nil(t, retrieved)
 }

@@ -25,15 +25,12 @@ import (
 	flag "github.com/spf13/pflag"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
-	"go.opentelemetry.io/collector/confmap/provider/envprovider"
-	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.uber.org/zap"
 
 	"github.com/signalfx/splunk-otel-collector/internal/components"
 	"github.com/signalfx/splunk-otel-collector/internal/configconverter"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/configsource"
-	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery"
 	"github.com/signalfx/splunk-otel-collector/internal/settings"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
 )
@@ -61,31 +58,25 @@ func main() {
 		Version: version.Version,
 	}
 
-	confMapConverters := collectorSettings.ConfMapConverters()
 	configServer := configconverter.NewConfigServer()
+
+	confMapConverters := collectorSettings.ConfMapConverters()
 	dryRun := configconverter.NewDryRun(collectorSettings.IsDryRun(), confMapConverters)
 	confMapConverters = append(confMapConverters, dryRun, configServer)
 
-	discovery, err := discovery.New()
-	if err != nil {
-		log.Fatalf("failed to create discovery provider: %v", err)
+	configSourceProvider := configsource.New(zap.NewNop(), []configsource.Hook{configServer, dryRun})
+
+	providers := map[string]confmap.Provider{}
+	for scheme, provider := range collectorSettings.ConfMapProviders() {
+		providers[scheme] = configSourceProvider.Wrap(provider)
 	}
 
-	hooks := []configsource.Hook{configServer, dryRun}
-	envProvider := envprovider.New()
-	fileProvider := fileprovider.New()
-	configSourceProvider := configsource.New(zap.NewNop(), hooks)
 	serviceConfigProvider, err := otelcol.NewConfigProvider(
 		otelcol.ConfigProviderSettings{
 			ResolverSettings: confmap.ResolverSettings{
-				URIs: collectorSettings.ResolverURIs(),
-				Providers: map[string]confmap.Provider{
-					discovery.PropertyScheme():      configSourceProvider.Wrap(discovery.PropertyProvider()),
-					discovery.ConfigDScheme():       configSourceProvider.Wrap(discovery.ConfigDProvider()),
-					discovery.DiscoveryModeScheme(): configSourceProvider.Wrap(discovery.DiscoveryModeProvider()),
-					envProvider.Scheme():            configSourceProvider.Wrap(envProvider),
-					fileProvider.Scheme():           configSourceProvider.Wrap(fileProvider),
-				}, Converters: confMapConverters,
+				URIs:       collectorSettings.ResolverURIs(),
+				Providers:  providers,
+				Converters: confMapConverters,
 			},
 		})
 	if err != nil {

@@ -17,10 +17,10 @@
 FPM_DIR="$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )"
 REPO_DIR="$( cd "$FPM_DIR/../../../" && pwd )"
 
-PKG_NAME="splunk-otel-auto-instrumentation"
+PKG_NAME="splunk-otel-systemd-auto-instrumentation"
 PKG_VENDOR="Splunk, Inc."
 PKG_MAINTAINER="Splunk, Inc."
-PKG_DESCRIPTION="Splunk OpenTelemetry Auto Instrumentation"
+PKG_DESCRIPTION="Splunk OpenTelemetry Auto Instrumentation for Systemd Services"
 PKG_LICENSE="Apache 2.0"
 PKG_URL="https://github.com/signalfx/splunk-otel-collector"
 

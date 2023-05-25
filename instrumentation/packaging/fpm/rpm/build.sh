@@ -61,6 +61,8 @@ sudo fpm -s dir -t rpm -n "$PKG_NAME" -v "$VERSION" -f -p "$OUTPUT_DIR" \
     --after-remove "$POSTINSTALL_PATH" \
     --config-files "$CONFIG_INSTALL_PATH" \
     --config-files "$PROPERTIES_INSTALL_PATH" \
+    --conflicts "splunk-otel-auto-instrumentation" \
+    --replaces "splunk-otel-auto-instrumentation" \
     "$buildroot/"=/
 
 rpm -qpli "${OUTPUT_DIR}/${PKG_NAME}-${VERSION}-1.${ARCH}.rpm"

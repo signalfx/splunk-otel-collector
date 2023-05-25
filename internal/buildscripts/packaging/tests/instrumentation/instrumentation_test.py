@@ -40,7 +40,8 @@ DEFAULT_PROPERTIES_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent
 CUSTOM_CONF_PATH = TESTS_DIR / "instrumentation" / "01-splunk-otel-javaagent.conf"
 CUSTOM_CONF_INSTALL_PATH = os.path.join(os.path.dirname(DEFAULT_CONF_PATH), os.path.basename(CUSTOM_CONF_PATH))
 CUSTOM_PROPERTIES_PATH = TESTS_DIR / "instrumentation" / "splunk-otel-javaagent.properties"
-PKG_NAME = "splunk-otel-auto-instrumentation"
+PKG_NAME = "splunk-otel-systemd-auto-instrumentation"
+OLD_PKG_NAME = "splunk-otel-auto-instrumentation"
 PKG_DIR = REPO_DIR / "instrumentation" / "dist"
 JAVA_AGENT_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar"
 INSTALLER_PATH = REPO_DIR / "internal" / "buildscripts" / "packaging" / "installer" / "install.sh"
@@ -68,6 +69,17 @@ def get_package(distro, name, path, arch):
         return sorted(pkg_paths)[-1]
     else:
         return None
+
+
+def install_package(container, distro, path):
+    if distro in DEB_DISTROS:
+        run_container_cmd(container, f"apt-get install -y {path}")
+    elif "opensuse" in distro:
+        run_container_cmd(container, f"zypper --no-gpg-checks install -y {path}")
+    elif container.exec_run("command -v yum").exit_code == 0:
+        run_container_cmd(container, f"yum install -y {path}")
+    elif container.exec_run("command -v dnf").exit_code == 0:
+        run_container_cmd(container, f"dnf install -y {path}")
 
 
 def verify_tomcat_instrumentation(container, distro, config, otelcol_path=None):
@@ -141,10 +153,7 @@ def test_package_install(distro, arch, config):
         run_container_cmd(container, f"chmod a+x /test/{otelcol_bin}")
 
         # install the instrumentation package
-        if distro in DEB_DISTROS:
-            run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
-        else:
-            run_container_cmd(container, f"rpm -i /test/{pkg_base}")
+        install_package(container, distro, f"/test/{pkg_base}")
 
         # verify files were installed
         run_container_cmd(container, f"test -f {JAVA_AGENT_PATH}")
@@ -182,10 +191,7 @@ def test_package_upgrade(distro, arch, config):
         run_container_cmd(container, "test -f /usr/lib/splunk-instrumentation/libsplunk.so")
 
         # upgrade the instrumentation package
-        if distro in DEB_DISTROS:
-            run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
-        elif distro in RPM_DISTROS:
-            run_container_cmd(container, f"rpm -U /test/{pkg_base}")
+        install_package(container, distro, f"/test/{pkg_base}")
 
         # verify /etc/ld.so.preload and libsplunk.so were deleted after upgrade
         run_container_cmd(container, "test ! -f /etc/ld.so.preload")
@@ -213,10 +219,7 @@ def test_package_uninstall(distro, arch):
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
 
         # install the package
-        if distro in DEB_DISTROS:
-            run_container_cmd(container, f"dpkg -i /test/{pkg_base}")
-        elif distro in RPM_DISTROS:
-            run_container_cmd(container, f"rpm -i /test/{pkg_base}")
+        install_package(container, distro, f"/test/{pkg_base}")
 
         # verify files were installed
         run_container_cmd(container, f"test -f {JAVA_AGENT_PATH}")
@@ -225,15 +228,21 @@ def test_package_uninstall(distro, arch):
 
         # uninstall the package
         if distro in DEB_DISTROS:
-            run_container_cmd(container, f"dpkg -P {PKG_NAME}")
-        else:
-            run_container_cmd(container, f"rpm -e {PKG_NAME}")
+            run_container_cmd(container, f"apt-get purge -y {PKG_NAME}")
+        elif "opensuse" in distro:
+            run_container_cmd(container, f"zypper remove -y {PKG_NAME}")
+        elif container.exec_run("command -v yum").exit_code == 0:
+            run_container_cmd(container, f"yum remove -y {PKG_NAME}")
+        elif container.exec_run("command -v dnf").exit_code == 0:
+            run_container_cmd(container, f"dnf remove -y {PKG_NAME}")
 
         # verify the package was uninstalled
         if distro in DEB_DISTROS:
             assert container.exec_run(f"dpkg -s {PKG_NAME}").exit_code != 0
+            assert container.exec_run(f"dpkg -s {OLD_PKG_NAME}").exit_code != 0
         else:
             assert container.exec_run(f"rpm -q {PKG_NAME}").exit_code != 0
+            assert container.exec_run(f"rpm -q {OLD_PKG_NAME}").exit_code != 0
 
         # verify files were uninstalled
         run_container_cmd(container, "test ! -f /etc/ld.so.preload")

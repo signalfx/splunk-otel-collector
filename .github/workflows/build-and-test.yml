@@ -415,8 +415,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ matrix.SYS_PACKAGE }}
-          path: ./instrumentation/dist/splunk-otel-auto-instrumentation*.${{ matrix.SYS_PACKAGE }}
+          name: auto-instrumentation-${{ matrix.ARCH }}-${{ matrix.SYS_PACKAGE }}
+          path: ./instrumentation/dist/splunk-otel-systemd-auto-instrumentation*.${{ matrix.SYS_PACKAGE }}
 
   test-instrumentation-matrix:
     runs-on: ubuntu-20.04
@@ -471,7 +471,7 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: splunk-otel-auto-instrumentation-${{ matrix.ARCH }}-${{ env.SYS_PACKAGE }}
+          name: auto-instrumentation-${{ matrix.ARCH }}-${{ env.SYS_PACKAGE }}
           path: ./instrumentation/dist
 
       - uses: docker/setup-qemu-action@v2

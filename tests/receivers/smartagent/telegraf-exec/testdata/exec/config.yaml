@@ -1,0 +1,24 @@
+receivers:
+  smartagent/exec:
+    type: telegraf/exec
+    command: 'go run /opt/telegraf-exec.go'
+    intervalSeconds: 1
+    telegrafParser:
+      metricName: some.metric
+      defaultTags:
+        tag.one: one
+        tag.two: two
+      dataFormat: value
+      dataType: integer
+
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [smartagent/exec]
+      exporters: [otlp]

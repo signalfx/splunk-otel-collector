@@ -35,9 +35,10 @@ DEB_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "deb" / "D
 RPM_DISTROS = [df.split(".")[-1] for df in glob.glob(str(IMAGES_DIR / "rpm" / "Dockerfile.*"))]
 OTELCOL_BIN_DIR = REPO_DIR / "bin"
 COLLECTOR_CONFIG_PATH = TESTS_DIR / "instrumentation" / "config.yaml"
-DEFAULT_CONF_PATH = "/etc/systemd/system.conf.d/splunk-otel-javaagent.conf"
+DEFAULT_CONF_PATH = "/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf"
 DEFAULT_PROPERTIES_PATH = "/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties"
-CUSTOM_CONF_PATH = TESTS_DIR / "instrumentation" / "splunk-otel-javaagent.conf"
+CUSTOM_CONF_PATH = TESTS_DIR / "instrumentation" / "01-splunk-otel-javaagent.conf"
+CUSTOM_CONF_INSTALL_PATH = os.path.join(os.path.dirname(DEFAULT_CONF_PATH), os.path.basename(CUSTOM_CONF_PATH))
 CUSTOM_PROPERTIES_PATH = TESTS_DIR / "instrumentation" / "splunk-otel-javaagent.properties"
 PKG_NAME = "splunk-otel-auto-instrumentation"
 PKG_DIR = REPO_DIR / "instrumentation" / "dist"
@@ -76,12 +77,12 @@ def verify_tomcat_instrumentation(container, distro, config, otelcol_path=None):
 
     # overwrite the default config installed by the package with the custom test config
     if config == "env_vars":
-        copy_file_into_container(container, CUSTOM_CONF_PATH, DEFAULT_CONF_PATH)
+        copy_file_into_container(container, CUSTOM_CONF_PATH, CUSTOM_CONF_INSTALL_PATH)
         run_container_cmd(container, "systemctl daemon-reload")
     elif config == "properties_file":
         copy_file_into_container(container, CUSTOM_PROPERTIES_PATH, DEFAULT_PROPERTIES_PATH)
 
-    # restart tomcat to pick up the env vars and ensure it is running
+    # restart tomcat to pick up the new config and ensure it is running
     run_container_cmd(container, f"systemctl restart {tomcat_service}", timeout="1m")
     time.sleep(5)
     run_container_cmd(container, f"systemctl status {tomcat_service}")

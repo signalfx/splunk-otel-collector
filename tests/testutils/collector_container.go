@@ -112,9 +112,10 @@ func (collector CollectorContainer) WithMount(path string, mountPoint string) Co
 }
 
 func (collector CollectorContainer) Build() (Collector, error) {
-	if collector.Image == "" {
+	if collector.Image == "" && collector.Container.Dockerfile.Context == "" {
 		collector.Image = "quay.io/signalfx/splunk-otel-collector:latest"
 	}
+
 	if collector.Logger == nil {
 		collector.Logger = zap.NewNop()
 	}
@@ -124,14 +125,16 @@ func (collector CollectorContainer) Build() (Collector, error) {
 
 	collector.logConsumer = newCollectorLogConsumer(collector.Logger)
 
-	var err error
-	collector.contextArchive, err = collector.buildContextArchive()
-	if err != nil {
-		return nil, err
+	if collector.Container.Dockerfile.Context == "" {
+		var err error
+		collector.contextArchive, err = collector.buildContextArchive()
+		if err != nil {
+			return nil, err
+		}
+		collector.Container = collector.Container.WithContextArchive(
+			collector.contextArchive,
+		)
 	}
-	collector.Container = collector.Container.WithContextArchive(
-		collector.contextArchive,
-	)
 
 	if collector.Container.ContainerNetworkMode == "" {
 		collector.Container = collector.Container.WithNetworkMode("host")
@@ -160,7 +163,7 @@ func (collector CollectorContainer) Build() (Collector, error) {
 }
 
 func (collector *CollectorContainer) Start() error {
-	if collector.contextArchive == nil {
+	if collector.Container.req == nil {
 		return fmt.Errorf("cannot Start a CollectorContainer that hasn't been successfully built")
 	}
 
@@ -173,7 +176,7 @@ func (collector *CollectorContainer) Start() error {
 }
 
 func (collector *CollectorContainer) Shutdown() error {
-	if collector.contextArchive == nil {
+	if collector.Container.req == nil {
 		return fmt.Errorf("cannot Shutdown a CollectorContainer that hasn't been successfully built")
 	}
 	defer collector.Container.Terminate(context.Background())

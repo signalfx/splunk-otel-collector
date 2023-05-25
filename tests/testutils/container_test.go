@@ -57,6 +57,12 @@ func TestDockerBuilderMethods(t *testing.T) {
 	assert.NotSame(t, builder, withContext)
 	assert.Empty(t, builder.Dockerfile.Context)
 
+	val := "value"
+	withBuildArgs := builder.WithBuildArgs(map[string]*string{"BUILD_ARG": &val})
+	assert.Equal(t, &val, withBuildArgs.Dockerfile.BuildArgs["BUILD_ARG"])
+	assert.NotSame(t, builder, withBuildArgs)
+	assert.Empty(t, builder.Dockerfile.BuildArgs)
+
 	contextArchive := noopReader{}
 	withContextArchive := builder.WithContextArchive(contextArchive)
 	assert.Equal(t, contextArchive, withContextArchive.Dockerfile.ContextArchive)

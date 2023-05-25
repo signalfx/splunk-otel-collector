@@ -1,5 +1,6 @@
 ARG SPLUNK_OTEL_COLLECTOR_IMAGE
-FROM golang:1.19 as golang
+ARG IMAGE_PLATFORM
+FROM --platform=${IMAGE_PLATFORM} golang:1.19 as golang
 
 RUN mkdir -p /some/path
 

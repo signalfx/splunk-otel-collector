@@ -25,6 +25,10 @@ import (
 
 func TestTelegrafExecWithGoScript(t *testing.T) {
 	collectorImage := testutils.GetCollectorImageOrSkipTest(t)
+	platform := "amd64"
+	if testutils.CollectorImageIsForArm(t) {
+		platform = "arm64"
+	}
 	testutils.AssertAllMetricsReceived(
 		t, "all.yaml", "", nil,
 		[]testutils.CollectorBuilder{func(collector testutils.Collector) testutils.Collector {
@@ -32,6 +36,7 @@ func TestTelegrafExecWithGoScript(t *testing.T) {
 			cc.Container = cc.Container.WithContext(
 				path.Join(".", "testdata", "exec"),
 			).WithBuildArgs(map[string]*string{
+				"IMAGE_PLATFORM":              &platform,
 				"SPLUNK_OTEL_COLLECTOR_IMAGE": &collectorImage,
 			})
 			return cc.WithArgs("--config", "/etc/config.yaml")

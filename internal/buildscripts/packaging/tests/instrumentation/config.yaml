@@ -17,6 +17,9 @@ service:
     metrics:
       receivers: [signalfx, otlp]
       exporters: [logging]
+    logs:
+      receivers: [otlp]
+      exporters: [logging]
     traces:
       receivers: [otlp]
       exporters: [logging]

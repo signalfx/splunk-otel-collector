@@ -28,7 +28,7 @@ jobs:
     runs-on: ${{ matrix.OS }}
     strategy:
       matrix:
-        OS: [ "macos-11", "macos-12" ]
+        OS: [ "macos-11", "macos-12", "macos-11-arm64" ]
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3

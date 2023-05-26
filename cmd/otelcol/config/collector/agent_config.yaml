@@ -150,7 +150,7 @@ exporters:
       insecure: true
   # Debug
   logging:
-    loglevel: debug
+    verbosity: detailed
 
 service:
   extensions: [health_check, http_forwarder, zpages, memory_ballast, smartagent]

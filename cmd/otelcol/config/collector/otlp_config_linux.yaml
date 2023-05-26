@@ -86,7 +86,7 @@ exporters:
     realm: "${SPLUNK_REALM}"
   # Debug
   #logging:
-    #loglevel: debug
+    #verbosity: detailed
 
 extensions:
   health_check:

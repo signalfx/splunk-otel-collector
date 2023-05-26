@@ -1,2 +1,2 @@
 logging:
-  loglevel: debug
+  verbosity: detailed

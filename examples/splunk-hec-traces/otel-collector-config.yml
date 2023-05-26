@@ -27,7 +27,7 @@ exporters:
         # For this demo, we use a self-signed certificate on the Splunk docker instance, so this flag is set to true.
         insecure_skip_verify: true
     logging:
-      loglevel: debug
+      verbosity: detailed
       sampling_initial: 5
       sampling_thereafter: 200
 

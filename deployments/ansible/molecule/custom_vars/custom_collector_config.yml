@@ -24,7 +24,7 @@ processors:
 
 exporters:
   logging/debug:
-    verbosity: detailed
+    loglevel: debug
   logging/info:
     loglevel: info
 

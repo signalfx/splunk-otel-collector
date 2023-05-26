@@ -149,7 +149,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	var ctx context.Context
 	ctx, m.cancel = context.WithCancel(context.Background())
 	utils.RunOnInterval(ctx, func() {
-		metrics, err := fetchPrometheusMetrics(fetch)
+		metrics, err := fetchPrometheusMetrics(fetch, conf.ExtraDimensions)
 		if err != nil {
 			// The default log level is error, users can configure which level to use
 			m.logger.WithError(err).Log(conf.scrapeFailureLogrusLevel, "Could not get prometheus metrics")
@@ -162,7 +162,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	return nil
 }
 
-func fetchPrometheusMetrics(fetch fetcher) (pmetric.Metrics, error) {
+func fetchPrometheusMetrics(fetch fetcher, extraDimensions map[string]string) (pmetric.Metrics, error) {
 	metrics := pmetric.NewMetrics()
 	metricFamilies, err := doFetch(fetch)
 	if err != nil {
@@ -171,7 +171,7 @@ func fetchPrometheusMetrics(fetch fetcher) (pmetric.Metrics, error) {
 	sm := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
 
 	for i := range metricFamilies {
-		convertMetricFamily(sm, metricFamilies[i])
+		convertMetricFamily(sm, metricFamilies[i], extraDimensions)
 	}
 	return metrics, nil
 }

@@ -9,7 +9,7 @@ Facter.add(:win_collector_path) do
       Win32::Registry::HKEY_LOCAL_MACHINE.open('SYSTEM\CurrentControlSet\Services\splunk-otel-collector') do |regkey|
         value = regkey['ExePath']
       end
-      if value and !File.exists?(value)
+      if value and !File.exist?(value)
         value = ''
       end
       value

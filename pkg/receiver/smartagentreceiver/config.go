@@ -131,8 +131,7 @@ func (cfg *Config) Unmarshal(componentParser *confmap.Conf) error {
 	}
 
 	if cfg.acceptsEndpoints {
-		err = setHostAndPortViaEndpoint(cfg.Endpoint, monitorConfig)
-		if err != nil {
+		if err = setHostAndPortViaEndpoint(cfg.Endpoint, monitorConfig); err != nil {
 			return err
 		}
 	}
@@ -185,16 +184,24 @@ func setHostAndPortViaEndpoint(endpoint string, monitorConfig any) error {
 	}
 
 	if host != "" {
-		_, err := setStructFieldIfZeroValue(monitorConfig, "Host", host)
-		if err != nil {
-			return fmt.Errorf("unable to set monitor Host field using Endpoint-derived value of %s: %w", host, err)
+		// determine if a Host field exists with expected type and ignore if not.
+		if field, err := getSettableStructFieldValue(monitorConfig, "Host", reflect.TypeOf(host)); err == nil && field != nil {
+			if _, err = setStructFieldIfZeroValue(monitorConfig, "Host", host); err != nil {
+				return fmt.Errorf("unable to set monitor Host field using Endpoint-derived value of %s: %w", host, err)
+			}
 		}
 	}
 
 	if port != 0 {
-		_, err := setStructFieldIfZeroValue(monitorConfig, "Port", port)
-		if err != nil {
-			return fmt.Errorf("unable to set monitor Port field using Endpoint-derived value of %d: %w", port, err)
+		// Determine if a Port field exists with expected type and ignore if not.
+		// Elasticsearch monitors have port fields that are strings so attempt this value if uint16 not found.
+		for _, p := range []any{port, portStr} {
+			if field, err := getSettableStructFieldValue(monitorConfig, "Port", reflect.TypeOf(p)); err == nil && field != nil {
+				if _, err = setStructFieldIfZeroValue(monitorConfig, "Port", p); err != nil {
+					return fmt.Errorf("unable to set monitor Port field using Endpoint-derived value of %v: %w", p, err)
+				}
+				break
+			}
 		}
 	}
 

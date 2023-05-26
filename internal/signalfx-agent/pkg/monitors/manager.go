@@ -8,13 +8,14 @@ import (
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/event"
 	"github.com/signalfx/golib/v3/trace"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/core/meta"
 	"github.com/signalfx/signalfx-agent/pkg/core/services"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/collectd"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 // MonitorManager coordinates the startup and shutdown of monitors based on the

@@ -21,7 +21,7 @@ exporters:
     access_token: ${SPLUNK_ACCESS_TOKEN}
     realm: "${SPLUNK_REALM}"
   logging:
-    loglevel: debug
+    verbosity: detailed
 service:
   telemetry:
     metrics:

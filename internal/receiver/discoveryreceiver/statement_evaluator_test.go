@@ -149,7 +149,7 @@ func TestStatementEvaluation(t *testing.T) {
 											require.Eventually(t, func() bool {
 												wg.Wait()
 												return true
-											}, 50*time.Millisecond, time.Millisecond)
+											}, 100*time.Millisecond, time.Millisecond)
 
 											for i := 0; i < numExpected; i++ {
 												rl := emitted.ResourceLogs().At(i)

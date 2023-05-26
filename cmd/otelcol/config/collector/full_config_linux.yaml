@@ -471,7 +471,7 @@ exporters:
   # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/loggingexporter
   # NOTE: This exporter is very helpful in troubleshooting issues
   logging:
-    loglevel: debug
+    verbosity: detailed
 
 ###############################################################################
 # Extensions

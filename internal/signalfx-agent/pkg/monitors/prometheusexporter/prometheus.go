@@ -13,6 +13,7 @@ import (
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"k8s.io/client-go/rest"
 
@@ -148,8 +149,14 @@ func (m *Monitor) Configure(conf *Config) error {
 
 	var ctx context.Context
 	ctx, m.cancel = context.WithCancel(context.Background())
+	applyDimensions := func(attrs pcommon.Map) {
+		attrs.PutStr("system.type", m.monitorName)
+		for k, v := range conf.ExtraDimensions {
+			attrs.PutStr(k, v)
+		}
+	}
 	utils.RunOnInterval(ctx, func() {
-		metrics, err := fetchPrometheusMetrics(fetch, conf.ExtraDimensions)
+		metrics, err := fetchPrometheusMetrics(fetch, applyDimensions)
 		if err != nil {
 			// The default log level is error, users can configure which level to use
 			m.logger.WithError(err).Log(conf.scrapeFailureLogrusLevel, "Could not get prometheus metrics")
@@ -162,7 +169,7 @@ func (m *Monitor) Configure(conf *Config) error {
 	return nil
 }
 
-func fetchPrometheusMetrics(fetch fetcher, extraDimensions map[string]string) (pmetric.Metrics, error) {
+func fetchPrometheusMetrics(fetch fetcher, applyDimensions func(attrs pcommon.Map)) (pmetric.Metrics, error) {
 	metrics := pmetric.NewMetrics()
 	metricFamilies, err := doFetch(fetch)
 	if err != nil {
@@ -171,7 +178,7 @@ func fetchPrometheusMetrics(fetch fetcher, extraDimensions map[string]string) (p
 	sm := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
 
 	for i := range metricFamilies {
-		convertMetricFamily(sm, metricFamilies[i], extraDimensions)
+		convertMetricFamily(sm, metricFamilies[i], applyDimensions)
 	}
 	return metrics, nil
 }

@@ -191,7 +191,7 @@ func TestDefaultAgentConfig(t *testing.T) {
 	require.Equal(t, map[string]any{
 		"exporters": map[string]any{
 			"logging": map[string]any{
-				"loglevel": "debug",
+				"verbosity": "detailed",
 			},
 			"otlp": map[string]any{
 				"endpoint": ":4317",

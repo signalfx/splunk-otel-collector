@@ -542,7 +542,7 @@ receivers:
          cpu:
 exporters:
    logging:
-      loglevel: debug
+      verbosity: detailed
 service:
    pipelines:
       metrics:

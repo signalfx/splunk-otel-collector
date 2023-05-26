@@ -47,7 +47,7 @@ processors:
 
 exporters:
   logging:
-    loglevel: debug
+    verbosity: detailed
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
     tls:

@@ -1,4 +1,5 @@
 {{ receiver "smartagent/collectd/mysql" }}:
+  enabled: true
   rule:
     docker_observer: type == "container" and port == 3306
     host_observer: type == "hostport" and command contains "mysqld" and port == 3306

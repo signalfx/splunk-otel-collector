@@ -518,6 +518,46 @@ func TestConfigArgUnsupportedURI(t *testing.T) {
 	require.Contains(t, logs.String(), `"invalid" is an unsupported config provider scheme for this Collector distribution (not in [env file]).`)
 }
 
+func TestDefaultDiscoveryConfigDir(t *testing.T) {
+	t.Cleanup(setRequiredEnvVars(t))
+	settings, err := New([]string{"--discovery"})
+	require.NoError(t, err)
+	require.True(t, settings.discoveryMode)
+	require.False(t, settings.configD)
+
+	require.Equal(t, []string{
+		localGatewayConfig,
+		"splunk.discovery:/etc/otel/collector/config.d",
+	}, settings.ResolverURIs())
+}
+
+func TestInheritedDiscoveryConfigDir(t *testing.T) {
+	t.Cleanup(setRequiredEnvVars(t))
+	settings, err := New([]string{"--discovery", "--config-dir", "/some/config.d"})
+	require.NoError(t, err)
+	require.True(t, settings.discoveryMode)
+	require.False(t, settings.configD)
+
+	require.Equal(t, []string{
+		localGatewayConfig,
+		"splunk.discovery:/some/config.d",
+	}, settings.ResolverURIs())
+}
+
+func TestInheritedDiscoveryConfigDirWithConfigD(t *testing.T) {
+	t.Cleanup(setRequiredEnvVars(t))
+	settings, err := New([]string{"--discovery", "--config-dir", "/some/config.d", "--configd"})
+	require.NoError(t, err)
+	require.True(t, settings.discoveryMode)
+	require.True(t, settings.configD)
+
+	require.Equal(t, []string{
+		localGatewayConfig,
+		"splunk.configd:/some/config.d",
+		"splunk.discovery:/some/config.d",
+	}, settings.ResolverURIs())
+}
+
 // to satisfy Settings generation
 func setRequiredEnvVars(t *testing.T) func() {
 	cleanup := clearEnv(t)

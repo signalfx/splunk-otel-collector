@@ -1,2 +1,3 @@
 docker_observer:
+  enabled: false # overwritten by --set and env var properties
   endpoint: overwritten.by.cmdline.property.that.references.env.var

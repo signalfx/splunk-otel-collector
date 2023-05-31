@@ -1,4 +1,5 @@
 smartagent/postgresql:
+  enabled: false
   rule:
    docker_observer: type == "container" and port == 5432
    host_observer: type == "hostport" and command contains "pg" and port == 5432

@@ -123,7 +123,7 @@ func (s *Settings) ResolverURIs() []string {
 
 	if s.discoveryMode {
 		// discovery uri must come last to successfully merge w/ other config content
-		configPaths = append(configPaths, fmt.Sprintf("%s:%s", s.discovery.DiscoveryModeScheme(), s.configDir))
+		configPaths = append(configPaths, fmt.Sprintf("%s:%s", s.discovery.DiscoveryModeScheme(), configDir))
 	}
 
 	configYaml := os.Getenv(ConfigYamlEnvVar)

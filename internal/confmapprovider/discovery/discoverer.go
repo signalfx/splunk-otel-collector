@@ -19,6 +19,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -252,6 +253,10 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 			} else if !ok {
 				continue
 			}
+			enabled := true
+			if e := receiver.Enabled; e != nil {
+				enabled = *e
+			}
 			receiverEntry := receiver.Entry.ToStringMap()
 			if receiversPropertiesConf.IsSet(receiverID.String()) {
 				receiverPropertiesConf, e := receiversPropertiesConf.Sub(receiverID.String())
@@ -261,12 +266,9 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 				entryConf := confmap.NewFromStringMap(receiverEntry)
 
 				if receiverPropertiesConf.IsSet("enabled") {
-					enabled := true
-					if strings.ToLower(fmt.Sprintf("%v", receiverPropertiesConf.Get("enabled"))) == "false" {
-						enabled = false
-					}
-					if !enabled {
-						continue
+					if b, convErr := strconv.ParseBool(strings.ToLower(fmt.Sprintf("%v", receiverPropertiesConf.Get("enabled")))); convErr == nil {
+						// convErr would have been detected in properties
+						enabled = b
 					}
 					pc := receiverPropertiesConf.ToStringMap()
 					delete(pc, "enabled")
@@ -277,6 +279,10 @@ func (d *discoverer) createDiscoveryReceiversAndObservers(cfg *Config) (map[comp
 					return nil, nil, fmt.Errorf("failed merging receiver %q properties config: %w", receiverID, err)
 				}
 				receiverEntry = entryConf.ToStringMap()
+			}
+
+			if !enabled {
+				continue
 			}
 
 			d.addUnexpandedReceiverConfig(receiverID, observerID, receiverEntry)
@@ -315,6 +321,10 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 	}
 
 	observerConfig := observerFactory.CreateDefaultConfig()
+	enabled := true
+	if e := cfg.DiscoveryObservers[observerID].Enabled; e != nil {
+		enabled = *e
+	}
 	observerCfgMap := confmap.NewFromStringMap(cfg.DiscoveryObservers[observerID].ToStringMap())
 
 	if d.propertiesConf.IsSet("extensions") {
@@ -328,12 +338,9 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 				return nil, fmt.Errorf("failed obtaining observer properties config: %w", e)
 			}
 			if propertiesConf.IsSet("enabled") {
-				enabled := true
-				if strings.ToLower(fmt.Sprintf("%v", propertiesConf.Get("enabled"))) == "false" {
-					enabled = false
-				}
-				if !enabled {
-					return nil, nil
+				if b, convErr := strconv.ParseBool(strings.ToLower(fmt.Sprintf("%v", propertiesConf.Get("enabled")))); convErr == nil {
+					// convErr would have been detected in properties
+					enabled = b
 				}
 				// delete enabled property since it's not valid config field
 				pc := propertiesConf.ToStringMap()
@@ -343,8 +350,15 @@ func (d *discoverer) createObserver(observerID component.ID, cfg *Config) (otelc
 			if err = observerCfgMap.Merge(propertiesConf); err != nil {
 				return nil, fmt.Errorf("failed merging observer properties config: %w", err)
 			}
-			cfg.DiscoveryObservers[observerID] = ExtensionEntry{observerCfgMap.ToStringMap()}
+			cfg.DiscoveryObservers[observerID] = ObserverEntry{
+				Enabled: &enabled,
+				Entry:   observerCfgMap.ToStringMap(),
+			}
 		}
+	}
+
+	if e := cfg.DiscoveryObservers[observerID].Enabled; e != nil && !*e {
+		return nil, nil
 	}
 
 	if err = d.expandConverter.Convert(context.Background(), observerCfgMap); err != nil {

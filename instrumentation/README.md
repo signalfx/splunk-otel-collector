@@ -6,11 +6,6 @@ Java applications running as `systemd` services on Linux, send the captured dist
 [Splunk OpenTelemetry Collector](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html), and then
 on to [Splunk APM](https://docs.splunk.com/Observability/apm/intro-to-apm.html).
 
-For Linux distributions that do ***not*** support Debian/RPM packages or Java applications ***not*** running as
-`systemd` services, see the [Instructions for app servers](
-https://docs.splunk.com/Observability/gdi/get-data-in/application/java/instrumentation/java-servers-instructions.html)
-for how to manually enable and configure the Java agent.
-
 > ***Note***: The `libsplunk.so` shared object file and related enablement/configuration processes are
 > ***deprecated***. The `splunk-otel-auto-instrumentation` deb/rpm package is also ***deprecated*** and replaced by the
 > `splunk-otel-systemd-auto-instrumentation` deb/rpm package.
@@ -32,6 +27,11 @@ for how to manually enable and configure the Java agent.
 - Java application(s) running as `systemd` services
 - [Install](https://docs.splunk.com/Observability/gdi/opentelemetry/install-linux.html) the Splunk OpenTelemetry
   Collector
+
+For Linux distributions that do ***not*** support Debian/RPM packages or Java applications ***not*** running as
+`systemd` services, see the [Instructions for app servers](
+https://docs.splunk.com/Observability/gdi/get-data-in/application/java/instrumentation/java-servers-instructions.html)
+for how to manually enable and configure the Java agent.
 
 ## Installation
 

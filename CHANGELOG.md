@@ -2,12 +2,14 @@
 
 ## Unreleased
 
-### 🚀 New components 🚀
+### 🛑 Breaking changes 🛑
 
 - Initial release for the new [Splunk OpenTelemetry Zero Configuration Auto Instrumentation for Java](https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation) implementation ([#3169](https://github.com/signalfx/splunk-otel-collector/pull/3169))
-  - Automatically enables the Java Auto Instrumentation Agent for ***only*** systemd services on Linux with the new `splunk-otel-systemd-auto-instrumentation` deb/rpm package.
   - Replaces the ***deprecated*** `libsplunk.so` shared object file implementation and `splunk-otel-auto-instrumentation` deb/rpm package.
-  - Currently, only manual installation/configuration is supported.  Existing installers (shell script, ansible, chef, puppet, salt) have not yet been updated to support this, and still only allows installation/configuration of the original implementation.
+  - Automatically enables the Java Auto Instrumentation Agent for ***only*** `systemd` services on Linux with the new `splunk-otel-systemd-auto-instrumentation` deb/rpm package.
+  - Currently, only manual installation/configuration is supported. Check [Prerequisites/Requirements](https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation/README.md#prerequisitesrequirements) before installation.
+  - Existing installers (shell script, ansible, chef, puppet, salt) have not yet been updated to support this, and still only allows installation/configuration of the original implementation.
+  - See [README.md](https://github.com/signalfx/splunk-otel-collector/tree/main/instrumentation/README.md) for more details.
 
 ## v0.78.1
 

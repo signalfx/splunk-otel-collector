@@ -183,18 +183,31 @@ def test_package_upgrade(distro, arch, config):
         copy_file_into_container(container, INSTALLER_PATH, "/test/install.sh")
         copy_file_into_container(container, pkg_path, f"/test/{pkg_base}")
 
+        # add a comment to /etc/ld.so.preload
+        run_container_cmd(container, "sh -c 'echo \"# This line should be preserved\" >> /etc/ld.so.preload'")
+
         # install the collector and an older version of the instrumentation package
         run_container_cmd(container, install_cmd, env={"VERIFY_ACCESS_TOKEN": "false"}, timeout="10m")
 
-        # verify /etc/ld.so.preload and libsplunk.so were installed
-        run_container_cmd(container, "test -f /etc/ld.so.preload")
+        # verify the comment was preserved after install
+        run_container_cmd(container, "grep '# This line should be preserved' /etc/ld.so.preload")
+
+        # verify the libsplunk.so entry was added after install
+        run_container_cmd(container, "grep '/usr/lib/splunk-instrumentation/libsplunk.so' /etc/ld.so.preload")
+
+        # verify libsplunk.so was installed
         run_container_cmd(container, "test -f /usr/lib/splunk-instrumentation/libsplunk.so")
 
         # upgrade the instrumentation package
         install_package(container, distro, f"/test/{pkg_base}")
 
-        # verify /etc/ld.so.preload and libsplunk.so were deleted after upgrade
-        run_container_cmd(container, "test ! -f /etc/ld.so.preload")
+        # verify the comment was preserved after upgrade
+        run_container_cmd(container, "grep '# This line should be preserved' /etc/ld.so.preload")
+
+        # verify the libsplunk.so entry was removed after upgrade
+        run_container_cmd(container, "grep -v '/usr/lib/splunk-instrumentation/libsplunk.so' /etc/ld.so.preload")
+
+        # verify libsplunk.so was deleted after upgrade
         run_container_cmd(container, "test ! -f /usr/lib/splunk-instrumentation/libsplunk.so")
 
         # verify files were installed after upgrade

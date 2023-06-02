@@ -2,24 +2,24 @@
 
 **Splunk OpenTelemetry Zero Configuration Auto Instrumentation for Java** installs and enables the [Splunk
 OpenTelemetry Auto Instrumentation Java Agent](https://github.com/signalfx/splunk-otel-java) to automatically instrument
-Java applications running as systemd services on Linux, send the captured distributed traces to the locally running
+Java applications running as `systemd` services on Linux, send the captured distributed traces to the locally running
 [Splunk OpenTelemetry Collector](https://docs.splunk.com/Observability/gdi/opentelemetry/opentelemetry.html), and then
 on to [Splunk APM](https://docs.splunk.com/Observability/apm/intro-to-apm.html).
 
-For Linux distributions that do ***not*** support Debian/RPM packages or Java applications ***not*** running as systemd
-services, see the [Instructions for app servers](
+For Linux distributions that do ***not*** support Debian/RPM packages or Java applications ***not*** running as
+`systemd` services, see the [Instructions for app servers](
 https://docs.splunk.com/Observability/gdi/get-data-in/application/java/instrumentation/java-servers-instructions.html)
 for how to manually enable and configure the Java agent.
 
 > ***Note***: The `libsplunk.so` shared object file and related enablement/configuration processes are
-> ***deprecated***.  The `splunk-otel-auto-instrumentation` deb/rpm package is also ***deprecated*** and replaced by the
+> ***deprecated***. The `splunk-otel-auto-instrumentation` deb/rpm package is also ***deprecated*** and replaced by the
 > `splunk-otel-systemd-auto-instrumentation` deb/rpm package.
 > 
 > [Installation](#installation) of `splunk-otel-systemd-auto-instrumentation` will automatically:
 > - Uninstall the `splunk-otel-auto-instrumentation` deb/rpm package (if installed).
 > - Remove `/usr/lib/splunk-instrumentation/libsplunk.so` from `/etc/ld.so.preload` (if it exists).
-> - Enable the Java agent ***only*** for systemd services via the
->   `JAVA_TOOL_OPTIONS-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar` systemd environment
+> - Enable the Java agent ***only*** for `systemd` services via the
+>   `JAVA_TOOL_OPTIONS-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar` `systemd` environment
 >   variable.
 >
 > For reference only, the documentation for `libsplunk.so` has been moved to [libsplunk.md](./libsplunk.md).
@@ -29,16 +29,16 @@ for how to manually enable and configure the Java agent.
 - Check [Java agent compatibility and requirements](
   https://docs.splunk.com/Observability/gdi/get-data-in/application/java/java-otel-requirements.html)
 - Debian or RPM based Linux distribution with the `systemd` service manager
-- Java application(s) running as systemd services
+- Java application(s) running as `systemd` services
 - [Install](https://docs.splunk.com/Observability/gdi/opentelemetry/install-linux.html) the Splunk OpenTelemetry
   Collector
 
 ## Installation
 
 The `splunk-otel-systemd-auto-instrumentation` deb/rpm package provides the following files to enable and configure the
-Java agent for systemd services:
+Java agent for `systemd` services:
 - [`/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf`](#systemd-environment-variables): Drop-in file with the
-  following default environment variables for systemd services:
+  following default environment variables for `systemd` services:
   - `JAVA_TOOL_OPTIONS=-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`
   - `OTEL_JAVAAGENT_CONFIGURATION_FILE=/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties`
 - `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`: The
@@ -47,11 +47,11 @@ Java agent for systemd services:
   properties file to [configure the Splunk OpenTelemetry Auto Instrumentation Java Agent](
   https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html).
 
-These packages can be installed from [package repositories](#debian-and-rpm-repositories) or downloaded from
+Install these packages from [package repositories](#debian-and-rpm-repositories) or download them from
 [GitHub Releases](#debian-and-rpm-packages).
 
-After installation, restart the applicable systemd services or reboot the system to enable the Java agent with the
-default configuration.  Optionally, see [Configuration](#configuration) for details about configuring the agent.
+After installation, restart the applicable `systemd` services or reboot the system to enable the Java agent with the
+default configuration. Optionally, see [Configuration](#configuration) for details about configuring the agent.
 
 ### Debian and RPM Repositories
 
@@ -113,8 +113,7 @@ Download and install the `splunk-otel-systemd-auto-instrumentation` package ***w
        ```shell
        rpm --import https://splunk.jfrog.io/splunk/otel-collector-rpm/splunk-B3CD4420.pub
        ```
-3. Install the package with the following command (replace `<path>` with the local path to the
-   downloaded package):
+3. Install the package with the following command (replace `<path>` with the local path to the downloaded package):
    - Debian:
        ```shell
        $ dpkg -i <path>
@@ -128,44 +127,43 @@ Download and install the `splunk-otel-systemd-auto-instrumentation` package ***w
 
 See the [Advanced Configuration Guide](
 https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html)
-for details about supported options and defaults for the Java agent.  These options can be configured via
+for details about supported options and defaults for the Java agent. These options can be configured via
 [environment variables](#systemd-environment-variables) or their corresponding [system properties](#configuration-file)
 after installation.
 
 > ### Configuration Priority
-> The Java agent can consume configuration from one or more of the following sources
-> (ordered from highest to lowest priority):
-> 1. Java system properties (`-D` flags) passed directly to the agent.  For example,
+> The Java agent can consume configuration from one or more of the following sources (ordered from highest to lowest
+> priority):
+> 1. Java system properties (`-D` flags) passed directly to the agent. For example,
 >      ```shell
 >      JAVA_TOOL_OPTIONS="-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar -Dotel.service.name=my-service"
 >      ```
 > 2. Environment variables
 > 3. Configuration files
 > 
-> It may be necessary to check the configuration of the system or individual services for potential conflicts before
-> making any changes.
+> Before making any changes, check the configuration of the system or individual services for potential conflicts.
 
-### Systemd Environment Variables
+### Systemd environment variables
 
 The default [`/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf`](./packaging/fpm/00-splunk-otel-javaagent.conf)
-systemd drop-in file defines the following environment variables to enable the Java agent and sets the path to the
+`systemd` drop-in file defines the following environment variables to enable the Java agent and sets the path to the
 default system properties file for agent configuration, respectively:
 - `JAVA_TOOL_OPTIONS=-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`
 - `OTEL_JAVAAGENT_CONFIGURATION_FILE=/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties`
 
-Any changes to this file will affect ***all*** systemd services, unless overriden by [higher-priority](
+Any changes to this file will affect ***all*** `systemd` services, unless overriden by [higher-priority](
 #configuration-priority) system or service configurations.
 
-> ***Note***: Systemd supports many options/methods for configuring environment variables at the system level or for
-> individual services.  Consult the documentation specific to your Linux distribution or service before making any
-> changes.  For general details about systemd, see the [systemd man page](
+> ***Note***: `Systemd` supports many options/methods for configuring environment variables at the system level or for
+> individual services, and are not limited to the examples below. Consult the documentation specific to your Linux
+> distribution or service before making any changes. For general details about `systemd`, see the [`systemd` man page](
 > https://www.freedesktop.org/software/systemd/man/index.html).
 
 To add/modify [supported environment variables](
 https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html)
 defined in `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf` (requires `root` privileges):
 1. **Option A**: Update `DefaultEnvironment` within `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf` for the
-   desired environment variables (space-separated `"key=value"` pairs).  For example:
+   desired environment variables (space-separated `"key=value"` pairs). For example:
      ```shell
      $ cat <<EOH > /etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf
      [Manager]
@@ -173,7 +171,7 @@ defined in `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf` (requires 
      EOH
      ```
    **Option B**: Create/Modify a higher-priority drop-in file for ***all*** services to add or override the environment
-   variables defined in `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf`.  For example:
+   variables defined in `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf`. For example:
      ```shell
      $ cat <<EOH > /etc/systemd/system.conf.d/01-my-custom-env-vars.conf
      [Manager]
@@ -181,7 +179,7 @@ defined in `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf` (requires 
      EOH
      ```
    **Option C**: Create/Modify a higher-priority drop-in file for a ***specific*** service to add or override the
-   environment variables defined in `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf`.  For example:
+   environment variables defined in `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf`. For example:
      ```shell
      $ cat <<EOH > /etc/systemd/system/my-service.d/01-my-custom-env-vars.conf
      [Service]
@@ -195,20 +193,20 @@ defined in `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf` (requires 
      $ systemctl restart <service-name>   # replace "<service-name>" and run for each applicable service
      ```
 
-### Configuration File
+### Configuration file
 
-The Java agent is configured by default (via the `OTEL_JAVAAGENT_CONFIGURATION_FILE` [systemd environment variable](
+The Java agent is configured by default (via the `OTEL_JAVAAGENT_CONFIGURATION_FILE` [`systemd` environment variable](
 #systemd-environment-variables)) to consume system properties from the
 [`/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties`](./packaging/fpm/splunk-otel-javaagent.properties)
 configuration file.
 
-Any changes to this file will affect ***all*** systemd services, unless overriden by [higher-priority](
+Any changes to this file will affect ***all*** `systemd` services, unless overriden by [higher-priority](
 #configuration-priority) system or service configurations.
 
 To add/modify [supported system properties](
 https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html)
 in `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties` (requires `root` privileges):
-1. Update `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties` for the desired system properties.  For
+1. Update `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties` for the desired system properties. For
    example:
      ```shell
      $ cat <<EOH > /usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties
@@ -220,10 +218,9 @@ in `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties` (requires 
      splunk.profiler.memory.enabled=true
      EOH
      ```
-2. After any configuration changes, reboot the system or run the following commands to restart the applicable services
+2. After any configuration changes, reboot the system or run the following command to restart the applicable services
    for the changes to take effect:
      ```shell
-     $ systemctl daemon-reload
      $ systemctl restart <service-name>   # replace "<service-name>" and run for each applicable service
      ```
 
@@ -242,6 +239,6 @@ in `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties` (requires 
        rpm -e splunk-otel-systemd-auto-instrumentation
        ```
 3. Reboot the system or run the following command to restart the applicable services:
-   ```shell
-   $ systemctl restart <service-name>  # replace "<service-name>" and run for each applicable service
-   ```
+     ```shell
+     $ systemctl restart <service-name>  # replace "<service-name>" and run for each applicable service
+     ```

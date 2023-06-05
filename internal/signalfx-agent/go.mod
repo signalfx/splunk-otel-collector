@@ -50,7 +50,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/cadvisor v0.47.1
 	github.com/gorilla/mux v1.8.0
-	github.com/hashicorp/consul/api v1.20.0
+	github.com/hashicorp/consul/api v1.21.0
 	github.com/hashicorp/vault v1.13.2 // required for newer google.golang.org/api compatibility
 	github.com/hashicorp/vault-plugin-auth-gcp v0.16.0
 	github.com/hashicorp/vault/api v1.9.1

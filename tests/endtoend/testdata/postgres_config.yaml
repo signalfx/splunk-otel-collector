@@ -33,6 +33,9 @@ exporters:
       enabled: false
 
 service:
+  telemetry:
+    logs:
+      level: debug
   pipelines:
     metrics:
       receivers:

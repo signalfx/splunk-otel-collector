@@ -4,12 +4,12 @@ receivers:
     intervalSeconds: 1
     host: "localhost"
     port: 8000
+    scrapeFailureLogLevel: debug
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
-
 service:
   pipelines:
     metrics:

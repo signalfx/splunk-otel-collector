@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- (Splunk) `receiver/smartagent`: Add scrapeFailureLogLevel config to smartagent prometheus receivers to support logging scrape failures at different levels ([#3260](https://github.com/signalfx/splunk-otel-collector/pull/3260))
+
 ## v0.78.1
 
 ### 🧰 Bug fixes 🧰

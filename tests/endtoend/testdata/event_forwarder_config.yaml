@@ -24,6 +24,9 @@ exporters:
       enabled: false
 
 service:
+  telemetry:
+    logs:
+      level: debug
   pipelines:
     logs:
       receivers:

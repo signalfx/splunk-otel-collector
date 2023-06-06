@@ -2,9 +2,14 @@
 
 ## Unreleased
 
+## v0.78.1
+
 ### 🧰 Bug fixes 🧰
 
-- (Contrib) Account for empty files ([#22815](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22815))
+- (Contrib) `receiver/filelog` Account for empty files ([#22815](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22815))
+
+### 💡 Enhancements 💡
+- (Core, Contrib, Splunk) Third-party dependency updates.
 
 ## v0.78.0
 

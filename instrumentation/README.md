@@ -37,8 +37,8 @@ for how to manually enable and configure the Java agent.
 
 The `splunk-otel-systemd-auto-instrumentation` deb/rpm package provides the following files to enable and configure the
 Java agent for `systemd` services:
-- [`/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf`](#systemd-environment-variables): Drop-in file with the
-  following default environment variables for `systemd` services:
+- [`/usr/lib/systemd/system.conf.d/00-splunk-otel-javaagent.conf`](#systemd-environment-variables): Drop-in file with
+  the following default environment variables for `systemd` services:
   - `JAVA_TOOL_OPTIONS=-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`
   - `OTEL_JAVAAGENT_CONFIGURATION_FILE=/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties`
 - `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`: The
@@ -145,9 +145,9 @@ after installation.
 
 ### Systemd environment variables
 
-The default [`/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf`](./packaging/fpm/00-splunk-otel-javaagent.conf)
-`systemd` drop-in file defines the following environment variables to enable the Java agent and sets the path to the
-default system properties file for agent configuration, respectively:
+The default [`/usr/lib/systemd/system.conf.d/00-splunk-otel-javaagent.conf`](
+./packaging/fpm/00-splunk-otel-javaagent.conf) `systemd` drop-in file defines the following environment variables to
+enable the Java agent and sets the path to the default system properties file for agent configuration, respectively:
 - `JAVA_TOOL_OPTIONS=-javaagent:/usr/lib/splunk-instrumentation/splunk-otel-javaagent.jar`
 - `OTEL_JAVAAGENT_CONFIGURATION_FILE=/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties`
 
@@ -161,27 +161,27 @@ Any changes to this file will affect ***all*** `systemd` services, unless overri
 
 To add/modify [supported environment variables](
 https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html)
-defined in `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf` (requires `root` privileges):
-1. **Option A**: Update `DefaultEnvironment` within `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf` for the
-   desired environment variables (space-separated `"key=value"` pairs). For example:
+defined in `/usr/lib/systemd/system.conf.d/00-splunk-otel-javaagent.conf` (requires `root` privileges):
+1. **Option A**: Update `DefaultEnvironment` within `/usr/lib/systemd/system.conf.d/00-splunk-otel-javaagent.conf` for 
+   the desired environment variables (space-separated `"key=value"` pairs). For example:
      ```shell
-     $ cat <<EOH > /etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf
+     $ cat <<EOH > /usr/lib/systemd/system.conf.d/00-splunk-otel-javaagent.conf
      [Manager]
      DefaultEnvironment="JAVA_TOOL_OPTIONS=-javaagent:/my/custom/splunk-otel-javaagent.jar -Dotel.service.name=my-service" "OTEL_JAVAAGENT_CONFIGURATION_FILE=/my/custom/javaagent.properties" "SPLUNK_PROFILER_ENABLED=true"
      EOH
      ```
    **Option B**: Create/Modify a higher-priority drop-in file for ***all*** services to add or override the environment
-   variables defined in `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf`. For example:
+   variables defined in `/usr/lib/systemd/system.conf.d/00-splunk-otel-javaagent.conf`. For example:
      ```shell
-     $ cat <<EOH > /etc/systemd/system.conf.d/01-my-custom-env-vars.conf
+     $ cat <<EOH > /usr/lib/systemd/system.conf.d/01-my-custom-env-vars.conf
      [Manager]
      DefaultEnvironment="JAVA_TOOL_OPTIONS=-javaagent:/my/custom/splunk-otel-javaagent.jar -Dotel.service.name=my-service" "OTEL_JAVAAGENT_CONFIGURATION_FILE=/my/custom/javaagent.properties" "SPLUNK_PROFILER_ENABLED=true"
      EOH
      ```
    **Option C**: Create/Modify a higher-priority drop-in file for a ***specific*** service to add or override the
-   environment variables defined in `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf`. For example:
+   environment variables defined in `/usr/lib/systemd/system.conf.d/00-splunk-otel-javaagent.conf`. For example:
      ```shell
-     $ cat <<EOH > /etc/systemd/system/my-service.d/01-my-custom-env-vars.conf
+     $ cat <<EOH > /usr/lib/systemd/system/my-service.d/01-my-custom-env-vars.conf
      [Service]
      Environment="JAVA_TOOL_OPTIONS=-javaagent:/my/custom/splunk-otel-javaagent.jar -Dotel.service.name=my-service" "OTEL_JAVAAGENT_CONFIGURATION_FILE=/my/custom/javaagent.properties" "SPLUNK_PROFILER_ENABLED=true"
      EOH
@@ -226,7 +226,7 @@ in `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties` (requires 
 
 ## Uninstall
 
-1. If necessary, back up `/etc/systemd/system.conf.d/00-splunk-otel-javaagent.conf` and
+1. If necessary, back up `/usr/lib/systemd/system.conf.d/00-splunk-otel-javaagent.conf` and
    `/usr/lib/splunk-instrumentation/splunk-otel-javaagent.properties`.
 2. Run the following command to uninstall the `splunk-otel-systemd-auto-instrumentation` package (requires `root`
    privileges):

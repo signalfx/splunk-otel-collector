@@ -444,7 +444,7 @@ jobs:
   test-instrumentation-package:
     # Use 20.04.5 until https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/16450 is resolved
     runs-on: ${{ fromJSON('["ubuntu-20.04", "ubuntu-22.04"]')[matrix.DISTRO == 'amazonlinux-2023'] }}
-    timeout-minutes: 30
+    timeout-minutes: 60
     needs: [cross-compile, instrumentation-package, test-instrumentation-matrix]
     strategy:
       matrix: ${{ fromJSON(needs.test-instrumentation-matrix.outputs.matrix) }}
@@ -499,7 +499,12 @@ jobs:
 
       - name: Test ${{ env.SYS_PACKAGE }} on ${{ matrix.DISTRO }} ${{ matrix.ARCH }}
         run: |
-          pytest -sx --verbose -k "${{ matrix.DISTRO }} and ${{ matrix.ARCH }}" \
+          distro="${{ matrix.DISTRO }}"
+          if [[ "$distro" = "amazonlinux-2" ]]; then
+            # workaround for pytest substring matching
+            distro="amazonlinux-2 and not amazonlinux-2023"
+          fi
+          python3 -u -m pytest -sx --verbose -k "$distro and ${{ matrix.ARCH }}" \
             internal/buildscripts/packaging/tests/instrumentation/instrumentation_test.py
 
   windows-msi:

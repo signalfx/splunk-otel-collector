@@ -2,9 +2,12 @@
 # `-d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro` flags
 FROM tomcat:9-jre8 as tomcat
 
-FROM debian:buster
+FROM debian:stretch
 
 ENV DEBIAN_FRONTEND noninteractive
+
+RUN sed -i 's|http://.*.debian.org|http://archive.debian.org|' /etc/apt/sources.list
+RUN sed -i '/stretch-updates/d' /etc/apt/sources.list
 
 RUN apt-get update &&\
     apt-get install -yq ca-certificates curl procps systemd wget

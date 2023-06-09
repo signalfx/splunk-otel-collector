@@ -201,6 +201,7 @@ func (out *output) SendMetrics(metrics pmetric.Metrics) {
 		return
 	}
 	ctx := out.reporter.StartMetricsOp(context.Background())
+	out.filterMetrics(metrics)
 	err := out.nextMetricsConsumer.ConsumeMetrics(context.Background(), metrics)
 	out.reporter.EndMetricsOp(ctx, typeStr, metrics.MetricCount(), err)
 }
@@ -323,4 +324,17 @@ func (out *output) filterDatapoints(datapoints []*datapoint.Datapoint) []*datapo
 		}
 	}
 	return filteredDatapoints
+}
+
+func (out *output) filterMetrics(metrics pmetric.Metrics) {
+	if out.monitorFiltering.filterSet == nil {
+		return
+	}
+	for i := 0; i < metrics.ResourceMetrics().Len(); i++ {
+		rm := metrics.ResourceMetrics().At(i)
+		for j := 0; j < rm.ScopeMetrics().Len(); j++ {
+			sm := rm.ScopeMetrics().At(j)
+			sm.Metrics().RemoveIf(out.monitorFiltering.filterSet.MatchesMetric)
+		}
+	}
 }

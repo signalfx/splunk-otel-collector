@@ -7,6 +7,8 @@ import (
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/dpmeta"
 	"github.com/signalfx/signalfx-agent/pkg/utils/filter"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 // DatapointFilter can be used to filter out datapoints
@@ -14,6 +16,7 @@ type DatapointFilter interface {
 	// Matches takes a datapoint and returns whether it is matched by the
 	// filter
 	Matches(*datapoint.Datapoint) bool
+	MatchesMetric(m pmetric.Metric) bool
 }
 
 // BasicDatapointFilter is designed to filter SignalFx datapoint objects.  It
@@ -75,6 +78,37 @@ func (f *basicDatapointFilter) Matches(dp *datapoint.Datapoint) bool {
 
 	matched := (f.metricFilter == nil || f.metricFilter.Matches(dp.Metric)) &&
 		(f.dimFilter == nil || f.dimFilter.Matches(dp.Dimensions))
+
+	if f.negated {
+		return !matched
+	}
+	return matched
+}
+
+func (f *basicDatapointFilter) MatchesMetric(m pmetric.Metric) bool {
+	// If we have a monitorType on the filter but none on the datapoint, it
+	// can never match.
+	if f.monitorType != "" {
+		return false
+	}
+	var attributes pcommon.Map
+	switch m.Type() {
+	case pmetric.MetricTypeGauge:
+		attributes = m.Gauge().DataPoints().At(0).Attributes()
+	case pmetric.MetricTypeSummary:
+		attributes = m.Summary().DataPoints().At(0).Attributes()
+	case pmetric.MetricTypeSum:
+		attributes = m.Sum().DataPoints().At(0).Attributes()
+	case pmetric.MetricTypeHistogram:
+		attributes = m.Histogram().DataPoints().At(0).Attributes()
+	case pmetric.MetricTypeExponentialHistogram:
+		attributes = m.ExponentialHistogram().DataPoints().At(0).Attributes()
+	case pmetric.MetricTypeEmpty:
+		attributes = pcommon.NewMap()
+	}
+
+	matched := (f.metricFilter == nil || f.metricFilter.Matches(m.Name())) &&
+		(f.dimFilter == nil || f.dimFilter.MatchesAny(attributes.AsRaw()))
 
 	if f.negated {
 		return !matched

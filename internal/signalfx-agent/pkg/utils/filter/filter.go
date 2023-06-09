@@ -21,6 +21,7 @@ type StringFilter interface {
 // StringMapFilter matches against the values of a map[string]string.
 type StringMapFilter interface {
 	Matches(map[string]string) bool
+	MatchesAny(map[string]any) bool
 }
 
 // BasicStringFilter will match if any one of the given strings is a match.
@@ -149,6 +150,29 @@ func (f *fullStringMapFilter) Matches(m map[string]string) bool {
 	for k, filter := range f.filterMap {
 		if v, ok := m[k]; ok {
 			if !filter.Matches(v) {
+				return false
+			}
+		} else {
+			return f.okMissing[k]
+		}
+	}
+	return true
+}
+
+func (f *fullStringMapFilter) MatchesAny(m map[string]any) bool {
+	// Empty map input never matches
+	if len(m) == 0 && len(f.okMissing) == 0 {
+		return false
+	}
+
+	for k, filter := range f.filterMap {
+		if v, ok := m[k]; ok {
+			vStr, ok2 := v.(string)
+			if ok2 {
+				if !filter.Matches(vStr) {
+					return false
+				}
+			} else {
 				return false
 			}
 		} else {

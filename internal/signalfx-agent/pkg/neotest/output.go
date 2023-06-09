@@ -8,12 +8,14 @@ import (
 	"github.com/signalfx/golib/v3/trace"
 	"github.com/signalfx/signalfx-agent/pkg/core/dpfilters"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 // TestOutput can be used in place of the normal monitor outut to provide a
 // simpler way of testing monitor output.
 type TestOutput struct {
 	dpChan    chan []*datapoint.Datapoint
+	mChan     chan pmetric.Metrics
 	eventChan chan *event.Event
 	spanChan  chan []*trace.Span
 	dimChan   chan *types.Dimension
@@ -26,6 +28,7 @@ func NewTestOutput() *TestOutput {
 		eventChan: make(chan *event.Event, 1000),
 		spanChan:  make(chan []*trace.Span, 1000),
 		dimChan:   make(chan *types.Dimension, 1000),
+		mChan:     make(chan pmetric.Metrics, 1000),
 	}
 }
 
@@ -36,6 +39,10 @@ func (to *TestOutput) Copy() types.Output {
 
 func (to *TestOutput) SendDatapoints(dps ...*datapoint.Datapoint) {
 	to.dpChan <- dps
+}
+
+func (to *TestOutput) SendMetrics(metrics pmetric.Metrics) {
+	to.mChan <- metrics
 }
 
 // SendEvent accepts an event and sticks it in a buffered queue

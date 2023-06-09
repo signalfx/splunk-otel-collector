@@ -5,13 +5,22 @@ import (
 
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
 func TestOverridableFilters(t *testing.T) {
+	m := pmetric.NewMetric()
+	m.SetName("cpu.utilization")
+	m2 := pmetric.NewMetric()
+	m2.SetName("memory.utilization")
+	m3 := pmetric.NewMetric()
+	m3.SetName("disk.utilization")
 	t.Run("Exclude based on simple metric name", func(t *testing.T) {
 		f, _ := NewOverridable([]string{"cpu.utilization"}, nil)
 		assert.True(t, f.Matches(&datapoint.Datapoint{Metric: "cpu.utilization"}))
 		assert.False(t, f.Matches(&datapoint.Datapoint{Metric: "memory.utilization"}))
+		assert.True(t, f.MatchesMetric(m))
+		assert.False(t, f.MatchesMetric(m2))
 	})
 
 	t.Run("Excludes based on multiple metric names", func(t *testing.T) {
@@ -21,6 +30,12 @@ func TestOverridableFilters(t *testing.T) {
 		assert.True(t, f.Matches(&datapoint.Datapoint{Metric: "memory.utilization"}))
 
 		assert.False(t, f.Matches(&datapoint.Datapoint{Metric: "disk.utilization"}))
+
+		assert.True(t, f.MatchesMetric(m))
+
+		assert.True(t, f.MatchesMetric(m2))
+
+		assert.False(t, f.MatchesMetric(m3))
 	})
 
 	t.Run("Excludes based on regex metric name", func(t *testing.T) {
@@ -28,6 +43,10 @@ func TestOverridableFilters(t *testing.T) {
 		assert.True(t, f.Matches(&datapoint.Datapoint{Metric: "cpu.utilization"}))
 
 		assert.False(t, f.Matches(&datapoint.Datapoint{Metric: "disk.utilization"}))
+
+		assert.True(t, f.MatchesMetric(m))
+
+		assert.False(t, f.MatchesMetric(m3))
 	})
 
 	t.Run("Excludes based on glob metric name", func(t *testing.T) {
@@ -36,12 +55,22 @@ func TestOverridableFilters(t *testing.T) {
 		assert.True(t, f.Matches(&datapoint.Datapoint{Metric: "memory.utilization"}))
 
 		assert.False(t, f.Matches(&datapoint.Datapoint{Metric: "disk.utilization"}))
+
+		assert.True(t, f.MatchesMetric(m))
+		assert.True(t, f.MatchesMetric(m2))
+		assert.False(t, f.MatchesMetric(m3))
 	})
 
 	t.Run("Excludes based on dimension name", func(t *testing.T) {
 		f, _ := NewOverridable(nil, map[string][]string{
 			"container_name": {"PO"},
 		})
+		m := pmetric.NewMetric()
+		m.SetName("cpu.utilization")
+		m.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().FromRaw(map[string]any{"container_name": "PO"})
+		m2 := pmetric.NewMetric()
+		m2.SetName("disk.utilization")
+		m2.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().FromRaw(map[string]any{"container_name": "test"})
 
 		assert.True(t, f.Matches(&datapoint.Datapoint{
 			Metric: "cpu.utilization",
@@ -50,18 +79,27 @@ func TestOverridableFilters(t *testing.T) {
 			},
 		}))
 
+		assert.True(t, f.MatchesMetric(m))
+
 		assert.False(t, f.Matches(&datapoint.Datapoint{
 			Metric: "disk.utilization",
 			Dimensions: map[string]string{
 				"container_name": "test",
 			},
 		}))
+		assert.False(t, f.MatchesMetric(m2))
 	})
 
 	t.Run("Excludes based on dimension name regex", func(t *testing.T) {
 		f, _ := NewOverridable(nil, map[string][]string{
 			"container_name": {`/^[A-Z][A-Z]$/`},
 		})
+		m := pmetric.NewMetric()
+		m.SetName("cpu.utilization")
+		m.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().FromRaw(map[string]any{"container_name": "PO"})
+		m2 := pmetric.NewMetric()
+		m2.SetName("disk.utilization")
+		m2.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().FromRaw(map[string]any{"container_name": "test"})
 
 		assert.True(t, f.Matches(&datapoint.Datapoint{
 			Metric: "cpu.utilization",
@@ -69,6 +107,7 @@ func TestOverridableFilters(t *testing.T) {
 				"container_name": "PO",
 			},
 		}))
+		assert.True(t, f.MatchesMetric(m))
 
 		assert.False(t, f.Matches(&datapoint.Datapoint{
 			Metric: "disk.utilization",
@@ -76,12 +115,16 @@ func TestOverridableFilters(t *testing.T) {
 				"container_name": "test",
 			},
 		}))
+		assert.False(t, f.MatchesMetric(m2))
 	})
 
 	t.Run("Excludes based on dimension presence", func(t *testing.T) {
 		f, _ := NewOverridable(nil, map[string][]string{
 			"container_name": {`/.+/`},
 		})
+		m := pmetric.NewMetric()
+		m.SetName("cpu.utilization")
+		m.SetEmptyGauge().DataPoints().AppendEmpty().Attributes().FromRaw(map[string]any{"container_name": "PO"})
 
 		assert.True(t, f.Matches(&datapoint.Datapoint{
 			Metric: "cpu.utilization",
@@ -89,6 +132,7 @@ func TestOverridableFilters(t *testing.T) {
 				"container_name": "test",
 			},
 		}))
+		assert.True(t, f.MatchesMetric(m))
 
 		assert.False(t, f.Matches(&datapoint.Datapoint{
 			Metric: "cpu.utilization",
@@ -96,6 +140,7 @@ func TestOverridableFilters(t *testing.T) {
 				"host": "localhost",
 			},
 		}))
+		assert.False(t, f.MatchesMetric(m2))
 	})
 
 	t.Run("Excludes based on dimension name glob", func(t *testing.T) {

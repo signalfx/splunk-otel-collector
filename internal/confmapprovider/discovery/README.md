@@ -161,10 +161,11 @@ SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint="tcp://localhost:808
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false
 ```
 
-The priority order for discovery config content from lowest to highest is:
+The priority order for discovery config values from lowest to highest is:
 
-1. `config.d/<receivers or extensions>/*.discovery.yaml` file content (lowest).
-2. `config.d/properties.discovery.yaml` file mapped form content.
-3. `config.d/properties.discovery.yaml` file --set form content.
-4. `SPLUNK_DISCOVERY_<xyz>` environment variables available to the collector process.
-5. `--set splunk.discovery.<xyz>` commandline options (highest).
+1. Pre-made `bundle.d` component config content (lowest).
+2. `config.d/<receivers or extensions>/*.discovery.yaml` component config file content.
+3. `config.d/properties.discovery.yaml` properties file mapped form content.
+4. `config.d/properties.discovery.yaml` properties file --set form content.
+5. `SPLUNK_DISCOVERY_<xyz>` property environment variables available to the collector process.
+6. `--set splunk.discovery.<xyz>` property commandline options (highest).

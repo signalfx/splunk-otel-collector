@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -35,8 +36,10 @@ const (
 )
 
 type settings struct {
-	templateFile      string
-	renderInParentDir bool
+	templateFile string
+	dir          string
+	render       bool
+	commented    bool
 }
 
 func panicOnError(err error) {
@@ -49,7 +52,9 @@ func loadSettings() *settings {
 	s := &settings{}
 	flagSet := flag.NewFlagSet("discoverybundler", flag.ContinueOnError)
 	flagSet.StringVarP(&s.templateFile, "template", "t", "", "the discovery config template (.tmpl) to render")
-	flagSet.BoolVarP(&s.renderInParentDir, "render", "r", false, `whether to render in parent dir (sans ".tmpl")`)
+	flagSet.BoolVarP(&s.render, "render", "r", false, `whether to render in parent dir (default) or to --dir`)
+	flagSet.StringVarP(&s.dir, "dir", "d", "", `target directory to render to (sans ".tmpl")`)
+	flagSet.BoolVarP(&s.commented, "commented", "c", false, `whether to comment out all lines`)
 	panicOnError(flagSet.Parse(os.Args[1:]))
 	return s
 }
@@ -64,6 +69,11 @@ func main() {
 	}
 	tmpl, err := os.ReadFile(s.templateFile)
 	panicOnError(err)
+
+	if s.commented {
+		tmpl = commentedTemplate(tmpl)
+	}
+
 	t, err := template.New("discoverybundler").Funcs(bundle.FuncMap()).Parse(string(tmpl))
 	panicOnError(err)
 
@@ -78,11 +88,34 @@ func main() {
 	}
 
 	outFilename := strings.TrimSuffix(s.templateFile, ".tmpl")
-	if s.renderInParentDir {
+	if s.render {
+		if s.dir != "" {
+			filename := filepath.Base(outFilename)
+			var absPath string
+			if absPath, err = filepath.Abs(s.dir); err != nil {
+				panicOnError(fmt.Errorf("failed determining target directory: %w", err))
+			}
+			outFilename = filepath.Join(absPath, filename)
+		}
 		if err = os.WriteFile(outFilename, out.Bytes(), 0600); err != nil {
 			panicOnError(fmt.Errorf("failed writing to %s: %w", outFilename, err))
 		}
 	} else {
 		fmt.Fprint(os.Stdout, out.String())
 	}
+}
+
+// commentedTemplate will prepend "# " to all lines
+// resulting in completely commented out file contents.
+// The resulting template is still usable for execution
+func commentedTemplate(tmpl []byte) []byte {
+	tmplLen := len(tmpl)
+	commented := []byte{'#', ' '}
+	for i, b := range tmpl {
+		commented = append(commented, b)
+		if b == '\n' && i < tmplLen-1 {
+			commented = append(commented, '#', ' ')
+		}
+	}
+	return commented
 }

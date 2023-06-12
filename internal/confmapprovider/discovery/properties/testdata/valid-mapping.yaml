@@ -1,0 +1,20 @@
+splunk.discovery:
+  receivers:
+    a_receiver:
+      config:
+        some_field: some_value
+    another_receiver/with-name:
+      config:
+        parent:
+          child_one:
+            another_field: another_value
+            child_two:
+              another_field: another_value
+              yet_another_field: yet_another_value
+  extensions:
+    docker_observer:
+      enabled: false
+    host_observer/with_a_name:
+      config:
+        refresh_interval: 1h
+

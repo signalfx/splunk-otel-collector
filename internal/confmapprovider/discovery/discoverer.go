@@ -44,6 +44,7 @@ import (
 
 	"github.com/signalfx/splunk-otel-collector/internal/common/discovery"
 	"github.com/signalfx/splunk-otel-collector/internal/components"
+	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/internal"
 	"github.com/signalfx/splunk-otel-collector/internal/confmapprovider/discovery/properties"
 	"github.com/signalfx/splunk-otel-collector/internal/receiver/discoveryreceiver"
 	"github.com/signalfx/splunk-otel-collector/internal/version"
@@ -401,7 +402,7 @@ func (d *discoverer) updateReceiverForObserver(receiverID component.ID, receiver
 	}
 	if hasObserverConfigBlock {
 		if hasDefault {
-			if err := mergeMaps(defaultConfig, observerConfigBlock); err != nil {
+			if err := internal.MergeMaps(defaultConfig, observerConfigBlock); err != nil {
 				return false, fmt.Errorf("failed merging %q config for %q: %w", receiverID, observerID, err)
 			}
 		} else {
@@ -709,19 +710,17 @@ func (d *discoverer) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 // Priority is discovery.properties.yaml < env var properties < --set properties. --set and env var properties
 // are already resolved at this point.
 func (d *discoverer) mergeDiscoveryPropertiesEntry(cfg *Config) error {
-	props := map[string]any{}
-	for k, v := range cfg.DiscoveryProperties.Entry {
-		if prop, err := properties.NewProperty(k, fmt.Sprintf("%s", v)); err != nil {
-			d.logger.Warn(fmt.Sprintf("invalid discovery property %q", k), zap.Error(err))
-		} else {
-			mergeMaps(props, prop.ToStringMap())
-		}
+	conf, warning, fatal := properties.LoadConf(cfg.DiscoveryProperties.ToStringMap())
+	if fatal != nil {
+		return fatal
 	}
-	fileProps := confmap.NewFromStringMap(props)
-	if err := fileProps.Merge(d.propertiesConf); err != nil {
+	if warning != nil {
+		d.logger.Warn("invalid discovery properties will be disregarded", zap.Error(warning))
+	}
+	if err := conf.Merge(d.propertiesConf); err != nil {
 		return err
 	}
-	d.propertiesConf = fileProps
+	d.propertiesConf = conf
 	return nil
 }
 
@@ -737,16 +736,4 @@ func determineCurrentStatus(current, observed discovery.StatusType) discovery.St
 		current = observed
 	}
 	return current
-}
-
-func mergeMaps(dst, src map[string]any) error {
-	dstMap := confmap.NewFromStringMap(dst)
-	srcMap := confmap.NewFromStringMap(src)
-	if err := dstMap.Merge(srcMap); err != nil {
-		return err
-	}
-	for k, v := range dstMap.ToStringMap() {
-		dst[k] = v
-	}
-	return nil
 }

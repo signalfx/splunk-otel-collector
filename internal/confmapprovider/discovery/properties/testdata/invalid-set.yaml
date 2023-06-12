@@ -1,0 +1,7 @@
+splunk.discovery.123:
+splunk.discovery.processors.a_processor.config.some_field: some_value
+splunk.discovery.receivers.a_receiver.unknown.some_field: some_value
+splunk.discovery.receivers.another_receiver/with-name.another_unknown.some_other_field: some_value
+splunk.discovery.receivers.another_receiver/with-name.config.parent::child_one::another_field: another_value
+splunk.discovery.receivers.another_receiver/with-name.config.parent::child_one::child_two::another_field: another_value
+splunk.discovery.receivers.another_receiver/with-name.config.parent::child_one::child_two::yet_another_field: yet_another_value

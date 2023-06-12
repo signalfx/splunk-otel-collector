@@ -125,6 +125,25 @@ splunk.discovery.extensions.k8s_observer.enabled: false
 
 These properties can be in `config.d/properties.discovery.yaml` or specified at run time with `--set` command line options.
 
+The `config.d/properties.discovery.yaml` file supports specifying the property values directly as well within a mapped form:
+
+```yaml
+# --set form will take priority to mapped values
+splunk.discovery.receivers.prometheus_simple.config.labels::my_label: my_label_value
+splunk.discovery.receivers.prometheus_simple.enabled: true
+
+# mapped property form
+splunk.discovery:
+  extensions:
+    docker_observer:
+      enabled: false
+      config:
+        endpoint: tcp://localhost:54321
+  receivers:
+    prometheus_simple:
+      enabled: false # will be overwritten by above --set form (discovery is attempted for the receiver)
+```
+
 Each discovery property also has an equivalent environment variable form using `_x<hex pair>_` encoded delimiters for
 non-word characters `[^a-zA-Z0-9_]`:
 
@@ -142,9 +161,11 @@ SPLUNK_DISCOVERY_EXTENSIONS_docker_observer_CONFIG_endpoint="tcp://localhost:808
 SPLUNK_DISCOVERY_EXTENSIONS_k8s_observer_ENABLED=false
 ```
 
-The priority order for discovery config content from lowest to highest is:
+The priority order for discovery config values from lowest to highest is:
 
-1. `config.d/<receivers or extensions>/*.discovery.yaml` file content (lowest).
-2. `config.d/properties.discovery.yaml` file content.
-3. `SPLUNK_DISCOVERY_<xyz>` environment variables available to the collector process.
-4. `--set splunk.discovery.<xyz>` commandline options (highest).
+1. Pre-made `bundle.d` component config content (lowest).
+2. `config.d/<receivers or extensions>/*.discovery.yaml` component config file content.
+3. `config.d/properties.discovery.yaml` properties file mapped form content.
+4. `config.d/properties.discovery.yaml` properties file --set form content.
+5. `SPLUNK_DISCOVERY_<xyz>` property environment variables available to the collector process.
+6. `--set splunk.discovery.<xyz>` property commandline options (highest).

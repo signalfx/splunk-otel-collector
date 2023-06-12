@@ -1,0 +1,6 @@
+splunk.discovery.receivers.a_receiver.config.some_field: some_value
+splunk.discovery.receivers.another_receiver/with-name.config.parent::child_one::another_field: another_value
+splunk.discovery.receivers.another_receiver/with-name.config.parent::child_one::child_two::another_field: another_value
+splunk.discovery.receivers.another_receiver/with-name.config.parent::child_one::child_two::yet_another_field: yet_another_value
+splunk.discovery.extensions.docker_observer.enabled: false
+splunk.discovery.extensions.host_observer/with_a_name.config.refresh_interval: 1h

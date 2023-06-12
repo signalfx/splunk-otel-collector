@@ -74,7 +74,7 @@ type ComponentID struct {
 func NewProperty(property, val string) (*Property, error) {
 	p, err := parser.ParseString("splunk.discovery", property)
 	if err != nil {
-		return nil, fmt.Errorf("invalid property (parsing error): %w", err)
+		return nil, fmt.Errorf("invalid property %q (parsing error): %w", property, err)
 	}
 	p.Val = val
 

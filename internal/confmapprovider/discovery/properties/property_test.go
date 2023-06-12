@@ -232,9 +232,9 @@ func TestInvalidProperties(t *testing.T) {
 	for _, tt := range []struct {
 		property, expectedError string
 	}{
-		{property: "splunk.discovery.invalid", expectedError: "invalid property (parsing error): splunk.discovery:1:18: unexpected token \"invalid\" (expected (\"receivers\" | \"extensions\") <dot> ComponentID <dot> ((\"config\" <dot>) | \"enabled\") (<string> | <dot> | <forwardslash>)*)"},
-		{property: "splunk.discovery.extensions.config.one.two", expectedError: "invalid property (parsing error): splunk.discovery:1:43: unexpected token \"<EOF>\" (expected <dot> ((\"config\" <dot>) | \"enabled\") (<string> | <dot> | <forwardslash>)*)"},
-		{property: "splunk.discovery.receivers.type/name.config", expectedError: "invalid property (parsing error): splunk.discovery:1:44: unexpected token \"<EOF>\" (expected <dot>)"},
+		{property: "splunk.discovery.invalid", expectedError: "invalid property \"splunk.discovery.invalid\" (parsing error): splunk.discovery:1:18: unexpected token \"invalid\" (expected (\"receivers\" | \"extensions\") <dot> ComponentID <dot> ((\"config\" <dot>) | \"enabled\") (<string> | <dot> | <forwardslash>)*)"},
+		{property: "splunk.discovery.extensions.config.one.two", expectedError: "invalid property \"splunk.discovery.extensions.config.one.two\" (parsing error): splunk.discovery:1:43: unexpected token \"<EOF>\" (expected <dot> ((\"config\" <dot>) | \"enabled\") (<string> | <dot> | <forwardslash>)*)"},
+		{property: "splunk.discovery.receivers.type/name.config", expectedError: "invalid property \"splunk.discovery.receivers.type/name.config\" (parsing error): splunk.discovery:1:44: unexpected token \"<EOF>\" (expected <dot>)"},
 	} {
 		t.Run(tt.property, func(t *testing.T) {
 			p, err := NewProperty(tt.property, "val")

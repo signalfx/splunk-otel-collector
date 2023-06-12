@@ -42,6 +42,7 @@ func TestValidConfig(t *testing.T) {
 	expectedCfg := &Config{
 		ScraperControllerSettings: scraperhelper.ScraperControllerSettings{
 			CollectionInterval: 10 * time.Second,
+			InitialDelay:       time.Second,
 		},
 		HTTPClientSettings: confighttp.NewDefaultHTTPClientSettings(),
 		ResourceAttributes: ResourceAttributesConfig{

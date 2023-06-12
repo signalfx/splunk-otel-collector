@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### 🛑 Breaking changes 🛑
+
+- (Contrib) Set `pkg.translator.prometheus.NormalizeName` feature gate back to Alpha state since it was enabled 
+  prematurely. Metrics coming from Prometheus receiver will not be normalized by default, specifically `_total` suffix
+  will not be removed from metric names. To maintain the current behavior (drop the `_total` suffix), you can enable
+  the feature gate using the `--feature-gates=pkg.translator.prometheus.NormalizeName` command argument. However, note
+  that the translation in the prometheus receiver is a subject to possible future changes.
+  ([#23229](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/23229))
+
 ## v0.78.1
 
 ### 🧰 Bug fixes 🧰

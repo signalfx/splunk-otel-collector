@@ -15,13 +15,14 @@ import (
 	"time"
 
 	"github.com/signalfx/golib/v3/datapoint"
+	"github.com/sirupsen/logrus"
+
 	"github.com/signalfx/signalfx-agent/pkg/core/common/auth"
 	"github.com/signalfx/signalfx-agent/pkg/core/common/httpclient"
 	"github.com/signalfx/signalfx-agent/pkg/core/config"
 	"github.com/signalfx/signalfx-agent/pkg/monitors"
 	"github.com/signalfx/signalfx-agent/pkg/monitors/types"
 	"github.com/signalfx/signalfx-agent/pkg/utils"
-	"github.com/sirupsen/logrus"
 )
 
 func init() {
@@ -71,7 +72,7 @@ type Monitor struct {
 // Configure and kick off internal metric collection
 func (m *Monitor) Configure(conf *Config) (err error) {
 	m.conf = conf
-	m.logger = logrus.WithFields(logrus.Fields{"monitorType": m.monitorName})
+	m.logger = logrus.WithFields(logrus.Fields{"monitorType": m.monitorName, "monitorID": m.conf.MonitorID})
 	// Ignore certificate error which will be checked after
 	m.conf.SkipVerify = true
 

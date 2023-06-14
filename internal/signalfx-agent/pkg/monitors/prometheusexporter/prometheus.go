@@ -47,8 +47,9 @@ type Config struct {
 
 	// Control the log level to use if a scrape failure occurs when scraping
 	// a target. Modifying this configuration is useful for less stable
-	// targets. Only the debug, info, warn, and error log levels are supported.
-	ScrapeFailureLogLevel string `yaml:"scrapeFailureLogLevel" default:"error"`
+	// targets. All logrus log levels are supported.
+	ScrapeFailureLogLevel    string `yaml:"scrapeFailureLogLevel" default:"error"`
+	scrapeFailureLogrusLevel logrus.Level
 
 	// Send all the metrics that come out of the Prometheus exporter without
 	// any filtering.  This option has no effect when using the prometheus
@@ -58,11 +59,12 @@ type Config struct {
 }
 
 func (c *Config) Validate() error {
-	if _, err := logrus.ParseLevel(c.ScrapeFailureLogLevel); err != nil {
+	l, err := logrus.ParseLevel(c.ScrapeFailureLogLevel)
+	if err != nil {
 		return err
-	} else {
-		return nil
 	}
+	c.scrapeFailureLogrusLevel = l
+	return nil
 }
 
 func (c *Config) GetExtraMetrics() []string {
@@ -87,10 +89,9 @@ type Monitor struct {
 	// If true, IncludedMetrics is ignored and everything is sent.
 	SendAll bool
 
-	monitorName        string
-	logger             logrus.FieldLogger
-	loggerFailureLevel logrus.Level
-	cancel             func()
+	monitorName string
+	logger      logrus.FieldLogger
+	cancel      func()
 }
 
 type fetcher func() (io.ReadCloser, expfmt.Format, error)
@@ -98,7 +99,6 @@ type fetcher func() (io.ReadCloser, expfmt.Format, error)
 // Configure the monitor and kick off volume metric syncing
 func (m *Monitor) Configure(conf *Config) error {
 	m.logger = logrus.WithFields(logrus.Fields{"monitorType": m.monitorName, "monitorID": conf.MonitorID})
-	m.loggerFailureLevel, _ = logrus.ParseLevel(conf.ScrapeFailureLogLevel)
 
 	var bearerToken string
 
@@ -152,7 +152,7 @@ func (m *Monitor) Configure(conf *Config) error {
 		dps, err := fetchPrometheusMetrics(fetch)
 		if err != nil {
 			// The default log level is error, users can configure which level to use
-			m.logger.WithError(err).Log(m.loggerFailureLevel, "Could not get prometheus metrics")
+			m.logger.WithError(err).Log(conf.scrapeFailureLogrusLevel, "Could not get prometheus metrics")
 			return
 		}
 

@@ -135,6 +135,7 @@ func TestLoadConfig(t *testing.T) {
 			Host:       "localhost",
 			Port:       5309,
 			MetricPath: "/metrics",
+			ScrapeFailureLogLevel: "error",
 		},
 		acceptsEndpoints: true,
 	}, etcdCfg)
@@ -331,6 +332,7 @@ func TestLoadConfigWithEndpoints(t *testing.T) {
 			Host:       "localhost",
 			Port:       5555,
 			MetricPath: "/metrics",
+			ScrapeFailureLogLevel: "error",
 		},
 		acceptsEndpoints: true,
 	}, etcdCfg)

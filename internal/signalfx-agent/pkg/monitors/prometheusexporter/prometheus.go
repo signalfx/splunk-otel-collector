@@ -58,14 +58,11 @@ type Config struct {
 }
 
 func (c *Config) Validate() error {
-	var logLevels = []string{"debug", "info", "warn", "error"}
-	for _, v := range logLevels {
-		if v == c.ScrapeFailureLogLevel {
-			return nil
-		}
+	if _, err := logrus.ParseLevel(c.ScrapeFailureLogLevel); err != nil {
+		return err
+	} else {
+		return nil
 	}
-	return fmt.Errorf("invalid prometheus scrape failure log level encountered - %s - valid choices include %s",
-		c.ScrapeFailureLogLevel, strings.Join(logLevels, ", "))
 }
 
 func (c *Config) GetExtraMetrics() []string {

@@ -117,3 +117,27 @@ resource_metrics:
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
               transport: http
+          - name: scrape_duration
+            description: Duration of the scrape
+            type: DoubleGauge
+            attributes: {}
+          - name: scrape_samples_post_metric_relabeling
+            description: The number of samples remaining after metric relabeling was applied
+            type: DoubleGauge
+            attributes: {}
+          - name: scrape_samples_scraped
+            description: The number of samples the target exposed
+            type: DoubleGauge
+            attributes: {}
+          - name: scrape_samples_post_metric_relabeling
+            description: The number of samples remaining after metric relabeling was applied
+            type: DoubleGauge
+            attributes: {}
+          - name: scrape_series_added
+            description: The approximate number of new series in this scrape
+            type: DoubleGauge
+            attributes: {}
+          - name: up
+            description: The scraping was successful
+            type: DoubleGauge
+            attributes: {}

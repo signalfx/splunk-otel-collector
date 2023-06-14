@@ -208,6 +208,42 @@ resource_metrics:
               telegraf_type: untyped
               user: splunk-otel-collector
             type: IntGauge
+          - name: procstat_lookup.pid_count
+            attributes:
+              exe: otelcol
+              pid_finder: native
+              plugin: telegraf-procstat
+              result: success
+              system.type: procstat
+              telegraf_type: untyped
+            type: IntGauge
+          - name: procstat.cpu_time_soft_irq
+            type: DoubleGauge
+            attributes:
+              exe: otelcol
+              plugin: telegraf-procstat
+              process_name: otelcol
+              system.type: procstat
+              telegraf_type: untyped
+              user: splunk-otel-collector
+          - name: procstat_lookup.running
+            type: IntGauge
+            attributes:
+              exe: otelcol
+              pid_finder: native
+              plugin: telegraf-procstat
+              result: success
+              system.type: procstat
+              telegraf_type: untyped
+          - name: procstat_lookup.result_code
+            type: IntGauge
+            attributes:
+              exe: otelcol
+              pid_finder: native
+              plugin: telegraf-procstat
+              result: success
+              system.type: procstat
+              telegraf_type: untyped
           - name: procstat.read_bytes
             attributes:
               system.type: procstat

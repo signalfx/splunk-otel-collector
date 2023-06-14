@@ -1,0 +1,21 @@
+exporters:
+  otlp:
+    endpoint: "${OTLP_ENDPOINT}"
+    tls:
+      insecure: true
+processors:
+  filter:
+    metrics:
+      include:
+        match_type: strict
+        metric_names: [otelcol_exporter_enqueue_failed_log_records]
+service:
+  telemetry:
+    metrics:
+      level: none
+      address: ""
+  pipelines:
+    metrics:
+      exporters: [otlp]
+      processors: [filter]
+

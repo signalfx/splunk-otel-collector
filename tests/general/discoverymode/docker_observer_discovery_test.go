@@ -50,7 +50,7 @@ func TestDockerObserver(t *testing.T) {
 	dockerGID := stat.Gid
 
 	cc, shutdown := tc.SplunkOtelCollectorContainer(
-		"otlp-exporter-no-internal-prometheus.yaml",
+		"docker-otlp-exporter-no-internal-prometheus.yaml",
 		func(c testutils.Collector) testutils.Collector {
 			cc := c.(*testutils.CollectorContainer)
 			configd, err := filepath.Abs(filepath.Join(".", "testdata", "docker-observer-config.d"))
@@ -105,10 +105,23 @@ func TestDockerObserver(t *testing.T) {
 					},
 				},
 			},
+			"processors": map[string]any{
+				"filter": map[string]any{
+					"metrics": map[string]any{
+						"include": map[string]any{
+							"match_type": "strict",
+							"metric_names": []any{
+								"prometheus_tsdb_exemplar_exemplars_in_storage",
+							},
+						},
+					},
+				},
+			},
 			"service": map[string]any{
 				"pipelines": map[string]any{
 					"metrics": map[string]any{
-						"exporters": []any{"otlp"},
+						"exporters":  []any{"otlp"},
+						"processors": []any{"filter"},
 					},
 				},
 				"telemetry": map[string]any{
@@ -164,12 +177,25 @@ func TestDockerObserver(t *testing.T) {
 				},
 			},
 		},
+		"processors": map[string]any{
+			"filter": map[string]any{
+				"metrics": map[string]any{
+					"include": map[string]any{
+						"match_type": "strict",
+						"metric_names": []any{
+							"prometheus_tsdb_exemplar_exemplars_in_storage",
+						},
+					},
+				},
+			},
+		},
 		"service": map[string]any{
 			"extensions": []any{"docker_observer"},
 			"pipelines": map[string]any{
 				"metrics": map[string]any{
-					"receivers": []any{"receiver_creator/discovery"},
-					"exporters": []any{"otlp"},
+					"receivers":  []any{"receiver_creator/discovery"},
+					"exporters":  []any{"otlp"},
+					"processors": []any{"filter"},
 				},
 			},
 			"telemetry": map[string]any{
@@ -226,6 +252,13 @@ SPLUNK_DISCOVERY_RECEIVERS_prometheus_x5f_simple_CONFIG_labels_x3a__x3a_label_x5
 extensions:
   docker_observer:
     endpoint: ${DOCKER_DOMAIN_SOCKET}
+processors:
+  filter:
+    metrics:
+      include:
+        match_type: strict
+        metric_names:
+        - prometheus_tsdb_exemplar_exemplars_in_storage
 receivers:
   receiver_creator/discovery:
     receivers:
@@ -250,6 +283,8 @@ service:
     metrics:
       exporters:
       - otlp
+      processors:
+      - filter
       receivers:
       - receiver_creator/discovery
   telemetry:

@@ -23,25 +23,25 @@ type DimensionHandler struct {
 	uidKindCache      map[types.UID]string
 	sendDimensionFunc func(*atypes.Dimension)
 
-	podCache              *k8sutil.PodCache
-	serviceCache          *k8sutil.ServiceCache
-	replicaSetCache       *k8sutil.ReplicaSetCache
-	jobCache              *k8sutil.JobCache
-	addPropertiesNodeName bool
-	logger                log.FieldLogger
+	podCache                *k8sutil.PodCache
+	serviceCache            *k8sutil.ServiceCache
+	replicaSetCache         *k8sutil.ReplicaSetCache
+	jobCache                *k8sutil.JobCache
+	updatesForNodeDimension bool
+	logger                  log.FieldLogger
 }
 
 // NewDimensionHandler creates a handler for dimension updates
-func NewDimensionHandler(sendDimensionFunc func(*atypes.Dimension), addPropertiesNodeName bool, logger log.FieldLogger) *DimensionHandler {
+func NewDimensionHandler(sendDimensionFunc func(*atypes.Dimension), updatesForNodeDimension bool, logger log.FieldLogger) *DimensionHandler {
 	return &DimensionHandler{
-		uidKindCache:          make(map[types.UID]string),
-		sendDimensionFunc:     sendDimensionFunc,
-		podCache:              k8sutil.NewPodCache(),
-		serviceCache:          k8sutil.NewServiceCache(),
-		replicaSetCache:       k8sutil.NewReplicaSetCache(),
-		jobCache:              k8sutil.NewJobCache(),
-		addPropertiesNodeName: addPropertiesNodeName,
-		logger:                logger,
+		uidKindCache:            make(map[types.UID]string),
+		sendDimensionFunc:       sendDimensionFunc,
+		podCache:                k8sutil.NewPodCache(),
+		serviceCache:            k8sutil.NewServiceCache(),
+		replicaSetCache:         k8sutil.NewReplicaSetCache(),
+		jobCache:                k8sutil.NewJobCache(),
+		updatesForNodeDimension: updatesForNodeDimension,
+		logger:                  logger,
 	}
 }
 
@@ -70,7 +70,7 @@ func (dh *DimensionHandler) HandleAdd(newObj runtime.Object) interface{} {
 		dh.sendDimensionFunc(dimensionForReplicationController(o))
 		kind = "ReplicationController"
 	case *v1.Node:
-		for _, dim := range dimensionsForNode(o, dh.addPropertiesNodeName) {
+		for _, dim := range dimensionsForNode(o, dh.updatesForNodeDimension) {
 			dh.sendDimensionFunc(dim)
 		}
 		kind = "Node"

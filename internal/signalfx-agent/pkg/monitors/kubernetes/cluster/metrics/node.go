@@ -57,14 +57,14 @@ func datapointsForNode(
 	return datapoints
 }
 
-func dimensionsForNode(node *v1.Node, addPropertiesNodeName bool) []*atypes.Dimension {
+func dimensionsForNode(node *v1.Node, updatesForNodeDimension bool) []*atypes.Dimension {
 	var out []*atypes.Dimension
 	props, tags := k8sutil.PropsAndTagsFromLabels(node.Labels)
 	_ = getPropsFromTaints(node.Spec.Taints)
 
 	props["node_creation_timestamp"] = node.GetCreationTimestamp().Format(time.RFC3339)
 
-	if addPropertiesNodeName {
+	if updatesForNodeDimension {
 		propsCopy := make(map[string]string)
 		for k, v := range props {
 			propsCopy[k] = v
@@ -75,7 +75,7 @@ func dimensionsForNode(node *v1.Node, addPropertiesNodeName bool) []*atypes.Dime
 		}
 		out = append(out, &atypes.Dimension{
 			Name:       "kubernetes_node",
-			Value:      string(node.Name),
+			Value:      node.Name,
 			Properties: propsCopy,
 			Tags:       tagsCopy,
 		})

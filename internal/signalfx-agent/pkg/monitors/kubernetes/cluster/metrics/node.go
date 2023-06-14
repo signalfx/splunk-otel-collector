@@ -57,19 +57,39 @@ func datapointsForNode(
 	return datapoints
 }
 
-func dimensionForNode(node *v1.Node) *atypes.Dimension {
+func dimensionsForNode(node *v1.Node, addPropertiesNodeName bool) []*atypes.Dimension {
+	var out []*atypes.Dimension
 	props, tags := k8sutil.PropsAndTagsFromLabels(node.Labels)
 	_ = getPropsFromTaints(node.Spec.Taints)
 
-	props["kubernetes_node"] = node.Name
 	props["node_creation_timestamp"] = node.GetCreationTimestamp().Format(time.RFC3339)
 
-	return &atypes.Dimension{
+	if addPropertiesNodeName {
+		propsCopy := make(map[string]string)
+		for k, v := range props {
+			propsCopy[k] = v
+		}
+		tagsCopy := make(map[string]bool)
+		for k, v := range tags {
+			tagsCopy[k] = v
+		}
+		out = append(out, &atypes.Dimension{
+			Name:       "kubernetes_node",
+			Value:      string(node.Name),
+			Properties: propsCopy,
+			Tags:       tagsCopy,
+		})
+	}
+
+	props["kubernetes_node"] = node.Name
+	out = append(out, &atypes.Dimension{
 		Name:       "kubernetes_node_uid",
 		Value:      string(node.UID),
 		Properties: props,
 		Tags:       tags,
-	}
+	})
+
+	return out
 }
 
 func getPropsFromTaints(taints []v1.Taint) map[string]string {

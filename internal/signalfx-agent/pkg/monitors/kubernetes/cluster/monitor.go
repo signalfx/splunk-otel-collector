@@ -60,6 +60,10 @@ type Config struct {
 	// with a value of `0` corresponding to "False", `1` to "True", and `-1`
 	// to "Unknown".
 	NodeConditionTypesToReport []string `yaml:"nodeConditionTypesToReport" default:"[\"Ready\"]"`
+	// If set to true, the `kubernetes_node` dimension, in addition to the `kubernetes_node_uid` dimension, will get
+	// properties about each respective node synced to it. Do not enable this, if node names in the cluster are
+	// reused (can lead to colliding or stale properties).
+	UpdatesForNodeDimension bool `yaml:"updatesForNodeDimension" default:"false"`
 }
 
 // Validate the k8s-specific config
@@ -106,7 +110,7 @@ func (m *Monitor) Configure(config *Config) error {
 	}
 
 	m.datapointCache = metrics.NewDatapointCache(m.config.NodeConditionTypesToReport, m.logger)
-	m.dimHandler = metrics.NewDimensionHandler(m.Output.SendDimensionUpdate, m.logger)
+	m.dimHandler = metrics.NewDimensionHandler(m.Output.SendDimensionUpdate, m.config.UpdatesForNodeDimension, m.logger)
 	m.stop = make(chan struct{})
 
 	return m.Start()

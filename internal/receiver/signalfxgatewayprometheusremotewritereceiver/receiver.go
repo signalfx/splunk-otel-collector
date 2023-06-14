@@ -72,7 +72,7 @@ func (receiver *prometheusRemoteWriteReceiver) Start(ctx context.Context, host c
 		TelemetrySettings:  receiver.settings.TelemetrySettings,
 		Reporter:           receiver.reporter,
 		Host:               host,
-		Parser:             &prometheusRemoteOtelParser{},
+		Parser:             newPrometheusRemoteOtelParser(),
 	}
 	ctx, receiver.cancel = context.WithCancel(ctx)
 	server, err := newPrometheusRemoteWriteServer(cfg)

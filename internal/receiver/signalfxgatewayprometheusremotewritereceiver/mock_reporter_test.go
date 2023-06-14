@@ -30,8 +30,8 @@ type mockReporter struct {
 	OpsFailed           *sync.WaitGroup
 	Errors              chan error
 	ErrorLocation       chan string
-	TotalSuccessMetrics atomic.Int32
-	TotalErrorMetrics   atomic.Int32
+	TotalSuccessMetrics *atomic.Int32
+	TotalErrorMetrics   *atomic.Int32
 }
 
 var _ reporter = (*mockReporter)(nil)
@@ -54,8 +54,8 @@ func newMockReporter() *mockReporter {
 		OpsSuccess:          &sync.WaitGroup{},
 		OpsFailed:           &sync.WaitGroup{},
 		OpsStarted:          &sync.WaitGroup{},
-		TotalErrorMetrics:   atomic.Int32{},
-		TotalSuccessMetrics: atomic.Int32{},
+		TotalErrorMetrics:   &atomic.Int32{},
+		TotalSuccessMetrics: &atomic.Int32{},
 	}
 	return &m
 }

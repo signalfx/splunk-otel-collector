@@ -39,3 +39,21 @@ func TestPrometheusExporterScrapesTargets(t *testing.T) {
 		t, "httpd.yaml", "httpd_metrics_config.yaml", httpd, nil,
 	)
 }
+
+func TestPrometheusExporterScrapesTargetsWithFilter(t *testing.T) {
+	httpd := []testutils.Container{testutils.NewContainer().WithContext(
+		path.Join(".", "testdata", "httpd"),
+	).WithName("httpd").WithExposedPorts("8000:80").WillWaitForPorts("80")}
+	testutils.AssertAllMetricsReceived(
+		t, "httpd_filtered.yaml", "httpd_metrics_config_with_filter.yaml", httpd, nil,
+	)
+}
+
+func TestPrometheusExporterScrapesTargetsWithNegationFilter(t *testing.T) {
+	httpd := []testutils.Container{testutils.NewContainer().WithContext(
+		path.Join(".", "testdata", "httpd"),
+	).WithName("httpd").WithExposedPorts("8000:80").WillWaitForPorts("80")}
+	testutils.AssertAllMetricsReceived(
+		t, "httpd_filtered.yaml", "httpd_metrics_config_with_negation_filter.yaml", httpd, nil,
+	)
+}

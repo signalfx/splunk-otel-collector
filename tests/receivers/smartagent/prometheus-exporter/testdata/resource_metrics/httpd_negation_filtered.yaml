@@ -1,0 +1,7 @@
+resource_metrics:
+  - scope_metrics:
+      - metrics:
+          - attributes:
+              system.type: prometheus-exporter
+            name: istio_agent_go_gc_duration_seconds_count
+            type: IntMonotonicCumulativeSum

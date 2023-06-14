@@ -45,6 +45,7 @@ RUN Remove-Item "openjdk.zip" -force
 
 # Setting environment variables
 ENV SPLUNK_BUNDLE_DIR="C:\Program Files\Splunk\OpenTelemetry Collector\agent-bundle"
+ENV SPLUNK_CONFIG="C:\ProgramData\Splunk\OpenTelemetry Collector\gateway_config.yaml"
 # Category ENV_VAR: Forcing interactive mode instead of running as a service. 
 # Reference - https://github.com/signalfx/splunk-otel-collector/pull/254
 ENV NO_WINDOWS_SERVICE="1"

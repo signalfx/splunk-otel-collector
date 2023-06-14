@@ -167,6 +167,201 @@ receivers:
   fluentforward:
     endpoint: 0.0.0.0:8006
 
+  # Enables filelog receiver
+  # Full configuration here: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver
+  filelog:
+    include:
+      - /Library/Logs/*
+      - /var/log/*.log*
+      - /var/log/*log
+      - /var/log/*messages*
+      - /var/log/*secure*
+      - /var/log/*auth*
+      - /var/log/*mesg
+      - /var/log/*cron
+      - /var/log/*acpid
+      - /var/log/*.out*
+      - /var/adm/*.log*
+      - /var/adm/*log
+      - /var/adm/*messages*
+      - /etc/*.conf*
+      - /etc/*.cfg*
+      - /etc/*config
+      - /etc/*.ini*
+      - /etc/*.init*
+      - /etc/*.cf*
+      - /etc/*.cnf*
+      - /etc/*shrc
+      - /etc/ifcfg*
+      - /etc/*.profile*
+      - /etc/*.rc*
+      - /etc/*.rules*
+      - /etc/*.tab*
+      - /etc/*tab
+      - /etc/*.login*
+      - /etc/*policy
+      - /root/.bash_history
+      - /home/*/.bash_history
+    exclude:
+      - /var/log/*lastlog*
+      - /var/log/*anaconda.syslog*
+
+    include_file_name: false
+    include_file_path: true
+
+  # Enables script receiver
+  # Full configuration here: https://github.com/weliasz/splunk-otel-collector/tree/main/internal/receiver/scriptreceiver
+  script/bandwidth:
+    exec_file: bandwidth.sh
+    interval: 60s
+    source: bandwidth
+    sourcetype: bandwidth
+  script/cpu:
+    exec_file: cpu.sh
+    interval: 30s
+    source: cpu
+    sourcetype: cpu
+  script/df:
+    exec_file: df.sh
+    interval: 10s
+    source: df
+    sourcetype: df
+  script/hardware:
+    exec_file: hardware.sh
+    interval: 36000s
+    source: hardware
+    sourcetype: hardware
+  script/interfaces:
+    exec_file: interfaces.sh
+    interval: 60s
+    source: interfaces
+    sourcetype: interfaces
+  script/iostat:
+    exec_file: iostat.sh
+    interval: 60s
+    source: iostat
+    sourcetype: iostat
+  script/lastlog:
+    exec_file: lastlog.sh
+    interval: 300s
+    source: lastlog
+    sourcetype: lastlog
+  script/lsof:
+    exec_file: lsof.sh
+    interval: 600s
+    source: lsof
+    sourcetype: lsof
+  script/netstat:
+    exec_file: netstat.sh
+    interval: 60s
+    source: netstat
+    sourcetype: netstat
+  script/nfsiostat:
+    exec_file: nfsiostat.sh
+    interval: 60s
+    source: nfsiostat
+    sourcetype: nfsiostat
+  script/openPorts:
+    exec_file: openPorts.sh
+    interval: 300s
+    source: openPorts
+    sourcetype: openPorts
+  script/openPortsEnhanced:
+    exec_file: openPortsEnhanced.sh
+    interval: 3600s
+    source: openPortsEnhanced
+    sourcetype: openPortsEnhanced
+  script/package:
+    exec_file: package.sh
+    interval: 3600s
+    source: package
+    sourcetype: package
+  script/passwd:
+    exec_file: passwd.sh
+    interval: 3600s
+    source: passwd
+    sourcetype: passwd
+  script/protocol:
+    exec_file: protocol.sh
+    interval: 60s
+    source: protocol
+    sourcetype: protocol
+  script/ps:
+    exec_file: ps.sh
+    interval: 30s
+    source: ps
+    sourcetype: ps
+  script/rlog:
+    exec_file: rlog.sh
+    interval: 60s
+    source: rlog
+    sourcetype: rlog
+  script/selinuxChecker:
+    exec_file: selinuxChecker.sh
+    interval: 3600s
+    source: selinuxChecker
+    sourcetype: selinuxChecker
+  script/service:
+    exec_file: service.sh
+    interval: 3600s
+    source: service
+    sourcetype: service
+  script/setup:
+    exec_file: setup.sh
+    interval: 3600s
+    source: setup
+    sourcetype: setup
+  script/sshdChecker:
+    exec_file: sshdChecker.sh
+    interval: 3600s
+    source: sshdChecker
+    sourcetype: sshdChecker
+  script/time:
+    exec_file: time.sh
+    interval: 21600s
+    source: time
+    sourcetype: time
+  script/top:
+    exec_file: top.sh
+    interval: 60s
+    source: top
+    sourcetype: top
+  script/update:
+    exec_file: update.sh
+    interval: 86400s
+    source: update
+    sourcetype: update
+  script/uptime:
+    exec_file: uptime.sh
+    interval: 86400s
+    source: uptime
+    sourcetype: uptime
+  script/usersWithLoginPrivs:
+    exec_file: usersWithLoginPrivs.sh
+    interval: 3600s
+    source: usersWithLoginPrivs
+    sourcetype: usersWithLoginPrivs
+  script/version:
+    exec_file: version.sh
+    interval: 86400s
+    source: version
+    sourcetype: version
+  script/vmstat:
+    exec_file: vmstat.sh
+    interval: 60s
+    source: vmstat
+    sourcetype: vmstat
+  script/vsftpdChecker:
+    exec_file: vsftpdChecker.sh
+    interval: 86400s
+    source: vsftpdChecker
+    sourcetype: vsftpdChecker
+  script/who:
+    exec_file: who.sh
+    interval: 150s
+    source: who
+    sourcetype: who
+
 ###############################################################################
 # Processors
 # What to do with data as it passes from receivers to exporters
@@ -580,6 +775,6 @@ service:
       processors: [memory_limiter, batch]
       exporters: [signalfx]
     logs:
-      receivers: [fluentforward, otlp]
+      receivers: [fluentforward, otlp, filelog, script/bandwidth,script/cpu,script/df,script/hardware,script/interfaces,script/iostat,script/lastlog,script/lsof,script/netstat,script/nfsiostat,script/openPorts,script/openPortsEnhanced,script/package,script/passwd,script/protocol,script/ps,script/rlog,script/selinuxChecker,script/service,script/setup,script/sshdChecker,script/time,script/top,script/update,script/uptime,script/usersWithLoginPrivs,script/version,script/vmstat,script/vsftpdChecker,script/who]
       processors: [memory_limiter, batch]
       exporters: [splunk_hec]

@@ -42,6 +42,8 @@ FLUENTD_CONFIG_INSTALL_DIR="/etc/otel/collector/fluentd"
 BUNDLE_BASE_DIR="/usr/lib/splunk-otel-collector"
 AGENT_BUNDLE_INSTALL_DIR="$BUNDLE_BASE_DIR/agent-bundle"
 
+SCRIPT_RECEIVER_SCRIPTS_DIR="internal/receiver/scriptreceiver/scripts"
+
 PREINSTALL_PATH="$FPM_DIR/preinstall.sh"
 POSTINSTALL_PATH="$FPM_DIR/postinstall.sh"
 PREUNINSTALL_PATH="$FPM_DIR/preuninstall.sh"
@@ -89,6 +91,8 @@ setup_files_and_permissions() {
     sudo chown -R $SERVICE_USER:$SERVICE_GROUP "$buildroot/etc/otel"
     sudo chmod -R 755 "$buildroot/etc/otel"
     sudo chmod 600 "$buildroot/etc/otel/collector/$SERVICE_NAME.conf.example"
+
+    cp -r "$SCRIPT_RECEIVER_SCRIPTS_DIR" "$buildroot/etc/otel/collector"
 
     mkdir -p "$buildroot/$(dirname $SERVICE_INSTALL_PATH)"
     cp -f "$SERVICE_REPO_PATH" "$buildroot/$SERVICE_INSTALL_PATH"

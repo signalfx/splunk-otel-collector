@@ -43,7 +43,7 @@ RUN ENCODED_VER=$(echo $JDK_VERSION | sed 's/_/%2B/g') && \
     else \
     OPENJDK_URL="${OPENJDK_BASE_URL}/jdk-${ENCODED_VER}/OpenJDK11U-jdk_${ARCH}_linux_hotspot_${JDK_VERSION}.tar.gz"; \
     fi && \
-    wget -nv -O /tmp/openjdk.tar.gz "$OPENJDK_URL"
+    wget -nv --no-check-certificate -O /tmp/openjdk.tar.gz "$OPENJDK_URL"
 
 RUN mkdir -p /opt/root && \
     tar -C /opt/root -xzf /tmp/openjdk.tar.gz && \
@@ -60,7 +60,7 @@ RUN mkdir -p /opt/root/jre && \
 
 ENV MAVEN_BASE_URL="https://archive.apache.org/dist/maven/maven-3"
 
-RUN wget -nv -O /tmp/maven.tar.gz ${MAVEN_BASE_URL}/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
+RUN wget -nv --no-check-certificate -O /tmp/maven.tar.gz ${MAVEN_BASE_URL}/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
     tar -C /tmp -xzf /tmp/maven.tar.gz && \
     rm -f /tmp/maven.tar.gz
 
@@ -68,10 +68,10 @@ ENV PATH=$PATH:/tmp/apache-maven-${MAVEN_VERSION}/bin
 
 COPY java/ /usr/src/agent-java/
 RUN cd /usr/src/agent-java/runner &&\
-    mvn -V -q clean install
+    mvn -V -q -Dmaven.wagon.http.ssl.insecure=true clean install
 
 RUN cd /usr/src/agent-java/jmx &&\
-    mvn -V -q clean package
+    mvn -V -q -Dmaven.wagon.http.ssl.insecure=true clean package
 
 RUN rm -rf /tmp/apache-maven*
 
@@ -153,13 +153,13 @@ RUN sed -i -e '/^deb-src/d' /etc/apt/sources.list &&\
       quilt \
       zlib1g-dev
 
-RUN wget -nv https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
+RUN wget -nv --no-check-certificate https://dev.mysql.com/get/mysql-apt-config_0.8.12-1_all.deb && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29 && \
     dpkg -i mysql-apt-config_0.8.12-1_all.deb && \
     rm -f mysql-apt-config_0.8.12-1_all.deb && \
     apt-get update -qq && apt-get install -qq -y libmysqlclient-dev libcurl4-gnutls-dev
 
-RUN wget -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
+RUN wget --no-check-certificate -nv -O /tmp/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz &&\
     cd /tmp &&\
     tar -xzf Python-${PYTHON_VERSION}.tgz && \
     cd Python-${PYTHON_VERSION} && \
@@ -178,7 +178,7 @@ ARG COLLECTD_VERSION
 ARG COLLECTD_COMMIT
 
 RUN cd /tmp &&\
-    wget -nv https://github.com/signalfx/collectd/archive/${COLLECTD_COMMIT}.tar.gz &&\
+    wget --no-check-certificate -nv https://github.com/signalfx/collectd/archive/${COLLECTD_COMMIT}.tar.gz &&\
     tar -xzf ${COLLECTD_COMMIT}.tar.gz &&\
     mkdir -p /usr/src/ &&\
     mv collectd-${COLLECTD_COMMIT}* /usr/src/collectd &&\
@@ -256,7 +256,7 @@ RUN /opt/collect-libs /opt/deps /usr/sbin/collectd /usr/lib/collectd/
 
 # Compile patchelf statically from source
 RUN cd /tmp &&\
-    wget -nv https://nixos.org/releases/patchelf/patchelf-0.11/patchelf-0.11.tar.gz &&\
+    wget --no-check-certificate -nv https://nixos.org/releases/patchelf/patchelf-0.11/patchelf-0.11.tar.gz &&\
     tar -xzf patchelf*.tar.gz &&\
     cd patchelf-0.11* &&\
     ./configure LDFLAGS="-static" &&\
@@ -275,14 +275,14 @@ FROM collectd as python-plugins
 
 ARG PIP_VERSION
 
-RUN /usr/local/bin/python3 -m pip install --upgrade pip==$PIP_VERSION
+RUN /usr/local/bin/python3 -m pip install --trusted-host pypi.org --upgrade pip==$PIP_VERSION
 
 # Mirror the same dir structure that exists in the original source
 COPY scripts/get-collectd-plugins.py /opt/scripts/
 COPY scripts/requirements.txt /opt/
 COPY collectd-plugins.yaml /opt/
 
-RUN /usr/local/bin/python3 -m pip install -r /opt/requirements.txt
+RUN /usr/local/bin/python3 -m pip install --trusted-host pypi.org -r /opt/requirements.txt
 
 RUN mkdir -p /opt/collectd-python &&\
     /usr/local/bin/python3 -u /opt/scripts/get-collectd-plugins.py /opt/collectd-python

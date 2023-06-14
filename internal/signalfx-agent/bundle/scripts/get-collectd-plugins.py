@@ -21,6 +21,7 @@ import subprocess
 import sys
 import tarfile
 import urllib.request
+import ssl
 
 import yaml
 
@@ -36,6 +37,7 @@ for p in PLUGINS:
     version = p.get("version")
     repo = p.get("repo")
     url = "https://github.com/{repo}/archive/{version}.tar.gz".format(repo=repo, version=version)
+    gcontext = ssl.SSLContext()
 
     print(
         """Bundling...
@@ -47,7 +49,7 @@ url:     {u}""".format(
         )
     )
 
-    with contextlib.closing(urllib.request.urlopen(url)) as stream:
+    with contextlib.closing(urllib.request.urlopen(url, context=gcontext)) as stream:
         with tarfile.open(fileobj=stream, mode="r|gz") as tar_archive:
             tar_archive.extractall(TARGET_DIR)
             plugin_dir = os.path.join(TARGET_DIR, plugin_name)
@@ -60,7 +62,7 @@ url:     {u}""".format(
     requirements_file = os.path.join(plugin_dir, "requirements.txt")
     if os.path.isfile(requirements_file):
         subprocess.check_call(
-            [PYTHON_EXECUTABLE, "-m", "pip", "install", "-qq", "--no-warn-script-location", "-r", requirements_file]
+            [PYTHON_EXECUTABLE, "-m", "pip", "install", "--trusted-host", "github.com", "--trusted-host", "codeload.github.com", "-qq", "--no-warn-script-location", "-r", requirements_file]
         )
 
     # remove unnecessary things

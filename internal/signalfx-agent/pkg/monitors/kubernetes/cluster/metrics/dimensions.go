@@ -23,23 +23,25 @@ type DimensionHandler struct {
 	uidKindCache      map[types.UID]string
 	sendDimensionFunc func(*atypes.Dimension)
 
-	podCache        *k8sutil.PodCache
-	serviceCache    *k8sutil.ServiceCache
-	replicaSetCache *k8sutil.ReplicaSetCache
-	jobCache        *k8sutil.JobCache
-	logger          log.FieldLogger
+	podCache                *k8sutil.PodCache
+	serviceCache            *k8sutil.ServiceCache
+	replicaSetCache         *k8sutil.ReplicaSetCache
+	jobCache                *k8sutil.JobCache
+	updatesForNodeDimension bool
+	logger                  log.FieldLogger
 }
 
 // NewDimensionHandler creates a handler for dimension updates
-func NewDimensionHandler(sendDimensionFunc func(*atypes.Dimension), logger log.FieldLogger) *DimensionHandler {
+func NewDimensionHandler(sendDimensionFunc func(*atypes.Dimension), updatesForNodeDimension bool, logger log.FieldLogger) *DimensionHandler {
 	return &DimensionHandler{
-		uidKindCache:      make(map[types.UID]string),
-		sendDimensionFunc: sendDimensionFunc,
-		podCache:          k8sutil.NewPodCache(),
-		serviceCache:      k8sutil.NewServiceCache(),
-		replicaSetCache:   k8sutil.NewReplicaSetCache(),
-		jobCache:          k8sutil.NewJobCache(),
-		logger:            logger,
+		uidKindCache:            make(map[types.UID]string),
+		sendDimensionFunc:       sendDimensionFunc,
+		podCache:                k8sutil.NewPodCache(),
+		serviceCache:            k8sutil.NewServiceCache(),
+		replicaSetCache:         k8sutil.NewReplicaSetCache(),
+		jobCache:                k8sutil.NewJobCache(),
+		updatesForNodeDimension: updatesForNodeDimension,
+		logger:                  logger,
 	}
 }
 
@@ -68,7 +70,9 @@ func (dh *DimensionHandler) HandleAdd(newObj runtime.Object) interface{} {
 		dh.sendDimensionFunc(dimensionForReplicationController(o))
 		kind = "ReplicationController"
 	case *v1.Node:
-		dh.sendDimensionFunc(dimensionForNode(o))
+		for _, dim := range dimensionsForNode(o, dh.updatesForNodeDimension) {
+			dh.sendDimensionFunc(dim)
+		}
 		kind = "Node"
 	case *v1.Service:
 		dh.handleAddService(o)

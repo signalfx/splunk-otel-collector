@@ -54,7 +54,7 @@ func TestHostObserver(t *testing.T) {
 	promPort := testutils.GetAvailablePort(t)
 
 	cc, shutdown := tc.SplunkOtelCollectorContainer(
-		"otlp-exporter-no-internal-prometheus.yaml",
+		"host-otlp-exporter-no-internal-prometheus.yaml",
 		func(c testutils.Collector) testutils.Collector {
 			cc := c.(*testutils.CollectorContainer)
 			configd, err := filepath.Abs(filepath.Join(".", "testdata", "host-observer-config.d"))
@@ -128,10 +128,23 @@ func TestHostObserver(t *testing.T) {
 					},
 				},
 			},
+			"processors": map[string]any{
+				"filter": map[string]any{
+					"metrics": map[string]any{
+						"include": map[string]any{
+							"match_type": "strict",
+							"metric_names": []any{
+								"otelcol_exporter_enqueue_failed_log_records",
+							},
+						},
+					},
+				},
+			},
 			"service": map[string]any{
 				"pipelines": map[string]any{
 					"metrics": map[string]any{
-						"exporters": []any{"otlp"},
+						"exporters":  []any{"otlp"},
+						"processors": []any{"filter"},
 					},
 				},
 				"telemetry": map[string]any{
@@ -189,12 +202,25 @@ func TestHostObserver(t *testing.T) {
 				},
 			},
 		},
+		"processors": map[string]any{
+			"filter": map[string]any{
+				"metrics": map[string]any{
+					"include": map[string]any{
+						"match_type": "strict",
+						"metric_names": []any{
+							"otelcol_exporter_enqueue_failed_log_records",
+						},
+					},
+				},
+			},
+		},
 		"service": map[string]any{
 			"extensions": []any{"host_observer"},
 			"pipelines": map[string]any{
 				"metrics": map[string]any{
-					"receivers": []any{"receiver_creator/discovery"},
-					"exporters": []any{"otlp"},
+					"receivers":  []any{"receiver_creator/discovery"},
+					"exporters":  []any{"otlp"},
+					"processors": []any{"filter"},
 				},
 			},
 			"telemetry": map[string]any{
@@ -247,6 +273,13 @@ SPLUNK_DISCOVERY_EXTENSIONS_host_observer_CONFIG_refresh_interval=\$REFRESH_INTE
 extensions:
   host_observer:
     refresh_interval: $REFRESH_INTERVAL
+processors:
+  filter:
+    metrics:
+      include:
+        match_type: strict
+        metric_names:
+        - otelcol_exporter_enqueue_failed_log_records
 receivers:
   receiver_creator/discovery:
     receivers:
@@ -268,6 +301,8 @@ service:
     metrics:
       exporters:
       - otlp
+      processors:
+      - filter
       receivers:
       - receiver_creator/discovery
   telemetry:

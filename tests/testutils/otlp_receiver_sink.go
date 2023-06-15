@@ -266,9 +266,9 @@ func (otlp *OTLPReceiverSink) AssertAllMetricsReceived(t testing.TB, expectedRes
 		require.NotNil(t, receivedResourceMetrics)
 		receivedMetrics = telemetry.FlattenResourceMetrics(receivedMetrics, receivedResourceMetrics)
 
-		var containsAll bool
-		containsAll, err = receivedMetrics.ContainsAll(expectedResourceMetrics)
-		return containsAll
+		var containsOnly bool
+		containsOnly, err = receivedMetrics.ContainsOnly(expectedResourceMetrics)
+		return containsOnly
 	}, waitTime, 10*time.Millisecond, "Failed to receive expected metrics")
 
 	// testify won't render exceptionally long errors, so leaving this here for easy debugging

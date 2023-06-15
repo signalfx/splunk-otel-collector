@@ -53,6 +53,8 @@ resource_metrics:
             type: DoubleGauge
           - name: sqlserver_performance.backup_restore_throughput_sec
             type: DoubleGauge
+          - name: sqlserver_performance.batch_requests_sec
+            type: DoubleGauge
           - name: sqlserver_performance.blocked_tasks
             type: DoubleGauge
           - name: sqlserver_performance.buffer_cache_hit_ratio

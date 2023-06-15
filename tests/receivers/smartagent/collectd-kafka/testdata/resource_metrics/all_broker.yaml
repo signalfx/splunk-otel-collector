@@ -43,6 +43,12 @@ resource_metrics:
             type: IntGauge
           - name: gauge.kafka.produce.total-time.99th
             type: IntGauge
+          - name: counter.kafka.logs.flush-time.count
+            type: IntMonotonicCumulativeSum
+          - name: gauge.kafka.logs.flush-time.median
+            type: DoubleGauge
+          - name: gauge.kafka.logs.flush-time.99th
+            type: DoubleGauge
           - name: gauge.kafka.produce.total-time.median
           - name: gauge.loaded_classes
             type: IntGauge

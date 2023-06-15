@@ -50,7 +50,7 @@ func TestK8sObserver(t *testing.T) {
 
 	namespace, serviceAccount := createNamespaceAndServiceAccount(cluster)
 
-	configMap, configMapManifest := configToConfigMapManifest(t, "otlp-exporter-no-internal-prometheus.yaml", namespace)
+	configMap, configMapManifest := configToConfigMapManifest(t, "k8s-otlp-exporter-no-internal-prometheus.yaml", namespace)
 	sout, serr, err := cluster.Apply(configMapManifest)
 	tc.Logger.Debug("applying ConfigMap", zap.String("stdout", sout.String()), zap.String("stderr", serr.String()))
 	require.NoError(t, err)
@@ -118,6 +118,13 @@ SPLUNK_DISCOVERY_RECEIVERS_smartagent_CONFIG_extraDimensions_x3a__x3a_three_x2e_
 extensions:
   k8s_observer:
     auth_type: serviceAccount
+processors:
+  filter:
+    metrics:
+      include:
+        match_type: strict
+        metric_names:
+        - gauge.connected_clients
 receivers:
   receiver_creator/discovery:
     receivers:
@@ -139,6 +146,8 @@ service:
     metrics:
       exporters:
       - otlp
+      processors:
+      - filter
       receivers:
       - receiver_creator/discovery
   telemetry:
@@ -208,8 +217,9 @@ func createNamespaceAndServiceAccount(cluster *kubeutils.KindCluster) (string, s
 	return namespace, serviceAccount.Name
 }
 
-func configToConfigMapManifest(t testing.TB, _, namespace string) (name, manifest string) {
-	config, err := os.ReadFile(filepath.Join(".", "testdata", "otlp-exporter-no-internal-prometheus.yaml"))
+func configToConfigMapManifest(t testing.TB, cfg, namespace string) (name, manifest string) {
+	config, err := os.ReadFile(filepath.Join(".", "testdata", cfg))
+	require.NoError(t, err)
 	configStore := map[string]any{"config": string(config)}
 
 	k8sObserver, err := os.ReadFile(filepath.Join(".", "testdata", "k8s-observer-config.d", "extensions", "k8s-observer.discovery.yaml"))

@@ -17,3 +17,19 @@ resource_metrics:
             type: IntGauge
           - name: gauge.tomcat.ThreadPool.maxThreads
             type: IntGauge
+          - name: gauge.loaded_classes
+            type: IntGauge
+          - name: jmx_memory.init
+            type: IntGauge
+          - name: jmx_memory.max
+            type: IntGauge
+          - name: jmx_memory.used
+            type: IntGauge
+          - name: gauge.jvm.threads.count
+            type: IntGauge
+          - name: invocations
+            type: IntMonotonicCumulativeSum
+          - name: jmx_memory.committed
+            type: IntGauge
+          - name: total_time_in_ms.collection_time
+            type: IntMonotonicCumulativeSum

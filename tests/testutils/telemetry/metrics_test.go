@@ -17,6 +17,7 @@
 package telemetry
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -378,6 +379,13 @@ func TestMetricContainsAllSelfCheck(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestMetricContainsOnlySelfCheck(t *testing.T) {
+	resourceMetrics := loadedResourceMetrics(t)
+	containsAll, err := resourceMetrics.ContainsOnly(resourceMetrics)
+	require.True(t, containsAll, err)
+	require.NoError(t, err)
+}
+
 func TestMetricContainsAllNoBijection(t *testing.T) {
 	received := loadedResourceMetrics(t)
 
@@ -458,4 +466,13 @@ func TestMetricContainsAllWithMissingAndEmptyAttributes(t *testing.T) {
 	require.False(t, containsAll)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "Missing Metrics: [attributes: {}\nname: another_int_gauge\ntype: IntGauge\nvalue: 111\n]")
+}
+
+func TestMetricContainsOnlyDetectsUnexpectedMetric(t *testing.T) {
+	resourceMetrics := loadedResourceMetrics(t)
+	sm := resourceMetrics.ResourceMetrics[0].ScopeMetrics
+	sm[0].Metrics = append(sm[0].Metrics, Metric{Name: "unexpected_metric"})
+	containsAll, err := resourceMetrics.ContainsOnly(loadedResourceMetrics(t))
+	require.False(t, containsAll, err)
+	require.EqualError(t, err, fmt.Sprintf("%v contains unexpected metrics unexpected_metric", resourceMetrics.ResourceMetrics))
 }

@@ -19,6 +19,8 @@ import (
 	"crypto/md5" // #nosec this is not for cryptographic purposes
 	"fmt"
 	"os"
+	"sort"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 
@@ -393,4 +395,43 @@ func (resourceMetrics ResourceMetrics) ContainsAll(expected ResourceMetrics) (bo
 		)
 	}
 	return true, nil
+}
+
+// ContainsOnly confirms both resourceMetrics.ContainsAll(expected) and that no additional
+// metrics are reported
+func (resourceMetrics ResourceMetrics) ContainsOnly(expected ResourceMetrics) (bool, error) {
+	if ok, err := resourceMetrics.ContainsAll(expected); !ok {
+		return ok, err
+	}
+	expectedNames := map[string]struct{}{}
+	for _, rm := range expected.ResourceMetrics {
+		for _, sm := range rm.ScopeMetrics {
+			for _, m := range sm.Metrics {
+				expectedNames[m.Name] = struct{}{}
+			}
+		}
+	}
+
+	unexpectedNames := map[string]struct{}{}
+	for _, rm := range resourceMetrics.ResourceMetrics {
+		for _, sm := range rm.ScopeMetrics {
+			for _, m := range sm.Metrics {
+				if _, ok := expectedNames[m.Name]; !ok {
+					unexpectedNames[m.Name] = struct{}{}
+				}
+			}
+		}
+	}
+
+	if len(unexpectedNames) == 0 {
+		return true, nil
+	}
+
+	var unexpected []string
+	for name := range unexpectedNames {
+		unexpected = append(unexpected, name)
+	}
+
+	sort.Strings(unexpected)
+	return false, fmt.Errorf("%v contains unexpected metrics %s", resourceMetrics.ResourceMetrics, strings.Join(unexpected, ", "))
 }

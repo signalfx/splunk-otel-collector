@@ -11,6 +11,8 @@ resource_metrics:
             type: IntMonotonicCumulativeSum
           - name: pg_blks.heap_read-test_schema-table_one
             type: IntMonotonicCumulativeSum
+          - name: pg_blks.heap_read-test_schema-table_two
+            type: IntMonotonicCumulativeSum
           - name: pg_blks.idx_hit
             type: IntMonotonicCumulativeSum
           - name: pg_blks.idx_hit-test_schema-table_one

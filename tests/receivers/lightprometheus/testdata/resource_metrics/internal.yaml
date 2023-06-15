@@ -110,3 +110,21 @@ resource_metrics:
               service_instance_id: <ANY>
               service_name: otelcol
               service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_scraper_scraped_metric_points
+            description: Number of metric points successfully scraped.
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              receiver: lightprometheus/myjob
+              scraper: lightprometheus
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>
+          - name: otelcol_scraper_errored_metric_points
+            description: Number of metric points that were unable to be scraped.
+            type: DoubleMonotonicCumulativeSum
+            attributes:
+              receiver: lightprometheus/myjob
+              scraper: lightprometheus
+              service_instance_id: <ANY>
+              service_name: otelcol
+              service_version: <VERSION_FROM_BUILD>

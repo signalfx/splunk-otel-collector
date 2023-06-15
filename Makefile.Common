@@ -98,7 +98,7 @@ lint: checklicense misspell impi
 .PHONY: tidy
 tidy:
 	rm -fr go.sum
-	$(GOCMD) mod tidy -compat=1.18
+	$(GOCMD) mod tidy -compat=1.19
 
 .PHONY: misspell
 misspell:

@@ -51,6 +51,10 @@ func toString(saExpanded map[any]any, name string) string {
 	if !ok {
 		return ""
 	}
+	if v == nil {
+		// this can happen if an included file is empty
+		return ""
+	}
 	return v.(string)
 }
 

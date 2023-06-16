@@ -50,6 +50,12 @@ func TestSAExpandedToCfgInfo_ZK(t *testing.T) {
 	assert.Equal(t, "${zookeeper:/redis/port}", zkPwd)
 }
 
+func TestToString(t *testing.T) {
+	assert.Equal(t, "bar", toString(map[any]any{"foo": "bar"}, "foo"))
+	assert.Equal(t, "", toString(map[any]any{"foo": "bar"}, "baz"))
+	assert.Equal(t, "", toString(map[any]any{"foo": nil}, "foo"))
+}
+
 func yamlToCfgInfo(t *testing.T, filename string) saCfgInfo {
 	v := fromYAML(t, filename)
 	expanded, _, err := expandSA(v, "")

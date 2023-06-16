@@ -6,13 +6,12 @@ receivers:
     port: 8889
     extraDimensions:
       foo: bar
-
+    scrapeFailureLogLevel: error
 exporters:
   otlp:
     endpoint: "${OTLP_ENDPOINT}"
     tls:
       insecure: true
-
 service:
   telemetry:
     metrics:

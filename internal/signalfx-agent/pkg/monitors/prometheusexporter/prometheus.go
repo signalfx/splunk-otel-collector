@@ -45,11 +45,26 @@ type Config struct {
 	// (the default).
 	MetricPath string `yaml:"metricPath" default:"/metrics"`
 
+	// Control the log level to use if a scrape failure occurs when scraping
+	// a target. Modifying this configuration is useful for less stable
+	// targets. All logrus log levels are supported.
+	ScrapeFailureLogLevel    string `yaml:"scrapeFailureLogLevel" default:"error"`
+	scrapeFailureLogrusLevel logrus.Level
+
 	// Send all the metrics that come out of the Prometheus exporter without
 	// any filtering.  This option has no effect when using the prometheus
 	// exporter monitor directly since there is no built-in filtering, only
 	// when embedding it in other monitors.
 	SendAllMetrics bool `yaml:"sendAllMetrics"`
+}
+
+func (c *Config) Validate() error {
+	l, err := logrus.ParseLevel(c.ScrapeFailureLogLevel)
+	if err != nil {
+		return err
+	}
+	c.scrapeFailureLogrusLevel = l
+	return nil
 }
 
 func (c *Config) GetExtraMetrics() []string {
@@ -136,7 +151,8 @@ func (m *Monitor) Configure(conf *Config) error {
 	utils.RunOnInterval(ctx, func() {
 		dps, err := fetchPrometheusMetrics(fetch)
 		if err != nil {
-			m.logger.WithError(err).Error("Could not get prometheus metrics")
+			// The default log level is error, users can configure which level to use
+			m.logger.WithError(err).Log(conf.scrapeFailureLogrusLevel, "Could not get prometheus metrics")
 			return
 		}
 

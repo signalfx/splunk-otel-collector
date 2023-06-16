@@ -95,7 +95,9 @@ func TestValidProperties(t *testing.T) {
 				stringMap: map[string]any{
 					"extensions": map[string]any{
 						"extension-type/extensionname": map[string]any{
-							"key": "val",
+							"config": map[string]any{
+								"key": "val",
+							},
 						},
 					},
 				},
@@ -168,7 +170,9 @@ func TestValidProperties(t *testing.T) {
 				stringMap: map[string]any{
 					"extensions": map[string]any{
 						"extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type/e/x/t/e%ns<i>o<=n=>nam/e-with-config": map[string]any{
-							"o": map[string]any{"n": map[string]any{"e.config": "val"}}},
+							"config": map[string]any{
+								"o": map[string]any{"n": map[string]any{"e.config": "val"}}},
+						},
 					},
 				},
 				Input: "splunk.discovery.extensions.extension--0-1-with-config-in-type-_x64__x86_🙈🙉🙊4:000x0;;0;;0;;-___-----type/e/x/t/e%ns<i>o<=n=>nam/e-with-config.config.o::n::e.config",

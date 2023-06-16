@@ -40,7 +40,9 @@ func TestConf(t *testing.T) {
 						"enabled": "false",
 					},
 					"host_observer/with_a_name": map[string]any{
-						"refresh_interval": "1h",
+						"config": map[string]any{
+							"refresh_interval": "1h",
+						},
 					},
 				},
 				"receivers": map[string]any{

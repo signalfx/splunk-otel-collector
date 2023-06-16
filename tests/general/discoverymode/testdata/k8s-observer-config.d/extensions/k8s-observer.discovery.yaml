@@ -1,2 +1,3 @@
 k8s_observer:
-  auth_type: serviceAccount
+  config:
+    auth_type: serviceAccount

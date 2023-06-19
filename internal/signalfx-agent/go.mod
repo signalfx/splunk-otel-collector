@@ -95,7 +95,7 @@ require (
 	golang.org/x/sync v0.2.0
 	golang.org/x/sys v0.8.0
 	golang.org/x/tools v0.9.1 // indirect
-	google.golang.org/grpc v1.55.0
+	google.golang.org/grpc v1.56.0
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.27.3
@@ -128,7 +128,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.19.0 // indirect
+	cloud.google.com/go/compute v1.19.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	code.cloudfoundry.org/go-diodes v0.0.0-20180905200951-72629b5276e3 // indirect
 	code.cloudfoundry.org/rfc5424 v0.0.0-20180905210152-236a6d29298a // indirect

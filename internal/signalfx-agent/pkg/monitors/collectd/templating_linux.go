@@ -39,7 +39,7 @@ func WriteConfFile(content, filePath string) error {
 		return fmt.Errorf("failed to restrict permissions on collectd config file at %s: %w", filePath, err)
 	}
 
-	_, err = f.Write([]byte(content))
+	_, err = f.WriteString(content)
 	if err != nil {
 		return fmt.Errorf("failed to write collectd config file at %s: %w", filePath, err)
 	}

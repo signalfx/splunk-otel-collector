@@ -128,6 +128,9 @@ linters:
     - deadcode
     - sqlclosecheck
     - unused
+    - tagalign
+    - depguard
+    - nakedret
 
 
 linters-settings:

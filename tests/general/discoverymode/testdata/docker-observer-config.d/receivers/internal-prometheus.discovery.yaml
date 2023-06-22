@@ -16,7 +16,7 @@ prometheus_simple:
   status:
     metrics:
       successful:
-        - strict: prometheus_tsdb_time_retentions
+        - strict: prometheus_tsdb_time_retentions_total
           first_only: true
           log_record:
             severity_text: info

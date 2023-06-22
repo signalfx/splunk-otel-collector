@@ -7,9 +7,9 @@ resource_metrics:
           name: without_metrics
           version: some_version
       - metrics:
-          - name: an_int_gauge
+          - description: an_int_gauge_description
+            name: an_int_gauge
             type: IntGauge
-            description: an_int_gauge_description
             unit: an_int_gauge_unit
             value: 123
           - name: a_double_gauge

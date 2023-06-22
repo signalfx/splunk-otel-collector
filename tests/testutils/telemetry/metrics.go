@@ -167,23 +167,52 @@ func (resourceMetrics ResourceMetrics) Validate() error {
 	return nil
 }
 
+func (resourceMetrics ResourceMetrics) String() string {
+	return marshal(resourceMetrics)
+}
+
+func (resourceMetric ResourceMetric) String() string {
+	return marshal(resourceMetric)
+}
+
+func (scopeMetrics ScopeMetrics) String() string {
+	return marshal(scopeMetrics)
+}
+
 func (metric Metric) String() string {
+	return marshal(metric)
+}
+
+func (metric Metric) MarshalYAML() (any, error) {
 	// fieldalignment causes the Metric yaml rep to be
-	// unintuitive so unmarshal into map[string]any
-	// and remarshal for convenience.
-	ms := map[string]any{}
-	out, err := yaml.Marshal(metric)
-	if err != nil {
-		panic(err)
+	// unintuitive so manually unmarshal into map[string]any
+	ms := map[string]any{
+		"name": metric.Name,
+		"type": metric.Type,
 	}
-	if err = yaml.Unmarshal(out, &ms); err != nil {
-		panic(err)
+	if metric.Unit != "" {
+		ms["unit"] = metric.Unit
 	}
-	out, err = yaml.Marshal(ms)
-	if err != nil {
-		panic(err)
+	if metric.Description != "" {
+		ms["description"] = metric.Description
 	}
-	return string(out)
+	if metric.Attributes != nil && len(*metric.Attributes) > 0 {
+		ms["attributes"] = metric.Attributes
+	}
+	for _, s := range []struct {
+		v any
+		k string
+	}{
+		{k: "sum", v: metric.Sum},
+		{k: "count", v: metric.Count},
+		{k: "value", v: metric.Value},
+	} {
+		if s.v != nil {
+			ms[s.k] = s.v
+		}
+
+	}
+	return ms, nil
 }
 
 // Provides an md5 hash determined by Metric content.
@@ -345,7 +374,7 @@ func (resourceMetrics ResourceMetrics) ContainsAll(expected ResourceMetrics) (bo
 							if len(missingMetrics) != 0 {
 								return false, fmt.Errorf(
 									"%v doesn't contain all of %v. Missing Metrics: %s",
-									ilm.Metrics, expectedILM.Metrics, missingMetrics)
+									ilm, expectedILM, missingMetrics)
 							}
 						}
 					}
@@ -372,7 +401,7 @@ func (resourceMetrics ResourceMetrics) ContainsAll(expected ResourceMetrics) (bo
 					}
 					return false, fmt.Errorf(
 						"%v doesn't contain all of %v. Missing InstrumentationScopes: %s",
-						resourceMetric.ScopeMetrics, expectedResourceMetric.ScopeMetrics, missingIS,
+						resourceMetric, expectedResourceMetric, missingIS,
 					)
 				}
 			}
@@ -386,12 +415,15 @@ func (resourceMetrics ResourceMetrics) ContainsAll(expected ResourceMetrics) (bo
 		for k := range missingInstrumentationScopes {
 			missingIS = append(missingIS, k)
 		}
-		return false, fmt.Errorf("Missing InstrumentationScopes: %s", missingIS)
+		return false, fmt.Errorf(
+			"%v doesn't contain all of %v. Missing InstrumentationScopes: %s",
+			resourceMetrics, expected, missingIS,
+		)
 	}
 	if len(missingResources) != 0 {
 		return false, fmt.Errorf(
 			"%v doesn't contain all of %v. Missing resources: %s",
-			resourceMetrics.ResourceMetrics, expected.ResourceMetrics, missingResources,
+			resourceMetrics, expected, missingResources,
 		)
 	}
 	return true, nil
@@ -433,5 +465,5 @@ func (resourceMetrics ResourceMetrics) ContainsOnly(expected ResourceMetrics) (b
 	}
 
 	sort.Strings(unexpected)
-	return false, fmt.Errorf("%v contains unexpected metrics %s", resourceMetrics.ResourceMetrics, strings.Join(unexpected, ", "))
+	return false, fmt.Errorf("%v contains unexpected metrics %s", resourceMetrics, strings.Join(unexpected, ", "))
 }
